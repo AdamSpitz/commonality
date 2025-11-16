@@ -98,7 +98,10 @@ For accessing Twitter follower counts... I dunno, I still want to look into the 
 
 ## Terminology / concepts / ontology
 
-Can we put a glossary here? Give names to all the different concepts in the system, and define them more clearly?
+Can we put a glossary here?
+
+This isn't meant to be a detailed description of each term; this is just meant to pin down what concepts we have and what word we're using for each concept.
+
 
 
 ## Artifacts
