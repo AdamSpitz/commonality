@@ -1,3 +1,4 @@
+I asked AI to generate a list of stuff from our chat that isn't in the README.md file yet:
 
   Project & Funding Features
 
@@ -23,7 +24,6 @@
   - nanoAllocation of funding
   - nanoBoardmembers (everyone is a board member)
   - nanoCommissioners
-  - NotZ (unclear what this refers to)
 
   Philosophical/Aspirational
 
