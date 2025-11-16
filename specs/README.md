@@ -96,6 +96,8 @@ Regarding any indexers we need for the blockchain data, let's start with using P
   - Do we need some kind of high-performance graph database for running interesting graph-analysis algorithms on the statement-implication graph? Beats me. (Sam mentioned setting up a knowledge graph database using AWS Neptune with Gremlin query language and Jupyter notebooks. I don't have experience with any of that, but I wanted to record it here.)
   - Hopefully we can choose infrastructure that's scalable up and down - cheap while small, but can scale quickly if this thing takes off.
 
+Use GraphQL (rather than REST) for all communication between the indexers and the UIs.
+
 For UI code, let's use TypeScript, Vite, and viem and wagmi for blockchain stuff.
 
 For accessing Twitter follower counts... I dunno, I still want to look into the actual cost of that. Sam thinks it's not too expensive?
@@ -130,7 +132,7 @@ Let's flesh this out with a list of how to divide up this system into concrete t
 
 In specs/contracts, there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
 
-In specs/graphql, let's have the graphql schemas that the indexer(s) provide for querying the data.
+In specs/graphql, let's have the graphql schema files describing the data that the indexer(s) make available.
 
 And let's use integration.md for any other info that might be useful for pinning down the integration points between the different artifacts.
 
@@ -152,9 +154,11 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
     - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
   - Implications smart contract:
     - I've already generated this one too; see specs/contracts/conceptspace.
+  - I'm a bit worried about storing "indirect support" directly in the DB. The problem is that I do want the implication attesters to be configurable; not everyone is going to agree that S1 implies S2. But OTOH it does sound like it'll be expensive to keep recomputing indirect support on every query (basing it dynamically on the passed-in set of trusted implication attesters). Maybe not that expensive, though? For now, let's only store direct support, and we'll compute indirect support on the fly (by finding the set of implying statements and then doing a set-union of their direct supporters).
   - Funding Portal smart contracts:
     - See the specs/contracts/pubstarter directory; that's old code that I wrote a while ago, but I think it should be useful. (There's also specs/contracts/pubstarter/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
     - I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events.
+  
 
 
 ## Future steps
