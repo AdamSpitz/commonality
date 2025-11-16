@@ -32,7 +32,7 @@ The overall system is made of two big components: Concept Space and Funding Port
 
 ### Concept Space
 
-Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes. Users can "sign" these statements to show agreement/belief (or disbelief - the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to). Anyone (though this'll probably be done by AI, not by humans) can publish Implication Attestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements.
+Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes. Users can "sign" these statements to show agreement/belief (or disbelief, or no-opinion - the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to). Anyone (though this'll probably be done by AI, not by humans) can publish Implication Attestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements.
 
 Some points about this:
     
@@ -132,6 +132,17 @@ See integration.md for a list of integration points between these different arti
   - anything else I've forgotten
 
 (The idea is to allow us to ask an AI to build each artifact separately, without requiring unnecessary rebuilding of other artifacts that depend on it.)
+
+
+### Technical details
+
+When asking AI to generate mid-level specs and code, I've found that it sometimes gets some key details wrong. So let's pin down some points here:
+
+  - A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statement-type" field on it, so that in the future we can support different schemas. (e.g. For now let's just have statements that look like { "statement-type": "simple-string", "definition": "blah blah" }.) A statement's ID is the IPFS CID of this JSON document.
+  - Beliefs smart contract:
+    - A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
+    - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
+
 
 ## Future steps
 
