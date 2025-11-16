@@ -1,163 +1,219 @@
-# Integration Points
+# Integration Specification
 
-This (AI-generated) document specifies the integration points between the different artifacts of the Commonality system. The purpose is to allow each artifact to be built/rebuilt independently by AI without requiring unnecessary changes to dependent artifacts.
+<!-- AI-generated from specs/README.md -->
 
-## Table of Contents
+This document defines the integration points between all artifacts in the Commonality system. The purpose is to allow each artifact to be built or regenerated independently without breaking other artifacts that depend on it.
 
-1. [Smart Contract Events](#smart-contract-events)
-2. [Indexer Query APIs](#indexer-query-apis)
-3. [UI-to-Indexer API Contracts](#ui-to-indexer-api-contracts)
-4. [Cross-Component Data Flow](#cross-component-data-flow)
+## Overview
+
+The Commonality system consists of three main subsystems:
+1. **Concept Space**: For managing statements and beliefs
+2. **Pubstarter**: For creating crowdfunding projects
+3. **Funding Portal**: For connecting projects to statements/causes
+
+Each subsystem has smart contracts, indexers, and UIs that need to communicate with each other.
 
 ---
 
 ## Smart Contract Events
 
-### Beliefs Contract
+### Concept Space Contracts
 
-**Contract Name:** `Beliefs`
+#### Beliefs Contract
 
-**Events Emitted:**
+**Purpose**: Tracks user beliefs about statements
+
+**Events Emitted**:
 
 ```solidity
+// Emitted when a user changes their belief about a statement
 event DirectSupport(
-    address indexed account,
+    address indexed user,
     bytes32 indexed statementId,  // IPFS CID of the statement
-    uint8 beliefState  // 0 = noOpinion, 1 = believes, 2 = disbelieves
+    uint8 beliefState             // 0=noOpinion, 1=believes, 2=disbelieves
 );
 ```
 
-**State Storage:**
-
-The Beliefs contract stores belief states onchain to allow other smart contracts to query them:
-
+**State Storage**:
 ```solidity
-// Mapping: account => statementId => beliefState
+// Public mapping for other contracts to read
 mapping(address => mapping(bytes32 => uint8)) public beliefs;
+// beliefState: 0=noOpinion (default), 1=believes, 2=disbelieves
 
-function getBelief(address account, bytes32 statementId) public view returns (uint8);
-```
-
-**Functions:**
-
-```solidity
+function getBelief(address user, bytes32 statementId) external view returns (uint8);
 function setBelief(bytes32 statementId, uint8 beliefState) external;
-// Sets the caller's belief state for a statement
-// Emits DirectSupport event
-// Updates beliefs mapping
 ```
+
+**Notes**:
+- Defaults to `noOpinion` (0) if never set
+- Stores state onchain so other contracts can query it
+- Uses block timestamp, not event timestamp
 
 ---
 
-### Implications Contract
+#### Implications Contract
 
-**Contract Name:** `Implications`
+**Purpose**: Links related statements via implication attestations
 
-**Events Emitted:**
+**Events Emitted**:
 
 ```solidity
+// Emitted when an attester declares that S1 implies S2
 event ImplicationAttestation(
     address indexed attester,
     bytes32 indexed fromStatementId,  // IPFS CID
-    bytes32 indexed toStatementId    // IPFS CID
+    bytes32 indexed toStatementId     // IPFS CID
 );
 ```
 
-**Notes:**
-- Any account can publish ImplicationAttestations
-- The semantic meaning: "if someone believes fromStatementId, they probably also believe toStatementId"
-- Users configure which attesters they trust in their Settings
+**Functions**:
+```solidity
+function attestImplication(bytes32 fromStatementId, bytes32 toStatementId) external;
+```
+
+**Notes**:
+- Any address can be an attester
+- No validation that statements exist on IPFS (trust model)
+- Unidirectional: fromStatement → toStatement
 
 ---
 
-### Funding Portal Contract
+### Funding Portal Contracts
 
-**Contract Name:** `FundingPortal`
+#### ProjectAlignment Contract
 
-**Events Emitted:**
+**Purpose**: Links projects to statements
+
+**Events Emitted**:
 
 ```solidity
+// Emitted when an attester declares project P is aligned with statement S
 event ProjectAlignmentAttestation(
     address indexed attester,
-    bytes32 indexed projectId,     // Project identifier
-    bytes32 indexed statementId   // IPFS CID of the statement
+    address indexed projectContract,  // Address of the project's contract
+    bytes32 indexed statementId       // IPFS CID of the statement
+);
+```
+
+**Functions**:
+```solidity
+function attestProjectAlignment(address projectContract, bytes32 statementId) external;
+```
+
+**Notes**:
+- Any address can attest
+- `projectContract` should be an AssuranceContract address
+- Multiple attestations can link one project to multiple statements
+
+---
+
+### Pubstarter Contracts
+
+See [specs/pubstarter-contracts/](pubstarter-contracts/) for detailed contract specifications.
+
+**Key Events** (from existing AssuranceContract code):
+
+```solidity
+// From AssuranceContract.sol - when funds are withdrawn
+event Withdrawal(address indexed recipient, uint256 amount);
+
+// From ContractMetadata - for project metadata
+event ContractMetadataUpdate(bytes32 indexed cid);
+
+// From ERC1155 standard - for token purchases/sales
+event TransferSingle(
+    address indexed operator,
+    address indexed from,
+    address indexed to,
+    uint256 id,
+    uint256 value
 );
 
-event ProjectCreated(
-    bytes32 indexed projectId,
-    address indexed creator,
-    string name,
-    string description,
-    address nftContract  // ERC-1155 contract address
+event TransferBatch(
+    address indexed operator,
+    address indexed from,
+    address indexed to,
+    uint256[] ids,
+    uint256[] values
 );
+```
 
-event Contribution(
-    bytes32 indexed projectId,
-    address indexed contributor,
-    uint256 amount,
-    uint256 tokenId
-);
+**Key Contract Interfaces**:
 
-event TokenBurned(
-    bytes32 indexed projectId,
-    address indexed donor,
-    uint256 tokenId,
-    uint256 amount
-);
+```solidity
+interface IAssuranceContract {
+    function recipient() external view returns (address);
+    function threshold() external view returns (uint256);
+    function deadline() external view returns (uint256);
+    function getAssuranceContractProgress() external view returns (uint256);
+    function withdraw() external;
+}
+
+interface IContractMetadata {
+    function contractMetadataCID() external view returns (bytes32);
+}
 ```
 
 ---
 
-### DelegatableNotes Contract
+## IPFS Data Structures
 
-**Contract Name:** `DelegatableNotes`
+### Statement Document
 
-**Events Emitted:**
+**Location**: Uploaded to IPFS, referenced by CID
 
-```solidity
-event NoteCreated(
-    uint256 indexed noteId,
-    address indexed owner,
-    bytes32 indexed intendedStatementId,  // The cause this is intended for
-    uint256 amount,
-    uint8 commissionPercentage  // Percentage the delegate can take as commission
-);
+**Schema v1** (simple-string type):
 
-event NoteDelegated(
-    uint256 indexed noteId,
-    address indexed delegator,
-    address indexed delegate
-);
-
-event DelegationRevoked(
-    uint256 indexed noteId,
-    address indexed revokedBy  // Who revoked it (could be anywhere in the chain)
-);
-
-event NoteUsed(
-    uint256 indexed noteId,
-    bytes32 indexed projectId,
-    uint256 amount,
-    address[] delegationChain  // Full chain from owner to final decision-maker
-);
+```json
+{
+  "statement-type": "simple-string",
+  "definition": "The actual text of the statement goes here"
+}
 ```
 
-**Functions:**
+**Future schemas** may include:
+- Rich text/markdown
+- References to other statements
+- Structured data
 
-```solidity
-function createNote(
-    bytes32 intendedStatementId,
-    uint256 amount,
-    uint8 commissionPercentage
-) external payable returns (uint256 noteId);
+**Statement ID**: The IPFS CID (Content Identifier) of this JSON document, represented as `bytes32` in contracts.
 
-function delegateNote(uint256 noteId, address delegate) external;
+**Example**:
+```json
+{
+  "statement-type": "simple-string",
+  "definition": "I believe in free speech and open discourse"
+}
+```
 
-function revokeDelegation(uint256 noteId) external;
+---
 
-function useNote(uint256 noteId, bytes32 projectId, uint256 amount) external;
+### Project Metadata
 
-function getDelegationChain(uint256 noteId) external view returns (address[] memory);
+**Location**: Uploaded to IPFS, referenced in `ContractMetadataUpdate` event
+
+**Suggested Schema** (to be finalized):
+
+```json
+{
+  "project-type": "pubstarter-v1",
+  "title": "Project Title",
+  "description": "Detailed description of the project",
+  "creator": "0x...",
+  "media": {
+    "coverImage": "ipfs://...",
+    "images": ["ipfs://...", "ipfs://..."],
+    "video": "ipfs://..."
+  },
+  "rewards": [
+    {
+      "tokenId": 1,
+      "name": "Basic Supporter",
+      "description": "Thank you!",
+      "image": "ipfs://..."
+    }
+  ]
+}
 ```
 
 ---
@@ -166,507 +222,675 @@ function getDelegationChain(uint256 noteId) external view returns (address[] mem
 
 ### Concept Space Indexer
 
-The Concept Space Indexer processes events from the Beliefs and Implications contracts.
+**Technology**: Ponder (indexing Ethereum events)
+**Database**: PostgreSQL (provided by Ponder)
+**Deployment**: Railway
 
-**Database Schema Highlights:**
+**Indexes These Contracts**:
+- Beliefs
+- Implications
 
-```typescript
-interface Statement {
-  id: string;  // IPFS CID
-  type: string;  // e.g., "simple-string"
-  definition: string;  // The actual statement text
-  directSupportCount: number;
-  indirectSupportCount: number;
-  totalSupportCount: number;
-}
+**Required Queries**:
 
-interface Belief {
-  account: string;
-  statementId: string;
-  beliefState: 'noOpinion' | 'believes' | 'disbelieves';
-}
+#### 1. Get Statement Details
 
-interface Implication {
-  attester: string;
-  fromStatementId: string;
-  toStatementId: string;
-  timestamp: number;
+```graphql
+query GetStatement($statementId: String!) {
+  statement(id: $statementId) {
+    id              # IPFS CID
+    definition      # The actual statement text (fetched from IPFS)
+    directSupporters {
+      address
+      beliefState   # 1=believes, 2=disbelieves
+      timestamp
+    }
+    indirectSupporters {
+      address
+      viaStatementId  # Which statement they signed that implies this one
+      beliefState
+    }
+    impliedBy {     # Statements that imply this one
+      fromStatementId
+      attester
+      timestamp
+    }
+    implies {       # Statements that this one implies
+      toStatementId
+      attester
+      timestamp
+    }
+    directSupportCount
+    indirectSupportCount
+  }
 }
 ```
 
-**Query Requirements:**
+#### 2. Get User Beliefs
 
-1. Get statement by ID with support counts
-2. Get all statements a user has signed (directly)
-3. Get all implications for a statement (both incoming and outgoing)
-4. Get supporters of a statement (both direct and indirect)
-5. Calculate transitive implications (graph traversal)
-6. Find commonality statements (statements with references to other statements)
-7. Get suggested statements for a user (based on implications)
+```graphql
+query GetUserBeliefs($userAddress: String!) {
+  user(address: $userAddress) {
+    address
+    beliefs {
+      statementId
+      beliefState
+      timestamp
+    }
+  }
+}
+```
+
+#### 3. Get Implication Graph
+
+```graphql
+query GetImplicationsByAttester($attesterAddress: String!) {
+  implications(where: { attester: $attesterAddress }) {
+    fromStatementId
+    toStatementId
+    attester
+    timestamp
+  }
+}
+```
+
+**REST API Examples**:
+
+```typescript
+// GET /api/statement/:statementId
+interface StatementResponse {
+  id: string;  // IPFS CID
+  definition: string;
+  directSupportCount: number;
+  indirectSupportCount: number;
+  directSupporters: Array<{
+    address: string;
+    beliefState: 1 | 2;  // 1=believes, 2=disbelieves
+    timestamp: number;
+  }>;
+  indirectSupporters: Array<{
+    address: string;
+    viaStatementId: string;
+    beliefState: 1 | 2;
+  }>;
+  impliedBy: Array<{
+    fromStatementId: string;
+    attester: string;
+    timestamp: number;
+  }>;
+  implies: Array<{
+    toStatementId: string;
+    attester: string;
+    timestamp: number;
+  }>;
+}
+
+// GET /api/user/:address/beliefs
+interface UserBeliefsResponse {
+  address: string;
+  beliefs: Array<{
+    statementId: string;
+    beliefState: 0 | 1 | 2;
+    timestamp: number;
+  }>;
+}
+
+// GET /api/implications?attester=0x...
+interface ImplicationsResponse {
+  implications: Array<{
+    fromStatementId: string;
+    toStatementId: string;
+    attester: string;
+    timestamp: number;
+  }>;
+}
+```
 
 ---
 
 ### Funding Portal Indexer
 
-The Funding Portal Indexer processes events from the FundingPortal contract and queries the Concept Space Indexer for statement implications.
+**Technology**: Ponder
+**Database**: PostgreSQL
+**Deployment**: Railway
 
-**Database Schema Highlights:**
+**Indexes These Contracts**:
+- ProjectAlignment
+- All Pubstarter contracts (AssuranceContract, ERC1155, etc.)
+
+**Required Queries**:
+
+#### 1. Get Projects for Statement
+
+```graphql
+query GetProjectsForStatement($statementId: String!) {
+  projectAlignments(where: { statementId: $statementId }) {
+    projectContract
+    attester
+    timestamp
+  }
+}
+```
+
+**With expansion via implications** (backend computation):
 
 ```typescript
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  nftContract: string;
-  creator: string;
-  totalRaised: number;
-  directAlignedStatements: string[];  // Statement IDs
-  indirectAlignedStatements: string[];  // Via implications
-}
-
-interface Contribution {
-  projectId: string;
-  contributor: string;
-  amount: number;
-  tokenId: number;
-  isBurned: boolean;  // true if donor, false if investor
-}
-
-interface ProjectAlignment {
-  projectId: string;
+// GET /api/funding-portal/:statementId
+interface FundingPortalResponse {
   statementId: string;
-  attester: string;
+  projects: Array<{
+    contractAddress: string;
+    directAlignment: boolean;  // true if directly attested to this statement
+    viaStatementId?: string;   // if indirect, which statement implies this one
+    attester: string;
+
+    // Project details (from Pubstarter contracts)
+    recipient: string;
+    threshold: string;  // in wei
+    deadline: number;   // timestamp
+    currentFunding: string;  // in wei
+    percentFunded: number;
+    metadataCID: string;
+    metadata?: {  // fetched from IPFS
+      title: string;
+      description: string;
+      coverImage: string;
+    };
+
+    // Contribution stats
+    contributorCount: number;
+    topContributors: Array<{
+      address: string;
+      ensName?: string;
+      amount: string;  // in wei
+      delegationChain?: string[];  // if via delegatable notes
+    }>;
+  }>;
+  totalAvailableFunding: string;  // sum of undelegated notes for this cause
 }
 ```
 
-**Query Requirements:**
+#### 2. Get Project Details
 
-1. Get projects aligned with a statement (including via implications)
-2. Get top contributors for a project
-3. Get top contributors for a cause (all projects aligned with a statement)
-4. Get total available funding for a cause (from DelegatableNotes)
-
----
-
-## UI-to-Indexer API Contracts
-
-### Concept Space UI API
-
-**Base URL:** `https://api.conceptspace.example/v1`
-
-#### Get Statement
-
-```typescript
-GET /statements/:statementId
-
-Response:
-{
-  "statement": {
-    "id": "QmXyz...",  // IPFS CID
-    "type": "simple-string",
-    "definition": "I believe in freedom of speech",
-    "directSupportCount": 17,
-    "indirectSupportCount": 118,
-    "totalSupportCount": 135,
-    "directSupporters": [
-      {
-        "address": "0x123...",
-        "ensName": "alice.eth",
-        "verifiedTwitter": {
-          "handle": "@alice",
-          "followers": 15000
-        }
-      }
-      // ... more supporters
-    ],
-    "indirectSupportReasons": [
-      {
-        "statementId": "QmAbc...",
-        "definition": "I believe in the First Amendment",
-        "supportCount": 42,
-        "impliedBy": ["attester1.eth", "attester2.eth"]
-      }
-      // ... more indirect support sources
-    ]
+```graphql
+query GetProject($contractAddress: String!) {
+  project(id: $contractAddress) {
+    contractAddress
+    recipient
+    threshold
+    deadline
+    currentFunding
+    metadataCID
+    alignedStatements {
+      statementId
+      attester
+      timestamp
+    }
+    contributions {
+      contributor
+      amount
+      tokenId
+      timestamp
+    }
   }
 }
 ```
 
-#### Get User's Beliefs
+**REST API**:
 
 ```typescript
-GET /users/:address/beliefs
-
-Response:
-{
-  "beliefs": [
-    {
-      "statementId": "QmXyz...",
-      "definition": "I believe in freedom of speech",
-      "beliefState": "believes",
-      "timestamp": 1699564800
-    }
-    // ... more beliefs
-  ]
+// GET /api/project/:contractAddress
+interface ProjectResponse {
+  contractAddress: string;
+  recipient: string;
+  threshold: string;
+  deadline: number;
+  currentFunding: string;
+  percentFunded: number;
+  metadataCID: string;
+  metadata?: ProjectMetadata;
+  alignedStatements: Array<{
+    statementId: string;
+    attester: string;
+    timestamp: number;
+  }>;
+  contributions: Array<{
+    contributor: string;
+    ensName?: string;
+    amount: string;
+    tokenIds: number[];
+    timestamp: number;
+    isDelegated: boolean;
+    delegationChain?: string[];
+  }>;
+  topContributors: Array<{
+    address: string;
+    ensName?: string;
+    totalContributed: string;
+    delegationChain?: string[];
+  }>;
 }
 ```
 
-#### Get Statement Suggestions for User
+#### 3. Get Delegatable Notes
 
 ```typescript
-GET /users/:address/suggestions
-
-Response:
-{
-  "suggestions": [
-    {
-      "statementId": "QmAbc...",
-      "definition": "I support the Electronic Frontier Foundation",
-      "reason": "implied-by-your-beliefs",
-      "sourceStatements": [
-        {
-          "id": "QmXyz...",
-          "definition": "I believe in freedom of speech"
-        }
-      ],
-      "popularityScore": 1250  // Number of direct supporters
-    }
-    // ... more suggestions
-  ]
-}
-```
-
-#### Get Implications for Statement
-
-```typescript
-GET /statements/:statementId/implications?direction=outgoing|incoming|both
-
-Response:
-{
-  "implications": {
-    "outgoing": [
-      {
-        "toStatementId": "QmDef...",
-        "definition": "I support privacy rights",
-        "attesters": ["ai-attester.eth"],
-        "supportCount": 89
-      }
-    ],
-    "incoming": [
-      {
-        "fromStatementId": "QmGhi...",
-        "definition": "I believe in constitutional rights",
-        "attesters": ["ai-attester.eth"],
-        "supportCount": 203
-      }
-    ]
-  }
+// GET /api/delegatable-notes?statementId=...
+interface DelegatableNotesResponse {
+  statementId: string;
+  notes: Array<{
+    noteId: string;
+    owner: string;
+    currentDelegate: string;
+    delegationChain: string[];
+    amount: string;
+    token: string;  // ERC20 token address
+    isActive: boolean;
+    intendedCause: string;  // statementId
+  }>;
+  totalAvailable: string;  // sum of active undelegated notes
 }
 ```
 
 ---
 
-### Funding Portal UI API
+## UI Integration Points
 
-**Base URL:** `https://api.fundingportal.example/v1`
+### Concept Space UI
 
-#### Get Funding Portal for Statement
+**Technology**: TypeScript, Vite, React (or similar), wagmi/viem
+**Deployment**: TBD (Vercel, Netlify, etc.)
+
+**Pages**:
+
+1. **Statement Page** (`/statement/:statementId`)
+   - Displays statement text (fetched from IPFS)
+   - Shows direct vs indirect supporter counts
+   - Lists high-profile signers
+   - Button to sign/unsign
+   - Link to funding portal
+
+2. **User Profile** (`/user/:address`)
+   - Lists all statements user has signed
+   - Suggested statements to sign
+
+**API Calls**:
 
 ```typescript
-GET /statements/:statementId/funding-portal
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { base } from 'viem/chains';
 
-Response:
-{
-  "statement": {
-    "id": "QmXyz...",
-    "definition": "I believe in freedom of speech"
-  },
-  "availableFunding": {
-    "total": 125000,  // USD equivalent of delegatable notes
-    "noteCount": 47
-  },
-  "projects": [
-    {
-      "id": "project-123",
-      "name": "Decentralized Social Media Platform",
-      "description": "Building a censorship-resistant social network",
-      "creator": "0xabc...",
-      "nftContract": "0xdef...",
-      "totalRaised": 50000,
-      "alignmentType": "direct",  // or "indirect"
-      "alignedVia": "QmXyz...",  // Statement ID it's aligned to
-      "topContributors": [
-        {
-          "address": "0x123...",
-          "ensName": "bob.eth",
-          "amount": 5000,
-          "isDonor": false,  // Investor
-          "delegationChain": ["alice.eth", "bob.eth"]
-        }
-        // ... more contributors
-      ]
-    }
-    // ... more projects
-  ]
-}
+// Read statement details from indexer
+const statementData = await fetch(
+  `${INDEXER_URL}/api/statement/${statementId}`
+).then(r => r.json());
+
+// Read statement definition from IPFS
+const statementDoc = await fetch(
+  `https://ipfs.io/ipfs/${statementId}`
+).then(r => r.json());
+
+// Write: Sign a statement (call Beliefs contract)
+import { BeliefsABI } from './abis';
+
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http()
+});
+
+const walletClient = createWalletClient({
+  chain: base,
+  transport: http()
+});
+
+const BELIEFS_CONTRACT = '0x...'; // deployed address
+
+// Set belief to "believes" (1)
+const { request } = await publicClient.simulateContract({
+  address: BELIEFS_CONTRACT,
+  abi: BeliefsABI,
+  functionName: 'setBelief',
+  args: [statementId, 1], // 1 = believes
+  account: userAddress,
+});
+
+const hash = await walletClient.writeContract(request);
+await publicClient.waitForTransactionReceipt({ hash });
 ```
 
-#### Get Project Details
+**Example Component**:
 
 ```typescript
-GET /projects/:projectId
+// StatementPage.tsx
+import { useAccount } from 'wagmi';
 
-Response:
-{
-  "project": {
-    "id": "project-123",
-    "name": "Decentralized Social Media Platform",
-    "description": "Building a censorship-resistant social network",
-    "creator": "0xabc...",
-    "nftContract": "0xdef...",
-    "totalRaised": 50000,
-    "alignedStatements": [
-      {
-        "statementId": "QmXyz...",
-        "definition": "I believe in freedom of speech",
-        "alignmentType": "direct",
-        "attesters": ["curator.eth"]
-      }
-    ],
-    "contributions": [
-      {
-        "contributor": "0x123...",
-        "ensName": "bob.eth",
-        "amount": 5000,
-        "isDonor": false,
-        "delegationChain": ["alice.eth", "bob.eth"],
-        "percentOfTotal": 10
-      }
-      // ... more contributions
-    ]
-  }
-}
-```
+function StatementPage({ statementId }: { statementId: string }) {
+  const { address } = useAccount();
+  const [statement, setStatement] = useState<StatementResponse | null>(null);
 
-#### Get Top Contributors for Cause
+  useEffect(() => {
+    // Fetch from indexer
+    fetch(`${INDEXER_URL}/api/statement/${statementId}`)
+      .then(r => r.json())
+      .then(setStatement);
+  }, [statementId]);
 
-```typescript
-GET /statements/:statementId/top-contributors
-
-Response:
-{
-  "contributors": [
-    {
-      "address": "0x123...",
-      "ensName": "bob.eth",
-      "totalContributed": 12500,
-      "projectCount": 5,
-      "contributionBreakdown": [
-        {
-          "projectId": "project-123",
-          "projectName": "Decentralized Social Media Platform",
-          "amount": 5000,
-          "isDonor": false
-        }
-        // ... more projects
-      ]
-    }
-    // ... more contributors
-  ]
-}
-```
-
----
-
-## Cross-Component Data Flow
-
-### Statement Support Count Calculation
-
-The Concept Space Indexer needs to calculate both direct and indirect support:
-
-```typescript
-// Example code for calculating support
-async function calculateSupportCounts(statementId: string, trustedAttesters: string[]) {
-  // Direct support: count all DirectSupport events where beliefState = 1 (believes)
-  const directSupport = await db.query(`
-    SELECT COUNT(DISTINCT account)
-    FROM beliefs
-    WHERE statementId = ? AND beliefState = 1
-  `, [statementId]);
-
-  // Indirect support: find all statements that imply this one
-  const implyingStatements = await findImplyingStatements(
-    statementId,
-    trustedAttesters
-  );
-
-  // For each implying statement, count its supporters
-  let indirectSupport = 0;
-  for (const implying of implyingStatements) {
-    const supporters = await db.query(`
-      SELECT COUNT(DISTINCT account)
-      FROM beliefs
-      WHERE statementId = ? AND beliefState = 1
-    `, [implying.statementId]);
-
-    indirectSupport += supporters.count;
-  }
-
-  return {
-    direct: directSupport.count,
-    indirect: indirectSupport,
-    total: directSupport.count + indirectSupport
+  const handleSign = async () => {
+    // Call Beliefs.setBelief(statementId, 1)
+    // ... wagmi/viem code ...
   };
+
+  return (
+    <div>
+      <h1>{statement?.definition}</h1>
+      <p>Direct supporters: {statement?.directSupportCount}</p>
+      <p>Indirect supporters: {statement?.indirectSupportCount}</p>
+      <button onClick={handleSign}>Sign this statement</button>
+      <a href={`/funding-portal/${statementId}`}>View Funding Portal</a>
+    </div>
+  );
 }
 ```
 
-### Funding Portal Statement Alignment
+---
 
-The Funding Portal Indexer queries the Concept Space Indexer to determine which projects are relevant to a statement:
+### Funding Portal UI
+
+**Technology**: TypeScript, Vite, React, wagmi/viem
+**Deployment**: TBD
+
+**Pages**:
+
+1. **Funding Portal Page** (`/funding-portal/:statementId`)
+   - Shows statement definition
+   - Lists all aligned projects (direct + indirect via implications)
+   - Shows total available funding (from delegatable notes)
+   - Filter/sort projects
+
+2. **Project Page** (`/project/:contractAddress`)
+   - Project details (title, description, images)
+   - Funding progress bar
+   - List of reward tiers (ERC1155 token IDs)
+   - Buy/sell tokens
+   - Top contributors list with delegation chains
+
+**API Calls**:
 
 ```typescript
-// Example: Finding projects for a statement's funding portal
-async function getProjectsForStatement(
-  statementId: string,
-  trustedAttesters: string[]
-) {
-  // Get directly aligned projects
-  const directProjects = await db.query(`
-    SELECT DISTINCT projectId
-    FROM project_alignments
-    WHERE statementId = ?
-  `, [statementId]);
+// Read funding portal data
+const portalData = await fetch(
+  `${INDEXER_URL}/api/funding-portal/${statementId}`
+).then(r => r.json());
 
-  // Get all statements implied by this statement
-  const impliedStatements = await conceptSpaceIndexer.getImpliedStatements(
-    statementId,
-    trustedAttesters
-  );
+// Read project details
+const projectData = await fetch(
+  `${INDEXER_URL}/api/project/${contractAddress}`
+).then(r => r.json());
 
-  // Get projects aligned to any of the implied statements
-  const indirectProjects = await db.query(`
-    SELECT DISTINCT projectId, statementId
-    FROM project_alignments
-    WHERE statementId IN (?)
-  `, [impliedStatements.map(s => s.id)]);
+// Write: Buy project tokens (call AssuranceContract)
+import { AssuranceContractABI } from './abis';
 
-  return {
-    direct: directProjects,
-    indirect: indirectProjects
+const { request } = await publicClient.simulateContract({
+  address: projectContractAddress,
+  abi: AssuranceContractABI,
+  functionName: 'buyERC1155',
+  args: [tokenId, amount],
+  value: parseEther(price * amount),
+  account: userAddress,
+});
+
+const hash = await walletClient.writeContract(request);
+
+// Write: Attest project alignment (call ProjectAlignment contract)
+import { ProjectAlignmentABI } from './abis';
+
+const PROJECT_ALIGNMENT_CONTRACT = '0x...';
+
+await walletClient.writeContract({
+  address: PROJECT_ALIGNMENT_CONTRACT,
+  abi: ProjectAlignmentABI,
+  functionName: 'attestProjectAlignment',
+  args: [projectContractAddress, statementId],
+  account: userAddress,
+});
+```
+
+**Example Component**:
+
+```typescript
+// ProjectPage.tsx
+function ProjectPage({ contractAddress }: { contractAddress: string }) {
+  const [project, setProject] = useState<ProjectResponse | null>(null);
+
+  useEffect(() => {
+    fetch(`${INDEXER_URL}/api/project/${contractAddress}`)
+      .then(r => r.json())
+      .then(setProject);
+  }, [contractAddress]);
+
+  const handleBuyTokens = async (tokenId: number, amount: number) => {
+    // Call AssuranceContract.buyERC1155(tokenId, amount)
+    // ... wagmi/viem code ...
   };
-}
-```
 
-### Delegatable Notes Integration
-
-When displaying available funding for a cause, the UI needs to query the DelegatableNotes contract:
-
-```typescript
-// Example: Getting available funding for a statement
-async function getAvailableFunding(statementId: string) {
-  // Query all notes intended for this statement or implied statements
-  const notes = await delegatableNotesContract.methods
-    .getNotesForStatement(statementId)
-    .call();
-
-  // Include notes for implied statements
-  const impliedStatements = await conceptSpaceIndexer.getImpliedStatements(
-    statementId,
-    userTrustedAttesters
+  return (
+    <div>
+      <h1>{project?.metadata?.title}</h1>
+      <p>{project?.metadata?.description}</p>
+      <ProgressBar
+        current={project?.currentFunding}
+        goal={project?.threshold}
+      />
+      <div>
+        {/* Reward tiers */}
+        <button onClick={() => handleBuyTokens(1, 1)}>
+          Buy Basic Supporter Token
+        </button>
+      </div>
+      <TopContributorsList contributors={project?.topContributors} />
+    </div>
   );
-
-  for (const implied of impliedStatements) {
-    const impliedNotes = await delegatableNotesContract.methods
-      .getNotesForStatement(implied.id)
-      .call();
-    notes.push(...impliedNotes);
-  }
-
-  return notes.reduce((sum, note) => sum + note.amount, 0);
-}
-```
-
-### User Settings for Trusted Attesters
-
-Users configure trusted attesters in the UI, which affects which implications they see:
-
-```typescript
-// Stored in user settings (could be browser localStorage or a user profile contract)
-interface UserSettings {
-  address: string;
-  trustedAttesters: string[];  // Addresses of attesters to trust
-}
-
-// When querying implications, filter by trusted attesters
-async function getImplicationsForUser(
-  statementId: string,
-  userAddress: string
-) {
-  const settings = await getUserSettings(userAddress);
-  const trustedAttesters = settings.trustedAttesters || [DEFAULT_ATTESTER];
-
-  const implications = await db.query(`
-    SELECT * FROM implications
-    WHERE fromStatementId = ?
-    AND attester IN (?)
-  `, [statementId, trustedAttesters]);
-
-  return implications;
 }
 ```
 
 ---
 
-## Statement Format
+## Cross-System Integration Flows
 
-Statements are JSON documents stored on IPFS:
+### Flow 1: User Signs Statement → Views Funding Portal
 
+1. User visits `/statement/QmXXX` in Concept Space UI
+2. User clicks "Sign" → calls `Beliefs.setBelief(QmXXX, 1)`
+3. Transaction mined → `DirectSupport` event emitted
+4. Concept Space indexer catches event → updates DB
+5. User clicks "View Funding Portal" → redirects to `/funding-portal/QmXXX`
+6. Funding Portal UI fetches from Funding Portal indexer
+7. Indexer computes indirect alignments via implication graph
+8. UI displays all aligned projects
+
+### Flow 2: Create Project → Link to Statement
+
+1. Project creator uses Pubstarter factory to create project
+   - Calls `Pubstarter.createERC1155AndMarketplaceAndAssuranceContract(...)`
+   - Gets back project contract address
+2. Creator uploads project metadata to IPFS → gets CID
+3. Creator calls `ContractMetadata.updateMetadata(cid)` on project contract
+4. Creator (or anyone) calls `ProjectAlignment.attestProjectAlignment(projectAddress, statementId)`
+5. `ProjectAlignmentAttestation` event emitted
+6. Funding Portal indexer catches event → adds to DB
+7. Project now appears on funding portal page for that statement
+
+### Flow 3: Delegate Funding → Project Gets Funded
+
+1. Alice creates delegatable note via `DelegatableNotes` contract
+   - Deposits ERC20 tokens
+   - Marks intended cause (statementId)
+2. Alice delegates to Bob: `DelegatableNotes.delegate(noteId, bobAddress)`
+3. Bob sees available notes on funding portal
+4. Bob decides to fund a project aligned with the cause
+5. Bob uses delegated funds to buy project tokens
+6. Project page shows: "Alice (via Bob) contributed X"
+
+### Flow 4: Implication System Updates
+
+1. AI attester calls `Implications.attestImplication(statementA, statementB)`
+2. `ImplicationAttestation` event emitted
+3. Concept Space indexer catches event → updates implication graph
+4. Funding Portal indexer also catches event (or queries Concept Space indexer)
+5. Projects aligned with statementA now appear on statementB's funding portal
+6. Statements signed by supporters of statementA now show indirect support for statementB
+
+---
+
+## Configuration & Deployment
+
+### Contract Addresses (per chain)
+
+**Base Sepolia (testnet)**:
 ```typescript
-// Simple string statement (v1)
-interface SimpleStringStatement {
-  "statement-type": "simple-string";
-  definition: string;
-}
-
-// Example
-{
-  "statement-type": "simple-string",
-  "definition": "I believe in freedom of speech"
-}
-
-// Future: Commonality statement with references
-interface CommonalityStatement {
-  "statement-type": "commonality-with-references";
-  definition: string;
-  references: string[];  // Array of statement IDs (IPFS CIDs)
-}
-
-// Example
-{
-  "statement-type": "commonality-with-references",
-  "definition": "I believe in either strong privacy protections OR strong transparency requirements for government",
-  "references": ["QmPrivacy...", "QmTransparency..."]
-}
+export const CONTRACTS = {
+  Beliefs: '0x...',
+  Implications: '0x...',
+  ProjectAlignment: '0x...',
+  Pubstarter: '0x...',
+  // DelegatableNotes factory, etc.
+};
 ```
 
-To retrieve a statement:
+**Base Mainnet**:
 ```typescript
-const statementData = await ipfs.cat(statementId);
-const statement = JSON.parse(statementData);
+export const CONTRACTS = {
+  // ... production addresses
+};
+```
+
+### Environment Variables
+
+**Indexers**:
+```bash
+# .env
+DATABASE_URL=postgresql://...
+RPC_URL=https://base-sepolia.g.alchemy.com/v2/...
+IPFS_GATEWAY=https://ipfs.io
+PORT=3000
+```
+
+**UIs**:
+```bash
+# .env
+VITE_INDEXER_URL=https://indexer.example.com
+VITE_CONCEPT_SPACE_INDEXER_URL=https://concept-space-indexer.example.com
+VITE_FUNDING_PORTAL_INDEXER_URL=https://funding-portal-indexer.example.com
+VITE_CHAIN_ID=84532  # Base Sepolia
+VITE_RPC_URL=https://base-sepolia.g.alchemy.com/v2/...
 ```
 
 ---
 
-## Notes for AI Implementers
+## Testing Integration Points
 
-When regenerating any artifact:
+### Unit Tests (per artifact)
 
-1. **Smart Contracts**: Maintain the exact event signatures and function signatures defined above. Internal implementation can change, but external interfaces must remain stable.
+Each artifact should have its own test suite:
+- Smart contracts: Hardhat tests
+- Indexers: Jest/Vitest with test DB
+- UIs: Vitest + React Testing Library
 
-2. **Indexers**: Must support all the query requirements listed. Internal database schema can vary, but query APIs must match the specifications.
+### Integration Tests
 
-3. **UIs**: Must call the indexer APIs using the exact formats specified. UI styling and internal components can change freely.
+**Test the full flow**:
 
-4. **Cross-component queries**: When one indexer needs data from another (e.g., Funding Portal querying Concept Space), use the specified API contracts, not direct database access.
+```typescript
+// integration.test.ts
+describe('Statement → Funding Portal flow', () => {
+  it('should show aligned projects after attestation', async () => {
+    // 1. Deploy contracts
+    const beliefs = await deployBeliefs();
+    const projectAlignment = await deployProjectAlignment();
+    const project = await deployProject();
 
-5. **Testing**: Each artifact should include example API calls and expected responses based on the specifications above.
+    // 2. Attest alignment
+    await projectAlignment.attestProjectAlignment(
+      project.address,
+      statementId
+    );
+
+    // 3. Wait for indexer to process
+    await waitForIndexer();
+
+    // 4. Query funding portal API
+    const response = await fetch(`/api/funding-portal/${statementId}`);
+    const data = await response.json();
+
+    // 5. Verify project appears
+    expect(data.projects).toContainEqual(
+      expect.objectContaining({ contractAddress: project.address })
+    );
+  });
+});
+```
+
+---
+
+## Future Considerations
+
+### Features Not Yet Specified
+
+1. **Unique Human Verification**: Integration with Worldcoin/BrightID
+   - New events/contracts TBD
+   - Indexer queries for verified humans TBD
+
+2. **Twitter Integration**:
+   - Linking Twitter handles to addresses
+   - Querying follower counts
+   - API integration details TBD
+
+3. **Graph Database**:
+   - If statement graph gets complex, may need AWS Neptune
+   - Query language/API TBD
+
+4. **Search & Discovery**:
+   - Full-text search on statements
+   - Recommendation algorithms
+   - APIs TBD
+
+### Scalability Considerations
+
+- **IPFS Pinning**: Who pins the statement/metadata files?
+  - Consider Pinata or Web3.Storage
+
+- **Indexer Performance**:
+  - May need caching layer (Redis)
+  - May need to shard by statement/project
+
+- **Frontend Performance**:
+  - Consider pagination for large lists
+  - Consider caching statement definitions
+
+---
+
+## Summary Checklist
+
+When building or regenerating an artifact, verify these integration points:
+
+### Smart Contracts
+- [ ] Events match the schemas defined here
+- [ ] Function signatures match the examples
+- [ ] State variables are readable by other contracts (if needed)
+
+### Indexers
+- [ ] Listens to all required events
+- [ ] Exposes all required API endpoints
+- [ ] Returns data in the specified formats
+- [ ] Handles IPFS fetching for metadata
+
+### UIs
+- [ ] Calls the correct contract functions
+- [ ] Queries the correct indexer endpoints
+- [ ] Handles loading/error states
+- [ ] Updates after transactions are mined
+
+### All Artifacts
+- [ ] Uses correct contract addresses for the target chain
+- [ ] Uses correct IPFS gateway
+- [ ] Includes error handling
+- [ ] Includes logging for debugging
