@@ -44,6 +44,8 @@ Some points about this:
 
   - **Multiple attesters:** Any account is allowed to publish these Implication Attestations. Each user can (in the Settings section of the website) configure the site to accept implications from a particular set of attesters. (The point being that this idea of "if someone believes S1 then he probably believes S2" is subjective and so maybe the AI is doing a bad/biased/malicious job of producing these implication attestations.) In the beginning we'll simply create a single AI whose job is to do that, and we'll do so honestly, so I expect there won't be too much need at first for creating alternative attesters. But the system will (at least eventually) support it, to allow people to route around perceived bias.
 
+  - **More sophisticated statement-linking:** I have a suspicion that in the future we'll realize that our very basic ImplicationAttestation concept is much too simplistic and we need more-sophisticated ways of linking concepts. That's fine, we can do that later (by creating other smart contracts allowing the emission of other kinds of events), after we have a better idea of what we need.
+
   - **Coalitions/alliances/commonality:** Implication arrows are useful for more than just "S1 is pretty much the same as S2"; they're also useful for finding common ground. e.g. Someone could take S1 and S2, which are significantly different, and write a "commonality statement" S. (I don't mean "commonality statement" to be a technical term within the code; it's just a normal statement that happens to be implied by both S1 and S2. It's just useful to think about, conceptually.) The system should notice, though, when a particular statement contains references to other statements, so that people can write a statement S like "I believe either S1 or S2" and the UI page for statement S can show both S1 and S2 (and the support numbers for each); this ought to be useful for forming alliances. (It may even be possible to run fancy graph-analysis algorithms to identify useful commonality statements.)
 
   - **Unique-human verification:** At first it's fine for the system to count up all accounts who've signed a statement, but in the long run we'll probably want some way of counting up unique humans (i.e. combating Sybil attacks). One thing we can do is allow users to link their Commonality account with their unique-human identity (using whatever kinds of unique-human identity systems exist - Worldcoin, BrightID, anything else too). We can use zero-knowledge proofs to allow this to be done in a privacy-preserving way. (Don't bother implementing this yet, it's just a thought for later.)
@@ -96,12 +98,9 @@ For UI code, let's use TypeScript, Vite, and viem and wagmi for blockchain stuff
 For accessing Twitter follower counts... I dunno, I still want to look into the actual cost of that. Sam thinks it's not too expensive?
 
 
-## Terminology / concepts / ontology
+## Terminology / concepts
 
-Can we put a glossary here?
-
-This isn't meant to be a detailed description of each term; this is just meant to pin down what concepts we have and what word we're using for each concept.
-
+See glossary.md for a list of terms and concepts.
 
 
 ## Artifacts
@@ -109,7 +108,9 @@ This isn't meant to be a detailed description of each term; this is just meant t
 Let's flesh this out with a list of how to divide up this system into concrete technical artifacts.
 
   - Concept Space:
-    - smart contract
+    - smart contracts:
+      - Beliefs (for emitting DirectSupport events)
+      - Implications (for emitting ImplicationAttestation events)
     - indexer
     - UI
   - Funding Portal:
