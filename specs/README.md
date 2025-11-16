@@ -90,9 +90,11 @@ The point of using decentralized tech like blockchains and IPFS is that we want 
 
 It's probably fine to have the input data (i.e. all the various events that people can publish) onchain so that it's verifiable, and not worry so much (at least for now) about having the indexer's database being verifiable. (The indexer's DB is all derived data; it can be verified onchain, or blown away and recreated from scratch from the onchain input data if necessary.)
 
-In general an Ethereum L2 (or validium?) is probably the best choice for which chain to use. (Ethereum gives us best-in-class trustlessness/decentralization, but L1 will be too expensive for an app like this that needs to support a high volume of small transactions.) So write the smart contracts in Solidity. I expect it to be easy to switch L2s later (there are many EVM-compatible ones these days), so for now let's set up our configuration to use Base (and Base Sepolia for testnet) and we can switch later if we want to.
+In general an Ethereum L2 (or validium?) is probably the best choice for which chain to use. (Ethereum gives us best-in-class trustlessness/decentralization, but L1 will be too expensive for an app like this that needs to support a high volume of small transactions.) So write the smart contracts in Solidity (using Hardhat). I expect it to be easy to switch L2s later (there are many EVM-compatible ones these days), so for now let's set up our configuration to use Base (and Base Sepolia for testnet) and we can switch later if we want to.
 
-Regarding any indexers we need for the blockchain data, I'm open to suggestions. The Graph? Ponder? Do we need some kind of high-performance graph database for running interesting graph-analysis algorithms on the statement-implication graph? Beats me. (Sam mentioned setting up a knowledge graph database using AWS Neptune with Gremlin query language and Jupyter notebooks. I don't have experience with any of that, but I wanted to record it here.) Hopefully we can choose infrastructure that's scalable up and down - cheap while small, but can scale quickly if this thing takes off.
+Regarding any indexers we need for the blockchain data, let's start with using Ponder, deploy on Railway for now, and we can switch/add to that later if necessary. Questions for the future:
+  - Do we need some kind of high-performance graph database for running interesting graph-analysis algorithms on the statement-implication graph? Beats me. (Sam mentioned setting up a knowledge graph database using AWS Neptune with Gremlin query language and Jupyter notebooks. I don't have experience with any of that, but I wanted to record it here.)
+  - Hopefully we can choose infrastructure that's scalable up and down - cheap while small, but can scale quickly if this thing takes off.
 
 For UI code, let's use TypeScript, Vite, and viem and wagmi for blockchain stuff.
 
@@ -144,10 +146,7 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
   - Beliefs smart contract:
     - A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
     - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
-
-## Instructions for AI generating stuff
-
-
+  - 
 
 
 ## Future steps
