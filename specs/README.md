@@ -20,6 +20,7 @@ We'll feed this top-level spec through an AI to generate medium-detail specs for
 If you're an AI who's reading this top-level spec and generating a mid-level spec:
   - Make sure to include concrete examples and edge cases, not just abstract requirements (especially when that will help to clarify things for an AI that doesn't have as much understanding of the overall wider system).
   - Also make sure to include concrete code examples for integration points, like APIs intended to be called by other modules (because when we regenerate one module, we don't want to need to regenerate all the other modules that call it).
+  - Put in a comment mentioning that the file is AI-generated.
 
 I don't want to be afraid to blow away the code and regenerate it from the mid-level specs. I also don't want to be afraid to blow away a mid-level spec and regenerate it from this high-level spec.
 
@@ -138,10 +139,15 @@ See integration.md for a list of integration points between these different arti
 
 When asking AI to generate mid-level specs and code, I've found that it sometimes gets some key details wrong. So let's pin down some points here:
 
+  - In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
   - A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statement-type" field on it, so that in the future we can support different schemas. (e.g. For now let's just have statements that look like { "statement-type": "simple-string", "definition": "blah blah" }.) A statement's ID is the IPFS CID of this JSON document.
   - Beliefs smart contract:
     - A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
     - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
+
+## Instructions for AI generating stuff
+
+
 
 
 ## Future steps
