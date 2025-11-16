@@ -102,6 +102,8 @@ For accessing Twitter follower counts... I dunno, I still want to look into the 
 
 See glossary.md for a list of terms and concepts.
 
+(It isn't meant to be a detailed description of each term; this is just meant to pin down what concepts we have and what word we're using for each concept.)
+
 
 ## Artifacts
 
@@ -118,8 +120,18 @@ Let's flesh this out with a list of how to divide up this system into concrete t
     - indexer
     - UI
   - DelegatableNotes smart contract
-  - 
 
+### Integration points between artifacts
+
+See integration.md for a list of integration points between these different artifacts:
+
+  - Which smart contracts emit which events
+  - What queries each indexer needs to support
+  - API contracts between indexers and UIs
+  - Concrete code examples of calling these APIs
+  - anything else I've forgotten
+
+(The idea is to allow us to ask an AI to build each artifact separately, without requiring unnecessary rebuilding of other artifacts that depend on it.)
 
 ## Future steps
 
