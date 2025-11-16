@@ -119,7 +119,7 @@ Let's flesh this out with a list of how to divide up this system into concrete t
     - indexer
     - UI
   - Funding Portal:
-    - smart contract
+    - smart contracts
     - indexer
     - UI
   - DelegatableNotes smart contract
@@ -146,7 +146,8 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
   - Beliefs smart contract:
     - A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
     - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
-  - 
+  - Funding Portal smart contracts:
+    - See the specs/pubstarter-contracts directory; that's old code that I wrote a while ago, but I think it should be useful. Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
 
 
 ## Future steps
