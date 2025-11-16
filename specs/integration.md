@@ -109,7 +109,7 @@ function attestProjectAlignment(address projectContract, bytes32 statementId) ex
 
 ### Pubstarter Contracts
 
-See [specs/pubstarter-contracts/](pubstarter-contracts/) for detailed contract specifications.
+See [specs/contracts/pubstarter/](pubstarter-contracts/) for detailed contract specifications.
 
 **Key Events** (from existing AssuranceContract code):
 

@@ -8,14 +8,14 @@ This is a crowdfunding platform built on Ethereum that uses an **assurance contr
 
 ### 1. Assurance Contract System
 
-**[AssuranceContract.sol](specs/pubstarter-contracts/AssuranceContract.sol)** (Abstract)
+**[AssuranceContract.sol](specs/contracts/pubstarter/AssuranceContract.sol)** (Abstract)
 - Base contract implementing the assurance/crowdfunding logic
 - Has a recipient, funding threshold, and deadline
 - If threshold is met: recipient can withdraw funds
 - If deadline passes without meeting threshold: contributors can get refunds
 - Progress tracked via `getAssuranceContractProgress()` (implemented by subclasses)
 
-**[AssuranceContracts.sol](specs/pubstarter-contracts/AssuranceContracts.sol)** (MultiERC1155_AssuranceContract)
+**[AssuranceContracts.sol](specs/contracts/pubstarter/AssuranceContracts.sol)** (MultiERC1155_AssuranceContract)
 - Concrete implementation combining assurance contract with ERC1155 token sales
 - Holds pre-minted ERC1155 tokens and sells them at fixed prices
 - Tracks `_totalReceivedValue` to measure funding progress
@@ -25,22 +25,22 @@ This is a crowdfunding platform built on Ethereum that uses an **assurance contr
 
 ### 2. Token Contracts
 
-**[PremintingERC1155.sol](specs/pubstarter-contracts/PremintingERC1155.sol)**
+**[PremintingERC1155.sol](specs/contracts/pubstarter/PremintingERC1155.sol)**
 - Simple ERC1155 that allows owner to mint tokens in batches
 - Used for creating crowdfunding reward tokens
 - Owner renounces ownership after minting (see Pubstarter.sol:110)
 
-**[FreeERC1155.sol](specs/pubstarter-contracts/FreeERC1155.sol)**
+**[FreeERC1155.sol](specs/contracts/pubstarter/FreeERC1155.sol)**
 - Anyone can mint any amount of any token ID for free
 - No monetary value; used for showing support (like minting a badge/sticker)
 
-**[PremintingERC20.sol](specs/pubstarter-contracts/PremintingERC20.sol)**
+**[PremintingERC20.sol](specs/contracts/pubstarter/PremintingERC20.sol)**
 - Simple ERC20 with owner-controlled minting
 - Not currently integrated into the main Pubstarter flow
 
 ### 3. Marketplace
 
-**[ERC1155Marketplace.sol](specs/pubstarter-contracts/ERC1155Marketplace.sol)**
+**[ERC1155Marketplace.sol](specs/contracts/pubstarter/ERC1155Marketplace.sol)**
 - Full orderbook DEX for ERC1155 tokens
 - Supports both sale listings (seller posts tokens for sale) and buy orders (buyer deposits ETH)
 - Sale listings: seller deposits tokens, buyer pays ETH to fulfill
@@ -48,7 +48,7 @@ This is a crowdfunding platform built on Ethereum that uses an **assurance contr
 - Both can be partially filled or cancelled
 - Uses ReentrancyGuard for security
 
-**[ERC1155Seller.sol](specs/pubstarter-contracts/ERC1155Seller.sol)** (Abstract)
+**[ERC1155Seller.sol](specs/contracts/pubstarter/ERC1155Seller.sol)** (Abstract)
 - Simpler buy/sell mechanism (not a full marketplace)
 - Contract holds tokens and sells them at fixed prices
 - `buyERC1155`: users pay ETH to buy tokens from the contract
@@ -57,7 +57,7 @@ This is a crowdfunding platform built on Ethereum that uses an **assurance contr
 
 ### 4. Delegation System
 
-**[DelegatableNotes.sol](specs/pubstarter-contracts/DelegatableNotes.sol)**
+**[DelegatableNotes.sol](specs/contracts/pubstarter/DelegatableNotes.sol)**
 - Sophisticated system for delegating control of tokens without transferring ownership
 - Users deposit ERC20 tokens, receive "notes" representing ownership
 - Notes can be delegated to others, creating a parent-child chain
@@ -68,7 +68,7 @@ This is a crowdfunding platform built on Ethereum that uses an **assurance contr
 
 ### 5. Factory System
 
-**[Pubstarter.sol](specs/pubstarter-contracts/Pubstarter.sol)**
+**[Pubstarter.sol](specs/contracts/pubstarter/Pubstarter.sol)**
 - Main entry point with factory contracts for creating all components
 - `FreeERC1155Factory`: creates free-mint tokens
 - `PremintingERC1155Factory`: creates owner-mintable tokens
@@ -86,12 +86,12 @@ This is a crowdfunding platform built on Ethereum that uses an **assurance contr
 
 ### 6. Metadata Contracts
 
-**[ERC7572.sol](specs/pubstarter-contracts/ERC7572.sol) / [IERC7572.sol](specs/pubstarter-contracts/IERC7572.sol)**
+**[ERC7572.sol](specs/contracts/pubstarter/ERC7572.sol) / [IERC7572.sol](specs/contracts/pubstarter/IERC7572.sol)**
 - Implements ERC7572 standard for contract-level metadata
 - Provides `contractURI()` for off-chain metadata
 - MutableERC7572 variant allows owner to update URI
 
-**[ContractMetadata.sol](specs/pubstarter-contracts/ContractMetadata.sol)**
+**[ContractMetadata.sol](specs/contracts/pubstarter/ContractMetadata.sol)**
 - Simple event emitter for metadata updates
 - Used in AssuranceContracts to track project metadata CID
 

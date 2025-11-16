@@ -128,11 +128,12 @@ Let's flesh this out with a list of how to divide up this system into concrete t
 
 ### Integration points between artifacts
 
-See integration.md for a list of integration points between these different artifacts:
+In specs/contracts, there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
 
-  - Which smart contracts emit which events
-  - What queries each indexer needs to support
-  - API contracts between indexers and UIs
+In specs/graphql, let's have the graphql schemas that the indexer(s) provide for querying the data.
+
+And let's use integration.md for any other info that might be useful for pinning down the integration points between the different artifacts.
+
   - Concrete code examples of calling these APIs
   - anything else I've forgotten
 
@@ -146,10 +147,13 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
   - In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
   - A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statement-type" field on it, so that in the future we can support different schemas. (e.g. For now let's just have statements that look like { "statement-type": "simple-string", "definition": "blah blah" }.) A statement's ID is the IPFS CID of this JSON document.
   - Beliefs smart contract:
+    - First, I've already generated this; see specs/contracts/conceptspace. Feel free to just copy that into our code base.
     - A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
     - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
+  - Implications smart contract:
+    - I've already generated this one too; see specs/contracts/conceptspace.
   - Funding Portal smart contracts:
-    - See the specs/pubstarter-contracts directory; that's old code that I wrote a while ago, but I think it should be useful. (There's also specs/pubstarter-contracts/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
+    - See the specs/contracts/pubstarter directory; that's old code that I wrote a while ago, but I think it should be useful. (There's also specs/contracts/pubstarter/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
     - I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events.
 
 
