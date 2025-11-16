@@ -56,7 +56,7 @@ Some points about this:
 
 ### Funding Portals
 
-Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are aligned with statement S". Anyone can submit Project Alignment Attestation events of the form "project P is aligned with statement S". Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
+Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are aligned with statement S". Anyone can submit ProjectAlignmentAttestation events of the form "project P is aligned with statement S". Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
 
 Some points about this:
 
@@ -118,11 +118,13 @@ Let's flesh this out with a list of how to divide up this system into concrete t
       - Implications (for emitting ImplicationAttestation events)
     - indexer
     - UI
-  - Funding Portal:
-    - smart contracts
-    - indexer
-    - UI
-  - DelegatableNotes smart contract
+  - Pubstarter (for making kickstarter-like projects):
+    - smart contracts (many contracts, see below for elaboration)
+  - Funding Portal (for showing many projects in a single UI):
+    - smart contracts:
+      - ProjectAlignment (for emitting ProjectAlignmentAttestation events)
+    - indexer (let's use this for indexing the Pubstarter contracts too)
+    - UI (has various pages: a page for each individual project, and also a funding-portal page for each statementId)
 
 ### Integration points between artifacts
 
@@ -147,7 +149,8 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
     - A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
     - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
   - Funding Portal smart contracts:
-    - See the specs/pubstarter-contracts directory; that's old code that I wrote a while ago, but I think it should be useful. Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
+    - See the specs/pubstarter-contracts directory; that's old code that I wrote a while ago, but I think it should be useful. (There's also specs/pubstarter-contracts/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
+    - I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events.
 
 
 ## Future steps
