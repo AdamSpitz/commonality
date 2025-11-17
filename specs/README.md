@@ -184,7 +184,11 @@ There's a page for each statement. It shows:
   - numbers of direct and indirect signers
   - suggestions for other statements you might want to sign also/instead ("you signed S1, and there's a statement S2 that is implied by S1 and is more popular than S1; maybe you'd like to sign S2 as well")
 
-There's a page for each user, showing statements that user has signed. If it's the connected user, also show buttons for sign/unsign/etc., as well as a "create statement" button.
+There's a browse/search page for discovering statements, with sorting options including by trending (velocity of new signatures), most supporters, and newest.
+
+There's a page for each user, showing statements that user has signed (with tabs for directly signed vs indirectly supporting). If it's the connected user, also show buttons for sign/unsign/etc., as well as a "create statement" button.
+
+There's a settings page where users can configure which implication attesters they trust, connect social accounts, etc.
 
 (This isn't meant to be an exhaustive list. Include whatever else makes sense.)
 
@@ -202,9 +206,9 @@ Also keep track of all the projects aligned directly with a particular statement
 
 #### Funding Portal UI
 
-There's a page that shows many projects that are (directly or indirectly) aligned with a particular statementId. Offer various ways to sort/filter: date created, assurance-contract deadline, amount needed, etc. Show a "leaderboard" for the top contributors to any project aligned with this cause.
+There's a page that shows many projects that are (directly or indirectly) aligned with a particular statementId. Prominently display total available funding for this cause (from delegatable notes). Offer various ways to sort/filter: date created, assurance-contract deadline, amount needed, trending, etc. Show a "leaderboard" for the top contributors to any project aligned with this cause.
 
-There's a page that shows a particular project (identified by its smart-contract address). Show the project's description, deadline, funding progress, etc. Show each token type (since each project is an ERC-1155), how much each one costs to buy from the contract, buttons for buying/selling on the secondary market (if any sell/buy orders exist, show those; also show buttons for creating sell/buy orders), etc.
+There's a page that shows a particular project (identified by its smart-contract address). Show the project's description, deadline, funding progress, contributor leaderboard (distinguishing donors who've burned tokens vs investors holding tokens, and showing full delegation chains for transparency), etc. Show each token type (since each project is an ERC-1155), how much each one costs to buy from the contract, buttons for buying/selling on the secondary market (if any sell/buy orders exist, show those; also show buttons for creating sell/buy orders), and a button for token holders to burn their tokens (converting from investor to donor), etc.
 
 (This isn't meant to be an exhaustive list. Include whatever else makes sense.)
 
