@@ -132,7 +132,7 @@ Let's flesh this out with a list of how to divide up this system into concrete t
 
 In specs/contracts, there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
 
-In specs/graphql, let's have the graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available.
+In specs/graphql, let's have the graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available. (In the past I've found that when I ask AI to generate graphql schemas they end up quite verbose and hard for me to grok, so mixing English and code seems to maybe be a sweet spot.)
 
 And let's use integration.md for any other info that might be useful for pinning down the integration points between the different artifacts.
 
