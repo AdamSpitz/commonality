@@ -9,6 +9,12 @@ import "./ContractMetadata.sol";
 import "./ERC1155Seller.sol";
 import "./AssuranceContract.sol";
 
+/**
+ * Combines assurance contract with ERC1155 token sales.
+ * Holds pre-minted ERC1155 tokens and sells them at fixed prices.
+ * Tracks total received value to measure funding progress.
+ * Selling (refunds) only allowed if project failed.
+ */
 contract MultiERC1155_AssuranceContract is
     Ownable,
     ContractMetadata,
@@ -29,6 +35,9 @@ contract MultiERC1155_AssuranceContract is
         emit ContractMetadataUpdated(projectMetadataCid);
     }
 
+    /**
+     * Set prices for token IDs. Prices cannot be modified once set.
+     */
     function setPricesERC1155(
         address erc1155Addr,
         uint256[] memory ids,

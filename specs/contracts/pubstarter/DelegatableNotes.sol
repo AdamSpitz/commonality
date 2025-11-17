@@ -374,7 +374,10 @@ contract DelegatableNotes is Context, ReentrancyGuard {
     return lastCreatedNoteId; // this is the leaf note
   }
 
-  // Swap tokens via DEX - handles multiple notes with proportional returns
+  /**
+   * Swap tokens via DEX (1inch). Handles multiple notes with proportional returns.
+   * WARNING: Hardcoded 1inch router address only works on mainnet.
+   */
   function purchaseERC20(
     uint256[] calldata noteIds,
     address inputToken,

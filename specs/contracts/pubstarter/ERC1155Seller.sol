@@ -8,6 +8,11 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
+/**
+ * Simple buy/sell mechanism for ERC1155 tokens (not a full marketplace).
+ * Contract holds tokens and sells them at fixed prices.
+ * Subclasses define when buying and selling are allowed.
+ */
 abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
     event ERC1155Offered(
         address indexed erc1155Addr,

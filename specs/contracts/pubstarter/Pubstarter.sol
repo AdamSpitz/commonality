@@ -66,6 +66,11 @@ contract AssuranceContractFactory {
   }
 }
 
+/**
+ * Main entry point with factory contracts for creating all components.
+ * Workflow: Creates token, marketplace, and assurance contract; sets prices;
+ * transfers ownership; mints tokens to assurance contract; renounces token ownership.
+ */
 contract Pubstarter {
   PremintingERC1155Factory public immutable _premintingERC1155Factory;
   MarketplaceFactory public immutable _marketplaceFactory;
