@@ -150,7 +150,35 @@ In general, there's no need to put timestamps on emitted events; the block's tim
 
 #### Modelling Statements
 
-A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statement-type" field on it, so that in the future we can support different schemas. (e.g. For now let's just have statements that look like { "statement-type": "simple-string", "definition": "blah blah" }.) A statement's ID is the IPFS CID of this JSON document.
+A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statementType" field on it, so that in the future we can support different schemas. A statement's ID is the IPFS CID of this JSON document.
+
+Statement schema (there's just one type for now):
+```json
+{
+  "statementType": "statement",
+  "content": "...",           // Markdown content
+  "references": [...],        // Optional array of references to other statements
+  "metadata": {...}           // Optional metadata (title, version, createdDate)
+}
+```
+
+The `references` array (if present) contains objects like:
+```json
+{
+  "statementId": "QmXyz...",           // IPFS CID of referenced statement
+  "label": "...",                      // Optional human-readable label
+  "relationship": "..."                // Optional: "supports", "opposes", "alternative", "related"
+}
+```
+
+The content can use placeholders like `{ref:0}`, `{ref:1}` etc. to reference items in the references array. This is useful for coalition-building (e.g., "I support either {ref:0} or {ref:1}") and finding common ground.
+
+Important details:
+  - Use canonical JSON formatting (sorted keys, no whitespace, UTF-8) so identical statements produce identical CIDs
+  - Maximum content size: 50k characters
+  - When rendering Markdown, sanitize to prevent XSS
+  - Handle circular references gracefully (limit expansion depth when expanding references)
+  - If a statement CID can't be retrieved from IPFS or is invalid, still show the ID and support counts but display a warning
 
 
 #### Beliefs smart contract
@@ -176,7 +204,7 @@ Required indexing: Maintain (1) reverse implication map (for each statement, whi
 Root page for the site: if there's a connected user, show the stuff on his user page (see below)
 
 There's a page for each statement. It shows:
-  - the statement itself (displayed in whatever way makes sense given its "statement-type")
+  - the statement itself (displayed in whatever way makes sense given its "statementType")
     - if the statement content includes references to other statements (e.g., "I believe either S1 or S2"), parse and display linked statements with their support numbers
   - the connected user's (if any) belief state for this statement
   - numbers of direct and indirect signers
@@ -214,11 +242,6 @@ There's a page that shows a particular project (identified by its smart-contract
 ## Stuff to have AI generate but then I want to "bless" it and consider it part of this top-level spec
 
 To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then add them to the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code"). That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code". (Doesn't need to be code artifacts; e.g. it might be useful if you could write up English descriptions of some things and then I can bless them.) Here are some other aspects of the project that I might like to do in that way. (Some of these files may already exist.)
-
-Statement Schema Definitions - we want extensible statement types; let's document that:
-  - JSON schemas for each statement type (starting with "simple-string")
-  - Future types might include: fancier formatting (but still needs to be immutable), references to other statements, etc.
-  - Document in specs/data-models/statement-types.md
 
 Implication Resolution Algorithm - we'll be computing indirect support on the fly; how does that work?
   - Precise algorithm for "given statement S and trusted attesters A, find all indirect supporters"
