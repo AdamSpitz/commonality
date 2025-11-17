@@ -119,7 +119,7 @@ Let's flesh this out with a list of how to divide up this system into concrete t
       - Beliefs (for emitting DirectSupport events)
       - Implications (for emitting ImplicationAttestation events)
     - indexer
-    - UI
+    - UI (mainly has a page for each statement, )
   - Pubstarter (for making kickstarter-like projects):
     - smart contracts (many contracts, see below for elaboration)
   - Funding Portal (for showing many projects in a single UI):
@@ -146,22 +146,70 @@ And let's use integration.md for any other info that might be useful for pinning
 
 When asking AI to generate mid-level specs and code, I've found that it sometimes gets some key details wrong. So let's pin down some points here:
 
-  - In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
-  - A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statement-type" field on it, so that in the future we can support different schemas. (e.g. For now let's just have statements that look like { "statement-type": "simple-string", "definition": "blah blah" }.) A statement's ID is the IPFS CID of this JSON document.
-  - Beliefs smart contract:
-    - First, I've already generated this; see specs/contracts/conceptspace. Feel free to just copy that into our code base.
-    - A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
-    - Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
-  - Implications smart contract:
-    - I've already generated this one too; see specs/contracts/conceptspace.
-  - I'm a bit worried about storing "indirect support" directly in the DB. The problem is that I do want the implication attesters to be configurable; not everyone is going to agree that S1 implies S2. But OTOH it does sound like it'll be expensive to keep recomputing indirect support on every query (basing it dynamically on the passed-in set of trusted implication attesters). Maybe not that expensive, though? For now, let's only store direct support, and we'll compute indirect support on the fly (by finding the set of implying statements and then doing a set-union of their direct supporters).
-  - Funding Portal smart contracts:
-    - See the specs/contracts/pubstarter directory; that's old code that I wrote a while ago, but I think it should be useful. (There's also specs/contracts/pubstarter/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
-    - I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events.
+#### General stuff
+
+In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
+
+#### Modelling Statements
+
+A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statement-type" field on it, so that in the future we can support different schemas. (e.g. For now let's just have statements that look like { "statement-type": "simple-string", "definition": "blah blah" }.) A statement's ID is the IPFS CID of this JSON document.
+
+
+#### Beliefs smart contract
+
+First, I've already generated this; see specs/contracts/conceptspace. Feel free to just copy that into our code base.
+
+A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
+
+Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
+
+#### Implications smart contract
+
+I've already generated this one too; see specs/contracts/conceptspace.
+
+#### Conceptspace indexer
+
+I'm a bit worried about storing "indirect support" directly in the DB. The problem is that I do want the implication attesters to be configurable; not everyone is going to agree that S1 implies S2. But OTOH it does sound like it'll be expensive to keep recomputing indirect support on every query (basing it dynamically on the passed-in set of trusted implication attesters). Maybe not that expensive, though? For now, let's only store direct support, and we'll compute indirect support on the fly (by finding the set of implying statements and then doing a set-union of their direct supporters).
+
+#### Conceptspace UI
+
+Root page for the site: if there's a connected user, show the stuff on his user page (see below)
+
+There's a page for each statement. It shows:
+  - the statement itself (displayed in whatever way makes sense given its "statement-type")
+    - if the statement content includes references to other statements (e.g., "I believe either S1 or S2"), parse and display linked statements with their support numbers
+  - the connected user's (if any) belief state for this statement
+  - numbers of direct and indirect signers
+  - suggestions for other statements you might want to sign also/instead ("you signed S1, and there's a statement S2 that is implied by S1 and is more popular than S1; maybe you'd like to sign S2 as well")
+
+There's a page for each user, showing statements that user has signed. If it's the connected user, also show buttons for sign/unsign/etc., as well as a "create statement" button.
+
+(This isn't meant to be an exhaustive list. Include whatever else makes sense.)
+
+#### Funding Portal smart contracts
+
+See the specs/contracts/pubstarter directory; that's old code that I wrote a while ago, but I think it should be useful. (There's also specs/contracts/pubstarter/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
+
+I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events.
+
+#### Funding Portal indexer
+
+Keep track of details for all the individual Pubstarter projects.
+
+Also keep track of all the projects aligned directly with a particular statementId. (And we'll also have to use an indirect-support algorithm, similar to what we used in the Conceptspace indexer, for identifying projects that are indirectly aligned.) And keep track of top contributors (investors/donors) to any project aligned with this cause.
+
+#### Funding Portal UI
+
+There's a page that shows many projects that are (directly or indirectly) aligned with a particular statementId. Offer various ways to sort/filter: date created, assurance-contract deadline, amount needed, etc. Show a "leaderboard" for the top contributors to any project aligned with this cause.
+
+There's a page that shows a particular project (identified by its smart-contract address). Show the project's description, deadline, funding progress, etc. Show each token type (since each project is an ERC-1155), how much each one costs to buy from the contract, buttons for buying/selling on the secondary market (if any sell/buy orders exist, show those; also show buttons for creating sell/buy orders), etc.
+
+(This isn't meant to be an exhaustive list. Include whatever else makes sense.)
+
 
 ## Stuff to have AI generate but then I want to "bless" it and consider it part of this top-level spec
 
-To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then add them to the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code"). That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code". (Doesn't need to be code artifacts; e.g. it might be useful if you could write up English descriptions of some things and then I can bless them.) Here are some other aspects of the project that I might like to do in that way:
+To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then add them to the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code"). That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code". (Doesn't need to be code artifacts; e.g. it might be useful if you could write up English descriptions of some things and then I can bless them.) Here are some other aspects of the project that I might like to do in that way. (Some of these files may already exist.)
 
 Statement Schema Definitions - we want extensible statement types; let's document that:
   - JSON schemas for each statement type (starting with "simple-string")
