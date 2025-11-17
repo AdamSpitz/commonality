@@ -33,7 +33,7 @@ The overall system is made of two big components: Concept Space and Funding Port
 
 ### Concept Space
 
-Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes. Users can "sign" these statements to show agreement/belief (or disbelief, or no-opinion - the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to). Anyone (though this'll probably be done by AI, not by humans) can publish Implication Attestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements.
+Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes. Users can "sign" these statements (by submitting an onchain transaction) to show belief/disbelief/no-opinion (the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to). Anyone (though this'll probably be done by AI, not by humans) can publish ImplicationAttestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements.
 
 Some points about this:
     
@@ -64,7 +64,7 @@ Some points about this:
 
   -   **Social recognition:** The NFTs have no intrinsic capabilities themselves (i.e. they're not like shares of stock; they don't entitle the holder to a share of the project's profits or a say in the project's decisions; these projects are intended to be "public good" kinds of projects, in the sense that economists use the term: non-excludable and non-rivalrous), other than that investors and donors receive social recognition by having their account address (or ENS name) appear on the website (both for the individual project and for the funding portal for that cause, e.g. "here are the top 10 contributors to projects aligned with this cause").
 
-  -   **Retroactive Funding:** These NFTs can be resold on the secondary market, meaning that we have a concept of both "investors" (people who've bought some tokens but may resell them) and "donors" (people who've bought some tokens and then burned them), along the lines of the Retroactive Funding idea that's been championed by people like Vitalik Buterin. (The motivation is that there are people like VCs who are good at identifying promising projects/founders, and there are people who are willing to altruistically donate their money to further a cause; these are not usually the same people. So having resellable tokens enables a project to receive early funding from the first type of person, who are willing to invest because they hope to exit by eventually selling their tokens to the second type of person. VCs for public goods. And these can be really small - nano-VCs.)
+  -   **Retroactive Funding:** These NFTs can be resold on the secondary market, meaning that we have a concept of both "investors" (people who've bought some tokens and are still holding them, meaning they may eventually resell them) and "donors" (people who've bought some tokens and then burned them), along the lines of the Retroactive Funding idea that's been championed by people like Vitalik Buterin. (The motivation is that there are people like VCs who are good at identifying promising projects/founders, and there are people who are willing to altruistically donate their money to further a cause; these are not usually the same people. So having resellable tokens enables a project to receive early funding from the first type of person, who are willing to invest because they hope to exit by eventually selling their tokens to the second type of person. VCs for public goods. And these can be really small - nano-VCs.)
   
   -   **More-objective success/alignment verification:** This is more of a vague future idea than a concrete feature, but if some particular project is capable of defining more-objective criteria by which its success/alignment can be verified, that opens up interesting possibilities for tying funding to its success, making decisions based on its predicted success (a la futarchy), etc.
 
@@ -105,9 +105,7 @@ For accessing Twitter follower counts... I dunno, I still want to look into the 
 
 ## Terminology / concepts
 
-See glossary.md for a list of terms and concepts.
-
-(It isn't meant to be a detailed description of each term; this is just meant to pin down what concepts we have and what word we're using for each concept.)
+We may want to generate a list of terms and concepts, just to pin down what we mean by each term. For now let's not bother - let's just try to make this top-level spec use terms clearly. (I previously tried generating a file called specs/glossary.md, but honestly it was more trouble than it was worth.)
 
 
 ## Artifacts
