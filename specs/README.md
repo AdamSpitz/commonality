@@ -169,7 +169,9 @@ I've already generated this one too; see specs/contracts/conceptspace.
 
 #### Conceptspace indexer
 
-I'm a bit worried about storing "indirect support" directly in the DB. The problem is that I do want the implication attesters to be configurable; not everyone is going to agree that S1 implies S2. But OTOH it does sound like it'll be expensive to keep recomputing indirect support on every query (basing it dynamically on the passed-in set of trusted implication attesters). Maybe not that expensive, though? For now, let's only store direct support, and we'll compute indirect support on the fly (by finding the set of implying statements and then doing a set-union of their direct supporters).
+I'm a bit worried about storing "indirect support" directly in the DB. The problem is that I do want the implication attesters to be configurable; not everyone is going to agree that S1 implies S2. But OTOH it does sound like it'll be expensive to keep recomputing indirect support on every query (basing it dynamically on the passed-in set of trusted implication attesters). Maybe not that expensive, though? For now, let's only store direct support, and we'll compute indirect support on the fly: use BFS graph traversal (with visited set to prevent infinite loops) to find all statements that transitively imply the target statement (according to the passed-in set of trusted attesters), then union those statements' direct supporters. (For now let's hope that's performant enough.) (Annoying wrinkle: ideally we'd exclude any user who's explicitly indicated disbelief in any statement along the transitive-implication path... but if that's too much work/complexity, then for now let's at least just exclude people who've explicitly indicated disbelief in the target statement.)
+
+Required indexing: Maintain (1) reverse implication map (for each statement, which statements imply it, organized by attester), and (2) direct supporters cache (current set of believers for each statement).
 
 #### Conceptspace UI
 
