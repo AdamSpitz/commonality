@@ -158,7 +158,44 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
   - Funding Portal smart contracts:
     - See the specs/contracts/pubstarter directory; that's old code that I wrote a while ago, but I think it should be useful. (There's also specs/contracts/pubstarter/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
     - I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events.
-  
+
+## Stuff to have AI generate but then I want to "bless" it and consider it part of this top-level spec
+
+To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then add them to the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code"). That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code". (Doesn't need to be code artifacts; e.g. it might be useful if you could write up English descriptions of some things and then I can bless them.) Here are some other aspects of the project that I might like to do in that way:
+
+Statement Schema Definitions - we want extensible statement types; let's document that:
+  - JSON schemas for each statement type (starting with "simple-string")
+  - Future types might include: fancier formatting (but still needs to be immutable), references to other statements, etc.
+  - Document in specs/data-models/statement-types.md
+
+Implication Resolution Algorithm - we'll be computing indirect support on the fly; how does that work?
+  - Precise algorithm for "given statement S and trusted attesters A, find all indirect supporters"
+  - Edge cases: circular implications, conflicting attestations, performance considerations
+  - Document in specs/algorithms/implication-resolution.md
+
+Attack Vectors & Mitigations - You mention wanting a gaming/scamming session:
+  - Catalog of attack vectors (Sybil, spam, griefing, etc.)
+  - Mitigation strategies for each
+  - Design decisions that prevent abuse
+  - Document in specs/security/threat-model.md
+
+Page Layouts & User Flows - Document what each page shows:
+  - Statement page: what info appears, in what order, with what emphasis
+  - Funding portal page: how projects are sorted/filtered
+  - User journey flows for key actions
+  - Document in specs/ui/pages.md and specs/ui/user-flows.md
+
+Transparency Requirements - You emphasize transparency throughout:
+  - Exactly what language to use for direct vs indirect support
+  - How to display delegation chains
+  - How to show attestation provenance
+  - Document in specs/ui/transparency-requirements.md
+
+System Parameters - Things users or operators can configure:
+  - Which implication attesters to trust (user setting)
+  - Minimum threshold for "high-profile" signers
+  - Fee structures, commission defaults
+  - Document in specs/configuration/parameters.md
 
 
 ## Future steps
