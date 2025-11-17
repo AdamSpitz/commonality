@@ -250,6 +250,12 @@ System Parameters - Things users or operators can configure:
   - Document in specs/configuration/parameters.md
 
 
+
+## A bit more philosophizing
+
+In philosophizing.md there are some not-exactly-relevant thoughts about this system and how it fits into the world. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're an AI whose job is to think more broadly about what we need.
+
+
 ## Future steps
 
   - Generate mid-level specs from this high-level spec.
