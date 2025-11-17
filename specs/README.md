@@ -15,14 +15,22 @@ So the overall goal is something like:
 
 The intention here is to leverage AI to help build this project quickly.
 
-We'll feed this top-level spec through an AI to generate medium-detail specs for various components (in a mixture of English and code examples). Then we'll feed those mid-level specs through an AI to generate actual runnable code.
+I've had some success doing this little dance:
+
+  - Writing (in this file) vague hand-wavy thoughts along the lines of "we should flesh out such-and-such in more detail; we'll ask an AI to do that and put the results in arglebargle.md."
+  - Then asking the AI, "Please read specs/README.md and anything else relevant, then write up arglebargle.md for me."
+  - And *then* asking the AI, "Can you read through specs/README.md, then read through arglebargle.md, and then if there's anything in the latter that isn't obvious from the former, *concisely* add it to the former? (The point is that I'd like to delete the latter if I can; I just want to make sure that all the stuff in there will be obvious to a future AI implementer.)"
+
+Doing it in two separate steps like that (first generate a big long verbose file with whatever the AI can think of, then analyze it and retain a concise summary in the spec) lets me keep this top-level spec as the single official "source code" of the project, while leveraging AI to help me think through various aspects of the project and flesh out the spec.
+
+When we do eventually reach the point of wanting to build the actual code, I'm not sure whether we'll be able to just do it in one fell swoop ("please read specs/README.md and then implement the entire thing") or whether it'll make more sense to ask it to build a piece at a time, or maybe feed this top-level spec through an AI to generate the medium-detail specs *again* and then feed those mid-level specs through an AI to generate actual runnable code, or whatever. We can experiment.
 
 If you're an AI who's reading this top-level spec and generating a mid-level spec:
   - Make sure to include concrete examples and edge cases, not just abstract requirements (especially when that will help to clarify things for an AI that doesn't have as much understanding of the overall wider system).
   - Also make sure to include concrete code examples for integration points, like APIs intended to be called by other modules (because when we regenerate one module, we don't want to need to regenerate all the other modules that call it).
   - Put in a comment mentioning that the file is AI-generated.
 
-I don't want to be afraid to blow away the code and regenerate it from the mid-level specs. I also don't want to be afraid to blow away a mid-level spec and regenerate it from this high-level spec.
+But at the end of the day, I don't want to be afraid to blow away anything that's AI-generated (or at least anything that I haven't grokked) and regenerate it.
 
 (Motivation: I'm doing this to try to address problems that I've had when trying to build projects with AI assistance in the past. I want to see if I can find a sweet spot in between "progress is very slow because I'm insisting on grokking the actual code" and "the AI is producing tons of code but it's kinda messy and broken and doesn't really do what I want". So I'm wondering whether maybe it'll work well to treat the top-level spec as the official thing that I need to grok and be comfortable with, and then generate lower-level artifacts from that.)
 
@@ -238,33 +246,25 @@ There's a page that shows a particular project (identified by its smart-contract
 
 (This isn't meant to be an exhaustive list. Include whatever else makes sense.)
 
+#### Security & Abuse Prevention
+
+Thoughts on potential threats:
+  - **Standard web security**: Sanitize all markdown (use DOMPurify or equivalent), validate JSON strictly, use CSP headers, handle IPFS failures gracefully
+  - **Sybil/spam mitigation**: L2 gas costs + UI filtering (sort by trending/supporters) + eventual unique-human verification
+  - **Graph attacks**: BFS with visited set for circular references; limit reference expansion depth to 3-5 levels; users can switch attesters
+  - **Funding scams**: Accept as inevitable; rely on transparency + retroactive funding incentives + social reputation
+  - **Smart contract security**: Before mainnet, must fix known Pubstarter issues (hardcoded 1inch router, DEX validation, console imports), get professional audit, comprehensive testing
+
 
 ## Stuff to have AI generate but then I want to "bless" it and consider it part of this top-level spec
 
 To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then add them to the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code"). That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code". (Doesn't need to be code artifacts; e.g. it might be useful if you could write up English descriptions of some things and then I can bless them.) Here are some other aspects of the project that I might like to do in that way. (Some of these files may already exist.)
-
-Implication Resolution Algorithm - we'll be computing indirect support on the fly; how does that work?
-  - Precise algorithm for "given statement S and trusted attesters A, find all indirect supporters"
-  - Edge cases: circular implications, conflicting attestations, performance considerations
-  - Document in specs/algorithms/implication-resolution.md
-
-Attack Vectors & Mitigations - You mention wanting a gaming/scamming session:
-  - Catalog of attack vectors (Sybil, spam, griefing, etc.)
-  - Mitigation strategies for each
-  - Design decisions that prevent abuse
-  - Document in specs/security/threat-model.md
 
 Page Layouts & User Flows - Document what each page shows:
   - Statement page: what info appears, in what order, with what emphasis
   - Funding portal page: how projects are sorted/filtered
   - User journey flows for key actions
   - Document in specs/ui/pages.md and specs/ui/user-flows.md
-
-Transparency Requirements - You emphasize transparency throughout:
-  - Exactly what language to use for direct vs indirect support
-  - How to display delegation chains
-  - How to show attestation provenance
-  - Document in specs/ui/transparency-requirements.md
 
 System Parameters - Things users or operators can configure:
   - Which implication attesters to trust (user setting)
