@@ -25,6 +25,8 @@ Doing it in two separate steps like that (first generate a big long verbose file
 
 When we do eventually reach the point of wanting to build the actual code, I'm not sure whether we'll be able to just do it in one fell swoop ("please read specs/README.md and then implement the entire thing") or whether it'll make more sense to ask it to build a piece at a time, or maybe feed this top-level spec through an AI to generate the medium-detail specs *again* and then feed those mid-level specs through an AI to generate actual runnable code, or whatever. We can experiment.
 
+Useful question to ask the AI occasionally: "Please read specs/README.md and anything else relevant, then let me know whether you think you could write up mid-level specs for each subcomponent, in such a way that AIs reading those mid-level specs could build their subcomponent without needing to understand the entire project. Are there clear integration points (like interfaces and data formats and event schemas and so on), so that rebuilding one subcomponent won't unnecessarily require rebuilding other subcomponents?"
+
 If you're an AI who's reading this top-level spec and generating a mid-level spec:
   - Make sure to include concrete examples and edge cases, not just abstract requirements (especially when that will help to clarify things for an AI that doesn't have as much understanding of the overall wider system).
   - Also make sure to include concrete code examples for integration points, like APIs intended to be called by other modules (because when we regenerate one module, we don't want to need to regenerate all the other modules that call it).
@@ -139,20 +141,6 @@ Let's flesh this out with a list of how to divide up this system into concrete t
     - indexer (let's use this for indexing the Pubstarter contracts too)
     - UI (has various pages: a page for each individual project, and also a funding-portal page for each statementId)
 
-### Integration points between artifacts
-
-In specs/contracts, there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
-
-In specs/graphql, let's have the graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available. (In the past I've found that when I ask AI to generate graphql schemas they end up quite verbose and hard for me to grok, so mixing English and code seems to maybe be a sweet spot.)
-
-And let's use integration.md for any other info that might be useful for pinning down the integration points between the different artifacts.
-
-  - Concrete code examples of calling these APIs
-  - anything else I've forgotten
-
-(The idea is to allow us to ask an AI to build each artifact separately, without requiring unnecessary rebuilding of other artifacts that depend on it.)
-
-
 ### Technical details
 
 When asking AI to generate mid-level specs and code, I've found that it sometimes gets some key details wrong. So let's pin down some points here:
@@ -161,11 +149,20 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
 
 In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
 
-Which IPFS CID format do we use? How do we do CID → bytes32 conversion? This isn't decided yet; let's just pick a method to use consistently. What are the tradeoffs?
+Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI recommendation (which is fine with me, I don't know much about it): use CIDv1 with SHA-256. For onchain storage, convert to bytes32 by extracting the 32-byte digest. Need helper functions cidToBytes32() and bytes32ToCid() using the multiformats library.
+
+#### Integration points between artifacts
+
+In specs/contracts, there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
+
+In specs/graphql, there are some graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available. (In the past I've found that when I ask AI to generate graphql schemas they end up quite verbose and hard for me to grok, so mixing English and code seems to maybe be a sweet spot.)
+
 
 #### Modelling Statements
 
-A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statementType" field on it, so that in the future we can support different schemas. A statement's ID is the IPFS CID of this JSON document.
+A Statement should be represented as a JSON document that we upload to IPFS.
+
+Let's put a "statementType" field on it, so that in the future we can support different schemas. A statement's ID is the IPFS CID of this JSON document.
 
 Statement schema (there's just one type for now):
 ```json
@@ -194,6 +191,7 @@ Important details:
   - When rendering Markdown, sanitize to prevent XSS. Maybe use react-markdown and rehype-sanitize with strict schema? (I'm going on AI recommendation for that; I've never used those and don't know what they are.)
   - Handle circular references gracefully (limit expansion depth when expanding references)
   - If a statement CID can't be retrieved from IPFS or is invalid, still show the ID and support counts but display a warning
+  - Indexers should pin any statement CIDs they encounter (to ensure availability) and optionally cache metadata (title, excerpt?) in the indexer's DB for search/display.
 
 
 #### Beliefs smart contract
@@ -256,6 +254,8 @@ Also, the DelegatableNotes smart contract doesn't currently have any place for i
 Keep track of details for all the individual Pubstarter projects.
 
 Also keep track of all the projects aligned directly with a particular statementId. (And we'll also have to use an indirect-support algorithm, similar to what we used in the Conceptspace indexer, for identifying projects that are indirectly aligned.) And keep track of top contributors (investors/donors) to any project aligned with this cause.
+
+Make GraphQL queries to the Concept Space indexer, to get the implication data needed to compute indirect project alignment.
 
 #### Funding Portal UI
 
