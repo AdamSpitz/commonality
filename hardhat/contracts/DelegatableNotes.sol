@@ -536,8 +536,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   /**
    * @dev Purchase ERC1155 tokens from an ERC1155Seller contract using ETH from notes.
    * Notes must hold the zero address as their token (representing ETH).
-   * The purchased ERC1155 tokens are received by this contract but we don't create
-   * new notes for them - they are simply transferred to the caller.
+   * The purchased ERC1155 tokens are wrapped in new notes that preserve the delegation
+   * chains from the input notes.
    * @param noteIds Array of note IDs to spend (must all be ETH notes with same owner)
    * @param seller Address of the ERC1155Seller contract
    * @param erc1155Contract Address of the ERC1155 token contract
@@ -574,18 +574,64 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     }
 
     // Purchase from the ERC1155Seller contract (external call after state changes)
+    // Tokens are sent to this contract
     ERC1155Seller(seller).buyERC1155{value: totalPaymentAmount}(
-      caller,
+      address(this),
       erc1155Contract,
       tokenIds,
       counts,
       ""
     );
 
-    // Note: The ERC1155 tokens are sent directly to the caller, not held in notes
-    // This is intentional - the tokens represent ownership in a project, not delegatable funding
+    // Calculate total tokens purchased
+    uint256 totalTokensPurchased = 0;
+    for (uint256 i = 0; i < counts.length; i++) {
+      totalTokensPurchased += counts[i];
+    }
 
-    uint256[] memory outputNoteIds = new uint256[](0); // No output notes created
+    // Recreate delegation chains for each purchased token, distributed proportionally
+    uint256[] memory outputNoteIds = new uint256[](tokenIds.length * noteIds.length);
+    uint256 outputNoteIndex = 0;
+
+    for (uint256 tokenIndex = 0; tokenIndex < tokenIds.length; tokenIndex++) {
+      uint256 tokenId = tokenIds[tokenIndex];
+      uint256 tokenCount = counts[tokenIndex];
+      uint256 tokensDistributedSoFar = 0;
+
+      // Distribute this token type proportionally across all input note chains
+      for (uint256 chainIndex = 0; chainIndex < noteIds.length; chainIndex++) {
+        uint256 proportionalTokens;
+
+        if (chainIndex < noteIds.length - 1) {
+          // Proportional distribution
+          proportionalTokens = (tokenCount * chainCaches[chainIndex].amount) / totalPaymentAmount;
+          tokensDistributedSoFar += proportionalTokens;
+        } else {
+          // Last chain gets remainder to avoid rounding issues
+          proportionalTokens = tokenCount - tokensDistributedSoFar;
+        }
+
+        // Only create a note if there are tokens to distribute
+        if (proportionalTokens > 0) {
+          uint256 newLeafNoteId = _createChain(
+            erc1155Contract,
+            TokenType.ERC1155,
+            tokenId,
+            proportionalTokens,
+            chainCaches[chainIndex].owners,
+            chainCaches[chainIndex].intendedStatementId
+          );
+          outputNoteIds[outputNoteIndex++] = newLeafNoteId;
+        }
+      }
+    }
+
+    // Resize outputNoteIds array to actual size
+    uint256[] memory finalOutputNoteIds = new uint256[](outputNoteIndex);
+    for (uint256 i = 0; i < outputNoteIndex; i++) {
+      finalOutputNoteIds[i] = outputNoteIds[i];
+    }
+
     emit ERC1155Purchased(
       caller,
       address(0), // ETH
@@ -594,12 +640,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       counts,
       totalPaymentAmount,
       noteIds,
-      outputNoteIds
+      finalOutputNoteIds
     );
   }
 
   /**
    * @dev Purchase ERC1155 tokens from an ERC1155Marketplace by fulfilling a sale listing.
+   * The purchased tokens are wrapped in new notes that preserve the delegation chains
+   * from the input notes.
    * @param noteIds Array of note IDs to spend (must all be ETH notes)
    * @param marketplace Address of the ERC1155Marketplace contract
    * @param saleListingId The ID of the sale listing to fulfill
@@ -643,12 +691,57 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     require(totalPaymentAmount >= requiredPayment, "Insufficient funds in notes");
 
-    // Purchase from marketplace (external call after state changes)
+    // Purchase from marketplace - tokens will be sent to the caller first
+    // Note: The marketplace sends tokens to msg.sender, so we need to use a different approach
+    // We'll receive the tokens via the marketplace's fulfillSaleListing which sends to msg.sender
     ERC1155Marketplace(marketplace).fulfillSaleListing{value: requiredPayment}(saleListingId, count);
+
+    // Get the ERC1155 contract address
+    address erc1155Contract = address(ERC1155Marketplace(marketplace).erc1155());
+
+    // Transfer the tokens from caller to this contract
+    IERC1155(erc1155Contract).safeTransferFrom(caller, address(this), tokenId, count, "");
+
+    // Distribute purchased tokens proportionally across all input note chains
+    uint256[] memory outputNoteIds = new uint256[](noteIds.length);
+    uint256 tokensDistributedSoFar = 0;
+    uint256 outputNoteIndex = 0;
+
+    for (uint256 i = 0; i < noteIds.length; i++) {
+      uint256 proportionalTokens;
+
+      if (i < noteIds.length - 1) {
+        // Proportional distribution based on ETH contributed
+        proportionalTokens = (count * chainCaches[i].amount) / requiredPayment;
+        tokensDistributedSoFar += proportionalTokens;
+      } else {
+        // Last chain gets remainder to avoid rounding issues
+        proportionalTokens = count - tokensDistributedSoFar;
+      }
+
+      // Only create a note if there are tokens to distribute
+      if (proportionalTokens > 0) {
+        uint256 newLeafNoteId = _createChain(
+          erc1155Contract,
+          TokenType.ERC1155,
+          tokenId,
+          proportionalTokens,
+          chainCaches[i].owners,
+          chainCaches[i].intendedStatementId
+        );
+        outputNoteIds[outputNoteIndex++] = newLeafNoteId;
+      }
+    }
 
     // If there's any leftover ETH, return it to caller
     if (totalPaymentAmount > requiredPayment) {
       payable(caller).transfer(totalPaymentAmount - requiredPayment);
+    }
+
+    // Resize outputNoteIds array to actual size
+    uint256[] memory finalOutputNoteIds = new uint256[](outputNoteIndex);
+    for (uint256 i = 0; i < outputNoteIndex; i++) {
+      finalOutputNoteIds[i] = outputNoteIds[i];
     }
 
     // Emit event
@@ -656,17 +749,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     tokenIds[0] = tokenId;
     uint256[] memory counts = new uint256[](1);
     counts[0] = count;
-    uint256[] memory outputNoteIds = new uint256[](0);
 
     emit ERC1155Purchased(
       caller,
       address(0), // ETH
-      address(ERC1155Marketplace(marketplace).erc1155()),
+      erc1155Contract,
       tokenIds,
       counts,
       requiredPayment,
       noteIds,
-      outputNoteIds
+      finalOutputNoteIds
     );
   }
 
