@@ -161,7 +161,7 @@ Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI rec
 
 #### Integration points between artifacts
 
-In specs/contracts, there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
+In the hardhat/ directory (in the root of the project), there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
 
 In specs/graphql, there are some graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available. (In the past I've found that when I ask AI to generate graphql schemas they end up quite verbose and hard for me to grok, so mixing English and code seems to maybe be a sweet spot.)
 
@@ -250,7 +250,7 @@ AI recommendations for implementation approach: Start with a simple Node.js/Type
 
 #### Funding Portal smart contracts
 
-See the specs/contracts/pubstarter and specs/contracts/funding-portals directories; the pubstarter stuff is old code that I wrote a while ago, but I think it should be useful. (There's also specs/contracts/pubstarter/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
+See the hardhat/contracts/pubstarter and specs/contracts/funding-portals directories; the pubstarter stuff is old code that I wrote a while ago, but I think it should be useful.
 
 I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events. (Okay, this now exists, in specs/contracts/funding-portals.)
 
