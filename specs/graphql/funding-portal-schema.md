@@ -7,7 +7,7 @@ This document describes the GraphQL schema for the Funding Portal indexer, which
 ## Data Sources
 
 - `PremintingERC1155.sol` / `AssuranceContract.sol` → Project contracts
-- `ProjectAlignment.sol` → `ProjectAlignmentAttestation` events
+- `ProjectAlignment.sol` → `ProjectAlignmentAttestation` events (this file is in specs/contracts/funding-portals)
 - `DelegatableNotes.sol` → Delegation and funding events
 - `ERC1155Marketplace.sol` → Secondary market events
 - Project metadata from IPFS (via `contractURI`)

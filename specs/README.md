@@ -84,9 +84,13 @@ Some points about this:
 
       - **Transparency:** The funding website is transparent about this for the purpose of social recogition (i.e. the site shows "Alice has contributed 5% of this project's funds; the full delegation chain was Alice -> Bob -> Charlie").
 
+      - **Spending:** For now, the only real action that a note's owner can take (besides the delegation/revocation stuff) is trading the note's tokens (which were contributed by the original note creator and are now being held by the DelegatableNotes smart contract) for some other token. This results in a *new* note being created (containing the purchased tokens) with an identical delegation chain to the note that was spent. (i.e. The delegation isn't "over" just because Charlie spends the money; he still has delegated-control over the newly-purchased tokens, although they still "belong" to Alice. So Charlie can do multi-step trades or whatever, without bothering Alice or Bob with the details - although of course Alice and/or Bob can be notified if they want to be, and they can cancel the delegation if they want to.)
+
+      - **Splitting/merging:** This is just a bookkeeping issue, but it's fine for the owner of a note to split it (actually, split the entire delegation chain) into multiple notes (with an identical delegation chain but lower amounts, summing to the original note's amount). And also to merge notes (if they have identical delegation chains and token types). i.e. It's fine to delegate or spend only part of a note's amount.
+
       - **Intention:** Each delegatable note is marked with the cause (i.e. statement ID) that it is intended to be put toward. This means that the existence of notes intended to be used to support a particular cause might help bring into existence projects aligned with that cause (because potential project creators can see on the funding portal website "there's a total of $N/month available for projects that are aligned with this cause"). (Notice that this means that it might even make sense for Alice to create a note but not delegate it - even if she intends to make her funding decisions herself, she might want to make it publically known that this money is available to be put towards this cause.)
 
-    - **Many kinds of projects:** Note that "a project aligned with this cause" can include many kinds of things: technical projects, but also journalism, etc. If someone wants to earmark a note for a particular kind of project supporting a cause (e.g. journalism), I think that should be doable by creating a statement S2 of the form "I want to support journalism projects for statement S1" (because the implication system should identify that support for S2 implies support for S1).
+      - **Many kinds of projects:** Note that "a project aligned with this cause" can include many kinds of things: technical projects, but also journalism, etc. If someone wants to earmark a note for a particular kind of project supporting a cause (e.g. journalism), I think that should be doable by creating a statement S2 of the form "I want to support journalism projects for statement S1" (because the implication system should identify that support for S2 implies support for S1).
 
       - **Commission for trustees:** Make it possible for the person whose money it is to specify "the person I delegate to can take an N% commission (as a fee for managing the money)", and also for a delegate to further pass on some of this commission to whoever he delegates to. This could incentivize people to take on this role (so that we're not just expecting people to do it altruistically because they believe in the cause).
 
@@ -98,7 +102,7 @@ The point of using decentralized tech like blockchains and IPFS is that we want 
 
 It's probably fine to have the input data (i.e. all the various events that people can publish) onchain so that it's verifiable, and not worry so much (at least for now) about having the indexer's database being verifiable. (The indexer's DB is all derived data; it can be verified onchain, or blown away and recreated from scratch from the onchain input data if necessary.)
 
-In general an Ethereum L2 (or validium?) is probably the best choice for which chain to use. (Ethereum gives us best-in-class trustlessness/decentralization, but L1 will be too expensive for an app like this that needs to support a high volume of small transactions.) So write the smart contracts in Solidity (using Hardhat). I expect it to be easy to switch L2s later (there are many EVM-compatible ones these days), so for now let's set up our configuration to use Base (and Base Sepolia for testnet) and we can switch later if we want to.
+In general an Ethereum L2 (or validium?) is probably the best choice for which chain to use. (Ethereum gives us best-in-class trustlessness/decentralization, but L1 will be too expensive for an app like this that needs to support a high volume of small transactions.) So write the smart contracts in Solidity (using Hardhat). I expect it to be easy to switch L2s later (there are many EVM-compatible ones these days), so for now let's set up our configuration to use Base (and Base Sepolia for testnet) and we can switch later if we want to. (And for now make both options available dynamically in the UI, so we can test.)
 
 Regarding any indexers we need for the blockchain data, let's start with using Ponder, deploy on Railway for now, and we can switch/add to that later if necessary. Questions for the future:
   - Do we need some kind of high-performance graph database for running interesting graph-analysis algorithms on the statement-implication graph? Beats me. (Sam mentioned setting up a knowledge graph database using AWS Neptune with Gremlin query language and Jupyter notebooks. I don't have experience with any of that, but I wanted to record it here.)
@@ -125,7 +129,8 @@ Let's flesh this out with a list of how to divide up this system into concrete t
       - Beliefs (for emitting DirectSupport events)
       - Implications (for emitting ImplicationAttestation events)
     - indexer
-    - UI (mainly has a page for each statement, )
+    - UI
+    - implication attester AI
   - Pubstarter (for making kickstarter-like projects):
     - smart contracts (many contracts, see below for elaboration)
   - Funding Portal (for showing many projects in a single UI):
@@ -156,6 +161,8 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
 
 In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
 
+Which IPFS CID format do we use? How do we do CID → bytes32 conversion? This isn't decided yet; let's just pick a method to use consistently. What are the tradeoffs?
+
 #### Modelling Statements
 
 A Statement should be represented as a JSON document that we upload to IPFS. Let's put a "statementType" field on it, so that in the future we can support different schemas. A statement's ID is the IPFS CID of this JSON document.
@@ -184,7 +191,7 @@ The content can use placeholders like `{ref:0}`, `{ref:1}` etc. to reference ite
 Important details:
   - Use canonical JSON formatting (sorted keys, no whitespace, UTF-8) so identical statements produce identical CIDs
   - Maximum content size: 50k characters
-  - When rendering Markdown, sanitize to prevent XSS
+  - When rendering Markdown, sanitize to prevent XSS. Maybe use react-markdown and rehype-sanitize with strict schema? (I'm going on AI recommendation for that; I've never used those and don't know what they are.)
   - Handle circular references gracefully (limit expansion depth when expanding references)
   - If a statement CID can't be retrieved from IPFS or is invalid, still show the ID and support counts but display a warning
 
@@ -226,11 +233,23 @@ There's a settings page where users can configure which implication attesters th
 
 (This isn't meant to be an exhaustive list. Include whatever else makes sense.)
 
+#### Implication Attester AI
+
+From the point of view of the rest of the Conceptspace system, it doesn't matter whether the ImplicationAttestation events are done by humans or AIs; they're just Ethereum accounts.
+
+So we can just have the Implication Attester AI be a separate artifact, with its own API (e.g. for asking it "could you please look at S1 and S2 and publish an attestation if you think S1 -> S2?"), deployed somewhere different from the indexer and the UI; I don't think there's any need for them to be coupled too tightly. (And it'd be fine for other people to make their own, if they want to.)
+
+I have no strong opinions on how to write this or deploy this. I'm open to suggestions.
+
 #### Funding Portal smart contracts
 
 See the specs/contracts/pubstarter and specs/contracts/funding-portals directories; the pubstarter stuff is old code that I wrote a while ago, but I think it should be useful. (There's also specs/contracts/pubstarter/AI-generated-summary.md, in case that's useful.) Feel free to just directly copy those into our code base and use them (though they may need to be fixed up a bit).
 
-I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events.
+I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events. (Okay, this now exists, in specs/contracts/funding-portals.)
+
+The DelegatableNotes smart contract currently has some old code in it regarding spending using a DEX aggregator. I think we should probably rip that out for now. In the long run I'd like to support various DEXes; for now it's fine to just use the primary and secondary market capabilities of our own (Kickstarter-like) contracts.
+
+Also, the DelegatableNotes smart contract doesn't currently have any place for intendedStatementId (i.e. marking a note with the "cause" it's meant to support). We should add that.
 
 #### Funding Portal indexer
 
