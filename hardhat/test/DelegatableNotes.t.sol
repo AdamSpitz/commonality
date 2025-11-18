@@ -67,7 +67,7 @@ contract DelegatableNotesTest {
         token.mint(address(this), depositAmount);
         token.approve(address(notes), depositAmount);
 
-        uint256 noteId = notes.deposit(address(token), depositAmount, statementId);
+        uint256 noteId = notes.depositERC20(address(token), depositAmount, statementId);
 
         (uint256 amount, address tokenAddr, , , address owner, , bool delegated, bytes32 storedStatementId) = notes.notes(noteId);
 

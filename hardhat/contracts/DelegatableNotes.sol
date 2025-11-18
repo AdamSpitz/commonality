@@ -117,64 +117,89 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   }
 
   /**
-   * @dev Deposit some amount of some ERC20 token; get a delegatable note representing that amount of that token.
+   * @dev Unified deposit function for ERC20, ETH, and ERC1155 tokens.
+   * @param token The address of the token to deposit (use address(0) for ETH).
+   * @param tokenType The type of token (ERC20 or ERC1155).
+   * @param tokenId The ERC1155 token ID (ignored for ERC20/ETH, set to 0).
+   * @param amount The amount to deposit (ignored for ETH, use msg.value instead).
+   * @param intendedStatementId The IPFS CID (as bytes32) of the statement this note is intended to support.
+   * @return noteId The ID of the created note representing the deposited tokens.
+   */
+  function deposit(
+    address token,
+    TokenType tokenType,
+    uint256 tokenId,
+    uint256 amount,
+    bytes32 intendedStatementId
+  ) public payable nonReentrant returns (uint256) {
+    address owner = _msgSender();
+    uint256 actualAmount;
+
+    // Validate and transfer based on token type
+    if (token == address(0)) {
+      // ETH deposit
+      require(msg.value > 0, "Must send ETH");
+      require(tokenType == TokenType.ERC20, "ETH must use ERC20 type");
+      actualAmount = msg.value;
+      tokenId = 0;
+    } else if (tokenType == TokenType.ERC20) {
+      // ERC20 deposit
+      require(amount > 0, "Amount must be greater than 0");
+      require(msg.value == 0, "Do not send ETH for ERC20 deposits");
+      actualAmount = amount;
+      tokenId = 0;
+      IERC20(token).safeTransferFrom(owner, address(this), amount);
+    } else {
+      // ERC1155 deposit
+      require(amount > 0, "Amount must be greater than 0");
+      require(msg.value == 0, "Do not send ETH for ERC1155 deposits");
+      actualAmount = amount;
+      IERC1155(token).safeTransferFrom(owner, address(this), tokenId, amount, "");
+    }
+
+    // Create note
+    uint256 noteId = nextNoteId++;
+    notes[noteId] = Note({
+      amount: actualAmount,
+      token: token,
+      tokenType: tokenType,
+      tokenId: tokenId,
+      owner: owner,
+      parentNoteId: 0,
+      delegated: false,
+      intendedStatementId: intendedStatementId
+    });
+
+    emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId, 0);
+    return noteId;
+  }
+
+  /**
+   * @dev Deposit ERC20 tokens; get a delegatable note representing that amount of that token.
+   * Convenience wrapper around the unified deposit function.
    * @param token The address of the ERC20 token to deposit.
    * @param amount The amount to deposit.
    * @param intendedStatementId The IPFS CID (as bytes32) of the statement this note is intended to support.
    * @return noteId The ID of the created note representing the deposited tokens.
    */
-  function deposit(address token, uint256 amount, bytes32 intendedStatementId) external nonReentrant returns (uint256) {
-    require(amount > 0, "Amount must be greater than 0");
+  function depositERC20(address token, uint256 amount, bytes32 intendedStatementId) external returns (uint256) {
     require(token != address(0), "Use depositETH for ETH deposits");
-
-    address owner = _msgSender();
-
-    uint256 noteId = nextNoteId++;
-    notes[noteId] = Note({
-      amount: amount,
-      token: token,
-      tokenType: TokenType.ERC20,
-      tokenId: 0,
-      owner: owner,
-      parentNoteId: 0,
-      delegated: false,
-      intendedStatementId: intendedStatementId
-    });
-
-    IERC20(token).safeTransferFrom(owner, address(this), amount);
-
-    emit NoteCreated(noteId, owner, amount, token, TokenType.ERC20, 0, 0);
-    return noteId;
+    return deposit(token, TokenType.ERC20, 0, amount, intendedStatementId);
   }
 
   /**
    * @dev Deposit ETH; get a delegatable note representing that amount of ETH.
+   * Convenience wrapper around the unified deposit function.
    * @param intendedStatementId The IPFS CID (as bytes32) of the statement this note is intended to support.
    * @return noteId The ID of the created note representing the deposited ETH.
    */
-  function depositETH(bytes32 intendedStatementId) external payable nonReentrant returns (uint256) {
-    require(msg.value > 0, "Must send ETH");
-
-    address owner = _msgSender();
-
-    uint256 noteId = nextNoteId++;
-    notes[noteId] = Note({
-      amount: msg.value,
-      token: address(0), // Use address(0) to represent ETH
-      tokenType: TokenType.ERC20, // ETH is treated like ERC20 for simplicity
-      tokenId: 0,
-      owner: owner,
-      parentNoteId: 0,
-      delegated: false,
-      intendedStatementId: intendedStatementId
-    });
-
-    emit NoteCreated(noteId, owner, msg.value, address(0), TokenType.ERC20, 0, 0);
-    return noteId;
+  function depositETH(bytes32 intendedStatementId) external payable returns (uint256) {
+    return deposit(address(0), TokenType.ERC20, 0, 0, intendedStatementId);
   }
 
   /**
    * @dev Deposit ERC1155 tokens; get a delegatable note representing those tokens.
+   * Convenience wrapper around the unified deposit function.
    * @param token The address of the ERC1155 token contract.
    * @param tokenId The ERC1155 token ID to deposit.
    * @param amount The amount to deposit.
@@ -186,28 +211,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 tokenId,
     uint256 amount,
     bytes32 intendedStatementId
-  ) external nonReentrant returns (uint256) {
-    require(amount > 0, "Amount must be greater than 0");
-    require(token != address(0), "Invalid token address");
-
-    address owner = _msgSender();
-
-    uint256 noteId = nextNoteId++;
-    notes[noteId] = Note({
-      amount: amount,
-      token: token,
-      tokenType: TokenType.ERC1155,
-      tokenId: tokenId,
-      owner: owner,
-      parentNoteId: 0,
-      delegated: false,
-      intendedStatementId: intendedStatementId
-    });
-
-    IERC1155(token).safeTransferFrom(owner, address(this), tokenId, amount, "");
-
-    emit NoteCreated(noteId, owner, amount, token, TokenType.ERC1155, tokenId, 0);
-    return noteId;
+  ) external returns (uint256) {
+    return deposit(token, TokenType.ERC1155, tokenId, amount, intendedStatementId);
   }
 
   /**
@@ -446,14 +451,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    */
   function getDepositor(uint256 noteId) public view returns (address) {
     uint256 currentId = noteId;
-    while (true) {
-      uint256 parentId = notes[currentId].parentNoteId;
-      if (parentId == 0) {
-        return notes[currentId].owner;
-      }
-      currentId = parentId;
+    while (notes[currentId].parentNoteId != 0) {
+      currentId = notes[currentId].parentNoteId;
     }
-    revert("Unreachable");
+    return notes[currentId].owner;
   }
 
   function _countChainLength(uint256 leafNoteId) private view returns (uint256) {

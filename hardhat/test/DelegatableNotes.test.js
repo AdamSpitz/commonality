@@ -69,7 +69,7 @@ describe("DelegatableNotes", function () {
       await testToken.connect(owner).transfer(alice.address, depositAmount);
       await testToken.connect(alice).approve(delegatableNotes.target, depositAmount);
 
-      const tx = await delegatableNotes.connect(alice).deposit(
+      const tx = await delegatableNotes.connect(alice).depositERC20(
         testToken.target,
         depositAmount,
         statementId
@@ -89,7 +89,7 @@ describe("DelegatableNotes", function () {
 
     it("Should reject zero address as token", async function () {
       await expect(
-        delegatableNotes.connect(alice).deposit(hre.ethers.ZeroAddress, 1000, statementId)
+        delegatableNotes.connect(alice).depositERC20(hre.ethers.ZeroAddress, 1000, statementId)
       ).to.be.revertedWith("Use depositETH for ETH deposits");
     });
   });
