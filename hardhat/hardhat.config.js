@@ -1,3 +1,5 @@
+import "@nomicfoundation/hardhat-toolbox";
+
 /** @type import('hardhat/config').HardhatUserConfig */
 const config = {
   solidity: {
