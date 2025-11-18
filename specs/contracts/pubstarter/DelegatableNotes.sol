@@ -379,6 +379,8 @@ contract DelegatableNotes is Context, ReentrancyGuard {
    * WARNING: Hardcoded 1inch router address only works on mainnet.
    * TODO: Honestly, just remove DEX swapping from this contract; allow purchasing
    * from the Pubstarter contracts instead (ERC1155Seller and ERC1155Marketplace).
+   * Let's wait until we have a proper hardhat project set up, so that we can test
+   * this change, rather than making it blindly.
    */
   function purchaseERC20(
     uint256[] calldata noteIds,
