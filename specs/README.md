@@ -120,7 +120,7 @@ Regarding any indexers we need for the blockchain data, let's start with using P
 
 Use GraphQL (rather than REST) for all communication between the indexers and the UIs.
 
-For UI code, let's use TypeScript, Vite, Material UI, and viem and wagmi for blockchain stuff.
+For UI code, let's use TypeScript, Vite, Material UI, and viem and wagmi and connectkit for blockchain stuff.
 
 For accessing Twitter follower counts... I dunno, I still want to look into the actual cost of that. Sam thinks it's not too expensive?
 
@@ -200,7 +200,7 @@ Important details:
   - Handle circular references gracefully (limit expansion depth when expanding references)
   - If a statement CID can't be retrieved from IPFS or is invalid, still show the ID and support counts but display a warning
   - Indexers should pin any statement CIDs they encounter (to ensure availability) and optionally cache metadata (title, excerpt?) in the indexer's DB for search/display.
-  - Let's use Pinata for IPFS storage and pinning, at least to start with.
+  - Let's use Pinata for IPFS storage and pinning, at least to start with. (We'll just pay for it ourselves for now.)
 
 
 #### Beliefs smart contract
