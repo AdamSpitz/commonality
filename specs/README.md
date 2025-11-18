@@ -120,7 +120,7 @@ Regarding any indexers we need for the blockchain data, let's start with using P
 
 Use GraphQL (rather than REST) for all communication between the indexers and the UIs.
 
-For UI code, let's use TypeScript, Vite, and viem and wagmi for blockchain stuff.
+For UI code, let's use TypeScript, Vite, Material UI, and viem and wagmi for blockchain stuff.
 
 For accessing Twitter follower counts... I dunno, I still want to look into the actual cost of that. Sam thinks it's not too expensive?
 
