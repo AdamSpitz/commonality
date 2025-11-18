@@ -9,6 +9,12 @@ const config = {
       },
       viaIR: true
     }
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
   }
 };
 
