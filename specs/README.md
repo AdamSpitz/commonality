@@ -200,6 +200,7 @@ Important details:
   - Handle circular references gracefully (limit expansion depth when expanding references)
   - If a statement CID can't be retrieved from IPFS or is invalid, still show the ID and support counts but display a warning
   - Indexers should pin any statement CIDs they encounter (to ensure availability) and optionally cache metadata (title, excerpt?) in the indexer's DB for search/display.
+  - Let's use Pinata for IPFS storage and pinning, at least to start with.
 
 
 #### Beliefs smart contract
@@ -245,7 +246,7 @@ From the point of view of the rest of the Conceptspace system, it doesn't matter
 
 So we can just have the Implication Attester AI be a separate artifact, with its own API (e.g. for asking it "could you please look at S1 and S2 and publish an attestation if you think S1 -> S2?"), deployed somewhere different from the indexer and the UI; I don't think there's any need for them to be coupled too tightly. (And it'd be fine for other people to make their own, if they want to.)
 
-I have no strong opinions on how to write this or deploy this. I'm open to suggestions.
+AI recommendations for implementation approach: Start with a simple Node.js/TypeScript API service (built using Express, just because it's popular and good enough). Single endpoint: POST /evaluate-implication that accepts two statement IDs, fetches their content from IPFS, uses an LLM (use OpenRouter, at least at first, so we can try different models; we can switch to directly calling whichever specific API later if we want to) to evaluate whether S1 → S2 with a confidence score, and publishes an ImplicationAttestation event (using viem) if confidence exceeds a threshold (e.g., 0.8). The service holds an Ethereum private key to sign transactions. Deploy to Render (we can switch later if we want). Later enhancements: add batch processing (cron job to evaluate new statements against top N statements), event-driven automation (watch for new DirectSupport events), and admin UI for reviewing attestations.
 
 #### Funding Portal smart contracts
 
