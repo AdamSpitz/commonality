@@ -1,6 +1,6 @@
 // AI-generated tests for Beliefs contract
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import hre from "hardhat";
 
 describe("Beliefs", function () {
   let beliefs;
@@ -9,18 +9,18 @@ describe("Beliefs", function () {
   let user2;
 
   // Sample statement IDs (IPFS CIDs represented as bytes32)
-  const statementId1 = ethers.encodeBytes32String("QmTest1");
-  const statementId2 = ethers.encodeBytes32String("QmTest2");
-  const statementId3 = ethers.encodeBytes32String("QmTest3");
+  const statementId1 = hre.ethers.encodeBytes32String("QmTest1");
+  const statementId2 = hre.ethers.encodeBytes32String("QmTest2");
+  const statementId3 = hre.ethers.encodeBytes32String("QmTest3");
 
   const NO_OPINION = 0;
   const BELIEVES = 1;
   const DISBELIEVES = 2;
 
   beforeEach(async function () {
-    [owner, user1, user2] = await ethers.getSigners();
+    [owner, user1, user2] = await hre.ethers.getSigners();
 
-    const Beliefs = await ethers.getContractFactory("Beliefs");
+    const Beliefs = await hre.ethers.getContractFactory("Beliefs");
     beliefs = await Beliefs.deploy();
   });
 

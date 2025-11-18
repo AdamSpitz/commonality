@@ -1,6 +1,6 @@
 // AI-generated tests for Implications contract
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import hre from "hardhat";
 
 describe("Implications", function () {
   let implications;
@@ -9,16 +9,16 @@ describe("Implications", function () {
   let user;
 
   // Sample statement IDs (IPFS CIDs represented as bytes32)
-  const statementA = ethers.encodeBytes32String("QmTestA");
-  const statementB = ethers.encodeBytes32String("QmTestB");
-  const statementC = ethers.encodeBytes32String("QmTestC");
-  const statementD = ethers.encodeBytes32String("QmTestD");
-  const zeroHash = ethers.ZeroHash;
+  const statementA = hre.ethers.encodeBytes32String("QmTestA");
+  const statementB = hre.ethers.encodeBytes32String("QmTestB");
+  const statementC = hre.ethers.encodeBytes32String("QmTestC");
+  const statementD = hre.ethers.encodeBytes32String("QmTestD");
+  const zeroHash = hre.ethers.ZeroHash;
 
   beforeEach(async function () {
-    [attester1, attester2, user] = await ethers.getSigners();
+    [attester1, attester2, user] = await hre.ethers.getSigners();
 
-    const Implications = await ethers.getContractFactory("Implications");
+    const Implications = await hre.ethers.getContractFactory("Implications");
     implications = await Implications.deploy();
   });
 

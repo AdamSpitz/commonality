@@ -13,9 +13,13 @@
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.2",
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
     "chai": "^6.2.1",
+    "esm": "^3.2.25",
     "ethers": "^6.15.0",
-    "hardhat": "^3.0.15"
+    "hardhat": "^3.0.15",
+    "mocha": "^11.7.5"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0"
