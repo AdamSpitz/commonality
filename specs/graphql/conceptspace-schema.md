@@ -123,7 +123,7 @@ type Query {
   # COMPUTED QUERIES (not stored, calculated at query time):
 
   # Given a statement and trusted attesters, compute indirect support
-  # This implements the implication resolution algorithm (see specs/algorithms/implication-resolution.md)
+  # Uses BFS graph traversal (see implementation notes below)
   indirectSupporters(
     statementId: String!,
     trustedAttesters: [String!]!
@@ -177,11 +177,12 @@ type IndirectSupportBreakdown {
 1. Different users trust different attesters
 2. Would need to precompute for all possible attester combinations (impractical)
 
-Algorithm (from [specs/algorithms/implication-resolution.md](../../algorithms/implication-resolution.md)):
+**Algorithm:**
 1. BFS traversal backward through `impliedBy` edges, filtering by trusted attesters
 2. Collect all implying statements (with cycle detection via visited set)
 3. For each implying statement, get its `directSupporters`
-4. Return union of all supporter sets
+4. Exclude users who have explicitly disbelieved the target statement (at minimum), or ideally any user who has disbelieved any statement along the transitive implication path
+5. Return union of all remaining supporter sets
 
 ### Suggested Statements Algorithm
 
