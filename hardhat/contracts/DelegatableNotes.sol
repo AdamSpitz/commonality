@@ -486,6 +486,21 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     return owners;
   }
 
+  // Helper function to delete a chain and return a ChainCache with all relevant info
+  function _deleteChainAndCache(uint256 leafNoteId) private returns (ChainCache memory) {
+    Note storage leafNote = notes[leafNoteId];
+    uint256 amount = leafNote.amount;
+    bytes32 intendedStatementId = leafNote.intendedStatementId;
+
+    address[] memory owners = _deleteChainAndReturnOwners(leafNoteId);
+
+    return ChainCache({
+      owners: owners,
+      amount: amount,
+      intendedStatementId: intendedStatementId
+    });
+  }
+
   function _createChain(
     address token,
     TokenType tokenType,
@@ -540,10 +555,11 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     address caller = _msgSender();
     uint256 totalPaymentAmount = 0;
-    bytes32 intendedStatementId;
-    uint256[] memory inputNoteIds = new uint256[](noteIds.length);
 
-    // Validate all notes and accumulate ETH
+    // Cache chains before deleting - following checks-effects-interactions pattern
+    ChainCache[] memory chainCaches = new ChainCache[](noteIds.length);
+
+    // Validate all notes, cache chains, and accumulate ETH
     for (uint256 i = 0; i < noteIds.length; i++) {
       uint256 noteId = noteIds[i];
       Note storage note = notes[noteId];
@@ -551,18 +567,12 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       require(note.token == address(0), "Notes must hold ETH (token = address(0))");
       require(!note.delegated, "Can only spend leaf notes");
 
-      if (i == 0) {
-        intendedStatementId = note.intendedStatementId;
-      }
-
-      inputNoteIds[i] = noteId;
-      totalPaymentAmount += note.amount;
-
-      // Delete the entire chain since we're consuming the note
-      _deleteChainAndReturnOwners(noteId);
+      // Cache and delete the chain
+      chainCaches[i] = _deleteChainAndCache(noteId);
+      totalPaymentAmount += chainCaches[i].amount;
     }
 
-    // Purchase from the ERC1155Seller contract
+    // Purchase from the ERC1155Seller contract (external call after state changes)
     ERC1155Seller(seller).buyERC1155{value: totalPaymentAmount}(
       caller,
       erc1155Contract,
@@ -582,7 +592,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       tokenIds,
       counts,
       totalPaymentAmount,
-      inputNoteIds,
+      noteIds,
       outputNoteIds
     );
   }
@@ -614,7 +624,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     uint256 requiredPayment = count * pricePerToken;
 
-    // Validate and accumulate ETH from notes
+    // Cache chains before deleting - following checks-effects-interactions pattern
+    ChainCache[] memory chainCaches = new ChainCache[](noteIds.length);
+
+    // Validate, cache chains, and accumulate ETH from notes
     for (uint256 i = 0; i < noteIds.length; i++) {
       uint256 noteId = noteIds[i];
       Note storage note = notes[noteId];
@@ -622,15 +635,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       require(note.token == address(0), "Notes must hold ETH (token = address(0))");
       require(!note.delegated, "Can only spend leaf notes");
 
-      totalPaymentAmount += note.amount;
-
-      // Delete the entire chain
-      _deleteChainAndReturnOwners(noteId);
+      // Cache and delete the chain
+      chainCaches[i] = _deleteChainAndCache(noteId);
+      totalPaymentAmount += chainCaches[i].amount;
     }
 
     require(totalPaymentAmount >= requiredPayment, "Insufficient funds in notes");
 
-    // Purchase from marketplace
+    // Purchase from marketplace (external call after state changes)
     ERC1155Marketplace(marketplace).fulfillSaleListing{value: requiredPayment}(saleListingId, count);
 
     // If there's any leftover ETH, return it to caller
@@ -712,13 +724,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     require(targetTokenIds.length == targetCounts.length, "Token IDs and counts length mismatch");
 
     address caller = _msgSender();
-    bytes32 intendedStatementId;
 
     // Validate all notes are ERC1155, same token/tokenId, and owned by caller
     address paymentToken = notes[noteIds[0]].token;
     uint256 paymentTokenId = notes[noteIds[0]].tokenId;
     uint256 totalPaymentAmount = 0;
-    address[] memory chainOwners;
+
+    // Cache chains before deleting - following checks-effects-interactions pattern
+    ChainCache[] memory chainCaches = new ChainCache[](noteIds.length);
 
     for (uint256 i = 0; i < noteIds.length; i++) {
       uint256 noteId = noteIds[i];
@@ -729,14 +742,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       require(note.tokenId == paymentTokenId, "All notes must have same token ID");
       require(!note.delegated, "Can only spend leaf notes");
 
-      if (i == 0) {
-        intendedStatementId = note.intendedStatementId;
-        chainOwners = _deleteChainAndReturnOwners(noteId);
-      } else {
-        _deleteChainAndReturnOwners(noteId);
-      }
-
-      totalPaymentAmount += note.amount;
+      // Cache and delete the chain
+      chainCaches[i] = _deleteChainAndCache(noteId);
+      totalPaymentAmount += chainCaches[i].amount;
     }
 
     // Approve the seller to transfer our ERC1155 tokens
