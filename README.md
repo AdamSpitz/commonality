@@ -11,4 +11,4 @@ The hardhat directory is meant to be considered "part of the spec". Don't blow i
 Commands you can run:
 
     cd hardhat
-    npm run test
+    npm run compile
