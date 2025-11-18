@@ -53,16 +53,24 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 parentNoteId;
     bool delegated;
     bytes32 intendedStatementId;
+    uint256 commissionBasisPoints; // Commission in basis points (10000 = 100%)
   }
 
   struct DelegationChainSnapshot {
     address[] owners; // owners[0] is leaf, owners[length-1] is root
     uint256 amount;
     bytes32 intendedStatementId;
+    uint256[] commissions; // Commission basis points for each level (parallel to owners)
   }
+
+  uint256 public constant MAX_COMMISSION_BASIS_POINTS = 5000; // 50% max
+  uint256 public constant BASIS_POINTS = 10000; // 100%
 
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
+
+  // Track accrued commissions: owner => token => tokenType => tokenId => amount
+  mapping(address => mapping(address => mapping(TokenType => mapping(uint256 => uint256)))) public accruedCommissions;
 
   // Events
   event NoteCreated(
@@ -104,6 +112,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 totalCost,
     uint256[] inputNoteIds,
     uint256[] outputNoteIds
+  );
+  event CommissionClaimed(
+    address indexed owner,
+    address indexed token,
+    TokenType tokenType,
+    uint256 tokenId,
+    uint256 amount
   );
 
   // Allow contract to receive ETH
@@ -167,7 +182,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       owner: owner,
       parentNoteId: 0,
       delegated: false,
-      intendedStatementId: intendedStatementId
+      intendedStatementId: intendedStatementId,
+      commissionBasisPoints: 0
     });
 
     emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId, 0);
@@ -294,6 +310,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param amountToDelegate The amount to delegate. If this is less than the full
    * amount of the note, the *entire chain* will be split into two parallel chains:
    * one with the delegated amount and one with the remainder.
+   * @param commissionBasisPoints Commission in basis points (0-5000, i.e., 0-50%)
+   * that the delegate can claim when the note is spent. The delegate can pass on
+   * some or all of this commission to subdelegates.
    * @return delegatedNoteId The ID of the newly created note that is owned by the
    * delegate.
    * @return remainderNoteId The ID of the newly created note that represents the
@@ -303,13 +322,20 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   function delegate(
     uint256 noteId,
     address delegateTo,
-    uint256 amountToDelegate
+    uint256 amountToDelegate,
+    uint256 commissionBasisPoints
   ) external onlyNoteOwner(noteId) returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
     Note storage note = notes[noteId];
     uint256 fullAmount = note.amount;
     require(!note.delegated, "Note already delegated");
     require(amountToDelegate > 0 && amountToDelegate <= fullAmount, "Invalid delegation amount");
     require(delegateTo != address(0), "Cannot delegate to zero address");
+    require(commissionBasisPoints <= MAX_COMMISSION_BASIS_POINTS, "Commission too high");
+
+    // If this is a child note, the new commission cannot exceed the parent's remaining commission
+    if (note.parentNoteId != 0) {
+      require(commissionBasisPoints <= note.commissionBasisPoints, "Commission exceeds parent's allowance");
+    }
 
     uint256 remainderAmount = fullAmount - amountToDelegate;
     address token = note.token;
@@ -318,14 +344,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     if (amountToDelegate == fullAmount) {
       // important to have this special case because no need to split the chain
-      delegatedNoteId = _delegateFullAmount(noteId, delegateTo, amountToDelegate, token);
+      delegatedNoteId = _delegateFullAmount(noteId, delegateTo, amountToDelegate, token, commissionBasisPoints);
       return (delegatedNoteId, 0);
     } else {
       // Partial delegation - need to split the chain
       (uint256 splitLeafId, uint256 remainderLeafId) = _splitChain(noteId, amountToDelegate, remainderAmount, token);
 
       // Now delegate the split amount
-      delegatedNoteId = _delegateFullAmount(splitLeafId, delegateTo, amountToDelegate, token);
+      delegatedNoteId = _delegateFullAmount(splitLeafId, delegateTo, amountToDelegate, token, commissionBasisPoints);
 
       emit NoteDelegated(noteId, splitLeafId, delegateTo, amountToDelegate);
       return (splitLeafId, remainderLeafId);
@@ -340,7 +366,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 noteId,
     address delegateTo,
     uint256 amount,
-    address token
+    address token,
+    uint256 commissionBasisPoints
   ) private returns (uint256) {
     Note storage note = notes[noteId];
     bytes32 intendedStatementId = note.intendedStatementId;
@@ -358,7 +385,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       owner: delegateTo,
       parentNoteId: noteId,
       delegated: false,
-      intendedStatementId: intendedStatementId
+      intendedStatementId: intendedStatementId,
+      commissionBasisPoints: commissionBasisPoints
     });
 
     emit NoteDelegated(noteId, delegatedNoteId, delegateTo, amount);
@@ -407,6 +435,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       Note storage originalNote = notes[originalNoteId];
       address originalOwner = originalNote.owner;
 
+      uint256 originalCommission = originalNote.commissionBasisPoints;
+
       uint256 splitChildNoteId = nextNoteId++;
       notes[splitChildNoteId] = Note({
         amount: amountToSplit,
@@ -416,7 +446,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         owner: originalOwner,
         parentNoteId: splitCurrentNoteId,
         delegated: false,
-        intendedStatementId: intendedStatementId
+        intendedStatementId: intendedStatementId,
+        commissionBasisPoints: originalCommission
       });
 
       uint256 remainderChildNoteId = nextNoteId++;
@@ -428,7 +459,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         owner: originalOwner,
         parentNoteId: remainderCurrentNoteId,
         delegated: false,
-        intendedStatementId: intendedStatementId
+        intendedStatementId: intendedStatementId,
+        commissionBasisPoints: originalCommission
       });
 
       // Update parent IDs for next iteration
@@ -563,18 +595,23 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
   // Helper function to get the whole delegation chain for a particular leaf note,
   // deleting the chain in the process.
-  // The array will have the leaf owner at the start and the root owner at the end.
-  function _deleteChainAndReturnOwners(uint256 leafNoteId) private returns (address[] memory) {
+  // The arrays will have the leaf at the start and the root at the end.
+  function _deleteChainAndReturnOwnersAndCommissions(uint256 leafNoteId)
+    private
+    returns (address[] memory owners, uint256[] memory commissions)
+  {
     uint256 chainLength = _countChainLength(leafNoteId);
-    address[] memory owners = new address[](chainLength);
+    owners = new address[](chainLength);
+    commissions = new uint256[](chainLength);
     uint256 currentNoteId = leafNoteId;
     for (uint256 i = 0; i < chainLength; i++) {
       owners[i] = notes[currentNoteId].owner;
+      commissions[i] = notes[currentNoteId].commissionBasisPoints;
       uint256 parentNoteId = notes[currentNoteId].parentNoteId;
       delete notes[currentNoteId]; // Delete the note as we traverse
       currentNoteId = parentNoteId;
     }
-    return owners;
+    return (owners, commissions);
   }
 
   // Helper function to delete a chain and return a DelegationChainSnapshot with all relevant info
@@ -583,12 +620,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 amount = leafNote.amount;
     bytes32 intendedStatementId = leafNote.intendedStatementId;
 
-    address[] memory owners = _deleteChainAndReturnOwners(leafNoteId);
+    (address[] memory owners, uint256[] memory commissions) = _deleteChainAndReturnOwnersAndCommissions(leafNoteId);
 
     return DelegationChainSnapshot({
       owners: owners,
       amount: amount,
-      intendedStatementId: intendedStatementId
+      intendedStatementId: intendedStatementId,
+      commissions: commissions
     });
   }
 
@@ -598,7 +636,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 tokenId,
     uint256 amount,
     address[] memory owners,
-    bytes32 intendedStatementId
+    bytes32 intendedStatementId,
+    uint256[] memory commissions
   ) private returns (uint256) {
     uint256 lastCreatedNoteId = 0;
     // Need to start creating notes from the root to the leaf (because each
@@ -607,6 +646,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // underflow; having a loop condition if i >= 0 would be an infinite loop.
     for (uint256 i = owners.length; i > 0; i--) {
       address owner = owners[i - 1];
+      uint256 commission = commissions[i - 1];
       uint256 newNoteId = nextNoteId++;
       notes[newNoteId] = Note({
         amount: amount,
@@ -616,7 +656,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         owner: owner,
         parentNoteId: lastCreatedNoteId,
         delegated: i > 1,
-        intendedStatementId: intendedStatementId
+        intendedStatementId: intendedStatementId,
+        commissionBasisPoints: commission
       });
       lastCreatedNoteId = newNoteId;
     }
@@ -661,6 +702,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       // Cache and delete the chain
       chainCaches[i] = _deleteChainAndCache(noteId);
       totalPaymentAmount += chainCaches[i].amount;
+
+      // Accrue commissions for this chain
+      _accrueCommissions(
+        chainCaches[i].owners,
+        chainCaches[i].commissions,
+        address(0), // ETH
+        TokenType.ERC20,
+        0,
+        chainCaches[i].amount
+      );
     }
 
     // Purchase from the ERC1155Seller contract (external call after state changes)
@@ -709,7 +760,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
             tokenId,
             proportionalTokens,
             chainCaches[chainIndex].owners,
-            chainCaches[chainIndex].intendedStatementId
+            chainCaches[chainIndex].intendedStatementId,
+            chainCaches[chainIndex].commissions
           );
           outputNoteIds[outputNoteIndex++] = newLeafNoteId;
         }
@@ -777,6 +829,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       // Cache and delete the chain
       chainCaches[i] = _deleteChainAndCache(noteId);
       totalPaymentAmount += chainCaches[i].amount;
+
+      // Accrue commissions for this chain
+      _accrueCommissions(
+        chainCaches[i].owners,
+        chainCaches[i].commissions,
+        address(0), // ETH
+        TokenType.ERC20,
+        0,
+        chainCaches[i].amount
+      );
     }
 
     require(totalPaymentAmount >= requiredPayment, "Insufficient funds in notes");
@@ -816,7 +878,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
           tokenId,
           proportionalTokens,
           chainCaches[i].owners,
-          chainCaches[i].intendedStatementId
+          chainCaches[i].intendedStatementId,
+          chainCaches[i].commissions
         );
         outputNoteIds[outputNoteIndex++] = newLeafNoteId;
       }
@@ -860,5 +923,86 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       }
       currentId = notes[currentId].parentNoteId;
     }
+  }
+
+  /**
+   * @dev Accrue commissions to delegates in the chain when a note is spent
+   * @param owners Array of owners in the delegation chain (leaf to root)
+   * @param commissions Array of commission basis points for each level
+   * @param token The token being spent
+   * @param tokenType The type of token
+   * @param tokenId The token ID (for ERC1155)
+   * @param amount The total amount being spent
+   */
+  function _accrueCommissions(
+    address[] memory owners,
+    uint256[] memory commissions,
+    address token,
+    TokenType tokenType,
+    uint256 tokenId,
+    uint256 amount
+  ) private {
+    // Skip the root (last element) - they don't get commission
+    // Commission is paid to intermediate delegates, not the original owner
+    for (uint256 i = 0; i < owners.length - 1; i++) {
+      if (commissions[i] > 0) {
+        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS;
+        if (commissionAmount > 0) {
+          accruedCommissions[owners[i]][token][tokenType][tokenId] += commissionAmount;
+        }
+      }
+    }
+  }
+
+  /**
+   * @dev Claim accrued commissions
+   * @param token The token address (use address(0) for ETH)
+   * @param tokenType The type of token (ERC20 or ERC1155)
+   * @param tokenId The token ID (only relevant for ERC1155, use 0 for ERC20/ETH)
+   */
+  function claimCommission(
+    address token,
+    TokenType tokenType,
+    uint256 tokenId
+  ) external nonReentrant {
+    address owner = _msgSender();
+    uint256 amount = accruedCommissions[owner][token][tokenType][tokenId];
+    require(amount > 0, "No commission to claim");
+
+    // Delete before external call (checks-effects-interactions)
+    delete accruedCommissions[owner][token][tokenType][tokenId];
+
+    // Transfer the commission
+    if (tokenType == TokenType.ERC20) {
+      if (token == address(0)) {
+        // ETH
+        payable(owner).transfer(amount);
+      } else {
+        // ERC20
+        IERC20(token).safeTransfer(owner, amount);
+      }
+    } else {
+      // ERC1155
+      IERC1155(token).safeTransferFrom(address(this), owner, tokenId, amount, "");
+    }
+
+    emit CommissionClaimed(owner, token, tokenType, tokenId, amount);
+  }
+
+  /**
+   * @dev View function to check accrued commission
+   * @param owner The address to check
+   * @param token The token address
+   * @param tokenType The type of token
+   * @param tokenId The token ID (for ERC1155)
+   * @return The amount of accrued commission
+   */
+  function getAccruedCommission(
+    address owner,
+    address token,
+    TokenType tokenType,
+    uint256 tokenId
+  ) external view returns (uint256) {
+    return accruedCommissions[owner][token][tokenType][tokenId];
   }
 }
