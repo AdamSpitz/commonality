@@ -205,7 +205,7 @@ Important details:
 
 #### Beliefs smart contract
 
-First, I've already generated this; see specs/contracts/conceptspace. Feel free to just copy that into our code base.
+First, I've already generated this; see hardhat/contracts.
 
 A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
 
@@ -213,7 +213,7 @@ Store beliefs in the blockchain's state as well as emitting DirectSupport events
 
 #### Implications smart contract
 
-I've already generated this one too; see specs/contracts/conceptspace.
+I've already generated this one too; hardhat/contracts.
 
 #### Conceptspace indexer
 
@@ -250,9 +250,9 @@ AI recommendations for implementation approach: Start with a simple Node.js/Type
 
 #### Funding Portal smart contracts
 
-See the hardhat/contracts/pubstarter and specs/contracts/funding-portals directories; the pubstarter stuff is old code that I wrote a while ago, but I think it should be useful.
+See the hardhat/contracts directory; the pubstarter stuff is old code that I wrote a while ago, but I think it should be useful.
 
-I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events. (Okay, this now exists, in specs/contracts/funding-portals.)
+I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events. (Okay, this now exists, in hardhat/contracts.)
 
 The DelegatableNotes smart contract currently has some old code in it regarding spending using a DEX aggregator. I think we should probably rip that out for now. In the long run I'd like to support various DEXes; for now it's fine to just use the primary and secondary market capabilities of our own (Kickstarter-like) contracts.
 
