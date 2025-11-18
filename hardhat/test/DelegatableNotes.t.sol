@@ -49,7 +49,7 @@ contract DelegatableNotesTest {
         // Deposit ETH from this contract
         uint256 noteId = notes.depositETH{value: 0.5 ether}(statementId);
 
-        (uint256 amount, address tokenAddr, address owner, , bool delegated, bytes32 storedStatementId) = notes.notes(noteId);
+        (uint256 amount, address tokenAddr, , , address owner, , bool delegated, bytes32 storedStatementId) = notes.notes(noteId);
 
         bool success = amount == 0.5 ether &&
                       tokenAddr == address(0) &&
@@ -69,7 +69,7 @@ contract DelegatableNotesTest {
 
         uint256 noteId = notes.deposit(address(token), depositAmount, statementId);
 
-        (uint256 amount, address tokenAddr, address owner, , bool delegated, bytes32 storedStatementId) = notes.notes(noteId);
+        (uint256 amount, address tokenAddr, , , address owner, , bool delegated, bytes32 storedStatementId) = notes.notes(noteId);
 
         bool success = amount == depositAmount &&
                       tokenAddr == address(token) &&
@@ -86,8 +86,8 @@ contract DelegatableNotesTest {
 
         (uint256 delegatedNoteId, ) = notes.delegate(noteId, bob, 1 ether);
 
-        (, , , , bool delegated, ) = notes.notes(noteId);
-        (, , address delegateOwner, uint256 parentId, , bytes32 delegateStatementId) = notes.notes(delegatedNoteId);
+        (, , , , , , bool delegated, ) = notes.notes(noteId);
+        (, , , , address delegateOwner, uint256 parentId, , bytes32 delegateStatementId) = notes.notes(delegatedNoteId);
 
         bool success = delegated &&
                       delegateOwner == bob &&
@@ -103,8 +103,8 @@ contract DelegatableNotesTest {
 
         (uint256 delegatedNoteId, uint256 remainderNoteId) = notes.delegate(noteId, bob, 0.6 ether);
 
-        (uint256 delegatedAmount, , address delegateOwner, , , bytes32 delegateStatementId) = notes.notes(delegatedNoteId);
-        (uint256 remainderAmount, , address remainderOwner, , , bytes32 remainderStatementId) = notes.notes(remainderNoteId);
+        (uint256 delegatedAmount, , , , address delegateOwner, , , bytes32 delegateStatementId) = notes.notes(delegatedNoteId);
+        (uint256 remainderAmount, , , , address remainderOwner, , , bytes32 remainderStatementId) = notes.notes(remainderNoteId);
 
         bool success = delegatedAmount == 0.6 ether &&
                       delegateOwner == bob &&
