@@ -254,9 +254,7 @@ See the hardhat/contracts directory; the pubstarter stuff is old code that I wro
 
 I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events. (Okay, this now exists, in hardhat/contracts.)
 
-The DelegatableNotes smart contract currently has some old code in it regarding spending using a DEX aggregator. I think we should probably rip that out for now. In the long run I'd like to support various DEXes; for now it's fine to just use the primary and secondary market capabilities of our own (Kickstarter-like) contracts.
-
-Also, the DelegatableNotes smart contract doesn't currently have any place for intendedStatementId (i.e. marking a note with the "cause" it's meant to support). We should add that.
+In the long run I'd like the DelegatableNotes smart contract to support various DEXes or DEX aggregators for spending the notes; for now it's fine to just use the primary and secondary market capabilities of our own (Kickstarter-like) contracts. (This is also already done.)
 
 #### Funding Portal indexer
 
