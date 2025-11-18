@@ -81,6 +81,31 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
     }
 
     function fulfillSaleListing(uint256 saleListingId, uint256 count) external payable nonReentrant {
+        address buyer = _msgSender();
+        _fulfillSaleListingInternal(saleListingId, count, buyer);
+    }
+
+    /**
+     * @dev Fulfill a sale listing and send the purchased tokens to a specified recipient.
+     * This is useful for contracts that want to purchase tokens on behalf of users.
+     * @param saleListingId The ID of the sale listing to fulfill
+     * @param count The number of tokens to purchase
+     * @param recipient The address to receive the purchased tokens
+     */
+    function fulfillSaleListingTo(
+        uint256 saleListingId,
+        uint256 count,
+        address recipient
+    ) external payable nonReentrant {
+        require(recipient != address(0), "Invalid recipient");
+        _fulfillSaleListingInternal(saleListingId, count, recipient);
+    }
+
+    function _fulfillSaleListingInternal(
+        uint256 saleListingId,
+        uint256 count,
+        address recipient
+    ) private {
         SaleListing storage listing = _saleListings[saleListingId];
         address seller = listing.seller;
         uint256 tokenId = listing.tokenId;
@@ -107,7 +132,7 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
 
         _erc1155.safeTransferFrom(
             address(this),
-            buyer,
+            recipient,
             tokenId,
             count,
             "0x"

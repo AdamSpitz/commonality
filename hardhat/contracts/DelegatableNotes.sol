@@ -55,7 +55,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     bytes32 intendedStatementId;
   }
 
-  struct ChainCache {
+  struct DelegationChainSnapshot {
     address[] owners; // owners[0] is leaf, owners[length-1] is root
     uint256 amount;
     bytes32 intendedStatementId;
@@ -457,6 +457,96 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     return notes[currentId].owner;
   }
 
+  /**
+   * @dev Get the full delegation chain for a note, from leaf to root.
+   * Returns arrays of note IDs and owner addresses in the chain.
+   * The first element is the given note (leaf), the last is the root.
+   * @param noteId The ID of the note to get the chain for.
+   * @return noteIds Array of note IDs in the delegation chain
+   * @return owners Array of owner addresses corresponding to each note
+   */
+  function getChain(uint256 noteId) public view returns (uint256[] memory noteIds, address[] memory owners) {
+    require(notes[noteId].owner != address(0), "Note does not exist");
+
+    // First, count the chain length
+    uint256 chainLength = _countChainLength(noteId);
+
+    // Allocate arrays
+    noteIds = new uint256[](chainLength);
+    owners = new address[](chainLength);
+
+    // Fill arrays from leaf to root
+    uint256 currentId = noteId;
+    for (uint256 i = 0; i < chainLength; i++) {
+      noteIds[i] = currentId;
+      owners[i] = notes[currentId].owner;
+      currentId = notes[currentId].parentNoteId;
+    }
+
+    return (noteIds, owners);
+  }
+
+  /**
+   * @dev Validate that multiple notes are compatible for being spent together.
+   * Notes are compatible if they all have the same owner, token, tokenType, and tokenId (for ERC1155).
+   * This is useful before calling functions like purchaseFromERC1155Seller.
+   * @param noteIds Array of note IDs to validate
+   * @return isValid True if all notes are compatible, false otherwise
+   * @return errorMessage Description of why notes are incompatible (empty if valid)
+   */
+  function validateNotesCompatible(uint256[] calldata noteIds)
+    public
+    view
+    returns (bool isValid, string memory errorMessage)
+  {
+    if (noteIds.length == 0) {
+      return (false, "No notes provided");
+    }
+
+    // Get reference values from first note
+    Note storage firstNote = notes[noteIds[0]];
+
+    if (firstNote.owner == address(0)) {
+      return (false, "First note does not exist");
+    }
+
+    address expectedOwner = firstNote.owner;
+    address expectedToken = firstNote.token;
+    TokenType expectedTokenType = firstNote.tokenType;
+    uint256 expectedTokenId = firstNote.tokenId;
+
+    // Check all notes match
+    for (uint256 i = 0; i < noteIds.length; i++) {
+      Note storage note = notes[noteIds[i]];
+
+      if (note.owner == address(0)) {
+        return (false, "Note does not exist");
+      }
+
+      if (note.owner != expectedOwner) {
+        return (false, "Notes have different owners");
+      }
+
+      if (note.delegated) {
+        return (false, "Cannot spend delegated notes");
+      }
+
+      if (note.token != expectedToken) {
+        return (false, "Notes have different tokens");
+      }
+
+      if (note.tokenType != expectedTokenType) {
+        return (false, "Notes have different token types");
+      }
+
+      if (expectedTokenType == TokenType.ERC1155 && note.tokenId != expectedTokenId) {
+        return (false, "ERC1155 notes have different token IDs");
+      }
+    }
+
+    return (true, "");
+  }
+
   function _countChainLength(uint256 leafNoteId) private view returns (uint256) {
     uint256 chainLength = 0;
     uint256 currentNoteId = leafNoteId;
@@ -487,15 +577,15 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     return owners;
   }
 
-  // Helper function to delete a chain and return a ChainCache with all relevant info
-  function _deleteChainAndCache(uint256 leafNoteId) private returns (ChainCache memory) {
+  // Helper function to delete a chain and return a DelegationChainSnapshot with all relevant info
+  function _deleteChainAndCache(uint256 leafNoteId) private returns (DelegationChainSnapshot memory) {
     Note storage leafNote = notes[leafNoteId];
     uint256 amount = leafNote.amount;
     bytes32 intendedStatementId = leafNote.intendedStatementId;
 
     address[] memory owners = _deleteChainAndReturnOwners(leafNoteId);
 
-    return ChainCache({
+    return DelegationChainSnapshot({
       owners: owners,
       amount: amount,
       intendedStatementId: intendedStatementId
@@ -558,7 +648,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 totalPaymentAmount = 0;
 
     // Cache chains before deleting - following checks-effects-interactions pattern
-    ChainCache[] memory chainCaches = new ChainCache[](noteIds.length);
+    DelegationChainSnapshot[] memory chainCaches = new DelegationChainSnapshot[](noteIds.length);
 
     // Validate all notes, cache chains, and accumulate ETH
     for (uint256 i = 0; i < noteIds.length; i++) {
@@ -674,7 +764,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 requiredPayment = count * pricePerToken;
 
     // Cache chains before deleting - following checks-effects-interactions pattern
-    ChainCache[] memory chainCaches = new ChainCache[](noteIds.length);
+    DelegationChainSnapshot[] memory chainCaches = new DelegationChainSnapshot[](noteIds.length);
 
     // Validate, cache chains, and accumulate ETH from notes
     for (uint256 i = 0; i < noteIds.length; i++) {
@@ -691,16 +781,15 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     require(totalPaymentAmount >= requiredPayment, "Insufficient funds in notes");
 
-    // Purchase from marketplace - tokens will be sent to the caller first
-    // Note: The marketplace sends tokens to msg.sender, so we need to use a different approach
-    // We'll receive the tokens via the marketplace's fulfillSaleListing which sends to msg.sender
-    ERC1155Marketplace(marketplace).fulfillSaleListing{value: requiredPayment}(saleListingId, count);
-
-    // Get the ERC1155 contract address
+    // Get the ERC1155 contract address before making the purchase
     address erc1155Contract = address(ERC1155Marketplace(marketplace).erc1155());
 
-    // Transfer the tokens from caller to this contract
-    IERC1155(erc1155Contract).safeTransferFrom(caller, address(this), tokenId, count, "");
+    // Purchase from marketplace - tokens sent directly to this contract
+    ERC1155Marketplace(marketplace).fulfillSaleListingTo{value: requiredPayment}(
+      saleListingId,
+      count,
+      address(this)
+    );
 
     // Distribute purchased tokens proportionally across all input note chains
     uint256[] memory outputNoteIds = new uint256[](noteIds.length);
@@ -760,96 +849,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       noteIds,
       finalOutputNoteIds
     );
-  }
-
-  /**
-   * @dev Sell ERC1155 tokens from a note on the ERC1155Marketplace.
-   * Creates a sale listing for the ERC1155 tokens held in the note.
-   * The delegation chain is preserved - when tokens are sold, ETH proceeds
-   * create a new note with the same delegation chain.
-   * @param noteId The note ID containing ERC1155 tokens to sell
-   * @param marketplace Address of the ERC1155Marketplace contract
-   * @param pricePerToken Price per token in ETH
-   * Note: The marketplace must be for the same ERC1155 contract as the note's token
-   */
-  function createERC1155SaleListing(
-    uint256 noteId,
-    address marketplace,
-    uint256 pricePerToken
-  ) external onlyNoteOwner(noteId) nonReentrant {
-    Note storage note = notes[noteId];
-    require(note.tokenType == TokenType.ERC1155, "Note must contain ERC1155 tokens");
-    require(!note.delegated, "Can only list leaf notes");
-
-    // Approve marketplace to transfer the tokens
-    IERC1155(note.token).setApprovalForAll(marketplace, true);
-
-    // Create the listing on the marketplace
-    // Note: createSaleListing doesn't return a value, but emits an event
-    ERC1155Marketplace(marketplace).createSaleListing(
-      note.tokenId,
-      note.amount,
-      pricePerToken
-    );
-
-    // Note: The tokens are transferred to the marketplace contract
-    // When sold, the marketplace will send ETH to this contract
-    // We would need additional logic to handle the ETH proceeds and
-    // recreate the delegation chain with ETH notes
-  }
-
-  /**
-   * @dev Purchase ERC1155 tokens using ERC1155 tokens from notes.
-   * This allows trading one ERC1155 token for another via a seller contract.
-   * @param noteIds Array of note IDs to spend (must all be ERC1155 notes with same token/tokenId)
-   * @param seller Address of the ERC1155Seller contract
-   * @param targetTokenIds Array of ERC1155 token IDs to purchase
-   * @param targetCounts Array of counts for each token ID
-   */
-  function tradeERC1155ForERC1155(
-    uint256[] calldata noteIds,
-    address seller,
-    address /* targetErc1155Contract */,
-    uint256[] calldata targetTokenIds,
-    uint256[] calldata targetCounts
-  ) external nonReentrant {
-    require(noteIds.length > 0, "Must provide at least one note");
-    require(targetTokenIds.length == targetCounts.length, "Token IDs and counts length mismatch");
-
-    address caller = _msgSender();
-
-    // Validate all notes are ERC1155, same token/tokenId, and owned by caller
-    address paymentToken = notes[noteIds[0]].token;
-    uint256 paymentTokenId = notes[noteIds[0]].tokenId;
-    uint256 totalPaymentAmount = 0;
-
-    // Cache chains before deleting - following checks-effects-interactions pattern
-    ChainCache[] memory chainCaches = new ChainCache[](noteIds.length);
-
-    for (uint256 i = 0; i < noteIds.length; i++) {
-      uint256 noteId = noteIds[i];
-      Note storage note = notes[noteId];
-      require(note.owner == caller, "Not the note owner");
-      require(note.tokenType == TokenType.ERC1155, "Notes must hold ERC1155 tokens");
-      require(note.token == paymentToken, "All notes must have same token contract");
-      require(note.tokenId == paymentTokenId, "All notes must have same token ID");
-      require(!note.delegated, "Can only spend leaf notes");
-
-      // Cache and delete the chain
-      chainCaches[i] = _deleteChainAndCache(noteId);
-      totalPaymentAmount += chainCaches[i].amount;
-    }
-
-    // Approve the seller to transfer our ERC1155 tokens
-    IERC1155(paymentToken).setApprovalForAll(seller, true);
-
-    // Call seller - this should transfer our tokens and send purchased tokens back
-    // Note: This assumes the seller has a function to accept ERC1155 as payment
-    // The actual implementation would depend on the seller contract interface
-    // For now, we'll just transfer the purchased tokens to the caller
-
-    // The purchased tokens go directly to the caller, not held in notes
-    // This matches the existing pattern in purchaseFromERC1155Seller
   }
 
   function _revertIfCircularDelegation(uint256 noteId, address delegateTo) private view {
