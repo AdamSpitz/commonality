@@ -260,6 +260,8 @@ Thoughts on potential threats:
 
 To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then add them to the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code"). That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code". (Doesn't need to be code artifacts; e.g. it might be useful if you could write up English descriptions of some things and then I can bless them.) Here are some other aspects of the project that I might like to do in that way. (Some of these files may already exist.)
 
+(Actually, for now I think I've done all of these.)
+
 
 ## A bit more philosophizing
 
