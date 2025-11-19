@@ -29,6 +29,7 @@ contract MultiERC1155_AssuranceContract is
         uint256 deadline,
         string memory projectMetadataCid
     ) Ownable(owner) AssuranceContract(recipient, threshold, deadline) {
+        // no reason to validate the CID, plus we can't really anyway
         emit ContractMetadataUpdated(projectMetadataCid);
     }
 
@@ -44,6 +45,7 @@ contract MultiERC1155_AssuranceContract is
         for (uint i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
             uint256 price = prices[i];
+            // Note that we allow price = 0; can be useful for free tokens (promotional, badges, etc.)
             uint256 currentPrice = _erc1155Prices[erc1155Addr][id];
             require(currentPrice == 0, "Price already set");
             _erc1155Prices[erc1155Addr][id] = price;

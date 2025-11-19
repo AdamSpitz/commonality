@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -63,8 +63,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] commissions; // Commission basis points for each level (parallel to owners)
   }
 
-  uint256 public constant MAX_COMMISSION_BASIS_POINTS = 5000; // 50% max
-  uint256 public constant BASIS_POINTS = 10000; // 100%
+  uint256 public constant MAX_COMMISSION_BASIS_POINTS = 5000; // 50% max commission
+  uint256 public constant BASIS_POINTS_DENOMINATOR = 10000; // 100% = 10000 basis points
+  uint256 public constant MAX_DELEGATION_DEPTH = 200; // Maximum delegation chain length (gas limit protection)
 
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
@@ -331,6 +332,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     require(amountToDelegate > 0 && amountToDelegate <= fullAmount, "Invalid delegation amount");
     require(delegateTo != address(0), "Cannot delegate to zero address");
     require(commissionBasisPoints <= MAX_COMMISSION_BASIS_POINTS, "Commission too high");
+
+    // Check delegation depth limit
+    uint256 currentDepth = _countChainLength(noteId);
+    require(currentDepth < MAX_DELEGATION_DEPTH, "Delegation chain too long");
 
     // If this is a child note, the new commission cannot exceed the parent's remaining commission
     if (note.parentNoteId != 0) {
@@ -863,6 +868,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     require(noteIds.length > 0, "Must provide at least one note");
     require(tokenIds.length == counts.length, "Token IDs and counts length mismatch");
     require(paymentAmount > 0, "Payment amount must be greater than 0");
+    // Note: No need to check seller/erc1155Contract != address(0) - the EVM will revert anyway
 
     address caller = _msgSender();
 
@@ -927,6 +933,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   ) external nonReentrant {
     require(noteIds.length > 0, "Must provide at least one note");
     require(paymentAmount > 0, "Payment amount must be greater than 0");
+    // Note: No need to check marketplace/erc1155Contract != address(0) - the EVM will revert anyway
 
     address caller = _msgSender();
 
@@ -998,7 +1005,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Skip the root (last element) - they don't get commission
     for (uint256 i = 0; i < owners.length - 1; i++) {
       if (commissions[i] > 0) {
-        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS;
+        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS_DENOMINATOR;
         totalCommission += commissionAmount;
       }
     }
@@ -1026,7 +1033,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Commission is paid to intermediate delegates, not the original owner
     for (uint256 i = 0; i < owners.length - 1; i++) {
       if (commissions[i] > 0) {
-        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS;
+        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS_DENOMINATOR;
         if (commissionAmount > 0) {
           accruedCommissions[owners[i]][token][tokenType][tokenId] += commissionAmount;
         }
