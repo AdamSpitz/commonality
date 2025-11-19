@@ -284,6 +284,30 @@ Thoughts on potential threats:
   - **Funding scams**: Accept as inevitable; rely on transparency + retroactive funding incentives + social reputation
   - **Smart contract security**: Before mainnet, must implement comprehensive testing, have AI do a basic audit, and get professional audit
 
+#### Generative testing
+
+Let's have some scripts for doing generative testing.
+
+Write them in TypeScript. Use viem for blockchain stuff.
+
+Here's what I'm imagining:
+  - Hardcode a JSON data structure describing a "universe".
+    - A universe has a few "domains": politics, crypto, religion, music.
+    - Each domain has various "positions": politics might have left/right/centre, crypto might have Bitcoin/Ethereum/Solana, religion might have Christian/Jewish/atheist/agnostic, etc.
+  - The script should take a .env file containing an OpenRouter API key (to be used for tasks requiring LLM-level intelligence).
+  - The script should have a way to generate some number of users. Each has an Ethereum address and private key, as well as some (randomly-generated) data describing their interests (do they care about each domain or not?) and their position on each domain they care about. (Once generated, keep the user descriptions around in a JSON file; we may occasionally blow them away and start over, but sometimes we'll want to be able to perform further actions using these users.)
+  - The script should have a way to generate some number of implication attesters. These are also just an Ethereum account, but they don't do normal user actions, their job is just to make implication attestations.
+  - The script should have a way to generate a large number of simulated user actions. The actions might be any of the things supported by this entire system:
+    - create a statement representing one of the predefined positions in Conceptspace (or somewhere in between) (maybe by tweaking an existing statement) (and also ask one or more of the implication attesters to evaluate whether to make an attestation S1 -> S2 for the newly-created statement; this evaluation should use OpenRouter to ask an AI capable of understanding the statements and making a real evaluation)
+    - express a belief about a statement
+    - create an assurance contract project
+    - make a ProjectAlignmentAttestation indicating that that project is aligned with some statement that the user believes
+    - purchase some number of some token from an assurance contract that is aligned with the user's position
+    - delegate some tokens to another user, to be spent on a cause that both users believe in
+    - spend a delegated note
+    - etc. (we can fill out this spec with more possible actions)
+
+
 
 ## Stuff to have AI generate but then I want to "bless" it and consider it part of this top-level spec
 
