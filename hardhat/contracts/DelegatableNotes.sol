@@ -739,14 +739,17 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * Deletes the notes, caches their chains, and accrues commissions.
    * @param noteIds Array of note IDs to consume
    * @param caller The address calling the purchase function
+   * @param paymentAmount The amount being used for the actual purchase (for commission calculation)
    * @return chainCaches Array of cached chain information
    */
-  function _consumeNotesForPurchase(uint256[] memory noteIds, address caller)
+  function _consumeNotesForPurchase(uint256[] memory noteIds, address caller, uint256 paymentAmount)
     private
     returns (DelegationChainSnapshot[] memory chainCaches)
   {
     chainCaches = new DelegationChainSnapshot[](noteIds.length);
 
+    // First pass: cache all chains and calculate total
+    uint256 totalAmount = 0;
     for (uint256 i = 0; i < noteIds.length; i++) {
       uint256 noteId = noteIds[i];
       Note storage note = notes[noteId];
@@ -754,15 +757,22 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
       // Cache and delete the chain
       chainCaches[i] = _deleteChainAndCache(noteId);
+      totalAmount += chainCaches[i].amount;
+    }
 
-      // Accrue commissions for this chain
+    // Second pass: accrue commissions proportionally based on paymentAmount
+    for (uint256 i = 0; i < chainCaches.length; i++) {
+      // Calculate this chain's proportional share of the payment
+      uint256 proportionalPayment = (paymentAmount * chainCaches[i].amount) / totalAmount;
+
+      // Accrue commissions based on proportional payment
       _accrueCommissions(
         chainCaches[i].owners,
         chainCaches[i].commissions,
         address(0), // ETH
         TokenType.ERC20,
         0,
-        chainCaches[i].amount
+        proportionalPayment
       );
     }
   }
@@ -860,10 +870,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] memory paymentNoteIds = _splitNotesForPurchase(noteIds, caller, paymentAmount);
 
     // Step 2: Consume payment notes - delete them, cache chains, accrue commissions
-    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller);
+    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
 
     // Step 3: Purchase from the ERC1155Seller contract
-    // Tokens are sent to this contract
+    // Send the full paymentAmount to seller, commissions were already accrued and stay in contract
     ERC1155Seller(seller).buyERC1155{value: paymentAmount}(
       address(this),
       erc1155Contract,
@@ -872,7 +882,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       ""
     );
 
-    // Step 4: Recreate delegation chains proportionally
+    // Step 5: Recreate delegation chains proportionally
     uint256[] memory outputNoteIds = _recreateProportionalChains(
       erc1155Contract,
       tokenIds,
@@ -881,7 +891,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       paymentAmount
     );
 
-    // Step 5: Emit event
+    // Step 6: Emit event
     emit ERC1155Purchased(
       caller,
       address(0), // ETH
@@ -923,17 +933,18 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Step 1: Split notes to separate payment from leftover
     uint256[] memory paymentNoteIds = _splitNotesForPurchase(noteIds, caller, paymentAmount);
 
-    // Step 2: Consume payment notes - delete them and accrue commissions
-    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller);
+    // Step 2: Consume payment notes - delete them, cache chains, accrue commissions
+    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
 
     // Step 3: Purchase from marketplace
+    // Send the full paymentAmount to marketplace, commissions were already accrued and stay in contract
     ERC1155Marketplace(marketplace).fulfillSaleListingTo{value: paymentAmount}(
       saleListingId,
       count,
       address(this)
     );
 
-    // Step 4: Recreate delegation chains proportionally
+    // Step 5: Recreate delegation chains proportionally
     // Wrap the single tokenId and count into arrays for the helper function
     uint256[] memory tokenIds = new uint256[](1);
     tokenIds[0] = tokenId;
@@ -948,7 +959,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       paymentAmount
     );
 
-    // Step 5: Emit event
+    // Step 6: Emit event
     emit ERC1155Purchased(
       caller,
       address(0), // ETH
@@ -970,6 +981,28 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       }
       currentId = notes[currentId].parentNoteId;
     }
+  }
+
+  /**
+   * @dev Calculate the total commission amount for a delegation chain
+   * @param owners Array of owners in the delegation chain (leaf to root)
+   * @param commissions Array of commission basis points for each level
+   * @param amount The total amount being spent
+   * @return totalCommission The sum of all commission amounts
+   */
+  function _calculateTotalCommission(
+    address[] memory owners,
+    uint256[] memory commissions,
+    uint256 amount
+  ) private pure returns (uint256 totalCommission) {
+    // Skip the root (last element) - they don't get commission
+    for (uint256 i = 0; i < owners.length - 1; i++) {
+      if (commissions[i] > 0) {
+        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS;
+        totalCommission += commissionAmount;
+      }
+    }
+    return totalCommission;
   }
 
   /**
