@@ -230,13 +230,6 @@ forge test --gas-report
 - [ ] Multi-sig for critical operations
 - [ ] Insurance/coverage for funds
 
-## Known Issues from Spec
-
-Per [specs/README.md](../specs/README.md#L284):
-- ❌ Hardcoded 1inch router (mentioned but not found in current code - may be obsolete)
-- ❌ Console imports need removal (not found - may already be removed)
-- ✅ DEX aggregator code mentioned for removal - appears to be already handled
-
 ## Critical Vulnerabilities Checklist
 
 ### High Severity

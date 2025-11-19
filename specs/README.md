@@ -279,7 +279,7 @@ Thoughts on potential threats:
   - **Sybil/spam mitigation**: L2 gas costs + UI filtering (sort by trending/supporters) + eventual unique-human verification
   - **Graph attacks**: BFS with visited set for circular references; limit reference expansion depth to 3-5 levels; users can switch attesters
   - **Funding scams**: Accept as inevitable; rely on transparency + retroactive funding incentives + social reputation
-  - **Smart contract security**: Before mainnet, must fix known Pubstarter issues (console imports), get professional audit, comprehensive testing
+  - **Smart contract security**: Before mainnet, must implement comprehensive testing, have AI do a basic audit, and get professional audit
 
 
 ## Stuff to have AI generate but then I want to "bless" it and consider it part of this top-level spec
