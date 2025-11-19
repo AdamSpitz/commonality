@@ -665,6 +665,172 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   }
 
   /**
+   * @dev Helper function: Split notes proportionally to separate payment amount from leftover.
+   * For each input note, calculates how much should be used for payment vs kept as leftover,
+   * then splits the chain accordingly. Returns the payment note IDs (leftover notes remain).
+   * @param noteIds Array of note IDs to split
+   * @param caller The address calling the purchase function
+   * @param requiredPayment Total amount needed for the purchase
+   * @return paymentNoteIds Array of note IDs containing exact payment amounts
+   */
+  function _splitNotesForPurchase(
+    uint256[] calldata noteIds,
+    address caller,
+    uint256 requiredPayment
+  )
+    private
+    returns (uint256[] memory paymentNoteIds)
+  {
+    // First pass: validate notes and calculate total available
+    uint256 totalAvailable = 0;
+    for (uint256 i = 0; i < noteIds.length; i++) {
+      Note storage note = notes[noteIds[i]];
+      require(note.owner == caller, "Not the note owner");
+      require(note.token == address(0), "Notes must hold ETH (token = address(0))");
+      require(!note.delegated, "Can only spend leaf notes");
+      totalAvailable += note.amount;
+    }
+
+    require(totalAvailable >= requiredPayment, "Insufficient funds in notes");
+
+    paymentNoteIds = new uint256[](noteIds.length);
+
+    // Second pass: split each note proportionally
+    uint256 paymentDistributedSoFar = 0;
+
+    for (uint256 i = 0; i < noteIds.length; i++) {
+      uint256 noteId = noteIds[i];
+      Note storage note = notes[noteId];
+      uint256 noteAmount = note.amount;
+      uint256 paymentFromThisNote;
+
+      if (i < noteIds.length - 1) {
+        // Proportional split
+        paymentFromThisNote = (requiredPayment * noteAmount) / totalAvailable;
+        paymentDistributedSoFar += paymentFromThisNote;
+      } else {
+        // Last note gets exact remainder to avoid rounding issues
+        paymentFromThisNote = requiredPayment - paymentDistributedSoFar;
+      }
+
+      if (paymentFromThisNote == noteAmount) {
+        // No split needed - use entire note for payment
+        paymentNoteIds[i] = noteId;
+      } else if (paymentFromThisNote > 0) {
+        // Split: create payment note and leftover note
+        uint256 leftoverAmount = noteAmount - paymentFromThisNote;
+        (uint256 paymentNoteId, uint256 leftoverNoteId) = _splitChain(
+          noteId,
+          paymentFromThisNote,
+          leftoverAmount,
+          note.token
+        );
+        paymentNoteIds[i] = paymentNoteId;
+        // leftoverNoteId is the new note that stays owned by caller
+      } else {
+        // This note contributes nothing (shouldn't happen due to proportional math)
+        revert("Invalid payment distribution");
+      }
+    }
+  }
+
+  /**
+   * @dev Helper function: Consume notes for purchase.
+   * Deletes the notes, caches their chains, and accrues commissions.
+   * @param noteIds Array of note IDs to consume
+   * @param caller The address calling the purchase function
+   * @return chainCaches Array of cached chain information
+   */
+  function _consumeNotesForPurchase(uint256[] memory noteIds, address caller)
+    private
+    returns (DelegationChainSnapshot[] memory chainCaches)
+  {
+    chainCaches = new DelegationChainSnapshot[](noteIds.length);
+
+    for (uint256 i = 0; i < noteIds.length; i++) {
+      uint256 noteId = noteIds[i];
+      Note storage note = notes[noteId];
+      require(note.owner == caller, "Not the note owner");
+
+      // Cache and delete the chain
+      chainCaches[i] = _deleteChainAndCache(noteId);
+
+      // Accrue commissions for this chain
+      _accrueCommissions(
+        chainCaches[i].owners,
+        chainCaches[i].commissions,
+        address(0), // ETH
+        TokenType.ERC20,
+        0,
+        chainCaches[i].amount
+      );
+    }
+  }
+
+  /**
+   * @dev Helper function: Recreate delegation chains proportionally for purchased tokens.
+   * Creates new notes with ERC1155 tokens, distributed proportionally across input chains.
+   * @param erc1155Contract Address of the ERC1155 contract
+   * @param tokenIds Array of token IDs purchased
+   * @param counts Array of counts for each token ID
+   * @param chainCaches Cached chain information from input notes
+   * @param totalPaymentUsed Total ETH used for the purchase
+   * @return Array of newly created output note IDs
+   */
+  function _recreateProportionalChains(
+    address erc1155Contract,
+    uint256[] memory tokenIds,
+    uint256[] memory counts,
+    DelegationChainSnapshot[] memory chainCaches,
+    uint256 totalPaymentUsed
+  ) private returns (uint256[] memory) {
+    // Allocate max possible output notes (one per token type per input chain)
+    uint256[] memory outputNoteIds = new uint256[](tokenIds.length * chainCaches.length);
+    uint256 outputIndex = 0;
+
+    // Distribute each token type proportionally across all input chains
+    for (uint256 tokenIndex = 0; tokenIndex < tokenIds.length; tokenIndex++) {
+      uint256 tokenId = tokenIds[tokenIndex];
+      uint256 tokenCount = counts[tokenIndex];
+      uint256 tokensDistributedSoFar = 0;
+
+      for (uint256 chainIndex = 0; chainIndex < chainCaches.length; chainIndex++) {
+        uint256 proportionalTokens;
+
+        if (chainIndex < chainCaches.length - 1) {
+          // Proportional distribution based on ETH contributed
+          proportionalTokens = (tokenCount * chainCaches[chainIndex].amount) / totalPaymentUsed;
+          tokensDistributedSoFar += proportionalTokens;
+        } else {
+          // Last chain gets remainder to avoid rounding issues
+          proportionalTokens = tokenCount - tokensDistributedSoFar;
+        }
+
+        // Only create a note if there are tokens to distribute
+        if (proportionalTokens > 0) {
+          uint256 newLeafNoteId = _createChain(
+            erc1155Contract,
+            TokenType.ERC1155,
+            tokenId,
+            proportionalTokens,
+            chainCaches[chainIndex].owners,
+            chainCaches[chainIndex].intendedStatementId,
+            chainCaches[chainIndex].commissions
+          );
+          outputNoteIds[outputIndex++] = newLeafNoteId;
+        }
+      }
+    }
+
+    // Resize array to actual size
+    uint256[] memory finalOutputNoteIds = new uint256[](outputIndex);
+    for (uint256 i = 0; i < outputIndex; i++) {
+      finalOutputNoteIds[i] = outputNoteIds[i];
+    }
+    return finalOutputNoteIds;
+  }
+
+  /**
    * @dev Purchase ERC1155 tokens from an ERC1155Seller contract using ETH from notes.
    * Notes must hold the zero address as their token (representing ETH).
    * The purchased ERC1155 tokens are wrapped in new notes that preserve the delegation
@@ -686,35 +852,22 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     require(tokenIds.length == counts.length, "Token IDs and counts length mismatch");
 
     address caller = _msgSender();
-    uint256 totalPaymentAmount = 0;
 
-    // Cache chains before deleting - following checks-effects-interactions pattern
-    DelegationChainSnapshot[] memory chainCaches = new DelegationChainSnapshot[](noteIds.length);
-
-    // Validate all notes, cache chains, and accumulate ETH
+    // Step 1: Consume notes - delete them, cache chains, accrue commissions
+    // Note: For ERC1155Seller, we spend ALL the ETH (no splitting needed)
+    uint256[] memory noteIdsMemory = new uint256[](noteIds.length);
     for (uint256 i = 0; i < noteIds.length; i++) {
-      uint256 noteId = noteIds[i];
-      Note storage note = notes[noteId];
-      require(note.owner == caller, "Not the note owner");
-      require(note.token == address(0), "Notes must hold ETH (token = address(0))");
-      require(!note.delegated, "Can only spend leaf notes");
+      noteIdsMemory[i] = noteIds[i];
+    }
+    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(noteIdsMemory, caller);
 
-      // Cache and delete the chain
-      chainCaches[i] = _deleteChainAndCache(noteId);
+    // Calculate total payment
+    uint256 totalPaymentAmount = 0;
+    for (uint256 i = 0; i < chainCaches.length; i++) {
       totalPaymentAmount += chainCaches[i].amount;
-
-      // Accrue commissions for this chain
-      _accrueCommissions(
-        chainCaches[i].owners,
-        chainCaches[i].commissions,
-        address(0), // ETH
-        TokenType.ERC20,
-        0,
-        chainCaches[i].amount
-      );
     }
 
-    // Purchase from the ERC1155Seller contract (external call after state changes)
+    // Step 2: Purchase from the ERC1155Seller contract
     // Tokens are sent to this contract
     ERC1155Seller(seller).buyERC1155{value: totalPaymentAmount}(
       address(this),
@@ -724,56 +877,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       ""
     );
 
-    // Calculate total tokens purchased
-    uint256 totalTokensPurchased = 0;
-    for (uint256 i = 0; i < counts.length; i++) {
-      totalTokensPurchased += counts[i];
-    }
+    // Step 3: Recreate delegation chains proportionally
+    uint256[] memory outputNoteIds = _recreateProportionalChains(
+      erc1155Contract,
+      tokenIds,
+      counts,
+      chainCaches,
+      totalPaymentAmount
+    );
 
-    // Recreate delegation chains for each purchased token, distributed proportionally
-    uint256[] memory outputNoteIds = new uint256[](tokenIds.length * noteIds.length);
-    uint256 outputNoteIndex = 0;
-
-    for (uint256 tokenIndex = 0; tokenIndex < tokenIds.length; tokenIndex++) {
-      uint256 tokenId = tokenIds[tokenIndex];
-      uint256 tokenCount = counts[tokenIndex];
-      uint256 tokensDistributedSoFar = 0;
-
-      // Distribute this token type proportionally across all input note chains
-      for (uint256 chainIndex = 0; chainIndex < noteIds.length; chainIndex++) {
-        uint256 proportionalTokens;
-
-        if (chainIndex < noteIds.length - 1) {
-          // Proportional distribution
-          proportionalTokens = (tokenCount * chainCaches[chainIndex].amount) / totalPaymentAmount;
-          tokensDistributedSoFar += proportionalTokens;
-        } else {
-          // Last chain gets remainder to avoid rounding issues
-          proportionalTokens = tokenCount - tokensDistributedSoFar;
-        }
-
-        // Only create a note if there are tokens to distribute
-        if (proportionalTokens > 0) {
-          uint256 newLeafNoteId = _createChain(
-            erc1155Contract,
-            TokenType.ERC1155,
-            tokenId,
-            proportionalTokens,
-            chainCaches[chainIndex].owners,
-            chainCaches[chainIndex].intendedStatementId,
-            chainCaches[chainIndex].commissions
-          );
-          outputNoteIds[outputNoteIndex++] = newLeafNoteId;
-        }
-      }
-    }
-
-    // Resize outputNoteIds array to actual size
-    uint256[] memory finalOutputNoteIds = new uint256[](outputNoteIndex);
-    for (uint256 i = 0; i < outputNoteIndex; i++) {
-      finalOutputNoteIds[i] = outputNoteIds[i];
-    }
-
+    // Step 4: Emit event
     emit ERC1155Purchased(
       caller,
       address(0), // ETH
@@ -782,14 +895,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       counts,
       totalPaymentAmount,
       noteIds,
-      finalOutputNoteIds
+      outputNoteIds
     );
   }
 
   /**
    * @dev Purchase ERC1155 tokens from an ERC1155Marketplace by fulfilling a sale listing.
    * The purchased tokens are wrapped in new notes that preserve the delegation chains
-   * from the input notes.
+   * from the input notes. Any leftover ETH remains in new notes owned by the caller.
    * @param noteIds Array of note IDs to spend (must all be ETH notes)
    * @param marketplace Address of the ERC1155Marketplace contract
    * @param saleListingId The ID of the sale listing to fulfill
@@ -804,9 +917,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     require(noteIds.length > 0, "Must provide at least one note");
 
     address caller = _msgSender();
-    uint256 totalPaymentAmount = 0;
 
-    // Get the listing details to know how much we need to pay
+    // Step 1: Get listing details to determine required payment
     (address seller, uint256 tokenId, uint256 listingCount, uint256 pricePerToken) =
       ERC1155Marketplace(marketplace).getSaleListing(saleListingId);
 
@@ -815,93 +927,38 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     uint256 requiredPayment = count * pricePerToken;
 
-    // Cache chains before deleting - following checks-effects-interactions pattern
-    DelegationChainSnapshot[] memory chainCaches = new DelegationChainSnapshot[](noteIds.length);
+    // Step 2: Split notes to separate payment from leftover
+    // This creates new payment notes with exact amount and leftover notes
+    uint256[] memory paymentNoteIds = _splitNotesForPurchase(noteIds, caller, requiredPayment);
 
-    // Validate, cache chains, and accumulate ETH from notes
-    for (uint256 i = 0; i < noteIds.length; i++) {
-      uint256 noteId = noteIds[i];
-      Note storage note = notes[noteId];
-      require(note.owner == caller, "Not the note owner");
-      require(note.token == address(0), "Notes must hold ETH (token = address(0))");
-      require(!note.delegated, "Can only spend leaf notes");
+    // Step 3: Consume payment notes - delete them and accrue commissions
+    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller);
 
-      // Cache and delete the chain
-      chainCaches[i] = _deleteChainAndCache(noteId);
-      totalPaymentAmount += chainCaches[i].amount;
-
-      // Accrue commissions for this chain
-      _accrueCommissions(
-        chainCaches[i].owners,
-        chainCaches[i].commissions,
-        address(0), // ETH
-        TokenType.ERC20,
-        0,
-        chainCaches[i].amount
-      );
-    }
-
-    require(totalPaymentAmount >= requiredPayment, "Insufficient funds in notes");
-
-    // Get the ERC1155 contract address before making the purchase
+    // Step 4: Purchase from marketplace
     address erc1155Contract = address(ERC1155Marketplace(marketplace).erc1155());
 
-    // Purchase from marketplace - tokens sent directly to this contract
     ERC1155Marketplace(marketplace).fulfillSaleListingTo{value: requiredPayment}(
       saleListingId,
       count,
       address(this)
     );
 
-    // Distribute purchased tokens proportionally across all input note chains
-    uint256[] memory outputNoteIds = new uint256[](noteIds.length);
-    uint256 tokensDistributedSoFar = 0;
-    uint256 outputNoteIndex = 0;
-
-    for (uint256 i = 0; i < noteIds.length; i++) {
-      uint256 proportionalTokens;
-
-      if (i < noteIds.length - 1) {
-        // Proportional distribution based on ETH contributed
-        proportionalTokens = (count * chainCaches[i].amount) / requiredPayment;
-        tokensDistributedSoFar += proportionalTokens;
-      } else {
-        // Last chain gets remainder to avoid rounding issues
-        proportionalTokens = count - tokensDistributedSoFar;
-      }
-
-      // Only create a note if there are tokens to distribute
-      if (proportionalTokens > 0) {
-        uint256 newLeafNoteId = _createChain(
-          erc1155Contract,
-          TokenType.ERC1155,
-          tokenId,
-          proportionalTokens,
-          chainCaches[i].owners,
-          chainCaches[i].intendedStatementId,
-          chainCaches[i].commissions
-        );
-        outputNoteIds[outputNoteIndex++] = newLeafNoteId;
-      }
-    }
-
-    // If there's any leftover ETH, return it to caller
-    if (totalPaymentAmount > requiredPayment) {
-      payable(caller).transfer(totalPaymentAmount - requiredPayment);
-    }
-
-    // Resize outputNoteIds array to actual size
-    uint256[] memory finalOutputNoteIds = new uint256[](outputNoteIndex);
-    for (uint256 i = 0; i < outputNoteIndex; i++) {
-      finalOutputNoteIds[i] = outputNoteIds[i];
-    }
-
-    // Emit event
+    // Step 5: Recreate delegation chains proportionally
+    // Wrap the single tokenId and count into arrays for the helper function
     uint256[] memory tokenIds = new uint256[](1);
     tokenIds[0] = tokenId;
     uint256[] memory counts = new uint256[](1);
     counts[0] = count;
 
+    uint256[] memory outputNoteIds = _recreateProportionalChains(
+      erc1155Contract,
+      tokenIds,
+      counts,
+      chainCaches,
+      requiredPayment
+    );
+
+    // Step 6: Emit event
     emit ERC1155Purchased(
       caller,
       address(0), // ETH
@@ -910,7 +967,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       counts,
       requiredPayment,
       noteIds,
-      finalOutputNoteIds
+      outputNoteIds
     );
   }
 
