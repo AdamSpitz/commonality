@@ -6,20 +6,38 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "./ERC7572.sol";
 
-// Very simple ERC1155 example contract.
-// Pre-mints the specified tokens ids in the specified amounts,
-// and gives them to the specified recipient.
+/**
+ * @title PremintingERC1155
+ * @notice Simple ERC1155 token contract with owner-controlled batch minting
+ * @dev Very simple ERC1155 example contract.
+ *      Pre-mints the specified token IDs in the specified amounts,
+ *      and gives them to the specified recipient.
+ *      Implements ERC1155, ERC1155Burnable, and ERC7572 standards.
+ */
 contract PremintingERC1155 is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
+  /**
+   * @notice Initializes the PremintingERC1155 contract
+   * @param owner The address that will own the contract and can mint tokens
+   * @param uri The base URI for token metadata
+   * @param initialContractURI The initial contract metadata URI
+   */
   constructor(
     address owner,
     string memory uri,
     string memory initialContractURI
   ) Ownable(owner) ERC1155(uri) ERC7572(initialContractURI) {}
 
+  /**
+   * @notice Mints multiple token types to a specified address
+   * @dev Only callable by the contract owner. Emits URI events for each token type.
+   * @param to The address that will receive the minted tokens
+   * @param ids Array of token IDs to mint
+   * @param amounts Array of token amounts corresponding to each ID
+   */
   function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts) external onlyOwner {
     _mintBatch(to, ids, amounts, "");
     for (uint id = 0; id < ids.length; id++) {
-      emit URI(this.uri(id), id);
+      emit URI(this.uri(ids[id]), ids[id]);
     }
   }
 }

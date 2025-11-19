@@ -2,19 +2,30 @@
 pragma solidity 0.8.20;
 
 /**
- * Assurance contract that allows people to
- * donate to a project by buying tokens, and if the
- * funding goal is not reached before the deadline
- * then they can get a refund.
- *
+ * @title AssuranceContract
+ * @notice Abstract assurance contract that allows people to donate to a project by buying tokens
+ * @dev If the funding goal is not reached before the deadline, contributors can get a refund.
+ *      This is an abstract contract that must be implemented by a concrete contract.
  * @author AdamSpitz
  */
 abstract contract AssuranceContract {
+    /**
+     * @notice Emitted when the assurance contract is initialized
+     * @param recipient The address that will receive funds if the project succeeds
+     * @param threshold The funding threshold that must be reached for success
+     * @param deadline The timestamp after which the project can fail if threshold not reached
+     */
     event AssuranceContractInitialized(
-        address recipient,
+        address indexed recipient,
         uint256 threshold,
         uint256 deadline
     );
+
+    /**
+     * @notice Emitted when the recipient withdraws funds from a successful project
+     * @param recipient The address that received the funds
+     * @param value The amount of ETH withdrawn
+     */
     event AssuranceContractWithdrawal(address indexed recipient, uint256 value);
 
     address internal immutable _recipient;
@@ -22,6 +33,12 @@ abstract contract AssuranceContract {
     uint256 internal immutable _threshold;
     uint256 internal immutable _deadline;
 
+    /**
+     * @notice Initializes the assurance contract with funding parameters
+     * @param recipient The address that will receive funds if the project succeeds
+     * @param threshold The funding threshold that must be reached for success
+     * @param deadline The timestamp after which the project can fail if threshold not reached
+     */
     constructor(address recipient, uint256 threshold, uint256 deadline) {
         _recipient = recipient;
         _threshold = threshold;
@@ -29,6 +46,11 @@ abstract contract AssuranceContract {
         emit AssuranceContractInitialized(recipient, threshold, deadline);
     }
 
+    /**
+     * @notice Returns the current funding progress of the assurance contract
+     * @return The total amount of value received so far
+     * @dev Must be implemented by the concrete contract
+     */
     function getAssuranceContractProgress()
         public
         view
@@ -36,9 +58,8 @@ abstract contract AssuranceContract {
         returns (uint256);
 
     /**
-     * If the project is successful, the value can be withdrawn.
-     * Only the recipient can call this function. (No major
-     * reason, but it's standard practice.)
+     * @notice Withdraws all funds if the project has succeeded
+     * @dev Only the recipient can call this function. Reverts if the project has not succeeded.
      */
     function withdraw() external {
         require(msg.sender == _recipient, "Only recipient can withdraw");
@@ -49,8 +70,8 @@ abstract contract AssuranceContract {
     }
 
     /**
-     * If the total received value has passed the threshold, the project
-     * is considered successful.
+     * @notice Reverts if the assurance contract has not succeeded
+     * @dev The project succeeds when the total received value meets or exceeds the threshold
      */
     function requireAssuranceContractHasSucceeded() internal view {
         require(
@@ -60,8 +81,8 @@ abstract contract AssuranceContract {
     }
 
     /**
-     * If the total received value has not passed the threshold and
-     * the deadline has passed, the project is considered to have failed.
+     * @notice Reverts if the assurance contract has not failed
+     * @dev The project fails when the deadline has passed and the threshold was not reached
      */
     function requireAssuranceContractHasFailed() internal view {
         require(

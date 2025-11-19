@@ -7,10 +7,12 @@ import "./ERC1155Seller.sol";
 import "./AssuranceContract.sol";
 
 /**
- * Combines assurance contract with ERC1155 token sales.
- * Holds pre-minted ERC1155 tokens and sells them at fixed prices.
- * Tracks total received value to measure funding progress.
- * Selling (refunds) only allowed if project failed.
+ * @title MultiERC1155_AssuranceContract
+ * @notice Combines assurance contract with ERC1155 token sales
+ * @dev Holds pre-minted ERC1155 tokens and sells them at fixed prices.
+ *      Tracks total received value to measure funding progress.
+ *      Refunds only allowed if project failed.
+ *      Implements AssuranceContract, ContractMetadata, and ERC1155Seller.
  */
 contract MultiERC1155_AssuranceContract is
     Ownable,
@@ -22,6 +24,14 @@ contract MultiERC1155_AssuranceContract is
 
     uint256 private _totalReceivedValue = 0;
 
+    /**
+     * @notice Initializes the multi-ERC1155 assurance contract
+     * @param owner The owner of the contract who can set prices and manage the contract
+     * @param recipient The address that will receive funds if the project succeeds
+     * @param threshold The funding threshold that must be reached for success
+     * @param deadline The timestamp after which the project can fail if threshold not reached
+     * @param projectMetadataCid The IPFS CID containing project metadata
+     */
     constructor(
         address owner,
         address recipient,
@@ -34,7 +44,11 @@ contract MultiERC1155_AssuranceContract is
     }
 
     /**
-     * Set prices for token IDs. Prices cannot be modified once set.
+     * @notice Sets prices for ERC1155 token IDs
+     * @dev Prices cannot be modified once set. Only callable by owner.
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param ids Array of token IDs to set prices for
+     * @param prices Array of prices corresponding to each token ID (in wei)
      */
     function setPricesERC1155(
         address erc1155Addr,
@@ -53,6 +67,10 @@ contract MultiERC1155_AssuranceContract is
         }
     }
 
+    /**
+     * @notice Returns the current funding progress
+     * @return The total amount of ETH received so far
+     */
     function getAssuranceContractProgress()
         public
         view
@@ -62,6 +80,12 @@ contract MultiERC1155_AssuranceContract is
         return _totalReceivedValue;
     }
 
+    /**
+     * @notice Returns the price for a specific ERC1155 token
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param id The token ID to get the price for
+     * @return The price in wei for the token
+     */
     function erc1155Price(
         address erc1155Addr,
         uint256 id
@@ -69,19 +93,35 @@ contract MultiERC1155_AssuranceContract is
         return _erc1155Prices[erc1155Addr][id];
     }
 
+    /**
+     * @notice Returns the total amount of ETH received
+     * @return The total received value
+     */
     function getTotalReceivedValue() internal view override returns (uint256) {
         return _totalReceivedValue;
     }
 
+    /**
+     * @notice Sets the total received value
+     * @param value The new total received value
+     */
     function setTotalReceivedValue(uint256 value) internal override {
         _totalReceivedValue = value;
     }
 
+    /**
+     * @notice Checks if buying is allowed
+     * @dev Always returns true - buying is always allowed, even after deadline
+     */
     function requireBuyingAllowed() internal view override {
         // No conditions needed here. It's always okay to buy, even
         // if the deadline has passed or whatever.
     }
 
+    /**
+     * @notice Checks if refunds are allowed
+     * @dev Refunds are only allowed if the assurance contract has failed
+     */
     function requireRefundsAllowed() internal view override {
         requireAssuranceContractHasFailed();
     }

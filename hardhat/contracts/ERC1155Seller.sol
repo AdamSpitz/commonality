@@ -6,16 +6,33 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 /**
- * Simple buy/sell mechanism for ERC1155 tokens (not a full marketplace).
- * Contract holds tokens and sells them at fixed prices.
- * Subclasses define when buying and selling are allowed.
+ * @title ERC1155Seller
+ * @notice Simple buy/sell mechanism for ERC1155 tokens (not a full marketplace)
+ * @dev Contract holds tokens and sells them at fixed prices.
+ *      Subclasses define when buying and selling are allowed through virtual functions.
+ *      This is an abstract contract that must be implemented by a concrete contract.
  */
 abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
+    /**
+     * @notice Emitted when ERC1155 tokens are offered for sale at a specific price
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param id The token ID being offered
+     * @param price The price per token in wei
+     */
     event ERC1155Offered(
         address indexed erc1155Addr,
         uint256 id,
         uint256 price
     );
+
+    /**
+     * @notice Emitted when ERC1155 tokens are bought from this contract
+     * @param participant The address of the buyer
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param totalCost The total cost in wei for all tokens
+     * @param ids Array of token IDs purchased
+     * @param counts Array of token counts purchased
+     */
     event ERC1155Bought(
         address indexed participant,
         address indexed erc1155Addr,
@@ -23,6 +40,15 @@ abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
         uint256[] ids,
         uint256[] counts
     );
+
+    /**
+     * @notice Emitted when ERC1155 tokens are sold back to this contract for a refund
+     * @param participant The address of the seller
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param totalCost The total refund amount in wei
+     * @param ids Array of token IDs refunded
+     * @param counts Array of token counts refunded
+     */
     event ERC1155Sold(
         address indexed participant,
         address indexed erc1155Addr,
@@ -31,19 +57,48 @@ abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
         uint256[] counts
     );
 
+    /**
+     * @notice Virtual function to check if buying is currently allowed
+     * @dev Must be implemented by concrete contract to define buying conditions
+     */
     function requireBuyingAllowed() internal view virtual;
 
+    /**
+     * @notice Virtual function to check if refunds are currently allowed
+     * @dev Must be implemented by concrete contract to define refund conditions
+     */
     function requireRefundsAllowed() internal view virtual;
 
+    /**
+     * @notice Virtual function to get the price of a specific ERC1155 token
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param id The token ID to get the price for
+     * @return The price per token in wei
+     */
     function erc1155Price(
         address erc1155Addr,
         uint256 id
     ) internal view virtual returns (uint256);
 
+    /**
+     * @notice Virtual function to get the total value received so far
+     * @return The total amount of ETH received
+     */
     function getTotalReceivedValue() internal view virtual returns (uint256);
 
+    /**
+     * @notice Virtual function to set the total value received
+     * @param value The new total received value
+     */
     function setTotalReceivedValue(uint256 value) internal virtual;
 
+    /**
+     * @notice Calculates the total cost for multiple ERC1155 tokens
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param ids Array of token IDs to calculate cost for
+     * @param counts Array of token counts corresponding to each ID
+     * @return The total cost in wei for all tokens
+     */
     function erc1155TotalCost(
         address erc1155Addr,
         uint256[] calldata ids,
@@ -56,6 +111,16 @@ abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
         return total;
     }
 
+    /**
+     * @notice Buys ERC1155 tokens from this contract
+     * @dev Transfers tokens from this contract to the buyer after payment verification.
+     *      Only callable when buying is allowed (defined by subclass).
+     * @param buyer The address that will receive the tokens
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param ids Array of token IDs to purchase
+     * @param counts Array of token counts to purchase
+     * @param data Additional data for the transfer
+     */
     function buyERC1155(
         address buyer,
         address erc1155Addr,
@@ -78,19 +143,19 @@ abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
     }
 
     /**
-     * If the deadline has passed and the funding target hasn't
-     * been reached, allow a donor to get a refund.
-     *
-     * NOTE that it is still possible for the project to succeed
-     * after this; the tokens are still available for purchase,
-     * and if the project later passes the threshold it will
-     * be considered successful.
-     *
-     * That is: after success we no longer allow refunds, but
-     * after refunds there is still a possibility of success.
-     * (The point being that presumably the buyers *want* the
-     * project to succeed, so no one's going to be upset if
-     * it does.)
+     * @notice Refunds ERC1155 tokens back to this contract for ETH
+     * @dev If the deadline has passed and the funding target hasn't been reached,
+     *      allow a donor to get a refund. Note that it's still possible for the project
+     *      to succeed after this; the tokens are still available for purchase, and if the
+     *      project later passes the threshold it will be considered successful.
+     *      After success we no longer allow refunds, but after refunds there is still a
+     *      possibility of success. (The point being that presumably the buyers *want*
+     *      the project to succeed, so no one's going to be upset if it does.)
+     * @param holder The address that currently holds the tokens to be refunded
+     * @param erc1155Addr The address of the ERC1155 token contract
+     * @param ids Array of token IDs to refund
+     * @param counts Array of token counts to refund
+     * @param data Additional data for the transfer
      */
     function refundERC1155(
         address holder,

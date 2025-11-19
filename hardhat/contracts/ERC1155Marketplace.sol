@@ -8,21 +8,30 @@ import "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title ERC1155Marketplace
- * @dev A simple orderbook for ERC1155 tokens.
- * Users can list tokens for sale and buy tokens (in exchange for ETH).
+ * @notice A simple orderbook marketplace for ERC1155 tokens
+ * @dev Users can create sale listings (ask orders) and buy orders (bid orders).
+ *      Supports partial fulfillment of orders. All trades settle in ETH.
+ *      Each marketplace instance is tied to a specific ERC1155 contract.
  */
 contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
+    /**
+     * @dev Structure representing a sale listing (ask order)
+     */
     struct SaleListing {
-        address seller;
-        uint256 tokenId;
-        uint256 count;
-        uint256 pricePerToken;
+        address seller;        // Address of the seller
+        uint256 tokenId;      // ERC1155 token ID being sold
+        uint256 count;        // Number of tokens available for sale
+        uint256 pricePerToken; // Price per token in wei
     }
+
+    /**
+     * @dev Structure representing a buy order (bid order)
+     */
     struct BuyOrder {
-        address buyer;
-        uint256 tokenId;
-        uint256 count;
-        uint256 pricePerToken;
+        address buyer;         // Address of the buyer
+        uint256 tokenId;       // ERC1155 token ID being bought
+        uint256 count;         // Number of tokens wanted
+        uint256 pricePerToken; // Price per token in wei
     }
 
     IERC1155 public immutable _erc1155;
@@ -31,22 +40,77 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
     uint256 private _nextSaleListingId;
     uint256 private _nextBuyOrderId;
 
-    // Useful for building an offchain mapping, so we can find
-    // a/the marketplace contract for a given ERC1155 contract.
+    /**
+     * @notice Emitted when a new marketplace contract is created
+     * @param erc1155 The address of the ERC1155 token contract this marketplace serves
+     */
     event ERC1155MarketplaceCreated(address indexed erc1155);
     
+    /**
+     * @notice Emitted when a new sale listing is created
+     * @param saleListingId The ID of the new sale listing
+     * @param seller The address of the seller
+     * @param tokenId The ERC1155 token ID being sold
+     * @param count The number of tokens available for sale
+     * @param pricePerToken The price per token in wei
+     */
     event SaleListingCreated(uint256 indexed saleListingId, address indexed seller, uint256 tokenId, uint256 count, uint256 pricePerToken);
+
+    /**
+     * @notice Emitted when a sale listing is fulfilled (partially or fully)
+     * @param saleListingId The ID of the sale listing
+     * @param buyer The address of the buyer
+     * @param count The number of tokens purchased
+     */
     event SaleListingFulfilled(uint256 indexed saleListingId, address indexed buyer, uint256 count);
+
+    /**
+     * @notice Emitted when a sale listing is cancelled
+     * @param saleListingId The ID of the cancelled sale listing
+     */
     event SaleListingCancelled(uint256 indexed saleListingId);
+
+    /**
+     * @notice Emitted when a new buy order is created
+     * @param buyOrderId The ID of the new buy order
+     * @param buyer The address of the buyer
+     * @param tokenId The ERC1155 token ID being bought
+     * @param count The number of tokens wanted
+     * @param pricePerToken The price per token in wei
+     */
     event BuyOrderCreated(uint256 indexed buyOrderId, address indexed buyer, uint256 tokenId, uint256 count, uint256 pricePerToken);
+
+    /**
+     * @notice Emitted when a buy order is fulfilled (partially or fully)
+     * @param buyOrderId The ID of the buy order
+     * @param seller The address of the seller
+     * @param count The number of tokens sold
+     */
     event BuyOrderFulfilled(uint256 indexed buyOrderId, address indexed seller, uint256 count);
+
+    /**
+     * @notice Emitted when a buy order is cancelled
+     * @param buyOrderId The ID of the cancelled buy order
+     */
     event BuyOrderCancelled(uint256 indexed buyOrderId);
 
+    /**
+     * @notice Initializes the marketplace for a specific ERC1155 token
+     * @param erc1155Address The address of the ERC1155 token contract this marketplace will serve
+     */
     constructor(address erc1155Address) {
         _erc1155 = IERC1155(erc1155Address);
         emit ERC1155MarketplaceCreated(erc1155Address);
     }
 
+    /**
+     * @notice Creates a new sale listing for ERC1155 tokens
+     * @dev Tokens are transferred to this contract and held in escrow until sold.
+     *      Only the seller can cancel the listing.
+     * @param tokenId The ERC1155 token ID to list for sale
+     * @param count The number of tokens to list for sale
+     * @param pricePerToken The price per token in wei
+     */
     function createSaleListing(
         uint256 tokenId,
         uint256 count,
@@ -77,6 +141,12 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         emit SaleListingCreated(saleListingId, seller, tokenId, count, pricePerToken);
     }
 
+    /**
+     * @notice Fulfills a sale listing by purchasing tokens
+     * @dev Sends ETH to seller and tokens to buyer. Partial fulfillment is supported.
+     * @param saleListingId The ID of the sale listing to fulfill
+     * @param count The number of tokens to purchase
+     */
     function fulfillSaleListing(uint256 saleListingId, uint256 count) external payable nonReentrant {
         address buyer = _msgSender();
         _fulfillSaleListingInternal(saleListingId, count, buyer);
@@ -98,6 +168,13 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         _fulfillSaleListingInternal(saleListingId, count, recipient);
     }
 
+    /**
+     * @notice Internal function to fulfill a sale listing
+     * @dev Handles the core logic of fulfilling a sale listing
+     * @param saleListingId The ID of the sale listing to fulfill
+     * @param count The number of tokens to purchase
+     * @param recipient The address to receive the purchased tokens
+     */
     function _fulfillSaleListingInternal(
         uint256 saleListingId,
         uint256 count,
@@ -138,6 +215,11 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         emit SaleListingFulfilled(saleListingId, buyer, count);
     }
 
+    /**
+     * @notice Cancels a sale listing and returns tokens to the seller
+     * @dev Only the seller can cancel their own listing
+     * @param saleListingId The ID of the sale listing to cancel
+     */
     function cancelSaleListing(uint256 saleListingId) external nonReentrant {
         SaleListing storage listing = _saleListings[saleListingId];
         address seller = listing.seller;
@@ -160,6 +242,14 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         emit SaleListingCancelled(saleListingId);
     }
 
+    /**
+     * @notice Creates a new buy order for ERC1155 tokens
+     * @dev ETH is escrowed in this contract until the order is fulfilled or cancelled.
+     *      Only the buyer can cancel the order.
+     * @param tokenId The ERC1155 token ID to buy
+     * @param count The number of tokens to buy
+     * @param pricePerToken The price per token in wei
+     */
     function createBuyOrder(
         uint256 tokenId,
         uint256 count,
@@ -186,6 +276,13 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         emit BuyOrderCreated(buyOrderId, buyer, tokenId, count, pricePerToken);
     }
 
+    /**
+     * @notice Fulfills a buy order by selling tokens to the buyer
+     * @dev Sellers call this to sell their tokens to the buyer at the specified price.
+     *      Partial fulfillment is supported.
+     * @param buyOrderId The ID of the buy order to fulfill
+     * @param count The number of tokens to sell
+     */
     function fulfillBuyOrder(uint256 buyOrderId, uint256 count) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
         address buyer = order.buyer;
@@ -221,6 +318,11 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         emit BuyOrderFulfilled(buyOrderId, seller, count);
     }
 
+    /**
+     * @notice Cancels a buy order and refunds the buyer
+     * @dev Only the buyer can cancel their own order
+     * @param buyOrderId The ID of the buy order to cancel
+     */
     function cancelBuyOrder(uint256 buyOrderId) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
         address buyer = order.buyer;
@@ -238,10 +340,22 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
 
     // View functions
 
+    /**
+     * @notice Returns the ERC1155 token contract address
+     * @return The ERC1155 token contract this marketplace serves
+     */
     function erc1155() external view returns (IERC1155) {
         return _erc1155;
     }
 
+    /**
+     * @notice Returns the details of a sale listing
+     * @param saleListingId The ID of the sale listing to query
+     * @return seller The address of the seller
+     * @return tokenId The ERC1155 token ID
+     * @return count The number of tokens available
+     * @return pricePerToken The price per token in wei
+     */
     function getSaleListing(uint256 saleListingId) external view returns (
         address seller,
         uint256 tokenId,
@@ -257,6 +371,14 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         );
     }
 
+    /**
+     * @notice Returns the details of a buy order
+     * @param buyOrderId The ID of the buy order to query
+     * @return buyer The address of the buyer
+     * @return tokenId The ERC1155 token ID
+     * @return count The number of tokens wanted
+     * @return pricePerToken The price per token in wei
+     */
     function getBuyOrder(uint256 buyOrderId) external view returns (
         address buyer,
         uint256 tokenId,
