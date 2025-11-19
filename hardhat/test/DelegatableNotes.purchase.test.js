@@ -150,7 +150,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
     // This test is removed - see corrected version below
 
-    it.skip("Should purchase using multiple notes (corrected) - KNOWN BUG: proportional distribution", async function () {
+    it("Should purchase using multiple notes with proportional distribution", async function () {
       const paymentAmount = ethers.parseEther("0.6"); // Buy 6 of token 1 @ 0.1 each (exact match for total available)
 
       // Alice deposits in two separate notes (total: 0.6 ETH)
@@ -158,7 +158,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.3") });
 
       // Purchase using both notes (spending all: 0.6)
-      await notes.connect(alice).purchaseFromERC1155Seller(
+      const tx = await notes.connect(alice).purchaseFromERC1155Seller(
         [1, 2],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -167,14 +167,35 @@ describe("DelegatableNotes - Purchase Functionality", function () {
         [6]
       );
 
-      // Find the last created note (should be the purchased tokens)
-      const nextNoteId = await notes.nextNoteId();
-      const lastNoteId = nextNoteId - 1n;
+      const receipt = await tx.wait();
+      const purchaseEvent = receipt.logs.find(log => {
+        try {
+          return notes.interface.parseLog(log)?.name === "ERC1155Purchased";
+        } catch {
+          return false;
+        }
+      });
 
-      const purchasedNote = await notes.notes(lastNoteId);
-      expect(purchasedNote.token).to.equal(await erc1155Token.getAddress());
-      expect(purchasedNote.amount).to.equal(6);
-      expect(purchasedNote.owner).to.equal(alice.address);
+      const parsed = notes.interface.parseLog(purchaseEvent);
+      const outputNoteIds = parsed.args.outputNoteIds;
+
+      // Should create 2 output notes (one for each input chain)
+      expect(outputNoteIds.length).to.equal(2);
+
+      // Each note should have 3 tokens (proportional distribution: 6 tokens / 2 chains)
+      const note1 = await notes.notes(outputNoteIds[0]);
+      const note2 = await notes.notes(outputNoteIds[1]);
+
+      expect(note1.token).to.equal(await erc1155Token.getAddress());
+      expect(note1.amount).to.equal(3);
+      expect(note1.owner).to.equal(alice.address);
+
+      expect(note2.token).to.equal(await erc1155Token.getAddress());
+      expect(note2.amount).to.equal(3);
+      expect(note2.owner).to.equal(alice.address);
+
+      // Total should be 6 tokens
+      expect(note1.amount + note2.amount).to.equal(6);
     });
 
     it("Should preserve delegation chain when purchasing", async function () {
@@ -413,13 +434,13 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       ).to.be.revertedWith("Incorrect payment");
     });
 
-    it.skip("Should work with multiple notes for marketplace purchase - KNOWN BUG: proportional distribution", async function () {
+    it("Should work with multiple notes for marketplace purchase with proportional distribution", async function () {
       const paymentAmount = ethers.parseEther("0.30"); // Buy 6 tokens @ 0.05 each (using all funds)
 
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.15") });
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.15") });
 
-      await notes.connect(alice).purchaseFromERC1155Marketplace(
+      const tx = await notes.connect(alice).purchaseFromERC1155Marketplace(
         [1, 2],
         paymentAmount,
         await marketplace.getAddress(),
@@ -429,14 +450,35 @@ describe("DelegatableNotes - Purchase Functionality", function () {
         6
       );
 
-      // Find the last created note (should be the purchased tokens)
-      const nextNoteId = await notes.nextNoteId();
-      const lastNoteId = nextNoteId - 1n;
+      const receipt = await tx.wait();
+      const purchaseEvent = receipt.logs.find(log => {
+        try {
+          return notes.interface.parseLog(log)?.name === "ERC1155Purchased";
+        } catch {
+          return false;
+        }
+      });
 
-      const purchasedNote = await notes.notes(lastNoteId);
-      expect(purchasedNote.token).to.equal(await erc1155Token.getAddress());
-      expect(purchasedNote.amount).to.equal(6);
-      expect(purchasedNote.owner).to.equal(alice.address);
+      const parsed = notes.interface.parseLog(purchaseEvent);
+      const outputNoteIds = parsed.args.outputNoteIds;
+
+      // Should create 2 output notes (one for each input chain)
+      expect(outputNoteIds.length).to.equal(2);
+
+      // Each note should have 3 tokens
+      const note1 = await notes.notes(outputNoteIds[0]);
+      const note2 = await notes.notes(outputNoteIds[1]);
+
+      expect(note1.token).to.equal(await erc1155Token.getAddress());
+      expect(note1.amount).to.equal(3);
+      expect(note1.owner).to.equal(alice.address);
+
+      expect(note2.token).to.equal(await erc1155Token.getAddress());
+      expect(note2.amount).to.equal(3);
+      expect(note2.owner).to.equal(alice.address);
+
+      // Total should be 6 tokens
+      expect(note1.amount + note2.amount).to.equal(6);
     });
 
     it("Should emit ERC1155Purchased event", async function () {
