@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
@@ -33,7 +33,7 @@ abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
 
     function requireBuyingAllowed() internal view virtual;
 
-    function requireSellingAllowed() internal view virtual;
+    function requireRefundsAllowed() internal view virtual;
 
     function erc1155Price(
         address erc1155Addr,
@@ -92,24 +92,24 @@ abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
      * project to succeed, so no one's going to be upset if
      * it does.)
      */
-    function sellERC1155(
-        address buyer,
+    function refundERC1155(
+        address holder,
         address erc1155Addr,
         uint256[] calldata ids,
         uint256[] calldata counts,
         bytes calldata data
     ) external nonReentrant {
-        requireSellingAllowed();
+        requireRefundsAllowed();
         uint256 refundValue = erc1155TotalCost(erc1155Addr, ids, counts);
         setTotalReceivedValue(getTotalReceivedValue() - refundValue);
-        payable(buyer).transfer(refundValue);
+        payable(holder).transfer(refundValue);
         IERC1155(erc1155Addr).safeBatchTransferFrom(
-            buyer,
+            holder,
             address(this),
             ids,
             counts,
             data
         );
-        emit ERC1155Sold(buyer, erc1155Addr, refundValue, ids, counts);
+        emit ERC1155Sold(holder, erc1155Addr, refundValue, ids, counts);
     }
 }

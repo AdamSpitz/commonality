@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity 0.8.20;
 
 /**
  * Assurance contract that allows people to
@@ -37,8 +37,11 @@ abstract contract AssuranceContract {
 
     /**
      * If the project is successful, the value can be withdrawn.
+     * Only the recipient can call this function. (No major
+     * reason, but it's standard practice.)
      */
     function withdraw() external {
+        require(msg.sender == _recipient, "Only recipient can withdraw");
         requireAssuranceContractHasSucceeded();
         uint256 value = address(this).balance;
         payable(_recipient).transfer(value);

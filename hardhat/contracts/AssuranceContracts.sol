@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ContractMetadata.sol";
@@ -45,10 +45,7 @@ contract MultiERC1155_AssuranceContract is
             uint256 id = ids[i];
             uint256 price = prices[i];
             uint256 currentPrice = _erc1155Prices[erc1155Addr][id];
-            require(
-                currentPrice == 0 || currentPrice == price,
-                "Cannot modify prices"
-            );
+            require(currentPrice == 0, "Price already set");
             _erc1155Prices[erc1155Addr][id] = price;
             emit ERC1155Offered(erc1155Addr, id, price);
         }
@@ -83,7 +80,7 @@ contract MultiERC1155_AssuranceContract is
         // if the deadline has passed or whatever.
     }
 
-    function requireSellingAllowed() internal view override {
+    function requireRefundsAllowed() internal view override {
         requireAssuranceContractHasFailed();
     }
 }

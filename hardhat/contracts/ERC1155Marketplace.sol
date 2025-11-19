@@ -25,7 +25,7 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
         uint256 pricePerToken;
     }
 
-    IERC1155 public _erc1155; // AAA could this be marked as immutable or something?
+    IERC1155 public immutable _erc1155;
     mapping(uint256 => SaleListing) private _saleListings;
     mapping(uint256 => BuyOrder) private _buyOrders;
     uint256 private _nextSaleListingId;

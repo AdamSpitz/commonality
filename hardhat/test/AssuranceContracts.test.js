@@ -129,7 +129,7 @@ describe("MultiERC1155_AssuranceContract", function () {
       ).to.be.revertedWith("Arrays must be the same length");
     });
 
-    it("Should allow setting same price again (idempotent)", async function () {
+    it("Should reject setting same price again (not idempotent)", async function () {
       const tokenAddr = await erc1155Token.getAddress();
       const ids = [1];
       const price = ethers.parseEther("1.0");
@@ -137,11 +137,12 @@ describe("MultiERC1155_AssuranceContract", function () {
       await assuranceContract
         .connect(owner)
         .setPricesERC1155(tokenAddr, ids, [price]);
-      await assuranceContract
-        .connect(owner)
-        .setPricesERC1155(tokenAddr, ids, [price]);
 
-      // Should not revert
+      await expect(
+        assuranceContract
+          .connect(owner)
+          .setPricesERC1155(tokenAddr, ids, [price])
+      ).to.be.revertedWith("Price already set");
     });
 
     it("Should reject changing existing price", async function () {
@@ -158,7 +159,7 @@ describe("MultiERC1155_AssuranceContract", function () {
         assuranceContract
           .connect(owner)
           .setPricesERC1155(tokenAddr, ids, [price2])
-      ).to.be.revertedWith("Cannot modify prices");
+      ).to.be.revertedWith("Price already set");
     });
   });
 
@@ -308,7 +309,7 @@ describe("MultiERC1155_AssuranceContract", function () {
       // Sell back
       const tx = await assuranceContract
         .connect(alice)
-        .sellERC1155(alice.address, tokenAddr, [1], [1], "0x");
+        .refundERC1155(alice.address, tokenAddr, [1], [1], "0x");
       const receipt = await tx.wait();
       const gasCost = receipt.gasUsed * receipt.gasPrice;
 
@@ -338,7 +339,7 @@ describe("MultiERC1155_AssuranceContract", function () {
       await expect(
         assuranceContract
           .connect(alice)
-          .sellERC1155(alice.address, tokenAddr, [1], [1], "0x")
+          .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
       )
         .to.emit(assuranceContract, "ERC1155Sold")
         .withArgs(alice.address, tokenAddr, cost, [1], [1]);
@@ -360,7 +361,7 @@ describe("MultiERC1155_AssuranceContract", function () {
       await expect(
         assuranceContract
           .connect(alice)
-          .sellERC1155(alice.address, tokenAddr, [1], [1], "0x")
+          .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
       ).to.be.revertedWith("Project fate still undecided");
     });
 
@@ -384,7 +385,7 @@ describe("MultiERC1155_AssuranceContract", function () {
       await expect(
         assuranceContract
           .connect(alice)
-          .sellERC1155(alice.address, tokenAddr, [1], [1], "0x")
+          .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
       ).to.be.revertedWith("Project reached funding goal");
     });
 
@@ -410,7 +411,7 @@ describe("MultiERC1155_AssuranceContract", function () {
 
       await assuranceContract
         .connect(alice)
-        .sellERC1155(alice.address, tokenAddr, [1], [1], "0x");
+        .refundERC1155(alice.address, tokenAddr, [1], [1], "0x");
 
       expect(await assuranceContract.getAssuranceContractProgress()).to.equal(
         ethers.parseEther("1.0")
@@ -482,7 +483,7 @@ describe("MultiERC1155_AssuranceContract", function () {
       ).to.be.revertedWith("Not enough funding received");
     });
 
-    it("Should allow anyone to trigger withdrawal when successful", async function () {
+    it("Should only allow recipient to trigger withdrawal when successful", async function () {
       const tokenAddr = await erc1155Token.getAddress();
 
       await assuranceContract
@@ -491,8 +492,13 @@ describe("MultiERC1155_AssuranceContract", function () {
           value: ethers.parseEther("10.0"),
         });
 
-      // Alice triggers withdrawal (not recipient)
-      await expect(assuranceContract.connect(alice).withdraw()).to.not.be
+      // Alice tries to trigger withdrawal (not recipient) - should fail
+      await expect(
+        assuranceContract.connect(alice).withdraw()
+      ).to.be.revertedWith("Only recipient can withdraw");
+
+      // Recipient can withdraw
+      await expect(assuranceContract.connect(recipient).withdraw()).to.not.be
         .reverted;
     });
   });
@@ -568,7 +574,7 @@ describe("MultiERC1155_AssuranceContract", function () {
         .setApprovalForAll(await assuranceContract.getAddress(), true);
       await assuranceContract
         .connect(alice)
-        .sellERC1155(alice.address, tokenAddr, [1], [2], "0x");
+        .refundERC1155(alice.address, tokenAddr, [1], [2], "0x");
 
       // Progress should be 3 ETH now
       expect(await assuranceContract.getAssuranceContractProgress()).to.equal(
