@@ -1,6 +1,6 @@
 # Spec: Commonality Project
 
-This is the top-level spec for a software project called Commonality (for now, until Sam comes up with a better name).
+This is the top-level spec for a software project called Commonality.
 
 It's meant to be built using technology like blockchains and IPFS.
 
@@ -9,6 +9,11 @@ The original motivating thought was something like: Balaji Srinivasan's "network
 So the overall goal is something like:
   - Make it possible for large numbers of aligned people to coordinate online: keep track of their numbers, and crowdfund projects that are aligned with their cause.
   - But do this in a way that's not a big monolithic group, but rather a big network of individuals (with a really great coordination system to make it all hang together).
+
+Key ideas:
+  - Implication graphs reduce coordination friction: Use AI-generated "S1 implies S2" relationships to eliminate the need for everyone to rally around a single canonical statement. People can create improved/alternative versions while inheriting indirect support through the graph.
+  - Composable delegation enables nano-trustees: Allow people to contribute funds but delegate spending decisions to trusted individuals (who can further delegate), creating chains of specialized judgment without requiring everyone to evaluate every project.
+  - Retroactive funding via resellable NFTs: separate the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) by making contribution NFTs tradeable on secondary markets, creating a VC-like system for public goods.
 
 
 ## What to do with this spec
@@ -45,14 +50,19 @@ If you're an AI who's reading this top-level spec and generating a mid-level spe
 At the end of the day, I don't want to be afraid to blow away anything that's AI-generated (or at least anything that I haven't grokked) and regenerate it.
 
 
-### Stuff to have AI generate but then I want to "bless" it and consider it part of this top-level spec
+### Generating, then blessing
 
-To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then add them to the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code"). That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code". (Doesn't need to be code artifacts; e.g. it might be useful if you could write up English descriptions of some things and then I can bless them.) Here are some other aspects of the project that I might like to do in that way. (Some of these files may already exist.)
+To some extent I would actually be happy to ask AI to generate some useful mid-level artifacts, so that I can check them for myself and make sure they make sense to me and then "bless" them by considering them part of the top-level spec (i.e. *not* blow them away in the future, but treat them as "source code").
+
+That's roughly what I'm doing with the smart contracts - they're simple enough and important enough that I feel like it's better for me to make sure that I grok them and then include them in the "source code".
+
+But also this might be useful with things other than code artifacts. e.g. It might be useful if AI could write up English descriptions of some things and then I can bless them.
 
 
 ## Main components
 
 The overall system is made of two big components: Concept Space and Funding Portals.
+
 
 ### Concept Space
 
@@ -79,7 +89,7 @@ Some points about this:
 
 ### Funding Portals
 
-Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are aligned with statement S". Anyone can submit ProjectAlignmentAttestation events of the form "project P is aligned with statement S". Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
+Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are aligned with statement S"). Anyone can submit ProjectAlignmentAttestation events of the form "project P is aligned with statement S". Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
 
 Some points about this:
 
