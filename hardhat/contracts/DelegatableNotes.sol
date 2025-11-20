@@ -70,9 +70,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
 
-  // Track accrued commissions: owner => token => tokenType => tokenId => amount
-  mapping(address => mapping(address => mapping(TokenType => mapping(uint256 => uint256)))) public accruedCommissions;
-
   // Events
   event NoteCreated(
     uint256 indexed noteId,
@@ -114,8 +111,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] inputNoteIds,
     uint256[] outputNoteIds
   );
-  event CommissionClaimed(
-    address indexed owner,
+  event CommissionPaid(
+    address indexed delegate,
     address indexed token,
     TokenType tokenType,
     uint256 tokenId,
@@ -741,20 +738,20 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
   /**
    * @dev Helper function: Consume notes for purchase.
-   * Deletes the notes, caches their chains, and accrues commissions.
+   * Deletes the notes, caches their chains, and pays commissions.
    * @param noteIds Array of note IDs to consume
    * @param caller The address calling the purchase function
-   * @param paymentAmount The amount being used for the actual purchase (for commission calculation)
+   * @param totalAvailable The total amount available from all notes
    * @return chainCaches Array of cached chain information
+   * @return totalCommission The total commission paid to delegates
    */
-  function _consumeNotesForPurchase(uint256[] memory noteIds, address caller, uint256 paymentAmount)
+  function _consumeNotesForPurchase(uint256[] memory noteIds, address caller, uint256 totalAvailable)
     private
-    returns (DelegationChainSnapshot[] memory chainCaches)
+    returns (DelegationChainSnapshot[] memory chainCaches, uint256 totalCommission)
   {
     chainCaches = new DelegationChainSnapshot[](noteIds.length);
 
-    // First pass: cache all chains and calculate total
-    uint256 totalAmount = 0;
+    // First pass: cache all chains
     for (uint256 i = 0; i < noteIds.length; i++) {
       uint256 noteId = noteIds[i];
       Note storage note = notes[noteId];
@@ -762,16 +759,24 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
       // Cache and delete the chain
       chainCaches[i] = _deleteChainAndCache(noteId);
-      totalAmount += chainCaches[i].amount;
     }
 
-    // Second pass: accrue commissions proportionally based on paymentAmount
+    // Second pass: pay commissions proportionally based on totalAvailable
+    totalCommission = 0;
     for (uint256 i = 0; i < chainCaches.length; i++) {
       // Calculate this chain's proportional share of the payment
-      uint256 proportionalPayment = (paymentAmount * chainCaches[i].amount) / totalAmount;
+      uint256 proportionalPayment = (totalAvailable * chainCaches[i].amount) / totalAvailable;
 
-      // Accrue commissions based on proportional payment
-      _accrueCommissions(
+      // Calculate commission for this chain
+      uint256 chainCommission = _calculateTotalCommission(
+        chainCaches[i].owners,
+        chainCaches[i].commissions,
+        proportionalPayment
+      );
+      totalCommission += chainCommission;
+
+      // Pay commissions immediately based on proportional payment
+      _payCommissions(
         chainCaches[i].owners,
         chainCaches[i].commissions,
         address(0), // ETH
@@ -875,12 +880,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Step 1: Split notes to separate payment from leftover
     uint256[] memory paymentNoteIds = _splitNotesForPurchase(noteIds, caller, paymentAmount);
 
-    // Step 2: Consume payment notes - delete them, cache chains, accrue commissions
-    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
+    // Step 2: Consume payment notes - delete them, cache chains, pay commissions
+    (DelegationChainSnapshot[] memory chainCaches, uint256 totalCommission) = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
 
     // Step 3: Purchase from the ERC1155Seller contract
-    // Send the full paymentAmount to seller, commissions were already accrued and stay in contract
-    ERC1155Seller(seller).buyERC1155{value: paymentAmount}(
+    // Send payment minus commissions to seller (commissions already paid to delegates)
+    uint256 netPayment = paymentAmount - totalCommission;
+    ERC1155Seller(seller).buyERC1155{value: netPayment}(
       address(this),
       erc1155Contract,
       tokenIds,
@@ -940,12 +946,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Step 1: Split notes to separate payment from leftover
     uint256[] memory paymentNoteIds = _splitNotesForPurchase(noteIds, caller, paymentAmount);
 
-    // Step 2: Consume payment notes - delete them, cache chains, accrue commissions
-    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
+    // Step 2: Consume payment notes - delete them, cache chains, pay commissions
+    (DelegationChainSnapshot[] memory chainCaches, uint256 totalCommission) = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
 
     // Step 3: Purchase from marketplace
-    // Send the full paymentAmount to marketplace, commissions were already accrued and stay in contract
-    ERC1155Marketplace(marketplace).fulfillSaleListingTo{value: paymentAmount}(
+    // Send payment minus commissions to marketplace (commissions already paid to delegates)
+    uint256 netPayment = paymentAmount - totalCommission;
+    ERC1155Marketplace(marketplace).fulfillSaleListingTo{value: netPayment}(
       saleListingId,
       count,
       address(this)
@@ -1013,7 +1020,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   }
 
   /**
-   * @dev Accrue commissions to delegates in the chain when a note is spent
+   * @dev Pay commissions immediately to delegates in the chain when a note is spent
    * @param owners Array of owners in the delegation chain (leaf to root)
    * @param commissions Array of commission basis points for each level
    * @param token The token being spent
@@ -1021,7 +1028,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param tokenId The token ID (for ERC1155)
    * @param amount The total amount being spent
    */
-  function _accrueCommissions(
+  function _payCommissions(
     address[] memory owners,
     uint256[] memory commissions,
     address token,
@@ -1035,61 +1042,22 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       if (commissions[i] > 0) {
         uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS_DENOMINATOR;
         if (commissionAmount > 0) {
-          accruedCommissions[owners[i]][token][tokenType][tokenId] += commissionAmount;
+          // Pay commission immediately
+          if (tokenType == TokenType.ERC20) {
+            if (token == address(0)) {
+              // ETH
+              payable(owners[i]).transfer(commissionAmount);
+            } else {
+              // ERC20
+              IERC20(token).safeTransfer(owners[i], commissionAmount);
+            }
+          } else {
+            // ERC1155
+            IERC1155(token).safeTransferFrom(address(this), owners[i], tokenId, commissionAmount, "");
+          }
+          emit CommissionPaid(owners[i], token, tokenType, tokenId, commissionAmount);
         }
       }
     }
-  }
-
-  /**
-   * @dev Claim accrued commissions
-   * @param token The token address (use address(0) for ETH)
-   * @param tokenType The type of token (ERC20 or ERC1155)
-   * @param tokenId The token ID (only relevant for ERC1155, use 0 for ERC20/ETH)
-   */
-  function claimCommission(
-    address token,
-    TokenType tokenType,
-    uint256 tokenId
-  ) external nonReentrant {
-    address owner = _msgSender();
-    uint256 amount = accruedCommissions[owner][token][tokenType][tokenId];
-    require(amount > 0, "No commission to claim");
-
-    // Delete before external call (checks-effects-interactions)
-    delete accruedCommissions[owner][token][tokenType][tokenId];
-
-    // Transfer the commission
-    if (tokenType == TokenType.ERC20) {
-      if (token == address(0)) {
-        // ETH
-        payable(owner).transfer(amount);
-      } else {
-        // ERC20
-        IERC20(token).safeTransfer(owner, amount);
-      }
-    } else {
-      // ERC1155
-      IERC1155(token).safeTransferFrom(address(this), owner, tokenId, amount, "");
-    }
-
-    emit CommissionClaimed(owner, token, tokenType, tokenId, amount);
-  }
-
-  /**
-   * @dev View function to check accrued commission
-   * @param owner The address to check
-   * @param token The token address
-   * @param tokenType The type of token
-   * @param tokenId The token ID (for ERC1155)
-   * @return The amount of accrued commission
-   */
-  function getAccruedCommission(
-    address owner,
-    address token,
-    TokenType tokenType,
-    uint256 tokenId
-  ) external view returns (uint256) {
-    return accruedCommissions[owner][token][tokenType][tokenId];
   }
 }

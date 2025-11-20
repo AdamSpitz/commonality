@@ -263,15 +263,24 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       );
     });
 
-    it("Should accrue commission when delegate makes purchase", async function () {
-      const paymentAmount = ethers.parseEther("0.3");
+    it("Should pay commission immediately when delegate makes purchase", async function () {
+      // Seller wants 0.3 ETH for 3 tokens
+      // With 10% commission, Bob gets 0.03 ETH, seller gets 0.27 ETH
+      // So paymentAmount needs to be enough that after commission, seller gets 0.3 ETH
+      // If commission is 10%, then: netToSeller = paymentAmount * (1 - 0.10)
+      // We need: 0.3 = paymentAmount * 0.9, so paymentAmount = 0.3 / 0.9 = 0.333...
+      const sellerCost = ethers.parseEther("0.3"); // What seller expects to receive
+      const paymentAmount = ethers.parseEther("0.333333333333333333"); // Enough to cover seller + commission
 
       // Alice deposits and delegates to Bob with 10% commission
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
       await notes.connect(alice).delegate(1, bob.address, paymentAmount, 1000); // 10%
 
-      // Bob makes purchase
-      await notes.connect(bob).purchaseFromERC1155Seller(
+      // Track Bob's balance before purchase
+      const bobBalanceBefore = await ethers.provider.getBalance(bob.address);
+
+      // Bob makes purchase - paymentAmount goes through, commission is deducted, net goes to seller
+      const tx = await notes.connect(bob).purchaseFromERC1155Seller(
         [2],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -279,29 +288,36 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
         [1],
         [3]
       );
+      const receipt = await tx.wait();
+      const gasCost = receipt.gasUsed * receipt.gasPrice;
 
-      // Check Bob's accrued commission
-      const bobCommission = await notes.getAccruedCommission(
-        bob.address,
-        ethers.ZeroAddress, // ETH
-        0, // TokenType.ERC20
-        0
-      );
-
-      // Bob should have 10% of 0.3 ETH = 0.03 ETH
-      expect(bobCommission).to.equal(ethers.parseEther("0.03"));
+      // Bob's balance should increase by 10% of paymentAmount (minus gas)
+      const bobBalanceAfter = await ethers.provider.getBalance(bob.address);
+      const expectedCommission = paymentAmount * 1000n / 10000n; // 10% of paymentAmount
+      expect(bobBalanceAfter - bobBalanceBefore + gasCost).to.equal(expectedCommission);
     });
 
-    it("Should accrue commission at multiple levels", async function () {
-      const paymentAmount = ethers.parseEther("1.0");
+    it("Should pay commission immediately at multiple levels", async function () {
+      // Seller wants 1.0 ETH for 10 tokens
+      // Charlie has 10% commission, Bob has 20% commission
+      // Total commission: 10% + 20% = 30%
+      // So paymentAmount needs to cover seller (1.0) with 30% deducted
+      // netToSeller = paymentAmount * (1 - 0.30)
+      // 1.0 = paymentAmount * 0.7, so paymentAmount = 1.0 / 0.7 ≈ 1.428...
+      const paymentAmount = ethers.parseEther("1.428571428571428571"); // Enough for seller + commissions
 
       // Alice → Bob (20%) → Charlie (10%)
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
       await notes.connect(alice).delegate(1, bob.address, paymentAmount, 2000); // 20%
       await notes.connect(bob).delegate(2, charlie.address, paymentAmount, 1000); // 10%
 
+      // Track balances before purchase
+      const charlieBalanceBefore = await ethers.provider.getBalance(charlie.address);
+      const bobBalanceBefore = await ethers.provider.getBalance(bob.address);
+      const aliceBalanceBefore = await ethers.provider.getBalance(alice.address);
+
       // Charlie makes purchase
-      await notes.connect(charlie).purchaseFromERC1155Seller(
+      const tx = await notes.connect(charlie).purchaseFromERC1155Seller(
         [3],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -309,81 +325,76 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
         [1],
         [10]
       );
+      const receipt = await tx.wait();
+      const gasCost = receipt.gasUsed * receipt.gasPrice;
 
-      // Check commissions
-      const charlieCommission = await notes.getAccruedCommission(charlie.address, ethers.ZeroAddress, 0, 0);
-      const bobCommission = await notes.getAccruedCommission(bob.address, ethers.ZeroAddress, 0, 0);
-      const aliceCommission = await notes.getAccruedCommission(alice.address, ethers.ZeroAddress, 0, 0);
+      // Check balances after purchase
+      const charlieBalanceAfter = await ethers.provider.getBalance(charlie.address);
+      const bobBalanceAfter = await ethers.provider.getBalance(bob.address);
+      const aliceBalanceAfter = await ethers.provider.getBalance(alice.address);
 
-      // Charlie (leaf) gets 10% = 0.1 ETH
-      expect(charlieCommission).to.equal(ethers.parseEther("0.1"));
+      // Charlie (leaf) gets 10% of paymentAmount, minus gas
+      const charlieCommission = paymentAmount * 1000n / 10000n;
+      expect(charlieBalanceAfter - charlieBalanceBefore + gasCost).to.equal(charlieCommission);
 
-      // Bob (middle) gets 20% = 0.2 ETH
-      expect(bobCommission).to.equal(ethers.parseEther("0.2"));
+      // Bob (middle) gets 20% of paymentAmount
+      const bobCommission = paymentAmount * 2000n / 10000n;
+      expect(bobBalanceAfter - bobBalanceBefore).to.equal(bobCommission);
 
       // Alice (root) gets nothing (root doesn't get commission)
-      expect(aliceCommission).to.equal(0);
+      expect(aliceBalanceAfter - aliceBalanceBefore).to.equal(0);
     });
 
-    it("FIXED: Can now claim accrued commission - contract holds back ETH", async function () {
-      const purchaseCost = ethers.parseEther("0.3"); // Cost of tokens from seller
-      const commission10Percent = ethers.parseEther("0.03"); // 10% of purchase cost
-      const totalWithCommission = purchaseCost + commission10Percent; // 0.33 ETH total
+    it("FIXED: Commission is paid immediately during purchase", async function () {
+      // Seller wants 0.3 ETH for 3 tokens
+      // With 10% commission, we need paymentAmount such that after commission, seller gets 0.3
+      // paymentAmount * 0.9 = 0.3, so paymentAmount = 0.333...
+      const paymentAmount = ethers.parseEther("0.333333333333333333");
+      const expectedCommission = paymentAmount * 1000n / 10000n; // 10% of paymentAmount
 
       // Alice deposits enough to cover purchase + commission
-      await notes.connect(alice).depositETH(statementId, { value: totalWithCommission });
-      await notes.connect(alice).delegate(1, bob.address, totalWithCommission, 1000); // 10% commission
+      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
+      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 1000); // 10% commission
 
-      // Bob makes purchase: paymentAmount is what goes to seller (0.3 ETH)
-      // The extra 0.03 ETH covers Bob's commission
-      await notes.connect(bob).purchaseFromERC1155Seller(
+      const balanceBefore = await ethers.provider.getBalance(bob.address);
+
+      // Bob makes purchase: paymentAmount covers both seller payment and commission
+      // Commission is paid immediately during this transaction
+      const tx = await notes.connect(bob).purchaseFromERC1155Seller(
         [2],
-        purchaseCost, // This is what goes to the seller
+        paymentAmount,
         await assuranceContract.getAddress(),
         await erc1155Token.getAddress(),
         [1],
         [3] // 3 tokens @ 0.1 each = 0.3 ETH
       );
-
-      // Commission is accrued (10% of purchase amount = 10% of 0.3 = 0.03)
-      const bobCommission = await notes.getAccruedCommission(bob.address, ethers.ZeroAddress, 0, 0);
-      expect(bobCommission).to.equal(commission10Percent);
-
-      // Now claiming should work because contract holds back commission
-      const balanceBefore = await ethers.provider.getBalance(bob.address);
-      const tx = await notes.connect(bob).claimCommission(ethers.ZeroAddress, 0, 0);
       const receipt = await tx.wait();
       const gasCost = receipt.gasUsed * receipt.gasPrice;
       const balanceAfter = await ethers.provider.getBalance(bob.address);
 
-      // Bob should receive the commission
-      expect(balanceAfter - balanceBefore + gasCost).to.equal(commission10Percent);
-
-      // Commission should be cleared
-      const remainingCommission = await notes.getAccruedCommission(bob.address, ethers.ZeroAddress, 0, 0);
-      expect(remainingCommission).to.equal(0);
+      // Bob should receive the commission immediately (minus gas for the transaction)
+      expect(balanceAfter - balanceBefore + gasCost).to.equal(expectedCommission);
     });
 
-    it("FIXED: Commission claim event is emitted successfully", async function () {
-      const purchaseCost = ethers.parseEther("0.3");
-      const totalWithCommission = ethers.parseEther("0.33");
+    it("FIXED: CommissionPaid event is emitted during purchase", async function () {
+      // Seller wants 0.3 ETH, with 10% commission we need 0.333...
+      const paymentAmount = ethers.parseEther("0.333333333333333333");
+      const expectedCommission = paymentAmount * 1000n / 10000n; // 10% of paymentAmount
 
-      await notes.connect(alice).depositETH(statementId, { value: totalWithCommission });
-      await notes.connect(alice).delegate(1, bob.address, totalWithCommission, 1000);
+      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
+      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 1000);
 
-      await notes.connect(bob).purchaseFromERC1155Seller(
+      // Purchase now emits CommissionPaid event immediately
+      await expect(notes.connect(bob).purchaseFromERC1155Seller(
         [2],
-        purchaseCost, // What goes to seller
+        paymentAmount,
         await assuranceContract.getAddress(),
         await erc1155Token.getAddress(),
         [1],
         [3]
-      );
-
-      // Claiming now emits event
-      await expect(notes.connect(bob).claimCommission(ethers.ZeroAddress, 0, 0))
-        .to.emit(notes, "CommissionClaimed")
-        .withArgs(bob.address, ethers.ZeroAddress, 0, 0, ethers.parseEther("0.03"));
+      ))
+        .to.emit(notes, "CommissionPaid")
+        .withArgs(bob.address, ethers.ZeroAddress, 0, 0, expectedCommission);
     });
   });
 
