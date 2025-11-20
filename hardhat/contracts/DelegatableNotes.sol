@@ -447,7 +447,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         tokenId: tokenId,
         owner: originalOwner,
         parentNoteId: splitCurrentNoteId,
-        delegated: false,
+        delegated: i > 1,
         intendedStatementId: intendedStatementId,
         commissionBasisPoints: originalCommission
       });
@@ -460,7 +460,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         tokenId: tokenId,
         owner: originalOwner,
         parentNoteId: remainderCurrentNoteId,
-        delegated: false,
+        delegated: i > 1,
         intendedStatementId: intendedStatementId,
         commissionBasisPoints: originalCommission
       });
