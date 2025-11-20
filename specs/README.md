@@ -227,6 +227,10 @@ Thoughts on potential threats:
 
 See specs/queries-and-actions.md for an AI-generated list of queries and actions that the system needs to support.
 
+#### Indexers
+
+See specs/indexers.md for an AI-generated list of nonobvious stuff about what the indexers need to do.
+
 #### Generative testing
 
 See generative-testing-plan.md for some thoughts on doing that. But basically let's generate a bunch of fake users and have them do a bunch of fake actions to test the system.
