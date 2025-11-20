@@ -721,7 +721,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       } else if (paymentFromThisNote > 0) {
         // Split: create payment note and leftover note
         uint256 leftoverAmount = noteAmount - paymentFromThisNote;
-        (uint256 paymentNoteId, uint256 leftoverNoteId) = _splitChain(
+        (uint256 paymentNoteId, /*uint256 leftoverNoteId*/) = _splitChain(
           noteId,
           paymentFromThisNote,
           leftoverAmount,
