@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "./ERC1155Seller.sol";
-import "./ERC1155Marketplace.sol";
+import "../individual-projects/ERC1155Seller.sol";
+import "../individual-projects/ERC1155Marketplace.sol";
 
 /*
  * @title DelegatableNotes

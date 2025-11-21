@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./ContractMetadata.sol";
+import "../utils/ContractMetadata.sol";
 import "./ERC1155Seller.sol";
 import "./AssuranceContract.sol";
 

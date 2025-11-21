@@ -129,7 +129,7 @@ Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI rec
 
 In the hardhat/ directory (in the root of the project), there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
 
-In specs/graphql, there are some graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available. (In the past I've found that when I ask AI to generate graphql schemas they end up quite verbose and hard for me to grok, so mixing English and code seems to maybe be a sweet spot.)
+In specs/graphql, there should be some graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available. (In the past I've found that when I ask AI to generate graphql schemas they end up quite verbose and hard for me to grok, so mixing English and code seems to maybe be a sweet spot.)
 
 
 #### Modelling Statements
@@ -139,7 +139,7 @@ A Statement should be represented as a JSON document that we upload to IPFS. A s
 
 #### Beliefs smart contract
 
-First, I've already generated this; see hardhat/contracts.
+See hardhat/contracts.
 
 A belief state needs to have three possible values: noOpinion, believes, disbelieves (and noOpinion is the default).
 
