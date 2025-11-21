@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../utils/ContractMetadata.sol";
-import "./ERC1155Seller.sol";
+import "./ERC1155PrimaryMarket.sol";
 import "./AssuranceContract.sol";
 
 /**
@@ -12,13 +12,13 @@ import "./AssuranceContract.sol";
  * @dev Holds pre-minted ERC1155 tokens and sells them at fixed prices.
  *      Tracks total received value to measure funding progress.
  *      Refunds only allowed if project failed.
- *      Implements AssuranceContract, ContractMetadata, and ERC1155Seller.
+ *      Implements AssuranceContract, ContractMetadata, and ERC1155PrimaryMarket.
  */
 contract MultiERC1155_AssuranceContract is
     Ownable,
     ContractMetadata,
     AssuranceContract,
-    ERC1155Seller
+    ERC1155PrimaryMarket
 {
     mapping(address => mapping(uint256 => uint256)) private _erc1155Prices;
 

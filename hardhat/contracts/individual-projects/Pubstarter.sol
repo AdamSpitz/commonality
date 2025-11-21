@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "../utils/FreeERC1155.sol";
 import "../utils/PremintingERC1155.sol";
 import "./AssuranceContracts.sol";
-import "./ERC1155Marketplace.sol";
+import "../marketplace/ERC1155Marketplace.sol";
 
 /**
  * @title FreeERC1155Factory

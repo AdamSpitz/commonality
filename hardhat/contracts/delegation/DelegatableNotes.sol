@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "../individual-projects/ERC1155Seller.sol";
-import "../individual-projects/ERC1155Marketplace.sol";
+import "../individual-projects/ERC1155PrimaryMarket.sol";
+import "../marketplace/ERC1155Marketplace.sol";
 
 /*
  * @title DelegatableNotes
@@ -523,7 +523,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   /**
    * @dev Validate that multiple notes are compatible for being spent together.
    * Notes are compatible if they all have the same owner, token, tokenType, and tokenId (for ERC1155).
-   * This is useful before calling functions like purchaseFromERC1155Seller.
+   * This is useful before calling functions like purchaseFromERC1155PrimaryMarket.
    * @param noteIds Array of note IDs to validate
    * @return isValid True if all notes are compatible, false otherwise
    * @return errorMessage Description of why notes are incompatible (empty if valid)
@@ -851,18 +851,18 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   }
 
   /**
-   * @dev Purchase ERC1155 tokens from an ERC1155Seller contract using ETH from notes.
+   * @dev Purchase ERC1155 tokens from an ERC1155PrimaryMarket contract using ETH from notes.
    * Notes must hold the zero address as their token (representing ETH).
    * The purchased ERC1155 tokens are wrapped in new notes that preserve the delegation
    * chains from the input notes. Any leftover ETH remains in new notes owned by the caller.
    * @param noteIds Array of note IDs to spend (must all be ETH notes with same owner)
    * @param paymentAmount The exact amount of ETH to spend on this purchase
-   * @param seller Address of the ERC1155Seller contract
+   * @param seller Address of the ERC1155PrimaryMarket contract
    * @param erc1155Contract Address of the ERC1155 token contract
    * @param tokenIds Array of ERC1155 token IDs to purchase
    * @param counts Array of counts for each token ID
    */
-  function purchaseFromERC1155Seller(
+  function purchaseFromERC1155PrimaryMarket(
     uint256[] calldata noteIds,
     uint256 paymentAmount,
     address payable seller,
@@ -883,10 +883,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Step 2: Consume payment notes - delete them, cache chains, pay commissions
     (DelegationChainSnapshot[] memory chainCaches, uint256 totalCommission) = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
 
-    // Step 3: Purchase from the ERC1155Seller contract
+    // Step 3: Purchase from the ERC1155PrimaryMarket contract
     // Send payment minus commissions to seller (commissions already paid to delegates)
     uint256 netPayment = paymentAmount - totalCommission;
-    ERC1155Seller(seller).buyERC1155{value: netPayment}(
+    ERC1155PrimaryMarket(seller).buyERC1155{value: netPayment}(
       address(this),
       erc1155Contract,
       tokenIds,

@@ -62,7 +62,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     marketplace = await ERC1155Marketplace.deploy(await erc1155Token.getAddress());
   });
 
-  describe("purchaseFromERC1155Seller", function () {
+  describe("purchaseFromERC1155PrimaryMarket", function () {
     it("Should purchase tokens using a single note with exact amount", async function () {
       const paymentAmount = ethers.parseEther("0.3"); // Buy 3 of token 1
 
@@ -70,7 +70,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
 
       // Alice purchases 3 tokens of ID 1 (0.1 ETH each)
-      await notes.connect(alice).purchaseFromERC1155Seller(
+      await notes.connect(alice).purchaseFromERC1155PrimaryMarket(
         [1], // noteIds
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -101,7 +101,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: depositAmount });
 
       // Alice purchases tokens
-      await notes.connect(alice).purchaseFromERC1155Seller(
+      await notes.connect(alice).purchaseFromERC1155PrimaryMarket(
         [1],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -129,7 +129,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
 
-      await notes.connect(alice).purchaseFromERC1155Seller(
+      await notes.connect(alice).purchaseFromERC1155PrimaryMarket(
         [1],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -158,7 +158,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.3") });
 
       // Purchase using both notes (spending all: 0.6)
-      const tx = await notes.connect(alice).purchaseFromERC1155Seller(
+      const tx = await notes.connect(alice).purchaseFromERC1155PrimaryMarket(
         [1, 2],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -207,7 +207,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(bob).delegate(2, charlie.address, paymentAmount, 0);
 
       // Charlie makes a purchase
-      await notes.connect(charlie).purchaseFromERC1155Seller(
+      await notes.connect(charlie).purchaseFromERC1155PrimaryMarket(
         [3],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -233,7 +233,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
 
       await expect(
-        notes.connect(alice).purchaseFromERC1155Seller(
+        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
           [1],
           0, // zero payment
           await assuranceContract.getAddress(),
@@ -248,7 +248,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.2") });
 
       await expect(
-        notes.connect(alice).purchaseFromERC1155Seller(
+        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
           [1],
           ethers.parseEther("0.5"), // more than available
           await assuranceContract.getAddress(),
@@ -264,7 +264,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
       // Try to pay 0.2 ETH but request 3 tokens (which cost 0.3 ETH)
       await expect(
-        notes.connect(alice).purchaseFromERC1155Seller(
+        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
           [1],
           ethers.parseEther("0.2"), // wrong payment amount
           await assuranceContract.getAddress(),
@@ -279,7 +279,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.3") });
 
       await expect(
-        notes.connect(bob).purchaseFromERC1155Seller(
+        notes.connect(bob).purchaseFromERC1155PrimaryMarket(
           [1], // Alice's note
           ethers.parseEther("0.3"),
           await assuranceContract.getAddress(),
@@ -295,7 +295,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
 
       await expect(
-        notes.connect(alice).purchaseFromERC1155Seller(
+        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
           [1],
           paymentAmount,
           await assuranceContract.getAddress(),
@@ -505,7 +505,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("2.0") });
 
       // First purchase from assurance contract
-      await notes.connect(alice).purchaseFromERC1155Seller(
+      await notes.connect(alice).purchaseFromERC1155PrimaryMarket(
         [1],
         ethers.parseEther("0.5"), // Buy 5 of token 1
         await assuranceContract.getAddress(),

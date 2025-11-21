@@ -280,7 +280,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       const bobBalanceBefore = await ethers.provider.getBalance(bob.address);
 
       // Bob makes purchase - paymentAmount goes through, commission is deducted, net goes to seller
-      const tx = await notes.connect(bob).purchaseFromERC1155Seller(
+      const tx = await notes.connect(bob).purchaseFromERC1155PrimaryMarket(
         [2],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -317,7 +317,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       const aliceBalanceBefore = await ethers.provider.getBalance(alice.address);
 
       // Charlie makes purchase
-      const tx = await notes.connect(charlie).purchaseFromERC1155Seller(
+      const tx = await notes.connect(charlie).purchaseFromERC1155PrimaryMarket(
         [3],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -360,7 +360,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       // Bob makes purchase: paymentAmount covers both seller payment and commission
       // Commission is paid immediately during this transaction
-      const tx = await notes.connect(bob).purchaseFromERC1155Seller(
+      const tx = await notes.connect(bob).purchaseFromERC1155PrimaryMarket(
         [2],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -385,7 +385,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).delegate(1, bob.address, paymentAmount, 1000);
 
       // Purchase now emits CommissionPaid event immediately
-      await expect(notes.connect(bob).purchaseFromERC1155Seller(
+      await expect(notes.connect(bob).purchaseFromERC1155PrimaryMarket(
         [2],
         paymentAmount,
         await assuranceContract.getAddress(),
@@ -539,7 +539,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
     it("Should reject purchase with empty noteIds array", async function () {
       await expect(
-        notes.connect(alice).purchaseFromERC1155Seller(
+        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
           [], // empty
           ethers.parseEther("0.3"),
           await assuranceContract.getAddress(),
@@ -554,7 +554,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.3") });
 
       await expect(
-        notes.connect(alice).purchaseFromERC1155Seller(
+        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
           [1],
           ethers.parseEther("0.3"),
           await assuranceContract.getAddress(),
@@ -628,7 +628,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
 
-      await notes.connect(alice).purchaseFromERC1155Seller(
+      await notes.connect(alice).purchaseFromERC1155PrimaryMarket(
         [1],
         paymentAmount,
         await assuranceContract.getAddress(),

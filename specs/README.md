@@ -98,22 +98,79 @@ We may want to generate a list of terms and concepts, just to pin down what we m
 
 ## Artifacts
 
-Let's flesh this out with a list of how to divide up this system into concrete technical artifacts.
+This section describes the conceptually-separate subsystems that make up Commonality. These represent the *logical architecture* - how we think about and organize the code, schemas, and APIs. The *physical deployment* (whether these run as separate services or in a single process) is a separate decision that can change without affecting the code structure.
 
-  - Concept Space:
-    - smart contracts:
-      - Beliefs (for emitting DirectSupport events)
-      - Implications (for emitting ImplicationAttestation events)
-    - indexer
-    - UI
-    - implication attester AI
-  - Pubstarter (for making kickstarter-like projects):
-    - smart contracts (many contracts, see below for elaboration)
-  - Funding Portal (for showing many projects in a single UI):
-    - smart contracts:
-      - ProjectAlignment (for emitting ProjectAlignmentAttestation events)
-    - indexer (let's use this for indexing the Pubstarter contracts too)
-    - UI (has various pages: a page for each individual project, and also a funding-portal page for each statementId)
+### Core Subsystems
+
+The system is divided into several independent subsystems, each with its own domain, smart contracts, indexer, and UI components:
+
+#### 1. Concept Space Subsystem
+**Domain:** Statements, beliefs, and implication relationships
+
+Components:
+  - **Smart contracts:**
+    - `Beliefs` - for users to express belief/disbelief in statements
+    - `Implications` - for attesters to publish "S1 implies S2" relationships
+  - **Indexer:** Tracks statement content (cached from IPFS), user beliefs, and the implication graph organized by attester. Computes indirect support via runtime graph traversal.
+  - **UI:** Browse/search statements, view statement pages with support metrics, user pages showing signed statements, settings for configuring trusted attesters
+  - **Implication Attester AI:** Standalone service that evaluates statement relationships and publishes attestations (can be deployed independently; other attesters can exist too)
+
+#### 2. Pubstarter Subsystem
+**Domain:** Individual crowdfunding projects (Kickstarter-style primary market)
+
+Components:
+  - **Smart contracts:** `AssuranceContract`, `ERC1155PrimaryMarket` - ERC-1155 project contracts with threshold-based funding, deadlines, refunds (in `hardhat/contracts/individual-projects/`)
+  - **Indexer:** Tracks project details, contributions, token holders, burned tokens (donors vs investors)
+  - **UI:** Individual project pages showing funding progress, contributor leaderboards
+
+#### 3. Marketplace Subsystem
+**Domain:** Secondary market trading for ERC-1155 tokens
+
+Components:
+  - **Smart contracts:** `ERC1155Marketplace` - generic order book for any ERC-1155 tokens (in `hardhat/contracts/marketplace/`)
+  - **Indexer:** Tracks active buy/sell orders, order fills, price history
+  - **UI:** Trading interface with order book display, buy/sell forms
+
+Note: This is generic infrastructure for peer-to-peer trading. Could be used for any ERC-1155 secondary market, not just Pubstarter project tokens.
+
+#### 4. Delegation Subsystem
+**Domain:** Delegatable notes and trust chains
+
+Components:
+  - **Smart contracts:** `DelegatableNotes` - allows users to delegate funding decisions with composable, revocable chains
+  - **Indexer:** Tracks active notes, full delegation chains, and commission structures
+  - **UI:** Note management interface, delegation chain visualization, spending controls
+
+#### 5. Funding Portal Subsystem
+**Domain:** Cross-cutting views that join concepts, projects, and funding
+
+Components:
+  - **Smart contracts:** `ProjectAlignment` - for attesting that projects align with statements
+  - **Indexer:** Handles complex federated queries by calling the GraphQL APIs of other indexers (Concept Space, Pubstarter, Marketplace, Delegation). Computes indirect project alignment via implication graphs, aggregates funding by cause, generates contributor leaderboards.
+  - **UI:** Cause-specific funding portals showing all aligned projects (direct and indirect), available funding from delegatable notes, cross-project contributor rankings
+
+### Subsystem Dependencies
+
+```
+Concept Space ──┐
+                │
+Pubstarter ────┼──> Funding Portal (federates queries to others)
+                │
+Marketplace ───┤
+                │
+Delegation ────┘
+
+(Arrows show data flow; Funding Portal queries the APIs of the other four)
+```
+
+The four foundational subsystems (Concept Space, Pubstarter, Marketplace, Delegation) are independent and have no dependencies on each other. The Funding Portal subsystem orchestrates cross-cutting queries by federating to their GraphQL APIs.
+
+### Why This Structure?
+
+- **Clear separation of concerns:** Each subsystem has a well-defined domain and can be reasoned about independently
+- **Independent testing:** Can test each subsystem with mock upstream dependencies
+- **Flexible deployment:** Can deploy as separate services (for scalability) or as a monolith (for simplicity), without changing the code structure
+- **Reusability:** Each subsystem could potentially be used in other contexts (e.g., the Pubstarter subsystem works for any crowdfunding system, not just Commonality)
 
 ### Technical details
 

@@ -6,13 +6,13 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 /**
- * @title ERC1155Seller
- * @notice Simple buy/sell mechanism for ERC1155 tokens (not a full marketplace)
- * @dev Contract holds tokens and sells them at fixed prices.
- *      Subclasses define when buying and selling are allowed through virtual functions.
+ * @title ERC1155PrimaryMarket
+ * @notice Primary market mechanism for ERC1155 tokens - buy from contract at fixed prices
+ * @dev Contract holds tokens and sells them at fixed prices, with optional refunds.
+ *      Subclasses define when buying and refunds are allowed through virtual functions.
  *      This is an abstract contract that must be implemented by a concrete contract.
  */
-abstract contract ERC1155Seller is ReentrancyGuard, ERC1155Holder {
+abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
     /**
      * @notice Emitted when ERC1155 tokens are offered for sale at a specific price
      * @param erc1155Addr The address of the ERC1155 token contract
