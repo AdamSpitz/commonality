@@ -1,95 +1,176 @@
-# Indexer Database Schema Considerations
+# Indexer Architecture
 
-AI-generated. The prompt was:
+This document describes how the Commonality indexing system is split into independent, federated indexers.
 
-    Please read specs/README.md and specs/queries-and-actions.md and anything else relevant, and then come up with a list of any nonobvious things we need to keep in mind when we design our conceptspace and fundingspace indexers' database schemas. Like... some smart contracts are gonna emit some events... the indexers will watch those events and store the data in their DB... but I imagine we're gonna need various indexes to make various kinds of queries efficient enough, and maybe also some clever algorithms (e.g. for computing indirect support), etc. What do we need to do that's more complicated than just "watch the events and shove the data into the DB"?
+## Overview
 
-This document describes the non-obvious database schema and indexing considerations beyond simple event storage.
+Instead of one large indexer, we use multiple specialized indexers that each focus on one domain. Complex cross-cutting queries are handled by federation (one indexer queries another's GraphQL API).
 
-## Conceptspace Indexer
+**Important:** This describes the *logical* architecture - the conceptual separation, database schemas, and GraphQL APIs. The *physical* deployment (separate processes vs single executable) is a separate decision that can change without affecting the code.
 
-### 1. Reverse Implication Maps by Attester
-- Need a many-to-many relationship: (statement, attester) → [statements that imply it]
-- Must support filtering by user's trusted attesters for all queries
-- Index: `(implied_statement_id, attester_address, implying_statement_id)`
+## The Four Indexers
 
-### 2. Indirect Support Computation via BFS
-- Runtime graph traversal on every query (not pre-computed)
-- Need efficient adjacency list lookups with attester filtering
-- Must track visited nodes to prevent infinite loops in circular graphs
-- Need to exclude users who disbelieve any statement in the transitive path (or at minimum, the target)
-- Consider caching common traversal results with cache invalidation on new implications
+```
+┌──────────────────┐
+│ Concept Space    │  Watches: Beliefs, Implications
+│ Indexer          │  Exports: GraphQL API for statements, beliefs, implication graph
+│                  │  Dependencies: None
+└──────────────────┘
 
-### 3. Direct Supporters Cache
-- Maintain current set of believers per statement (updated on belief changes)
-- Need to handle belief state transitions: noOpinion ↔ believes ↔ disbelieves
-- Index for fast "give me all believers of statement X"
+┌──────────────────┐
+│ Pubstarter       │  Watches: Pubstarter contracts, ERC1155Marketplace, ERC1155Seller
+│ Indexer          │  Exports: GraphQL API for projects, contributions, market orders
+│                  │  Dependencies: None
+└──────────────────┘
 
-### 4. Statement Content Indexing
-- Must pin and cache IPFS content for statements
-- Extract metadata (title, excerpt) for search/browse queries
-- Parse `references` array to build statement-reference graph
-- Full-text search on markdown content
-- Handle IPFS retrieval failures gracefully
+┌──────────────────┐
+│ Delegation       │  Watches: DelegatableNotes
+│ Indexer          │  Exports: GraphQL API for notes, delegation chains
+│                  │  Dependencies: None
+└──────────────────┘
 
-### 5. Trending/Velocity Calculations
-- Need timestamps on support events to compute "signatures per time window"
-- Requires time-series indexing for efficient trending queries
-- Consider materialized views that refresh periodically
+┌──────────────────┐
+│ Funding Portal   │  Watches: ProjectAlignment
+│ Indexer          │  Exports: GraphQL API for cross-cutting queries
+│                  │  Dependencies: Queries Concept Space, Pubstarter, Delegation APIs
+└──────────────────┘
+```
 
-## Funding Portal Indexer
+## Key Responsibilities
 
-### 6. Indirect Project Alignment
-- Similar to indirect support: BFS traversal through implication graph
-- Must query Conceptspace indexer's GraphQL API for implication data
-- Cache strategy to avoid hammering the other indexer
-- Project aligned with S2, S2 implies S1 → project aligned with S1
+### Concept Space Indexer
 
-### 7. Delegatable Notes Chain Tracking
-- Store full delegation chains: root → intermediate → ... → leaf
-- On revocation, must invalidate entire sub-chain efficiently
-- Index: `(note_id, position_in_chain)` for fast chain reconstruction
-- Track splits/merges maintaining chain identity
+**Domain:** Statements, beliefs, and implications
 
-### 8. Aggregated Funding by Cause
-- Sum available delegatable notes per statement (direct + indirect via implications)
-- Pre-compute or cache these aggregations for performance
-- Must recalculate when: new note created, delegation changed, note spent
+**Data stored:**
+- Statements (IPFS content cached locally)
+- User beliefs (address → statementId → beliefState)
+- Implication graph (organized by attester)
+- Direct supporters per statement
 
-### 9. Contributor Leaderboards with Context
-- Aggregate contributions across all (indirectly) aligned projects
-- Distinguish: donors (burned tokens) vs investors (holding tokens)
-- Track full delegation chains for attribution (Alice → Bob → Charlie)
-- Multiple indexes needed: by cause, by project, by user
+**Non-obvious requirements:**
+- Reverse implication maps indexed by attester: `(implied_statement_id, attester_address, implying_statement_id)`
+- Runtime BFS graph traversal for indirect support (with attester filtering, cycle detection)
+- Time-series data for trending calculations ("signatures per time window")
+- Full-text search on statement content
+- Graph depth limiting (max 3-5 levels) to prevent DoS
 
-### 10. Secondary Market Order Books
-- Track active buy/sell orders per (project, token_type)
-- Need price-time priority indexing for efficient matching
-- Handle order cancellations and partial fills
+**Example query:** "Give me all statements that indirectly support statement S (via the implication graph), according to attesters A1 and A2"
 
-### 11. ERC-1155 Multi-Token Tracking
-- Each project has multiple token types
-- Need indexes per (project_address, token_id) for balances and prices
-- Track primary market price vs secondary market prices
+### Pubstarter Indexer
+
+**Domain:** Individual crowdfunding projects and token markets
+
+**Data stored:**
+- Project details (threshold, deadline, recipient)
+- Token types per project (ERC1155)
+- Contributions and current token holders
+- Burned tokens (donors vs investors)
+- Active market orders (buy/sell listings)
+
+**Non-obvious requirements:**
+- Multi-token tracking per project: indexes per `(project_address, token_id)`
+- Order book indexing with price-time priority
+- Track primary vs secondary market prices
+- Handle partial order fills
+
+**Example query:** "Give me all contributors to project P, distinguishing between donors (who burned tokens) and investors (who still hold)"
+
+### Delegation Indexer
+
+**Domain:** Delegatable notes and delegation chains
+
+**Data stored:**
+- Active notes indexed by noteId, owner, intendedStatementId
+- Full delegation chains with position tracking
+- Commission percentages per delegation hop
+
+**Non-obvious requirements:**
+- Efficient chain reconstruction via `(note_id, position_in_chain)` index
+- Fast sub-chain invalidation on revocation
+- Track splits/merges while maintaining chain identity
+- Commission data stored (actual calculation happens in smart contract)
+
+**Example query:** "Give me the full delegation chain for note N (Alice → Bob → Charlie)"
+
+### Funding Portal Indexer
+
+**Domain:** Cross-cutting queries joining concepts, projects, and funding
+
+**Data stored:**
+- Project alignment attestations (projectAddress → statementId, by attester)
+- Cached results of expensive federated queries
+- Aggregated contributor data across aligned projects
+
+**Non-obvious requirements:**
+- **Indirect project alignment:** Federates to Concept Space API for implication graph, joins with local alignment data
+- **Aggregated funding by cause:** Federates to Delegation API for notes, Concept Space API for implications, sums across relevant statements
+- **Contributor leaderboards:** Federates to Pubstarter API for contributions, Delegation API for chains, aggregates by cause
+- Heavy caching with invalidation on: new implications, new alignments, delegation changes
+
+**Example query:** "Show me all projects aligned with statement S (directly or indirectly via implications), sorted by funding progress, with top contributors and their full delegation chains"
 
 ## Cross-Cutting Concerns
 
-### 12. Multi-Attester Query Performance
-- Almost all queries filtered by "trusted attesters" set
-- Can't pre-compute because every user has different trusted set
-- Need efficient bitmap/set operations for attester filtering
+**Multi-Attester Query Performance:**
+- Almost all queries filtered by user's "trusted attesters" set
+- Can't pre-compute (every user has different trusted set)
+- Solution: Attester filtering happens once in Concept Space, filtered results passed downstream
 
-### 13. Graph Depth Limiting
-- Prevent DoS via deep implication chains or reference chains
-- Configurable max depth (3-5 levels) for reference expansion
-- Track depth during BFS to terminate early
+**Event Reorg Handling:**
+- All indexers track block numbers and handle rollbacks
+- Wait for finality threshold before treating data as permanent
 
-### 14. Commission Calculation in Delegation Chains
-- When note is spent, calculate commission distribution along chain
-- Need to store commission percentages at each delegation hop
-- Complex calculation: nested percentages with passthrough
+**Graph Depth Limiting:**
+- Prevent DoS via deep implication/reference chains
+- Configurable max depth (3-5 levels), BFS terminates early
 
-### 15. Event Reorg Handling
-- Blockchain reorgs can invalidate recent events
-- Need to track block numbers and handle rollbacks
-- Consider finality thresholds before treating data as permanent
+## Deployment: Logical vs Physical
+
+### Logical Architecture (What Matters for Code)
+
+Maintain these boundaries:
+1. **Separate database schemas** - Each indexer has its own tables
+2. **Separate GraphQL schemas** - Clear API contracts
+3. **Dependency direction** - Funding Portal depends on others; others have no dependencies
+4. **No shared business logic** - Federation via GraphQL, not function calls
+
+### Physical Deployment (Flexible)
+
+You can deploy as:
+- **Monolithic** (single process, GraphQL "queries" are direct function calls) - Simplest for development
+- **Separate services** (each indexer in own container) - Best for production scaling
+- **Hybrid** (combine some, separate others)
+
+The key: Write code with logical boundaries even if deploying monolithically. Then physical architecture can evolve based on operational needs.
+
+## Why This Works
+
+**Clear separation of concerns:**
+- Concept Space: "Tell me about statements and beliefs"
+- Pubstarter: "Tell me about crowdfunding projects"
+- Delegation: "Tell me about notes and chains"
+- Funding Portal: "Join everything together"
+
+**Complex queries handled cleanly:**
+- "Projects for cause S" = Funding Portal federates to Concept Space (for implications) + local alignment data
+- "Total funding for S" = Funding Portal federates to Delegation (notes) + Concept Space (implications) + sums
+- "Top contributors to S" = Funding Portal federates to Pubstarter (contributions) + Delegation (chains) + aggregates
+
+**Independent testing:**
+- Test each indexer with mock upstream APIs
+- No need to spin up entire system
+
+**Reusability:**
+- Pubstarter indexer works for any Kickstarter-like system
+- Concept Space indexer works for any belief/statement tracking
+- Delegation indexer works for any delegation use case
+
+## Recommendation
+
+Start with federated logical architecture deployed monolithically:
+1. Write separate modules with GraphQL APIs (as if they're separate services)
+2. Deploy as single process (simpler initially)
+3. Switch to distributed deployment when needed (just config changes)
+
+This gives clean separation (good for code quality) with simple deployment (good for getting started quickly).

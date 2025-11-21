@@ -221,7 +221,7 @@ See specs/queries-and-actions.md for an AI-generated list of queries and actions
 
 #### Indexers
 
-See specs/indexers.md for an AI-generated list of nonobvious stuff about what the indexers need to do.
+See specs/indexers.md for an AI-generated description of how to architect the indexers.
 
 #### Generative testing
 
