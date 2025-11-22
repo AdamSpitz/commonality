@@ -50,12 +50,11 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 
 **Non-obvious requirements:**
 - Reverse implication maps indexed by attester: `(implied_statement_id, attester_address, implying_statement_id)`
-- Runtime BFS graph traversal for indirect support (with attester filtering, cycle detection)
+- Implications are NOT transitive - indirect support is computed via direct implication lookups only (simple DB query, no graph traversal needed)
 - Time-series data for trending calculations ("signatures per time window")
 - Full-text search on statement content
-- Graph depth limiting (max 3-5 levels) to prevent DoS
 
-**Example query:** "Give me all statements that indirectly support statement S (via the implication graph), according to attesters A1 and A2"
+**Example query:** "Give me all statements that directly imply statement S, according to attesters A1 and A2" (then union their supporters for indirect support count)
 
 ### Pubstarter Indexer
 
@@ -103,7 +102,7 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 - Aggregated contributor data across aligned projects
 
 **Non-obvious requirements:**
-- **Indirect project alignment:** Federates to Concept Space API for implication graph, joins with local alignment data
+- **Indirect project alignment:** Federates to Concept Space API for direct implication attestations (no transitive traversal), joins with local alignment data
 - **Aggregated funding by cause:** Federates to Delegation API for notes, Concept Space API for implications, sums across relevant statements
 - **Contributor leaderboards:** Federates to Pubstarter API for contributions, Delegation API for chains, aggregates by cause
 - Heavy caching with invalidation on: new implications, new alignments, delegation changes
@@ -121,9 +120,10 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 - All indexers track block numbers and handle rollbacks
 - Wait for finality threshold before treating data as permanent
 
-**Graph Depth Limiting:**
-- Prevent DoS via deep implication/reference chains
-- Configurable max depth (3-5 levels), BFS terminates early
+**No Graph Traversal Needed:**
+- Implications are not transitive, so no BFS/DFS traversal required
+- Indirect support = simple lookup of direct implications pointing to target statement
+- Only depth limiting needed is for displaying nested statement references in UI (3-5 levels)
 
 ## Deployment: Logical vs Physical
 

@@ -11,7 +11,7 @@ So the overall goal is something like:
   - But do this in a way that's not a big monolithic group, but rather a big network of individuals (with a really great coordination system to make it all hang together).
 
 Key ideas:
-  - Implication graphs reduce coordination friction: Use AI-generated "S1 implies S2" relationships to eliminate the need for everyone to rally around a single canonical statement. People can create improved/alternative versions while inheriting indirect support through the graph.
+  - Implication attestations reduce coordination friction: Use AI-generated "S1 implies S2" attestations to eliminate the need for everyone to rally around a single canonical statement. People can create improved/alternative versions while inheriting indirect support. (Note: implications are *not* transitive - if you want to know whether S1 supporters indirectly support S3, you need a direct attestation from S1 to S3, not a chain through S2. This avoids the problem where S1→S2 and S2→S3 each seem reasonable but S1→S3 is a stretch.)
   - Retroactive funding via resellable NFTs: separate the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) by making contribution NFTs tradeable on secondary markets, creating a VC-like system for public goods.
   - Composable delegation enables nano-trustees: Allow people to contribute funds but delegate spending decisions to trusted individuals (who can further delegate), creating chains of specialized judgment without requiring everyone to evaluate every project.
 
@@ -68,7 +68,7 @@ The overall system is made of two big components: Concept Space and Funding Port
 ### Concept Space
 
   - Users create immutable statements (representing ideas/causes) stored on IPFS and sign them onchain to express belief/disbelief.
-  - AI attesters publish "S1 implies S2" relationships, enabling indirect support tracking — people can create improved versions of statements while inheriting support through the implication graph. This drastically reduces the need for coordination: no need to rally around a single canonical statement, yet the system gently nudges toward coordination by suggesting more-popular equivalent statements.
+  - AI attesters publish "S1 implies S2" relationships, enabling indirect support tracking — people can create improved versions of statements while inheriting support via direct implication attestations. This drastically reduces the need for coordination: no need to rally around a single canonical statement, yet the system gently nudges toward coordination by suggesting more-popular equivalent statements.
 
 ### Funding Portals
 
@@ -111,7 +111,7 @@ Components:
   - **Smart contracts:**
     - `Beliefs` - for users to express belief/disbelief in statements
     - `Implications` - for attesters to publish "S1 implies S2" relationships
-  - **Indexer:** Tracks statement content (cached from IPFS), user beliefs, and the implication graph organized by attester. Computes indirect support via runtime graph traversal.
+  - **Indexer:** Tracks statement content (cached from IPFS), user beliefs, and implication attestations organized by attester. Computes indirect support by looking up direct implication attestations (no transitive graph traversal needed).
   - **UI:** Browse/search statements, view statement pages with support metrics, user pages showing signed statements, settings for configuring trusted attesters
   - **Implication Attester AI:** Standalone service that evaluates statement relationships and publishes attestations (can be deployed independently; other attesters can exist too)
 
@@ -208,7 +208,7 @@ I've already generated this one too; hardhat/contracts.
 
 #### Conceptspace indexer
 
-I'm a bit worried about storing "indirect support" directly in the DB. The problem is that I do want the implication attesters to be configurable; not everyone is going to agree that S1 implies S2. But OTOH it does sound like it'll be expensive to keep recomputing indirect support on every query (basing it dynamically on the passed-in set of trusted implication attesters). Maybe not that expensive, though? For now, let's only store direct support, and we'll compute indirect support on the fly: use BFS graph traversal (with visited set to prevent infinite loops) to find all statements that transitively imply the target statement (according to the passed-in set of trusted attesters), then union those statements' direct supporters. (For now let's hope that's performant enough.) (Annoying wrinkle: ideally we'd exclude any user who's explicitly indicated disbelief in any statement along the transitive-implication path... but if that's too much work/complexity, then for now let's at least just exclude people who've explicitly indicated disbelief in the target statement.)
+Implications are *not* transitive. To find indirect supporters of statement S, simply look up all statements S' where there's a direct implication attestation S'→S (from a trusted attester), then union the direct supporters of all those S' statements. This is a simple DB query, no graph traversal needed. (Exclude anyone who's explicitly indicated disbelief in S.)
 
 Required indexing: Maintain (1) reverse implication map (for each statement, which statements imply it, organized by attester), and (2) direct supporters cache (current set of believers for each statement).
 
@@ -251,7 +251,7 @@ In the long run I'd like the DelegatableNotes smart contract to support various 
 
 Keep track of details for all the individual Pubstarter projects.
 
-Also keep track of all the projects aligned directly with a particular statementId. (And we'll also have to use an indirect-support algorithm, similar to what we used in the Conceptspace indexer, for identifying projects that are indirectly aligned.) And keep track of top contributors (investors/donors) to any project aligned with this cause.
+Also keep track of all the projects aligned directly with a particular statementId. (And we'll also have to look up direct implication attestations to find projects that are indirectly aligned - same simple approach as in the Conceptspace indexer, no transitive graph traversal.) And keep track of top contributors (investors/donors) to any project aligned with this cause.
 
 Make GraphQL queries to the Concept Space indexer, to get the implication data needed to compute indirect project alignment.
 
@@ -268,7 +268,7 @@ There's a page that shows a particular project (identified by its smart-contract
 Thoughts on potential threats:
   - **Standard web security**: Sanitize all markdown (use DOMPurify or equivalent), validate JSON strictly, use CSP headers, handle IPFS failures gracefully
   - **Sybil/spam mitigation**: L2 gas costs + UI filtering (sort by trending/supporters) + eventual unique-human verification
-  - **Graph attacks**: BFS with visited set for circular references; limit reference expansion depth to 3-5 levels; users can switch attesters
+  - **Graph attacks**: No transitive graph traversal, so circular references aren't a concern; limit reference expansion depth to 3-5 levels for statement content display; users can switch attesters
   - **Funding scams**: Accept as inevitable; rely on transparency + retroactive funding incentives + social reputation
   - **Smart contract security**: Before mainnet, must implement comprehensive testing, have AI do a basic audit, and get professional audit
 
@@ -293,7 +293,6 @@ In philosophizing.md there are some not-exactly-relevant thoughts about this sys
 ## Future steps
 
   - A few thoughts from our most recent chat:
-    - Maybe consider *not* doing a transitive implication algorithm; just use AI to directly evaluate implication between two statements. (Avoids some annoying complexity where S1 -> S2 and S2 -> S3 might each feel reasonable, even though S1 obviously doesn't imply S3. And it ought to be fairly cheap to use AI for this purpose.)
     - Sam wants me to set up the node and indexer to run in Docker, so that he can play around with extracting the info and feeding it into a graph database.
   - Generate mid-level specs from this high-level spec.
   - Generate running code from the mid-level specs.
