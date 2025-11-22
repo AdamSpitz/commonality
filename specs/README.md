@@ -292,6 +292,9 @@ In philosophizing.md there are some not-exactly-relevant thoughts about this sys
 
 ## Future steps
 
+  - A few thoughts from our most recent chat:
+    - Maybe consider *not* doing a transitive implication algorithm; just use AI to directly evaluate implication between two statements. (Avoids some annoying complexity where S1 -> S2 and S2 -> S3 might each feel reasonable, even though S1 obviously doesn't imply S3. And it ought to be fairly cheap to use AI for this purpose.)
+    - Sam wants me to set up the node and indexer to run in Docker, so that he can play around with extracting the info and feeding it into a graph database.
   - Generate mid-level specs from this high-level spec.
   - Generate running code from the mid-level specs.
   - Future chat sessions for us to have:
