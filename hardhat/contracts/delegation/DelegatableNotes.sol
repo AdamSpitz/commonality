@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../individual-projects/ERC1155PrimaryMarket.sol";
-import "../marketplace/ERC1155Marketplace.sol";
+import "../marketplace/ERC1155SecondaryMarket.sol";
 
 /*
  * @title DelegatableNotes
@@ -917,18 +917,18 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   }
 
   /**
-   * @dev Purchase ERC1155 tokens from an ERC1155Marketplace by fulfilling a sale listing.
+   * @dev Purchase ERC1155 tokens from an ERC1155SecondaryMarket by fulfilling a sale listing.
    * The purchased tokens are wrapped in new notes that preserve the delegation chains
    * from the input notes. Any leftover ETH remains in new notes owned by the caller.
    * @param noteIds Array of note IDs to spend (must all be ETH notes)
    * @param paymentAmount The exact amount of ETH to spend on this purchase
-   * @param marketplace Address of the ERC1155Marketplace contract
+   * @param marketplace Address of the ERC1155SecondaryMarket contract
    * @param erc1155Contract Address of the ERC1155 token contract
    * @param saleListingId The ID of the sale listing to fulfill
    * @param tokenId The ERC1155 token ID being purchased
    * @param count Number of tokens to purchase from the listing
    */
-  function purchaseFromERC1155Marketplace(
+  function purchaseFromERC1155SecondaryMarket(
     uint256[] calldata noteIds,
     uint256 paymentAmount,
     address marketplace,
@@ -952,7 +952,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Step 3: Purchase from marketplace
     // Send payment minus commissions to marketplace (commissions already paid to delegates)
     uint256 netPayment = paymentAmount - totalCommission;
-    ERC1155Marketplace(marketplace).fulfillSaleListingTo{value: netPayment}(
+    ERC1155SecondaryMarket(marketplace).fulfillSaleListingTo{value: netPayment}(
       saleListingId,
       count,
       address(this)

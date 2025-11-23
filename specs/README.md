@@ -127,7 +127,7 @@ Components:
 **Domain:** Secondary market trading for ERC-1155 tokens
 
 Components:
-  - **Smart contracts:** `ERC1155Marketplace` - generic order book for any ERC-1155 tokens (in `hardhat/contracts/marketplace/`)
+  - **Smart contracts:** `ERC1155SecondaryMarket` - generic order book for any ERC-1155 tokens (in `hardhat/contracts/marketplace/`)
   - **Indexer:** Tracks active buy/sell orders, order fills, price history
   - **UI:** Trading interface with order book display, buy/sell forms
 

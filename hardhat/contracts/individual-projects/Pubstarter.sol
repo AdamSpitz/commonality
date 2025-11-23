@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "../utils/FreeERC1155.sol";
 import "../utils/PremintingERC1155.sol";
 import "./AssuranceContracts.sol";
-import "../marketplace/ERC1155Marketplace.sol";
+import "../marketplace/ERC1155SecondaryMarket.sol";
 
 /**
  * @title FreeERC1155Factory
@@ -62,23 +62,23 @@ contract PremintingERC1155Factory {
 
 /**
  * @title MarketplaceFactory
- * @notice Factory contract for creating ERC1155Marketplace contracts
+ * @notice Factory contract for creating ERC1155SecondaryMarket contracts
  */
 contract MarketplaceFactory {
   /**
-   * @notice Emitted when a new ERC1155Marketplace contract is created
-   * @param marketplace The address of the created ERC1155Marketplace contract
+   * @notice Emitted when a new ERC1155SecondaryMarket contract is created
+   * @param marketplace The address of the created ERC1155SecondaryMarket contract
    */
-  event PubstarterERC1155MarketplaceCreated(address indexed marketplace);
+  event PubstarterERC1155SecondaryMarketCreated(address indexed marketplace);
 
   /**
-   * @notice Creates a new ERC1155Marketplace contract
+   * @notice Creates a new ERC1155SecondaryMarket contract
    * @param erc1155Addr The address of the ERC1155 token contract to create a marketplace for
-   * @return The address of the created ERC1155Marketplace contract
+   * @return The address of the created ERC1155SecondaryMarket contract
    */
-  function createMarketplace(address erc1155Addr) public returns (ERC1155Marketplace) {
-    ERC1155Marketplace m = new ERC1155Marketplace(erc1155Addr);
-    emit PubstarterERC1155MarketplaceCreated(address(m));
+  function createMarketplace(address erc1155Addr) public returns (ERC1155SecondaryMarket) {
+    ERC1155SecondaryMarket m = new ERC1155SecondaryMarket(erc1155Addr);
+    emit PubstarterERC1155SecondaryMarketCreated(address(m));
     return m;
   }
 }
@@ -174,13 +174,13 @@ contract Pubstarter {
     uint256[] memory ids,
     uint256[] memory counts,
     uint256[] memory prices
-  ) public returns (IERC1155, ERC1155Marketplace, AssuranceContract) {
+  ) public returns (IERC1155, ERC1155SecondaryMarket, AssuranceContract) {
     require(owner != address(0), "Invalid owner address");
     require(recipient != address(0), "Invalid recipient address");
 
     PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(address(this), metadataURI, contractURI);
 
-    ERC1155Marketplace m = _marketplaceFactory.createMarketplace(address(t));
+    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t));
 
     MultiERC1155_AssuranceContract ac = _assuranceFactory.createAssuranceContract(
       address(this),

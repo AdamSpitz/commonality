@@ -28,7 +28,7 @@ const CONTRACTS_TO_SYNC = {
   // ProjectAlignment: "project-alignment/ProjectAlignment.sol/ProjectAlignment.json",
   // AssuranceContract: "individual-projects/AssuranceContract.sol/AssuranceContract.json",
   // DelegatableNotes: "delegation/DelegatableNotes.sol/DelegatableNotes.json",
-  // ERC1155Marketplace: "marketplace/ERC1155Marketplace.sol/ERC1155Marketplace.json",
+  // ERC1155SecondaryMarket: "marketplace/ERC1155SecondaryMarket.sol/ERC1155SecondaryMarket.json",
 };
 
 function main() {

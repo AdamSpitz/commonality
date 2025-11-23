@@ -2,7 +2,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
 
-describe("ERC1155Marketplace", function () {
+describe("ERC1155SecondaryMarket", function () {
   let marketplace;
   let token;
   let owner, alice, bob, charlie;
@@ -23,19 +23,19 @@ describe("ERC1155Marketplace", function () {
     await token.mintBatch(bob.address, [1, 2, 3], [100, 100, 100]);
 
     // Deploy marketplace
-    const ERC1155Marketplace = await ethers.getContractFactory("ERC1155Marketplace");
-    marketplace = await ERC1155Marketplace.deploy(await token.getAddress());
+    const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
+    marketplace = await ERC1155SecondaryMarket.deploy(await token.getAddress());
   });
 
   describe("Deployment", function () {
-    it("Should emit ERC1155MarketplaceCreated event", async function () {
-      const ERC1155Marketplace = await ethers.getContractFactory("ERC1155Marketplace");
+    it("Should emit ERC1155SecondaryMarketCreated event", async function () {
+      const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
       const tokenAddr = await token.getAddress();
 
-      const newMarketplace = await ERC1155Marketplace.deploy(tokenAddr);
+      const newMarketplace = await ERC1155SecondaryMarket.deploy(tokenAddr);
 
       await expect(newMarketplace.deploymentTransaction())
-        .to.emit(newMarketplace, "ERC1155MarketplaceCreated")
+        .to.emit(newMarketplace, "ERC1155SecondaryMarketCreated")
         .withArgs(tokenAddr);
     });
 

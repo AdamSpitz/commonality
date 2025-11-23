@@ -7,13 +7,13 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
 /**
- * @title ERC1155Marketplace
+ * @title ERC1155SecondaryMarket
  * @notice A simple orderbook marketplace for ERC1155 tokens
  * @dev Users can create sale listings (ask orders) and buy orders (bid orders).
  *      Supports partial fulfillment of orders. All trades settle in ETH.
  *      Each marketplace instance is tied to a specific ERC1155 contract.
  */
-contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
+contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     /**
      * @dev Structure representing a sale listing (ask order)
      */
@@ -44,7 +44,7 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
      * @notice Emitted when a new marketplace contract is created
      * @param erc1155 The address of the ERC1155 token contract this marketplace serves
      */
-    event ERC1155MarketplaceCreated(address indexed erc1155);
+    event ERC1155SecondaryMarketCreated(address indexed erc1155);
     
     /**
      * @notice Emitted when a new sale listing is created
@@ -100,7 +100,7 @@ contract ERC1155Marketplace is Context, ERC1155Holder, ReentrancyGuard {
      */
     constructor(address erc1155Address) {
         _erc1155 = IERC1155(erc1155Address);
-        emit ERC1155MarketplaceCreated(erc1155Address);
+        emit ERC1155SecondaryMarketCreated(erc1155Address);
     }
 
     /**
