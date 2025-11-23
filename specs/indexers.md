@@ -18,7 +18,7 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 └──────────────────┘
 
 ┌──────────────────┐
-│ Pubstarter       │  Watches: Pubstarter contracts, ERC1155SecondaryMarket, ERC1155PrimaryMarket
+│ Pubstarter       │  Watches: Pubstarter contracts, ERC1155PrimaryMarket, ERC1155SecondaryMarket
 │ Indexer          │  Exports: GraphQL API for projects, contributions, market orders
 │                  │  Dependencies: None
 └──────────────────┘

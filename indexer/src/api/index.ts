@@ -11,7 +11,21 @@ import {
   attesters,
 } from "../../ponder.schema";
 
+// Import Pubstarter API (logically separate subsystem)
+import pubstarterApi from "./pubstarter";
+
 const app = new Hono();
+
+// ============================================================================
+// PUBSTARTER INDEXER ROUTES
+// ============================================================================
+// Mount the Pubstarter API at /pubstarter/*
+// This keeps it logically separate from the Concept Space API
+app.route("/pubstarter", pubstarterApi);
+
+// ============================================================================
+// CONCEPT SPACE INDEXER ROUTES
+// ============================================================================
 
 // Expose SQL client for direct queries
 app.use("/sql/*", client({ db, schema }));

@@ -1,15 +1,36 @@
-import { createConfig } from "ponder";
+import { createConfig, factory } from "ponder";
 import { http } from "viem";
 
+// Conceptspace ABIs
 import { BeliefsAbi } from "./abis/BeliefsAbi";
 import { ImplicationsAbi } from "./abis/ImplicationsAbi";
 
-// Contract addresses - update these after deployment
+// Pubstarter ABIs
+import {
+  AssuranceContractFactoryAbi,
+  PremintingERC1155FactoryAbi,
+  MarketplaceFactoryAbi,
+} from "./abis/PubstarterFactoriesAbi";
+import { AssuranceContractAbi } from "./abis/AssuranceContractAbi";
+import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
+
+// ============================================================================
+// CONCEPTSPACE CONTRACT ADDRESSES
+// ============================================================================
 const BELIEFS_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}` | undefined;
 const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined;
 
+// ============================================================================
+// PUBSTARTER CONTRACT ADDRESSES
+// ============================================================================
+// Factory contracts - these emit events when new projects are created
+const ASSURANCE_CONTRACT_FACTORY_ADDRESS = process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as `0x${string}` | undefined;
+const ERC1155_FACTORY_ADDRESS = process.env.ERC1155_FACTORY_ADDRESS as `0x${string}` | undefined;
+const MARKETPLACE_FACTORY_ADDRESS = process.env.MARKETPLACE_FACTORY_ADDRESS as `0x${string}` | undefined;
+
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
+const PUBSTARTER_START_BLOCK = Number(process.env.PUBSTARTER_START_BLOCK || START_BLOCK);
 
 export default createConfig({
   chains: {
@@ -20,6 +41,10 @@ export default createConfig({
     },
   },
   contracts: {
+    // ========================================================================
+    // CONCEPTSPACE INDEXER CONTRACTS
+    // ========================================================================
+
     // Beliefs contract - tracks user beliefs about statements
     Beliefs: {
       abi: BeliefsAbi,
@@ -33,6 +58,66 @@ export default createConfig({
       chain: "baseSepolia",
       address: IMPLICATIONS_ADDRESS,
       startBlock: START_BLOCK,
+    },
+
+    // ========================================================================
+    // PUBSTARTER INDEXER CONTRACTS
+    // ========================================================================
+    // These are logically separate from Conceptspace contracts.
+    // The Pubstarter indexer tracks crowdfunding projects and secondary markets.
+
+    // Factory contract for creating assurance contracts
+    AssuranceContractFactory: {
+      abi: AssuranceContractFactoryAbi,
+      chain: "baseSepolia",
+      address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
+      startBlock: PUBSTARTER_START_BLOCK,
+    },
+
+    // Factory contract for creating ERC1155 tokens
+    ERC1155Factory: {
+      abi: PremintingERC1155FactoryAbi,
+      chain: "baseSepolia",
+      address: ERC1155_FACTORY_ADDRESS,
+      startBlock: PUBSTARTER_START_BLOCK,
+    },
+
+    // Factory contract for creating secondary marketplaces
+    MarketplaceFactory: {
+      abi: MarketplaceFactoryAbi,
+      chain: "baseSepolia",
+      address: MARKETPLACE_FACTORY_ADDRESS,
+      startBlock: PUBSTARTER_START_BLOCK,
+    },
+
+    // Dynamically indexed assurance contracts (created by factory)
+    // Uses Ponder's factory pattern to index child contracts
+    // The factory() function returns addresses discovered from factory events
+    AssuranceContract: {
+      abi: AssuranceContractAbi,
+      chain: "baseSepolia",
+      address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+        ? factory({
+            address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
+            event: AssuranceContractFactoryAbi[0], // PubstarterAssuranceContractCreated
+            parameter: "assuranceContract",
+          })
+        : undefined,
+      startBlock: PUBSTARTER_START_BLOCK,
+    },
+
+    // Dynamically indexed secondary marketplaces (created by factory)
+    SecondaryMarket: {
+      abi: ERC1155SecondaryMarketAbi,
+      chain: "baseSepolia",
+      address: MARKETPLACE_FACTORY_ADDRESS
+        ? factory({
+            address: MARKETPLACE_FACTORY_ADDRESS,
+            event: MarketplaceFactoryAbi[0], // PubstarterERC1155SecondaryMarketCreated
+            parameter: "marketplace",
+          })
+        : undefined,
+      startBlock: PUBSTARTER_START_BLOCK,
     },
   },
 });

@@ -1,0 +1,547 @@
+/**
+ * Pubstarter Indexer Event Handlers
+ *
+ * This module handles events from the Pubstarter subsystem:
+ * - Factory events (new projects, tokens, marketplaces)
+ * - Assurance contract events (initialization, contributions, refunds, withdrawals)
+ * - Secondary market events (listings, orders, trades)
+ *
+ * These handlers are logically separate from the Concept Space indexer.
+ */
+
+import { ponder } from "ponder:registry";
+import {
+  projects,
+  projectTokens,
+  contributions,
+  refunds,
+  saleListings,
+  buyOrders,
+  trades,
+  participantSummaries,
+} from "../../ponder.schema";
+
+// ============================================================================
+// FACTORY EVENT HANDLERS
+// ============================================================================
+
+/**
+ * Handle new assurance contract creation from factory
+ * Note: The actual project details come from AssuranceContractInitialized event
+ */
+ponder.on(
+  "AssuranceContractFactory:PubstarterAssuranceContractCreated",
+  async ({ event, context }) => {
+    const projectAddress = event.args.assuranceContract;
+    const timestamp = BigInt(event.block.timestamp);
+    const blockNumber = BigInt(event.block.number);
+
+    // Create placeholder project record
+    // Will be updated when AssuranceContractInitialized is received
+    const existing = await context.db.find(projects, { id: projectAddress });
+    if (!existing) {
+      await context.db.insert(projects).values({
+        id: projectAddress,
+        erc1155Address: null,
+        marketplaceAddress: null,
+        metadataCid: null,
+        metadataContent: null,
+        recipient: "0x0000000000000000000000000000000000000000",
+        threshold: 0n,
+        deadline: 0n,
+        totalReceived: 0n,
+        withdrawn: false,
+        withdrawnAmount: null,
+        createdAt: timestamp,
+        createdAtBlock: blockNumber,
+      });
+    }
+  }
+);
+
+/**
+ * Handle new ERC1155 token contract creation from factory
+ * We track this to correlate with assurance contracts
+ */
+ponder.on(
+  "ERC1155Factory:PubstarterERC1155ContractCreated",
+  async ({ event, context }) => {
+    // The ERC1155 contract address is emitted
+    // We'll correlate it with the assurance contract via the ERC1155Offered events
+    // For now, just log it - the correlation happens when prices are set
+    console.log(
+      `New ERC1155 created: ${event.args.erc1155} at block ${event.block.number}`
+    );
+  }
+);
+
+/**
+ * Handle new marketplace creation from factory
+ */
+ponder.on(
+  "MarketplaceFactory:PubstarterERC1155SecondaryMarketCreated",
+  async ({ event, context }) => {
+    // Similar to ERC1155 - we'll track marketplaces via their events
+    console.log(
+      `New marketplace created: ${event.args.marketplace} at block ${event.block.number}`
+    );
+  }
+);
+
+// ============================================================================
+// ASSURANCE CONTRACT EVENT HANDLERS
+// ============================================================================
+
+/**
+ * Handle assurance contract initialization
+ * This provides the funding parameters (recipient, threshold, deadline)
+ */
+ponder.on(
+  "AssuranceContract:AssuranceContractInitialized",
+  async ({ event, context }) => {
+    const projectAddress = event.log.address;
+    const timestamp = BigInt(event.block.timestamp);
+    const blockNumber = BigInt(event.block.number);
+
+    const { recipient, threshold, deadline } = event.args;
+
+    // Update or create project record
+    const existing = await context.db.find(projects, { id: projectAddress });
+
+    if (existing) {
+      await context.db.update(projects, { id: projectAddress }).set({
+        recipient,
+        threshold,
+        deadline,
+      });
+    } else {
+      await context.db.insert(projects).values({
+        id: projectAddress,
+        erc1155Address: null,
+        marketplaceAddress: null,
+        metadataCid: null,
+        metadataContent: null,
+        recipient,
+        threshold,
+        deadline,
+        totalReceived: 0n,
+        withdrawn: false,
+        withdrawnAmount: null,
+        createdAt: timestamp,
+        createdAtBlock: blockNumber,
+      });
+    }
+  }
+);
+
+/**
+ * Handle contract metadata update (IPFS CID for project info)
+ */
+ponder.on(
+  "AssuranceContract:ContractMetadataUpdated",
+  async ({ event, context }) => {
+    const projectAddress = event.log.address;
+    const metadataCid = event.args.uri;
+
+    const existing = await context.db.find(projects, { id: projectAddress });
+    if (existing) {
+      await context.db.update(projects, { id: projectAddress }).set({
+        metadataCid,
+      });
+
+      // TODO: Fetch metadata from IPFS and cache it
+      // Similar to how conceptspace fetches statement content
+    }
+  }
+);
+
+/**
+ * Handle ERC1155 token price being set
+ * This also helps us correlate ERC1155 contracts with assurance contracts
+ */
+ponder.on("AssuranceContract:ERC1155Offered", async ({ event, context }) => {
+  const projectAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+
+  const { erc1155Addr, id: tokenId, price } = event.args;
+
+  // Update project with ERC1155 address if not already set
+  const project = await context.db.find(projects, { id: projectAddress });
+  if (project && !project.erc1155Address) {
+    await context.db.update(projects, { id: projectAddress }).set({
+      erc1155Address: erc1155Addr,
+    });
+  }
+
+  // Create token record
+  const existingToken = await context.db.find(projectTokens, {
+    projectAddress,
+    erc1155Address: erc1155Addr,
+    tokenId,
+  });
+
+  if (!existingToken) {
+    await context.db.insert(projectTokens).values({
+      projectAddress,
+      erc1155Address: erc1155Addr,
+      tokenId,
+      price,
+      createdAt: timestamp,
+    });
+  }
+});
+
+/**
+ * Handle primary market token purchase (contribution)
+ */
+ponder.on("AssuranceContract:ERC1155Bought", async ({ event, context }) => {
+  const projectAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const blockNumber = BigInt(event.block.number);
+  const transactionHash = event.transaction.hash;
+
+  const { participant, erc1155Addr, totalCost, ids, counts } = event.args;
+
+  // Create unique ID from transaction hash and log index
+  const contributionId = `${transactionHash}-${event.log.logIndex}`;
+
+  // Insert contribution record
+  await context.db.insert(contributions).values({
+    id: contributionId,
+    projectAddress,
+    participant,
+    erc1155Address: erc1155Addr,
+    totalCost,
+    tokenIds: JSON.stringify(ids.map((id) => id.toString())),
+    tokenCounts: JSON.stringify(counts.map((c) => c.toString())),
+    createdAt: timestamp,
+    blockNumber,
+    transactionHash,
+  });
+
+  // Update project total received
+  const project = await context.db.find(projects, { id: projectAddress });
+  if (project) {
+    await context.db.update(projects, { id: projectAddress }).set({
+      totalReceived: project.totalReceived + totalCost,
+    });
+  }
+
+  // Update participant summary
+  await updateParticipantSummary(
+    context,
+    projectAddress,
+    participant,
+    totalCost,
+    0n,
+    timestamp
+  );
+});
+
+/**
+ * Handle primary market refund
+ */
+ponder.on("AssuranceContract:ERC1155Sold", async ({ event, context }) => {
+  const projectAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const blockNumber = BigInt(event.block.number);
+  const transactionHash = event.transaction.hash;
+
+  const { participant, erc1155Addr, totalCost: totalRefund, ids, counts } = event.args;
+
+  // Create unique ID
+  const refundId = `${transactionHash}-${event.log.logIndex}`;
+
+  // Insert refund record
+  await context.db.insert(refunds).values({
+    id: refundId,
+    projectAddress,
+    participant,
+    erc1155Address: erc1155Addr,
+    totalRefund,
+    tokenIds: JSON.stringify(ids.map((id) => id.toString())),
+    tokenCounts: JSON.stringify(counts.map((c) => c.toString())),
+    createdAt: timestamp,
+    blockNumber,
+    transactionHash,
+  });
+
+  // Update project total received (subtract refund)
+  const project = await context.db.find(projects, { id: projectAddress });
+  if (project) {
+    await context.db.update(projects, { id: projectAddress }).set({
+      totalReceived: project.totalReceived - totalRefund,
+    });
+  }
+
+  // Update participant summary
+  await updateParticipantSummary(
+    context,
+    projectAddress,
+    participant,
+    0n,
+    totalRefund,
+    timestamp
+  );
+});
+
+/**
+ * Handle recipient withdrawal (project succeeded)
+ */
+ponder.on(
+  "AssuranceContract:AssuranceContractWithdrawal",
+  async ({ event, context }) => {
+    const projectAddress = event.log.address;
+    const { value } = event.args;
+
+    await context.db.update(projects, { id: projectAddress }).set({
+      withdrawn: true,
+      withdrawnAmount: value,
+    });
+  }
+);
+
+// ============================================================================
+// SECONDARY MARKET EVENT HANDLERS
+// ============================================================================
+
+/**
+ * Handle new sale listing (ask order)
+ */
+ponder.on("SecondaryMarket:SaleListingCreated", async ({ event, context }) => {
+  const marketplaceAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+
+  const { saleListingId, seller, tokenId, count, pricePerToken } = event.args;
+
+  await context.db.insert(saleListings).values({
+    marketplaceAddress,
+    listingId: saleListingId,
+    seller,
+    tokenId,
+    originalCount: count,
+    remainingCount: count,
+    pricePerToken,
+    status: "active",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
+});
+
+/**
+ * Handle sale listing fulfillment (partial or full)
+ */
+ponder.on("SecondaryMarket:SaleListingFulfilled", async ({ event, context }) => {
+  const marketplaceAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const blockNumber = BigInt(event.block.number);
+  const transactionHash = event.transaction.hash;
+
+  const { saleListingId, buyer, count } = event.args;
+
+  // Get the listing to find seller and price info
+  const listing = await context.db.find(saleListings, {
+    marketplaceAddress,
+    listingId: saleListingId,
+  });
+
+  if (listing) {
+    const newRemaining = listing.remainingCount - count;
+    const newStatus = newRemaining === 0n ? "fulfilled" : "active";
+
+    // Update listing
+    await context.db
+      .update(saleListings, {
+        marketplaceAddress,
+        listingId: saleListingId,
+      })
+      .set({
+        remainingCount: newRemaining,
+        status: newStatus,
+        updatedAt: timestamp,
+      });
+
+    // Record trade
+    const tradeId = `${transactionHash}-${event.log.logIndex}`;
+    await context.db.insert(trades).values({
+      id: tradeId,
+      marketplaceAddress,
+      orderType: "sale_listing",
+      orderId: saleListingId,
+      buyer,
+      seller: listing.seller,
+      tokenId: listing.tokenId,
+      count,
+      pricePerToken: listing.pricePerToken,
+      totalPrice: count * listing.pricePerToken,
+      createdAt: timestamp,
+      blockNumber,
+      transactionHash,
+    });
+  }
+});
+
+/**
+ * Handle sale listing cancellation
+ */
+ponder.on("SecondaryMarket:SaleListingCancelled", async ({ event, context }) => {
+  const marketplaceAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const { saleListingId } = event.args;
+
+  await context.db
+    .update(saleListings, {
+      marketplaceAddress,
+      listingId: saleListingId,
+    })
+    .set({
+      status: "cancelled",
+      updatedAt: timestamp,
+    });
+});
+
+/**
+ * Handle new buy order (bid order)
+ */
+ponder.on("SecondaryMarket:BuyOrderCreated", async ({ event, context }) => {
+  const marketplaceAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+
+  const { buyOrderId, buyer, tokenId, count, pricePerToken } = event.args;
+
+  await context.db.insert(buyOrders).values({
+    marketplaceAddress,
+    orderId: buyOrderId,
+    buyer,
+    tokenId,
+    originalCount: count,
+    remainingCount: count,
+    pricePerToken,
+    status: "active",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
+});
+
+/**
+ * Handle buy order fulfillment (partial or full)
+ */
+ponder.on("SecondaryMarket:BuyOrderFulfilled", async ({ event, context }) => {
+  const marketplaceAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const blockNumber = BigInt(event.block.number);
+  const transactionHash = event.transaction.hash;
+
+  const { buyOrderId, seller, count } = event.args;
+
+  // Get the order to find buyer and price info
+  const order = await context.db.find(buyOrders, {
+    marketplaceAddress,
+    orderId: buyOrderId,
+  });
+
+  if (order) {
+    const newRemaining = order.remainingCount - count;
+    const newStatus = newRemaining === 0n ? "fulfilled" : "active";
+
+    // Update order
+    await context.db
+      .update(buyOrders, {
+        marketplaceAddress,
+        orderId: buyOrderId,
+      })
+      .set({
+        remainingCount: newRemaining,
+        status: newStatus,
+        updatedAt: timestamp,
+      });
+
+    // Record trade
+    const tradeId = `${transactionHash}-${event.log.logIndex}`;
+    await context.db.insert(trades).values({
+      id: tradeId,
+      marketplaceAddress,
+      orderType: "buy_order",
+      orderId: buyOrderId,
+      buyer: order.buyer,
+      seller,
+      tokenId: order.tokenId,
+      count,
+      pricePerToken: order.pricePerToken,
+      totalPrice: count * order.pricePerToken,
+      createdAt: timestamp,
+      blockNumber,
+      transactionHash,
+    });
+  }
+});
+
+/**
+ * Handle buy order cancellation
+ */
+ponder.on("SecondaryMarket:BuyOrderCancelled", async ({ event, context }) => {
+  const marketplaceAddress = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const { buyOrderId } = event.args;
+
+  await context.db
+    .update(buyOrders, {
+      marketplaceAddress,
+      orderId: buyOrderId,
+    })
+    .set({
+      status: "cancelled",
+      updatedAt: timestamp,
+    });
+});
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Update participant summary for a project
+ * Tracks total contributed, refunded, and net contribution
+ */
+async function updateParticipantSummary(
+  context: { db: any },
+  projectAddress: `0x${string}`,
+  participant: `0x${string}`,
+  contributionAmount: bigint,
+  refundAmount: bigint,
+  timestamp: bigint
+) {
+  const existing = await context.db.find(participantSummaries, {
+    projectAddress,
+    participant,
+  });
+
+  if (existing) {
+    const newTotalContributed = existing.totalContributed + contributionAmount;
+    const newTotalRefunded = existing.totalRefunded + refundAmount;
+
+    await context.db
+      .update(participantSummaries, { projectAddress, participant })
+      .set({
+        totalContributed: newTotalContributed,
+        totalRefunded: newTotalRefunded,
+        netContribution: newTotalContributed - newTotalRefunded,
+        contributionCount:
+          contributionAmount > 0n
+            ? existing.contributionCount + 1
+            : existing.contributionCount,
+        lastContributionAt: contributionAmount > 0n ? timestamp : existing.lastContributionAt,
+      });
+  } else {
+    await context.db.insert(participantSummaries).values({
+      projectAddress,
+      participant,
+      totalContributed: contributionAmount,
+      totalRefunded: refundAmount,
+      netContribution: contributionAmount - refundAmount,
+      contributionCount: contributionAmount > 0n ? 1 : 0,
+      firstContributionAt: contributionAmount > 0n ? timestamp : null,
+      lastContributionAt: contributionAmount > 0n ? timestamp : null,
+    });
+  }
+}
