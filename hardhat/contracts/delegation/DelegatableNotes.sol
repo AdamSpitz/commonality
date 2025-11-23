@@ -53,18 +53,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 parentNoteId;
     bool delegated;
     bytes32 intendedStatementId;
-    uint256 commissionBasisPoints; // Commission in basis points (10000 = 100%)
   }
 
   struct DelegationChainSnapshot {
     address[] owners; // owners[0] is leaf, owners[length-1] is root
     uint256 amount;
     bytes32 intendedStatementId;
-    uint256[] commissions; // Commission basis points for each level (parallel to owners)
   }
 
-  uint256 public constant MAX_COMMISSION_BASIS_POINTS = 5000; // 50% max commission
-  uint256 public constant BASIS_POINTS_DENOMINATOR = 10000; // 100% = 10000 basis points
   uint256 public constant MAX_DELEGATION_DEPTH = 200; // Maximum delegation chain length (gas limit protection)
 
   uint256 public nextNoteId = 1;
@@ -110,13 +106,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 totalCost,
     uint256[] inputNoteIds,
     uint256[] outputNoteIds
-  );
-  event CommissionPaid(
-    address indexed delegate,
-    address indexed token,
-    TokenType tokenType,
-    uint256 tokenId,
-    uint256 amount
   );
 
   // Allow contract to receive ETH
@@ -180,8 +169,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       owner: owner,
       parentNoteId: 0,
       delegated: false,
-      intendedStatementId: intendedStatementId,
-      commissionBasisPoints: 0
+      intendedStatementId: intendedStatementId
     });
 
     emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId, 0);
@@ -308,9 +296,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param amountToDelegate The amount to delegate. If this is less than the full
    * amount of the note, the *entire chain* will be split into two parallel chains:
    * one with the delegated amount and one with the remainder.
-   * @param commissionBasisPoints Commission in basis points (0-5000, i.e., 0-50%)
-   * that the delegate can claim when the note is spent. The delegate can pass on
-   * some or all of this commission to subdelegates.
    * @return delegatedNoteId The ID of the newly created note that is owned by the
    * delegate.
    * @return remainderNoteId The ID of the newly created note that represents the
@@ -320,24 +305,17 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   function delegate(
     uint256 noteId,
     address delegateTo,
-    uint256 amountToDelegate,
-    uint256 commissionBasisPoints
+    uint256 amountToDelegate
   ) external onlyNoteOwner(noteId) returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
     Note storage note = notes[noteId];
     uint256 fullAmount = note.amount;
     require(!note.delegated, "Note already delegated");
     require(amountToDelegate > 0 && amountToDelegate <= fullAmount, "Invalid delegation amount");
     require(delegateTo != address(0), "Cannot delegate to zero address");
-    require(commissionBasisPoints <= MAX_COMMISSION_BASIS_POINTS, "Commission too high");
 
     // Check delegation depth limit
     uint256 currentDepth = _countChainLength(noteId);
     require(currentDepth < MAX_DELEGATION_DEPTH, "Delegation chain too long");
-
-    // If this is a child note, the new commission cannot exceed the parent's remaining commission
-    if (note.parentNoteId != 0) {
-      require(commissionBasisPoints <= note.commissionBasisPoints, "Commission exceeds parent's allowance");
-    }
 
     uint256 remainderAmount = fullAmount - amountToDelegate;
     address token = note.token;
@@ -346,14 +324,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     if (amountToDelegate == fullAmount) {
       // important to have this special case because no need to split the chain
-      delegatedNoteId = _delegateFullAmount(noteId, delegateTo, amountToDelegate, token, commissionBasisPoints);
+      delegatedNoteId = _delegateFullAmount(noteId, delegateTo, amountToDelegate, token);
       return (delegatedNoteId, 0);
     } else {
       // Partial delegation - need to split the chain
       (uint256 splitLeafId, uint256 remainderLeafId) = _splitChain(noteId, amountToDelegate, remainderAmount, token);
 
       // Now delegate the split amount
-      delegatedNoteId = _delegateFullAmount(splitLeafId, delegateTo, amountToDelegate, token, commissionBasisPoints);
+      delegatedNoteId = _delegateFullAmount(splitLeafId, delegateTo, amountToDelegate, token);
 
       emit NoteDelegated(noteId, splitLeafId, delegateTo, amountToDelegate);
       return (splitLeafId, remainderLeafId);
@@ -368,8 +346,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 noteId,
     address delegateTo,
     uint256 amount,
-    address token,
-    uint256 commissionBasisPoints
+    address token
   ) private returns (uint256) {
     Note storage note = notes[noteId];
     bytes32 intendedStatementId = note.intendedStatementId;
@@ -387,8 +364,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       owner: delegateTo,
       parentNoteId: noteId,
       delegated: false,
-      intendedStatementId: intendedStatementId,
-      commissionBasisPoints: commissionBasisPoints
+      intendedStatementId: intendedStatementId
     });
 
     emit NoteDelegated(noteId, delegatedNoteId, delegateTo, amount);
@@ -437,8 +413,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       Note storage originalNote = notes[originalNoteId];
       address originalOwner = originalNote.owner;
 
-      uint256 originalCommission = originalNote.commissionBasisPoints;
-
       uint256 splitChildNoteId = nextNoteId++;
       notes[splitChildNoteId] = Note({
         amount: amountToSplit,
@@ -448,8 +422,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         owner: originalOwner,
         parentNoteId: splitCurrentNoteId,
         delegated: i > 1,
-        intendedStatementId: intendedStatementId,
-        commissionBasisPoints: originalCommission
+        intendedStatementId: intendedStatementId
       });
 
       uint256 remainderChildNoteId = nextNoteId++;
@@ -461,8 +434,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         owner: originalOwner,
         parentNoteId: remainderCurrentNoteId,
         delegated: i > 1,
-        intendedStatementId: intendedStatementId,
-        commissionBasisPoints: originalCommission
+        intendedStatementId: intendedStatementId
       });
 
       // Update parent IDs for next iteration
@@ -597,23 +569,21 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
   // Helper function to get the whole delegation chain for a particular leaf note,
   // deleting the chain in the process.
-  // The arrays will have the leaf at the start and the root at the end.
-  function _deleteChainAndReturnOwnersAndCommissions(uint256 leafNoteId)
+  // The array will have the leaf at the start and the root at the end.
+  function _deleteChainAndReturnOwners(uint256 leafNoteId)
     private
-    returns (address[] memory owners, uint256[] memory commissions)
+    returns (address[] memory owners)
   {
     uint256 chainLength = _countChainLength(leafNoteId);
     owners = new address[](chainLength);
-    commissions = new uint256[](chainLength);
     uint256 currentNoteId = leafNoteId;
     for (uint256 i = 0; i < chainLength; i++) {
       owners[i] = notes[currentNoteId].owner;
-      commissions[i] = notes[currentNoteId].commissionBasisPoints;
       uint256 parentNoteId = notes[currentNoteId].parentNoteId;
       delete notes[currentNoteId]; // Delete the note as we traverse
       currentNoteId = parentNoteId;
     }
-    return (owners, commissions);
+    return owners;
   }
 
   // Helper function to delete a chain and return a DelegationChainSnapshot with all relevant info
@@ -622,13 +592,12 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 amount = leafNote.amount;
     bytes32 intendedStatementId = leafNote.intendedStatementId;
 
-    (address[] memory owners, uint256[] memory commissions) = _deleteChainAndReturnOwnersAndCommissions(leafNoteId);
+    address[] memory owners = _deleteChainAndReturnOwners(leafNoteId);
 
     return DelegationChainSnapshot({
       owners: owners,
       amount: amount,
-      intendedStatementId: intendedStatementId,
-      commissions: commissions
+      intendedStatementId: intendedStatementId
     });
   }
 
@@ -638,8 +607,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 tokenId,
     uint256 amount,
     address[] memory owners,
-    bytes32 intendedStatementId,
-    uint256[] memory commissions
+    bytes32 intendedStatementId
   ) private returns (uint256) {
     uint256 lastCreatedNoteId = 0;
     // Need to start creating notes from the root to the leaf (because each
@@ -648,7 +616,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // underflow; having a loop condition if i >= 0 would be an infinite loop.
     for (uint256 i = owners.length; i > 0; i--) {
       address owner = owners[i - 1];
-      uint256 commission = commissions[i - 1];
       uint256 newNoteId = nextNoteId++;
       notes[newNoteId] = Note({
         amount: amount,
@@ -658,8 +625,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         owner: owner,
         parentNoteId: lastCreatedNoteId,
         delegated: i > 1,
-        intendedStatementId: intendedStatementId,
-        commissionBasisPoints: commission
+        intendedStatementId: intendedStatementId
       });
       lastCreatedNoteId = newNoteId;
     }
@@ -738,20 +704,17 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
   /**
    * @dev Helper function: Consume notes for purchase.
-   * Deletes the notes, caches their chains, and pays commissions.
+   * Deletes the notes and caches their chains.
    * @param noteIds Array of note IDs to consume
    * @param caller The address calling the purchase function
-   * @param totalAvailable The total amount available from all notes
    * @return chainCaches Array of cached chain information
-   * @return totalCommission The total commission paid to delegates
    */
-  function _consumeNotesForPurchase(uint256[] memory noteIds, address caller, uint256 totalAvailable)
+  function _consumeNotesForPurchase(uint256[] memory noteIds, address caller)
     private
-    returns (DelegationChainSnapshot[] memory chainCaches, uint256 totalCommission)
+    returns (DelegationChainSnapshot[] memory chainCaches)
   {
     chainCaches = new DelegationChainSnapshot[](noteIds.length);
 
-    // First pass: cache all chains
     for (uint256 i = 0; i < noteIds.length; i++) {
       uint256 noteId = noteIds[i];
       Note storage note = notes[noteId];
@@ -759,31 +722,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
       // Cache and delete the chain
       chainCaches[i] = _deleteChainAndCache(noteId);
-    }
-
-    // Second pass: pay commissions proportionally based on totalAvailable
-    totalCommission = 0;
-    for (uint256 i = 0; i < chainCaches.length; i++) {
-      // Calculate this chain's proportional share of the payment
-      uint256 proportionalPayment = (totalAvailable * chainCaches[i].amount) / totalAvailable;
-
-      // Calculate commission for this chain
-      uint256 chainCommission = _calculateTotalCommission(
-        chainCaches[i].owners,
-        chainCaches[i].commissions,
-        proportionalPayment
-      );
-      totalCommission += chainCommission;
-
-      // Pay commissions immediately based on proportional payment
-      _payCommissions(
-        chainCaches[i].owners,
-        chainCaches[i].commissions,
-        address(0), // ETH
-        TokenType.ERC20,
-        0,
-        proportionalPayment
-      );
     }
   }
 
@@ -834,8 +772,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
             tokenId,
             proportionalTokens,
             chainCaches[chainIndex].owners,
-            chainCaches[chainIndex].intendedStatementId,
-            chainCaches[chainIndex].commissions
+            chainCaches[chainIndex].intendedStatementId
           );
           outputNoteIds[outputIndex++] = newLeafNoteId;
         }
@@ -880,13 +817,11 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Step 1: Split notes to separate payment from leftover
     uint256[] memory paymentNoteIds = _splitNotesForPurchase(noteIds, caller, paymentAmount);
 
-    // Step 2: Consume payment notes - delete them, cache chains, pay commissions
-    (DelegationChainSnapshot[] memory chainCaches, uint256 totalCommission) = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
+    // Step 2: Consume payment notes - delete them and cache chains
+    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller);
 
     // Step 3: Purchase from the ERC1155PrimaryMarket contract
-    // Send payment minus commissions to seller (commissions already paid to delegates)
-    uint256 netPayment = paymentAmount - totalCommission;
-    ERC1155PrimaryMarket(seller).buyERC1155{value: netPayment}(
+    ERC1155PrimaryMarket(seller).buyERC1155{value: paymentAmount}(
       address(this),
       erc1155Contract,
       tokenIds,
@@ -946,13 +881,11 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Step 1: Split notes to separate payment from leftover
     uint256[] memory paymentNoteIds = _splitNotesForPurchase(noteIds, caller, paymentAmount);
 
-    // Step 2: Consume payment notes - delete them, cache chains, pay commissions
-    (DelegationChainSnapshot[] memory chainCaches, uint256 totalCommission) = _consumeNotesForPurchase(paymentNoteIds, caller, paymentAmount);
+    // Step 2: Consume payment notes - delete them and cache chains
+    DelegationChainSnapshot[] memory chainCaches = _consumeNotesForPurchase(paymentNoteIds, caller);
 
     // Step 3: Purchase from marketplace
-    // Send payment minus commissions to marketplace (commissions already paid to delegates)
-    uint256 netPayment = paymentAmount - totalCommission;
-    ERC1155SecondaryMarket(marketplace).fulfillSaleListingTo{value: netPayment}(
+    ERC1155SecondaryMarket(marketplace).fulfillSaleListingTo{value: paymentAmount}(
       saleListingId,
       count,
       address(this)
@@ -994,70 +927,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         revert("Circular delegation detected");
       }
       currentId = notes[currentId].parentNoteId;
-    }
-  }
-
-  /**
-   * @dev Calculate the total commission amount for a delegation chain
-   * @param owners Array of owners in the delegation chain (leaf to root)
-   * @param commissions Array of commission basis points for each level
-   * @param amount The total amount being spent
-   * @return totalCommission The sum of all commission amounts
-   */
-  function _calculateTotalCommission(
-    address[] memory owners,
-    uint256[] memory commissions,
-    uint256 amount
-  ) private pure returns (uint256 totalCommission) {
-    // Skip the root (last element) - they don't get commission
-    for (uint256 i = 0; i < owners.length - 1; i++) {
-      if (commissions[i] > 0) {
-        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS_DENOMINATOR;
-        totalCommission += commissionAmount;
-      }
-    }
-    return totalCommission;
-  }
-
-  /**
-   * @dev Pay commissions immediately to delegates in the chain when a note is spent
-   * @param owners Array of owners in the delegation chain (leaf to root)
-   * @param commissions Array of commission basis points for each level
-   * @param token The token being spent
-   * @param tokenType The type of token
-   * @param tokenId The token ID (for ERC1155)
-   * @param amount The total amount being spent
-   */
-  function _payCommissions(
-    address[] memory owners,
-    uint256[] memory commissions,
-    address token,
-    TokenType tokenType,
-    uint256 tokenId,
-    uint256 amount
-  ) private {
-    // Skip the root (last element) - they don't get commission
-    // Commission is paid to intermediate delegates, not the original owner
-    for (uint256 i = 0; i < owners.length - 1; i++) {
-      if (commissions[i] > 0) {
-        uint256 commissionAmount = (amount * commissions[i]) / BASIS_POINTS_DENOMINATOR;
-        if (commissionAmount > 0) {
-          // Pay commission immediately
-          if (tokenType == TokenType.ERC20) {
-            if (token == address(0)) {
-              // ETH
-              payable(owners[i]).transfer(commissionAmount);
-            } else {
-              // ERC20
-              IERC20(token).safeTransfer(owners[i], commissionAmount);
-            }
-          } else {
-            // ERC1155
-            IERC1155(token).safeTransferFrom(address(this), owners[i], tokenId, commissionAmount, "");
-          }
-          emit CommissionPaid(owners[i], token, tokenType, tokenId, commissionAmount);
-        }
-      }
     }
   }
 }

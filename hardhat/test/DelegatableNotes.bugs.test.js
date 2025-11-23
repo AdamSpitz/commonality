@@ -31,7 +31,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
 
       await expect(
-        notes.connect(alice).delegate(1, bob.address, 0, 0)
+        notes.connect(alice).delegate(1, bob.address, 0)
       ).to.be.revertedWith("Invalid delegation amount");
     });
 
@@ -39,7 +39,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
 
       await expect(
-        notes.connect(alice).delegate(1, bob.address, ethers.parseEther("2"), 0)
+        notes.connect(alice).delegate(1, bob.address, ethers.parseEther("2"))
       ).to.be.revertedWith("Invalid delegation amount");
     });
   });
@@ -50,7 +50,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       // Self-delegation is correctly prevented by circular delegation check
       await expect(
-        notes.connect(alice).delegate(1, alice.address, ethers.parseEther("1"), 0)
+        notes.connect(alice).delegate(1, alice.address, ethers.parseEther("1"))
       ).to.be.revertedWith("Circular delegation detected");
     });
   });
@@ -68,7 +68,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
     it("Should revert when delegating nonexistent note", async function () {
       await expect(
-        notes.connect(alice).delegate(999, bob.address, ethers.parseEther("1"), 0)
+        notes.connect(alice).delegate(999, bob.address, ethers.parseEther("1"))
       ).to.be.revertedWith("Note does not exist");
     });
 
@@ -110,7 +110,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       await testToken.connect(alice).approve(await notes.getAddress(), amount);
       await notes.connect(alice).depositERC20(await testToken.getAddress(), amount, statementId);
-      await notes.connect(alice).delegate(1, bob.address, amount, 0);
+      await notes.connect(alice).delegate(1, bob.address, amount);
 
       const bobNote = await notes.notes(2);
       expect(bobNote.owner).to.equal(bob.address);
@@ -183,7 +183,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should delegate ERC1155 notes", async function () {
       await erc1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
       await notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 50, statementId);
-      await notes.connect(alice).delegate(1, bob.address, 50, 0);
+      await notes.connect(alice).delegate(1, bob.address, 50);
 
       const bobNote = await notes.notes(2);
       expect(bobNote.owner).to.equal(bob.address);
@@ -197,9 +197,9 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 100, statementId);
 
       const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, 30, 0
+        1, bob.address, 30
       );
-      await notes.connect(alice).delegate(1, bob.address, 30, 0);
+      await notes.connect(alice).delegate(1, bob.address, 30);
 
       const splitNote = await notes.notes(splitId);
       const remainderNote = await notes.notes(remainderId);
@@ -228,176 +228,6 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     });
   });
 
-  describe("Bug: Commission accrual during purchases", function () {
-    let erc1155Token;
-    let assuranceContract;
-
-    beforeEach(async function () {
-      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
-      erc1155Token = await PremintingERC1155.deploy(
-        alice.address,
-        "https://example.com/token/{id}.json",
-        "https://example.com/contract.json"
-      );
-
-      const MultiERC1155_AssuranceContract = await ethers.getContractFactory("MultiERC1155_AssuranceContract");
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
-      assuranceContract = await MultiERC1155_AssuranceContract.deploy(
-        alice.address,
-        alice.address,
-        ethers.parseEther("10"),
-        deadline,
-        "QmTest123"
-      );
-
-      await erc1155Token.connect(alice).mintBatch(
-        await assuranceContract.getAddress(),
-        [1],
-        [1000]
-      );
-
-      await assuranceContract.connect(alice).setPricesERC1155(
-        await erc1155Token.getAddress(),
-        [1],
-        [ethers.parseEther("0.1")]
-      );
-    });
-
-    it("Should pay commission immediately when delegate makes purchase", async function () {
-      // Seller wants 0.3 ETH for 3 tokens
-      // With 10% commission, Bob gets 0.03 ETH, seller gets 0.27 ETH
-      // So paymentAmount needs to be enough that after commission, seller gets 0.3 ETH
-      // If commission is 10%, then: netToSeller = paymentAmount * (1 - 0.10)
-      // We need: 0.3 = paymentAmount * 0.9, so paymentAmount = 0.3 / 0.9 = 0.333...
-      const sellerCost = ethers.parseEther("0.3"); // What seller expects to receive
-      const paymentAmount = ethers.parseEther("0.333333333333333333"); // Enough to cover seller + commission
-
-      // Alice deposits and delegates to Bob with 10% commission
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
-      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 1000); // 10%
-
-      // Track Bob's balance before purchase
-      const bobBalanceBefore = await ethers.provider.getBalance(bob.address);
-
-      // Bob makes purchase - paymentAmount goes through, commission is deducted, net goes to seller
-      const tx = await notes.connect(bob).purchaseFromERC1155PrimaryMarket(
-        [2],
-        paymentAmount,
-        await assuranceContract.getAddress(),
-        await erc1155Token.getAddress(),
-        [1],
-        [3]
-      );
-      const receipt = await tx.wait();
-      const gasCost = receipt.gasUsed * receipt.gasPrice;
-
-      // Bob's balance should increase by 10% of paymentAmount (minus gas)
-      const bobBalanceAfter = await ethers.provider.getBalance(bob.address);
-      const expectedCommission = paymentAmount * 1000n / 10000n; // 10% of paymentAmount
-      expect(bobBalanceAfter - bobBalanceBefore + gasCost).to.equal(expectedCommission);
-    });
-
-    it("Should pay commission immediately at multiple levels", async function () {
-      // Seller wants 1.0 ETH for 10 tokens
-      // Charlie has 10% commission, Bob has 20% commission
-      // Total commission: 10% + 20% = 30%
-      // So paymentAmount needs to cover seller (1.0) with 30% deducted
-      // netToSeller = paymentAmount * (1 - 0.30)
-      // 1.0 = paymentAmount * 0.7, so paymentAmount = 1.0 / 0.7 ≈ 1.428...
-      const paymentAmount = ethers.parseEther("1.428571428571428571"); // Enough for seller + commissions
-
-      // Alice → Bob (20%) → Charlie (10%)
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
-      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 2000); // 20%
-      await notes.connect(bob).delegate(2, charlie.address, paymentAmount, 1000); // 10%
-
-      // Track balances before purchase
-      const charlieBalanceBefore = await ethers.provider.getBalance(charlie.address);
-      const bobBalanceBefore = await ethers.provider.getBalance(bob.address);
-      const aliceBalanceBefore = await ethers.provider.getBalance(alice.address);
-
-      // Charlie makes purchase
-      const tx = await notes.connect(charlie).purchaseFromERC1155PrimaryMarket(
-        [3],
-        paymentAmount,
-        await assuranceContract.getAddress(),
-        await erc1155Token.getAddress(),
-        [1],
-        [10]
-      );
-      const receipt = await tx.wait();
-      const gasCost = receipt.gasUsed * receipt.gasPrice;
-
-      // Check balances after purchase
-      const charlieBalanceAfter = await ethers.provider.getBalance(charlie.address);
-      const bobBalanceAfter = await ethers.provider.getBalance(bob.address);
-      const aliceBalanceAfter = await ethers.provider.getBalance(alice.address);
-
-      // Charlie (leaf) gets 10% of paymentAmount, minus gas
-      const charlieCommission = paymentAmount * 1000n / 10000n;
-      expect(charlieBalanceAfter - charlieBalanceBefore + gasCost).to.equal(charlieCommission);
-
-      // Bob (middle) gets 20% of paymentAmount
-      const bobCommission = paymentAmount * 2000n / 10000n;
-      expect(bobBalanceAfter - bobBalanceBefore).to.equal(bobCommission);
-
-      // Alice (root) gets nothing (root doesn't get commission)
-      expect(aliceBalanceAfter - aliceBalanceBefore).to.equal(0);
-    });
-
-    it("FIXED: Commission is paid immediately during purchase", async function () {
-      // Seller wants 0.3 ETH for 3 tokens
-      // With 10% commission, we need paymentAmount such that after commission, seller gets 0.3
-      // paymentAmount * 0.9 = 0.3, so paymentAmount = 0.333...
-      const paymentAmount = ethers.parseEther("0.333333333333333333");
-      const expectedCommission = paymentAmount * 1000n / 10000n; // 10% of paymentAmount
-
-      // Alice deposits enough to cover purchase + commission
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
-      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 1000); // 10% commission
-
-      const balanceBefore = await ethers.provider.getBalance(bob.address);
-
-      // Bob makes purchase: paymentAmount covers both seller payment and commission
-      // Commission is paid immediately during this transaction
-      const tx = await notes.connect(bob).purchaseFromERC1155PrimaryMarket(
-        [2],
-        paymentAmount,
-        await assuranceContract.getAddress(),
-        await erc1155Token.getAddress(),
-        [1],
-        [3] // 3 tokens @ 0.1 each = 0.3 ETH
-      );
-      const receipt = await tx.wait();
-      const gasCost = receipt.gasUsed * receipt.gasPrice;
-      const balanceAfter = await ethers.provider.getBalance(bob.address);
-
-      // Bob should receive the commission immediately (minus gas for the transaction)
-      expect(balanceAfter - balanceBefore + gasCost).to.equal(expectedCommission);
-    });
-
-    it("FIXED: CommissionPaid event is emitted during purchase", async function () {
-      // Seller wants 0.3 ETH, with 10% commission we need 0.333...
-      const paymentAmount = ethers.parseEther("0.333333333333333333");
-      const expectedCommission = paymentAmount * 1000n / 10000n; // 10% of paymentAmount
-
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
-      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 1000);
-
-      // Purchase now emits CommissionPaid event immediately
-      await expect(notes.connect(bob).purchaseFromERC1155PrimaryMarket(
-        [2],
-        paymentAmount,
-        await assuranceContract.getAddress(),
-        await erc1155Token.getAddress(),
-        [1],
-        [3]
-      ))
-        .to.emit(notes, "CommissionPaid")
-        .withArgs(bob.address, ethers.ZeroAddress, 0, 0, expectedCommission);
-    });
-  });
-
   describe("Bug: Proportional distribution with rounding", function () {
     it("Should handle rounding in proportional splits correctly", async function () {
       // Use an amount that doesn't divide evenly
@@ -407,9 +237,9 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: totalAmount });
 
       const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, delegateAmount, 0
+        1, bob.address, delegateAmount
       );
-      await notes.connect(alice).delegate(1, bob.address, delegateAmount, 0);
+      await notes.connect(alice).delegate(1, bob.address, delegateAmount);
 
       const splitNote = await notes.notes(splitId);
       const remainderNote = await notes.notes(remainderId);
@@ -428,9 +258,9 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: totalAmount });
 
       const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, delegateAmount, 0
+        1, bob.address, delegateAmount
       );
-      await notes.connect(alice).delegate(1, bob.address, delegateAmount, 0);
+      await notes.connect(alice).delegate(1, bob.address, delegateAmount);
 
       const splitNote = await notes.notes(splitId);
       const remainderNote = await notes.notes(remainderId);
@@ -475,7 +305,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
   describe("Bug: Revocation edge cases", function () {
     it("Should not allow non-participant to revoke", async function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"), 0);
+      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"));
 
       // Charlie tries to revoke a chain he's not part of
       await expect(notes.connect(charlie).revoke(2))
@@ -485,7 +315,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Edge case: Revoking your own leaf note marks it as undelegated (doesn't delete)", async function () {
       // This is an edge case: revoking a leaf note you already own
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"), 0);
+      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"));
 
       // Bob revokes his own note - unusual but allowed
       await notes.connect(bob).revoke(2);
@@ -572,8 +402,8 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("2") });
 
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"), 0);
-      await notes.connect(alice).delegate(2, charlie.address, ethers.parseEther("2"), 0);
+      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"));
+      await notes.connect(alice).delegate(2, charlie.address, ethers.parseEther("2"));
 
       const bobNote = await notes.notes(3);
       const charlieNote = await notes.notes(4);
@@ -642,7 +472,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       expect(purchasedNote.tokenType).to.equal(1); // ERC1155
 
       // Delegate the ERC1155 note
-      await notes.connect(alice).delegate(2, bob.address, 3, 0);
+      await notes.connect(alice).delegate(2, bob.address, 3);
 
       const bobNote = await notes.notes(3);
       expect(bobNote.owner).to.equal(bob.address);

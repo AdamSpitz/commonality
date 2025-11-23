@@ -138,7 +138,7 @@ Note: This is generic infrastructure for peer-to-peer trading. Could be used for
 
 Components:
   - **Smart contracts:** `DelegatableNotes` - allows users to delegate funding decisions with composable, revocable chains
-  - **Indexer:** Tracks active notes, full delegation chains, and commission structures
+  - **Indexer:** Tracks active notes, full delegation chains, and (if implemented) commission structures
   - **UI:** Note management interface, delegation chain visualization, spending controls
 
 #### 5. Funding Portal Subsystem

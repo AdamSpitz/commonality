@@ -203,8 +203,8 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
       // Alice deposits and delegates to Bob, Bob delegates to Charlie
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
-      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 0);
-      await notes.connect(bob).delegate(2, charlie.address, paymentAmount, 0);
+      await notes.connect(alice).delegate(1, bob.address, paymentAmount);
+      await notes.connect(bob).delegate(2, charlie.address, paymentAmount);
 
       // Charlie makes a purchase
       await notes.connect(charlie).purchaseFromERC1155PrimaryMarket(
@@ -382,7 +382,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       const paymentAmount = ethers.parseEther("0.15");
 
       await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
-      await notes.connect(alice).delegate(1, bob.address, paymentAmount, 0);
+      await notes.connect(alice).delegate(1, bob.address, paymentAmount);
 
       await notes.connect(bob).purchaseFromERC1155SecondaryMarket(
         [2],
