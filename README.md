@@ -13,3 +13,6 @@ Commands you can run:
     cd hardhat
     npm run build
     npm run test
+
+    cd indexer
+    npm run sync-abis
