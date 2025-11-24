@@ -327,6 +327,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param owners The delegation chain to verify (leaf first, root last)
    * @return True if the chain is valid
    */
+  // TODO: is this used? can we just delete it?
   function verifyChain(uint256 noteId, address[] calldata owners) public view returns (bool) {
     Note storage note = notes[noteId];
     if (note.chainHash == bytes32(0)) {
@@ -378,14 +379,30 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
   // ============ Purchase Functions ============
 
-  function purchaseFromERC1155PrimaryMarket(
+  enum MarketplaceType { PRIMARY, SECONDARY }
+
+  /**
+   * @dev Unified purchase function for ERC1155 tokens from various marketplaces.
+   * @param noteIds Array of note IDs to use for payment
+   * @param chains Array of delegation chains (one per note)
+   * @param paymentAmount Total amount to spend in ETH
+   * @param marketplaceType Type of marketplace (PRIMARY or SECONDARY)
+   * @param marketplaceAddress Address of the marketplace contract
+   * @param erc1155Contract Address of the ERC1155 token contract
+   * @param tokenIds Array of token IDs to purchase (single element for secondary)
+   * @param counts Array of token counts to purchase (single element for secondary)
+   * @param saleListingId Sale listing ID (only used for SECONDARY, ignored for PRIMARY)
+   */
+  function purchaseERC1155(
     uint256[] calldata noteIds,
     address[][] calldata chains,
     uint256 paymentAmount,
-    address payable seller,
+    MarketplaceType marketplaceType,
+    address marketplaceAddress,
     address erc1155Contract,
     uint256[] calldata tokenIds,
-    uint256[] calldata counts
+    uint256[] calldata counts,
+    uint256 saleListingId
   ) external nonReentrant {
     require(noteIds.length > 0, "Must provide at least one note");
     require(noteIds.length == chains.length, "Array length mismatch");
@@ -409,81 +426,25 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       bytes32[] memory statementIds
     ) = _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
 
-    // Execute purchase
-    ERC1155PrimaryMarket(seller).buyERC1155{value: paymentAmount}(
-      address(this),
-      erc1155Contract,
-      tokenIds,
-      counts,
-      ""
-    );
+    // Execute marketplace-specific purchase
+    if (marketplaceType == MarketplaceType.PRIMARY) {
+      ERC1155PrimaryMarket(marketplaceAddress).buyERC1155{value: paymentAmount}(
+        address(this),
+        erc1155Contract,
+        tokenIds,
+        counts,
+        ""
+      );
+    } else {
+      require(tokenIds.length == 1 && counts.length == 1, "Secondary market only supports single token purchases");
+      ERC1155SecondaryMarket(marketplaceAddress).fulfillSaleListingTo{value: paymentAmount}(
+        saleListingId,
+        counts[0],
+        address(this)
+      );
+    }
 
     // Create new notes with purchased tokens
-    uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
-      erc1155Contract,
-      tokenIds,
-      counts,
-      paymentChains,
-      spentAmounts,
-      statementIds,
-      paymentAmount
-    );
-
-    emit ERC1155Purchased(
-      caller,
-      erc1155Contract,
-      tokenIds,
-      counts,
-      paymentAmount,
-      noteIds,
-      outputNoteIds
-    );
-  }
-
-  function purchaseFromERC1155SecondaryMarket(
-    uint256[] calldata noteIds,
-    address[][] calldata chains,
-    uint256 paymentAmount,
-    address marketplace,
-    address erc1155Contract,
-    uint256 saleListingId,
-    uint256 tokenId,
-    uint256 count
-  ) external nonReentrant {
-    require(noteIds.length > 0, "Must provide at least one note");
-    require(noteIds.length == chains.length, "Array length mismatch");
-    require(paymentAmount > 0, "Payment amount must be greater than 0");
-
-    address caller = _msgSender();
-
-    // Validate ownership and prepare payment
-    (, uint256 totalAvailable) = _preparePayment(
-      noteIds,
-      chains,
-      caller,
-      paymentAmount
-    );
-
-    // Consume payment notes and cache data for output notes
-    (
-      address[][] memory paymentChains,
-      uint256[] memory spentAmounts,
-      bytes32[] memory statementIds
-    ) = _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
-
-    // Execute purchase
-    ERC1155SecondaryMarket(marketplace).fulfillSaleListingTo{value: paymentAmount}(
-      saleListingId,
-      count,
-      address(this)
-    );
-
-    // Wrap single token purchase into arrays
-    uint256[] memory tokenIds = new uint256[](1);
-    tokenIds[0] = tokenId;
-    uint256[] memory counts = new uint256[](1);
-    counts[0] = count;
-
     uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
       erc1155Contract,
       tokenIds,
