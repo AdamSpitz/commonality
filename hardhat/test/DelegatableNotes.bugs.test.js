@@ -102,7 +102,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositERC20(await testToken.getAddress(), amount, statementId);
 
       const balanceBefore = await testToken.balanceOf(alice.address);
-      await notes.connect(alice).reclaimFunds(1, [alice.address]);
+      await notes.connect(alice).reclaimFunds(1);
       const balanceAfter = await testToken.balanceOf(alice.address);
 
       expect(balanceAfter - balanceBefore).to.equal(amount);
@@ -162,7 +162,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 50, statementId);
 
       const balanceBefore = await testERC1155.balanceOf(alice.address, 1);
-      await notes.connect(alice).reclaimFunds(1, [alice.address]);
+      await notes.connect(alice).reclaimFunds(1);
       const balanceAfter = await testERC1155.balanceOf(alice.address, 1);
 
       expect(balanceAfter - balanceBefore).to.equal(50n);

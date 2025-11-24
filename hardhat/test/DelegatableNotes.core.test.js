@@ -33,7 +33,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       const balanceBefore = await ethers.provider.getBalance(alice.address);
-      const tx = await notes.connect(alice).reclaimFunds(1, [alice.address]);
+      const tx = await notes.connect(alice).reclaimFunds(1);
       const receipt = await tx.wait();
       const gasCost = receipt.gasUsed * receipt.gasPrice;
       const balanceAfter = await ethers.provider.getBalance(alice.address);
@@ -46,10 +46,10 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
       await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
 
-      // After delegation, the chain is [bob, alice] (leaf first), but reclaim requires length=1
+      // After delegation, the note is now owned by bob, so alice can't reclaim it
       await expect(
-        notes.connect(alice).reclaimFunds(1, [alice.address])
-      ).to.be.revertedWith("Invalid chain");
+        notes.connect(alice).reclaimFunds(1)
+      ).to.be.revertedWith("Not a root note or not the owner");
     });
   });
 
