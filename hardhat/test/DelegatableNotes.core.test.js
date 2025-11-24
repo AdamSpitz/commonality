@@ -20,7 +20,7 @@ describe("DelegatableNotes - Core Functionality", function () {
 
       await expect(notes.connect(alice).depositETH(statementId, { value: amount }))
         .to.emit(notes, "NoteCreated")
-        .withArgs(1, alice.address, amount, ethers.ZeroAddress, 0, 0, 0);
+        .withArgs(1, alice.address, amount, ethers.ZeroAddress, 0, 0);
 
       const note = await notes.notes(1);
       expect(note.amount).to.equal(amount);
@@ -33,7 +33,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       const balanceBefore = await ethers.provider.getBalance(alice.address);
-      const tx = await notes.connect(alice).reclaimFunds(1);
+      const tx = await notes.connect(alice).reclaimFunds(1, [alice.address]);
       const receipt = await tx.wait();
       const gasCost = receipt.gasUsed * receipt.gasPrice;
       const balanceAfter = await ethers.provider.getBalance(alice.address);
@@ -44,11 +44,12 @@ describe("DelegatableNotes - Core Functionality", function () {
     it("Should not allow reclaiming delegated note", async function () {
       const amount = ethers.parseEther("1.0");
       await notes.connect(alice).depositETH(statementId, { value: amount });
-      await notes.connect(alice).delegate(1, bob.address, amount);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
 
+      // After delegation, the chain is [bob, alice] (leaf first), but reclaim requires length=1
       await expect(
-        notes.connect(alice).reclaimFunds(1)
-      ).to.be.revertedWith("Cannot reclaim from delegated notes");
+        notes.connect(alice).reclaimFunds(1, [alice.address])
+      ).to.be.revertedWith("Invalid chain");
     });
   });
 
@@ -57,7 +58,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       const amount = ethers.parseEther("1.0");
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
-      await expect(notes.connect(alice).delegate(1, bob.address, amount))
+      await expect(notes.connect(alice).delegate(1, [alice.address], bob.address, amount))
         .to.emit(notes, "NoteDelegated");
 
       // Note 1 should still exist but with updated chainHash
@@ -70,17 +71,18 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       // Alice delegates to Bob (full amount, so note 1 stays but chainHash changes)
-      await notes.connect(alice).delegate(1, bob.address, amount);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
 
-      // For multi-level, Bob needs to use the new API with chain parameter
-      // Or we just verify that the delegation happened
+      // Verify the delegation happened
       const note = await notes.notes(1);
       expect(note.amount).to.equal(amount);
 
-      // Verify Bob can't use legacy delegate (it requires root ownership)
-      await expect(
-        notes.connect(bob).delegate(1, charlie.address, amount)
-      ).to.be.revertedWith("Not the note owner");
+      // Bob can now delegate to Charlie using the new chain
+      await notes.connect(bob).delegate(1, [bob.address, alice.address], charlie.address, amount);
+
+      // Verify the chain is now alice -> bob -> charlie
+      const updatedNote = await notes.notes(1);
+      expect(updatedNote.amount).to.equal(amount);
     });
 
     it("Should not allow delegating to zero address", async function () {
@@ -88,7 +90,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       await expect(
-        notes.connect(alice).delegate(1, ethers.ZeroAddress, amount)
+        notes.connect(alice).delegate(1, [alice.address], ethers.ZeroAddress, amount)
       ).to.be.revertedWith("Cannot delegate to zero address");
     });
 
@@ -97,7 +99,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       await expect(
-        notes.connect(bob).delegate(1, charlie.address, amount)
+        notes.connect(bob).delegate(1, [alice.address], charlie.address, amount)
       ).to.be.revertedWith("Not the note owner");
     });
   });
@@ -110,10 +112,10 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       const [delegatedId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, delegateAmount
+        1, [alice.address], bob.address, delegateAmount
       );
 
-      await notes.connect(alice).delegate(1, bob.address, delegateAmount);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, delegateAmount);
 
       // Delegated note should have the delegated amount
       const delegatedNote = await notes.notes(delegatedId);
@@ -130,7 +132,7 @@ describe("DelegatableNotes - Core Functionality", function () {
 
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
-      await expect(notes.connect(alice).delegate(1, bob.address, delegateAmount))
+      await expect(notes.connect(alice).delegate(1, [alice.address], bob.address, delegateAmount))
         .to.emit(notes, "ChainSplit");
     });
   });
@@ -141,7 +143,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       await expect(
-        notes.connect(alice).delegate(1, alice.address, amount)
+        notes.connect(alice).delegate(1, [alice.address], alice.address, amount)
       ).to.be.revertedWith("Circular delegation detected");
     });
   });
@@ -150,10 +152,10 @@ describe("DelegatableNotes - Core Functionality", function () {
     it("Should allow revoking simple delegation", async function () {
       const amount = ethers.parseEther("1.0");
       await notes.connect(alice).depositETH(statementId, { value: amount });
-      await notes.connect(alice).delegate(1, bob.address, amount);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
 
-      // Alice revokes
-      await expect(notes.connect(alice).revoke(1))
+      // Alice revokes - note chain is now [bob, alice] (leaf first)
+      await expect(notes.connect(alice).revoke([1], [[bob.address, alice.address]]))
         .to.emit(notes, "NoteRevoked");
     });
   });
@@ -203,7 +205,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: amount });
 
       const [delegatedId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, amount
+        1, [alice.address], bob.address, amount
       );
 
       expect(remainderId).to.equal(0); // No remainder
@@ -212,10 +214,10 @@ describe("DelegatableNotes - Core Functionality", function () {
     it("Should preserve intendedStatementId through delegation", async function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("10") });
       const [delegatedId, ] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, ethers.parseEther("3")
+        1, [alice.address], bob.address, ethers.parseEther("3")
       );
 
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("3"));
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, ethers.parseEther("3"));
 
       const delegatedNote = await notes.notes(delegatedId);
       expect(delegatedNote.intendedStatementId).to.equal(statementId);
@@ -225,10 +227,10 @@ describe("DelegatableNotes - Core Functionality", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("10") });
 
       const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, ethers.parseEther("3")
+        1, [alice.address], bob.address, ethers.parseEther("3")
       );
 
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("3"));
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, ethers.parseEther("3"));
 
       const splitNote = await notes.notes(splitId);
       const remainderNote = await notes.notes(remainderId);

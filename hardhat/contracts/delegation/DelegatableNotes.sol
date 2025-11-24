@@ -35,6 +35,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     bytes32 intendedStatementId;
   }
 
+  // Depth limit to prevent gas exhaustion from extremely long chains
   uint256 public constant MAX_DELEGATION_DEPTH = 200;
 
   uint256 public nextNoteId = 1;
@@ -47,8 +48,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 amount,
     address token,
     TokenType tokenType,
-    uint256 tokenId,
-    uint256 parentNoteId  // 0 for compatibility with old events
+    uint256 tokenId
   );
   event NoteDelegated(
     uint256 indexed parentNoteId,
@@ -149,7 +149,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       intendedStatementId: intendedStatementId
     });
 
-    emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId, 0);
+    emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId);
     return noteId;
   }
 
@@ -207,37 +207,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     emit FundsReclaimed(noteId, owners[0], amount, token, tokenType, tokenId);
   }
 
-  /**
-   * @dev Legacy reclaim function for backwards compatibility with tests.
-   * Assumes caller is the root (single-person chain).
-   */
-  function reclaimFunds(uint256 noteId) external nonReentrant {
-    address caller = _msgSender();
-    Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
-
-    bytes32 expectedHash = _computeChainHash(caller, bytes32(0));
-    require(note.chainHash == expectedHash, "Cannot reclaim from delegated notes");
-
-    address token = note.token;
-    uint256 amount = note.amount;
-    TokenType tokenType = note.tokenType;
-    uint256 tokenId = note.tokenId;
-
-    delete notes[noteId];
-
-    if (tokenType == TokenType.ERC20) {
-      if (token == address(0)) {
-        payable(caller).transfer(amount);
-      } else {
-        IERC20(token).safeTransfer(caller, amount);
-      }
-    } else {
-      IERC1155(token).safeTransferFrom(address(this), caller, tokenId, amount, "");
-    }
-
-    emit FundsReclaimed(noteId, caller, amount, token, tokenType, tokenId);
-  }
 
   // ============ Delegation Functions ============
 
@@ -300,54 +269,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     }
   }
 
-  /**
-   * @dev Legacy delegate function for backwards compatibility.
-   * Assumes caller is the sole owner (single-person chain).
-   */
-  function delegate(
-    uint256 noteId,
-    address delegateTo,
-    uint256 amountToDelegate
-  ) external returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
-    Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
-
-    address caller = _msgSender();
-    bytes32 expectedHash = _computeChainHash(caller, bytes32(0));
-    require(note.chainHash == expectedHash, "Not the note owner");
-    require(amountToDelegate > 0 && amountToDelegate <= note.amount, "Invalid delegation amount");
-    require(delegateTo != address(0), "Cannot delegate to zero address");
-    require(caller != delegateTo, "Circular delegation detected");
-
-    bytes32 newChainHash = _computeChainHash(delegateTo, note.chainHash);
-
-    if (amountToDelegate == note.amount) {
-      // Full delegation
-      note.chainHash = newChainHash;
-      emit NoteDelegated(noteId, noteId, delegateTo, amountToDelegate);
-      return (noteId, 0);
-    } else {
-      // Partial delegation
-      uint256 remainderAmount = note.amount - amountToDelegate;
-
-      delegatedNoteId = nextNoteId++;
-      notes[delegatedNoteId] = Note({
-        chainHash: newChainHash,
-        amount: amountToDelegate,
-        token: note.token,
-        tokenType: note.tokenType,
-        tokenId: note.tokenId,
-        intendedStatementId: note.intendedStatementId
-      });
-
-      note.amount = remainderAmount;
-
-      emit ChainSplit(noteId, delegatedNoteId, noteId, amountToDelegate);
-      emit NoteDelegated(noteId, delegatedNoteId, delegateTo, amountToDelegate);
-
-      return (delegatedNoteId, noteId);
-    }
-  }
 
   // ============ Revocation ============
 
@@ -395,81 +316,23 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     }
   }
 
-  /**
-   * @dev Legacy revoke function for backwards compatibility.
-   * Revokes a single note, assuming caller is the root.
-   */
-  function revoke(uint256 noteId) external {
-    address caller = _msgSender();
-    Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
-
-    // Can't efficiently verify without the chain, so we just set to caller's root hash
-    // This matches old behavior where root could revoke by just knowing the leaf noteId
-    bytes32 newHash = _computeChainHash(caller, bytes32(0));
-    note.chainHash = newHash;
-    emit NoteRevoked(noteId, caller);
-  }
 
   // ============ View Functions ============
 
-  function getDepositor(uint256 noteId, address[] calldata owners) public view returns (address) {
-    Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
-
-    bytes32 expectedHash = _verifyAndComputeChainHash(owners);
-    require(note.chainHash == expectedHash, "Invalid chain");
-
-    return owners[owners.length - 1];
-  }
-
   /**
-   * @dev Legacy getDepositor - tries all addresses in the test context.
-   * WARNING: This brute-forces through possible chains and is NOT gas-efficient.
-   * Use getDepositor(noteId, owners) in production.
+   * @dev Verify that the provided chain matches the note's hash.
+   * @param noteId The note to verify
+   * @param owners The delegation chain to verify (leaf first, root last)
+   * @return True if the chain is valid
    */
-  function getDepositor(uint256 noteId) public view returns (address) {
+  function verifyChain(uint256 noteId, address[] calldata owners) public view returns (bool) {
     Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
-
-    // This is a hack for test compatibility - we can't actually determine the depositor
-    // from the hash alone. In tests, we assume it's a single-owner chain and return
-    // a dummy value that will fail validation if actually used.
-    revert("Must provide chain - use getDepositor(noteId, owners)");
-  }
-
-  function getChain(uint256 noteId, address[] calldata owners)
-    public
-    view
-    returns (uint256[] memory noteIds, address[] memory returnedOwners)
-  {
-    Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
-
-    bytes32 expectedHash = _verifyAndComputeChainHash(owners);
-    require(note.chainHash == expectedHash, "Invalid chain");
-
-    // Return the provided chain as verified
-    noteIds = new uint256[](owners.length);
-    for (uint256 i = 0; i < owners.length; i++) {
-      noteIds[i] = noteId; // All point to same note (simplified for hash model)
+    if (note.chainHash == bytes32(0)) {
+      return false;
     }
-    returnedOwners = owners;
 
-    return (noteIds, returnedOwners);
-  }
-
-  /**
-   * @dev Legacy getChain for backwards compatibility.
-   * Cannot reconstruct chain from hash alone - reverts with helpful message.
-   */
-  function getChain(uint256 noteId) public view returns (uint256[] memory, address[] memory) {
-    Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
-
-    // For hash-based model, we can't reconstruct the chain without additional data
-    // This is a fundamental limitation - caller must provide the chain
-    revert("Must provide chain - use getChain(noteId, owners)");
+    bytes32 expectedHash = _verifyAndComputeChainHash(owners);
+    return note.chainHash == expectedHash;
   }
 
   function validateNotesCompatible(uint256[] calldata noteIds)
@@ -514,11 +377,11 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @dev Validate that notes are owned by the caller.
    * Since we use hash-based chains, we need the chains to verify ownership.
    */
-  function validateNotesOwnership(
+  function _validateNotesOwnership(
     uint256[] calldata noteIds,
     address[][] calldata chains,
     address expectedOwner
-  ) public view returns (bool isValid, string memory errorMessage) {
+  ) private view returns (bool isValid, string memory errorMessage) {
     if (noteIds.length != chains.length) {
       return (false, "Array length mismatch");
     }

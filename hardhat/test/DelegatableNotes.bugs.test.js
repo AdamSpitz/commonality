@@ -41,7 +41,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
 
       await expect(
-        notes.connect(alice).delegate(1, bob.address, 0)
+        notes.connect(alice).delegate(1, [alice.address], bob.address, 0)
       ).to.be.revertedWith("Invalid delegation amount");
     });
 
@@ -49,7 +49,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
 
       await expect(
-        notes.connect(alice).delegate(1, bob.address, ethers.parseEther("2"))
+        notes.connect(alice).delegate(1, [alice.address], bob.address, ethers.parseEther("2"))
       ).to.be.revertedWith("Invalid delegation amount");
     });
   });
@@ -59,28 +59,25 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
 
       await expect(
-        notes.connect(alice).delegate(1, alice.address, ethers.parseEther("1"))
+        notes.connect(alice).delegate(1, [alice.address], alice.address, ethers.parseEther("1"))
       ).to.be.revertedWith("Circular delegation detected");
     });
   });
 
   describe("Bug: Nonexistent note operations", function () {
-    it("Should revert when getting chain of nonexistent note", async function () {
-      await expect(notes.getChain(999)).to.be.revertedWith("Note does not exist");
-    });
-
-    it("Should revert when getting depositor of nonexistent note", async function () {
-      await expect(notes.getDepositor(999)).to.be.reverted;
+    it("Should return false when verifying chain of nonexistent note", async function () {
+      const isValid = await notes.verifyChain(999, [alice.address]);
+      expect(isValid).to.be.false;
     });
 
     it("Should revert when delegating nonexistent note", async function () {
       await expect(
-        notes.connect(alice).delegate(999, bob.address, ethers.parseEther("1"))
+        notes.connect(alice).delegate(999, [alice.address], bob.address, ethers.parseEther("1"))
       ).to.be.revertedWith("Note does not exist");
     });
 
     it("Should revert when revoking nonexistent note", async function () {
-      await expect(notes.connect(alice).revoke(999)).to.be.revertedWith("Note does not exist");
+      await expect(notes.connect(alice).revoke([999], [[alice.address]])).to.be.revertedWith("Note does not exist");
     });
   });
 
@@ -105,7 +102,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositERC20(await testToken.getAddress(), amount, statementId);
 
       const balanceBefore = await testToken.balanceOf(alice.address);
-      await notes.connect(alice).reclaimFunds(1);
+      await notes.connect(alice).reclaimFunds(1, [alice.address]);
       const balanceAfter = await testToken.balanceOf(alice.address);
 
       expect(balanceAfter - balanceBefore).to.equal(amount);
@@ -116,7 +113,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       await testToken.connect(alice).approve(await notes.getAddress(), amount);
       await notes.connect(alice).depositERC20(await testToken.getAddress(), amount, statementId);
-      await notes.connect(alice).delegate(1, bob.address, amount);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
 
       // Note should exist with correct amount
       const note = await notes.notes(1);
@@ -165,7 +162,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 50, statementId);
 
       const balanceBefore = await testERC1155.balanceOf(alice.address, 1);
-      await notes.connect(alice).reclaimFunds(1);
+      await notes.connect(alice).reclaimFunds(1, [alice.address]);
       const balanceAfter = await testERC1155.balanceOf(alice.address, 1);
 
       expect(balanceAfter - balanceBefore).to.equal(50n);
@@ -174,7 +171,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should delegate ERC1155 notes", async function () {
       await testERC1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
       await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 50, statementId);
-      await notes.connect(alice).delegate(1, bob.address, 50);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, 50);
 
       const note = await notes.notes(1);
       expect(note.token).to.equal(await testERC1155.getAddress());
@@ -187,9 +184,9 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 100, statementId);
 
       const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, 30
+        1, [alice.address], bob.address, 30
       );
-      await notes.connect(alice).delegate(1, bob.address, 30);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, 30);
 
       const splitNote = await notes.notes(splitId);
       const remainderNote = await notes.notes(remainderId);
@@ -249,8 +246,8 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("10") });
 
       // Split into three parts (3.33...repeating)
-      const [split1, ] = await notes.connect(alice).delegate.staticCall(1, bob.address, ethers.parseEther("3.33"));
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("3.33"));
+      const [split1, ] = await notes.connect(alice).delegate.staticCall(1, [alice.address], bob.address, ethers.parseEther("3.33"));
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, ethers.parseEther("3.33"));
 
       const splitNote = await notes.notes(split1);
       expect(splitNote.amount).to.equal(ethers.parseEther("3.33"));
@@ -259,8 +256,8 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should handle minimum wei amounts in splits", async function () {
       await notes.connect(alice).depositETH(statementId, { value: 3 });
 
-      const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(1, bob.address, 1);
-      await notes.connect(alice).delegate(1, bob.address, 1);
+      const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(1, [alice.address], bob.address, 1);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, 1);
 
       const splitNote = await notes.notes(splitId);
       const remainderNote = await notes.notes(remainderId);
