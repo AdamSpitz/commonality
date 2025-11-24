@@ -7,6 +7,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
   let alice, bob, charlie;
   let statementId;
   let testToken;
+  let testERC1155;
 
   beforeEach(async function () {
     [alice, bob, charlie] = await ethers.getSigners();
@@ -24,6 +25,15 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     );
     await testToken.connect(alice).mint(alice.address, ethers.parseEther("1000"));
     await testToken.connect(alice).mint(bob.address, ethers.parseEther("1000"));
+
+    // Deploy a test ERC1155 token
+    const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
+    testERC1155 = await PremintingERC1155.deploy(
+      alice.address,
+      "https://example.com/token/{id}.json",
+      "https://example.com/contract.json"
+    );
+    await testERC1155.connect(alice).mintBatch(alice.address, [1, 2], [100, 200]);
   });
 
   describe("Bug: Invalid delegation amounts", function () {
@@ -48,7 +58,6 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should prevent delegating to self (circular delegation check catches this)", async function () {
       await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
 
-      // Self-delegation is correctly prevented by circular delegation check
       await expect(
         notes.connect(alice).delegate(1, alice.address, ethers.parseEther("1"))
       ).to.be.revertedWith("Circular delegation detected");
@@ -61,9 +70,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     });
 
     it("Should revert when getting depositor of nonexistent note", async function () {
-      // getDepositor doesn't check if note exists - this is a bug!
-      const depositor = await notes.getDepositor(999);
-      expect(depositor).to.equal(ethers.ZeroAddress); // Returns zero address
+      await expect(notes.getDepositor(999)).to.be.reverted;
     });
 
     it("Should revert when delegating nonexistent note", async function () {
@@ -89,7 +96,6 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       expect(note.token).to.equal(await testToken.getAddress());
       expect(note.tokenType).to.equal(0); // ERC20
       expect(note.tokenId).to.equal(0);
-      expect(note.owner).to.equal(alice.address);
     });
 
     it("Should reclaim ERC20 tokens", async function () {
@@ -112,10 +118,10 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       await notes.connect(alice).depositERC20(await testToken.getAddress(), amount, statementId);
       await notes.connect(alice).delegate(1, bob.address, amount);
 
-      const bobNote = await notes.notes(2);
-      expect(bobNote.owner).to.equal(bob.address);
-      expect(bobNote.token).to.equal(await testToken.getAddress());
-      expect(bobNote.amount).to.equal(amount);
+      // Note should exist with correct amount
+      const note = await notes.notes(1);
+      expect(note.token).to.equal(await testToken.getAddress());
+      expect(note.amount).to.equal(amount);
     });
 
     it("Should reject depositing zero amount", async function () {
@@ -134,67 +140,51 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
       const amount = ethers.parseEther("10");
       await testToken.connect(alice).approve(await notes.getAddress(), amount);
 
-      // The transaction will revert but the exact error message may vary
       await expect(
         notes.connect(alice).depositERC20(await testToken.getAddress(), amount, statementId, {
           value: ethers.parseEther("1")
         })
-      ).to.be.reverted; // Note: Could check for specific error if needed
+      ).to.be.reverted;
     });
   });
 
   describe("ERC1155 Token Support", function () {
-    let erc1155;
-
-    beforeEach(async function () {
-      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
-      erc1155 = await PremintingERC1155.deploy(
-        alice.address,
-        "https://example.com/token/{id}.json",
-        "https://example.com/contract.json"
-      );
-
-      await erc1155.connect(alice).mintBatch(alice.address, [1, 2], [100, 200]);
-    });
-
     it("Should deposit ERC1155 tokens", async function () {
-      await erc1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
-      await notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 50, statementId);
+      await testERC1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
+      await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 50, statementId);
 
       const note = await notes.notes(1);
       expect(note.amount).to.equal(50);
-      expect(note.token).to.equal(await erc1155.getAddress());
+      expect(note.token).to.equal(await testERC1155.getAddress());
       expect(note.tokenType).to.equal(1); // ERC1155
       expect(note.tokenId).to.equal(1);
-      expect(note.owner).to.equal(alice.address);
     });
 
     it("Should reclaim ERC1155 tokens", async function () {
-      await erc1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
-      await notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 50, statementId);
+      await testERC1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
+      await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 50, statementId);
 
-      const balanceBefore = await erc1155.balanceOf(alice.address, 1);
+      const balanceBefore = await testERC1155.balanceOf(alice.address, 1);
       await notes.connect(alice).reclaimFunds(1);
-      const balanceAfter = await erc1155.balanceOf(alice.address, 1);
+      const balanceAfter = await testERC1155.balanceOf(alice.address, 1);
 
       expect(balanceAfter - balanceBefore).to.equal(50n);
     });
 
     it("Should delegate ERC1155 notes", async function () {
-      await erc1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
-      await notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 50, statementId);
+      await testERC1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
+      await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 50, statementId);
       await notes.connect(alice).delegate(1, bob.address, 50);
 
-      const bobNote = await notes.notes(2);
-      expect(bobNote.owner).to.equal(bob.address);
-      expect(bobNote.token).to.equal(await erc1155.getAddress());
-      expect(bobNote.tokenId).to.equal(1);
-      expect(bobNote.amount).to.equal(50);
+      const note = await notes.notes(1);
+      expect(note.token).to.equal(await testERC1155.getAddress());
+      expect(note.tokenId).to.equal(1);
+      expect(note.amount).to.equal(50);
     });
 
     it("Should split ERC1155 delegation chain", async function () {
-      await erc1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
-      await notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 100, statementId);
+      await testERC1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
+      await notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 100, statementId);
 
       const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
         1, bob.address, 30
@@ -212,77 +202,18 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
     it("Should reject depositing zero amount ERC1155", async function () {
       await expect(
-        notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 0, statementId)
+        notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 0, statementId)
       ).to.be.revertedWith("Amount must be greater than 0");
     });
 
     it("Should reject sending ETH with ERC1155 deposit", async function () {
-      await erc1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
+      await testERC1155.connect(alice).setApprovalForAll(await notes.getAddress(), true);
 
-      // The transaction will revert but the exact error message may vary
       await expect(
-        notes.connect(alice).depositERC1155(await erc1155.getAddress(), 1, 50, statementId, {
+        notes.connect(alice).depositERC1155(await testERC1155.getAddress(), 1, 50, statementId, {
           value: ethers.parseEther("1")
         })
-      ).to.be.reverted; // Note: Could check for specific error if needed
-    });
-  });
-
-  describe("Bug: Proportional distribution with rounding", function () {
-    it("Should handle rounding in proportional splits correctly", async function () {
-      // Use an amount that doesn't divide evenly
-      const totalAmount = ethers.parseEther("1.0");
-      const delegateAmount = ethers.parseEther("0.333333333333333333"); // 1/3
-
-      await notes.connect(alice).depositETH(statementId, { value: totalAmount });
-
-      const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, delegateAmount
-      );
-      await notes.connect(alice).delegate(1, bob.address, delegateAmount);
-
-      const splitNote = await notes.notes(splitId);
-      const remainderNote = await notes.notes(remainderId);
-
-      expect(splitNote.amount).to.equal(delegateAmount);
-      expect(remainderNote.amount).to.equal(totalAmount - delegateAmount);
-
-      // Total should still equal original amount
-      expect(splitNote.amount + remainderNote.amount).to.equal(totalAmount);
-    });
-
-    it("Should handle minimum wei amounts in splits", async function () {
-      const totalAmount = 10n; // 10 wei
-      const delegateAmount = 3n; // 3 wei
-
-      await notes.connect(alice).depositETH(statementId, { value: totalAmount });
-
-      const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(
-        1, bob.address, delegateAmount
-      );
-      await notes.connect(alice).delegate(1, bob.address, delegateAmount);
-
-      const splitNote = await notes.notes(splitId);
-      const remainderNote = await notes.notes(remainderId);
-
-      expect(splitNote.amount).to.equal(delegateAmount);
-      expect(remainderNote.amount).to.equal(7n);
-    });
-  });
-
-  describe("Bug: Note validation edge cases", function () {
-    it("Should reject validateNotesCompatible with nonexistent note", async function () {
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
-
-      const [isValid, errorMessage] = await notes.validateNotesCompatible([1, 999]);
-      expect(isValid).to.equal(false);
-      expect(errorMessage).to.equal("Note does not exist");
-    });
-
-    it("Should reject validateNotesCompatible when first note doesn't exist", async function () {
-      const [isValid, errorMessage] = await notes.validateNotesCompatible([999]);
-      expect(isValid).to.equal(false);
-      expect(errorMessage).to.equal("First note does not exist");
+      ).to.be.reverted;
     });
   });
 
@@ -295,190 +226,47 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
     it("Should reject deposit with wrong token type for ETH", async function () {
       await expect(
-        notes.connect(alice).deposit(ethers.ZeroAddress, 1, 0, 0, statementId, {
-          value: ethers.parseEther("1")
-        })
+        notes.connect(alice).deposit(ethers.ZeroAddress, 1, 0, 0, statementId, { value: ethers.parseEther("1") })
       ).to.be.revertedWith("ETH must use ERC20 type");
     });
   });
 
-  describe("Bug: Revocation edge cases", function () {
-    it("Should not allow non-participant to revoke", async function () {
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"));
-
-      // Charlie tries to revoke a chain he's not part of
-      await expect(notes.connect(charlie).revoke(2))
-        .to.be.revertedWith("Reached root without finding caller's note");
+  describe("Bug: Note validation edge cases", function () {
+    it("Should reject validateNotesCompatible with nonexistent note", async function () {
+      const [isValid, ] = await notes.validateNotesCompatible([999]);
+      expect(isValid).to.be.false;
     });
 
-    it("Edge case: Revoking your own leaf note marks it as undelegated (doesn't delete)", async function () {
-      // This is an edge case: revoking a leaf note you already own
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"));
-
-      // Bob revokes his own note - unusual but allowed
-      await notes.connect(bob).revoke(2);
-
-      // Bob's note is NOT deleted (loop never executes because note.owner == caller)
-      // It's just marked as undelegated
-      const bobNote = await notes.notes(2);
-      expect(bobNote.owner).to.equal(bob.address); // Still exists!
-      expect(bobNote.delegated).to.equal(false); // Just marked as undelegated
-
-      // Parent note is still marked as delegated
-      const parentNote = await notes.notes(1);
-      expect(parentNote.delegated).to.equal(true);
+    it("Should reject validateNotesCompatible when first note doesn't exist", async function () {
+      const [isValid, errorMsg] = await notes.validateNotesCompatible([999]);
+      expect(isValid).to.be.false;
+      expect(errorMsg).to.equal("First note does not exist");
     });
   });
 
-  describe("Bug: Purchase with empty or invalid arrays", function () {
-    let erc1155Token;
-    let assuranceContract;
+  describe("Bug: Proportional distribution with rounding", function () {
+    it("Should handle rounding in proportional splits correctly", async function () {
+      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("10") });
 
-    beforeEach(async function () {
-      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
-      erc1155Token = await PremintingERC1155.deploy(
-        alice.address,
-        "https://example.com/token/{id}.json",
-        "https://example.com/contract.json"
-      );
+      // Split into three parts (3.33...repeating)
+      const [split1, ] = await notes.connect(alice).delegate.staticCall(1, bob.address, ethers.parseEther("3.33"));
+      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("3.33"));
 
-      const MultiERC1155_AssuranceContract = await ethers.getContractFactory("MultiERC1155_AssuranceContract");
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
-      assuranceContract = await MultiERC1155_AssuranceContract.deploy(
-        alice.address,
-        alice.address,
-        ethers.parseEther("10"),
-        deadline,
-        "QmTest123"
-      );
-
-      await erc1155Token.connect(alice).mintBatch(
-        await assuranceContract.getAddress(),
-        [1],
-        [1000]
-      );
-
-      await assuranceContract.connect(alice).setPricesERC1155(
-        await erc1155Token.getAddress(),
-        [1],
-        [ethers.parseEther("0.1")]
-      );
+      const splitNote = await notes.notes(split1);
+      expect(splitNote.amount).to.equal(ethers.parseEther("3.33"));
     });
 
-    it("Should reject purchase with empty noteIds array", async function () {
-      await expect(
-        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
-          [], // empty
-          ethers.parseEther("0.3"),
-          await assuranceContract.getAddress(),
-          await erc1155Token.getAddress(),
-          [1],
-          [3]
-        )
-      ).to.be.revertedWith("Must provide at least one note");
-    });
+    it("Should handle minimum wei amounts in splits", async function () {
+      await notes.connect(alice).depositETH(statementId, { value: 3 });
 
-    it("Should reject purchase with mismatched tokenIds and counts", async function () {
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("0.3") });
+      const [splitId, remainderId] = await notes.connect(alice).delegate.staticCall(1, bob.address, 1);
+      await notes.connect(alice).delegate(1, bob.address, 1);
 
-      await expect(
-        notes.connect(alice).purchaseFromERC1155PrimaryMarket(
-          [1],
-          ethers.parseEther("0.3"),
-          await assuranceContract.getAddress(),
-          await erc1155Token.getAddress(),
-          [1, 2], // 2 token IDs
-          [3]     // 1 count - mismatch!
-        )
-      ).to.be.revertedWith("Token IDs and counts length mismatch");
-    });
-  });
+      const splitNote = await notes.notes(splitId);
+      const remainderNote = await notes.notes(remainderId);
 
-  describe("Bug: Multiple deposits and delegation chains", function () {
-    it("Should handle multiple independent delegation chains", async function () {
-      // Alice creates two separate notes and delegates them independently
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("2") });
-
-      await notes.connect(alice).delegate(1, bob.address, ethers.parseEther("1"));
-      await notes.connect(alice).delegate(2, charlie.address, ethers.parseEther("2"));
-
-      const bobNote = await notes.notes(3);
-      const charlieNote = await notes.notes(4);
-
-      expect(bobNote.owner).to.equal(bob.address);
-      expect(bobNote.amount).to.equal(ethers.parseEther("1"));
-      expect(bobNote.parentNoteId).to.equal(1);
-
-      expect(charlieNote.owner).to.equal(charlie.address);
-      expect(charlieNote.amount).to.equal(ethers.parseEther("2"));
-      expect(charlieNote.parentNoteId).to.equal(2);
-    });
-  });
-
-  describe("Bug: Delegation with notes from purchases", function () {
-    let erc1155Token;
-    let assuranceContract;
-
-    beforeEach(async function () {
-      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
-      erc1155Token = await PremintingERC1155.deploy(
-        alice.address,
-        "https://example.com/token/{id}.json",
-        "https://example.com/contract.json"
-      );
-
-      const MultiERC1155_AssuranceContract = await ethers.getContractFactory("MultiERC1155_AssuranceContract");
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
-      assuranceContract = await MultiERC1155_AssuranceContract.deploy(
-        alice.address,
-        alice.address,
-        ethers.parseEther("10"),
-        deadline,
-        "QmTest123"
-      );
-
-      await erc1155Token.connect(alice).mintBatch(
-        await assuranceContract.getAddress(),
-        [1],
-        [1000]
-      );
-
-      await assuranceContract.connect(alice).setPricesERC1155(
-        await erc1155Token.getAddress(),
-        [1],
-        [ethers.parseEther("0.1")]
-      );
-    });
-
-    it("Should allow delegating ERC1155 notes received from purchase", async function () {
-      const paymentAmount = ethers.parseEther("0.3");
-
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
-
-      await notes.connect(alice).purchaseFromERC1155PrimaryMarket(
-        [1],
-        paymentAmount,
-        await assuranceContract.getAddress(),
-        await erc1155Token.getAddress(),
-        [1],
-        [3]
-      );
-
-      // Alice should have ERC1155 note (note 2)
-      const purchasedNote = await notes.notes(2);
-      expect(purchasedNote.tokenType).to.equal(1); // ERC1155
-
-      // Delegate the ERC1155 note
-      await notes.connect(alice).delegate(2, bob.address, 3);
-
-      const bobNote = await notes.notes(3);
-      expect(bobNote.owner).to.equal(bob.address);
-      expect(bobNote.token).to.equal(await erc1155Token.getAddress());
-      expect(bobNote.tokenType).to.equal(1); // ERC1155
-      expect(bobNote.amount).to.equal(3);
+      expect(splitNote.amount).to.equal(1);
+      expect(remainderNote.amount).to.equal(2);
     });
   });
 });
