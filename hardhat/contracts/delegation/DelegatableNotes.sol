@@ -319,64 +319,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   }
 
 
-  // ============ View Functions ============
-
-  /**
-   * @dev Verify that the provided chain matches the note's hash.
-   * @param noteId The note to verify
-   * @param owners The delegation chain to verify (leaf first, root last)
-   * @return True if the chain is valid
-   */
-  // TODO: is this used? can we just delete it?
-  function verifyChain(uint256 noteId, address[] calldata owners) public view returns (bool) {
-    Note storage note = notes[noteId];
-    if (note.chainHash == bytes32(0)) {
-      return false;
-    }
-
-    bytes32 expectedHash = _verifyAndComputeChainHash(owners);
-    return note.chainHash == expectedHash;
-  }
-
-  function validateNotesCompatible(uint256[] calldata noteIds)
-    public
-    view
-    returns (bool isValid, string memory errorMessage)
-  {
-    if (noteIds.length == 0) {
-      return (false, "No notes provided");
-    }
-
-    Note storage firstNote = notes[noteIds[0]];
-    if (firstNote.chainHash == bytes32(0)) {
-      return (false, "First note does not exist");
-    }
-
-    address expectedToken = firstNote.token;
-    TokenType expectedTokenType = firstNote.tokenType;
-    uint256 expectedTokenId = firstNote.tokenId;
-
-    for (uint256 i = 0; i < noteIds.length; i++) {
-      Note storage note = notes[noteIds[i]];
-
-      if (note.chainHash == bytes32(0)) {
-        return (false, "Note does not exist");
-      }
-      if (note.token != expectedToken) {
-        return (false, "Notes have different tokens");
-      }
-      if (note.tokenType != expectedTokenType) {
-        return (false, "Notes have different token types");
-      }
-      if (expectedTokenType == TokenType.ERC1155 && note.tokenId != expectedTokenId) {
-        return (false, "ERC1155 notes have different token IDs");
-      }
-    }
-
-    return (true, "");
-  }
-
-
   // ============ Purchase Functions ============
 
   enum MarketplaceType { PRIMARY, SECONDARY }

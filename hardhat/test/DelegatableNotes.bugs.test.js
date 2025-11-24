@@ -65,11 +65,6 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
   });
 
   describe("Bug: Nonexistent note operations", function () {
-    it("Should return false when verifying chain of nonexistent note", async function () {
-      const isValid = await notes.verifyChain(999, [alice.address]);
-      expect(isValid).to.be.false;
-    });
-
     it("Should revert when delegating nonexistent note", async function () {
       await expect(
         notes.connect(alice).delegate(999, [alice.address], bob.address, ethers.parseEther("1"))
@@ -228,18 +223,6 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     });
   });
 
-  describe("Bug: Note validation edge cases", function () {
-    it("Should reject validateNotesCompatible with nonexistent note", async function () {
-      const [isValid, ] = await notes.validateNotesCompatible([999]);
-      expect(isValid).to.be.false;
-    });
-
-    it("Should reject validateNotesCompatible when first note doesn't exist", async function () {
-      const [isValid, errorMsg] = await notes.validateNotesCompatible([999]);
-      expect(isValid).to.be.false;
-      expect(errorMsg).to.equal("First note does not exist");
-    });
-  });
 
   describe("Bug: Proportional distribution with rounding", function () {
     it("Should handle rounding in proportional splits correctly", async function () {

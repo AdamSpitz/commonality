@@ -160,21 +160,6 @@ describe("DelegatableNotes - Core Functionality", function () {
     });
   });
 
-  describe("Helper Functions", function () {
-    it("Should validate compatible notes with same owner and token", async function () {
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("1") });
-      await notes.connect(alice).depositETH(statementId, { value: ethers.parseEther("2") });
-
-      const [isValid, ] = await notes.validateNotesCompatible([1, 2]);
-      expect(isValid).to.be.true;
-    });
-
-    it("Should reject empty note array", async function () {
-      const [isValid, errorMsg] = await notes.validateNotesCompatible([]);
-      expect(isValid).to.be.false;
-      expect(errorMsg).to.equal("No notes provided");
-    });
-  });
 
   describe("Edge Cases", function () {
     it("Should handle minimum ETH amount (1 wei)", async function () {
