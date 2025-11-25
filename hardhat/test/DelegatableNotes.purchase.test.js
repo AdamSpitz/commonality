@@ -61,18 +61,16 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     it("Should purchase tokens using a single note with exact amount", async function () {
       const paymentAmount = ethers.parseEther("0.3"); // Buy 3 of token 1
 
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
 
-      await notes.connect(alice).purchaseERC1155(
+      await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
         [[alice.address]], // chains
         paymentAmount,
-        0, // MarketplaceType.PRIMARY
         await assuranceContract.getAddress(),
         await erc1155Token.getAddress(),
         [1],
-        [3],
-        0 // saleListingId (ignored for primary market)
+        [3]
       );
 
       // Original note should be deleted (amount = 0)
@@ -92,18 +90,16 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       const depositAmount = ethers.parseEther("1.0");
       const paymentAmount = ethers.parseEther("0.3");
 
-      await notes.connect(alice).depositETH(statementId, { value: depositAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: depositAmount });
 
-      await notes.connect(alice).purchaseERC1155(
+      await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
         [[alice.address]], // chains
         paymentAmount,
-        0, // MarketplaceType.PRIMARY
         await assuranceContract.getAddress(),
         await erc1155Token.getAddress(),
         [1],
-        [3],
-        0 // saleListingId (ignored for primary market)
+        [3]
       );
 
       // Note 1 should have reduced amount (leftover)
@@ -120,18 +116,16 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     it("Should purchase multiple token types in one transaction", async function () {
       const paymentAmount = ethers.parseEther("0.8"); // 3×0.1 + 1×0.5 = 0.8
 
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
 
-      await notes.connect(alice).purchaseERC1155(
+      await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
         [[alice.address]], // chains
         paymentAmount,
-        0, // MarketplaceType.PRIMARY
         await assuranceContract.getAddress(),
         await erc1155Token.getAddress(),
         [1, 3], // Buy token 1 and token 3
-        [3, 1],  // 3 of token 1, 1 of token 3
-        0 // saleListingId (ignored for primary market)
+        [3, 1]  // 3 of token 1, 1 of token 3
       );
 
       // Should create two output notes (one for each token type)
@@ -146,19 +140,17 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
     it("Should emit ERC1155Purchased event", async function () {
       const paymentAmount = ethers.parseEther("0.3");
-      await notes.connect(alice).depositETH(statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
 
       await expect(
-        notes.connect(alice).purchaseERC1155(
+        notes.connect(alice).purchaseFromPrimaryMarket(
           [1],
           [[alice.address]], // chains
           paymentAmount,
-          0, // MarketplaceType.PRIMARY
           await assuranceContract.getAddress(),
           await erc1155Token.getAddress(),
           [1],
-          [3],
-          0 // saleListingId (ignored for primary market)
+          [3]
         )
       ).to.emit(notes, "ERC1155Purchased");
     });

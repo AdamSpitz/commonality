@@ -82,8 +82,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   );
 
   /**
-   * @dev Allows contract to receive ETH when purchasing from marketplaces.
-   * Required for marketplace refunds and receiving change from purchases.
+   * @dev Allows contract to receive ETH directly.
+   * This is needed in case marketplaces send ETH back to the contract.
    */
   receive() external payable {}
 
@@ -103,11 +103,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       hash = _computeChainHash(owners[i - 1], hash);
     }
     return hash;
-  }
-
-  function _getLeafOwner(address[] memory owners) private pure returns (address) {
-    require(owners.length > 0, "Empty chain");
-    return owners[0];
   }
 
   // ============ Deposit Functions ============
@@ -154,24 +149,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId);
     return noteId;
-  }
-
-  function depositERC20(address token, uint256 amount, bytes32 intendedStatementId) external returns (uint256) {
-    require(token != address(0), "Use depositETH for ETH deposits");
-    return deposit(token, TokenType.ERC20, 0, amount, intendedStatementId);
-  }
-
-  function depositETH(bytes32 intendedStatementId) external payable returns (uint256) {
-    return deposit(address(0), TokenType.ERC20, 0, 0, intendedStatementId);
-  }
-
-  function depositERC1155(
-    address token,
-    uint256 tokenId,
-    uint256 amount,
-    bytes32 intendedStatementId
-  ) external returns (uint256) {
-    return deposit(token, TokenType.ERC1155, tokenId, amount, intendedStatementId);
   }
 
   // ============ Reclaim Functions ============
@@ -230,7 +207,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     bytes32 expectedHash = _verifyAndComputeChainHash(owners);
     require(note.chainHash == expectedHash, "Invalid chain");
-    require(_getLeafOwner(owners) == _msgSender(), "Not the note owner");
+    require(owners[0] == _msgSender(), "Not the note owner");
     require(amountToDelegate > 0 && amountToDelegate <= note.amount, "Invalid delegation amount");
     require(delegateTo != address(0), "Cannot delegate to zero address");
 
@@ -275,76 +252,65 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   // ============ Revocation ============
 
   /**
-   * @dev Revoke delegation by moving notes back to caller's chain.
-   * @param noteIds Array of notes to revoke
-   * @param chains Array of delegation chains (one per note)
+   * @dev Revoke delegation by moving a note back to caller's chain.
+   * @param noteId The note to revoke
+   * @param owners The delegation chain (leaf first, root last)
    */
-  function revoke(uint256[] calldata noteIds, address[][] calldata chains) external {
+  function revoke(uint256 noteId, address[] calldata owners) external {
     address caller = _msgSender();
 
-    for (uint256 i = 0; i < noteIds.length; i++) {
-      uint256 noteId = noteIds[i];
-      address[] calldata owners = chains[i];
+    Note storage note = notes[noteId];
+    require(note.chainHash != bytes32(0), "Note does not exist");
 
-      Note storage note = notes[noteId];
-      require(note.chainHash != bytes32(0), "Note does not exist");
+    bytes32 expectedHash = _verifyAndComputeChainHash(owners);
+    require(note.chainHash == expectedHash, "Invalid chain");
 
-      bytes32 expectedHash = _verifyAndComputeChainHash(owners);
-      require(note.chainHash == expectedHash, "Invalid chain");
-
-      // Find caller in the chain
-      bool found = false;
-      uint256 callerIndex = 0;
-      for (uint256 j = 0; j < owners.length; j++) {
-        if (owners[j] == caller) {
-          found = true;
-          callerIndex = j;
-          break;
-        }
+    // Find caller in the chain
+    bool found = false;
+    uint256 callerIndex = 0;
+    for (uint256 j = 0; j < owners.length; j++) {
+      if (owners[j] == caller) {
+        found = true;
+        callerIndex = j;
+        break;
       }
-      require(found, "Caller not in chain");
-
-      // Build new chain up to (and including) caller
-      // callerIndex=0 means caller is leaf, so new chain length = 1
-      // callerIndex=2 means caller is at position 2, so new chain length = 3
-      uint256 newChainLength = callerIndex + 1;
-      bytes32 newHash = bytes32(0);
-      for (uint256 j = owners.length - newChainLength; j < owners.length; j++) {
-        newHash = _computeChainHash(owners[j], newHash);
-      }
-
-      note.chainHash = newHash;
-      emit NoteRevoked(noteId, caller);
     }
+    require(found, "Caller not in chain");
+
+    // Build new chain up to (and including) caller
+    // callerIndex=0 means caller is leaf, so new chain length = 1
+    // callerIndex=2 means caller is at position 2, so new chain length = 3
+    uint256 newChainLength = callerIndex + 1;
+    bytes32 newHash = bytes32(0);
+    for (uint256 j = owners.length - newChainLength; j < owners.length; j++) {
+      newHash = _computeChainHash(owners[j], newHash);
+    }
+
+    note.chainHash = newHash;
+    emit NoteRevoked(noteId, caller);
   }
 
 
   // ============ Purchase Functions ============
 
-  enum MarketplaceType { PRIMARY, SECONDARY }
-
   /**
-   * @dev Unified purchase function for ERC1155 tokens from various marketplaces.
+   * @dev Purchase ERC1155 tokens from a primary market contract.
    * @param noteIds Array of note IDs to use for payment
    * @param chains Array of delegation chains (one per note)
    * @param paymentAmount Total amount to spend in ETH
-   * @param marketplaceType Type of marketplace (PRIMARY or SECONDARY)
-   * @param marketplaceAddress Address of the marketplace contract
+   * @param primaryMarket Address of the primary market contract
    * @param erc1155Contract Address of the ERC1155 token contract
-   * @param tokenIds Array of token IDs to purchase (single element for secondary)
-   * @param counts Array of token counts to purchase (single element for secondary)
-   * @param saleListingId Sale listing ID (only used for SECONDARY, ignored for PRIMARY)
+   * @param tokenIds Array of token IDs to purchase
+   * @param counts Array of token counts to purchase
    */
-  function purchaseERC1155(
+  function purchaseFromPrimaryMarket(
     uint256[] calldata noteIds,
     address[][] calldata chains,
     uint256 paymentAmount,
-    MarketplaceType marketplaceType,
-    address marketplaceAddress,
+    address primaryMarket,
     address erc1155Contract,
     uint256[] calldata tokenIds,
-    uint256[] calldata counts,
-    uint256 saleListingId
+    uint256[] calldata counts
   ) external nonReentrant {
     require(noteIds.length > 0, "Must provide at least one note");
     require(noteIds.length == chains.length, "Array length mismatch");
@@ -354,7 +320,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address caller = _msgSender();
 
     // Validate ownership and prepare payment
-    (, uint256 totalAvailable) = _preparePayment(
+    uint256 totalAvailable = _preparePayment(
       noteIds,
       chains,
       caller,
@@ -368,23 +334,95 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       bytes32[] memory statementIds
     ) = _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
 
-    // Execute marketplace-specific purchase
-    if (marketplaceType == MarketplaceType.PRIMARY) {
-      ERC1155PrimaryMarket(marketplaceAddress).buyERC1155{value: paymentAmount}(
-        address(this),
-        erc1155Contract,
-        tokenIds,
-        counts,
-        ""
-      );
-    } else {
-      require(tokenIds.length == 1 && counts.length == 1, "Secondary market only supports single token purchases");
-      ERC1155SecondaryMarket(marketplaceAddress).fulfillSaleListingTo{value: paymentAmount}(
-        saleListingId,
-        counts[0],
-        address(this)
-      );
-    }
+    // Execute primary market purchase
+    ERC1155PrimaryMarket(primaryMarket).buyERC1155{value: paymentAmount}(
+      address(this),
+      erc1155Contract,
+      tokenIds,
+      counts,
+      ""
+    );
+
+    // Create new notes with purchased tokens
+    uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
+      erc1155Contract,
+      tokenIds,
+      counts,
+      paymentChains,
+      spentAmounts,
+      statementIds,
+      paymentAmount
+    );
+
+    emit ERC1155Purchased(
+      caller,
+      erc1155Contract,
+      tokenIds,
+      counts,
+      paymentAmount,
+      noteIds,
+      outputNoteIds
+    );
+  }
+
+  /**
+   * @dev Purchase ERC1155 tokens from a secondary market contract.
+   * @param noteIds Array of note IDs to use for payment
+   * @param chains Array of delegation chains (one per note)
+   * @param paymentAmount Total amount to spend in ETH
+   * @param secondaryMarket Address of the secondary market contract
+   * @param saleListingId Sale listing ID in the secondary market
+   * @param tokenCount Number of tokens to purchase
+   */
+  function purchaseFromSecondaryMarket(
+    uint256[] calldata noteIds,
+    address[][] calldata chains,
+    uint256 paymentAmount,
+    address secondaryMarket,
+    uint256 saleListingId,
+    uint256 tokenCount
+  ) external nonReentrant {
+    require(noteIds.length > 0, "Must provide at least one note");
+    require(noteIds.length == chains.length, "Array length mismatch");
+    require(paymentAmount > 0, "Payment amount must be greater than 0");
+    require(tokenCount > 0, "Token count must be greater than 0");
+
+    address caller = _msgSender();
+
+    // Validate ownership and prepare payment
+    uint256 totalAvailable = _preparePayment(
+      noteIds,
+      chains,
+      caller,
+      paymentAmount
+    );
+
+    // Consume payment notes and cache data for output notes
+    (
+      address[][] memory paymentChains,
+      uint256[] memory spentAmounts,
+      bytes32[] memory statementIds
+    ) = _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
+
+    // Execute secondary market purchase
+    ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo{value: paymentAmount}(
+      saleListingId,
+      tokenCount,
+      address(this)
+    );
+
+    // Get the token details from the marketplace to create notes
+    // The secondary market will have transferred the token to us
+    address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
+
+    // Get the token ID from the sale listing
+    (, uint256 tokenId,,) = ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId);
+
+    // Create arrays for single token type
+    uint256[] memory tokenIds = new uint256[](1);
+    uint256[] memory counts = new uint256[](1);
+    tokenIds[0] = tokenId;
+    counts[0] = tokenCount;
 
     // Create new notes with purchased tokens
     uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
@@ -415,7 +453,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address[][] calldata chains,
     address caller,
     uint256 requiredPayment
-  ) private view returns (uint256[] memory paymentNoteIds, uint256 totalAvailable) {
+  ) private view returns (uint256 totalAvailable) {
     // Validate all notes and sum available
     for (uint256 i = 0; i < noteIds.length; i++) {
       Note storage note = notes[noteIds[i]];
@@ -423,16 +461,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
       bytes32 expectedHash = _verifyAndComputeChainHash(chains[i]);
       require(note.chainHash == expectedHash, "Invalid chain");
-      require(_getLeafOwner(chains[i]) == caller, "Not the note owner");
+      require(chains[i][0] == caller, "Not the note owner");
       require(note.token == address(0), "Notes must hold ETH");
 
       totalAvailable += note.amount;
     }
 
     require(totalAvailable >= requiredPayment, "Insufficient funds in notes");
-
-    paymentNoteIds = noteIds;
-    return (paymentNoteIds, totalAvailable);
   }
 
   /**
