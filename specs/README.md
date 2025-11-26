@@ -63,7 +63,7 @@ But also this might be useful with things other than code artifacts. e.g. It mig
 
 The overall system is made of two big components: Concept Space and Funding Portals.
 
- See specs/conceptspace.md and specs/fundingportals.md for more detail, but here are the main ideas:
+See [conceptspace.md](conceptspace.md) (statements, beliefs, and AI-generated implication relationships) and [fundingportals.md](fundingportals.md) (crowdfunding projects with retroactive funding and delegation) for more detail, but here are the main ideas:
 
 ### Concept Space
 
@@ -87,8 +87,8 @@ The overall system is made of two big components: Concept Space and Funding Port
   - Smart contracts in Solidity
   - Indexer uses Ponder, exposes GraphQL APIs
   - UI stack: TypeScript, Vite, Material UI, viem/wagmi/connectkit for blockchain interaction.
-  
-See specs/tech.md for details.
+
+See [tech.md](tech.md) for details on tech choices and rationale (why blockchain, which L2, indexer infrastructure, deployment considerations).
 
 
 ## Terminology / concepts
@@ -191,7 +191,7 @@ In specs/graphql, there should be some graphql schema files (or at least a half-
 
 #### Modelling Statements
 
-A Statement should be represented as a JSON document that we upload to IPFS. A statement's ID is the IPFS CID of this JSON document. See statements.md for more details.
+A Statement should be represented as a JSON document that we upload to IPFS. A statement's ID is the IPFS CID of this JSON document. See [statements.md](statements.md) for the JSON schema, reference system, and rendering requirements.
 
 
 #### Beliefs smart contract
@@ -274,20 +274,25 @@ Thoughts on potential threats:
 
 #### User queries and actions
 
-See specs/queries-and-actions.md for an AI-generated list of queries and actions that the system needs to support.
+See [queries-and-actions.md](queries-and-actions.md) for a comprehensive list of all user queries and actions the system must support (statement browsing, belief actions, funding, delegation, etc.).
 
 #### Indexers
 
-See specs/indexers.md for an AI-generated description of how to architect the indexers.
+See [indexers.md](indexers.md) for the federated indexer architecture (Concept Space, Pubstarter, Delegation, Funding Portal subsystems), data responsibilities, and implementation review notes.
 
 #### Generative testing
 
-See generative-testing-plan.md for some thoughts on doing that. But basically let's generate a bunch of fake users and have them do a bunch of fake actions to test the system.
+See [generative-testing-plan.md](generative-testing-plan.md) for the overall plan for generative testing (universe generation, user simulation, multiple attester types, test scenarios, invariant validation, metrics tracking). For the actual implementation, see [../hardhat/generative-tests/README.md](../hardhat/generative-tests/README.md).
 
 
 ## A bit more philosophizing
 
-In philosophizing.md there are some not-exactly-relevant thoughts about this system and how it fits into the world. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're an AI whose job is to think more broadly about what we need.
+In [philosophizing.md](philosophizing.md) there are some not-exactly-relevant thoughts about this system and how it fits into the world (contrast with VC/Kickstarter/centralized funds, "nano" versions of VC/crowdsourcing/trustees enabled by crypto, philosophical stance on neutrality/moderation). If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're an AI whose job is to think more broadly about what we need.
+
+## Additional documentation
+
+- [not-there-yet.md](not-there-yet.md) - Scratch file for features discussed in chats but not yet incorporated into the main spec (currently: application lifecycle ideas)
+- [chats/](chats/) - Directory containing meeting notes and transcripts from planning sessions (preserved for historical context but not necessary for implementation)
 
 
 ## Future steps
