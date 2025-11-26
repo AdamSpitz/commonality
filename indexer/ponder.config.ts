@@ -14,6 +14,9 @@ import {
 import { AssuranceContractAbi } from "./abis/AssuranceContractAbi";
 import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
 
+// Delegation ABIs
+import { DelegatableNotesAbi } from "./abis/DelegatableNotesAbi";
+
 // ============================================================================
 // CONCEPTSPACE CONTRACT ADDRESSES
 // ============================================================================
@@ -28,9 +31,15 @@ const ASSURANCE_CONTRACT_FACTORY_ADDRESS = process.env.ASSURANCE_CONTRACT_FACTOR
 const ERC1155_FACTORY_ADDRESS = process.env.ERC1155_FACTORY_ADDRESS as `0x${string}` | undefined;
 const MARKETPLACE_FACTORY_ADDRESS = process.env.MARKETPLACE_FACTORY_ADDRESS as `0x${string}` | undefined;
 
+// ============================================================================
+// DELEGATION CONTRACT ADDRESSES
+// ============================================================================
+const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}` | undefined;
+
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
 const PUBSTARTER_START_BLOCK = Number(process.env.PUBSTARTER_START_BLOCK || START_BLOCK);
+const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || START_BLOCK);
 
 export default createConfig({
   chains: {
@@ -118,6 +127,19 @@ export default createConfig({
           })
         : undefined,
       startBlock: PUBSTARTER_START_BLOCK,
+    },
+
+    // ========================================================================
+    // DELEGATION INDEXER CONTRACTS
+    // ========================================================================
+    // These are logically separate from Conceptspace and Pubstarter contracts.
+    // The Delegation indexer tracks delegatable notes and delegation chains.
+
+    DelegatableNotes: {
+      abi: DelegatableNotesAbi,
+      chain: "baseSepolia",
+      address: DELEGATABLE_NOTES_ADDRESS,
+      startBlock: DELEGATION_START_BLOCK,
     },
   },
 });

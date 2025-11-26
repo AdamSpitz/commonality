@@ -7,6 +7,7 @@
  * Subsystems:
  * - Concept Space: /conceptspace/* - Statements, beliefs, implications
  * - Pubstarter: /pubstarter/* - Crowdfunding projects, contributions, markets
+ * - Delegation: /delegation/* - Delegatable notes, delegation chains
  *
  * The root GraphQL endpoint provides access to all schema tables.
  */
@@ -19,6 +20,7 @@ import { client, graphql } from "ponder";
 // Import subsystem APIs
 import conceptspaceApi from "../conceptspace/api";
 import pubstarterApi from "../pubstarter/api";
+import delegationApi from "../delegation/api";
 
 const app = new Hono();
 
@@ -42,5 +44,8 @@ app.route("/conceptspace", conceptspaceApi);
 
 // Mount Pubstarter API at /pubstarter/*
 app.route("/pubstarter", pubstarterApi);
+
+// Mount Delegation API at /delegation/*
+app.route("/delegation", delegationApi);
 
 export default app;
