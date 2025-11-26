@@ -29,3 +29,10 @@ Tests that validate the interaction between multiple subsystems (blockchain + in
     npm run test:small
 
 See [integration-tests/README.md](integration-tests/README.md) and [integration-tests/INDEXER_TESTING_GUIDE.md](integration-tests/INDEXER_TESTING_GUIDE.md) for details.
+
+
+### Docker stuff
+
+Sam, see [QUICKSTART.md](QUICKSTART.md) if you want to get this up and running.
+
+There's also [DOCKER_README.md](DOCKER_README.md) with more-detailed documentation.
