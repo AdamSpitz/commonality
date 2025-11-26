@@ -24,9 +24,11 @@ const TOKEN_TYPE_ERC1155 = TokenType.ERC1155;
  * chainHash = keccak256(abi.encodePacked(owner, parentChainHash))
  */
 function computeChainHash(owner: `0x${string}`, parentHash: `0x${string}`): `0x${string}` {
-  // This would need to use keccak256 - for now we'll store the hash from the contract
-  // In practice, we get the chainHash from the contract events/state
-  return parentHash; // Placeholder - will use contract's chainHash
+  // Import keccak256 from viem (Ponder uses viem internally)
+  const { keccak256, encodePacked } = require('viem');
+
+  // Match Solidity's abi.encodePacked(owner, parentHash)
+  return keccak256(encodePacked(['address', 'bytes32'], [owner, parentHash]));
 }
 
 /**
@@ -113,15 +115,14 @@ async function createNoteEvent(
  * Creates a new note record with initial (root) delegation chain
  */
 ponder.on("DelegatableNotes:NoteCreated", async ({ event, context }) => {
-  const { noteId, owner, amount, token, tokenType, tokenId } = event.args;
+  const { noteId, owner, amount, token, tokenType, tokenId, intendedStatementId } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
   const transactionHash = event.transaction.hash;
 
-  // Read the note from the contract to get chainHash and intendedStatementId
-  // For now, we'll compute chainHash for root: hash(owner, 0)
-  // In production, you might want to read from contract state
-  const chainHash = `0x${"0".repeat(64)}` as `0x${string}`; // Placeholder - should compute or read
+  // Compute chainHash for root note: hash(owner, 0x00...00)
+  // This matches the Solidity implementation: keccak256(abi.encodePacked(owner, bytes32(0)))
+  const chainHash = computeChainHash(owner, `0x${"0".repeat(64)}` as `0x${string}`);
 
   await context.db.insert(delegatableNotes).values({
     id: noteId,
@@ -131,7 +132,7 @@ ponder.on("DelegatableNotes:NoteCreated", async ({ event, context }) => {
     tokenType,
     tokenId: tokenId || 0n,
     amount,
-    intendedStatementId: `0x${"0".repeat(64)}` as `0x${string}`, // Will be updated if we can read it
+    intendedStatementId,
     chainHash,
     active: true,
     parentNoteId: null,
@@ -196,18 +197,53 @@ ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
         createdAt: timestamp,
       });
 
-      // Update note owner
+      // Compute new chainHash: hash(delegate, oldChainHash)
+      const newChainHash = computeChainHash(delegate, note.chainHash);
+
+      // Update note owner and chainHash
       await context.db
         .update(delegatableNotes, { id: parentNoteId })
         .set({
           owner: delegate,
+          chainHash: newChainHash,
           updatedAt: timestamp,
         });
     }
   } else {
     // Partial delegation - childNoteId is a new note created by the contract
-    // The contract emits ChainSplit and NoteDelegated events
-    // We'll handle the new note in ChainSplit handler
+    // The contract emits ChainSplit first (creates the note), then NoteDelegated
+    // We need to update the new note with the delegate as owner and compute new chainHash
+
+    const childNote = await context.db.find(delegatableNotes, { id: childNoteId });
+
+    if (childNote) {
+      // Get current chain for child note
+      const chainEntries = await context.db.sql.query.delegationChains.findMany({
+        where: (table: any, { eq }: any) => eq(table.noteId, childNoteId),
+        orderBy: (table: any, { asc }: any) => [asc(table.position)],
+      });
+
+      // Add delegate to chain
+      const newPosition = chainEntries.length;
+      await context.db.insert(delegationChains).values({
+        noteId: childNoteId,
+        position: newPosition,
+        address: delegate,
+        createdAt: timestamp,
+      });
+
+      // Compute new chainHash: hash(delegate, oldChainHash)
+      const newChainHash = computeChainHash(delegate, childNote.chainHash);
+
+      // Update child note owner and chainHash
+      await context.db
+        .update(delegatableNotes, { id: childNoteId })
+        .set({
+          owner: delegate,
+          chainHash: newChainHash,
+          updatedAt: timestamp,
+        });
+    }
   }
 
   // Record event
@@ -247,11 +283,12 @@ ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
 
   // The originalLeafId becomes the remainder (with reduced amount)
   // The splitLeafId is the new delegated note
+  // Note: remainderLeafId === originalLeafId (contract keeps same ID for remainder)
 
   // Update remainder note (originalLeafId)
   const remainderAmount = originalNote.amount - splitAmount;
   await context.db
-    .update(delegatableNotes, { id: remainderLeafId })
+    .update(delegatableNotes, { id: originalLeafId })
     .set({
       amount: remainderAmount,
       updatedAt: timestamp,
@@ -342,11 +379,23 @@ ponder.on("DelegatableNotes:NoteRevoked", async ({ event, context }) => {
       }
     }
 
-    // Update note owner to revoker
+    // Recompute chainHash for the truncated chain
+    // Build chain from root (highest position) to revoker (keepUntilPosition)
+    let newChainHash: `0x${string}` = `0x${"0".repeat(64)}` as `0x${string}`;
+    const truncatedChain = chainEntries
+      .filter((entry: any) => entry.position <= keepUntilPosition)
+      .sort((a: any, b: any) => b.position - a.position); // Sort descending (root first)
+
+    for (const entry of truncatedChain) {
+      newChainHash = computeChainHash(entry.address, newChainHash);
+    }
+
+    // Update note owner and chainHash
     await context.db
       .update(delegatableNotes, { id: noteId })
       .set({
         owner: revoker,
+        chainHash: newChainHash,
         updatedAt: timestamp,
       });
   }

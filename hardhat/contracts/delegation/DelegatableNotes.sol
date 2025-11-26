@@ -48,7 +48,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 amount,
     address token,
     TokenType tokenType,
-    uint256 tokenId
+    uint256 tokenId,
+    bytes32 intendedStatementId
   );
   event NoteDelegated(
     uint256 indexed parentNoteId,
@@ -147,7 +148,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       intendedStatementId: intendedStatementId
     });
 
-    emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId);
+    emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId, intendedStatementId);
     return noteId;
   }
 

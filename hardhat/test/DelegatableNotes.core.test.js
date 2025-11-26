@@ -20,7 +20,7 @@ describe("DelegatableNotes - Core Functionality", function () {
 
       await expect(notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount }))
         .to.emit(notes, "NoteCreated")
-        .withArgs(1, alice.address, amount, ethers.ZeroAddress, 0, 0);
+        .withArgs(1, alice.address, amount, ethers.ZeroAddress, 0, 0, statementId);
 
       const note = await notes.notes(1);
       expect(note.amount).to.equal(amount);

@@ -194,18 +194,28 @@ The following issues were identified in the initial indexer implementation (as o
      - Event handlers (`context.db`): Should use Store API (`find`, `insert`, `update`, `delete`) or `context.db.sql.query` for complex queries
      - API routes (`db` from "ponder:api"): Can use full Drizzle query builder (`db.select().from().where()`)
 
-3. **ChainSplit Handler Logic** ([src/delegation/index.ts:231-308](../indexer/src/delegation/index.ts#L231-L308))
-   - Updates `remainderLeafId` but the variable name suggests it should update `originalLeafId`
-   - The contract behavior vs indexer behavior needs clarification: which note ID persists and which is new?
+3. ~~**ChainSplit Handler Logic**~~ ✅ **FIXED** ([src/delegation/index.ts:231-311](../indexer/src/delegation/index.ts#L231-L311))
+   - ~~Updates `remainderLeafId` but the variable name suggests it should update `originalLeafId`~~
+   - ~~The contract behavior vs indexer behavior needs clarification: which note ID persists and which is new?~~
+   - **Fixed**: Now correctly updates `originalLeafId` (the remainder note). Contract keeps the original note ID for the remainder and creates a new note ID for the delegated split portion.
 
-4. **Missing Chain Hash Computation** ([src/delegation/index.ts:120](../indexer/src/delegation/index.ts#L120))
-   - Placeholder returns `0x00...00` instead of computing actual chain hash
-   - This means chain verification won't work properly
-   - Either needs implementation or should read from contract state
+4. ~~**Missing Chain Hash Computation**~~ ✅ **FIXED** ([src/delegation/index.ts:26-32, 125, 201, 236, 382-391](../indexer/src/delegation/index.ts#L26-L32))
+   - ~~Placeholder returns `0x00...00` instead of computing actual chain hash~~
+   - **Fixed**: Now properly computes chain hash using `keccak256(encodePacked(owner, parentChainHash))` matching Solidity implementation
+   - **Implementation**: Uses viem's `keccak256` and `encodePacked` functions
+   - **Locations updated**:
+     - `computeChainHash` helper function implements the hash computation
+     - `NoteCreated` handler computes initial chain hash for root notes
+     - `NoteDelegated` handler computes new chain hash when delegating (both full and partial)
+     - `NoteRevoked` handler recomputes chain hash after truncating the delegation chain
 
-5. **Intended Statement ID Not Set** ([src/delegation/index.ts:130](../indexer/src/delegation/index.ts#L130))
-   - Always defaults to `0x00...00` - the note's intended statement alignment won't be tracked
-   - Needs to read this from contract state or event args
+5. ~~**Intended Statement ID Not Set**~~ ✅ **FIXED** ([DelegatableNotes.sol:45-53, 151](../hardhat/contracts/delegation/DelegatableNotes.sol#L45-L53) & [src/delegation/index.ts:118](../indexer/src/delegation/index.ts#L118))
+   - ~~Always defaults to `0x00...00` - the note's intended statement alignment won't be tracked~~
+   - **Root cause**: The `NoteCreated` event was missing `intendedStatementId` parameter
+   - **Fixed**:
+     - **Smart contract**: Added `intendedStatementId` to `NoteCreated` event parameters
+     - **Indexer**: Now reads `intendedStatementId` directly from event args
+   - **Benefits**: Cleaner, more efficient (no extra RPC calls), more reliable during reorgs
 
 ### Major Issues 🟠
 
