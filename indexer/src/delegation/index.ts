@@ -212,38 +212,45 @@ ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
   } else {
     // Partial delegation - childNoteId is a new note created by the contract
     // The contract emits ChainSplit first (creates the note), then NoteDelegated
-    // We need to update the new note with the delegate as owner and compute new chainHash
+    // Both events are in the same transaction, so they should be processed in order.
+    // However, we'll handle the case where the child note doesn't exist yet.
 
     const childNote = await context.db.find(delegatableNotes, { id: childNoteId });
 
-    if (childNote) {
-      // Get current chain for child note
-      const chainEntries = await context.db.sql.query.delegationChains.findMany({
-        where: (table: any, { eq }: any) => eq(table.noteId, childNoteId),
-        orderBy: (table: any, { asc }: any) => [asc(table.position)],
-      });
-
-      // Add delegate to chain
-      const newPosition = chainEntries.length;
-      await context.db.insert(delegationChains).values({
-        noteId: childNoteId,
-        position: newPosition,
-        address: delegate,
-        createdAt: timestamp,
-      });
-
-      // Compute new chainHash: hash(delegate, oldChainHash)
-      const newChainHash = computeChainHash(delegate, childNote.chainHash);
-
-      // Update child note owner and chainHash
-      await context.db
-        .update(delegatableNotes, { id: childNoteId })
-        .set({
-          owner: delegate,
-          chainHash: newChainHash,
-          updatedAt: timestamp,
-        });
+    if (!childNote) {
+      // This should not happen if events are processed in order, but handle gracefully
+      context.log.error(
+        `NoteDelegated: Child note ${childNoteId} not found. ChainSplit may not have been processed yet.`
+      );
+      return;
     }
+
+    // Get current chain for child note
+    const chainEntries = await context.db.sql.query.delegationChains.findMany({
+      where: (table: any, { eq }: any) => eq(table.noteId, childNoteId),
+      orderBy: (table: any, { asc }: any) => [asc(table.position)],
+    });
+
+    // Add delegate to chain
+    const newPosition = chainEntries.length;
+    await context.db.insert(delegationChains).values({
+      noteId: childNoteId,
+      position: newPosition,
+      address: delegate,
+      createdAt: timestamp,
+    });
+
+    // Compute new chainHash: hash(delegate, oldChainHash)
+    const newChainHash = computeChainHash(delegate, childNote.chainHash);
+
+    // Update child note owner and chainHash
+    await context.db
+      .update(delegatableNotes, { id: childNoteId })
+      .set({
+        owner: delegate,
+        chainHash: newChainHash,
+        updatedAt: timestamp,
+      });
   }
 
   // Record event
@@ -265,7 +272,13 @@ ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
 
 /**
  * Handle ChainSplit event
- * Creates a new note for the delegated portion and updates the remainder
+ * Creates a new note for the delegated portion and updates the remainder.
+ *
+ * Event ordering: In the smart contract, for partial delegations:
+ *   1. ChainSplit is emitted first (this handler)
+ *   2. NoteDelegated is emitted second
+ * Both events are in the same transaction. This handler creates the child note
+ * with temporary values, and NoteDelegated updates the owner and chainHash.
  */
 ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
   const { originalLeafId, splitLeafId, remainderLeafId, splitAmount } = event.args;

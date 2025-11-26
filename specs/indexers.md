@@ -299,10 +299,13 @@ The following issues were identified in the initial indexer implementation (as o
       - [fundingportal/api.ts](../indexer/src/fundingportal/api.ts) - 4 endpoints validated
       - [pubstarter/api.ts](../indexer/src/pubstarter/api.ts) - No custom endpoints (GraphQL only)
 
-12. **Note Delegation Logic Complexity** ([src/delegation/index.ts:165-225](../indexer/src/delegation/index.ts#L165-L225))
-    - The handler assumes `NoteDelegated` might be emitted before `ChainSplit` for partial delegations
-    - Event ordering dependency could cause issues if events arrive out of order
-    - May need to buffer events or handle both orderings
+12. ~~**Note Delegation Logic Complexity**~~ ✅ **FIXED** ([src/delegation/index.ts:165-253](../indexer/src/delegation/index.ts#L165-L253))
+    - ~~The handler assumes `NoteDelegated` might be emitted before `ChainSplit` for partial delegations~~
+    - ~~Event ordering dependency could cause issues if events arrive out of order~~
+    - **Fixed**: Added clear documentation of event ordering (ChainSplit → NoteDelegated)
+    - **Fixed**: Added error handling in NoteDelegated to gracefully handle missing child notes
+    - **Verification**: Smart contract guarantees ordering by emitting events sequentially in same transaction ([DelegatableNotes.sol:251-252](../hardhat/contracts/delegation/DelegatableNotes.sol#L251-L252))
+    - **Robustness**: Handler now logs errors and returns early if child note is missing, preventing database corruption
 
 13. **Missing Metadata Fetching** ([src/pubstarter/index.ts:152](../indexer/src/pubstarter/index.ts#L152))
     - TODO comment for IPFS metadata fetching never implemented
