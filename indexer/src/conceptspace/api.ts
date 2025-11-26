@@ -36,6 +36,7 @@ import {
   isValidHash,
   isValidAddress,
   parseAddressList,
+  parsePositiveInt,
   invalidInputError,
 } from "../utils/validation";
 
@@ -54,6 +55,11 @@ app.use("/graphql", graphql({ db, schema }));
  * (filtered by trusted attesters). Excludes users who disbelieve the target.
  *
  * NOTE: Implications are NOT transitive - we only look at direct implications.
+ *
+ * Query params:
+ *   - attesters: comma-separated list of trusted attester addresses (required)
+ *   - limit: number (default 100, max 1000) - maximum number of supporters to return
+ *   - offset: number (default 0) - number of supporters to skip
  */
 app.get("/api/indirect-supporters/:statementId", async (c) => {
   try {
@@ -69,6 +75,9 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
       return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
     }
 
+    const limit = Math.min(parsePositiveInt(c.req.query("limit"), 100), 1000);
+    const offset = parsePositiveInt(c.req.query("offset"), 0);
+
     // Step 1: Find all statements that imply this statement (from trusted attesters)
     const implyingStatements = await db
       .select({ fromStatementId: implications.fromStatementId })
@@ -81,7 +90,7 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
       );
 
     if (implyingStatements.length === 0) {
-      return c.json({ indirectSupporters: [], count: 0 });
+      return c.json({ indirectSupporters: [], totalCount: 0, limit, offset });
     }
 
     const implyingIds = implyingStatements.map((s) => s.fromStatementId);
@@ -109,12 +118,19 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
       );
 
     const disbelieverSet = new Set(disbelievers.map((d) => d.user));
-    const indirectSupporters = [...new Set(supporters.map((s) => s.user))]
+    const allIndirectSupporters = [...new Set(supporters.map((s) => s.user))]
       .filter((user) => !disbelieverSet.has(user));
+
+    const totalCount = allIndirectSupporters.length;
+
+    // Apply pagination
+    const indirectSupporters = allIndirectSupporters.slice(offset, offset + limit);
 
     return c.json({
       indirectSupporters,
-      count: indirectSupporters.length,
+      totalCount,
+      limit,
+      offset,
     });
   } catch (error) {
     console.error("Error fetching indirect supporters:", error);
@@ -213,6 +229,10 @@ app.get("/api/statement-support/:statementId", async (c) => {
  * Custom API endpoint: Get suggestions for a user
  * "You signed S1, and there's a statement S2 that is implied by S1 and
  * is more popular than S1; maybe you'd like to sign S2 as well."
+ *
+ * Query params:
+ *   - attesters: comma-separated list of trusted attester addresses (required)
+ *   - limit: number (default 10, max 100) - maximum number of suggestions to return
  */
 app.get("/api/suggestions/:userAddress", async (c) => {
   try {
@@ -227,6 +247,8 @@ app.get("/api/suggestions/:userAddress", async (c) => {
     if (!trustedAttesters || trustedAttesters.length === 0) {
       return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
     }
+
+    const limit = Math.min(parsePositiveInt(c.req.query("limit"), 10), 100);
 
     // Get statements the user believes
     const userBeliefs = await db
@@ -301,9 +323,9 @@ app.get("/api/suggestions/:userAddress", async (c) => {
       })
       .filter(Boolean)
       .sort((a, b) => b!.popularityGain - a!.popularityGain)
-      .slice(0, 10);
+      .slice(0, limit);
 
-    return c.json({ suggestions });
+    return c.json({ suggestions, limit });
   } catch (error) {
     console.error("Error fetching suggestions:", error);
     return c.json({ error: "Internal server error" }, 500);

@@ -350,12 +350,20 @@ The following issues were identified in the initial indexer implementation (as o
     - Many `any` types in query results ([delegation/api.ts](../indexer/src/delegation/api.ts))
     - Could benefit from proper typing of database query results
 
-19. **API Response Pagination Missing**
-    - Endpoints like `/api/active-notes` could return unlimited results
-    - Should add limit/offset parameters
+19. ~~**API Response Pagination Missing**~~ ✅ **FIXED** ([delegation/api.ts](../indexer/src/delegation/api.ts), [conceptspace/api.ts](../indexer/src/conceptspace/api.ts))
+    - ~~Endpoints like `/api/active-notes` could return unlimited results~~
+    - ~~Should add limit/offset parameters~~
+    - **Fixed**: Added pagination support to list endpoints:
+      - **Delegation API**: `/api/active-notes`, `/api/notes-by-root-owner`, `/api/note-history`
+      - **Concept Space API**: `/api/indirect-supporters`, `/api/suggestions`
+      - All endpoints support `limit` (default 100, max 1000) and `offset` (default 0) query parameters
+      - Responses include `totalCount`, `limit`, and `offset` fields
+    - **Note**: Funding Portal APIs do aggregation/summaries and pagination is less critical there
 
-20. **Missing Index on Common Queries**
-    - Schema has good indexes overall, but might benefit from composite index on `(statementId, beliefState, updatedAt)` for trending queries
+20. ~~**Missing Index on Common Queries**~~ ✅ **FIXED** ([ponder.schema.ts:55](../indexer/ponder.schema.ts#L55))
+    - ~~Schema has good indexes overall, but might benefit from composite index on `(statementId, beliefState, updatedAt)` for trending queries~~
+    - **Fixed**: Added `trendingIdx` composite index on `beliefs` table covering `(statementId, beliefState, updatedAt)`
+    - **Benefits**: Efficiently supports queries for trending statements (statements gaining believers over time)
 
 ### Positive Aspects ✅
 

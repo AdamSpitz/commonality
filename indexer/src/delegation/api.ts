@@ -118,6 +118,8 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
  * Example: GET /api/active-notes/0x123...
  * Query params:
  *   - includeChains: boolean (default false) - include full delegation chains
+ *   - limit: number (default 100, max 1000) - maximum number of notes to return
+ *   - offset: number (default 0) - number of notes to skip
  *
  * Response: {
  *   owner: "0x123...",
@@ -133,7 +135,9 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
  *     },
  *     ...
  *   ],
- *   totalCount: 5
+ *   totalCount: 5,
+ *   limit: 100,
+ *   offset: 0
  * }
  */
 app.get("/api/active-notes/:address", async (c) => {
@@ -145,15 +149,22 @@ app.get("/api/active-notes/:address", async (c) => {
     }
 
     const includeChains = parseBoolean(c.req.query("includeChains"), false);
+    const limit = Math.min(parsePositiveInt(c.req.query("limit"), 100), 1000);
+    const offset = parsePositiveInt(c.req.query("offset"), 0);
 
-    // Get all active notes owned by this address
-    const notes = await db
+    // Get total count
+    const allNotes = await db
       .select()
       .from(delegatableNotes)
       .where(and(
         eq(delegatableNotes.owner, address),
         eq(delegatableNotes.active, true)
       ));
+
+    const totalCount = allNotes.length;
+
+    // Apply pagination
+    const notes = allNotes.slice(offset, offset + limit);
 
     const result = [];
 
@@ -187,7 +198,9 @@ app.get("/api/active-notes/:address", async (c) => {
     return c.json({
       owner: address,
       notes: result,
-      totalCount: result.length,
+      totalCount,
+      limit,
+      offset,
     });
   } catch (error) {
     console.error("Error fetching active notes:", error);
@@ -300,11 +313,15 @@ app.get("/api/available-funding/:statementId", async (c) => {
  * Example: GET /api/notes-by-root-owner/0x123...
  * Query params:
  *   - activeOnly: boolean (default true)
+ *   - limit: number (default 100, max 1000) - maximum number of notes to return
+ *   - offset: number (default 0) - number of notes to skip
  *
  * Response: {
  *   rootOwner: "0x123...",
  *   notes: [...],
- *   totalCount: 3
+ *   totalCount: 3,
+ *   limit: 100,
+ *   offset: 0
  * }
  */
 app.get("/api/notes-by-root-owner/:address", async (c) => {
@@ -316,6 +333,8 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
     }
 
     const activeOnly = parseBoolean(c.req.query("activeOnly"), true);
+    const limit = Math.min(parsePositiveInt(c.req.query("limit"), 100), 1000);
+    const offset = parsePositiveInt(c.req.query("offset"), 0);
 
     // Build query with proper condition chaining
     const conditions = [eq(delegatableNotes.rootOwner, address)];
@@ -323,10 +342,15 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
       conditions.push(eq(delegatableNotes.active, true));
     }
 
-    const notes = await db
+    const allNotes = await db
       .select()
       .from(delegatableNotes)
       .where(and(...conditions));
+
+    const totalCount = allNotes.length;
+
+    // Apply pagination
+    const notes = allNotes.slice(offset, offset + limit);
 
     const result = notes.map((note) => ({
       noteId: note.id.toString(),
@@ -343,7 +367,9 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
     return c.json({
       rootOwner: address,
       notes: result,
-      totalCount: result.length,
+      totalCount,
+      limit,
+      offset,
     });
   } catch (error) {
     console.error("Error fetching notes by root owner:", error);
@@ -357,6 +383,9 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
  * Returns all events for a specific note, ordered by time.
  *
  * Example: GET /api/note-history/123
+ * Query params:
+ *   - limit: number (default 100, max 1000) - maximum number of events to return
+ *   - offset: number (default 0) - number of events to skip
  *
  * Response: {
  *   noteId: "123",
@@ -369,7 +398,10 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
  *       transactionHash: "0xabc..."
  *     },
  *     ...
- *   ]
+ *   ],
+ *   totalCount: 5,
+ *   limit: 100,
+ *   offset: 0
  * }
  */
 app.get("/api/note-history/:noteId", async (c) => {
@@ -381,11 +413,19 @@ app.get("/api/note-history/:noteId", async (c) => {
       return c.json(invalidInputError("noteId", "Must be a valid integer"), 400);
     }
 
-    const events = await db
+    const limit = Math.min(parsePositiveInt(c.req.query("limit"), 100), 1000);
+    const offset = parsePositiveInt(c.req.query("offset"), 0);
+
+    const allEvents = await db
       .select()
       .from(noteEvents)
       .where(eq(noteEvents.noteId, noteId))
       .orderBy(asc(noteEvents.createdAt));
+
+    const totalCount = allEvents.length;
+
+    // Apply pagination
+    const events = allEvents.slice(offset, offset + limit);
 
     const result = events.map((event) => ({
       eventType: event.eventType,
@@ -402,6 +442,9 @@ app.get("/api/note-history/:noteId", async (c) => {
     return c.json({
       noteId: noteId.toString(),
       events: result,
+      totalCount,
+      limit,
+      offset,
     });
   } catch (error) {
     console.error("Error fetching note history:", error);

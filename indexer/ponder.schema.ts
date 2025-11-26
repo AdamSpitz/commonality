@@ -51,6 +51,8 @@ export const beliefs = onchainTable(
     statementIdx: index().on(table.statementId, table.beliefState),
     // Index for finding all statements a user believes
     userIdx: index().on(table.user, table.beliefState),
+    // Composite index for trending queries (statements gaining believers over time)
+    trendingIdx: index().on(table.statementId, table.beliefState, table.updatedAt),
   })
 );
 
