@@ -301,3 +301,246 @@ The following issues were identified in the initial indexer implementation (as o
 ### Verdict
 
 The indexer architecture is **sound and follows the spec well**, but it needs **debugging and completion** before it will work correctly. The critical issues around delegation chain management and database queries need immediate attention. Estimated time needed: **2-4 hours of fixes and testing** before ready to run.
+
+---
+
+## Comprehensive Indexer Testing Plan
+
+Based on my review of your project, I can see you have:
+
+1. **Four logical indexers** (Concept Space, Pubstarter, Delegation, Funding Portal) with critical issues documented in [specs/indexers.md](specs/indexers.md)
+2. **A generative testing system** that creates realistic blockchain data
+3. **Basic integration tests** that validate Concept Space indexing only
+4. **A complete spec** of user queries/actions in [specs/queries-and-actions.md](specs/queries-and-actions.md)
+
+### Current Test Coverage Gaps
+
+Your existing [integration-tests/testIndexer.js](integration-tests/testIndexer.js) only tests the **Concept Space indexer**:
+- ✅ Statements, Users, Beliefs, Implications
+- ❌ **Not tested**: Pubstarter, Delegation, Funding Portal
+- ❌ **Not tested**: Most queries from [queries-and-actions.md](specs/queries-and-actions.md)
+- ❌ **Not tested**: Critical bugs documented in [indexers.md](specs/indexers.md)
+
+---
+
+## Recommended Testing Strategy
+
+### **Phase 1: Fix Critical Bugs First** 🔴
+Before extensive testing, fix the critical issues documented in [specs/indexers.md:178-303](specs/indexers.md#L178-L303):
+
+1. **Delegation Chain Storage** (FIXED ✅)
+2. **Database Query API** - Verify Ponder's actual API syntax
+3. **Chain Hash Computation** - Implement or remove placeholder
+4. **Intended Statement ID** - Populate from contract state
+5. **Note Deactivation** - Mark notes inactive after spending
+
+**Why fix first?** Many of these bugs will cause tests to fail, making it hard to distinguish between test bugs and indexer bugs.
+
+---
+
+### **Phase 2: Expand Test Coverage Using queries-and-actions.md** 📋
+
+Yes, [specs/queries-and-actions.md](specs/queries-and-actions.md) is an excellent checklist! I recommend organizing tests by **indexer subsystem**:
+
+#### **2.1 Concept Space Tests** (Expand existing)
+Current coverage is good, but add:
+- Search by keyword (full-text search)
+- Trending statements (velocity calculation)
+- Statement suggestions (based on implications)
+- High-profile signers (verified accounts)
+- Trusted attesters filtering
+
+#### **2.2 Pubstarter Tests** (New - missing!)
+Test queries from lines 51-93:
+- Project discovery and filtering
+- Contribution tracking
+- Donor vs investor distinction
+- Token holdings
+- Secondary market (buy/sell orders)
+- Order book with price-time priority
+
+#### **2.3 Delegation Tests** (New - missing!)
+Test queries from lines 94-106:
+- Create delegatable notes
+- Delegation chain tracking
+- Note splits/merges
+- Commission percentages
+- Revocation handling
+- Spend notes to fund projects
+
+#### **2.4 Funding Portal Tests** (New - missing!)
+Test cross-cutting queries from lines 51-123:
+- Total funding per cause (aggregated)
+- Projects aligned with statements (direct + indirect via implications)
+- Contributor leaderboards
+- Federation to other indexer APIs
+- Cached query invalidation
+
+---
+
+### **Phase 3: Test-Driven Development Pattern** 🔄
+
+For each subsystem, follow this pattern:
+
+```javascript
+// 1. Generate blockchain events
+await simulation.createProject(/* ... */);
+await simulation.contributeToProject(/* ... */);
+
+// 2. Wait for indexer sync
+await waitForSync();
+
+// 3. Query GraphQL API
+const data = await queryGraphQL(`
+  query {
+    projects(limit: 10) {
+      items { id threshold currentFunding }
+    }
+  }
+`);
+
+// 4. Validate against expected state
+assert(data.projects.items.length > 0);
+assert(data.projects.items[0].currentFunding >= 0);
+
+// 5. Query custom APIs
+const projectDetails = await queryAPI(`/pubstarter/api/project/${projectId}`);
+assert(projectDetails.contributors.length > 0);
+```
+
+---
+
+### **Phase 4: Specific Test Scenarios** 🎯
+
+Beyond basic CRUD, test **edge cases and business logic**:
+
+#### **Concept Space**
+- **Indirect support calculation**: Create S1→S2 implication, users sign S1, verify S2 shows indirect supporters
+- **Multiple attesters**: Filter implications by trusted attester set
+- **Batch beliefs**: setBeliefsInBatch should create multiple belief records
+
+#### **Pubstarter**
+- **Assurance contract**: Verify refunds if threshold not met by deadline
+- **Burned tokens**: Donors burn tokens, verify they're not counted as investors
+- **Partial order fills**: Place buy order for 100 tokens, fulfill in two batches of 50
+
+#### **Delegation**
+- **Chain reconstruction**: Delegate Alice→Bob→Charlie, verify full chain query
+- **Split invalidation**: Split a note, verify both notes have correct chain
+- **Revocation cascading**: Revoke Alice→Bob, verify Bob→Charlie also invalidated
+- **Commission tracking**: Verify commissions stored at each hop
+
+#### **Funding Portal (Federation)**
+- **Indirect alignment**: Project P aligns with S2, S1→S2, verify P appears for S1
+- **Aggregated funding**: Multiple projects for S1, verify total summed correctly
+- **Delegation attribution**: Contribute via delegated note, verify full chain visible
+
+---
+
+### **Phase 5: Data Integrity & Stress Tests** 💪
+
+#### **5.1 Deep Validation**
+Compare **every blockchain event** with indexed records:
+```javascript
+// Get all BeliefSet events from blockchain
+const events = await beliefsContract.queryFilter('BeliefSet');
+
+// Query all beliefs from indexer
+const indexedBeliefs = await queryGraphQL(/* ... */);
+
+// Validate 1:1 correspondence
+for (const event of events) {
+  const indexed = indexedBeliefs.find(b =>
+    b.user === event.args.user &&
+    b.statementId === event.args.statementId
+  );
+  assert(indexed, `Missing belief: ${event.args.user}`);
+  assert(indexed.beliefState === event.args.beliefState);
+}
+```
+
+#### **5.2 Performance Testing**
+- Run with **1000+ users, 10 rounds**
+- Measure indexer sync time
+- Measure GraphQL query response times
+- Test pagination with large result sets
+
+#### **5.3 Reorg Handling**
+- Simulate blockchain reorganization
+- Verify indexer rolls back correctly
+- Verify finality thresholds respected
+
+---
+
+### **Implementation Plan**
+
+#### **Option A: Expand testIndexer.js** (Incremental)
+Add new test methods to existing file:
+```javascript
+// In IndexerTestRunner class
+async testProjects() { /* ... */ }
+async testDelegation() { /* ... */ }
+async testFundingPortal() { /* ... */ }
+```
+
+**Pros**: Quick to get started
+**Cons**: File will become large (500+ lines → 2000+ lines)
+
+#### **Option B: Create Separate Test Files** (Modular)
+```
+integration-tests/
+├── testConceptSpace.js      # Existing + expanded
+├── testPubstarter.js         # New
+├── testDelegation.js         # New
+├── testFundingPortal.js      # New (depends on others)
+└── testAll.js                # Orchestrates all tests
+```
+
+**Pros**: Better organization, parallel development
+**Cons**: Slightly more setup overhead
+
+#### **My Recommendation**: **Option B** - separate files
+
+Create a shared `TestFramework` class with common methods (startIndexer, waitForSync, queryGraphQL), then each test file imports it.
+
+---
+
+### **Concrete Next Steps**
+
+1. **Fix critical bugs** (2-4 hours)
+   - Database query API verification
+   - Chain hash computation
+   - Note deactivation logic
+
+2. **Create test framework** (1 hour)
+   - Extract common code from testIndexer.js
+   - Create TestFramework base class
+
+3. **Write Pubstarter tests** (2-3 hours)
+   - Update simulation to generate projects, contributions
+   - Add testPubstarter.js with 10-15 test cases
+
+4. **Write Delegation tests** (2-3 hours)
+   - Update simulation to generate notes, delegations, splits
+   - Add testDelegation.js with 10-15 test cases
+
+5. **Write Funding Portal tests** (2-3 hours)
+   - Test federation queries
+   - Validate cross-indexer consistency
+
+6. **Add deep validation** (2 hours)
+   - Event-by-event comparison
+   - Data integrity checks
+
+**Total estimated effort**: 12-18 hours of focused work
+
+---
+
+### **Would you like me to...**
+
+1. **Start implementing**: Create the test framework and one subsystem's tests (e.g., Pubstarter)?
+2. **Fix critical bugs first**: Address the issues in [specs/indexers.md](specs/indexers.md)?
+3. **Review existing code**: Deep-dive into the indexer implementation to understand actual vs expected behavior?
+4. **Something else**: Different priority or approach?
+
+What would be most valuable to tackle first?

@@ -21,11 +21,12 @@ import {
   fetchStatementContent,
   extractExcerpt,
 } from "./utils/ipfs";
+import { BeliefState } from "../constants";
 
 // Belief state constants (matching Solidity)
-const NO_OPINION = 0;
-const BELIEVES = 1;
-const DISBELIEVES = 2;
+const NO_OPINION = BeliefState.NO_OPINION;
+const BELIEVES = BeliefState.BELIEVES;
+const DISBELIEVES = BeliefState.DISBELIEVES;
 
 /**
  * Ensure a statement record exists in the database

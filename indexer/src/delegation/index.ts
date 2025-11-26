@@ -13,10 +13,11 @@ import {
   delegationChains,
   noteEvents,
 } from "../../ponder.schema";
+import { TokenType } from "../constants";
 
 // Token type constants (matching Solidity enum)
-const TOKEN_TYPE_ERC20 = 0;
-const TOKEN_TYPE_ERC1155 = 1;
+const TOKEN_TYPE_ERC20 = TokenType.ERC20;
+const TOKEN_TYPE_ERC1155 = TokenType.ERC1155;
 
 /**
  * Helper to compute chain hash (matching Solidity logic)
@@ -240,7 +241,7 @@ ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
   const originalNote = await context.db.find(delegatableNotes, { id: originalLeafId });
 
   if (!originalNote) {
-    console.warn(`ChainSplit: Original note ${originalLeafId} not found`);
+    context.log.warn(`ChainSplit: Original note ${originalLeafId} not found`);
     return;
   }
 

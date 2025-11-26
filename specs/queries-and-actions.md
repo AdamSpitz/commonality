@@ -2,7 +2,7 @@
 
 AI-generated, but pretty good. The prompt was:
 
-    Please read specs/README.md and anything else relevant, then come up with a simple list of user queries and actions that the conceptspace system needs to support. ("View a list of statements that user U has signed", "view a list of statement suggestions for a statement S1 (i.e. "you might want to sign S2 also")", "sign statement S", etc.)
+    Please read specs/README.md and anything else relevant, then come up with a simple list of user queries and actions that the system needs to support. ("View a list of statements that user U has signed", "view a list of statement suggestions for a statement S1 (i.e. "you might want to sign S2 also")", "sign statement S", etc.)
 
 This document lists all the user queries and actions that the Commonality system needs to support, organized by component.
 
