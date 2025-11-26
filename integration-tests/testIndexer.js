@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawn } from 'child_process';
-import { SimulationRunner } from './runSimulation.js';
+import { SimulationRunner } from '../hardhat/generative-tests/runSimulation.js';
 
 const { ethers } = hre;
 const __filename = fileURLToPath(import.meta.url);
@@ -41,7 +41,7 @@ class IndexerTestRunner {
     console.log('\n=== Starting Indexer ===\n');
 
     return new Promise((resolve, reject) => {
-      const indexerDir = join(__dirname, '../../indexer');
+      const indexerDir = join(__dirname, '../indexer');
 
       // Set environment variables for the indexer
       const env = {
@@ -268,7 +268,7 @@ class IndexerTestRunner {
       console.log(`  Disbelievers: ${disbelievers}`);
 
       // Validate against actions log
-      const actionsPath = join(__dirname, 'actions.json');
+      const actionsPath = join(__dirname, '../hardhat/generative-tests/actions.json');
       const actionsData = await fs.readFile(actionsPath, 'utf-8');
       const actions = JSON.parse(actionsData);
 

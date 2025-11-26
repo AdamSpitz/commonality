@@ -7,13 +7,13 @@ This guide explains how to test the Ponder indexer using the generative testing 
 1. **Node.js** (v18+) installed
 2. **Dependencies installed** in both `hardhat/` and `indexer/` directories:
    ```bash
-   cd hardhat && npm install
+   cd integration-tests && npm install
    cd ../indexer && npm install
    ```
 
 3. **Contracts compiled**:
    ```bash
-   cd hardhat && npm run build
+   cd integration-tests && npm run build
    ```
 
 ## Testing Workflow
@@ -23,8 +23,8 @@ This guide explains how to test the Ponder indexer using the generative testing 
 Run a small test with 10 users and 3 rounds:
 
 ```bash
-cd hardhat
-npm run test:indexer:small
+cd integration-tests
+npm run test:small
 ```
 
 This will:
@@ -40,8 +40,8 @@ This will:
 Run a more comprehensive test with 30 users and 5 rounds:
 
 ```bash
-cd hardhat
-npm run test:indexer:medium
+cd integration-tests
+npm run test:medium
 ```
 
 This will:
@@ -54,11 +54,11 @@ This will:
 Run with custom parameters:
 
 ```bash
-cd hardhat
-node generative-tests/testIndexer.js <numUsers> <numRounds>
+cd integration-tests
+node testIndexer.js <numUsers> <numRounds>
 
 # Example: 50 users, 10 rounds
-node generative-tests/testIndexer.js 50 10
+node testIndexer.js 50 10
 ```
 
 ## Understanding the Output
@@ -184,7 +184,7 @@ Each test validates a different aspect of the indexer.
 ### Issue: Tests are too slow
 
 **Solutions**:
-1. Reduce the number of users: `npm run test:indexer:small` (10 users)
+1. Reduce the number of users: `npm run test:small` (10 users)
 2. Reduce the number of rounds
 3. Run simulation and indexer separately (see Advanced Usage below)
 
@@ -198,7 +198,7 @@ For development, you might want more control over each component:
 
 In terminal 1:
 ```bash
-cd hardhat
+cd integration-tests
 npx hardhat node
 ```
 
@@ -208,7 +208,7 @@ This keeps the node running with persistent state.
 
 In terminal 2:
 ```bash
-cd hardhat
+cd integration-tests
 npx hardhat run --network localhost generative-tests/runSimulation.js
 ```
 
@@ -256,7 +256,7 @@ DEBUG=ponder:* npm run dev
 After running the simulation, check the generated files:
 
 ```bash
-cd hardhat/generative-tests
+cd integration-tests/generative-tests
 
 # View generated users
 cat users.json | jq '.[:3]'
@@ -293,14 +293,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd hardhat && npm install
+          cd integration-tests && npm install
           cd ../indexer && npm install
 
       - name: Compile contracts
-        run: cd hardhat && npm run build
+        run: cd integration-tests && npm run build
 
       - name: Run indexer tests
-        run: cd hardhat && npm run test:indexer:small
+        run: cd integration-tests && npm run test:small
 ```
 
 ## Interpreting Test Results

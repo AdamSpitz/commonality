@@ -74,25 +74,28 @@ The simulation performs these actions:
 
 ## Indexer Integration Tests
 
-The test suite now includes comprehensive indexer testing capabilities:
+**Note:** Indexer integration tests have been moved to the top-level `integration-tests/` directory, since they test the integration between multiple subsystems (hardhat + indexer).
 
 ### Running Indexer Tests
 
 ```bash
-# From the hardhat directory
-cd /home/adam/Projects/commonality/hardhat
+# From the project root
+cd /home/adam/Projects/commonality/integration-tests
+
+# Install dependencies (first time only)
+npm install
 
 # Run small indexer test (10 users, 3 rounds)
-npm run test:indexer:small
+npm run test:small
 
 # Run medium indexer test (30 users, 5 rounds)
-npm run test:indexer:medium
+npm run test:medium
 
 # Run custom test
-node generative-tests/testIndexer.js [numUsers] [numRounds]
+node testIndexer.js [numUsers] [numRounds]
 ```
 
-Also see INDEXER_TESTING_GUIDE.md (in this directory).
+See `../integration-tests/README.md` and `../integration-tests/INDEXER_TESTING_GUIDE.md` for full documentation.
 
 ### What the Indexer Tests Do
 
