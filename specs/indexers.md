@@ -307,9 +307,22 @@ The following issues were identified in the initial indexer implementation (as o
     - **Verification**: Smart contract guarantees ordering by emitting events sequentially in same transaction ([DelegatableNotes.sol:251-252](../hardhat/contracts/delegation/DelegatableNotes.sol#L251-L252))
     - **Robustness**: Handler now logs errors and returns early if child note is missing, preventing database corruption
 
-13. **Missing Metadata Fetching** ([src/pubstarter/index.ts:152](../indexer/src/pubstarter/index.ts#L152))
-    - TODO comment for IPFS metadata fetching never implemented
-    - Projects won't have cached metadata content
+13. ~~**Missing Metadata Fetching**~~ ✅ **FIXED** ([src/pubstarter/index.ts:152](../indexer/src/pubstarter/index.ts#L152))
+    - ~~TODO comment for IPFS metadata fetching never implemented~~
+    - ~~Projects won't have cached metadata content~~
+    - **Fixed**: Implemented background IPFS sync job for project metadata, mirroring the solution for statement content (issue #6)
+    - **Solution**:
+      - Created IPFS utilities module ([src/pubstarter/utils/ipfs.ts](../indexer/src/pubstarter/utils/ipfs.ts)) with metadata fetching and validation
+      - Created background sync job ([src/pubstarter/utils/ipfsSyncJob.ts](../indexer/src/pubstarter/utils/ipfsSyncJob.ts)) with retry mechanism
+      - Added `metadataFetched` boolean flag to projects schema ([ponder.schema.ts:184](../indexer/ponder.schema.ts#L184))
+      - Started sync job automatically when API server launches ([src/api/index.ts:76-86](../indexer/src/api/index.ts#L76-L86))
+      - Retries failed IPFS fetches up to 10 times or 24 hours
+      - Runs every 5 minutes in the background
+    - **Benefits**:
+      - Doesn't block event processing
+      - Resilient to temporary IPFS gateway failures
+      - Eventually consistent metadata fetching
+      - Proper separation of concerns
 
 14. **Delegation Chain Revocation** ([src/delegation/index.ts:335-341](../indexer/src/delegation/index.ts#L335-L341))
     - Deletes chain entries one at a time in a loop

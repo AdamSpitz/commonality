@@ -180,6 +180,8 @@ export const projects = onchainTable("pubstarter_projects", (t) => ({
   metadataCid: t.text(),
   // Cached metadata content (JSON)
   metadataContent: t.text(),
+  // Whether metadata has been successfully fetched from IPFS
+  metadataFetched: t.boolean().notNull().default(false),
   // Funding parameters
   recipient: t.hex().notNull(),
   threshold: t.bigint().notNull(),

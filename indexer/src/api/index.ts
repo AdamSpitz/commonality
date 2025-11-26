@@ -26,6 +26,7 @@ import fundingportalApi from "../fundingportal/api";
 
 // Import background jobs
 import { startIpfsSyncJob } from "../conceptspace/utils/ipfsSyncJob";
+import { startIpfsSyncJob as startPubstarterIpfsSyncJob } from "../pubstarter/utils/ipfsSyncJob";
 
 const app = new Hono();
 
@@ -66,9 +67,21 @@ app.route("/fundingportal", fundingportalApi);
 startIpfsSyncJob({
   db,
   log: {
-    info: (msg: string) => console.log(`[IPFS Sync] ${msg}`),
-    warn: (msg: string) => console.warn(`[IPFS Sync] ${msg}`),
-    error: (msg: string) => console.error(`[IPFS Sync] ${msg}`),
+    info: (msg: string) => console.log(`[IPFS Sync - Statements] ${msg}`),
+    warn: (msg: string) => console.warn(`[IPFS Sync - Statements] ${msg}`),
+    error: (msg: string) => console.error(`[IPFS Sync - Statements] ${msg}`),
+  },
+});
+
+// Start IPFS metadata sync job for Pubstarter
+// This periodically retries fetching IPFS metadata for projects where
+// metadataFetched = false, providing resilience against gateway failures.
+startPubstarterIpfsSyncJob({
+  db,
+  log: {
+    info: (msg: string) => console.log(`[IPFS Sync - Projects] ${msg}`),
+    warn: (msg: string) => console.warn(`[IPFS Sync - Projects] ${msg}`),
+    error: (msg: string) => console.error(`[IPFS Sync - Projects] ${msg}`),
   },
 });
 
