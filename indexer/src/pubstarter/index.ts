@@ -149,6 +149,7 @@ ponder.on(
         metadataCid,
       });
 
+      // TODO: Wait, the following comment is misleading. See utils/ipfs.ts etc.
       // TODO: Fetch metadata from IPFS and cache it
       // Similar to how conceptspace fetches statement content
     }

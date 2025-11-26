@@ -197,12 +197,12 @@ This gives clean separation (good for code quality) with simple deployment (good
 - Comprehensive database schema with proper indexing
 - Statement caching and belief state management
 
-### ✅ **Pubstarter** - Extensively Implemented  
+### ✅ **Pubstarter** - Fully Implemented  
 - Full event handlers for factory contracts (AssuranceContract, ERC1155, Marketplace)
 - Complete assurance contract lifecycle (initialization, contributions, refunds, withdrawals)
 - Comprehensive secondary market handling (sale listings, buy orders, trades, cancellations)
 - Participant summary tracking and correlation between contracts
-- **Only missing: IPFS metadata fetching** (TODO in pubstarter/index.ts)
+- **Complete IPFS metadata fetching** with background sync job and retry logic
 
 ### ✅ **Delegation** - Fully Implemented
 - Complete event handlers for DelegatableNotes contract
@@ -220,21 +220,21 @@ This gives clean separation (good for code quality) with simple deployment (good
 
 ### **High Priority:**
 
-1. **Complete IPFS metadata fetching** for Pubstarter projects
-   - Address the TODO in pubstarter/index.ts
-   - Implement similar to Concept Space's IPFS sync job
-
-2. **Implement federated queries in Funding Portal**
+1. **Implement federated queries in Funding Portal**
    - Currently only stores project alignments
    - Needs to query Concept Space for indirect implications
    - Needs to query Pubstarter for project data
    - Needs to query Delegation for note data
 
-3. **Extend integration tests** beyond Concept Space
+2. **Extend integration tests** beyond Concept Space
    - Add tests for Pubstarter contracts and funding flow
    - Add tests for Delegation functionality
    - Add tests for Funding Portal federated queries
    - Add tests for cross-subsystem interactions
+
+3. **Remove misleading TODO comment** in pubstarter/index.ts
+   - IPFS metadata fetching is already implemented
+   - Clean up outdated documentation
 
 ### **Medium Priority:**
 
@@ -269,9 +269,9 @@ This gives clean separation (good for code quality) with simple deployment (good
 
 If starting work tomorrow, the recommended sequence would be:
 
-1. **Complete IPFS metadata fetching** for Pubstarter projects (address the TODO)
-2. **Implement federated queries** in Funding Portal APIs
-3. **Extend integration tests** to cover all subsystems and interactions
+1. **Implement federated queries** in Funding Portal APIs
+2. **Extend integration tests** to cover all subsystems and interactions
+3. **Remove misleading TODO comment** in pubstarter/index.ts
 4. **Add comprehensive error handling** with retry logic and proper logging
 5. **Implement basic monitoring** to track indexer health and performance
 
@@ -280,9 +280,9 @@ If starting work tomorrow, the recommended sequence would be:
 The indexer is actually **about 75% complete** in terms of core functionality, not 25% as initially assessed. The federated architecture is well-implemented and most subsystems have comprehensive event handlers. The foundation is very solid, and core indexing logic is well-implemented.
 
 The main gaps are in:
-- **IPFS metadata fetching** for Pubstarter projects
 - **Federated query implementation** in Funding Portal
 - **Test coverage** beyond Concept Space
 - **Error handling and monitoring**
+- **Documentation cleanup** (remove misleading TODO comments)
 
 Once these core issues are addressed, the indexer should be highly trustworthy and ready for production use. The existing implementation demonstrates sophisticated understanding of the domain requirements and follows best practices for event-driven indexing.
