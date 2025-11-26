@@ -253,14 +253,16 @@ The following issues were identified in the initial indexer implementation (as o
 
 ### Minor Issues / Improvements 🟢
 
-15. **Console.log in Production Code** ([src/pubstarter/index.ts:72, 86](../indexer/src/pubstarter/index.ts#L72))
-    - Should use proper logging framework instead of console.log
-    - Consider structured logging for production
+15. ~~**Console.log in Production Code**~~ ✅ **ACCEPTABLE** ([src/pubstarter/index.ts:72, 86](../indexer/src/pubstarter/index.ts#L72))
+    - ~~Should use proper logging framework instead of console.log~~
+    - **Review**: Code uses `context.log.info()` which is the correct Ponder logging API
+    - **Note**: `console.warn` in [conceptspace/index.ts:74](../indexer/src/conceptspace/index.ts#L74) is unavoidable since it's in a `.then()` callback outside event handler scope (related to issue #6)
 
-16. **Magic Numbers**
-    - Belief states (0, 1, 2) hardcoded in multiple places
-    - Token types (0, 1) hardcoded
-    - Consider exporting constants from schema file
+16. ~~**Magic Numbers**~~ ✅ **FIXED** ([src/constants.ts](../indexer/src/constants.ts))
+    - ~~Belief states (0, 1, 2) hardcoded in multiple places~~
+    - ~~Token types (0, 1) hardcoded~~
+    - **Fixed**: Constants exported in [src/constants.ts](../indexer/src/constants.ts) with `BeliefState` and `TokenType` enums
+    - **Used properly**: [conceptspace/index.ts](../indexer/src/conceptspace/index.ts#L24-L29) imports and uses these constants
 
 17. **Missing Error Handling**
     - Most event handlers don't have try-catch blocks
