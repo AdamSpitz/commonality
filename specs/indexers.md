@@ -249,14 +249,19 @@ The following issues were identified in the initial indexer implementation (as o
      - Handles both full and partial note consumption
      - Clean separation: NoteConsumed handles inputs, NoteCreated handles outputs, ERC1155Purchased records the purchase event
 
-8. **API Import Issues** ([src/api/index.ts](../indexer/src/api/index.ts))
-   - Multiple API files (conceptspace, pubstarter, delegation, fundingportal) but no evidence they're aggregated
-   - The main API aggregation file needs to exist to expose all endpoints
+8. ~~**API Import Issues**~~ ✅ **FIXED** ([src/api/index.ts](../indexer/src/api/index.ts))
+   - ~~Multiple API files (conceptspace, pubstarter, delegation, fundingportal) but no evidence they're aggregated~~
+   - **Fixed**: Main API file properly imports and mounts all subsystem APIs at their respective routes
+   - **Verification**: [src/api/index.ts:22-57](../indexer/src/api/index.ts#L22-L57) shows all APIs imported and mounted correctly
+   - **Note**: This was never actually broken - the aggregation was already implemented
 
-9. **Factory Address Correlation** ([src/pubstarter/index.ts:66-89](../indexer/src/pubstarter/index.ts#L66-L89))
-   - Factory events just log to console rather than storing relationships
-   - Makes it difficult to query "which marketplace goes with which project"
-   - Consider adding a mapping table or enriching project records
+9. ~~**Factory Address Correlation**~~ ✅ **FIXED** ([src/pubstarter/index.ts:498-523](../indexer/src/pubstarter/index.ts#L498-L523))
+   - ~~Factory events just log to console rather than storing relationships~~
+   - ~~Makes it difficult to query "which marketplace goes with which project"~~
+   - **Fixed**: Added handler for `SecondaryMarket:ERC1155SecondaryMarketCreated` event
+   - **Solution**: When marketplace is created, it emits the ERC1155 token address it serves
+   - **Implementation**: Query for projects using that ERC1155 token, update their `marketplaceAddress` field
+   - **Note**: ERC1155 address correlation was already handled via `ERC1155Offered` event ([lines 169-174](../indexer/src/pubstarter/index.ts#L169-L174))
 
 ### Medium Issues 🟡
 

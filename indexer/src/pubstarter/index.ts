@@ -495,6 +495,33 @@ ponder.on("SecondaryMarket:BuyOrderCancelled", async ({ event, context }) => {
     });
 });
 
+/**
+ * Handle marketplace creation
+ * This event is emitted by the marketplace contract itself in its constructor
+ * We use it to correlate marketplaces with their ERC1155 tokens (and thus with projects)
+ */
+ponder.on("SecondaryMarket:ERC1155SecondaryMarketCreated", async ({ event, context }) => {
+  const marketplaceAddress = event.log.address;
+  const { erc1155 } = event.args;
+
+  // Find the project that uses this ERC1155 token
+  const projectsWithToken = await context.db.sql.query.projects.findMany({
+    where: (projects, { eq }) => eq(projects.erc1155Address, erc1155),
+  });
+
+  // Update the project(s) with the marketplace address
+  // In practice, there should be only one project per ERC1155 token
+  for (const project of projectsWithToken) {
+    await context.db.update(projects, { id: project.id }).set({
+      marketplaceAddress,
+    });
+
+    context.log.info(
+      `Correlated marketplace ${marketplaceAddress} with project ${project.id} via ERC1155 ${erc1155}`
+    );
+  }
+});
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
