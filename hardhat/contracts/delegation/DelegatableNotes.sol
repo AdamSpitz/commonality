@@ -72,6 +72,12 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 indexed remainderLeafId,
     uint256 splitAmount
   );
+  event NoteConsumed(
+    uint256 indexed noteId,
+    uint256 amountConsumed,
+    uint256 remainingAmount,
+    bool deleted
+  );
   event ERC1155Purchased(
     address indexed buyer,
     address indexed erc1155Contract,
@@ -516,11 +522,17 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
       // Reduce note amounts (spending from the notes)
       notes[noteIds[i]].amount -= spentAmounts[i];
+      uint256 remainingAmount = notes[noteIds[i]].amount;
+      bool deleted = false;
 
       // If amount reaches 0, delete the note
-      if (notes[noteIds[i]].amount == 0) {
+      if (remainingAmount == 0) {
         delete notes[noteIds[i]];
+        deleted = true;
       }
+
+      // Emit consumption event for indexer tracking
+      emit NoteConsumed(noteIds[i], spentAmounts[i], remainingAmount, deleted);
     }
 
     return (paymentChains, spentAmounts, statementIds);
@@ -566,6 +578,17 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
             tokenId: tokenId,
             intendedStatementId: statementIds[c]
           });
+
+          // Emit NoteCreated event for indexer
+          emit NoteCreated(
+            newNoteId,
+            chains[c][0], // leaf owner
+            share,
+            erc1155Contract,
+            TokenType.ERC1155,
+            tokenId,
+            statementIds[c]
+          );
 
           outputNoteIds[outputIndex++] = newNoteId;
         }

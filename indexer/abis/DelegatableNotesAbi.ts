@@ -1,5 +1,5 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
-// Run `npm run sync-abis` to regenerate
+// Run 'npm run sync-abis' to regenerate
 
 export const DelegatableNotesAbi = [
   {
@@ -55,50 +55,7 @@ export const DelegatableNotesAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "delegate",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "enum DelegatableNotes.TokenType",
-        "name": "tokenType",
-        "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "CommissionPaid",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
         "name": "buyer",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "paymentToken",
         "type": "address"
       },
       {
@@ -194,6 +151,37 @@ export const DelegatableNotesAbi = [
         "type": "uint256"
       },
       {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amountConsumed",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "remainingAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "deleted",
+        "type": "bool"
+      }
+    ],
+    "name": "NoteConsumed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
         "indexed": true,
         "internalType": "address",
         "name": "owner",
@@ -225,9 +213,9 @@ export const DelegatableNotesAbi = [
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "parentNoteId",
-        "type": "uint256"
+        "internalType": "bytes32",
+        "name": "intendedStatementId",
+        "type": "bytes32"
       }
     ],
     "name": "NoteCreated",
@@ -285,32 +273,6 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
-    "name": "BASIS_POINTS_DENOMINATOR",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_COMMISSION_BASIS_POINTS",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "MAX_DELEGATION_DEPTH",
     "outputs": [
       {
@@ -330,6 +292,11 @@ export const DelegatableNotesAbi = [
         "type": "uint256"
       },
       {
+        "internalType": "address[]",
+        "name": "owners",
+        "type": "address[]"
+      },
+      {
         "internalType": "address",
         "name": "delegateTo",
         "type": "address"
@@ -337,11 +304,6 @@ export const DelegatableNotesAbi = [
       {
         "internalType": "uint256",
         "name": "amountToDelegate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "commissionBasisPoints",
         "type": "uint256"
       }
     ],
@@ -401,131 +363,6 @@ export const DelegatableNotesAbi = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "intendedStatementId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "depositERC1155",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "intendedStatementId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "depositERC20",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "intendedStatementId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "depositETH",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "noteId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getChain",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "noteIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "address[]",
-        "name": "owners",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "noteId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getDepositor",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "nextNoteId",
     "outputs": [
@@ -549,6 +386,11 @@ export const DelegatableNotesAbi = [
     "name": "notes",
     "outputs": [
       {
+        "internalType": "bytes32",
+        "name": "chainHash",
+        "type": "bytes32"
+      },
+      {
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
@@ -569,29 +411,9 @@ export const DelegatableNotesAbi = [
         "type": "uint256"
       },
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "parentNoteId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "delegated",
-        "type": "bool"
-      },
-      {
         "internalType": "bytes32",
         "name": "intendedStatementId",
         "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "commissionBasisPoints",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -683,47 +505,9 @@ export const DelegatableNotesAbi = [
         "type": "uint256[]"
       },
       {
-        "internalType": "uint256",
-        "name": "paymentAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "marketplace",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "erc1155Contract",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "saleListingId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "count",
-        "type": "uint256"
-      }
-    ],
-    "name": "purchaseFromERC1155Marketplace",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "noteIds",
-        "type": "uint256[]"
+        "internalType": "address[][]",
+        "name": "chains",
+        "type": "address[][]"
       },
       {
         "internalType": "uint256",
@@ -731,8 +515,8 @@ export const DelegatableNotesAbi = [
         "type": "uint256"
       },
       {
-        "internalType": "address payable",
-        "name": "seller",
+        "internalType": "address",
+        "name": "primaryMarket",
         "type": "address"
       },
       {
@@ -751,7 +535,45 @@ export const DelegatableNotesAbi = [
         "type": "uint256[]"
       }
     ],
-    "name": "purchaseFromERC1155PrimaryMarket",
+    "name": "purchaseFromPrimaryMarket",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "noteIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address[][]",
+        "name": "chains",
+        "type": "address[][]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paymentAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "secondaryMarket",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "saleListingId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenCount",
+        "type": "uint256"
+      }
+    ],
+    "name": "purchaseFromSecondaryMarket",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -775,6 +597,11 @@ export const DelegatableNotesAbi = [
         "internalType": "uint256",
         "name": "noteId",
         "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "owners",
+        "type": "address[]"
       }
     ],
     "name": "revoke",
@@ -796,30 +623,6 @@ export const DelegatableNotesAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "noteIds",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "validateNotesCompatible",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "isValid",
-        "type": "bool"
-      },
-      {
-        "internalType": "string",
-        "name": "errorMessage",
-        "type": "string"
       }
     ],
     "stateMutability": "view",

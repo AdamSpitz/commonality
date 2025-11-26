@@ -447,8 +447,40 @@ ponder.on("DelegatableNotes:FundsReclaimed", async ({ event, context }) => {
 });
 
 /**
+ * Handle NoteConsumed event
+ * Updates note amounts and marks fully spent notes as inactive
+ */
+ponder.on("DelegatableNotes:NoteConsumed", async ({ event, context }) => {
+  const { noteId, amountConsumed, remainingAmount, deleted } = event.args;
+  const timestamp = BigInt(event.block.timestamp);
+
+  const note = await context.db.find(delegatableNotes, { id: noteId });
+  if (!note) {
+    context.log.warn(`NoteConsumed: Note ${noteId} not found in database`);
+    return;
+  }
+
+  if (deleted) {
+    // Mark note as inactive (fully consumed)
+    await context.db.update(delegatableNotes, { id: noteId }).set({
+      active: false,
+      amount: 0n,
+      updatedAt: timestamp,
+    });
+  } else {
+    // Update remaining amount (partially consumed)
+    await context.db.update(delegatableNotes, { id: noteId }).set({
+      amount: remainingAmount,
+      updatedAt: timestamp,
+    });
+  }
+});
+
+/**
  * Handle ERC1155Purchased event
- * Marks input notes as consumed and creates output notes
+ * Records purchase event for audit trail
+ * Note: Input notes are handled by NoteConsumed events
+ * Note: Output notes are handled by NoteCreated events
  */
 ponder.on("DelegatableNotes:ERC1155Purchased", async ({ event, context }) => {
   const { buyer, erc1155Contract, tokenIds, counts, totalCost, inputNoteIds, outputNoteIds } =
@@ -456,24 +488,6 @@ ponder.on("DelegatableNotes:ERC1155Purchased", async ({ event, context }) => {
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
   const transactionHash = event.transaction.hash;
-
-  // Mark input notes as consumed (inactive or reduced amount)
-  for (const inputNoteId of inputNoteIds) {
-    const note = await context.db.find(delegatableNotes, { id: inputNoteId });
-
-    if (note) {
-      // If note amount is 0 (fully consumed), mark inactive
-      // Note: The contract already updates amounts, so we read the event
-      // In practice, we'd need to check if the note still exists in contract state
-      // For now, assume notes with 0 amount are deleted by the contract
-
-      // We'll mark as inactive if we receive info that it's deleted
-      // The contract deletes notes with 0 amount, so we can infer from events
-    }
-  }
-
-  // Output notes are created separately via NoteCreated events
-  // So we just record the purchase event here
 
   // Record event for the purchase
   await createNoteEvent(

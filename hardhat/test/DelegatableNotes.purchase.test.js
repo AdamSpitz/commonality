@@ -156,6 +156,325 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     });
   });
 
+  describe("NoteConsumed Event", function () {
+    it("Should emit NoteConsumed event when note is fully consumed", async function () {
+      const paymentAmount = ethers.parseEther("0.3");
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+
+      await expect(
+        notes.connect(alice).purchaseFromPrimaryMarket(
+          [1],
+          [[alice.address]],
+          paymentAmount,
+          await assuranceContract.getAddress(),
+          await erc1155Token.getAddress(),
+          [1],
+          [3]
+        )
+      )
+        .to.emit(notes, "NoteConsumed")
+        .withArgs(
+          1, // noteId
+          paymentAmount, // amountConsumed
+          0, // remainingAmount
+          true // deleted
+        );
+    });
+
+    it("Should emit NoteConsumed event when note is partially consumed", async function () {
+      const depositAmount = ethers.parseEther("1.0");
+      const paymentAmount = ethers.parseEther("0.3");
+      const expectedRemaining = depositAmount - paymentAmount;
+
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: depositAmount });
+
+      await expect(
+        notes.connect(alice).purchaseFromPrimaryMarket(
+          [1],
+          [[alice.address]],
+          paymentAmount,
+          await assuranceContract.getAddress(),
+          await erc1155Token.getAddress(),
+          [1],
+          [3]
+        )
+      )
+        .to.emit(notes, "NoteConsumed")
+        .withArgs(
+          1, // noteId
+          paymentAmount, // amountConsumed
+          expectedRemaining, // remainingAmount
+          false // deleted (not deleted since there's a remainder)
+        );
+    });
+
+    it("Should emit NoteConsumed for each input note when using multiple notes", async function () {
+      const amount1 = ethers.parseEther("0.2");
+      const amount2 = ethers.parseEther("0.1");
+      const totalPayment = ethers.parseEther("0.3");
+
+      // Create two notes
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount1 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount2 });
+
+      const tx = notes.connect(alice).purchaseFromPrimaryMarket(
+        [1, 2],
+        [[alice.address], [alice.address]],
+        totalPayment,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1],
+        [3]
+      );
+
+      // Should emit NoteConsumed for note 1
+      await expect(tx)
+        .to.emit(notes, "NoteConsumed")
+        .withArgs(1, amount1, 0, true);
+
+      // Should emit NoteConsumed for note 2
+      await expect(tx)
+        .to.emit(notes, "NoteConsumed")
+        .withArgs(2, amount2, 0, true);
+    });
+
+    it("Should have correct remaining amount after partial consumption", async function () {
+      const depositAmount = ethers.parseEther("1.0");
+      const paymentAmount = ethers.parseEther("0.3");
+      const expectedRemaining = depositAmount - paymentAmount;
+
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: depositAmount });
+
+      await notes.connect(alice).purchaseFromPrimaryMarket(
+        [1],
+        [[alice.address]],
+        paymentAmount,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1],
+        [3]
+      );
+
+      // Verify note still exists with reduced amount
+      const note = await notes.notes(1);
+      expect(note.amount).to.equal(expectedRemaining);
+      expect(note.chainHash).to.not.equal(ethers.ZeroHash); // Still exists
+    });
+
+    it("Should delete note after full consumption", async function () {
+      const paymentAmount = ethers.parseEther("0.3");
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+
+      await notes.connect(alice).purchaseFromPrimaryMarket(
+        [1],
+        [[alice.address]],
+        paymentAmount,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1],
+        [3]
+      );
+
+      // Verify note is deleted (all fields zeroed)
+      const note = await notes.notes(1);
+      expect(note.amount).to.equal(0);
+      expect(note.chainHash).to.equal(ethers.ZeroHash);
+      expect(note.token).to.equal(ethers.ZeroAddress);
+    });
+  });
+
+  describe("NoteCreated Event for Output Notes", function () {
+    it("Should emit NoteCreated event for output note", async function () {
+      const paymentAmount = ethers.parseEther("0.3");
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+
+      await expect(
+        notes.connect(alice).purchaseFromPrimaryMarket(
+          [1],
+          [[alice.address]],
+          paymentAmount,
+          await assuranceContract.getAddress(),
+          await erc1155Token.getAddress(),
+          [1],
+          [3]
+        )
+      )
+        .to.emit(notes, "NoteCreated")
+        .withArgs(
+          2, // noteId (output note)
+          alice.address, // owner
+          3, // amount (token count)
+          await erc1155Token.getAddress(), // token
+          1, // tokenType (ERC1155)
+          1, // tokenId
+          statementId // intendedStatementId (preserved from input note)
+        );
+    });
+
+    it("Should emit NoteCreated for each output token type", async function () {
+      const paymentAmount = ethers.parseEther("0.8"); // 3×0.1 + 1×0.5 = 0.8
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+
+      const tx = notes.connect(alice).purchaseFromPrimaryMarket(
+        [1],
+        [[alice.address]],
+        paymentAmount,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1, 3], // Buy token 1 and token 3
+        [3, 1]  // 3 of token 1, 1 of token 3
+      );
+
+      // Should emit NoteCreated for token 1
+      await expect(tx)
+        .to.emit(notes, "NoteCreated")
+        .withArgs(
+          2,
+          alice.address,
+          3,
+          await erc1155Token.getAddress(),
+          1,
+          1,
+          statementId
+        );
+
+      // Should emit NoteCreated for token 3
+      await expect(tx)
+        .to.emit(notes, "NoteCreated")
+        .withArgs(
+          3,
+          alice.address,
+          1,
+          await erc1155Token.getAddress(),
+          1,
+          3,
+          statementId
+        );
+    });
+
+    it("Should preserve intendedStatementId in output notes", async function () {
+      const customStatementId = ethers.encodeBytes32String("climate-change");
+      const paymentAmount = ethers.parseEther("0.3");
+
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, customStatementId, { value: paymentAmount });
+
+      await notes.connect(alice).purchaseFromPrimaryMarket(
+        [1],
+        [[alice.address]],
+        paymentAmount,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1],
+        [3]
+      );
+
+      // Verify output note has the same intendedStatementId
+      const outputNote = await notes.notes(2);
+      expect(outputNote.intendedStatementId).to.equal(customStatementId);
+    });
+
+    it("Should preserve delegation chain in output notes", async function () {
+      const paymentAmount = ethers.parseEther("0.3");
+
+      // Alice deposits
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+
+      // Alice delegates to Bob
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, paymentAmount);
+
+      // Bob purchases with the delegated note
+      await notes.connect(bob).purchaseFromPrimaryMarket(
+        [1],
+        [[bob.address, alice.address]], // chain: Bob → Alice
+        paymentAmount,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1],
+        [3]
+      );
+
+      // Output note should have the same chain hash (Bob → Alice)
+      const inputChainHash = ethers.keccak256(
+        ethers.solidityPacked(
+          ["address", "bytes32"],
+          [bob.address, ethers.keccak256(ethers.solidityPacked(["address", "bytes32"], [alice.address, ethers.ZeroHash]))]
+        )
+      );
+
+      const outputNote = await notes.notes(2);
+      expect(outputNote.chainHash).to.equal(inputChainHash);
+    });
+  });
+
+  describe("Bug Fixes and Edge Cases", function () {
+    it("Should handle proportional distribution when using multiple notes with different amounts", async function () {
+      const amount1 = ethers.parseEther("0.3");
+      const amount2 = ethers.parseEther("0.6");
+      const totalAvailable = amount1 + amount2;
+      const paymentAmount = ethers.parseEther("0.6"); // Use 2/3 of total
+
+      // Create two notes with different amounts
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount1 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount2 });
+
+      const tx = notes.connect(alice).purchaseFromPrimaryMarket(
+        [1, 2],
+        [[alice.address], [alice.address]],
+        paymentAmount,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1],
+        [6]
+      );
+
+      // Calculate expected consumption per note (proportional to their amounts)
+      const expectedConsumed1 = (paymentAmount * amount1) / totalAvailable;
+      const expectedConsumed2 = paymentAmount - expectedConsumed1; // Remainder goes to last note
+
+      // Verify NoteConsumed events have correct proportions
+      await expect(tx)
+        .to.emit(notes, "NoteConsumed")
+        .withArgs(1, expectedConsumed1, amount1 - expectedConsumed1, false);
+
+      await expect(tx)
+        .to.emit(notes, "NoteConsumed")
+        .withArgs(2, expectedConsumed2, amount2 - expectedConsumed2, false);
+    });
+
+    it("Should handle rounding by giving remainder to last note", async function () {
+      // Use amounts that will cause rounding issues
+      const amount1 = ethers.parseEther("0.333333333333333333");
+      const amount2 = ethers.parseEther("0.333333333333333334");
+      const amount3 = ethers.parseEther("0.333333333333333333");
+      const paymentAmount = ethers.parseEther("0.5");
+
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount1 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount2 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount3 });
+
+      await notes.connect(alice).purchaseFromPrimaryMarket(
+        [1, 2, 3],
+        [[alice.address], [alice.address], [alice.address]],
+        paymentAmount,
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        [1],
+        [5]
+      );
+
+      // Verify all notes were consumed and total matches exactly
+      const note1 = await notes.notes(1);
+      const note2 = await notes.notes(2);
+      const note3 = await notes.notes(3);
+
+      const totalRemaining = note1.amount + note2.amount + note3.amount;
+      const totalConsumed = amount1 + amount2 + amount3 - totalRemaining;
+
+      // Total consumed should exactly match payment amount (no rounding errors)
+      expect(totalConsumed).to.equal(paymentAmount);
+    });
+  });
+
   // Secondary market tests removed - they test marketplace functionality more than DelegatableNotes
   // The primary market tests above verify the purchase mechanism works correctly
 });

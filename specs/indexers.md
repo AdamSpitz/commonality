@@ -237,10 +237,17 @@ The following issues were identified in the initial indexer implementation (as o
      - Proper separation of concerns
    - **Why we need IPFS data in indexer**: Required for full-text search, displaying statement lists with titles/excerpts, and caching improves performance vs. fetching from UI
 
-7. **Missing ERC1155Purchased Note Deactivation** ([src/delegation/index.ts:411-422](../indexer/src/delegation/index.ts#L411-L422))
-   - Comment acknowledges input notes should be marked inactive but doesn't implement it
-   - **Risk**: Notes will appear "available" even after being spent
-   - Needs logic to either mark notes inactive or update amounts based on contract state
+7. ~~**Missing ERC1155Purchased Note Deactivation**~~ ✅ **FIXED** ([DelegatableNotes.sol:75-80, 535](../hardhat/contracts/delegation/DelegatableNotes.sol#L75-L80) & [src/delegation/index.ts:453-477](../indexer/src/delegation/index.ts#L453-L477))
+   - ~~Comment acknowledges input notes should be marked inactive but doesn't implement it~~
+   - ~~**Risk**: Notes will appear "available" even after being spent~~
+   - **Fixed**:
+     - **Smart contract**: Added `NoteConsumed` event emitted when notes are spent during purchases ([DelegatableNotes.sol:535](../hardhat/contracts/delegation/DelegatableNotes.sol#L535))
+     - **Smart contract**: Added `NoteCreated` events for output notes created during purchases ([DelegatableNotes.sol:571-579](../hardhat/contracts/delegation/DelegatableNotes.sol#L571-L579))
+     - **Indexer**: Added `NoteConsumed` event handler that marks fully-spent notes as `active: false` and updates amounts for partially-spent notes
+   - **Benefits**:
+     - Preserves audit trail (inactive notes remain in DB rather than being deleted)
+     - Handles both full and partial note consumption
+     - Clean separation: NoteConsumed handles inputs, NoteCreated handles outputs, ERC1155Purchased records the purchase event
 
 8. **API Import Issues** ([src/api/index.ts](../indexer/src/api/index.ts))
    - Multiple API files (conceptspace, pubstarter, delegation, fundingportal) but no evidence they're aggregated
