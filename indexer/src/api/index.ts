@@ -24,6 +24,9 @@ import pubstarterApi from "../pubstarter/api";
 import delegationApi from "../delegation/api";
 import fundingportalApi from "../fundingportal/api";
 
+// Import background jobs
+import { startIpfsSyncJob } from "../conceptspace/utils/ipfsSyncJob";
+
 const app = new Hono();
 
 // ============================================================================
@@ -52,5 +55,21 @@ app.route("/delegation", delegationApi);
 
 // Mount Funding Portal API at /fundingportal/*
 app.route("/fundingportal", fundingportalApi);
+
+// ============================================================================
+// BACKGROUND JOBS
+// ============================================================================
+
+// Start IPFS content sync job for Concept Space
+// This periodically retries fetching IPFS content for statements where
+// contentFetched = false, providing resilience against gateway failures.
+startIpfsSyncJob({
+  db,
+  log: {
+    info: (msg: string) => console.log(`[IPFS Sync] ${msg}`),
+    warn: (msg: string) => console.warn(`[IPFS Sync] ${msg}`),
+    error: (msg: string) => console.error(`[IPFS Sync] ${msg}`),
+  },
+});
 
 export default app;

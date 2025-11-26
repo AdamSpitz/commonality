@@ -16,11 +16,7 @@ import {
   users,
   attesters,
 } from "../../ponder.schema";
-import {
-  bytes32ToCid,
-  fetchStatementContent,
-  extractExcerpt,
-} from "./utils/ipfs";
+import { bytes32ToCid } from "./utils/ipfs";
 import { BeliefState } from "../constants";
 
 // Belief state constants (matching Solidity)
@@ -30,7 +26,11 @@ const DISBELIEVES = BeliefState.DISBELIEVES;
 
 /**
  * Ensure a statement record exists in the database
- * Creates a placeholder if it doesn't exist, and queues IPFS fetch
+ * Creates a placeholder if it doesn't exist.
+ *
+ * IPFS content fetching is handled by the background sync job in
+ * conceptspace/utils/ipfsSyncJob.ts, which periodically retries
+ * fetching content for statements where contentFetched = false.
  */
 async function ensureStatement(
   ctx: { db: any },
@@ -43,6 +43,7 @@ async function ensureStatement(
     const cid = bytes32ToCid(statementId);
 
     // Create placeholder record
+    // The background IPFS sync job will fetch content later
     await ctx.db.insert(statements).values({
       id: statementId,
       cid,
@@ -54,26 +55,6 @@ async function ensureStatement(
       disbelieverCount: 0,
       createdAt: timestamp,
       contentFetched: false,
-    });
-
-    // Try to fetch content from IPFS (async, don't block indexing)
-    fetchStatementContent(cid).then(async (content) => {
-      if (content) {
-        try {
-          await ctx.db
-            .update(statements, { id: statementId })
-            .set({
-              content: JSON.stringify(content),
-              statementType: content.statementType,
-              title: content.metadata?.title || null,
-              excerpt: extractExcerpt(content.content),
-              contentFetched: true,
-            });
-        } catch (e) {
-          // May fail if record was updated elsewhere, that's ok
-          console.warn(`Failed to update statement ${statementId} content:`, e);
-        }
-      }
     });
   }
 }
