@@ -39,15 +39,17 @@ async function storeDelegationChain(
   timestamp: bigint
 ) {
   // Delete existing chain entries for this note
+  // Since delegationChains has a composite primary key (noteId, position),
+  // we need to delete each position individually
   const existing = await ctx.db
-    .select({ noteId: delegationChains.noteId })
+    .select({ noteId: delegationChains.noteId, position: delegationChains.position })
     .from(delegationChains)
     .where((row: any) => row.noteId.equals(noteId));
 
   for (const row of existing) {
     await ctx.db.delete(delegationChains, {
       noteId: row.noteId,
-      position: 0, // Will delete all positions
+      position: row.position, // Delete each specific position
     });
   }
 
