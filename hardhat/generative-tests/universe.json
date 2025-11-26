@@ -1,0 +1,215 @@
+{
+  "domains": {
+    "politics": {
+      "type": "spectrum",
+      "axes": [
+        {
+          "name": "economic",
+          "labels": ["left", "center", "right"]
+        },
+        {
+          "name": "social",
+          "labels": ["progressive", "moderate", "conservative"]
+        }
+      ]
+    },
+    "crypto": {
+      "type": "categorical",
+      "positions": ["bitcoin", "ethereum", "solana", "skeptic"]
+    },
+    "religion": {
+      "type": "categorical",
+      "positions": ["christian", "jewish", "muslim", "hindu", "buddhist", "atheist", "agnostic"]
+    },
+    "music": {
+      "type": "categorical",
+      "positions": ["rock", "pop", "jazz", "classical", "electronic", "hiphop"]
+    },
+    "climate": {
+      "type": "spectrum",
+      "axes": [
+        {
+          "name": "urgency",
+          "labels": ["crisis", "concerned", "skeptic"]
+        }
+      ]
+    },
+    "technology": {
+      "type": "spectrum",
+      "axes": [
+        {
+          "name": "centralization",
+          "labels": ["centralized", "mixed", "decentralized"]
+        },
+        {
+          "name": "privacy",
+          "labels": ["transparent", "balanced", "private"]
+        }
+      ]
+    }
+  },
+  "statementTemplates": {
+    "politics": {
+      "economic-left": [
+        "Wealth should be redistributed to reduce inequality",
+        "Universal basic income would benefit society",
+        "Higher taxes on the wealthy are necessary"
+      ],
+      "economic-center": [
+        "Market-based solutions with safety nets work best",
+        "Progressive taxation should fund essential services",
+        "Balance between capitalism and social support is key"
+      ],
+      "economic-right": [
+        "Free markets create the most prosperity",
+        "Lower taxes stimulate economic growth",
+        "Private sector solves problems better than government"
+      ],
+      "social-progressive": [
+        "Social justice and equality should be priorities",
+        "Systemic barriers must be actively dismantled",
+        "Individual rights include comprehensive civil liberties"
+      ],
+      "social-moderate": [
+        "Gradual reform is better than radical change",
+        "Balance tradition with necessary progress",
+        "Respect both individual and community values"
+      ],
+      "social-conservative": [
+        "Traditional values provide societal stability",
+        "Family and community are foundations of society",
+        "Cultural heritage should be preserved"
+      ]
+    },
+    "crypto": {
+      "bitcoin": [
+        "Bitcoin is the only true decentralized currency",
+        "Sound money principles matter most",
+        "Bitcoin's simplicity is its strength"
+      ],
+      "ethereum": [
+        "Smart contracts enable programmable money",
+        "Ethereum's flexibility makes it most useful",
+        "DeFi and NFTs show blockchain's potential"
+      ],
+      "solana": [
+        "Scalability and speed are crucial for adoption",
+        "High throughput enables real-world applications",
+        "User experience matters more than decentralization purity"
+      ],
+      "skeptic": [
+        "Cryptocurrencies are speculative bubbles",
+        "Blockchain solutions are looking for problems",
+        "Traditional finance is more reliable"
+      ]
+    },
+    "religion": {
+      "christian": [
+        "Faith in Christ provides meaning and purpose",
+        "Biblical principles guide moral living",
+        "Community worship strengthens spiritual life"
+      ],
+      "jewish": [
+        "Jewish tradition connects us to ancient wisdom",
+        "Torah study enriches understanding",
+        "Jewish community and heritage are precious"
+      ],
+      "muslim": [
+        "Islam provides a complete way of life",
+        "The Quran offers divine guidance",
+        "Five pillars structure righteous living"
+      ],
+      "hindu": [
+        "Dharma guides righteous action",
+        "Karma and reincarnation explain existence",
+        "Many paths lead to truth"
+      ],
+      "buddhist": [
+        "Suffering arises from attachment",
+        "Mindfulness brings peace and clarity",
+        "Compassion for all beings is essential"
+      ],
+      "atheist": [
+        "No evidence supports supernatural claims",
+        "Morality exists independent of religion",
+        "Science and reason are reliable guides"
+      ],
+      "agnostic": [
+        "Ultimate truth about deity is unknowable",
+        "Uncertainty about metaphysics is rational",
+        "Focus on ethics rather than theology"
+      ]
+    },
+    "music": {
+      "rock": [
+        "Rock music captures authentic emotion",
+        "Guitar-driven sound is timeless",
+        "Rock culture celebrates rebellion and freedom"
+      ],
+      "pop": [
+        "Pop music brings joy to millions",
+        "Catchy melodies and hooks matter",
+        "Popular music reflects cultural zeitgeist"
+      ],
+      "jazz": [
+        "Jazz improvisation is true artistry",
+        "Complex harmonies enrich musical experience",
+        "Jazz history is American cultural treasure"
+      ],
+      "classical": [
+        "Classical music represents pinnacle of composition",
+        "Orchestral works showcase human achievement",
+        "Classical training builds musical excellence"
+      ],
+      "electronic": [
+        "Electronic music is frontier of innovation",
+        "Technology expands creative possibilities",
+        "Dance music creates communal experiences"
+      ],
+      "hiphop": [
+        "Hip-hop is powerful form of expression",
+        "Rap lyrics address real social issues",
+        "Hip-hop culture influences global youth"
+      ]
+    },
+    "climate": {
+      "crisis": [
+        "Climate change is an existential threat",
+        "Immediate drastic action is required",
+        "Fossil fuel use must end within decades"
+      ],
+      "concerned": [
+        "Climate change requires gradual transition",
+        "Balance environmental and economic concerns",
+        "Innovation can solve climate challenges"
+      ],
+      "skeptic": [
+        "Climate models are unreliable",
+        "Economic costs of action outweigh benefits",
+        "Natural cycles explain temperature changes"
+      ]
+    },
+    "technology": {
+      "centralized-transparent": [
+        "Centralized platforms provide best user experience",
+        "Open data sharing benefits everyone",
+        "Efficient systems require coordination"
+      ],
+      "centralized-private": [
+        "Privacy matters even in centralized systems",
+        "Companies should protect user data",
+        "Regulation should enforce privacy rights"
+      ],
+      "decentralized-transparent": [
+        "Decentralization ensures no single point of control",
+        "Transparent protocols build trust",
+        "Open source enables verification"
+      ],
+      "decentralized-private": [
+        "Privacy and decentralization work together",
+        "Cryptography protects individual liberty",
+        "Self-sovereign identity is fundamental right"
+      ]
+    }
+  }
+}
