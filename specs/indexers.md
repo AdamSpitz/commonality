@@ -265,15 +265,39 @@ The following issues were identified in the initial indexer implementation (as o
 
 ### Medium Issues 🟡
 
-10. **Query API Consistency** ([src/conceptspace/api.ts](../indexer/src/conceptspace/api.ts), [delegation/api.ts](../indexer/src/delegation/api.ts))
-    - Mix of different query patterns: `db.find()`, `db.select().from().where()`, `db.select().from().where().orderBy()`
-    - Some use `eq()`, `and()`, `inArray()` while others use different patterns
-    - **Verify**: Ensure all these are valid Ponder API patterns
+10. ~~**Query API Consistency**~~ ✅ **FIXED** ([src/conceptspace/api.ts](../indexer/src/conceptspace/api.ts), [delegation/api.ts](../indexer/src/delegation/api.ts), [fundingportal/api.ts](../indexer/src/fundingportal/api.ts))
+    - ~~Mix of different query patterns: `db.find()`, `db.select().from().where()`, `db.select().from().where().orderBy()`~~
+    - ~~Some use `eq()`, `and()`, `inArray()` while others use different patterns~~
+    - **Fixed**: All API endpoints now consistently use Drizzle query builder syntax (`db.select().from().where()`)
+    - **Fixed**: Added explicit `asc()` for `.orderBy()` calls for clarity
+    - **Fixed**: Removed usage of `db.find()` in favor of explicit query patterns
+    - **Note**: All patterns are valid Ponder/Drizzle API methods
 
-11. **Missing Input Validation**
-    - API endpoints don't validate hex strings are properly formatted
-    - BigInt parsing could fail with invalid input ([delegation/api.ts:56](../indexer/src/delegation/api.ts#L56))
-    - Should add try-catch and format validation
+11. ~~**Missing Input Validation**~~ ✅ **FIXED** ([src/utils/validation.ts](../indexer/src/utils/validation.ts), all API files)
+    - ~~API endpoints don't validate hex strings are properly formatted~~
+    - ~~BigInt parsing could fail with invalid input~~
+    - ~~Should add try-catch and format validation~~
+    - **Fixed**: Created comprehensive validation utilities module ([src/utils/validation.ts](../indexer/src/utils/validation.ts))
+    - **Fixed**: Added validation functions:
+      - `isValidAddress()` - validates Ethereum addresses (0x + 40 hex chars)
+      - `isValidHash()` - validates 32-byte hashes (0x + 64 hex chars)
+      - `isValidHex()` - validates general hex strings
+      - `parseBigIntSafe()` - safely parses BigInt with null return on error
+      - `parseAddressList()` - parses and validates comma-separated address lists
+      - `parsePositiveInt()` - safely parses positive integers with defaults
+      - `parseBoolean()` - parses boolean query parameters
+      - `invalidInputError()` - standardized error response format
+    - **Fixed**: All API endpoints now:
+      - Validate all path parameters (addresses, hashes, noteIds)
+      - Validate all query parameters (attesters, limits, filters)
+      - Wrap handlers in try-catch blocks with proper error logging
+      - Return standardized 400 errors for invalid input
+      - Return 500 errors for unexpected exceptions
+    - **Locations updated**:
+      - [conceptspace/api.ts](../indexer/src/conceptspace/api.ts) - 3 endpoints validated
+      - [delegation/api.ts](../indexer/src/delegation/api.ts) - 5 endpoints validated
+      - [fundingportal/api.ts](../indexer/src/fundingportal/api.ts) - 4 endpoints validated
+      - [pubstarter/api.ts](../indexer/src/pubstarter/api.ts) - No custom endpoints (GraphQL only)
 
 12. **Note Delegation Logic Complexity** ([src/delegation/index.ts:165-225](../indexer/src/delegation/index.ts#L165-L225))
     - The handler assumes `NoteDelegated` might be emitted before `ChainSplit` for partial delegations

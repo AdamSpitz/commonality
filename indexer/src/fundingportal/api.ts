@@ -31,6 +31,13 @@ import {
   projects,
   participantSummaries,
 } from "../../ponder.schema";
+import {
+  isValidHash,
+  isValidAddress,
+  parseAddressList,
+  parsePositiveInt,
+  invalidInputError,
+} from "../utils/validation";
 
 const app = new Hono();
 
@@ -73,12 +80,18 @@ app.use("/graphql", graphql({ db, schema }));
  * }
  */
 app.get("/api/aligned-projects/:statementId", async (c) => {
-  const statementId = c.req.param("statementId") as `0x${string}`;
-  const trustedAttesters = c.req.query("attesters")?.split(",") as `0x${string}`[] | undefined;
+  try {
+    const statementId = c.req.param("statementId");
 
-  if (!trustedAttesters || trustedAttesters.length === 0) {
-    return c.json({ error: "Must provide trusted attesters" }, 400);
-  }
+    if (!isValidHash(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    }
+
+    const trustedAttesters = parseAddressList(c.req.query("attesters"));
+
+    if (!trustedAttesters || trustedAttesters.length === 0) {
+      return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
+    }
 
   // Step 1: Find projects directly aligned with this statement
   const directAlignments = await db
@@ -192,12 +205,16 @@ app.get("/api/aligned-projects/:statementId", async (c) => {
     projectDetails: projectDetails.get(address) || null,
   }));
 
-  return c.json({
-    statementId,
-    directlyAlignedProjects,
-    indirectlyAlignedProjects,
-    totalProjects: directlyAlignedProjects.length + indirectlyAlignedProjects.length,
-  });
+    return c.json({
+      statementId,
+      directlyAlignedProjects,
+      indirectlyAlignedProjects,
+      totalProjects: directlyAlignedProjects.length + indirectlyAlignedProjects.length,
+    });
+  } catch (error) {
+    console.error("Error fetching aligned projects:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 /**
@@ -222,12 +239,18 @@ app.get("/api/aligned-projects/:statementId", async (c) => {
  * }
  */
 app.get("/api/available-funding/:statementId", async (c) => {
-  const statementId = c.req.param("statementId") as `0x${string}`;
-  const trustedAttesters = c.req.query("attesters")?.split(",") as `0x${string}`[] | undefined;
+  try {
+    const statementId = c.req.param("statementId");
 
-  if (!trustedAttesters || trustedAttesters.length === 0) {
-    return c.json({ error: "Must provide trusted attesters" }, 400);
-  }
+    if (!isValidHash(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    }
+
+    const trustedAttesters = parseAddressList(c.req.query("attesters"));
+
+    if (!trustedAttesters || trustedAttesters.length === 0) {
+      return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
+    }
 
   // Step 1: Get direct funding (notes intended for this statement)
   const directNotes = await db
@@ -293,15 +316,19 @@ app.get("/api/available-funding/:statementId", async (c) => {
     byTokenStr[token] = amount.toString();
   }
 
-  return c.json({
-    statementId,
-    directFunding: directFunding.toString(),
-    indirectFunding: indirectFunding.toString(),
-    totalFunding: (directFunding + indirectFunding).toString(),
-    noteCount: directNotes.length + indirectNotes.length,
-    uniqueOwners: uniqueOwners.size,
-    byToken: byTokenStr,
-  });
+    return c.json({
+      statementId,
+      directFunding: directFunding.toString(),
+      indirectFunding: indirectFunding.toString(),
+      totalFunding: (directFunding + indirectFunding).toString(),
+      noteCount: directNotes.length + indirectNotes.length,
+      uniqueOwners: uniqueOwners.size,
+      byToken: byTokenStr,
+    });
+  } catch (error) {
+    console.error("Error fetching available funding:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 /**
@@ -336,13 +363,20 @@ app.get("/api/available-funding/:statementId", async (c) => {
  * }
  */
 app.get("/api/contributor-leaderboard/:statementId", async (c) => {
-  const statementId = c.req.param("statementId") as `0x${string}`;
-  const trustedAttesters = c.req.query("attesters")?.split(",") as `0x${string}`[] | undefined;
-  const limit = parseInt(c.req.query("limit") || "20");
+  try {
+    const statementId = c.req.param("statementId");
 
-  if (!trustedAttesters || trustedAttesters.length === 0) {
-    return c.json({ error: "Must provide trusted attesters" }, 400);
-  }
+    if (!isValidHash(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    }
+
+    const trustedAttesters = parseAddressList(c.req.query("attesters"));
+
+    if (!trustedAttesters || trustedAttesters.length === 0) {
+      return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
+    }
+
+    const limit = parsePositiveInt(c.req.query("limit"), 20);
 
   // Step 1: Get all aligned projects (direct + indirect)
   const directAlignments = await db
@@ -434,12 +468,16 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
     0n
   );
 
-  return c.json({
-    statementId,
-    contributors,
-    totalContributions: totalContributions.toString(),
-    uniqueContributors: contributorMap.size,
-  });
+    return c.json({
+      statementId,
+      contributors,
+      totalContributions: totalContributions.toString(),
+      uniqueContributors: contributorMap.size,
+    });
+  } catch (error) {
+    console.error("Error fetching contributor leaderboard:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 /**
@@ -462,12 +500,18 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
  * }
  */
 app.get("/api/project-statements/:projectAddress", async (c) => {
-  const projectAddress = c.req.param("projectAddress") as `0x${string}`;
-  const trustedAttesters = c.req.query("attesters")?.split(",") as `0x${string}`[] | undefined;
+  try {
+    const projectAddress = c.req.param("projectAddress");
 
-  if (!trustedAttesters || trustedAttesters.length === 0) {
-    return c.json({ error: "Must provide trusted attesters" }, 400);
-  }
+    if (!isValidAddress(projectAddress)) {
+      return c.json(invalidInputError("projectAddress", "Must be a valid Ethereum address"), 400);
+    }
+
+    const trustedAttesters = parseAddressList(c.req.query("attesters"));
+
+    if (!trustedAttesters || trustedAttesters.length === 0) {
+      return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
+    }
 
   // Get all alignments for this project
   const alignments = await db
@@ -521,11 +565,15 @@ app.get("/api/project-statements/:projectAddress", async (c) => {
     statementDetails: statementDetails.get(statementId) || null,
   }));
 
-  return c.json({
-    projectAddress,
-    alignedStatements,
-    totalStatements: alignedStatements.length,
-  });
+    return c.json({
+      projectAddress,
+      alignedStatements,
+      totalStatements: alignedStatements.length,
+    });
+  } catch (error) {
+    console.error("Error fetching project statements:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 export default app;

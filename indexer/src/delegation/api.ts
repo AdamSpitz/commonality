@@ -22,12 +22,20 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
-import { eq, and } from "ponder";
+import { eq, and, asc } from "ponder";
 import {
   delegatableNotes,
   delegationChains,
   noteEvents,
 } from "../../ponder.schema";
+import {
+  parseBigIntSafe,
+  isValidAddress,
+  isValidHash,
+  parseBoolean,
+  parsePositiveInt,
+  invalidInputError,
+} from "../utils/validation";
 
 const app = new Hono();
 
@@ -53,36 +61,52 @@ app.use("/graphql", graphql({ db, schema }));
  * }
  */
 app.get("/api/delegation-chain/:noteId", async (c) => {
-  const noteId = BigInt(c.req.param("noteId"));
+  try {
+    const noteIdParam = c.req.param("noteId");
+    const noteId = parseBigIntSafe(noteIdParam);
 
-  // Get note details
-  const note = await db.find(delegatableNotes, { id: noteId });
+    if (noteId === null) {
+      return c.json(invalidInputError("noteId", "Must be a valid integer"), 400);
+    }
 
-  if (!note) {
-    return c.json({ error: "Note not found" }, 404);
+    // Get note details
+    const noteResults = await db
+      .select()
+      .from(delegatableNotes)
+      .where(eq(delegatableNotes.id, noteId))
+      .limit(1);
+
+    if (noteResults.length === 0) {
+      return c.json({ error: "Note not found" }, 404);
+    }
+
+    const note = noteResults[0];
+
+    // Get chain entries ordered by position
+    const chainEntries = await db
+      .select()
+      .from(delegationChains)
+      .where(eq(delegationChains.noteId, noteId))
+      .orderBy(asc(delegationChains.position));
+
+    const chain = chainEntries.map((entry) => entry.address);
+
+    return c.json({
+      noteId: noteId.toString(),
+      chain,
+      rootOwner: note.rootOwner,
+      currentOwner: note.owner,
+      chainLength: chain.length,
+      active: note.active,
+      amount: note.amount.toString(),
+      token: note.token,
+      tokenType: note.tokenType,
+      intendedStatementId: note.intendedStatementId,
+    });
+  } catch (error) {
+    console.error("Error fetching delegation chain:", error);
+    return c.json({ error: "Internal server error" }, 500);
   }
-
-  // Get chain entries ordered by position
-  const chainEntries = await db
-    .select()
-    .from(delegationChains)
-    .where(eq(delegationChains.noteId, noteId))
-    .orderBy(delegationChains.position);
-
-  const chain = chainEntries.map((entry: any) => entry.address);
-
-  return c.json({
-    noteId: noteId.toString(),
-    chain,
-    rootOwner: note.rootOwner,
-    currentOwner: note.owner,
-    chainLength: chain.length,
-    active: note.active,
-    amount: note.amount.toString(),
-    token: note.token,
-    tokenType: note.tokenType,
-    intendedStatementId: note.intendedStatementId,
-  });
 });
 
 /**
@@ -113,52 +137,62 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
  * }
  */
 app.get("/api/active-notes/:address", async (c) => {
-  const address = c.req.param("address") as `0x${string}`;
-  const includeChains = c.req.query("includeChains") === "true";
+  try {
+    const address = c.req.param("address");
 
-  // Get all active notes owned by this address
-  const notes = await db
-    .select()
-    .from(delegatableNotes)
-    .where(and(
-      eq(delegatableNotes.owner, address),
-      eq(delegatableNotes.active, true)
-    ));
-
-  const result = [];
-
-  for (const note of notes) {
-    const noteData: any = {
-      noteId: note.id.toString(),
-      amount: note.amount.toString(),
-      token: note.token,
-      tokenType: note.tokenType,
-      tokenId: note.tokenId.toString(),
-      intendedStatementId: note.intendedStatementId,
-      rootOwner: note.rootOwner,
-      createdAt: note.createdAt.toString(),
-    };
-
-    if (includeChains) {
-      // Get full delegation chain
-      const chainEntries = await db
-        .select()
-        .from(delegationChains)
-        .where(eq(delegationChains.noteId, note.id))
-        .orderBy(delegationChains.position);
-
-      noteData.chain = chainEntries.map((entry: any) => entry.address);
-      noteData.chainLength = chainEntries.length;
+    if (!isValidAddress(address)) {
+      return c.json(invalidInputError("address", "Must be a valid Ethereum address"), 400);
     }
 
-    result.push(noteData);
-  }
+    const includeChains = parseBoolean(c.req.query("includeChains"), false);
 
-  return c.json({
-    owner: address,
-    notes: result,
-    totalCount: result.length,
-  });
+    // Get all active notes owned by this address
+    const notes = await db
+      .select()
+      .from(delegatableNotes)
+      .where(and(
+        eq(delegatableNotes.owner, address),
+        eq(delegatableNotes.active, true)
+      ));
+
+    const result = [];
+
+    for (const note of notes) {
+      const noteData: any = {
+        noteId: note.id.toString(),
+        amount: note.amount.toString(),
+        token: note.token,
+        tokenType: note.tokenType,
+        tokenId: note.tokenId.toString(),
+        intendedStatementId: note.intendedStatementId,
+        rootOwner: note.rootOwner,
+        createdAt: note.createdAt.toString(),
+      };
+
+      if (includeChains) {
+        // Get full delegation chain
+        const chainEntries = await db
+          .select()
+          .from(delegationChains)
+          .where(eq(delegationChains.noteId, note.id))
+          .orderBy(asc(delegationChains.position));
+
+        noteData.chain = chainEntries.map((entry) => entry.address);
+        noteData.chainLength = chainEntries.length;
+      }
+
+      result.push(noteData);
+    }
+
+    return c.json({
+      owner: address,
+      notes: result,
+      totalCount: result.length,
+    });
+  } catch (error) {
+    console.error("Error fetching active notes:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 /**
@@ -184,61 +218,77 @@ app.get("/api/active-notes/:address", async (c) => {
  * }
  */
 app.get("/api/available-funding/:statementId", async (c) => {
-  const statementId = c.req.param("statementId") as `0x${string}`;
-  const tokenTypeFilter = c.req.query("tokenType");
-  const tokenFilter = c.req.query("token");
+  try {
+    const statementId = c.req.param("statementId");
 
-  // Get all active notes for this statement
-  let query = db
-    .select()
-    .from(delegatableNotes)
-    .where(and(
-      eq(delegatableNotes.intendedStatementId, statementId),
-      eq(delegatableNotes.active, true)
-    ));
+    if (!isValidHash(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    }
 
-  const notes = await query;
+    const tokenTypeFilter = c.req.query("tokenType");
+    const tokenFilter = c.req.query("token");
 
-  // Filter by token type if specified
-  let filteredNotes = notes;
-  if (tokenTypeFilter !== undefined) {
-    const tokenType = parseInt(tokenTypeFilter);
-    filteredNotes = notes.filter((note: any) => note.tokenType === tokenType);
+    // Validate token filter if provided
+    if (tokenFilter && !isValidAddress(tokenFilter)) {
+      return c.json(invalidInputError("token", "Must be a valid Ethereum address"), 400);
+    }
+
+    // Get all active notes for this statement
+    const notes = await db
+      .select()
+      .from(delegatableNotes)
+      .where(and(
+        eq(delegatableNotes.intendedStatementId, statementId),
+        eq(delegatableNotes.active, true)
+      ));
+
+    // Filter by token type if specified
+    let filteredNotes = notes;
+    if (tokenTypeFilter !== undefined) {
+      const tokenType = parsePositiveInt(tokenTypeFilter, -1);
+      if (tokenType !== 0 && tokenType !== 1) {
+        return c.json(invalidInputError("tokenType", "Must be 0 (ERC20/ETH) or 1 (ERC1155)"), 400);
+      }
+      filteredNotes = notes.filter((note) => note.tokenType === tokenType);
+    }
+
+    // Filter by token address if specified
+    if (tokenFilter) {
+      filteredNotes = filteredNotes.filter((note) =>
+        note.token.toLowerCase() === tokenFilter.toLowerCase()
+      );
+    }
+
+    // Calculate totals
+    let totalAmount = 0n;
+    const byToken: Record<string, bigint> = {};
+    const uniqueOwners = new Set<string>();
+
+    for (const note of filteredNotes) {
+      totalAmount += note.amount;
+      uniqueOwners.add(note.owner.toLowerCase());
+
+      const tokenKey = note.token.toLowerCase();
+      byToken[tokenKey] = (byToken[tokenKey] || 0n) + note.amount;
+    }
+
+    // Convert bigints to strings for JSON
+    const byTokenStr: Record<string, string> = {};
+    for (const [token, amount] of Object.entries(byToken)) {
+      byTokenStr[token] = amount.toString();
+    }
+
+    return c.json({
+      statementId,
+      totalAmount: totalAmount.toString(),
+      noteCount: filteredNotes.length,
+      uniqueOwners: uniqueOwners.size,
+      byToken: byTokenStr,
+    });
+  } catch (error) {
+    console.error("Error fetching available funding:", error);
+    return c.json({ error: "Internal server error" }, 500);
   }
-
-  // Filter by token address if specified
-  if (tokenFilter) {
-    filteredNotes = filteredNotes.filter((note: any) =>
-      note.token.toLowerCase() === tokenFilter.toLowerCase()
-    );
-  }
-
-  // Calculate totals
-  let totalAmount = 0n;
-  const byToken: Record<string, bigint> = {};
-  const uniqueOwners = new Set<string>();
-
-  for (const note of filteredNotes) {
-    totalAmount += note.amount;
-    uniqueOwners.add(note.owner.toLowerCase());
-
-    const tokenKey = note.token.toLowerCase();
-    byToken[tokenKey] = (byToken[tokenKey] || 0n) + note.amount;
-  }
-
-  // Convert bigints to strings for JSON
-  const byTokenStr: Record<string, string> = {};
-  for (const [token, amount] of Object.entries(byToken)) {
-    byTokenStr[token] = amount.toString();
-  }
-
-  return c.json({
-    statementId,
-    totalAmount: totalAmount.toString(),
-    noteCount: filteredNotes.length,
-    uniqueOwners: uniqueOwners.size,
-    byToken: byTokenStr,
-  });
 });
 
 /**
@@ -258,37 +308,47 @@ app.get("/api/available-funding/:statementId", async (c) => {
  * }
  */
 app.get("/api/notes-by-root-owner/:address", async (c) => {
-  const address = c.req.param("address") as `0x${string}`;
-  const activeOnly = c.req.query("activeOnly") !== "false";
+  try {
+    const address = c.req.param("address");
 
-  let query = db
-    .select()
-    .from(delegatableNotes)
-    .where(eq(delegatableNotes.rootOwner, address));
+    if (!isValidAddress(address)) {
+      return c.json(invalidInputError("address", "Must be a valid Ethereum address"), 400);
+    }
 
-  if (activeOnly) {
-    query = query.where(eq(delegatableNotes.active, true));
+    const activeOnly = parseBoolean(c.req.query("activeOnly"), true);
+
+    // Build query with proper condition chaining
+    const conditions = [eq(delegatableNotes.rootOwner, address)];
+    if (activeOnly) {
+      conditions.push(eq(delegatableNotes.active, true));
+    }
+
+    const notes = await db
+      .select()
+      .from(delegatableNotes)
+      .where(and(...conditions));
+
+    const result = notes.map((note) => ({
+      noteId: note.id.toString(),
+      currentOwner: note.owner,
+      amount: note.amount.toString(),
+      token: note.token,
+      tokenType: note.tokenType,
+      tokenId: note.tokenId.toString(),
+      intendedStatementId: note.intendedStatementId,
+      active: note.active,
+      createdAt: note.createdAt.toString(),
+    }));
+
+    return c.json({
+      rootOwner: address,
+      notes: result,
+      totalCount: result.length,
+    });
+  } catch (error) {
+    console.error("Error fetching notes by root owner:", error);
+    return c.json({ error: "Internal server error" }, 500);
   }
-
-  const notes = await query;
-
-  const result = notes.map((note: any) => ({
-    noteId: note.id.toString(),
-    currentOwner: note.owner,
-    amount: note.amount.toString(),
-    token: note.token,
-    tokenType: note.tokenType,
-    tokenId: note.tokenId.toString(),
-    intendedStatementId: note.intendedStatementId,
-    active: note.active,
-    createdAt: note.createdAt.toString(),
-  }));
-
-  return c.json({
-    rootOwner: address,
-    notes: result,
-    totalCount: result.length,
-  });
 });
 
 /**
@@ -313,30 +373,40 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
  * }
  */
 app.get("/api/note-history/:noteId", async (c) => {
-  const noteId = BigInt(c.req.param("noteId"));
+  try {
+    const noteIdParam = c.req.param("noteId");
+    const noteId = parseBigIntSafe(noteIdParam);
 
-  const events = await db
-    .select()
-    .from(noteEvents)
-    .where(eq(noteEvents.noteId, noteId))
-    .orderBy(noteEvents.createdAt);
+    if (noteId === null) {
+      return c.json(invalidInputError("noteId", "Must be a valid integer"), 400);
+    }
 
-  const result = events.map((event: any) => ({
-    eventType: event.eventType,
-    actor: event.actor,
-    amount: event.amount ? event.amount.toString() : null,
-    parentNoteId: event.parentNoteId ? event.parentNoteId.toString() : null,
-    childNoteId: event.childNoteId ? event.childNoteId.toString() : null,
-    data: event.data,
-    timestamp: event.createdAt.toString(),
-    blockNumber: event.blockNumber.toString(),
-    transactionHash: event.transactionHash,
-  }));
+    const events = await db
+      .select()
+      .from(noteEvents)
+      .where(eq(noteEvents.noteId, noteId))
+      .orderBy(asc(noteEvents.createdAt));
 
-  return c.json({
-    noteId: noteId.toString(),
-    events: result,
-  });
+    const result = events.map((event) => ({
+      eventType: event.eventType,
+      actor: event.actor,
+      amount: event.amount ? event.amount.toString() : null,
+      parentNoteId: event.parentNoteId ? event.parentNoteId.toString() : null,
+      childNoteId: event.childNoteId ? event.childNoteId.toString() : null,
+      data: event.data,
+      timestamp: event.createdAt.toString(),
+      blockNumber: event.blockNumber.toString(),
+      transactionHash: event.transactionHash,
+    }));
+
+    return c.json({
+      noteId: noteId.toString(),
+      events: result,
+    });
+  } catch (error) {
+    console.error("Error fetching note history:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 export default app;
