@@ -8,6 +8,7 @@
  * - Concept Space: /conceptspace/* - Statements, beliefs, implications
  * - Pubstarter: /pubstarter/* - Crowdfunding projects, contributions, markets
  * - Delegation: /delegation/* - Delegatable notes, delegation chains
+ * - Funding Portal: /fundingportal/* - Project alignments, cross-cutting views
  *
  * The root GraphQL endpoint provides access to all schema tables.
  */
@@ -21,6 +22,7 @@ import { client, graphql } from "ponder";
 import conceptspaceApi from "../conceptspace/api";
 import pubstarterApi from "../pubstarter/api";
 import delegationApi from "../delegation/api";
+import fundingportalApi from "../fundingportal/api";
 
 const app = new Hono();
 
@@ -47,5 +49,8 @@ app.route("/pubstarter", pubstarterApi);
 
 // Mount Delegation API at /delegation/*
 app.route("/delegation", delegationApi);
+
+// Mount Funding Portal API at /fundingportal/*
+app.route("/fundingportal", fundingportalApi);
 
 export default app;

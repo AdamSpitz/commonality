@@ -17,6 +17,9 @@ import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
 // Delegation ABIs
 import { DelegatableNotesAbi } from "./abis/DelegatableNotesAbi";
 
+// Funding Portal ABIs
+import { ProjectAlignmentAbi } from "./abis/ProjectAlignmentAbi";
+
 // ============================================================================
 // CONCEPTSPACE CONTRACT ADDRESSES
 // ============================================================================
@@ -36,10 +39,16 @@ const MARKETPLACE_FACTORY_ADDRESS = process.env.MARKETPLACE_FACTORY_ADDRESS as `
 // ============================================================================
 const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}` | undefined;
 
+// ============================================================================
+// FUNDING PORTAL CONTRACT ADDRESSES
+// ============================================================================
+const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}` | undefined;
+
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
 const PUBSTARTER_START_BLOCK = Number(process.env.PUBSTARTER_START_BLOCK || START_BLOCK);
 const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || START_BLOCK);
+const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
 
 export default createConfig({
   chains: {
@@ -140,6 +149,20 @@ export default createConfig({
       chain: "baseSepolia",
       address: DELEGATABLE_NOTES_ADDRESS,
       startBlock: DELEGATION_START_BLOCK,
+    },
+
+    // ========================================================================
+    // FUNDING PORTAL INDEXER CONTRACTS
+    // ========================================================================
+    // These are logically separate from the foundational subsystems above.
+    // The Funding Portal indexer tracks project alignment attestations and
+    // federates queries to other subsystems' APIs for cross-cutting views.
+
+    ProjectAlignment: {
+      abi: ProjectAlignmentAbi,
+      chain: "baseSepolia",
+      address: PROJECT_ALIGNMENT_ADDRESS,
+      startBlock: FUNDING_PORTAL_START_BLOCK,
     },
   },
 });

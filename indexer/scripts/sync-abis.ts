@@ -24,8 +24,8 @@ const ABIS_DIR = join(INDEXER_ROOT, "abis");
 const CONTRACTS_TO_SYNC = {
   Beliefs: "statements/Beliefs.sol/Beliefs.json",
   Implications: "statements/Implications.sol/Implications.json",
+  ProjectAlignment: "project-alignment/ProjectAlignment.sol/ProjectAlignment.json",
   // Add more contracts as needed:
-  // ProjectAlignment: "project-alignment/ProjectAlignment.sol/ProjectAlignment.json",
   // AssuranceContract: "individual-projects/AssuranceContract.sol/AssuranceContract.json",
   // DelegatableNotes: "delegation/DelegatableNotes.sol/DelegatableNotes.json",
   // ERC1155SecondaryMarket: "marketplace/ERC1155SecondaryMarket.sol/ERC1155SecondaryMarket.json",
