@@ -294,6 +294,43 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   // ============ Purchase Functions ============
 
   /**
+   * @dev Common logic for executing purchases. Validates notes, consumes payment,
+   *      and returns data needed to create output notes.
+   * @param noteIds Array of note IDs to use for payment
+   * @param chains Array of delegation chains (one per note)
+   * @param paymentAmount Total amount to spend in ETH
+   * @return paymentChains The delegation chains of the payment notes
+   * @return spentAmounts The amount spent from each note
+   * @return statementIds The intended statement IDs from each note
+   */
+  function _executePurchase(
+    uint256[] calldata noteIds,
+    address[][] calldata chains,
+    uint256 paymentAmount
+  ) private returns (
+    address[][] memory paymentChains,
+    uint256[] memory spentAmounts,
+    bytes32[] memory statementIds
+  ) {
+    require(noteIds.length > 0, "Must provide at least one note");
+    require(noteIds.length == chains.length, "Array length mismatch");
+    require(paymentAmount > 0, "Payment amount must be greater than 0");
+
+    address caller = _msgSender();
+
+    // Validate ownership and prepare payment
+    uint256 totalAvailable = _preparePayment(
+      noteIds,
+      chains,
+      caller,
+      paymentAmount
+    );
+
+    // Consume payment notes and cache data for output notes
+    return _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
+  }
+
+  /**
    * @dev Purchase ERC1155 tokens from a primary market contract.
    * @param noteIds Array of note IDs to use for payment
    * @param chains Array of delegation chains (one per note)
@@ -312,27 +349,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] calldata tokenIds,
     uint256[] calldata counts
   ) external nonReentrant {
-    require(noteIds.length > 0, "Must provide at least one note");
-    require(noteIds.length == chains.length, "Array length mismatch");
     require(tokenIds.length == counts.length, "Token IDs and counts length mismatch");
-    require(paymentAmount > 0, "Payment amount must be greater than 0");
 
     address caller = _msgSender();
 
-    // Validate ownership and prepare payment
-    uint256 totalAvailable = _preparePayment(
-      noteIds,
-      chains,
-      caller,
-      paymentAmount
-    );
-
-    // Consume payment notes and cache data for output notes
+    // Execute common purchase logic
     (
       address[][] memory paymentChains,
       uint256[] memory spentAmounts,
       bytes32[] memory statementIds
-    ) = _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
+    ) = _executePurchase(noteIds, chains, paymentAmount);
 
     // Execute primary market purchase
     ERC1155PrimaryMarket(primaryMarket).buyERC1155{value: paymentAmount}(
@@ -382,27 +408,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 saleListingId,
     uint256 tokenCount
   ) external nonReentrant {
-    require(noteIds.length > 0, "Must provide at least one note");
-    require(noteIds.length == chains.length, "Array length mismatch");
-    require(paymentAmount > 0, "Payment amount must be greater than 0");
     require(tokenCount > 0, "Token count must be greater than 0");
 
     address caller = _msgSender();
 
-    // Validate ownership and prepare payment
-    uint256 totalAvailable = _preparePayment(
-      noteIds,
-      chains,
-      caller,
-      paymentAmount
-    );
-
-    // Consume payment notes and cache data for output notes
+    // Execute common purchase logic
     (
       address[][] memory paymentChains,
       uint256[] memory spentAmounts,
       bytes32[] memory statementIds
-    ) = _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
+    ) = _executePurchase(noteIds, chains, paymentAmount);
 
     // Execute secondary market purchase
     ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo{value: paymentAmount}(
@@ -412,10 +427,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     );
 
     // Get the token details from the marketplace to create notes
-    // The secondary market will have transferred the token to us
     address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
-
-    // Get the token ID from the sale listing
     (, uint256 tokenId,,) = ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId);
 
     // Create arrays for single token type
