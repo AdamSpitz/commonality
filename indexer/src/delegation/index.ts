@@ -42,10 +42,11 @@ async function storeDelegationChain(
   // Delete existing chain entries for this note
   // Since delegationChains has a composite primary key (noteId, position),
   // we need to delete each position individually
-  const existing = await ctx.db
-    .select({ noteId: delegationChains.noteId, position: delegationChains.position })
-    .from(delegationChains)
-    .where((row: any) => row.noteId.equals(noteId));
+  // Use db.sql for querying (Store API doesn't support complex queries)
+  const existing = await ctx.db.sql.query.delegationChains.findMany({
+    where: (table: any, { eq }: any) => eq(table.noteId, noteId),
+    columns: { noteId: true, position: true },
+  });
 
   for (const row of existing) {
     await ctx.db.delete(delegationChains, {
@@ -181,11 +182,10 @@ ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
 
     if (note) {
       // Get current chain
-      const chainEntries = await context.db
-        .select()
-        .from(delegationChains)
-        .where((row: any) => row.noteId.equals(parentNoteId))
-        .orderBy((row: any) => row.position.asc());
+      const chainEntries = await context.db.sql.query.delegationChains.findMany({
+        where: (table: any, { eq }: any) => eq(table.noteId, parentNoteId),
+        orderBy: (table: any, { asc }: any) => [asc(table.position)],
+      });
 
       // Add delegate to chain
       const newPosition = chainEntries.length;
@@ -258,11 +258,10 @@ ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
     });
 
   // Get the chain for the original note
-  const chainEntries = await context.db
-    .select()
-    .from(delegationChains)
-    .where((row: any) => row.noteId.equals(originalLeafId))
-    .orderBy((row: any) => row.position.asc());
+  const chainEntries = await context.db.sql.query.delegationChains.findMany({
+    where: (table: any, { eq }: any) => eq(table.noteId, originalLeafId),
+    orderBy: (table: any, { asc }: any) => [asc(table.position)],
+  });
 
   // Create new note for split portion (splitLeafId)
   // This will have the same chain initially, but NoteDelegated will add the delegate
@@ -322,11 +321,10 @@ ponder.on("DelegatableNotes:NoteRevoked", async ({ event, context }) => {
   const transactionHash = event.transaction.hash;
 
   // Get current chain
-  const chainEntries = await context.db
-    .select()
-    .from(delegationChains)
-    .where((row: any) => row.noteId.equals(noteId))
-    .orderBy((row: any) => row.position.asc());
+  const chainEntries = await context.db.sql.query.delegationChains.findMany({
+    where: (table: any, { eq }: any) => eq(table.noteId, noteId),
+    orderBy: (table: any, { asc }: any) => [asc(table.position)],
+  });
 
   // Find revoker position in chain
   const revokerEntry = chainEntries.find((entry: any) => entry.address === revoker);

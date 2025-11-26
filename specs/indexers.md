@@ -186,10 +186,13 @@ The following issues were identified in the initial indexer implementation (as o
    - ~~The deletion logic is flawed: `await ctx.db.delete(delegationChains, { noteId: row.noteId, position: 0 })` will only try to delete position 0~~
    - **Fixed**: Now selects both `noteId` and `position` from existing entries and deletes each specific position individually
 
-2. **Missing Database Query Methods** ([src/delegation/index.ts:42-45](../indexer/src/delegation/index.ts#L42-L45))
-   - Uses `.select().from().where()` pattern that may not match Ponder's actual API
-   - Similar patterns in [delegation/api.ts](../indexer/src/delegation/api.ts) throughout
-   - **Need to verify**: Check if this is the correct Ponder query syntax vs using `context.db.find()` or similar
+2. ~~**Missing Database Query Methods**~~ ✅ **FIXED** ([src/delegation/index.ts:46, 185, 261, 324](../indexer/src/delegation/index.ts#L46))
+   - ~~Uses `.select().from().where()` pattern that may not match Ponder's actual API~~
+   - **Fixed**: Event handlers now use `context.db.sql.query.tableName.findMany()` for complex queries (Ponder's relational query API)
+   - **Note**: API files (delegation/api.ts) correctly use `db.select()` since they import from "ponder:api" which provides direct Drizzle access
+   - **Explanation**: Ponder has two contexts:
+     - Event handlers (`context.db`): Should use Store API (`find`, `insert`, `update`, `delete`) or `context.db.sql.query` for complex queries
+     - API routes (`db` from "ponder:api"): Can use full Drizzle query builder (`db.select().from().where()`)
 
 3. **ChainSplit Handler Logic** ([src/delegation/index.ts:231-308](../indexer/src/delegation/index.ts#L231-L308))
    - Updates `remainderLeafId` but the variable name suggests it should update `originalLeafId`
