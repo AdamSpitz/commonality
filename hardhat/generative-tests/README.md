@@ -72,6 +72,80 @@ The simulation performs these actions:
 - **Errors** - any failures during execution
 - **Block numbers** - timeline of actions
 
+## Indexer Integration Tests
+
+The test suite now includes comprehensive indexer testing capabilities:
+
+### Running Indexer Tests
+
+```bash
+# From the hardhat directory
+cd /home/adam/Projects/commonality/hardhat
+
+# Run small indexer test (10 users, 3 rounds)
+npm run test:indexer:small
+
+# Run medium indexer test (30 users, 5 rounds)
+npm run test:indexer:medium
+
+# Run custom test
+node generative-tests/testIndexer.js [numUsers] [numRounds]
+```
+
+Also see INDEXER_TESTING_GUIDE.md (in this directory).
+
+### What the Indexer Tests Do
+
+1. **Generate and Deploy Data**: Runs the simulation to create blockchain transactions
+2. **Start Indexer**: Launches the Ponder indexer in a separate process
+3. **Wait for Sync**: Monitors the indexer's sync status using Ponder's `/status` endpoint and GraphQL `_meta` field
+4. **Validate Data**: Queries the indexed data and compares it with blockchain state
+
+### Test Coverage
+
+The indexer tests validate:
+
+- ✓ **Statements Indexing**: Verifies statements are created and IPFS content is fetched
+- ✓ **Users Indexing**: Checks user records with belief/disbelief counts
+- ✓ **Beliefs Indexing**: Validates all belief events are indexed correctly
+- ✓ **Implications Indexing**: Verifies implication attestations are tracked
+- ✓ **Indirect Supporters**: Tests the calculation of indirect support via implications
+- ✓ **Block Number Tracking**: Ensures indexer keeps up with blockchain state
+
+### How Sync Waiting Works
+
+The test uses Ponder's built-in sync status APIs:
+
+1. **Primary Method**: Queries the `/status` HTTP endpoint
+2. **Fallback Method**: Uses GraphQL `_meta { block { number } }` query
+3. **Polling**: Checks every 1 second until target block is reached
+4. **Timeout**: Fails if sync doesn't complete within 60 seconds
+
+### Output
+
+The test produces:
+
+- **Console Output**: Real-time progress and results
+- **Test Summary**: Passed/failed/warning counts with details
+- **Exit Code**: 0 for success, 1 for failures
+
+Example output:
+
+```
+=== Test Results Summary ===
+
+✓ Passed: 5
+  • Statements Indexing: Successfully indexed 63 statements (43 with content)
+  • Users Indexing: Successfully indexed 10 users
+  • Beliefs Indexing: Successfully indexed 127 beliefs
+  • Implications Indexing: Successfully indexed 18 implications
+  • Indirect Supporters: Successfully calculated indirect supporters
+
+⚠ Warnings: 0
+
+✗ Failed: 0
+```
+
 ## Future Enhancements
 
 This is a basic version. The full generative testing plan includes:
@@ -84,6 +158,8 @@ This is a basic version. The full generative testing plan includes:
 - **Invariant checking** - Validate contract state consistency
 - **Scale testing** - Run with 1000+ users
 - **Visualization** - Generate graphs of the belief network and funding flows
+- **Deep data validation** - Compare every blockchain event with indexed records
+- **Performance benchmarks** - Measure indexer throughput and query response times
 
 ## Notes
 

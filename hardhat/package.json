@@ -12,7 +12,10 @@
     "gen:small": "node generative-tests/runSimulation.js 10 3",
     "gen:medium": "node generative-tests/runSimulation.js 50 5",
     "gen:large": "node generative-tests/runSimulation.js 100 10",
-    "gen:clean": "rm -f generative-tests/users.json generative-tests/statements.json generative-tests/actions.json generative-tests/metrics.json"
+    "gen:clean": "rm -f generative-tests/users.json generative-tests/statements.json generative-tests/actions.json generative-tests/metrics.json",
+    "test:indexer": "node generative-tests/testIndexer.js",
+    "test:indexer:small": "node generative-tests/testIndexer.js 10 3",
+    "test:indexer:medium": "node generative-tests/testIndexer.js 30 5"
   },
   "keywords": [],
   "author": "",
