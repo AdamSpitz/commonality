@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the IPFS content sync implementation for the Concept Space indexer, which solves issue #6 from [specs/indexers.md](../specs/indexers.md#L222-L238).
+This document describes the IPFS content sync implementation for the Concept Space indexer.
 
 ## Problem Statement
 
