@@ -193,43 +193,83 @@ async function myNewTest() {
    cd hardhat && npm run build
    ```
 
+### Running Tests (Automated - Recommended)
+
+**The easiest way to run tests** is to use the automated test runner script:
+
+```bash
+# From the project root
+./run-integration-tests.sh
+```
+
+This script automatically:
+1. Starts a Hardhat node in the background
+2. Runs the integration tests (which start/stop the indexer as needed)
+3. Cleans up all processes when complete
+
+### Running Tests (Manual - Advanced)
+
+If you prefer to manage processes manually or want to observe each component:
+
+**Terminal 1 - Start Hardhat node:**
+```bash
+cd hardhat
+npx hardhat node
+```
+
+**Terminal 2 - Run tests:**
+```bash
+# From the project root
+npm run integration-tests
+```
+
+The tests will automatically start and stop the Ponder indexer as needed.
+
 ### Test Commands
 
-**From the project root:**
+**Scenario tests (default, fast):**
 ```bash
-# Scenario tests (default, fast)
-npm run integration-tests
-
-# Generative tests (stress testing)
-npm run integration-tests:generative:small    # 10 users, 3 rounds
-npm run integration-tests:generative:medium   # 30 users, 5 rounds
-npm run integration-tests:generative:large    # 50 users, 10 rounds
+./run-integration-tests.sh                     # Automated (recommended)
+npm run integration-tests                       # Manual (requires Hardhat node running)
 ```
 
-**From the integration-tests directory:**
+**Generative tests (stress testing):**
 ```bash
-# Scenario tests
-npm test
-npm run test:scenarios
-
-# Generative tests
-npm run test:generative
-npm run test:generative:small
-npm run test:generative:medium
-npm run test:generative:large
+npm run integration-tests:generative:small      # 10 users, 3 rounds (~2-3 min)
+npm run integration-tests:generative:medium     # 30 users, 5 rounds (~5-10 min)
+npm run integration-tests:generative:large      # 50 users, 10 rounds (~10-15 min)
 ```
+
+**Note:** Generative tests currently require manual setup (start Hardhat node first)
 
 ## How It Works
 
+### Process Architecture
+
+The integration tests coordinate three processes:
+
+1. **Hardhat Node (Port 8545)** - Local Ethereum blockchain
+   - Must be running before tests start
+   - Can be started manually or automatically via `run-integration-tests.sh`
+
+2. **Ponder Indexer (Port 42069)** - Event indexer with GraphQL API
+   - **Automatically managed by tests** (starts/stops as needed)
+   - You don't need to run this manually
+
+3. **Test Runner** - Executes test scenarios
+   - Deploys contracts to Hardhat
+   - Performs blockchain actions
+   - Queries indexer via GraphQL
+
 ### Scenario-Based Test Workflow:
 
-1. **Setup**: Deploy contracts and create test users
+1. **Setup**: Deploy contracts and create test users on Hardhat node
 2. **Actions**: Execute specific user actions (e.g., express beliefs, create implications)
-3. **Indexer Startup**: Start the Ponder indexer in a subprocess
+3. **Indexer Startup**: Automatically start the Ponder indexer in a subprocess
 4. **Sync Waiting**: Wait for indexer to catch up to the blockchain
 5. **Validation**: Query the indexer's GraphQL API and assert expected results
 6. **Reporting**: Show pass/fail results for each scenario
-7. **Cleanup**: Stop the indexer
+7. **Cleanup**: Automatically stop the indexer
 
 ### Generative Test Workflow:
 

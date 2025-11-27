@@ -325,7 +325,7 @@ export class TestHelpers {
         PROJECT_ALIGNMENT_ADDRESS: '',
         DELEGATABLE_NOTES_ADDRESS: '',
         ASSURANCE_CONTRACTS_ADDRESS: '',
-        PONDER_RPC_URL_84532: 'http://localhost:8545',
+        PONDER_RPC_URL_31337: 'http://localhost:8545',
         START_BLOCK: '0',
         PONDER_PORT: this.indexerPort.toString()
       };
@@ -355,10 +355,25 @@ export class TestHelpers {
       });
 
       let hasResolved = false;
+      let outputBuffer = '';
 
       this.indexerProcess.stdout.on('data', (data) => {
         const str = data.toString();
-        console.log('[Indexer]', str.trim());
+        outputBuffer += str;
+
+        // Only log important lines to reduce noise
+        const lines = str.split('\n');
+        for (const line of lines) {
+          if (line.includes('ERROR') ||
+              line.includes('WARN') ||
+              line.includes('INFO') ||
+              line.includes('Live at') ||
+              line.includes('Ready') ||
+              line.includes('Started') ||
+              line.includes('Connected')) {
+            console.log('[Indexer]', line.trim());
+          }
+        }
 
         // Check if indexer is ready
         if (!hasResolved && (str.includes('Started listening on') || str.includes('Ready') || str.includes('Live at http'))) {

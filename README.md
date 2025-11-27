@@ -43,6 +43,11 @@ Tests that validate the interaction between multiple subsystems (blockchain + in
 
 **Quick start:**
 ```bash
+./run-integration-tests.sh
+```
+
+Or you can start a hardhat node in a separate terminal, then do:
+```
 npm run integration-tests                      # Scenario-based tests (fast, focused)
 npm run integration-tests:generative:small     # Generative tests (stress testing)
 ```
