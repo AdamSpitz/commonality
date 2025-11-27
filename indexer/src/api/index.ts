@@ -19,14 +19,14 @@ import { Hono } from "hono";
 import { client, graphql } from "ponder";
 
 // Import subsystem APIs
-import conceptspaceApi from "../conceptspace/api";
-import pubstarterApi from "../pubstarter/api";
-import delegationApi from "../delegation/api";
-import fundingportalApi from "../fundingportal/api";
+import conceptspaceApi from "./conceptspace-api";
+import pubstarterApi from "./pubstarter-api";
+import delegationApi from "./delegation-api";
+import fundingportalApi from "./fundingportal-api";
 
 // Import background jobs
-import { startIpfsSyncJob } from "../conceptspace/utils/ipfsSyncJob";
-import { startIpfsSyncJob as startPubstarterIpfsSyncJob } from "../pubstarter/utils/ipfsSyncJob";
+import { startIpfsSyncJob } from "../../src/conceptspace/utils/ipfsSyncJob";
+import { startIpfsSyncJob as startPubstarterIpfsSyncJob } from "../../src/pubstarter/utils/ipfsSyncJob";
 
 const app = new Hono();
 

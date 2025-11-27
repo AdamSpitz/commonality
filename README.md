@@ -1,6 +1,22 @@
 # Commonality
 
-The way we do development on this project is that we write specs in English, and we ask AI to write the code. See [specs/README.md](specs/README.md).
+The way we do development on this project is that we write specs in English, and we ask AI to write the code.
+
+## Documentation Index
+
+**Specifications:**
+- [specs/README.md](specs/README.md) - Main specification and architecture
+
+**Development:**
+- [hardhat/README.md](hardhat/README.md) - Smart contracts
+- [hardhat/generative-tests/README.md](hardhat/generative-tests/README.md) - Generative testing system
+- [indexer/README.md](indexer/README.md) - Ponder indexer setup
+- [integration-tests/QUICK_START.md](integration-tests/QUICK_START.md) - Quick guide to integration tests
+- [integration-tests/README.md](integration-tests/README.md) - Integration testing framework
+
+**Deployment:**
+- [QUICKSTART.md](QUICKSTART.md) - Quick start with Docker
+- [DOCKER_README.md](DOCKER_README.md) - Docker deployment details
 
 ## Dev stuff you can do
 
@@ -23,12 +39,20 @@ See [hardhat/README.md](hardhat/README.md) for details on the smart contracts an
 
 ### Integration tests
 
-Tests that validate the interaction between multiple subsystems (blockchain + indexer):
+Tests that validate the interaction between multiple subsystems (blockchain + indexer).
 
-    cd integration-tests
-    npm run test:small
+**Quick start:**
+```bash
+npm run integration-tests                      # Scenario-based tests (fast, focused)
+npm run integration-tests:generative:small     # Generative tests (stress testing)
+```
 
-See [integration-tests/README.md](integration-tests/README.md) and [integration-tests/INDEXER_TESTING_GUIDE.md](integration-tests/INDEXER_TESTING_GUIDE.md) for details.
+**Documentation:**
+- [integration-tests/QUICK_START.md](integration-tests/QUICK_START.md) - Quick guide to the testing framework
+- [integration-tests/README.md](integration-tests/README.md) - Comprehensive documentation
+- [integration-tests/INDEXER_TESTING_GUIDE.md](integration-tests/INDEXER_TESTING_GUIDE.md) - Guide for generative tests
+
+The integration test framework provides reusable helpers for testing the indexer with both focused scenario tests and randomized stress tests.
 
 
 ### Docker stuff

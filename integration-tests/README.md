@@ -10,24 +10,63 @@ Integration tests validate that different components of the Commonality system w
 - **Indexer (Ponder)**: Event indexing and GraphQL API
 - **Future**: UI, implication attester AI, etc.
 
-## Current Tests
+## Test Approaches
 
-### Indexer Integration Tests
+We have two complementary testing approaches:
 
-Tests that verify the Ponder indexer correctly processes blockchain events and makes data queryable.
+### 1. Scenario-Based Tests (`scenarioTests.js`)
 
-**What it tests:**
-- Statements indexing (with IPFS content)
-- Users indexing (with belief counts)
-- Beliefs indexing (direct supporters)
-- Implications indexing (implication graph)
-- Indirect supporters calculation
+**Purpose:** Test specific, well-defined user scenarios to validate core functionality.
+
+**Characteristics:**
+- Focused, concise tests for specific features
+- Predictable, deterministic test cases
+- Easy to understand and debug
+- Fast execution (tests only what's needed)
+
+**Use cases:**
+- Validating basic belief expression
+- Testing belief state transitions
+- Verifying multiple users can support a statement
+- Testing batch operations
+- Validating implication relationships
 
 **Quick start:**
 ```bash
-cd integration-tests
-npm install
-npm run test:small
+# From the project root
+npm run integration-tests
+
+# Or from integration-tests directory
+npm test
+npm run test:scenarios
+```
+
+### 2. Generative Tests (`testIndexer.js`)
+
+**Purpose:** Stress-test the system with randomized data and complex interactions.
+
+**Characteristics:**
+- Uses randomized data generation
+- Tests with many users and interactions
+- Helps find edge cases and race conditions
+- Longer execution time
+- Based on the generative testing framework in `hardhat/generative-tests/`
+
+**Use cases:**
+- Finding unexpected edge cases
+- Stress testing with realistic data volumes
+- Validating system behavior under load
+- Testing complex interaction patterns
+
+**Quick start:**
+```bash
+# From the project root
+npm run integration-tests:generative:small    # 10 users, 3 rounds (~2-3 min)
+npm run integration-tests:generative:medium   # 30 users, 5 rounds (~5-10 min)
+npm run integration-tests:generative:large    # 50 users, 10 rounds (~10-15 min)
+
+# Or from integration-tests directory
+npm run test:generative
 ```
 
 **Full documentation:** See [INDEXER_TESTING_GUIDE.md](./INDEXER_TESTING_GUIDE.md)
@@ -37,10 +76,105 @@ npm run test:small
 ```
 integration-tests/
 ├── README.md                    # This file
-├── INDEXER_TESTING_GUIDE.md     # Detailed guide for indexer tests
-├── testIndexer.js               # Indexer integration test runner
+├── INDEXER_TESTING_GUIDE.md     # Detailed guide for generative tests
+├── testHelpers.js               # Shared helper utilities for all tests
+├── scenarioTests.js             # Scenario-based integration tests (NEW!)
+├── testIndexer.js               # Generative integration tests
 ├── package.json                 # Test dependencies and scripts
 └── .gitignore                   # Ignore generated files
+```
+
+## Key Components
+
+### `testHelpers.js` - Test Helper Library
+
+Provides reusable building blocks for tests:
+
+**Contract Management:**
+- `deployContracts()` - Deploy all core contracts
+- Contract interaction helpers for beliefs, implications, projects, delegation
+
+**User Management:**
+- `createUsers(count)` - Create test users
+- `getUser(index)` - Get a specific user
+
+**Statement Helpers:**
+- `createStatementCID(content)` - Create mock statement CIDs
+- `createStatements(contents)` - Bulk statement creation
+
+**Belief Actions:**
+- `userBelieves(user, statementCID)` - Express belief
+- `userDisbelieves(user, statementCID)` - Express disbelief
+- `userRemovesOpinion(user, statementCID)` - Remove opinion
+- `userSetsBeliefsInBatch(...)` - Batch belief setting
+
+**Implication Actions:**
+- `createImplication(attester, from, to, strength)` - Create implication
+- `removeImplication(attester, from, to)` - Remove implication
+
+**Project Actions:**
+- `createProject(creator, metadata, threshold, deadline, tokenTypes)`
+- `contributeToProject(projectAddress, contributor, tokenId, amount)`
+- `attestProjectAlignment(attester, projectAddress, statementCID)`
+
+**Delegation Actions:**
+- `createDelegatableNote(owner, amount, intendedStatementCID)`
+- `delegateNote(noteId, delegator, delegatee, commission)`
+
+**Indexer Management:**
+- `startIndexer()` - Start the Ponder indexer
+- `stopIndexer()` - Stop the indexer
+- `waitForIndexerSync()` - Wait for indexer to catch up
+
+**GraphQL Queries:**
+- `queryGraphQL(query, variables)` - Raw GraphQL query
+- `getBeliefs()` - Get all beliefs
+- `getBeliefsForStatement(cid)` - Get beliefs for a specific statement
+- `getStatements()` - Get all statements
+- `getStatement(cid)` - Get a specific statement
+- `getImplications()` - Get all implications
+- `getUsers()` - Get all users
+
+**Utility Functions:**
+- `getCurrentBlock()` - Get current block number
+- `mineBlocks(count)` - Mine blocks
+- `advanceTime(seconds)` - Advance blockchain time
+
+## Writing New Tests
+
+The `testHelpers.js` library makes it easy to write concise, readable tests. Here's an example:
+
+```javascript
+import { TestHelpers } from './testHelpers.js';
+
+async function myNewTest() {
+  const helpers = new TestHelpers();
+
+  // Deploy contracts and create users
+  await helpers.deployContracts();
+  await helpers.createUsers(5);
+
+  // Create a statement
+  const statementCID = helpers.createStatementCID({
+    title: 'My test statement',
+    description: 'Testing the indexer'
+  });
+
+  // Users express beliefs
+  await helpers.userBelieves(helpers.getUser(0), statementCID);
+  await helpers.userBelieves(helpers.getUser(1), statementCID);
+
+  // Start indexer and wait for sync
+  await helpers.startIndexer();
+  await helpers.waitForIndexerSync();
+
+  // Query the indexer
+  const statement = await helpers.getStatement(statementCID);
+  console.log(`Believers: ${statement.believerCount}`);
+
+  // Cleanup
+  await helpers.stopIndexer();
+}
 ```
 
 ## Running Tests
@@ -49,46 +183,99 @@ integration-tests/
 
 1. **Dependencies installed** in all relevant directories:
    ```bash
-   cd ../hardhat && npm install
-   cd ../indexer && npm install
-   cd ../integration-tests && npm install
+   cd hardhat && npm install
+   cd indexer && npm install
+   cd integration-tests && npm install
    ```
 
 2. **Contracts compiled**:
    ```bash
-   cd ../hardhat && npm run build
+   cd hardhat && npm run build
    ```
 
 ### Test Commands
 
+**From the project root:**
 ```bash
-# Small test (10 users, 3 rounds, ~2-3 minutes)
-npm run test:small
+# Scenario tests (default, fast)
+npm run integration-tests
 
-# Medium test (30 users, 5 rounds, ~5-10 minutes)
-npm run test:medium
+# Generative tests (stress testing)
+npm run integration-tests:generative:small    # 10 users, 3 rounds
+npm run integration-tests:generative:medium   # 30 users, 5 rounds
+npm run integration-tests:generative:large    # 50 users, 10 rounds
+```
 
-# Large test (50 users, 10 rounds, ~10-15 minutes)
-npm run test:large
+**From the integration-tests directory:**
+```bash
+# Scenario tests
+npm test
+npm run test:scenarios
 
-# Custom test
-node testIndexer.js <numUsers> <numRounds>
+# Generative tests
+npm run test:generative
+npm run test:generative:small
+npm run test:generative:medium
+npm run test:generative:large
 ```
 
 ## How It Works
 
-The integration test workflow:
+### Scenario-Based Test Workflow:
 
-1. **Data Generation**: Uses the generative testing system from `hardhat/generative-tests/` to create realistic blockchain data
+1. **Setup**: Deploy contracts and create test users
+2. **Actions**: Execute specific user actions (e.g., express beliefs, create implications)
+3. **Indexer Startup**: Start the Ponder indexer in a subprocess
+4. **Sync Waiting**: Wait for indexer to catch up to the blockchain
+5. **Validation**: Query the indexer's GraphQL API and assert expected results
+6. **Reporting**: Show pass/fail results for each scenario
+7. **Cleanup**: Stop the indexer
+
+### Generative Test Workflow:
+
+1. **Data Generation**: Uses the generative testing system from `hardhat/generative-tests/` to create realistic blockchain data with many users and randomized actions
 2. **Deployment**: Deploys contracts to a local Hardhat node and executes transactions
 3. **Indexer Startup**: Spawns the Ponder indexer in a subprocess
 4. **Sync Waiting**: Polls the indexer's status API until it catches up to the latest block
 5. **Validation**: Queries the indexer's GraphQL API and validates correctness
 6. **Reporting**: Shows passed/failed/warning counts with details
+7. **Cleanup**: Stop the indexer
 
 ## Understanding Test Output
 
-### Healthy Test Run
+### Healthy Scenario Test Run
+
+```
+=== Scenario: Basic Belief Expression ===
+✓ Basic Belief: User belief correctly indexed
+
+=== Scenario: Belief State Changes ===
+✓ Belief State Changes: All state transitions tracked correctly
+
+=== Scenario: Multiple Users Support ===
+✓ Multiple Beliefs: Correctly counted 3 believers and 1 disbeliever
+
+============================================================
+TEST RESULTS SUMMARY
+============================================================
+
+✓ Passed: 6
+  • Basic Belief: User belief correctly indexed
+  • Belief State Changes: All state transitions tracked correctly
+  • Multiple Beliefs: Correctly counted 3 believers and 1 disbeliever
+  • Batch Beliefs: All batch beliefs recorded correctly
+  • Implication: Implication S1->S2 recorded with strength 100
+  • User Counts: User belief counts correct (3 beliefs, 2 disbeliefs)
+
+⚠ Warnings: 0
+
+✗ Failed: 0
+
+Pass Rate: 100.0% (6/6)
+============================================================
+```
+
+### Healthy Generative Test Run
 
 ```
 === Test Results Summary ===
@@ -98,9 +285,9 @@ The integration test workflow:
   • Users Indexing: Successfully indexed 10 users
   • Beliefs Indexing: Successfully indexed 127 beliefs
   • Implications Indexing: Successfully indexed 18 implications
-  • Indirect Supporters: Successfully calculated indirect supporters
 
-⚠ Warnings: 0
+⚠ Warnings: 1
+  • Indirect Supporters: Custom API endpoint not yet implemented (skipping test)
 
 ✗ Failed: 0
 ```

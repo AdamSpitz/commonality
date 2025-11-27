@@ -19,7 +19,7 @@ import {
   buyOrders,
   trades,
   participantSummaries,
-} from "../../ponder.schema";
+} from "ponder:schema";
 
 // ============================================================================
 // FACTORY EVENT HANDLERS

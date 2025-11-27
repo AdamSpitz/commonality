@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "ponder dev",
+    "dev:no-ui": "ponder dev --disable-ui",
     "start": "ponder start",
     "db": "ponder db",
     "codegen": "ponder codegen",

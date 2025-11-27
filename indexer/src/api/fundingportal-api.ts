@@ -6,16 +6,16 @@
  * Pubstarter, Delegation) and federates queries to those APIs for cross-cutting views.
  *
  * The GraphQL API is auto-generated from the schema tables:
- * - projectAlignments
+ * - schema.projectAlignments
  *
  * All queries support filtering, sorting, and pagination through the
  * auto-generated GraphQL schema.
  *
  * Custom endpoints:
- * - /api/aligned-projects/:statementId - Get all projects aligned with a statement (directly + indirectly)
+ * - /api/aligned-schema.projects/:statementId - Get all schema.projects aligned with a statement (directly + indirectly)
  * - /api/available-funding/:statementId - Get total available funding for a statement (from delegatable notes)
- * - /api/contributor-leaderboard/:statementId - Get top contributors across all aligned projects
- * - /api/project-statements/:projectAddress - Get all statements a project is aligned with
+ * - /api/contributor-leaderboard/:statementId - Get top contributors across all aligned schema.projects
+ * - /api/project-schema.statements/:projectAddress - Get all schema.statements a project is aligned with
  */
 
 import { db } from "ponder:api";
@@ -23,14 +23,6 @@ import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, inArray } from "ponder";
-import {
-  projectAlignments,
-  statements,
-  implications,
-  delegatableNotes,
-  projects,
-  participantSummaries,
-} from "../../ponder.schema";
 import {
   isValidHash,
   isValidAddress,
@@ -48,17 +40,17 @@ app.use("/sql/*", client({ db, schema }));
 app.use("/graphql", graphql({ db, schema }));
 
 /**
- * Custom API endpoint: Get all projects aligned with a statement
+ * Custom API endpoint: Get all schema.projects aligned with a statement
  *
  * This implements the key Funding Portal feature:
- * - Find projects directly aligned with the statement
- * - Find projects aligned with statements that imply the target statement (indirect alignment)
+ * - Find schema.projects directly aligned with the statement
+ * - Find schema.projects aligned with schema.statements that imply the target statement (indirect alignment)
  * - Filter by trusted attesters
  * - Include project details from Pubstarter subsystem
  *
- * NOTE: Implications are NOT transitive - we only look at direct implications.
+ * NOTE: Implications are NOT transitive - we only look at direct schema.implications.
  *
- * Example: GET /api/aligned-projects/0xabc...?attesters=0x123,0x456
+ * Example: GET /api/aligned-schema.projects/0xabc...?attesters=0x123,0x456
  * Response: {
  *   statementId: "0xabc...",
  *   directlyAlignedProjects: [
@@ -79,7 +71,7 @@ app.use("/graphql", graphql({ db, schema }));
  *   totalProjects: 12
  * }
  */
-app.get("/api/aligned-projects/:statementId", async (c) => {
+app.get("/api/aligned-schema.projects/:statementId", async (c) => {
   try {
     const statementId = c.req.param("statementId");
 
@@ -93,17 +85,17 @@ app.get("/api/aligned-projects/:statementId", async (c) => {
       return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
     }
 
-  // Step 1: Find projects directly aligned with this statement
+  // Step 1: Find schema.projects directly aligned with this statement
   const directAlignments = await db
     .select({
-      projectAddress: projectAlignments.projectAddress,
-      attester: projectAlignments.attester,
+      projectAddress: schema.projectAlignments.projectAddress,
+      attester: schema.projectAlignments.attester,
     })
-    .from(projectAlignments)
+    .from(schema.projectAlignments)
     .where(
       and(
-        eq(projectAlignments.statementId, statementId),
-        inArray(projectAlignments.attester, trustedAttesters)
+        eq(schema.projectAlignments.statementId, statementId),
+        inArray(schema.projectAlignments.attester, trustedAttesters)
       )
     );
 
@@ -115,33 +107,33 @@ app.get("/api/aligned-projects/:statementId", async (c) => {
     directProjectMap.set(alignment.projectAddress, existing);
   }
 
-  // Step 2: Find statements that imply this statement (from trusted attesters)
+  // Step 2: Find schema.statements that imply this statement (from trusted attesters)
   const implyingStatements = await db
-    .select({ fromStatementId: implications.fromStatementId })
-    .from(implications)
+    .select({ fromStatementId: schema.implications.fromStatementId })
+    .from(schema.implications)
     .where(
       and(
-        eq(implications.toStatementId, statementId),
-        inArray(implications.attester, trustedAttesters)
+        eq(schema.implications.toStatementId, statementId),
+        inArray(schema.implications.attester, trustedAttesters)
       )
     );
 
   const implyingIds = [...new Set(implyingStatements.map((s) => s.fromStatementId))];
 
-  // Step 3: Find projects aligned with those implying statements
+  // Step 3: Find schema.projects aligned with those implying schema.statements
   let indirectAlignments: any[] = [];
   if (implyingIds.length > 0) {
     indirectAlignments = await db
       .select({
-        projectAddress: projectAlignments.projectAddress,
-        statementId: projectAlignments.statementId,
-        attester: projectAlignments.attester,
+        projectAddress: schema.projectAlignments.projectAddress,
+        statementId: schema.projectAlignments.statementId,
+        attester: schema.projectAlignments.attester,
       })
-      .from(projectAlignments)
+      .from(schema.projectAlignments)
       .where(
         and(
-          inArray(projectAlignments.statementId, implyingIds),
-          inArray(projectAlignments.attester, trustedAttesters)
+          inArray(schema.projectAlignments.statementId, implyingIds),
+          inArray(schema.projectAlignments.attester, trustedAttesters)
         )
       );
   }
@@ -173,8 +165,8 @@ app.get("/api/aligned-projects/:statementId", async (c) => {
   if (allProjectAddresses.length > 0) {
     const projectRecords = await db
       .select()
-      .from(projects)
-      .where(inArray(projects.id, allProjectAddresses as `0x${string}`[]));
+      .from(schema.projects)
+      .where(inArray(schema.projects.id, allProjectAddresses as `0x${string}`[]));
 
     for (const project of projectRecords) {
       projectDetails.set(project.id, {
@@ -212,7 +204,7 @@ app.get("/api/aligned-projects/:statementId", async (c) => {
       totalProjects: directlyAlignedProjects.length + indirectlyAlignedProjects.length,
     });
   } catch (error) {
-    console.error("Error fetching aligned projects:", error);
+    console.error("Error fetching aligned schema.projects:", error);
     return c.json({ error: "Internal server error" }, 500);
   }
 });
@@ -223,7 +215,7 @@ app.get("/api/aligned-projects/:statementId", async (c) => {
  * Federates to the Delegation subsystem to calculate total funding available
  * for this cause from delegatable notes. Includes:
  * - Notes directly intended for this statement
- * - Notes intended for statements that imply this statement (indirect funding)
+ * - Notes intended for schema.statements that imply this statement (indirect funding)
  *
  * Example: GET /api/available-funding/0xabc...?attesters=0x123,0x456
  * Response: {
@@ -255,37 +247,37 @@ app.get("/api/available-funding/:statementId", async (c) => {
   // Step 1: Get direct funding (notes intended for this statement)
   const directNotes = await db
     .select()
-    .from(delegatableNotes)
+    .from(schema.delegatableNotes)
     .where(
       and(
-        eq(delegatableNotes.intendedStatementId, statementId),
-        eq(delegatableNotes.active, true)
+        eq(schema.delegatableNotes.intendedStatementId, statementId),
+        eq(schema.delegatableNotes.active, true)
       )
     );
 
-  // Step 2: Find statements that imply this statement
+  // Step 2: Find schema.statements that imply this statement
   const implyingStatements = await db
-    .select({ fromStatementId: implications.fromStatementId })
-    .from(implications)
+    .select({ fromStatementId: schema.implications.fromStatementId })
+    .from(schema.implications)
     .where(
       and(
-        eq(implications.toStatementId, statementId),
-        inArray(implications.attester, trustedAttesters)
+        eq(schema.implications.toStatementId, statementId),
+        inArray(schema.implications.attester, trustedAttesters)
       )
     );
 
   const implyingIds = [...new Set(implyingStatements.map((s) => s.fromStatementId))];
 
-  // Step 3: Get indirect funding (notes intended for implying statements)
+  // Step 3: Get indirect funding (notes intended for implying schema.statements)
   let indirectNotes: any[] = [];
   if (implyingIds.length > 0) {
     indirectNotes = await db
       .select()
-      .from(delegatableNotes)
+      .from(schema.delegatableNotes)
       .where(
         and(
-          inArray(delegatableNotes.intendedStatementId, implyingIds),
-          eq(delegatableNotes.active, true)
+          inArray(schema.delegatableNotes.intendedStatementId, implyingIds),
+          eq(schema.delegatableNotes.active, true)
         )
       );
   }
@@ -334,13 +326,13 @@ app.get("/api/available-funding/:statementId", async (c) => {
 /**
  * Custom API endpoint: Get contributor leaderboard for a statement
  *
- * Aggregates contributions across all projects aligned with a statement
- * (both directly and indirectly via implications). Shows top contributors
+ * Aggregates contributions across all schema.projects aligned with a statement
+ * (both directly and indirectly via schema.implications). Shows top contributors
  * with their delegation chains for transparency.
  *
  * This is a complex federated query that joins data from:
  * - Funding Portal (project alignments)
- * - Concept Space (implications)
+ * - Concept Space (schema.implications)
  * - Pubstarter (contributions)
  * - Delegation (delegation chains)
  *
@@ -378,27 +370,27 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
 
     const limit = parsePositiveInt(c.req.query("limit"), 20);
 
-  // Step 1: Get all aligned projects (direct + indirect)
+  // Step 1: Get all aligned schema.projects (direct + indirect)
   const directAlignments = await db
-    .select({ projectAddress: projectAlignments.projectAddress })
-    .from(projectAlignments)
+    .select({ projectAddress: schema.projectAlignments.projectAddress })
+    .from(schema.projectAlignments)
     .where(
       and(
-        eq(projectAlignments.statementId, statementId),
-        inArray(projectAlignments.attester, trustedAttesters)
+        eq(schema.projectAlignments.statementId, statementId),
+        inArray(schema.projectAlignments.attester, trustedAttesters)
       )
     );
 
   const directProjectAddresses = [...new Set(directAlignments.map((a) => a.projectAddress))];
 
-  // Find implying statements
+  // Find implying schema.statements
   const implyingStatements = await db
-    .select({ fromStatementId: implications.fromStatementId })
-    .from(implications)
+    .select({ fromStatementId: schema.implications.fromStatementId })
+    .from(schema.implications)
     .where(
       and(
-        eq(implications.toStatementId, statementId),
-        inArray(implications.attester, trustedAttesters)
+        eq(schema.implications.toStatementId, statementId),
+        inArray(schema.implications.attester, trustedAttesters)
       )
     );
 
@@ -407,12 +399,12 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
   let indirectProjectAddresses: string[] = [];
   if (implyingIds.length > 0) {
     const indirectAlignments = await db
-      .select({ projectAddress: projectAlignments.projectAddress })
-      .from(projectAlignments)
+      .select({ projectAddress: schema.projectAlignments.projectAddress })
+      .from(schema.projectAlignments)
       .where(
         and(
-          inArray(projectAlignments.statementId, implyingIds),
-          inArray(projectAlignments.attester, trustedAttesters)
+          inArray(schema.projectAlignments.statementId, implyingIds),
+          inArray(schema.projectAlignments.attester, trustedAttesters)
         )
       );
     indirectProjectAddresses = [...new Set(indirectAlignments.map((a) => a.projectAddress))];
@@ -429,11 +421,11 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
     });
   }
 
-  // Step 2: Get contribution summaries for these projects
+  // Step 2: Get contribution summaries for these schema.projects
   const summaries = await db
     .select()
-    .from(participantSummaries)
-    .where(inArray(participantSummaries.projectAddress, allProjectAddresses as `0x${string}`[]));
+    .from(schema.participantSummaries)
+    .where(inArray(schema.participantSummaries.projectAddress, allProjectAddresses as `0x${string}`[]));
 
   // Step 3: Aggregate by contributor
   const contributorMap = new Map<string, { total: bigint; projectCount: number }>();
@@ -481,11 +473,11 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
 });
 
 /**
- * Custom API endpoint: Get all statements a project is aligned with
+ * Custom API endpoint: Get all schema.statements a project is aligned with
  *
- * Shows which causes/statements this project supports, filtered by trusted attesters.
+ * Shows which causes/schema.statements this project supports, filtered by trusted attesters.
  *
- * Example: GET /api/project-statements/0xproject...?attesters=0x123,0x456
+ * Example: GET /api/project-schema.statements/0xproject...?attesters=0x123,0x456
  * Response: {
  *   projectAddress: "0xproject...",
  *   alignedStatements: [
@@ -499,7 +491,7 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
  *   totalStatements: 3
  * }
  */
-app.get("/api/project-statements/:projectAddress", async (c) => {
+app.get("/api/project-schema.statements/:projectAddress", async (c) => {
   try {
     const projectAddress = c.req.param("projectAddress");
 
@@ -516,14 +508,14 @@ app.get("/api/project-statements/:projectAddress", async (c) => {
   // Get all alignments for this project
   const alignments = await db
     .select({
-      statementId: projectAlignments.statementId,
-      attester: projectAlignments.attester,
+      statementId: schema.projectAlignments.statementId,
+      attester: schema.projectAlignments.attester,
     })
-    .from(projectAlignments)
+    .from(schema.projectAlignments)
     .where(
       and(
-        eq(projectAlignments.projectAddress, projectAddress),
-        inArray(projectAlignments.attester, trustedAttesters)
+        eq(schema.projectAlignments.projectAddress, projectAddress),
+        inArray(schema.projectAlignments.attester, trustedAttesters)
       )
     );
 
@@ -542,8 +534,8 @@ app.get("/api/project-statements/:projectAddress", async (c) => {
   if (statementIds.length > 0) {
     const stmts = await db
       .select()
-      .from(statements)
-      .where(inArray(statements.id, statementIds as `0x${string}`[]));
+      .from(schema.statements)
+      .where(inArray(schema.statements.id, statementIds as `0x${string}`[]));
 
     for (const stmt of stmts) {
       statementDetails.set(stmt.id, {
@@ -571,7 +563,7 @@ app.get("/api/project-statements/:projectAddress", async (c) => {
       totalStatements: alignedStatements.length,
     });
   } catch (error) {
-    console.error("Error fetching project statements:", error);
+    console.error("Error fetching project schema.statements:", error);
     return c.json({ error: "Internal server error" }, 500);
   }
 });

@@ -14,7 +14,7 @@ const config = {
   },
   networks: {
     localhost: {
-      url: "http://hardhat-node:8545",
+      url: process.env.HARDHAT_NETWORK_URL || "http://127.0.0.1:8545",
       timeout: 120000
     }
   },

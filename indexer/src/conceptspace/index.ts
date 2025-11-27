@@ -15,7 +15,7 @@ import {
   implications,
   users,
   attesters,
-} from "../../ponder.schema";
+} from "ponder:schema";
 import { bytes32ToCid } from "./utils/ipfs";
 import { BeliefState } from "../constants";
 

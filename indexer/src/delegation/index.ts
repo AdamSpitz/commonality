@@ -12,7 +12,7 @@ import {
   delegatableNotes,
   delegationChains,
   noteEvents,
-} from "../../ponder.schema";
+} from "ponder:schema";
 import { TokenType } from "../constants";
 
 // Token type constants (matching Solidity enum)

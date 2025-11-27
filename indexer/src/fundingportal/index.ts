@@ -9,7 +9,7 @@
  */
 
 import { ponder } from "ponder:registry";
-import { projectAlignments } from "../../ponder.schema";
+import { projectAlignments } from "ponder:schema";
 
 /**
  * Handle ProjectAlignmentAttestation events from the ProjectAlignment contract

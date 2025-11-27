@@ -5,9 +5,9 @@
  * It is logically separate from the Concept Space and Pubstarter APIs.
  *
  * The GraphQL API is auto-generated from the schema tables:
- * - delegatableNotes
- * - delegationChains
- * - noteEvents
+ * - schema.delegatableNotes
+ * - schema.delegationChains
+ * - schema.noteEvents
  *
  * All queries support filtering, sorting, and pagination through the
  * auto-generated GraphQL schema.
@@ -23,11 +23,6 @@ import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, asc } from "ponder";
-import {
-  delegatableNotes,
-  delegationChains,
-  noteEvents,
-} from "../../ponder.schema";
 import {
   parseBigIntSafe,
   isValidAddress,
@@ -72,8 +67,8 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
     // Get note details
     const noteResults = await db
       .select()
-      .from(delegatableNotes)
-      .where(eq(delegatableNotes.id, noteId))
+      .from(schema.delegatableNotes)
+      .where(eq(schema.delegatableNotes.id, noteId))
       .limit(1);
 
     if (noteResults.length === 0) {
@@ -85,9 +80,9 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
     // Get chain entries ordered by position
     const chainEntries = await db
       .select()
-      .from(delegationChains)
-      .where(eq(delegationChains.noteId, noteId))
-      .orderBy(asc(delegationChains.position));
+      .from(schema.delegationChains)
+      .where(eq(schema.delegationChains.noteId, noteId))
+      .orderBy(asc(schema.delegationChains.position));
 
     const chain = chainEntries.map((entry) => entry.address);
 
@@ -155,10 +150,10 @@ app.get("/api/active-notes/:address", async (c) => {
     // Get total count
     const allNotes = await db
       .select()
-      .from(delegatableNotes)
+      .from(schema.delegatableNotes)
       .where(and(
-        eq(delegatableNotes.owner, address),
-        eq(delegatableNotes.active, true)
+        eq(schema.delegatableNotes.owner, address),
+        eq(schema.delegatableNotes.active, true)
       ));
 
     const totalCount = allNotes.length;
@@ -184,9 +179,9 @@ app.get("/api/active-notes/:address", async (c) => {
         // Get full delegation chain
         const chainEntries = await db
           .select()
-          .from(delegationChains)
-          .where(eq(delegationChains.noteId, note.id))
-          .orderBy(asc(delegationChains.position));
+          .from(schema.delegationChains)
+          .where(eq(schema.delegationChains.noteId, note.id))
+          .orderBy(asc(schema.delegationChains.position));
 
         noteData.chain = chainEntries.map((entry) => entry.address);
         noteData.chainLength = chainEntries.length;
@@ -249,10 +244,10 @@ app.get("/api/available-funding/:statementId", async (c) => {
     // Get all active notes for this statement
     const notes = await db
       .select()
-      .from(delegatableNotes)
+      .from(schema.delegatableNotes)
       .where(and(
-        eq(delegatableNotes.intendedStatementId, statementId),
-        eq(delegatableNotes.active, true)
+        eq(schema.delegatableNotes.intendedStatementId, statementId),
+        eq(schema.delegatableNotes.active, true)
       ));
 
     // Filter by token type if specified
@@ -337,14 +332,14 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
     const offset = parsePositiveInt(c.req.query("offset"), 0);
 
     // Build query with proper condition chaining
-    const conditions = [eq(delegatableNotes.rootOwner, address)];
+    const conditions = [eq(schema.delegatableNotes.rootOwner, address)];
     if (activeOnly) {
-      conditions.push(eq(delegatableNotes.active, true));
+      conditions.push(eq(schema.delegatableNotes.active, true));
     }
 
     const allNotes = await db
       .select()
-      .from(delegatableNotes)
+      .from(schema.delegatableNotes)
       .where(and(...conditions));
 
     const totalCount = allNotes.length;
@@ -418,9 +413,9 @@ app.get("/api/note-history/:noteId", async (c) => {
 
     const allEvents = await db
       .select()
-      .from(noteEvents)
-      .where(eq(noteEvents.noteId, noteId))
-      .orderBy(asc(noteEvents.createdAt));
+      .from(schema.noteEvents)
+      .where(eq(schema.noteEvents.noteId, noteId))
+      .orderBy(asc(schema.noteEvents.createdAt));
 
     const totalCount = allEvents.length;
 

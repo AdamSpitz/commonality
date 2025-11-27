@@ -5,17 +5,17 @@
  * It is logically separate from the Pubstarter API.
  *
  * The GraphQL API is auto-generated from the schema tables:
- * - statements
- * - beliefs
- * - implications
- * - users
- * - attesters
+ * - schema.statements
+ * - schema.beliefs
+ * - schema.implications
+ * - schema.users
+ * - schema.attesters
  *
  * All queries support filtering, sorting, and pagination through the
  * auto-generated GraphQL schema.
  *
  * Custom endpoints:
- * - /api/indirect-supporters/:statementId - Get indirect supporters via implications
+ * - /api/indirect-supporters/:statementId - Get indirect supporters via schema.implications
  * - /api/statement-support/:statementId - Get direct + indirect support summary
  * - /api/suggestions/:userAddress - Get statement suggestions for a user
  */
@@ -25,13 +25,6 @@ import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, inArray } from "ponder";
-import {
-  statements,
-  beliefs,
-  implications,
-  users,
-  attesters,
-} from "../../ponder.schema";
 import {
   isValidHash,
   isValidAddress,
@@ -51,13 +44,13 @@ app.use("/graphql", graphql({ db, schema }));
 /**
  * Custom API endpoint: Get indirect supporters of a statement
  *
- * Indirect support = users who believe statements that imply this statement
- * (filtered by trusted attesters). Excludes users who disbelieve the target.
+ * Indirect support = schema.users who believe schema.statements that imply this statement
+ * (filtered by trusted schema.attesters). Excludes schema.users who disbelieve the target.
  *
- * NOTE: Implications are NOT transitive - we only look at direct implications.
+ * NOTE: Implications are NOT transitive - we only look at direct schema.implications.
  *
  * Query params:
- *   - attesters: comma-separated list of trusted attester addresses (required)
+ *   - schema.attesters: comma-separated list of trusted attester addresses (required)
  *   - limit: number (default 100, max 1000) - maximum number of supporters to return
  *   - offset: number (default 0) - number of supporters to skip
  */
@@ -69,23 +62,23 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
       return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
     }
 
-    const trustedAttesters = parseAddressList(c.req.query("attesters"));
+    const trustedAttesters = parseAddressList(c.req.query("schema.attesters"));
 
     if (!trustedAttesters || trustedAttesters.length === 0) {
-      return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
+      return c.json(invalidInputError("schema.attesters", "Must provide comma-separated list of valid addresses"), 400);
     }
 
     const limit = Math.min(parsePositiveInt(c.req.query("limit"), 100), 1000);
     const offset = parsePositiveInt(c.req.query("offset"), 0);
 
-    // Step 1: Find all statements that imply this statement (from trusted attesters)
+    // Step 1: Find all schema.statements that imply this statement (from trusted schema.attesters)
     const implyingStatements = await db
-      .select({ fromStatementId: implications.fromStatementId })
-      .from(implications)
+      .select({ fromStatementId: schema.implications.fromStatementId })
+      .from(schema.implications)
       .where(
         and(
-          eq(implications.toStatementId, statementId),
-          inArray(implications.attester, trustedAttesters)
+          eq(schema.implications.toStatementId, statementId),
+          inArray(schema.implications.attester, trustedAttesters)
         )
       );
 
@@ -95,25 +88,25 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
 
     const implyingIds = implyingStatements.map((s) => s.fromStatementId);
 
-    // Step 2: Find all users who believe those implying statements
+    // Step 2: Find all schema.users who believe those implying schema.statements
     const supporters = await db
-      .select({ user: beliefs.user })
-      .from(beliefs)
+      .select({ user: schema.beliefs.user })
+      .from(schema.beliefs)
       .where(
         and(
-          inArray(beliefs.statementId, implyingIds),
-          eq(beliefs.beliefState, 1) // BELIEVES
+          inArray(schema.beliefs.statementId, implyingIds),
+          eq(schema.beliefs.beliefState, 1) // BELIEVES
         )
       );
 
-    // Step 3: Exclude users who disbelieve the target statement
+    // Step 3: Exclude schema.users who disbelieve the target statement
     const disbelievers = await db
-      .select({ user: beliefs.user })
-      .from(beliefs)
+      .select({ user: schema.beliefs.user })
+      .from(schema.beliefs)
       .where(
         and(
-          eq(beliefs.statementId, statementId),
-          eq(beliefs.beliefState, 2) // DISBELIEVES
+          eq(schema.beliefs.statementId, statementId),
+          eq(schema.beliefs.beliefState, 2) // DISBELIEVES
         )
       );
 
@@ -150,13 +143,13 @@ app.get("/api/statement-support/:statementId", async (c) => {
       return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
     }
 
-    const trustedAttesters = parseAddressList(c.req.query("attesters"));
+    const trustedAttesters = parseAddressList(c.req.query("schema.attesters"));
 
     // Get statement info
     const statement = await db
       .select()
-      .from(statements)
-      .where(eq(statements.id, statementId))
+      .from(schema.statements)
+      .where(eq(schema.statements.id, statementId))
       .limit(1);
 
     if (statement.length === 0) {
@@ -166,42 +159,42 @@ app.get("/api/statement-support/:statementId", async (c) => {
     const directBelievers = statement[0]?.believerCount ?? 0;
     const directDisbelievers = statement[0]?.disbelieverCount ?? 0;
 
-    // Calculate indirect supporters if attesters provided
+    // Calculate indirect supporters if schema.attesters provided
     let indirectCount = 0;
     if (trustedAttesters && trustedAttesters.length > 0) {
-      // Find implying statements
+      // Find implying schema.statements
       const implyingStatements = await db
-        .select({ fromStatementId: implications.fromStatementId })
-        .from(implications)
+        .select({ fromStatementId: schema.implications.fromStatementId })
+        .from(schema.implications)
         .where(
           and(
-            eq(implications.toStatementId, statementId),
-            inArray(implications.attester, trustedAttesters)
+            eq(schema.implications.toStatementId, statementId),
+            inArray(schema.implications.attester, trustedAttesters)
           )
         );
 
       if (implyingStatements.length > 0) {
         const implyingIds = implyingStatements.map((s) => s.fromStatementId);
 
-        // Count unique believers of implying statements
+        // Count unique believers of implying schema.statements
         const supporters = await db
-          .select({ user: beliefs.user })
-          .from(beliefs)
+          .select({ user: schema.beliefs.user })
+          .from(schema.beliefs)
           .where(
             and(
-              inArray(beliefs.statementId, implyingIds),
-              eq(beliefs.beliefState, 1)
+              inArray(schema.beliefs.statementId, implyingIds),
+              eq(schema.beliefs.beliefState, 1)
             )
           );
 
         // Exclude disbelievers
         const disbelievers = await db
-          .select({ user: beliefs.user })
-          .from(beliefs)
+          .select({ user: schema.beliefs.user })
+          .from(schema.beliefs)
           .where(
             and(
-              eq(beliefs.statementId, statementId),
-              eq(beliefs.beliefState, 2)
+              eq(schema.beliefs.statementId, statementId),
+              eq(schema.beliefs.beliefState, 2)
             )
           );
 
@@ -231,7 +224,7 @@ app.get("/api/statement-support/:statementId", async (c) => {
  * is more popular than S1; maybe you'd like to sign S2 as well."
  *
  * Query params:
- *   - attesters: comma-separated list of trusted attester addresses (required)
+ *   - schema.attesters: comma-separated list of trusted attester addresses (required)
  *   - limit: number (default 10, max 100) - maximum number of suggestions to return
  */
 app.get("/api/suggestions/:userAddress", async (c) => {
@@ -242,22 +235,22 @@ app.get("/api/suggestions/:userAddress", async (c) => {
       return c.json(invalidInputError("userAddress", "Must be a valid Ethereum address"), 400);
     }
 
-    const trustedAttesters = parseAddressList(c.req.query("attesters"));
+    const trustedAttesters = parseAddressList(c.req.query("schema.attesters"));
 
     if (!trustedAttesters || trustedAttesters.length === 0) {
-      return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
+      return c.json(invalidInputError("schema.attesters", "Must provide comma-separated list of valid addresses"), 400);
     }
 
     const limit = Math.min(parsePositiveInt(c.req.query("limit"), 10), 100);
 
-    // Get statements the user believes
+    // Get schema.statements the user believes
     const userBeliefs = await db
-      .select({ statementId: beliefs.statementId })
-      .from(beliefs)
+      .select({ statementId: schema.beliefs.statementId })
+      .from(schema.beliefs)
       .where(
         and(
-          eq(beliefs.user, userAddress),
-          eq(beliefs.beliefState, 1)
+          eq(schema.beliefs.user, userAddress),
+          eq(schema.beliefs.beliefState, 1)
         )
       );
 
@@ -267,21 +260,21 @@ app.get("/api/suggestions/:userAddress", async (c) => {
 
     const believedIds = userBeliefs.map((b) => b.statementId);
 
-    // Find statements implied by user's beliefs (that user hasn't already signed)
+    // Find schema.statements implied by user's schema.beliefs (that user hasn't already signed)
     const impliedStatements = await db
       .select({
-        toStatementId: implications.toStatementId,
-        fromStatementId: implications.fromStatementId,
+        toStatementId: schema.implications.toStatementId,
+        fromStatementId: schema.implications.fromStatementId,
       })
-      .from(implications)
+      .from(schema.implications)
       .where(
         and(
-          inArray(implications.fromStatementId, believedIds),
-          inArray(implications.attester, trustedAttesters)
+          inArray(schema.implications.fromStatementId, believedIds),
+          inArray(schema.implications.attester, trustedAttesters)
         )
       );
 
-    // Filter out already-believed statements and get their info
+    // Filter out already-believed schema.statements and get their info
     const notYetBelieved = impliedStatements
       .filter((s) => !believedIds.includes(s.toStatementId));
 
@@ -293,19 +286,19 @@ app.get("/api/suggestions/:userAddress", async (c) => {
 
     const targetStatements = await db
       .select()
-      .from(statements)
-      .where(inArray(statements.id, targetIds));
+      .from(schema.statements)
+      .where(inArray(schema.statements.id, targetIds));
 
     // Get source statement believer counts for comparison
     const sourceIds = [...new Set(notYetBelieved.map((s) => s.fromStatementId))];
     const sourceStatements = await db
       .select()
-      .from(statements)
-      .where(inArray(statements.id, sourceIds));
+      .from(schema.statements)
+      .where(inArray(schema.statements.id, sourceIds));
 
     const sourceMap = new Map(sourceStatements.map((s) => [s.id, s]));
 
-    // Build suggestions: target statements more popular than source
+    // Build suggestions: target schema.statements more popular than source
     const suggestions = targetStatements
       .map((target) => {
         const implication = notYetBelieved.find((i) => i.toStatementId === target.id);

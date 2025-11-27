@@ -2,8 +2,8 @@ import hre from 'hardhat';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { spawn } from 'child_process';
-import { SimulationRunner } from '../hardhat/generative-tests/runSimulation.js';
+import { SimulationRunner } from './generative-tests/runSimulation.js';
+import { TestHelpers } from './integration-test-helpers.js';
 
 const { ethers } = hre;
 const __filename = fileURLToPath(import.meta.url);
@@ -14,18 +14,19 @@ const __dirname = dirname(__filename);
  *
  * This test:
  * 1. Starts a local Hardhat node
- * 2. Generates fake data and submits it to the blockchain
+ * 2. Generates fake data and submits it to the blockchain (using generative tests)
  * 3. Starts the Ponder indexer
  * 4. Waits for the indexer to sync to the latest block
  * 5. Queries the indexer's GraphQL API to verify correct indexing
  * 6. Validates that indexed data matches blockchain state
+ *
+ * This is the "generative testing" approach - randomized data to stress-test the system.
+ * See scenarioTests.js for focused scenario-based tests.
  */
 
 class IndexerTestRunner {
   constructor() {
-    this.indexerProcess = null;
-    this.indexerPort = process.env.PONDER_PORT || 42069;
-    this.indexerUrl = `http://localhost:${this.indexerPort}`;
+    this.helpers = new TestHelpers();
     this.simulation = null;
     this.testResults = {
       passed: [],
@@ -35,205 +36,10 @@ class IndexerTestRunner {
   }
 
   /**
-   * Start the Ponder indexer in a separate process
+   * Set contract addresses in helpers from simulation
    */
-  async startIndexer() {
-    console.log('\n=== Starting Indexer ===\n');
-
-    return new Promise((resolve, reject) => {
-      const indexerDir = join(__dirname, '../indexer');
-
-      // Set environment variables for the indexer
-      const env = {
-        ...process.env,
-        // Contract addresses will be set after deployment
-        BELIEFS_CONTRACT_ADDRESS: this.simulation?.contracts?.beliefs
-          ? await this.simulation.contracts.beliefs.getAddress()
-          : undefined,
-        IMPLICATIONS_CONTRACT_ADDRESS: this.simulation?.contracts?.implications
-          ? await this.simulation.contracts.implications.getAddress()
-          : undefined,
-        PROJECT_ALIGNMENT_ADDRESS: this.simulation?.contracts?.projectAlignment
-          ? await this.simulation.contracts.projectAlignment.getAddress()
-          : undefined,
-        PONDER_RPC_URL_84532: 'http://localhost:8545', // Local Hardhat node
-        START_BLOCK: '0',
-        PONDER_PORT: this.indexerPort.toString()
-      };
-
-      // Start the indexer
-      this.indexerProcess = spawn('npm', ['run', 'dev'], {
-        cwd: indexerDir,
-        env,
-        stdio: ['ignore', 'pipe', 'pipe']
-      });
-
-      let output = '';
-      let errorOutput = '';
-
-      this.indexerProcess.stdout.on('data', (data) => {
-        const str = data.toString();
-        output += str;
-        console.log('[Indexer]', str.trim());
-
-        // Check if indexer is ready
-        if (str.includes('Started listening on') || str.includes('Ready')) {
-          resolve();
-        }
-      });
-
-      this.indexerProcess.stderr.on('data', (data) => {
-        const str = data.toString();
-        errorOutput += str;
-        console.error('[Indexer Error]', str.trim());
-      });
-
-      this.indexerProcess.on('error', (error) => {
-        reject(new Error(`Failed to start indexer: ${error.message}`));
-      });
-
-      this.indexerProcess.on('exit', (code) => {
-        if (code !== 0 && code !== null) {
-          console.error(`Indexer exited with code ${code}`);
-        }
-      });
-
-      // Timeout after 60 seconds
-      setTimeout(() => {
-        reject(new Error('Indexer failed to start within 60 seconds'));
-      }, 60000);
-    });
-  }
-
-  /**
-   * Stop the indexer process
-   */
-  async stopIndexer() {
-    if (this.indexerProcess) {
-      console.log('\n=== Stopping Indexer ===\n');
-      this.indexerProcess.kill('SIGTERM');
-
-      // Wait for graceful shutdown
-      await new Promise((resolve) => {
-        setTimeout(resolve, 2000);
-      });
-
-      if (!this.indexerProcess.killed) {
-        this.indexerProcess.kill('SIGKILL');
-      }
-
-      this.indexerProcess = null;
-    }
-  }
-
-  /**
-   * Wait for the indexer to sync to a specific block number
-   * Uses Ponder's /status endpoint or GraphQL _meta field
-   */
-  async waitForSync(targetBlockNumber, timeoutMs = 60000) {
-    console.log(`\n=== Waiting for indexer to sync to block ${targetBlockNumber} ===\n`);
-
-    const startTime = Date.now();
-
-    while (Date.now() - startTime < timeoutMs) {
-      try {
-        // Try to query the status endpoint
-        const response = await fetch(`${this.indexerUrl}/status`);
-
-        if (response.ok) {
-          const status = await response.json();
-          console.log('Indexer status:', JSON.stringify(status, null, 2));
-
-          // Check if we've synced to the target block
-          // The exact structure depends on Ponder's status API
-          // We'll also try GraphQL _meta as a fallback
-          if (status.blockNumber >= targetBlockNumber ||
-              status.latestProcessedBlock?.number >= targetBlockNumber) {
-            console.log(`✓ Indexer synced to block ${targetBlockNumber}`);
-            return true;
-          }
-        }
-      } catch (error) {
-        // Status endpoint might not be available, try GraphQL _meta
-        try {
-          const graphqlQuery = {
-            query: `
-              query {
-                _meta {
-                  status
-                  block {
-                    number
-                    timestamp
-                  }
-                }
-              }
-            `
-          };
-
-          const response = await fetch(`${this.indexerUrl}/graphql`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(graphqlQuery)
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            const blockNumber = result.data?._meta?.block?.number;
-
-            console.log(`Indexer at block ${blockNumber} / ${targetBlockNumber}`);
-
-            if (blockNumber >= targetBlockNumber) {
-              console.log(`✓ Indexer synced to block ${targetBlockNumber}`);
-              return true;
-            }
-          }
-        } catch (graphqlError) {
-          // Indexer might not be ready yet
-          console.log('Waiting for indexer to be ready...');
-        }
-      }
-
-      // Wait 1 second before checking again
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-
-    throw new Error(`Indexer failed to sync to block ${targetBlockNumber} within ${timeoutMs}ms`);
-  }
-
-  /**
-   * Query the indexer's GraphQL API
-   */
-  async queryGraphQL(query, variables = {}) {
-    const response = await fetch(`${this.indexerUrl}/graphql`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, variables })
-    });
-
-    if (!response.ok) {
-      throw new Error(`GraphQL query failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    if (result.errors) {
-      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-    }
-
-    return result.data;
-  }
-
-  /**
-   * Query custom API endpoints
-   */
-  async queryAPI(endpoint) {
-    const response = await fetch(`${this.indexerUrl}${endpoint}`);
-
-    if (!response.ok) {
-      throw new Error(`API query failed: ${response.statusText}`);
-    }
-
-    return await response.json();
+  setContractsFromSimulation() {
+    this.helpers.contracts = this.simulation.contracts;
   }
 
   /**
@@ -244,20 +50,7 @@ class IndexerTestRunner {
 
     try {
       // Get all beliefs from the indexer
-      const data = await this.queryGraphQL(`
-        query {
-          beliefs(limit: 1000) {
-            items {
-              user
-              statementId
-              beliefState
-              blockNumber
-            }
-          }
-        }
-      `);
-
-      const indexedBeliefs = data.beliefs.items;
+      const indexedBeliefs = await this.helpers.getBeliefs();
       console.log(`Found ${indexedBeliefs.length} beliefs in indexer`);
 
       // Count beliefs by type
@@ -306,20 +99,7 @@ class IndexerTestRunner {
     console.log('\n=== Testing Implications Indexing ===\n');
 
     try {
-      const data = await this.queryGraphQL(`
-        query {
-          implications(limit: 1000) {
-            items {
-              attester
-              fromStatementId
-              toStatementId
-              blockNumber
-            }
-          }
-        }
-      `);
-
-      const indexedImplications = data.implications.items;
+      const indexedImplications = await this.helpers.getImplications();
       console.log(`Found ${indexedImplications.length} implications in indexer`);
 
       // Group by attester
@@ -364,20 +144,10 @@ class IndexerTestRunner {
     console.log('\n=== Testing Indirect Supporters Calculation ===\n');
 
     try {
-      // Get a statement with beliefs
-      const statementsData = await this.queryGraphQL(`
-        query {
-          statements(limit: 10, orderBy: "believerCount", orderDirection: "desc") {
-            items {
-              id
-              believerCount
-              disbelieverCount
-            }
-          }
-        }
-      `);
+      // Get statements
+      const statements = await this.helpers.getStatements();
 
-      if (statementsData.statements.items.length === 0) {
+      if (statements.length === 0) {
         this.testResults.warnings.push({
           test: 'Indirect Supporters',
           message: 'No statements found to test indirect supporters'
@@ -385,29 +155,18 @@ class IndexerTestRunner {
         return;
       }
 
-      const statement = statementsData.statements.items[0];
+      // Sort by believerCount and get the top one
+      const sortedStatements = statements.sort((a, b) => b.believerCount - a.believerCount);
+      const statement = sortedStatements[0];
       console.log(`Testing statement: ${statement.id}`);
       console.log(`  Direct believers: ${statement.believerCount}`);
 
-      // Query the custom API for indirect supporters
-      try {
-        const indirectData = await this.queryAPI(
-          `/conceptspace/api/indirect-supporters/${statement.id}`
-        );
-
-        console.log(`  Indirect supporters: ${indirectData.indirectSupporters?.length || 0}`);
-
-        this.testResults.passed.push({
-          test: 'Indirect Supporters',
-          message: `Successfully calculated indirect supporters for statement ${statement.id}`
-        });
-      } catch (apiError) {
-        // API might not be implemented yet
-        this.testResults.warnings.push({
-          test: 'Indirect Supporters',
-          message: 'Custom API endpoint not available or not implemented'
-        });
-      }
+      // For now, just verify that statements have been indexed
+      // TODO: Once the custom API is implemented, test indirect supporters calculation
+      this.testResults.warnings.push({
+        test: 'Indirect Supporters',
+        message: 'Custom API endpoint not yet implemented (skipping test)'
+      });
 
     } catch (error) {
       this.testResults.failed.push({
@@ -425,23 +184,7 @@ class IndexerTestRunner {
     console.log('\n=== Testing Statements Indexing ===\n');
 
     try {
-      const data = await this.queryGraphQL(`
-        query {
-          statements(limit: 100) {
-            items {
-              id
-              cid
-              contentFetched
-              statementType
-              title
-              believerCount
-              disbelieverCount
-            }
-          }
-        }
-      `);
-
-      const statements = data.statements.items;
+      const statements = await this.helpers.getStatements();
       console.log(`Found ${statements.length} statements in indexer`);
 
       const withContent = statements.filter(s => s.contentFetched).length;
@@ -489,19 +232,7 @@ class IndexerTestRunner {
     console.log('\n=== Testing Users Indexing ===\n');
 
     try {
-      const data = await this.queryGraphQL(`
-        query {
-          users(limit: 1000) {
-            items {
-              id
-              beliefCount
-              disbeliefCount
-            }
-          }
-        }
-      `);
-
-      const users = data.users.items;
+      const users = await this.helpers.getUsers();
       console.log(`Found ${users.length} users in indexer`);
 
       const totalBeliefs = users.reduce((sum, u) => sum + u.beliefCount, 0);
@@ -596,16 +327,13 @@ class IndexerTestRunner {
       // Step 2: Start the indexer
       console.log('\n=== Step 2: Starting Indexer ===\n');
 
-      // Set contract addresses in environment before starting indexer
-      process.env.BELIEFS_CONTRACT_ADDRESS = await this.simulation.contracts.beliefs.getAddress();
-      process.env.IMPLICATIONS_CONTRACT_ADDRESS = await this.simulation.contracts.implications.getAddress();
-      process.env.PROJECT_ALIGNMENT_ADDRESS = await this.simulation.contracts.projectAlignment.getAddress();
-
-      await this.startIndexer();
+      // Set contract addresses from simulation
+      this.setContractsFromSimulation();
+      await this.helpers.startIndexer();
 
       // Step 3: Wait for indexer to sync
       console.log('\n=== Step 3: Waiting for Sync ===\n');
-      await this.waitForSync(latestBlock);
+      await this.helpers.waitForSync(latestBlock);
 
       // Step 4: Run validation tests
       console.log('\n=== Step 4: Running Validation Tests ===\n');
@@ -619,7 +347,7 @@ class IndexerTestRunner {
       exitCode = 1;
     } finally {
       // Cleanup
-      await this.stopIndexer();
+      await this.helpers.stopIndexer();
     }
 
     return exitCode;

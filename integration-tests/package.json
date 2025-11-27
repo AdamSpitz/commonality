@@ -4,16 +4,14 @@
   "description": "Integration tests for Commonality (blockchain + indexer)",
   "type": "module",
   "scripts": {
-    "test": "node testIndexer.js",
-    "test:small": "node testIndexer.js 10 3",
-    "test:medium": "node testIndexer.js 30 5",
-    "test:large": "node testIndexer.js 50 10"
+    "test": "cd ../hardhat && npx hardhat run run-integration-tests.js",
+    "test:scenarios": "cd ../hardhat && npx hardhat run run-integration-tests.js",
+    "test:generative": "cd ../hardhat && npx hardhat run run-integration-tests-generative.js",
+    "test:generative:small": "cd ../hardhat && npx hardhat run run-integration-tests-generative.js -- 10 3",
+    "test:generative:medium": "cd ../hardhat && npx hardhat run run-integration-tests-generative.js -- 30 5",
+    "test:generative:large": "cd ../hardhat && npx hardhat run run-integration-tests-generative.js -- 50 10"
   },
   "keywords": ["integration-tests", "blockchain", "indexer", "ponder"],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "hardhat": "file:../hardhat"
-  },
-  "devDependencies": {}
+  "license": "ISC"
 }

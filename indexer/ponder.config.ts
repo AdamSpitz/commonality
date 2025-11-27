@@ -23,26 +23,26 @@ import { ProjectAlignmentAbi } from "./abis/ProjectAlignmentAbi";
 // ============================================================================
 // CONCEPTSPACE CONTRACT ADDRESSES
 // ============================================================================
-const BELIEFS_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}` | undefined;
-const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined;
+const BELIEFS_ADDRESS = (process.env.BELIEFS_CONTRACT_ADDRESS && process.env.BELIEFS_CONTRACT_ADDRESS !== '') ? process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}` : undefined;
+const IMPLICATIONS_ADDRESS = (process.env.IMPLICATIONS_CONTRACT_ADDRESS && process.env.IMPLICATIONS_CONTRACT_ADDRESS !== '') ? process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
 // PUBSTARTER CONTRACT ADDRESSES
 // ============================================================================
 // Factory contracts - these emit events when new projects are created
-const ASSURANCE_CONTRACT_FACTORY_ADDRESS = process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as `0x${string}` | undefined;
-const ERC1155_FACTORY_ADDRESS = process.env.ERC1155_FACTORY_ADDRESS as `0x${string}` | undefined;
-const MARKETPLACE_FACTORY_ADDRESS = process.env.MARKETPLACE_FACTORY_ADDRESS as `0x${string}` | undefined;
+const ASSURANCE_CONTRACT_FACTORY_ADDRESS = (process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS && process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS !== '') ? process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as `0x${string}` : undefined;
+const ERC1155_FACTORY_ADDRESS = (process.env.ERC1155_FACTORY_ADDRESS && process.env.ERC1155_FACTORY_ADDRESS !== '') ? process.env.ERC1155_FACTORY_ADDRESS as `0x${string}` : undefined;
+const MARKETPLACE_FACTORY_ADDRESS = (process.env.MARKETPLACE_FACTORY_ADDRESS && process.env.MARKETPLACE_FACTORY_ADDRESS !== '') ? process.env.MARKETPLACE_FACTORY_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
 // DELEGATION CONTRACT ADDRESSES
 // ============================================================================
-const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}` | undefined;
+const DELEGATABLE_NOTES_ADDRESS = (process.env.DELEGATABLE_NOTES_ADDRESS && process.env.DELEGATABLE_NOTES_ADDRESS !== '') ? process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
 // FUNDING PORTAL CONTRACT ADDRESSES
 // ============================================================================
-const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}` | undefined;
+const PROJECT_ALIGNMENT_ADDRESS = (process.env.PROJECT_ALIGNMENT_ADDRESS && process.env.PROJECT_ALIGNMENT_ADDRESS !== '') ? process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}` : undefined;
 
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
@@ -52,10 +52,12 @@ const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK
 
 export default createConfig({
   chains: {
-    // Base Sepolia testnet (primary for development)
-    baseSepolia: {
-      id: 84532,
-      rpc: http(process.env.PONDER_RPC_URL_84532),
+    // Local Hardhat network for development
+    hardhat: {
+      id: 31337,
+      rpc: http(process.env.PONDER_RPC_URL_31337 || "http://localhost:8545", {
+        timeout: 10_000, // 10 second timeout instead of default
+      }),
     },
   },
   contracts: {
@@ -66,14 +68,14 @@ export default createConfig({
     // Beliefs contract - tracks user beliefs about statements
     Beliefs: {
       abi: BeliefsAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: BELIEFS_ADDRESS,
       startBlock: START_BLOCK,
     },
     // Implications contract - tracks implication attestations between statements
     Implications: {
       abi: ImplicationsAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: IMPLICATIONS_ADDRESS,
       startBlock: START_BLOCK,
     },
@@ -87,7 +89,7 @@ export default createConfig({
     // Factory contract for creating assurance contracts
     AssuranceContractFactory: {
       abi: AssuranceContractFactoryAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
       startBlock: PUBSTARTER_START_BLOCK,
     },
@@ -95,7 +97,7 @@ export default createConfig({
     // Factory contract for creating ERC1155 tokens
     ERC1155Factory: {
       abi: PremintingERC1155FactoryAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: ERC1155_FACTORY_ADDRESS,
       startBlock: PUBSTARTER_START_BLOCK,
     },
@@ -103,7 +105,7 @@ export default createConfig({
     // Factory contract for creating secondary marketplaces
     MarketplaceFactory: {
       abi: MarketplaceFactoryAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: MARKETPLACE_FACTORY_ADDRESS,
       startBlock: PUBSTARTER_START_BLOCK,
     },
@@ -113,7 +115,7 @@ export default createConfig({
     // The factory() function returns addresses discovered from factory events
     AssuranceContract: {
       abi: AssuranceContractAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
         ? factory({
             address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
@@ -127,7 +129,7 @@ export default createConfig({
     // Dynamically indexed secondary marketplaces (created by factory)
     SecondaryMarket: {
       abi: ERC1155SecondaryMarketAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: MARKETPLACE_FACTORY_ADDRESS
         ? factory({
             address: MARKETPLACE_FACTORY_ADDRESS,
@@ -146,7 +148,7 @@ export default createConfig({
 
     DelegatableNotes: {
       abi: DelegatableNotesAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: DELEGATABLE_NOTES_ADDRESS,
       startBlock: DELEGATION_START_BLOCK,
     },
@@ -160,7 +162,7 @@ export default createConfig({
 
     ProjectAlignment: {
       abi: ProjectAlignmentAbi,
-      chain: "baseSepolia",
+      chain: "hardhat",
       address: PROJECT_ALIGNMENT_ADDRESS,
       startBlock: FUNDING_PORTAL_START_BLOCK,
     },
