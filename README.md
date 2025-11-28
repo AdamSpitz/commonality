@@ -11,8 +11,6 @@ The way we do development on this project is that we write specs in English, and
 - [hardhat/README.md](hardhat/README.md) - Smart contracts
 - [hardhat/generative-tests/README.md](hardhat/generative-tests/README.md) - Generative testing system
 - [indexer/README.md](indexer/README.md) - Ponder indexer setup
-- [integration-tests/QUICK_START.md](integration-tests/QUICK_START.md) - Quick guide to integration tests
-- [integration-tests/README.md](integration-tests/README.md) - Integration testing framework
 
 **Deployment:**
 - [QUICKSTART.md](QUICKSTART.md) - Quick start with Docker
@@ -34,31 +32,17 @@ See [hardhat/README.md](hardhat/README.md) for details on the smart contracts an
 
 ### Indexer
 
+The indexer uses [Ponder](https://ponder.sh/) to index blockchain events and provide a GraphQL API.
+
+To sync contract ABIs from the hardhat project:
+
     cd indexer
     npm run sync-abis
 
-### Integration tests
+To run the indexer locally:
 
-Tests that validate the interaction between multiple subsystems (blockchain + indexer).
-
-**Quick start:**
-```bash
-./run-integration-tests.sh
-```
-
-Or you can start a hardhat node in a separate terminal, then do:
-```
-npm run integration-tests                      # Scenario-based tests (fast, focused)
-npm run integration-tests:generative:small     # Generative tests (stress testing)
-```
-
-**Documentation:**
-- [integration-tests/QUICK_START.md](integration-tests/QUICK_START.md) - Quick guide to the testing framework
-- [integration-tests/README.md](integration-tests/README.md) - Comprehensive documentation
-- [integration-tests/INDEXER_TESTING_GUIDE.md](integration-tests/INDEXER_TESTING_GUIDE.md) - Guide for generative tests
-
-The integration test framework provides reusable helpers for testing the indexer with both focused scenario tests and randomized stress tests.
-
+    cd indexer
+    npm run dev
 
 ### Docker stuff
 
