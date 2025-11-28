@@ -169,3 +169,58 @@ export async function clearOpinion(
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }
+
+// ============================================================================
+// Implications Actions
+// ============================================================================
+
+export interface ImplicationsContract {
+  address: Address;
+  abi: any;
+}
+
+/**
+ * Attest that one statement implies another
+ */
+export async function attestImplication(
+  clients: TestClients,
+  implicationsContract: ImplicationsContract,
+  fromStatementCid: string,
+  toStatementCid: string
+): Promise<Hash> {
+  const fromStatementId = cidToBytes32(fromStatementCid);
+  const toStatementId = cidToBytes32(toStatementCid);
+
+  const hash = await clients.walletClient.writeContract({
+    address: implicationsContract.address,
+    abi: implicationsContract.abi,
+    functionName: 'attestImplication',
+    args: [fromStatementId, toStatementId],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/**
+ * Batch attest multiple implications
+ */
+export async function attestImplicationsBatch(
+  clients: TestClients,
+  implicationsContract: ImplicationsContract,
+  fromStatementCids: string[],
+  toStatementCids: string[]
+): Promise<Hash> {
+  const fromStatementIds = fromStatementCids.map(cidToBytes32);
+  const toStatementIds = toStatementCids.map(cidToBytes32);
+
+  const hash = await clients.walletClient.writeContract({
+    address: implicationsContract.address,
+    abi: implicationsContract.abi,
+    functionName: 'attestImplicationsInBatch',
+    args: [fromStatementIds, toStatementIds],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}

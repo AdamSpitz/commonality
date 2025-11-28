@@ -96,8 +96,14 @@ async function main() {
   await fs.writeFile(envPath, envContent);
   console.log('✓ Updated .env file with contract addresses');
 
+  // Also write .env file for integration tests
+  const testEnvPath = join(process.cwd(), '..', 'integration-tests', '.env.local');
+  await fs.writeFile(testEnvPath, envContent);
+  console.log('✓ Updated integration-tests/.env.local');
+
   console.log('\n=== Deployment Complete ===\n');
   console.log('You can now start the indexer with: cd indexer && npm run dev');
+  console.log('Or run integration tests with: cd integration-tests && npm test');
 }
 
 main()

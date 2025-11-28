@@ -6,6 +6,7 @@
   "scripts": {
     "build": "npx hardhat compile",
     "test": "npx hardhat test",
+    "deploy-local": "npx hardhat run scripts/deploy-local.js --network localhost",
     "gen:users": "node generative-tests/generateUsers.js",
     "gen:statements": "node generative-tests/generateStatements.js",
     "gen:simulate": "node generative-tests/runSimulation.js",

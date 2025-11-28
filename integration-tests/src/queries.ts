@@ -111,6 +111,162 @@ export async function getUserBelief(
 }
 
 // ============================================================================
+// Implications Queries
+// ============================================================================
+
+export interface Implication {
+  attester: { id: string };
+  fromStatementId: string;
+  toStatementId: string;
+  createdAt: string;
+  blockNumber: string;
+}
+
+/**
+ * Get implications from a statement (what it implies)
+ */
+export async function getImplicationsFrom(
+  client: GraphQLClient,
+  statementId: string,
+  attesterAddress?: string
+): Promise<Implication[]> {
+  if (attesterAddress) {
+    const result = await query<{ implicationss: { items: Implication[] } }>(
+      client,
+      `
+        query GetImplicationsFrom($fromStatementId: String!, $attester: String!) {
+          implicationss(where: { fromStatementId: $fromStatementId, attester: $attester }) {
+            items {
+              attester {
+                id
+              }
+              fromStatementId
+              toStatementId
+              createdAt
+              blockNumber
+            }
+          }
+        }
+      `,
+      { fromStatementId: statementId.toLowerCase(), attester: attesterAddress.toLowerCase() }
+    );
+    return result.implicationss?.items || [];
+  } else {
+    const result = await query<{ implicationss: { items: Implication[] } }>(
+      client,
+      `
+        query GetImplicationsFrom($fromStatementId: String!) {
+          implicationss(where: { fromStatementId: $fromStatementId }) {
+            items {
+              attester {
+                id
+              }
+              fromStatementId
+              toStatementId
+              createdAt
+              blockNumber
+            }
+          }
+        }
+      `,
+      { fromStatementId: statementId.toLowerCase() }
+    );
+    return result.implicationss?.items || [];
+  }
+}
+
+/**
+ * Get implications to a statement (what implies it)
+ */
+export async function getImplicationsTo(
+  client: GraphQLClient,
+  statementId: string,
+  attesterAddress?: string
+): Promise<Implication[]> {
+  if (attesterAddress) {
+    const result = await query<{ implicationss: { items: Implication[] } }>(
+      client,
+      `
+        query GetImplicationsTo($toStatementId: String!, $attester: String!) {
+          implicationss(where: { toStatementId: $toStatementId, attester: $attester }) {
+            items {
+              attester {
+                id
+              }
+              fromStatementId
+              toStatementId
+              createdAt
+              blockNumber
+            }
+          }
+        }
+      `,
+      { toStatementId: statementId.toLowerCase(), attester: attesterAddress.toLowerCase() }
+    );
+    return result.implicationss?.items || [];
+  } else {
+    const result = await query<{ implicationss: { items: Implication[] } }>(
+      client,
+      `
+        query GetImplicationsTo($toStatementId: String!) {
+          implicationss(where: { toStatementId: $toStatementId }) {
+            items {
+              attester {
+                id
+              }
+              fromStatementId
+              toStatementId
+              createdAt
+              blockNumber
+            }
+          }
+        }
+      `,
+      { toStatementId: statementId.toLowerCase() }
+    );
+    return result.implicationss?.items || [];
+  }
+}
+
+/**
+ * Get a specific implication attestation
+ */
+export async function getImplication(
+  client: GraphQLClient,
+  attesterAddress: string,
+  fromStatementId: string,
+  toStatementId: string
+): Promise<Implication | null> {
+  const result = await query<{ implications: Implication | null }>(
+    client,
+    `
+      query GetImplication($attester: String!, $fromStatementId: String!, $toStatementId: String!) {
+        implications(
+          attester: $attester,
+          fromStatementId: $fromStatementId,
+          toStatementId: $toStatementId
+        ) {
+          attester {
+            id
+          }
+          fromStatementId
+          toStatementId
+          createdAt
+          blockNumber
+        }
+      }
+    `,
+    {
+      attester: attesterAddress.toLowerCase(),
+      fromStatementId: fromStatementId.toLowerCase(),
+      toStatementId: toStatementId.toLowerCase()
+    }
+  );
+
+  return result.implications;
+}
+
+// ============================================================================
 // Ponder Sync Status
 // ============================================================================
 

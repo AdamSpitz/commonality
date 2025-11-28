@@ -46,26 +46,23 @@ The indexer will start at `http://localhost:42069/graphql`.
 ### Terminal 4: Run Tests
 
 ```bash
-# From the root directory
-npm run integration-tests
-
-# Or from this directory
+cd integration-tests
 npm test
 ```
 
+That's it! The deployment script automatically creates a `.env.local` file with all the contract addresses, which is loaded automatically when tests run.
+
 ## Environment Variables
 
-The tests use these environment variables (with defaults):
+The tests automatically load environment variables from `.env.local`, which is created by the `deploy-local` script. The file contains:
 
 - `RPC_URL` - Hardhat node URL (default: `http://localhost:8545`)
 - `GRAPHQL_URL` - Ponder GraphQL endpoint (default: `http://localhost:42069/graphql`)
-- `BELIEFS_CONTRACT_ADDRESS` - Address of the Beliefs contract (required)
+- `BELIEFS_CONTRACT_ADDRESS` - Address of the Beliefs contract
+- `IMPLICATIONS_CONTRACT_ADDRESS` - Address of the Implications contract
+- And other contract addresses...
 
-You can set these when running tests:
-
-```bash
-BELIEFS_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3 npm test
-```
+**Note:** `.env.local` is automatically created/updated when you run `npm run deploy-local` in the hardhat directory. You don't need to manually set any environment variables!
 
 ## Project Structure
 
