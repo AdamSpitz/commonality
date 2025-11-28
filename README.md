@@ -44,6 +44,11 @@ To run the indexer locally:
     cd indexer
     npm run dev
 
+### Scripts for combining those
+
+    ./start-node-and-deploy.sh
+    ./stop-hardhat-node.sh
+
 ### Docker stuff
 
 Sam, see [QUICKSTART.md](QUICKSTART.md) if you want to get this up and running.
