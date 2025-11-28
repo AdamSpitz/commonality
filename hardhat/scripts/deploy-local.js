@@ -61,6 +61,17 @@ async function main() {
   const marketplaceFactoryAddress = await marketplaceFactory.getAddress();
   console.log(`✓ MarketplaceFactory: ${marketplaceFactoryAddress}`);
 
+  // Deploy Pubstarter main contract (combines the three factories)
+  const Pubstarter = await ethers.getContractFactory('Pubstarter');
+  const pubstarter = await Pubstarter.deploy(
+    erc1155FactoryAddress,
+    marketplaceFactoryAddress,
+    assuranceFactoryAddress
+  );
+  await pubstarter.waitForDeployment();
+  const pubstarterAddress = await pubstarter.getAddress();
+  console.log(`✓ Pubstarter: ${pubstarterAddress}`);
+
   // Update .env file
   const envPath = join(process.cwd(), '..', '.env');
   console.log(`\n=== Updating ${envPath} ===\n`);
@@ -82,6 +93,7 @@ async function main() {
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
+    'PUBSTARTER_ADDRESS': pubstarterAddress,
   };
 
   for (const [key, value] of Object.entries(updates)) {

@@ -219,9 +219,7 @@ ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
 
     if (!childNote) {
       // This should not happen if events are processed in order, but handle gracefully
-      context.log.error(
-        `NoteDelegated: Child note ${childNoteId} not found. ChainSplit may not have been processed yet.`
-      );
+      // Skip processing if child note not found
       return;
     }
 
@@ -290,7 +288,7 @@ ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
   const originalNote = await context.db.find(delegatableNotes, { id: originalLeafId });
 
   if (!originalNote) {
-    context.log.warn(`ChainSplit: Original note ${originalLeafId} not found`);
+    // Original note not found - skip processing
     return;
   }
 
@@ -469,7 +467,7 @@ ponder.on("DelegatableNotes:NoteConsumed", async ({ event, context }) => {
 
   const note = await context.db.find(delegatableNotes, { id: noteId });
   if (!note) {
-    context.log.warn(`NoteConsumed: Note ${noteId} not found in database`);
+    // Note not found - skip processing
     return;
   }
 

@@ -69,9 +69,7 @@ ponder.on(
     // The ERC1155 contract address is emitted
     // We'll correlate it with the assurance contract via the ERC1155Offered events
     // Note: The correlation happens when prices are set via ERC1155Offered events
-    context.log.info(
-      `New ERC1155 created: ${event.args.erc1155} at block ${event.block.number}`
-    );
+    // Logging removed - no action needed for this event
   }
 );
 
@@ -82,9 +80,7 @@ ponder.on(
   "MarketplaceFactory:PubstarterERC1155SecondaryMarketCreated",
   async ({ event, context }) => {
     // Similar to ERC1155 - we'll track marketplaces via their events
-    context.log.info(
-      `New marketplace created: ${event.args.marketplace} at block ${event.block.number}`
-    );
+    // Logging removed - no action needed for this event
   }
 );
 
@@ -516,10 +512,7 @@ ponder.on("SecondaryMarket:ERC1155SecondaryMarketCreated", async ({ event, conte
     await context.db.update(projects, { id: project.id }).set({
       marketplaceAddress,
     });
-
-    context.log.info(
-      `Correlated marketplace ${marketplaceAddress} with project ${project.id} via ERC1155 ${erc1155}`
-    );
+    // Logging removed - marketplace correlated with project
   }
 });
 
