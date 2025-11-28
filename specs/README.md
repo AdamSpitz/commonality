@@ -280,6 +280,10 @@ See [queries-and-actions.md](queries-and-actions.md) for a comprehensive list of
 
 See [indexers.md](indexers.md) for the federated indexer architecture (Concept Space, Pubstarter, Delegation, Funding Portal subsystems), data responsibilities, and implementation review notes.
 
+#### Integration testing (blockchain plus indexer together)
+
+See [integration-tests.md](integration-tests.md).
+
 #### Generative testing
 
 See [generative-testing-plan.md](generative-testing-plan.md) for the overall plan for generative testing (universe generation, user simulation, multiple attester types, test scenarios, invariant validation, metrics tracking). For the actual implementation, see [../hardhat/generative-tests/README.md](../hardhat/generative-tests/README.md).
