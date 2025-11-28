@@ -58,6 +58,8 @@ export default createConfig({
       rpc: http(process.env.PONDER_RPC_URL_31337 || "http://localhost:8545", {
         timeout: 10_000, // 10 second timeout instead of default
       }),
+      pollingInterval: 100, // Poll every 100ms for faster test execution (default is 1000ms)
+      disableCache: true,   // Disable caching for local development to avoid stale data
     },
   },
   contracts: {
