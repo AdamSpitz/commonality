@@ -51,6 +51,9 @@ const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || STAR
 const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
 
 export default createConfig({
+  database: process.env.PONDER_EPHEMERAL === 'true'
+    ? { kind: "pglite", directory: undefined } // Uses in-memory ephemeral database
+    : undefined, // Uses default persistent database
   chains: {
     // Local Hardhat network for development
     hardhat: {
