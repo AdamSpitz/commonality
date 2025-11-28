@@ -15,14 +15,14 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type BeliefsContract,
-} from './actions.js';
+} from './actions/index.js';
 import {
   createGraphQLClient,
   getStatement,
   getUserBelief,
   waitForSync,
   assertNotNull,
-} from './queries.js';
+} from './queries/index.js';
 
 // Import the Beliefs ABI - we'll copy it from the indexer
 const BeliefsAbi = [

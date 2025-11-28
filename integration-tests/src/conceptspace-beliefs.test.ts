@@ -20,14 +20,14 @@ import {
   BELIEVES,
   DISBELIEVES,
   type BeliefsContract,
-} from './actions.js';
+} from './actions/index.js';
 import {
   createGraphQLClient,
   getStatement,
   getUserBelief,
   waitForSync,
   assertNotNull,
-} from './queries.js';
+} from './queries/index.js';
 
 // Beliefs ABI (copied from hello-world.test.ts)
 const BeliefsAbi = [

@@ -19,7 +19,7 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type DelegatableNotesContract,
-} from './actions.js';
+} from './actions/index.js';
 import {
   createGraphQLClient,
   getNote,
@@ -28,7 +28,7 @@ import {
   getDelegationChain,
   waitForSync,
   assertNotNull,
-} from './queries.js';
+} from './queries/index.js';
 
 // DelegatableNotes ABI
 const DelegatableNotesAbi = [

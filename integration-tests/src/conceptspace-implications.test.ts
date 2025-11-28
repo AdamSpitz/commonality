@@ -17,7 +17,7 @@ import {
   attestImplication,
   type BeliefsContract,
   type ImplicationsContract,
-} from './actions.js';
+} from './actions/index.js';
 import {
   createGraphQLClient,
   getStatement,
@@ -26,7 +26,7 @@ import {
   getImplicationsTo,
   waitForSync,
   assertNotNull,
-} from './queries.js';
+} from './queries/index.js';
 
 // Contract ABIs
 const BeliefsAbi = [

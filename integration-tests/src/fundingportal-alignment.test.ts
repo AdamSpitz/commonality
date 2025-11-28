@@ -18,8 +18,7 @@ import {
   cidToBytes32,
   type ProjectAlignmentContract,
   type PubstarterContract,
-  type Address,
-} from './actions.js';
+} from './actions/index.js';
 import {
   createGraphQLClient,
   getAlignedProjects,
@@ -28,7 +27,8 @@ import {
   getAlignmentsByAttester,
   waitForSync,
   assertNotNull,
-} from './queries.js';
+} from './queries/index.js';
+import { type Address } from 'viem';
 
 // ProjectAlignment ABI
 const ProjectAlignmentAbi = [

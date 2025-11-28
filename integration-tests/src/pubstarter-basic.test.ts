@@ -17,14 +17,14 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-} from './actions.js';
+} from './actions/index.js';
 import {
   createGraphQLClient,
   getProject,
   waitForSync,
   assertNotNull,
   type GraphQLClient,
-} from './queries.js';
+} from './queries/index.js';
 import { parseEther, type Address } from 'viem';
 
 // Minimal ABIs for the contracts we need
