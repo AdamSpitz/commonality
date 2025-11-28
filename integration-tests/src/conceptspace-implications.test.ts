@@ -25,6 +25,7 @@ import {
   getImplicationsFrom,
   getImplicationsTo,
   waitForSync,
+  assertNotNull,
 } from './queries.js';
 
 // Contract ABIs
@@ -196,10 +197,13 @@ describe('Conceptspace Implications', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify only direct support initially
-    let specificStmt = await getStatement(graphqlClient, specificId);
+    let specificStmt = assertNotNull(
+      await getStatement(graphqlClient, specificId),
+      'Specific statement'
+    );
     let generalStmt = await getStatement(graphqlClient, generalId);
 
-    assert.strictEqual(specificStmt?.believerCount, 1, 'Specific statement should have 1 direct believer');
+    assert.strictEqual(specificStmt.believerCount, 1, 'Specific statement should have 1 direct believer');
     // General statement may not exist yet in the indexer if no one has interacted with it
     assert.ok(
       !generalStmt || generalStmt.believerCount === 0,

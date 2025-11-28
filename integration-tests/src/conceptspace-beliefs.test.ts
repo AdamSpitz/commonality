@@ -26,6 +26,7 @@ import {
   getStatement,
   getUserBelief,
   waitForSync,
+  assertNotNull,
 } from './queries.js';
 
 // Beliefs ABI (copied from hello-world.test.ts)
@@ -110,12 +111,18 @@ describe('Conceptspace Beliefs', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify belief was recorded
-    let userBelief = await getUserBelief(graphqlClient, clients.account, statementId);
-    assert.strictEqual(userBelief?.beliefState, BELIEVES, 'User should believe the statement');
+    let userBelief = assertNotNull(
+      await getUserBelief(graphqlClient, clients.account, statementId),
+      'User belief'
+    );
+    assert.strictEqual(userBelief.beliefState, BELIEVES, 'User should believe the statement');
 
-    let statement = await getStatement(graphqlClient, statementId);
-    assert.strictEqual(statement?.believerCount, 1, 'Statement should have 1 believer');
-    assert.strictEqual(statement?.disbelieverCount, 0, 'Statement should have 0 disbelievers');
+    let statement = assertNotNull(
+      await getStatement(graphqlClient, statementId),
+      'Statement'
+    );
+    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
+    assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
 
     console.log('  ✓ Belief recorded correctly');
 
@@ -126,12 +133,18 @@ describe('Conceptspace Beliefs', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify disbelief was recorded
-    userBelief = await getUserBelief(graphqlClient, clients.account, statementId);
-    assert.strictEqual(userBelief?.beliefState, DISBELIEVES, 'User should disbelieve the statement');
+    userBelief = assertNotNull(
+      await getUserBelief(graphqlClient, clients.account, statementId),
+      'User belief'
+    );
+    assert.strictEqual(userBelief.beliefState, DISBELIEVES, 'User should disbelieve the statement');
 
-    statement = await getStatement(graphqlClient, statementId);
-    assert.strictEqual(statement?.believerCount, 0, 'Statement should have 0 believers');
-    assert.strictEqual(statement?.disbelieverCount, 1, 'Statement should have 1 disbeliever');
+    statement = assertNotNull(
+      await getStatement(graphqlClient, statementId),
+      'Statement'
+    );
+    assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
+    assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
 
     console.log('  ✓ Disbelief recorded correctly');
 
@@ -142,12 +155,18 @@ describe('Conceptspace Beliefs', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify opinion was cleared
-    userBelief = await getUserBelief(graphqlClient, clients.account, statementId);
-    assert.strictEqual(userBelief?.beliefState, NO_OPINION, 'User should have no opinion');
+    userBelief = assertNotNull(
+      await getUserBelief(graphqlClient, clients.account, statementId),
+      'User belief'
+    );
+    assert.strictEqual(userBelief.beliefState, NO_OPINION, 'User should have no opinion');
 
-    statement = await getStatement(graphqlClient, statementId);
-    assert.strictEqual(statement?.believerCount, 0, 'Statement should have 0 believers');
-    assert.strictEqual(statement?.disbelieverCount, 0, 'Statement should have 0 disbelievers');
+    statement = assertNotNull(
+      await getStatement(graphqlClient, statementId),
+      'Statement'
+    );
+    assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
+    assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
 
     console.log('  ✓ Opinion cleared correctly');
   });
@@ -174,8 +193,11 @@ describe('Conceptspace Beliefs', () => {
     let receipt = await clients1.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    let statement = await getStatement(graphqlClient, statementId);
-    assert.strictEqual(statement?.believerCount, 1, 'Statement should have 1 believer');
+    let statement = assertNotNull(
+      await getStatement(graphqlClient, statementId),
+      'Statement'
+    );
+    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
 
     // User 2 also believes
     console.log('  User 2 believes...');
@@ -183,14 +205,23 @@ describe('Conceptspace Beliefs', () => {
     receipt = await clients2.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    statement = await getStatement(graphqlClient, statementId);
-    assert.strictEqual(statement?.believerCount, 2, 'Statement should have 2 believers');
+    statement = assertNotNull(
+      await getStatement(graphqlClient, statementId),
+      'Statement'
+    );
+    assert.strictEqual(statement.believerCount, 2, 'Statement should have 2 believers');
 
     // Verify both users' beliefs
-    const user1Belief = await getUserBelief(graphqlClient, clients1.account, statementId);
-    const user2Belief = await getUserBelief(graphqlClient, clients2.account, statementId);
-    assert.strictEqual(user1Belief?.beliefState, BELIEVES, 'User 1 should believe');
-    assert.strictEqual(user2Belief?.beliefState, BELIEVES, 'User 2 should believe');
+    const user1Belief = assertNotNull(
+      await getUserBelief(graphqlClient, clients1.account, statementId),
+      'User 1 belief'
+    );
+    const user2Belief = assertNotNull(
+      await getUserBelief(graphqlClient, clients2.account, statementId),
+      'User 2 belief'
+    );
+    assert.strictEqual(user1Belief.beliefState, BELIEVES, 'User 1 should believe');
+    assert.strictEqual(user2Belief.beliefState, BELIEVES, 'User 2 should believe');
 
     console.log('  ✓ Multiple users tracked correctly');
 
@@ -200,9 +231,12 @@ describe('Conceptspace Beliefs', () => {
     receipt = await clients2.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    statement = await getStatement(graphqlClient, statementId);
-    assert.strictEqual(statement?.believerCount, 1, 'Statement should have 1 believer');
-    assert.strictEqual(statement?.disbelieverCount, 1, 'Statement should have 1 disbeliever');
+    statement = assertNotNull(
+      await getStatement(graphqlClient, statementId),
+      'Statement'
+    );
+    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
+    assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
 
     console.log('  ✓ User state changes tracked correctly');
   });
@@ -242,19 +276,31 @@ describe('Conceptspace Beliefs', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify both statements tracked independently
-    const belief1 = await getUserBelief(graphqlClient, clients.account, statement1Id);
-    const belief2 = await getUserBelief(graphqlClient, clients.account, statement2Id);
+    const belief1 = assertNotNull(
+      await getUserBelief(graphqlClient, clients.account, statement1Id),
+      'Belief 1'
+    );
+    const belief2 = assertNotNull(
+      await getUserBelief(graphqlClient, clients.account, statement2Id),
+      'Belief 2'
+    );
 
-    assert.strictEqual(belief1?.beliefState, BELIEVES, 'User should believe statement 1');
-    assert.strictEqual(belief2?.beliefState, DISBELIEVES, 'User should disbelieve statement 2');
+    assert.strictEqual(belief1.beliefState, BELIEVES, 'User should believe statement 1');
+    assert.strictEqual(belief2.beliefState, DISBELIEVES, 'User should disbelieve statement 2');
 
-    const stmt1 = await getStatement(graphqlClient, statement1Id);
-    const stmt2 = await getStatement(graphqlClient, statement2Id);
+    const stmt1 = assertNotNull(
+      await getStatement(graphqlClient, statement1Id),
+      'Statement 1'
+    );
+    const stmt2 = assertNotNull(
+      await getStatement(graphqlClient, statement2Id),
+      'Statement 2'
+    );
 
-    assert.strictEqual(stmt1?.believerCount, 1);
-    assert.strictEqual(stmt1?.disbelieverCount, 0);
-    assert.strictEqual(stmt2?.believerCount, 0);
-    assert.strictEqual(stmt2?.disbelieverCount, 1);
+    assert.strictEqual(stmt1.believerCount, 1);
+    assert.strictEqual(stmt1.disbelieverCount, 0);
+    assert.strictEqual(stmt2.believerCount, 0);
+    assert.strictEqual(stmt2.disbelieverCount, 1);
 
     console.log('  ✓ Multiple statements tracked independently');
   });

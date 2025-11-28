@@ -22,6 +22,7 @@ import {
   createGraphQLClient,
   getProject,
   waitForSync,
+  assertNotNull,
   type GraphQLClient,
 } from './queries.js';
 import { parseEther, type Address } from 'viem';
@@ -126,10 +127,15 @@ describe('Pubstarter Basic Integration Tests', () => {
   it('should create a project, accept contributions, and allow withdrawal', async function() {
     this.timeout(30000); // Increase timeout for this complex test
 
-    // Skip if factory addresses not set
+    // Factory addresses must be set
     if (!ERC1155_FACTORY_ADDRESS || !MARKETPLACE_FACTORY_ADDRESS || !ASSURANCE_CONTRACT_FACTORY_ADDRESS) {
-      console.log('Skipping test: Factory addresses not set in .env.local');
-      return;
+      throw new Error('Factory addresses not set in environment (ERC1155_FACTORY_ADDRESS, MARKETPLACE_FACTORY_ADDRESS, ASSURANCE_CONTRACT_FACTORY_ADDRESS)');
+    }
+
+    // Pubstarter main contract must be deployed
+    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+    if (!PUBSTARTER_ADDRESS) {
+      throw new Error('PUBSTARTER_ADDRESS not set in environment - the main Pubstarter contract must be deployed');
     }
 
     console.log('  Setting up test clients...');
@@ -138,18 +144,6 @@ describe('Pubstarter Basic Integration Tests', () => {
 
     console.log(`  Creator: ${creatorClients.account}`);
     console.log(`  Contributor: ${contributorClients.account}`);
-
-    // Note: We need to deploy the Pubstarter main contract that combines the factories
-    // For this test to work, the Pubstarter contract should be deployed
-    // Let's assume it's been deployed (we'll need to add it to .env.local)
-
-    // For now, let's skip this test if we don't have a PUBSTARTER_ADDRESS
-    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-    if (!PUBSTARTER_ADDRESS) {
-      console.log('  Note: PUBSTARTER_ADDRESS not set. This test needs the main Pubstarter contract deployed.');
-      console.log('  Skipping for now...');
-      return;
-    }
 
     // Create project metadata
     const projectMetadata = {
@@ -197,31 +191,25 @@ describe('Pubstarter Basic Integration Tests', () => {
     console.log(`  Marketplace: ${projectDetails.marketplaceAddress}`);
     console.log(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
 
-    // Wait for indexer to sync (skip if indexer not running)
+    // Wait for indexer to sync
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    try {
-      console.log('  Waiting for indexer to sync...');
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    console.log('  Waiting for indexer to sync...');
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-      // Query the project from the indexer
-      console.log('  Querying project from indexer...');
-      const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
+    // Query the project from the indexer
+    console.log('  Querying project from indexer...');
+    const project = assertNotNull(
+      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
+      'Project'
+    );
 
-      if (project) {
-        console.log(`  Project found! Total received: ${project.totalReceived}`);
-        assert.strictEqual(project.totalReceived, '0', 'Project should start with 0 received');
-        assert.strictEqual(
-          project.id.toLowerCase(),
-          projectDetails.assuranceContractAddress.toLowerCase(),
-          'Project ID (assurance contract address) should match'
-        );
-      } else {
-        console.log('  Warning: Project not found in indexer (indexer may not be tracking pubstarter yet)');
-      }
-    } catch (error) {
-      console.log(`  Warning: Indexer not available or not syncing: ${error}`);
-      console.log('  Skipping indexer verification...');
-    }
+    console.log(`  Project found! Total received: ${project.totalReceived}`);
+    assert.strictEqual(project.totalReceived, '0', 'Project should start with 0 received');
+    assert.strictEqual(
+      project.id.toLowerCase(),
+      projectDetails.assuranceContractAddress.toLowerCase(),
+      'Project ID (assurance contract address) should match'
+    );
 
     // Contributor buys some tokens
     console.log('  Contributor buying tokens...');
@@ -248,22 +236,20 @@ describe('Pubstarter Basic Integration Tests', () => {
 
     console.log(`  Tokens purchased! Tx: ${buyHash}`);
 
-    // Wait for indexer to sync (skip if indexer not running)
+    // Wait for indexer to sync
     const buyReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buyHash });
-    try {
-      console.log('  Waiting for indexer to sync...');
-      await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
+    console.log('  Waiting for indexer to sync...');
+    await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
 
-      // Query updated project
-      const updatedProject = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
-      if (updatedProject) {
-        console.log(`  Updated project total received: ${updatedProject.totalReceived}`);
-        // Verify that funds were received
-        assert.ok(BigInt(updatedProject.totalReceived) > 0n, 'Project should have received funds');
-      }
-    } catch (error) {
-      console.log(`  Warning: Indexer not available: ${error}`);
-    }
+    // Query updated project
+    const updatedProject = assertNotNull(
+      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
+      'Updated project'
+    );
+
+    console.log(`  Updated project total received: ${updatedProject.totalReceived}`);
+    // Verify that funds were received
+    assert.ok(BigInt(updatedProject.totalReceived) > 0n, 'Project should have received funds');
 
     console.log('  Test completed successfully!');
   });
@@ -271,11 +257,10 @@ describe('Pubstarter Basic Integration Tests', () => {
   it('should create a simple project with minimal parameters', async function() {
     this.timeout(20000);
 
-    // Skip if addresses not set
+    // Pubstarter main contract must be deployed
     const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
     if (!PUBSTARTER_ADDRESS) {
-      console.log('Skipping test: PUBSTARTER_ADDRESS not set');
-      return;
+      throw new Error('PUBSTARTER_ADDRESS not set in environment - the main Pubstarter contract must be deployed');
     }
 
     console.log('  Creating a minimal test project...');

@@ -21,6 +21,7 @@ import {
   getStatement,
   getUserBelief,
   waitForSync,
+  assertNotNull,
 } from './queries.js';
 
 // Import the Beliefs ABI - we'll copy it from the indexer
@@ -67,10 +68,9 @@ describe('Hello World Integration Test', () => {
   const PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
 
   it('should record a belief and query it back', async () => {
-    // Skip test if contract address is not set
+    // Contract address must be set
     if (!BELIEFS_CONTRACT_ADDRESS) {
-      console.log('Skipping test: BELIEFS_CONTRACT_ADDRESS not set');
-      return;
+      throw new Error('BELIEFS_CONTRACT_ADDRESS not set in environment');
     }
 
     // 1. Setup clients
@@ -113,16 +113,15 @@ describe('Hello World Integration Test', () => {
 
     // 5. Query the belief back from the indexer
     console.log('  Querying belief from indexer...');
-    const userBelief = await getUserBelief(
-      graphqlClient,
-      clients.account,
-      statementId
+    const userBelief = assertNotNull(
+      await getUserBelief(graphqlClient, clients.account, statementId),
+      'User belief'
     );
 
     // 6. Assert the belief was recorded correctly
-    assert.strictEqual(userBelief?.beliefState, 1, 'User should believe the statement (beliefState=1)');
+    assert.strictEqual(userBelief.beliefState, 1, 'User should believe the statement (beliefState=1)');
     assert.strictEqual(
-      userBelief?.statementId.toLowerCase(),
+      userBelief.statementId.toLowerCase(),
       statementId.toLowerCase(),
       'Statement ID should match'
     );
@@ -130,8 +129,11 @@ describe('Hello World Integration Test', () => {
     console.log('  ✓ Belief recorded and queried successfully!');
 
     // 7. Also check the statement's supporter count
-    const statement = await getStatement(graphqlClient, statementId);
-    assert.strictEqual(statement?.believerCount, 1, 'Statement should have 1 believer');
+    const statement = assertNotNull(
+      await getStatement(graphqlClient, statementId),
+      'Statement'
+    );
+    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
 
     console.log('  ✓ Statement has correct supporter count!');
   });
