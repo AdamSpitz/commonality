@@ -1,9 +1,10 @@
 /**
  * ABI for MultiERC1155_AssuranceContract
- * Combines events from AssuranceContract, ERC1155PrimaryMarket, and ContractMetadata
+ * Combines events and functions from AssuranceContract, ERC1155PrimaryMarket, and ContractMetadata
  */
 
 export const AssuranceContractAbi = [
+  // Events
   // From AssuranceContract.sol
   {
     type: "event",
@@ -137,6 +138,120 @@ export const AssuranceContractAbi = [
         name: "uri",
         type: "string",
         indexed: false,
+      },
+    ],
+  },
+
+  // Functions
+  // From ERC1155PrimaryMarket.sol
+  {
+    type: "function",
+    name: "buyERC1155",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "buyer",
+        type: "address",
+      },
+      {
+        name: "erc1155Addr",
+        type: "address",
+      },
+      {
+        name: "ids",
+        type: "uint256[]",
+      },
+      {
+        name: "counts",
+        type: "uint256[]",
+      },
+      {
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "refundERC1155",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "holder",
+        type: "address",
+      },
+      {
+        name: "erc1155Addr",
+        type: "address",
+      },
+      {
+        name: "ids",
+        type: "uint256[]",
+      },
+      {
+        name: "counts",
+        type: "uint256[]",
+      },
+      {
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "setPricesERC1155",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "erc1155Addr",
+        type: "address",
+      },
+      {
+        name: "ids",
+        type: "uint256[]",
+      },
+      {
+        name: "prices",
+        type: "uint256[]",
+      },
+    ],
+    outputs: [],
+  },
+
+  // From AssuranceContract.sol
+  {
+    type: "function",
+    name: "withdraw",
+    stateMutability: "nonpayable",
+    inputs: [],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "getAssuranceContractProgress",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+      },
+    ],
+  },
+
+  // From Ownable
+  {
+    type: "function",
+    name: "owner",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
       },
     ],
   },

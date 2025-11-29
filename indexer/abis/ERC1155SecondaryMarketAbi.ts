@@ -4,6 +4,7 @@
  */
 
 export const ERC1155SecondaryMarketAbi = [
+  // Events
   {
     type: "event",
     name: "ERC1155SecondaryMarketCreated",
@@ -140,5 +141,123 @@ export const ERC1155SecondaryMarketAbi = [
         indexed: true,
       },
     ],
+  },
+
+  // Functions
+  {
+    type: "function",
+    name: "createSaleListing",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        name: "count",
+        type: "uint256",
+      },
+      {
+        name: "pricePerToken",
+        type: "uint256",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "fulfillSaleListing",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "saleListingId",
+        type: "uint256",
+      },
+      {
+        name: "count",
+        type: "uint256",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "fulfillSaleListingTo",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "saleListingId",
+        type: "uint256",
+      },
+      {
+        name: "count",
+        type: "uint256",
+      },
+      {
+        name: "recipient",
+        type: "address",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "cancelSaleListing",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "saleListingId",
+        type: "uint256",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "createBuyOrder",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        name: "count",
+        type: "uint256",
+      },
+      {
+        name: "pricePerToken",
+        type: "uint256",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "fulfillBuyOrder",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "buyOrderId",
+        type: "uint256",
+      },
+      {
+        name: "count",
+        type: "uint256",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "cancelBuyOrder",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "buyOrderId",
+        type: "uint256",
+      },
+    ],
+    outputs: [],
   },
 ] as const;
