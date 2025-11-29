@@ -308,3 +308,222 @@ export async function getIndirectSupporterCount(
   const supporters = await getIndirectSupporters(client, statementId, attesterAddress);
   return supporters.length;
 }
+
+// ============================================================================
+// Statement Discovery & Browsing Queries
+// ============================================================================
+
+export interface StatementListItem {
+  id: string;
+  cid: string;
+  statementType: string;
+  title: string;
+  excerpt: string;
+  believerCount: number;
+  disbelieverCount: number;
+  createdAt: string;
+}
+
+export interface BrowseStatementsOptions {
+  /** Maximum number of results to return */
+  limit?: number;
+  /** Offset for pagination */
+  offset?: number;
+  /** Order direction */
+  orderDirection?: 'asc' | 'desc';
+}
+
+/**
+ * Browse statements by most supporters (direct believers)
+ */
+export async function browseStatementsByMostSupporters(
+  client: GraphQLClient,
+  options: BrowseStatementsOptions = {}
+): Promise<StatementListItem[]> {
+  const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
+
+  const result = await query<{ statementss: { items: StatementListItem[] } }>(
+    client,
+    `
+      query BrowseByMostSupporters($limit: Int!, $offset: Int!) {
+        statementss(
+          limit: $limit
+          offset: $offset
+          orderBy: "believerCount"
+          orderDirection: "${orderDirection}"
+        ) {
+          items {
+            id
+            cid
+            statementType
+            title
+            excerpt
+            believerCount
+            disbelieverCount
+            createdAt
+          }
+        }
+      }
+    `,
+    { limit, offset }
+  );
+
+  return result.statementss?.items || [];
+}
+
+/**
+ * Browse newest statements
+ */
+export async function browseStatementsByNewest(
+  client: GraphQLClient,
+  options: BrowseStatementsOptions = {}
+): Promise<StatementListItem[]> {
+  const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
+
+  const result = await query<{ statementss: { items: StatementListItem[] } }>(
+    client,
+    `
+      query BrowseByNewest($limit: Int!, $offset: Int!) {
+        statementss(
+          limit: $limit
+          offset: $offset
+          orderBy: "createdAt"
+          orderDirection: "${orderDirection}"
+        ) {
+          items {
+            id
+            cid
+            statementType
+            title
+            excerpt
+            believerCount
+            disbelieverCount
+            createdAt
+          }
+        }
+      }
+    `,
+    { limit, offset }
+  );
+
+  return result.statementss?.items || [];
+}
+
+/**
+ * Get all statements (for basic listing)
+ */
+export async function getAllStatements(
+  client: GraphQLClient,
+  options: BrowseStatementsOptions = {}
+): Promise<StatementListItem[]> {
+  const { limit = 100, offset = 0 } = options;
+
+  const result = await query<{ statementss: { items: StatementListItem[] } }>(
+    client,
+    `
+      query GetAllStatements($limit: Int!, $offset: Int!) {
+        statementss(limit: $limit, offset: $offset) {
+          items {
+            id
+            cid
+            statementType
+            title
+            excerpt
+            believerCount
+            disbelieverCount
+            createdAt
+          }
+        }
+      }
+    `,
+    { limit, offset }
+  );
+
+  return result.statementss?.items || [];
+}
+
+/**
+ * Get statements a user directly believes
+ */
+export async function getUserBeliefs(
+  client: GraphQLClient,
+  userAddress: string
+): Promise<StatementListItem[]> {
+  const result = await query<{
+    beliefss: {
+      items: Array<{
+        statementId: string;
+        beliefState: number;
+        statement: StatementListItem;
+      }>
+    }
+  }>(
+    client,
+    `
+      query GetUserBeliefs($user: String!) {
+        beliefss(where: { user: $user, beliefState: 1 }) {
+          items {
+            statementId
+            beliefState
+            statement {
+              id
+              cid
+              statementType
+              title
+              excerpt
+              believerCount
+              disbelieverCount
+              createdAt
+            }
+          }
+        }
+      }
+    `,
+    { user: userAddress.toLowerCase() }
+  );
+
+  return result.beliefss?.items.map(item => item.statement) || [];
+}
+
+/**
+ * Get statements a user directly disbelieves
+ */
+export async function getUserDisbeliefs(
+  client: GraphQLClient,
+  userAddress: string
+): Promise<StatementListItem[]> {
+  const result = await query<{
+    beliefss: {
+      items: Array<{
+        statementId: string;
+        beliefState: number;
+        statement: StatementListItem;
+      }>
+    }
+  }>(
+    client,
+    `
+      query GetUserDisbeliefs($user: String!) {
+        beliefss(where: { user: $user, beliefState: 2 }) {
+          items {
+            statementId
+            beliefState
+            statement {
+              id
+              cid
+              statementType
+              title
+              excerpt
+              believerCount
+              disbelieverCount
+              createdAt
+            }
+          }
+        }
+      }
+    `,
+    { user: userAddress.toLowerCase() }
+  );
+
+  return result.beliefss?.items.map(item => item.statement) || [];
+}

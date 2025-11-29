@@ -1,0 +1,345 @@
+/**
+ * End-to-End Workflow Integration Tests
+ *
+ * These tests verify that the subsystems work together correctly by testing
+ * complete user workflows that span multiple components.
+ */
+
+import assert from 'assert';
+import {
+  createTestClients,
+  believeStatement,
+  attestImplication,
+  attestProjectAlignment,
+  createProject,
+  depositETH,
+  purchaseFromPrimaryMarketWithNotes,
+  uploadToIPFS,
+  cidToBytes32,
+  type BeliefsContract,
+  type ImplicationsContract,
+  type PubstarterContract,
+  type DelegatableNotesContract,
+  type ProjectAlignmentContract,
+} from './actions/index.js';
+import {
+  createGraphQLClient,
+  getStatement,
+  getUserBelief,
+  getImplicationsTo,
+  getAlignedProjects,
+  getNotesByOwner,
+  getNotesByStatement,
+  getProject,
+  getUserContributions,
+  waitForSync,
+  assertNotNull,
+} from './queries/index.js';
+
+// Contract ABIs - simplified versions for testing
+const BeliefsAbi = [
+  {
+    inputs: [
+      { internalType: "bytes32", name: "statementId", type: "bytes32" },
+      { internalType: "uint8", name: "beliefState", type: "uint8" },
+    ],
+    name: "setBelief",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
+
+const ImplicationsAbi = [
+  {
+    inputs: [
+      { internalType: "bytes32", name: "fromStatementId", type: "bytes32" },
+      { internalType: "bytes32", name: "toStatementId", type: "bytes32" },
+    ],
+    name: "attestImplication",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
+
+const PubstarterAbi = [
+  {
+    inputs: [
+      { name: 'metadataURI', type: 'string' },
+      { name: 'contractURI', type: 'string' },
+      { name: 'owner', type: 'address' },
+      { name: 'recipient', type: 'address' },
+      { name: 'threshold', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'projectMetadataCid', type: 'string' },
+      { name: 'tokenIds', type: 'uint256[]' },
+      { name: 'tokenCounts', type: 'uint256[]' },
+      { name: 'tokenPrices', type: 'uint256[]' },
+    ],
+    name: 'createERC1155AndMarketplaceAndAssuranceContract',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+const DelegatableNotesAbi = [
+  {
+    inputs: [
+      { name: 'token', type: 'address' },
+      { name: 'tokenType', type: 'uint8' },
+      { name: 'tokenId', type: 'uint256' },
+      { name: 'amount', type: 'uint256' },
+      { name: 'intendedStatementId', type: 'bytes32' },
+    ],
+    name: 'deposit',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'noteIds', type: 'uint256[]' },
+      { name: 'chains', type: 'address[][]' },
+      { name: 'paymentAmount', type: 'uint256' },
+      { name: 'primaryMarket', type: 'address' },
+      { name: 'erc1155Contract', type: 'address' },
+      { name: 'tokenIds', type: 'uint256[]' },
+      { name: 'counts', type: 'uint256[]' },
+    ],
+    name: 'purchaseFromPrimaryMarket',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+const ProjectAlignmentAbi = [
+  {
+    inputs: [
+      { name: 'projectAddress', type: 'address' },
+      { name: 'statementId', type: 'bytes32' },
+    ],
+    name: 'attestProjectAlignment',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+describe('End-to-End Workflow Integration Tests', () => {
+  // Test configuration
+  const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
+  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
+  
+  // Contract addresses from environment
+  const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
+  const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
+  const PUBSTARTER_CONTRACT_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
+  const DELEGATABLE_NOTES_CONTRACT_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as `0x${string}`;
+  const PROJECT_ALIGNMENT_CONTRACT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as `0x${string}`;
+
+  // Test accounts
+  const PRIVATE_KEY_USER = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
+  const PRIVATE_KEY_ATTESTER = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+
+  describe('Workflow 1: Create statement → believe it → create aligned project → fund with delegatable note', () => {
+    it('should complete the full workflow end-to-end', async () => {
+      // Verify all required environment variables are set
+      if (!BELIEFS_CONTRACT_ADDRESS || !PUBSTARTER_CONTRACT_ADDRESS || 
+          !DELEGATABLE_NOTES_CONTRACT_ADDRESS || !PROJECT_ALIGNMENT_CONTRACT_ADDRESS) {
+        throw new Error('Required contract addresses not set in environment');
+      }
+
+      // 1. Setup clients
+      const userClients = createTestClients(PRIVATE_KEY_USER, RPC_URL);
+      const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
+      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+
+      console.log(`  User account: ${userClients.account}`);
+      console.log(`  Attester account: ${attesterClients.account}`);
+
+      // 2. Create a statement about a cause
+      const statementContent = {
+        statementType: 'text',
+        text: 'We should fund open source infrastructure projects',
+      };
+
+      const statementCid = await uploadToIPFS(statementContent);
+      const statementId = cidToBytes32(statementCid);
+
+      console.log(`  Statement CID: ${statementCid}`);
+      console.log(`  Statement ID: ${statementId}`);
+
+      // 3. User expresses belief in the statement
+      const beliefsContract: BeliefsContract = {
+        address: BELIEFS_CONTRACT_ADDRESS,
+        abi: BeliefsAbi,
+      };
+
+      console.log('  User expressing belief in statement...');
+      const beliefTxHash = await believeStatement(userClients, beliefsContract, statementCid);
+      const beliefReceipt = await userClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
+      console.log(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
+
+      // 4. Wait for indexer to sync belief
+      await waitForSync(graphqlClient, beliefReceipt.blockNumber, 15000);
+
+      // 5. Verify belief was recorded
+      const userBelief = assertNotNull(
+        await getUserBelief(graphqlClient, userClients.account, statementId),
+        'User belief'
+      );
+      assert.strictEqual(userBelief.beliefState, 1, 'User should believe the statement');
+      console.log('  ✓ User belief recorded correctly');
+
+      // 6. Create a crowdfunding project aligned with the statement
+      const pubstarterContract: PubstarterContract = {
+        address: PUBSTARTER_CONTRACT_ADDRESS,
+        abi: PubstarterAbi,
+      };
+
+      const projectParams = {
+        metadataURI: 'https://example.com/metadata',
+        contractURI: 'https://example.com/contract',
+        owner: userClients.account,
+        recipient: userClients.account,
+        threshold: BigInt('1000000000000000000'), // 1 ETH
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
+        projectMetadataCid: await uploadToIPFS({
+          name: 'Open Source Infrastructure Fund',
+          description: 'Funding critical open source infrastructure',
+        }),
+        tokenIds: [1n],
+        tokenCounts: [1000n],
+        tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
+      };
+
+      console.log('  Creating project aligned with statement...');
+      const projectResult = await createProject(userClients, pubstarterContract, projectParams);
+      console.log(`  Project created: ${projectResult.hash}`);
+      console.log(`  Token contract: ${projectResult.projectDetails.tokenAddress}`);
+      console.log(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
+
+      // 7. Attester attests that the project aligns with the statement
+      const projectAlignmentContract: ProjectAlignmentContract = {
+        address: PROJECT_ALIGNMENT_CONTRACT_ADDRESS,
+        abi: ProjectAlignmentAbi,
+      };
+
+      console.log('  Attester attesting project alignment...');
+      const alignmentTxHash = await attestProjectAlignment(
+        attesterClients,
+        projectAlignmentContract,
+        projectResult.projectDetails.assuranceContractAddress,
+        statementCid
+      );
+      const alignmentReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
+      console.log(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
+
+      // 8. Wait for indexer to sync alignment
+      await waitForSync(graphqlClient, alignmentReceipt.blockNumber, 15000);
+
+      // 9. Verify project alignment was recorded
+      const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
+      assert.strictEqual(alignedProjects.length, 1, 'Should have one aligned project');
+      assert.strictEqual(
+        alignedProjects[0].projectAddress.toLowerCase(),
+        projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
+        'Project address should match'
+      );
+      console.log('  ✓ Project alignment recorded correctly');
+
+      // 10. User deposits ETH into a delegatable note for the statement
+      const delegatableNotesContract: DelegatableNotesContract = {
+        address: DELEGATABLE_NOTES_CONTRACT_ADDRESS,
+        abi: DelegatableNotesAbi,
+      };
+
+      const depositAmount = BigInt('2000000000000000'); // 0.002 ETH
+      console.log(`  User depositing ${depositAmount} ETH into delegatable note...`);
+      const depositResult = await depositETH(userClients, delegatableNotesContract, {
+        amount: depositAmount,
+        intendedStatementId: statementId,
+      });
+      console.log(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
+
+      // 11. Wait for indexer to sync deposit
+      const depositReceipt = await userClients.publicClient.getTransactionReceipt({ hash: depositResult.hash });
+      await waitForSync(graphqlClient, depositReceipt.blockNumber, 15000);
+
+      // 12. Verify note was created and linked to statement
+      const userNotes = await getNotesByOwner(graphqlClient, userClients.account);
+      assert.strictEqual(userNotes.length, 1, 'User should have one note');
+      assert.strictEqual(userNotes[0].intendedStatementId.toLowerCase(), statementId.toLowerCase(), 'Note should be intended for the statement');
+      console.log('  ✓ Delegatable note created correctly');
+
+      const statementNotes = await getNotesByStatement(graphqlClient, statementId);
+      assert.strictEqual(statementNotes.length, 1, 'Statement should have one note');
+      console.log('  ✓ Note properly linked to statement');
+
+      // 13. User funds the project using the delegatable note
+      console.log('  User funding project with delegatable note...');
+      const purchaseTxHash = await purchaseFromPrimaryMarketWithNotes(
+        userClients,
+        delegatableNotesContract,
+        {
+          noteIds: [depositResult.noteId],
+          chains: [[userClients.account]], // Simple chain: user owns the note
+          paymentAmount: BigInt('1000000000000000'), // 0.001 ETH for 1 token
+          primaryMarket: projectResult.projectDetails.assuranceContractAddress,
+          erc1155Contract: projectResult.projectDetails.tokenAddress,
+          tokenIds: [1n],
+          counts: [1n],
+        }
+      );
+      const purchaseReceipt = await userClients.publicClient.getTransactionReceipt({ hash: purchaseTxHash });
+      console.log(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
+
+      // 14. Wait for indexer to sync purchase
+      await waitForSync(graphqlClient, purchaseReceipt.blockNumber, 15000);
+
+      // 15. Verify contribution was recorded
+      const userContributions = await getUserContributions(graphqlClient, userClients.account);
+      assert.strictEqual(userContributions.length, 1, 'User should have one contribution');
+      assert.strictEqual(
+        userContributions[0].projectAddress.toLowerCase(),
+        projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
+        'Contribution should be for the correct project'
+      );
+      console.log('  ✓ Project contribution recorded correctly');
+
+      // 16. Verify project funding progress
+      const project = assertNotNull(
+        await getProject(graphqlClient, projectResult.projectDetails.assuranceContractAddress),
+        'Project'
+      );
+      assert.strictEqual(project.totalReceived, '1000000000000000', 'Project should have received 0.001 ETH');
+      console.log('  ✓ Project funding progress updated correctly');
+
+      console.log('  ✓ End-to-end workflow completed successfully!');
+    });
+  });
+
+  describe('Workflow 2: User deposits note → delegates → delegate spends on project → verify attribution chain', () => {
+    it('should handle delegation chain correctly', async () => {
+      // This test will be implemented in the next iteration
+      console.log('  ⏸️  Delegation chain workflow - to be implemented');
+    });
+  });
+
+  describe('Workflow 3: Attesters create implications → projects inherit alignment → users discover via indirect alignment', () => {
+    it('should handle indirect alignment through implication graph', async () => {
+      // This test will be implemented in the next iteration
+      console.log('  ⏸️  Indirect alignment workflow - to be implemented');
+    });
+  });
+
+  describe('Workflow 4: User signs S1 → S1 implies S2 (via attester) → user sees suggestion to sign S2', () => {
+    it('should suggest related statements based on implications', async () => {
+      // This test will be implemented in the next iteration
+      console.log('  ⏸️  Statement suggestion workflow - to be implemented');
+    });
+  });
+});
