@@ -88,8 +88,8 @@ async function main() {
   const updates = {
     'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
-    'PROJECT_ALIGNMENT_ADDRESS': projectAlignmentAddress,
-    'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
+    'PROJECT_ALIGNMENT_CONTRACT_ADDRESS': projectAlignmentAddress,
+    'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
