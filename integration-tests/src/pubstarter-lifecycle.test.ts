@@ -27,68 +27,11 @@ import {
   type GraphQLClient,
 } from './queries/index.js';
 import { parseEther, type Address } from 'viem';
+import {
+  PubstarterAbi,
+  AssuranceContractAbi
+} from './test-abis.js';
 
-// Minimal ABIs for the contracts we need
-const PubstarterAbi = [
-  {
-    inputs: [
-      { name: 'metadataURI', type: 'string' },
-      { name: 'contractURI', type: 'string' },
-      { name: 'owner', type: 'address' },
-      { name: 'recipient', type: 'address' },
-      { name: 'threshold', type: 'uint256' },
-      { name: 'deadline', type: 'uint256' },
-      { name: 'projectMetadataCid', type: 'string' },
-      { name: 'ids', type: 'uint256[]' },
-      { name: 'counts', type: 'uint256[]' },
-      { name: 'prices', type: 'uint256[]' },
-    ],
-    name: 'createERC1155AndMarketplaceAndAssuranceContract',
-    outputs: [
-      { name: '', type: 'address' },
-      { name: '', type: 'address' },
-      { name: '', type: 'address' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
-
-const AssuranceContractAbi = [
-  {
-    inputs: [
-      { name: 'buyer', type: 'address' },
-      { name: 'erc1155Addr', type: 'address' },
-      { name: 'ids', type: 'uint256[]' },
-      { name: 'counts', type: 'uint256[]' },
-      { name: 'data', type: 'bytes' },
-    ],
-    name: 'buyERC1155',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { name: 'holder', type: 'address' },
-      { name: 'erc1155Addr', type: 'address' },
-      { name: 'ids', type: 'uint256[]' },
-      { name: 'counts', type: 'uint256[]' },
-      { name: 'data', type: 'bytes' },
-    ],
-    name: 'refundERC1155',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'withdraw',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
   // Test configuration

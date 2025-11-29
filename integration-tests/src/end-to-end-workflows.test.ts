@@ -37,113 +37,16 @@ import {
   waitForSync,
   assertNotNull,
 } from './queries/index.js';
+import {
+  BeliefsAbi,
+  PubstarterAbi,
+  ProjectAlignmentAbi,
+  DelegatableNotesAbi
+} from './test-abis.js';
 
-// Contract ABIs - simplified versions for testing
-const BeliefsAbi = [
-  {
-    inputs: [
-      { internalType: "bytes32", name: "statementId", type: "bytes32" },
-      { internalType: "uint8", name: "beliefState", type: "uint8" },
-    ],
-    name: "setBelief",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
 
-const ImplicationsAbi = [
-  {
-    inputs: [
-      { internalType: "bytes32", name: "fromStatementId", type: "bytes32" },
-      { internalType: "bytes32", name: "toStatementId", type: "bytes32" },
-    ],
-    name: "attestImplication",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
 
-const PubstarterAbi = [
-  {
-    inputs: [
-      { name: 'metadataURI', type: 'string' },
-      { name: 'contractURI', type: 'string' },
-      { name: 'owner', type: 'address' },
-      { name: 'recipient', type: 'address' },
-      { name: 'threshold', type: 'uint256' },
-      { name: 'deadline', type: 'uint256' },
-      { name: 'projectMetadataCid', type: 'string' },
-      { name: 'tokenIds', type: 'uint256[]' },
-      { name: 'tokenCounts', type: 'uint256[]' },
-      { name: 'tokenPrices', type: 'uint256[]' },
-    ],
-    name: 'createERC1155AndMarketplaceAndAssuranceContract',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
 
-const DelegatableNotesAbi = [
-  {
-    inputs: [
-      { name: 'token', type: 'address' },
-      { name: 'tokenType', type: 'uint8' },
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'intendedStatementId', type: 'bytes32' },
-    ],
-    name: 'deposit',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { name: 'noteId', type: 'uint256' },
-      { name: 'owners', type: 'address[]' },
-      { name: 'delegateTo', type: 'address' },
-      { name: 'amountToDelegate', type: 'uint256' },
-    ],
-    name: 'delegate',
-    outputs: [
-      { name: 'delegatedNoteId', type: 'uint256' },
-      { name: 'remainderNoteId', type: 'uint256' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { name: 'noteIds', type: 'uint256[]' },
-      { name: 'chains', type: 'address[][]' },
-      { name: 'paymentAmount', type: 'uint256' },
-      { name: 'primaryMarket', type: 'address' },
-      { name: 'erc1155Contract', type: 'address' },
-      { name: 'tokenIds', type: 'uint256[]' },
-      { name: 'counts', type: 'uint256[]' },
-    ],
-    name: 'purchaseFromPrimaryMarket',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
-
-const ProjectAlignmentAbi = [
-  {
-    inputs: [
-      { name: 'projectAddress', type: 'address' },
-      { name: 'statementId', type: 'bytes32' },
-    ],
-    name: 'attestAlignment',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
 
 describe('End-to-End Workflow Integration Tests', () => {
   // Test configuration

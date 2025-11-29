@@ -128,11 +128,7 @@ The integration test suite is well-structured with a clean separation between ac
 #### 4. Code Quality Issues
 
 **High Priority:**
-1. **Contract ABI Duplication** - ABIs are copy-pasted in multiple test files
-   - *Fix*: Create a shared `test-abis.ts` file or import from indexer
-   - *Impact*: Maintenance burden, risk of inconsistency
-
-2. **Fragile Event Parsing** - Hard-coded event signatures and topic indices
+1. **Fragile Event Parsing** - Hard-coded event signatures and topic indices
    - *Fix*: Use viem's `parseEventLogs` with proper ABIs
    - *Impact*: Tests could break silently if contracts change
    - Example locations:
@@ -140,7 +136,7 @@ The integration test suite is well-structured with a clean separation between ac
      - [delegation-actions.ts:96-108](integration-tests/src/actions/delegation-actions.ts#L96-L108)
      - [pubstarter-actions.ts:68-86](integration-tests/src/actions/pubstarter-actions.ts#L68-L86)
 
-3. **Performance in Indirect Support Queries** - Sequential query loops
+2. **Performance in Indirect Support Queries** - Sequential query loops
    - *Fix*: Use Promise.all for parallel queries or batch GraphQL queries
    - *Impact*: Tests could be slow with many implications
    - Location: [conceptspace-queries.ts:250-295](integration-tests/src/queries/conceptspace-queries.ts#L250-L295)

@@ -23,40 +23,7 @@ import {
   waitForSync,
   assertNotNull,
 } from './queries/index.js';
-
-// Import the Beliefs ABI - we'll copy it from the indexer
-const BeliefsAbi = [
-  {
-    inputs: [
-      { internalType: "bytes32", name: "statementId", type: "bytes32" },
-      { internalType: "uint8", name: "beliefState", type: "uint8" },
-    ],
-    name: "setBelief",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "address", name: "user", type: "address" },
-      { internalType: "bytes32", name: "statementId", type: "bytes32" },
-    ],
-    name: "getBelief",
-    outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: "address", name: "user", type: "address" },
-      { indexed: true, internalType: "bytes32", name: "statementId", type: "bytes32" },
-      { indexed: false, internalType: "uint8", name: "beliefState", type: "uint8" },
-    ],
-    name: "DirectSupport",
-    type: "event",
-  },
-] as const;
+import { BeliefsAbi } from './test-abis.js';
 
 describe('Hello World Integration Test', () => {
   // Test configuration - these should match your local setup

@@ -30,78 +30,7 @@ import {
   waitForSync,
   assertNotNull,
 } from './queries/index.js';
-
-// Contract ABIs
-const DelegatableNotesAbi = [
-  {
-    inputs: [
-      { internalType: "address", name: "token", type: "address" },
-      { internalType: "enum DelegatableNotes.TokenType", name: "tokenType", type: "uint8" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
-      { internalType: "uint256", name: "amount", type: "uint256" },
-      { internalType: "bytes32", name: "intendedStatementId", type: "bytes32" },
-    ],
-    name: "deposit",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "uint256", name: "noteId", type: "uint256" },
-      { internalType: "address[]", name: "owners", type: "address[]" },
-      { internalType: "address", name: "delegateTo", type: "address" },
-      { internalType: "uint256", name: "amountToDelegate", type: "uint256" },
-    ],
-    name: "delegate",
-    outputs: [
-      { internalType: "uint256", name: "delegatedNoteId", type: "uint256" },
-      { internalType: "uint256", name: "remainderNoteId", type: "uint256" },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "uint256[]", name: "noteIds", type: "uint256[]" },
-      { internalType: "address[][]", name: "chains", type: "address[][]" },
-      { internalType: "uint256", name: "paymentAmount", type: "uint256" },
-      { internalType: "address", name: "primaryMarket", type: "address" },
-      { internalType: "address", name: "erc1155Contract", type: "address" },
-      { internalType: "uint256[]", name: "tokenIds", type: "uint256[]" },
-      { internalType: "uint256[]", name: "counts", type: "uint256[]" },
-    ],
-    name: "purchaseFromPrimaryMarket",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
-
-const PubstarterAbi = [
-  {
-    inputs: [
-      { internalType: "string", name: "metadataURI", type: "string" },
-      { internalType: "string", name: "contractURI", type: "string" },
-      { internalType: "address", name: "owner", type: "address" },
-      { internalType: "address", name: "recipient", type: "address" },
-      { internalType: "uint256", name: "threshold", type: "uint256" },
-      { internalType: "uint256", name: "deadline", type: "uint256" },
-      { internalType: "string", name: "projectMetadataCid", type: "string" },
-      { internalType: "uint256[]", name: "tokenIds", type: "uint256[]" },
-      { internalType: "uint256[]", name: "tokenCounts", type: "uint256[]" },
-      { internalType: "uint256[]", name: "tokenPrices", type: "uint256[]" },
-    ],
-    name: "createERC1155AndMarketplaceAndAssuranceContract",
-    outputs: [
-      { internalType: "address", name: "erc1155", type: "address" },
-      { internalType: "address", name: "marketplace", type: "address" },
-      { internalType: "address", name: "assuranceContract", type: "address" },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
+import { DelegatableNotesAbi, PubstarterAbi } from './test-abis.js';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface

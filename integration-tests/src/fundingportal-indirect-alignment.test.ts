@@ -28,56 +28,11 @@ import {
   waitForSync,
   assertNotNull,
 } from './queries/index.js';
-
-// ProjectAlignment ABI
-const ProjectAlignmentAbi = [
-  {
-    inputs: [
-      { internalType: "address", name: "projectAddress", type: "address" },
-      { internalType: "bytes32", name: "statementId", type: "bytes32" },
-    ],
-    name: "attestAlignment",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
-
-// Minimal Pubstarter ABI for creating projects
-const PubstarterAbi = [
-  {
-    inputs: [
-      { internalType: "string", name: "metadataURI", type: "string" },
-      { internalType: "string", name: "contractURI", type: "string" },
-      { internalType: "address", name: "owner", type: "address" },
-      { internalType: "address", name: "recipient", type: "address" },
-      { internalType: "uint256", name: "threshold", type: "uint256" },
-      { internalType: "uint256", name: "deadline", type: "uint256" },
-      { internalType: "string", name: "projectMetadataCid", type: "string" },
-      { internalType: "uint256[]", name: "tokenIds", type: "uint256[]" },
-      { internalType: "uint256[]", name: "tokenCounts", type: "uint256[]" },
-      { internalType: "uint256[]", name: "tokenPrices", type: "uint256[]" },
-    ],
-    name: "createERC1155AndMarketplaceAndAssuranceContract",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
-
-// Implications ABI
-const ImplicationsAbi = [
-  {
-    inputs: [
-      { internalType: "bytes32", name: "fromStatementId", type: "bytes32" },
-      { internalType: "bytes32", name: "toStatementId", type: "bytes32" },
-    ],
-    name: "attestImplication",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
+import {
+  ProjectAlignmentAbi,
+  PubstarterAbi,
+  ImplicationsAbi
+} from './test-abis.js';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

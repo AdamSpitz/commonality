@@ -29,73 +29,7 @@ import {
   assertNotNull,
 } from './queries/index.js';
 import { type Address } from 'viem';
-
-// ProjectAlignment ABI
-const ProjectAlignmentAbi = [
-  {
-    inputs: [
-      { internalType: "address", name: "projectAddress", type: "address" },
-      { internalType: "bytes32", name: "statementId", type: "bytes32" },
-    ],
-    name: "attestAlignment",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "address[]", name: "projectAddresses", type: "address[]" },
-      { internalType: "bytes32[]", name: "statementIds", type: "bytes32[]" },
-    ],
-    name: "attestAlignmentsInBatch",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "address", name: "attester", type: "address" },
-      { internalType: "address", name: "projectAddress", type: "address" },
-      { internalType: "bytes32", name: "statementId", type: "bytes32" },
-    ],
-    name: "hasAttestation",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: "address", name: "attester", type: "address" },
-      { indexed: true, internalType: "address", name: "projectAddress", type: "address" },
-      { indexed: true, internalType: "bytes32", name: "statementId", type: "bytes32" },
-    ],
-    name: "ProjectAlignmentAttestation",
-    type: "event",
-  },
-] as const;
-
-// Minimal Pubstarter ABI for creating projects
-const PubstarterAbi = [
-  {
-    inputs: [
-      { internalType: "string", name: "metadataURI", type: "string" },
-      { internalType: "string", name: "contractURI", type: "string" },
-      { internalType: "address", name: "owner", type: "address" },
-      { internalType: "address", name: "recipient", type: "address" },
-      { internalType: "uint256", name: "threshold", type: "uint256" },
-      { internalType: "uint256", name: "deadline", type: "uint256" },
-      { internalType: "string", name: "projectMetadataCid", type: "string" },
-      { internalType: "uint256[]", name: "tokenIds", type: "uint256[]" },
-      { internalType: "uint256[]", name: "tokenCounts", type: "uint256[]" },
-      { internalType: "uint256[]", name: "tokenPrices", type: "uint256[]" },
-    ],
-    name: "createERC1155AndMarketplaceAndAssuranceContract",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
+import { ProjectAlignmentAbi, PubstarterAbi } from './test-abis.js';
 
 describe('Funding Portal - Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

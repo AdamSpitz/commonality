@@ -27,53 +27,7 @@ import {
   waitForSync,
   assertNotNull,
 } from './queries/index.js';
-
-// Contract ABIs
-const BeliefsAbi = [
-  {
-    inputs: [
-      { internalType: "bytes32", name: "statementId", type: "bytes32" },
-      { internalType: "uint8", name: "beliefState", type: "uint8" },
-    ],
-    name: "setBelief",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: "address", name: "user", type: "address" },
-      { indexed: true, internalType: "bytes32", name: "statementId", type: "bytes32" },
-      { indexed: false, internalType: "uint8", name: "beliefState", type: "uint8" },
-    ],
-    name: "DirectSupport",
-    type: "event",
-  },
-] as const;
-
-const ImplicationsAbi = [
-  {
-    inputs: [
-      { internalType: "bytes32", name: "fromStatementId", type: "bytes32" },
-      { internalType: "bytes32", name: "toStatementId", type: "bytes32" },
-    ],
-    name: "attestImplication",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: "address", name: "attester", type: "address" },
-      { indexed: true, internalType: "bytes32", name: "fromStatementId", type: "bytes32" },
-      { indexed: true, internalType: "bytes32", name: "toStatementId", type: "bytes32" },
-    ],
-    name: "ImplicationAttestation",
-    type: "event",
-  },
-] as const;
+import { BeliefsAbi, ImplicationsAbi } from './test-abis.js';
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
