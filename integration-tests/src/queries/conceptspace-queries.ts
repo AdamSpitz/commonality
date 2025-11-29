@@ -469,30 +469,34 @@ export async function getUserBeliefs(
   userAddress: string
 ): Promise<StatementListItem[]> {
   const result = await query<{
-    beliefss: {
-      items: Array<{
-        statementId: string;
-        beliefState: number;
-        statement: StatementListItem;
-      }>
+    users: {
+      beliefs: {
+        items: Array<{
+          statementId: string;
+          beliefState: number;
+          statement: StatementListItem;
+        }>
+      }
     }
   }>(
     client,
     `
       query GetUserBeliefs($user: String!) {
-        beliefss(where: { user: $user, beliefState: 1 }) {
-          items {
-            statementId
-            beliefState
-            statement {
-              id
-              cid
-              statementType
-              title
-              excerpt
-              believerCount
-              disbelieverCount
-              createdAt
+        users(id: $user) {
+          beliefs(where: { beliefState: 1 }) {
+            items {
+              statementId
+              beliefState
+              statement {
+                id
+                cid
+                statementType
+                title
+                excerpt
+                believerCount
+                disbelieverCount
+                createdAt
+              }
             }
           }
         }
@@ -501,7 +505,7 @@ export async function getUserBeliefs(
     { user: userAddress.toLowerCase() }
   );
 
-  return result.beliefss?.items.map(item => item.statement) || [];
+  return result.users?.beliefs?.items.map(item => item.statement) || [];
 }
 
 /**
@@ -512,30 +516,34 @@ export async function getUserDisbeliefs(
   userAddress: string
 ): Promise<StatementListItem[]> {
   const result = await query<{
-    beliefss: {
-      items: Array<{
-        statementId: string;
-        beliefState: number;
-        statement: StatementListItem;
-      }>
+    users: {
+      beliefs: {
+        items: Array<{
+          statementId: string;
+          beliefState: number;
+          statement: StatementListItem;
+        }>
+      }
     }
   }>(
     client,
     `
       query GetUserDisbeliefs($user: String!) {
-        beliefss(where: { user: $user, beliefState: 2 }) {
-          items {
-            statementId
-            beliefState
-            statement {
-              id
-              cid
-              statementType
-              title
-              excerpt
-              believerCount
-              disbelieverCount
-              createdAt
+        users(id: $user) {
+          beliefs(where: { beliefState: 2 }) {
+            items {
+              statementId
+              beliefState
+              statement {
+                id
+                cid
+                statementType
+                title
+                excerpt
+                believerCount
+                disbelieverCount
+                createdAt
+              }
             }
           }
         }
@@ -544,5 +552,5 @@ export async function getUserDisbeliefs(
     { user: userAddress.toLowerCase() }
   );
 
-  return result.beliefss?.items.map(item => item.statement) || [];
+  return result.users?.beliefs?.items.map(item => item.statement) || [];
 }

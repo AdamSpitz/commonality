@@ -2,138 +2,6 @@
 
 This document tracks remaining integration test coverage gaps based on the system specifications.
 
----
-
-## Test Code Analysis (Added 2025-11-29)
-
-### Overall Assessment: **Good Foundation, Some Improvements Needed**
-
-The integration test suite is well-structured with a clean separation between actions and queries, making it easy to write tests at a higher level of abstraction. The tests cover the core functionality across all subsystems (Conceptspace, Delegation, Pubstarter, Project Alignment) and the code is generally clear and maintainable.
-
-**Strengths:**
-- **Excellent abstraction**: Actions and queries are cleanly separated into reusable modules
-- **Clear test structure**: Tests are well-organized and use descriptive names
-- **Good coverage of happy paths**: Core functionality is tested across all subsystems
-- **Proper async/await handling**: Tests correctly wait for blockchain transactions and indexer sync
-- **Type safety**: Good use of TypeScript types throughout
-
-**Areas for Improvement:**
-- **DRY violations**: Contract ABIs are duplicated in test files instead of being centralized
-- **Magic numbers**: Some hard-coded event signatures and test parameters could be constants
-- **Error handling**: Tests don't verify error cases or negative scenarios
-- **Test data**: Some repetitive setup code could be extracted into fixtures
-- **Documentation**: Some complex test logic lacks inline comments
-
-#### 4. Code Quality Issues
-
-**High Priority:**
-
-**Medium Priority:**
-1. **Test Timeout Values** - Hard-coded timeouts scattered throughout
-   - *Fix*: Centralize timeout constants
-   - *Impact*: Harder to tune for different environments
-
-2. **Mock IPFS** - No actual IPFS integration
-   - *Current*: Just creates CIDs from content hashes
-   - *Fix*: Document this limitation, consider testing against real IPFS
-   - *Impact*: Could miss IPFS-related bugs
-
-3. **GraphQL Query Strings** - Inline query strings can be verbose
-   - *Fix*: Consider using a GraphQL client library or tagged templates
-   - *Impact*: Readability, type safety
-
-**Low Priority:**
-1. **Console.log for Test Output** - Uses console.log for progress
-   - *Current approach*: Works fine for debugging
-   - *Alternative*: Could use a proper test reporter
-
-#### 5. What's Working Really Well
-
-1. **Abstraction Layers** - The separation of actions/queries from tests is excellent
-   - Makes tests readable and maintainable
-   - Easy to reuse in future UI code or scripts
-   - Good TypeScript types throughout
-
-2. **Wait for Sync** - Proper handling of blockchain → indexer lag
-   - Tests correctly wait for indexer to catch up
-   - Prevents flaky tests from race conditions
-
-3. **Test Coverage** - Good breadth of scenarios
-   - Multiple users, multiple statements, delegation chains
-   - Direct and indirect relationships
-   - Batch operations
-
-4. **Real Integration** - Tests verify actual blockchain + indexer integration
-   - Not just unit tests or mocks
-   - Catches real integration bugs
-
-#### 6. What Could Be Better
-
-1. **Edge Cases** - Missing tests for error conditions
-   - Invalid inputs
-   - Permission failures
-   - Insufficient balances
-   - Deadline/threshold edge cases
-
-2. **Test Fixtures** - Some repetitive setup
-   - Could extract common patterns (e.g., "create statement", "create project")
-   - Consider using test helpers or before/beforeEach hooks more
-
-3. **Assertion Messages** - Some assertions lack descriptive messages
-   - When tests fail, it's not always clear why
-   - Could add more context to assert.strictEqual calls
-
-4. **Transaction Gas** - No tests verify gas usage or costs
-   - Could be important for production
-   - Could test with different gas limits
-
-### Recommendations
-
-**Immediate (Before Adding More Tests):**
-1. ~~Create `test-abis.ts` to centralize contract ABIs~~ ✅ DONE (2025-11-29)
-2. ~~Fix event parsing to use viem's parseEventLogs~~ ✅ DONE (2025-11-29)
-   - Fixed fragile event parsing in delegation-actions.ts
-   - Fixed fragile event parsing in pubstarter-actions.ts
-   - Now using viem's `parseEventLogs` with proper ABIs
-3. ~~Add JSDoc comments to action functions~~ ✅ DONE (2025-11-29)
-   - Added comprehensive JSDoc to delegation-actions.ts
-   - Added comprehensive JSDoc to pubstarter-actions.ts
-   - Added JSDoc to conceptspace-actions.ts
-4. ~~Centralize timeout constants~~ ✅ DONE (2025-11-29)
-   - Created test-constants.ts with centralized TEST_TIMEOUTS and INDEXER_SYNC constants
-   - Updated queries/common.ts to use centralized constants
-5. ~~Fix performance in indirect support queries~~ ✅ DONE (2025-11-29)
-   - Optimized [conceptspace-queries.ts:245-316](integration-tests/src/queries/conceptspace-queries.ts#L245-L316)
-   - Changed from sequential query loops to Promise.all for parallel execution
-   - Reduced N+1 query problem from O(implications × believers) to O(1) batch queries
-6. ~~Add environment variable validation at startup~~ ✅ DONE (2025-11-29)
-   - Added validation in [setup.ts](integration-tests/src/setup.ts)
-   - Checks all required contract addresses are present
-   - Provides helpful error messages if variables are missing
-7. ~~Move private key constants to shared test config~~ ✅ DONE (2025-11-29)
-   - Added TEST_PRIVATE_KEYS to [test-constants.ts](integration-tests/src/test-constants.ts)
-   - Updated all test files to use centralized constants
-   - Removed hardcoded private keys from individual test files
-
-**Short Term (Next Sprint):**
-1. Add error case tests (see G2, G3 in TODO above)
-2. Add test fixtures for common scenarios
-3. Test assurance contract success/failure paths
-
-**Long Term (Future):**
-1. Consider E2E tests that include UI interactions
-2. Add performance benchmarks
-3. Test with real IPFS
-4. Add fuzz testing for edge cases
-
-### Verdict
-
-**Overall: 7.5/10** - This is a solid foundation with good architecture and decent coverage. The code is maintainable and the abstraction layers are well-designed. Main issues are DRY violations (ABI duplication), fragile event parsing, and missing error case coverage. With the recommended fixes, this could easily be 9/10.
-
-The test suite successfully validates that the blockchain and indexer work together correctly, which is the primary goal. The clean separation of actions and queries makes the code reusable and the tests readable. The main work needed is reducing duplication, improving robustness of event parsing, and adding edge case coverage.
-
----
-
 ## A. Conceptspace Tests
 
 ### A1. Statement Discovery & Browsing
@@ -370,3 +238,46 @@ Missing tests:
 3. Social verification (F3) - if implemented
 4. Edge cases for statements (G1)
 5. Performance tests (H1)
+
+---
+
+### Test Code Quality Issues
+
+**Medium Priority:**
+1. **Test Timeout Values** - Hard-coded timeouts scattered throughout
+   - *Fix*: Centralize timeout constants
+   - *Impact*: Harder to tune for different environments
+
+2. **Mock IPFS** - No actual IPFS integration
+   - *Current*: Just creates CIDs from content hashes
+   - *Fix*: Document this limitation, consider testing against real IPFS
+   - *Impact*: Could miss IPFS-related bugs
+
+3. **GraphQL Query Strings** - Inline query strings can be verbose
+   - *Fix*: Consider using a GraphQL client library or tagged templates
+   - *Impact*: Readability, type safety
+
+**Low Priority:**
+1. **Console.log for Test Output** - Uses console.log for progress
+   - *Current approach*: Works fine for debugging
+   - *Alternative*: Could use a proper test reporter
+
+#### 6. What Could Be Better
+
+1. **Edge Cases** - Missing tests for error conditions
+   - Invalid inputs
+   - Permission failures
+   - Insufficient balances
+   - Deadline/threshold edge cases
+
+2. **Test Fixtures** - Some repetitive setup
+   - Could extract common patterns (e.g., "create statement", "create project")
+   - Consider using test helpers or before/beforeEach hooks more
+
+3. **Assertion Messages** - Some assertions lack descriptive messages
+   - When tests fail, it's not always clear why
+   - Could add more context to assert.strictEqual calls
+
+4. **Transaction Gas** - No tests verify gas usage or costs
+   - Could be important for production
+   - Could test with different gas limits

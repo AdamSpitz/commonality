@@ -19,10 +19,17 @@ export {
   getImplication,
   getIndirectSupporters,
   getIndirectSupporterCount,
+  browseStatementsByMostSupporters,
+  browseStatementsByNewest,
+  getAllStatements,
+  getUserBeliefs,
+  getUserDisbeliefs,
   type Statement,
   type UserBelief,
   type Implication,
   type IndirectSupporter,
+  type StatementListItem,
+  type BrowseStatementsOptions,
 } from './conceptspace-queries.js';
 
 // Pubstarter queries
