@@ -8,6 +8,7 @@
 # 4. Cleans up background processes
 
 set -e  # Exit on error
+set -o pipefail  # Propagate pipe failures
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$SCRIPT_DIR/integration-tests/test-logs"

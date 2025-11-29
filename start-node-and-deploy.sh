@@ -153,16 +153,34 @@ echo ""
 # Deploy contracts
 echo "Deploying contracts..."
 # Add a 60 second timeout for deployment in case it hangs
-if timeout 60 npm run deploy-local > "$DEPLOY_LOG" 2>&1; then
-    echo "✓ Deployment successful!"
-    echo "  Log: $DEPLOY_LOG"
-else
-    DEPLOY_EXIT=$?
-    if [ $DEPLOY_EXIT -eq 124 ]; then
+# Use a cross-platform timeout approach (macOS doesn't have timeout command by default)
+npm run deploy-local > "$DEPLOY_LOG" 2>&1 &
+DEPLOY_PID=$!
+
+# Wait up to 60 seconds for deployment to complete
+TIMEOUT=60
+ELAPSED=0
+while kill -0 $DEPLOY_PID 2>/dev/null; do
+    if [ $ELAPSED -ge $TIMEOUT ]; then
         echo "✗ Deployment timed out after 60 seconds!"
-    else
-        echo "✗ Deployment failed!"
+        kill $DEPLOY_PID 2>/dev/null || true
+        echo ""
+        echo "=== Deployment log ==="
+        cat "$DEPLOY_LOG"
+        echo ""
+        echo "Killing hardhat node..."
+        kill $HARDHAT_PID 2>/dev/null || true
+        exit 1
     fi
+    sleep 1
+    ELAPSED=$((ELAPSED + 1))
+done
+
+# Check if deployment was successful
+wait $DEPLOY_PID
+DEPLOY_EXIT=$?
+if [ $DEPLOY_EXIT -ne 0 ]; then
+    echo "✗ Deployment failed!"
     echo ""
     echo "=== Deployment log ==="
     cat "$DEPLOY_LOG"
@@ -171,6 +189,9 @@ else
     kill $HARDHAT_PID 2>/dev/null || true
     exit 1
 fi
+
+echo "✓ Deployment successful!"
+echo "  Log: $DEPLOY_LOG"
 
 echo ""
 echo "=== Setup Complete ==="
