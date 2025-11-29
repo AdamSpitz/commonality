@@ -1,0 +1,517 @@
+/**
+ * Pubstarter Project Lifecycle Integration Tests
+ *
+ * Tests the complete lifecycle of crowdfunding projects:
+ * 1. Successful project: reaches threshold → allows withdrawal
+ * 2. Failed project: misses threshold after deadline → allows refunds
+ * 3. Multiple contributors to same project
+ */
+
+import assert from 'assert';
+import {
+  createTestClients,
+  createProject,
+  buyProjectTokens,
+  refundProjectTokens,
+  withdrawProjectFunds,
+  uploadToIPFS,
+  type PubstarterContract,
+  type AssuranceContract,
+} from './actions/index.js';
+import {
+  createGraphQLClient,
+  getProject,
+  getProjectContributions,
+  waitForSync,
+  assertNotNull,
+  type GraphQLClient,
+} from './queries/index.js';
+import { parseEther, type Address } from 'viem';
+
+// Minimal ABIs for the contracts we need
+const PubstarterAbi = [
+  {
+    inputs: [
+      { name: 'metadataURI', type: 'string' },
+      { name: 'contractURI', type: 'string' },
+      { name: 'owner', type: 'address' },
+      { name: 'recipient', type: 'address' },
+      { name: 'threshold', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'projectMetadataCid', type: 'string' },
+      { name: 'ids', type: 'uint256[]' },
+      { name: 'counts', type: 'uint256[]' },
+      { name: 'prices', type: 'uint256[]' },
+    ],
+    name: 'createERC1155AndMarketplaceAndAssuranceContract',
+    outputs: [
+      { name: '', type: 'address' },
+      { name: '', type: 'address' },
+      { name: '', type: 'address' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+const AssuranceContractAbi = [
+  {
+    inputs: [
+      { name: 'buyer', type: 'address' },
+      { name: 'erc1155Addr', type: 'address' },
+      { name: 'ids', type: 'uint256[]' },
+      { name: 'counts', type: 'uint256[]' },
+      { name: 'data', type: 'bytes' },
+    ],
+    name: 'buyERC1155',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'holder', type: 'address' },
+      { name: 'erc1155Addr', type: 'address' },
+      { name: 'ids', type: 'uint256[]' },
+      { name: 'counts', type: 'uint256[]' },
+      { name: 'data', type: 'bytes' },
+    ],
+    name: 'refundERC1155',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'withdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+describe('Pubstarter Project Lifecycle Integration Tests', () => {
+  // Test configuration
+  const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
+  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
+
+  // Hardhat test accounts
+  const CREATOR_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
+  const CONTRIBUTOR1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+  const CONTRIBUTOR2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
+
+  let graphqlClient: GraphQLClient;
+
+  before(() => {
+    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+  });
+
+  it('should allow withdrawal when project reaches threshold', async function() {
+    this.timeout(30000);
+
+    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+    if (!PUBSTARTER_ADDRESS) {
+      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    }
+
+    console.log('  Test: Successful project with withdrawal');
+    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
+    const contributorClients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
+
+    console.log(`  Creator: ${creatorClients.account}`);
+    console.log(`  Contributor: ${contributorClients.account}`);
+
+    // Create project with low threshold so we can easily reach it
+    const projectMetadataCid = await uploadToIPFS({
+      title: 'Successful Project',
+      description: 'This project will succeed',
+    });
+
+    const threshold = parseEther('0.5'); // Need 0.5 ETH to succeed
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400); // 24 hours from now
+
+    console.log('  Creating project...');
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    const { hash, projectDetails } = await createProject(
+      creatorClients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/metadata/',
+        contractURI: 'https://example.com/contract',
+        owner: creatorClients.account,
+        recipient: creatorClients.account,
+        threshold,
+        deadline,
+        projectMetadataCid,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')], // 0.01 ETH per token
+      }
+    );
+
+    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+
+    // Wait for indexer to sync
+    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Verify initial state
+    const initialProject = assertNotNull(
+      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
+      'Project'
+    );
+    assert.strictEqual(initialProject.totalReceived, '0', 'Project should start with 0 received');
+    assert.strictEqual(initialProject.threshold, threshold.toString(), 'Threshold should match');
+
+    // Contributor buys enough tokens to meet threshold
+    console.log('  Contributor buying 50 tokens (0.5 ETH total)...');
+    const assuranceContract: AssuranceContract = {
+      address: projectDetails.assuranceContractAddress,
+      abi: AssuranceContractAbi,
+    };
+
+    const buyHash = await buyProjectTokens(
+      contributorClients,
+      assuranceContract,
+      {
+        buyer: contributorClients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [1n],
+        tokenCounts: [50n], // 50 tokens * 0.01 ETH = 0.5 ETH
+        totalCost: parseEther('0.5'),
+      }
+    );
+
+    const buyReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buyHash });
+    await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
+
+    // Verify project reached threshold
+    const fundedProject = assertNotNull(
+      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
+      'Funded project'
+    );
+    console.log(`  Project total received: ${fundedProject.totalReceived}`);
+    assert.ok(BigInt(fundedProject.totalReceived) >= threshold, 'Project should have reached threshold');
+
+    // Get creator's balance before withdrawal
+    const balanceBefore = await creatorClients.publicClient.getBalance({
+      address: creatorClients.account,
+    });
+    console.log(`  Creator balance before withdrawal: ${balanceBefore}`);
+
+    // Creator withdraws funds
+    console.log('  Creator withdrawing funds...');
+    const withdrawHash = await withdrawProjectFunds(
+      creatorClients,
+      assuranceContract
+    );
+
+    const withdrawReceipt = await creatorClients.publicClient.getTransactionReceipt({ hash: withdrawHash });
+    await waitForSync(graphqlClient, withdrawReceipt.blockNumber, 15000);
+
+    // Verify creator received funds
+    const balanceAfter = await creatorClients.publicClient.getBalance({
+      address: creatorClients.account,
+    });
+    console.log(`  Creator balance after withdrawal: ${balanceAfter}`);
+
+    // Balance should increase by approximately 0.5 ETH (minus gas costs from withdrawal)
+    const balanceIncrease = balanceAfter - balanceBefore;
+    console.log(`  Balance increase: ${balanceIncrease}`);
+
+    // The increase should be close to 0.5 ETH, accounting for gas costs
+    // Gas costs should be much smaller than 0.1 ETH, so we check it's at least 0.4 ETH
+    assert.ok(balanceIncrease > parseEther('0.4'), 'Creator should have received funds (minus gas)');
+
+    console.log('  ✓ Successful project workflow completed!');
+  });
+
+  it('should allow refunds when project fails to reach threshold', async function() {
+    this.timeout(40000);
+
+    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+    if (!PUBSTARTER_ADDRESS) {
+      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    }
+
+    console.log('  Test: Failed project with refunds');
+    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
+    const contributorClients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
+
+    // Create project with high threshold and very short deadline
+    const projectMetadataCid = await uploadToIPFS({
+      title: 'Failed Project',
+      description: 'This project will fail',
+    });
+
+    const threshold = parseEther('10.0'); // Need 10 ETH to succeed (impossible)
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 2); // 2 seconds from now
+
+    console.log('  Creating project with high threshold...');
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    const { hash, projectDetails } = await createProject(
+      creatorClients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/metadata/',
+        contractURI: 'https://example.com/contract',
+        owner: creatorClients.account,
+        recipient: creatorClients.account,
+        threshold,
+        deadline,
+        projectMetadataCid,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+
+    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Contributor buys some tokens (but not enough to reach threshold)
+    console.log('  Contributor buying 10 tokens (0.1 ETH)...');
+    const assuranceContract: AssuranceContract = {
+      address: projectDetails.assuranceContractAddress,
+      abi: AssuranceContractAbi,
+    };
+
+    const buyHash = await buyProjectTokens(
+      contributorClients,
+      assuranceContract,
+      {
+        buyer: contributorClients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [1n],
+        tokenCounts: [10n], // 10 tokens * 0.01 ETH = 0.1 ETH (not enough)
+        totalCost: parseEther('0.1'),
+      }
+    );
+
+    const buyReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buyHash });
+    await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
+
+    // Verify project did not reach threshold
+    const unfundedProject = assertNotNull(
+      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
+      'Unfunded project'
+    );
+    console.log(`  Project total received: ${unfundedProject.totalReceived}`);
+    assert.ok(BigInt(unfundedProject.totalReceived) < threshold, 'Project should not have reached threshold');
+
+    // Wait for deadline to pass by advancing blockchain time
+    console.log('  Advancing blockchain time past deadline...');
+    // Increase time by 5 seconds (past the 2 second deadline)
+    await contributorClients.publicClient.request({
+      method: 'evm_increaseTime',
+      params: [5] as any,
+    } as any);
+    // Mine a block to apply the time change
+    await contributorClients.publicClient.request({
+      method: 'evm_mine',
+      params: [] as any,
+    } as any);
+    console.log('  Blockchain time advanced');
+
+    // Contributor needs to approve the assurance contract to transfer tokens back
+    console.log('  Contributor approving assurance contract to transfer tokens...');
+    const erc1155Abi = [
+      {
+        inputs: [
+          { name: 'operator', type: 'address' },
+          { name: 'approved', type: 'bool' },
+        ],
+        name: 'setApprovalForAll',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+      },
+    ] as const;
+
+    const approveHash = await contributorClients.walletClient.writeContract({
+      address: projectDetails.tokenAddress,
+      abi: erc1155Abi,
+      functionName: 'setApprovalForAll',
+      args: [projectDetails.assuranceContractAddress, true],
+      account: contributorClients.account,
+      chain: null,
+    } as any);
+    await contributorClients.publicClient.waitForTransactionReceipt({ hash: approveHash });
+    console.log('  Tokens approved for transfer');
+
+    // Get contributor's balance before refund
+    const balanceBefore = await contributorClients.publicClient.getBalance({
+      address: contributorClients.account,
+    });
+    console.log(`  Contributor balance before refund: ${balanceBefore}`);
+
+    // Contributor gets refund
+    console.log('  Contributor requesting refund...');
+    const refundHash = await refundProjectTokens(
+      contributorClients,
+      assuranceContract,
+      {
+        holder: contributorClients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [1n],
+        tokenCounts: [10n],
+      }
+    );
+
+    const refundReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: refundHash });
+    await waitForSync(graphqlClient, refundReceipt.blockNumber, 15000);
+
+    // Verify contributor received refund
+    const balanceAfter = await contributorClients.publicClient.getBalance({
+      address: contributorClients.account,
+    });
+    console.log(`  Contributor balance after refund: ${balanceAfter}`);
+
+    const balanceIncrease = balanceAfter - balanceBefore;
+    console.log(`  Balance increase: ${balanceIncrease}`);
+
+    // Balance should increase by approximately 0.1 ETH (minus gas costs)
+    assert.ok(balanceIncrease > parseEther('0.05'), 'Contributor should have received refund (minus gas)');
+
+    console.log('  ✓ Failed project refund workflow completed!');
+  });
+
+  it('should handle multiple contributors to the same project', async function() {
+    this.timeout(30000);
+
+    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+    if (!PUBSTARTER_ADDRESS) {
+      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    }
+
+    console.log('  Test: Multiple contributors to one project');
+    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
+    const contributor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
+    const contributor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
+
+    console.log(`  Creator: ${creatorClients.account}`);
+    console.log(`  Contributor 1: ${contributor1Clients.account}`);
+    console.log(`  Contributor 2: ${contributor2Clients.account}`);
+
+    // Create project
+    const projectMetadataCid = await uploadToIPFS({
+      title: 'Multi-Contributor Project',
+      description: 'A project with multiple contributors',
+    });
+
+    const threshold = parseEther('0.5');
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
+
+    console.log('  Creating project...');
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    const { hash, projectDetails } = await createProject(
+      creatorClients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/metadata/',
+        contractURI: 'https://example.com/contract',
+        owner: creatorClients.account,
+        recipient: creatorClients.account,
+        threshold,
+        deadline,
+        projectMetadataCid,
+        tokenIds: [1n, 2n], // Two token types
+        tokenCounts: [100n, 50n],
+        tokenPrices: [parseEther('0.01'), parseEther('0.02')],
+      }
+    );
+
+    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+
+    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    const assuranceContract: AssuranceContract = {
+      address: projectDetails.assuranceContractAddress,
+      abi: AssuranceContractAbi,
+    };
+
+    // Contributor 1 buys 20 tokens of type 1 (0.2 ETH)
+    console.log('  Contributor 1 buying 20 tokens of type 1...');
+    const buy1Hash = await buyProjectTokens(
+      contributor1Clients,
+      assuranceContract,
+      {
+        buyer: contributor1Clients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [1n],
+        tokenCounts: [20n],
+        totalCost: parseEther('0.2'),
+      }
+    );
+
+    const buy1Receipt = await contributor1Clients.publicClient.getTransactionReceipt({ hash: buy1Hash });
+    await waitForSync(graphqlClient, buy1Receipt.blockNumber, 15000);
+
+    // Contributor 2 buys 15 tokens of type 2 (0.3 ETH)
+    console.log('  Contributor 2 buying 15 tokens of type 2...');
+    const buy2Hash = await buyProjectTokens(
+      contributor2Clients,
+      assuranceContract,
+      {
+        buyer: contributor2Clients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [2n],
+        tokenCounts: [15n],
+        totalCost: parseEther('0.3'),
+      }
+    );
+
+    const buy2Receipt = await contributor2Clients.publicClient.getTransactionReceipt({ hash: buy2Hash });
+    await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
+
+    // Verify project received total of 0.5 ETH from both contributors
+    const fundedProject = assertNotNull(
+      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
+      'Multi-contributor project'
+    );
+
+    console.log(`  Project total received: ${fundedProject.totalReceived}`);
+    const expectedTotal = parseEther('0.5'); // 0.2 + 0.3
+    assert.strictEqual(
+      fundedProject.totalReceived,
+      expectedTotal.toString(),
+      'Project should have received 0.5 ETH from both contributors'
+    );
+
+    // Query and verify contributions
+    const contributions = await getProjectContributions(
+      graphqlClient,
+      projectDetails.assuranceContractAddress
+    );
+
+    console.log(`  Found ${contributions.length} contributions`);
+    assert.strictEqual(contributions.length, 2, 'Should have 2 contributions');
+
+    // Find each contributor's contribution
+    const contrib1 = contributions.find(c => c.participant.toLowerCase() === contributor1Clients.account.toLowerCase());
+    const contrib2 = contributions.find(c => c.participant.toLowerCase() === contributor2Clients.account.toLowerCase());
+
+    assert.ok(contrib1, 'Contributor 1 contribution should exist');
+    assert.ok(contrib2, 'Contributor 2 contribution should exist');
+
+    assert.strictEqual(contrib1!.totalCost, parseEther('0.2').toString(), 'Contributor 1 should have contributed 0.2 ETH');
+    assert.strictEqual(contrib2!.totalCost, parseEther('0.3').toString(), 'Contributor 2 should have contributed 0.3 ETH');
+
+    console.log('  ✓ Multiple contributors workflow completed!');
+  });
+});

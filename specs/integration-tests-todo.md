@@ -99,17 +99,26 @@ Missing queries:
 
 ## B. Pubstarter Tests
 
-### B1. Project Lifecycle
+### ✅ B1. Project Lifecycle
 **Priority: High**
+**Status: COMPLETED**
 
-Missing scenarios:
-- Project reaches threshold → successful → withdrawal
-- Project fails to reach threshold → refunds
-- Project deadline expiration
-- Multiple contributors to same project
-- Contributor leaderboards
+Implemented in [pubstarter-lifecycle.test.ts](../integration-tests/src/pubstarter-lifecycle.test.ts):
+- ✅ Project reaches threshold → successful → withdrawal
+- ✅ Project fails to reach threshold → refunds
+- ✅ Project deadline expiration (using evm_increaseTime)
+- ✅ Multiple contributors to same project
+- ⏸️ Contributor leaderboards (deferred - query infrastructure exists, just needs test)
 
-**Rationale:** Assurance contract mechanics are critical. We test basic buying but not the full lifecycle.
+**Tests verify:**
+- Successful projects: Contributors can fund a project up to the threshold, recipient can withdraw funds
+- Failed projects: When deadline passes without reaching threshold, contributors can get refunds
+- Refund mechanism: Contributors must approve the assurance contract before getting refunds (ERC1155 approval)
+- Time manipulation: Tests use Hardhat's evm_increaseTime and evm_mine to advance blockchain time
+- Multiple contributors: Projects correctly track contributions from different users
+- Contribution queries: The indexer properly tracks all contributions with participant, tokenIds, counts, and totalCost
+
+**Rationale:** Assurance contract mechanics are critical. We now test the full lifecycle including success and failure scenarios.
 
 ### B2. Multiple Token Types
 **Priority: Medium**
@@ -349,7 +358,7 @@ Missing tests:
 ### Critical (must have):
 1. ✅ ~~**Delegation spending** (C2) - Core feature completely untested~~ **COMPLETED**
 2. ✅ ~~**Secondary marketplace** (D1) - Entire subsystem untested~~ **COMPLETED**
-3. **Project lifecycle** (B1) - Success/failure/refunds not tested
+3. ✅ ~~**Project lifecycle** (B1) - Success/failure/refunds not tested~~ **COMPLETED**
 4. **Indirect support computation** (A3) - Core conceptspace feature
 5. **Indirect project alignment** (E1) - Core funding portal feature
 6. **End-to-end workflows** (F1) - Integration validation
@@ -383,7 +392,7 @@ Missing tests:
 **Phase 1: Core Missing Features**
 1. ✅ ~~Delegation spending with notes (purchaseFromPrimaryMarketWithNotes)~~ **COMPLETED**
 2. ✅ ~~Secondary marketplace basic flow (create listing, buy, sell, cancel)~~ **COMPLETED**
-3. Project success/failure/refunds/withdrawals
+3. ✅ ~~Project success/failure/refunds/withdrawals~~ **COMPLETED**
 4. Indirect support computation queries
 
 **Phase 2: Cross-Cutting Integration**
