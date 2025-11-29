@@ -30,6 +30,7 @@ import {
   assertNotNull,
 } from './queries/index.js';
 import { BeliefsAbi, ImplicationsAbi } from './test-abis.js';
+import { TEST_PRIVATE_KEYS } from './test-constants.js';
 
 describe('Conceptspace Indirect Support', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -38,10 +39,10 @@ describe('Conceptspace Indirect Support', () => {
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Hardhat test accounts
-  const USER1_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const USER2_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
-  const USER3_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
-  const ATTESTER_PRIVATE_KEY = '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6' as const;
+  const USER1_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
+  const USER2_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  const USER3_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_2;
+  const ATTESTER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_3;
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;

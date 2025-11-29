@@ -31,6 +31,7 @@ import {
 } from './queries/index.js';
 
 import { DelegatableNotesAbi } from './test-abis.js';
+import { TEST_PRIVATE_KEYS } from './test-constants.js';
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -38,9 +39,9 @@ describe('Delegation System', () => {
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}`;
 
   // Hardhat test accounts
-  const PRIVATE_KEY_1 = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const PRIVATE_KEY_2 = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
-  const PRIVATE_KEY_3 = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
+  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
+  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  const PRIVATE_KEY_3 = TEST_PRIVATE_KEYS.ACCOUNT_2;
 
   let delegatableNotesContract: DelegatableNotesContract;
   let graphqlClient: ReturnType<typeof createGraphQLClient>;

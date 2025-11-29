@@ -24,114 +24,9 @@ The integration test suite is well-structured with a clean separation between ac
 - **Test data**: Some repetitive setup code could be extracted into fixtures
 - **Documentation**: Some complex test logic lacks inline comments
 
-### Detailed Analysis by Component
-
-#### 1. Test Files (integration-tests/src/*.test.ts)
-
-**hello-world.test.ts** - ✅ Good
-- Simple smoke test that validates the basic flow
-- Good use of descriptive console logging
-- Clear assertions
-- *Minor issue*: Contract ABI duplicated here and in other files
-
-**conceptspace-beliefs.test.ts** - ✅ Good
-- Comprehensive coverage of belief state changes
-- Tests multiple users and multiple statements
-- *Minor issue*: Contract ABI duplicated (should be centralized)
-- *Suggestion*: Could add edge cases (e.g., what happens when no one believes a statement)
-
-**conceptspace-implications.test.ts** - ✅ Good
-- Tests implication attestations and chains
-- Validates non-transitivity (important!)
-- Good coverage of indirect support mechanics
-- *Suggestion*: Could test what happens with circular implications
-
-**delegation-basic.test.ts** - ✅ Very Good
-- Excellent coverage of delegation features
-- Tests: deposit, delegate, partial delegation, multi-level chains, revocation, reclaim
-- Tests different query patterns (by owner, by root, by statement)
-- *Issue*: Event parsing logic is fragile (hard-coded topic indices)
-- *Suggestion*: Could test invalid delegation scenarios (insufficient balance, wrong permissions)
-
-**fundingportal-alignment.test.ts** - ✅ Very Good
-- Comprehensive alignment attestation tests
-- Tests batch operations
-- Tests multiple attesters
-- Good coverage of query patterns
-- *Suggestion*: Could test alignment removal or updates
-
-**pubstarter-basic.test.ts** - ✅ Good
-- Tests project creation and token purchases
-- Validates indexer integration
-- *Issue*: Only tests success paths, not failures
-- *Missing*: Tests for project success/failure, refunds, withdrawals
-- *Suggestion*: Could test assurance contract deadline/threshold logic
-
-#### 2. Actions Layer (integration-tests/src/actions/)
-
-**common.ts** - ✅ Excellent
-- Clean utilities for client setup and IPFS
-- Good separation of concerns
-- *Note*: Mock IPFS is fine for tests but should be documented
-
-**conceptspace-actions.ts** - ✅ Good
-- Clean action abstractions
-- Good constant exports (NO_OPINION, BELIEVES, DISBELIEVES)
-- *Suggestion*: Could add JSDoc comments for better IDE support
-
-**delegation-actions.ts** - ✅ Good
-- Comprehensive delegation actions
-- *Issue*: Event parsing in `depositETH` and `delegateNote` is fragile
-- Hard-coded event signatures and topic indices could break if contract changes
-- *Suggestion*: Use viem's built-in log parsing with ABI
-
-**funding-portals-actions.ts** - ✅ Good
-- Simple, clean attestation actions
-- Good batch support
-
-**pubstarter-actions.ts** - ✅ Good
-- Comprehensive project and marketplace actions
-- *Issue*: Event parsing in `createProject` uses hard-coded signatures
-- Good secondary market support
-- *Suggestion*: Could add helper for calculating token costs
-
-#### 3. Queries Layer (integration-tests/src/queries/)
-
-**common.ts** - ✅ Excellent
-- Clean GraphQL client abstraction
-- Good `waitForSync` implementation
-- Helpful `assertNotNull` utility
-
-**conceptspace-queries.ts** - ✅ Very Good
-- Comprehensive statement and belief queries
-- Excellent indirect support computation
-- Good discovery/browsing queries
-- *Issue*: `getIndirectSupporters` does many sequential queries (could be slow)
-- Performance concern: O(implications × believers) queries
-- *Suggestion*: Could optimize with batching or consider caching
-
-**delegation-queries.ts** - ✅ Good
-- Clean note and delegation chain queries
-- Good coverage of different query patterns
-- Consistent API design
-
-**funding-portals-queries.ts** - ✅ Very Good
-- Clean alignment queries
-- Good indirect alignment computation via implication graph
-- Proper attester filtering support
-
-**pubstarter-queries.ts** - ✅ Excellent
-- Comprehensive project, token, and contribution queries
-- Full secondary market query support
-- Well-structured types
-
 #### 4. Code Quality Issues
 
 **High Priority:**
-1. **Performance in Indirect Support Queries** - Sequential query loops
-   - *Fix*: Use Promise.all for parallel queries or batch GraphQL queries
-   - *Impact*: Tests could be slow with many implications
-   - Location: [conceptspace-queries.ts:250-295](integration-tests/src/queries/conceptspace-queries.ts#L250-L295)
 
 **Medium Priority:**
 1. **Test Timeout Values** - Hard-coded timeouts scattered throughout
@@ -151,13 +46,6 @@ The integration test suite is well-structured with a clean separation between ac
 1. **Console.log for Test Output** - Uses console.log for progress
    - *Current approach*: Works fine for debugging
    - *Alternative*: Could use a proper test reporter
-
-2. **Environment Variable Handling** - Relies on .env.local
-   - *Works fine* but could validate required vars at startup
-
-3. **Private Key Constants** - Hard-coded in test files
-   - *Currently okay* since these are well-known Hardhat test keys
-   - Could move to shared test config
 
 #### 5. What's Working Really Well
 
@@ -214,12 +102,23 @@ The integration test suite is well-structured with a clean separation between ac
 4. ~~Centralize timeout constants~~ ✅ DONE (2025-11-29)
    - Created test-constants.ts with centralized TEST_TIMEOUTS and INDEXER_SYNC constants
    - Updated queries/common.ts to use centralized constants
+5. ~~Fix performance in indirect support queries~~ ✅ DONE (2025-11-29)
+   - Optimized [conceptspace-queries.ts:245-316](integration-tests/src/queries/conceptspace-queries.ts#L245-L316)
+   - Changed from sequential query loops to Promise.all for parallel execution
+   - Reduced N+1 query problem from O(implications × believers) to O(1) batch queries
+6. ~~Add environment variable validation at startup~~ ✅ DONE (2025-11-29)
+   - Added validation in [setup.ts](integration-tests/src/setup.ts)
+   - Checks all required contract addresses are present
+   - Provides helpful error messages if variables are missing
+7. ~~Move private key constants to shared test config~~ ✅ DONE (2025-11-29)
+   - Added TEST_PRIVATE_KEYS to [test-constants.ts](integration-tests/src/test-constants.ts)
+   - Updated all test files to use centralized constants
+   - Removed hardcoded private keys from individual test files
 
 **Short Term (Next Sprint):**
 1. Add error case tests (see G2, G3 in TODO above)
-2. Optimize indirect support query performance
-3. Add test fixtures for common scenarios
-4. Test assurance contract success/failure paths
+2. Add test fixtures for common scenarios
+3. Test assurance contract success/failure paths
 
 **Long Term (Future):**
 1. Consider E2E tests that include UI interactions

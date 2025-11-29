@@ -24,6 +24,7 @@ import {
   assertNotNull,
 } from './queries/index.js';
 import { BeliefsAbi } from './test-abis.js';
+import { TEST_PRIVATE_KEYS } from './test-constants.js';
 
 describe('Hello World Integration Test', () => {
   // Test configuration - these should match your local setup
@@ -31,8 +32,8 @@ describe('Hello World Integration Test', () => {
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Hardhat account #0 private key (default test account)
-  const PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
+  // Hardhat account #0 (default test account)
+  const PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
 
   it('should record a belief and query it back', async () => {
     // Contract address must be set

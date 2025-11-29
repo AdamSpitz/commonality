@@ -43,9 +43,7 @@ import {
   ProjectAlignmentAbi,
   DelegatableNotesAbi
 } from './test-abis.js';
-
-
-
+import { TEST_PRIVATE_KEYS } from './test-constants.js';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -61,8 +59,8 @@ describe('End-to-End Workflow Integration Tests', () => {
   const PROJECT_ALIGNMENT_CONTRACT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test accounts
-  const PRIVATE_KEY_USER = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const PRIVATE_KEY_ATTESTER = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+  const PRIVATE_KEY_USER = TEST_PRIVATE_KEYS.ACCOUNT_0;
+  const PRIVATE_KEY_ATTESTER = TEST_PRIVATE_KEYS.ACCOUNT_1;
 
   describe('Workflow 1: Create statement → believe it → create aligned project → fund with delegatable note', () => {
     it('should complete the full workflow end-to-end', async () => {

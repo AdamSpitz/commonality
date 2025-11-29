@@ -28,6 +28,7 @@ import {
   assertNotNull,
 } from './queries/index.js';
 import { BeliefsAbi, ImplicationsAbi } from './test-abis.js';
+import { TEST_PRIVATE_KEYS } from './test-constants.js';
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -36,8 +37,8 @@ describe('Conceptspace Implications', () => {
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Hardhat test accounts
-  const USER_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const ATTESTER_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+  const USER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
+  const ATTESTER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;

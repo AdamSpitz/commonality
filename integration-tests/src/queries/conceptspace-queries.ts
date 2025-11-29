@@ -254,12 +254,9 @@ export async function getIndirectSupporters(
     return [];
   }
 
-  // Step 2: For each implication, get believers of the "from" statement
-  const supporters = new Map<string, IndirectSupporter>();
-
-  for (const implication of implications) {
-    // Get all believers of the "from" statement
-    const believersResult = await query<{ beliefss: { items: Array<{ user: { id: string }; beliefState: number }> } }>(
+  // Step 2: Fetch believers for all implications in parallel
+  const believersQueries = implications.map(implication =>
+    query<{ beliefss: { items: Array<{ user: { id: string }; beliefState: number }> } }>(
       client,
       `
         query GetBelievers($statementId: String!) {
@@ -274,26 +271,48 @@ export async function getIndirectSupporters(
         }
       `,
       { statementId: implication.fromStatementId.toLowerCase() }
-    );
+    )
+  );
 
-    const believers = believersResult.beliefss?.items || [];
+  const believersResults = await Promise.all(believersQueries);
 
-    for (const believer of believers) {
+  // Step 3: Collect all unique user addresses and their source statements
+  const userToViaStatement = new Map<string, string>();
+
+  implications.forEach((implication, idx) => {
+    const believers = believersResults[idx].beliefss?.items || [];
+    believers.forEach(believer => {
       const userAddress = believer.user.id;
-      // Check if this user explicitly disbelieves the target statement
-      const targetBelief = await getUserBelief(client, userAddress, statementId);
-
-      // Only include if they don't explicitly disbelieve (beliefState 2 = disbelieve)
-      if (!targetBelief || targetBelief.beliefState !== 2) {
-        supporters.set(userAddress, {
-          user: userAddress,
-          viaStatementId: implication.fromStatementId,
-        });
+      // Store the first statement that led to this indirect support
+      if (!userToViaStatement.has(userAddress)) {
+        userToViaStatement.set(userAddress, implication.fromStatementId);
       }
-    }
-  }
+    });
+  });
 
-  return Array.from(supporters.values());
+  // Step 4: Check all users' beliefs on target statement in parallel
+  const uniqueUsers = Array.from(userToViaStatement.keys());
+  const targetBeliefQueries = uniqueUsers.map(userAddress =>
+    getUserBelief(client, userAddress, statementId)
+  );
+
+  const targetBeliefs = await Promise.all(targetBeliefQueries);
+
+  // Step 5: Filter out users who explicitly disbelieve the target
+  const supporters: IndirectSupporter[] = [];
+
+  uniqueUsers.forEach((userAddress, idx) => {
+    const targetBelief = targetBeliefs[idx];
+    // Only include if they don't explicitly disbelieve (beliefState 2 = disbelieve)
+    if (!targetBelief || targetBelief.beliefState !== 2) {
+      supporters.push({
+        user: userAddress,
+        viaStatementId: userToViaStatement.get(userAddress)!,
+      });
+    }
+  });
+
+  return supporters;
 }
 
 /**
