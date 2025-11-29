@@ -138,9 +138,8 @@ Missing queries:
 **Priority: High**
 
 Missing scenarios:
-- ~~Complete flow: Create statement → believe it → create aligned project → fund with delegatable note~~
-  +++++++ REPLACE
-- User deposits note → delegates → delegate spends on project → verify attribution chain
+- DID THIS AI DO THIS? DOES IT PASS? ~~Complete flow: Create statement → believe it → create aligned project → fund with delegatable note~~
+- WAIT, MAYBE THE AI IMPLEMENTED THIS ONE TOO? NOT SURE: User deposits note → delegates → delegate spends on project → verify attribution chain
 - Attesters create implications → projects inherit alignment → users discover via indirect alignment
 - User signs S1 → S1 implies S2 (via attester) → user sees suggestion to sign S2
 
