@@ -28,12 +28,15 @@ export interface ProjectToken {
 
 export interface Contribution {
   id: string;
-  contributor: string;
-  projectId: string;
-  tokenId: string;
-  amount: string;
+  participant: string;
+  projectAddress: string;
+  erc1155Address: string;
+  tokenIds: string; // JSON array
+  tokenCounts: string; // JSON array
   totalCost: string;
-  timestamp: string;
+  createdAt: string;
+  blockNumber: string;
+  transactionHash: string;
 }
 
 /**
@@ -130,21 +133,24 @@ export async function getProjectContributions(
   const result = await query<{ contributionss: { items: Contribution[] } }>(
     client,
     `
-      query GetProjectContributions($projectId: String!) {
-        contributionss(where: { projectId: $projectId }) {
+      query GetProjectContributions($projectAddress: String!) {
+        contributionss(where: { projectAddress: $projectAddress }) {
           items {
             id
-            contributor
-            projectId
-            tokenId
-            amount
+            participant
+            projectAddress
+            erc1155Address
+            tokenIds
+            tokenCounts
             totalCost
-            timestamp
+            createdAt
+            blockNumber
+            transactionHash
           }
         }
       }
     `,
-    { projectId: assuranceContractAddress.toLowerCase() }
+    { projectAddress: assuranceContractAddress.toLowerCase() }
   );
 
   return result.contributionss?.items || [];
@@ -160,21 +166,24 @@ export async function getUserContributions(
   const result = await query<{ contributionss: { items: Contribution[] } }>(
     client,
     `
-      query GetUserContributions($contributor: String!) {
-        contributionss(where: { contributor: $contributor }) {
+      query GetUserContributions($participant: String!) {
+        contributionss(where: { participant: $participant }) {
           items {
             id
-            contributor
-            projectId
-            tokenId
-            amount
+            participant
+            projectAddress
+            erc1155Address
+            tokenIds
+            tokenCounts
             totalCost
-            timestamp
+            createdAt
+            blockNumber
+            transactionHash
           }
         }
       }
     `,
-    { contributor: userAddress.toLowerCase() }
+    { participant: userAddress.toLowerCase() }
   );
 
   return result.contributionss?.items || [];

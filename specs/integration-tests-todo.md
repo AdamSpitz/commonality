@@ -145,16 +145,26 @@ Missing tests:
 
 **Rationale:** Mentioned in spec but may not be implemented yet. Mark as "not implemented" if so.
 
-### C2. Spending Notes
+### ✅ C2. Spending Notes
 **Priority: High**
+**Status: COMPLETED**
 
-Missing tests:
-- Spend a delegatable note to fund a project
-- Verify delegation chain attribution in project contributions
-- Delegate spends on behalf of root owner
-- Track transparency (full delegation chains visible)
+Implemented in [delegation-spending.test.ts](../integration-tests/src/delegation-spending.test.ts):
+- ✅ Spend a delegatable note to fund a project
+- ✅ Verify delegation chain attribution in project contributions
+- ✅ Delegate spends on behalf of root owner (multi-level chains)
+- ✅ Track transparency (full delegation chains visible)
+- ✅ Spend partial amounts from delegatable notes
 
-**Rationale:** The whole point of delegatable notes is spending them! This is critical missing coverage.
+**Tests verify:**
+- Users can spend delegatable notes to purchase project tokens via `purchaseFromPrimaryMarket`
+- Projects correctly receive funds and track total received amount
+- Contributions are recorded in the indexer with proper metadata
+- Multi-level delegation chains (user1 → user2 → user3) work correctly
+- Partial spending from notes (e.g., spend 2 ETH from 10 ETH note)
+- Note: Attribution is tracked via the DelegatableNotes contract as participant; actual user attribution comes from delegation chains
+
+**Rationale:** The whole point of delegatable notes is spending them!
 
 ### C3. Note Merging
 **Priority: Low-Medium**
@@ -326,7 +336,7 @@ Missing tests:
 ## Summary: Highest Priority Missing Tests
 
 ### Critical (must have):
-1. **Delegation spending** (C2) - Core feature completely untested
+1. ✅ ~~**Delegation spending** (C2) - Core feature completely untested~~ **COMPLETED**
 2. **Secondary marketplace** (D1) - Entire subsystem untested
 3. **Project lifecycle** (B1) - Success/failure/refunds not tested
 4. **Indirect support computation** (A3) - Core conceptspace feature
