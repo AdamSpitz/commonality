@@ -1,50 +1,6 @@
 # Integration Tests TODO
 
-This document analyzes the current integration test coverage and identifies gaps based on the system specifications in [queries-and-actions.md](queries-and-actions.md) and [README.md](README.md).
-
-## Current Test Coverage
-
-### ✅ Already Implemented
-
-#### Conceptspace - Beliefs
-- [conceptspace-beliefs.test.ts](../integration-tests/src/conceptspace-beliefs.test.ts)
-  - Single user: believe, disbelieve, clear opinion
-  - Multiple users on same statement
-  - Multiple statements tracked independently
-
-#### Conceptspace - Implications
-- [conceptspace-implications.test.ts](../integration-tests/src/conceptspace-implications.test.ts)
-  - Record implication attestations
-  - Track indirect support via implications (basic)
-  - Multiple implications to same statement
-  - Verify non-transitivity of implications
-
-#### Pubstarter - Basic
-- [pubstarter-basic.test.ts](../integration-tests/src/pubstarter-basic.test.ts)
-  - Create project
-  - Buy project tokens
-  - Verify funding progress
-
-#### Delegation - Basic
-- [delegation-basic.test.ts](../integration-tests/src/delegation-basic.test.ts)
-  - Deposit ETH into notes
-  - Full delegation (one user to another)
-  - Partial delegation (splitting notes)
-  - Multi-level delegation chains
-  - Revoke delegations
-  - Reclaim funds
-  - Track notes by root depositor
-
-#### Funding Portal - Alignment
-- [fundingportal-alignment.test.ts](../integration-tests/src/fundingportal-alignment.test.ts)
-  - Single project alignment attestation
-  - Multiple attesters for same project-statement pair
-  - Batch attest multiple alignments
-  - One project aligned to multiple statements
-
----
-
-## Missing Test Coverage
+This document tracks remaining integration test coverage gaps based on the system specifications.
 
 ## A. Conceptspace Tests
 
@@ -71,33 +27,6 @@ Missing tests:
 
 **Rationale:** The spec mentions various statement types and reference handling. Should verify the system handles these correctly.
 
-### ✅ A3. Indirect Support Computation
-**Priority: High**
-**Status: COMPLETED**
-
-Implemented in [conceptspace-indirect-support.test.ts](../integration-tests/src/conceptspace-indirect-support.test.ts):
-- ✅ Query a statement's indirect supporter count
-- ✅ Verify indirect supporters list (users who believe statements that imply this one)
-- ✅ Exclude users who explicitly disbelieve from indirect support count
-- ✅ Multiple implication chains converging on one statement
-- ✅ User believing multiple statements that imply the same target (deduplication)
-- ⏸️ Different trusted attesters (deferred - query infrastructure supports it via optional attesterAddress parameter)
-
-**Tests verify:**
-- Indirect supporter count is computed correctly by finding users who believe statements that imply the target
-- Indirect supporters list includes user addresses and which statement they believe (viaStatementId)
-- Users who explicitly disbelieve a statement are correctly excluded from indirect support count
-- Multiple implication chains converging on one statement all contribute to indirect support
-- Users are deduplicated when they believe multiple statements that imply the same target
-- The query functions support filtering by trusted attester (infrastructure ready for future UI feature)
-
-**Implementation details:**
-- Added `getIndirectSupporters()` and `getIndirectSupporterCount()` query functions in [conceptspace-queries.ts](../integration-tests/src/queries/conceptspace-queries.ts)
-- These functions query implications pointing to a statement, then find believers of the "from" statements
-- Users who explicitly disbelieve the target are filtered out
-- Results are deduplicated by user address
-
-**Rationale:** Indirect support is a core feature. Tests now verify the computation works correctly.
 
 ### A4. User Profile Queries
 **Priority: Medium**
@@ -113,26 +42,6 @@ Missing queries:
 
 ## B. Pubstarter Tests
 
-### ✅ B1. Project Lifecycle
-**Priority: High**
-**Status: COMPLETED**
-
-Implemented in [pubstarter-lifecycle.test.ts](../integration-tests/src/pubstarter-lifecycle.test.ts):
-- ✅ Project reaches threshold → successful → withdrawal
-- ✅ Project fails to reach threshold → refunds
-- ✅ Project deadline expiration (using evm_increaseTime)
-- ✅ Multiple contributors to same project
-- ⏸️ Contributor leaderboards (deferred - query infrastructure exists, just needs test)
-
-**Tests verify:**
-- Successful projects: Contributors can fund a project up to the threshold, recipient can withdraw funds
-- Failed projects: When deadline passes without reaching threshold, contributors can get refunds
-- Refund mechanism: Contributors must approve the assurance contract before getting refunds (ERC1155 approval)
-- Time manipulation: Tests use Hardhat's evm_increaseTime and evm_mine to advance blockchain time
-- Multiple contributors: Projects correctly track contributions from different users
-- Contribution queries: The indexer properly tracks all contributions with participant, tokenIds, counts, and totalCost
-
-**Rationale:** Assurance contract mechanics are critical. We now test the full lifecycle including success and failure scenarios.
 
 ### B2. Multiple Token Types
 **Priority: Medium**
@@ -168,26 +77,6 @@ Missing tests:
 
 **Rationale:** Mentioned in spec but may not be implemented yet. Mark as "not implemented" if so.
 
-### ✅ C2. Spending Notes
-**Priority: High**
-**Status: COMPLETED**
-
-Implemented in [delegation-spending.test.ts](../integration-tests/src/delegation-spending.test.ts):
-- ✅ Spend a delegatable note to fund a project
-- ✅ Verify delegation chain attribution in project contributions
-- ✅ Delegate spends on behalf of root owner (multi-level chains)
-- ✅ Track transparency (full delegation chains visible)
-- ✅ Spend partial amounts from delegatable notes
-
-**Tests verify:**
-- Users can spend delegatable notes to purchase project tokens via `purchaseFromPrimaryMarket`
-- Projects correctly receive funds and track total received amount
-- Contributions are recorded in the indexer with proper metadata
-- Multi-level delegation chains (user1 → user2 → user3) work correctly
-- Partial spending from notes (e.g., spend 2 ETH from 10 ETH note)
-- Note: Attribution is tracked via the DelegatableNotes contract as participant; actual user attribution comes from delegation chains
-
-**Rationale:** The whole point of delegatable notes is spending them!
 
 ### C3. Note Merging
 **Priority: Low-Medium**
@@ -206,38 +95,6 @@ Missing queries:
 - Filter notes by intended statement
 
 **Rationale:** Users should see funding available for their causes.
-
----
-
-## D. Marketplace Tests
-
-### ✅ D1. Secondary Market Trading
-**Priority: High**
-**Status: COMPLETED**
-
-Implemented in [marketplace-secondary.test.ts](../integration-tests/src/marketplace-secondary.test.ts):
-- ✅ Create sell listing for project tokens
-- ✅ Create buy order for project tokens
-- ✅ Purchase tokens from sell listing (partial fulfillment tested)
-- ✅ Fulfill buy order by selling tokens (partial fulfillment tested)
-- ✅ Cancel sell listing
-- ✅ Cancel buy order
-- ✅ Query active listings and orders
-- ✅ Price history tracking via trades
-
-**Tests verify:**
-- Sale listings are created with tokens held in escrow
-- Buyers can fulfill listings with partial or full amounts
-- Listings update remaining count and status correctly
-- Buy orders are created with ETH held in escrow
-- Sellers can fulfill buy orders with partial or full amounts
-- Orders update remaining count and status correctly
-- Cancelled listings/orders have correct status
-- Active listings/orders queries return only active items
-- Trades are recorded with correct buyer, seller, price, and count
-- Price history can be queried via trades
-
-**Rationale:** The secondary market is a key part of the retroactive funding model. Full test coverage now implemented.
 
 ---
 
@@ -367,16 +224,12 @@ Missing tests:
 
 ---
 
-## Summary: Highest Priority Missing Tests
+## Priority Summary
 
 ### Critical (must have):
-1. ✅ ~~**Delegation spending** (C2) - Core feature completely untested~~ **COMPLETED**
-2. ✅ ~~**Secondary marketplace** (D1) - Entire subsystem untested~~ **COMPLETED**
-3. ✅ ~~**Project lifecycle** (B1) - Success/failure/refunds not tested~~ **COMPLETED**
-4. ✅ ~~**Indirect support computation** (A3) - Core conceptspace feature~~ **COMPLETED**
-5. **Indirect project alignment** (E1) - Core funding portal feature
-6. **End-to-end workflows** (F1) - Integration validation
-7. **Edge cases for funding** (G2) - Critical error handling
+1. **Indirect project alignment** (E1) - Core funding portal feature
+2. **End-to-end workflows** (F1) - Integration validation
+3. **Edge cases for funding** (G2) - Critical error handling
 
 ### High Priority:
 1. Aggregated funding metrics (E2)
@@ -398,46 +251,3 @@ Missing tests:
 3. Social verification (F3) - if implemented
 4. Edge cases for statements (G1)
 5. Performance tests (H1)
-
----
-
-## Recommended Implementation Order
-
-**Phase 1: Core Missing Features**
-1. ✅ ~~Delegation spending with notes (purchaseFromPrimaryMarketWithNotes)~~ **COMPLETED**
-2. ✅ ~~Secondary marketplace basic flow (create listing, buy, sell, cancel)~~ **COMPLETED**
-3. ✅ ~~Project success/failure/refunds/withdrawals~~ **COMPLETED**
-4. ✅ ~~Indirect support computation queries~~ **COMPLETED**
-
-**Phase 2: Cross-Cutting Integration**
-5. Indirect project alignment via implications
-6. End-to-end workflow tests
-7. Aggregated funding metrics across projects
-
-**Phase 3: Discovery & UI Support**
-8. Statement browsing/searching/sorting
-9. User profile queries
-10. Contributor leaderboards
-
-**Phase 4: Polish & Edge Cases**
-11. Multiple attesters & user preferences
-12. Token burning (investor → donor)
-13. Edge case handling
-14. Note merging and advanced features
-
----
-
-## Notes on Test Infrastructure
-
-The existing test structure is solid:
-- Actions and queries are well-organized in separate files
-- Good use of helper functions (waitForSync, assertNotNull, etc.)
-- Proper use of test accounts
-- Good timeout handling
-
-For new tests, continue this pattern:
-- Keep actions/queries in their respective files
-- Write descriptive test names
-- Use proper timeouts for blockchain operations
-- Log progress for debugging
-- Verify both on-chain state and indexer data
