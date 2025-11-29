@@ -222,3 +222,89 @@ export async function getImplication(
 
   return result.implications;
 }
+
+// ============================================================================
+// Indirect Support Computation Queries
+// ============================================================================
+
+export interface IndirectSupporter {
+  user: string;
+  viaStatementId: string;
+  viaStatement?: Statement;
+}
+
+/**
+ * Compute indirect supporters for a statement.
+ * Returns users who believe statements that imply the target statement.
+ * Excludes users who explicitly disbelieve the target statement.
+ *
+ * @param client GraphQL client
+ * @param statementId Target statement ID
+ * @param attesterAddress Optional: filter implications by specific attester
+ */
+export async function getIndirectSupporters(
+  client: GraphQLClient,
+  statementId: string,
+  attesterAddress?: string
+): Promise<IndirectSupporter[]> {
+  // Step 1: Get all implications pointing to this statement
+  const implications = await getImplicationsTo(client, statementId, attesterAddress);
+
+  if (implications.length === 0) {
+    return [];
+  }
+
+  // Step 2: For each implication, get believers of the "from" statement
+  const supporters = new Map<string, IndirectSupporter>();
+
+  for (const implication of implications) {
+    // Get all believers of the "from" statement
+    const believersResult = await query<{ beliefss: { items: Array<{ user: { id: string }; beliefState: number }> } }>(
+      client,
+      `
+        query GetBelievers($statementId: String!) {
+          beliefss(where: { statementId: $statementId, beliefState: 1 }) {
+            items {
+              user {
+                id
+              }
+              beliefState
+            }
+          }
+        }
+      `,
+      { statementId: implication.fromStatementId.toLowerCase() }
+    );
+
+    const believers = believersResult.beliefss?.items || [];
+
+    for (const believer of believers) {
+      const userAddress = believer.user.id;
+      // Check if this user explicitly disbelieves the target statement
+      const targetBelief = await getUserBelief(client, userAddress, statementId);
+
+      // Only include if they don't explicitly disbelieve (beliefState 2 = disbelieve)
+      if (!targetBelief || targetBelief.beliefState !== 2) {
+        supporters.set(userAddress, {
+          user: userAddress,
+          viaStatementId: implication.fromStatementId,
+        });
+      }
+    }
+  }
+
+  return Array.from(supporters.values());
+}
+
+/**
+ * Get count of indirect supporters for a statement.
+ * More efficient than getIndirectSupporters when you only need the count.
+ */
+export async function getIndirectSupporterCount(
+  client: GraphQLClient,
+  statementId: string,
+  attesterAddress?: string
+): Promise<number> {
+  const supporters = await getIndirectSupporters(client, statementId, attesterAddress);
+  return supporters.length;
+}

@@ -17,9 +17,12 @@ export {
   getImplicationsFrom,
   getImplicationsTo,
   getImplication,
+  getIndirectSupporters,
+  getIndirectSupporterCount,
   type Statement,
   type UserBelief,
   type Implication,
+  type IndirectSupporter,
 } from './conceptspace-queries.js';
 
 // Pubstarter queries

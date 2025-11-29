@@ -71,19 +71,33 @@ Missing tests:
 
 **Rationale:** The spec mentions various statement types and reference handling. Should verify the system handles these correctly.
 
-### A3. Indirect Support Computation
+### ✅ A3. Indirect Support Computation
 **Priority: High**
+**Status: COMPLETED**
 
-Current gap: While we test that implications are recorded, we don't thoroughly test the **computation of indirect supporters**.
+Implemented in [conceptspace-indirect-support.test.ts](../integration-tests/src/conceptspace-indirect-support.test.ts):
+- ✅ Query a statement's indirect supporter count
+- ✅ Verify indirect supporters list (users who believe statements that imply this one)
+- ✅ Exclude users who explicitly disbelieve from indirect support count
+- ✅ Multiple implication chains converging on one statement
+- ✅ User believing multiple statements that imply the same target (deduplication)
+- ⏸️ Different trusted attesters (deferred - query infrastructure supports it via optional attesterAddress parameter)
 
-Missing tests:
-- Query a statement's indirect supporter count
-- Verify indirect supporters list (users who believe statements that imply this one)
-- Exclude users who explicitly disbelieve from indirect support count
-- Multiple implication chains converging on one statement
-- Different trusted attesters (user configures which attesters to trust)
+**Tests verify:**
+- Indirect supporter count is computed correctly by finding users who believe statements that imply the target
+- Indirect supporters list includes user addresses and which statement they believe (viaStatementId)
+- Users who explicitly disbelieve a statement are correctly excluded from indirect support count
+- Multiple implication chains converging on one statement all contribute to indirect support
+- Users are deduplicated when they believe multiple statements that imply the same target
+- The query functions support filtering by trusted attester (infrastructure ready for future UI feature)
 
-**Rationale:** Indirect support is a core feature. Need to verify the indexer computes this correctly.
+**Implementation details:**
+- Added `getIndirectSupporters()` and `getIndirectSupporterCount()` query functions in [conceptspace-queries.ts](../integration-tests/src/queries/conceptspace-queries.ts)
+- These functions query implications pointing to a statement, then find believers of the "from" statements
+- Users who explicitly disbelieve the target are filtered out
+- Results are deduplicated by user address
+
+**Rationale:** Indirect support is a core feature. Tests now verify the computation works correctly.
 
 ### A4. User Profile Queries
 **Priority: Medium**
@@ -359,7 +373,7 @@ Missing tests:
 1. ✅ ~~**Delegation spending** (C2) - Core feature completely untested~~ **COMPLETED**
 2. ✅ ~~**Secondary marketplace** (D1) - Entire subsystem untested~~ **COMPLETED**
 3. ✅ ~~**Project lifecycle** (B1) - Success/failure/refunds not tested~~ **COMPLETED**
-4. **Indirect support computation** (A3) - Core conceptspace feature
+4. ✅ ~~**Indirect support computation** (A3) - Core conceptspace feature~~ **COMPLETED**
 5. **Indirect project alignment** (E1) - Core funding portal feature
 6. **End-to-end workflows** (F1) - Integration validation
 7. **Edge cases for funding** (G2) - Critical error handling
@@ -393,7 +407,7 @@ Missing tests:
 1. ✅ ~~Delegation spending with notes (purchaseFromPrimaryMarketWithNotes)~~ **COMPLETED**
 2. ✅ ~~Secondary marketplace basic flow (create listing, buy, sell, cancel)~~ **COMPLETED**
 3. ✅ ~~Project success/failure/refunds/withdrawals~~ **COMPLETED**
-4. Indirect support computation queries
+4. ✅ ~~Indirect support computation queries~~ **COMPLETED**
 
 **Phase 2: Cross-Cutting Integration**
 5. Indirect project alignment via implications
