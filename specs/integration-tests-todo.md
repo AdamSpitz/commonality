@@ -188,22 +188,33 @@ Missing queries:
 
 ## D. Marketplace Tests
 
-### D1. Secondary Market Trading
+### ✅ D1. Secondary Market Trading
 **Priority: High**
+**Status: COMPLETED**
 
-**Completely missing subsystem tests!**
+Implemented in [marketplace-secondary.test.ts](../integration-tests/src/marketplace-secondary.test.ts):
+- ✅ Create sell listing for project tokens
+- ✅ Create buy order for project tokens
+- ✅ Purchase tokens from sell listing (partial fulfillment tested)
+- ✅ Fulfill buy order by selling tokens (partial fulfillment tested)
+- ✅ Cancel sell listing
+- ✅ Cancel buy order
+- ✅ Query active listings and orders
+- ✅ Price history tracking via trades
 
-Missing tests:
-- Create sell listing for project tokens
-- Create buy order for project tokens
-- Purchase tokens from sell listing
-- Fulfill buy order by selling tokens
-- Cancel sell listing
-- Cancel buy order
-- Query active listings and orders
-- Price history tracking
+**Tests verify:**
+- Sale listings are created with tokens held in escrow
+- Buyers can fulfill listings with partial or full amounts
+- Listings update remaining count and status correctly
+- Buy orders are created with ETH held in escrow
+- Sellers can fulfill buy orders with partial or full amounts
+- Orders update remaining count and status correctly
+- Cancelled listings/orders have correct status
+- Active listings/orders queries return only active items
+- Trades are recorded with correct buyer, seller, price, and count
+- Price history can be queried via trades
 
-**Rationale:** The secondary market is a key part of the retroactive funding model. Zero test coverage currently.
+**Rationale:** The secondary market is a key part of the retroactive funding model. Full test coverage now implemented.
 
 ---
 
@@ -337,7 +348,7 @@ Missing tests:
 
 ### Critical (must have):
 1. ✅ ~~**Delegation spending** (C2) - Core feature completely untested~~ **COMPLETED**
-2. **Secondary marketplace** (D1) - Entire subsystem untested
+2. ✅ ~~**Secondary marketplace** (D1) - Entire subsystem untested~~ **COMPLETED**
 3. **Project lifecycle** (B1) - Success/failure/refunds not tested
 4. **Indirect support computation** (A3) - Core conceptspace feature
 5. **Indirect project alignment** (E1) - Core funding portal feature
@@ -370,10 +381,10 @@ Missing tests:
 ## Recommended Implementation Order
 
 **Phase 1: Core Missing Features**
-1. Delegation spending with notes (purchaseFromPrimaryMarketWithNotes)
-2. Project success/failure/refunds/withdrawals
-3. Indirect support computation queries
-4. Secondary marketplace basic flow (create listing, buy, sell, cancel)
+1. ✅ ~~Delegation spending with notes (purchaseFromPrimaryMarketWithNotes)~~ **COMPLETED**
+2. ✅ ~~Secondary marketplace basic flow (create listing, buy, sell, cancel)~~ **COMPLETED**
+3. Project success/failure/refunds/withdrawals
+4. Indirect support computation queries
 
 **Phase 2: Cross-Cutting Integration**
 5. Indirect project alignment via implications

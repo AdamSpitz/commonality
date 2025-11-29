@@ -29,9 +29,18 @@ export {
   getProjectTokens,
   getProjectContributions,
   getUserContributions,
+  getSaleListing,
+  getActiveSaleListings,
+  getBuyOrder,
+  getActiveBuyOrders,
+  getMarketplaceTrades,
+  getTokenTrades,
   type Project,
   type ProjectToken,
   type Contribution,
+  type SaleListing,
+  type BuyOrder,
+  type Trade,
 } from './pubstarter-queries.js';
 
 // Delegation queries

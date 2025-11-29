@@ -178,3 +178,181 @@ export async function withdrawProjectFunds(
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }
+
+// ============================================================================
+// Secondary Marketplace Actions
+// ============================================================================
+
+export interface SecondaryMarketContract {
+  address: Address;
+  abi: any;
+}
+
+/**
+ * Create a sale listing for ERC1155 tokens on the secondary market
+ */
+export async function createSaleListing(
+  clients: TestClients,
+  marketplaceContract: SecondaryMarketContract,
+  params: {
+    tokenId: bigint;
+    count: bigint;
+    pricePerToken: bigint;
+  }
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: marketplaceContract.address,
+    abi: marketplaceContract.abi,
+    functionName: 'createSaleListing',
+    args: [params.tokenId, params.count, params.pricePerToken],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/**
+ * Fulfill a sale listing by purchasing tokens
+ */
+export async function fulfillSaleListing(
+  clients: TestClients,
+  marketplaceContract: SecondaryMarketContract,
+  params: {
+    saleListingId: bigint;
+    count: bigint;
+    totalCost: bigint;
+  }
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: marketplaceContract.address,
+    abi: marketplaceContract.abi,
+    functionName: 'fulfillSaleListing',
+    args: [params.saleListingId, params.count],
+    value: params.totalCost,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/**
+ * Cancel a sale listing
+ */
+export async function cancelSaleListing(
+  clients: TestClients,
+  marketplaceContract: SecondaryMarketContract,
+  params: {
+    saleListingId: bigint;
+  }
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: marketplaceContract.address,
+    abi: marketplaceContract.abi,
+    functionName: 'cancelSaleListing',
+    args: [params.saleListingId],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/**
+ * Create a buy order for ERC1155 tokens on the secondary market
+ */
+export async function createBuyOrder(
+  clients: TestClients,
+  marketplaceContract: SecondaryMarketContract,
+  params: {
+    tokenId: bigint;
+    count: bigint;
+    pricePerToken: bigint;
+  }
+): Promise<Hash> {
+  const totalCost = params.count * params.pricePerToken;
+
+  const hash = await clients.walletClient.writeContract({
+    address: marketplaceContract.address,
+    abi: marketplaceContract.abi,
+    functionName: 'createBuyOrder',
+    args: [params.tokenId, params.count, params.pricePerToken],
+    value: totalCost,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/**
+ * Fulfill a buy order by selling tokens
+ */
+export async function fulfillBuyOrder(
+  clients: TestClients,
+  marketplaceContract: SecondaryMarketContract,
+  params: {
+    buyOrderId: bigint;
+    count: bigint;
+  }
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: marketplaceContract.address,
+    abi: marketplaceContract.abi,
+    functionName: 'fulfillBuyOrder',
+    args: [params.buyOrderId, params.count],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/**
+ * Cancel a buy order
+ */
+export async function cancelBuyOrder(
+  clients: TestClients,
+  marketplaceContract: SecondaryMarketContract,
+  params: {
+    buyOrderId: bigint;
+  }
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: marketplaceContract.address,
+    abi: marketplaceContract.abi,
+    functionName: 'cancelBuyOrder',
+    args: [params.buyOrderId],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/**
+ * Approve ERC1155 tokens for the marketplace to transfer
+ */
+export async function approveERC1155ForMarketplace(
+  clients: TestClients,
+  tokenAddress: Address,
+  marketplaceAddress: Address
+): Promise<Hash> {
+  const erc1155Abi = [
+    {
+      inputs: [
+        { name: 'operator', type: 'address' },
+        { name: 'approved', type: 'bool' },
+      ],
+      name: 'setApprovalForAll',
+      outputs: [],
+      stateMutability: 'nonpayable',
+      type: 'function',
+    },
+  ] as const;
+
+  const hash = await clients.walletClient.writeContract({
+    address: tokenAddress,
+    abi: erc1155Abi,
+    functionName: 'setApprovalForAll',
+    args: [marketplaceAddress, true],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}

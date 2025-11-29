@@ -188,3 +188,280 @@ export async function getUserContributions(
 
   return result.contributionss?.items || [];
 }
+
+// ============================================================================
+// Secondary Market Queries
+// ============================================================================
+
+export interface SaleListing {
+  marketplaceAddress: string;
+  listingId: string;
+  seller: string;
+  tokenId: string;
+  originalCount: string;
+  remainingCount: string;
+  pricePerToken: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BuyOrder {
+  marketplaceAddress: string;
+  orderId: string;
+  buyer: string;
+  tokenId: string;
+  originalCount: string;
+  remainingCount: string;
+  pricePerToken: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Trade {
+  id: string;
+  marketplaceAddress: string;
+  orderType: string;
+  orderId: string;
+  buyer: string;
+  seller: string;
+  tokenId: string;
+  count: string;
+  pricePerToken: string;
+  totalPrice: string;
+  createdAt: string;
+  blockNumber: string;
+  transactionHash: string;
+}
+
+/**
+ * Get a specific sale listing by marketplace and listing ID
+ */
+export async function getSaleListing(
+  client: GraphQLClient,
+  marketplaceAddress: string,
+  listingId: bigint
+): Promise<SaleListing | null> {
+  const result = await query<{ saleListingss: { items: SaleListing[] } }>(
+    client,
+    `
+      query GetSaleListing($marketplaceAddress: String!, $listingId: BigInt!) {
+        saleListingss(where: {
+          marketplaceAddress: $marketplaceAddress,
+          listingId: $listingId
+        }) {
+          items {
+            marketplaceAddress
+            listingId
+            seller
+            tokenId
+            originalCount
+            remainingCount
+            pricePerToken
+            status
+            createdAt
+            updatedAt
+          }
+        }
+      }
+    `,
+    {
+      marketplaceAddress: marketplaceAddress.toLowerCase(),
+      listingId: listingId.toString()
+    }
+  );
+
+  return result.saleListingss?.items[0] || null;
+}
+
+/**
+ * Get all active sale listings for a marketplace
+ */
+export async function getActiveSaleListings(
+  client: GraphQLClient,
+  marketplaceAddress: string
+): Promise<SaleListing[]> {
+  const result = await query<{ saleListingss: { items: SaleListing[] } }>(
+    client,
+    `
+      query GetActiveSaleListings($marketplaceAddress: String!) {
+        saleListingss(where: {
+          marketplaceAddress: $marketplaceAddress,
+          status: "active"
+        }) {
+          items {
+            marketplaceAddress
+            listingId
+            seller
+            tokenId
+            originalCount
+            remainingCount
+            pricePerToken
+            status
+            createdAt
+            updatedAt
+          }
+        }
+      }
+    `,
+    { marketplaceAddress: marketplaceAddress.toLowerCase() }
+  );
+
+  return result.saleListingss?.items || [];
+}
+
+/**
+ * Get a specific buy order by marketplace and order ID
+ */
+export async function getBuyOrder(
+  client: GraphQLClient,
+  marketplaceAddress: string,
+  orderId: bigint
+): Promise<BuyOrder | null> {
+  const result = await query<{ buyOrderss: { items: BuyOrder[] } }>(
+    client,
+    `
+      query GetBuyOrder($marketplaceAddress: String!, $orderId: BigInt!) {
+        buyOrderss(where: {
+          marketplaceAddress: $marketplaceAddress,
+          orderId: $orderId
+        }) {
+          items {
+            marketplaceAddress
+            orderId
+            buyer
+            tokenId
+            originalCount
+            remainingCount
+            pricePerToken
+            status
+            createdAt
+            updatedAt
+          }
+        }
+      }
+    `,
+    {
+      marketplaceAddress: marketplaceAddress.toLowerCase(),
+      orderId: orderId.toString()
+    }
+  );
+
+  return result.buyOrderss?.items[0] || null;
+}
+
+/**
+ * Get all active buy orders for a marketplace
+ */
+export async function getActiveBuyOrders(
+  client: GraphQLClient,
+  marketplaceAddress: string
+): Promise<BuyOrder[]> {
+  const result = await query<{ buyOrderss: { items: BuyOrder[] } }>(
+    client,
+    `
+      query GetActiveBuyOrders($marketplaceAddress: String!) {
+        buyOrderss(where: {
+          marketplaceAddress: $marketplaceAddress,
+          status: "active"
+        }) {
+          items {
+            marketplaceAddress
+            orderId
+            buyer
+            tokenId
+            originalCount
+            remainingCount
+            pricePerToken
+            status
+            createdAt
+            updatedAt
+          }
+        }
+      }
+    `,
+    { marketplaceAddress: marketplaceAddress.toLowerCase() }
+  );
+
+  return result.buyOrderss?.items || [];
+}
+
+/**
+ * Get all trades for a marketplace
+ */
+export async function getMarketplaceTrades(
+  client: GraphQLClient,
+  marketplaceAddress: string
+): Promise<Trade[]> {
+  const result = await query<{ tradess: { items: Trade[] } }>(
+    client,
+    `
+      query GetMarketplaceTrades($marketplaceAddress: String!) {
+        tradess(where: { marketplaceAddress: $marketplaceAddress }) {
+          items {
+            id
+            marketplaceAddress
+            orderType
+            orderId
+            buyer
+            seller
+            tokenId
+            count
+            pricePerToken
+            totalPrice
+            createdAt
+            blockNumber
+            transactionHash
+          }
+        }
+      }
+    `,
+    { marketplaceAddress: marketplaceAddress.toLowerCase() }
+  );
+
+  return result.tradess?.items || [];
+}
+
+/**
+ * Get trades for a specific token
+ */
+export async function getTokenTrades(
+  client: GraphQLClient,
+  marketplaceAddress: string,
+  tokenId: bigint
+): Promise<Trade[]> {
+  const result = await query<{ tradess: { items: Trade[] } }>(
+    client,
+    `
+      query GetTokenTrades($marketplaceAddress: String!, $tokenId: BigInt!) {
+        tradess(where: {
+          marketplaceAddress: $marketplaceAddress,
+          tokenId: $tokenId
+        }) {
+          items {
+            id
+            marketplaceAddress
+            orderType
+            orderId
+            buyer
+            seller
+            tokenId
+            count
+            pricePerToken
+            totalPrice
+            createdAt
+            blockNumber
+            transactionHash
+          }
+        }
+      }
+    `,
+    {
+      marketplaceAddress: marketplaceAddress.toLowerCase(),
+      tokenId: tokenId.toString()
+    }
+  );
+
+  return result.tradess?.items || [];
+}

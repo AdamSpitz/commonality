@@ -31,8 +31,16 @@ export {
   buyProjectTokens,
   refundProjectTokens,
   withdrawProjectFunds,
+  createSaleListing,
+  fulfillSaleListing,
+  cancelSaleListing,
+  createBuyOrder,
+  fulfillBuyOrder,
+  cancelBuyOrder,
+  approveERC1155ForMarketplace,
   type PubstarterContract,
   type AssuranceContract,
+  type SecondaryMarketContract,
   type ProjectDetails,
 } from './pubstarter-actions.js';
 
