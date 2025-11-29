@@ -33,6 +33,10 @@ echo "Starting Ponder indexer in background..."
 cd "$INDEXER_DIR"
 npm run dev:no-ui > "$INDEXER_LOG" 2>&1 &
 INDEXER_PID=$!
+
+# Save PID immediately so cleanup can find it even if we fail later
+echo $INDEXER_PID > "$LOG_DIR/indexer.pid"
+
 echo "✓ Indexer started (PID: $INDEXER_PID)"
 echo "  Log: $INDEXER_LOG"
 echo ""
@@ -89,7 +93,3 @@ echo ""
 echo "Next steps:"
 echo "  Run tests: cd integration-tests && npm test"
 echo ""
-
-# Save PID to file for easy cleanup
-echo $INDEXER_PID > "$LOG_DIR/indexer.pid"
-echo "Indexer PID saved to: $LOG_DIR/indexer.pid"

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "ponder dev",
     "dev:no-ui": "PONDER_EPHEMERAL=true ponder dev --disable-ui",
+    "_comment_dev:no-ui": "PONDER_EPHEMERAL=true uses in-memory database for integration tests with fresh state each time",
     "start": "ponder start",
     "db": "ponder db",
     "codegen": "ponder codegen",

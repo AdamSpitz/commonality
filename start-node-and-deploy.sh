@@ -84,6 +84,10 @@ echo "Starting Hardhat node in background..."
 cd "$HARDHAT_DIR"
 npx hardhat node > "$NODE_LOG" 2>&1 &
 HARDHAT_PID=$!
+
+# Save PID immediately so cleanup can find it even if we fail later
+echo $HARDHAT_PID > "$LOG_DIR/hardhat-node.pid"
+
 echo "✓ Hardhat node started (PID: $HARDHAT_PID)"
 echo "  Log: $NODE_LOG"
 echo ""
@@ -148,12 +152,17 @@ echo ""
 
 # Deploy contracts
 echo "Deploying contracts..."
-npm run deploy-local > "$DEPLOY_LOG" 2>&1
-if [ $? -eq 0 ]; then
+# Add a 60 second timeout for deployment in case it hangs
+if timeout 60 npm run deploy-local > "$DEPLOY_LOG" 2>&1; then
     echo "✓ Deployment successful!"
     echo "  Log: $DEPLOY_LOG"
 else
-    echo "✗ Deployment failed!"
+    DEPLOY_EXIT=$?
+    if [ $DEPLOY_EXIT -eq 124 ]; then
+        echo "✗ Deployment timed out after 60 seconds!"
+    else
+        echo "✗ Deployment failed!"
+    fi
     echo ""
     echo "=== Deployment log ==="
     cat "$DEPLOY_LOG"
@@ -173,7 +182,3 @@ echo "Next steps:"
 echo "  1. Start the indexer: cd indexer && npm run dev:no-ui"
 echo "  2. Run tests: cd integration-tests && npm test"
 echo ""
-
-# Save PID to file for easy cleanup
-echo $HARDHAT_PID > "$LOG_DIR/hardhat-node.pid"
-echo "Node PID saved to: $LOG_DIR/hardhat-node.pid"

@@ -82,7 +82,7 @@ trap cleanup_processes EXIT INT TERM
 log_message "=== Step 1: Starting Hardhat Node and Deploying Contracts ==="
 log_message ""
 
-if ! "$SCRIPT_DIR/start-node-and-deploy.sh" >> "$ORCHESTRATION_LOG" 2>&1; then
+if ! "$SCRIPT_DIR/start-node-and-deploy.sh" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
     log_message "✗ Failed to start Hardhat node and deploy contracts!"
     log_message ""
     log_message "=== Last 20 lines of orchestration log ==="
@@ -97,7 +97,7 @@ log_message ""
 log_message "=== Step 2: Starting Ponder Indexer ==="
 log_message ""
 
-if ! "$SCRIPT_DIR/start-indexer.sh" >> "$ORCHESTRATION_LOG" 2>&1; then
+if ! "$SCRIPT_DIR/start-indexer.sh" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
     log_message "✗ Failed to start indexer!"
     log_message ""
     log_message "=== Last 20 lines of orchestration log ==="
@@ -108,41 +108,12 @@ fi
 log_message "✓ Indexer started successfully"
 log_message ""
 
-# Step 3: Wait for indexer to be fully ready
-log_message "=== Step 3: Waiting for Indexer to Fully Sync ==="
-log_message ""
-
-# Give the indexer more time to sync with the blockchain
-log_message "Waiting 30 seconds for indexer to sync with deployed contracts..."
-for i in {1..30}; do
-    if [ $((i % 5)) -eq 0 ] || [ $i -eq 30 ]; then
-        log_message "  ${i}s..."
-    fi
-    sleep 1
-done
-
-# Verify indexer is still running and responsive
-if [ -f "$LOG_DIR/indexer.pid" ]; then
-    INDEXER_PID=$(cat "$LOG_DIR/indexer.pid")
-    if ! ps -p $INDEXER_PID > /dev/null 2>&1; then
-        log_message "✗ Indexer process died while waiting!"
-        log_message ""
-        log_message "=== Indexer log ==="
-        cat "$LOG_DIR/indexer.log" >> "$ORCHESTRATION_LOG"
-        tail -n 20 "$LOG_DIR/indexer.log"
-        exit 1
-    fi
-fi
-
-log_message "✓ Indexer appears to be running"
-log_message ""
-
-# Step 4: Run integration tests
-log_message "=== Step 4: Running Integration Tests ==="
+# Step 3: Run integration tests
+log_message "=== Step 3: Running Integration Tests ==="
 log_message ""
 
 cd "$SCRIPT_DIR/integration-tests"
-if ! npm test >> "$ORCHESTRATION_LOG" 2>&1; then
+if ! npm test 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
     log_message "✗ Integration tests failed!"
     log_message ""
     log_message "=== Test output ==="
