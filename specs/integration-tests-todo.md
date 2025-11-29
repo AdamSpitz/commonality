@@ -5,17 +5,14 @@ This document tracks remaining integration test coverage gaps based on the syste
 ## A. Conceptspace Tests
 
 ### A1. Statement Discovery & Browsing
-**Priority: Medium**
+**Priority: Low-Medium**
 
 Missing queries:
-- Browse/search statements by most supporters (direct + indirect)
 - Browse by trending (velocity of new signatures)
-- Browse newest statements
 - Search statements by keyword/content
-- View statement suggestions ("you signed S1, maybe sign S2 which is more popular")
 - View statements that reference other statements (coalition/commonality)
 
-**Rationale:** These are core discovery features but we haven't tested the queries. Need to verify the indexer properly computes these metrics.
+**Rationale:** Trending and search features not yet tested. Basic browsing queries are covered.
 
 ### A2. Statement Content Rendering
 **Priority: Low-Medium**
@@ -28,15 +25,6 @@ Missing tests:
 **Rationale:** The spec mentions various statement types and reference handling. Should verify the system handles these correctly.
 
 
-### A4. User Profile Queries
-**Priority: Medium**
-
-Missing queries:
-- View user's directly signed statements
-- View user's indirectly supported statements (via implications)
-- View another user's profile and statements
-
-**Rationale:** User pages are a key UI feature specified in the docs.
 
 ---
 
@@ -134,14 +122,6 @@ Missing queries:
 
 ## F. Integration & Cross-Component Tests
 
-### F1. End-to-End Workflows
-**Priority: High**
-
-Missing scenarios:
-- Attesters create implications → projects inherit alignment → users discover via indirect alignment
-- User signs S1 → S1 implies S2 (via attester) → user sees suggestion to sign S2
-
-**Rationale:** These test that the subsystems work together correctly.
 
 ### F2. Multiple Attesters
 **Priority: Medium**
@@ -176,23 +156,10 @@ Missing tests:
 - Very long statement content
 - Invalid statement type
 
-### G2. Funding Edge Cases
-**Priority: High**
-
-Missing tests:
-- Insufficient funds for project purchase
-- Attempt to delegate/spend revoked note
-- Attempt to spend someone else's note
-- Project deadline edge cases (exactly at deadline, past deadline)
-- Refund after project failure
-
 ### G3. Permission & Authorization
-**Priority: High**
+**Priority: Medium**
 
 Missing tests:
-- Only note owner can delegate/revoke
-- Only parent in chain can revoke
-- Only project recipient can withdraw
 - Batch operations with mixed success/failure
 
 ---
@@ -214,15 +181,9 @@ Missing tests:
 
 ## Priority Summary
 
-### Critical (must have):
-1. **End-to-end workflows** (F1) - Integration validation
-2. **Edge cases for funding** (G2) - Critical error handling
-
 ### High Priority:
 1. Aggregated funding metrics (E2)
-2. Statement discovery queries (A1)
-3. Multiple attesters (F2)
-4. User profile queries (A4)
+2. Multiple attesters (F2)
 
 ### Medium Priority:
 1. Token burning (B3)

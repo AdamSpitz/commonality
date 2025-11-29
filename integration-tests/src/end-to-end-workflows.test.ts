@@ -25,8 +25,8 @@ import {
 } from './actions/index.js';
 import {
   createGraphQLClient,
-  getStatement,
   getUserBelief,
+  getImplicationsFrom,
   getImplicationsTo,
   getAlignedProjects,
   getNote,
@@ -102,7 +102,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       console.log(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
 
       // 4. Wait for indexer to sync belief
-      await waitForSync(graphqlClient, beliefReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, beliefReceipt.blockNumber);
 
       // 5. Verify belief was recorded
       const userBelief = assertNotNull(
@@ -157,7 +157,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       console.log(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
 
       // 8. Wait for indexer to sync alignment
-      await waitForSync(graphqlClient, alignmentReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
 
       // 9. Verify project alignment was recorded
       const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
@@ -185,7 +185,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       // 11. Wait for indexer to sync deposit
       const depositReceipt = await userClients.publicClient.getTransactionReceipt({ hash: depositResult.hash });
-      await waitForSync(graphqlClient, depositReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, depositReceipt.blockNumber);
 
       // 12. Verify note was created and linked to statement
       const userNotes = await getNotesByOwner(graphqlClient, userClients.account);
@@ -218,7 +218,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       console.log(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 14. Wait for indexer to sync purchase
-      await waitForSync(graphqlClient, purchaseReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, purchaseReceipt.blockNumber);
 
       // 15. Verify project funding progress (confirms purchase succeeded)
       const project = assertNotNull(
@@ -272,7 +272,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       console.log(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
 
       // 4. Wait for indexer to sync belief
-      await waitForSync(graphqlClient, beliefReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, beliefReceipt.blockNumber);
 
       // 5. Root user deposits ETH into a delegatable note for the statement
       const delegatableNotesContract: DelegatableNotesContract = {
@@ -290,7 +290,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       // 6. Wait for indexer to sync deposit
       const depositReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: depositResult.hash });
-      await waitForSync(graphqlClient, depositReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, depositReceipt.blockNumber);
 
       // 7. Verify note was created
       const rootUserNotes = await getNotesByOwner(graphqlClient, rootUserClients.account);
@@ -312,7 +312,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       // 9. Wait for indexer to sync delegation
       const delegateReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: delegateResult.hash });
-      await waitForSync(graphqlClient, delegateReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, delegateReceipt.blockNumber);
 
       // 10. Verify delegation chain
       const delegatedNote = await getNote(graphqlClient, delegateResult.delegatedNoteId.toString());
@@ -377,7 +377,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       console.log(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
 
       // 13. Wait for indexer to sync alignment
-      await waitForSync(graphqlClient, alignmentReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
 
       // 14. Verify project alignment was recorded
       const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
@@ -409,12 +409,14 @@ describe('End-to-End Workflow Integration Tests', () => {
       console.log(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 16. Wait for indexer to sync purchase
-      await waitForSync(graphqlClient, purchaseReceipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, purchaseReceipt.blockNumber);
 
       // 17. Verify root user's remainder note is still intact
       const rootUserNotesAfter = await getNotesByOwner(graphqlClient, rootUserClients.account);
-      const remainingNote = rootUserNotesAfter.find(note => note.id === delegateResult.remainderNoteId.toString());
-      assertNotNull(remainingNote, 'Remaining note');
+      const remainingNote = assertNotNull(
+        rootUserNotesAfter.find(note => note.id === delegateResult.remainderNoteId.toString()),
+        'Remaining note'
+      );
       assert.strictEqual(remainingNote.amount, delegateAmount.toString(), 'Remaining note should have correct amount');
       console.log('  ✓ Root user remaining note updated correctly');
 
@@ -436,15 +438,280 @@ describe('End-to-End Workflow Integration Tests', () => {
 
   describe('Workflow 3: Attesters create implications → projects inherit alignment → users discover via indirect alignment', () => {
     it('should handle indirect alignment through implication graph', async () => {
-      // This test will be implemented in the next iteration
-      console.log('  ⏸️  Indirect alignment workflow - to be implemented');
+      // Verify all required environment variables are set
+      if (!BELIEFS_CONTRACT_ADDRESS || !IMPLICATIONS_CONTRACT_ADDRESS ||
+          !PUBSTARTER_CONTRACT_ADDRESS || !PROJECT_ALIGNMENT_CONTRACT_ADDRESS) {
+        throw new Error('Required contract addresses not set in environment');
+      }
+
+      // 1. Setup clients
+      const userClients = createTestClients(PRIVATE_KEY_USER, RPC_URL);
+      const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
+      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+
+      console.log(`  User account: ${userClients.account}`);
+      console.log(`  Attester account: ${attesterClients.account}`);
+
+      // 2. Create two statements: S1 (specific) and S2 (general)
+      const statement1Content = {
+        statementType: 'text',
+        text: 'Solar panel efficiency should be improved through research',
+      };
+
+      const statement2Content = {
+        statementType: 'text',
+        text: 'Renewable energy research is important',
+      };
+
+      const statement1Cid = await uploadToIPFS(statement1Content);
+      const statement1Id = cidToBytes32(statement1Cid);
+      const statement2Cid = await uploadToIPFS(statement2Content);
+      const statement2Id = cidToBytes32(statement2Cid);
+
+      console.log(`  Statement 1 (specific): ${statement1Cid}`);
+      console.log(`  Statement 2 (general): ${statement2Cid}`);
+
+      // 3. Attester creates implication: S1 → S2 (specific implies general)
+      const implicationsContract: ImplicationsContract = {
+        address: IMPLICATIONS_CONTRACT_ADDRESS,
+        abi: (await import('./test-abis.js')).ImplicationsAbi,
+      };
+
+      console.log('  Attester attesting that S1 implies S2...');
+      const implicationTxHash = await attestImplication(
+        attesterClients,
+        implicationsContract,
+        statement1Cid,
+        statement2Cid
+      );
+      const implicationReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implicationTxHash });
+      console.log(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
+
+      // 4. Wait for indexer to sync implication
+      await waitForSync(graphqlClient, implicationReceipt.blockNumber);
+
+      // 5. Verify implication was recorded
+      const implications = await getImplicationsTo(graphqlClient, statement2Id, attesterClients.account);
+      assert.strictEqual(implications.length, 1, 'Should have one implication to S2');
+      assert.strictEqual(
+        implications[0].fromStatementId.toLowerCase(),
+        statement1Id.toLowerCase(),
+        'Implication should be from S1'
+      );
+      console.log('  ✓ Implication recorded correctly');
+
+      // 6. Create a project aligned with S1 (the specific statement)
+      const pubstarterContract: PubstarterContract = {
+        address: PUBSTARTER_CONTRACT_ADDRESS,
+        abi: PubstarterAbi,
+      };
+
+      const projectParams = {
+        metadataURI: 'https://example.com/metadata',
+        contractURI: 'https://example.com/contract',
+        owner: userClients.account,
+        recipient: userClients.account,
+        threshold: BigInt('1000000000000000000'), // 1 ETH
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
+        projectMetadataCid: await uploadToIPFS({
+          name: 'Solar Panel Efficiency Research',
+          description: 'Improving solar panel efficiency',
+        }),
+        tokenIds: [1n],
+        tokenCounts: [1000n],
+        tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
+      };
+
+      console.log('  Creating project aligned with S1 (specific statement)...');
+      const projectResult = await createProject(userClients, pubstarterContract, projectParams);
+      console.log(`  Project created: ${projectResult.hash}`);
+      console.log(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
+
+      // 7. Attester attests that the project aligns with S1 (specific statement)
+      const projectAlignmentContract: ProjectAlignmentContract = {
+        address: PROJECT_ALIGNMENT_CONTRACT_ADDRESS,
+        abi: ProjectAlignmentAbi,
+      };
+
+      console.log('  Attester attesting project alignment with S1...');
+      const alignmentTxHash = await attestProjectAlignment(
+        attesterClients,
+        projectAlignmentContract,
+        projectResult.projectDetails.assuranceContractAddress,
+        statement1Cid
+      );
+      const alignmentReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
+      console.log(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
+
+      // 8. Wait for indexer to sync alignment
+      await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
+
+      // 9. Verify direct alignment with S1
+      const directAlignments = await getAlignedProjects(graphqlClient, statement1Id);
+      assert.strictEqual(directAlignments.length, 1, 'Should have one directly aligned project');
+      assert.strictEqual(
+        directAlignments[0].projectAddress.toLowerCase(),
+        projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
+        'Project should be directly aligned with S1'
+      );
+      console.log('  ✓ Direct alignment with S1 verified');
+
+      // 10. Query for projects indirectly aligned with S2 (general statement)
+      console.log('  Querying for projects indirectly aligned with S2...');
+      const { getIndirectlyAlignedProjects } = await import('./queries/index.js');
+      const indirectAlignments = await getIndirectlyAlignedProjects(
+        graphqlClient,
+        statement2Id,
+        attesterClients.account, // Trust this attester's implications
+        attesterClients.account  // Trust this attester's alignments
+      );
+
+      // 11. Verify the project is found via indirect alignment
+      assert.strictEqual(indirectAlignments.length, 1, 'Should have one indirectly aligned project');
+      assert.strictEqual(
+        indirectAlignments[0].projectAddress.toLowerCase(),
+        projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
+        'Project should be indirectly aligned with S2'
+      );
+      assert.strictEqual(
+        indirectAlignments[0].directStatementId.toLowerCase(),
+        statement1Id.toLowerCase(),
+        'Direct alignment should be with S1'
+      );
+      assert.strictEqual(
+        indirectAlignments[0].indirectStatementId.toLowerCase(),
+        statement2Id.toLowerCase(),
+        'Indirect alignment should be with S2'
+      );
+      console.log('  ✓ Project discovered via indirect alignment through implication graph!');
+
+      console.log('  ✓ Indirect alignment workflow completed successfully!');
     });
   });
 
   describe('Workflow 4: User signs S1 → S1 implies S2 (via attester) → user sees suggestion to sign S2', () => {
     it('should suggest related statements based on implications', async () => {
-      // This test will be implemented in the next iteration
-      console.log('  ⏸️  Statement suggestion workflow - to be implemented');
+      // Verify all required environment variables are set
+      if (!BELIEFS_CONTRACT_ADDRESS || !IMPLICATIONS_CONTRACT_ADDRESS) {
+        throw new Error('Required contract addresses not set in environment');
+      }
+
+      // 1. Setup clients
+      const userClients = createTestClients(PRIVATE_KEY_USER, RPC_URL);
+      const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
+      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+
+      console.log(`  User account: ${userClients.account}`);
+      console.log(`  Attester account: ${attesterClients.account}`);
+
+      // 2. Create two statements: S1 and S2
+      const statement1Content = {
+        statementType: 'text',
+        text: 'Carbon emissions must be reduced to prevent climate change',
+      };
+
+      const statement2Content = {
+        statementType: 'text',
+        text: 'Climate change is a serious threat',
+      };
+
+      const statement1Cid = await uploadToIPFS(statement1Content);
+      const statement1Id = cidToBytes32(statement1Cid);
+      const statement2Cid = await uploadToIPFS(statement2Content);
+      const statement2Id = cidToBytes32(statement2Cid);
+
+      console.log(`  Statement 1: ${statement1Cid}`);
+      console.log(`  Statement 2: ${statement2Cid}`);
+
+      // 3. User expresses belief in S1
+      const beliefsContract: BeliefsContract = {
+        address: BELIEFS_CONTRACT_ADDRESS,
+        abi: BeliefsAbi,
+      };
+
+      console.log('  User expressing belief in S1...');
+      const beliefTxHash = await believeStatement(userClients, beliefsContract, statement1Cid);
+      const beliefReceipt = await userClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
+      console.log(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
+
+      // 4. Wait for indexer to sync belief
+      await waitForSync(graphqlClient, beliefReceipt.blockNumber);
+
+      // 5. Verify user believes S1
+      const userBeliefS1 = assertNotNull(
+        await getUserBelief(graphqlClient, userClients.account, statement1Id),
+        'User belief in S1'
+      );
+      assert.strictEqual(userBeliefS1.beliefState, 1, 'User should believe S1');
+      console.log('  ✓ User belief in S1 recorded correctly');
+
+      // 6. Attester creates implication: S1 → S2
+      const implicationsContract: ImplicationsContract = {
+        address: IMPLICATIONS_CONTRACT_ADDRESS,
+        abi: (await import('./test-abis.js')).ImplicationsAbi,
+      };
+
+      console.log('  Attester attesting that S1 implies S2...');
+      const implicationTxHash = await attestImplication(
+        attesterClients,
+        implicationsContract,
+        statement1Cid,
+        statement2Cid
+      );
+      const implicationReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implicationTxHash });
+      console.log(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
+
+      // 7. Wait for indexer to sync implication
+      await waitForSync(graphqlClient, implicationReceipt.blockNumber);
+
+      // 8. Verify implication was recorded
+      const implications = await getImplicationsFrom(graphqlClient, statement1Id, attesterClients.account);
+      assert.strictEqual(implications.length, 1, 'Should have one implication from S1');
+      assert.strictEqual(
+        implications[0].toStatementId.toLowerCase(),
+        statement2Id.toLowerCase(),
+        'Implication should be to S2'
+      );
+      console.log('  ✓ Implication from S1 to S2 recorded correctly');
+
+      // 9. Query for statement suggestions
+      // The user believes S1, and S1 implies S2, so S2 should be suggested
+      // We can find suggestions by querying for implications from statements the user believes
+      console.log('  Finding statement suggestions for user...');
+
+      // Get all statements the user believes
+      const { getUserBeliefs } = await import('./queries/index.js');
+      const userBeliefs = await getUserBeliefs(graphqlClient, userClients.account);
+
+      // For each believed statement, get what it implies
+      const suggestions = new Set<string>();
+      for (const belief of userBeliefs) {
+        const impliedStatements = await getImplicationsFrom(
+          graphqlClient,
+          belief.id,
+          attesterClients.account // Trust this attester's implications
+        );
+        for (const implication of impliedStatements) {
+          // Only suggest if user hasn't already expressed an opinion on it
+          const existingBelief = await getUserBelief(
+            graphqlClient,
+            userClients.account,
+            implication.toStatementId
+          );
+          if (!existingBelief || existingBelief.beliefState === 0) {
+            suggestions.add(implication.toStatementId);
+          }
+        }
+      }
+
+      // 10. Verify S2 is in the suggestions
+      assert.ok(
+        Array.from(suggestions).some(id => id.toLowerCase() === statement2Id.toLowerCase()),
+        'S2 should be suggested to the user'
+      );
+      console.log('  ✓ S2 correctly suggested based on user believing S1 and S1 implying S2');
+
+      console.log('  ✓ Statement suggestion workflow completed successfully!');
     });
   });
 });
