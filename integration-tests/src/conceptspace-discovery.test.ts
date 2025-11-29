@@ -12,6 +12,7 @@ import {
   createTestClients,
   believeStatement,
   uploadToIPFS,
+  cidToBytes32,
   type BeliefsContract,
 } from './actions/index.js';
 import {
@@ -88,7 +89,7 @@ describe('Statement Discovery & Browsing', () => {
     // Wait for indexer
     console.log('  Waiting for indexer to sync...');
     const maxBlock = [receiptPopular.blockNumber, receiptModerate.blockNumber, receiptUnpopular.blockNumber].reduce((a, b) => a > b ? a : b);
-    await waitForSync(graphqlClient, maxBlock, 15000);
+    await waitForSync(graphqlClient, maxBlock);
 
     // Browse by most supporters (descending order)
     console.log('  Browsing statements by most supporters...');
@@ -97,10 +98,15 @@ describe('Statement Discovery & Browsing', () => {
       orderDirection: 'desc',
     });
 
-    // Find our statements in the results
-    const popularResult = statementsBySupport.find(s => s.excerpt?.includes('Very popular'));
-    const moderateResult = statementsBySupport.find(s => s.excerpt?.includes('Moderately popular'));
-    const unpopularResult = statementsBySupport.find(s => s.excerpt?.includes('Unpopular statement'));
+    // Convert CIDs to IDs for comparison
+    const popularStatementId = cidToBytes32(popularStatement).toLowerCase();
+    const moderateStatementId = cidToBytes32(moderateStatement).toLowerCase();
+    const unpopularStatementId = cidToBytes32(unpopularStatement).toLowerCase();
+
+    // Find our statements in the results by ID
+    const popularResult = statementsBySupport.find(s => s.id.toLowerCase() === popularStatementId);
+    const moderateResult = statementsBySupport.find(s => s.id.toLowerCase() === moderateStatementId);
+    const unpopularResult = statementsBySupport.find(s => s.id.toLowerCase() === unpopularStatementId);
 
     // Verify they exist
     assert.ok(popularResult, 'Popular statement should be in results');
@@ -172,7 +178,7 @@ describe('Statement Discovery & Browsing', () => {
 
     // Wait for indexer
     console.log('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receiptNew.blockNumber, 15000);
+    await waitForSync(graphqlClient, receiptNew.blockNumber);
 
     // Browse by newest
     console.log('  Browsing newest statements...');
@@ -181,10 +187,15 @@ describe('Statement Discovery & Browsing', () => {
       orderDirection: 'desc',
     });
 
-    // Find our statements
-    const oldResult = newestStatements.find(s => s.excerpt?.includes('Old statement'));
-    const middleResult = newestStatements.find(s => s.excerpt?.includes('Middle statement'));
-    const newResult = newestStatements.find(s => s.excerpt?.includes('New statement'));
+    // Convert CIDs to IDs for comparison
+    const oldStatementId = cidToBytes32(oldStatement).toLowerCase();
+    const middleStatementId = cidToBytes32(middleStatement).toLowerCase();
+    const newStatementId = cidToBytes32(newStatement).toLowerCase();
+
+    // Find our statements by ID
+    const oldResult = newestStatements.find(s => s.id.toLowerCase() === oldStatementId);
+    const middleResult = newestStatements.find(s => s.id.toLowerCase() === middleStatementId);
+    const newResult = newestStatements.find(s => s.id.toLowerCase() === newStatementId);
 
     // Verify they exist
     assert.ok(oldResult, 'Old statement should be in results');
@@ -242,7 +253,7 @@ describe('Statement Discovery & Browsing', () => {
 
     // Wait for indexer
     console.log('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, lastReceipt!.blockNumber, 15000);
+    await waitForSync(graphqlClient, lastReceipt!.blockNumber);
 
     // Test pagination: Get first 2 statements
     console.log('  Testing pagination with limit=2...');

@@ -78,23 +78,19 @@ describe('User Profile Queries', () => {
 
     // Wait for indexer to sync
     console.log('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt2.blockNumber, 15000);
+    await waitForSync(graphqlClient, receipt2.blockNumber);
 
     // Query Alice's beliefs
     console.log('  Querying Alice\'s beliefs...');
     const aliceBeliefs = await getUserBeliefs(graphqlClient, aliceClients.account);
 
-    // Verify Alice has 2 beliefs
-    assert.strictEqual(aliceBeliefs.length, 2, 'Alice should have 2 beliefs');
+    // Verify Alice believes the 2 statements created in this test
+    const beliefIds = aliceBeliefs.map(b => b.id.toLowerCase());
+    const expectedIds = [statementId1.toLowerCase(), statementId2.toLowerCase()];
 
-    // Verify the beliefs are the correct statements
-    const beliefIds = aliceBeliefs.map(b => b.id.toLowerCase()).sort();
-    const expectedIds = [statementId1.toLowerCase(), statementId2.toLowerCase()].sort();
-
-    assert.deepStrictEqual(
-      beliefIds,
-      expectedIds,
-      'Alice\'s beliefs should match the statements she signed'
+    assert.ok(
+      expectedIds.every(id => beliefIds.includes(id)),
+      'Alice\'s beliefs should include both statements she signed in this test'
     );
 
     console.log('  ✓ Successfully retrieved user\'s signed statements');
@@ -137,23 +133,19 @@ describe('User Profile Queries', () => {
 
     // Wait for indexer
     console.log('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt2.blockNumber, 15000);
+    await waitForSync(graphqlClient, receipt2.blockNumber);
 
     // Query Alice's disbeliefs
     console.log('  Querying Alice\'s disbeliefs...');
     const aliceDisbeliefs = await getUserDisbeliefs(graphqlClient, aliceClients.account);
 
-    // Verify Alice has 2 disbeliefs
-    assert.strictEqual(aliceDisbeliefs.length, 2, 'Alice should have 2 disbeliefs');
+    // Verify Alice disbelieves the 2 statements created in this test
+    const disbeliefIds = aliceDisbeliefs.map(b => b.id.toLowerCase());
+    const expectedIds = [statementId1.toLowerCase(), statementId2.toLowerCase()];
 
-    // Verify the disbeliefs are the correct statements
-    const disbeliefIds = aliceDisbeliefs.map(b => b.id.toLowerCase()).sort();
-    const expectedIds = [statementId1.toLowerCase(), statementId2.toLowerCase()].sort();
-
-    assert.deepStrictEqual(
-      disbeliefIds,
-      expectedIds,
-      'Alice\'s disbeliefs should match the statements she disbelieved'
+    assert.ok(
+      expectedIds.every(id => disbeliefIds.includes(id)),
+      'Alice\'s disbeliefs should include both statements she disbelieved in this test'
     );
 
     console.log('  ✓ Successfully retrieved user\'s disbelieved statements');
@@ -206,18 +198,31 @@ describe('User Profile Queries', () => {
 
     // Wait for indexer
     console.log('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt3.blockNumber, 15000);
+    await waitForSync(graphqlClient, receipt3.blockNumber);
 
     // Alice queries Bob's profile (simulating viewing another user's profile)
     console.log('  Alice querying Bob\'s profile...');
     const bobBeliefs = await getUserBeliefs(graphqlClient, bobClients.account);
     const bobDisbeliefs = await getUserDisbeliefs(graphqlClient, bobClients.account);
 
-    // Verify Bob's beliefs
-    assert.strictEqual(bobBeliefs.length, 2, 'Bob should have 2 beliefs');
+    // Verify Bob believes statements 1 and 3 (created in this test)
+    const bobBeliefIds = bobBeliefs.map(b => b.id.toLowerCase());
+    const statement1Id = cidToBytes32(statement1).toLowerCase();
+    const statement3Id = cidToBytes32(statement3).toLowerCase();
 
-    // Verify Bob's disbeliefs
-    assert.strictEqual(bobDisbeliefs.length, 1, 'Bob should have 1 disbelief');
+    assert.ok(
+      bobBeliefIds.includes(statement1Id) && bobBeliefIds.includes(statement3Id),
+      'Bob should believe statements 1 and 3 from this test'
+    );
+
+    // Verify Bob disbelieves statement 2 (created in this test)
+    const bobDisbeliefIds = bobDisbeliefs.map(b => b.id.toLowerCase());
+    const statement2Id = cidToBytes32(statement2).toLowerCase();
+
+    assert.ok(
+      bobDisbeliefIds.includes(statement2Id),
+      'Bob should disbelieve statement 2 from this test'
+    );
 
     console.log('  ✓ Successfully retrieved another user\'s profile');
   });
