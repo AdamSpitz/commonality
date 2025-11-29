@@ -177,3 +177,96 @@ export async function getAlignmentsByAttester(
 
   return result.projectAlignmentss?.items || [];
 }
+
+// ============================================================================
+// Indirect Alignment Queries (via Implication Graph)
+// ============================================================================
+
+export interface IndirectProjectAlignment {
+  projectAddress: string;
+  directStatementId: string; // Statement the project is directly aligned with
+  indirectStatementId: string; // Statement we queried for (implied by directStatementId)
+  attester: string;
+}
+
+/**
+ * Get projects that are indirectly aligned with a statement via the implication graph.
+ *
+ * A project is indirectly aligned with statement S2 if:
+ * - The project is directly aligned with statement S1
+ * - S1 implies S2 (according to a trusted attester)
+ *
+ * @param client GraphQL client
+ * @param statementId The statement to find indirectly aligned projects for
+ * @param trustedImplicationAttester Optional: filter implications by this attester
+ * @param trustedAlignmentAttester Optional: filter alignments by this attester
+ */
+export async function getIndirectlyAlignedProjects(
+  client: GraphQLClient,
+  statementId: string,
+  trustedImplicationAttester?: string,
+  trustedAlignmentAttester?: string
+): Promise<IndirectProjectAlignment[]> {
+  // Step 1: Find all statements that imply the target statement
+  const implicationsResult = trustedImplicationAttester
+    ? await query<{ implicationss: { items: Array<{ fromStatementId: string; attester: { id: string } }> } }>(
+        client,
+        `
+          query GetImplicationsTo($toStatementId: String!, $attester: String!) {
+            implicationss(where: { toStatementId: $toStatementId, attester: $attester }) {
+              items {
+                fromStatementId
+                attester {
+                  id
+                }
+              }
+            }
+          }
+        `,
+        { toStatementId: statementId.toLowerCase(), attester: trustedImplicationAttester.toLowerCase() }
+      )
+    : await query<{ implicationss: { items: Array<{ fromStatementId: string; attester: { id: string } }> } }>(
+        client,
+        `
+          query GetImplicationsTo($toStatementId: String!) {
+            implicationss(where: { toStatementId: $toStatementId }) {
+              items {
+                fromStatementId
+                attester {
+                  id
+                }
+              }
+            }
+          }
+        `,
+        { toStatementId: statementId.toLowerCase() }
+      );
+
+  const implications = implicationsResult.implicationss?.items || [];
+
+  if (implications.length === 0) {
+    return [];
+  }
+
+  // Step 2: For each implying statement, find projects aligned with it
+  const indirectAlignments: IndirectProjectAlignment[] = [];
+
+  for (const implication of implications) {
+    const alignments = await getAlignedProjects(
+      client,
+      implication.fromStatementId,
+      trustedAlignmentAttester
+    );
+
+    for (const alignment of alignments) {
+      indirectAlignments.push({
+        projectAddress: alignment.projectAddress,
+        directStatementId: implication.fromStatementId,
+        indirectStatementId: statementId,
+        attester: alignment.attester,
+      });
+    }
+  }
+
+  return indirectAlignments;
+}

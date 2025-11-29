@@ -100,16 +100,6 @@ Missing queries:
 
 ## E. Funding Portal Cross-Cutting Tests
 
-### E1. Indirect Project Alignment
-**Priority: High**
-
-Missing tests:
-- Project aligned with S1, user queries S2 where S1 → S2 (should show project indirectly)
-- Multiple implication levels (S1 → S2, project aligns with S1, query by S2)
-- Filter by direct vs indirect alignment
-
-**Rationale:** We test alignment attestations but not the computed indirect alignment via implication graph.
-
 ### E2. Aggregated Funding Metrics
 **Priority: Medium**
 
@@ -227,9 +217,8 @@ Missing tests:
 ## Priority Summary
 
 ### Critical (must have):
-1. **Indirect project alignment** (E1) - Core funding portal feature
-2. **End-to-end workflows** (F1) - Integration validation
-3. **Edge cases for funding** (G2) - Critical error handling
+1. **End-to-end workflows** (F1) - Integration validation
+2. **Edge cases for funding** (G2) - Critical error handling
 
 ### High Priority:
 1. Aggregated funding metrics (E2)

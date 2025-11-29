@@ -63,5 +63,7 @@ export {
   getProjectStatements,
   getProjectAlignment,
   getAlignmentsByAttester,
+  getIndirectlyAlignedProjects,
   type ProjectAlignment,
+  type IndirectProjectAlignment,
 } from './funding-portals-queries.js';
