@@ -128,15 +128,7 @@ The integration test suite is well-structured with a clean separation between ac
 #### 4. Code Quality Issues
 
 **High Priority:**
-1. **Fragile Event Parsing** - Hard-coded event signatures and topic indices
-   - *Fix*: Use viem's `parseEventLogs` with proper ABIs
-   - *Impact*: Tests could break silently if contracts change
-   - Example locations:
-     - [delegation-actions.ts:50-60](integration-tests/src/actions/delegation-actions.ts#L50-L60)
-     - [delegation-actions.ts:96-108](integration-tests/src/actions/delegation-actions.ts#L96-L108)
-     - [pubstarter-actions.ts:68-86](integration-tests/src/actions/pubstarter-actions.ts#L68-L86)
-
-2. **Performance in Indirect Support Queries** - Sequential query loops
+1. **Performance in Indirect Support Queries** - Sequential query loops
    - *Fix*: Use Promise.all for parallel queries or batch GraphQL queries
    - *Impact*: Tests could be slow with many implications
    - Location: [conceptspace-queries.ts:250-295](integration-tests/src/queries/conceptspace-queries.ts#L250-L295)
@@ -210,9 +202,18 @@ The integration test suite is well-structured with a clean separation between ac
 ### Recommendations
 
 **Immediate (Before Adding More Tests):**
-1. Create `test-abis.ts` to centralize contract ABIs
-2. Fix event parsing to use viem's parseEventLogs
-3. Add JSDoc comments to action functions
+1. ~~Create `test-abis.ts` to centralize contract ABIs~~ ✅ DONE (2025-11-29)
+2. ~~Fix event parsing to use viem's parseEventLogs~~ ✅ DONE (2025-11-29)
+   - Fixed fragile event parsing in delegation-actions.ts
+   - Fixed fragile event parsing in pubstarter-actions.ts
+   - Now using viem's `parseEventLogs` with proper ABIs
+3. ~~Add JSDoc comments to action functions~~ ✅ DONE (2025-11-29)
+   - Added comprehensive JSDoc to delegation-actions.ts
+   - Added comprehensive JSDoc to pubstarter-actions.ts
+   - Added JSDoc to conceptspace-actions.ts
+4. ~~Centralize timeout constants~~ ✅ DONE (2025-11-29)
+   - Created test-constants.ts with centralized TEST_TIMEOUTS and INDEXER_SYNC constants
+   - Updated queries/common.ts to use centralized constants
 
 **Short Term (Next Sprint):**
 1. Add error case tests (see G2, G3 in TODO above)

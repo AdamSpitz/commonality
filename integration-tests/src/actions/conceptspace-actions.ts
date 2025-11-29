@@ -21,6 +21,19 @@ export const DISBELIEVES = 2;
 
 /**
  * Express belief in a statement
+ *
+ * Records that the caller believes a statement to be true. This is a core action
+ * in the Conceptspace system for expressing agreement with ideas.
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param beliefsContract - The Beliefs contract instance
+ * @param statementCid - IPFS CID of the statement content
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * await believeStatement(clients, beliefsContract, 'QmStatementCid123');
+ * ```
  */
 export async function believeStatement(
   clients: TestClients,
@@ -42,6 +55,19 @@ export async function believeStatement(
 
 /**
  * Express disbelief in a statement
+ *
+ * Records that the caller believes a statement to be false. This allows users to
+ * explicitly disagree with statements in the Conceptspace.
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param beliefsContract - The Beliefs contract instance
+ * @param statementCid - IPFS CID of the statement content
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * await disbelieveStatement(clients, beliefsContract, 'QmStatementCid123');
+ * ```
  */
 export async function disbelieveStatement(
   clients: TestClients,

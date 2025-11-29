@@ -13,3 +13,8 @@ export { ProjectAlignmentAbi } from '../../indexer/abis/ProjectAlignmentAbi.js';
 export { AssuranceContractAbi } from '../../indexer/abis/AssuranceContractAbi.js';
 export { ERC1155SecondaryMarketAbi } from '../../indexer/abis/ERC1155SecondaryMarketAbi.js';
 export { PubstarterAbi } from '../../indexer/abis/PubstarterAbi.js';
+export {
+  PremintingERC1155FactoryAbi,
+  MarketplaceFactoryAbi,
+  AssuranceContractFactoryAbi
+} from '../../indexer/abis/PubstarterFactoriesAbi.js';

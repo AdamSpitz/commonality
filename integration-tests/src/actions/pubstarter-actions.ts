@@ -2,8 +2,13 @@
  * User actions for Pubstarter subsystem
  */
 
-import { type Address, type Hash } from 'viem';
+import { type Address, type Hash, parseEventLogs } from 'viem';
 import { type TestClients } from './common.js';
+import {
+  PremintingERC1155FactoryAbi,
+  MarketplaceFactoryAbi,
+  AssuranceContractFactoryAbi
+} from '../test-abis.js';
 
 // ============================================================================
 // Pubstarter Actions
@@ -27,6 +32,40 @@ export interface ProjectDetails {
 
 /**
  * Create a new crowdfunding project with ERC1155 tokens, marketplace, and assurance contract
+ *
+ * Creates a complete project setup including an ERC1155 token contract, a secondary marketplace,
+ * and an assurance contract for the crowdfunding campaign.
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param pubstarterContract - The Pubstarter factory contract instance
+ * @param params - Project creation parameters
+ * @param params.metadataURI - Base URI for token metadata
+ * @param params.contractURI - Contract-level metadata URI
+ * @param params.owner - Owner of the token contract
+ * @param params.recipient - Address that will receive funds if project succeeds
+ * @param params.threshold - Minimum funding amount required for project success
+ * @param params.deadline - Unix timestamp deadline for the funding campaign
+ * @param params.projectMetadataCid - IPFS CID for project metadata
+ * @param params.tokenIds - Token IDs to create
+ * @param params.tokenCounts - Supply for each token ID
+ * @param params.tokenPrices - Price for each token ID (in wei)
+ * @returns Transaction hash and addresses of created contracts
+ *
+ * @example
+ * ```typescript
+ * const { projectDetails } = await createProject(clients, pubstarter, {
+ *   metadataURI: 'ipfs://...',
+ *   contractURI: 'ipfs://...',
+ *   owner: alice.address,
+ *   recipient: alice.address,
+ *   threshold: parseEther('10'),
+ *   deadline: BigInt(Date.now() / 1000 + 86400 * 30),
+ *   projectMetadataCid: 'Qm...',
+ *   tokenIds: [0n],
+ *   tokenCounts: [100n],
+ *   tokenPrices: [parseEther('0.1')]
+ * });
+ * ```
  */
 export async function createProject(
   clients: TestClients,
@@ -64,30 +103,32 @@ export async function createProject(
 
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-  // Parse the events to get the created contract addresses using the correct event signatures
-  // Event signatures (keccak256 of event signature string):
-  const TOKEN_EVENT_SIG = '0xb19b1e716b2442a282f6c0a8070d29d679fafef0ffe820b8d57e8cffb23baf74'; // PubstarterERC1155ContractCreated(address)
-  const MARKETPLACE_EVENT_SIG = '0xffbbed5570d9ef9bfcd7f36845d1c453eb9b6a1866a22f3124e606c19bc62259'; // PubstarterERC1155SecondaryMarketCreated(address)
-  const ASSURANCE_EVENT_SIG = '0xce37cb32adaee3ca1e28b96585d947e318568558ee75f07562f230ffb35bd645'; // PubstarterAssuranceContractCreated(address)
+  // Parse the events to get the created contract addresses using viem's parseEventLogs
+  const tokenEvents = parseEventLogs({
+    abi: PremintingERC1155FactoryAbi,
+    eventName: 'PubstarterERC1155ContractCreated',
+    logs: receipt.logs,
+  });
 
-  let tokenAddress: Address | undefined;
-  let marketplaceAddress: Address | undefined;
-  let assuranceContractAddress: Address | undefined;
+  const marketplaceEvents = parseEventLogs({
+    abi: MarketplaceFactoryAbi,
+    eventName: 'PubstarterERC1155SecondaryMarketCreated',
+    logs: receipt.logs,
+  });
 
-  // Find each event by its signature
-  for (const log of receipt.logs) {
-    if (log.topics[0] === TOKEN_EVENT_SIG && log.topics[1]) {
-      tokenAddress = `0x${log.topics[1].slice(26)}` as Address;
-    } else if (log.topics[0] === MARKETPLACE_EVENT_SIG && log.topics[1]) {
-      marketplaceAddress = `0x${log.topics[1].slice(26)}` as Address;
-    } else if (log.topics[0] === ASSURANCE_EVENT_SIG && log.topics[1]) {
-      assuranceContractAddress = `0x${log.topics[1].slice(26)}` as Address;
-    }
+  const assuranceEvents = parseEventLogs({
+    abi: AssuranceContractFactoryAbi,
+    eventName: 'PubstarterAssuranceContractCreated',
+    logs: receipt.logs,
+  });
+
+  if (tokenEvents.length === 0 || marketplaceEvents.length === 0 || assuranceEvents.length === 0) {
+    throw new Error(`Failed to extract contract addresses from transaction logs. Found: ${tokenEvents.length} token events, ${marketplaceEvents.length} marketplace events, ${assuranceEvents.length} assurance events`);
   }
 
-  if (!tokenAddress || !marketplaceAddress || !assuranceContractAddress) {
-    throw new Error(`Failed to extract contract addresses from transaction logs. Found: token=${tokenAddress}, marketplace=${marketplaceAddress}, assurance=${assuranceContractAddress}`);
-  }
+  const tokenAddress = tokenEvents[0].args.erc1155;
+  const marketplaceAddress = marketplaceEvents[0].args.marketplace;
+  const assuranceContractAddress = assuranceEvents[0].args.assuranceContract;
 
   return {
     hash,
@@ -101,6 +142,30 @@ export async function createProject(
 
 /**
  * Buy tokens from a project's assurance contract
+ *
+ * Purchases tokens from a crowdfunding project's primary market. Funds are held in escrow
+ * until the project reaches its threshold or the deadline passes.
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param assuranceContract - The project's assurance contract instance
+ * @param params - Purchase parameters
+ * @param params.buyer - Address that will receive the tokens
+ * @param params.tokenAddress - Address of the project's ERC1155 token contract
+ * @param params.tokenIds - Token IDs to purchase
+ * @param params.tokenCounts - Quantity for each token ID
+ * @param params.totalCost - Total cost in wei (sent as msg.value)
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * await buyProjectTokens(clients, assuranceContract, {
+ *   buyer: bob.address,
+ *   tokenAddress: projectDetails.tokenAddress,
+ *   tokenIds: [0n],
+ *   tokenCounts: [10n],
+ *   totalCost: parseEther('1.0')
+ * });
+ * ```
  */
 export async function buyProjectTokens(
   clients: TestClients,

@@ -2,6 +2,8 @@
  * Common GraphQL query utilities
  */
 
+import { INDEXER_SYNC } from '../test-constants.js';
+
 export interface GraphQLClient {
   url: string;
 }
@@ -61,7 +63,7 @@ export async function query<T = any>(
 export async function waitForSync(
   client: GraphQLClient,
   targetBlock: bigint,
-  timeoutMs = 10000
+  timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
   const startTime = Date.now();
 
@@ -96,11 +98,11 @@ export async function waitForSync(
         return;
       }
 
-      // Wait 100ms before checking again
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait before checking again
+      await new Promise(resolve => setTimeout(resolve, INDEXER_SYNC.POLL_INTERVAL_MS));
     } catch (error) {
       // Indexer might not be ready yet, wait and retry
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, INDEXER_SYNC.POLL_INTERVAL_MS));
     }
   }
 
