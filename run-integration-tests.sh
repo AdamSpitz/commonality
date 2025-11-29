@@ -41,38 +41,52 @@ log_message() {
 cleanup_processes() {
     log_message ""
     log_message "=== Cleaning Up Background Processes ==="
-    
-    # Stop indexer if running
+
+    # Stop indexer by PID file first, then by process pattern
     if [ -f "$LOG_DIR/indexer.pid" ]; then
         INDEXER_PID=$(cat "$LOG_DIR/indexer.pid")
         if ps -p $INDEXER_PID > /dev/null 2>&1; then
             log_message "Stopping indexer (PID: $INDEXER_PID)..."
-            kill $INDEXER_PID
-            sleep 2
-            # Force kill if still running
-            if ps -p $INDEXER_PID > /dev/null 2>&1; then
-                kill -9 $INDEXER_PID 2>/dev/null || true
-            fi
-            log_message "✓ Indexer stopped"
+            kill $INDEXER_PID 2>/dev/null || true
+            sleep 1
         fi
         rm -f "$LOG_DIR/indexer.pid"
     fi
-    
-    # Stop hardhat node if running
+
+    # Kill any remaining ponder processes
+    if pgrep -f "ponder dev" > /dev/null; then
+        log_message "Stopping any remaining ponder processes..."
+        pkill -f "ponder dev" 2>/dev/null || true
+        sleep 1
+        # Force kill if still running
+        if pgrep -f "ponder dev" > /dev/null; then
+            pkill -9 -f "ponder dev" 2>/dev/null || true
+        fi
+    fi
+    log_message "✓ Indexer stopped"
+
+    # Stop hardhat node by PID file first, then by process pattern
     if [ -f "$LOG_DIR/hardhat-node.pid" ]; then
         HARDHAT_PID=$(cat "$LOG_DIR/hardhat-node.pid")
         if ps -p $HARDHAT_PID > /dev/null 2>&1; then
             log_message "Stopping Hardhat node (PID: $HARDHAT_PID)..."
-            kill $HARDHAT_PID
-            sleep 2
-            # Force kill if still running
-            if ps -p $HARDHAT_PID > /dev/null 2>&1; then
-                kill -9 $HARDHAT_PID 2>/dev/null || true
-            fi
-            log_message "✓ Hardhat node stopped"
+            kill $HARDHAT_PID 2>/dev/null || true
+            sleep 1
         fi
         rm -f "$LOG_DIR/hardhat-node.pid"
     fi
+
+    # Kill any remaining hardhat node processes
+    if pgrep -f "hardhat node" > /dev/null; then
+        log_message "Stopping any remaining hardhat node processes..."
+        pkill -f "hardhat node" 2>/dev/null || true
+        sleep 1
+        # Force kill if still running
+        if pgrep -f "hardhat node" > /dev/null; then
+            pkill -9 -f "hardhat node" 2>/dev/null || true
+        fi
+    fi
+    log_message "✓ Hardhat node stopped"
 }
 
 # Set up cleanup on script exit

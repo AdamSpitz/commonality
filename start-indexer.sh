@@ -21,11 +21,30 @@ echo ""
 # Clean up old log file
 rm -f "$INDEXER_LOG"
 
-# Check if indexer is already running
+# Check if indexer is already running and kill it
 if pgrep -f "ponder dev" > /dev/null; then
-    echo "⚠️  Warning: Indexer appears to be already running"
-    echo "You may want to stop it first with: ./stop-indexer.sh"
+    echo "⚠️  Indexer is already running - stopping it first..."
+    pkill -f "ponder dev"
+    sleep 2
+    # Force kill if still running
+    if pgrep -f "ponder dev" > /dev/null; then
+        pkill -9 -f "ponder dev"
+        sleep 1
+    fi
+    echo "✓ Stopped existing indexer processes"
     echo ""
+fi
+
+# Clean up any leftover .ponder directory to ensure fresh state
+if [ -d "$INDEXER_DIR/.ponder" ]; then
+    echo "Cleaning up previous .ponder directory..."
+    rm -rf "$INDEXER_DIR/.ponder"
+fi
+
+# Create symlink to root .env file if it doesn't exist
+if [ ! -e "$INDEXER_DIR/.env.local" ] && [ -f "$SCRIPT_DIR/.env" ]; then
+    echo "Creating symlink to root .env file..."
+    ln -s "$SCRIPT_DIR/.env" "$INDEXER_DIR/.env.local"
 fi
 
 # Start indexer in background

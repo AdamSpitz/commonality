@@ -12,42 +12,60 @@ Before running the tests, you need to have three services running:
 
 ## Quick Start
 
-### Terminal 1: Start Hardhat Node
+### Automated (Recommended)
+
+The easiest way to run integration tests is using the automated script:
 
 ```bash
-cd hardhat
-npx hardhat node
+./run-integration-tests.sh
 ```
 
-This starts a local Ethereum node at `http://localhost:8545`.
+This script will:
+1. Start a fresh Hardhat node
+2. Deploy contracts
+3. Start the indexer with a clean database
+4. Run all tests
+5. Clean up background processes
 
-### Terminal 2: Deploy Contracts
+### Manual (For Development)
+
+If you need to run tests manually with more control:
+
+#### Terminal 1: Start Hardhat Node and Deploy
 
 ```bash
-npm run deploy-local
+./start-node-and-deploy.sh
 ```
 
-This will deploy the contracts and write their addresses to a couple of different files - one used by the indexer itself, one used by the integration tests.
+This starts a Hardhat node in the background and deploys contracts.
 
-### Terminal 3: Start Indexer
+#### Terminal 2: Start Indexer
 
-To start the indexer:
+**IMPORTANT:** Always use this script to ensure a fresh database:
 
 ```bash
-cd indexer
-npm run dev:no-ui
+./start-indexer.sh
 ```
 
-The indexer will start at `http://localhost:42069/graphql`.
+This script cleans up the `.ponder` directory and starts the indexer with a fresh database.
 
-### Terminal 4: Run Tests
+**DO NOT** use `cd indexer && npm run dev:no-ui` directly, as it won't clean the database and tests will fail with stale data.
+
+#### Terminal 3: Run Tests
 
 ```bash
 cd integration-tests
 npm test
 ```
 
-This should run the tests and output the results.
+#### Cleanup
+
+When done, stop the background processes:
+
+```bash
+./stop-hardhat-node.sh
+./stop-indexer.sh
+```
 
 ## Environment Variables
 
