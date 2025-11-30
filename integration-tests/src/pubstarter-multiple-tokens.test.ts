@@ -13,7 +13,7 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getProject,
@@ -22,12 +22,12 @@ import {
   waitForSync,
   assertNotNull,
   type GraphQLClient,
-} from './queries/index.js';
+} from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
   PubstarterAbi,
   AssuranceContractAbi
-} from './test-abis.js';
+} from '@commonality/sdk';
 
 
 describe('Pubstarter Multiple Token Types Tests', () => {

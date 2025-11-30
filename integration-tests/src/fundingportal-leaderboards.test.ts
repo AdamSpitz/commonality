@@ -20,21 +20,21 @@ import {
   type PubstarterContract,
   type AssuranceContract,
   type ProjectAlignmentContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   waitForSync,
   getTopContributorsForCause,
   getUserContributionRankForCause,
   type GraphQLClient,
-} from './queries/index.js';
+} from '@commonality/sdk';
 import { parseEther, type Address, keccak256, toBytes } from 'viem';
 import {
   ImplicationsAbi,
   PubstarterAbi,
   AssuranceContractAbi,
   ProjectAlignmentAbi,
-} from './test-abis.js';
+} from '@commonality/sdk';
 
 describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

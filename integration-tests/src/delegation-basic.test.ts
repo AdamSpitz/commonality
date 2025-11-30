@@ -19,7 +19,7 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type DelegatableNotesContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getNote,
@@ -28,10 +28,10 @@ import {
   getDelegationChain,
   waitForSync,
   assertNotNull,
-} from './queries/index.js';
+} from '@commonality/sdk';
 
-import { DelegatableNotesAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+import { DelegatableNotesAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

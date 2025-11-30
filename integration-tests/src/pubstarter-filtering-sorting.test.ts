@@ -18,7 +18,7 @@ import {
   buyProjectTokens,
   type PubstarterContract,
   type AssuranceContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   waitForSync,
@@ -29,12 +29,12 @@ import {
   getProjectsByAmountRaised,
   getProjectsFiltered,
   type GraphQLClient,
-} from './queries/index.js';
+} from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
   PubstarterAbi,
   AssuranceContractAbi,
-} from './test-abis.js';
+} from '@commonality/sdk';
 
 describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

@@ -8,7 +8,7 @@ import {
   PremintingERC1155FactoryAbi,
   MarketplaceFactoryAbi,
   AssuranceContractFactoryAbi
-} from '../test-abis.js';
+} from '../abis.js';
 
 // ============================================================================
 // Pubstarter Actions

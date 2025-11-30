@@ -27,7 +27,7 @@ import {
   type ProjectAlignmentContract,
   type DelegatableNotesContract,
   TokenType,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   waitForSync,
@@ -37,7 +37,7 @@ import {
   getTopContributorsForCause,
   getUserContributionRankForCause,
   type GraphQLClient,
-} from './queries/index.js';
+} from '@commonality/sdk';
 import { parseEther, type Address, keccak256, toBytes } from 'viem';
 import {
   BeliefsAbi,
@@ -46,7 +46,7 @@ import {
   AssuranceContractAbi,
   ProjectAlignmentAbi,
   DelegatableNotesAbi,
-} from './test-abis.js';
+} from '@commonality/sdk';
 
 describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

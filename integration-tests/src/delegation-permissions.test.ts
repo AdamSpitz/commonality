@@ -19,13 +19,13 @@ import {
   cidToBytes32,
   uploadToIPFS,
   type DelegatableNotesContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   waitForSync,
-} from './queries/index.js';
-import { DelegatableNotesAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { DelegatableNotesAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Delegation Permissions Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

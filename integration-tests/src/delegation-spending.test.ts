@@ -20,7 +20,7 @@ import {
   type DelegatableNotesContract,
   type PubstarterContract,
   type AssuranceContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getNote,
@@ -29,9 +29,9 @@ import {
   getProjectContributions,
   waitForSync,
   assertNotNull,
-} from './queries/index.js';
-import { DelegatableNotesAbi, PubstarterAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { DelegatableNotesAbi, PubstarterAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface

@@ -4,7 +4,7 @@
 
 import { type Address, type Hash, parseEventLogs } from 'viem';
 import { type TestClients } from './common.js';
-import { DelegatableNotesAbi } from '../test-abis.js';
+import { DelegatableNotesAbi } from '../abis.js';
 
 // ============================================================================
 // Delegation Actions

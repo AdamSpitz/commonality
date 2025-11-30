@@ -20,20 +20,20 @@ import {
   type ProjectAlignmentContract,
   type PubstarterContract,
   type ImplicationsContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getAlignedProjects,
   getIndirectlyAlignedProjects,
   waitForSync,
   assertNotNull,
-} from './queries/index.js';
+} from '@commonality/sdk';
 import {
   ProjectAlignmentAbi,
   PubstarterAbi,
   ImplicationsAbi
-} from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

@@ -18,7 +18,7 @@ import {
   cidToBytes32,
   type ProjectAlignmentContract,
   type PubstarterContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getAlignedProjects,
@@ -27,10 +27,10 @@ import {
   getAlignmentsByAttester,
   waitForSync,
   assertNotNull,
-} from './queries/index.js';
+} from '@commonality/sdk';
 import { type Address } from 'viem';
-import { ProjectAlignmentAbi, PubstarterAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+import { ProjectAlignmentAbi, PubstarterAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Funding Portal - Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

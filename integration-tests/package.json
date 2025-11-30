@@ -9,8 +9,7 @@
     "test:watch": "mocha --watch 'src/**/*.test.ts'"
   },
   "dependencies": {
-    "multiformats": "^13.0.0",
-    "viem": "^2.21.3"
+    "@commonality/sdk": "*"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",

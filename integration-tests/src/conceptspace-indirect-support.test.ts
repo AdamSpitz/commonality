@@ -18,7 +18,7 @@ import {
   attestImplication,
   type BeliefsContract,
   type ImplicationsContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getStatement,
@@ -28,9 +28,9 @@ import {
   getIndirectSupporterCount,
   waitForSync,
   assertNotNull,
-} from './queries/index.js';
-import { BeliefsAbi, ImplicationsAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Conceptspace Indirect Support', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

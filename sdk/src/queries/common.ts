@@ -2,7 +2,7 @@
  * Common GraphQL query utilities
  */
 
-import { INDEXER_SYNC } from '../test-constants.js';
+import { INDEXER_SYNC } from '../constants.js';
 
 export interface GraphQLClient {
   url: string;

@@ -15,15 +15,15 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type BeliefsContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getUserBeliefs,
   getUserDisbeliefs,
   waitForSync,
-} from './queries/index.js';
-import { BeliefsAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { BeliefsAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('User Profile Queries', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

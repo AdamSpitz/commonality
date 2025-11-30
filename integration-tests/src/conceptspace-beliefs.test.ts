@@ -20,16 +20,16 @@ import {
   BELIEVES,
   DISBELIEVES,
   type BeliefsContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getStatement,
   getUserBelief,
   waitForSync,
   assertNotNull,
-} from './queries/index.js';
-import { BeliefsAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { BeliefsAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

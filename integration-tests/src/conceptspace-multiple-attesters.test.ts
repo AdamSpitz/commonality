@@ -17,16 +17,16 @@ import {
   attestImplication,
   type BeliefsContract,
   type ImplicationsContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getImplicationsFrom,
   getImplicationsTo,
   waitForSync,
   type GraphQLClient,
-} from './queries/index.js';
-import { BeliefsAbi, ImplicationsAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 import { TEST_TIMEOUTS, INDEXER_SYNC_TIMEOUT } from './test-timeouts.js';
 
 describe('Multiple Attesters Tests (F2)', () => {

@@ -19,14 +19,14 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getProject,
   waitForSync,
-} from './queries/index.js';
-import { PubstarterAbi, AssuranceContractAbi } from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { PubstarterAbi, AssuranceContractAbi } from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Pubstarter Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

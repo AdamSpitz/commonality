@@ -22,13 +22,15 @@ import {
   type PubstarterContract,
   type DelegatableNotesContract,
   type ProjectAlignmentContract,
-} from './actions/index.js';
+} from '@commonality/sdk';
 import {
   createGraphQLClient,
   getUserBelief,
+  getUserBeliefs,
   getImplicationsFrom,
   getImplicationsTo,
   getAlignedProjects,
+  getIndirectlyAlignedProjects,
   getNote,
   getNotesByOwner,
   getNotesByStatement,
@@ -36,14 +38,15 @@ import {
   getProject,
   waitForSync,
   assertNotNull,
-} from './queries/index.js';
+} from '@commonality/sdk';
 import {
   BeliefsAbi,
+  ImplicationsAbi,
   PubstarterAbi,
   ProjectAlignmentAbi,
   DelegatableNotesAbi
-} from './test-abis.js';
-import { TEST_PRIVATE_KEYS } from './test-constants.js';
+} from '@commonality/sdk';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -474,7 +477,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 3. Attester creates implication: S1 → S2 (specific implies general)
       const implicationsContract: ImplicationsContract = {
         address: IMPLICATIONS_CONTRACT_ADDRESS,
-        abi: (await import('./test-abis.js')).ImplicationsAbi,
+        abi: ImplicationsAbi,
       };
 
       console.log('  Attester attesting that S1 implies S2...');
@@ -558,7 +561,6 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       // 10. Query for projects indirectly aligned with S2 (general statement)
       console.log('  Querying for projects indirectly aligned with S2...');
-      const { getIndirectlyAlignedProjects } = await import('./queries/index.js');
       const indirectAlignments = await getIndirectlyAlignedProjects(
         graphqlClient,
         statement2Id,
@@ -648,7 +650,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 6. Attester creates implication: S1 → S2
       const implicationsContract: ImplicationsContract = {
         address: IMPLICATIONS_CONTRACT_ADDRESS,
-        abi: (await import('./test-abis.js')).ImplicationsAbi,
+        abi: ImplicationsAbi,
       };
 
       console.log('  Attester attesting that S1 implies S2...');
@@ -680,7 +682,6 @@ describe('End-to-End Workflow Integration Tests', () => {
       console.log('  Finding statement suggestions for user...');
 
       // Get all statements the user believes
-      const { getUserBeliefs } = await import('./queries/index.js');
       const userBeliefs = await getUserBeliefs(graphqlClient, userClients.account);
 
       // For each believed statement, get what it implies
