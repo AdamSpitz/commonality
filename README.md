@@ -44,6 +44,10 @@ To run the indexer locally:
     cd indexer
     npm run dev
 
+### SDK
+
+The integration tests use an "sdk" library (at the top level of this repo) for user actions and queries. The intention is for this code to be used by both the integration tests and the UI code.
+
 ### Integration Tests
 
 To run the full integration test suite (starts node, indexer, runs tests, cleans up):
@@ -58,6 +62,10 @@ Or run components individually:
     ./stop-indexer.sh            # Stop the indexer
 
 See [integration-tests/README.md](integration-tests/README.md) for details.
+
+## UI
+
+We're starting to implement the UI in the top-level "ui" directory, though nothing is really implemented yet. It should use the sdk for user actions and queries, though.
 
 ### Docker stuff
 
