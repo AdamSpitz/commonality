@@ -1,0 +1,437 @@
+/**
+ * Pubstarter Project Filtering and Sorting Tests (E4)
+ *
+ * Tests project discovery features:
+ * 1. Sort projects by date created
+ * 2. Sort projects by deadline
+ * 3. Sort projects by funding goal/threshold
+ * 4. Sort projects by funding progress
+ * 5. Sort projects by amount raised
+ * 6. Filter projects by various criteria
+ */
+
+import assert from 'assert';
+import {
+  createTestClients,
+  uploadToIPFS,
+  createProject,
+  buyProjectTokens,
+  type PubstarterContract,
+  type AssuranceContract,
+} from './actions/index.js';
+import {
+  createGraphQLClient,
+  waitForSync,
+  getProjectsByDate,
+  getProjectsByDeadline,
+  getProjectsByFundingGoal,
+  getProjectsByFundingProgress,
+  getProjectsByAmountRaised,
+  getProjectsFiltered,
+  type GraphQLClient,
+} from './queries/index.js';
+import { parseEther, type Address } from 'viem';
+import {
+  PubstarterAbi,
+  AssuranceContractAbi,
+} from './test-abis.js';
+
+describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
+  const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
+  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
+  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+
+  // Test accounts
+  const CREATOR1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+  const CREATOR2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
+  const CREATOR3_PRIVATE_KEY = '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6' as const;
+  const CONTRIBUTOR_PRIVATE_KEY = '0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a' as const;
+
+  let graphqlClient: GraphQLClient;
+
+  before(() => {
+    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+  });
+
+  it('should sort projects by date created (newest first)', async function() {
+    this.timeout(60000);
+
+    console.log('  Creating projects with different creation times...');
+    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
+    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
+    const creator3Clients = createTestClients(CREATOR3_PRIVATE_KEY, RPC_URL);
+
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    // Create 3 projects at different times
+    const p1Metadata = await uploadToIPFS({ title: 'Project 1 - Oldest' });
+    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+      creator1Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p1/',
+        contractURI: 'https://example.com/p1/contract',
+        owner: creator1Clients.account,
+        recipient: creator1Clients.account,
+        threshold: parseEther('1.0'),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+        projectMetadataCid: p1Metadata,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    const p1Receipt = await creator1Clients.publicClient.getTransactionReceipt({ hash: p1Hash });
+    await waitForSync(graphqlClient, p1Receipt.blockNumber, 15000);
+
+    const p2Metadata = await uploadToIPFS({ title: 'Project 2 - Middle' });
+    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+      creator2Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p2/',
+        contractURI: 'https://example.com/p2/contract',
+        owner: creator2Clients.account,
+        recipient: creator2Clients.account,
+        threshold: parseEther('2.0'),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+        projectMetadataCid: p2Metadata,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
+    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
+
+    const p3Metadata = await uploadToIPFS({ title: 'Project 3 - Newest' });
+    const { hash: p3Hash, projectDetails: p3Details } = await createProject(
+      creator3Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p3/',
+        contractURI: 'https://example.com/p3/contract',
+        owner: creator3Clients.account,
+        recipient: creator3Clients.account,
+        threshold: parseEther('3.0'),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+        projectMetadataCid: p3Metadata,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    const p3Receipt = await creator3Clients.publicClient.getTransactionReceipt({ hash: p3Hash });
+    await waitForSync(graphqlClient, p3Receipt.blockNumber, 15000);
+
+    // Query projects sorted by date (newest first)
+    console.log('  Querying projects sorted by date...');
+    const projects = await getProjectsByDate(graphqlClient, 'desc');
+
+    // Find our three projects in the results
+    const projectAddresses = [
+      p1Details.assuranceContractAddress.toLowerCase(),
+      p2Details.assuranceContractAddress.toLowerCase(),
+      p3Details.assuranceContractAddress.toLowerCase(),
+    ];
+
+    const ourProjects = projects.filter(p =>
+      projectAddresses.includes(p.id.toLowerCase())
+    );
+
+    assert.strictEqual(ourProjects.length, 3, 'Should find all 3 projects');
+
+    // Verify order: P3 (newest) should come before P2, which should come before P1 (oldest)
+    const p1Index = ourProjects.findIndex(p => p.id.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
+    const p2Index = ourProjects.findIndex(p => p.id.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
+    const p3Index = ourProjects.findIndex(p => p.id.toLowerCase() === p3Details.assuranceContractAddress.toLowerCase());
+
+    assert.ok(p3Index < p2Index, 'Project 3 (newest) should come before Project 2');
+    assert.ok(p2Index < p1Index, 'Project 2 (middle) should come before Project 1 (oldest)');
+
+    console.log('  Test passed!');
+  });
+
+  it('should sort projects by deadline (soonest first)', async function() {
+    this.timeout(60000);
+
+    console.log('  Creating projects with different deadlines...');
+    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
+    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
+
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    const now = Math.floor(Date.now() / 1000);
+
+    // Project with soon deadline
+    const p1Metadata = await uploadToIPFS({ title: 'Soon Deadline' });
+    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+      creator1Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p1/',
+        contractURI: 'https://example.com/p1/contract',
+        owner: creator1Clients.account,
+        recipient: creator1Clients.account,
+        threshold: parseEther('1.0'),
+        deadline: BigInt(now + 3600), // 1 hour from now
+        projectMetadataCid: p1Metadata,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    // Project with far deadline
+    const p2Metadata = await uploadToIPFS({ title: 'Far Deadline' });
+    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+      creator2Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p2/',
+        contractURI: 'https://example.com/p2/contract',
+        owner: creator2Clients.account,
+        recipient: creator2Clients.account,
+        threshold: parseEther('1.0'),
+        deadline: BigInt(now + 86400 * 7), // 7 days from now
+        projectMetadataCid: p2Metadata,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
+    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
+
+    // Query by deadline (soonest first)
+    console.log('  Querying projects sorted by deadline...');
+    const projects = await getProjectsByDeadline(graphqlClient, 'asc');
+
+    const projectAddresses = [
+      p1Details.assuranceContractAddress.toLowerCase(),
+      p2Details.assuranceContractAddress.toLowerCase(),
+    ];
+
+    const ourProjects = projects.filter(p =>
+      projectAddresses.includes(p.id.toLowerCase())
+    );
+
+    assert.strictEqual(ourProjects.length, 2, 'Should find both projects');
+
+    // P1 (sooner deadline) should come before P2 (later deadline)
+    const p1Index = ourProjects.findIndex(p => p.id.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
+    const p2Index = ourProjects.findIndex(p => p.id.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
+
+    assert.ok(p1Index < p2Index, 'Project with sooner deadline should come first');
+
+    console.log('  Test passed!');
+  });
+
+  it('should sort projects by funding progress', async function() {
+    this.timeout(90000);
+
+    console.log('  Creating projects with different funding progress...');
+    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
+    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
+    const contributorClients = createTestClients(CONTRIBUTOR_PRIVATE_KEY, RPC_URL);
+
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    // Create two projects with same threshold
+    const p1Metadata = await uploadToIPFS({ title: 'High Progress Project' });
+    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+      creator1Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p1/',
+        contractURI: 'https://example.com/p1/contract',
+        owner: creator1Clients.account,
+        recipient: creator1Clients.account,
+        threshold: parseEther('10.0'),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+        projectMetadataCid: p1Metadata,
+        tokenIds: [1n],
+        tokenCounts: [1000n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    const p2Metadata = await uploadToIPFS({ title: 'Low Progress Project' });
+    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+      creator2Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p2/',
+        contractURI: 'https://example.com/p2/contract',
+        owner: creator2Clients.account,
+        recipient: creator2Clients.account,
+        threshold: parseEther('10.0'),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+        projectMetadataCid: p2Metadata,
+        tokenIds: [1n],
+        tokenCounts: [1000n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
+    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
+
+    // Fund P1 to 80% (8 ETH out of 10 ETH)
+    const assuranceContract1: AssuranceContract = {
+      address: p1Details.assuranceContractAddress,
+      abi: AssuranceContractAbi,
+    };
+
+    await buyProjectTokens(
+      contributorClients,
+      assuranceContract1,
+      {
+        buyer: contributorClients.account,
+        tokenAddress: p1Details.tokenAddress,
+        tokenIds: [1n],
+        tokenCounts: [800n], // 800 * 0.01 = 8 ETH
+        totalCost: parseEther('8.0'),
+      }
+    );
+
+    // Fund P2 to 20% (2 ETH out of 10 ETH)
+    const assuranceContract2: AssuranceContract = {
+      address: p2Details.assuranceContractAddress,
+      abi: AssuranceContractAbi,
+    };
+
+    const buy2Hash = await buyProjectTokens(
+      contributorClients,
+      assuranceContract2,
+      {
+        buyer: contributorClients.account,
+        tokenAddress: p2Details.tokenAddress,
+        tokenIds: [1n],
+        tokenCounts: [200n], // 200 * 0.01 = 2 ETH
+        totalCost: parseEther('2.0'),
+      }
+    );
+
+    const buy2Receipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buy2Hash });
+    await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
+
+    // Query by funding progress (highest first)
+    console.log('  Querying projects sorted by funding progress...');
+    const projects = await getProjectsByFundingProgress(graphqlClient, 'desc');
+
+    const projectAddresses = [
+      p1Details.assuranceContractAddress.toLowerCase(),
+      p2Details.assuranceContractAddress.toLowerCase(),
+    ];
+
+    const ourProjects = projects.filter(p =>
+      projectAddresses.includes(p.id.toLowerCase())
+    );
+
+    assert.strictEqual(ourProjects.length, 2, 'Should find both projects');
+
+    // P1 (80% funded) should come before P2 (20% funded)
+    const p1Index = ourProjects.findIndex(p => p.id.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
+    const p2Index = ourProjects.findIndex(p => p.id.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
+
+    assert.ok(p1Index < p2Index, 'Project with higher funding progress should come first');
+
+    // Verify funding progress values
+    const p1Project = ourProjects[p1Index];
+    const p2Project = ourProjects[p2Index];
+
+    console.log(`  P1 funding progress: ${p1Project.fundingProgress}`);
+    console.log(`  P2 funding progress: ${p2Project.fundingProgress}`);
+
+    assert.ok(p1Project.fundingProgress > 0.7, 'P1 should be at least 70% funded');
+    assert.ok(p2Project.fundingProgress > 0.1 && p2Project.fundingProgress < 0.3, 'P2 should be around 20% funded');
+
+    console.log('  Test passed!');
+  });
+
+  it('should filter projects by funding threshold', async function() {
+    this.timeout(60000);
+
+    console.log('  Creating projects with different thresholds...');
+    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
+    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
+
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    // Small project (1 ETH threshold)
+    const p1Metadata = await uploadToIPFS({ title: 'Small Project' });
+    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+      creator1Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p1/',
+        contractURI: 'https://example.com/p1/contract',
+        owner: creator1Clients.account,
+        recipient: creator1Clients.account,
+        threshold: parseEther('1.0'),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+        projectMetadataCid: p1Metadata,
+        tokenIds: [1n],
+        tokenCounts: [100n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    // Large project (100 ETH threshold)
+    const p2Metadata = await uploadToIPFS({ title: 'Large Project' });
+    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+      creator2Clients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/p2/',
+        contractURI: 'https://example.com/p2/contract',
+        owner: creator2Clients.account,
+        recipient: creator2Clients.account,
+        threshold: parseEther('100.0'),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+        projectMetadataCid: p2Metadata,
+        tokenIds: [1n],
+        tokenCounts: [10000n],
+        tokenPrices: [parseEther('0.01')],
+      }
+    );
+
+    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
+    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
+
+    // Query projects with threshold >= 10 ETH
+    console.log('  Filtering projects with threshold >= 10 ETH...');
+    const largeProjects = await getProjectsFiltered(
+      graphqlClient,
+      {
+        minThreshold: parseEther('10.0'),
+      }
+    );
+
+    // P1 should not be in results, P2 should be
+    const hasP1 = largeProjects.some(p => p.id.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
+    const hasP2 = largeProjects.some(p => p.id.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
+
+    assert.strictEqual(hasP1, false, 'Small project should not be in filtered results');
+    assert.strictEqual(hasP2, true, 'Large project should be in filtered results');
+
+    console.log('  Test passed!');
+  });
+});

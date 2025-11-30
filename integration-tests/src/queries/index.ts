@@ -48,6 +48,12 @@ export {
   getTokenBurns,
   getUserTokenBurns,
   getTokenBurnsByUser,
+  getProjectsFiltered,
+  getProjectsByDate,
+  getProjectsByDeadline,
+  getProjectsByFundingGoal,
+  getProjectsByFundingProgress,
+  getProjectsByAmountRaised,
   type Project,
   type ProjectToken,
   type Contribution,
@@ -55,6 +61,10 @@ export {
   type BuyOrder,
   type Trade,
   type TokenBurn,
+  type ProjectFilterOptions,
+  type ProjectSortField,
+  type SortDirection,
+  type ProjectWithMetrics,
 } from './pubstarter-queries.js';
 
 // Delegation queries
@@ -75,6 +85,12 @@ export {
   getProjectAlignment,
   getAlignmentsByAttester,
   getIndirectlyAlignedProjects,
+  getTotalFundingForCause,
+  getAllAlignedProjectsForCause,
+  getTopContributorsForCause,
+  getUserContributionRankForCause,
   type ProjectAlignment,
   type IndirectProjectAlignment,
+  type CauseFundingMetrics,
+  type ContributorStats,
 } from './funding-portals-queries.js';

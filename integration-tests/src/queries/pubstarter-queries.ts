@@ -16,6 +16,7 @@ export interface Project {
   deadline: string;
   totalReceived: string;
   metadataCid?: string;
+  createdAt?: string;
 }
 
 export interface ProjectToken {
@@ -86,6 +87,7 @@ export async function getAllProjects(
             deadline
             totalReceived
             metadataCid
+            createdAt
           }
         }
       }
@@ -93,6 +95,200 @@ export async function getAllProjects(
   );
 
   return result.projectss?.items || [];
+}
+
+// ============================================================================
+// Project Filtering and Sorting (E4)
+// ============================================================================
+
+export interface ProjectFilterOptions {
+  // Filter by deadline
+  minDeadline?: bigint;
+  maxDeadline?: bigint;
+  // Filter by threshold
+  minThreshold?: bigint;
+  maxThreshold?: bigint;
+  // Filter by funding progress
+  minTotalReceived?: bigint;
+  maxTotalReceived?: bigint;
+}
+
+export type ProjectSortField =
+  | 'createdAt'
+  | 'deadline'
+  | 'threshold'
+  | 'totalReceived'
+  | 'fundingProgress'; // totalReceived / threshold
+
+export type SortDirection = 'asc' | 'desc';
+
+export interface ProjectWithMetrics extends Project {
+  fundingProgress: number; // 0.0 to 1.0+ (can exceed 1.0 if overfunded)
+  createdAtBlock: string;
+}
+
+/**
+ * Get all projects with optional filtering and sorting.
+ * Note: Some sorting (like fundingProgress) requires client-side computation.
+ *
+ * @param client GraphQL client
+ * @param filters Optional filters to apply
+ * @param sortBy Field to sort by
+ * @param sortDirection Sort direction (asc or desc)
+ */
+export async function getProjectsFiltered(
+  client: GraphQLClient,
+  filters?: ProjectFilterOptions,
+  sortBy?: ProjectSortField,
+  sortDirection: SortDirection = 'desc'
+): Promise<ProjectWithMetrics[]> {
+  // Build GraphQL query with filters
+  const whereConditions: string[] = [];
+  const variables: Record<string, any> = {};
+
+  if (filters?.minDeadline !== undefined) {
+    whereConditions.push('deadline_gte: $minDeadline');
+    variables.minDeadline = filters.minDeadline.toString();
+  }
+  if (filters?.maxDeadline !== undefined) {
+    whereConditions.push('deadline_lte: $maxDeadline');
+    variables.maxDeadline = filters.maxDeadline.toString();
+  }
+  if (filters?.minThreshold !== undefined) {
+    whereConditions.push('threshold_gte: $minThreshold');
+    variables.minThreshold = filters.minThreshold.toString();
+  }
+  if (filters?.maxThreshold !== undefined) {
+    whereConditions.push('threshold_lte: $maxThreshold');
+    variables.maxThreshold = filters.maxThreshold.toString();
+  }
+  if (filters?.minTotalReceived !== undefined) {
+    whereConditions.push('totalReceived_gte: $minTotalReceived');
+    variables.minTotalReceived = filters.minTotalReceived.toString();
+  }
+  if (filters?.maxTotalReceived !== undefined) {
+    whereConditions.push('totalReceived_lte: $maxTotalReceived');
+    variables.maxTotalReceived = filters.maxTotalReceived.toString();
+  }
+
+  const whereClause = whereConditions.length > 0
+    ? `where: { ${whereConditions.join(', ')} }`
+    : '';
+
+  // Determine order by clause
+  // Note: fundingProgress requires client-side sorting
+  let orderByClause = '';
+  if (sortBy && sortBy !== 'fundingProgress') {
+    orderByClause = `orderBy: "${sortBy}", orderDirection: "${sortDirection}"`;
+  }
+
+  const variableDeclarations = Object.keys(variables).length > 0
+    ? `(${Object.keys(variables).map(k => `$${k}: BigInt!`).join(', ')})`
+    : '';
+
+  // Build the arguments for projectss query
+  const queryArgs = whereClause && orderByClause
+    ? `${whereClause}, ${orderByClause}`
+    : whereClause || orderByClause;
+
+  const graphqlQuery = `
+    query GetProjectsFiltered${variableDeclarations} {
+      projectss${queryArgs ? `(${queryArgs})` : ''} {
+        items {
+          id
+          erc1155Address
+          recipient
+          threshold
+          deadline
+          totalReceived
+          metadataCid
+          createdAtBlock
+        }
+      }
+    }
+  `;
+
+  const result = await query<{ projectss: { items: Array<Project & { createdAtBlock: string }> } }>(
+    client,
+    graphqlQuery,
+    variables
+  );
+
+  const projects = result.projectss?.items || [];
+
+  // Add computed metrics
+  const projectsWithMetrics: ProjectWithMetrics[] = projects.map(p => {
+    const threshold = BigInt(p.threshold);
+    const totalReceived = BigInt(p.totalReceived);
+    const fundingProgress = threshold > 0n
+      ? Number(totalReceived * 10000n / threshold) / 10000  // Use basis points for precision
+      : 0;
+
+    return {
+      ...p,
+      fundingProgress,
+    };
+  });
+
+  // Client-side sorting if needed
+  if (sortBy === 'fundingProgress') {
+    projectsWithMetrics.sort((a, b) => {
+      const comparison = a.fundingProgress - b.fundingProgress;
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }
+
+  return projectsWithMetrics;
+}
+
+/**
+ * Get projects sorted by date created (newest first by default).
+ */
+export async function getProjectsByDate(
+  client: GraphQLClient,
+  sortDirection: SortDirection = 'desc'
+): Promise<ProjectWithMetrics[]> {
+  return getProjectsFiltered(client, undefined, 'createdAt', sortDirection);
+}
+
+/**
+ * Get projects sorted by deadline (soonest first by default).
+ */
+export async function getProjectsByDeadline(
+  client: GraphQLClient,
+  sortDirection: SortDirection = 'asc'
+): Promise<ProjectWithMetrics[]> {
+  return getProjectsFiltered(client, undefined, 'deadline', sortDirection);
+}
+
+/**
+ * Get projects sorted by funding goal/threshold (highest first by default).
+ */
+export async function getProjectsByFundingGoal(
+  client: GraphQLClient,
+  sortDirection: SortDirection = 'desc'
+): Promise<ProjectWithMetrics[]> {
+  return getProjectsFiltered(client, undefined, 'threshold', sortDirection);
+}
+
+/**
+ * Get projects sorted by funding progress (most funded first by default).
+ */
+export async function getProjectsByFundingProgress(
+  client: GraphQLClient,
+  sortDirection: SortDirection = 'desc'
+): Promise<ProjectWithMetrics[]> {
+  return getProjectsFiltered(client, undefined, 'fundingProgress', sortDirection);
+}
+
+/**
+ * Get projects sorted by amount raised (highest first by default).
+ */
+export async function getProjectsByAmountRaised(
+  client: GraphQLClient,
+  sortDirection: SortDirection = 'desc'
+): Promise<ProjectWithMetrics[]> {
+  return getProjectsFiltered(client, undefined, 'totalReceived', sortDirection);
 }
 
 /**
