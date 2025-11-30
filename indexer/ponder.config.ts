@@ -13,6 +13,7 @@ import {
 } from "./abis/PubstarterFactoriesAbi";
 import { AssuranceContractAbi } from "./abis/AssuranceContractAbi";
 import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
+import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
 // Delegation ABIs
 import { DelegatableNotesAbi } from "./abis/DelegatableNotesAbi";
@@ -139,6 +140,21 @@ export default createConfig({
             address: MARKETPLACE_FACTORY_ADDRESS,
             event: MarketplaceFactoryAbi[0], // PubstarterERC1155SecondaryMarketCreated
             parameter: "marketplace",
+          })
+        : undefined,
+      startBlock: PUBSTARTER_START_BLOCK,
+    },
+
+    // Dynamically indexed ERC1155 token contracts (created by factory)
+    // Used to track token burns (transfers to zero address)
+    PremintingERC1155: {
+      abi: PremintingERC1155Abi,
+      chain: "hardhat",
+      address: ERC1155_FACTORY_ADDRESS
+        ? factory({
+            address: ERC1155_FACTORY_ADDRESS,
+            event: PremintingERC1155FactoryAbi[0], // PubstarterERC1155ContractCreated
+            parameter: "erc1155",
           })
         : undefined,
       startBlock: PUBSTARTER_START_BLOCK,

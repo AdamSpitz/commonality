@@ -421,3 +421,58 @@ export async function approveERC1155ForMarketplace(
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }
+
+/**
+ * Burn ERC1155 tokens (converting from investor to donor)
+ *
+ * Burns tokens by sending them to the zero address. This is part of the retroactive
+ * funding model where token holders can burn their tokens to demonstrate pure support
+ * (donors) rather than investment intent (investors).
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param tokenAddress - Address of the ERC1155 token contract
+ * @param params - Burn parameters
+ * @param params.tokenIds - Token IDs to burn
+ * @param params.tokenCounts - Quantity to burn for each token ID
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * await burnTokens(clients, tokenAddress, {
+ *   tokenIds: [0n, 1n],
+ *   tokenCounts: [5n, 3n]
+ * });
+ * ```
+ */
+export async function burnTokens(
+  clients: TestClients,
+  tokenAddress: Address,
+  params: {
+    tokenIds: bigint[];
+    tokenCounts: bigint[];
+  }
+): Promise<Hash> {
+  const erc1155BurnableAbi = [
+    {
+      inputs: [
+        { name: 'account', type: 'address' },
+        { name: 'ids', type: 'uint256[]' },
+        { name: 'values', type: 'uint256[]' },
+      ],
+      name: 'burnBatch',
+      outputs: [],
+      stateMutability: 'nonpayable',
+      type: 'function',
+    },
+  ] as const;
+
+  const hash = await clients.walletClient.writeContract({
+    address: tokenAddress,
+    abi: erc1155BurnableAbi,
+    functionName: 'burnBatch',
+    args: [clients.account, params.tokenIds, params.tokenCounts],
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}

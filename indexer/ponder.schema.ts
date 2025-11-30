@@ -37,6 +37,7 @@ export {
   buyOrders,
   trades,
   participantSummaries,
+  tokenBurns,
   projectsRelations,
   projectTokensRelations,
   contributionsRelations,

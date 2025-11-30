@@ -1,0 +1,246 @@
+/**
+ * Pubstarter Multiple Token Types Tests
+ *
+ * Tests purchasing different token types from the same project at different prices.
+ * Covers TODO item B2 from integration-tests-todo.md.
+ */
+
+import assert from 'assert';
+import {
+  createTestClients,
+  createProject,
+  buyProjectTokens,
+  uploadToIPFS,
+  type PubstarterContract,
+  type AssuranceContract,
+} from './actions/index.js';
+import {
+  createGraphQLClient,
+  getProject,
+  getProjectTokens,
+  getProjectContributions,
+  waitForSync,
+  assertNotNull,
+  type GraphQLClient,
+} from './queries/index.js';
+import { parseEther, type Address } from 'viem';
+import {
+  PubstarterAbi,
+  AssuranceContractAbi
+} from './test-abis.js';
+
+
+describe('Pubstarter Multiple Token Types Tests', () => {
+  // Test configuration
+  const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
+  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
+  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+
+  // Hardhat accounts
+  const CREATOR_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
+  const BUYER1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+  const BUYER2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
+
+  let graphqlClient: GraphQLClient;
+
+  before(() => {
+    if (!PUBSTARTER_ADDRESS) {
+      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    }
+    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+  });
+
+  it('should handle multiple token types with different prices', async function() {
+    this.timeout(30000);
+
+    console.log('  Setting up test clients...');
+    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
+    const buyer1Clients = createTestClients(BUYER1_PRIVATE_KEY, RPC_URL);
+    const buyer2Clients = createTestClients(BUYER2_PRIVATE_KEY, RPC_URL);
+
+    console.log(`  Creator: ${creatorClients.account}`);
+    console.log(`  Buyer1: ${buyer1Clients.account}`);
+    console.log(`  Buyer2: ${buyer2Clients.account}`);
+
+    // Create project metadata
+    const projectMetadataCid = await uploadToIPFS({
+      title: 'Multi-Token Project',
+      description: 'A project with multiple token tiers',
+      category: 'technology',
+    });
+
+    // Project parameters
+    const threshold = parseEther('2.0');
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
+
+    // Token parameters: 3 different tiers at different prices
+    const tokenIds = [0n, 1n, 2n];
+    const tokenCounts = [100n, 50n, 10n]; // Bronze, Silver, Gold tiers
+    const tokenPrices = [
+      parseEther('0.01'),  // Bronze: 0.01 ETH
+      parseEther('0.05'),  // Silver: 0.05 ETH
+      parseEther('0.2'),   // Gold: 0.2 ETH
+    ];
+
+    console.log('  Creating project with 3 token types...');
+    const pubstarterContract: PubstarterContract = {
+      address: PUBSTARTER_ADDRESS,
+      abi: PubstarterAbi,
+    };
+
+    const { hash, projectDetails } = await createProject(
+      creatorClients,
+      pubstarterContract,
+      {
+        metadataURI: 'https://example.com/metadata/',
+        contractURI: 'https://example.com/contract',
+        owner: creatorClients.account,
+        recipient: creatorClients.account,
+        threshold,
+        deadline,
+        projectMetadataCid,
+        tokenIds,
+        tokenCounts,
+        tokenPrices,
+      }
+    );
+
+    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+
+    // Wait for indexer to sync
+    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
+    console.log('  Waiting for indexer to sync project creation...');
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Verify all 3 token types are tracked
+    console.log('  Verifying token types in indexer...');
+    const tokens = await getProjectTokens(graphqlClient, projectDetails.assuranceContractAddress);
+
+    assert.strictEqual(tokens.length, 3, 'Should have 3 token types');
+
+    // Sort tokens by tokenId for consistent comparison
+    const sortedTokens = tokens.sort((a, b) =>
+      Number(BigInt(a.tokenId) - BigInt(b.tokenId))
+    );
+
+    assert.strictEqual(sortedTokens[0].price, parseEther('0.01').toString(), 'Bronze token price');
+    assert.strictEqual(sortedTokens[1].price, parseEther('0.05').toString(), 'Silver token price');
+    assert.strictEqual(sortedTokens[2].price, parseEther('0.2').toString(), 'Gold token price');
+
+    console.log('  ✓ All 3 token types verified');
+
+    // Buyer1 purchases Bronze tokens (token 0)
+    console.log('  Buyer1 purchasing 5 Bronze tokens...');
+    const assuranceContract: AssuranceContract = {
+      address: projectDetails.assuranceContractAddress,
+      abi: AssuranceContractAbi,
+    };
+
+    const buy1Hash = await buyProjectTokens(
+      buyer1Clients,
+      assuranceContract,
+      {
+        buyer: buyer1Clients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [0n],
+        tokenCounts: [5n],
+        totalCost: parseEther('0.05'), // 5 * 0.01 ETH
+      }
+    );
+
+    // Wait for indexer
+    const buy1Receipt = await buyer1Clients.publicClient.getTransactionReceipt({ hash: buy1Hash });
+    await waitForSync(graphqlClient, buy1Receipt.blockNumber, 15000);
+
+    // Buyer2 purchases Silver tokens (token 1)
+    console.log('  Buyer2 purchasing 3 Silver tokens...');
+    const buy2Hash = await buyProjectTokens(
+      buyer2Clients,
+      assuranceContract,
+      {
+        buyer: buyer2Clients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [1n],
+        tokenCounts: [3n],
+        totalCost: parseEther('0.15'), // 3 * 0.05 ETH
+      }
+    );
+
+    // Wait for indexer
+    const buy2Receipt = await buyer2Clients.publicClient.getTransactionReceipt({ hash: buy2Hash });
+    await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
+
+    // Buyer1 purchases Gold tokens (token 2) and more Bronze in same transaction
+    console.log('  Buyer1 purchasing 1 Gold + 10 Bronze tokens...');
+    const buy3Hash = await buyProjectTokens(
+      buyer1Clients,
+      assuranceContract,
+      {
+        buyer: buyer1Clients.account,
+        tokenAddress: projectDetails.tokenAddress,
+        tokenIds: [2n, 0n],
+        tokenCounts: [1n, 10n],
+        totalCost: parseEther('0.3'), // (1 * 0.2) + (10 * 0.01) = 0.3 ETH
+      }
+    );
+
+    // Wait for indexer
+    const buy3Receipt = await buyer1Clients.publicClient.getTransactionReceipt({ hash: buy3Hash });
+    await waitForSync(graphqlClient, buy3Receipt.blockNumber, 15000);
+
+    // Verify project totals
+    console.log('  Verifying project funding totals...');
+    const updatedProject = assertNotNull(
+      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
+      'Updated project'
+    );
+
+    const expectedTotal = parseEther('0.5'); // 0.05 + 0.15 + 0.3
+    assert.strictEqual(
+      BigInt(updatedProject.totalReceived),
+      expectedTotal,
+      'Total received should match sum of all purchases'
+    );
+    console.log(`  ✓ Total received: ${updatedProject.totalReceived} wei`);
+
+    // Verify contributions were tracked correctly
+    console.log('  Verifying contribution records...');
+    const contributions = await getProjectContributions(
+      graphqlClient,
+      projectDetails.assuranceContractAddress
+    );
+
+    assert.strictEqual(contributions.length, 3, 'Should have 3 contribution records');
+
+    // Verify first contribution (Buyer1, Bronze)
+    const contrib1 = contributions.find(c =>
+      c.participant.toLowerCase() === buyer1Clients.account.toLowerCase() &&
+      c.tokenIds === JSON.stringify(['0'])
+    );
+    assert.ok(contrib1, 'First Buyer1 contribution not found');
+    assert.strictEqual(contrib1.totalCost, parseEther('0.05').toString(), 'First contribution cost');
+    assert.strictEqual(contrib1.tokenCounts, JSON.stringify(['5']), 'First contribution counts');
+
+    // Verify second contribution (Buyer2, Silver)
+    const contrib2 = contributions.find(c =>
+      c.participant.toLowerCase() === buyer2Clients.account.toLowerCase()
+    );
+    assert.ok(contrib2, 'Buyer2 contribution not found');
+    assert.strictEqual(contrib2.totalCost, parseEther('0.15').toString(), 'Second contribution cost');
+    assert.strictEqual(contrib2.tokenIds, JSON.stringify(['1']), 'Second contribution token IDs');
+    assert.strictEqual(contrib2.tokenCounts, JSON.stringify(['3']), 'Second contribution counts');
+
+    // Verify third contribution (Buyer1, Gold + Bronze)
+    const contrib3 = contributions.find(c =>
+      c.participant.toLowerCase() === buyer1Clients.account.toLowerCase() &&
+      c.tokenIds.includes('2')
+    );
+    assert.ok(contrib3, 'Second Buyer1 contribution not found');
+    assert.strictEqual(contrib3.totalCost, parseEther('0.3').toString(), 'Third contribution cost');
+    assert.strictEqual(contrib3.tokenIds, JSON.stringify(['2', '0']), 'Third contribution token IDs');
+    assert.strictEqual(contrib3.tokenCounts, JSON.stringify(['1', '10']), 'Third contribution counts');
+
+    console.log('  ✓ All contribution records verified');
+    console.log('  Test completed successfully!');
+  });
+});

@@ -30,26 +30,7 @@ Missing tests:
 
 ## B. Pubstarter Tests
 
-
-### B2. Multiple Token Types
-**Priority: Medium**
-
-Missing tests:
-- Buy different token types from same project
-- Different prices per token type
-- Track token holdings by type
-
-**Rationale:** Projects use ERC-1155 with multiple token types, but we don't thoroughly test this.
-
-### B3. Burning Tokens (Donors vs Investors)
-**Priority: Medium**
-
-Missing actions:
-- User burns tokens (converting from investor to donor)
-- Verify burned token tracking
-- Display donor vs investor distinction
-
-**Rationale:** The retroactive funding model distinguishes donors from investors. Need to test this.
+(All basic tests completed)
 
 ---
 
@@ -74,15 +55,6 @@ Missing tests:
 - Verify merged note properties
 
 **Rationale:** Mentioned in queries-and-actions.md as a supported action.
-
-### C4. Notes by Statement/Cause
-**Priority: Medium**
-
-Missing queries:
-- View available notes for a specific statement/cause
-- Filter notes by intended statement
-
-**Rationale:** Users should see funding available for their causes.
 
 ---
 

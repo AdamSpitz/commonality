@@ -19,6 +19,7 @@ import {
   buyOrders,
   trades,
   participantSummaries,
+  tokenBurns,
 } from "ponder:schema";
 
 // ============================================================================
@@ -566,3 +567,74 @@ async function updateParticipantSummary(
     });
   }
 }
+
+// ============================================================================
+// ERC1155 TOKEN BURN EVENT HANDLERS
+// ============================================================================
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+/**
+ * Handle single token burn (transfer to zero address)
+ * Users burn tokens to convert from "investor" to "donor"
+ */
+ponder.on("PremintingERC1155:TransferSingle", async ({ event, context }) => {
+  const { to, from, id, value } = event.args;
+
+  // Only track burns (transfers to zero address)
+  if (to.toLowerCase() !== ZERO_ADDRESS) {
+    return;
+  }
+
+  const erc1155Address = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const blockNumber = BigInt(event.block.number);
+  const transactionHash = event.transaction.hash;
+
+  // Create unique ID
+  const burnId = `${transactionHash}-${event.log.logIndex}`;
+
+  // Insert burn record
+  await context.db.insert(tokenBurns).values({
+    id: burnId,
+    erc1155Address,
+    burner: from,
+    tokenIds: JSON.stringify([id.toString()]),
+    tokenCounts: JSON.stringify([value.toString()]),
+    createdAt: timestamp,
+    blockNumber,
+    transactionHash,
+  });
+});
+
+/**
+ * Handle batch token burn (transfer to zero address)
+ */
+ponder.on("PremintingERC1155:TransferBatch", async ({ event, context }) => {
+  const { to, from, ids, values } = event.args;
+
+  // Only track burns (transfers to zero address)
+  if (to.toLowerCase() !== ZERO_ADDRESS) {
+    return;
+  }
+
+  const erc1155Address = event.log.address;
+  const timestamp = BigInt(event.block.timestamp);
+  const blockNumber = BigInt(event.block.number);
+  const transactionHash = event.transaction.hash;
+
+  // Create unique ID
+  const burnId = `${transactionHash}-${event.log.logIndex}`;
+
+  // Insert burn record
+  await context.db.insert(tokenBurns).values({
+    id: burnId,
+    erc1155Address,
+    burner: from,
+    tokenIds: JSON.stringify(ids.map((id) => id.toString())),
+    tokenCounts: JSON.stringify(values.map((v) => v.toString())),
+    createdAt: timestamp,
+    blockNumber,
+    transactionHash,
+  });
+});

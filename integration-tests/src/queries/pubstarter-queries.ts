@@ -19,11 +19,11 @@ export interface Project {
 }
 
 export interface ProjectToken {
-  id: string;
-  projectId: string;
+  projectAddress: string;
+  erc1155Address: string;
   tokenId: string;
   price: string;
-  totalSupply: string;
+  createdAt: string;
 }
 
 export interface Contribution {
@@ -105,19 +105,19 @@ export async function getProjectTokens(
   const result = await query<{ projectTokenss: { items: ProjectToken[] } }>(
     client,
     `
-      query GetProjectTokens($projectId: String!) {
-        projectTokenss(where: { projectId: $projectId }) {
+      query GetProjectTokens($projectAddress: String!) {
+        projectTokenss(where: { projectAddress: $projectAddress }) {
           items {
-            id
-            projectId
+            projectAddress
+            erc1155Address
             tokenId
             price
-            totalSupply
+            createdAt
           }
         }
       }
     `,
-    { projectId: assuranceContractAddress.toLowerCase() }
+    { projectAddress: assuranceContractAddress.toLowerCase() }
   );
 
   return result.projectTokenss?.items || [];
@@ -230,6 +230,17 @@ export interface Trade {
   count: string;
   pricePerToken: string;
   totalPrice: string;
+  createdAt: string;
+  blockNumber: string;
+  transactionHash: string;
+}
+
+export interface TokenBurn {
+  id: string;
+  erc1155Address: string;
+  burner: string;
+  tokenIds: string; // JSON array
+  tokenCounts: string; // JSON array
   createdAt: string;
   blockNumber: string;
   transactionHash: string;
@@ -464,4 +475,108 @@ export async function getTokenTrades(
   );
 
   return result.tradess?.items || [];
+}
+
+// ============================================================================
+// Token Burns Queries
+// ============================================================================
+
+/**
+ * Get all token burns for a specific ERC1155 contract
+ */
+export async function getTokenBurns(
+  client: GraphQLClient,
+  erc1155Address: string
+): Promise<TokenBurn[]> {
+  const result = await query<{ tokenBurnss: { items: TokenBurn[] } }>(
+    client,
+    `
+      query GetTokenBurns($erc1155Address: String!) {
+        tokenBurnss(where: { erc1155Address: $erc1155Address }) {
+          items {
+            id
+            erc1155Address
+            burner
+            tokenIds
+            tokenCounts
+            createdAt
+            blockNumber
+            transactionHash
+          }
+        }
+      }
+    `,
+    { erc1155Address: erc1155Address.toLowerCase() }
+  );
+
+  return result.tokenBurnss?.items || [];
+}
+
+/**
+ * Get token burns by a specific user
+ */
+export async function getUserTokenBurns(
+  client: GraphQLClient,
+  userAddress: string
+): Promise<TokenBurn[]> {
+  const result = await query<{ tokenBurnss: { items: TokenBurn[] } }>(
+    client,
+    `
+      query GetUserTokenBurns($burner: String!) {
+        tokenBurnss(where: { burner: $burner }) {
+          items {
+            id
+            erc1155Address
+            burner
+            tokenIds
+            tokenCounts
+            createdAt
+            blockNumber
+            transactionHash
+          }
+        }
+      }
+    `,
+    { burner: userAddress.toLowerCase() }
+  );
+
+  return result.tokenBurnss?.items || [];
+}
+
+/**
+ * Get token burns for a specific ERC1155 contract by a specific user
+ */
+export async function getTokenBurnsByUser(
+  client: GraphQLClient,
+  erc1155Address: string,
+  userAddress: string
+): Promise<TokenBurn[]> {
+  const result = await query<{ tokenBurnss: { items: TokenBurn[] } }>(
+    client,
+    `
+      query GetTokenBurnsByUser($erc1155Address: String!, $burner: String!) {
+        tokenBurnss(where: {
+          erc1155Address: $erc1155Address,
+          burner: $burner
+        }) {
+          items {
+            id
+            erc1155Address
+            burner
+            tokenIds
+            tokenCounts
+            createdAt
+            blockNumber
+            transactionHash
+          }
+        }
+      }
+    `,
+    {
+      erc1155Address: erc1155Address.toLowerCase(),
+      burner: userAddress.toLowerCase()
+    }
+  );
+
+  return result.tokenBurnss?.items || [];
 }

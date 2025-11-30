@@ -38,6 +38,7 @@ export {
   fulfillBuyOrder,
   cancelBuyOrder,
   approveERC1155ForMarketplace,
+  burnTokens,
   type PubstarterContract,
   type AssuranceContract,
   type SecondaryMarketContract,

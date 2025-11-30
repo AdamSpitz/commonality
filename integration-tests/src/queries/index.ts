@@ -45,12 +45,16 @@ export {
   getActiveBuyOrders,
   getMarketplaceTrades,
   getTokenTrades,
+  getTokenBurns,
+  getUserTokenBurns,
+  getTokenBurnsByUser,
   type Project,
   type ProjectToken,
   type Contribution,
   type SaleListing,
   type BuyOrder,
   type Trade,
+  type TokenBurn,
 } from './pubstarter-queries.js';
 
 // Delegation queries

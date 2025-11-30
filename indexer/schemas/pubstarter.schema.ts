@@ -278,6 +278,38 @@ export const participantSummaries = onchainTable(
   })
 );
 
+/**
+ * Token burns - tracks when users burn their project tokens
+ * Created when TransferBatch or TransferSingle events show transfer to zero address
+ * Burning tokens converts a user from "investor" to "donor" in the retroactive funding model
+ */
+export const tokenBurns = onchainTable(
+  "pubstarter_token_burns",
+  (t) => ({
+    // Unique ID (transaction hash + log index)
+    id: t.text().primaryKey(),
+    // ERC1155 token contract
+    erc1155Address: t.hex().notNull(),
+    // User who burned tokens
+    burner: t.hex().notNull(),
+    // Token IDs and counts (stored as JSON arrays)
+    tokenIds: t.text().notNull(), // JSON array of bigints
+    tokenCounts: t.text().notNull(), // JSON array of bigints
+    // Timestamps
+    createdAt: t.bigint().notNull(),
+    blockNumber: t.bigint().notNull(),
+    transactionHash: t.hex().notNull(),
+  }),
+  (table) => ({
+    // Index for finding burns by ERC1155 contract
+    erc1155Idx: index().on(table.erc1155Address),
+    // Index for finding burns by user
+    burnerIdx: index().on(table.burner),
+    // Compound index for ERC1155 + burner
+    erc1155BurnerIdx: index().on(table.erc1155Address, table.burner),
+  })
+);
+
 // Pubstarter Relations
 
 export const projectsRelations = relations(projects, ({ many }) => ({
