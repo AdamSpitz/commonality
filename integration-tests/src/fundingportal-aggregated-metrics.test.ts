@@ -19,6 +19,7 @@ import {
   buyProjectTokens,
   attestProjectAlignment,
   depositETH,
+  cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
   type PubstarterContract,
@@ -86,8 +87,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const s2Content = { text: 'We should fund AI safety research' };
     const s1Cid = await uploadToIPFS(s1Content);
     const s2Cid = await uploadToIPFS(s2Content);
-    const s1Id = keccak256(toBytes(s1Cid));
-    const s2Id = keccak256(toBytes(s2Cid));
+    const s1Id = cidToBytes32(s1Cid);
+    const s2Id = cidToBytes32(s2Cid);
 
     console.log(`  S1 (specific): ${s1Id}`);
     console.log(`  S2 (broader): ${s2Id}`);
@@ -236,7 +237,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const metrics = await getTotalFundingForCause(
       graphqlClient,
       s2Id,
-      attesterClients.account // Trust this attester for implications
+      attesterClients.account, // Trust this attester for implications
+      attesterClients.account  // Trust this attester for alignments
     );
 
     console.log(`  Total raised: ${metrics.totalRaisedAcrossProjects}`);
@@ -266,7 +268,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Create a statement for the cause
     const causeContent = { text: 'We should fund climate change research' };
     const causeCid = await uploadToIPFS(causeContent);
-    const causeId = keccak256(toBytes(causeCid));
+    const causeId = cidToBytes32(causeCid);
 
     console.log(`  Cause: ${causeId}`);
 
@@ -277,23 +279,21 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     };
 
     console.log('  Depositing notes...');
-    const note1Hash = await depositETH(
+    const { hash: note1Hash } = await depositETH(
       donor1Clients,
       delegatableNotesContract,
       {
         amount: parseEther('1.0'),
         intendedStatementId: causeId,
-        tokenType: TokenType.ETH,
       }
     );
 
-    const note2Hash = await depositETH(
+    const { hash: note2Hash } = await depositETH(
       donor2Clients,
       delegatableNotesContract,
       {
         amount: parseEther('0.5'),
         intendedStatementId: causeId,
-        tokenType: TokenType.ETH,
       }
     );
 
@@ -338,8 +338,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const s2Content = { text: 'Fund medical research' };
     const s1Cid = await uploadToIPFS(s1Content);
     const s2Cid = await uploadToIPFS(s2Content);
-    const s1Id = keccak256(toBytes(s1Cid));
-    const s2Id = keccak256(toBytes(s2Cid));
+    const s1Id = cidToBytes32(s1Cid);
+    const s2Id = cidToBytes32(s2Cid);
 
     // Attest implication
     const implicationsContract: ImplicationsContract = {
@@ -427,7 +427,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const projects = await getAllAlignedProjectsForCause(
       graphqlClient,
       s2Id,
-      attesterClients.account
+      attesterClients.account, // Trust this attester for implications
+      attesterClients.account  // Trust this attester for alignments
     );
 
     console.log(`  Found ${projects.length} projects`);

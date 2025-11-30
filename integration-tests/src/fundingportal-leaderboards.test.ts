@@ -15,6 +15,7 @@ import {
   createProject,
   buyProjectTokens,
   attestProjectAlignment,
+  cidToBytes32,
   type ImplicationsContract,
   type PubstarterContract,
   type AssuranceContract,
@@ -75,7 +76,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     // Create statement for the cause
     const causeContent = { text: 'Support renewable energy projects' };
     const causeCid = await uploadToIPFS(causeContent);
-    const causeId = keccak256(toBytes(causeCid));
+    const causeId = cidToBytes32(causeCid);
 
     console.log(`  Cause: ${causeId}`);
 
@@ -218,7 +219,8 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       graphqlClient,
       causeId,
       10, // Get top 10
-      attesterClients.account
+      attesterClients.account, // Trust this attester for implications
+      attesterClients.account  // Trust this attester for alignments
     );
 
     console.log(`  Found ${topContributors.length} contributors`);
@@ -276,7 +278,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     // Create cause
     const causeContent = { text: 'Support education initiatives' };
     const causeCid = await uploadToIPFS(causeContent);
-    const causeId = keccak256(toBytes(causeCid));
+    const causeId = cidToBytes32(causeCid);
 
     // Create project
     const pubstarterContract: PubstarterContract = {
@@ -362,7 +364,8 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       graphqlClient,
       causeId,
       contributor2Clients.account,
-      attesterClients.account
+      attesterClients.account, // Trust this attester for implications
+      attesterClients.account  // Trust this attester for alignments
     );
 
     assert.ok(rankResult, 'Rank result should exist');
@@ -380,7 +383,8 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       graphqlClient,
       causeId,
       attesterClients.account, // Attester didn't contribute
-      attesterClients.account
+      attesterClients.account, // Trust this attester for implications
+      attesterClients.account  // Trust this attester for alignments
     );
 
     assert.ok(nonContributorRank, 'Non-contributor result should exist');

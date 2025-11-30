@@ -329,7 +329,7 @@ export async function getTotalFundingForCause(
           }
         }
       `,
-      { id: projectAddress }
+      { id: projectAddress.toLowerCase() }
     );
 
     if (projectResult.projects) {
@@ -437,7 +437,7 @@ export async function getAllAlignedProjectsForCause(
           }
         }
       `,
-      { id: projectAddress }
+      { id: projectAddress.toLowerCase() }
     );
 
     if (projectResult.projects) {
