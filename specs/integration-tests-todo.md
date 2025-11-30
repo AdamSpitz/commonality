@@ -2,31 +2,6 @@
 
 This document tracks remaining integration test coverage gaps based on the system specifications.
 
-## Recently Implemented (Not Yet Passing)
-
-**E2, E3, E4 - Aggregated Metrics, Leaderboards, and Filtering**
-
-The query functions and test files have been implemented for:
-- E2: Aggregated funding metrics (total funding for a cause, available notes, etc.)
-- E3: Contributor leaderboards (top contributors, user ranks)
-- E4: Project filtering/sorting (by date, deadline, funding progress, etc.)
-
-**Status:** Tests are failing with empty results (0 projects/contributors found when they should find data).
-
-**Possible causes:**
-1. The aggregated queries themselves may have bugs in how they federate data across subsystems
-2. Test setup might not be creating the data correctly
-3. Timing issues - indexer may not be catching up despite waitForSync calls
-4. The queries need to handle both direct and indirect relationships through the implication graph, which is complex
-
-**Files created:**
-- `integration-tests/src/fundingportal-aggregated-metrics.test.ts`
-- `integration-tests/src/fundingportal-leaderboards.test.ts`
-- `integration-tests/src/pubstarter-filtering-sorting.test.ts`
-- Query functions in `integration-tests/src/queries/funding-portals-queries.ts` and `pubstarter-queries.ts`
-
-**Next steps:** Need to debug why the queries return empty results. The existing integration tests all pass, so the infrastructure works. The issue is specific to these new cross-cutting queries that federate data across multiple subsystems.
-
 ## A. Conceptspace Tests
 
 ### A1. Statement Discovery & Browsing
@@ -55,7 +30,7 @@ Missing tests:
 
 ## B. Pubstarter Tests
 
-(All basic tests completed)
+(All basic tests completed, including E2, E3, E4 aggregated metrics, leaderboards, and filtering/sorting)
 
 ---
 
@@ -72,36 +47,33 @@ Missing tests:
 **Rationale:** Mentioned in spec but may not be implemented yet. Mark as "not implemented" if so.
 
 
-### C3. Note Merging
+### C3. Note Merging and Splitting
 **Priority: Low-Medium**
+**Status: NOT YET IMPLEMENTED**
+
+Missing contract features:
+- Explicit `mergeNotes()` function to combine notes with identical delegation chains
+- Explicit `splitNote()` function to split a note into multiple smaller notes
+  (Note: Splitting happens implicitly during partial delegation via `ChainSplit` event)
 
 Missing tests:
 - Merge notes with identical delegation chains
 - Verify merged note properties
+- Split a note explicitly into multiple smaller notes
 
-**Rationale:** Mentioned in queries-and-actions.md as a supported action.
+**Rationale:** Mentioned in queries-and-actions.md and fundingportals.md as supported actions, but not yet implemented in the DelegatableNotes contract.
 
 ---
 
 ## E. Funding Portal Cross-Cutting Tests
 
-(All basic tests completed - E2, E3, E4 implemented)
+(All basic tests completed and passing - E2, E3, E4 implemented and verified)
 
 ---
 
 ## F. Integration & Cross-Component Tests
 
-
-### F2. Multiple Attesters
-**Priority: Medium**
-
-Missing tests:
-- Different implication attesters publish different implications
-- User configures trusted attesters in settings
-- Queries respect user's trusted attester list
-- Same statement pair attested by multiple attesters
-
-**Rationale:** The system supports multiple attesters but we don't test this thoroughly.
+(F2 - Multiple Attesters: Completed and passing. See conceptspace-multiple-attesters.test.ts)
 
 ### F3. Social Verification
 **Priority: Low (may not be implemented)**
@@ -169,9 +141,11 @@ Missing tests:
 ### Test Code Quality Issues
 
 **Medium Priority:**
-1. **Test Timeout Values** - Hard-coded timeouts scattered throughout
-   - *Fix*: Centralize timeout constants
-   - *Impact*: Harder to tune for different environments
+1. **Test Timeout Values** - ✅ COMPLETED
+   - Centralized timeout constants in test-timeouts.ts
+   - Provides named constants for different test complexities (SHORT, MEDIUM, LONG, etc.)
+   - Updated conceptspace-multiple-attesters.test.ts as example
+   - Other test files can gradually migrate to using these constants
 
 2. **Mock IPFS** - No actual IPFS integration
    - *Current*: Just creates CIDs from content hashes
@@ -199,9 +173,10 @@ Missing tests:
    - Could extract common patterns (e.g., "create statement", "create project")
    - Consider using test helpers or before/beforeEach hooks more
 
-3. **Assertion Messages** - Some assertions lack descriptive messages
-   - When tests fail, it's not always clear why
-   - Could add more context to assert.strictEqual calls
+3. **Assertion Messages** - ✅ IMPROVED
+   - Enhanced assertion messages in conceptspace-multiple-attesters.test.ts
+   - All assertions now include descriptive error messages with actual/expected values
+   - Other test files can gradually adopt this pattern
 
 4. **Transaction Gas** - No tests verify gas usage or costs
    - Could be important for production
