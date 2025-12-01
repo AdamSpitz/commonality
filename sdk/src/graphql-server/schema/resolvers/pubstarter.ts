@@ -49,9 +49,7 @@ export const pubstarterResolvers = {
       return getUserContributions(client, userAddress);
     },
 
-    saleListing: (_: any, { id }: { id: string }, { client }: { client: GraphQLClient }) => {
-      // Parse the composite ID to extract marketplaceAddress and listingId
-      const [marketplaceAddress, listingId] = id.split(':');
+    saleListing: (_: any, { marketplaceAddress, listingId }: { marketplaceAddress: string; listingId: string }, { client }: { client: GraphQLClient }) => {
       return getSaleListing(client, marketplaceAddress, BigInt(listingId));
     },
 
@@ -61,9 +59,7 @@ export const pubstarterResolvers = {
       return getActiveSaleListings(client, address);
     },
 
-    buyOrder: (_: any, { id }: { id: string }, { client }: { client: GraphQLClient }) => {
-      // Parse the composite ID to extract marketplaceAddress and orderId
-      const [marketplaceAddress, orderId] = id.split(':');
+    buyOrder: (_: any, { marketplaceAddress, orderId }: { marketplaceAddress: string; orderId: string }, { client }: { client: GraphQLClient }) => {
       return getBuyOrder(client, marketplaceAddress, BigInt(orderId));
     },
 

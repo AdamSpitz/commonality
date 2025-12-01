@@ -172,11 +172,9 @@ export const typeDefs = `#graphql
   }
 
   type DelegationChainLink {
-    delegator: Address!
-    delegatee: Address!
-    noteId: ID!
-    timestamp: String!
-    blockNumber: String!
+    address: Address!
+    position: Int! # 0 = root, higher numbers = closer to leaf
+    createdAt: String!
   }
 
   # ============================================================================
@@ -285,9 +283,9 @@ export const typeDefs = `#graphql
     projectTokens(projectAddress: Address!): [ProjectToken!]!
     projectContributions(projectAddress: Address!): [Contribution!]!
     userContributions(userAddress: Address!): [Contribution!]!
-    saleListing(id: ID!): SaleListing
+    saleListing(marketplaceAddress: Address!, listingId: String!): SaleListing
     activeSaleListings: [SaleListing!]!
-    buyOrder(id: ID!): BuyOrder
+    buyOrder(marketplaceAddress: Address!, orderId: String!): BuyOrder
     activeBuyOrders: [BuyOrder!]!
     marketplaceTrades: [Trade!]!
     tokenTrades(projectAddress: Address!, tokenId: String!): [Trade!]!
@@ -310,7 +308,7 @@ export const typeDefs = `#graphql
     note(id: ID!): Note
     notesByOwner(ownerAddress: Address!): [Note!]!
     notesByRoot(rootAddress: Address!): [Note!]!
-    delegationChain(fromAddress: Address!, toAddress: Address!): [DelegationChainLink!]!
+    delegationChain(noteId: ID!): [DelegationChainLink!]!
     notesByStatement(statementId: ID!): [Note!]!
 
     # ========================================================================

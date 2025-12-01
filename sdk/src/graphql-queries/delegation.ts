@@ -28,11 +28,9 @@ export interface Note {
 }
 
 export interface DelegationChainLink {
-  delegator: string;
-  delegatee: string;
-  noteId: string;
-  timestamp: string;
-  blockNumber: string;
+  address: string;
+  position: number; // 0 = root, higher numbers = closer to leaf
+  createdAt: string;
 }
 
 /**
@@ -141,27 +139,24 @@ export async function getNotesByRoot(
 }
 
 /**
- * Get the full delegation chain between two addresses
+ * Get the delegation chain for a specific note
  */
 export async function getDelegationChain(
   executor: GraphQLExecutor,
-  fromAddress: string,
-  toAddress: string
+  noteId: string
 ): Promise<DelegationChainLink[]> {
   const result = await executeQuery<{ delegationChain: DelegationChainLink[] }>(
     executor,
     `
-      query GetDelegationChain($fromAddress: Address!, $toAddress: Address!) {
-        delegationChain(fromAddress: $fromAddress, toAddress: $toAddress) {
-          delegator
-          delegatee
-          noteId
-          timestamp
-          blockNumber
+      query GetDelegationChain($noteId: ID!) {
+        delegationChain(noteId: $noteId) {
+          address
+          position
+          createdAt
         }
       }
     `,
-    { fromAddress, toAddress }
+    { noteId }
   );
 
   return result.delegationChain || [];

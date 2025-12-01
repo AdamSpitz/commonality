@@ -248,24 +248,28 @@ export async function getUserContributions(
  */
 export async function getSaleListing(
   executor: GraphQLExecutor,
-  id: string
+  marketplaceAddress: string,
+  listingId: bigint
 ): Promise<SaleListing | null> {
   const result = await executeQuery<{ saleListing: SaleListing | null }>(
     executor,
     `
-      query GetSaleListing($id: ID!) {
-        saleListing(id: $id) {
-          id
-          projectAddress
-          tokenId
+      query GetSaleListing($marketplaceAddress: Address!, $listingId: String!) {
+        saleListing(marketplaceAddress: $marketplaceAddress, listingId: $listingId) {
+          marketplaceAddress
+          listingId
           seller
-          amount
+          tokenId
+          originalCount
+          remainingCount
           pricePerToken
+          status
           createdAt
+          updatedAt
         }
       }
     `,
-    { id }
+    { marketplaceAddress, listingId: listingId.toString() }
   );
 
   return result.saleListing;
@@ -303,24 +307,28 @@ export async function getActiveSaleListings(
  */
 export async function getBuyOrder(
   executor: GraphQLExecutor,
-  id: string
+  marketplaceAddress: string,
+  orderId: bigint
 ): Promise<BuyOrder | null> {
   const result = await executeQuery<{ buyOrder: BuyOrder | null }>(
     executor,
     `
-      query GetBuyOrder($id: ID!) {
-        buyOrder(id: $id) {
-          id
-          projectAddress
-          tokenId
+      query GetBuyOrder($marketplaceAddress: Address!, $orderId: String!) {
+        buyOrder(marketplaceAddress: $marketplaceAddress, orderId: $orderId) {
+          marketplaceAddress
+          orderId
           buyer
-          amount
+          tokenId
+          originalCount
+          remainingCount
           pricePerToken
+          status
           createdAt
+          updatedAt
         }
       }
     `,
-    { id }
+    { marketplaceAddress, orderId: orderId.toString() }
   );
 
   return result.buyOrder;

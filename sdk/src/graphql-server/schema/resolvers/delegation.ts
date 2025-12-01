@@ -26,12 +26,8 @@ export const delegationResolvers = {
       return getNotesByRoot(client, rootAddress);
     },
 
-    delegationChain: (_: any, { fromAddress, toAddress }: { fromAddress: string; toAddress: string }, { client }: { client: GraphQLClient }) => {
-      // The underlying function expects a noteId, but the GraphQL schema expects fromAddress/toAddress
-      // This is a design mismatch that needs to be resolved.
-      // For now, we'll need to find the note that connects these addresses first
-      // TODO: Implement proper delegation chain lookup by addresses
-      throw new Error('delegationChain resolver needs to be implemented to handle fromAddress/toAddress lookup');
+    delegationChain: (_: any, { noteId }: { noteId: string }, { client }: { client: GraphQLClient }) => {
+      return getDelegationChain(client, noteId);
     },
 
     notesByStatement: (_: any, { statementId }: { statementId: string }, { client }: { client: GraphQLClient }) => {
