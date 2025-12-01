@@ -10,5 +10,5 @@ typechain-types
 .ponder
 cache
 artifacts/build-info
-generative-tests/*.json
-!generative-tests/universe.json
+fake-data-generation/*.json
+!fake-data-generation/universe.json

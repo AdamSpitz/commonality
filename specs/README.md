@@ -286,7 +286,7 @@ See [integration-tests.md](integration-tests.md).
 
 #### Generative testing
 
-See [generative-testing-plan.md](generative-testing-plan.md) for the overall plan for generative testing (universe generation, user simulation, multiple attester types, test scenarios, invariant validation, metrics tracking). For the actual implementation, see [../hardhat/generative-tests/README.md](../hardhat/generative-tests/README.md).
+See [generative-testing-plan.md](generative-testing-plan.md) for the overall plan for generative testing (universe generation, user simulation, multiple attester types, test scenarios, invariant validation, metrics tracking). For the actual implementation, see [../hardhat/fake-data-generation/README.md](../hardhat/fake-data-generation/README.md).
 
 
 ## A bit more philosophizing

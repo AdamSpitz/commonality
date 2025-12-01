@@ -21,20 +21,20 @@ The generative testing suite consists of:
 cd /home/adam/Projects/commonality/hardhat
 
 # Run the simulation (will auto-generate data if needed)
-node generative-tests/runSimulation.js [numUsers] [numRounds]
+node fake-data-generation/runSimulation.js [numUsers] [numRounds]
 
 # Example: 50 users, 5 rounds
-node generative-tests/runSimulation.js 50 5
+node fake-data-generation/runSimulation.js 50 5
 ```
 
 ### Generate data separately:
 
 ```bash
 # Generate users
-node generative-tests/generateUsers.js 50
+node fake-data-generation/generateUsers.js 50
 
 # Generate statements
-node generative-tests/generateStatements.js
+node fake-data-generation/generateStatements.js
 ```
 
 ## Generated Files

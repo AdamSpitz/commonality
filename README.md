@@ -9,7 +9,7 @@ The way we do development on this project is that we write specs in English, and
 
 **Development:**
 - [hardhat/README.md](hardhat/README.md) - Smart contracts
-- [hardhat/generative-tests/README.md](hardhat/generative-tests/README.md) - Generative testing system
+- [hardhat/fake-data-generation/README.md](hardhat/fake-data-generation/README.md) - Generative testing system
 - [indexer/README.md](indexer/README.md) - Ponder indexer setup
 
 **Deployment:**
@@ -28,7 +28,7 @@ Commands you can run:
     npm run build
     npm run test
 
-See [hardhat/README.md](hardhat/README.md) for details on the smart contracts and [hardhat/generative-tests/README.md](hardhat/generative-tests/README.md) for generative testing.
+See [hardhat/README.md](hardhat/README.md) for details on the smart contracts and [hardhat/fake-data-generation/README.md](hardhat/fake-data-generation/README.md) for generative testing.
 
 ### Indexer
 

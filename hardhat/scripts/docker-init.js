@@ -10,7 +10,7 @@
 import hre from 'hardhat';
 import fs from 'fs/promises';
 import { join } from 'path';
-import { SimulationRunner } from '../generative-tests/runSimulation.js';
+import { SimulationRunner } from '../fake-data-generation/runSimulation.js';
 
 const { ethers } = hre;
 

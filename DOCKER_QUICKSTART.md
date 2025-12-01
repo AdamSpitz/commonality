@@ -43,9 +43,9 @@ commonality-init | === Initialization Complete ===
 # Open a new terminal (while docker-compose is running)
 
 # Copy the generated data files
-docker cp commonality-init:/app/generative-tests/users.json ./
-docker cp commonality-init:/app/generative-tests/statements.json ./
-docker cp commonality-init:/app/generative-tests/actions.json ./
+docker cp commonality-init:/app/fake-data-generation/users.json ./
+docker cp commonality-init:/app/fake-data-generation/statements.json ./
+docker cp commonality-init:/app/fake-data-generation/actions.json ./
 docker cp commonality-init:/app/deployment-output/addresses.json ./
 
 # View them
