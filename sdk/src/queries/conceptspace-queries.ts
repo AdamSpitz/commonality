@@ -12,6 +12,11 @@ export interface Statement {
   id: string;
   believerCount: number;
   disbelieverCount: number;
+  cid?: string;
+  statementType?: string;
+  title?: string;
+  excerpt?: string;
+  createdAt?: string;
 }
 
 /**
@@ -29,6 +34,11 @@ export async function getStatement(
           id
           believerCount
           disbelieverCount
+          cid
+          statementType
+          title
+          excerpt
+          createdAt
         }
       }
     `,

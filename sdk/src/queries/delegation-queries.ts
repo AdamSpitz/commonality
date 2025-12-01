@@ -21,6 +21,7 @@ export interface Note {
   active: boolean;
   parentNoteId?: string;
   createdAt: string;
+  createdAtBlock: string;
   updatedAt: string;
 }
 
@@ -54,6 +55,7 @@ export async function getNote(
           active
           parentNoteId
           createdAt
+          createdAtBlock
           updatedAt
         }
       }
@@ -89,6 +91,7 @@ export async function getNotesByOwner(
             active
             parentNoteId
             createdAt
+            createdAtBlock
             updatedAt
           }
         }
@@ -125,6 +128,7 @@ export async function getNotesByRoot(
             active
             parentNoteId
             createdAt
+            createdAtBlock
             updatedAt
           }
         }

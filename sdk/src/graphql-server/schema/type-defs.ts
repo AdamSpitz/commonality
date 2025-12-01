@@ -19,7 +19,7 @@ export const typeDefs = `#graphql
     statementType: String
     title: String
     excerpt: String
-    createdAt: String!
+    createdAt: String
   }
 
   type UserBelief {
@@ -43,13 +43,13 @@ export const typeDefs = `#graphql
 
   type StatementListItem {
     id: ID!
-    cid: String!
-    statementType: String!
-    title: String!
-    excerpt: String!
+    cid: String
+    statementType: String
+    title: String
+    excerpt: String
     believerCount: Int!
     disbelieverCount: Int!
-    createdAt: String!
+    createdAt: String
   }
 
   # ============================================================================
@@ -64,67 +64,83 @@ export const typeDefs = `#graphql
     cid: String
     title: String
     description: String
-    createdAt: String!
+    createdAt: String
   }
 
   type ProjectToken {
-    id: ID!
-    projectId: ID!
+    projectAddress: Address!
+    erc1155Address: Address!
     tokenId: String!
-    supply: String!
     price: String!
-    createdAt: String!
+    createdAt: String
   }
 
   type Contribution {
     id: ID!
     projectAddress: Address!
     participant: Address!
+    erc1155Address: Address
+    tokenIds: String
+    tokenCounts: String
+    totalCost: String
     amount: String!
     timestamp: String!
+    createdAt: String
     blockNumber: String!
+    transactionHash: String
   }
 
   type SaleListing {
-    id: ID!
-    projectAddress: Address!
-    tokenId: String!
+    marketplaceAddress: Address!
+    listingId: String!
     seller: Address!
-    amount: String!
+    tokenId: String!
+    originalCount: String!
+    remainingCount: String!
     pricePerToken: String!
+    status: String!
     createdAt: String!
+    updatedAt: String!
   }
 
   type BuyOrder {
-    id: ID!
-    projectAddress: Address!
-    tokenId: String!
+    marketplaceAddress: Address!
+    orderId: String!
     buyer: Address!
-    amount: String!
+    tokenId: String!
+    originalCount: String!
+    remainingCount: String!
     pricePerToken: String!
+    status: String!
     createdAt: String!
+    updatedAt: String!
   }
 
   type Trade {
     id: ID!
-    projectAddress: Address!
-    tokenId: String!
-    seller: Address!
+    marketplaceAddress: Address!
+    orderType: String!
+    orderId: String!
     buyer: Address!
-    amount: String!
+    seller: Address!
+    tokenId: String!
+    count: String!
     pricePerToken: String!
-    timestamp: String!
+    totalPrice: String!
+    createdAt: String!
     blockNumber: String!
+    transactionHash: String!
   }
 
   type TokenBurn {
     id: ID!
-    projectAddress: Address!
-    tokenId: String!
+    erc1155Address: Address!
     burner: Address!
-    amount: String!
-    timestamp: String!
+    tokenIds: String!
+    tokenCounts: String!
+    createdAt: String!
     blockNumber: String!
+    transactionHash: String!
   }
 
   type ProjectWithMetrics {
@@ -141,11 +157,18 @@ export const typeDefs = `#graphql
   type Note {
     id: ID!
     owner: Address!
+    rootOwner: Address!
     amount: String!
-    intendedStatementId: ID
+    token: Address!
+    tokenType: Int!
+    tokenId: String!
+    intendedStatementId: ID!
+    chainHash: String!
     active: Boolean!
+    parentNoteId: String
     createdAt: String!
-    blockNumber: String!
+    createdAtBlock: String!
+    updatedAt: String!
   }
 
   type DelegationChainLink {
@@ -188,8 +211,8 @@ export const typeDefs = `#graphql
     totalRefunded: BigInt!
     netContribution: BigInt!
     contributionCount: Int!
-    firstContributionAt: String
-    lastContributionAt: String
+    firstContributionAt: BigInt
+    lastContributionAt: BigInt
     projectsContributedTo: Int!
   }
 

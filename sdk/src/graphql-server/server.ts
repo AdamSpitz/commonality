@@ -28,6 +28,41 @@ export function createGraphQLExecutor(indexerUrl?: string): GraphQLExecutor {
   const schema = makeExecutableSchema({
     typeDefs,
     resolvers: {
+      // Custom scalar resolvers
+      BigInt: {
+        serialize(value: any) {
+          // When sending data to client, convert BigInt to BigInt (keep as-is)
+          if (typeof value === 'string') {
+            return BigInt(value);
+          }
+          return value;
+        },
+        parseValue(value: any) {
+          // When receiving data from client variables
+          return BigInt(value);
+        },
+        parseLiteral(ast: any) {
+          // When parsing query literals
+          if (ast.kind === 'IntValue' || ast.kind === 'StringValue') {
+            return BigInt(ast.value);
+          }
+          return null;
+        },
+      },
+      Address: {
+        serialize(value: any) {
+          return value; // Addresses are strings, pass through
+        },
+        parseValue(value: any) {
+          return value;
+        },
+        parseLiteral(ast: any) {
+          if (ast.kind === 'StringValue') {
+            return ast.value;
+          }
+          return null;
+        },
+      },
       Query: Object.entries(resolvers.Query || {}).reduce((acc, [key, resolver]) => {
         // Wrap each resolver to provide the client context
         acc[key] = async (_: any, args: any, __: any, info: any) => {

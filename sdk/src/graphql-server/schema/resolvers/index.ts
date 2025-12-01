@@ -15,4 +15,9 @@ export const resolvers = {
     ...delegationResolvers.Query,
     ...fundingPortalsResolvers.Query,
   },
+  // Type resolvers to handle field mappings
+  Contribution: {
+    amount: (parent: any) => parent.totalCost || parent.amount,
+    timestamp: (parent: any) => parent.createdAt || parent.timestamp,
+  },
 };

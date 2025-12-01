@@ -13,11 +13,18 @@ import { executeQuery, type GraphQLExecutor } from '../graphql-server/index.js';
 export interface Note {
   id: string;
   owner: string;
+  rootOwner: string;
   amount: string;
-  intendedStatementId?: string;
+  token: string;
+  tokenType: number;
+  tokenId: string;
+  intendedStatementId: string;
+  chainHash: string;
   active: boolean;
+  parentNoteId?: string;
   createdAt: string;
-  blockNumber: string;
+  createdAtBlock: string;
+  updatedAt: string;
 }
 
 export interface DelegationChainLink {
@@ -42,11 +49,18 @@ export async function getNote(
         note(id: $id) {
           id
           owner
+          rootOwner
           amount
+          token
+          tokenType
+          tokenId
           intendedStatementId
+          chainHash
           active
+          parentNoteId
           createdAt
-          blockNumber
+          createdAtBlock
+          updatedAt
         }
       }
     `,
@@ -70,11 +84,18 @@ export async function getNotesByOwner(
         notesByOwner(ownerAddress: $ownerAddress) {
           id
           owner
+          rootOwner
           amount
+          token
+          tokenType
+          tokenId
           intendedStatementId
+          chainHash
           active
+          parentNoteId
           createdAt
-          blockNumber
+          createdAtBlock
+          updatedAt
         }
       }
     `,
@@ -98,11 +119,18 @@ export async function getNotesByRoot(
         notesByRoot(rootAddress: $rootAddress) {
           id
           owner
+          rootOwner
           amount
+          token
+          tokenType
+          tokenId
           intendedStatementId
+          chainHash
           active
+          parentNoteId
           createdAt
-          blockNumber
+          createdAtBlock
+          updatedAt
         }
       }
     `,
