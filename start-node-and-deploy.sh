@@ -81,8 +81,8 @@ wait_for_hardhat() {
 
 # Start hardhat node in background
 echo "Starting Hardhat node in background..."
-cd "$HARDHAT_DIR"
-npx hardhat node > "$NODE_LOG" 2>&1 &
+cd "$SCRIPT_DIR"
+npm run hardhat:node > "$NODE_LOG" 2>&1 &
 HARDHAT_PID=$!
 
 # Save PID immediately so cleanup can find it even if we fail later

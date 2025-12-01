@@ -12,7 +12,10 @@
   ],
   "scripts": {
     "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",
-    "integration-tests": "cd integration-tests && npm test"
+    "integration-tests": "cd integration-tests && npm test",
+    "hardhat:node": "npx --workspace=hardhat hardhat node",
+    "hardhat:compile": "npx --workspace=hardhat hardhat compile",
+    "hardhat:test": "npx --workspace=hardhat hardhat test"
   },
   "keywords": ["blockchain", "crowdfunding", "delegation", "ethereum"],
   "author": "",

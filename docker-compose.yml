@@ -19,7 +19,7 @@ services:
       timeout: 3s
       retries: 30
       start_period: 10s
-    command: npx hardhat node --hostname 0.0.0.0
+    command: npm run node --hostname 0.0.0.0
 
   # ============================================================================
   # Initialization Service - Deploys contracts and generates test data
