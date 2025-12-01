@@ -48,7 +48,7 @@ export async function query<T = any>(
     throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
   }
 
-  const result = await response.json();
+  const result = await response.json() as { data?: T; errors?: any[] };
 
   if (result.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
@@ -61,11 +61,14 @@ export async function query<T = any>(
  * Wait for the indexer to sync to a specific block
  */
 export async function waitForSync(
-  client: GraphQLClient,
+  client: GraphQLClient | { indexerClient: GraphQLClient },
   targetBlock: bigint,
   timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
   const startTime = Date.now();
+
+  // Support both old GraphQLClient and new GraphQLExecutor
+  const actualClient = 'indexerClient' in client ? client.indexerClient : client;
 
   while (Date.now() - startTime < timeoutMs) {
     try {
@@ -76,7 +79,7 @@ export async function waitForSync(
           status: Record<string, { block: { number: number } }>
         }
       }>(
-        client,
+        actualClient,
         `
           query {
             _meta {

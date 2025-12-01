@@ -66,6 +66,29 @@ cleanup_processes() {
     fi
     log_message "✓ Indexer stopped"
 
+    # Stop GraphQL server by PID file first, then by process pattern
+    if [ -f "$LOG_DIR/graphql-server.pid" ]; then
+        GRAPHQL_PID=$(cat "$LOG_DIR/graphql-server.pid")
+        if ps -p $GRAPHQL_PID > /dev/null 2>&1; then
+            log_message "Stopping GraphQL server (PID: $GRAPHQL_PID)..."
+            kill $GRAPHQL_PID 2>/dev/null || true
+            sleep 1
+        fi
+        rm -f "$LOG_DIR/graphql-server.pid"
+    fi
+
+    # Kill any remaining GraphQL server processes
+    if pgrep -f "node.*graphql-server" > /dev/null; then
+        log_message "Stopping any remaining GraphQL server processes..."
+        pkill -f "node.*graphql-server" 2>/dev/null || true
+        sleep 1
+        # Force kill if still running
+        if pgrep -f "node.*graphql-server" > /dev/null; then
+            pkill -9 -f "node.*graphql-server" 2>/dev/null || true
+        fi
+    fi
+    log_message "✓ GraphQL server stopped"
+
     # Stop hardhat node by PID file first, then by process pattern
     if [ -f "$LOG_DIR/hardhat-node.pid" ]; then
         HARDHAT_PID=$(cat "$LOG_DIR/hardhat-node.pid")

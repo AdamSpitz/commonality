@@ -5,7 +5,7 @@
  * This eliminates duplication and ensures test ABIs stay in sync with the indexer.
  */
 
-// Re-export ABIs from the indexer
+// Re-export ABIs from indexer
 export { BeliefsAbi } from '../../indexer/abis/BeliefsAbi.js';
 export { ImplicationsAbi } from '../../indexer/abis/ImplicationsAbi.js';
 export { DelegatableNotesAbi } from '../../indexer/abis/DelegatableNotesAbi.js';
