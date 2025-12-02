@@ -34,9 +34,15 @@ export interface Contribution {
   id: string;
   projectAddress: string;
   participant: string;
+  erc1155Address?: string;
+  tokenIds?: string;
+  tokenCounts?: string;
+  totalCost?: string;
   amount: string;
   timestamp: string;
+  createdAt?: string;
   blockNumber: string;
+  transactionHash?: string;
 }
 
 export interface SaleListing {
@@ -61,24 +67,29 @@ export interface BuyOrder {
 
 export interface Trade {
   id: string;
-  projectAddress: string;
-  tokenId: string;
-  seller: string;
+  marketplaceAddress: string;
+  orderType: string;
+  orderId: string;
   buyer: string;
-  amount: string;
+  seller: string;
+  tokenId: string;
+  count: string;
   pricePerToken: string;
-  timestamp: string;
+  totalPrice: string;
+  createdAt: string;
   blockNumber: string;
+  transactionHash: string;
 }
 
 export interface TokenBurn {
   id: string;
-  projectAddress: string;
-  tokenId: string;
+  erc1155Address: string;
   burner: string;
-  amount: string;
-  timestamp: string;
+  tokenIds: string;
+  tokenCounts: string;
+  createdAt: string;
   blockNumber: string;
+  transactionHash: string;
 }
 
 export interface ProjectWithMetrics {
@@ -86,13 +97,18 @@ export interface ProjectWithMetrics {
   totalContributions: string;
   contributionCount: number;
   activeTokens: number;
+  fundingProgress: number;
+}
+
+export interface ProjectWithFundingProgress extends Project {
+  fundingProgress: number;
 }
 
 export interface ProjectFilterOptions {
   statementId?: string;
   attester?: string;
-  minThreshold?: string;
-  maxThreshold?: string;
+  minThreshold?: string | bigint;
+  maxThreshold?: string | bigint;
   deadlineAfter?: string;
   deadlineBefore?: string;
   activeOnly?: boolean;
@@ -204,9 +220,15 @@ export async function getProjectContributions(
           id
           projectAddress
           participant
+          erc1155Address
+          tokenIds
+          tokenCounts
+          totalCost
           amount
           timestamp
+          createdAt
           blockNumber
+          transactionHash
         }
       }
     `,
@@ -231,9 +253,15 @@ export async function getUserContributions(
           id
           projectAddress
           participant
+          erc1155Address
+          tokenIds
+          tokenCounts
+          totalCost
           amount
           timestamp
+          createdAt
           blockNumber
+          transactionHash
         }
       }
     `,
@@ -279,24 +307,28 @@ export async function getSaleListing(
  * Get all active sale listings
  */
 export async function getActiveSaleListings(
-  executor: GraphQLExecutor
+  executor: GraphQLExecutor,
+  marketplaceAddress?: string
 ): Promise<SaleListing[]> {
   const result = await executeQuery<{ activeSaleListings: SaleListing[] }>(
     executor,
     `
-      query GetActiveSaleListings {
-        activeSaleListings {
-          id
-          projectAddress
-          tokenId
+      query GetActiveSaleListings($marketplaceAddress: Address) {
+        activeSaleListings(marketplaceAddress: $marketplaceAddress) {
+          marketplaceAddress
+          listingId
           seller
-          amount
+          tokenId
+          originalCount
+          remainingCount
           pricePerToken
+          status
           createdAt
+          updatedAt
         }
       }
     `,
-    {}
+    { marketplaceAddress }
   );
 
   return result.activeSaleListings || [];
@@ -338,24 +370,28 @@ export async function getBuyOrder(
  * Get all active buy orders
  */
 export async function getActiveBuyOrders(
-  executor: GraphQLExecutor
+  executor: GraphQLExecutor,
+  marketplaceAddress?: string
 ): Promise<BuyOrder[]> {
   const result = await executeQuery<{ activeBuyOrders: BuyOrder[] }>(
     executor,
     `
-      query GetActiveBuyOrders {
-        activeBuyOrders {
-          id
-          projectAddress
-          tokenId
+      query GetActiveBuyOrders($marketplaceAddress: Address) {
+        activeBuyOrders(marketplaceAddress: $marketplaceAddress) {
+          marketplaceAddress
+          orderId
           buyer
-          amount
+          tokenId
+          originalCount
+          remainingCount
           pricePerToken
+          status
           createdAt
+          updatedAt
         }
       }
     `,
-    {}
+    { marketplaceAddress }
   );
 
   return result.activeBuyOrders || [];
@@ -365,26 +401,31 @@ export async function getActiveBuyOrders(
  * Get all marketplace trades
  */
 export async function getMarketplaceTrades(
-  executor: GraphQLExecutor
+  executor: GraphQLExecutor,
+  marketplaceAddress?: string
 ): Promise<Trade[]> {
   const result = await executeQuery<{ marketplaceTrades: Trade[] }>(
     executor,
     `
-      query GetMarketplaceTrades {
-        marketplaceTrades {
+      query GetMarketplaceTrades($marketplaceAddress: Address) {
+        marketplaceTrades(marketplaceAddress: $marketplaceAddress) {
           id
-          projectAddress
-          tokenId
-          seller
+          marketplaceAddress
+          orderType
+          orderId
           buyer
-          amount
+          seller
+          tokenId
+          count
           pricePerToken
-          timestamp
+          totalPrice
+          createdAt
           blockNumber
+          transactionHash
         }
       }
     `,
-    {}
+    { marketplaceAddress }
   );
 
   return result.marketplaceTrades || [];
@@ -396,7 +437,7 @@ export async function getMarketplaceTrades(
 export async function getTokenTrades(
   executor: GraphQLExecutor,
   projectAddress: string,
-  tokenId: string
+  tokenId: string | bigint
 ): Promise<Trade[]> {
   const result = await executeQuery<{ tokenTrades: Trade[] }>(
     executor,
@@ -404,18 +445,22 @@ export async function getTokenTrades(
       query GetTokenTrades($projectAddress: Address!, $tokenId: String!) {
         tokenTrades(projectAddress: $projectAddress, tokenId: $tokenId) {
           id
-          projectAddress
-          tokenId
-          seller
+          marketplaceAddress
+          orderType
+          orderId
           buyer
-          amount
+          seller
+          tokenId
+          count
           pricePerToken
-          timestamp
+          totalPrice
+          createdAt
           blockNumber
+          transactionHash
         }
       }
     `,
-    { projectAddress, tokenId }
+    { projectAddress, tokenId: typeof tokenId === 'bigint' ? tokenId.toString() : tokenId }
   );
 
   return result.tokenTrades || [];
@@ -434,12 +479,13 @@ export async function getTokenBurns(
       query GetTokenBurns($projectAddress: Address!) {
         tokenBurns(projectAddress: $projectAddress) {
           id
-          projectAddress
-          tokenId
+          erc1155Address
           burner
-          amount
-          timestamp
+          tokenIds
+          tokenCounts
+          createdAt
           blockNumber
+          transactionHash
         }
       }
     `,
@@ -462,12 +508,13 @@ export async function getUserTokenBurns(
       query GetUserTokenBurns($userAddress: Address!) {
         userTokenBurns(userAddress: $userAddress) {
           id
-          projectAddress
-          tokenId
+          erc1155Address
           burner
-          amount
-          timestamp
+          tokenIds
+          tokenCounts
+          createdAt
           blockNumber
+          transactionHash
         }
       }
     `,
@@ -491,12 +538,13 @@ export async function getTokenBurnsByUser(
       query GetTokenBurnsByUser($projectAddress: Address!, $userAddress: Address!) {
         tokenBurnsByUser(projectAddress: $projectAddress, userAddress: $userAddress) {
           id
-          projectAddress
-          tokenId
+          erc1155Address
           burner
-          amount
-          timestamp
+          tokenIds
+          tokenCounts
+          createdAt
           blockNumber
+          transactionHash
         }
       }
     `,
@@ -517,6 +565,17 @@ export async function getProjectsFiltered(
   limit?: number,
   offset?: number
 ): Promise<ProjectWithMetrics[]> {
+  // Convert BigInt values to strings for GraphQL
+  const normalizedOptions = {
+    ...filterOptions,
+    minThreshold: filterOptions.minThreshold != null
+      ? (typeof filterOptions.minThreshold === 'bigint' ? filterOptions.minThreshold.toString() : filterOptions.minThreshold)
+      : undefined,
+    maxThreshold: filterOptions.maxThreshold != null
+      ? (typeof filterOptions.maxThreshold === 'bigint' ? filterOptions.maxThreshold.toString() : filterOptions.maxThreshold)
+      : undefined,
+  };
+
   const result = await executeQuery<{ projectsFiltered: ProjectWithMetrics[] }>(
     executor,
     `
@@ -547,13 +606,21 @@ export async function getProjectsFiltered(
           totalContributions
           contributionCount
           activeTokens
+          fundingProgress
         }
       }
     `,
-    { filterOptions, sortField, sortDirection, limit, offset }
+    { filterOptions: normalizedOptions, sortField, sortDirection, limit, offset }
   );
 
-  return result.projectsFiltered || [];
+  // Flatten the nested structure for backward compatibility
+  return (result.projectsFiltered || []).map(item => ({
+    ...item.project,
+    fundingProgress: item.fundingProgress,
+    totalContributions: item.totalContributions,
+    contributionCount: item.contributionCount,
+    activeTokens: item.activeTokens,
+  } as any));
 }
 
 /**
@@ -701,7 +768,7 @@ export async function getProjectsByFundingProgress(
   max?: string,
   limit?: number,
   offset?: number
-): Promise<Project[]> {
+): Promise<ProjectWithFundingProgress[]> {
   const result = await executeQuery<{ projectsByFundingProgress: Project[] }>(
     executor,
     `
@@ -733,7 +800,21 @@ export async function getProjectsByFundingProgress(
     { sortDirection, min, max, limit, offset }
   );
 
-  return result.projectsByFundingProgress || [];
+  const projects = result.projectsByFundingProgress || [];
+
+  // Compute funding progress for each project
+  return projects.map(p => {
+    const threshold = BigInt(p.threshold);
+    const totalReceived = BigInt(p.totalReceived);
+    const fundingProgress = threshold > 0n
+      ? Number(totalReceived * 10000n / threshold) / 10000  // Use basis points for precision
+      : 0;
+
+    return {
+      ...p,
+      fundingProgress,
+    };
+  });
 }
 
 /**

@@ -148,6 +148,7 @@ export const typeDefs = `#graphql
     totalContributions: String!
     contributionCount: Int!
     activeTokens: Int!
+    fundingProgress: Float!
   }
 
   # ============================================================================
@@ -284,10 +285,10 @@ export const typeDefs = `#graphql
     projectContributions(projectAddress: Address!): [Contribution!]!
     userContributions(userAddress: Address!): [Contribution!]!
     saleListing(marketplaceAddress: Address!, listingId: String!): SaleListing
-    activeSaleListings: [SaleListing!]!
+    activeSaleListings(marketplaceAddress: Address): [SaleListing!]!
     buyOrder(marketplaceAddress: Address!, orderId: String!): BuyOrder
-    activeBuyOrders: [BuyOrder!]!
-    marketplaceTrades: [Trade!]!
+    activeBuyOrders(marketplaceAddress: Address): [BuyOrder!]!
+    marketplaceTrades(marketplaceAddress: Address): [Trade!]!
     tokenTrades(projectAddress: Address!, tokenId: String!): [Trade!]!
     tokenBurns(projectAddress: Address!): [TokenBurn!]!
     userTokenBurns(userAddress: Address!): [TokenBurn!]!
