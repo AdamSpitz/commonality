@@ -33,5 +33,11 @@ This UI code should be structured into four "logical" UI apps (which may eventua
 Here's a list of what's done (please keep this list concise):
   - Navigation & Layout: AppShell component with responsive navigation bar, mobile drawer menu, wallet connection, footer
   - Routing: React Router setup with routes for main Concept Space pages (home, browse statements, statement detail, user profile, settings)
-  - Placeholder pages: HomePage, BrowseStatementsPage, StatementPage, UserProfilePage, SettingsPage
+  - HomePage: Shows CreateStatementForm when logged in, link to user profile, quick actions
+  - CreateStatementForm: Component for creating statements (uploads to IPFS, signs via Beliefs contract, updates MutableRefUpdater with created statements list)
+  - StatementPage: Full page displaying statement content (rendered markdown), direct/indirect support metrics, belief controls for believe/disbelieve/clear opinion
+  - BeliefControls: Component for expressing belief/disbelief/clearing opinion on statements
+  - SupportMetrics: Component displaying direct believers, indirect supporters, and disbelievers
+  - StatementRenderer: Component for rendering statement content with markdown support, reference handling, and metadata display
+  - Placeholder pages: BrowseStatementsPage, UserProfilePage, SettingsPage
   - Directory structure: Organized into src/shared, src/conceptspace, src/pubstarter, src/delegation, src/fundingportal
