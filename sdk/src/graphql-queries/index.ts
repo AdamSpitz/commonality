@@ -12,6 +12,7 @@ export * from './conceptspace.js';
 export * from './pubstarter.js';
 export * from './delegation.js';
 export * from './funding-portals.js';
+export * from './mutable-refs.js';
 
 // Re-export the executor creation function
 export { createGraphQLExecutor, type GraphQLExecutor };

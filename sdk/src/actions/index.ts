@@ -62,3 +62,10 @@ export {
   attestProjectAlignmentsBatch,
   type ProjectAlignmentContract,
 } from './funding-portals-actions.js';
+
+// Mutable refs actions
+export {
+  updateRef,
+  getRef,
+  type MutableRefUpdaterContract,
+} from './mutable-refs-actions.js';

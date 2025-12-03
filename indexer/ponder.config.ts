@@ -21,6 +21,9 @@ import { DelegatableNotesAbi } from "./abis/DelegatableNotesAbi";
 // Funding Portal ABIs
 import { ProjectAlignmentAbi } from "./abis/ProjectAlignmentAbi";
 
+// Mutable Refs ABIs
+import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
+
 // ============================================================================
 // CONCEPTSPACE CONTRACT ADDRESSES
 // ============================================================================
@@ -44,6 +47,11 @@ const DELEGATABLE_NOTES_ADDRESS = (process.env.DELEGATABLE_NOTES_ADDRESS && proc
 // FUNDING PORTAL CONTRACT ADDRESSES
 // ============================================================================
 const PROJECT_ALIGNMENT_ADDRESS = (process.env.PROJECT_ALIGNMENT_ADDRESS && process.env.PROJECT_ALIGNMENT_ADDRESS !== '') ? process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}` : undefined;
+
+// ============================================================================
+// MUTABLE REFS CONTRACT ADDRESSES
+// ============================================================================
+const MUTABLE_REF_UPDATER_ADDRESS = (process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS && process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS !== '') ? process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}` : undefined;
 
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
@@ -185,6 +193,20 @@ export default createConfig({
       chain: "hardhat",
       address: PROJECT_ALIGNMENT_ADDRESS,
       startBlock: FUNDING_PORTAL_START_BLOCK,
+    },
+
+    // ========================================================================
+    // MUTABLE REFS INDEXER CONTRACTS
+    // ========================================================================
+    // This is a utility contract that can be used by any subsystem to track
+    // mutable references (pointers to IPFS content). Users can create named
+    // refs that point to IPFS CIDs or other string values.
+
+    MutableRefUpdater: {
+      abi: MutableRefUpdaterAbi,
+      chain: "hardhat",
+      address: MUTABLE_REF_UPDATER_ADDRESS,
+      startBlock: START_BLOCK,
     },
   },
 });

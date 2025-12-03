@@ -39,7 +39,8 @@ export function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://lo
     transport: http(rpcUrl),
   });
 
-  const publicClient = createPublicClient({
+  // @ts-ignore - viem type inference issue with publicClient
+  const publicClient: PublicClient = createPublicClient({
     chain: hardhat,
     transport: http(rpcUrl),
   });

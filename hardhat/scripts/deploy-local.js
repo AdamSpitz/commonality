@@ -42,6 +42,13 @@ async function main() {
   const delegatableNotesAddress = await delegatableNotes.getAddress();
   console.log(`✓ DelegatableNotes: ${delegatableNotesAddress}`);
 
+  // Deploy MutableRefUpdater contract
+  const MutableRefUpdater = await ethers.getContractFactory('MutableRefUpdater');
+  const mutableRefUpdater = await MutableRefUpdater.deploy();
+  await mutableRefUpdater.waitForDeployment();
+  const mutableRefUpdaterAddress = await mutableRefUpdater.getAddress();
+  console.log(`✓ MutableRefUpdater: ${mutableRefUpdaterAddress}`);
+
   // Deploy Pubstarter factory contracts
   const AssuranceContractFactory = await ethers.getContractFactory('AssuranceContractFactory');
   const assuranceFactory = await AssuranceContractFactory.deploy();
@@ -90,6 +97,7 @@ async function main() {
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
     'PROJECT_ALIGNMENT_CONTRACT_ADDRESS': projectAlignmentAddress,
     'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
+    'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,

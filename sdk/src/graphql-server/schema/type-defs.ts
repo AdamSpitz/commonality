@@ -250,6 +250,30 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Mutable Refs Types
+  # ============================================================================
+
+  type MutableRef {
+    owner: Address!
+    name: String!
+    value: String!
+    updatedAt: String!
+    updatedAtBlock: String!
+    transactionHash: String!
+  }
+
+  type RefUpdate {
+    id: ID!
+    owner: Address!
+    name: String!
+    value: String!
+    blockNumber: String!
+    timestamp: String!
+    transactionHash: String!
+    logIndex: Int!
+  }
+
+  # ============================================================================
   # Query Types
   # ============================================================================
 
@@ -327,5 +351,14 @@ export const typeDefs = `#graphql
     allAlignedProjectsForCause(statementId: ID!, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): [AlignedProjectWithDetails!]!
     topContributorsForCause(statementId: ID!, limit: Int = 10, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): [ContributorStats!]!
     userContributionRankForCause(statementId: ID!, userAddress: Address!, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): ContributorRankResult
+
+    # ========================================================================
+    # Mutable Refs Queries
+    # ========================================================================
+
+    mutableRef(owner: Address!, name: String!): MutableRef
+    mutableRefsByOwner(owner: Address!): [MutableRef!]!
+    refUpdateHistory(owner: Address!, name: String!, limit: Int = 100): [RefUpdate!]!
+    mutableRefsByName(name: String!, limit: Int = 100): [MutableRef!]!
   }
 `;

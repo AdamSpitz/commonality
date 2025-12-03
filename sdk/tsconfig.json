@@ -11,6 +11,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "noEmit": false,
     "types": ["node"]
   },
   "include": ["src/**/*"],

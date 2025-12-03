@@ -60,3 +60,11 @@ export {
   projectAlignments,
   projectAlignmentsRelations,
 } from "./schemas/fundingportal.schema";
+
+// Import and re-export Mutable Refs schema
+export {
+  mutableRefs,
+  refUpdates,
+  mutableRefsRelations,
+  refUpdatesRelations,
+} from "./schemas/mutable-refs.schema";

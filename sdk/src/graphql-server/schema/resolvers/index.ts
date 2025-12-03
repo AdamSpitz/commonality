@@ -6,6 +6,7 @@ import { conceptspaceResolvers } from './conceptspace.js';
 import { pubstarterResolvers } from './pubstarter.js';
 import { delegationResolvers } from './delegation.js';
 import { fundingPortalsResolvers } from './funding-portals.js';
+import { mutableRefsResolvers } from './mutable-refs.js';
 
 // Combine all resolvers
 export const resolvers = {
@@ -14,6 +15,7 @@ export const resolvers = {
     ...pubstarterResolvers.Query,
     ...delegationResolvers.Query,
     ...fundingPortalsResolvers.Query,
+    ...mutableRefsResolvers.Query,
   },
   // Type resolvers to handle field mappings
   Contribution: {
