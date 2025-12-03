@@ -1,6 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+// This is a general-purpose contract for tracking mutable variables.
+// Basically it stores (and emits events for) "user U just updated his
+// ref named N to value V".
+
 contract MutableRefUpdater {
     mapping(address => mapping(string => string)) public refsByNameByOwner;
 
