@@ -38,11 +38,11 @@ export async function getUserRef(
   owner: string,
   name: string
 ): Promise<MutableRef | null> {
-  const result = await executeQuery<{ mutableRefs: MutableRef | null }>(
+  const result = await executeQuery<{ mutableRef: MutableRef | null }>(
     executor,
     `
       query GetUserRef($owner: String!, $name: String!) {
-        mutableRefs(owner: $owner, name: $name) {
+        mutableRef(owner: $owner, name: $name) {
           owner
           name
           value
@@ -55,7 +55,7 @@ export async function getUserRef(
     { owner: owner.toLowerCase(), name }
   );
 
-  return result.mutableRefs;
+  return result.mutableRef;
 }
 
 /**
@@ -70,14 +70,12 @@ export async function getUserRefs(
     `
       query GetUserRefs($owner: String!) {
         mutableRefsByOwner(owner: $owner) {
-          items {
-            owner
-            name
-            value
-            updatedAt
-            updatedAtBlock
-            transactionHash
-          }
+          owner
+          name
+          value
+          updatedAt
+          updatedAtBlock
+          transactionHash
         }
       }
     `,

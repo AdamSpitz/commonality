@@ -58,17 +58,33 @@ describe('Mutable Refs', () => {
     this.timeout(20000);
 
     const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const refName = 'test-ref-create';
+    const refName = 'test-ref-create-' + Date.now();
     const refValue = 'QmTestValue123';
 
     console.log(`  Creating ref "${refName}" with value "${refValue}"...`);
     const txHash = await updateRef(clients, mutableRefUpdaterContract, refName, refValue);
     const receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    console.log(`  Transaction confirmed in block ${receipt.blockNumber}`);
+    await waitForSync(graphqlClient, receipt.blockNumber, 10000);
 
     // Query from indexer
+    console.log(`  Querying ref for owner ${clients.account} and name ${refName}...`);
+    const refResult = await getUserRef(graphqlClient, clients.account, refName);
+    console.log(`  Query result:`, JSON.stringify(refResult, null, 2));
+    
+    // Also test the raw GraphQL query
+    const rawQueryResult = await fetch(GRAPHQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `query { mutableRefs(owner: "${clients.account.toLowerCase()}", name: "${refName}") { owner name value } }`
+      })
+    });
+    const rawData = await rawQueryResult.json();
+    console.log(`  Raw query result:`, JSON.stringify(rawData, null, 2));
+    
     const ref = assertNotNull(
-      await getUserRef(graphqlClient, clients.account, refName),
+      refResult,
       'Ref from indexer'
     );
     assert.strictEqual(ref.value, refValue, 'Ref value should match');
