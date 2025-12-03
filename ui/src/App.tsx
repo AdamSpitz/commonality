@@ -1,7 +1,11 @@
 import { AppBar, Box, Container, Toolbar, Typography } from '@mui/material'
 import { ConnectKitButton } from 'connectkit'
+// Test SDK import
+import { BeliefsAbi } from '@commonality/sdk'
 
 function App() {
+  // Verify SDK is accessible
+  console.log('SDK loaded, BeliefsAbi:', BeliefsAbi ? 'available' : 'missing')
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
