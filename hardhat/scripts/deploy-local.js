@@ -96,8 +96,11 @@ async function main() {
     'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
     'PROJECT_ALIGNMENT_CONTRACT_ADDRESS': projectAlignmentAddress,
+    'PROJECT_ALIGNMENT_ADDRESS': projectAlignmentAddress,  // For Ponder config compatibility
     'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
+    'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,  // For Ponder config compatibility
     'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
+    'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,  // For Ponder config compatibility
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,

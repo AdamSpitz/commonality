@@ -51,7 +51,7 @@ const PROJECT_ALIGNMENT_ADDRESS = (process.env.PROJECT_ALIGNMENT_ADDRESS && proc
 // ============================================================================
 // MUTABLE REFS CONTRACT ADDRESSES
 // ============================================================================
-const MUTABLE_REF_UPDATER_ADDRESS = (process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS && process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS !== '') ? process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}` : undefined;
+const MUTABLE_REF_UPDATER_ADDRESS = (process.env.MUTABLE_REF_UPDATER_ADDRESS && process.env.MUTABLE_REF_UPDATER_ADDRESS !== '') ? process.env.MUTABLE_REF_UPDATER_ADDRESS as `0x${string}` : undefined;
 
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
