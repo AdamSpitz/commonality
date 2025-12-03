@@ -14,10 +14,6 @@
 9. **Statement Suggestions** - "You signed S1, but S2 is more popular and implied by S1"
 10. **Create Statement Form** - Form for creating new statements (upload to IPFS, sign on-chain)
 
-## Navigation & Layout
-11. **App Shell** - Navigation bar with wallet connect (already started)
-12. **Routing** - React Router setup for all pages
-
 ## Integration
-13. **SDK Integration** - Wire up actions (believeStatement, etc.) and queries (getStatement, etc.)
-14. **IPFS Integration** - Upload statement JSON, fetch statement content by CID
+11. **SDK Integration** - Wire up actions (believeStatement, etc.) and queries (getStatement, etc.)
+12. **IPFS Integration** - Upload statement JSON, fetch statement content by CID

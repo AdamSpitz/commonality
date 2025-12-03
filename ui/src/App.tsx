@@ -1,33 +1,25 @@
-import { AppBar, Box, Container, Toolbar, Typography } from '@mui/material'
-import { ConnectKitButton } from 'connectkit'
-// Test SDK import
-import { BeliefsAbi } from '@commonality/sdk'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AppShell } from './shared/components/AppShell'
+import { HomePage } from './conceptspace/pages/HomePage'
+import { BrowseStatementsPage } from './conceptspace/pages/BrowseStatementsPage'
+import { StatementPage } from './conceptspace/pages/StatementPage'
+import { UserProfilePage } from './conceptspace/pages/UserProfilePage'
+import { SettingsPage } from './conceptspace/pages/SettingsPage'
 
 function App() {
-  // Verify SDK is accessible
-  console.log('SDK loaded, BeliefsAbi:', BeliefsAbi ? 'available' : 'missing')
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Commonality
-          </Typography>
-          <ConnectKitButton />
-        </Toolbar>
-      </AppBar>
-      <Container sx={{ mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Welcome to Commonality
-        </Typography>
-        <Typography variant="body1" paragraph>
-          A coordination platform for aligned people to track their numbers and crowdfund projects.
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Connect your wallet to get started.
-        </Typography>
-      </Container>
-    </Box>
+    <BrowserRouter>
+      <AppShell>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/statements" element={<BrowseStatementsPage />} />
+          <Route path="/statement/:statementId" element={<StatementPage />} />
+          <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/user/:address" element={<UserProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Routes>
+      </AppShell>
+    </BrowserRouter>
   )
 }
 

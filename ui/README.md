@@ -31,4 +31,7 @@ This UI code should be structured into four "logical" UI apps (which may eventua
 ## UI components that have been implemented
 
 Here's a list of what's done (please keep this list concise):
-  -
+  - Navigation & Layout: AppShell component with responsive navigation bar, mobile drawer menu, wallet connection, footer
+  - Routing: React Router setup with routes for main Concept Space pages (home, browse statements, statement detail, user profile, settings)
+  - Placeholder pages: HomePage, BrowseStatementsPage, StatementPage, UserProfilePage, SettingsPage
+  - Directory structure: Organized into src/shared, src/conceptspace, src/pubstarter, src/delegation, src/fundingportal
