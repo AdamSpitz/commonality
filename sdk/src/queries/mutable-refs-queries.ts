@@ -50,27 +50,24 @@ export async function getUserRef(
   owner: string,
   name: string
 ): Promise<MutableRef | null> {
-  const result = await query<{ mutableRefs: { items: MutableRef[] } }>(
+  const result = await query<{ mutableRefs: MutableRef | null }>(
     client,
     `
       query GetUserRef($owner: String!, $name: String!) {
-        mutableRefs(where: { owner: $owner, name: $name }) {
-          items {
-            owner
-            name
-            value
-            updatedAt
-            updatedAtBlock
-            transactionHash
-          }
+        mutableRefs(owner: $owner, name: $name) {
+          owner
+          name
+          value
+          updatedAt
+          updatedAtBlock
+          transactionHash
         }
       }
     `,
     { owner: owner.toLowerCase(), name }
   );
 
-  // Return first item or null
-  return result.mutableRefs.items[0] || null;
+  return result.mutableRefs;
 }
 
 /**
@@ -92,11 +89,11 @@ export async function getUserRefs(
   client: GraphQLClient,
   owner: string
 ): Promise<MutableRef[]> {
-  const result = await query<{ mutableRefs: { items: MutableRef[] } }>(
+  const result = await query<{ mutableRefss: { items: MutableRef[] } }>(
     client,
     `
       query GetUserRefs($owner: String!) {
-        mutableRefs(where: { owner: $owner }) {
+        mutableRefss(where: { owner: $owner }) {
           items {
             owner
             name
@@ -111,7 +108,7 @@ export async function getUserRefs(
     { owner: owner.toLowerCase() }
   );
 
-  return result.mutableRefs.items;
+  return result.mutableRefss?.items || [];
 }
 
 /**
@@ -140,11 +137,11 @@ export async function getUserRefHistory(
   name: string,
   limit: number = 100
 ): Promise<RefUpdate[]> {
-  const result = await query<{ refUpdates: { items: RefUpdate[] } }>(
+  const result = await query<{ refUpdatess: { items: RefUpdate[] } }>(
     client,
     `
       query GetUserRefHistory($owner: String!, $name: String!, $limit: Int!) {
-        refUpdates(
+        refUpdatess(
           where: { owner: $owner, name: $name }
           orderBy: "blockNumber"
           orderDirection: "desc"
@@ -166,7 +163,7 @@ export async function getUserRefHistory(
     { owner: owner.toLowerCase(), name, limit }
   );
 
-  return result.refUpdates.items;
+  return result.refUpdatess?.items || [];
 }
 
 /**
@@ -191,11 +188,11 @@ export async function getRefsByName(
   name: string,
   limit: number = 100
 ): Promise<MutableRef[]> {
-  const result = await query<{ mutableRefs: { items: MutableRef[] } }>(
+  const result = await query<{ mutableRefss: { items: MutableRef[] } }>(
     client,
     `
       query GetRefsByName($name: String!, $limit: Int!) {
-        mutableRefs(
+        mutableRefss(
           where: { name: $name }
           orderBy: "updatedAt"
           orderDirection: "desc"
@@ -215,5 +212,5 @@ export async function getRefsByName(
     { name, limit }
   );
 
-  return result.mutableRefs.items;
+  return result.mutableRefss?.items || [];
 }

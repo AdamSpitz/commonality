@@ -23,33 +23,41 @@ ponder.on("MutableRefUpdater:RefUpdated", async ({ event, context }) => {
   // Get timestamp from event block
   const timestamp = BigInt(event.block.timestamp);
 
-  // Create composite ID for the current ref state
-  const refId = `${owner.toLowerCase()}:${name}`;
+  const ownerLower = owner.toLowerCase() as `0x${string}`;
+
+  // Check if ref already exists
+  const existingRef = await db.find(mutableRefs, {
+    owner: ownerLower,
+    name,
+  });
 
   // Update or insert the current ref state
-  await db
-    .insert(mutableRefs)
-    .values({
-      owner: owner.toLowerCase() as `0x${string}`,
+  if (existingRef) {
+    await db
+      .update(mutableRefs, { owner: ownerLower, name })
+      .set({
+        value: currentRefValue,
+        updatedAt: timestamp,
+        updatedAtBlock: event.block.number,
+        transactionHash: event.transaction.hash,
+      });
+  } else {
+    await db.insert(mutableRefs).values({
+      owner: ownerLower,
       name,
       value: currentRefValue,
       updatedAt: timestamp,
       updatedAtBlock: event.block.number,
       transactionHash: event.transaction.hash,
-    })
-    .onConflictDoUpdate({
-      value: currentRefValue,
-      updatedAt: timestamp,
-      updatedAtBlock: event.block.number,
-      transactionHash: event.transaction.hash,
     });
+  }
 
   // Create history record
   const historyId = `${owner.toLowerCase()}:${name}:${event.block.number}:${event.log.logIndex}`;
 
   await db.insert(refUpdates).values({
     id: historyId,
-    owner: owner.toLowerCase() as `0x${string}`,
+    owner: ownerLower,
     name,
     value: currentRefValue,
     blockNumber: event.block.number,
