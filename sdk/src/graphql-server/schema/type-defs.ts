@@ -52,6 +52,12 @@ export const typeDefs = `#graphql
     createdAt: String
   }
 
+  type StatementSuggestion {
+    statement: StatementListItem!
+    reason: String! # e.g., "more popular" or "implied by this statement"
+    relationshipType: String! # "impliedBy" or "implies"
+  }
+
   # ============================================================================
   # Pubstarter Types
   # ============================================================================
@@ -298,6 +304,7 @@ export const typeDefs = `#graphql
     allStatements(options: BrowseStatementsOptions): [StatementListItem!]!
     userBeliefs(userAddress: Address!): [StatementListItem!]!
     userDisbeliefs(userAddress: Address!): [StatementListItem!]!
+    statementSuggestions(statementId: ID!, userAddress: Address, attesterAddress: Address): [StatementSuggestion!]!
 
     # ========================================================================
     # Pubstarter Queries

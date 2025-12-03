@@ -564,3 +564,82 @@ export async function getUserDisbeliefs(
 
   return result.users?.beliefs?.items.map(item => item.statement) || [];
 }
+
+/**
+ * Get statement suggestions for a given statement
+ * Returns statements that:
+ * 1. Are implied by this statement (S1 -> S2) and S2 is more popular
+ * 2. Imply this statement (S2 -> S1) and S2 is more popular
+ */
+export async function getStatementSuggestions(
+  client: GraphQLClient,
+  statementId: string,
+  attesterAddress?: string
+): Promise<Array<{
+  statement: StatementListItem;
+  reason: string;
+  relationshipType: string;
+}>> {
+  const suggestions: Array<{
+    statement: StatementListItem;
+    reason: string;
+    relationshipType: string;
+  }> = [];
+
+  // Get the source statement to compare popularity
+  const sourceStatement = await getStatement(client, statementId);
+  if (!sourceStatement) {
+    return [];
+  }
+
+  // Get implications from this statement (S1 -> S2)
+  const implicationsFrom = await getImplicationsFrom(client, statementId, attesterAddress);
+
+  for (const implication of implicationsFrom) {
+    const targetStatement = await getStatement(client, implication.toStatementId);
+    if (targetStatement && targetStatement.believerCount > sourceStatement.believerCount) {
+      suggestions.push({
+        statement: {
+          id: targetStatement.id,
+          cid: targetStatement.cid || '',
+          statementType: targetStatement.statementType || '',
+          title: targetStatement.title || '',
+          excerpt: targetStatement.excerpt || '',
+          believerCount: targetStatement.believerCount,
+          disbelieverCount: targetStatement.disbelieverCount,
+          createdAt: targetStatement.createdAt || '',
+        },
+        reason: `This statement is implied by the current statement and has ${targetStatement.believerCount} supporters (more than the current statement's ${sourceStatement.believerCount})`,
+        relationshipType: 'implies',
+      });
+    }
+  }
+
+  // Get implications to this statement (S2 -> S1)
+  const implicationsTo = await getImplicationsTo(client, statementId, attesterAddress);
+
+  for (const implication of implicationsTo) {
+    const sourceOfImplication = await getStatement(client, implication.fromStatementId);
+    if (sourceOfImplication && sourceOfImplication.believerCount > sourceStatement.believerCount) {
+      suggestions.push({
+        statement: {
+          id: sourceOfImplication.id,
+          cid: sourceOfImplication.cid || '',
+          statementType: sourceOfImplication.statementType || '',
+          title: sourceOfImplication.title || '',
+          excerpt: sourceOfImplication.excerpt || '',
+          believerCount: sourceOfImplication.believerCount,
+          disbelieverCount: sourceOfImplication.disbelieverCount,
+          createdAt: sourceOfImplication.createdAt || '',
+        },
+        reason: `This statement implies the current statement and has ${sourceOfImplication.believerCount} supporters (more than the current statement's ${sourceStatement.believerCount})`,
+        relationshipType: 'impliedBy',
+      });
+    }
+  }
+
+  // Sort by popularity (most supporters first)
+  suggestions.sort((a, b) => b.statement.believerCount - a.statement.believerCount);
+
+  return suggestions;
+}

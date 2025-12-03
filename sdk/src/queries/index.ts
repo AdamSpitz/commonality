@@ -24,6 +24,7 @@ export {
   getAllStatements,
   getUserBeliefs,
   getUserDisbeliefs,
+  getStatementSuggestions,
   type Statement,
   type UserBelief,
   type Implication,

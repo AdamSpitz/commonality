@@ -391,3 +391,44 @@ export async function getUserDisbeliefs(
 
   return result.userDisbeliefs || [];
 }
+
+export interface StatementSuggestion {
+  statement: StatementListItem;
+  reason: string;
+  relationshipType: string;
+}
+
+/**
+ * Get statement suggestions for a given statement
+ */
+export async function getStatementSuggestions(
+  executor: GraphQLExecutor,
+  statementId: string,
+  userAddress?: string,
+  attesterAddress?: string
+): Promise<StatementSuggestion[]> {
+  const result = await executeQuery<{ statementSuggestions: StatementSuggestion[] }>(
+    executor,
+    `
+      query GetStatementSuggestions($statementId: ID!, $userAddress: Address, $attesterAddress: Address) {
+        statementSuggestions(statementId: $statementId, userAddress: $userAddress, attesterAddress: $attesterAddress) {
+          statement {
+            id
+            cid
+            statementType
+            title
+            excerpt
+            believerCount
+            disbelieverCount
+            createdAt
+          }
+          reason
+          relationshipType
+        }
+      }
+    `,
+    { statementId, userAddress, attesterAddress }
+  );
+
+  return result.statementSuggestions || [];
+}

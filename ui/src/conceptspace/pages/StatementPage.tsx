@@ -12,6 +12,7 @@ import {
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
+import { StatementSuggestions } from '../components/StatementSuggestions'
 
 interface StatementContent {
   statementType: string
@@ -171,6 +172,12 @@ export function StatementPage() {
           onBeliefChanged={handleBeliefChanged}
         />
       </Box>
+
+      {/* Statement Suggestions */}
+      <StatementSuggestions
+        statementId={statementId || ''}
+        userAddress={address}
+      />
     </Box>
   )
 }

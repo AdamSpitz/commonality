@@ -15,6 +15,7 @@ import {
   getAllStatements,
   getUserBeliefs,
   getUserDisbeliefs,
+  getStatementSuggestions,
   type GraphQLClient,
 } from '../../../queries/index.js';
 
@@ -74,6 +75,13 @@ export const conceptspaceResolvers = {
 
     userDisbeliefs: (_: any, { userAddress }: { userAddress: string }, { client }: { client: GraphQLClient }) => {
       return getUserDisbeliefs(client, userAddress);
+    },
+
+    statementSuggestions: (_: any, { statementId, attesterAddress }: {
+      statementId: string;
+      attesterAddress?: string;
+    }, { client }: { client: GraphQLClient }) => {
+      return getStatementSuggestions(client, statementId, attesterAddress);
     },
   },
 };
