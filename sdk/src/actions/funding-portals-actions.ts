@@ -30,6 +30,8 @@ export async function attestProjectAlignment(
     abi: projectAlignmentContract.abi,
     functionName: 'attestAlignment',
     args: [projectAddress, statementId],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -52,6 +54,8 @@ export async function attestProjectAlignmentsBatch(
     abi: projectAlignmentContract.abi,
     functionName: 'attestAlignmentsInBatch',
     args: [projectAddresses, statementIds],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });

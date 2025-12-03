@@ -99,6 +99,8 @@ export async function createProject(
       params.tokenCounts,
       params.tokenPrices,
     ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -190,6 +192,8 @@ export async function buyProjectTokens(
       '0x', // data parameter
     ],
     value: params.totalCost,
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -220,6 +224,8 @@ export async function refundProjectTokens(
       params.tokenCounts,
       '0x', // data parameter
     ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -238,6 +244,8 @@ export async function withdrawProjectFunds(
     abi: assuranceContract.abi,
     functionName: 'withdraw',
     args: [],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -270,6 +278,8 @@ export async function createSaleListing(
     abi: marketplaceContract.abi,
     functionName: 'createSaleListing',
     args: [params.tokenId, params.count, params.pricePerToken],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -294,6 +304,8 @@ export async function fulfillSaleListing(
     functionName: 'fulfillSaleListing',
     args: [params.saleListingId, params.count],
     value: params.totalCost,
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -315,6 +327,8 @@ export async function cancelSaleListing(
     abi: marketplaceContract.abi,
     functionName: 'cancelSaleListing',
     args: [params.saleListingId],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -341,6 +355,8 @@ export async function createBuyOrder(
     functionName: 'createBuyOrder',
     args: [params.tokenId, params.count, params.pricePerToken],
     value: totalCost,
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -363,6 +379,8 @@ export async function fulfillBuyOrder(
     abi: marketplaceContract.abi,
     functionName: 'fulfillBuyOrder',
     args: [params.buyOrderId, params.count],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -384,6 +402,8 @@ export async function cancelBuyOrder(
     abi: marketplaceContract.abi,
     functionName: 'cancelBuyOrder',
     args: [params.buyOrderId],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -416,6 +436,8 @@ export async function approveERC1155ForMarketplace(
     abi: erc1155Abi,
     functionName: 'setApprovalForAll',
     args: [marketplaceAddress, true],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -471,6 +493,8 @@ export async function burnTokens(
     abi: erc1155BurnableAbi,
     functionName: 'burnBatch',
     args: [clients.account, params.tokenIds, params.tokenCounts],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });

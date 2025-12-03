@@ -47,6 +47,8 @@ export async function believeStatement(
     abi: beliefsContract.abi,
     functionName: 'setBelief',
     args: [statementId, BELIEVES],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -81,6 +83,8 @@ export async function disbelieveStatement(
     abi: beliefsContract.abi,
     functionName: 'setBelief',
     args: [statementId, DISBELIEVES],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -102,6 +106,8 @@ export async function clearOpinion(
     abi: beliefsContract.abi,
     functionName: 'setBelief',
     args: [statementId, NO_OPINION],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -134,6 +140,8 @@ export async function attestImplication(
     abi: implicationsContract.abi,
     functionName: 'attestImplication',
     args: [fromStatementId, toStatementId],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -157,6 +165,8 @@ export async function attestImplicationsBatch(
     abi: implicationsContract.abi,
     functionName: 'attestImplicationsInBatch',
     args: [fromStatementIds, toStatementIds],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });

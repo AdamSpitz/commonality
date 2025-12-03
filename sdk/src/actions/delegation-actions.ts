@@ -15,10 +15,10 @@ export interface DelegatableNotesContract {
   abi: any;
 }
 
-export enum TokenType {
-  ERC20 = 0,
-  ERC1155 = 1,
-}
+export const TokenType = {
+  ERC20: 0,
+  ERC1155: 1,
+} as const;
 
 /**
  * Deposit ETH into a delegatable note
@@ -61,6 +61,8 @@ export async function depositETH(
       params.intendedStatementId,
     ],
     value: params.amount,
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -121,6 +123,8 @@ export async function delegateNote(
     abi: delegatableNotesContract.abi,
     functionName: 'delegate',
     args: [params.noteId, params.owners, params.delegateTo, params.amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -191,6 +195,8 @@ export async function revokeNote(
     abi: delegatableNotesContract.abi,
     functionName: 'revoke',
     args: [params.noteId, params.owners],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -223,6 +229,8 @@ export async function reclaimFunds(
     abi: delegatableNotesContract.abi,
     functionName: 'reclaimFunds',
     args: [noteId],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -287,6 +295,8 @@ export async function purchaseFromPrimaryMarketWithNotes(
       params.tokenIds,
       params.counts,
     ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });

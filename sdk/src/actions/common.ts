@@ -15,6 +15,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { CID } from 'multiformats/cid';
 import * as raw from 'multiformats/codecs/raw';
 import { sha256 } from 'multiformats/hashes/sha2';
+import { Buffer } from 'buffer';
 
 // ============================================================================
 // Client Setup
@@ -72,8 +73,14 @@ export function cidToBytes32(cid: string): `0x${string}` {
  * Convert bytes32 to IPFS CID
  */
 export function bytes32ToCid(bytes32: `0x${string}`): string {
-  const digest = Buffer.from(bytes32.slice(2), 'hex');
-  const hash = sha256.digest(digest);
+  const digestBytes = Buffer.from(bytes32.slice(2), 'hex');
+  // Create a MultihashDigest directly from the bytes
+  const hash = {
+    code: sha256.code,
+    digest: digestBytes,
+    size: digestBytes.length,
+    bytes: new Uint8Array([0x12, 0x20, ...digestBytes]) // 0x12 = sha256 code, 0x20 = 32 bytes
+  };
   const cid = CID.create(1, raw.code, hash);
   return cid.toString();
 }
