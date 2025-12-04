@@ -6,8 +6,8 @@
 set -e  # Exit on error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INDEXER_DIR="$SCRIPT_DIR/indexer"
-LOG_DIR="$SCRIPT_DIR/integration-tests/test-logs"
+INDEXER_DIR="$SCRIPT_DIR/../indexer"
+LOG_DIR="$SCRIPT_DIR/../integration-tests/test-logs"
 
 # Create log directory if it doesn't exist
 mkdir -p "$LOG_DIR"
@@ -42,9 +42,9 @@ if [ -d "$INDEXER_DIR/.ponder" ]; then
 fi
 
 # Create symlink to root .env file if it doesn't exist
-if [ ! -e "$INDEXER_DIR/.env.local" ] && [ -f "$SCRIPT_DIR/.env" ]; then
+if [ ! -e "$INDEXER_DIR/.env.local" ] && [ -f "$SCRIPT_DIR/../.env" ]; then
     echo "Creating symlink to root .env file..."
-    ln -s "$SCRIPT_DIR/.env" "$INDEXER_DIR/.env.local"
+    ln -s "$SCRIPT_DIR/../.env" "$INDEXER_DIR/.env.local"
 fi
 
 # Start indexer in background
@@ -107,7 +107,7 @@ echo "=== Setup Complete ==="
 echo ""
 echo "Indexer is running in the background (PID: $INDEXER_PID)"
 echo "GraphQL endpoint: http://localhost:42069/graphql"
-echo "To stop it later, run: ./stop-indexer.sh"
+echo "To stop it later, run: ./scripts/stop-indexer.sh"
 echo ""
 echo "Next steps:"
 echo "  Run tests: cd integration-tests && npm test"

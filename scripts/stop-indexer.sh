@@ -5,7 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PID_FILE="$SCRIPT_DIR/integration-tests/test-logs/indexer.pid"
+PID_FILE="$SCRIPT_DIR/../integration-tests/test-logs/indexer.pid"
 
 if [ ! -f "$PID_FILE" ]; then
     echo "No PID file found at $PID_FILE"

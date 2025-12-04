@@ -6,8 +6,8 @@
 set -e  # Exit on error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HARDHAT_DIR="$SCRIPT_DIR/hardhat"
-LOG_DIR="$SCRIPT_DIR/integration-tests/test-logs"
+HARDHAT_DIR="$SCRIPT_DIR/../hardhat"
+LOG_DIR="$SCRIPT_DIR/../integration-tests/test-logs"
 
 # Create log directory if it doesn't exist
 mkdir -p "$LOG_DIR"
@@ -81,7 +81,7 @@ wait_for_hardhat() {
 
 # Start hardhat node in background
 echo "Starting Hardhat node in background..."
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR/.."
 npm run hardhat:node > "$NODE_LOG" 2>&1 &
 HARDHAT_PID=$!
 
@@ -108,7 +108,7 @@ if ! wait_for_hardhat; then
         echo "  2. Another process is using port 8545"
         echo ""
         echo "To fix this:"
-        echo "  - Stop any existing Hardhat nodes: ./stop-hardhat-node.sh"
+        echo "  - Stop any existing Hardhat nodes: ./scripts/stop-hardhat-node.sh"
         echo "  - Or find what's using the port: lsof -i :8545"
         echo "  - Then kill the process: kill <PID>"
     else

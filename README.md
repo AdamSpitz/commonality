@@ -52,14 +52,14 @@ The integration tests use an "sdk" library (at the top level of this repo) for u
 
 To run the full integration test suite (starts node, indexer, runs tests, cleans up):
 
-    ./run-integration-tests.sh
+    ./scripts/run-integration-tests.sh
 
 Or run components individually:
 
-    ./start-node-and-deploy.sh   # Start node and deploy contracts
-    ./start-indexer.sh           # Start indexer with fresh database
-    ./stop-hardhat-node.sh       # Stop the node
-    ./stop-indexer.sh            # Stop the indexer
+    ./scripts/start-node-and-deploy.sh   # Start node and deploy contracts
+    ./scripts/start-indexer.sh           # Start indexer with fresh database
+    ./scripts/stop-hardhat-node.sh       # Stop the node
+    ./scripts/stop-indexer.sh            # Stop the indexer
 
 See [integration-tests/README.md](integration-tests/README.md) for details.
 

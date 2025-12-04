@@ -48,7 +48,7 @@ function validateEnvironment(): void {
       `Missing required environment variables:\n` +
       `  ${missing.join('\n  ')}\n\n` +
       `These should be set in integration-tests/.env.local\n` +
-      `Run './start-node-and-deploy.sh' to deploy contracts and generate .env.local`
+      `Run './scripts/start-node-and-deploy.sh' to deploy contracts and generate .env.local`
     );
   }
 }

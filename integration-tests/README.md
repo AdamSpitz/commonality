@@ -18,16 +18,16 @@ The easiest way to run integration tests is using the automated script:
 
 ```bash
 # Run all tests
-./run-integration-tests.sh
+./scripts/run-integration-tests.sh
 
 # Run specific tests by pattern
-./run-integration-tests.sh "src/delegation*.test.ts"
+./scripts/run-integration-tests.sh "src/delegation*.test.ts"
 
 # Run tests matching a keyword
-./run-integration-tests.sh "conceptspace"
+./scripts/run-integration-tests.sh "conceptspace"
 
 # Run a single test file
-./run-integration-tests.sh "src/hello-world.test.ts"
+./scripts/run-integration-tests.sh "src/hello-world.test.ts"
 ```
 
 This script will:
@@ -44,7 +44,7 @@ If you need to run tests manually with more control:
 #### Terminal 1: Start Hardhat Node and Deploy
 
 ```bash
-./start-node-and-deploy.sh
+./scripts/start-node-and-deploy.sh
 ```
 
 This starts a Hardhat node in the background and deploys contracts.
@@ -54,7 +54,7 @@ This starts a Hardhat node in the background and deploys contracts.
 **IMPORTANT:** Always use this script to ensure a fresh database:
 
 ```bash
-./start-indexer.sh
+./scripts/start-indexer.sh
 ```
 
 This script cleans up the `.ponder` directory and starts the indexer with a fresh database.
@@ -81,8 +81,8 @@ npm test -- "src/hello-world.test.ts"
 When done, stop the background processes:
 
 ```bash
-./stop-hardhat-node.sh
-./stop-indexer.sh
+./scripts/stop-hardhat-node.sh
+./scripts/stop-indexer.sh
 ```
 
 ## Environment Variables

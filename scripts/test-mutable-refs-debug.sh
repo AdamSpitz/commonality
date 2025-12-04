@@ -18,14 +18,14 @@ echo ""
 # Start node and deploy (if not already running)
 if ! nc -z localhost 8545 2>/dev/null; then
     echo "Starting Hardhat node and deploying contracts..."
-    ./start-node-and-deploy.sh
+    ./scripts/start-node-and-deploy.sh
     sleep 2
 fi
 
 # Start indexer (if not already running)
 if ! nc -z localhost 42069 2>/dev/null; then
     echo "Starting indexer..."
-    ./start-indexer.sh
+    ./scripts/start-indexer.sh
     sleep 5
 fi
 

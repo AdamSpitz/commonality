@@ -4,7 +4,7 @@ Client library for interacting with the Commonality protocol. Used by integratio
 
 ## Notes for AI working on this code
 
-If you modify any of this sdk code, please make sure "./run-integration-tests.sh" (in the top-level directory) succeeds when you're done.
+If you modify any of this sdk code, please make sure "./scripts/run-integration-tests.sh" (in the top-level directory) succeeds when you're done.
 
 ## Architecture
 

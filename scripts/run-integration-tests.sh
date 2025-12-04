@@ -8,20 +8,20 @@
 # 4. Cleans up background processes
 #
 # Usage:
-#   ./run-integration-tests.sh [TEST_PATTERN]
+#   ./scripts/run-integration-tests.sh [TEST_PATTERN]
 #
 # Arguments:
 #   TEST_PATTERN (optional): Glob pattern or file to run specific tests
 #                           Examples:
-#                             ./run-integration-tests.sh delegation
-#                             ./run-integration-tests.sh "delegation*.test.ts"
-#                             ./run-integration-tests.sh "src/delegation-basic.test.ts"
+#                             ./scripts/run-integration-tests.sh delegation
+#                             ./scripts/run-integration-tests.sh "delegation*.test.ts"
+#                             ./scripts/run-integration-tests.sh "src/delegation-basic.test.ts"
 
 set -e  # Exit on error
 set -o pipefail  # Propagate pipe failures
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="$SCRIPT_DIR/integration-tests/test-logs"
+LOG_DIR="$SCRIPT_DIR/../integration-tests/test-logs"
 TEST_PATTERN="${1:-}"
 
 # Create log directory if it doesn't exist
@@ -165,7 +165,7 @@ log_message ""
 log_message "=== Step 3: Running Integration Tests ==="
 log_message ""
 
-cd "$SCRIPT_DIR/integration-tests"
+cd "$SCRIPT_DIR/../integration-tests"
 if [ -n "$TEST_PATTERN" ]; then
     log_message "Running tests matching pattern: $TEST_PATTERN"
     if ! npm test -- "$TEST_PATTERN" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
