@@ -24,6 +24,7 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Hello World Integration Test', () => {
@@ -45,8 +46,8 @@ describe('Hello World Integration Test', () => {
     const clients = createTestClients(PRIVATE_KEY, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-    console.log(`  Using account: ${clients.account}`);
-    console.log(`  Beliefs contract: ${BELIEFS_CONTRACT_ADDRESS}`);
+    testLog(`  Using account: ${clients.account}`);
+    testLog(`  Beliefs contract: ${BELIEFS_CONTRACT_ADDRESS}`);
 
     // 2. Create a statement (mock IPFS upload)
     const statementContent = {
@@ -57,8 +58,8 @@ describe('Hello World Integration Test', () => {
     const statementCid = await uploadToIPFS(statementContent);
     const statementId = cidToBytes32(statementCid);
 
-    console.log(`  Statement CID: ${statementCid}`);
-    console.log(`  Statement ID (bytes32): ${statementId}`);
+    testLog(`  Statement CID: ${statementCid}`);
+    testLog(`  Statement ID (bytes32): ${statementId}`);
 
     // 3. Express belief in the statement
     const beliefsContract: BeliefsContract = {
@@ -66,21 +67,21 @@ describe('Hello World Integration Test', () => {
       abi: BeliefsAbi,
     };
 
-    console.log('  Submitting belief transaction...');
+    testLog('  Submitting belief transaction...');
     const txHash = await believeStatement(clients, beliefsContract, statementCid);
-    console.log(`  Transaction: ${txHash}`);
+    testLog(`  Transaction: ${txHash}`);
 
     // Get the block number of the transaction
     const receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    console.log(`  Block: ${receipt.blockNumber}`);
+    testLog(`  Block: ${receipt.blockNumber}`);
 
     // 4. Wait for indexer to sync
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-    console.log('  Indexer synced!');
+    testLog('  Indexer synced!');
 
     // 5. Query the belief back from the indexer
-    console.log('  Querying belief from indexer...');
+    testLog('  Querying belief from indexer...');
     const userBelief = assertNotNull(
       await getUserBelief(graphqlClient, clients.account, statementId),
       'User belief'
@@ -94,7 +95,7 @@ describe('Hello World Integration Test', () => {
       'Statement ID should match'
     );
 
-    console.log('  ✓ Belief recorded and queried successfully!');
+    testLog('  ✓ Belief recorded and queried successfully!');
 
     // 7. Also check the statement's supporter count
     const statement = assertNotNull(
@@ -103,6 +104,6 @@ describe('Hello World Integration Test', () => {
     );
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
 
-    console.log('  ✓ Statement has correct supporter count!');
+    testLog('  ✓ Statement has correct supporter count!');
   });
 });

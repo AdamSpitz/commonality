@@ -35,6 +35,7 @@ import {
   AssuranceContractAbi,
   ProjectAlignmentAbi,
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -61,7 +62,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   it('should rank top contributors for a cause across multiple projects', async function() {
     this.timeout(90000);
 
-    console.log('  Setting up leaderboard test scenario...');
+    testLog('  Setting up leaderboard test scenario...');
     const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
@@ -69,16 +70,16 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const contributor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
     const contributor3Clients = createTestClients(CONTRIBUTOR3_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Contributor 1: ${contributor1Clients.account}`);
-    console.log(`  Contributor 2: ${contributor2Clients.account}`);
-    console.log(`  Contributor 3: ${contributor3Clients.account}`);
+    testLog(`  Contributor 1: ${contributor1Clients.account}`);
+    testLog(`  Contributor 2: ${contributor2Clients.account}`);
+    testLog(`  Contributor 3: ${contributor3Clients.account}`);
 
     // Create statement for the cause
     const causeContent = { text: 'Support renewable energy projects' };
     const causeCid = await uploadToIPFS(causeContent);
     const causeId = cidToBytes32(causeCid);
 
-    console.log(`  Cause: ${causeId}`);
+    testLog(`  Cause: ${causeId}`);
 
     // Create two projects aligned with the cause
     const pubstarterContract: PubstarterContract = {
@@ -86,7 +87,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       abi: PubstarterAbi,
     };
 
-    console.log('  Creating projects...');
+    testLog('  Creating projects...');
     const p1Metadata = await uploadToIPFS({ title: 'Solar Panel Initiative' });
     const { hash: p1Hash, projectDetails: p1Details } = await createProject(
       creator1Clients,
@@ -149,7 +150,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await waitForSync(graphqlClient, align2Receipt.blockNumber, 15000);
 
     // Contributors make contributions
-    console.log('  Making contributions...');
+    testLog('  Making contributions...');
     const assuranceContract1: AssuranceContract = {
       address: p1Details.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -209,12 +210,12 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       }
     );
 
-    console.log('  Waiting for indexer...');
+    testLog('  Waiting for indexer...');
     const buy3Receipt = await contributor3Clients.publicClient.getTransactionReceipt({ hash: buy3Hash });
     await waitForSync(graphqlClient, buy3Receipt.blockNumber, 15000);
 
     // Query top contributors
-    console.log('  Querying top contributors...');
+    testLog('  Querying top contributors...');
     const topContributors = await getTopContributorsForCause(
       graphqlClient,
       causeId,
@@ -223,7 +224,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       attesterClients.account  // Trust this attester for alignments
     );
 
-    console.log(`  Found ${topContributors.length} contributors`);
+    testLog(`  Found ${topContributors.length} contributors`);
     assert.strictEqual(topContributors.length, 3, 'Should have 3 contributors');
 
     // Verify ranking (by net contribution)
@@ -231,9 +232,9 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const rank2 = topContributors[1];
     const rank3 = topContributors[2];
 
-    console.log(`  Rank 1: ${rank1.participant} - ${rank1.netContribution} wei`);
-    console.log(`  Rank 2: ${rank2.participant} - ${rank2.netContribution} wei`);
-    console.log(`  Rank 3: ${rank3.participant} - ${rank3.netContribution} wei`);
+    testLog(`  Rank 1: ${rank1.participant} - ${rank1.netContribution} wei`);
+    testLog(`  Rank 2: ${rank2.participant} - ${rank2.netContribution} wei`);
+    testLog(`  Rank 3: ${rank3.participant} - ${rank3.netContribution} wei`);
 
     // Rank 1 should be contributor 1 (3 ETH)
     assert.strictEqual(
@@ -262,13 +263,13 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     );
     assert.strictEqual(rank3.netContribution, parseEther('0.5'), 'Rank 3 should have 0.5 ETH');
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 
   it('should get a user\'s contribution rank for a cause', async function() {
     this.timeout(90000);
 
-    console.log('  Setting up rank query test...');
+    testLog('  Setting up rank query test...');
     const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const contributor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
@@ -286,7 +287,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       abi: PubstarterAbi,
     };
 
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const pMetadata = await uploadToIPFS({ title: 'Education Fund' });
     const { hash: pHash, projectDetails: pDetails } = await createProject(
       creator1Clients,
@@ -325,7 +326,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await waitForSync(graphqlClient, alignReceipt.blockNumber, 15000);
 
     // Make contributions
-    console.log('  Making contributions...');
+    testLog('  Making contributions...');
     const assuranceContract: AssuranceContract = {
       address: pDetails.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -359,7 +360,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await waitForSync(graphqlClient, buy3Receipt.blockNumber, 15000);
 
     // Query rank for contributor 2
-    console.log('  Querying rank for Contributor 2...');
+    testLog('  Querying rank for Contributor 2...');
     const rankResult = await getUserContributionRankForCause(
       graphqlClient,
       causeId,
@@ -374,11 +375,11 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     assert.ok(rankResult!.stats, 'Should have stats');
     assert.strictEqual(rankResult!.stats!.netContribution, parseEther('2.0'), 'Net contribution should be 2 ETH');
 
-    console.log(`  Rank: ${rankResult!.rank} of ${rankResult!.totalContributors}`);
-    console.log(`  Net contribution: ${rankResult!.stats!.netContribution}`);
+    testLog(`  Rank: ${rankResult!.rank} of ${rankResult!.totalContributors}`);
+    testLog(`  Net contribution: ${rankResult!.stats!.netContribution}`);
 
     // Query rank for a non-contributor
-    console.log('  Querying rank for non-contributor...');
+    testLog('  Querying rank for non-contributor...');
     const nonContributorRank = await getUserContributionRankForCause(
       graphqlClient,
       causeId,
@@ -391,6 +392,6 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     assert.strictEqual(nonContributorRank!.rank, 0, 'Non-contributor should have rank 0');
     assert.strictEqual(nonContributorRank!.stats, null, 'Non-contributor should have null stats');
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 });

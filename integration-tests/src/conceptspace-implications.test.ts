@@ -28,6 +28,7 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Conceptspace Implications', () => {
@@ -85,11 +86,11 @@ describe('Conceptspace Implications', () => {
     const statement1Id = cidToBytes32(statement1Cid);
     const statement2Id = cidToBytes32(statement2Cid);
 
-    console.log(`  Statement 1 (specific): "${statement1Content.text}"`);
-    console.log(`  Statement 2 (general): "${statement2Content.text}"`);
+    testLog(`  Statement 1 (specific): "${statement1Content.text}"`);
+    testLog(`  Statement 2 (general): "${statement2Content.text}"`);
 
     // Attest that statement 1 implies statement 2
-    console.log('  Attesting that statement 1 implies statement 2...');
+    testLog('  Attesting that statement 1 implies statement 2...');
     const txHash = await attestImplication(
       attesterClients,
       implicationsContract,
@@ -118,7 +119,7 @@ describe('Conceptspace Implications', () => {
     const implicationsTo = await getImplicationsTo(graphqlClient, statement2Id);
     assert.strictEqual(implicationsTo.length, 1, 'Should have 1 implication to statement 2');
 
-    console.log('  ✓ Implication attestation recorded correctly');
+    testLog('  ✓ Implication attestation recorded correctly');
   });
 
   it('should track indirect support via implications', async function() {
@@ -142,11 +143,11 @@ describe('Conceptspace Implications', () => {
     const specificId = cidToBytes32(specificCid);
     const generalId = cidToBytes32(generalCid);
 
-    console.log(`  Specific: "${specificStatement.text}"`);
-    console.log(`  General: "${generalStatement.text}"`);
+    testLog(`  Specific: "${specificStatement.text}"`);
+    testLog(`  General: "${generalStatement.text}"`);
 
     // User believes the specific statement
-    console.log('  User believes specific statement...');
+    testLog('  User believes specific statement...');
     let txHash = await believeStatement(userClients, beliefsContract, specificCid);
     let receipt = await userClients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -165,10 +166,10 @@ describe('Conceptspace Implications', () => {
       'General statement should have 0 direct believers initially (or not exist yet)'
     );
 
-    console.log('  ✓ Direct support recorded');
+    testLog('  ✓ Direct support recorded');
 
     // Attester creates implication: specific -> general
-    console.log('  Attester creates implication (specific -> general)...');
+    testLog('  Attester creates implication (specific -> general)...');
     txHash = await attestImplication(
       attesterClients,
       implicationsContract,
@@ -182,8 +183,8 @@ describe('Conceptspace Implications', () => {
     const implications = await getImplicationsTo(graphqlClient, generalId);
     assert.strictEqual(implications.length, 1, 'General statement should have 1 implication pointing to it');
 
-    console.log('  ✓ Implication created');
-    console.log('  ✓ Indexer can now compute indirect support by querying implications');
+    testLog('  ✓ Implication created');
+    testLog('  ✓ Indexer can now compute indirect support by querying implications');
   });
 
   it('should handle multiple implications to the same statement', async function() {
@@ -211,12 +212,12 @@ describe('Conceptspace Implications', () => {
     const specific2Cid = await uploadToIPFS(specific2);
     const generalId = cidToBytes32(generalCid);
 
-    console.log(`  General: "${general.text}"`);
-    console.log(`  Specific 1: "${specific1.text}"`);
-    console.log(`  Specific 2: "${specific2.text}"`);
+    testLog(`  General: "${general.text}"`);
+    testLog(`  Specific 1: "${specific1.text}"`);
+    testLog(`  Specific 2: "${specific2.text}"`);
 
     // Create implications: specific1 -> general, specific2 -> general
-    console.log('  Creating implications...');
+    testLog('  Creating implications...');
     let txHash = await attestImplication(
       attesterClients,
       implicationsContract,
@@ -243,7 +244,7 @@ describe('Conceptspace Implications', () => {
       'General statement should have 2 implications pointing to it'
     );
 
-    console.log('  ✓ Multiple implications tracked correctly');
+    testLog('  ✓ Multiple implications tracked correctly');
   });
 
   it('should verify implications are NOT transitive', async function() {
@@ -259,7 +260,7 @@ describe('Conceptspace Implications', () => {
     const s2Id = cidToBytes32(s2);
     const s3Id = cidToBytes32(s3);
 
-    console.log('  Creating chain: S1 -> S2 -> S3...');
+    testLog('  Creating chain: S1 -> S2 -> S3...');
 
     // Attest S1 -> S2
     let txHash = await attestImplication(attesterClients, implicationsContract, s1, s2);
@@ -288,7 +289,7 @@ describe('Conceptspace Implications', () => {
     );
     assert.strictEqual(s1ToS3, undefined, 'S1 -> S3 should NOT exist (implications are not transitive)');
 
-    console.log('  ✓ Confirmed: implications are NOT transitive');
-    console.log('  ✓ To find indirect support for S3 from S1 believers, need direct S1->S3 attestation');
+    testLog('  ✓ Confirmed: implications are NOT transitive');
+    testLog('  ✓ To find indirect support for S3 from S1 believers, need direct S1->S3 attestation');
   });
 });

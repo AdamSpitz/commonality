@@ -48,6 +48,7 @@ import {
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 
 
@@ -74,15 +75,15 @@ describe('Secondary Marketplace Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    console.log('  Setting up test clients...');
+    testLog('  Setting up test clients...');
     const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
     const buyerClients = createTestClients(BUYER_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Seller: ${sellerClients.account}`);
-    console.log(`  Buyer: ${buyerClients.account}`);
+    testLog(`  Seller: ${sellerClients.account}`);
+    testLog(`  Buyer: ${buyerClients.account}`);
 
     // Create a project
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const projectMetadataCid = await uploadToIPFS({
       title: 'Secondary Market Test Project',
     });
@@ -109,14 +110,14 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    console.log(`  Project created! Marketplace: ${projectDetails.marketplaceAddress}`);
+    testLog(`  Project created! Marketplace: ${projectDetails.marketplaceAddress}`);
 
     // Wait for indexer to sync
     const receipt = await sellerClients.publicClient.getTransactionReceipt({ hash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Seller buys some tokens from the primary market
-    console.log('  Seller buying tokens from primary market...');
+    testLog('  Seller buying tokens from primary market...');
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -138,7 +139,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
 
     // Seller approves marketplace to transfer their tokens
-    console.log('  Seller approving marketplace...');
+    testLog('  Seller approving marketplace...');
     const approveHash = await approveERC1155ForMarketplace(
       sellerClients,
       projectDetails.tokenAddress,
@@ -146,7 +147,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     // Seller creates a sale listing
-    console.log('  Seller creating sale listing...');
+    testLog('  Seller creating sale listing...');
     const marketplaceContract: SecondaryMarketContract = {
       address: projectDetails.marketplaceAddress,
       abi: SecondaryMarketAbi,
@@ -163,17 +164,17 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     const listingReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: listingHash });
-    console.log('  Waiting for indexer to sync sale listing...');
+    testLog('  Waiting for indexer to sync sale listing...');
     await waitForSync(graphqlClient, listingReceipt.blockNumber, 15000);
 
     // Query the listing from indexer
-    console.log('  Querying sale listing from indexer...');
+    testLog('  Querying sale listing from indexer...');
     const listing = assertNotNull(
       await getSaleListing(graphqlClient, projectDetails.marketplaceAddress, 0n),
       'Sale listing'
     );
 
-    console.log(`  Listing found! Price: ${listing.pricePerToken}, Count: ${listing.remainingCount}`);
+    testLog(`  Listing found! Price: ${listing.pricePerToken}, Count: ${listing.remainingCount}`);
     assert.strictEqual(listing.status, 'active', 'Listing should be active');
     assert.strictEqual(listing.seller.toLowerCase(), sellerClients.account.toLowerCase(), 'Seller should match');
     assert.strictEqual(listing.remainingCount, '5', 'Should have 5 tokens listed');
@@ -184,7 +185,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(activeListings.length, 1, 'Should have 1 active listing');
 
     // Buyer fulfills the sale listing (buys 3 tokens)
-    console.log('  Buyer purchasing from sale listing...');
+    testLog('  Buyer purchasing from sale listing...');
     const fulfillHash = await fulfillSaleListing(
       buyerClients,
       marketplaceContract,
@@ -196,7 +197,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     const fulfillReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: fulfillHash });
-    console.log('  Waiting for indexer to sync trade...');
+    testLog('  Waiting for indexer to sync trade...');
     await waitForSync(graphqlClient, fulfillReceipt.blockNumber, 15000);
 
     // Query updated listing
@@ -205,13 +206,13 @@ describe('Secondary Marketplace Integration Tests', () => {
       'Updated listing'
     );
 
-    console.log(`  Updated listing remaining count: ${updatedListing.remainingCount}`);
+    testLog(`  Updated listing remaining count: ${updatedListing.remainingCount}`);
     assert.strictEqual(updatedListing.remainingCount, '2', 'Should have 2 tokens remaining');
     assert.strictEqual(updatedListing.status, 'active', 'Listing should still be active');
 
     // Query trades
     const trades = await getMarketplaceTrades(graphqlClient, projectDetails.marketplaceAddress);
-    console.log(`  Found ${trades.length} trade(s)`);
+    testLog(`  Found ${trades.length} trade(s)`);
     assert.strictEqual(trades.length, 1, 'Should have 1 trade');
 
     const trade = trades[0];
@@ -220,7 +221,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(trade.count, '3', 'Trade count should be 3');
     assert.strictEqual(trade.orderType, 'sale_listing', 'Trade type should be sale_listing');
 
-    console.log('  Sale listing test passed!');
+    testLog('  Sale listing test passed!');
   });
 
   it('should create and cancel a sale listing', async function() {
@@ -230,7 +231,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    console.log('  Setting up for cancellation test...');
+    testLog('  Setting up for cancellation test...');
     const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
 
     // Create a project
@@ -281,7 +282,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     // Create a listing
-    console.log('  Creating sale listing to cancel...');
+    testLog('  Creating sale listing to cancel...');
     const marketplaceContract: SecondaryMarketContract = {
       address: projectDetails.marketplaceAddress,
       abi: SecondaryMarketAbi,
@@ -308,7 +309,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(listing.status, 'active', 'Listing should be active');
 
     // Cancel the listing
-    console.log('  Cancelling sale listing...');
+    testLog('  Cancelling sale listing...');
     const cancelHash = await cancelSaleListing(
       sellerClients,
       marketplaceContract,
@@ -329,7 +330,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const activeListings = await getActiveSaleListings(graphqlClient, projectDetails.marketplaceAddress);
     assert.strictEqual(activeListings.length, 0, 'Should have no active listings');
 
-    console.log('  Cancellation test passed!');
+    testLog('  Cancellation test passed!');
   });
 
   it('should create and fulfill a buy order', async function() {
@@ -339,7 +340,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    console.log('  Setting up for buy order test...');
+    testLog('  Setting up for buy order test...');
     const buyerClients = createTestClients(BUYER_PRIVATE_KEY, RPC_URL);
     const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
 
@@ -391,7 +392,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     // Buyer creates a buy order
-    console.log('  Buyer creating buy order...');
+    testLog('  Buyer creating buy order...');
     const marketplaceContract: SecondaryMarketContract = {
       address: projectDetails.marketplaceAddress,
       abi: SecondaryMarketAbi,
@@ -421,7 +422,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(buyOrder.remainingCount, '4', 'Should want 4 tokens');
 
     // Seller fulfills the buy order (sells 2 tokens)
-    console.log('  Seller fulfilling buy order...');
+    testLog('  Seller fulfilling buy order...');
     const fulfillHash = await fulfillBuyOrder(
       sellerClients,
       marketplaceContract,
@@ -451,7 +452,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(trade.orderType, 'buy_order', 'Trade type should be buy_order');
     assert.strictEqual(trade.count, '2', 'Trade count should be 2');
 
-    console.log('  Buy order test passed!');
+    testLog('  Buy order test passed!');
   });
 
   it('should create and cancel a buy order', async function() {
@@ -461,7 +462,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    console.log('  Setting up for buy order cancellation...');
+    testLog('  Setting up for buy order cancellation...');
     const buyerClients = createTestClients(BUYER_PRIVATE_KEY, RPC_URL);
     const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
 
@@ -493,7 +494,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Buyer creates a buy order
-    console.log('  Creating buy order to cancel...');
+    testLog('  Creating buy order to cancel...');
     const marketplaceContract: SecondaryMarketContract = {
       address: projectDetails.marketplaceAddress,
       abi: SecondaryMarketAbi,
@@ -520,7 +521,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(order.status, 'active', 'Order should be active');
 
     // Cancel the order
-    console.log('  Cancelling buy order...');
+    testLog('  Cancelling buy order...');
     const cancelHash = await cancelBuyOrder(
       buyerClients,
       marketplaceContract,
@@ -541,6 +542,6 @@ describe('Secondary Marketplace Integration Tests', () => {
     const activeOrders = await getActiveBuyOrders(graphqlClient, projectDetails.marketplaceAddress);
     assert.strictEqual(activeOrders.length, 0, 'Should have no active buy orders');
 
-    console.log('  Buy order cancellation test passed!');
+    testLog('  Buy order cancellation test passed!');
   });
 });

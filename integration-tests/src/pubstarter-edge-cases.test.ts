@@ -26,6 +26,7 @@ import {
   waitForSync,
 } from '@commonality/sdk';
 import { PubstarterAbi, AssuranceContractAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Pubstarter Edge Cases', () => {
@@ -44,8 +45,8 @@ describe('Pubstarter Edge Cases', () => {
     const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
@@ -61,7 +62,7 @@ describe('Pubstarter Edge Cases', () => {
     const tokenPrice = parseEther('0.1');
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
@@ -81,7 +82,7 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Bob tries to buy 10 tokens but only sends enough for 5
-    console.log('  Bob attempting to buy tokens with insufficient funds...');
+    testLog('  Bob attempting to buy tokens with insufficient funds...');
 
     let purchaseFailed = false;
     try {
@@ -94,7 +95,7 @@ describe('Pubstarter Edge Cases', () => {
       });
     } catch (error) {
       purchaseFailed = true;
-      console.log('  ✓ Purchase failed as expected due to insufficient funds');
+      testLog('  ✓ Purchase failed as expected due to insufficient funds');
     }
 
     assert.ok(purchaseFailed, 'Purchase with insufficient funds should fail');
@@ -109,8 +110,8 @@ describe('Pubstarter Edge Cases', () => {
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
@@ -127,7 +128,7 @@ describe('Pubstarter Edge Cases', () => {
     const currentTime = Math.floor(Date.now() / 1000);
     const deadline = BigInt(currentTime + 2); // 2 seconds from now
 
-    console.log('  Creating project with short deadline...');
+    testLog('  Creating project with short deadline...');
     const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
@@ -147,7 +148,7 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Bob buys a small amount (not enough to meet threshold)
-    console.log('  Bob purchasing tokens...');
+    testLog('  Bob purchasing tokens...');
     const purchaseTx = await buyProjectTokens(bobClients, assuranceContract, {
       buyer: bobClients.account,
       tokenAddress: projectDetails.tokenAddress,
@@ -160,7 +161,7 @@ describe('Pubstarter Edge Cases', () => {
     await waitForSync(graphqlClient, receipt.blockNumber);
 
     // Advance blockchain time past the deadline
-    console.log('  Advancing blockchain time past deadline...');
+    testLog('  Advancing blockchain time past deadline...');
     await bobClients.publicClient.request({
       method: 'evm_increaseTime',
       params: [3] as any,
@@ -172,7 +173,7 @@ describe('Pubstarter Edge Cases', () => {
     } as any);
 
     // Bob needs to approve the assurance contract to transfer the tokens back for refund
-    console.log('  Bob approving assurance contract to transfer tokens...');
+    testLog('  Bob approving assurance contract to transfer tokens...');
     const erc1155Abi = [
       {
         inputs: [
@@ -195,10 +196,10 @@ describe('Pubstarter Edge Cases', () => {
       chain: null,
     } as any);
     await bobClients.publicClient.waitForTransactionReceipt({ hash: approveHash });
-    console.log('  Tokens approved for transfer');
+    testLog('  Tokens approved for transfer');
 
     // Bob should be able to refund his tokens now
-    console.log('  Bob attempting refund after project failure...');
+    testLog('  Bob attempting refund after project failure...');
 
     let refundSucceeded = true;
     let refundError: any = null;
@@ -210,7 +211,7 @@ describe('Pubstarter Edge Cases', () => {
         tokenCounts: [5n],
       });
 
-      console.log(`  ✓ Refund succeeded: ${refundTx}`);
+      testLog(`  ✓ Refund succeeded: ${refundTx}`);
     } catch (error) {
       refundSucceeded = false;
       refundError = error;
@@ -231,8 +232,8 @@ describe('Pubstarter Edge Cases', () => {
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
@@ -249,7 +250,7 @@ describe('Pubstarter Edge Cases', () => {
     const threshold = parseEther('1');
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
-    console.log('  Creating project with Alice as recipient...');
+    testLog('  Creating project with Alice as recipient...');
     const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
@@ -269,7 +270,7 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Bob buys enough tokens to meet the threshold
-    console.log('  Bob purchasing tokens to meet threshold...');
+    testLog('  Bob purchasing tokens to meet threshold...');
     const purchaseTx = await buyProjectTokens(bobClients, assuranceContract, {
       buyer: bobClients.account,
       tokenAddress: projectDetails.tokenAddress,
@@ -283,28 +284,28 @@ describe('Pubstarter Edge Cases', () => {
 
     // Verify threshold was met
     const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
-    console.log(`  Project received: ${project?.totalReceived} (threshold: ${project?.threshold})`);
+    testLog(`  Project received: ${project?.totalReceived} (threshold: ${project?.threshold})`);
 
     // Bob (not the recipient) tries to withdraw the funds
-    console.log('  Bob attempting to withdraw funds (should fail)...');
+    testLog('  Bob attempting to withdraw funds (should fail)...');
 
     let withdrawalFailed = false;
     try {
       await withdrawProjectFunds(bobClients, assuranceContract);
     } catch (error) {
       withdrawalFailed = true;
-      console.log('  ✓ Withdrawal failed as expected');
+      testLog('  ✓ Withdrawal failed as expected');
     }
 
     assert.ok(withdrawalFailed, 'Non-recipient withdrawal should fail');
 
     // Alice (the recipient) should be able to withdraw
-    console.log('  Alice withdrawing funds (should succeed)...');
+    testLog('  Alice withdrawing funds (should succeed)...');
 
     let aliceWithdrawalSucceeded = true;
     try {
       const withdrawTx = await withdrawProjectFunds(aliceClients, assuranceContract);
-      console.log(`  ✓ Alice withdrawal succeeded: ${withdrawTx}`);
+      testLog(`  ✓ Alice withdrawal succeeded: ${withdrawTx}`);
     } catch (error) {
       aliceWithdrawalSucceeded = false;
       console.error('  Unexpected error during Alice withdrawal:', error);
@@ -321,8 +322,8 @@ describe('Pubstarter Edge Cases', () => {
     const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
@@ -339,7 +340,7 @@ describe('Pubstarter Edge Cases', () => {
     const currentTime = Math.floor(Date.now() / 1000);
     const deadline = BigInt(currentTime + 3);
 
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
@@ -359,7 +360,7 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Bob should be able to buy before deadline
-    console.log('  Bob purchasing before deadline...');
+    testLog('  Bob purchasing before deadline...');
     let purchaseBeforeSucceeded = true;
     try {
       await buyProjectTokens(bobClients, assuranceContract, {
@@ -369,7 +370,7 @@ describe('Pubstarter Edge Cases', () => {
         tokenCounts: [5n],
         totalCost: tokenPrice * 5n,
       });
-      console.log('  ✓ Purchase before deadline succeeded');
+      testLog('  ✓ Purchase before deadline succeeded');
     } catch (error) {
       purchaseBeforeSucceeded = false;
       console.error('  Unexpected error purchasing before deadline:', error);
@@ -378,7 +379,7 @@ describe('Pubstarter Edge Cases', () => {
     assert.ok(purchaseBeforeSucceeded, 'Purchase before deadline should succeed');
 
     // Advance blockchain time past the deadline
-    console.log('  Advancing blockchain time past deadline...');
+    testLog('  Advancing blockchain time past deadline...');
     await bobClients.publicClient.request({
       method: 'evm_increaseTime',
       params: [4] as any,
@@ -392,7 +393,7 @@ describe('Pubstarter Edge Cases', () => {
     // Note: Per the AssuranceContract design (see AssuranceContracts.sol:116-119),
     // buying is ALWAYS allowed, even after the deadline. This is intentional to allow
     // additional contributions that could help the project reach its goal.
-    console.log('  Bob purchasing after deadline (should still succeed per contract design)...');
+    testLog('  Bob purchasing after deadline (should still succeed per contract design)...');
     let purchaseAfterSucceeded = true;
     try {
       await buyProjectTokens(bobClients, assuranceContract, {
@@ -402,7 +403,7 @@ describe('Pubstarter Edge Cases', () => {
         tokenCounts: [5n],
         totalCost: tokenPrice * 5n,
       });
-      console.log('  ✓ Purchase after deadline succeeded (as expected)');
+      testLog('  ✓ Purchase after deadline succeeded (as expected)');
     } catch (error) {
       purchaseAfterSucceeded = false;
       console.error('  Unexpected error purchasing after deadline:', error);

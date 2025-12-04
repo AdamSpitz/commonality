@@ -26,6 +26,7 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { MutableRefUpdaterAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Mutable Refs', () => {
@@ -61,16 +62,16 @@ describe('Mutable Refs', () => {
     const refName = 'test-ref-create-' + Date.now();
     const refValue = 'QmTestValue123';
 
-    console.log(`  Creating ref "${refName}" with value "${refValue}"...`);
+    testLog(`  Creating ref "${refName}" with value "${refValue}"...`);
     const txHash = await updateRef(clients, mutableRefUpdaterContract, refName, refValue);
     const receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    console.log(`  Transaction confirmed in block ${receipt.blockNumber}`);
+    testLog(`  Transaction confirmed in block ${receipt.blockNumber}`);
     await waitForSync(graphqlClient, receipt.blockNumber, 10000);
 
     // Query from indexer
-    console.log(`  Querying ref for owner ${clients.account} and name ${refName}...`);
+    testLog(`  Querying ref for owner ${clients.account} and name ${refName}...`);
     const refResult = await getUserRef(graphqlClient, clients.account, refName);
-    console.log(`  Query result:`, JSON.stringify(refResult, null, 2));
+    testLog(`  Query result:`, JSON.stringify(refResult, null, 2));
     
     // Also test the raw GraphQL query
     const rawQueryResult = await fetch(GRAPHQL_URL, {
@@ -81,7 +82,7 @@ describe('Mutable Refs', () => {
       })
     });
     const rawData = await rawQueryResult.json();
-    console.log(`  Raw query result:`, JSON.stringify(rawData, null, 2));
+    testLog(`  Raw query result:`, JSON.stringify(rawData, null, 2));
     
     const ref = assertNotNull(
       refResult,
@@ -95,7 +96,7 @@ describe('Mutable Refs', () => {
     const contractValue = await getRef(clients, mutableRefUpdaterContract, clients.account as `0x${string}`, refName);
     assert.strictEqual(contractValue, refValue, 'Contract value should match');
 
-    console.log('  ✓ Ref created and retrieved successfully');
+    testLog('  ✓ Ref created and retrieved successfully');
   });
 
   it('should update an existing ref', async function() {
@@ -107,17 +108,17 @@ describe('Mutable Refs', () => {
     const value2 = 'QmValue2';
     const value3 = 'QmValue3';
 
-    console.log(`  Creating ref "${refName}"...`);
+    testLog(`  Creating ref "${refName}"...`);
     let txHash = await updateRef(clients, mutableRefUpdaterContract, refName, value1);
     let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    console.log('  Updating ref to second value...');
+    testLog('  Updating ref to second value...');
     txHash = await updateRef(clients, mutableRefUpdaterContract, refName, value2);
     receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    console.log('  Updating ref to third value...');
+    testLog('  Updating ref to third value...');
     txHash = await updateRef(clients, mutableRefUpdaterContract, refName, value3);
     receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -138,7 +139,7 @@ describe('Mutable Refs', () => {
     assert.strictEqual(history[1].value, value2, 'Second most recent should be value2');
     assert.strictEqual(history[2].value, value1, 'Oldest should be value1');
 
-    console.log('  ✓ Ref updated and history tracked correctly');
+    testLog('  ✓ Ref updated and history tracked correctly');
   });
 
   it('should keep refs independent between users', async function() {
@@ -153,7 +154,7 @@ describe('Mutable Refs', () => {
     const value2 = 'QmUser2Statements';
     const value3 = 'QmUser3Statements';
 
-    console.log('  Three users creating refs with same name...');
+    testLog('  Three users creating refs with same name...');
 
     // User 1 creates ref
     let txHash = await updateRef(clients1, mutableRefUpdaterContract, refName, value1);
@@ -186,7 +187,7 @@ describe('Mutable Refs', () => {
     assert.ok(matchingUsers.includes(clients2.account.toLowerCase()), 'Should include user 2');
     assert.ok(matchingUsers.includes(clients3.account.toLowerCase()), 'Should include user 3');
 
-    console.log('  ✓ Refs are independent between users');
+    testLog('  ✓ Refs are independent between users');
   });
 
   it('should handle multiple refs per user', async function() {
@@ -199,7 +200,7 @@ describe('Mutable Refs', () => {
       { name: 'draft-statements', value: 'QmDraftList' },
     ];
 
-    console.log('  User creating multiple refs...');
+    testLog('  User creating multiple refs...');
 
     for (const ref of refs) {
       const txHash = await updateRef(clients, mutableRefUpdaterContract, ref.name, ref.value);
@@ -217,7 +218,7 @@ describe('Mutable Refs', () => {
       assert.strictEqual(found!.value, expectedRef.value, `Value for ${expectedRef.name} should match`);
     }
 
-    console.log('  ✓ User can have multiple refs');
+    testLog('  ✓ User can have multiple refs');
   });
 
   it('should handle empty string values', async function() {
@@ -226,7 +227,7 @@ describe('Mutable Refs', () => {
     const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
     const refName = 'test-empty-ref';
 
-    console.log('  Setting ref to non-empty value...');
+    testLog('  Setting ref to non-empty value...');
     let txHash = await updateRef(clients, mutableRefUpdaterContract, refName, 'QmSomeValue');
     let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -234,7 +235,7 @@ describe('Mutable Refs', () => {
     let ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Non-empty ref');
     assert.strictEqual(ref.value, 'QmSomeValue', 'Should have non-empty value');
 
-    console.log('  Clearing ref (empty string)...');
+    testLog('  Clearing ref (empty string)...');
     txHash = await updateRef(clients, mutableRefUpdaterContract, refName, '');
     receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -242,7 +243,7 @@ describe('Mutable Refs', () => {
     ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Empty ref');
     assert.strictEqual(ref.value, '', 'Should have empty value');
 
-    console.log('  ✓ Empty string values handled correctly');
+    testLog('  ✓ Empty string values handled correctly');
   });
 
   it('should support created statements workflow', async function() {
@@ -251,13 +252,13 @@ describe('Mutable Refs', () => {
     const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
     const refName = 'created-statements-workflow';
 
-    console.log('  Simulating created statements workflow...');
+    testLog('  Simulating created statements workflow...');
 
     // User creates first statement - store just the CID
     const statement1 = { statementType: 'text', text: 'First statement' };
     const cid1 = await uploadToIPFS(statement1);
 
-    console.log('  Creating ref with first statement...');
+    testLog('  Creating ref with first statement...');
     let txHash = await updateRef(clients, mutableRefUpdaterContract, refName, cid1);
     let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -278,7 +279,7 @@ describe('Mutable Refs', () => {
     };
     const listCid = await uploadToIPFS(statementList);
 
-    console.log('  Updating ref to point to statement list...');
+    testLog('  Updating ref to point to statement list...');
     txHash = await updateRef(clients, mutableRefUpdaterContract, refName, listCid);
     receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -292,7 +293,7 @@ describe('Mutable Refs', () => {
     assert.strictEqual(history[0].value, listCid, 'Latest should be list CID');
     assert.strictEqual(history[1].value, cid1, 'First should be single statement CID');
 
-    console.log('  ✓ Created statements workflow works correctly');
+    testLog('  ✓ Created statements workflow works correctly');
   });
 
   it('should return empty string for non-existent ref', async function() {
@@ -301,7 +302,7 @@ describe('Mutable Refs', () => {
     const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
     const nonExistentRef = 'this-ref-does-not-exist-' + Date.now();
 
-    console.log('  Querying non-existent ref...');
+    testLog('  Querying non-existent ref...');
 
     // From contract
     const contractValue = await getRef(clients, mutableRefUpdaterContract, clients.account as `0x${string}`, nonExistentRef);
@@ -311,6 +312,6 @@ describe('Mutable Refs', () => {
     const ref = await getUserRef(graphqlClient, clients.account, nonExistentRef);
     assert.strictEqual(ref, null, 'Indexer should return null for non-existent ref');
 
-    console.log('  ✓ Non-existent refs handled correctly');
+    testLog('  ✓ Non-existent refs handled correctly');
   });
 });

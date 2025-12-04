@@ -23,6 +23,7 @@ import {
   waitForSync,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('User Profile Queries', () => {
@@ -42,7 +43,7 @@ describe('User Profile Queries', () => {
     const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
 
     const beliefsContract: BeliefsContract = {
       address: BELIEFS_CONTRACT_ADDRESS,
@@ -67,7 +68,7 @@ describe('User Profile Queries', () => {
     const statementId2 = cidToBytes32(statement2);
     const statementId3 = cidToBytes32(statement3);
 
-    console.log('  Alice signing statements 1 and 2...');
+    testLog('  Alice signing statements 1 and 2...');
 
     // Alice believes statements 1 and 2
     const tx1 = await believeStatement(aliceClients, beliefsContract, statement1);
@@ -77,11 +78,11 @@ describe('User Profile Queries', () => {
     const receipt2 = await aliceClients.publicClient.getTransactionReceipt({ hash: tx2 });
 
     // Wait for indexer to sync
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, receipt2.blockNumber);
 
     // Query Alice's beliefs
-    console.log('  Querying Alice\'s beliefs...');
+    testLog('  Querying Alice\'s beliefs...');
     const aliceBeliefs = await getUserBeliefs(graphqlClient, aliceClients.account);
 
     // Verify Alice believes the 2 statements created in this test
@@ -93,7 +94,7 @@ describe('User Profile Queries', () => {
       'Alice\'s beliefs should include both statements she signed in this test'
     );
 
-    console.log('  ✓ Successfully retrieved user\'s signed statements');
+    testLog('  ✓ Successfully retrieved user\'s signed statements');
   });
 
   it('should retrieve user\'s directly disbelieved statements', async () => {
@@ -122,7 +123,7 @@ describe('User Profile Queries', () => {
     const statementId1 = cidToBytes32(statement1);
     const statementId2 = cidToBytes32(statement2);
 
-    console.log('  Alice disbelieving statements...');
+    testLog('  Alice disbelieving statements...');
 
     // Alice disbelieves both statements
     const tx1 = await disbelieveStatement(aliceClients, beliefsContract, statement1);
@@ -132,11 +133,11 @@ describe('User Profile Queries', () => {
     const receipt2 = await aliceClients.publicClient.getTransactionReceipt({ hash: tx2 });
 
     // Wait for indexer
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, receipt2.blockNumber);
 
     // Query Alice's disbeliefs
-    console.log('  Querying Alice\'s disbeliefs...');
+    testLog('  Querying Alice\'s disbeliefs...');
     const aliceDisbeliefs = await getUserDisbeliefs(graphqlClient, aliceClients.account);
 
     // Verify Alice disbelieves the 2 statements created in this test
@@ -148,7 +149,7 @@ describe('User Profile Queries', () => {
       'Alice\'s disbeliefs should include both statements she disbelieved in this test'
     );
 
-    console.log('  ✓ Successfully retrieved user\'s disbelieved statements');
+    testLog('  ✓ Successfully retrieved user\'s disbelieved statements');
   });
 
   it('should retrieve another user\'s profile and statements', async () => {
@@ -161,8 +162,8 @@ describe('User Profile Queries', () => {
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
 
     const beliefsContract: BeliefsContract = {
       address: BELIEFS_CONTRACT_ADDRESS,
@@ -183,7 +184,7 @@ describe('User Profile Queries', () => {
       text: 'Housing is a fundamental human need',
     });
 
-    console.log('  Bob signing statements...');
+    testLog('  Bob signing statements...');
 
     // Bob believes statements 1 and 3
     const tx1 = await believeStatement(bobClients, beliefsContract, statement1);
@@ -197,11 +198,11 @@ describe('User Profile Queries', () => {
     const receipt3 = await bobClients.publicClient.getTransactionReceipt({ hash: tx3 });
 
     // Wait for indexer
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, receipt3.blockNumber);
 
     // Alice queries Bob's profile (simulating viewing another user's profile)
-    console.log('  Alice querying Bob\'s profile...');
+    testLog('  Alice querying Bob\'s profile...');
     const bobBeliefs = await getUserBeliefs(graphqlClient, bobClients.account);
     const bobDisbeliefs = await getUserDisbeliefs(graphqlClient, bobClients.account);
 
@@ -224,6 +225,6 @@ describe('User Profile Queries', () => {
       'Bob should disbelieve statement 2 from this test'
     );
 
-    console.log('  ✓ Successfully retrieved another user\'s profile');
+    testLog('  ✓ Successfully retrieved another user\'s profile');
   });
 });

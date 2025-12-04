@@ -31,6 +31,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 
 describe('Pubstarter Token Burning Tests', () => {
@@ -56,14 +57,14 @@ describe('Pubstarter Token Burning Tests', () => {
   it('should track burned tokens and distinguish donors from investors', async function() {
     this.timeout(30000);
 
-    console.log('  Setting up test clients...');
+    testLog('  Setting up test clients...');
     const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
     const investorClients = createTestClients(INVESTOR_PRIVATE_KEY, RPC_URL);
     const donorClients = createTestClients(DONOR_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Creator: ${creatorClients.account}`);
-    console.log(`  Investor: ${investorClients.account}`);
-    console.log(`  Donor: ${donorClients.account}`);
+    testLog(`  Creator: ${creatorClients.account}`);
+    testLog(`  Investor: ${investorClients.account}`);
+    testLog(`  Donor: ${donorClients.account}`);
 
     // Create project
     const projectMetadataCid = await uploadToIPFS({
@@ -74,7 +75,7 @@ describe('Pubstarter Token Burning Tests', () => {
     const threshold = parseEther('1.0');
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
 
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -97,7 +98,7 @@ describe('Pubstarter Token Burning Tests', () => {
       }
     );
 
-    console.log(`  Project created! Token address: ${projectDetails.tokenAddress}`);
+    testLog(`  Project created! Token address: ${projectDetails.tokenAddress}`);
 
     // Wait for indexer
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
@@ -109,7 +110,7 @@ describe('Pubstarter Token Burning Tests', () => {
     };
 
     // Investor buys tokens (will keep them - investor)
-    console.log('  Investor buying tokens (will hold)...');
+    testLog('  Investor buying tokens (will hold)...');
     const investorBuyHash = await buyProjectTokens(
       investorClients,
       assuranceContract,
@@ -128,7 +129,7 @@ describe('Pubstarter Token Burning Tests', () => {
     await waitForSync(graphqlClient, investorReceipt.blockNumber, 15000);
 
     // Donor buys tokens and will burn them
-    console.log('  Donor buying tokens (will burn)...');
+    testLog('  Donor buying tokens (will burn)...');
     const donorBuyHash = await buyProjectTokens(
       donorClients,
       assuranceContract,
@@ -147,12 +148,12 @@ describe('Pubstarter Token Burning Tests', () => {
     await waitForSync(graphqlClient, donorReceipt.blockNumber, 15000);
 
     // Verify no burns yet
-    console.log('  Verifying no burns exist yet...');
+    testLog('  Verifying no burns exist yet...');
     let burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
     assert.strictEqual(burns.length, 0, 'Should have no burns initially');
 
     // Donor burns all their tokens
-    console.log('  Donor burning all tokens...');
+    testLog('  Donor burning all tokens...');
     const burnHash = await burnTokens(
       donorClients,
       projectDetails.tokenAddress,
@@ -168,7 +169,7 @@ describe('Pubstarter Token Burning Tests', () => {
     await waitForSync(graphqlClient, burnReceipt.blockNumber, 15000);
 
     // Verify burn was tracked
-    console.log('  Verifying burn was tracked...');
+    testLog('  Verifying burn was tracked...');
     burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
     assert.strictEqual(burns.length, 1, 'Should have one burn record');
 
@@ -194,20 +195,20 @@ describe('Pubstarter Token Burning Tests', () => {
       'Burned token counts should match'
     );
 
-    console.log(`  ✓ Burn record verified: ${burn.id}`);
+    testLog(`  ✓ Burn record verified: ${burn.id}`);
 
     // Verify query by user works
-    console.log('  Verifying user-specific burn query...');
+    testLog('  Verifying user-specific burn query...');
     const donorBurns = await getUserTokenBurns(graphqlClient, donorClients.account);
     assert.strictEqual(donorBurns.length, 1, 'Donor should have one burn');
 
     const investorBurns = await getUserTokenBurns(graphqlClient, investorClients.account);
     assert.strictEqual(investorBurns.length, 0, 'Investor should have no burns');
 
-    console.log('  ✓ Donor has burns, investor does not');
+    testLog('  ✓ Donor has burns, investor does not');
 
     // Verify combined query
-    console.log('  Verifying combined ERC1155 + user query...');
+    testLog('  Verifying combined ERC1155 + user query...');
     const donorTokenBurns = await getTokenBurnsByUser(
       graphqlClient,
       projectDetails.tokenAddress,
@@ -222,10 +223,10 @@ describe('Pubstarter Token Burning Tests', () => {
     );
     assert.strictEqual(investorTokenBurns.length, 0, 'Should find no investor burns');
 
-    console.log('  ✓ Combined query works correctly');
+    testLog('  ✓ Combined query works correctly');
 
     // Now test partial burn
-    console.log('  Investor burning half their tokens...');
+    testLog('  Investor burning half their tokens...');
     const partialBurnHash = await burnTokens(
       investorClients,
       projectDetails.tokenAddress,
@@ -241,7 +242,7 @@ describe('Pubstarter Token Burning Tests', () => {
     await waitForSync(graphqlClient, partialBurnReceipt.blockNumber, 15000);
 
     // Verify partial burn
-    console.log('  Verifying partial burn...');
+    testLog('  Verifying partial burn...');
     burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
     assert.strictEqual(burns.length, 2, 'Should have two burn records now');
 
@@ -260,7 +261,7 @@ describe('Pubstarter Token Burning Tests', () => {
       'Investor burned 5 tokens'
     );
 
-    console.log('  ✓ Partial burn tracked correctly');
-    console.log('  Test completed successfully!');
+    testLog('  ✓ Partial burn tracked correctly');
+    testLog('  Test completed successfully!');
   });
 });

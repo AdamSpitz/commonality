@@ -32,6 +32,7 @@ import {
 
 import { DelegatableNotesAbi } from '@commonality/sdk';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

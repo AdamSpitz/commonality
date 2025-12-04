@@ -23,6 +23,7 @@ import {
   waitForSync,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Statement Discovery & Browsing', () => {
@@ -44,9 +45,9 @@ describe('Statement Discovery & Browsing', () => {
     const charlieClients = createTestClients(CHARLIE_KEY, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
-    console.log(`  Charlie: ${charlieClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
+    testLog(`  Charlie: ${charlieClients.account}`);
 
     const beliefsContract: BeliefsContract = {
       address: BELIEFS_CONTRACT_ADDRESS,
@@ -69,7 +70,7 @@ describe('Statement Discovery & Browsing', () => {
       text: 'Unpopular statement - only one person signs',
     });
 
-    console.log('  Creating statements with different support levels...');
+    testLog('  Creating statements with different support levels...');
 
     // Popular statement: All three users believe it
     await believeStatement(aliceClients, beliefsContract, popularStatement);
@@ -87,12 +88,12 @@ describe('Statement Discovery & Browsing', () => {
     const receiptUnpopular = await aliceClients.publicClient.getTransactionReceipt({ hash: txUnpopular });
 
     // Wait for indexer
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     const maxBlock = [receiptPopular.blockNumber, receiptModerate.blockNumber, receiptUnpopular.blockNumber].reduce((a, b) => a > b ? a : b);
     await waitForSync(graphqlClient, maxBlock);
 
     // Browse by most supporters (descending order)
-    console.log('  Browsing statements by most supporters...');
+    testLog('  Browsing statements by most supporters...');
     const statementsBySupport = await browseStatementsByMostSupporters(graphqlClient, {
       limit: 10,
       orderDirection: 'desc',
@@ -132,7 +133,7 @@ describe('Statement Discovery & Browsing', () => {
       'Moderate statement should appear before unpopular statement'
     );
 
-    console.log('  ✓ Statements correctly ordered by supporter count');
+    testLog('  ✓ Statements correctly ordered by supporter count');
   });
 
   it('should browse newest statements', async () => {
@@ -164,7 +165,7 @@ describe('Statement Discovery & Browsing', () => {
       text: 'New statement created third',
     });
 
-    console.log('  Creating statements in sequence...');
+    testLog('  Creating statements in sequence...');
 
     // Create them in order (believing creates the statement if it doesn't exist)
     const txOld = await believeStatement(aliceClients, beliefsContract, oldStatement);
@@ -177,11 +178,11 @@ describe('Statement Discovery & Browsing', () => {
     const receiptNew = await aliceClients.publicClient.getTransactionReceipt({ hash: txNew });
 
     // Wait for indexer
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, receiptNew.blockNumber);
 
     // Browse by newest
-    console.log('  Browsing newest statements...');
+    testLog('  Browsing newest statements...');
     const newestStatements = await browseStatementsByNewest(graphqlClient, {
       limit: 10,
       orderDirection: 'desc',
@@ -216,7 +217,7 @@ describe('Statement Discovery & Browsing', () => {
       'Middle statement should appear before old statement'
     );
 
-    console.log('  ✓ Statements correctly ordered by creation time');
+    testLog('  ✓ Statements correctly ordered by creation time');
   });
 
   it('should support pagination when browsing statements', async () => {
@@ -233,7 +234,7 @@ describe('Statement Discovery & Browsing', () => {
     };
 
     // Create several statements to test pagination
-    console.log('  Creating multiple statements for pagination test...');
+    testLog('  Creating multiple statements for pagination test...');
 
     const statements = [];
     for (let i = 0; i < 5; i++) {
@@ -252,15 +253,15 @@ describe('Statement Discovery & Browsing', () => {
     }
 
     // Wait for indexer
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, lastReceipt!.blockNumber);
 
     // Test pagination: Get first 2 statements
-    console.log('  Testing pagination with limit=2...');
+    testLog('  Testing pagination with limit=2...');
     const page1 = await getAllStatements(graphqlClient, { limit: 2, offset: 0 });
 
     // Test getting next page
-    console.log('  Getting next page with offset=2...');
+    testLog('  Getting next page with offset=2...');
     const page2 = await getAllStatements(graphqlClient, { limit: 2, offset: 2 });
 
     // Verify we got different statements
@@ -274,6 +275,6 @@ describe('Statement Discovery & Browsing', () => {
     const hasOverlap = page1Ids.some(id => page2Ids.includes(id));
     assert.ok(!hasOverlap, 'Pages should not have overlapping statements');
 
-    console.log('  ✓ Pagination works correctly');
+    testLog('  ✓ Pagination works correctly');
   });
 });

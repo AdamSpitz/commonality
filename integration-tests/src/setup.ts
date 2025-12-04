@@ -55,3 +55,19 @@ function validateEnvironment(): void {
 
 // Validate environment on import
 validateEnvironment();
+
+/**
+ * Conditional logging helper for tests.
+ * Only logs if VERBOSE_TESTS environment variable is set to 'true'.
+ * This allows tests to be quiet by default while still showing detailed
+ * output when debugging.
+ *
+ * Usage in tests:
+ *   import { testLog } from './setup.js';
+ *   testLog('Transaction hash:', txHash);
+ */
+export const testLog = (...args: any[]): void => {
+  if (process.env.VERBOSE_TESTS === 'true') {
+    console.log(...args);
+  }
+};

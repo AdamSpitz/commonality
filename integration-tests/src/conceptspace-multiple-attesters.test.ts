@@ -26,6 +26,7 @@ import {
   type GraphQLClient,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 import { TEST_TIMEOUTS, INDEXER_SYNC_TIMEOUT } from './test-timeouts.js';
 
@@ -71,8 +72,8 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester1 = createTestClients(ATTESTER1_PRIVATE_KEY, RPC_URL);
     const attester2 = createTestClients(ATTESTER2_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Attester 1: ${attester1.account}`);
-    console.log(`  Attester 2: ${attester2.account}`);
+    testLog(`  Attester 1: ${attester1.account}`);
+    testLog(`  Attester 2: ${attester2.account}`);
 
     // Create statements
     const s1Content = { statementType: 'text', text: 'We should ban fossil fuels by 2030' };
@@ -86,8 +87,8 @@ describe('Multiple Attesters Tests (F2)', () => {
     const s2Id = cidToBytes32(s2Cid);
     const s3Id = cidToBytes32(s3Cid);
 
-    console.log('  S1 -> S2 (Attester 1)');
-    console.log('  S2 -> S3 (Attester 2)');
+    testLog('  S1 -> S2 (Attester 1)');
+    testLog('  S2 -> S3 (Attester 2)');
 
     // Attester 1 attests S1 -> S2
     const tx1 = await attestImplication(attester1, implicationsContract, s1Cid, s2Cid);
@@ -125,7 +126,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       `S2->S3 should be from Attester 2 (${attester2.account}), but was from ${implicationsToS3[0].attester.id}`
     );
 
-    console.log('  ✓ Different attesters can publish different implications');
+    testLog('  ✓ Different attesters can publish different implications');
   });
 
   it('should allow same statement pair to be attested by multiple attesters', async function() {
@@ -135,9 +136,9 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester2 = createTestClients(ATTESTER2_PRIVATE_KEY, RPC_URL);
     const attester3 = createTestClients(ATTESTER3_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Attester 1: ${attester1.account}`);
-    console.log(`  Attester 2: ${attester2.account}`);
-    console.log(`  Attester 3: ${attester3.account}`);
+    testLog(`  Attester 1: ${attester1.account}`);
+    testLog(`  Attester 2: ${attester2.account}`);
+    testLog(`  Attester 3: ${attester3.account}`);
 
     // Create two statements
     const sAContent = { statementType: 'text', text: 'We should provide universal basic income' };
@@ -148,7 +149,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     const sAId = cidToBytes32(sACid);
     const sBId = cidToBytes32(sBCid);
 
-    console.log('  Three different attesters will attest SA -> SB');
+    testLog('  Three different attesters will attest SA -> SB');
 
     // All three attesters attest SA -> SB
     const tx1 = await attestImplication(attester1, implicationsContract, sACid, sBCid);
@@ -186,7 +187,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should include attestation from Attester 3 (${attester3.account}), but found attesters: ${attesterAddresses.join(', ')}`
     );
 
-    console.log('  ✓ Same implication can be attested by multiple attesters');
+    testLog('  ✓ Same implication can be attested by multiple attesters');
   });
 
   it('should filter implications by trusted attester', async function() {
@@ -206,8 +207,8 @@ describe('Multiple Attesters Tests (F2)', () => {
     const s1Id = cidToBytes32(s1Cid);
     const s2Id = cidToBytes32(s2Cid);
 
-    console.log('  Attester 1 attests: S1 -> S2');
-    console.log('  Attester 2 attests: S3 -> S2');
+    testLog('  Attester 1 attests: S1 -> S2');
+    testLog('  Attester 2 attests: S3 -> S2');
 
     // Attester 1 attests S1 -> S2
     const tx1 = await attestImplication(attester1, implicationsContract, s1Cid, s2Cid);
@@ -220,7 +221,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     await waitForSync(graphqlClient, receipt2.blockNumber, INDEXER_SYNC_TIMEOUT);
 
     // Query all implications to S2 (no filter)
-    console.log('  Querying all implications to S2 (no filter)...');
+    testLog('  Querying all implications to S2 (no filter)...');
     const allImplications = await getImplicationsTo(graphqlClient, s2Id);
     assert.strictEqual(
       allImplications.length,
@@ -229,7 +230,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     );
 
     // Query implications to S2, filtering by Attester 1
-    console.log(`  Querying implications to S2 (filter by Attester 1: ${attester1.account})...`);
+    testLog(`  Querying implications to S2 (filter by Attester 1: ${attester1.account})...`);
     const attester1Implications = await getImplicationsTo(
       graphqlClient,
       s2Id,
@@ -247,7 +248,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     );
 
     // Query implications to S2, filtering by Attester 2
-    console.log(`  Querying implications to S2 (filter by Attester 2: ${attester2.account})...`);
+    testLog(`  Querying implications to S2 (filter by Attester 2: ${attester2.account})...`);
     const attester2Implications = await getImplicationsTo(
       graphqlClient,
       s2Id,
@@ -264,7 +265,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Filtered result should be from Attester 2 (${attester2.account}), but was from ${attester2Implications[0].attester.id}`
     );
 
-    console.log('  ✓ Queries can filter implications by trusted attester');
+    testLog('  ✓ Queries can filter implications by trusted attester');
   });
 
   it('should respect trusted attesters in indirect alignment calculations', async function() {
@@ -286,7 +287,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     const specificId = cidToBytes32(specificCid);
     const generalId = cidToBytes32(generalCid);
 
-    console.log('  Creating implications from two different attesters...');
+    testLog('  Creating implications from two different attesters...');
 
     // Attester 1 attests specific -> general
     const tx1 = await attestImplication(attester1, implicationsContract, specificCid, generalCid);
@@ -316,8 +317,8 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should not find any implications when filtering by Attester 2 (${attester2.account}) who did not attest, but found ${attester2Implications.length}`
     );
 
-    console.log('  ✓ Indirect calculations respect trusted attester filters');
-    console.log('  ✓ (Full integration tested in fundingportal-aggregated-metrics.test.ts)');
+    testLog('  ✓ Indirect calculations respect trusted attester filters');
+    testLog('  ✓ (Full integration tested in fundingportal-aggregated-metrics.test.ts)');
   });
 
   it('should handle attester with no attestations gracefully', async function() {
@@ -330,7 +331,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     const statementCid = await uploadToIPFS(statementContent);
     const statementId = cidToBytes32(statementCid);
 
-    console.log(`  Querying implications from unused attester: ${unusedAttester.account}`);
+    testLog(`  Querying implications from unused attester: ${unusedAttester.account}`);
 
     // Query implications filtering by an attester who hasn't attested anything
     const implications = await getImplicationsTo(graphqlClient, statementId, unusedAttester.account);
@@ -341,6 +342,6 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should return empty array when filtering by unused attester (${unusedAttester.account}), but found ${implications.length} implications`
     );
 
-    console.log('  ✓ Queries handle non-existent attester filter gracefully');
+    testLog('  ✓ Queries handle non-existent attester filter gracefully');
   });
 });

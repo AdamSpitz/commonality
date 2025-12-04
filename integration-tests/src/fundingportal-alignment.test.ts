@@ -30,6 +30,7 @@ import {
 } from '@commonality/sdk';
 import { type Address } from 'viem';
 import { ProjectAlignmentAbi, PubstarterAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Funding Portal - Project Alignment', () => {
@@ -82,11 +83,11 @@ describe('Funding Portal - Project Alignment', () => {
     const statementCid = await uploadToIPFS(statementContent);
     const statementId = cidToBytes32(statementCid);
 
-    console.log(`  Statement: "${statementContent.text}"`);
-    console.log(`  Statement ID: ${statementId}`);
+    testLog(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement ID: ${statementId}`);
 
     // Create a project
-    console.log('  Creating a crowdfunding project...');
+    testLog('  Creating a crowdfunding project...');
     const currentTime = Math.floor(Date.now() / 1000);
     const { projectDetails } = await createProject(projectOwnerClients, pubstarterContract, {
       metadataURI: 'https://example.com/token-metadata',
@@ -101,10 +102,10 @@ describe('Funding Portal - Project Alignment', () => {
       tokenPrices: [10n * 10n**18n, 20n * 10n**18n], // 10 ETH, 20 ETH
     });
 
-    console.log(`  Project created at: ${projectDetails.tokenAddress}`);
+    testLog(`  Project created at: ${projectDetails.tokenAddress}`);
 
     // Attest that the project aligns with the statement
-    console.log('  Attesting project alignment...');
+    testLog('  Attesting project alignment...');
     const txHash = await attestProjectAlignment(
       attesterClients,
       projectAlignmentContract,
@@ -142,7 +143,7 @@ describe('Funding Portal - Project Alignment', () => {
       'Statement ID should match'
     );
 
-    console.log('  ✓ Project alignment attested successfully');
+    testLog('  ✓ Project alignment attested successfully');
 
     // Query alignments by statement
     const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
@@ -162,7 +163,7 @@ describe('Funding Portal - Project Alignment', () => {
       'Statement should appear in project statements list'
     );
 
-    console.log('  ✓ Queries return correct results');
+    testLog('  ✓ Queries return correct results');
   });
 
   it('should handle multiple attesters for the same project-statement pair', async function() {
@@ -180,10 +181,10 @@ describe('Funding Portal - Project Alignment', () => {
     const statementCid = await uploadToIPFS(statementContent);
     const statementId = cidToBytes32(statementCid);
 
-    console.log(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement: "${statementContent.text}"`);
 
     // Create a project
-    console.log('  Creating a project...');
+    testLog('  Creating a project...');
     const currentTime = Math.floor(Date.now() / 1000);
     const { projectDetails } = await createProject(projectOwnerClients, pubstarterContract, {
       metadataURI: 'https://example.com/token-metadata',
@@ -198,10 +199,10 @@ describe('Funding Portal - Project Alignment', () => {
       tokenPrices: [5n * 10n**18n],
     });
 
-    console.log(`  Project: ${projectDetails.tokenAddress}`);
+    testLog(`  Project: ${projectDetails.tokenAddress}`);
 
     // Attester 1 attests
-    console.log('  Attester 1 attesting...');
+    testLog('  Attester 1 attesting...');
     let txHash = await attestProjectAlignment(
       attester1Clients,
       projectAlignmentContract,
@@ -212,7 +213,7 @@ describe('Funding Portal - Project Alignment', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Attester 2 also attests the same alignment
-    console.log('  Attester 2 attesting...');
+    testLog('  Attester 2 attesting...');
     txHash = await attestProjectAlignment(
       attester2Clients,
       projectAlignmentContract,
@@ -249,7 +250,7 @@ describe('Funding Portal - Project Alignment', () => {
       'Attesters should be different'
     );
 
-    console.log('  ✓ Multiple attesters tracked independently');
+    testLog('  ✓ Multiple attesters tracked independently');
 
     // Query all aligned projects (should show 2 attestations for same project)
     const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
@@ -262,7 +263,7 @@ describe('Funding Portal - Project Alignment', () => {
       'Should have 2 attestations for the same project'
     );
 
-    console.log('  ✓ Queries show both attestations');
+    testLog('  ✓ Queries show both attestations');
   });
 
   it('should batch attest multiple alignments', async function() {
@@ -286,11 +287,11 @@ describe('Funding Portal - Project Alignment', () => {
     const statement1Id = cidToBytes32(statement1Cid);
     const statement2Id = cidToBytes32(statement2Cid);
 
-    console.log(`  Statement 1: "${statement1Content.text}"`);
-    console.log(`  Statement 2: "${statement2Content.text}"`);
+    testLog(`  Statement 1: "${statement1Content.text}"`);
+    testLog(`  Statement 2: "${statement2Content.text}"`);
 
     // Create two projects
-    console.log('  Creating projects...');
+    testLog('  Creating projects...');
     const currentTime = Math.floor(Date.now() / 1000);
 
     const { projectDetails: project1 } = await createProject(projectOwnerClients, pubstarterContract, {
@@ -319,11 +320,11 @@ describe('Funding Portal - Project Alignment', () => {
       tokenPrices: [3n * 10n**18n],
     });
 
-    console.log(`  Project 1: ${project1.tokenAddress}`);
-    console.log(`  Project 2: ${project2.tokenAddress}`);
+    testLog(`  Project 1: ${project1.tokenAddress}`);
+    testLog(`  Project 2: ${project2.tokenAddress}`);
 
     // Batch attest: project1 -> statement1, project2 -> statement2
-    console.log('  Batch attesting alignments...');
+    testLog('  Batch attesting alignments...');
     const txHash = await attestProjectAlignmentsBatch(
       attesterClients,
       projectAlignmentContract,
@@ -364,7 +365,7 @@ describe('Funding Portal - Project Alignment', () => {
       project2.tokenAddress.toLowerCase()
     );
 
-    console.log('  ✓ Batch attestations recorded successfully');
+    testLog('  ✓ Batch attestations recorded successfully');
 
     // Verify query by attester returns both
     const attesterAlignments = await getAlignmentsByAttester(graphqlClient, attesterClients.account);
@@ -373,7 +374,7 @@ describe('Funding Portal - Project Alignment', () => {
       'Attester should have at least 2 alignments'
     );
 
-    console.log('  ✓ All alignments queryable by attester');
+    testLog('  ✓ All alignments queryable by attester');
   });
 
   it('should allow same attester to link one project to multiple statements', async function() {
@@ -394,10 +395,10 @@ describe('Funding Portal - Project Alignment', () => {
     );
     const statementIds = statementCids.map(cidToBytes32);
 
-    console.log(`  Created ${statements.length} statements`);
+    testLog(`  Created ${statements.length} statements`);
 
     // Create one project
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const currentTime = Math.floor(Date.now() / 1000);
     const { projectDetails } = await createProject(projectOwnerClients, pubstarterContract, {
       metadataURI: 'https://example.com/token-metadata',
@@ -412,10 +413,10 @@ describe('Funding Portal - Project Alignment', () => {
       tokenPrices: [3n * 10n**18n],
     });
 
-    console.log(`  Project: ${projectDetails.tokenAddress}`);
+    testLog(`  Project: ${projectDetails.tokenAddress}`);
 
     // Attest alignment to all three statements
-    console.log('  Attesting alignments to multiple statements...');
+    testLog('  Attesting alignments to multiple statements...');
     for (let i = 0; i < statementCids.length; i++) {
       const txHash = await attestProjectAlignment(
         attesterClients,
@@ -447,6 +448,6 @@ describe('Funding Portal - Project Alignment', () => {
       assert.ok(found, `Statement ${statementId} should be aligned with project`);
     }
 
-    console.log('  ✓ Project aligned with multiple statements');
+    testLog('  ✓ Project aligned with multiple statements');
   });
 });

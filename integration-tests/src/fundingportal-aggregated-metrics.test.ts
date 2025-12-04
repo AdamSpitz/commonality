@@ -47,6 +47,7 @@ import {
   ProjectAlignmentAbi,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -75,7 +76,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   it('should calculate total funding raised across all aligned projects for a cause', async function() {
     this.timeout(60000);
 
-    console.log('  Setting up test scenario...');
+    testLog('  Setting up test scenario...');
     const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
@@ -90,8 +91,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const s1Id = cidToBytes32(s1Cid);
     const s2Id = cidToBytes32(s2Cid);
 
-    console.log(`  S1 (specific): ${s1Id}`);
-    console.log(`  S2 (broader): ${s2Id}`);
+    testLog(`  S1 (specific): ${s1Id}`);
+    testLog(`  S2 (broader): ${s2Id}`);
 
     // Attest that S1 implies S2
     const implicationsContract: ImplicationsContract = {
@@ -105,7 +106,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       s1Cid,
       s2Cid
     );
-    console.log(`  Implication attested: ${implHash}`);
+    testLog(`  Implication attested: ${implHash}`);
 
     // Wait for indexer
     const implReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implHash });
@@ -118,7 +119,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     };
 
     // Project 1 aligned with S1 (specific cause)
-    console.log('  Creating Project 1...');
+    testLog('  Creating Project 1...');
     const project1Metadata = await uploadToIPFS({ title: 'Open Source AI Safety Project' });
     const { hash: p1Hash, projectDetails: p1Details } = await createProject(
       creator1Clients,
@@ -136,10 +137,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenPrices: [parseEther('0.1')],
       }
     );
-    console.log(`  Project 1: ${p1Details.assuranceContractAddress}`);
+    testLog(`  Project 1: ${p1Details.assuranceContractAddress}`);
 
     // Project 2 aligned with S2 (broader cause)
-    console.log('  Creating Project 2...');
+    testLog('  Creating Project 2...');
     const project2Metadata = await uploadToIPFS({ title: 'General AI Safety Research' });
     const { hash: p2Hash, projectDetails: p2Details } = await createProject(
       creator2Clients,
@@ -157,7 +158,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenPrices: [parseEther('0.05')],
       }
     );
-    console.log(`  Project 2: ${p2Details.assuranceContractAddress}`);
+    testLog(`  Project 2: ${p2Details.assuranceContractAddress}`);
 
     // Wait for projects to be indexed
     const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
@@ -182,14 +183,14 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       s2Cid
     );
 
-    console.log(`  Alignments attested`);
+    testLog(`  Alignments attested`);
 
     // Wait for alignments
     const align2Receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: align2Hash });
     await waitForSync(graphqlClient, align2Receipt.blockNumber, 15000);
 
     // Contributors fund the projects
-    console.log('  Contributors funding projects...');
+    testLog('  Contributors funding projects...');
     const assuranceContract1: AssuranceContract = {
       address: p1Details.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -225,7 +226,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       }
     );
 
-    console.log(`  Contributions made`);
+    testLog(`  Contributions made`);
 
     // Wait for contributions
     const buy2Receipt = await contributor2Clients.publicClient.getTransactionReceipt({ hash: buy2Hash });
@@ -233,7 +234,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
     // Now query total funding for S2 (broader cause)
     // Should include both projects: direct (P2) and indirect (P1 via S1->S2)
-    console.log('  Querying total funding for S2...');
+    testLog('  Querying total funding for S2...');
     const metrics = await getTotalFundingForCause(
       graphqlClient,
       s2Id,
@@ -241,8 +242,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       attesterClients.account  // Trust this attester for alignments
     );
 
-    console.log(`  Total raised: ${metrics.totalRaisedAcrossProjects}`);
-    console.log(`  Project count: ${metrics.projectCount}`);
+    testLog(`  Total raised: ${metrics.totalRaisedAcrossProjects}`);
+    testLog(`  Project count: ${metrics.projectCount}`);
 
     // Should have both projects
     assert.strictEqual(metrics.projectCount, 2, 'Should have 2 projects aligned (1 direct, 1 indirect)');
@@ -255,13 +256,13 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       'Total funding should be 0.8 ETH'
     );
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 
   it('should calculate total available funding from delegatable notes for a cause', async function() {
     this.timeout(40000);
 
-    console.log('  Setting up delegatable notes scenario...');
+    testLog('  Setting up delegatable notes scenario...');
     const donor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
     const donor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
 
@@ -270,7 +271,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const causeCid = await uploadToIPFS(causeContent);
     const causeId = cidToBytes32(causeCid);
 
-    console.log(`  Cause: ${causeId}`);
+    testLog(`  Cause: ${causeId}`);
 
     // Deposit notes for the cause
     const delegatableNotesContract: DelegatableNotesContract = {
@@ -278,7 +279,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       abi: DelegatableNotesAbi,
     };
 
-    console.log('  Depositing notes...');
+    testLog('  Depositing notes...');
     const { hash: note1Hash } = await depositETH(
       donor1Clients,
       delegatableNotesContract,
@@ -297,21 +298,21 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       }
     );
 
-    console.log('  Notes deposited');
+    testLog('  Notes deposited');
 
     // Wait for notes
     const note2Receipt = await donor2Clients.publicClient.getTransactionReceipt({ hash: note2Hash });
     await waitForSync(graphqlClient, note2Receipt.blockNumber, 15000);
 
     // Query funding metrics
-    console.log('  Querying available funding...');
+    testLog('  Querying available funding...');
     const metrics = await getTotalFundingForCause(
       graphqlClient,
       causeId
     );
 
-    console.log(`  Total available from notes: ${metrics.totalAvailableFromNotes}`);
-    console.log(`  Note count: ${metrics.noteCount}`);
+    testLog(`  Total available from notes: ${metrics.totalAvailableFromNotes}`);
+    testLog(`  Note count: ${metrics.noteCount}`);
 
     // Should have 2 notes totaling 1.5 ETH
     assert.strictEqual(metrics.noteCount, 2, 'Should have 2 notes');
@@ -322,13 +323,13 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       'Total available should be 1.5 ETH'
     );
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 
   it('should get all projects aligned with a cause (direct and indirect)', async function() {
     this.timeout(60000);
 
-    console.log('  Setting up multi-project scenario...');
+    testLog('  Setting up multi-project scenario...');
     const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
@@ -423,7 +424,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await waitForSync(graphqlClient, align2Receipt.blockNumber, 15000);
 
     // Query all aligned projects for S2
-    console.log('  Querying all aligned projects for S2...');
+    testLog('  Querying all aligned projects for S2...');
     const projects = await getAllAlignedProjectsForCause(
       graphqlClient,
       s2Id,
@@ -431,7 +432,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       attesterClients.account  // Trust this attester for alignments
     );
 
-    console.log(`  Found ${projects.length} projects`);
+    testLog(`  Found ${projects.length} projects`);
     assert.strictEqual(projects.length, 2, 'Should find 2 projects');
 
     // Find each project
@@ -445,6 +446,6 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     assert.strictEqual(p1!.alignmentType, 'indirect', 'Project 1 should be indirectly aligned');
     assert.strictEqual(p2!.alignmentType, 'direct', 'Project 2 should be directly aligned');
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 });

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "mocha",
+    "test:verbose": "VERBOSE_TESTS=true mocha --reporter spec",
     "test:watch": "mocha --watch 'src/**/*.test.ts'"
   },
   "dependencies": {

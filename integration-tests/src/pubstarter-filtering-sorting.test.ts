@@ -35,6 +35,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -56,7 +57,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   it('should sort projects by date created (newest first)', async function() {
     this.timeout(60000);
 
-    console.log('  Creating projects with different creation times...');
+    testLog('  Creating projects with different creation times...');
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
     const creator3Clients = createTestClients(CREATOR3_PRIVATE_KEY, RPC_URL);
@@ -131,7 +132,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     await waitForSync(graphqlClient, p3Receipt.blockNumber, 15000);
 
     // Query projects sorted by date (newest first)
-    console.log('  Querying projects sorted by date...');
+    testLog('  Querying projects sorted by date...');
     const projects = await getProjectsByDate(graphqlClient, 'desc');
 
     // Find our three projects in the results
@@ -155,13 +156,13 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     assert.ok(p3Index < p2Index, 'Project 3 (newest) should come before Project 2');
     assert.ok(p2Index < p1Index, 'Project 2 (middle) should come before Project 1 (oldest)');
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 
   it('should sort projects by deadline (soonest first)', async function() {
     this.timeout(60000);
 
-    console.log('  Creating projects with different deadlines...');
+    testLog('  Creating projects with different deadlines...');
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
 
@@ -214,7 +215,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
 
     // Query by deadline (soonest first)
-    console.log('  Querying projects sorted by deadline...');
+    testLog('  Querying projects sorted by deadline...');
     const projects = await getProjectsByDeadline(graphqlClient, 'asc');
 
     const projectAddresses = [
@@ -234,13 +235,13 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     assert.ok(p1Index < p2Index, 'Project with sooner deadline should come first');
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 
   it('should sort projects by funding progress', async function() {
     this.timeout(90000);
 
-    console.log('  Creating projects with different funding progress...');
+    testLog('  Creating projects with different funding progress...');
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
     const contributorClients = createTestClients(CONTRIBUTOR_PRIVATE_KEY, RPC_URL);
@@ -330,7 +331,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
 
     // Query by funding progress (highest first)
-    console.log('  Querying projects sorted by funding progress...');
+    testLog('  Querying projects sorted by funding progress...');
     const projects = await getProjectsByFundingProgress(graphqlClient, 'desc');
 
     const projectAddresses = [
@@ -354,19 +355,19 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const p1Project = ourProjects[p1Index];
     const p2Project = ourProjects[p2Index];
 
-    console.log(`  P1 funding progress: ${p1Project.fundingProgress}`);
-    console.log(`  P2 funding progress: ${p2Project.fundingProgress}`);
+    testLog(`  P1 funding progress: ${p1Project.fundingProgress}`);
+    testLog(`  P2 funding progress: ${p2Project.fundingProgress}`);
 
     assert.ok(p1Project.fundingProgress > 0.7, 'P1 should be at least 70% funded');
     assert.ok(p2Project.fundingProgress > 0.1 && p2Project.fundingProgress < 0.3, 'P2 should be around 20% funded');
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 
   it('should filter projects by funding threshold', async function() {
     this.timeout(60000);
 
-    console.log('  Creating projects with different thresholds...');
+    testLog('  Creating projects with different thresholds...');
     const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
     const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
 
@@ -417,7 +418,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
 
     // Query projects with threshold >= 10 ETH
-    console.log('  Filtering projects with threshold >= 10 ETH...');
+    testLog('  Filtering projects with threshold >= 10 ETH...');
     const largeProjects = await getProjectsFiltered(
       graphqlClient,
       {
@@ -432,6 +433,6 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     assert.strictEqual(hasP1, false, 'Small project should not be in filtered results');
     assert.strictEqual(hasP2, true, 'Large project should be in filtered results');
 
-    console.log('  Test passed!');
+    testLog('  Test passed!');
   });
 });

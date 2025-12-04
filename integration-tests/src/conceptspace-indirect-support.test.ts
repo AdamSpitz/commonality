@@ -30,6 +30,7 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Conceptspace Indirect Support', () => {
@@ -91,11 +92,11 @@ describe('Conceptspace Indirect Support', () => {
     const specificId = cidToBytes32(specificCid);
     const generalId = cidToBytes32(generalCid);
 
-    console.log(`  Specific: "${specificStatement.text}"`);
-    console.log(`  General: "${generalStatement.text}"`);
+    testLog(`  Specific: "${specificStatement.text}"`);
+    testLog(`  General: "${generalStatement.text}"`);
 
     // User1 and User2 believe the specific statement
-    console.log('  User1 and User2 believe specific statement...');
+    testLog('  User1 and User2 believe specific statement...');
     let txHash = await believeStatement(user1Clients, beliefsContract, specificCid);
     let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -115,10 +116,10 @@ describe('Conceptspace Indirect Support', () => {
     let indirectCount = await getIndirectSupporterCount(graphqlClient, generalId);
     assert.strictEqual(indirectCount, 0, 'General statement should have 0 indirect supporters initially');
 
-    console.log('  ✓ Direct support verified, no indirect support yet');
+    testLog('  ✓ Direct support verified, no indirect support yet');
 
     // Attester creates implication: specific -> general
-    console.log('  Attester creates implication (specific -> general)...');
+    testLog('  Attester creates implication (specific -> general)...');
     txHash = await attestImplication(
       attesterClients,
       implicationsContract,
@@ -136,7 +137,7 @@ describe('Conceptspace Indirect Support', () => {
       'General statement should have 2 indirect supporters after implication'
     );
 
-    console.log('  ✓ Indirect supporter count computed correctly: 2 supporters');
+    testLog('  ✓ Indirect supporter count computed correctly: 2 supporters');
   });
 
   it('should return list of indirect supporters with details', async function() {
@@ -167,12 +168,12 @@ describe('Conceptspace Indirect Support', () => {
     const specific2Id = cidToBytes32(specific2Cid);
     const generalId = cidToBytes32(generalCid);
 
-    console.log(`  Specific 1: "${specific1.text}"`);
-    console.log(`  Specific 2: "${specific2.text}"`);
-    console.log(`  General: "${general.text}"`);
+    testLog(`  Specific 1: "${specific1.text}"`);
+    testLog(`  Specific 2: "${specific2.text}"`);
+    testLog(`  General: "${general.text}"`);
 
     // User1 believes specific1, User2 believes specific2
-    console.log('  User1 believes specific1, User2 believes specific2...');
+    testLog('  User1 believes specific1, User2 believes specific2...');
     let txHash = await believeStatement(user1Clients, beliefsContract, specific1Cid);
     let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -182,7 +183,7 @@ describe('Conceptspace Indirect Support', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create implications: specific1 -> general, specific2 -> general
-    console.log('  Creating implications...');
+    testLog('  Creating implications...');
     txHash = await attestImplication(
       attesterClients,
       implicationsContract,
@@ -227,7 +228,7 @@ describe('Conceptspace Indirect Support', () => {
       'User2 supports via specific2'
     );
 
-    console.log('  ✓ Indirect supporters list returned with correct details');
+    testLog('  ✓ Indirect supporters list returned with correct details');
   });
 
   it('should exclude users who explicitly disbelieve from indirect support', async function() {
@@ -252,11 +253,11 @@ describe('Conceptspace Indirect Support', () => {
     const specificId = cidToBytes32(specificCid);
     const generalId = cidToBytes32(generalCid);
 
-    console.log(`  Specific: "${specific.text}"`);
-    console.log(`  General: "${general.text}"`);
+    testLog(`  Specific: "${specific.text}"`);
+    testLog(`  General: "${general.text}"`);
 
     // User1 and User2 believe the specific statement
-    console.log('  User1 and User2 believe specific statement...');
+    testLog('  User1 and User2 believe specific statement...');
     let txHash = await believeStatement(user1Clients, beliefsContract, specificCid);
     let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -266,13 +267,13 @@ describe('Conceptspace Indirect Support', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // User1 explicitly disbelieves the general statement
-    console.log('  User1 explicitly disbelieves the general statement...');
+    testLog('  User1 explicitly disbelieves the general statement...');
     txHash = await disbelieveStatement(user1Clients, beliefsContract, generalCid);
     receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create implication: specific -> general
-    console.log('  Creating implication (specific -> general)...');
+    testLog('  Creating implication (specific -> general)...');
     txHash = await attestImplication(
       attesterClients,
       implicationsContract,
@@ -300,8 +301,8 @@ describe('Conceptspace Indirect Support', () => {
       'The indirect supporter should be User2'
     );
 
-    console.log('  ✓ User1 correctly excluded from indirect support due to explicit disbelief');
-    console.log('  ✓ User2 correctly included in indirect support');
+    testLog('  ✓ User1 correctly excluded from indirect support due to explicit disbelief');
+    testLog('  ✓ User2 correctly included in indirect support');
   });
 
   it('should handle multiple implication chains converging on one statement', async function() {
@@ -339,13 +340,13 @@ describe('Conceptspace Indirect Support', () => {
     const sGeneralCid = await uploadToIPFS(sGeneral);
     const sGeneralId = cidToBytes32(sGeneralCid);
 
-    console.log(`  S1: "${s1.text}"`);
-    console.log(`  S2: "${s2.text}"`);
-    console.log(`  S3: "${s3.text}"`);
-    console.log(`  General: "${sGeneral.text}"`);
+    testLog(`  S1: "${s1.text}"`);
+    testLog(`  S2: "${s2.text}"`);
+    testLog(`  S3: "${s3.text}"`);
+    testLog(`  General: "${sGeneral.text}"`);
 
     // Each user believes a different specific statement
-    console.log('  Users believe their respective specific statements...');
+    testLog('  Users believe their respective specific statements...');
     let txHash = await believeStatement(user1Clients, beliefsContract, s1Cid);
     let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -359,7 +360,7 @@ describe('Conceptspace Indirect Support', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create convergent implications
-    console.log('  Creating convergent implications...');
+    testLog('  Creating convergent implications...');
     txHash = await attestImplication(attesterClients, implicationsContract, s1Cid, sGeneralCid);
     receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -397,8 +398,8 @@ describe('Conceptspace Indirect Support', () => {
     assert.ok(userAddresses.includes(user2Address), 'User2 should be in supporters');
     assert.ok(userAddresses.includes(user3Address), 'User3 should be in supporters');
 
-    console.log('  ✓ All 3 users correctly identified as indirect supporters');
-    console.log('  ✓ Multiple convergent implication chains handled correctly');
+    testLog('  ✓ All 3 users correctly identified as indirect supporters');
+    testLog('  ✓ Multiple convergent implication chains handled correctly');
   });
 
   it('should handle user believing multiple statements that imply the same target', async function() {
@@ -426,12 +427,12 @@ describe('Conceptspace Indirect Support', () => {
     const sTargetCid = await uploadToIPFS(sTarget);
     const sTargetId = cidToBytes32(sTargetCid);
 
-    console.log(`  S1: "${s1.text}"`);
-    console.log(`  S2: "${s2.text}"`);
-    console.log(`  Target: "${sTarget.text}"`);
+    testLog(`  S1: "${s1.text}"`);
+    testLog(`  S2: "${s2.text}"`);
+    testLog(`  Target: "${sTarget.text}"`);
 
     // User1 believes both S1 and S2
-    console.log('  User1 believes both S1 and S2...');
+    testLog('  User1 believes both S1 and S2...');
     let txHash = await believeStatement(user1Clients, beliefsContract, s1Cid);
     let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -441,7 +442,7 @@ describe('Conceptspace Indirect Support', () => {
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create implications: S1 -> Target, S2 -> Target
-    console.log('  Creating implications...');
+    testLog('  Creating implications...');
     txHash = await attestImplication(attesterClients, implicationsContract, s1Cid, sTargetCid);
     receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -468,6 +469,6 @@ describe('Conceptspace Indirect Support', () => {
       'The indirect supporter should be User1'
     );
 
-    console.log('  ✓ User correctly counted once despite multiple implication paths');
+    testLog('  ✓ User correctly counted once despite multiple implication paths');
   });
 });

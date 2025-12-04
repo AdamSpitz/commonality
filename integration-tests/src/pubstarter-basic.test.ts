@@ -30,6 +30,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 
 describe('Pubstarter Basic Integration Tests', () => {
@@ -69,12 +70,12 @@ describe('Pubstarter Basic Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment - the main Pubstarter contract must be deployed');
     }
 
-    console.log('  Setting up test clients...');
+    testLog('  Setting up test clients...');
     const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
     const contributorClients = createTestClients(CONTRIBUTOR_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Creator: ${creatorClients.account}`);
-    console.log(`  Contributor: ${contributorClients.account}`);
+    testLog(`  Creator: ${creatorClients.account}`);
+    testLog(`  Contributor: ${contributorClients.account}`);
 
     // Create project metadata
     const projectMetadata = {
@@ -83,7 +84,7 @@ describe('Pubstarter Basic Integration Tests', () => {
       category: 'technology',
     };
     const projectMetadataCid = await uploadToIPFS(projectMetadata);
-    console.log(`  Project metadata CID: ${projectMetadataCid}`);
+    testLog(`  Project metadata CID: ${projectMetadataCid}`);
 
     // Project parameters
     const threshold = parseEther('1.0'); // Need 1 ETH to succeed
@@ -94,7 +95,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     const tokenCounts = [100n, 50n]; // Mint 100 of token 1, 50 of token 2
     const tokenPrices = [parseEther('0.01'), parseEther('0.02')]; // 0.01 ETH and 0.02 ETH
 
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -117,24 +118,24 @@ describe('Pubstarter Basic Integration Tests', () => {
       }
     );
 
-    console.log(`  Project created! Tx: ${hash}`);
-    console.log(`  Token: ${projectDetails.tokenAddress}`);
-    console.log(`  Marketplace: ${projectDetails.marketplaceAddress}`);
-    console.log(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog(`  Project created! Tx: ${hash}`);
+    testLog(`  Token: ${projectDetails.tokenAddress}`);
+    testLog(`  Marketplace: ${projectDetails.marketplaceAddress}`);
+    testLog(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
 
     // Wait for indexer to sync
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Query the project from the indexer
-    console.log('  Querying project from indexer...');
+    testLog('  Querying project from indexer...');
     const project = assertNotNull(
       await getProject(graphqlClient, projectDetails.assuranceContractAddress),
       'Project'
     );
 
-    console.log(`  Project found! Total received: ${project.totalReceived}`);
+    testLog(`  Project found! Total received: ${project.totalReceived}`);
     assert.strictEqual(project.totalReceived, '0', 'Project should start with 0 received');
     assert.strictEqual(
       project.id.toLowerCase(),
@@ -143,7 +144,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     );
 
     // Contributor buys some tokens
-    console.log('  Contributor buying tokens...');
+    testLog('  Contributor buying tokens...');
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -165,11 +166,11 @@ describe('Pubstarter Basic Integration Tests', () => {
       }
     );
 
-    console.log(`  Tokens purchased! Tx: ${buyHash}`);
+    testLog(`  Tokens purchased! Tx: ${buyHash}`);
 
     // Wait for indexer to sync
     const buyReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buyHash });
-    console.log('  Waiting for indexer to sync...');
+    testLog('  Waiting for indexer to sync...');
     await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
 
     // Query updated project
@@ -178,11 +179,11 @@ describe('Pubstarter Basic Integration Tests', () => {
       'Updated project'
     );
 
-    console.log(`  Updated project total received: ${updatedProject.totalReceived}`);
+    testLog(`  Updated project total received: ${updatedProject.totalReceived}`);
     // Verify that funds were received
     assert.ok(BigInt(updatedProject.totalReceived) > 0n, 'Project should have received funds');
 
-    console.log('  Test completed successfully!');
+    testLog('  Test completed successfully!');
   });
 
   it('should create a simple project with minimal parameters', async function() {
@@ -194,7 +195,7 @@ describe('Pubstarter Basic Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment - the main Pubstarter contract must be deployed');
     }
 
-    console.log('  Creating a minimal test project...');
+    testLog('  Creating a minimal test project...');
     const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
 
     const projectMetadataCid = await uploadToIPFS({
@@ -223,13 +224,13 @@ describe('Pubstarter Basic Integration Tests', () => {
       }
     );
 
-    console.log(`  Minimal project created! Tx: ${hash}`);
-    console.log(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog(`  Minimal project created! Tx: ${hash}`);
+    testLog(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
 
     // Verify the transaction succeeded
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
     assert.strictEqual(receipt.status, 'success', 'Transaction should succeed');
 
-    console.log('  Minimal project test passed!');
+    testLog('  Minimal project test passed!');
   });
 });

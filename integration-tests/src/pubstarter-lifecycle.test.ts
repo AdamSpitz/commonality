@@ -31,6 +31,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
@@ -57,12 +58,12 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    console.log('  Test: Successful project with withdrawal');
+    testLog('  Test: Successful project with withdrawal');
     const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
     const contributorClients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Creator: ${creatorClients.account}`);
-    console.log(`  Contributor: ${contributorClients.account}`);
+    testLog(`  Creator: ${creatorClients.account}`);
+    testLog(`  Contributor: ${contributorClients.account}`);
 
     // Create project with low threshold so we can easily reach it
     const projectMetadataCid = await uploadToIPFS({
@@ -73,7 +74,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const threshold = parseEther('0.5'); // Need 0.5 ETH to succeed
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400); // 24 hours from now
 
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -96,7 +97,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       }
     );
 
-    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
 
     // Wait for indexer to sync
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
@@ -111,7 +112,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     assert.strictEqual(initialProject.threshold, threshold.toString(), 'Threshold should match');
 
     // Contributor buys enough tokens to meet threshold
-    console.log('  Contributor buying 50 tokens (0.5 ETH total)...');
+    testLog('  Contributor buying 50 tokens (0.5 ETH total)...');
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -137,17 +138,17 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       await getProject(graphqlClient, projectDetails.assuranceContractAddress),
       'Funded project'
     );
-    console.log(`  Project total received: ${fundedProject.totalReceived}`);
+    testLog(`  Project total received: ${fundedProject.totalReceived}`);
     assert.ok(BigInt(fundedProject.totalReceived) >= threshold, 'Project should have reached threshold');
 
     // Get creator's balance before withdrawal
     const balanceBefore = await creatorClients.publicClient.getBalance({
       address: creatorClients.account,
     });
-    console.log(`  Creator balance before withdrawal: ${balanceBefore}`);
+    testLog(`  Creator balance before withdrawal: ${balanceBefore}`);
 
     // Creator withdraws funds
-    console.log('  Creator withdrawing funds...');
+    testLog('  Creator withdrawing funds...');
     const withdrawHash = await withdrawProjectFunds(
       creatorClients,
       assuranceContract
@@ -160,17 +161,17 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const balanceAfter = await creatorClients.publicClient.getBalance({
       address: creatorClients.account,
     });
-    console.log(`  Creator balance after withdrawal: ${balanceAfter}`);
+    testLog(`  Creator balance after withdrawal: ${balanceAfter}`);
 
     // Balance should increase by approximately 0.5 ETH (minus gas costs from withdrawal)
     const balanceIncrease = balanceAfter - balanceBefore;
-    console.log(`  Balance increase: ${balanceIncrease}`);
+    testLog(`  Balance increase: ${balanceIncrease}`);
 
     // The increase should be close to 0.5 ETH, accounting for gas costs
     // Gas costs should be much smaller than 0.1 ETH, so we check it's at least 0.4 ETH
     assert.ok(balanceIncrease > parseEther('0.4'), 'Creator should have received funds (minus gas)');
 
-    console.log('  ✓ Successful project workflow completed!');
+    testLog('  ✓ Successful project workflow completed!');
   });
 
   it('should allow refunds when project fails to reach threshold', async function() {
@@ -181,7 +182,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    console.log('  Test: Failed project with refunds');
+    testLog('  Test: Failed project with refunds');
     const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
     const contributorClients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
 
@@ -194,7 +195,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const threshold = parseEther('10.0'); // Need 10 ETH to succeed (impossible)
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 2); // 2 seconds from now
 
-    console.log('  Creating project with high threshold...');
+    testLog('  Creating project with high threshold...');
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -217,13 +218,13 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       }
     );
 
-    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
 
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Contributor buys some tokens (but not enough to reach threshold)
-    console.log('  Contributor buying 10 tokens (0.1 ETH)...');
+    testLog('  Contributor buying 10 tokens (0.1 ETH)...');
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -249,11 +250,11 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       await getProject(graphqlClient, projectDetails.assuranceContractAddress),
       'Unfunded project'
     );
-    console.log(`  Project total received: ${unfundedProject.totalReceived}`);
+    testLog(`  Project total received: ${unfundedProject.totalReceived}`);
     assert.ok(BigInt(unfundedProject.totalReceived) < threshold, 'Project should not have reached threshold');
 
     // Wait for deadline to pass by advancing blockchain time
-    console.log('  Advancing blockchain time past deadline...');
+    testLog('  Advancing blockchain time past deadline...');
     // Increase time by 5 seconds (past the 2 second deadline)
     await contributorClients.publicClient.request({
       method: 'evm_increaseTime',
@@ -264,10 +265,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       method: 'evm_mine',
       params: [] as any,
     } as any);
-    console.log('  Blockchain time advanced');
+    testLog('  Blockchain time advanced');
 
     // Contributor needs to approve the assurance contract to transfer tokens back
-    console.log('  Contributor approving assurance contract to transfer tokens...');
+    testLog('  Contributor approving assurance contract to transfer tokens...');
     const erc1155Abi = [
       {
         inputs: [
@@ -290,16 +291,16 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       chain: null,
     } as any);
     await contributorClients.publicClient.waitForTransactionReceipt({ hash: approveHash });
-    console.log('  Tokens approved for transfer');
+    testLog('  Tokens approved for transfer');
 
     // Get contributor's balance before refund
     const balanceBefore = await contributorClients.publicClient.getBalance({
       address: contributorClients.account,
     });
-    console.log(`  Contributor balance before refund: ${balanceBefore}`);
+    testLog(`  Contributor balance before refund: ${balanceBefore}`);
 
     // Contributor gets refund
-    console.log('  Contributor requesting refund...');
+    testLog('  Contributor requesting refund...');
     const refundHash = await refundProjectTokens(
       contributorClients,
       assuranceContract,
@@ -318,15 +319,15 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const balanceAfter = await contributorClients.publicClient.getBalance({
       address: contributorClients.account,
     });
-    console.log(`  Contributor balance after refund: ${balanceAfter}`);
+    testLog(`  Contributor balance after refund: ${balanceAfter}`);
 
     const balanceIncrease = balanceAfter - balanceBefore;
-    console.log(`  Balance increase: ${balanceIncrease}`);
+    testLog(`  Balance increase: ${balanceIncrease}`);
 
     // Balance should increase by approximately 0.1 ETH (minus gas costs)
     assert.ok(balanceIncrease > parseEther('0.05'), 'Contributor should have received refund (minus gas)');
 
-    console.log('  ✓ Failed project refund workflow completed!');
+    testLog('  ✓ Failed project refund workflow completed!');
   });
 
   it('should handle multiple contributors to the same project', async function() {
@@ -337,14 +338,14 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    console.log('  Test: Multiple contributors to one project');
+    testLog('  Test: Multiple contributors to one project');
     const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
     const contributor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
     const contributor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Creator: ${creatorClients.account}`);
-    console.log(`  Contributor 1: ${contributor1Clients.account}`);
-    console.log(`  Contributor 2: ${contributor2Clients.account}`);
+    testLog(`  Creator: ${creatorClients.account}`);
+    testLog(`  Contributor 1: ${contributor1Clients.account}`);
+    testLog(`  Contributor 2: ${contributor2Clients.account}`);
 
     // Create project
     const projectMetadataCid = await uploadToIPFS({
@@ -355,7 +356,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const threshold = parseEther('0.5');
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
 
-    console.log('  Creating project...');
+    testLog('  Creating project...');
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -378,7 +379,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       }
     );
 
-    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
 
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -389,7 +390,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     };
 
     // Contributor 1 buys 20 tokens of type 1 (0.2 ETH)
-    console.log('  Contributor 1 buying 20 tokens of type 1...');
+    testLog('  Contributor 1 buying 20 tokens of type 1...');
     const buy1Hash = await buyProjectTokens(
       contributor1Clients,
       assuranceContract,
@@ -406,7 +407,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     await waitForSync(graphqlClient, buy1Receipt.blockNumber, 15000);
 
     // Contributor 2 buys 15 tokens of type 2 (0.3 ETH)
-    console.log('  Contributor 2 buying 15 tokens of type 2...');
+    testLog('  Contributor 2 buying 15 tokens of type 2...');
     const buy2Hash = await buyProjectTokens(
       contributor2Clients,
       assuranceContract,
@@ -428,7 +429,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       'Multi-contributor project'
     );
 
-    console.log(`  Project total received: ${fundedProject.totalReceived}`);
+    testLog(`  Project total received: ${fundedProject.totalReceived}`);
     const expectedTotal = parseEther('0.5'); // 0.2 + 0.3
     assert.strictEqual(
       fundedProject.totalReceived,
@@ -442,7 +443,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       projectDetails.assuranceContractAddress
     );
 
-    console.log(`  Found ${contributions.length} contributions`);
+    testLog(`  Found ${contributions.length} contributions`);
     assert.strictEqual(contributions.length, 2, 'Should have 2 contributions');
 
     // Find each contributor's contribution
@@ -455,6 +456,6 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     assert.strictEqual(contrib1!.totalCost, parseEther('0.2').toString(), 'Contributor 1 should have contributed 0.2 ETH');
     assert.strictEqual(contrib2!.totalCost, parseEther('0.3').toString(), 'Contributor 2 should have contributed 0.3 ETH');
 
-    console.log('  ✓ Multiple contributors workflow completed!');
+    testLog('  ✓ Multiple contributors workflow completed!');
   });
 });

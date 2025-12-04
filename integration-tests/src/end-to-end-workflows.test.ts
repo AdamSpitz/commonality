@@ -47,6 +47,7 @@ import {
   DelegatableNotesAbi
 } from '@commonality/sdk';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -78,8 +79,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-      console.log(`  User account: ${userClients.account}`);
-      console.log(`  Attester account: ${attesterClients.account}`);
+      testLog(`  User account: ${userClients.account}`);
+      testLog(`  Attester account: ${attesterClients.account}`);
 
       // 2. Create a statement about a cause
       const statementContent = {
@@ -90,8 +91,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const statementCid = await uploadToIPFS(statementContent);
       const statementId = cidToBytes32(statementCid);
 
-      console.log(`  Statement CID: ${statementCid}`);
-      console.log(`  Statement ID: ${statementId}`);
+      testLog(`  Statement CID: ${statementCid}`);
+      testLog(`  Statement ID: ${statementId}`);
 
       // 3. User expresses belief in the statement
       const beliefsContract: BeliefsContract = {
@@ -99,10 +100,10 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: BeliefsAbi,
       };
 
-      console.log('  User expressing belief in statement...');
+      testLog('  User expressing belief in statement...');
       const beliefTxHash = await believeStatement(userClients, beliefsContract, statementCid);
       const beliefReceipt = await userClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
-      console.log(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
+      testLog(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
 
       // 4. Wait for indexer to sync belief
       await waitForSync(graphqlClient, beliefReceipt.blockNumber);
@@ -113,7 +114,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         'User belief'
       );
       assert.strictEqual(userBelief.beliefState, 1, 'User should believe the statement');
-      console.log('  ✓ User belief recorded correctly');
+      testLog('  ✓ User belief recorded correctly');
 
       // 6. Create a crowdfunding project aligned with the statement
       const pubstarterContract: PubstarterContract = {
@@ -137,11 +138,11 @@ describe('End-to-End Workflow Integration Tests', () => {
         tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
       };
 
-      console.log('  Creating project aligned with statement...');
+      testLog('  Creating project aligned with statement...');
       const projectResult = await createProject(userClients, pubstarterContract, projectParams);
-      console.log(`  Project created: ${projectResult.hash}`);
-      console.log(`  Token contract: ${projectResult.projectDetails.tokenAddress}`);
-      console.log(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
+      testLog(`  Project created: ${projectResult.hash}`);
+      testLog(`  Token contract: ${projectResult.projectDetails.tokenAddress}`);
+      testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 7. Attester attests that the project aligns with the statement
       const projectAlignmentContract: ProjectAlignmentContract = {
@@ -149,7 +150,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: ProjectAlignmentAbi,
       };
 
-      console.log('  Attester attesting project alignment...');
+      testLog('  Attester attesting project alignment...');
       const alignmentTxHash = await attestProjectAlignment(
         attesterClients,
         projectAlignmentContract,
@@ -157,7 +158,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         statementCid
       );
       const alignmentReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
-      console.log(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
+      testLog(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
 
       // 8. Wait for indexer to sync alignment
       await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
@@ -170,7 +171,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
         'Project address should match'
       );
-      console.log('  ✓ Project alignment recorded correctly');
+      testLog('  ✓ Project alignment recorded correctly');
 
       // 10. User deposits ETH into a delegatable note for the statement
       const delegatableNotesContract: DelegatableNotesContract = {
@@ -179,12 +180,12 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       const depositAmount = BigInt('2000000000000000'); // 0.002 ETH
-      console.log(`  User depositing ${depositAmount} ETH into delegatable note...`);
+      testLog(`  User depositing ${depositAmount} ETH into delegatable note...`);
       const depositResult = await depositETH(userClients, delegatableNotesContract, {
         amount: depositAmount,
         intendedStatementId: statementId,
       });
-      console.log(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
+      testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
 
       // 11. Wait for indexer to sync deposit
       const depositReceipt = await userClients.publicClient.getTransactionReceipt({ hash: depositResult.hash });
@@ -195,15 +196,15 @@ describe('End-to-End Workflow Integration Tests', () => {
       const createdNote = userNotes.find(note => note.id === depositResult.noteId.toString());
       assert.ok(createdNote, 'User should have the created note');
       assert.strictEqual(createdNote.intendedStatementId.toLowerCase(), statementId.toLowerCase(), 'Note should be intended for the statement');
-      console.log('  ✓ Delegatable note created correctly');
+      testLog('  ✓ Delegatable note created correctly');
 
       const statementNotes = await getNotesByStatement(graphqlClient, statementId);
       const statementNote = statementNotes.find(note => note.id === depositResult.noteId.toString());
       assert.ok(statementNote, 'Statement should have the created note');
-      console.log('  ✓ Note properly linked to statement');
+      testLog('  ✓ Note properly linked to statement');
 
       // 13. User funds the project using the delegatable note
-      console.log('  User funding project with delegatable note...');
+      testLog('  User funding project with delegatable note...');
       const purchaseTxHash = await purchaseFromPrimaryMarketWithNotes(
         userClients,
         delegatableNotesContract,
@@ -218,7 +219,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         }
       );
       const purchaseReceipt = await userClients.publicClient.getTransactionReceipt({ hash: purchaseTxHash });
-      console.log(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
+      testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 14. Wait for indexer to sync purchase
       await waitForSync(graphqlClient, purchaseReceipt.blockNumber);
@@ -229,9 +230,9 @@ describe('End-to-End Workflow Integration Tests', () => {
         'Project'
       );
       assert.strictEqual(project.totalReceived, '1000000000000000', 'Project should have received 0.001 ETH');
-      console.log('  ✓ Project funding progress updated correctly');
+      testLog('  ✓ Project funding progress updated correctly');
 
-      console.log('  ✓ End-to-end workflow completed successfully!');
+      testLog('  ✓ End-to-end workflow completed successfully!');
     });
   });
 
@@ -248,8 +249,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const delegateUserClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-      console.log(`  Root user account: ${rootUserClients.account}`);
-      console.log(`  Delegate user account: ${delegateUserClients.account}`);
+      testLog(`  Root user account: ${rootUserClients.account}`);
+      testLog(`  Delegate user account: ${delegateUserClients.account}`);
 
       // 2. Create a statement about a cause
       const statementContent = {
@@ -260,8 +261,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const statementCid = await uploadToIPFS(statementContent);
       const statementId = cidToBytes32(statementCid);
 
-      console.log(`  Statement CID: ${statementCid}`);
-      console.log(`  Statement ID: ${statementId}`);
+      testLog(`  Statement CID: ${statementCid}`);
+      testLog(`  Statement ID: ${statementId}`);
 
       // 3. Root user expresses belief in the statement
       const beliefsContract: BeliefsContract = {
@@ -269,10 +270,10 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: BeliefsAbi,
       };
 
-      console.log('  Root user expressing belief in statement...');
+      testLog('  Root user expressing belief in statement...');
       const beliefTxHash = await believeStatement(rootUserClients, beliefsContract, statementCid);
       const beliefReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
-      console.log(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
+      testLog(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
 
       // 4. Wait for indexer to sync belief
       await waitForSync(graphqlClient, beliefReceipt.blockNumber);
@@ -284,12 +285,12 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       const depositAmount = BigInt('3000000000000000'); // 0.003 ETH
-      console.log(`  Root user depositing ${depositAmount} ETH into delegatable note...`);
+      testLog(`  Root user depositing ${depositAmount} ETH into delegatable note...`);
       const depositResult = await depositETH(rootUserClients, delegatableNotesContract, {
         amount: depositAmount,
         intendedStatementId: statementId,
       });
-      console.log(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
+      testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
 
       // 6. Wait for indexer to sync deposit
       const depositReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: depositResult.hash });
@@ -300,18 +301,18 @@ describe('End-to-End Workflow Integration Tests', () => {
       const createdNote = rootUserNotes.find(note => note.id === depositResult.noteId.toString());
       assert.ok(createdNote, 'Root user should have the created note');
       assert.strictEqual(createdNote.intendedStatementId.toLowerCase(), statementId.toLowerCase(), 'Note should be intended for the statement');
-      console.log('  ✓ Root user note created correctly');
+      testLog('  ✓ Root user note created correctly');
 
       // 8. Root user delegates half of the note to delegate user
       const delegateAmount = depositAmount / 2n; // Delegate 0.0015 ETH
-      console.log(`  Root user delegating ${delegateAmount} ETH to delegate...`);
+      testLog(`  Root user delegating ${delegateAmount} ETH to delegate...`);
       const delegateResult = await delegateNote(rootUserClients, delegatableNotesContract, {
         noteId: depositResult.noteId,
         owners: [rootUserClients.account], // Current chain: root user owns note
         delegateTo: delegateUserClients.account,
         amount: delegateAmount,
       });
-      console.log(`  Delegation transaction: ${delegateResult.hash} (delegated note ID: ${delegateResult.delegatedNoteId}, remainder note ID: ${delegateResult.remainderNoteId})`);
+      testLog(`  Delegation transaction: ${delegateResult.hash} (delegated note ID: ${delegateResult.delegatedNoteId}, remainder note ID: ${delegateResult.remainderNoteId})`);
 
       // 9. Wait for indexer to sync delegation
       const delegateReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: delegateResult.hash });
@@ -325,7 +326,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       assert.strictEqual(delegationChain.length, 2, 'Delegation chain should have 2 links');
       assert.strictEqual(delegationChain[0].address.toLowerCase(), rootUserClients.account.toLowerCase(), 'First link should be root user');
       assert.strictEqual(delegationChain[1].address.toLowerCase(), delegateUserClients.account.toLowerCase(), 'Second link should be delegate user');
-      console.log('  ✓ Delegation chain verified correctly');
+      testLog('  ✓ Delegation chain verified correctly');
       // Verify delegation chain properties
       for (const link of delegationChain) {
         if (link.address.toLowerCase() === rootUserClients.account.toLowerCase()) {
@@ -334,7 +335,7 @@ describe('End-to-End Workflow Integration Tests', () => {
           assert.strictEqual(link.position, 1, 'Delegate user should be at position 1');
         }
       }
-      console.log('  ✓ Delegation chain positions verified correctly');
+      testLog('  ✓ Delegation chain positions verified correctly');
 
       // 11. Create a crowdfunding project
       const pubstarterContract: PubstarterContract = {
@@ -358,10 +359,10 @@ describe('End-to-End Workflow Integration Tests', () => {
         tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
       };
 
-      console.log('  Creating project for delegation test...');
+      testLog('  Creating project for delegation test...');
       const projectResult = await createProject(rootUserClients, pubstarterContract, projectParams);
-      console.log(`  Project created: ${projectResult.hash}`);
-      console.log(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
+      testLog(`  Project created: ${projectResult.hash}`);
+      testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 12. Attester attests that the project aligns with the statement
       const projectAlignmentContract: ProjectAlignmentContract = {
@@ -369,7 +370,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: ProjectAlignmentAbi,
       };
 
-      console.log('  Attester attesting project alignment...');
+      testLog('  Attester attesting project alignment...');
       const alignmentTxHash = await attestProjectAlignment(
         delegateUserClients, // Use delegate user as attester
         projectAlignmentContract,
@@ -377,7 +378,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         statementCid
       );
       const alignmentReceipt = await delegateUserClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
-      console.log(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
+      testLog(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
 
       // 13. Wait for indexer to sync alignment
       await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
@@ -390,11 +391,11 @@ describe('End-to-End Workflow Integration Tests', () => {
         projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
         'Project address should match'
       );
-      console.log('  ✓ Project alignment recorded correctly');
+      testLog('  ✓ Project alignment recorded correctly');
 
       // 15. Delegate user spends part of the delegated note on the project
       const spendAmount = BigInt('1000000000000000'); // 0.001 ETH for 1 token
-      console.log(`  Delegate user spending ${spendAmount} ETH on project...`);
+      testLog(`  Delegate user spending ${spendAmount} ETH on project...`);
       const purchaseTxHash = await purchaseFromPrimaryMarketWithNotes(
         delegateUserClients,
         delegatableNotesContract,
@@ -409,7 +410,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         }
       );
       const purchaseReceipt = await delegateUserClients.publicClient.getTransactionReceipt({ hash: purchaseTxHash });
-      console.log(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
+      testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 16. Wait for indexer to sync purchase
       await waitForSync(graphqlClient, purchaseReceipt.blockNumber);
@@ -421,7 +422,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         'Remaining note'
       );
       assert.strictEqual(remainingNote.amount, delegateAmount.toString(), 'Remaining note should have correct amount');
-      console.log('  ✓ Root user remaining note updated correctly');
+      testLog('  ✓ Root user remaining note updated correctly');
 
       // 19. Verify project funding progress
       const project = assertNotNull(
@@ -429,13 +430,13 @@ describe('End-to-End Workflow Integration Tests', () => {
         'Project'
       );
       assert.strictEqual(project.totalReceived, spendAmount.toString(), 'Project should have received delegated amount');
-      console.log('  ✓ Project funding progress updated correctly');
+      testLog('  ✓ Project funding progress updated correctly');
 
       // 20. Verify delegation chain is preserved in contribution record
       // Note: In a real implementation, we'd want to verify that the contribution record
       // shows the full delegation chain, but for this test we'll keep it simple
 
-      console.log('  ✓ Delegation chain workflow completed successfully!');
+      testLog('  ✓ Delegation chain workflow completed successfully!');
     });
   });
 
@@ -452,8 +453,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-      console.log(`  User account: ${userClients.account}`);
-      console.log(`  Attester account: ${attesterClients.account}`);
+      testLog(`  User account: ${userClients.account}`);
+      testLog(`  Attester account: ${attesterClients.account}`);
 
       // 2. Create two statements: S1 (specific) and S2 (general)
       const statement1Content = {
@@ -471,8 +472,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const statement2Cid = await uploadToIPFS(statement2Content);
       const statement2Id = cidToBytes32(statement2Cid);
 
-      console.log(`  Statement 1 (specific): ${statement1Cid}`);
-      console.log(`  Statement 2 (general): ${statement2Cid}`);
+      testLog(`  Statement 1 (specific): ${statement1Cid}`);
+      testLog(`  Statement 2 (general): ${statement2Cid}`);
 
       // 3. Attester creates implication: S1 → S2 (specific implies general)
       const implicationsContract: ImplicationsContract = {
@@ -480,7 +481,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: ImplicationsAbi,
       };
 
-      console.log('  Attester attesting that S1 implies S2...');
+      testLog('  Attester attesting that S1 implies S2...');
       const implicationTxHash = await attestImplication(
         attesterClients,
         implicationsContract,
@@ -488,7 +489,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         statement2Cid
       );
       const implicationReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implicationTxHash });
-      console.log(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
+      testLog(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
 
       // 4. Wait for indexer to sync implication
       await waitForSync(graphqlClient, implicationReceipt.blockNumber);
@@ -501,7 +502,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         statement1Id.toLowerCase(),
         'Implication should be from S1'
       );
-      console.log('  ✓ Implication recorded correctly');
+      testLog('  ✓ Implication recorded correctly');
 
       // 6. Create a project aligned with S1 (the specific statement)
       const pubstarterContract: PubstarterContract = {
@@ -525,10 +526,10 @@ describe('End-to-End Workflow Integration Tests', () => {
         tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
       };
 
-      console.log('  Creating project aligned with S1 (specific statement)...');
+      testLog('  Creating project aligned with S1 (specific statement)...');
       const projectResult = await createProject(userClients, pubstarterContract, projectParams);
-      console.log(`  Project created: ${projectResult.hash}`);
-      console.log(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
+      testLog(`  Project created: ${projectResult.hash}`);
+      testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 7. Attester attests that the project aligns with S1 (specific statement)
       const projectAlignmentContract: ProjectAlignmentContract = {
@@ -536,7 +537,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: ProjectAlignmentAbi,
       };
 
-      console.log('  Attester attesting project alignment with S1...');
+      testLog('  Attester attesting project alignment with S1...');
       const alignmentTxHash = await attestProjectAlignment(
         attesterClients,
         projectAlignmentContract,
@@ -544,7 +545,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         statement1Cid
       );
       const alignmentReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
-      console.log(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
+      testLog(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
 
       // 8. Wait for indexer to sync alignment
       await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
@@ -557,10 +558,10 @@ describe('End-to-End Workflow Integration Tests', () => {
         projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
         'Project should be directly aligned with S1'
       );
-      console.log('  ✓ Direct alignment with S1 verified');
+      testLog('  ✓ Direct alignment with S1 verified');
 
       // 10. Query for projects indirectly aligned with S2 (general statement)
-      console.log('  Querying for projects indirectly aligned with S2...');
+      testLog('  Querying for projects indirectly aligned with S2...');
       const indirectAlignments = await getIndirectlyAlignedProjects(
         graphqlClient,
         statement2Id,
@@ -585,9 +586,9 @@ describe('End-to-End Workflow Integration Tests', () => {
         statement2Id.toLowerCase(),
         'Indirect alignment should be with S2'
       );
-      console.log('  ✓ Project discovered via indirect alignment through implication graph!');
+      testLog('  ✓ Project discovered via indirect alignment through implication graph!');
 
-      console.log('  ✓ Indirect alignment workflow completed successfully!');
+      testLog('  ✓ Indirect alignment workflow completed successfully!');
     });
   });
 
@@ -603,8 +604,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-      console.log(`  User account: ${userClients.account}`);
-      console.log(`  Attester account: ${attesterClients.account}`);
+      testLog(`  User account: ${userClients.account}`);
+      testLog(`  Attester account: ${attesterClients.account}`);
 
       // 2. Create two statements: S1 and S2
       const statement1Content = {
@@ -622,8 +623,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const statement2Cid = await uploadToIPFS(statement2Content);
       const statement2Id = cidToBytes32(statement2Cid);
 
-      console.log(`  Statement 1: ${statement1Cid}`);
-      console.log(`  Statement 2: ${statement2Cid}`);
+      testLog(`  Statement 1: ${statement1Cid}`);
+      testLog(`  Statement 2: ${statement2Cid}`);
 
       // 3. User expresses belief in S1
       const beliefsContract: BeliefsContract = {
@@ -631,10 +632,10 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: BeliefsAbi,
       };
 
-      console.log('  User expressing belief in S1...');
+      testLog('  User expressing belief in S1...');
       const beliefTxHash = await believeStatement(userClients, beliefsContract, statement1Cid);
       const beliefReceipt = await userClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
-      console.log(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
+      testLog(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
 
       // 4. Wait for indexer to sync belief
       await waitForSync(graphqlClient, beliefReceipt.blockNumber);
@@ -645,7 +646,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         'User belief in S1'
       );
       assert.strictEqual(userBeliefS1.beliefState, 1, 'User should believe S1');
-      console.log('  ✓ User belief in S1 recorded correctly');
+      testLog('  ✓ User belief in S1 recorded correctly');
 
       // 6. Attester creates implication: S1 → S2
       const implicationsContract: ImplicationsContract = {
@@ -653,7 +654,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: ImplicationsAbi,
       };
 
-      console.log('  Attester attesting that S1 implies S2...');
+      testLog('  Attester attesting that S1 implies S2...');
       const implicationTxHash = await attestImplication(
         attesterClients,
         implicationsContract,
@@ -661,7 +662,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         statement2Cid
       );
       const implicationReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implicationTxHash });
-      console.log(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
+      testLog(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
 
       // 7. Wait for indexer to sync implication
       await waitForSync(graphqlClient, implicationReceipt.blockNumber);
@@ -674,12 +675,12 @@ describe('End-to-End Workflow Integration Tests', () => {
         statement2Id.toLowerCase(),
         'Implication should be to S2'
       );
-      console.log('  ✓ Implication from S1 to S2 recorded correctly');
+      testLog('  ✓ Implication from S1 to S2 recorded correctly');
 
       // 9. Query for statement suggestions
       // The user believes S1, and S1 implies S2, so S2 should be suggested
       // We can find suggestions by querying for implications from statements the user believes
-      console.log('  Finding statement suggestions for user...');
+      testLog('  Finding statement suggestions for user...');
 
       // Get all statements the user believes
       const userBeliefs = await getUserBeliefs(graphqlClient, userClients.account);
@@ -710,9 +711,9 @@ describe('End-to-End Workflow Integration Tests', () => {
         Array.from(suggestions).some(id => id.toLowerCase() === statement2Id.toLowerCase()),
         'S2 should be suggested to the user'
       );
-      console.log('  ✓ S2 correctly suggested based on user believing S1 and S1 implying S2');
+      testLog('  ✓ S2 correctly suggested based on user believing S1 and S1 implying S2');
 
-      console.log('  ✓ Statement suggestion workflow completed successfully!');
+      testLog('  ✓ Statement suggestion workflow completed successfully!');
     });
   });
 });

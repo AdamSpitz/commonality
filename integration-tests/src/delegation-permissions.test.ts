@@ -25,6 +25,7 @@ import {
   waitForSync,
 } from '@commonality/sdk';
 import { DelegatableNotesAbi } from '@commonality/sdk';
+import { testLog } from './setup.js';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 
 describe('Delegation Permissions Edge Cases', () => {
@@ -45,9 +46,9 @@ describe('Delegation Permissions Edge Cases', () => {
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
     const charlieClients = createTestClients(CHARLIE_KEY, RPC_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
-    console.log(`  Charlie: ${charlieClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
+    testLog(`  Charlie: ${charlieClients.account}`);
 
     const contract: DelegatableNotesContract = {
       address: DELEGATABLE_NOTES_ADDRESS,
@@ -61,16 +62,16 @@ describe('Delegation Permissions Edge Cases', () => {
     }));
 
     // Alice creates a note
-    console.log('  Alice creating a note...');
+    testLog('  Alice creating a note...');
     const { noteId } = await depositETH(aliceClients, contract, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
 
-    console.log(`  Note created: ${noteId}`);
+    testLog(`  Note created: ${noteId}`);
 
     // Bob (not the owner) tries to delegate Alice's note to Charlie
-    console.log('  Bob attempting to delegate Alice\'s note (should fail)...');
+    testLog('  Bob attempting to delegate Alice\'s note (should fail)...');
 
     let delegationFailed = false;
     try {
@@ -83,7 +84,7 @@ describe('Delegation Permissions Edge Cases', () => {
     } catch (error) {
       // Transaction should revert
       delegationFailed = true;
-      console.log('  ✓ Delegation failed as expected');
+      testLog('  ✓ Delegation failed as expected');
     }
 
     assert.ok(delegationFailed, 'Non-owner delegation should fail');
@@ -98,9 +99,9 @@ describe('Delegation Permissions Edge Cases', () => {
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
     const charlieClients = createTestClients(CHARLIE_KEY, RPC_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
-    console.log(`  Charlie: ${charlieClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
+    testLog(`  Charlie: ${charlieClients.account}`);
 
     const contract: DelegatableNotesContract = {
       address: DELEGATABLE_NOTES_ADDRESS,
@@ -113,7 +114,7 @@ describe('Delegation Permissions Edge Cases', () => {
     }));
 
     // Alice creates a note and delegates to Bob
-    console.log('  Alice creating and delegating note to Bob...');
+    testLog('  Alice creating and delegating note to Bob...');
     const { noteId } = await depositETH(aliceClients, contract, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
@@ -126,10 +127,10 @@ describe('Delegation Permissions Edge Cases', () => {
       amount: parseEther('1.0'),
     });
 
-    console.log(`  Note delegated to Bob: ${delegatedNoteId}`);
+    testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
     // Charlie (not in the delegation chain) tries to revoke the note
-    console.log('  Charlie attempting to revoke Bob\'s note (should fail)...');
+    testLog('  Charlie attempting to revoke Bob\'s note (should fail)...');
 
     let revocationFailed = false;
     try {
@@ -140,7 +141,7 @@ describe('Delegation Permissions Edge Cases', () => {
     } catch (error) {
       // Transaction should revert
       revocationFailed = true;
-      console.log('  ✓ Revocation failed as expected');
+      testLog('  ✓ Revocation failed as expected');
     }
 
     assert.ok(revocationFailed, 'Non-parent revocation should fail');
@@ -155,9 +156,9 @@ describe('Delegation Permissions Edge Cases', () => {
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
     const charlieClients = createTestClients(CHARLIE_KEY, RPC_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
-    console.log(`  Charlie: ${charlieClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
+    testLog(`  Charlie: ${charlieClients.account}`);
 
     const contract: DelegatableNotesContract = {
       address: DELEGATABLE_NOTES_ADDRESS,
@@ -170,7 +171,7 @@ describe('Delegation Permissions Edge Cases', () => {
     }));
 
     // Alice creates a note and delegates to Bob
-    console.log('  Alice creating and delegating note to Bob...');
+    testLog('  Alice creating and delegating note to Bob...');
     const { noteId } = await depositETH(aliceClients, contract, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
@@ -183,17 +184,17 @@ describe('Delegation Permissions Edge Cases', () => {
       amount: parseEther('1.0'),
     });
 
-    console.log(`  Note delegated to Bob: ${delegatedNoteId}`);
+    testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
     // Alice revokes the note
-    console.log('  Alice revoking the note...');
+    testLog('  Alice revoking the note...');
     await revokeNote(aliceClients, contract, {
       noteId: delegatedNoteId,
       owners: [bobClients.account, aliceClients.account],
     });
 
     // Bob tries to delegate the revoked note to Charlie
-    console.log('  Bob attempting to delegate revoked note (should fail)...');
+    testLog('  Bob attempting to delegate revoked note (should fail)...');
 
     let delegationFailed = false;
     try {
@@ -206,7 +207,7 @@ describe('Delegation Permissions Edge Cases', () => {
     } catch (error) {
       // Transaction should revert
       delegationFailed = true;
-      console.log('  ✓ Delegation of revoked note failed as expected');
+      testLog('  ✓ Delegation of revoked note failed as expected');
     }
 
     assert.ok(delegationFailed, 'Delegation of revoked note should fail');
@@ -220,8 +221,8 @@ describe('Delegation Permissions Edge Cases', () => {
     const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
 
     const contract: DelegatableNotesContract = {
       address: DELEGATABLE_NOTES_ADDRESS,
@@ -234,16 +235,16 @@ describe('Delegation Permissions Edge Cases', () => {
     }));
 
     // Alice creates a note
-    console.log('  Alice creating a note...');
+    testLog('  Alice creating a note...');
     const { noteId } = await depositETH(aliceClients, contract, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
 
-    console.log(`  Note created: ${noteId}`);
+    testLog(`  Note created: ${noteId}`);
 
     // Bob tries to reclaim Alice's funds
-    console.log('  Bob attempting to reclaim Alice\'s funds (should fail)...');
+    testLog('  Bob attempting to reclaim Alice\'s funds (should fail)...');
 
     let reclaimFailed = false;
     try {
@@ -251,7 +252,7 @@ describe('Delegation Permissions Edge Cases', () => {
     } catch (error) {
       // Transaction should revert
       reclaimFailed = true;
-      console.log('  ✓ Reclaim failed as expected');
+      testLog('  ✓ Reclaim failed as expected');
     }
 
     assert.ok(reclaimFailed, 'Non-owner reclaim should fail');
@@ -266,8 +267,8 @@ describe('Delegation Permissions Edge Cases', () => {
     const bobClients = createTestClients(BOB_KEY, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
-    console.log(`  Alice: ${aliceClients.account}`);
-    console.log(`  Bob: ${bobClients.account}`);
+    testLog(`  Alice: ${aliceClients.account}`);
+    testLog(`  Bob: ${bobClients.account}`);
 
     const contract: DelegatableNotesContract = {
       address: DELEGATABLE_NOTES_ADDRESS,
@@ -280,7 +281,7 @@ describe('Delegation Permissions Edge Cases', () => {
     }));
 
     // Alice creates a note and delegates to Bob
-    console.log('  Alice creating and delegating note to Bob...');
+    testLog('  Alice creating and delegating note to Bob...');
     const { noteId } = await depositETH(aliceClients, contract, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
@@ -293,10 +294,10 @@ describe('Delegation Permissions Edge Cases', () => {
       amount: parseEther('1.0'),
     });
 
-    console.log(`  Note delegated to Bob: ${delegatedNoteId}`);
+    testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
     // Alice (the parent) revokes the note - this should succeed
-    console.log('  Alice revoking note from Bob (should succeed)...');
+    testLog('  Alice revoking note from Bob (should succeed)...');
 
     let revocationSucceeded = true;
     try {
@@ -306,7 +307,7 @@ describe('Delegation Permissions Edge Cases', () => {
       });
 
       const receipt = await aliceClients.publicClient.getTransactionReceipt({ hash: tx });
-      console.log(`  ✓ Revocation succeeded: ${tx}`);
+      testLog(`  ✓ Revocation succeeded: ${tx}`);
 
       // Wait for indexer to sync
       await waitForSync(graphqlClient, receipt.blockNumber, 15000);

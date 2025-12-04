@@ -30,6 +30,7 @@ import {
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -69,11 +70,11 @@ describe('Conceptspace Beliefs', () => {
     const statementCid = await uploadToIPFS(statementContent);
     const statementId = cidToBytes32(statementCid);
 
-    console.log(`  Statement: "${statementContent.text}"`);
-    console.log(`  Statement ID: ${statementId}`);
+    testLog(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement ID: ${statementId}`);
 
     // Express belief
-    console.log('  User believes the statement...');
+    testLog('  User believes the statement...');
     let txHash = await believeStatement(clients, beliefsContract, statementCid);
     let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -92,10 +93,10 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
     assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
 
-    console.log('  ✓ Belief recorded correctly');
+    testLog('  ✓ Belief recorded correctly');
 
     // Change to disbelief
-    console.log('  User changes to disbelief...');
+    testLog('  User changes to disbelief...');
     txHash = await disbelieveStatement(clients, beliefsContract, statementCid);
     receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -114,10 +115,10 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
     assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
 
-    console.log('  ✓ Disbelief recorded correctly');
+    testLog('  ✓ Disbelief recorded correctly');
 
     // Clear opinion
-    console.log('  User clears opinion...');
+    testLog('  User clears opinion...');
     txHash = await clearOpinion(clients, beliefsContract, statementCid);
     receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -136,7 +137,7 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
     assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
 
-    console.log('  ✓ Opinion cleared correctly');
+    testLog('  ✓ Opinion cleared correctly');
   });
 
   it('should track beliefs from multiple users', async function() {
@@ -153,10 +154,10 @@ describe('Conceptspace Beliefs', () => {
     const statementCid = await uploadToIPFS(statementContent);
     const statementId = cidToBytes32(statementCid);
 
-    console.log(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement: "${statementContent.text}"`);
 
     // User 1 believes
-    console.log('  User 1 believes...');
+    testLog('  User 1 believes...');
     let txHash = await believeStatement(clients1, beliefsContract, statementCid);
     let receipt = await clients1.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -168,7 +169,7 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
 
     // User 2 also believes
-    console.log('  User 2 believes...');
+    testLog('  User 2 believes...');
     txHash = await believeStatement(clients2, beliefsContract, statementCid);
     receipt = await clients2.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -191,10 +192,10 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(user1Belief.beliefState, BELIEVES, 'User 1 should believe');
     assert.strictEqual(user2Belief.beliefState, BELIEVES, 'User 2 should believe');
 
-    console.log('  ✓ Multiple users tracked correctly');
+    testLog('  ✓ Multiple users tracked correctly');
 
     // User 2 changes to disbelief
-    console.log('  User 2 changes to disbelief...');
+    testLog('  User 2 changes to disbelief...');
     txHash = await disbelieveStatement(clients2, beliefsContract, statementCid);
     receipt = await clients2.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -206,7 +207,7 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
     assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
 
-    console.log('  ✓ User state changes tracked correctly');
+    testLog('  ✓ User state changes tracked correctly');
   });
 
   it('should handle multiple statements independently', async function() {
@@ -229,16 +230,16 @@ describe('Conceptspace Beliefs', () => {
     const statement1Id = cidToBytes32(statement1Cid);
     const statement2Id = cidToBytes32(statement2Cid);
 
-    console.log(`  Statement 1: "${statement1Content.text}"`);
-    console.log(`  Statement 2: "${statement2Content.text}"`);
+    testLog(`  Statement 1: "${statement1Content.text}"`);
+    testLog(`  Statement 2: "${statement2Content.text}"`);
 
     // Believe statement 1, disbelieve statement 2
-    console.log('  User believes statement 1...');
+    testLog('  User believes statement 1...');
     let txHash = await believeStatement(clients, beliefsContract, statement1Cid);
     let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    console.log('  User disbelieves statement 2...');
+    testLog('  User disbelieves statement 2...');
     txHash = await disbelieveStatement(clients, beliefsContract, statement2Cid);
     receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
@@ -270,6 +271,6 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(stmt2.believerCount, 0);
     assert.strictEqual(stmt2.disbelieverCount, 1);
 
-    console.log('  ✓ Multiple statements tracked independently');
+    testLog('  ✓ Multiple statements tracked independently');
   });
 });

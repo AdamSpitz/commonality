@@ -32,6 +32,7 @@ import {
 } from '@commonality/sdk';
 import { DelegatableNotesAbi, PubstarterAbi } from '@commonality/sdk';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface

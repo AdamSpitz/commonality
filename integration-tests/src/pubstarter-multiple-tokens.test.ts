@@ -28,6 +28,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi
 } from '@commonality/sdk';
+import { testLog } from './setup.js';
 
 
 describe('Pubstarter Multiple Token Types Tests', () => {
@@ -53,14 +54,14 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   it('should handle multiple token types with different prices', async function() {
     this.timeout(30000);
 
-    console.log('  Setting up test clients...');
+    testLog('  Setting up test clients...');
     const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
     const buyer1Clients = createTestClients(BUYER1_PRIVATE_KEY, RPC_URL);
     const buyer2Clients = createTestClients(BUYER2_PRIVATE_KEY, RPC_URL);
 
-    console.log(`  Creator: ${creatorClients.account}`);
-    console.log(`  Buyer1: ${buyer1Clients.account}`);
-    console.log(`  Buyer2: ${buyer2Clients.account}`);
+    testLog(`  Creator: ${creatorClients.account}`);
+    testLog(`  Buyer1: ${buyer1Clients.account}`);
+    testLog(`  Buyer2: ${buyer2Clients.account}`);
 
     // Create project metadata
     const projectMetadataCid = await uploadToIPFS({
@@ -82,7 +83,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       parseEther('0.2'),   // Gold: 0.2 ETH
     ];
 
-    console.log('  Creating project with 3 token types...');
+    testLog('  Creating project with 3 token types...');
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -105,15 +106,15 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       }
     );
 
-    console.log(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
 
     // Wait for indexer to sync
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    console.log('  Waiting for indexer to sync project creation...');
+    testLog('  Waiting for indexer to sync project creation...');
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify all 3 token types are tracked
-    console.log('  Verifying token types in indexer...');
+    testLog('  Verifying token types in indexer...');
     const tokens = await getProjectTokens(graphqlClient, projectDetails.assuranceContractAddress);
 
     assert.strictEqual(tokens.length, 3, 'Should have 3 token types');
@@ -127,10 +128,10 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     assert.strictEqual(sortedTokens[1].price, parseEther('0.05').toString(), 'Silver token price');
     assert.strictEqual(sortedTokens[2].price, parseEther('0.2').toString(), 'Gold token price');
 
-    console.log('  ✓ All 3 token types verified');
+    testLog('  ✓ All 3 token types verified');
 
     // Buyer1 purchases Bronze tokens (token 0)
-    console.log('  Buyer1 purchasing 5 Bronze tokens...');
+    testLog('  Buyer1 purchasing 5 Bronze tokens...');
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
       abi: AssuranceContractAbi,
@@ -153,7 +154,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     await waitForSync(graphqlClient, buy1Receipt.blockNumber, 15000);
 
     // Buyer2 purchases Silver tokens (token 1)
-    console.log('  Buyer2 purchasing 3 Silver tokens...');
+    testLog('  Buyer2 purchasing 3 Silver tokens...');
     const buy2Hash = await buyProjectTokens(
       buyer2Clients,
       assuranceContract,
@@ -171,7 +172,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
 
     // Buyer1 purchases Gold tokens (token 2) and more Bronze in same transaction
-    console.log('  Buyer1 purchasing 1 Gold + 10 Bronze tokens...');
+    testLog('  Buyer1 purchasing 1 Gold + 10 Bronze tokens...');
     const buy3Hash = await buyProjectTokens(
       buyer1Clients,
       assuranceContract,
@@ -189,7 +190,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     await waitForSync(graphqlClient, buy3Receipt.blockNumber, 15000);
 
     // Verify project totals
-    console.log('  Verifying project funding totals...');
+    testLog('  Verifying project funding totals...');
     const updatedProject = assertNotNull(
       await getProject(graphqlClient, projectDetails.assuranceContractAddress),
       'Updated project'
@@ -201,10 +202,10 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       expectedTotal,
       'Total received should match sum of all purchases'
     );
-    console.log(`  ✓ Total received: ${updatedProject.totalReceived} wei`);
+    testLog(`  ✓ Total received: ${updatedProject.totalReceived} wei`);
 
     // Verify contributions were tracked correctly
-    console.log('  Verifying contribution records...');
+    testLog('  Verifying contribution records...');
     const contributions = await getProjectContributions(
       graphqlClient,
       projectDetails.assuranceContractAddress
@@ -240,7 +241,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     assert.strictEqual(contrib3.tokenIds, JSON.stringify(['2', '0']), 'Third contribution token IDs');
     assert.strictEqual(contrib3.tokenCounts, JSON.stringify(['1', '10']), 'Third contribution counts');
 
-    console.log('  ✓ All contribution records verified');
-    console.log('  Test completed successfully!');
+    testLog('  ✓ All contribution records verified');
+    testLog('  Test completed successfully!');
   });
 });
