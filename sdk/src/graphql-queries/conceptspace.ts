@@ -432,3 +432,133 @@ export async function getStatementSuggestions(
 
   return result.statementSuggestions || [];
 }
+
+export interface IndirectSupportInfo {
+  statement: StatementListItem;
+  supportedVia: Array<{
+    directlyBelievedStatement: StatementListItem;
+    viaStatementId: string;
+  }>;
+}
+
+export interface GetUserIndirectSupportOptions {
+  trustedAttesters?: string[];
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Get all statements a user indirectly supports through their beliefs and implications.
+ *
+ * This function solves the N+1 query pattern by efficiently computing all of a user's
+ * indirect support in a single operation, rather than querying each believed statement
+ * separately.
+ *
+ * A user indirectly supports a statement if:
+ * 1. They believe some statement A
+ * 2. There exists an implication A -> B (attested by a trusted attester)
+ * 3. They have NO explicit opinion on statement B (not belief, not disbelief)
+ *
+ * Note: Indirect support only applies to statements the user hasn't directly opined on.
+ * If they directly believe or disbelieve a statement, it's not considered indirect support.
+ *
+ * @param executor GraphQL executor
+ * @param userAddress The user's address
+ * @param options Optional filtering and pagination options
+ * @returns Array of statements the user indirectly supports, with information about how
+ */
+export async function getUserIndirectSupport(
+  executor: GraphQLExecutor,
+  userAddress: string,
+  options: GetUserIndirectSupportOptions = {}
+): Promise<IndirectSupportInfo[]> {
+  // Step 1: Get all statements the user directly believes
+  const userBeliefs = await getUserBeliefs(executor, userAddress);
+
+  if (userBeliefs.length === 0) {
+    return [];
+  }
+
+  // Step 2: For each belief, get implications FROM that statement
+  // This tells us what statements are implied by the user's beliefs
+  const implicationsQueries = userBeliefs.map(belief =>
+    getImplicationsFrom(executor, belief.id, options.trustedAttesters?.[0])
+  );
+
+  const implicationsResults = await Promise.all(implicationsQueries);
+
+  // Step 3: Build a map of target statements to the source statements that imply them
+  // Map<targetStatementId, Set<sourceStatementId>>
+  const targetToSources = new Map<string, Set<string>>();
+  const allTargetIds = new Set<string>();
+
+  userBeliefs.forEach((belief, idx) => {
+    const implications = implicationsResults[idx];
+    implications.forEach(implication => {
+      const targetId = implication.toStatementId;
+      allTargetIds.add(targetId);
+
+      if (!targetToSources.has(targetId)) {
+        targetToSources.set(targetId, new Set());
+      }
+      targetToSources.get(targetId)!.add(belief.id);
+    });
+  });
+
+  if (allTargetIds.size === 0) {
+    return [];
+  }
+
+  // Step 4: Check the user's belief state for all target statements
+  // We need to exclude statements the user explicitly believes or disbelieves
+  // (indirect support only applies to statements with no direct opinion)
+  const targetIds = Array.from(allTargetIds);
+  const beliefChecks = targetIds.map(targetId =>
+    getUserBelief(executor, userAddress, targetId)
+  );
+
+  const beliefStates = await Promise.all(beliefChecks);
+
+  // Step 5: Filter to only include statements with NO direct belief (beliefState === 0 or null)
+  // Exclude both direct beliefs (beliefState === 1) and disbeliefs (beliefState === 2)
+  const indirectlySupportedIds = targetIds.filter((_, idx) => {
+    const beliefState = beliefStates[idx];
+    // Include only if they have no explicit opinion (no belief state, or beliefState === 0)
+    return !beliefState || beliefState.beliefState === 0;
+  });
+
+  if (indirectlySupportedIds.length === 0) {
+    return [];
+  }
+
+  // Step 6: Fetch full statement data for indirectly supported statements
+  const statementQueries = indirectlySupportedIds.map(id => getStatement(executor, id));
+  const statements = await Promise.all(statementQueries);
+
+  // Step 7: Build the result with information about how each statement is supported
+  const results: IndirectSupportInfo[] = [];
+
+  for (let i = 0; i < indirectlySupportedIds.length; i++) {
+    const targetId = indirectlySupportedIds[i];
+    const statement = statements[i];
+
+    if (!statement) continue;
+
+    const sourceIds = Array.from(targetToSources.get(targetId) || []);
+    const sourceStatements = userBeliefs.filter(b => sourceIds.includes(b.id));
+
+    results.push({
+      statement: statement as StatementListItem,
+      supportedVia: sourceStatements.map(source => ({
+        directlyBelievedStatement: source,
+        viaStatementId: source.id,
+      })),
+    });
+  }
+
+  // Apply pagination if specified
+  const start = options.offset || 0;
+  const end = options.limit ? start + options.limit : undefined;
+
+  return results.slice(start, end);
+}

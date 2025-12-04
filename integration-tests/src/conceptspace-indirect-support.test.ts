@@ -26,6 +26,7 @@ import {
   getImplicationsTo,
   getIndirectSupporters,
   getIndirectSupporterCount,
+  getUserIndirectSupport,
   waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
@@ -470,5 +471,220 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     testLog('  ✓ User correctly counted once despite multiple implication paths');
+  });
+
+  it('should efficiently get all indirect support for a user (getUserIndirectSupport)', async function() {
+    this.timeout(40000);
+
+    // Use a fresh user account (ACCOUNT_4) that hasn't been used in previous tests
+    // to avoid test pollution
+    const FRESH_USER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_4;
+    const user1Clients = createTestClients(FRESH_USER_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+
+    // Create a user who believes multiple statements, each implying different targets
+    // User1 believes S1, S2, S3
+    // S1 -> Target1
+    // S2 -> Target2
+    // S3 -> Target3
+    const s1 = {
+      statementType: 'text',
+      text: 'We should increase minimum wage to $20/hour',
+    };
+    const s2 = {
+      statementType: 'text',
+      text: 'We should provide universal basic income',
+    };
+    const s3 = {
+      statementType: 'text',
+      text: 'We should strengthen labor unions',
+    };
+    const target1 = {
+      statementType: 'text',
+      text: 'We should reduce income inequality',
+    };
+    const target2 = {
+      statementType: 'text',
+      text: 'We should ensure basic economic security',
+    };
+    const target3 = {
+      statementType: 'text',
+      text: 'We should empower workers',
+    };
+
+    const s1Cid = await uploadToIPFS(s1);
+    const s2Cid = await uploadToIPFS(s2);
+    const s3Cid = await uploadToIPFS(s3);
+    const target1Cid = await uploadToIPFS(target1);
+    const target2Cid = await uploadToIPFS(target2);
+    const target3Cid = await uploadToIPFS(target3);
+    const target1Id = cidToBytes32(target1Cid);
+    const target2Id = cidToBytes32(target2Cid);
+    const target3Id = cidToBytes32(target3Cid);
+
+    testLog(`  S1: "${s1.text}"`);
+    testLog(`  S2: "${s2.text}"`);
+    testLog(`  S3: "${s3.text}"`);
+    testLog(`  Target1: "${target1.text}"`);
+    testLog(`  Target2: "${target2.text}"`);
+    testLog(`  Target3: "${target3.text}"`);
+
+    // User1 believes all three specific statements
+    testLog('  User1 believes S1, S2, S3...');
+    let txHash = await believeStatement(user1Clients, beliefsContract, s1Cid);
+    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    txHash = await believeStatement(user1Clients, beliefsContract, s2Cid);
+    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    txHash = await believeStatement(user1Clients, beliefsContract, s3Cid);
+    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Create implications
+    testLog('  Creating implications...');
+    txHash = await attestImplication(attesterClients, implicationsContract, s1Cid, target1Cid);
+    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    txHash = await attestImplication(attesterClients, implicationsContract, s2Cid, target2Cid);
+    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    txHash = await attestImplication(attesterClients, implicationsContract, s3Cid, target3Cid);
+    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Use the new getUserIndirectSupport function
+    testLog('  Getting all indirect support for User1 with single function call...');
+    const executor = createGraphQLClient(GRAPHQL_URL);
+    const indirectSupport = await getUserIndirectSupport(executor, user1Clients.account);
+
+    // Verify results
+    assert.strictEqual(
+      indirectSupport.length,
+      3,
+      'User1 should indirectly support 3 statements'
+    );
+
+    // Extract the IDs of indirectly supported statements
+    const supportedIds = indirectSupport.map(info => info.statement.id.toLowerCase());
+
+    assert.ok(
+      supportedIds.includes(target1Id.toLowerCase()),
+      'Should include Target1'
+    );
+    assert.ok(
+      supportedIds.includes(target2Id.toLowerCase()),
+      'Should include Target2'
+    );
+    assert.ok(
+      supportedIds.includes(target3Id.toLowerCase()),
+      'Should include Target3'
+    );
+
+    // Verify the supportedVia information
+    indirectSupport.forEach(info => {
+      assert.ok(
+        info.supportedVia.length > 0,
+        'Each indirectly supported statement should have supportedVia information'
+      );
+
+      info.supportedVia.forEach(via => {
+        assert.ok(via.directlyBelievedStatement, 'Should have directly believed statement info');
+        assert.ok(via.viaStatementId, 'Should have viaStatementId');
+      });
+    });
+
+    testLog('  ✓ getUserIndirectSupport efficiently returned all indirect support');
+    testLog('  ✓ Correct supportedVia information included');
+  });
+
+  it('should exclude disbelieved statements in getUserIndirectSupport', async function() {
+    this.timeout(40000);
+
+    // Use a fresh user account (ACCOUNT_5) that hasn't been used in previous tests
+    // to avoid test pollution
+    const FRESH_USER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_5;
+    const user1Clients = createTestClients(FRESH_USER_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+
+    // Create statements
+    const source1 = {
+      statementType: 'text',
+      text: 'We should implement congestion pricing in cities',
+    };
+    const source2 = {
+      statementType: 'text',
+      text: 'We should subsidize electric vehicles',
+    };
+    const target1 = {
+      statementType: 'text',
+      text: 'We should reduce traffic in city centers',
+    };
+    const target2 = {
+      statementType: 'text',
+      text: 'We should reduce air pollution from vehicles',
+    };
+
+    const source1Cid = await uploadToIPFS(source1);
+    const source2Cid = await uploadToIPFS(source2);
+    const target1Cid = await uploadToIPFS(target1);
+    const target2Cid = await uploadToIPFS(target2);
+    const target1Id = cidToBytes32(target1Cid);
+    const target2Id = cidToBytes32(target2Cid);
+
+    testLog(`  Source1: "${source1.text}"`);
+    testLog(`  Source2: "${source2.text}"`);
+    testLog(`  Target1: "${target1.text}"`);
+    testLog(`  Target2: "${target2.text}"`);
+
+    // User1 believes both source statements
+    testLog('  User1 believes source1 and source2...');
+    let txHash = await believeStatement(user1Clients, beliefsContract, source1Cid);
+    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    txHash = await believeStatement(user1Clients, beliefsContract, source2Cid);
+    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // User1 explicitly disbelieves target1
+    testLog('  User1 explicitly disbelieves target1...');
+    txHash = await disbelieveStatement(user1Clients, beliefsContract, target1Cid);
+    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Create implications
+    testLog('  Creating implications...');
+    txHash = await attestImplication(attesterClients, implicationsContract, source1Cid, target1Cid);
+    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    txHash = await attestImplication(attesterClients, implicationsContract, source2Cid, target2Cid);
+    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Use getUserIndirectSupport
+    testLog('  Getting indirect support for User1...');
+    const executor = createGraphQLClient(GRAPHQL_URL);
+    const indirectSupport = await getUserIndirectSupport(executor, user1Clients.account);
+
+    // Should only include target2, not target1 (which is explicitly disbelieved)
+    assert.strictEqual(
+      indirectSupport.length,
+      1,
+      'User1 should indirectly support only 1 statement (target1 excluded due to disbelief)'
+    );
+
+    assert.strictEqual(
+      indirectSupport[0].statement.id.toLowerCase(),
+      target2Id.toLowerCase(),
+      'The indirectly supported statement should be target2'
+    );
+
+    testLog('  ✓ Disbelieved statements correctly excluded from indirect support');
   });
 });

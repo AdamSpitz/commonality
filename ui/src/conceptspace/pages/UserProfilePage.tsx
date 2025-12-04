@@ -19,9 +19,9 @@ import {
   createGraphQLExecutor,
   getUserBeliefs,
   getUserDisbeliefs,
-  getIndirectSupporters,
+  getUserIndirectSupport,
   type StatementListItem,
-  type IndirectSupporter,
+  type IndirectSupportInfo,
 } from '@commonality/sdk'
 import AddIcon from '@mui/icons-material/Add'
 
@@ -57,7 +57,7 @@ export function UserProfilePage() {
   const [tabValue, setTabValue] = useState(0)
   const [beliefs, setBeliefs] = useState<StatementListItem[]>([])
   const [disbeliefs, setDisbeliefs] = useState<StatementListItem[]>([])
-  const [indirectSupport, setIndirectSupport] = useState<Map<string, IndirectSupporter[]>>(new Map())
+  const [indirectSupport, setIndirectSupport] = useState<IndirectSupportInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -79,29 +79,16 @@ export function UserProfilePage() {
 
       const executor = createGraphQLExecutor(GRAPHQL_URL)
 
-      // Load user's beliefs and disbeliefs
-      const [userBeliefs, userDisbeliefs] = await Promise.all([
+      // Load user's beliefs, disbeliefs, and indirect support in parallel
+      const [userBeliefs, userDisbeliefs, userIndirectSupport] = await Promise.all([
         getUserBeliefs(executor, displayAddress),
         getUserDisbeliefs(executor, displayAddress),
+        getUserIndirectSupport(executor, displayAddress),
       ])
 
       setBeliefs(userBeliefs)
       setDisbeliefs(userDisbeliefs)
-
-      // Load indirect support for all believed statements
-      const indirectSupportMap = new Map<string, IndirectSupporter[]>()
-      await Promise.all(
-        userBeliefs.map(async (statement) => {
-          const supporters = await getIndirectSupporters(executor, statement.id)
-          // Filter to only include this user's indirect support
-          const userSupport = supporters.filter((s) => s.user.toLowerCase() === displayAddress.toLowerCase())
-          if (userSupport.length > 0) {
-            indirectSupportMap.set(statement.id, userSupport)
-          }
-        })
-      )
-
-      setIndirectSupport(indirectSupportMap)
+      setIndirectSupport(userIndirectSupport)
       setLoading(false)
     } catch (err) {
       console.error('Error loading user data:', err)
@@ -167,12 +154,7 @@ export function UserProfilePage() {
   }
 
   const renderIndirectSupport = () => {
-    const indirectStatements = Array.from(beliefs).filter((statement) => {
-      const supporters = indirectSupport.get(statement.id)
-      return supporters && supporters.length > 0
-    })
-
-    if (indirectStatements.length === 0) {
+    if (indirectSupport.length === 0) {
       return (
         <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
           No indirect support found. Indirect support is calculated via implication relationships.
@@ -182,8 +164,9 @@ export function UserProfilePage() {
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {indirectStatements.map((statement) => {
-          const supporters = indirectSupport.get(statement.id) || []
+        {indirectSupport.map((supportInfo) => {
+          const statement = supportInfo.statement
+          const supportedVia = supportInfo.supportedVia
           return (
             <Card key={statement.id} variant="outlined">
               <CardActionArea onClick={() => handleStatementClick(statement.id)}>
@@ -195,14 +178,14 @@ export function UserProfilePage() {
                     {statement.excerpt || 'No preview available'}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" paragraph>
-                    Supported indirectly via {supporters.length} statement{supporters.length !== 1 ? 's' : ''}:
-                    {supporters.slice(0, 3).map((s, idx) => (
-                      <span key={s.viaStatementId}>
+                    Supported indirectly via {supportedVia.length} statement{supportedVia.length !== 1 ? 's' : ''}:
+                    {supportedVia.slice(0, 3).map((via, idx) => (
+                      <span key={via.viaStatementId}>
                         {idx > 0 && ', '}
-                        {' '}{s.viaStatement?.title || s.viaStatementId.slice(0, 8)}
+                        {' '}{via.directlyBelievedStatement?.title || via.viaStatementId.slice(0, 8)}
                       </span>
                     ))}
-                    {supporters.length > 3 && '...'}
+                    {supportedVia.length > 3 && '...'}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Chip
