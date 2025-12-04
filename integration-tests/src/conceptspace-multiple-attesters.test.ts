@@ -141,8 +141,8 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Attester 3: ${attester3.account}`);
 
     // Create two statements
-    const sAContent = { statementType: 'text', text: 'We should provide universal basic income' };
-    const sBContent = { statementType: 'text', text: 'We should reduce poverty' };
+    const sAContent = { statementType: 'text', text: 'We should implement a universal basic income program' };
+    const sBContent = { statementType: 'text', text: 'We should work to reduce poverty levels' };
 
     const sACid = await uploadToIPFS(sAContent);
     const sBCid = await uploadToIPFS(sBContent);
