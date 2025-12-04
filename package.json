@@ -11,6 +11,7 @@
     "indexer"
   ],
   "scripts": {
+    "test": "npm run hardhat:test && npm run integration-tests",
     "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",
     "integration-tests": "./run-integration-tests.sh",
     "integration-tests:verbose": "VERBOSE_TESTS=true ./run-integration-tests.sh",
