@@ -17,14 +17,24 @@ Before running the tests, you need to have three services running:
 The easiest way to run integration tests is using the automated script:
 
 ```bash
+# Run all tests
 ./run-integration-tests.sh
+
+# Run specific tests by pattern
+./run-integration-tests.sh "src/delegation*.test.ts"
+
+# Run tests matching a keyword
+./run-integration-tests.sh "conceptspace"
+
+# Run a single test file
+./run-integration-tests.sh "src/hello-world.test.ts"
 ```
 
 This script will:
 1. Start a fresh Hardhat node
 2. Deploy contracts
 3. Start the indexer with a clean database
-4. Run all tests
+4. Run all tests (or tests matching the provided pattern)
 5. Clean up background processes
 
 ### Manual (For Development)
@@ -55,7 +65,15 @@ This script cleans up the `.ponder` directory and starts the indexer with a fres
 
 ```bash
 cd integration-tests
+
+# Run all tests
 npm test
+
+# Run specific tests by pattern
+npm test -- "src/delegation*.test.ts"
+
+# Run a single test file
+npm test -- "src/hello-world.test.ts"
 ```
 
 #### Cleanup

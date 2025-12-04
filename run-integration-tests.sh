@@ -6,12 +6,23 @@
 # 2. Starts the Ponder indexer
 # 3. Runs the integration tests
 # 4. Cleans up background processes
+#
+# Usage:
+#   ./run-integration-tests.sh [TEST_PATTERN]
+#
+# Arguments:
+#   TEST_PATTERN (optional): Glob pattern or file to run specific tests
+#                           Examples:
+#                             ./run-integration-tests.sh delegation
+#                             ./run-integration-tests.sh "delegation*.test.ts"
+#                             ./run-integration-tests.sh "src/delegation-basic.test.ts"
 
 set -e  # Exit on error
 set -o pipefail  # Propagate pipe failures
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$SCRIPT_DIR/integration-tests/test-logs"
+TEST_PATTERN="${1:-}"
 
 # Create log directory if it doesn't exist
 mkdir -p "$LOG_DIR"
@@ -23,7 +34,11 @@ echo "=== Running Full Integration Test Suite ==="
 echo "This script will:"
 echo "  1. Start Hardhat node and deploy contracts"
 echo "  2. Start Ponder indexer"
-echo "  3. Run integration tests"
+if [ -n "$TEST_PATTERN" ]; then
+    echo "  3. Run integration tests (pattern: $TEST_PATTERN)"
+else
+    echo "  3. Run all integration tests"
+fi
 echo "  4. Clean up background processes"
 echo ""
 echo "All output will be logged to: $ORCHESTRATION_LOG"
@@ -151,12 +166,23 @@ log_message "=== Step 3: Running Integration Tests ==="
 log_message ""
 
 cd "$SCRIPT_DIR/integration-tests"
-if ! npm test 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
-    log_message "✗ Integration tests failed!"
-    log_message ""
-    log_message "=== Test output ==="
-    tail -n 50 "$ORCHESTRATION_LOG"
-    exit 1
+if [ -n "$TEST_PATTERN" ]; then
+    log_message "Running tests matching pattern: $TEST_PATTERN"
+    if ! npm test -- "$TEST_PATTERN" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
+        log_message "✗ Integration tests failed!"
+        log_message ""
+        log_message "=== Test output ==="
+        tail -n 50 "$ORCHESTRATION_LOG"
+        exit 1
+    fi
+else
+    if ! npm test 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
+        log_message "✗ Integration tests failed!"
+        log_message ""
+        log_message "=== Test output ==="
+        tail -n 50 "$ORCHESTRATION_LOG"
+        exit 1
+    fi
 fi
 
 log_message "✓ All integration tests passed!"
