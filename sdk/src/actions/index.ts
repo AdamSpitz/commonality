@@ -67,5 +67,7 @@ export {
 export {
   updateRef,
   getRef,
+  appendToUserList,
+  addToCreatedStatements,
   type MutableRefUpdaterContract,
 } from './mutable-refs-actions.js';

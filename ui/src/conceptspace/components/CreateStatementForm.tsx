@@ -12,8 +12,7 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   uploadToIPFS,
   believeStatement,
-  updateRef,
-  getUserRef,
+  addToCreatedStatements,
   createGraphQLClient,
   BeliefsAbi,
   MutableRefUpdaterAbi,
@@ -105,31 +104,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
 
       console.log('Updating created statements list...')
       const graphqlClient = createGraphQLClient(GRAPHQL_URL)
-      const existingRef = await getUserRef(graphqlClient, address, 'created-statements')
-
-      let newStatementList: string[]
-      if (existingRef?.value) {
-        // Try to parse existing list, or treat as single CID
-        try {
-          const existingData = JSON.parse(existingRef.value)
-          newStatementList = Array.isArray(existingData.statements)
-            ? [...existingData.statements, statementCid]
-            : [existingRef.value, statementCid]
-        } catch {
-          // If not valid JSON, treat as single CID
-          newStatementList = [existingRef.value, statementCid]
-        }
-      } else {
-        newStatementList = [statementCid]
-      }
-
-      const listData = {
-        statements: newStatementList,
-        version: 1,
-      }
-      const listCid = await uploadToIPFS(listData)
-
-      await updateRef(clients, mutableRefContract, 'created-statements', listCid)
+      await addToCreatedStatements(graphqlClient, clients, mutableRefContract, statementCid)
       console.log('Created statements list updated')
 
       setSuccess('Statement created and signed successfully!')

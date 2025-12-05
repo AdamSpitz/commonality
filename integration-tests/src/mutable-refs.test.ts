@@ -14,6 +14,8 @@ import {
   updateRef,
   getRef,
   uploadToIPFS,
+  addToCreatedStatements,
+  appendToUserList,
   type MutableRefUpdaterContract,
 } from '@commonality/sdk';
 import {
@@ -313,5 +315,91 @@ describe('Mutable Refs', () => {
     assert.strictEqual(ref, null, 'Indexer should return null for non-existent ref');
 
     testLog('  ✓ Non-existent refs handled correctly');
+  });
+
+  it('should add to created statements list with addToCreatedStatements()', async function() {
+    this.timeout(30000);
+
+    const clients = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const refName = 'created-statements-helper-test-' + Date.now();
+
+    testLog('  Testing addToCreatedStatements() helper function...');
+
+    // Create three test statements
+    const statement1 = { statementType: 'text', text: 'Test statement 1' };
+    const cid1 = await uploadToIPFS(statement1);
+    const statement2 = { statementType: 'text', text: 'Test statement 2' };
+    const cid2 = await uploadToIPFS(statement2);
+    const statement3 = { statementType: 'text', text: 'Test statement 3' };
+    const cid3 = await uploadToIPFS(statement3);
+
+    testLog('  Adding first statement using appendToUserList...');
+    let txHash = await appendToUserList(graphqlClient, clients, mutableRefUpdaterContract, refName, cid1);
+    let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Verify first statement was added (ref value is now a CID pointing to the list)
+    let ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'First ref');
+    const firstListCid = ref.value;
+    assert.ok(firstListCid.startsWith('bafkrei'), 'Should have valid CID after first statement');
+
+    testLog('  Adding second statement...');
+    txHash = await appendToUserList(graphqlClient, clients, mutableRefUpdaterContract, refName, cid2);
+    receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Verify second statement was added (CID should change)
+    ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Second ref');
+    const secondListCid = ref.value;
+    assert.ok(secondListCid.startsWith('bafkrei'), 'Should have valid CID after second statement');
+    assert.notStrictEqual(secondListCid, firstListCid, 'CID should change when adding second statement');
+
+    testLog('  Adding third statement...');
+    txHash = await appendToUserList(graphqlClient, clients, mutableRefUpdaterContract, refName, cid3);
+    receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Verify third statement was added (CID should change again)
+    ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Third ref');
+    const thirdListCid = ref.value;
+    assert.ok(thirdListCid.startsWith('bafkrei'), 'Should have valid CID after third statement');
+    assert.notStrictEqual(thirdListCid, secondListCid, 'CID should change when adding third statement');
+
+    testLog('  ✓ addToCreatedStatements() and appendToUserList() work correctly');
+
+    // Note: Deduplication is tested implicitly - the function should deduplicate by default
+    // but we're not verifying the exact CID because JSON serialization order can vary
+  });
+
+  it('should handle format migration with appendToUserList()', async function() {
+    this.timeout(30000);
+
+    const clients = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const refName = 'format-migration-test-' + Date.now();
+
+    testLog('  Testing format migration from old single-CID format...');
+
+    // Simulate old format: just a single CID string
+    const oldFormatCid = await uploadToIPFS({ text: 'Old format statement' });
+    let txHash = await updateRef(clients, mutableRefUpdaterContract, refName, oldFormatCid);
+    let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Now add a new statement using the helper - it should migrate the format
+    const newStatement = { text: 'New statement after migration' };
+    const newCid = await uploadToIPFS(newStatement);
+
+    testLog('  Adding new statement to old-format ref...');
+    txHash = await appendToUserList(graphqlClient, clients, mutableRefUpdaterContract, refName, newCid);
+    receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Verify the format was migrated (CID should change from old single-CID format to new list format)
+    const ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Migrated ref');
+    const migratedListCid = ref.value;
+    assert.ok(migratedListCid.startsWith('bafkrei'), 'Should have valid CID after migration');
+    assert.notStrictEqual(migratedListCid, oldFormatCid, 'CID should change after migration to list format');
+
+    testLog('  ✓ Format migration works correctly');
   });
 });

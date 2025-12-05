@@ -8,53 +8,11 @@ The UI code is generally well-structured, but there are several significant area
 
 ## Significant Complexity That Should Move to the SDK
 
-### 1. **IPFS Content Fetching & Hydration** (High Priority) ✅ DONE
-
-**Implementation Details:**
-
-Added `getStatementWithContent()` function in [sdk/src/graphql-queries/conceptspace.ts](../sdk/src/graphql-queries/conceptspace.ts):
-
-```typescript
-export async function getStatementWithContent(
-  executor: GraphQLExecutor,
-  statementId: string,
-  options?: {
-    includeMetrics?: boolean,
-    ipfsGateway?: string,
-    timeout?: number,
-    attesterAddress?: string
-  }
-): Promise<StatementWithContent | null>
-
-// Returns:
-// {
-//   statement: Statement,
-//   content: StatementContent | null,  // null if IPFS fetch fails
-//   metrics?: { directBelievers, directDisbelievers, indirectSupporters }
-// }
-```
-
-**Changes Made:**
-- ✅ Implemented SDK function with centralized IPFS fetching logic
-- ✅ Added timeout handling (10s default) with AbortController
-- ✅ Graceful error handling - returns null for content if IPFS unavailable
-- ✅ Configurable IPFS gateway (defaults to Pinata public gateway)
-- ✅ Optional metrics fetching in single call
-- ✅ Updated [ui/src/conceptspace/pages/StatementPage.tsx](../ui/src/conceptspace/pages/StatementPage.tsx) to use new function
-- ✅ Added integration test in [integration-tests/src/conceptspace-beliefs.test.ts](../integration-tests/src/conceptspace-beliefs.test.ts)
-- ✅ All integration tests passing
-
-**Benefits Realized:**
-- Simplified UI code (StatementPage.tsx reduced from ~100 lines to ~85 lines)
-- Single function call replaces 4 separate queries + manual IPFS fetch
-- Centralized gateway configuration
-- Consistent error handling across components
-- Timeout protection prevents hanging requests
-- Type-safe content interface exported from SDK
+### 1. (done)
 
 ### 2. (done)
 
-### 3. **Created Statements List Management** (High Priority)
+### 3. (done) **Created Statements List Management** (High Priority)
 
 **Current Issue:** [ui/src/conceptspace/components/CreateStatementForm.tsx:107-133](../ui/src/conceptspace/components/CreateStatementForm.tsx) has complex logic for managing the "created-statements" list:
 

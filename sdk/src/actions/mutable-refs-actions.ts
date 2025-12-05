@@ -3,7 +3,9 @@
  */
 
 import { type Address, type Hash } from 'viem';
-import { type TestClients } from './common.js';
+import { type TestClients, uploadToIPFS } from './common.js';
+import { getUserRef } from '../queries/mutable-refs-queries.js';
+import { type GraphQLClient } from '../queries/common.js';
 
 // ============================================================================
 // Mutable Refs Actions
@@ -91,4 +93,161 @@ export async function getRef(
   } as any);
 
   return value as string;
+}
+
+// ============================================================================
+// Higher-level List Management Functions
+// ============================================================================
+
+/**
+ * Append an item to a user's list stored in a mutable ref
+ *
+ * This is a higher-level abstraction that handles the complexity of:
+ * - Fetching the current list from the indexer
+ * - Parsing the list with proper error handling and format migration
+ * - Appending the new item
+ * - Uploading the updated list to IPFS
+ * - Updating the ref to point to the new list
+ *
+ * The list format is a JSON object with structure:
+ * ```json
+ * {
+ *   "statements": ["cid1", "cid2", ...],
+ *   "version": 1
+ * }
+ * ```
+ *
+ * This function handles migration from older formats (e.g., a single CID string
+ * or an array of CIDs) for backward compatibility.
+ *
+ * @param graphqlClient - GraphQL client for querying the indexer
+ * @param clients - Test wallet and public clients for blockchain interaction
+ * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
+ * @param listName - Name of the ref (e.g., "created-statements", "favorites")
+ * @param itemCid - CID to append to the list
+ * @param options - Optional configuration
+ * @param options.deduplicate - If true, don't add the item if it already exists (default: true)
+ * @returns Transaction hash of the updateRef call
+ *
+ * @example
+ * ```typescript
+ * // Add a statement to the user's created statements list
+ * await appendToUserList(
+ *   graphqlClient,
+ *   clients,
+ *   mutableRefContract,
+ *   'created-statements',
+ *   'QmNewStatement123'
+ * );
+ *
+ * // Add a favorite without deduplication
+ * await appendToUserList(
+ *   graphqlClient,
+ *   clients,
+ *   mutableRefContract,
+ *   'favorites',
+ *   'QmFavorite456',
+ *   { deduplicate: false }
+ * );
+ * ```
+ */
+export async function appendToUserList(
+  graphqlClient: GraphQLClient | { indexerClient: GraphQLClient },
+  clients: TestClients,
+  mutableRefUpdaterContract: MutableRefUpdaterContract,
+  listName: string,
+  itemCid: string,
+  options?: { deduplicate?: boolean }
+): Promise<Hash> {
+  const deduplicate = options?.deduplicate ?? true;
+
+  // Support both old GraphQLClient and new GraphQLExecutor
+  const actualClient = 'indexerClient' in graphqlClient ? graphqlClient.indexerClient : graphqlClient;
+
+  // Fetch existing list from indexer
+  const existingRef = await getUserRef(actualClient, clients.account, listName);
+
+  let newList: string[];
+
+  if (existingRef?.value) {
+    // Try to parse existing list with format migration
+    try {
+      const existingData = JSON.parse(existingRef.value);
+
+      if (Array.isArray(existingData.statements)) {
+        // Current format: { statements: [...], version: 1 }
+        newList = [...existingData.statements];
+      } else if (Array.isArray(existingData)) {
+        // Old format: just an array
+        newList = [...existingData];
+      } else {
+        // Very old format: single CID string (the entire ref value)
+        newList = [existingRef.value];
+      }
+    } catch {
+      // Parse error - treat the entire value as a single CID
+      newList = [existingRef.value];
+    }
+  } else {
+    // No existing list - create new one
+    newList = [];
+  }
+
+  // Add new item (with optional deduplication)
+  if (deduplicate) {
+    if (!newList.includes(itemCid)) {
+      newList.push(itemCid);
+    }
+  } else {
+    newList.push(itemCid);
+  }
+
+  // Create new list data with current format
+  const listData = {
+    statements: newList,
+    version: 1,
+  };
+
+  // Upload to IPFS
+  const listCid = await uploadToIPFS(listData);
+
+  // Update ref
+  return await updateRef(clients, mutableRefUpdaterContract, listName, listCid);
+}
+
+/**
+ * Add a statement to the user's "created-statements" list
+ *
+ * This is a convenience wrapper around `appendToUserList` specifically for
+ * tracking statements created by the user. This is commonly used after
+ * creating and signing a new statement.
+ *
+ * @param graphqlClient - GraphQL client for querying the indexer
+ * @param clients - Test wallet and public clients for blockchain interaction
+ * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
+ * @param statementCid - CID of the statement to add
+ * @returns Transaction hash of the updateRef call
+ *
+ * @example
+ * ```typescript
+ * // After creating and signing a statement
+ * const statementCid = await uploadToIPFS(statementData);
+ * await believeStatement(clients, beliefsContract, statementCid);
+ * await addToCreatedStatements(graphqlClient, clients, mutableRefContract, statementCid);
+ * ```
+ */
+export async function addToCreatedStatements(
+  graphqlClient: GraphQLClient | { indexerClient: GraphQLClient },
+  clients: TestClients,
+  mutableRefUpdaterContract: MutableRefUpdaterContract,
+  statementCid: string
+): Promise<Hash> {
+  return await appendToUserList(
+    graphqlClient,
+    clients,
+    mutableRefUpdaterContract,
+    'created-statements',
+    statementCid,
+    { deduplicate: true }
+  );
 }
