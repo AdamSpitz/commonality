@@ -4,30 +4,15 @@ import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
   createGraphQLExecutor,
-  getStatement,
+  getStatementWithContent,
   getUserBelief,
-  getIndirectSupporterCount,
   type Statement,
+  type StatementContent,
 } from '@commonality/sdk'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
 import { StatementSuggestions } from '../components/StatementSuggestions'
-
-interface StatementContent {
-  statementType: string
-  content: string
-  title?: string
-  references?: Array<{
-    statementId: string
-    label?: string
-    relationship?: string
-  }>
-  metadata?: {
-    createdDate?: string
-    version?: number
-  }
-}
 
 export function StatementPage() {
   const { statementId } = useParams<{ statementId: string }>()
@@ -54,44 +39,39 @@ export function StatementPage() {
     try {
       setLoading(true)
       setError(null)
+      setContentError(null)
 
       const executor = createGraphQLExecutor(GRAPHQL_URL)
 
-      // Load statement metadata
-      const statementData = await getStatement(executor, statementId)
-      if (!statementData) {
+      // Load statement with content and metrics using the new SDK function
+      const result = await getStatementWithContent(executor, statementId, {
+        includeMetrics: true,
+        ipfsGateway: PINATA_GATEWAY,
+      })
+
+      if (!result) {
         setError('Statement not found')
         setLoading(false)
         return
       }
-      setStatement(statementData)
+
+      setStatement(result.statement)
+      setStatementContent(result.content)
+
+      // Set content error if content failed to load but statement exists
+      if (!result.content && result.statement.cid) {
+        setContentError('Failed to load statement content from IPFS')
+      }
+
+      // Set metrics if available
+      if (result.metrics) {
+        setIndirectSupporters(result.metrics.indirectSupporters)
+      }
 
       // Load user belief if connected
       if (address) {
         const belief = await getUserBelief(executor, address, statementId)
         setUserBeliefState(belief?.beliefState ?? 0)
-      }
-
-      // Load indirect supporter count
-      const indirectCount = await getIndirectSupporterCount(executor, statementId)
-      setIndirectSupporters(indirectCount)
-
-      // Load statement content from IPFS if we have a CID
-      if (statementData.cid) {
-        try {
-          const contentUrl = `${PINATA_GATEWAY}/${statementData.cid}`
-          const response = await fetch(contentUrl)
-
-          if (!response.ok) {
-            throw new Error(`Failed to fetch statement content: ${response.statusText}`)
-          }
-
-          const content = await response.json()
-          setStatementContent(content)
-        } catch (err) {
-          console.error('Error loading statement content from IPFS:', err)
-          setContentError(err instanceof Error ? err.message : 'Failed to load statement content')
-        }
       }
 
       setLoading(false)

@@ -25,6 +25,7 @@ import {
   createGraphQLClient,
   getStatement,
   getUserBelief,
+  getStatementWithContent,
   waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
@@ -272,5 +273,71 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(stmt2.disbelieverCount, 1);
 
     testLog('  ✓ Multiple statements tracked independently');
+  });
+
+  it('should fetch statement metadata using getStatementWithContent()', async function() {
+    this.timeout(20000);
+
+    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+
+    // Create a statement
+    // Note: In the test environment, uploadToIPFS just creates a CID without actually
+    // uploading to IPFS, so the content won't be available from a gateway
+    const statementContent = {
+      statementType: 'text',
+      content: 'We should invest heavily in renewable energy infrastructure to combat climate change.',
+      title: 'Renewable Energy Investment',
+    };
+    const statementCid = await uploadToIPFS(statementContent);
+    const statementId = cidToBytes32(statementCid);
+
+    testLog(`  Statement: "${statementContent.title}"`);
+
+    // Express belief to create the statement onchain
+    testLog('  User believes the statement...');
+    const txHash = await believeStatement(clients, beliefsContract, statementCid);
+    const receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
+    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+    // Test basic usage: fetch statement metadata
+    testLog('  Fetching statement with getStatementWithContent (basic)...');
+    const result = await getStatementWithContent(graphqlClient, statementId);
+
+    assertNotNull(result, 'Statement result');
+    assert.strictEqual(result.statement.id, statementId, 'Statement ID should match');
+    // Note: CID format may differ (bafybe vs bafkre) but both represent the same content hash
+    assert.ok(result.statement.cid, 'Statement should have a CID');
+    assert.strictEqual(result.statement.believerCount, 1, 'Should have 1 believer');
+
+    // IPFS content won't be available in test environment (uploadToIPFS is a mock),
+    // so content will be null - this is expected behavior
+    assert.strictEqual(result.content, null, 'Content should be null when IPFS not available');
+
+    // Verify metrics are not included by default
+    assert.strictEqual(result.metrics, undefined, 'Metrics should not be included by default');
+
+    testLog('  ✓ Basic fetch successful');
+
+    // Test with metrics included
+    testLog('  Fetching statement with metrics...');
+    const resultWithMetrics = await getStatementWithContent(graphqlClient, statementId, {
+      includeMetrics: true
+    });
+
+    assertNotNull(resultWithMetrics, 'Statement result with metrics');
+    assertNotNull(resultWithMetrics.metrics, 'Metrics');
+    assert.strictEqual(resultWithMetrics.metrics.directBelievers, 1, 'Should have 1 direct believer');
+    assert.strictEqual(resultWithMetrics.metrics.directDisbelievers, 0, 'Should have 0 disbelievers');
+    assert.strictEqual(resultWithMetrics.metrics.indirectSupporters, 0, 'Should have 0 indirect supporters');
+
+    testLog('  ✓ Fetch with metrics successful');
+
+    // Test that it returns null for non-existent statement
+    testLog('  Testing non-existent statement...');
+    const nonExistentId = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+    const nonExistentResult = await getStatementWithContent(graphqlClient, nonExistentId);
+    assert.strictEqual(nonExistentResult, null, 'Should return null for non-existent statement');
+
+    testLog('  ✓ Returns null for non-existent statement');
   });
 });

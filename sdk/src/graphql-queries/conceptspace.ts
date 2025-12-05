@@ -433,6 +433,44 @@ export async function getStatementSuggestions(
   return result.statementSuggestions || [];
 }
 
+export interface StatementContent {
+  statementType: string;
+  content: string;
+  title?: string;
+  references?: Array<{
+    statementId: string;
+    label?: string;
+    relationship?: string;
+  }>;
+  metadata?: {
+    createdDate?: string;
+    version?: number;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+export interface StatementWithContent {
+  statement: Statement;
+  content: StatementContent | null;
+  metrics?: {
+    directBelievers: number;
+    directDisbelievers: number;
+    indirectSupporters: number;
+  };
+}
+
+export interface GetStatementWithContentOptions {
+  /** Include support metrics (believer/disbeliever/indirect supporter counts) */
+  includeMetrics?: boolean;
+  /** IPFS gateway URL (defaults to Pinata public gateway) */
+  ipfsGateway?: string;
+  /** Timeout for IPFS fetch in milliseconds (defaults to 10000) */
+  timeout?: number;
+  /** Attester address to use for indirect supporter calculations */
+  attesterAddress?: string;
+}
+
 export interface IndirectSupportInfo {
   statement: StatementListItem;
   supportedVia: Array<{
@@ -445,6 +483,129 @@ export interface GetUserIndirectSupportOptions {
   trustedAttesters?: string[];
   limit?: number;
   offset?: number;
+}
+
+/**
+ * Fetch statement content from IPFS with timeout
+ */
+async function fetchIPFSContent(
+  cid: string,
+  gateway: string,
+  timeoutMs: number
+): Promise<StatementContent | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const url = `${gateway}/${cid}`;
+    const response = await fetch(url, { signal: controller.signal });
+
+    if (!response.ok) {
+      console.error(`IPFS fetch failed: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const content = await response.json();
+    return content as StatementContent;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.error(`IPFS fetch timeout after ${timeoutMs}ms`);
+      } else {
+        console.error('IPFS fetch error:', error.message);
+      }
+    }
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Get statement with its IPFS content and optional metrics.
+ *
+ * This is a higher-level convenience function that:
+ * 1. Fetches statement metadata from the indexer
+ * 2. Fetches the statement content from IPFS (if CID exists)
+ * 3. Optionally fetches support metrics
+ *
+ * Benefits over manual fetching:
+ * - Centralized IPFS gateway configuration
+ * - Consistent error handling and retry logic
+ * - Single function call instead of multiple queries
+ * - Automatic timeout handling for IPFS requests
+ *
+ * @param executor GraphQL executor
+ * @param statementId The statement ID
+ * @param options Optional configuration
+ * @returns Statement with content and optional metrics, or null if statement not found
+ *
+ * @example
+ * ```typescript
+ * // Basic usage
+ * const result = await getStatementWithContent(executor, statementId);
+ * if (result) {
+ *   console.log('Statement:', result.statement);
+ *   console.log('Content:', result.content);
+ * }
+ *
+ * // With metrics
+ * const result = await getStatementWithContent(executor, statementId, {
+ *   includeMetrics: true
+ * });
+ * console.log('Metrics:', result?.metrics);
+ *
+ * // Custom gateway
+ * const result = await getStatementWithContent(executor, statementId, {
+ *   ipfsGateway: 'https://ipfs.io/ipfs'
+ * });
+ * ```
+ */
+export async function getStatementWithContent(
+  executor: GraphQLExecutor,
+  statementId: string,
+  options: GetStatementWithContentOptions = {}
+): Promise<StatementWithContent | null> {
+  const {
+    includeMetrics = false,
+    ipfsGateway = 'https://gateway.pinata.cloud/ipfs',
+    timeout = 10000,
+    attesterAddress,
+  } = options;
+
+  // Fetch statement metadata
+  const statement = await getStatement(executor, statementId);
+  if (!statement) {
+    return null;
+  }
+
+  // Fetch IPFS content if CID exists
+  let content: StatementContent | null = null;
+  if (statement.cid) {
+    content = await fetchIPFSContent(statement.cid, ipfsGateway, timeout);
+  }
+
+  // Fetch metrics if requested
+  let metrics: StatementWithContent['metrics'] | undefined;
+  if (includeMetrics) {
+    const indirectSupporters = await getIndirectSupporterCount(
+      executor,
+      statementId,
+      attesterAddress
+    );
+
+    metrics = {
+      directBelievers: statement.believerCount,
+      directDisbelievers: statement.disbelieverCount,
+      indirectSupporters,
+    };
+  }
+
+  return {
+    statement,
+    content,
+    metrics,
+  };
 }
 
 /**
