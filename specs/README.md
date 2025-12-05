@@ -11,7 +11,7 @@ So the overall goal is something like:
   - But do this in a way that's not a big monolithic group, but rather a big network of individuals (with a really great coordination system to make it all hang together).
 
 Key ideas:
-  - Implication attestations reduce coordination friction: Use AI-generated "S1 implies S2" attestations to eliminate the need for everyone to rally around a single canonical statement. People can create improved/alternative versions while inheriting indirect support. (Note: implications are *not* transitive - if you want to know whether S1 supporters indirectly support S3, you need a direct attestation from S1 to S3, not a chain through S2. This avoids the problem where S1→S2 and S2→S3 each seem reasonable but S1→S3 is a stretch.)
+  - Implication attestations reduce coordination friction: Use AI-generated "S1 implies S2" attestations to eliminate the need for everyone to rally around a single canonical statement. People can create improved/alternative versions while inheriting indirect support.
   - Retroactive funding via resellable NFTs: separate the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) by making contribution NFTs tradeable on secondary markets, creating a VC-like system for public goods.
   - Composable delegation enables nano-trustees: Allow people to contribute funds but delegate spending decisions to trusted individuals (who can further delegate), creating chains of specialized judgment without requiring everyone to evaluate every project.
 
@@ -68,7 +68,7 @@ See [conceptspace.md](conceptspace.md) (statements, beliefs, and AI-generated im
 ### Concept Space
 
   - Users create immutable statements (representing ideas/causes) stored on IPFS and sign them onchain to express belief/disbelief.
-  - AI attesters publish "S1 implies S2" relationships, enabling indirect support tracking — people can create improved versions of statements while inheriting support via direct implication attestations. This drastically reduces the need for coordination: no need to rally around a single canonical statement, yet the system gently nudges toward coordination by suggesting more-popular equivalent statements.
+  - AI attesters publish "S1 implies S2" relationships, enabling indirect support tracking — people can create improved versions of statements while inheriting support via direct implication attestations. This drastically reduces the need for coordination: no need to rally around a single canonical statement, yet the system gently nudges toward coordination by suggesting more-popular equivalent statements. (Note: implications are *not* transitive - if you want to know whether S1 supporters indirectly support S3, you need a direct attestation from S1 to S3, not a chain through S2. This avoids the problem where S1→S2 and S2→S3 each seem reasonable but S1→S3 is a stretch.)
 
 ### Funding Portals
 
