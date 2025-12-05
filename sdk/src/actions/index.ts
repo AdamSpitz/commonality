@@ -18,11 +18,14 @@ export {
   clearOpinion,
   attestImplication,
   attestImplicationsBatch,
+  createAndSignStatement,
   NO_OPINION,
   BELIEVES,
   DISBELIEVES,
   type BeliefsContract,
   type ImplicationsContract,
+  type CreateAndSignStatementOptions,
+  type CreateAndSignStatementResult,
 } from './conceptspace-actions.js';
 
 // Pubstarter actions

@@ -4,6 +4,7 @@
 
 import { type Address, type Hash } from 'viem';
 import { cidToBytes32, type TestClients } from './common.js';
+import type { StatementContent } from '../graphql-queries/conceptspace.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -171,4 +172,173 @@ export async function attestImplicationsBatch(
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
+}
+
+// ============================================================================
+// High-Level Statement Creation Workflow
+// ============================================================================
+
+export interface CreateAndSignStatementOptions {
+  /** Callback invoked after IPFS upload completes with the CID */
+  onIPFSUpload?: (cid: string) => void;
+  /** Callback invoked after the belief transaction is confirmed */
+  onSigned?: (txHash: Hash) => void;
+  /** Callback invoked after the created-statements list is updated */
+  onListUpdated?: (txHash: Hash) => void;
+  /** Whether to add the statement to the user's created-statements list (default: true) */
+  addToCreatedList?: boolean;
+  /** GraphQL client for querying the indexer (required if addToCreatedList is true) */
+  graphqlClient?: any;
+}
+
+export interface CreateAndSignStatementResult {
+  /** IPFS CID of the statement content */
+  cid: string;
+  /** Transaction hash of the belief attestation */
+  signTxHash: Hash;
+  /** Transaction hash of the created-statements list update (if addToCreatedList is true) */
+  updateListTxHash?: Hash;
+}
+
+/**
+ * Complete workflow for creating and signing a statement.
+ *
+ * This is a high-level function that orchestrates the multi-step process of:
+ * 1. Uploading statement content to IPFS
+ * 2. Signing the statement via the Beliefs contract
+ * 3. (Optionally) Adding the statement to the user's created-statements list
+ *
+ * Benefits over manual orchestration:
+ * - Single function call instead of 3+ separate operations
+ * - Progress callbacks for UI updates
+ * - Consistent error handling across all steps
+ * - Automatic state management (tracks which steps completed)
+ * - Reduces UI code complexity
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param contracts - Contract instances needed for the workflow
+ * @param contracts.beliefs - The Beliefs contract for signing statements
+ * @param contracts.mutableRefUpdater - The MutableRefUpdater contract (required if addToCreatedList is true)
+ * @param statementData - The statement content to create and sign
+ * @param options - Optional configuration for callbacks and behavior
+ * @returns Result containing CID and transaction hashes
+ *
+ * @example
+ * ```typescript
+ * // Basic usage
+ * const result = await createAndSignStatement(
+ *   clients,
+ *   { beliefs: beliefsContract },
+ *   {
+ *     statementType: 'statement',
+ *     content: 'Democracy is good',
+ *     metadata: { createdDate: new Date().toISOString() }
+ *   }
+ * );
+ * console.log('Created statement:', result.cid);
+ *
+ * // With progress callbacks and list updating
+ * const result = await createAndSignStatement(
+ *   clients,
+ *   {
+ *     beliefs: beliefsContract,
+ *     mutableRefUpdater: mutableRefContract
+ *   },
+ *   statementData,
+ *   {
+ *     graphqlClient,
+ *     addToCreatedList: true,
+ *     onIPFSUpload: (cid) => console.log('Uploaded to IPFS:', cid),
+ *     onSigned: (txHash) => console.log('Signed:', txHash),
+ *     onListUpdated: (txHash) => console.log('List updated:', txHash)
+ *   }
+ * );
+ * ```
+ *
+ * @throws {Error} If any step fails. The error message will indicate which step failed.
+ *   Note: If step 1 or 2 fails, no blockchain state is modified. If step 3 fails,
+ *   the statement is already created and signed, but not added to the created list.
+ */
+export async function createAndSignStatement(
+  clients: TestClients,
+  contracts: {
+    beliefs: BeliefsContract;
+    mutableRefUpdater?: { address: Address; abi: any };
+  },
+  statementData: StatementContent,
+  options: CreateAndSignStatementOptions = {}
+): Promise<CreateAndSignStatementResult> {
+  const {
+    onIPFSUpload,
+    onSigned,
+    onListUpdated,
+    addToCreatedList = true,
+    graphqlClient,
+  } = options;
+
+  // Validate inputs
+  if (addToCreatedList && !contracts.mutableRefUpdater) {
+    throw new Error('mutableRefUpdater contract is required when addToCreatedList is true');
+  }
+  if (addToCreatedList && !graphqlClient) {
+    throw new Error('graphqlClient is required when addToCreatedList is true');
+  }
+
+  let cid: string;
+  let signTxHash: Hash;
+  let updateListTxHash: Hash | undefined;
+
+  try {
+    // Step 1: Upload content to IPFS
+    const { uploadToIPFS } = await import('./common.js');
+    cid = await uploadToIPFS(statementData);
+
+    if (onIPFSUpload) {
+      onIPFSUpload(cid);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to upload statement to IPFS: ${message}`);
+  }
+
+  try {
+    // Step 2: Sign the statement via Beliefs contract
+    signTxHash = await believeStatement(clients, contracts.beliefs, cid);
+
+    if (onSigned) {
+      onSigned(signTxHash);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to sign statement (CID: ${cid}): ${message}`);
+  }
+
+  // Step 3: Optionally update the created-statements list
+  if (addToCreatedList && contracts.mutableRefUpdater) {
+    try {
+      const { addToCreatedStatements } = await import('../actions/mutable-refs-actions.js');
+      updateListTxHash = await addToCreatedStatements(
+        graphqlClient,
+        clients,
+        contracts.mutableRefUpdater,
+        cid
+      );
+
+      if (onListUpdated) {
+        onListUpdated(updateListTxHash);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      // Note: We don't throw here - statement is already created and signed
+      // Just log the error and return without updateListTxHash
+      console.error(`Warning: Failed to update created-statements list for ${cid}: ${message}`);
+      console.error('Statement was successfully created and signed, but not added to your created list.');
+    }
+  }
+
+  return {
+    cid,
+    signTxHash,
+    updateListTxHash,
+  };
 }

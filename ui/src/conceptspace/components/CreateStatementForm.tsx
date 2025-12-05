@@ -10,15 +10,14 @@ import {
 } from '@mui/material'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
-  uploadToIPFS,
-  believeStatement,
-  addToCreatedStatements,
+  createAndSignStatement,
   createGraphQLClient,
   BeliefsAbi,
   MutableRefUpdaterAbi,
   type BeliefsContract,
   type MutableRefUpdaterContract,
   type TestClients,
+  type StatementContent,
 } from '@commonality/sdk'
 
 interface CreateStatementFormProps {
@@ -62,8 +61,8 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
     setIsCreating(true)
 
     try {
-      // Create statement JSON and upload to IPFS
-      const statement = {
+      // Create statement data
+      const statementData: StatementContent = {
         statementType: 'statement',
         content: content.trim(),
         metadata: {
@@ -71,47 +70,55 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
         },
       }
 
-      console.log('Uploading statement to IPFS:', statement)
-      const statementCid = await uploadToIPFS(statement)
-      console.log('Statement uploaded with CID:', statementCid)
-
-      // Sign the statement
+      // Set up contracts
       const beliefsContract: BeliefsContract = {
         address: BELIEFS_CONTRACT_ADDRESS,
         abi: BeliefsAbi,
       }
 
-      // Create a minimal TestClients-compatible object
+      const mutableRefContract: MutableRefUpdaterContract = {
+        address: MUTABLE_REF_UPDATER_CONTRACT_ADDRESS,
+        abi: MutableRefUpdaterAbi,
+      }
+
       const clients: TestClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address,
       }
 
-      console.log('Signing statement...')
-      const txHash = await believeStatement(clients, beliefsContract, statementCid)
-      console.log('Statement signed, tx:', txHash)
-
-      // Wait for transaction
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
-      console.log('Transaction confirmed in block:', receipt.blockNumber)
-
-      // Update the user's created statements list
-      const mutableRefContract: MutableRefUpdaterContract = {
-        address: MUTABLE_REF_UPDATER_CONTRACT_ADDRESS,
-        abi: MutableRefUpdaterAbi,
-      }
-
-      console.log('Updating created statements list...')
       const graphqlClient = createGraphQLClient(GRAPHQL_URL)
-      await addToCreatedStatements(graphqlClient, clients, mutableRefContract, statementCid)
-      console.log('Created statements list updated')
+
+      // Use the new high-level workflow function
+      const result = await createAndSignStatement(
+        clients,
+        {
+          beliefs: beliefsContract,
+          mutableRefUpdater: mutableRefContract,
+        },
+        statementData,
+        {
+          graphqlClient,
+          addToCreatedList: true,
+          onIPFSUpload: (cid) => {
+            console.log('Statement uploaded to IPFS:', cid)
+          },
+          onSigned: (txHash) => {
+            console.log('Statement signed, tx:', txHash)
+          },
+          onListUpdated: (txHash) => {
+            console.log('Created statements list updated, tx:', txHash)
+          },
+        }
+      )
+
+      console.log('Statement creation complete:', result)
 
       setSuccess('Statement created and signed successfully!')
       setContent('')
 
       if (onStatementCreated) {
-        onStatementCreated(statementCid)
+        onStatementCreated(result.cid)
       }
     } catch (err) {
       console.error('Error creating statement:', err)
