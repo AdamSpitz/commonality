@@ -2,10 +2,10 @@
 
 # Script to orchestrate the full integration test setup
 # This script:
-# 1. Starts the Hardhat node and deploys contracts
+# 1. Starts the Hardhat node and deploys contracts (using Docker)
 # 2. Starts the Ponder indexer
 # 3. Runs the integration tests
-# 4. Cleans up background processes
+# 4. Cleans up background processes and Docker containers
 #
 # Usage:
 #   ./scripts/run-integration-tests.sh [TEST_PATTERN]
@@ -53,10 +53,10 @@ log_message() {
     echo "$1" >> "$ORCHESTRATION_LOG"
 }
 
-# Function to cleanup background processes
+# Function to cleanup background processes and Docker containers
 cleanup_processes() {
     log_message ""
-    log_message "=== Cleaning Up Background Processes ==="
+    log_message "=== Cleaning Up Background Processes and Docker Containers ==="
 
     # Stop indexer by PID file first, then by process pattern
     if [ -f "$LOG_DIR/indexer.pid" ]; then
@@ -104,39 +104,66 @@ cleanup_processes() {
     fi
     log_message "✓ GraphQL server stopped"
 
-    # Stop hardhat node by PID file first, then by process pattern
-    if [ -f "$LOG_DIR/hardhat-node.pid" ]; then
-        HARDHAT_PID=$(cat "$LOG_DIR/hardhat-node.pid")
-        if ps -p $HARDHAT_PID > /dev/null 2>&1; then
-            log_message "Stopping Hardhat node (PID: $HARDHAT_PID)..."
-            kill $HARDHAT_PID 2>/dev/null || true
-            sleep 1
-        fi
-        rm -f "$LOG_DIR/hardhat-node.pid"
-    fi
-
-    # Kill any remaining hardhat node processes
-    if pgrep -f "hardhat node" > /dev/null; then
-        log_message "Stopping any remaining hardhat node processes..."
-        pkill -f "hardhat node" 2>/dev/null || true
-        sleep 1
-        # Force kill if still running
-        if pgrep -f "hardhat node" > /dev/null; then
-            pkill -9 -f "hardhat node" 2>/dev/null || true
-        fi
-    fi
-    log_message "✓ Hardhat node stopped"
+    # Stop Docker containers
+    log_message "Stopping Docker containers..."
+    cd "$SCRIPT_DIR/.."
+    docker-compose down >> "$ORCHESTRATION_LOG" 2>&1 || true
+    log_message "✓ Docker containers stopped"
 }
 
 # Set up cleanup on script exit
 trap cleanup_processes EXIT INT TERM
 
-# Step 1: Start Hardhat node and deploy contracts
-log_message "=== Step 1: Starting Hardhat Node and Deploying Contracts ==="
+# Step 1: Start Hardhat node and deploy contracts (using Docker)
+log_message "=== Step 1: Starting Hardhat Node and Deploying Contracts (Docker) ==="
 log_message ""
 
-if ! "$SCRIPT_DIR/start-node-and-deploy.sh" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
-    log_message "✗ Failed to start Hardhat node and deploy contracts!"
+# Change to project root for docker-compose
+cd "$SCRIPT_DIR/.."
+
+# Stop any existing containers first
+log_message "Ensuring clean state..."
+docker-compose down >> "$ORCHESTRATION_LOG" 2>&1 || true
+
+# Start hardhat node in background
+log_message "Starting Hardhat node container..."
+if ! docker-compose up -d hardhat-node >> "$ORCHESTRATION_LOG" 2>&1; then
+    log_message "✗ Failed to start Hardhat node container!"
+    log_message ""
+    log_message "=== Docker logs ==="
+    docker-compose logs hardhat-node | tail -n 20
+    exit 1
+fi
+
+# Wait for node to be healthy
+log_message "Waiting for Hardhat node to be ready..."
+WAIT_COUNT=0
+MAX_WAIT=30
+while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+    if docker-compose ps hardhat-node | grep -q "healthy"; then
+        break
+    fi
+    sleep 1
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    if [ $((WAIT_COUNT % 5)) -eq 0 ]; then
+        log_message "  Still waiting... ($WAIT_COUNT/$MAX_WAIT)"
+    fi
+done
+
+if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
+    log_message "✗ Hardhat node failed to become healthy!"
+    log_message ""
+    log_message "=== Docker logs ==="
+    docker-compose logs hardhat-node | tail -n 20
+    exit 1
+fi
+
+log_message "✓ Hardhat node is ready"
+
+# Deploy contracts
+log_message "Deploying contracts..."
+if ! docker-compose run --rm hardhat-deploy >> "$ORCHESTRATION_LOG" 2>&1; then
+    log_message "✗ Failed to deploy contracts!"
     log_message ""
     log_message "=== Last 20 lines of orchestration log ==="
     tail -n 20 "$ORCHESTRATION_LOG"
@@ -192,15 +219,16 @@ log_message ""
 log_message "=== Integration Test Suite Completed Successfully ==="
 log_message ""
 log_message "Summary:"
-log_message "  ✓ Hardhat node started and contracts deployed"
+log_message "  ✓ Hardhat node started and contracts deployed (Docker)"
 log_message "  ✓ Ponder indexer started and synced"
 log_message "  ✓ All integration tests passed"
-log_message "  ✓ Background processes cleaned up"
+log_message "  ✓ Background processes and Docker containers cleaned up"
 log_message ""
 log_message "Log files available:"
 log_message "  Full orchestration log: $ORCHESTRATION_LOG"
-log_message "  Hardhat node log: $LOG_DIR/hardhat-node.log"
-log_message "  Deployment log: $LOG_DIR/deploy.log"
 log_message "  Indexer log: $LOG_DIR/indexer.log"
+log_message ""
+log_message "To view Docker logs:"
+log_message "  docker-compose logs hardhat-node"
 
 exit 0

@@ -30,20 +30,27 @@ There's an [sdk/](sdk/) directory for user actions and queries. The intention is
 
 ### Integration Tests
 
-To run the full integration test suite (starts node, indexer, runs tests, cleans up):
+To run the full integration test suite (starts Hardhat in Docker, starts indexer, runs tests, cleans up):
 
     ./scripts/run-integration-tests.sh
 
-See [integration-tests/README.md](integration-tests/README.md) for details.
+The script now uses Docker for Hardhat and runs the indexer on the host machine. See [integration-tests/README.md](integration-tests/README.md) and [DOCKER.md](DOCKER.md) for more details.
 
 ## UI
 
 We're starting to implement the UI in the top-level "ui" directory, though not much is really implemented yet. It should use the sdk for user actions and queries, though.
 
-## Docker stuff
+## Docker
 
-At one point we sorta implemented this, but we never really used it, so I deleted some of the files (but might have missed some).
+We now have a Docker Compose setup for running Hardhat. This is used both for integration tests and for providing a clean environment for development and testing.
 
-The idea is that we want to have a nicely-packaged Docker container (or docker-compose.yml or something) that runs a hardhat node and the indexer, so that we (and particularly my friend Sam) can just fire it up and generate a bunch of data and run various graph-analysis algorithms and so on.
+See [DOCKER.md](DOCKER.md) for usage instructions and [dockerization-plan.md](dockerization-plan.md) for the full migration plan.
 
-This is sounding very similar to what scripts/run-integration-tests.sh is doing, so maybe what we should be doing is replacing that script with a proper Dockerized setup.
+Quick start:
+```bash
+# Start Hardhat node and deploy contracts
+docker-compose up hardhat-deploy
+
+# For running integration tests (uses Docker for Hardhat)
+./scripts/run-integration-tests.sh
+```

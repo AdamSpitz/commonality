@@ -56,9 +56,24 @@ docker-compose logs -f hardhat-node
 
 ## Integration with Existing Scripts
 
-The Docker setup is designed to work alongside your existing scripts:
+The Docker setup is integrated with the existing scripts:
 
-**Using Docker for Hardhat:**
+**Automated integration tests (recommended):**
+```bash
+# One command to run everything: Hardhat in Docker + indexer + tests
+./scripts/run-integration-tests.sh
+
+# Or run specific tests
+./scripts/run-integration-tests.sh "delegation*.test.ts"
+```
+
+This script now:
+1. Uses Docker Compose to start Hardhat and deploy contracts
+2. Starts the indexer on the host
+3. Runs tests on the host
+4. Cleans up everything (including Docker containers)
+
+**Manual workflow:**
 ```bash
 # Start hardhat in Docker
 docker-compose up -d hardhat-node
@@ -69,12 +84,9 @@ docker-compose run --rm hardhat-deploy
 
 # Run tests on host
 cd integration-tests && npm test
-```
 
-**Using the original shell script (no Docker):**
-```bash
-# Everything runs on host as before
-./scripts/run-integration-tests.sh
+# Clean up
+docker-compose down
 ```
 
 ## Troubleshooting
