@@ -1,0 +1,30 @@
+# Don't copy these to Docker build context
+node_modules
+.git
+.gitignore
+*.md
+!dockerization-plan.md
+.env
+.env.*
+
+# Build artifacts
+dist
+build
+coverage
+.ponder
+cache
+
+# Logs
+*.log
+test-logs
+integration-tests/test-logs
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

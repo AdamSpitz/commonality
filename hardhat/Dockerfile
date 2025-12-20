@@ -1,5 +1,5 @@
-# Dockerfile for Hardhat node
-FROM node:18-alpine
+# Dockerfile for Hardhat node and deployment
+FROM node:20-alpine
 
 # Install curl for healthcheck
 RUN apk add --no-cache curl
