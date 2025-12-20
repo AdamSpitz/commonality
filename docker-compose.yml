@@ -44,6 +44,41 @@ services:
     networks:
       - commonality
 
+  # Ponder indexer service
+  indexer:
+    build:
+      context: ./indexer
+      dockerfile: Dockerfile
+    container_name: commonality-indexer
+    ports:
+      - "42069:42069"
+    volumes:
+      # Mount project root to access .env file
+      - .:/workspace
+    working_dir: /app
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+    environment:
+      # Point to hardhat-node service
+      - PONDER_RPC_URL_31337=http://hardhat-node:8545
+      # Use ephemeral in-memory database for tests (fresh state each run)
+      - PONDER_EPHEMERAL=true
+    # Load contract addresses from .env file
+    env_file:
+      - .env
+    healthcheck:
+      test: |
+        curl -f -X POST -H "Content-Type: application/json" \
+        --data '{"query":"{ _meta { block { number } } }"}' \
+        http://localhost:42069/graphql || exit 1
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 10s
+    networks:
+      - commonality
+
 networks:
   commonality:
     driver: bridge

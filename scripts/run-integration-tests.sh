@@ -3,9 +3,9 @@
 # Script to orchestrate the full integration test setup
 # This script:
 # 1. Starts the Hardhat node and deploys contracts (using Docker)
-# 2. Starts the Ponder indexer
+# 2. Starts the Ponder indexer (using Docker)
 # 3. Runs the integration tests
-# 4. Cleans up background processes and Docker containers
+# 4. Cleans up Docker containers
 #
 # Usage:
 #   ./scripts/run-integration-tests.sh [TEST_PATTERN]
@@ -53,59 +53,12 @@ log_message() {
     echo "$1" >> "$ORCHESTRATION_LOG"
 }
 
-# Function to cleanup background processes and Docker containers
+# Function to cleanup Docker containers
 cleanup_processes() {
     log_message ""
-    log_message "=== Cleaning Up Background Processes and Docker Containers ==="
+    log_message "=== Cleaning Up Docker Containers ==="
 
-    # Stop indexer by PID file first, then by process pattern
-    if [ -f "$LOG_DIR/indexer.pid" ]; then
-        INDEXER_PID=$(cat "$LOG_DIR/indexer.pid")
-        if ps -p $INDEXER_PID > /dev/null 2>&1; then
-            log_message "Stopping indexer (PID: $INDEXER_PID)..."
-            kill $INDEXER_PID 2>/dev/null || true
-            sleep 1
-        fi
-        rm -f "$LOG_DIR/indexer.pid"
-    fi
-
-    # Kill any remaining ponder processes
-    if pgrep -f "ponder dev" > /dev/null; then
-        log_message "Stopping any remaining ponder processes..."
-        pkill -f "ponder dev" 2>/dev/null || true
-        sleep 1
-        # Force kill if still running
-        if pgrep -f "ponder dev" > /dev/null; then
-            pkill -9 -f "ponder dev" 2>/dev/null || true
-        fi
-    fi
-    log_message "✓ Indexer stopped"
-
-    # Stop GraphQL server by PID file first, then by process pattern
-    if [ -f "$LOG_DIR/graphql-server.pid" ]; then
-        GRAPHQL_PID=$(cat "$LOG_DIR/graphql-server.pid")
-        if ps -p $GRAPHQL_PID > /dev/null 2>&1; then
-            log_message "Stopping GraphQL server (PID: $GRAPHQL_PID)..."
-            kill $GRAPHQL_PID 2>/dev/null || true
-            sleep 1
-        fi
-        rm -f "$LOG_DIR/graphql-server.pid"
-    fi
-
-    # Kill any remaining GraphQL server processes
-    if pgrep -f "node.*graphql-server" > /dev/null; then
-        log_message "Stopping any remaining GraphQL server processes..."
-        pkill -f "node.*graphql-server" 2>/dev/null || true
-        sleep 1
-        # Force kill if still running
-        if pgrep -f "node.*graphql-server" > /dev/null; then
-            pkill -9 -f "node.*graphql-server" 2>/dev/null || true
-        fi
-    fi
-    log_message "✓ GraphQL server stopped"
-
-    # Stop Docker containers
-    log_message "Stopping Docker containers..."
+    # Stop all Docker containers
     cd "$SCRIPT_DIR/.."
     docker-compose down >> "$ORCHESTRATION_LOG" 2>&1 || true
     log_message "✓ Docker containers stopped"
@@ -173,15 +126,40 @@ fi
 log_message "✓ Hardhat node started and contracts deployed successfully"
 log_message ""
 
-# Step 2: Start indexer
-log_message "=== Step 2: Starting Ponder Indexer ==="
+# Step 2: Start indexer (Docker)
+log_message "=== Step 2: Starting Ponder Indexer (Docker) ==="
 log_message ""
 
-if ! "$SCRIPT_DIR/start-indexer.sh" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
-    log_message "✗ Failed to start indexer!"
+# Start indexer container
+log_message "Starting indexer container..."
+if ! docker-compose up -d indexer >> "$ORCHESTRATION_LOG" 2>&1; then
+    log_message "✗ Failed to start indexer container!"
     log_message ""
-    log_message "=== Last 20 lines of orchestration log ==="
-    tail -n 20 "$ORCHESTRATION_LOG"
+    log_message "=== Docker logs ==="
+    docker-compose logs indexer | tail -n 20
+    exit 1
+fi
+
+# Wait for indexer to be healthy
+log_message "Waiting for indexer to be ready..."
+WAIT_COUNT=0
+MAX_WAIT=60
+while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+    if docker-compose ps indexer | grep -q "healthy"; then
+        break
+    fi
+    sleep 1
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    if [ $((WAIT_COUNT % 10)) -eq 0 ]; then
+        log_message "  Still waiting... ($WAIT_COUNT/$MAX_WAIT)"
+    fi
+done
+
+if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
+    log_message "✗ Indexer failed to become healthy!"
+    log_message ""
+    log_message "=== Docker logs ==="
+    docker-compose logs indexer | tail -n 30
     exit 1
 fi
 
@@ -220,15 +198,15 @@ log_message "=== Integration Test Suite Completed Successfully ==="
 log_message ""
 log_message "Summary:"
 log_message "  ✓ Hardhat node started and contracts deployed (Docker)"
-log_message "  ✓ Ponder indexer started and synced"
+log_message "  ✓ Ponder indexer started and synced (Docker)"
 log_message "  ✓ All integration tests passed"
-log_message "  ✓ Background processes and Docker containers cleaned up"
+log_message "  ✓ Docker containers cleaned up"
 log_message ""
 log_message "Log files available:"
 log_message "  Full orchestration log: $ORCHESTRATION_LOG"
-log_message "  Indexer log: $LOG_DIR/indexer.log"
 log_message ""
 log_message "To view Docker logs:"
 log_message "  docker-compose logs hardhat-node"
+log_message "  docker-compose logs indexer"
 
 exit 0
