@@ -32,10 +32,21 @@ To run the full integration test suite (starts Hardhat and indexer in Docker, ru
 
 The script now uses Docker for both Hardhat and the indexer. Tests run on the host machine. See [integration-tests/README.md](integration-tests/README.md) for more details.
 
-## UI
+### UI
 
 We're starting to implement the UI in the top-level "ui" directory, though not much is really implemented yet. It should use the sdk for user actions and queries, though.
 
-## Docker
+### Docker
 
 We now have a Docker Compose setup for running Hardhat and the Ponder indexer. This provides a clean, isolated environment for development and testing.
+
+
+## What we've been working on lately
+
+We're in the middle of a couple of big things:
+  - Writing the integration-tests. (Much is done; I'm not sure what exactly is left to implement.)
+  - Writing the UI. (Not much done, and not really tested, even manually; I don't trust the UI at all yet.)
+
+Another big thing to do soon:
+  - Generative testing. There's an early attempt at fake-data generation in hardhat/fake-data-generation, but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.
+    - Once we have this, it'd be cool to generate a bunch of user actions and run them through the sdk (using the same setup we're currently using for the integration-tests), just as a smoke test to see if anything catches fire.
