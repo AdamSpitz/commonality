@@ -65,7 +65,7 @@ See [integration-tests/README.md](integration-tests/README.md) for details.
 
 ## UI
 
-We're starting to implement the UI in the top-level "ui" directory, though nothing is really implemented yet. It should use the sdk for user actions and queries, though.
+We're starting to implement the UI in the top-level "ui" directory, though not much is really implemented yet. It should use the sdk for user actions and queries, though.
 
 ### Docker stuff
 
