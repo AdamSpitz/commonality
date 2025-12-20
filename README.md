@@ -32,9 +32,9 @@ There's an [sdk/](sdk/) directory for user actions and queries. The intention is
 
 To run the full integration test suite (starts Hardhat and indexer in Docker, runs tests, cleans up):
 
-    ./scripts/run-integration-tests.sh
+    npm run integration-tests
 
-The script now uses Docker for both Hardhat and the indexer. Tests run on the host machine. See [integration-tests/README.md](integration-tests/README.md) and [DOCKER.md](DOCKER.md) for more details.
+The script now uses Docker for both Hardhat and the indexer. Tests run on the host machine. See [integration-tests/README.md](integration-tests/README.md) for more details.
 
 ## UI
 
@@ -43,15 +43,3 @@ We're starting to implement the UI in the top-level "ui" directory, though not m
 ## Docker
 
 We now have a Docker Compose setup for running Hardhat and the Ponder indexer. This provides a clean, isolated environment for development and testing.
-
-See [DOCKER.md](DOCKER.md) for usage instructions and [dockerization-plan.md](dockerization-plan.md) for the full migration plan.
-
-Quick start:
-```bash
-# Start Hardhat node, deploy contracts, and start indexer
-docker-compose up -d hardhat-node indexer
-docker-compose run --rm hardhat-deploy
-
-# Or run the full integration test suite (recommended)
-./scripts/run-integration-tests.sh
-```
