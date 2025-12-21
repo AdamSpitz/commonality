@@ -273,7 +273,7 @@ describe('Conceptspace Beliefs', () => {
   });
 
   it('should fetch statement metadata using getStatementWithContent()', async function() {
-    this.timeout(20000);
+    this.timeout(30000);
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 

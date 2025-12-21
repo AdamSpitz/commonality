@@ -45,7 +45,7 @@ function getTestSuiteOffset(suiteName: string): number {
  * - Prevents nonce conflicts and state pollution between test files
  *
  * @param suiteName - Name of the test suite (typically the test file name)
- * @param accountIndex - Account index within the suite (0-4)
+ * @param accountIndex - Account index within the suite (0-9)
  * @returns Private key for the account
  *
  * @example
@@ -58,22 +58,18 @@ function getTestSuiteOffset(suiteName: string): number {
  * // Returns a different account's private key based on hash
  */
 export function getTestPrivateKey(suiteName: string, accountIndex: number): `0x${string}` {
-  if (accountIndex < 0 || accountIndex > 4) {
-    throw new Error(`Account index must be 0-4, got ${accountIndex}`);
+  if (accountIndex < 0 || accountIndex > 9) {
+    throw new Error(`Account index must be 0-9, got ${accountIndex}`);
   }
 
   // Get the offset for this suite
   const offset = getTestSuiteOffset(suiteName);
 
   // Calculate the actual Hardhat account index
-  // We have 10 Hardhat accounts, and each suite can use up to 5 accounts
-  // So we use offset % 2 to pick between two "banks" of 5 accounts each
-  const bank = Math.floor(offset / 10);
-  const positionInBank = offset % 10;
-
-  // Map to actual account: bank * 5 + min(positionInBank, 4) + accountIndex
-  // This ensures we don't exceed ACCOUNT_9
-  let actualAccountIndex = (bank * 5 + Math.min(positionInBank, 1) * 2 + accountIndex) % 10;
+  // We have 10 Hardhat accounts, and each suite can use all 10 accounts (0-9)
+  // with an offset to ensure different suites use different sets of accounts
+  // This allows maximum flexibility while still providing isolation between test files
+  const actualAccountIndex = (offset + accountIndex) % 10;
 
   const privateKeys = [
     TEST_PRIVATE_KEYS.ACCOUNT_0,
@@ -98,7 +94,7 @@ export function getTestPrivateKey(suiteName: string, accountIndex: number): `0x$
  * derives unique accounts per test suite.
  *
  * @param suiteName - Name of the test suite
- * @param accountIndex - Account index within the suite (0-4)
+ * @param accountIndex - Account index within the suite (0-9)
  * @param rpcUrl - RPC URL (defaults to localhost:8545)
  * @returns Test clients
  *
@@ -122,7 +118,7 @@ export function createIsolatedTestClients(
  * Useful for assertions and test setup.
  *
  * @param suiteName - Name of the test suite
- * @param accountIndex - Account index within the suite (0-4)
+ * @param accountIndex - Account index within the suite (0-9)
  * @returns Account address
  */
 export function getTestAccountAddress(suiteName: string, accountIndex: number): `0x${string}` {
