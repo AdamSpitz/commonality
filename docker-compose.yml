@@ -58,8 +58,7 @@ services:
       # Enable writeable gateway for uploads
       - IPFS_GATEWAY_WRITABLE=true
     healthcheck:
-      test: |
-        wget --spider -q http://localhost:5001/api/v0/version || exit 1
+      test: ["CMD-SHELL", "ipfs id || exit 1"]
       interval: 2s
       timeout: 5s
       retries: 30

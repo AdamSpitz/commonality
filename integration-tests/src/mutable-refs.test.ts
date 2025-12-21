@@ -337,7 +337,8 @@ describe('Mutable Refs', () => {
     // Verify first statement was added (ref value is now a CID pointing to the list)
     let ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'First ref');
     const firstListCid = ref.value;
-    assert.ok(firstListCid.startsWith('bafkrei'), 'Should have valid CID after first statement');
+    // Accept both CIDv0 (Qm...) and CIDv1 (baf...) formats
+    assert.ok(firstListCid.startsWith('Qm') || firstListCid.startsWith('baf'), 'Should have valid CID after first statement');
 
     testLog('  Adding second statement...');
     txHash = await appendToUserList(graphqlClient, clients, mutableRefUpdaterContract, refName, cid2);
@@ -347,7 +348,7 @@ describe('Mutable Refs', () => {
     // Verify second statement was added (CID should change)
     ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Second ref');
     const secondListCid = ref.value;
-    assert.ok(secondListCid.startsWith('bafkrei'), 'Should have valid CID after second statement');
+    assert.ok(secondListCid.startsWith('Qm') || secondListCid.startsWith('baf'), 'Should have valid CID after second statement');
     assert.notStrictEqual(secondListCid, firstListCid, 'CID should change when adding second statement');
 
     testLog('  Adding third statement...');
@@ -358,7 +359,7 @@ describe('Mutable Refs', () => {
     // Verify third statement was added (CID should change again)
     ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Third ref');
     const thirdListCid = ref.value;
-    assert.ok(thirdListCid.startsWith('bafkrei'), 'Should have valid CID after third statement');
+    assert.ok(thirdListCid.startsWith('Qm') || thirdListCid.startsWith('baf'), 'Should have valid CID after third statement');
     assert.notStrictEqual(thirdListCid, secondListCid, 'CID should change when adding third statement');
 
     testLog('  ✓ addToCreatedStatements() and appendToUserList() work correctly');
@@ -393,7 +394,7 @@ describe('Mutable Refs', () => {
     // Verify the format was migrated (CID should change from old single-CID format to new list format)
     const ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Migrated ref');
     const migratedListCid = ref.value;
-    assert.ok(migratedListCid.startsWith('bafkrei'), 'Should have valid CID after migration');
+    assert.ok(migratedListCid.startsWith('Qm') || migratedListCid.startsWith('baf'), 'Should have valid CID after migration');
     assert.notStrictEqual(migratedListCid, oldFormatCid, 'CID should change after migration to list format');
 
     testLog('  ✓ Format migration works correctly');

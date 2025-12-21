@@ -301,17 +301,18 @@ describe('Conceptspace Beliefs', () => {
     const result = await getStatementWithContent(graphqlClient, statementId);
 
     assertNotNull(result, 'Statement result');
-    assert.strictEqual(result.statement.id, statementId, 'Statement ID should match');
+    assert.strictEqual(result!.statement.id, statementId, 'Statement ID should match');
     // Note: CID format may differ (bafybe vs bafkre) but both represent the same content hash
-    assert.ok(result.statement.cid, 'Statement should have a CID');
-    assert.strictEqual(result.statement.believerCount, 1, 'Should have 1 believer');
+    assert.ok(result!.statement.cid, 'Statement should have a CID');
+    assert.strictEqual(result!.statement.believerCount, 1, 'Should have 1 believer');
 
-    // IPFS content won't be available in test environment (uploadToIPFS is a mock),
-    // so content will be null - this is expected behavior
-    assert.strictEqual(result.content, null, 'Content should be null when IPFS not available');
+    // IPFS content should be available now that we have a local IPFS node
+    assert.ok(result!.content, 'Content should be fetched from local IPFS');
+    assert.strictEqual(result!.content!.statementType, 'text', 'Content should have correct type');
+    assert.ok(result!.content!.content, 'Content should have text');
 
     // Verify metrics are not included by default
-    assert.strictEqual(result.metrics, undefined, 'Metrics should not be included by default');
+    assert.strictEqual(result!.metrics, undefined, 'Metrics should not be included by default');
 
     testLog('  ✓ Basic fetch successful');
 
