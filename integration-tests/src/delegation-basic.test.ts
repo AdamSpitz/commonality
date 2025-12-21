@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   depositETH,
   delegateNote,
   revokeNote,
@@ -31,18 +30,15 @@ import {
 } from '@commonality/sdk';
 
 import { DelegatableNotesAbi } from '@commonality/sdk';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const PRIVATE_KEY_3 = TEST_PRIVATE_KEYS.ACCOUNT_2;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'delegation-basic';
 
   let delegatableNotesContract: DelegatableNotesContract;
   let graphqlClient: ReturnType<typeof createGraphQLClient>;
@@ -63,7 +59,7 @@ describe('Delegation System', () => {
   it('should deposit ETH and create a note', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement for the intended purpose
     const statementContent = {
@@ -98,8 +94,8 @@ describe('Delegation System', () => {
   it('should delegate a note to another user', async function() {
     this.timeout(20000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const user2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits
     const statementContent = {
@@ -151,8 +147,8 @@ describe('Delegation System', () => {
   it('should support partial delegation (splitting a note)', async function() {
     this.timeout(20000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const user2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits 10 ETH
     const statementContent = {
@@ -204,9 +200,9 @@ describe('Delegation System', () => {
   it('should support multi-level delegation chains', async function() {
     this.timeout(20000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const user2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const user3 = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
     const statementContent = {
@@ -269,9 +265,9 @@ describe('Delegation System', () => {
   it('should allow revoking a delegation', async function() {
     this.timeout(20000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const user2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const user3 = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
     const statementContent = {
@@ -331,7 +327,7 @@ describe('Delegation System', () => {
   it('should allow reclaiming funds from a root note', async function() {
     this.timeout(20000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // User 1 deposits
     const statementContent = {
@@ -376,8 +372,8 @@ describe('Delegation System', () => {
   it('should track notes by root depositor', async function() {
     this.timeout(20000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const user2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits two notes
     const statement1 = await uploadToIPFS({ statementType: 'text', text: 'Cause A' });

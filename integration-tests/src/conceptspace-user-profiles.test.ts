@@ -9,7 +9,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   believeStatement,
   disbelieveStatement,
   uploadToIPFS,
@@ -23,16 +22,15 @@ import {
   waitForSync,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('User Profile Queries', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
-  const ALICE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const BOB_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'conceptspace-user-profiles';
 
   it('should retrieve user\'s directly signed statements', async () => {
     if (!BELIEFS_CONTRACT_ADDRESS) {
@@ -40,7 +38,7 @@ describe('User Profile Queries', () => {
     }
 
     // Setup clients for Alice
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
@@ -102,7 +100,7 @@ describe('User Profile Queries', () => {
       throw new Error('BELIEFS_CONTRACT_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     const beliefsContract: BeliefsContract = {
@@ -158,8 +156,8 @@ describe('User Profile Queries', () => {
     }
 
     // Setup clients for both users
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);

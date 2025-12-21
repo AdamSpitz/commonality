@@ -12,7 +12,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   uploadToIPFS,
   createProject,
   buyProjectTokens,
@@ -35,18 +34,15 @@ import {
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
 
-  // Test accounts
-  const CREATOR1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
-  const CREATOR2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
-  const CREATOR3_PRIVATE_KEY = '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6' as const;
-  const CONTRIBUTOR_PRIVATE_KEY = '0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a' as const;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'pubstarter-filtering-sorting';
 
   let graphqlClient: GraphQLClient;
 
@@ -58,9 +54,9 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(60000);
 
     testLog('  Creating projects with different creation times...');
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
-    const creator3Clients = createTestClients(CREATOR3_PRIVATE_KEY, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creator3Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
@@ -163,8 +159,8 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(60000);
 
     testLog('  Creating projects with different deadlines...');
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
@@ -242,9 +238,9 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(90000);
 
     testLog('  Creating projects with different funding progress...');
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
-    const contributorClients = createTestClients(CONTRIBUTOR_PRIVATE_KEY, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const contributorClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
@@ -368,8 +364,8 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(60000);
 
     testLog('  Creating projects with different thresholds...');
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,

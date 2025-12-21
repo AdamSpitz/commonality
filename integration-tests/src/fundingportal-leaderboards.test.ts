@@ -9,7 +9,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   uploadToIPFS,
   attestImplication,
   createProject,
@@ -35,7 +34,7 @@ import {
   AssuranceContractAbi,
   ProjectAlignmentAbi,
 } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -45,13 +44,8 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
   const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
 
-  // Test accounts - using different accounts for different roles
-  const ATTESTER_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const CREATOR1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
-  const CREATOR2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
-  const CONTRIBUTOR1_PRIVATE_KEY = '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6' as const;
-  const CONTRIBUTOR2_PRIVATE_KEY = '0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a' as const;
-  const CONTRIBUTOR3_PRIVATE_KEY = '0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba' as const;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'fundingportal-leaderboards';
 
   let graphqlClient: GraphQLClient;
 
@@ -63,12 +57,12 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     this.timeout(90000);
 
     testLog('  Setting up leaderboard test scenario...');
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
-    const contributor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
-    const contributor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
-    const contributor3Clients = createTestClients(CONTRIBUTOR3_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const contributor3Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
     testLog(`  Contributor 1: ${contributor1Clients.account}`);
     testLog(`  Contributor 2: ${contributor2Clients.account}`);
@@ -270,11 +264,11 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     this.timeout(90000);
 
     testLog('  Setting up rank query test...');
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const contributor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
-    const contributor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
-    const contributor3Clients = createTestClients(CONTRIBUTOR3_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const contributor3Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
     // Create cause
     const causeContent = { text: 'Support education initiatives' };

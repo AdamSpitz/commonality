@@ -14,7 +14,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   createProject,
   buyProjectTokens,
   uploadToIPFS,
@@ -48,7 +47,7 @@ import {
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 
 
@@ -58,9 +57,8 @@ describe('Secondary Marketplace Integration Tests', () => {
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
 
-  // Hardhat test accounts
-  const SELLER_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const BUYER_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'marketplace-secondary';
 
   let graphqlClient: GraphQLClient;
 
@@ -76,8 +74,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up test clients...');
-    const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
-    const buyerClients = createTestClients(BUYER_PRIVATE_KEY, RPC_URL);
+    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const buyerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     testLog(`  Seller: ${sellerClients.account}`);
     testLog(`  Buyer: ${buyerClients.account}`);
@@ -232,7 +230,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for cancellation test...');
-    const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
+    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS({ title: 'Cancel Test Project' });
@@ -341,8 +339,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for buy order test...');
-    const buyerClients = createTestClients(BUYER_PRIVATE_KEY, RPC_URL);
-    const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
+    const buyerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS({ title: 'Buy Order Test Project' });
@@ -463,8 +461,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for buy order cancellation...');
-    const buyerClients = createTestClients(BUYER_PRIVATE_KEY, RPC_URL);
-    const sellerClients = createTestClients(SELLER_PRIVATE_KEY, RPC_URL);
+    const buyerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS({ title: 'Cancel Buy Order Test' });

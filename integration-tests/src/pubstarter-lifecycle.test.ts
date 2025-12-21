@@ -9,7 +9,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   createProject,
   buyProjectTokens,
   refundProjectTokens,
@@ -31,7 +30,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi
 } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
@@ -39,10 +38,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
-  // Hardhat test accounts
-  const CREATOR_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const CONTRIBUTOR1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
-  const CONTRIBUTOR2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'pubstarter-lifecycle';
 
   let graphqlClient: GraphQLClient;
 
@@ -59,8 +56,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     }
 
     testLog('  Test: Successful project with withdrawal');
-    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
-    const contributorClients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
+    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Contributor: ${contributorClients.account}`);
@@ -183,8 +180,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     }
 
     testLog('  Test: Failed project with refunds');
-    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
-    const contributorClients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
+    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create project with high threshold and very short deadline
     const projectMetadataCid = await uploadToIPFS({
@@ -339,9 +336,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     }
 
     testLog('  Test: Multiple contributors to one project');
-    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
-    const contributor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
-    const contributor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
+    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Contributor 1: ${contributor1Clients.account}`);

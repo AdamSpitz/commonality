@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   createAndSignStatement,
   type BeliefsContract,
   type MutableRefUpdaterContract,
@@ -27,8 +26,8 @@ import {
   assertNotNull,
   BELIEVES,
 } from '@commonality/sdk';
-import { BeliefsAbi, MutableRefUpdaterAbi, TEST_PRIVATE_KEYS } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Conceptspace Create Statement Workflow', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -36,8 +35,8 @@ describe('Conceptspace Create Statement Workflow', () => {
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`;
 
-  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'conceptspace-create-statement-workflow';
 
   let beliefsContract: BeliefsContract;
   let mutableRefUpdaterContract: MutableRefUpdaterContract;
@@ -67,7 +66,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should create, sign, and add statement to list in one call', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData: StatementContent = {
       statementType: 'statement',
@@ -150,7 +149,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should invoke progress callbacks during workflow', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData: StatementContent = {
       statementType: 'statement',
@@ -206,7 +205,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should work without adding to created list when disabled', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData: StatementContent = {
       statementType: 'statement',
@@ -253,7 +252,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should handle statement with references', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     const statementData: StatementContent = {
       statementType: 'statement',
@@ -301,7 +300,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should create multiple statements sequentially', async function() {
     this.timeout(60000);
 
-    const clients = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     const statements: StatementContent[] = [
       {
@@ -368,7 +367,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should throw error when addToCreatedList is true but mutableRefUpdater is missing', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData: StatementContent = {
       statementType: 'statement',
@@ -408,7 +407,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should throw error when addToCreatedList is true but graphqlClient is missing', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData: StatementContent = {
       statementType: 'statement',
@@ -448,7 +447,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should handle list update failure gracefully', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData: StatementContent = {
       statementType: 'statement',

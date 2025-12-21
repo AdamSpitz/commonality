@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   believeStatement,
   disbelieveStatement,
   uploadToIPFS,
@@ -31,8 +30,7 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Conceptspace Indirect Support', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -40,11 +38,8 @@ describe('Conceptspace Indirect Support', () => {
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const USER1_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const USER2_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const USER3_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_2;
-  const ATTESTER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_3;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'conceptspace-indirect-support';
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;
@@ -74,9 +69,9 @@ describe('Conceptspace Indirect Support', () => {
   it('should compute indirect supporter count', async function() {
     this.timeout(30000);
 
-    const user1Clients = createTestClients(USER1_PRIVATE_KEY, RPC_URL);
-    const user2Clients = createTestClients(USER2_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: specific -> general
     const specificStatement = {
@@ -144,9 +139,9 @@ describe('Conceptspace Indirect Support', () => {
   it('should return list of indirect supporters with details', async function() {
     this.timeout(30000);
 
-    const user1Clients = createTestClients(USER1_PRIVATE_KEY, RPC_URL);
-    const user2Clients = createTestClients(USER2_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const specific1 = {
@@ -235,9 +230,9 @@ describe('Conceptspace Indirect Support', () => {
   it('should exclude users who explicitly disbelieve from indirect support', async function() {
     this.timeout(30000);
 
-    const user1Clients = createTestClients(USER1_PRIVATE_KEY, RPC_URL);
-    const user2Clients = createTestClients(USER2_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const specific = {
@@ -309,10 +304,10 @@ describe('Conceptspace Indirect Support', () => {
   it('should handle multiple implication chains converging on one statement', async function() {
     this.timeout(40000);
 
-    const user1Clients = createTestClients(USER1_PRIVATE_KEY, RPC_URL);
-    const user2Clients = createTestClients(USER2_PRIVATE_KEY, RPC_URL);
-    const user3Clients = createTestClients(USER3_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user3Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a convergence pattern:
     // S1 (user1 believes) -> S_general
@@ -406,8 +401,8 @@ describe('Conceptspace Indirect Support', () => {
   it('should handle user believing multiple statements that imply the same target', async function() {
     this.timeout(30000);
 
-    const user1Clients = createTestClients(USER1_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements where User1 believes both S1 and S2, both imply S_target
     const s1 = {
@@ -478,9 +473,8 @@ describe('Conceptspace Indirect Support', () => {
 
     // Use a fresh user account (ACCOUNT_4) that hasn't been used in previous tests
     // to avoid test pollution
-    const FRESH_USER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_4;
-    const user1Clients = createTestClients(FRESH_USER_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a user who believes multiple statements, each implying different targets
     // User1 believes S1, S2, S3
@@ -607,9 +601,8 @@ describe('Conceptspace Indirect Support', () => {
 
     // Use a fresh user account (ACCOUNT_5) that hasn't been used in previous tests
     // to avoid test pollution
-    const FRESH_USER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_5;
-    const user1Clients = createTestClients(FRESH_USER_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const source1 = {

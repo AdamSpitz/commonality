@@ -71,3 +71,13 @@ export const testLog = (...args: any[]): void => {
     console.log(...args);
   }
 };
+
+/**
+ * Re-export test utilities for improved test isolation
+ */
+export {
+  getTestPrivateKey,
+  createIsolatedTestClients,
+  getTestAccountAddress,
+  clearTestSuiteCache,
+} from './test-utils.js';

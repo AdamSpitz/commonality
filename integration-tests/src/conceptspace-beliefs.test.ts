@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   believeStatement,
   disbelieveStatement,
   clearOpinion,
@@ -30,17 +29,15 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'conceptspace-beliefs';
 
   let beliefsContract: BeliefsContract;
   let graphqlClient: ReturnType<typeof createGraphQLClient>;
@@ -61,7 +58,7 @@ describe('Conceptspace Beliefs', () => {
   it('should record belief and disbelief from a single user', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement
     const statementContent = {
@@ -144,8 +141,8 @@ describe('Conceptspace Beliefs', () => {
   it('should track beliefs from multiple users', async function() {
     this.timeout(20000);
 
-    const clients1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const clients2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const clients1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create a statement
     const statementContent = {
@@ -214,7 +211,7 @@ describe('Conceptspace Beliefs', () => {
   it('should handle multiple statements independently', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create two statements
     const statement1Content = {
@@ -278,7 +275,7 @@ describe('Conceptspace Beliefs', () => {
   it('should fetch statement metadata using getStatementWithContent()', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement
     // Note: In the test environment, uploadToIPFS just creates a CID without actually

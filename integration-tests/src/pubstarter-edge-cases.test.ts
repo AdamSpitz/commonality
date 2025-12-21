@@ -11,7 +11,6 @@
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  createTestClients,
   createProject,
   buyProjectTokens,
   refundProjectTokens,
@@ -26,24 +25,23 @@ import {
   waitForSync,
 } from '@commonality/sdk';
 import { PubstarterAbi, AssuranceContractAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Pubstarter Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
 
-  const ALICE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const BOB_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'pubstarter-edge-cases';
 
   it('should fail when trying to buy tokens with insufficient funds', async () => {
     if (!PUBSTARTER_ADDRESS) {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -106,8 +104,8 @@ describe('Pubstarter Edge Cases', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
@@ -228,8 +226,8 @@ describe('Pubstarter Edge Cases', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
@@ -319,8 +317,8 @@ describe('Pubstarter Edge Cases', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);

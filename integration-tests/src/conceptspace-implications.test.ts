@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   believeStatement,
   uploadToIPFS,
   cidToBytes32,
@@ -28,8 +27,7 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -37,9 +35,8 @@ describe('Conceptspace Implications', () => {
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const USER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const ATTESTER_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'conceptspace-implications';
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;
@@ -69,7 +66,7 @@ describe('Conceptspace Implications', () => {
   it('should record implication attestations', async function() {
     this.timeout(20000);
 
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create two statements
     const statement1Content = {
@@ -125,8 +122,8 @@ describe('Conceptspace Implications', () => {
   it('should track indirect support via implications', async function() {
     this.timeout(25000);
 
-    const userClients = createTestClients(USER_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const userClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: specific -> general
     const specificStatement = {
@@ -190,8 +187,8 @@ describe('Conceptspace Implications', () => {
   it('should handle multiple implications to the same statement', async function() {
     this.timeout(30000);
 
-    const user1Clients = createTestClients(USER_PRIVATE_KEY, RPC_URL);
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const user1Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create three specific statements that all imply a general one
     const general = {
@@ -250,7 +247,7 @@ describe('Conceptspace Implications', () => {
   it('should verify implications are NOT transitive', async function() {
     this.timeout(25000);
 
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create chain: S1 -> S2 -> S3
     const s1 = await uploadToIPFS({ statementType: 'text', text: 'Statement 1' });

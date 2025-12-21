@@ -7,7 +7,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   createProject,
   buyProjectTokens,
   uploadToIPFS,
@@ -28,7 +27,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi
 } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 
 describe('Pubstarter Multiple Token Types Tests', () => {
@@ -37,10 +36,8 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
 
-  // Hardhat accounts
-  const CREATOR_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const BUYER1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
-  const BUYER2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'pubstarter-multiple-tokens';
 
   let graphqlClient: GraphQLClient;
 
@@ -55,9 +52,9 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     this.timeout(30000);
 
     testLog('  Setting up test clients...');
-    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
-    const buyer1Clients = createTestClients(BUYER1_PRIVATE_KEY, RPC_URL);
-    const buyer2Clients = createTestClients(BUYER2_PRIVATE_KEY, RPC_URL);
+    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const buyer1Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const buyer2Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Buyer1: ${buyer1Clients.account}`);

@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   createProject,
   buyProjectTokens,
   uploadToIPFS,
@@ -30,7 +29,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi
 } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 
 describe('Pubstarter Basic Integration Tests', () => {
@@ -45,10 +44,8 @@ describe('Pubstarter Basic Integration Tests', () => {
   const MARKETPLACE_FACTORY_ADDRESS = process.env.MARKETPLACE_FACTORY_ADDRESS as Address;
   const ASSURANCE_CONTRACT_FACTORY_ADDRESS = process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as Address;
 
-  // Hardhat account #0 (project creator)
-  const CREATOR_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  // Hardhat account #1 (contributor)
-  const CONTRIBUTOR_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'pubstarter-basic';
 
   let graphqlClient: GraphQLClient;
 
@@ -71,8 +68,8 @@ describe('Pubstarter Basic Integration Tests', () => {
     }
 
     testLog('  Setting up test clients...');
-    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
-    const contributorClients = createTestClients(CONTRIBUTOR_PRIVATE_KEY, RPC_URL);
+    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Contributor: ${contributorClients.account}`);
@@ -196,7 +193,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     }
 
     testLog('  Creating a minimal test project...');
-    const creatorClients = createTestClients(CREATOR_PRIVATE_KEY, RPC_URL);
+    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const projectMetadataCid = await uploadToIPFS({
       title: 'Minimal Test Project',

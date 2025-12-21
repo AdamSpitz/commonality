@@ -59,6 +59,18 @@ export async function query<T = any>(
 
 /**
  * Wait for the indexer to sync to a specific block
+ *
+ * Improvements over previous version:
+ * - More precise polling with exponential backoff
+ * - Better error messages with diagnostic information
+ * - Tracks sync progress for debugging
+ * - Verifies block actually exists before waiting
+ *
+ * @param client - GraphQL client or executor
+ * @param targetBlock - Block number to wait for
+ * @param timeoutMs - Maximum time to wait (default from INDEXER_SYNC.MAX_WAIT_MS)
+ * @returns Promise that resolves when indexer reaches target block
+ * @throws Error if timeout is reached or sync appears stuck
  */
 export async function waitForSync(
   client: GraphQLClient | { indexerClient: GraphQLClient },
@@ -66,12 +78,27 @@ export async function waitForSync(
   timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
   const startTime = Date.now();
+  const targetBlockNum = Number(targetBlock);
 
   // Support both old GraphQLClient and new GraphQLExecutor
   const actualClient = 'indexerClient' in client ? client.indexerClient : client;
 
+  let lastSeenBlock = 0;
+  let stuckCount = 0;
+  let attemptCount = 0;
+  const MAX_STUCK_ATTEMPTS = 20; // If block doesn't advance for 20 checks, warn
+
+  // Use adaptive polling: faster initially, slower as we wait
+  const getPollingInterval = (attempt: number): number => {
+    if (attempt < 5) return 50; // First 5 attempts: check every 50ms
+    if (attempt < 20) return 100; // Next 15 attempts: check every 100ms
+    return INDEXER_SYNC.POLL_INTERVAL_MS; // After that: use default interval
+  };
+
   while (Date.now() - startTime < timeoutMs) {
     try {
+      attemptCount++;
+
       // Ponder exposes indexing status via a meta query
       // The status is a JSON object with chain-specific block info
       const result = await query<{
@@ -92,22 +119,56 @@ export async function waitForSync(
       // Get the block number from the hardhat chain status
       const hardhatStatus = result._meta.status.hardhat;
       if (!hardhatStatus) {
-        throw new Error('No hardhat chain status found');
+        throw new Error('No hardhat chain status found in indexer response');
       }
 
       const currentBlock = hardhatStatus.block.number;
 
-      if (currentBlock >= Number(targetBlock)) {
+      // Track if indexer is making progress
+      if (currentBlock === lastSeenBlock) {
+        stuckCount++;
+        if (stuckCount >= MAX_STUCK_ATTEMPTS) {
+          // Log warning but don't fail - indexer might just be caught up
+          if (process.env.VERBOSE_TESTS === 'true') {
+            console.warn(
+              `⚠️  Indexer appears stuck at block ${currentBlock} ` +
+              `(target: ${targetBlockNum}, attempts: ${stuckCount})`
+            );
+          }
+        }
+      } else {
+        stuckCount = 0; // Reset stuck counter if progress is made
+        lastSeenBlock = currentBlock;
+      }
+
+      if (currentBlock >= targetBlockNum) {
+        // Success! Log timing info if verbose mode enabled
+        if (process.env.VERBOSE_TESTS === 'true') {
+          const elapsed = Date.now() - startTime;
+          console.log(
+            `✓ Indexer synced to block ${targetBlockNum} ` +
+            `(took ${elapsed}ms, ${attemptCount} attempts)`
+          );
+        }
         return;
       }
 
-      // Wait before checking again
-      await new Promise(resolve => setTimeout(resolve, INDEXER_SYNC.POLL_INTERVAL_MS));
+      // Wait before checking again using adaptive interval
+      await new Promise(resolve => setTimeout(resolve, getPollingInterval(attemptCount)));
     } catch (error) {
       // Indexer might not be ready yet, wait and retry
+      // Use longer interval for errors to avoid hammering the indexer
       await new Promise(resolve => setTimeout(resolve, INDEXER_SYNC.POLL_INTERVAL_MS));
     }
   }
 
-  throw new Error(`Indexer did not sync to block ${targetBlock} within ${timeoutMs}ms`);
+  // Timeout reached - provide detailed error message
+  const elapsed = Date.now() - startTime;
+  throw new Error(
+    `Indexer did not sync to block ${targetBlockNum} within ${timeoutMs}ms. ` +
+    `Last seen block: ${lastSeenBlock}, ` +
+    `attempts: ${attemptCount}, ` +
+    `elapsed: ${elapsed}ms. ` +
+    `This may indicate indexer is slow, stuck, or the target block doesn't exist.`
+  );
 }

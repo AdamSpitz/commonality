@@ -11,7 +11,6 @@
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  createTestClients,
   depositETH,
   delegateNote,
   revokeNote,
@@ -25,26 +24,24 @@ import {
   waitForSync,
 } from '@commonality/sdk';
 import { DelegatableNotesAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Delegation Permissions Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as `0x${string}`;
 
-  const ALICE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const BOB_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const CHARLIE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_2;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'delegation-permissions';
 
   it('should prevent non-owner from delegating a note', async () => {
     if (!DELEGATABLE_NOTES_ADDRESS) {
       throw new Error('DELEGATABLE_NOTES_CONTRACT_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
-    const charlieClients = createTestClients(CHARLIE_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const charlieClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -95,9 +92,9 @@ describe('Delegation Permissions Edge Cases', () => {
       throw new Error('DELEGATABLE_NOTES_CONTRACT_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
-    const charlieClients = createTestClients(CHARLIE_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const charlieClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -152,9 +149,9 @@ describe('Delegation Permissions Edge Cases', () => {
       throw new Error('DELEGATABLE_NOTES_CONTRACT_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
-    const charlieClients = createTestClients(CHARLIE_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const charlieClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -218,8 +215,8 @@ describe('Delegation Permissions Edge Cases', () => {
       throw new Error('DELEGATABLE_NOTES_CONTRACT_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -263,8 +260,8 @@ describe('Delegation Permissions Edge Cases', () => {
       throw new Error('DELEGATABLE_NOTES_CONTRACT_ADDRESS not set in environment');
     }
 
-    const aliceClients = createTestClients(ALICE_KEY, RPC_URL);
-    const bobClients = createTestClients(BOB_KEY, RPC_URL);
+    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);

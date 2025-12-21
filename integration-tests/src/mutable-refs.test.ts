@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   updateRef,
   getRef,
   uploadToIPFS,
@@ -28,18 +27,15 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { MutableRefUpdaterAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Mutable Refs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const PRIVATE_KEY_3 = TEST_PRIVATE_KEYS.ACCOUNT_2;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'mutable-refs';
 
   let mutableRefUpdaterContract: MutableRefUpdaterContract;
   let graphqlClient: ReturnType<typeof createGraphQLClient>;
@@ -60,7 +56,7 @@ describe('Mutable Refs', () => {
   it('should create and retrieve a ref', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-ref-create-' + Date.now();
     const refValue = 'QmTestValue123';
 
@@ -104,7 +100,7 @@ describe('Mutable Refs', () => {
   it('should update an existing ref', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-ref-update';
     const value1 = 'QmValue1';
     const value2 = 'QmValue2';
@@ -147,9 +143,9 @@ describe('Mutable Refs', () => {
   it('should keep refs independent between users', async function() {
     this.timeout(20000);
 
-    const clients1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const clients2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const clients3 = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const clients1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const clients3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     const refName = 'created-statements';
     const value1 = 'QmUser1Statements';
@@ -195,7 +191,7 @@ describe('Mutable Refs', () => {
   it('should handle multiple refs per user', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refs = [
       { name: 'created-statements', value: 'QmCreatedList' },
       { name: 'bookmarked-statements', value: 'QmBookmarkedList' },
@@ -226,7 +222,7 @@ describe('Mutable Refs', () => {
   it('should handle empty string values', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-empty-ref';
 
     testLog('  Setting ref to non-empty value...');
@@ -251,7 +247,7 @@ describe('Mutable Refs', () => {
   it('should support created statements workflow', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'created-statements-workflow';
 
     testLog('  Simulating created statements workflow...');
@@ -301,7 +297,7 @@ describe('Mutable Refs', () => {
   it('should return empty string for non-existent ref', async function() {
     this.timeout(20000);
 
-    const clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const nonExistentRef = 'this-ref-does-not-exist-' + Date.now();
 
     testLog('  Querying non-existent ref...');
@@ -320,7 +316,7 @@ describe('Mutable Refs', () => {
   it('should add to created statements list with addToCreatedStatements()', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const refName = 'created-statements-helper-test-' + Date.now();
 
     testLog('  Testing addToCreatedStatements() helper function...');
@@ -374,7 +370,7 @@ describe('Mutable Refs', () => {
   it('should handle format migration with appendToUserList()', async function() {
     this.timeout(30000);
 
-    const clients = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
     const refName = 'format-migration-test-' + Date.now();
 
     testLog('  Testing format migration from old single-CID format...');

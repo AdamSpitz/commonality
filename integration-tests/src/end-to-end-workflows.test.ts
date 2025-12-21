@@ -7,7 +7,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   believeStatement,
   attestImplication,
   attestProjectAlignment,
@@ -46,8 +45,7 @@ import {
   ProjectAlignmentAbi,
   DelegatableNotesAbi
 } from '@commonality/sdk';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -62,9 +60,8 @@ describe('End-to-End Workflow Integration Tests', () => {
   const DELEGATABLE_NOTES_CONTRACT_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as `0x${string}`;
   const PROJECT_ALIGNMENT_CONTRACT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Test accounts
-  const PRIVATE_KEY_USER = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_ATTESTER = TEST_PRIVATE_KEYS.ACCOUNT_1;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'end-to-end-workflows';
 
   describe('Workflow 1: Create statement → believe it → create aligned project → fund with delegatable note', () => {
     it('should complete the full workflow end-to-end', async () => {
@@ -75,8 +72,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const userClients = createTestClients(PRIVATE_KEY_USER, RPC_URL);
-      const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
+      const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+      const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);
@@ -245,8 +242,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const rootUserClients = createTestClients(PRIVATE_KEY_USER, RPC_URL);
-      const delegateUserClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
+      const rootUserClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+      const delegateUserClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
       testLog(`  Root user account: ${rootUserClients.account}`);
@@ -449,8 +446,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const userClients = createTestClients(PRIVATE_KEY_USER, RPC_URL);
-      const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
+      const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+      const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);
@@ -600,8 +597,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const userClients = createTestClients(PRIVATE_KEY_USER, RPC_URL);
-      const attesterClients = createTestClients(PRIVATE_KEY_ATTESTER, RPC_URL);
+      const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+      const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
       const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);

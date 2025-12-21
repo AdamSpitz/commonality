@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   attestProjectAlignment,
   attestImplication,
   createProject,
@@ -33,8 +32,7 @@ import {
   PubstarterAbi,
   ImplicationsAbi
 } from '@commonality/sdk';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -43,10 +41,8 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const PRIVATE_KEY_3 = TEST_PRIVATE_KEYS.ACCOUNT_2;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'fundingportal-indirect-alignment';
 
   let projectAlignmentContract: ProjectAlignmentContract;
   let pubstarterContract: PubstarterContract;
@@ -85,9 +81,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should find projects indirectly aligned via single implication', async function() {
     this.timeout(40000);
 
-    const implicationAttester = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const alignmentAttester = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const projectOwner = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const implicationAttester = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwner = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: S1 (specific) and S2 (broader)
     const s1Content = {
@@ -211,9 +207,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should handle multiple projects with mixed direct and indirect alignments', async function() {
     this.timeout(50000);
 
-    const implicationAttester = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const alignmentAttester = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const projectOwner = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const implicationAttester = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwner = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const s1Content = {
@@ -338,9 +334,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should handle multiple implication levels (S1 → S2, query by S2)', async function() {
     this.timeout(50000);
 
-    const implicationAttester = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const alignmentAttester = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const projectOwner = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const implicationAttester = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwner = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a chain of statements with increasing generality
     const s1Content = {
@@ -462,9 +458,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should filter by trusted implication attester', async function() {
     this.timeout(40000);
 
-    const implicationAttester1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const implicationAttester2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const alignmentAttester = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const implicationAttester1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const implicationAttester2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const s1Content = {

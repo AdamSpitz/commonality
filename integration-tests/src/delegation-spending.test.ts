@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   depositETH,
   delegateNote,
   uploadToIPFS,
@@ -31,8 +30,7 @@ import {
   assertNotNull,
 } from '@commonality/sdk';
 import { DelegatableNotesAbi, PubstarterAbi } from '@commonality/sdk';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface
@@ -43,10 +41,8 @@ describe('Delegation Spending', () => {
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}`;
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const PRIVATE_KEY_3 = TEST_PRIVATE_KEYS.ACCOUNT_2;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'delegation-spending';
 
   let delegatableNotesContract: DelegatableNotesContract;
   let pubstarterContract: PubstarterContract;
@@ -76,7 +72,7 @@ describe('Delegation Spending', () => {
   it('should spend a delegatable note to fund a project', async function() {
     this.timeout(30000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement for the intended purpose
     const statementContent = {
@@ -168,8 +164,8 @@ describe('Delegation Spending', () => {
   it('should attribute delegation chain when delegate spends on behalf of root owner', async function() {
     this.timeout(30000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const user2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits ETH
     const statementContent = {
@@ -268,9 +264,9 @@ describe('Delegation Spending', () => {
   it('should support multi-level delegation chains for spending', async function() {
     this.timeout(30000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const user2 = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const user3 = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
     const statementContent = {
@@ -382,7 +378,7 @@ describe('Delegation Spending', () => {
   it('should spend partial amounts from delegatable notes', async function() {
     this.timeout(30000);
 
-    const user1 = createTestClients(PRIVATE_KEY_1, RPC_URL);
+    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // User 1 deposits 10 ETH
     const statementContent = {

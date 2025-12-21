@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   attestProjectAlignment,
   attestProjectAlignmentsBatch,
   createProject,
@@ -30,8 +29,7 @@ import {
 } from '@commonality/sdk';
 import { type Address } from 'viem';
 import { ProjectAlignmentAbi, PubstarterAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Funding Portal - Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -39,10 +37,8 @@ describe('Funding Portal - Project Alignment', () => {
   const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}`;
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
 
-  // Hardhat test accounts
-  const PRIVATE_KEY_1 = TEST_PRIVATE_KEYS.ACCOUNT_0;
-  const PRIVATE_KEY_2 = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const PRIVATE_KEY_3 = TEST_PRIVATE_KEYS.ACCOUNT_2;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'fundingportal-alignment';
 
   let projectAlignmentContract: ProjectAlignmentContract;
   let pubstarterContract: PubstarterContract;
@@ -72,8 +68,8 @@ describe('Funding Portal - Project Alignment', () => {
   it('should attest a single project alignment', async function() {
     this.timeout(30000);
 
-    const attesterClients = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const projectOwnerClients = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create a statement
     const statementContent = {
@@ -169,9 +165,9 @@ describe('Funding Portal - Project Alignment', () => {
   it('should handle multiple attesters for the same project-statement pair', async function() {
     this.timeout(30000);
 
-    const attester1Clients = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const attester2Clients = createTestClients(PRIVATE_KEY_2, RPC_URL);
-    const projectOwnerClients = createTestClients(PRIVATE_KEY_3, RPC_URL);
+    const attester1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const attester2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a statement
     const statementContent = {
@@ -269,8 +265,8 @@ describe('Funding Portal - Project Alignment', () => {
   it('should batch attest multiple alignments', async function() {
     this.timeout(40000);
 
-    const attesterClients = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const projectOwnerClients = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create two statements
     const statement1Content = {
@@ -380,8 +376,8 @@ describe('Funding Portal - Project Alignment', () => {
   it('should allow same attester to link one project to multiple statements', async function() {
     this.timeout(30000);
 
-    const attesterClients = createTestClients(PRIVATE_KEY_1, RPC_URL);
-    const projectOwnerClients = createTestClients(PRIVATE_KEY_2, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create three statements
     const statements = [

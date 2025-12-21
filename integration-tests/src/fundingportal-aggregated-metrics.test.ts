@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   uploadToIPFS,
   believeStatement,
   attestImplication,
@@ -47,7 +46,7 @@ import {
   ProjectAlignmentAbi,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
-import { testLog } from './setup.js';
+import { testLog, createIsolatedTestClients } from './setup.js';
 
 describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -60,12 +59,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as Address;
 
-  // Test accounts
-  const ATTESTER_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const;
-  const CREATOR1_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
-  const CREATOR2_PRIVATE_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const;
-  const CONTRIBUTOR1_PRIVATE_KEY = '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6' as const;
-  const CONTRIBUTOR2_PRIVATE_KEY = '0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a' as const;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'fundingportal-aggregated-metrics';
 
   let graphqlClient: GraphQLClient;
 
@@ -77,11 +72,11 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     this.timeout(60000);
 
     testLog('  Setting up test scenario...');
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
-    const contributor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
-    const contributor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
     // Create statements: S1 (specific cause) and S2 (broader cause)
     const s1Content = { text: 'We should fund open source AI safety research' };
@@ -263,8 +258,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     this.timeout(40000);
 
     testLog('  Setting up delegatable notes scenario...');
-    const donor1Clients = createTestClients(CONTRIBUTOR1_PRIVATE_KEY, RPC_URL);
-    const donor2Clients = createTestClients(CONTRIBUTOR2_PRIVATE_KEY, RPC_URL);
+    const donor1Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const donor2Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
     // Create a statement for the cause
     const causeContent = { text: 'We should fund climate change research' };
@@ -330,9 +325,9 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     this.timeout(60000);
 
     testLog('  Setting up multi-project scenario...');
-    const attesterClients = createTestClients(ATTESTER_PRIVATE_KEY, RPC_URL);
-    const creator1Clients = createTestClients(CREATOR1_PRIVATE_KEY, RPC_URL);
-    const creator2Clients = createTestClients(CREATOR2_PRIVATE_KEY, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create statements
     const s1Content = { text: 'Fund cancer research' };

@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createTestClients,
   believeStatement,
   uploadToIPFS,
   cidToBytes32,
@@ -26,8 +25,7 @@ import {
   type GraphQLClient,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
-import { testLog } from './setup.js';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { testLog, createIsolatedTestClients } from './setup.js';
 import { TEST_TIMEOUTS, INDEXER_SYNC_TIMEOUT } from './test-timeouts.js';
 
 describe('Multiple Attesters Tests (F2)', () => {
@@ -36,10 +34,8 @@ describe('Multiple Attesters Tests (F2)', () => {
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
-  // Use different accounts as different attesters
-  const ATTESTER1_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_1;
-  const ATTESTER2_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_2;
-  const ATTESTER3_PRIVATE_KEY = TEST_PRIVATE_KEYS.ACCOUNT_3;
+  // Test suite name for unique account derivation
+  const SUITE_NAME = 'conceptspace-multiple-attesters';
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;
@@ -69,8 +65,8 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should allow different attesters to publish different implications', async function() {
     this.timeout(TEST_TIMEOUTS.MEDIUM);
 
-    const attester1 = createTestClients(ATTESTER1_PRIVATE_KEY, RPC_URL);
-    const attester2 = createTestClients(ATTESTER2_PRIVATE_KEY, RPC_URL);
+    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Attester 1: ${attester1.account}`);
     testLog(`  Attester 2: ${attester2.account}`);
@@ -132,9 +128,9 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should allow same statement pair to be attested by multiple attesters', async function() {
     this.timeout(TEST_TIMEOUTS.MEDIUM);
 
-    const attester1 = createTestClients(ATTESTER1_PRIVATE_KEY, RPC_URL);
-    const attester2 = createTestClients(ATTESTER2_PRIVATE_KEY, RPC_URL);
-    const attester3 = createTestClients(ATTESTER3_PRIVATE_KEY, RPC_URL);
+    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const attester3 = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
     testLog(`  Attester 1: ${attester1.account}`);
     testLog(`  Attester 2: ${attester2.account}`);
@@ -193,8 +189,8 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should filter implications by trusted attester', async function() {
     this.timeout(TEST_TIMEOUTS.MEDIUM);
 
-    const attester1 = createTestClients(ATTESTER1_PRIVATE_KEY, RPC_URL);
-    const attester2 = createTestClients(ATTESTER2_PRIVATE_KEY, RPC_URL);
+    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const s1Content = { statementType: 'text', text: 'We should invest in renewable energy' };
@@ -271,8 +267,8 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should respect trusted attesters in indirect alignment calculations', async function() {
     this.timeout(TEST_TIMEOUTS.LONG);
 
-    const attester1 = createTestClients(ATTESTER1_PRIVATE_KEY, RPC_URL);
-    const attester2 = createTestClients(ATTESTER2_PRIVATE_KEY, RPC_URL);
+    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // This test uses the getIndirectlyAlignedProjects query function
     // which accepts trustedImplicationAttester and trustedAlignmentAttester parameters
@@ -324,7 +320,7 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should handle attester with no attestations gracefully', async function() {
     this.timeout(TEST_TIMEOUTS.SHORT);
 
-    const unusedAttester = createTestClients(ATTESTER3_PRIVATE_KEY, RPC_URL);
+    const unusedAttester = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
     // Create a statement
     const statementContent = { statementType: 'text', text: 'Random statement for filter test' };
