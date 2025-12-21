@@ -44,7 +44,7 @@ We now have a Docker Compose setup for running Hardhat and the Ponder indexer. T
 ## What we've been working on lately
 
 We're in the middle of a couple of big things:
-  - Writing the integration-tests. (Much is done; I'm not sure what exactly is left to implement.) See integration-tests-todo.md for an AI-generated assessment of where we're at.
+  - Writing the integration-tests. (Much is done; I'm not sure what exactly is left to implement.)
   - Writing the UI. (Not much done, and not really tested, even manually; I don't trust the UI at all yet.)
 
 Another big thing to do soon:

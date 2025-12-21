@@ -30,6 +30,7 @@ import {
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertBeliefCountsMatch } from './invariants.js';
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -91,6 +92,9 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
     assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
 
+    // Verify invariant: belief counts match individual records
+    await assertBeliefCountsMatch(graphqlClient, statementId);
+
     testLog('  ✓ Belief recorded correctly');
 
     // Change to disbelief
@@ -113,6 +117,9 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
     assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
 
+    // Verify invariant: belief counts match individual records
+    await assertBeliefCountsMatch(graphqlClient, statementId);
+
     testLog('  ✓ Disbelief recorded correctly');
 
     // Clear opinion
@@ -134,6 +141,9 @@ describe('Conceptspace Beliefs', () => {
     );
     assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
     assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
+
+    // Verify invariant: belief counts match individual records
+    await assertBeliefCountsMatch(graphqlClient, statementId);
 
     testLog('  ✓ Opinion cleared correctly');
   });
@@ -166,6 +176,9 @@ describe('Conceptspace Beliefs', () => {
     );
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
 
+    // Verify invariant: belief counts match individual records
+    await assertBeliefCountsMatch(graphqlClient, statementId);
+
     // User 2 also believes
     testLog('  User 2 believes...');
     txHash = await believeStatement(clients2, beliefsContract, statementCid);
@@ -177,6 +190,9 @@ describe('Conceptspace Beliefs', () => {
       'Statement'
     );
     assert.strictEqual(statement.believerCount, 2, 'Statement should have 2 believers');
+
+    // Verify invariant: belief counts match individual records
+    await assertBeliefCountsMatch(graphqlClient, statementId);
 
     // Verify both users' beliefs
     const user1Belief = assertNotNull(
@@ -204,6 +220,9 @@ describe('Conceptspace Beliefs', () => {
     );
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
     assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
+
+    // Verify invariant: belief counts match individual records
+    await assertBeliefCountsMatch(graphqlClient, statementId);
 
     testLog('  ✓ User state changes tracked correctly');
   });
@@ -269,6 +288,10 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(stmt2.believerCount, 0);
     assert.strictEqual(stmt2.disbelieverCount, 1);
 
+    // Verify invariant: belief counts match individual records for both statements
+    await assertBeliefCountsMatch(graphqlClient, statement1Id);
+    await assertBeliefCountsMatch(graphqlClient, statement2Id);
+
     testLog('  ✓ Multiple statements tracked independently');
   });
 
@@ -327,6 +350,9 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(resultWithMetrics.metrics.directBelievers, 1, 'Should have 1 direct believer');
     assert.strictEqual(resultWithMetrics.metrics.directDisbelievers, 0, 'Should have 0 disbelievers');
     assert.strictEqual(resultWithMetrics.metrics.indirectSupporters, 0, 'Should have 0 indirect supporters');
+
+    // Verify invariant: belief counts match individual records
+    await assertBeliefCountsMatch(graphqlClient, statementId);
 
     testLog('  ✓ Fetch with metrics successful');
 
