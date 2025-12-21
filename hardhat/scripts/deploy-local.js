@@ -91,7 +91,7 @@ async function main() {
     console.log('No existing .env file, creating new one');
   }
 
-  // Update or add contract addresses
+  // Update or add contract addresses and IPFS configuration
   const updates = {
     'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
@@ -105,6 +105,8 @@ async function main() {
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
     'PUBSTARTER_ADDRESS': pubstarterAddress,
+    'IPFS_API': 'http://localhost:5001',
+    'IPFS_GATEWAY': 'http://localhost:8080/ipfs',
   };
 
   for (const [key, value] of Object.entries(updates)) {

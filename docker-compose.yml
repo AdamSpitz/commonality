@@ -54,9 +54,14 @@ services:
     volumes:
       # Use ephemeral storage - fresh IPFS node each run
       - ipfs-data:/data/ipfs
-    environment:
-      # Enable writeable gateway for uploads
-      - IPFS_GATEWAY_WRITABLE=true
+    # Custom entrypoint to configure IPFS for path-based gateway (no subdomain redirects)
+    # This prevents the gateway from redirecting to CID.ipfs.localhost which doesn't resolve
+    entrypoint: >
+      sh -c "
+      ipfs init --profile=test || true &&
+      ipfs config --json Gateway.PublicGateways '{\"localhost\": {\"Paths\": [\"/ipfs\", \"/ipns\"], \"UseSubdomains\": false}}' &&
+      ipfs daemon --migrate=true
+      "
     healthcheck:
       test: ["CMD-SHELL", "ipfs id || exit 1"]
       interval: 2s

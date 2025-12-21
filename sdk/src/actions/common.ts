@@ -123,7 +123,34 @@ export async function fetchFromIPFS(
       const url = `${ipfsGateway}/${cid}`;
       const response = await fetch(url, {
         signal: AbortSignal.timeout(timeoutMs),
+        // Prevent following redirects to subdomain gateway format
+        // which can cause DNS issues in test environments (*.ipfs.localhost)
+        redirect: 'manual',
       });
+
+      // Handle redirects manually - skip localhost subdomain redirects
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        // Skip redirects to *.ipfs.localhost or *.ipns.localhost (subdomain gateway format)
+        // These don't resolve properly in most test environments
+        if (location && (location.includes('.ipfs.localhost') || location.includes('.ipns.localhost'))) {
+          console.warn(`Skipping IPFS subdomain redirect for ${cid} - subdomain gateways not supported in this environment`);
+          return null;
+        }
+        // Follow other redirects
+        if (location) {
+          const redirectResponse = await fetch(location, {
+            signal: AbortSignal.timeout(timeoutMs),
+            redirect: 'follow',
+          });
+          if (!redirectResponse.ok) {
+            console.warn(`Failed to fetch IPFS content for ${cid}: ${redirectResponse.status}`);
+            return null;
+          }
+          const content = await redirectResponse.json() as object;
+          return content;
+        }
+      }
 
       if (!response.ok) {
         console.warn(`Failed to fetch IPFS content for ${cid}: ${response.status}`);
