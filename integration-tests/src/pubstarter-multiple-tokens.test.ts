@@ -29,6 +29,7 @@ import {
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { assertMoneyConservation } from './invariants.js';
+import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
 describe('Pubstarter Multiple Token Types Tests', () => {
@@ -135,9 +136,10 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buy1Hash = await buyProjectTokens(
+    const buy1Hash = await buyProjectTokensChecked(
       buyer1Clients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: buyer1Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -147,15 +149,12 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       }
     );
 
-    // Wait for indexer
-    const buy1Receipt = await buyer1Clients.publicClient.getTransactionReceipt({ hash: buy1Hash });
-    await waitForSync(graphqlClient, buy1Receipt.blockNumber, 15000);
-
     // Buyer2 purchases Silver tokens (token 1)
     testLog('  Buyer2 purchasing 3 Silver tokens...');
-    const buy2Hash = await buyProjectTokens(
+    const buy2Hash = await buyProjectTokensChecked(
       buyer2Clients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: buyer2Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -165,15 +164,12 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       }
     );
 
-    // Wait for indexer
-    const buy2Receipt = await buyer2Clients.publicClient.getTransactionReceipt({ hash: buy2Hash });
-    await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
-
     // Buyer1 purchases Gold tokens (token 2) and more Bronze in same transaction
     testLog('  Buyer1 purchasing 1 Gold + 10 Bronze tokens...');
-    const buy3Hash = await buyProjectTokens(
+    const buy3Hash = await buyProjectTokensChecked(
       buyer1Clients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: buyer1Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -182,10 +178,6 @@ describe('Pubstarter Multiple Token Types Tests', () => {
         totalCost: parseEther('0.3'), // (1 * 0.2) + (10 * 0.01) = 0.3 ETH
       }
     );
-
-    // Wait for indexer
-    const buy3Receipt = await buyer1Clients.publicClient.getTransactionReceipt({ hash: buy3Hash });
-    await waitForSync(graphqlClient, buy3Receipt.blockNumber, 15000);
 
     // Verify project totals
     testLog('  Verifying project funding totals...');

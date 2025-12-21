@@ -70,6 +70,68 @@ This invariant catches bugs where:
 **Note:**
 This checks money conservation at the indexer level (query consistency). A more comprehensive cross-system check (Section 8) would also verify that the indexer's `totalReceived` matches the actual ETH balance in the assurance contract on the blockchain.
 
+### ✅ State Transition Property #1: Project Funding
+
+**Location:** [src/funding-action-properties.ts](src/funding-action-properties.ts)
+
+**Property:** `projectFundingProperty`
+
+**What it checks:**
+- When someone buys tokens worth X ETH, the project's `totalReceived` should increase by exactly X
+- The contribution count should increase by exactly 1
+
+**How it works:**
+1. **Before state capture:** Queries the Project entity to get current `totalReceived` and contribution count
+2. **Action execution:** Executes `buyProjectTokens` and waits for indexer sync
+3. **After state capture:** Re-queries the Project entity to get updated values
+4. **Verification:**
+   - Asserts `totalReceived` increased by exactly the contribution amount
+   - Asserts contribution count increased by 1
+   - Also runs the `moneyConservationInvariant` to verify totals match individual contributions
+
+**Integrated with action framework:**
+- **Action metadata:** `buyProjectTokensMetadata` in [src/funding-action-properties.ts](src/funding-action-properties.ts)
+- **Checked wrapper:** `buyProjectTokensChecked` in [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
+- Uses the same pattern as belief actions for automatic property checking
+
+**Where it's used:**
+- [src/pubstarter-basic.test.ts](src/pubstarter-basic.test.ts) - Refactored to use `buyProjectTokensChecked`
+- [src/pubstarter-lifecycle.test.ts](src/pubstarter-lifecycle.test.ts) - Refactored to use `buyProjectTokensChecked` (3 calls)
+- [src/pubstarter-multiple-tokens.test.ts](src/pubstarter-multiple-tokens.test.ts) - Refactored to use `buyProjectTokensChecked` (3 calls)
+
+**Why this matters:**
+This property catches bugs where:
+- Contributions are not properly tracked when tokens are purchased
+- The wrong amount is recorded (e.g., off-by-one errors, rounding issues)
+- Multiple contributions in the same block interfere with each other
+- The indexer loses or duplicates contribution data
+
+**Benefits of the action framework approach:**
+- **DRY:** Tests are now much shorter - no need to manually capture before/after state or write assertions
+- **Consistency:** Same property checks run on every `buyProjectTokens` call across all tests
+- **Composability:** Ready to use in generative testing scenarios
+- **Automatic sync:** Wrapper handles waiting for indexer sync automatically
+- **Better errors:** Property violations include context about which action failed
+
+**Example usage:**
+```typescript
+// Old way (manual):
+const beforeProject = await getProject(graphqlClient, projectAddress);
+const hash = await buyProjectTokens(clients, assuranceContract, params);
+const receipt = await clients.publicClient.getTransactionReceipt({ hash });
+await waitForSync(graphqlClient, receipt.blockNumber);
+const afterProject = await getProject(graphqlClient, projectAddress);
+assert.strictEqual(
+  BigInt(afterProject.totalReceived),
+  BigInt(beforeProject.totalReceived) + params.totalCost
+);
+await assertMoneyConservation(graphqlClient, projectAddress);
+
+// New way (automatic):
+await buyProjectTokensChecked(clients, assuranceContract, graphqlClient, params);
+// All properties automatically verified!
+```
+
 ## Next Steps
 
 The following invariants from [generative-test-prep.md](generative-test-prep.md) should be implemented next:
@@ -82,8 +144,8 @@ The following invariants from [generative-test-prep.md](generative-test-prep.md)
 
 ### Section 2: State Transition Properties
 
-- [ ] **Belief transitions**: When user changes from BELIEVES to DISBELIEVES, verify atomic state change
-- [ ] **Project funding**: When someone buys tokens worth X ETH, verify `totalRaised` increases by exactly X
+- [x] **Belief transitions**: When user changes from BELIEVES to DISBELIEVES, verify atomic state change - Implemented using action framework in `belief-action-properties.ts`, used in `conceptspace-beliefs.test.ts`
+- [x] **Project funding**: When someone buys tokens worth X ETH, verify `totalReceived` increases by exactly X - Implemented using action framework in `funding-action-properties.ts`, used in `pubstarter-*.test.ts`
 - [ ] **Indirect support propagation**: When you attest S1→S2, verify believers of S1 appear in S2's indirect supporters
 - [ ] **Token transfers**: When tokens move via secondary market, verify balances change correctly
 

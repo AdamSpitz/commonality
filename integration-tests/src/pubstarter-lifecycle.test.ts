@@ -32,6 +32,7 @@ import {
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { assertMoneyConservation } from './invariants.js';
+import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
@@ -119,9 +120,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buyHash = await buyProjectTokens(
+    const buyHash = await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -130,9 +132,6 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         totalCost: parseEther('0.5'),
       }
     );
-
-    const buyReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buyHash });
-    await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
 
     // Verify project reached threshold
     const fundedProject = assertNotNull(
@@ -234,9 +233,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buyHash = await buyProjectTokens(
+    const buyHash = await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -245,9 +245,6 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         totalCost: parseEther('0.1'),
       }
     );
-
-    const buyReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buyHash });
-    await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
 
     // Verify project did not reach threshold
     const unfundedProject = assertNotNull(
@@ -398,9 +395,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Contributor 1 buys 20 tokens of type 1 (0.2 ETH)
     testLog('  Contributor 1 buying 20 tokens of type 1...');
-    const buy1Hash = await buyProjectTokens(
+    const buy1Hash = await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: contributor1Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -410,14 +408,12 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       }
     );
 
-    const buy1Receipt = await contributor1Clients.publicClient.getTransactionReceipt({ hash: buy1Hash });
-    await waitForSync(graphqlClient, buy1Receipt.blockNumber, 15000);
-
     // Contributor 2 buys 15 tokens of type 2 (0.3 ETH)
     testLog('  Contributor 2 buying 15 tokens of type 2...');
-    const buy2Hash = await buyProjectTokens(
+    const buy2Hash = await buyProjectTokensChecked(
       contributor2Clients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: contributor2Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -426,9 +422,6 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         totalCost: parseEther('0.3'),
       }
     );
-
-    const buy2Receipt = await contributor2Clients.publicClient.getTransactionReceipt({ hash: buy2Hash });
-    await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
 
     // Verify project received total of 0.5 ETH from both contributors
     const fundedProject = assertNotNull(

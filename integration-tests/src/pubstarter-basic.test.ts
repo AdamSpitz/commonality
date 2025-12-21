@@ -31,6 +31,7 @@ import {
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { assertMoneyConservation } from './invariants.js';
+import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
 describe('Pubstarter Basic Integration Tests', () => {
@@ -155,9 +156,11 @@ describe('Pubstarter Basic Integration Tests', () => {
     const buyCounts = [10n]; // Buy 10 of token 1
     const buyCost = parseEther('0.1'); // 10 * 0.01 ETH = 0.1 ETH
 
-    const buyHash = await buyProjectTokens(
+    testLog('  Contributor buying tokens (with property checking)...');
+    const buyHash = await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -168,25 +171,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     );
 
     testLog(`  Tokens purchased! Tx: ${buyHash}`);
-
-    // Wait for indexer to sync
-    const buyReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buyHash });
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
-
-    // Query updated project
-    const updatedProject = assertNotNull(
-      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
-      'Updated project'
-    );
-
-    testLog(`  Updated project total received: ${updatedProject.totalReceived}`);
-    // Verify that funds were received
-    assert.ok(BigInt(updatedProject.totalReceived) > 0n, 'Project should have received funds');
-
-    // Verify invariant: money conservation after contribution
-    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
-
+    testLog('  ✓ State transition properties verified');
     testLog('  ✓ Money conservation verified');
     testLog('  Test completed successfully!');
   });
