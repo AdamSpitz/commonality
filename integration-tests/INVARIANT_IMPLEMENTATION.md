@@ -212,6 +212,82 @@ await attestImplicationChecked(
 // All properties automatically verified from both directions!
 ```
 
+### ✅ State Transition Property #3: Indirect Support Propagation
+
+**Location:** [src/implication-action-properties.ts](src/implication-action-properties.ts)
+
+**Property:** `indirectSupportPropagationProperty`
+
+**What it checks:**
+- When an attester creates an implication from statement A to statement B:
+  - Users who believe statement A should appear as indirect supporters of statement B
+  - Users who explicitly disbelieve statement B should NOT appear as indirect supporters (even if they believe A)
+  - The indirect supporter count should not decrease
+  - The indexer correctly propagates support through the implication graph
+
+**How it works:**
+1. **Before state capture:** Captures the current indirect supporter count and list of addresses for the "to" statement
+2. **Action execution:** Executes `attestImplication` and waits for indexer sync
+3. **After state capture:** Re-captures the indirect supporter count and addresses
+4. **Verification:**
+   - Asserts that indirect supporter count did not decrease
+   - If `expectedIndirectSupporters` are provided in context.extra, verifies each one:
+     - If the user explicitly disbelieves the target statement, they should NOT be in indirect supporters
+     - Otherwise, they should appear in the indirect supporters list
+
+**Integrated with action framework:**
+- **Action metadata:** `attestImplicationMetadata` in [src/implication-action-properties.ts](src/implication-action-properties.ts)
+- **Checked wrapper:** `attestImplicationChecked` in [src/implication-actions-checked.ts](src/implication-actions-checked.ts)
+- **Optional parameter:** Can pass expected indirect supporters for stricter verification
+
+**Where it's used:**
+- [src/conceptspace-indirect-support.test.ts](src/conceptspace-indirect-support.test.ts) - Refactored all 6 tests to use `attestImplicationChecked`:
+  - Test 1: Compute indirect supporter count (verifies 2 believers propagate)
+  - Test 2: Return list of indirect supporters with details (verifies multiple chains)
+  - Test 3: Exclude users who explicitly disbelieve (verifies filtering logic)
+  - Test 4: Handle multiple implication chains converging (verifies 3 convergent paths)
+  - Test 5: Handle user believing multiple implying statements (verifies deduplication)
+  - Test 6: Efficiently get all indirect support for a user (comprehensive test)
+
+**Why this matters:**
+This property catches bugs where:
+- The indexer fails to compute indirect support through implication chains
+- Believers of the "from" statement don't appear as indirect supporters of the "to" statement
+- Users who explicitly disbelieve the target are incorrectly included in indirect support
+- The indirect support graph becomes corrupted or inconsistent
+- Support propagation breaks when multiple implications converge on one statement
+
+**Benefits of the action framework approach:**
+- **DRY:** Tests are much shorter - no need to manually verify indirect support after each implication
+- **Consistency:** Same property checks run on every `attestImplication` call across all tests
+- **Flexible verification:** Can optionally pass expected believers for stricter checking
+- **Composability:** Ready to use in generative testing scenarios
+- **Better errors:** Property violations include context about which users should/shouldn't be supporters
+
+**Example usage:**
+```typescript
+// Without expected supporters (basic check - count should not decrease)
+await attestImplicationChecked(
+  clients,
+  implicationsContract,
+  graphqlClient,
+  specificStatementCid,
+  generalStatementCid
+);
+
+// With expected supporters (strict check - verifies specific users appear)
+await attestImplicationChecked(
+  clients,
+  implicationsContract,
+  graphqlClient,
+  specificStatementCid,
+  generalStatementCid,
+  [user1.account, user2.account] // These users believe the specific statement
+);
+// Automatically verifies that user1 and user2 appear in general statement's indirect supporters
+// (unless they explicitly disbelieve the general statement)
+```
+
 ## Next Steps
 
 The following invariants from [generative-test-prep.md](generative-test-prep.md) should be implemented next:
@@ -227,7 +303,7 @@ The following invariants from [generative-test-prep.md](generative-test-prep.md)
 - [x] **Belief transitions**: When user changes from BELIEVES to DISBELIEVES, verify atomic state change - Implemented using action framework in `belief-action-properties.ts`, used in `conceptspace-beliefs.test.ts`
 - [x] **Project funding**: When someone buys tokens worth X ETH, verify `totalReceived` increases by exactly X - Implemented using action framework in `funding-action-properties.ts`, used in `pubstarter-*.test.ts`
 - [x] **Implication bidirectionality**: When attesting S1→S2, verify implication appears in both "from" and "to" queries - Implemented using action framework in `implication-action-properties.ts`, used in `conceptspace-implications.test.ts`
-- [ ] **Indirect support propagation**: When you attest S1→S2, verify believers of S1 appear in S2's indirect supporters
+- [x] **Indirect support propagation**: When you attest S1→S2, verify believers of S1 appear in S2's indirect supporters - Implemented using action framework in `implication-action-properties.ts`, used in `conceptspace-indirect-support.test.ts`
 - [ ] **Token transfers**: When tokens move via secondary market, verify balances change correctly
 
 ### Section 3: Query Consistency

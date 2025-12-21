@@ -46,6 +46,9 @@ export interface ActionContext {
     projectAddress?: string;
     userAddress?: string;
     delegationNoteId?: string;
+    fromStatementId?: string;
+    toStatementId?: string;
+    attesterAddress?: string;
     // ... other entity IDs as needed
   };
 

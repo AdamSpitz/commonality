@@ -37,23 +37,36 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  * 2. Checks that the implication appears in "implications to" queries
  * 3. Verifies the implication is queryable from both directions
  * 4. Verifies the attester is correctly recorded
+ * 5. Verifies that believers of the "from" statement appear as indirect supporters of the "to" statement
  *
  * @param clients - Test wallet and public clients
  * @param implicationsContract - The Implications contract instance
  * @param graphqlClient - GraphQL client for the indexer
  * @param fromStatementCid - IPFS CID of the statement that implies
  * @param toStatementCid - IPFS CID of the statement that is implied
+ * @param expectedIndirectSupporters - Optional: addresses of users who should appear as indirect supporters
  * @param options - Optional: control which checks run
  * @returns Transaction hash
  *
  * @example
  * ```typescript
+ * // Basic usage
  * const txHash = await attestImplicationChecked(
  *   clients,
  *   implicationsContract,
  *   graphqlClient,
  *   'QmSpecificStatement',
  *   'QmGeneralStatement'
+ * );
+ *
+ * // With expected indirect supporters verification
+ * const txHash = await attestImplicationChecked(
+ *   clients,
+ *   implicationsContract,
+ *   graphqlClient,
+ *   'QmSpecificStatement',
+ *   'QmGeneralStatement',
+ *   [user1.account, user2.account] // These users believe the specific statement
  * );
  * // State transition properties and invariants are automatically verified
  * ```
@@ -64,6 +77,7 @@ export async function attestImplicationChecked(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   fromStatementCid: string,
   toStatementCid: string,
+  expectedIndirectSupporters?: string[],
   options?: ActionRunOptions
 ): Promise<Hash> {
   const fromStatementId = cidToBytes32(fromStatementCid);
@@ -78,6 +92,7 @@ export async function attestImplicationChecked(
       toStatementId,
       attesterAddress,
     },
+    extra: expectedIndirectSupporters ? { expectedIndirectSupporters } : undefined,
   };
 
   return await runActionAndCheckProperties(

@@ -10,27 +10,24 @@
 
 import assert from 'assert';
 import {
-  believeStatement,
-  disbelieveStatement,
   uploadToIPFS,
   cidToBytes32,
-  attestImplication,
   type BeliefsContract,
   type ImplicationsContract,
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
   getStatement,
-  getUserBelief,
   getImplicationsTo,
   getIndirectSupporters,
   getIndirectSupporterCount,
   getUserIndirectSupport,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { believeStatementChecked, disbelieveStatementChecked } from './belief-actions-checked.js';
+import { attestImplicationChecked } from './implication-actions-checked.js';
 
 describe('Conceptspace Indirect Support', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -93,13 +90,8 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 and User2 believe the specific statement
     testLog('  User1 and User2 believe specific statement...');
-    let txHash = await believeStatement(user1Clients, beliefsContract, specificCid);
-    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user2Clients, beliefsContract, specificCid);
-    receipt = await user2Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, specificCid);
+    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, specificCid);
 
     // Verify direct support
     const specificStmt = assertNotNull(
@@ -116,14 +108,14 @@ describe('Conceptspace Indirect Support', () => {
 
     // Attester creates implication: specific -> general
     testLog('  Attester creates implication (specific -> general)...');
-    txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       specificCid,
-      generalCid
+      generalCid,
+      [user1Clients.account, user2Clients.account] // These users believe the specific statement
     );
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Now general statement should have 2 indirect supporters
     indirectCount = await getIndirectSupporterCount(graphqlClient, generalId);
@@ -170,33 +162,28 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes specific1, User2 believes specific2
     testLog('  User1 believes specific1, User2 believes specific2...');
-    let txHash = await believeStatement(user1Clients, beliefsContract, specific1Cid);
-    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user2Clients, beliefsContract, specific2Cid);
-    receipt = await user2Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, specific1Cid);
+    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, specific2Cid);
 
     // Create implications: specific1 -> general, specific2 -> general
     testLog('  Creating implications...');
-    txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       specific1Cid,
-      generalCid
+      generalCid,
+      [user1Clients.account]
     );
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       specific2Cid,
-      generalCid
+      generalCid,
+      [user2Clients.account]
     );
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Get indirect supporters list
     const indirectSupporters = await getIndirectSupporters(graphqlClient, generalId);
@@ -254,30 +241,23 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 and User2 believe the specific statement
     testLog('  User1 and User2 believe specific statement...');
-    let txHash = await believeStatement(user1Clients, beliefsContract, specificCid);
-    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user2Clients, beliefsContract, specificCid);
-    receipt = await user2Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, specificCid);
+    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, specificCid);
 
     // User1 explicitly disbelieves the general statement
     testLog('  User1 explicitly disbelieves the general statement...');
-    txHash = await disbelieveStatement(user1Clients, beliefsContract, generalCid);
-    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await disbelieveStatementChecked(user1Clients, beliefsContract, graphqlClient, generalCid);
 
     // Create implication: specific -> general
     testLog('  Creating implication (specific -> general)...');
-    txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       specificCid,
-      generalCid
+      generalCid,
+      [user1Clients.account, user2Clients.account]
     );
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Get indirect supporters - should only include User2, not User1
     const indirectSupporters = await getIndirectSupporters(graphqlClient, generalId);
@@ -343,31 +323,15 @@ describe('Conceptspace Indirect Support', () => {
 
     // Each user believes a different specific statement
     testLog('  Users believe their respective specific statements...');
-    let txHash = await believeStatement(user1Clients, beliefsContract, s1Cid);
-    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user2Clients, beliefsContract, s2Cid);
-    receipt = await user2Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user3Clients, beliefsContract, s3Cid);
-    receipt = await user3Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s1Cid);
+    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, s2Cid);
+    await believeStatementChecked(user3Clients, beliefsContract, graphqlClient, s3Cid);
 
     // Create convergent implications
     testLog('  Creating convergent implications...');
-    txHash = await attestImplication(attesterClients, implicationsContract, s1Cid, sGeneralCid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await attestImplication(attesterClients, implicationsContract, s2Cid, sGeneralCid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await attestImplication(attesterClients, implicationsContract, s3Cid, sGeneralCid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sGeneralCid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sGeneralCid, [user2Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, sGeneralCid, [user3Clients.account]);
 
     // Verify all 3 implications exist
     const implicationsTo = await getImplicationsTo(graphqlClient, sGeneralId);
@@ -429,23 +393,13 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes both S1 and S2
     testLog('  User1 believes both S1 and S2...');
-    let txHash = await believeStatement(user1Clients, beliefsContract, s1Cid);
-    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user1Clients, beliefsContract, s2Cid);
-    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s1Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s2Cid);
 
     // Create implications: S1 -> Target, S2 -> Target
     testLog('  Creating implications...');
-    txHash = await attestImplication(attesterClients, implicationsContract, s1Cid, sTargetCid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await attestImplication(attesterClients, implicationsContract, s2Cid, sTargetCid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sTargetCid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sTargetCid, [user1Clients.account]);
 
     // Get indirect supporters - User1 should appear only once despite believing 2 implying statements
     const indirectSupporters = await getIndirectSupporters(graphqlClient, sTargetId);
@@ -523,31 +477,15 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes all three specific statements
     testLog('  User1 believes S1, S2, S3...');
-    let txHash = await believeStatement(user1Clients, beliefsContract, s1Cid);
-    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user1Clients, beliefsContract, s2Cid);
-    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user1Clients, beliefsContract, s3Cid);
-    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s1Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s2Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s3Cid);
 
     // Create implications
     testLog('  Creating implications...');
-    txHash = await attestImplication(attesterClients, implicationsContract, s1Cid, target1Cid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await attestImplication(attesterClients, implicationsContract, s2Cid, target2Cid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await attestImplication(attesterClients, implicationsContract, s3Cid, target3Cid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, target1Cid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, target2Cid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, target3Cid, [user1Clients.account]);
 
     // Use the new getUserIndirectSupport function
     testLog('  Getting all indirect support for User1 with single function call...');
@@ -634,29 +572,17 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes both source statements
     testLog('  User1 believes source1 and source2...');
-    let txHash = await believeStatement(user1Clients, beliefsContract, source1Cid);
-    let receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await believeStatement(user1Clients, beliefsContract, source2Cid);
-    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, source1Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, source2Cid);
 
     // User1 explicitly disbelieves target1
     testLog('  User1 explicitly disbelieves target1...');
-    txHash = await disbelieveStatement(user1Clients, beliefsContract, target1Cid);
-    receipt = await user1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await disbelieveStatementChecked(user1Clients, beliefsContract, graphqlClient, target1Cid);
 
     // Create implications
     testLog('  Creating implications...');
-    txHash = await attestImplication(attesterClients, implicationsContract, source1Cid, target1Cid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    txHash = await attestImplication(attesterClients, implicationsContract, source2Cid, target2Cid);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source1Cid, target1Cid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source2Cid, target2Cid, [user1Clients.account]);
 
     // Use getUserIndirectSupport
     testLog('  Getting indirect support for User1...');
