@@ -166,3 +166,93 @@ export async function assertBeliefCountsMatch(
     `got ${statement.disbelieverCount} (from cached count)`
   );
 }
+
+/**
+ * State Consistency Invariant #2: Money conservation
+ *
+ * For any assurance contract (project):
+ * - totalReceived should equal the sum of all individual contribution amounts
+ *
+ * This checks that the cached aggregated total on the Project entity
+ * matches the sum of all individual Contribution records in the database.
+ *
+ * Note: This checks money conservation at the indexer level. A more complete
+ * check would also verify that the indexer's totalReceived matches the
+ * actual ETH balance on the blockchain, but that's a cross-system check
+ * (Section 8) rather than a pure state consistency invariant.
+ */
+export async function assertMoneyConservation(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  projectAddress: string
+): Promise<void> {
+  // Get the project with its cached totalReceived
+  const projectResult = await query<{
+    project: {
+      id: string;
+      totalReceived: string;
+      threshold: string;
+    } | null
+  }>(
+    graphqlClient,
+    `
+      query GetProject($id: ID!) {
+        project(id: $id) {
+          id
+          totalReceived
+          threshold
+        }
+      }
+    `,
+    { id: projectAddress.toLowerCase() }
+  );
+
+  const project = projectResult.project;
+  if (!project) {
+    throw new Error(`Project ${projectAddress} not found`);
+  }
+
+  // Get all contributions for this project
+  const contributionsResult = await query<{
+    contributions: {
+      items: Array<{
+        id: string;
+        participant: string;
+        amount: string;
+        timestamp: string;
+      }>
+    }
+  }>(
+    graphqlClient,
+    `
+      query GetProjectContributions($projectAddress: String!) {
+        contributions(where: { projectAddress: $projectAddress }) {
+          items {
+            id
+            participant
+            amount
+            timestamp
+          }
+        }
+      }
+    `,
+    { projectAddress: projectAddress.toLowerCase() }
+  );
+
+  const contributions = contributionsResult.contributions?.items || [];
+
+  // Sum up all individual contributions
+  const actualTotal = contributions.reduce((sum, contribution) => {
+    return sum + BigInt(contribution.amount);
+  }, 0n);
+
+  const cachedTotal = BigInt(project.totalReceived);
+
+  // Verify the totals match
+  assert.strictEqual(
+    cachedTotal,
+    actualTotal,
+    `Project ${projectAddress}: totalReceived mismatch. ` +
+    `Expected ${actualTotal.toString()} (sum of ${contributions.length} individual contributions), ` +
+    `got ${cachedTotal.toString()} (from cached totalReceived)`
+  );
+}

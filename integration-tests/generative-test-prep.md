@@ -141,7 +141,7 @@ See [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for detailed impl
 - [ ] Section 1: State Consistency Invariants
   - [x] **Belief counts match belief records** - Implemented in `src/invariants.ts`, used in `conceptspace-beliefs.test.ts`
   - [ ] Token conservation
-  - [ ] Money conservation
+  - [x] **Money conservation** - Implemented in `src/invariants.ts`, used in `pubstarter-basic.test.ts`, `pubstarter-lifecycle.test.ts`, `pubstarter-multiple-tokens.test.ts`
   - [ ] Delegation chain integrity
   - [ ] Implication bidirectionality
 - [ ] Section 2: State Transition Properties

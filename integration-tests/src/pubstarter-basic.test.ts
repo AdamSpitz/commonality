@@ -30,6 +30,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertMoneyConservation } from './invariants.js';
 
 
 describe('Pubstarter Basic Integration Tests', () => {
@@ -140,6 +141,9 @@ describe('Pubstarter Basic Integration Tests', () => {
       'Project ID (assurance contract address) should match'
     );
 
+    // Verify invariant: money conservation (should have 0 contributions initially)
+    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+
     // Contributor buys some tokens
     testLog('  Contributor buying tokens...');
     const assuranceContract: AssuranceContract = {
@@ -180,6 +184,10 @@ describe('Pubstarter Basic Integration Tests', () => {
     // Verify that funds were received
     assert.ok(BigInt(updatedProject.totalReceived) > 0n, 'Project should have received funds');
 
+    // Verify invariant: money conservation after contribution
+    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+
+    testLog('  ✓ Money conservation verified');
     testLog('  Test completed successfully!');
   });
 

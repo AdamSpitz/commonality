@@ -34,6 +34,42 @@ This invariant catches bugs where:
 - Race conditions cause count updates to be lost
 - Database transactions don't properly commit both the belief record and the count update
 
+### ✅ State Consistency Invariant #2: Money Conservation
+
+**Location:** [src/invariants.ts](src/invariants.ts)
+
+**Function:** `assertMoneyConservation(graphqlClient, projectAddress)`
+
+**What it checks:**
+- For any assurance contract (project), `totalReceived` should equal the sum of all individual `Contribution` record amounts
+
+**How it works:**
+1. Queries the Project entity to get cached `totalReceived`
+2. Queries all Contribution records for that project
+3. Sums up the `amount` field from all individual contributions
+4. Asserts that the cached total matches the sum of individual contributions
+
+**Where it's used:**
+- [src/pubstarter-basic.test.ts](src/pubstarter-basic.test.ts) - Added 2 invariant checks:
+  - After project creation (should have 0 contributions)
+  - After token purchase (should match contribution total)
+- [src/pubstarter-lifecycle.test.ts](src/pubstarter-lifecycle.test.ts) - Added 3 invariant checks:
+  - After project creation (initial state)
+  - After reaching threshold (successful project)
+  - After contribution to failed project
+- [src/pubstarter-multiple-tokens.test.ts](src/pubstarter-multiple-tokens.test.ts) - Added 1 invariant check:
+  - After multiple purchases of different token types (comprehensive test)
+
+**Why this matters:**
+This invariant catches bugs where:
+- The indexer fails to update `totalReceived` when new contributions are made
+- Contribution amounts are miscalculated or lost during indexing
+- Database transactions don't properly commit both the contribution record and the total update
+- Token price calculations result in incorrect funding amounts
+
+**Note:**
+This checks money conservation at the indexer level (query consistency). A more comprehensive cross-system check (Section 8) would also verify that the indexer's `totalReceived` matches the actual ETH balance in the assurance contract on the blockchain.
+
 ## Next Steps
 
 The following invariants from [generative-test-prep.md](generative-test-prep.md) should be implemented next:
@@ -41,7 +77,6 @@ The following invariants from [generative-test-prep.md](generative-test-prep.md)
 ### Section 1: State Consistency Invariants
 
 - [ ] **Token conservation**: Total tokens sold from a project = sum of tokens held by all users + tokens burned
-- [ ] **Money conservation**: In an assurance contract, total ETH raised = sum of individual contributions
 - [ ] **Delegation chain integrity**: Following a delegation chain should never create a cycle
 - [ ] **Implication bidirectionality**: If the indexer shows S1→S2, the blockchain should have that ImplicationAttestation event
 

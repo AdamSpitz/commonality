@@ -31,6 +31,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertMoneyConservation } from './invariants.js';
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
@@ -108,6 +109,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     assert.strictEqual(initialProject.totalReceived, '0', 'Project should start with 0 received');
     assert.strictEqual(initialProject.threshold, threshold.toString(), 'Threshold should match');
 
+    // Verify invariant: money conservation (should have 0 contributions initially)
+    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+
     // Contributor buys enough tokens to meet threshold
     testLog('  Contributor buying 50 tokens (0.5 ETH total)...');
     const assuranceContract: AssuranceContract = {
@@ -137,6 +141,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     );
     testLog(`  Project total received: ${fundedProject.totalReceived}`);
     assert.ok(BigInt(fundedProject.totalReceived) >= threshold, 'Project should have reached threshold');
+
+    // Verify invariant: money conservation after contribution
+    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Get creator's balance before withdrawal
     const balanceBefore = await creatorClients.publicClient.getBalance({
@@ -247,6 +254,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       await getProject(graphqlClient, projectDetails.assuranceContractAddress),
       'Unfunded project'
     );
+
+    // Verify invariant: money conservation after contribution (even though project failed)
+    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
     testLog(`  Project total received: ${unfundedProject.totalReceived}`);
     assert.ok(BigInt(unfundedProject.totalReceived) < threshold, 'Project should not have reached threshold');
 
