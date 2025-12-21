@@ -44,6 +44,29 @@ services:
     networks:
       - commonality
 
+  # Local IPFS node for testing
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: commonality-ipfs
+    ports:
+      - "5001:5001"  # API port
+      - "8080:8080"  # Gateway port
+    volumes:
+      # Use ephemeral storage - fresh IPFS node each run
+      - ipfs-data:/data/ipfs
+    environment:
+      # Enable writeable gateway for uploads
+      - IPFS_GATEWAY_WRITABLE=true
+    healthcheck:
+      test: |
+        wget --spider -q http://localhost:5001/api/v0/version || exit 1
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+    networks:
+      - commonality
+
   # Ponder indexer service
   indexer:
     build:
@@ -59,11 +82,16 @@ services:
     depends_on:
       hardhat-node:
         condition: service_healthy
+      ipfs:
+        condition: service_healthy
     environment:
       # Point to hardhat-node service
       - PONDER_RPC_URL_31337=http://hardhat-node:8545
       # Use ephemeral in-memory database for tests (fresh state each run)
       - PONDER_EPHEMERAL=true
+      # Point to local IPFS gateway
+      - IPFS_GATEWAY=http://ipfs:8080/ipfs
+      - IPFS_API=http://ipfs:5001
     # Load contract addresses from .env file
     env_file:
       - .env
@@ -82,3 +110,6 @@ services:
 networks:
   commonality:
     driver: bridge
+
+volumes:
+  ipfs-data:

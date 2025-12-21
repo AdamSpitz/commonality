@@ -67,8 +67,8 @@ cleanup_processes() {
 # Set up cleanup on script exit
 trap cleanup_processes EXIT INT TERM
 
-# Step 1: Start Hardhat node and deploy contracts (using Docker)
-log_message "=== Step 1: Starting Hardhat Node and Deploying Contracts (Docker) ==="
+# Step 1: Start Hardhat node, IPFS, and deploy contracts (using Docker)
+log_message "=== Step 1: Starting Hardhat Node, IPFS, and Deploying Contracts (Docker) ==="
 log_message ""
 
 # Change to project root for docker-compose
@@ -78,13 +78,13 @@ cd "$SCRIPT_DIR/.."
 log_message "Ensuring clean state..."
 docker-compose down >> "$ORCHESTRATION_LOG" 2>&1 || true
 
-# Start hardhat node in background
-log_message "Starting Hardhat node container..."
-if ! docker-compose up -d hardhat-node >> "$ORCHESTRATION_LOG" 2>&1; then
-    log_message "✗ Failed to start Hardhat node container!"
+# Start hardhat node and IPFS in background
+log_message "Starting Hardhat node and IPFS containers..."
+if ! docker-compose up -d hardhat-node ipfs >> "$ORCHESTRATION_LOG" 2>&1; then
+    log_message "✗ Failed to start containers!"
     log_message ""
     log_message "=== Docker logs ==="
-    docker-compose logs hardhat-node | tail -n 20
+    docker-compose logs hardhat-node ipfs | tail -n 20
     exit 1
 fi
 
@@ -113,6 +113,31 @@ fi
 
 log_message "✓ Hardhat node is ready"
 
+# Wait for IPFS to be healthy
+log_message "Waiting for IPFS node to be ready..."
+WAIT_COUNT=0
+MAX_WAIT=30
+while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+    if docker-compose ps ipfs | grep -q "healthy"; then
+        break
+    fi
+    sleep 1
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    if [ $((WAIT_COUNT % 5)) -eq 0 ]; then
+        log_message "  Still waiting... ($WAIT_COUNT/$MAX_WAIT)"
+    fi
+done
+
+if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
+    log_message "✗ IPFS node failed to become healthy!"
+    log_message ""
+    log_message "=== Docker logs ==="
+    docker-compose logs ipfs | tail -n 20
+    exit 1
+fi
+
+log_message "✓ IPFS node is ready"
+
 # Deploy contracts
 log_message "Deploying contracts..."
 if ! docker-compose run --rm hardhat-deploy >> "$ORCHESTRATION_LOG" 2>&1; then
@@ -123,7 +148,7 @@ if ! docker-compose run --rm hardhat-deploy >> "$ORCHESTRATION_LOG" 2>&1; then
     exit 1
 fi
 
-log_message "✓ Hardhat node started and contracts deployed successfully"
+log_message "✓ Hardhat node and IPFS started, contracts deployed successfully"
 log_message ""
 
 # Step 2: Start indexer (Docker)
@@ -198,6 +223,7 @@ log_message "=== Integration Test Suite Completed Successfully ==="
 log_message ""
 log_message "Summary:"
 log_message "  ✓ Hardhat node started and contracts deployed (Docker)"
+log_message "  ✓ IPFS node started (Docker)"
 log_message "  ✓ Ponder indexer started and synced (Docker)"
 log_message "  ✓ All integration tests passed"
 log_message "  ✓ Docker containers cleaned up"
@@ -207,6 +233,7 @@ log_message "  Full orchestration log: $ORCHESTRATION_LOG"
 log_message ""
 log_message "To view Docker logs:"
 log_message "  docker-compose logs hardhat-node"
+log_message "  docker-compose logs ipfs"
 log_message "  docker-compose logs indexer"
 
 exit 0

@@ -27,7 +27,6 @@ export function StatementPage() {
   const [contentError, setContentError] = useState<string | null>(null)
 
   const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
-  const PINATA_GATEWAY = import.meta.env.VITE_PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs'
 
   const loadStatementData = async () => {
     if (!statementId) {
@@ -44,9 +43,9 @@ export function StatementPage() {
       const executor = createGraphQLExecutor(GRAPHQL_URL)
 
       // Load statement with content and metrics using the new SDK function
+      // IPFS gateway is configured via VITE_IPFS_GATEWAY env var
       const result = await getStatementWithContent(executor, statementId, {
         includeMetrics: true,
-        ipfsGateway: PINATA_GATEWAY,
       })
 
       if (!result) {

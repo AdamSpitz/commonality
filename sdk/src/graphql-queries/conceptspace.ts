@@ -463,8 +463,6 @@ export interface StatementWithContent {
 export interface GetStatementWithContentOptions {
   /** Include support metrics (believer/disbeliever/indirect supporter counts) */
   includeMetrics?: boolean;
-  /** IPFS gateway URL (defaults to Pinata public gateway) */
-  ipfsGateway?: string;
   /** Timeout for IPFS fetch in milliseconds (defaults to 10000) */
   timeout?: number;
   /** Attester address to use for indirect supporter calculations */
@@ -485,41 +483,6 @@ export interface GetUserIndirectSupportOptions {
   offset?: number;
 }
 
-/**
- * Fetch statement content from IPFS with timeout
- */
-async function fetchIPFSContent(
-  cid: string,
-  gateway: string,
-  timeoutMs: number
-): Promise<StatementContent | null> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const url = `${gateway}/${cid}`;
-    const response = await fetch(url, { signal: controller.signal });
-
-    if (!response.ok) {
-      console.error(`IPFS fetch failed: ${response.status} ${response.statusText}`);
-      return null;
-    }
-
-    const content = await response.json();
-    return content as StatementContent;
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        console.error(`IPFS fetch timeout after ${timeoutMs}ms`);
-      } else {
-        console.error('IPFS fetch error:', error.message);
-      }
-    }
-    return null;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
 
 /**
  * Get statement with its IPFS content and optional metrics.
@@ -555,9 +518,9 @@ async function fetchIPFSContent(
  * });
  * console.log('Metrics:', result?.metrics);
  *
- * // Custom gateway
+ * // With custom timeout
  * const result = await getStatementWithContent(executor, statementId, {
- *   ipfsGateway: 'https://ipfs.io/ipfs'
+ *   timeout: 5000
  * });
  * ```
  */
@@ -568,7 +531,6 @@ export async function getStatementWithContent(
 ): Promise<StatementWithContent | null> {
   const {
     includeMetrics = false,
-    ipfsGateway = 'https://gateway.pinata.cloud/ipfs',
     timeout = 10000,
     attesterAddress,
   } = options;
@@ -582,7 +544,9 @@ export async function getStatementWithContent(
   // Fetch IPFS content if CID exists
   let content: StatementContent | null = null;
   if (statement.cid) {
-    content = await fetchIPFSContent(statement.cid, ipfsGateway, timeout);
+    // Use the unified fetchFromIPFS which respects IPFS_GATEWAY env var
+    const { fetchFromIPFS } = await import('../actions/common.js');
+    content = await fetchFromIPFS(statement.cid, timeout) as StatementContent | null;
   }
 
   // Fetch metrics if requested

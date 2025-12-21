@@ -8,6 +8,9 @@ export {
   cidToBytes32,
   bytes32ToCid,
   uploadToIPFS,
+  fetchFromIPFS,
+  fetchFromMockIPFS,
+  clearMockIPFS,
   type TestClients,
 } from './common.js';
 
