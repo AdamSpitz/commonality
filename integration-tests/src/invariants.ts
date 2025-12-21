@@ -12,14 +12,14 @@ import assert from 'assert';
 /**
  * GraphQL client type (simple HTTP client)
  */
-interface GraphQLClient {
+export interface GraphQLClient {
   url: string;
 }
 
 /**
  * GraphQL executor type (in-process executor with indexer client)
  */
-interface GraphQLExecutor {
+export interface GraphQLExecutor {
   indexerClient: GraphQLClient;
 }
 
@@ -185,62 +185,23 @@ export async function assertMoneyConservation(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   projectAddress: string
 ): Promise<void> {
-  // Get the project with its cached totalReceived
-  const projectResult = await query<{
-    project: {
-      id: string;
-      totalReceived: string;
-      threshold: string;
-    } | null
-  }>(
-    graphqlClient,
-    `
-      query GetProject($id: ID!) {
-        project(id: $id) {
-          id
-          totalReceived
-          threshold
-        }
-      }
-    `,
-    { id: projectAddress.toLowerCase() }
-  );
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getProject, getProjectContributions } = await import('@commonality/sdk');
 
-  const project = projectResult.project;
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get the project with its cached totalReceived
+  const project = await getProject(executor, projectAddress.toLowerCase());
+
   if (!project) {
     throw new Error(`Project ${projectAddress} not found`);
   }
 
   // Get all contributions for this project
-  const contributionsResult = await query<{
-    contributions: {
-      items: Array<{
-        id: string;
-        participant: string;
-        amount: string;
-        timestamp: string;
-      }>
-    }
-  }>(
-    graphqlClient,
-    `
-      query GetProjectContributions($projectAddress: String!) {
-        contributions(where: { projectAddress: $projectAddress }) {
-          items {
-            id
-            participant
-            amount
-            timestamp
-          }
-        }
-      }
-    `,
-    { projectAddress: projectAddress.toLowerCase() }
-  );
+  const contributions = await getProjectContributions(executor, projectAddress.toLowerCase());
 
-  const contributions = contributionsResult.contributions?.items || [];
-
-  // Sum up all individual contributions
+  // Sum up all individual contribution amounts
   const actualTotal = contributions.reduce((sum, contribution) => {
     return sum + BigInt(contribution.amount);
   }, 0n);
@@ -252,7 +213,7 @@ export async function assertMoneyConservation(
     cachedTotal,
     actualTotal,
     `Project ${projectAddress}: totalReceived mismatch. ` +
-    `Expected ${actualTotal.toString()} (sum of ${contributions.length} individual contributions), ` +
+    `Expected ${actualTotal.toString()} (sum from ${contributions.length} individual contributions), ` +
     `got ${cachedTotal.toString()} (from cached totalReceived)`
   );
 }

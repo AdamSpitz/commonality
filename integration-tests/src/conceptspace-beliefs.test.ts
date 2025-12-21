@@ -6,13 +6,14 @@
  * - Express disbelief
  * - Change opinions
  * - Multiple users and statements
+ *
+ * NOTE: This test file has been refactored to use the action framework,
+ * which automatically checks state transition properties and invariants.
  */
 
 import assert from 'assert';
 import {
   believeStatement,
-  disbelieveStatement,
-  clearOpinion,
   uploadToIPFS,
   cidToBytes32,
   NO_OPINION,
@@ -31,6 +32,11 @@ import {
 import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { assertBeliefCountsMatch } from './invariants.js';
+import {
+  believeStatementChecked,
+  disbelieveStatementChecked,
+  clearOpinionChecked,
+} from './belief-actions-checked.js';
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -72,80 +78,44 @@ describe('Conceptspace Beliefs', () => {
     testLog(`  Statement: "${statementContent.text}"`);
     testLog(`  Statement ID: ${statementId}`);
 
-    // Express belief
+    // Express belief - properties checked automatically (includes waitForSync)
     testLog('  User believes the statement...');
-    let txHash = await believeStatement(clients, beliefsContract, statementCid);
-    let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
-    // Verify belief was recorded
+    // Basic verification (detailed checks happen in the action framework)
     let userBelief = assertNotNull(
       await getUserBelief(graphqlClient, clients.account, statementId),
       'User belief'
     );
     assert.strictEqual(userBelief.beliefState, BELIEVES, 'User should believe the statement');
 
-    let statement = assertNotNull(
-      await getStatement(graphqlClient, statementId),
-      'Statement'
-    );
-    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
-    assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
+    testLog('  ✓ Belief recorded correctly (state transitions verified)');
 
-    // Verify invariant: belief counts match individual records
-    await assertBeliefCountsMatch(graphqlClient, statementId);
-
-    testLog('  ✓ Belief recorded correctly');
-
-    // Change to disbelief
+    // Change to disbelief - properties checked automatically (includes waitForSync)
     testLog('  User changes to disbelief...');
-    txHash = await disbelieveStatement(clients, beliefsContract, statementCid);
-    receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await disbelieveStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
-    // Verify disbelief was recorded
+    // Basic verification
     userBelief = assertNotNull(
       await getUserBelief(graphqlClient, clients.account, statementId),
       'User belief'
     );
     assert.strictEqual(userBelief.beliefState, DISBELIEVES, 'User should disbelieve the statement');
 
-    statement = assertNotNull(
-      await getStatement(graphqlClient, statementId),
-      'Statement'
-    );
-    assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
-    assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
+    testLog('  ✓ Disbelief recorded correctly (state transitions verified)');
 
-    // Verify invariant: belief counts match individual records
-    await assertBeliefCountsMatch(graphqlClient, statementId);
-
-    testLog('  ✓ Disbelief recorded correctly');
-
-    // Clear opinion
+    // Clear opinion - properties checked automatically (includes waitForSync)
     testLog('  User clears opinion...');
-    txHash = await clearOpinion(clients, beliefsContract, statementCid);
-    receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await clearOpinionChecked(clients, beliefsContract, graphqlClient, statementCid);
 
-    // Verify opinion was cleared
+    // Basic verification
     userBelief = assertNotNull(
       await getUserBelief(graphqlClient, clients.account, statementId),
       'User belief'
     );
     assert.strictEqual(userBelief.beliefState, NO_OPINION, 'User should have no opinion');
 
-    statement = assertNotNull(
-      await getStatement(graphqlClient, statementId),
-      'Statement'
-    );
-    assert.strictEqual(statement.believerCount, 0, 'Statement should have 0 believers');
-    assert.strictEqual(statement.disbelieverCount, 0, 'Statement should have 0 disbelievers');
-
-    // Verify invariant: belief counts match individual records
-    await assertBeliefCountsMatch(graphqlClient, statementId);
-
-    testLog('  ✓ Opinion cleared correctly');
+    testLog('  ✓ Opinion cleared correctly (state transitions verified)');
   });
 
   it('should track beliefs from multiple users', async function() {
@@ -164,11 +134,9 @@ describe('Conceptspace Beliefs', () => {
 
     testLog(`  Statement: "${statementContent.text}"`);
 
-    // User 1 believes
+    // User 1 believes - properties checked automatically (includes waitForSync)
     testLog('  User 1 believes...');
-    let txHash = await believeStatement(clients1, beliefsContract, statementCid);
-    let receipt = await clients1.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(clients1, beliefsContract, graphqlClient, statementCid);
 
     let statement = assertNotNull(
       await getStatement(graphqlClient, statementId),
@@ -176,23 +144,15 @@ describe('Conceptspace Beliefs', () => {
     );
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
 
-    // Verify invariant: belief counts match individual records
-    await assertBeliefCountsMatch(graphqlClient, statementId);
-
-    // User 2 also believes
+    // User 2 also believes - properties checked automatically (includes waitForSync)
     testLog('  User 2 believes...');
-    txHash = await believeStatement(clients2, beliefsContract, statementCid);
-    receipt = await clients2.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
 
     statement = assertNotNull(
       await getStatement(graphqlClient, statementId),
       'Statement'
     );
     assert.strictEqual(statement.believerCount, 2, 'Statement should have 2 believers');
-
-    // Verify invariant: belief counts match individual records
-    await assertBeliefCountsMatch(graphqlClient, statementId);
 
     // Verify both users' beliefs
     const user1Belief = assertNotNull(
@@ -206,13 +166,11 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(user1Belief.beliefState, BELIEVES, 'User 1 should believe');
     assert.strictEqual(user2Belief.beliefState, BELIEVES, 'User 2 should believe');
 
-    testLog('  ✓ Multiple users tracked correctly');
+    testLog('  ✓ Multiple users tracked correctly (state transitions verified)');
 
-    // User 2 changes to disbelief
+    // User 2 changes to disbelief - properties checked automatically (includes waitForSync)
     testLog('  User 2 changes to disbelief...');
-    txHash = await disbelieveStatement(clients2, beliefsContract, statementCid);
-    receipt = await clients2.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await disbelieveStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
 
     statement = assertNotNull(
       await getStatement(graphqlClient, statementId),
@@ -221,10 +179,7 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
     assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
 
-    // Verify invariant: belief counts match individual records
-    await assertBeliefCountsMatch(graphqlClient, statementId);
-
-    testLog('  ✓ User state changes tracked correctly');
+    testLog('  ✓ User state changes tracked correctly (state transitions verified)');
   });
 
   it('should handle multiple statements independently', async function() {
@@ -250,16 +205,12 @@ describe('Conceptspace Beliefs', () => {
     testLog(`  Statement 1: "${statement1Content.text}"`);
     testLog(`  Statement 2: "${statement2Content.text}"`);
 
-    // Believe statement 1, disbelieve statement 2
+    // Believe statement 1, disbelieve statement 2 - properties checked automatically (includes waitForSync)
     testLog('  User believes statement 1...');
-    let txHash = await believeStatement(clients, beliefsContract, statement1Cid);
-    let receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(clients, beliefsContract, graphqlClient, statement1Cid);
 
     testLog('  User disbelieves statement 2...');
-    txHash = await disbelieveStatement(clients, beliefsContract, statement2Cid);
-    receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await disbelieveStatementChecked(clients, beliefsContract, graphqlClient, statement2Cid);
 
     // Verify both statements tracked independently
     const belief1 = assertNotNull(
@@ -288,11 +239,7 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(stmt2.believerCount, 0);
     assert.strictEqual(stmt2.disbelieverCount, 1);
 
-    // Verify invariant: belief counts match individual records for both statements
-    await assertBeliefCountsMatch(graphqlClient, statement1Id);
-    await assertBeliefCountsMatch(graphqlClient, statement2Id);
-
-    testLog('  ✓ Multiple statements tracked independently');
+    testLog('  ✓ Multiple statements tracked independently (state transitions verified)');
   });
 
   it('should fetch statement metadata using getStatementWithContent()', async function() {
