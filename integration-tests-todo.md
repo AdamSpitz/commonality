@@ -289,11 +289,10 @@ Based on the [queries-and-actions.md](specs/queries-and-actions.md) spec and the
 
 ### ⚠️ Areas for Improvement
 
-1. **Test isolation**: Some tests may have interdependencies (tests create data that affects other tests)
-2. **Cleanup**: No explicit cleanup between tests (relying on fresh hardhat/indexer for each run)
-3. **Performance**: Some tests have very long timeouts (40 seconds) - could indicate slow operations
-4. **Assertions**: Some tests could benefit from more granular assertions
-5. **Error cases**: More negative tests (testing failure modes) would be valuable
+1. **Cleanup**: No explicit cleanup between tests (relying on fresh hardhat/indexer for each run)
+2. **Performance**: Some tests have very long timeouts (40 seconds) - could indicate slow operations
+3. **Assertions**: Some tests could benefit from more granular assertions
+4. **Error cases**: More negative tests (testing failure modes) would be valuable
 
 ## Recommendations
 

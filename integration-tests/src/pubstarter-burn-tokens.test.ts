@@ -144,10 +144,11 @@ describe('Pubstarter Token Burning Tests', () => {
     });
     await waitForSync(graphqlClient, donorReceipt.blockNumber, 15000);
 
-    // Verify no burns yet
-    testLog('  Verifying no burns exist yet...');
+    // Check initial burn count for this token (may be non-zero on non-fresh blockchain)
+    testLog('  Checking initial burn count...');
     let burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
-    assert.strictEqual(burns.length, 0, 'Should have no burns initially');
+    const initialBurnCount = burns.length;
+    testLog(`  Initial burns for this token: ${initialBurnCount}`);
 
     // Donor burns all their tokens
     testLog('  Donor burning all tokens...');
@@ -168,9 +169,11 @@ describe('Pubstarter Token Burning Tests', () => {
     // Verify burn was tracked
     testLog('  Verifying burn was tracked...');
     burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
-    assert.strictEqual(burns.length, 1, 'Should have one burn record');
+    assert.strictEqual(burns.length, initialBurnCount + 1, 'Should have one more burn record');
 
-    const burn = burns[0];
+    // Find the burn from our donor
+    const burn = burns.find(b => b.burner.toLowerCase() === donorClients.account.toLowerCase());
+    assert.ok(burn, 'Should find burn from donor');
     assert.strictEqual(
       burn.erc1155Address.toLowerCase(),
       projectDetails.tokenAddress.toLowerCase(),
@@ -197,10 +200,19 @@ describe('Pubstarter Token Burning Tests', () => {
     // Verify query by user works
     testLog('  Verifying user-specific burn query...');
     const donorBurns = await getUserTokenBurns(graphqlClient, donorClients.account);
-    assert.strictEqual(donorBurns.length, 1, 'Donor should have one burn');
+    assert(donorBurns.length >= 1, 'Donor should have at least one burn');
+
+    // Check that donor has a burn for this specific token
+    const donorBurnForThisToken = donorBurns.find(
+      b => b.erc1155Address.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
+    );
+    assert.ok(donorBurnForThisToken, 'Donor should have burn for this token');
 
     const investorBurns = await getUserTokenBurns(graphqlClient, investorClients.account);
-    assert.strictEqual(investorBurns.length, 0, 'Investor should have no burns');
+    const investorBurnsForThisToken = investorBurns.filter(
+      b => b.erc1155Address.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
+    );
+    assert.strictEqual(investorBurnsForThisToken.length, 0, 'Investor should have no burns for this token yet');
 
     testLog('  ✓ Donor has burns, investor does not');
 
@@ -211,14 +223,14 @@ describe('Pubstarter Token Burning Tests', () => {
       projectDetails.tokenAddress,
       donorClients.account
     );
-    assert.strictEqual(donorTokenBurns.length, 1, 'Should find donor burns for this token');
+    assert(donorTokenBurns.length >= 1, 'Should find at least one donor burn for this token');
 
     const investorTokenBurns = await getTokenBurnsByUser(
       graphqlClient,
       projectDetails.tokenAddress,
       investorClients.account
     );
-    assert.strictEqual(investorTokenBurns.length, 0, 'Should find no investor burns');
+    assert.strictEqual(investorTokenBurns.length, 0, 'Should find no investor burns for this token yet');
 
     testLog('  ✓ Combined query works correctly');
 
@@ -241,7 +253,7 @@ describe('Pubstarter Token Burning Tests', () => {
     // Verify partial burn
     testLog('  Verifying partial burn...');
     burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
-    assert.strictEqual(burns.length, 2, 'Should have two burn records now');
+    assert.strictEqual(burns.length, initialBurnCount + 2, 'Should have two more burn records now');
 
     const investorBurn = burns.find(
       b => b.burner.toLowerCase() === investorClients.account.toLowerCase()

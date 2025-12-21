@@ -471,8 +471,6 @@ describe('Conceptspace Indirect Support', () => {
   it('should efficiently get all indirect support for a user (getUserIndirectSupport)', async function() {
     this.timeout(40000);
 
-    // Use a fresh user account (ACCOUNT_4) that hasn't been used in previous tests
-    // to avoid test pollution
     const user1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 

@@ -180,7 +180,9 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Verify active listings query
     const activeListings = await getActiveSaleListings(graphqlClient, projectDetails.marketplaceAddress);
-    assert.strictEqual(activeListings.length, 1, 'Should have 1 active listing');
+    assert(activeListings.length >= 1, 'Should have at least 1 active listing');
+    const ourListing = activeListings.find(l => l.listingId === '0');
+    assert.ok(ourListing, 'Should find our listing');
 
     // Buyer fulfills the sale listing (buys 3 tokens)
     testLog('  Buyer purchasing from sale listing...');
@@ -208,12 +210,14 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(updatedListing.remainingCount, '2', 'Should have 2 tokens remaining');
     assert.strictEqual(updatedListing.status, 'active', 'Listing should still be active');
 
-    // Query trades
+    // Query trades for this marketplace
     const trades = await getMarketplaceTrades(graphqlClient, projectDetails.marketplaceAddress);
-    testLog(`  Found ${trades.length} trade(s)`);
-    assert.strictEqual(trades.length, 1, 'Should have 1 trade');
+    testLog(`  Found ${trades.length} trade(s) for this marketplace`);
+    assert(trades.length >= 1, 'Should have at least 1 trade');
 
-    const trade = trades[0];
+    // Find our trade (the one involving our buyer)
+    const trade = trades.find(t => t.buyer.toLowerCase() === buyerClients.account.toLowerCase());
+    assert.ok(trade, 'Should find our trade');
     assert.strictEqual(trade.buyer.toLowerCase(), buyerClients.account.toLowerCase(), 'Trade buyer should match');
     assert.strictEqual(trade.seller.toLowerCase(), sellerClients.account.toLowerCase(), 'Trade seller should match');
     assert.strictEqual(trade.count, '3', 'Trade count should be 3');
@@ -324,9 +328,10 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
     assert.strictEqual(cancelledListing.status, 'cancelled', 'Listing should be cancelled');
 
-    // Verify it's not in active listings
+    // Verify our listing is not in active listings
     const activeListings = await getActiveSaleListings(graphqlClient, projectDetails.marketplaceAddress);
-    assert.strictEqual(activeListings.length, 0, 'Should have no active listings');
+    const ourActiveListing = activeListings.find(l => l.listingId === '0');
+    assert.strictEqual(ourActiveListing, undefined, 'Our listing should not be in active listings');
 
     testLog('  Cancellation test passed!');
   });
@@ -442,11 +447,13 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(updatedOrder.remainingCount, '2', 'Should have 2 tokens remaining');
     assert.strictEqual(updatedOrder.status, 'active', 'Order should still be active');
 
-    // Query trades
+    // Query trades for this token
     const trades = await getTokenTrades(graphqlClient, projectDetails.marketplaceAddress, 1n);
-    assert.strictEqual(trades.length, 1, 'Should have 1 trade');
+    assert(trades.length >= 1, 'Should have at least 1 trade');
 
-    const trade = trades[0];
+    // Find our trade (the one with our seller)
+    const trade = trades.find(t => t.seller.toLowerCase() === sellerClients.account.toLowerCase());
+    assert.ok(trade, 'Should find our trade');
     assert.strictEqual(trade.orderType, 'buy_order', 'Trade type should be buy_order');
     assert.strictEqual(trade.count, '2', 'Trade count should be 2');
 
@@ -536,9 +543,10 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
     assert.strictEqual(cancelledOrder.status, 'cancelled', 'Order should be cancelled');
 
-    // Verify it's not in active orders
+    // Verify our order is not in active orders
     const activeOrders = await getActiveBuyOrders(graphqlClient, projectDetails.marketplaceAddress);
-    assert.strictEqual(activeOrders.length, 0, 'Should have no active buy orders');
+    const ourActiveOrder = activeOrders.find(o => o.orderId === '0');
+    assert.strictEqual(ourActiveOrder, undefined, 'Our order should not be in active orders');
 
     testLog('  Buy order cancellation test passed!');
   });
