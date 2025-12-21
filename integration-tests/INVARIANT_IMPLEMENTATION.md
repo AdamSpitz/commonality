@@ -132,6 +132,86 @@ await buyProjectTokensChecked(clients, assuranceContract, graphqlClient, params)
 // All properties automatically verified!
 ```
 
+### ✅ State Transition Property #2: Implication Bidirectionality
+
+**Location:** [src/implication-action-properties.ts](src/implication-action-properties.ts)
+
+**Property:** `implicationBidirectionalityProperty`
+
+**What it checks:**
+- When an attester creates an implication from statement A to statement B:
+  - The implication appears in "implications from A" queries
+  - The implication appears in "implications to B" queries
+  - Both counts increase by exactly 1 (unless the implication already existed)
+  - The attester is correctly recorded
+
+**How it works:**
+1. **Before state capture:** Queries implications from/to both statements and checks if this specific implication already exists
+2. **Action execution:** Executes `attestImplication` and waits for indexer sync
+3. **After state capture:** Re-queries implications from/to both statements
+4. **Verification:**
+   - If implication didn't exist before: asserts both counts increased by 1
+   - If implication already existed: asserts counts remained the same (idempotent)
+   - Verifies the specific implication can be queried from both directions
+   - Verifies attester identity is preserved
+
+**Integrated with action framework:**
+- **Action metadata:** `attestImplicationMetadata` in [src/implication-action-properties.ts](src/implication-action-properties.ts)
+- **Checked wrapper:** `attestImplicationChecked` in [src/implication-actions-checked.ts](src/implication-actions-checked.ts)
+- **Invariant check:** `implicationBidirectionalityInvariant` verifies query consistency from both directions (marked expensive)
+
+**Where it's used:**
+- [src/conceptspace-implications.test.ts](src/conceptspace-implications.test.ts) - Refactored to use `attestImplicationChecked` (4 calls across all tests)
+  - Test 1: Single implication attestation
+  - Test 2: Implication for indirect support tracking
+  - Test 3: Multiple implications to same statement
+  - Test 4: Implication chains (non-transitive verification)
+
+**Why this matters:**
+This property catches bugs where:
+- The blockchain event was emitted but not properly indexed
+- Implications are queryable from one direction but not the other
+- Duplicate implications are created instead of being idempotent
+- The attester identity is lost or corrupted during indexing
+- The indexer creates asymmetric graph edges
+
+**Benefits of the action framework approach:**
+- **DRY:** Tests are much shorter - no need to manually query and verify from both directions
+- **Consistency:** Same property checks run on every `attestImplication` call across all tests
+- **Composability:** Ready to use in generative testing scenarios
+- **Bidirectional verification:** Automatically ensures graph consistency
+- **Better errors:** Property violations include context about which direction failed
+
+**Example usage:**
+```typescript
+// Old way (manual):
+const txHash = await attestImplication(
+  clients,
+  implicationsContract,
+  fromCid,
+  toCid
+);
+const receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
+await waitForSync(graphqlClient, receipt.blockNumber);
+
+// Manually verify from both directions
+const implicationsFrom = await getImplicationsFrom(graphqlClient, fromId);
+assert.strictEqual(implicationsFrom.length, 1);
+const implicationsTo = await getImplicationsTo(graphqlClient, toId);
+assert.strictEqual(implicationsTo.length, 1);
+// ... more manual checks
+
+// New way (automatic):
+await attestImplicationChecked(
+  clients,
+  implicationsContract,
+  graphqlClient,
+  fromCid,
+  toCid
+);
+// All properties automatically verified from both directions!
+```
+
 ## Next Steps
 
 The following invariants from [generative-test-prep.md](generative-test-prep.md) should be implemented next:
@@ -146,6 +226,7 @@ The following invariants from [generative-test-prep.md](generative-test-prep.md)
 
 - [x] **Belief transitions**: When user changes from BELIEVES to DISBELIEVES, verify atomic state change - Implemented using action framework in `belief-action-properties.ts`, used in `conceptspace-beliefs.test.ts`
 - [x] **Project funding**: When someone buys tokens worth X ETH, verify `totalReceived` increases by exactly X - Implemented using action framework in `funding-action-properties.ts`, used in `pubstarter-*.test.ts`
+- [x] **Implication bidirectionality**: When attesting S1→S2, verify implication appears in both "from" and "to" queries - Implemented using action framework in `implication-action-properties.ts`, used in `conceptspace-implications.test.ts`
 - [ ] **Indirect support propagation**: When you attest S1→S2, verify believers of S1 appear in S2's indirect supporters
 - [ ] **Token transfers**: When tokens move via secondary market, verify balances change correctly
 

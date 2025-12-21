@@ -143,8 +143,13 @@ See [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for detailed impl
   - [ ] Token conservation
   - [x] **Money conservation** - Implemented in `src/invariants.ts`, used in `pubstarter-basic.test.ts`, `pubstarter-lifecycle.test.ts`, `pubstarter-multiple-tokens.test.ts`
   - [ ] Delegation chain integrity
-  - [ ] Implication bidirectionality
-- [ ] Section 2: State Transition Properties
+  - [ ] Implication bidirectionality (blockchain-to-indexer verification)
+- [x] Section 2: State Transition Properties
+  - [x] **Belief transitions** - Implemented in `src/belief-action-properties.ts`, used in `conceptspace-beliefs.test.ts`
+  - [x] **Project funding** - Implemented in `src/funding-action-properties.ts`, used in `pubstarter-*.test.ts`
+  - [x] **Implication bidirectionality** - Implemented in `src/implication-action-properties.ts`, used in `conceptspace-implications.test.ts`
+  - [ ] Indirect support propagation
+  - [ ] Token transfers
 - [ ] Section 3: Query Consistency
 - [ ] Section 4: Business Logic Constraints
 - [ ] Section 5: Edge Case Validation

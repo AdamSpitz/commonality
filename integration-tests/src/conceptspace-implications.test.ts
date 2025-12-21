@@ -28,6 +28,7 @@ import {
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { attestImplicationChecked } from './implication-actions-checked.js';
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -88,35 +89,15 @@ describe('Conceptspace Implications', () => {
 
     // Attest that statement 1 implies statement 2
     testLog('  Attesting that statement 1 implies statement 2...');
-    const txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       statement1Cid,
       statement2Cid
     );
-    const receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    // Query the implication
-    const implicationsFrom = await getImplicationsFrom(graphqlClient, statement1Id);
-    assert.strictEqual(implicationsFrom.length, 1, 'Should have 1 implication from statement 1');
-    assert.strictEqual(
-      implicationsFrom[0].fromStatementId.toLowerCase(),
-      statement1Id.toLowerCase()
-    );
-    assert.strictEqual(
-      implicationsFrom[0].toStatementId.toLowerCase(),
-      statement2Id.toLowerCase()
-    );
-    assert.strictEqual(
-      implicationsFrom[0].attester.id.toLowerCase(),
-      attesterClients.account.toLowerCase()
-    );
-
-    const implicationsTo = await getImplicationsTo(graphqlClient, statement2Id);
-    assert.strictEqual(implicationsTo.length, 1, 'Should have 1 implication to statement 2');
-
-    testLog('  ✓ Implication attestation recorded correctly');
+    testLog('  ✓ Implication attestation recorded correctly (verified by property checks)');
   });
 
   it('should track indirect support via implications', async function() {
@@ -167,20 +148,15 @@ describe('Conceptspace Implications', () => {
 
     // Attester creates implication: specific -> general
     testLog('  Attester creates implication (specific -> general)...');
-    txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       specificCid,
       generalCid
     );
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    // Verify implication was recorded
-    const implications = await getImplicationsTo(graphqlClient, generalId);
-    assert.strictEqual(implications.length, 1, 'General statement should have 1 implication pointing to it');
-
-    testLog('  ✓ Implication created');
+    testLog('  ✓ Implication created (verified by property checks)');
     testLog('  ✓ Indexer can now compute indirect support by querying implications');
   });
 
@@ -215,33 +191,23 @@ describe('Conceptspace Implications', () => {
 
     // Create implications: specific1 -> general, specific2 -> general
     testLog('  Creating implications...');
-    let txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       specific1Cid,
       generalCid
     );
-    let receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    txHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       specific2Cid,
       generalCid
     );
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    // Verify both implications exist
-    const implicationsTo = await getImplicationsTo(graphqlClient, generalId);
-    assert.strictEqual(
-      implicationsTo.length,
-      2,
-      'General statement should have 2 implications pointing to it'
-    );
-
-    testLog('  ✓ Multiple implications tracked correctly');
+    testLog('  ✓ Multiple implications tracked correctly (verified by property checks)');
   });
 
   it('should verify implications are NOT transitive', async function() {
@@ -260,14 +226,10 @@ describe('Conceptspace Implications', () => {
     testLog('  Creating chain: S1 -> S2 -> S3...');
 
     // Attest S1 -> S2
-    let txHash = await attestImplication(attesterClients, implicationsContract, s1, s2);
-    let receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1, s2);
 
     // Attest S2 -> S3
-    txHash = await attestImplication(attesterClients, implicationsContract, s2, s3);
-    receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2, s3);
 
     // Verify S1 -> S2 exists
     const s1Implications = await getImplicationsFrom(graphqlClient, s1Id);
