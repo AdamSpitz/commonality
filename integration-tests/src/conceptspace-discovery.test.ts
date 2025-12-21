@@ -92,7 +92,7 @@ describe('Statement Discovery & Browsing', () => {
     // Browse by most supporters (descending order)
     testLog('  Browsing statements by most supporters...');
     const statementsBySupport = await browseStatementsByMostSupporters(graphqlClient, {
-      limit: 10,
+      limit: 100, // Increased limit to ensure we get all statements including those with low believer counts
       orderDirection: 'desc',
     });
 
