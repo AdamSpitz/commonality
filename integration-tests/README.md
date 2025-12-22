@@ -2,8 +2,8 @@
 
 This directory contains integration tests for the Commonality system. These tests verify that the blockchain (Hardhat), IPFS node, indexer (Ponder), and GraphQL API work together correctly.
 
-## To-do list
+## Test Approach
 
-The tests are currently all handcrafted-scenario kinds of tests. That's fine, but I also want to be able to have the test system be able to handle randomly-generated fake data, so I'm hoping to refactor the tests to make use of more-generic invariants, preconditions/postconditions, etc. Like, "run this action and check whatever state-transition properties and global invariants make sense to check after running an action of that type." Rather than "run this action and then do various ad-hoc assertions." Ideally, when we're done, the handcrafter-scenario tests will all just look like "here's a sequence of actions to run" (without any ad-hoc assertions, because the assertions will all be implemented as invariants and state-transition properties that the test runner knows it has to check).
+The tests use invariant checking and state-transition properties to verify system correctness. Actions are wrapped with property checkers that automatically verify consistency after each operation.
 
-See generative-test-prep.md, INVARIANT_IMPLEMENTATION.md.
+See [generative-test-prep.md](generative-test-prep.md) for the framework and [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for implementation guidelines.

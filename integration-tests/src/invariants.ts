@@ -483,3 +483,48 @@ export async function assertTradeDataConsistency(
     `got ${totalPrice.toString()}`
   );
 }
+
+/**
+ * Query Consistency Check: Indirect supporter count vs list
+ *
+ * Section 3 from generative-test-prep.md
+ *
+ * Verifies that different ways of querying indirect supporters return consistent results:
+ * - The count query should return the same number as the length of the list query
+ * - This checks that the indexer's aggregated count matches the actual list of supporters
+ *
+ * This is a query consistency check (Section 3) rather than a state consistency invariant
+ * (Section 1), because it's comparing two different query methods for the same data.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param statementId The statement ID to check
+ * @param attesterAddress Optional: filter by specific trusted attester
+ */
+export async function assertIndirectSupporterCountConsistency(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  statementId: string,
+  attesterAddress?: string
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getIndirectSupporterCount, getIndirectSupporters } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Method 1: Get the count using the dedicated count query
+  const count = await getIndirectSupporterCount(executor, statementId, attesterAddress);
+
+  // Method 2: Get the full list of supporters and count them
+  const supporters = await getIndirectSupporters(executor, statementId, attesterAddress);
+  const actualCount = supporters.length;
+
+  // Verify the count matches
+  const attesterInfo = attesterAddress ? ` (filtered by attester ${attesterAddress})` : '';
+  assert.strictEqual(
+    count,
+    actualCount,
+    `Statement ${statementId}${attesterInfo}: Indirect supporter count mismatch. ` +
+    `Count query returned ${count}, but list query returned ${actualCount} supporters. ` +
+    `This indicates a query consistency issue in the indexer.`
+  );
+}

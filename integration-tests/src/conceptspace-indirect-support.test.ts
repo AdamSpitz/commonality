@@ -28,6 +28,7 @@ import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from './belief-actions-checked.js';
 import { attestImplicationChecked } from './implication-actions-checked.js';
+import { assertIndirectSupporterCountConsistency } from './invariants.js';
 
 describe('Conceptspace Indirect Support', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -125,7 +126,11 @@ describe('Conceptspace Indirect Support', () => {
       'General statement should have 2 indirect supporters after implication'
     );
 
+    // Verify query consistency: count should match list length
+    await assertIndirectSupporterCountConsistency(graphqlClient, generalId);
+
     testLog('  ✓ Indirect supporter count computed correctly: 2 supporters');
+    testLog('  ✓ Query consistency verified (count matches list)');
   });
 
   it('should return list of indirect supporters with details', async function() {
@@ -211,7 +216,11 @@ describe('Conceptspace Indirect Support', () => {
       'User2 supports via specific2'
     );
 
+    // Verify query consistency
+    await assertIndirectSupporterCountConsistency(graphqlClient, generalId);
+
     testLog('  ✓ Indirect supporters list returned with correct details');
+    testLog('  ✓ Query consistency verified');
   });
 
   it('should exclude users who explicitly disbelieve from indirect support', async function() {
@@ -277,8 +286,12 @@ describe('Conceptspace Indirect Support', () => {
       'The indirect supporter should be User2'
     );
 
+    // Verify query consistency
+    await assertIndirectSupporterCountConsistency(graphqlClient, generalId);
+
     testLog('  ✓ User1 correctly excluded from indirect support due to explicit disbelief');
     testLog('  ✓ User2 correctly included in indirect support');
+    testLog('  ✓ Query consistency verified');
   });
 
   it('should handle multiple implication chains converging on one statement', async function() {
@@ -358,8 +371,12 @@ describe('Conceptspace Indirect Support', () => {
     assert.ok(userAddresses.includes(user2Address), 'User2 should be in supporters');
     assert.ok(userAddresses.includes(user3Address), 'User3 should be in supporters');
 
+    // Verify query consistency
+    await assertIndirectSupporterCountConsistency(graphqlClient, sGeneralId);
+
     testLog('  ✓ All 3 users correctly identified as indirect supporters');
     testLog('  ✓ Multiple convergent implication chains handled correctly');
+    testLog('  ✓ Query consistency verified');
   });
 
   it('should handle user believing multiple statements that imply the same target', async function() {
@@ -419,7 +436,11 @@ describe('Conceptspace Indirect Support', () => {
       'The indirect supporter should be User1'
     );
 
+    // Verify query consistency
+    await assertIndirectSupporterCountConsistency(graphqlClient, sTargetId);
+
     testLog('  ✓ User correctly counted once despite multiple implication paths');
+    testLog('  ✓ Query consistency verified');
   });
 
   it('should efficiently get all indirect support for a user (getUserIndirectSupport)', async function() {

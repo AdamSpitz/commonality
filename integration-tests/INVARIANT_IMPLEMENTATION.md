@@ -2,16 +2,6 @@
 
 This document tracks the implementation of invariant checking in the integration tests, as outlined in [generative-test-prep.md](generative-test-prep.md).
 
-## Next Steps
-
-The following invariants from [generative-test-prep.md](generative-test-prep.md) should be implemented next:
-
-### Section 3: Query Consistency
-
-- [ ] **Direct vs aggregated counts**: Count individual records vs cached counts for various entities
-- [ ] **Event replay**: Replay all blockchain events and verify indexer state matches
-- [ ] **Graph traversal**: Verify different query methods return consistent results
-
 ## Implementation Guidelines
 
 When adding new invariant checks:

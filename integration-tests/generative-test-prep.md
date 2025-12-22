@@ -134,17 +134,6 @@ Once invariants are proven in handcrafted tests, integrate into generative testi
 
 ## Current Status
 
-This is a planning document. As we implement invariant checks, we'll track progress here.
+See [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for implementation guidelines.
 
-See [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for detailed implementation notes.
-
-- [ ] Section 1: State Consistency Invariants
-  - [ ] Implication bidirectionality (blockchain-to-indexer verification)
-- [ ] Section 2: State Transition Properties
-  - [ ] Indirect support propagation
-- [ ] Section 3: Query Consistency
-- [ ] Section 4: Business Logic Constraints
-- [ ] Section 5: Edge Case Validation
-- [ ] Section 6: Temporal/Historical Properties
-- [ ] Section 7: Derived Metrics Validation
-- [ ] Section 8: Cross-Subsystem Consistency
+Implemented invariants are documented in the code itself ([src/invariants.ts](src/invariants.ts)).
