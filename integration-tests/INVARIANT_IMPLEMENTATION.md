@@ -10,6 +10,7 @@ When adding new invariant checks:
    - Use clear, descriptive names like `assertDelegationChainIntegrity()`
    - Add comprehensive JSDoc comments explaining what the invariant checks
    - Include the section number from [generative-test-prep.md](generative-test-prep.md) in the comment
+   - Consider using `assertAggregatedCountConsistency()` for checking cached counts vs actual records
 
 2. **Add calls to the invariant in relevant test files**
    - Call the invariant after actions that could violate it

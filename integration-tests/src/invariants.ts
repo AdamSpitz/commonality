@@ -70,44 +70,31 @@ async function query<T = any>(
  *
  * This checks that the cached aggregated counts on the Statement entity
  * match the actual individual belief records in the database.
+ *
+ * This is now implemented using the generic assertAggregatedCountConsistency helper,
+ * which demonstrates the pattern for checking any cached count against actual records.
  */
 export async function assertBeliefCountsMatch(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   statementId: string
 ): Promise<void> {
-  // Get the statement with its cached counts
-  const statementResult = await query<{
-    statements: {
-      id: string;
-      believerCount: number;
-      disbelieverCount: number
-    } | null
-  }>(
+  const normalizedId = statementId.toLowerCase();
+
+  // Check believerCount using generic helper
+  await assertAggregatedCountConsistency(
     graphqlClient,
+    // Count query: get the cached believerCount from Statement
     `
       query GetStatement($id: String!) {
         statements(id: $id) {
           id
           believerCount
-          disbelieverCount
         }
       }
     `,
-    { id: statementId.toLowerCase() }
-  );
-
-  const statement = statementResult.statements;
-  if (!statement) {
-    throw new Error(`Statement ${statementId} not found`);
-  }
-
-  // Get all believers (beliefState = 1)
-  const believersResult = await query<{
-    beliefss: {
-      items: Array<{ user: { id: string }; beliefState: number }>
-    }
-  }>(
-    graphqlClient,
+    { id: normalizedId },
+    'statements.believerCount',
+    // Records query: get all Belief records with beliefState=1 (BELIEVES)
     `
       query GetBelievers($statementId: String!) {
         beliefss(where: { statementId: $statementId, beliefState: 1 }) {
@@ -120,18 +107,26 @@ export async function assertBeliefCountsMatch(
         }
       }
     `,
-    { statementId: statementId.toLowerCase() }
+    { statementId: normalizedId },
+    'beliefss.items',
+    `Statement ${statementId}'s believerCount`
   );
 
-  const actualBelieverCount = believersResult.beliefss?.items.length || 0;
-
-  // Get all disbelievers (beliefState = 2)
-  const disbelieversResult = await query<{
-    beliefss: {
-      items: Array<{ user: { id: string }; beliefState: number }>
-    }
-  }>(
+  // Check disbelieverCount using generic helper
+  await assertAggregatedCountConsistency(
     graphqlClient,
+    // Count query: get the cached disbelieverCount from Statement
+    `
+      query GetStatement($id: String!) {
+        statements(id: $id) {
+          id
+          disbelieverCount
+        }
+      }
+    `,
+    { id: normalizedId },
+    'statements.disbelieverCount',
+    // Records query: get all Belief records with beliefState=2 (DISBELIEVES)
     `
       query GetDisbelievers($statementId: String!) {
         beliefss(where: { statementId: $statementId, beliefState: 2 }) {
@@ -144,26 +139,9 @@ export async function assertBeliefCountsMatch(
         }
       }
     `,
-    { statementId: statementId.toLowerCase() }
-  );
-
-  const actualDisbelieverCount = disbelieversResult.beliefss?.items.length || 0;
-
-  // Verify the counts match
-  assert.strictEqual(
-    statement.believerCount,
-    actualBelieverCount,
-    `Statement ${statementId}: believerCount mismatch. ` +
-    `Expected ${actualBelieverCount} (from individual belief records), ` +
-    `got ${statement.believerCount} (from cached count)`
-  );
-
-  assert.strictEqual(
-    statement.disbelieverCount,
-    actualDisbelieverCount,
-    `Statement ${statementId}: disbelieverCount mismatch. ` +
-    `Expected ${actualDisbelieverCount} (from individual belief records), ` +
-    `got ${statement.disbelieverCount} (from cached count)`
+    { statementId: normalizedId },
+    'beliefss.items',
+    `Statement ${statementId}'s disbelieverCount`
   );
 }
 
@@ -999,4 +977,109 @@ export async function assertAssuranceContractRefundLogic(
       `Deadline: ${deadline.toString()}, CurrentTime: ${currentBlockTimestamp.toString()}`
     );
   }
+}
+
+/**
+ * Query Consistency Check: Generic aggregated count vs actual records
+ *
+ * Section 3 from generative-test-prep.md
+ *
+ * This is a generic version of the query consistency pattern used throughout the system.
+ * It verifies that cached/aggregated counts on parent entities match the actual number
+ * of child records when queried directly.
+ *
+ * This pattern applies to many entity relationships in the system:
+ * - Statement.believerCount vs count of Belief records where beliefState=BELIEVES
+ * - Statement.disbelieverCount vs count of Belief records where beliefState=DISBELIEVES
+ * - Project.contributorCount vs count of distinct contributors in Contribution records
+ * - Attester.implicationCount vs count of Implication records
+ * - etc.
+ *
+ * The function takes two queries:
+ * 1. A query that returns the cached/aggregated count from a parent entity
+ * 2. A query that returns the actual child records to count
+ *
+ * And verifies that they match. This catches bugs where the indexer's aggregation logic
+ * doesn't correctly maintain denormalized counts.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param countQuery GraphQL query that returns the cached count (must return single number field)
+ * @param countQueryVariables Variables for the count query
+ * @param countFieldPath Path to extract count from result (e.g., "statement.believerCount")
+ * @param recordsQuery GraphQL query that returns the actual records to count
+ * @param recordsQueryVariables Variables for the records query
+ * @param recordsFieldPath Path to extract array from result (e.g., "beliefss.items")
+ * @param entityDescription Description for error messages (e.g., "Statement X's believerCount")
+ */
+export async function assertAggregatedCountConsistency(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  countQuery: string,
+  countQueryVariables: Record<string, any>,
+  countFieldPath: string,
+  recordsQuery: string,
+  recordsQueryVariables: Record<string, any>,
+  recordsFieldPath: string,
+  entityDescription: string
+): Promise<void> {
+  // Execute the count query
+  const countResult = await query<any>(
+    graphqlClient,
+    countQuery,
+    countQueryVariables
+  );
+
+  // Extract the count value using the field path
+  const cachedCount = extractFieldByPath(countResult, countFieldPath);
+  if (typeof cachedCount !== 'number') {
+    throw new Error(
+      `Count query for ${entityDescription} did not return a number. ` +
+      `Field path "${countFieldPath}" resolved to: ${JSON.stringify(cachedCount)}`
+    );
+  }
+
+  // Execute the records query
+  const recordsResult = await query<any>(
+    graphqlClient,
+    recordsQuery,
+    recordsQueryVariables
+  );
+
+  // Extract the records array using the field path
+  const records = extractFieldByPath(recordsResult, recordsFieldPath);
+  if (!Array.isArray(records)) {
+    throw new Error(
+      `Records query for ${entityDescription} did not return an array. ` +
+      `Field path "${recordsFieldPath}" resolved to: ${JSON.stringify(records)}`
+    );
+  }
+
+  const actualCount = records.length;
+
+  // Verify the counts match
+  assert.strictEqual(
+    cachedCount,
+    actualCount,
+    `${entityDescription}: Aggregated count mismatch. ` +
+    `Cached count (${countFieldPath}) is ${cachedCount}, ` +
+    `but actual record count (${recordsFieldPath}) is ${actualCount}. ` +
+    `This indicates the indexer's denormalized count is out of sync with the actual records.`
+  );
+}
+
+/**
+ * Helper function to extract a nested field from an object using a dot-separated path
+ * Example: extractFieldByPath({a: {b: {c: 42}}}, "a.b.c") returns 42
+ */
+function extractFieldByPath(obj: any, path: string): any {
+  const parts = path.split('.');
+  let current = obj;
+
+  for (const part of parts) {
+    if (current == null) {
+      return undefined;
+    }
+    current = current[part];
+  }
+
+  return current;
 }
