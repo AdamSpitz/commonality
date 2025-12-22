@@ -4,11 +4,11 @@ This document tracks the migration of integration tests from ad-hoc assertions t
 
 ## Current Status (as of 2025-12-22)
 
-- **6 test files** fully migrated (25%)
-- **5 test files** partially migrated (21%)
+- **7 test files** fully migrated (29%)
+- **4 test files** partially migrated (17%)
 - **13 test files** not yet migrated (54%)
 - **9 invariants** implemented in [src/invariants.ts](src/invariants.ts)
-- **14 state transition properties** implemented (beliefs: 3, implications: 3, funding: 3, delegation: 2)
+- **15 state transition properties** implemented (beliefs: 3, implications: 3, funding: 4, delegation: 2)
 - **4 action categories** have checked wrappers (beliefs, implications, funding, delegation)
 
 ---
@@ -34,9 +34,9 @@ This document tracks the migration of integration tests from ad-hoc assertions t
   - [x] `refundProjectTokensChecked()` - Refund from failed project
   - [x] Updated `funding-action-properties.ts` with refund and withdrawal properties
 
-- [ ] **Token burn actions** (add to `funding-actions-checked.ts`)
-  - [ ] `burnProjectTokensChecked()` - Burn project tokens
-  - [ ] Update `funding-action-properties.ts` with burn properties
+- [x] **Token burn actions** (added to `funding-actions-checked.ts`)
+  - [x] `burnTokensChecked()` - Burn project tokens
+  - [x] Updated `funding-action-properties.ts` with burn properties
 
 ### 1.2 Add Missing Invariants
 
@@ -60,7 +60,7 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
 - [x] Refund mechanics (verify refunds restore correct balances)
 - [x] Withdrawal mechanics (verify withdrawals don't corrupt funding data)
 - [x] Delegation permissions (verify delegation chain truncation on revocation)
-- [ ] Token burn effects (verify burned tokens reduce held tokens correctly)
+- [x] Token burn effects (verify burned tokens reduce held tokens correctly)
 
 **Section 3: Query Consistency**
 - [x] Indirect supporter count vs list
@@ -110,9 +110,9 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
 
 ### Priority 2: Finish Partially Migrated Files
 
-- [ ] **pubstarter-burn-tokens.test.ts**
-  - Already uses `assertTokenConservation`
-  - Needs: `burnProjectTokensChecked()` wrapper
+- [x] **pubstarter-burn-tokens.test.ts**
+  - Now uses `burnTokensChecked()` and `buyProjectTokensChecked()`
+  - Automatically verifies token conservation and burn effects
 
 - [ ] **pubstarter-multiple-tokens.test.ts**
   - Already uses `buyProjectTokensChecked()` in some places
@@ -212,16 +212,16 @@ Once most tests are migrated to use the action framework:
 
 ### File-by-File Migration Status
 
-**Fully Migrated (6):**
+**Fully Migrated (7):**
 1. ✅ conceptspace-beliefs.test.ts
 2. ✅ conceptspace-implications.test.ts
 3. ✅ conceptspace-indirect-support.test.ts
 4. ✅ pubstarter-basic.test.ts
 5. ✅ pubstarter-lifecycle.test.ts
 6. ✅ delegation-permissions.test.ts
+7. ✅ pubstarter-burn-tokens.test.ts
 
-**Partially Migrated (5):**
-7. 🟡 pubstarter-burn-tokens.test.ts
+**Partially Migrated (4):**
 8. 🟡 pubstarter-multiple-tokens.test.ts
 9. 🟡 conceptspace-create-statement-workflow.test.ts
 10. 🟡 delegation-basic.test.ts
@@ -252,6 +252,7 @@ Once most tests are migrated to use the action framework:
 - `buyProjectTokensChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
 - `refundProjectTokensChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
 - `withdrawProjectFundsChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
+- `burnTokensChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
 - `depositETHChecked()` - [src/delegation-actions-checked.ts](src/delegation-actions-checked.ts)
 - `delegateNoteChecked()` - [src/delegation-actions-checked.ts](src/delegation-actions-checked.ts)
 - `revokeNoteChecked()` - [src/delegation-actions-checked.ts](src/delegation-actions-checked.ts)
@@ -259,7 +260,6 @@ Once most tests are migrated to use the action framework:
 
 **Needed:**
 - Marketplace: list, buy
-- Token burning: burn
 
 ### Implemented Invariants
 
