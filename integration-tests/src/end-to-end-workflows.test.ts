@@ -7,12 +7,8 @@
 
 import assert from 'assert';
 import {
-  believeStatement,
-  attestImplication,
   attestProjectAlignment,
   createProject,
-  depositETH,
-  delegateNote,
   purchaseFromPrimaryMarketWithNotes,
   uploadToIPFS,
   cidToBytes32,
@@ -46,6 +42,9 @@ import {
   DelegatableNotesAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { believeStatementChecked } from './belief-actions-checked.js';
+import { attestImplicationChecked } from './implication-actions-checked.js';
+import { depositETHChecked, delegateNoteChecked } from './delegation-actions-checked.js';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -98,12 +97,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  User expressing belief in statement...');
-      const beliefTxHash = await believeStatement(userClients, beliefsContract, statementCid);
-      const beliefReceipt = await userClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
-      testLog(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
-
-      // 4. Wait for indexer to sync belief
-      await waitForSync(graphqlClient, beliefReceipt.blockNumber);
+      await believeStatementChecked(userClients, beliefsContract, graphqlClient, statementCid);
 
       // 5. Verify belief was recorded
       const userBelief = assertNotNull(
@@ -178,15 +172,11 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       const depositAmount = BigInt('2000000000000000'); // 0.002 ETH
       testLog(`  User depositing ${depositAmount} ETH into delegatable note...`);
-      const depositResult = await depositETH(userClients, delegatableNotesContract, {
+      const depositResult = await depositETHChecked(userClients, delegatableNotesContract, graphqlClient, {
         amount: depositAmount,
         intendedStatementId: statementId,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
-
-      // 11. Wait for indexer to sync deposit
-      const depositReceipt = await userClients.publicClient.getTransactionReceipt({ hash: depositResult.hash });
-      await waitForSync(graphqlClient, depositReceipt.blockNumber);
 
       // 12. Verify note was created and linked to statement
       const userNotes = await getNotesByOwner(graphqlClient, userClients.account);
@@ -268,12 +258,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Root user expressing belief in statement...');
-      const beliefTxHash = await believeStatement(rootUserClients, beliefsContract, statementCid);
-      const beliefReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
-      testLog(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
-
-      // 4. Wait for indexer to sync belief
-      await waitForSync(graphqlClient, beliefReceipt.blockNumber);
+      await believeStatementChecked(rootUserClients, beliefsContract, graphqlClient, statementCid);
 
       // 5. Root user deposits ETH into a delegatable note for the statement
       const delegatableNotesContract: DelegatableNotesContract = {
@@ -283,15 +268,11 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       const depositAmount = BigInt('3000000000000000'); // 0.003 ETH
       testLog(`  Root user depositing ${depositAmount} ETH into delegatable note...`);
-      const depositResult = await depositETH(rootUserClients, delegatableNotesContract, {
+      const depositResult = await depositETHChecked(rootUserClients, delegatableNotesContract, graphqlClient, {
         amount: depositAmount,
         intendedStatementId: statementId,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
-
-      // 6. Wait for indexer to sync deposit
-      const depositReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: depositResult.hash });
-      await waitForSync(graphqlClient, depositReceipt.blockNumber);
 
       // 7. Verify note was created
       const rootUserNotes = await getNotesByOwner(graphqlClient, rootUserClients.account);
@@ -303,17 +284,13 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 8. Root user delegates half of the note to delegate user
       const delegateAmount = depositAmount / 2n; // Delegate 0.0015 ETH
       testLog(`  Root user delegating ${delegateAmount} ETH to delegate...`);
-      const delegateResult = await delegateNote(rootUserClients, delegatableNotesContract, {
+      const delegateResult = await delegateNoteChecked(rootUserClients, delegatableNotesContract, graphqlClient, {
         noteId: depositResult.noteId,
         owners: [rootUserClients.account], // Current chain: root user owns note
         delegateTo: delegateUserClients.account,
         amount: delegateAmount,
       });
       testLog(`  Delegation transaction: ${delegateResult.hash} (delegated note ID: ${delegateResult.delegatedNoteId}, remainder note ID: ${delegateResult.remainderNoteId})`);
-
-      // 9. Wait for indexer to sync delegation
-      const delegateReceipt = await rootUserClients.publicClient.getTransactionReceipt({ hash: delegateResult.hash });
-      await waitForSync(graphqlClient, delegateReceipt.blockNumber);
 
       // 10. Verify delegation chain
       const delegatedNote = await getNote(graphqlClient, delegateResult.delegatedNoteId.toString());
@@ -479,17 +456,13 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Attester attesting that S1 implies S2...');
-      const implicationTxHash = await attestImplication(
+      await attestImplicationChecked(
         attesterClients,
         implicationsContract,
+        graphqlClient,
         statement1Cid,
         statement2Cid
       );
-      const implicationReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implicationTxHash });
-      testLog(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
-
-      // 4. Wait for indexer to sync implication
-      await waitForSync(graphqlClient, implicationReceipt.blockNumber);
 
       // 5. Verify implication was recorded
       const implications = await getImplicationsTo(graphqlClient, statement2Id, attesterClients.account);
@@ -630,12 +603,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  User expressing belief in S1...');
-      const beliefTxHash = await believeStatement(userClients, beliefsContract, statement1Cid);
-      const beliefReceipt = await userClients.publicClient.getTransactionReceipt({ hash: beliefTxHash });
-      testLog(`  Belief transaction: ${beliefTxHash} (block ${beliefReceipt.blockNumber})`);
-
-      // 4. Wait for indexer to sync belief
-      await waitForSync(graphqlClient, beliefReceipt.blockNumber);
+      await believeStatementChecked(userClients, beliefsContract, graphqlClient, statement1Cid);
 
       // 5. Verify user believes S1
       const userBeliefS1 = assertNotNull(
@@ -652,17 +620,13 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Attester attesting that S1 implies S2...');
-      const implicationTxHash = await attestImplication(
+      await attestImplicationChecked(
         attesterClients,
         implicationsContract,
+        graphqlClient,
         statement1Cid,
         statement2Cid
       );
-      const implicationReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implicationTxHash });
-      testLog(`  Implication attestation: ${implicationTxHash} (block ${implicationReceipt.blockNumber})`);
-
-      // 7. Wait for indexer to sync implication
-      await waitForSync(graphqlClient, implicationReceipt.blockNumber);
 
       // 8. Verify implication was recorded
       const implications = await getImplicationsFrom(graphqlClient, statement1Id, attesterClients.account);

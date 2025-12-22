@@ -12,7 +12,6 @@
 import assert from 'assert';
 import {
   attestProjectAlignment,
-  attestImplication,
   createProject,
   uploadToIPFS,
   cidToBytes32,
@@ -33,6 +32,7 @@ import {
   ImplicationsAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { attestImplicationChecked } from './implication-actions-checked.js';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -105,14 +105,13 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Create an implication: S1 → S2 (renewable energy research implies climate action)
     testLog('  Creating implication S1 → S2...');
-    let txHash = await attestImplication(
+    await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
+      graphqlClient,
       s1Cid,
       s2Cid
     );
-    let receipt = await implicationAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create a project
     testLog('  Creating a renewable energy project...');
@@ -134,13 +133,13 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align the project with S1 (specific statement)
     testLog('  Aligning project with S1 (renewable energy)...');
-    txHash = await attestProjectAlignment(
+    let txHash = await attestProjectAlignment(
       alignmentAttester,
       projectAlignmentContract,
       projectDetails.tokenAddress,
       s1Cid
     );
-    receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
+    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify direct alignment with S1
@@ -229,14 +228,13 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Create implication: S1 → S2
     testLog('  Creating implication S1 → S2...');
-    let txHash = await attestImplication(
+    let txHash = await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
+      graphqlClient,
       s1Cid,
       s2Cid
     );
-    let receipt = await implicationAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create two projects
     const currentTime = Math.floor(Date.now() / 1000);
@@ -277,7 +275,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       projectA.tokenAddress,
       s1Cid
     );
-    receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
+    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Align Project B directly with S2
@@ -363,24 +361,22 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Create implications: S1 → S2 and S2 → S3
     testLog('  Creating implication S1 → S2...');
-    let txHash = await attestImplication(
+    let txHash = await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
+      graphqlClient,
       s1Cid,
       s2Cid
     );
-    let receipt = await implicationAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     testLog('  Creating implication S2 → S3...');
-    txHash = await attestImplication(
+    txHash = await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
+      graphqlClient,
       s2Cid,
       s3Cid
     );
-    receipt = await implicationAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create a project aligned with S1
     testLog('  Creating solar panel project...');
@@ -405,7 +401,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       projectDetails.tokenAddress,
       s1Cid
     );
-    receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
+    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Query for indirect alignment with S2 (one level up)
@@ -477,24 +473,22 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Two different attesters create the same implication S1 → S2
     testLog('  Attester 1 creating implication S1 → S2...');
-    let txHash = await attestImplication(
+    let txHash = await attestImplicationChecked(
       implicationAttester1,
       implicationsContract,
+      graphqlClient,
       s1Cid,
       s2Cid
     );
-    let receipt = await implicationAttester1.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     testLog('  Attester 2 creating same implication S1 → S2...');
-    txHash = await attestImplication(
+    txHash = await attestImplicationChecked(
       implicationAttester2,
       implicationsContract,
+      graphqlClient,
       s1Cid,
       s2Cid
     );
-    receipt = await implicationAttester2.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Create and align a project
     const projectOwner = alignmentAttester; // Reuse for simplicity
@@ -518,7 +512,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       projectDetails.tokenAddress,
       s1Cid
     );
-    receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
+    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Query S2 trusting only attester 1

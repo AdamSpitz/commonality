@@ -15,10 +15,7 @@
 import assert from 'assert';
 import {
   createProject,
-  buyProjectTokens,
   uploadToIPFS,
-  createSaleListing,
-  fulfillSaleListing,
   cancelSaleListing,
   createBuyOrder,
   fulfillBuyOrder,
@@ -48,7 +45,8 @@ import {
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertTradeDataConsistency } from './invariants.js';
+import { buyProjectTokensChecked } from './funding-actions-checked.js';
+import { createSaleListingChecked, fulfillSaleListingChecked } from './marketplace-actions-checked.js';
 
 
 
@@ -122,9 +120,10 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buyHash = await buyProjectTokens(
+    await buyProjectTokensChecked(
       sellerClients,
       assuranceContract,
+      graphqlClient,
       {
         buyer: sellerClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -133,9 +132,6 @@ describe('Secondary Marketplace Integration Tests', () => {
         totalCost: parseEther('0.1'),
       }
     );
-
-    const buyReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: buyHash });
-    await waitForSync(graphqlClient, buyReceipt.blockNumber, 15000);
 
     // Seller approves marketplace to transfer their tokens
     testLog('  Seller approving marketplace...');
@@ -152,19 +148,18 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: SecondaryMarketAbi,
     };
 
-    const listingHash = await createSaleListing(
+    await createSaleListingChecked(
       sellerClients,
       marketplaceContract,
+      graphqlClient,
+      projectDetails.marketplaceAddress,
       {
         tokenId: 1n,
         count: 5n,
         pricePerToken: parseEther('0.015'), // 50% markup
-      }
+      },
+      0n
     );
-
-    const listingReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: listingHash });
-    testLog('  Waiting for indexer to sync sale listing...');
-    await waitForSync(graphqlClient, listingReceipt.blockNumber, 15000);
 
     // Query the listing from indexer
     testLog('  Querying sale listing from indexer...');
@@ -187,19 +182,17 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Buyer fulfills the sale listing (buys 3 tokens)
     testLog('  Buyer purchasing from sale listing...');
-    const fulfillHash = await fulfillSaleListing(
+    await fulfillSaleListingChecked(
       buyerClients,
       marketplaceContract,
+      graphqlClient,
+      projectDetails.marketplaceAddress,
       {
         saleListingId: 0n,
         count: 3n,
         totalCost: parseEther('0.045'), // 3 * 0.015
       }
     );
-
-    const fulfillReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: fulfillHash });
-    testLog('  Waiting for indexer to sync trade...');
-    await waitForSync(graphqlClient, fulfillReceipt.blockNumber, 15000);
 
     // Query updated listing
     const updatedListing = assertNotNull(
@@ -223,10 +216,6 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(trade.seller.toLowerCase(), sellerClients.account.toLowerCase(), 'Trade seller should match');
     assert.strictEqual(trade.count, '3', 'Trade count should be 3');
     assert.strictEqual(trade.orderType, 'sale_listing', 'Trade type should be sale_listing');
-
-    // Verify trade data consistency invariant
-    testLog('  Checking trade data consistency invariant...');
-    await assertTradeDataConsistency(graphqlClient, projectDetails.marketplaceAddress, fulfillHash);
 
     testLog('  Sale listing test passed!');
   });
@@ -274,7 +263,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    await buyProjectTokens(sellerClients, assuranceContract, {
+    await buyProjectTokensChecked(sellerClients, assuranceContract, graphqlClient, {
       buyer: sellerClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [1n],
@@ -295,18 +284,18 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: SecondaryMarketAbi,
     };
 
-    const listingHash = await createSaleListing(
+    await createSaleListingChecked(
       sellerClients,
       marketplaceContract,
+      graphqlClient,
+      projectDetails.marketplaceAddress,
       {
         tokenId: 1n,
         count: 5n,
         pricePerToken: parseEther('0.02'),
-      }
+      },
+      0n
     );
-
-    const listingReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: listingHash });
-    await waitForSync(graphqlClient, listingReceipt.blockNumber, 15000);
 
     // Verify listing exists
     const listing = assertNotNull(
@@ -385,7 +374,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    await buyProjectTokens(sellerClients, assuranceContract, {
+    await buyProjectTokensChecked(sellerClients, assuranceContract, graphqlClient, {
       buyer: sellerClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [1n],
@@ -461,10 +450,6 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.ok(trade, 'Should find our trade');
     assert.strictEqual(trade.orderType, 'buy_order', 'Trade type should be buy_order');
     assert.strictEqual(trade.count, '2', 'Trade count should be 2');
-
-    // Verify trade data consistency invariant
-    testLog('  Checking trade data consistency invariant...');
-    await assertTradeDataConsistency(graphqlClient, projectDetails.marketplaceAddress, fulfillHash);
 
     testLog('  Buy order test passed!');
   });
