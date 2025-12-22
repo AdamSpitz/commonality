@@ -825,3 +825,63 @@ export async function assertUniqueStatements(
     `This indicates that either the CID calculation is non-deterministic or deduplication is not working correctly.`
   );
 }
+
+/**
+ * Temporal/Historical Property: Monotonic project funding
+ *
+ * Section 6 from generative-test-prep.md
+ *
+ * Verifies that a project's totalReceived amount never decreases between two snapshots
+ * (unless a refund occurred, in which case the decrease should match the refund amount).
+ *
+ * This is a temporal property that helps catch bugs in the indexer's event handling.
+ * The totalReceived should only ever increase (when contributions are made) or decrease
+ * (when refunds are processed). It should never spontaneously change or decrease without
+ * a corresponding blockchain event.
+ *
+ * This function is typically called before and after a sequence of actions to verify that
+ * the funding behaves correctly over time.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param projectAddress The project's assurance contract address
+ * @param expectedBefore The totalReceived value from a previous snapshot
+ * @param allowRefunds If true, allows totalReceived to decrease (for tests that include refunds)
+ */
+export async function assertMonotonicProjectFunding(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  projectAddress: string,
+  expectedBefore: bigint,
+  allowRefunds: boolean = false
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getProject } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get the current project state
+  const project = await getProject(executor, projectAddress.toLowerCase());
+
+  if (!project) {
+    throw new Error(`Project ${projectAddress} not found`);
+  }
+
+  const currentTotal = BigInt(project.totalReceived);
+
+  if (allowRefunds) {
+    // With refunds allowed, we just verify the value is valid (not negative)
+    assert(
+      currentTotal >= 0n,
+      `Project ${projectAddress}: totalReceived became negative: ${currentTotal.toString()}`
+    );
+  } else {
+    // Without refunds, totalReceived should never decrease
+    assert(
+      currentTotal >= expectedBefore,
+      `Project ${projectAddress}: totalReceived decreased without refunds. ` +
+      `Expected at least ${expectedBefore.toString()}, got ${currentTotal.toString()}. ` +
+      `This violates the monotonic funding property - totalReceived should only increase ` +
+      `unless refunds are processed.`
+    );
+  }
+}

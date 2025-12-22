@@ -30,7 +30,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
+import { assertMoneyConservation, assertTokenConservation, assertMonotonicProjectFunding } from './invariants.js';
 import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
@@ -113,6 +113,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
     await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
+    // Capture initial funding for monotonic check
+    const initialFunding = BigInt(initialProject.totalReceived);
+
     // Contributor buys enough tokens to meet threshold
     testLog('  Contributor buying 50 tokens (0.5 ETH total)...');
     const assuranceContract: AssuranceContract = {
@@ -144,6 +147,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     // Verify invariants: money and token conservation after contribution
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
     await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
+
+    // Verify monotonic funding property: totalReceived should have increased
+    await assertMonotonicProjectFunding(graphqlClient, projectDetails.assuranceContractAddress, initialFunding);
 
     // Get creator's balance before withdrawal
     const balanceBefore = await creatorClients.publicClient.getBalance({

@@ -29,7 +29,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
+import { assertMoneyConservation, assertTokenConservation, assertMonotonicProjectFunding } from './invariants.js';
 import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
@@ -145,6 +145,9 @@ describe('Pubstarter Basic Integration Tests', () => {
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
     await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
+    // Capture initial funding for monotonic check
+    const initialFunding = BigInt(project.totalReceived);
+
     // Contributor buys some tokens
     testLog('  Contributor buying tokens...');
     const assuranceContract: AssuranceContract = {
@@ -177,6 +180,10 @@ describe('Pubstarter Basic Integration Tests', () => {
     // Verify token conservation (10 of token 1 sold, 0 burned)
     await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
     testLog('  ✓ Token conservation verified');
+
+    // Verify monotonic funding property: totalReceived should have increased
+    await assertMonotonicProjectFunding(graphqlClient, projectDetails.assuranceContractAddress, initialFunding);
+    testLog('  ✓ Monotonic funding property verified');
 
     testLog('  Test completed successfully!');
   });

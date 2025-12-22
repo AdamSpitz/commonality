@@ -7,7 +7,7 @@ This document tracks the migration of integration tests from ad-hoc assertions t
 - **5 test files** fully migrated (21%)
 - **5 test files** partially migrated (21%)
 - **14 test files** not yet migrated (58%)
-- **8 invariants** implemented in [src/invariants.ts](src/invariants.ts)
+- **9 invariants** implemented in [src/invariants.ts](src/invariants.ts)
 - **3 action categories** have checked wrappers (beliefs, implications, funding)
 
 ---
@@ -76,7 +76,7 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
 - [ ] Orphaned data (all references valid)
 
 **Section 6: Temporal/Historical Properties**
-- [ ] Monotonic counters (certain counts never decrease)
+- [x] Monotonic counters (project funding never decreases without refunds)
 - [ ] Event ordering (blockchain order matches query order)
 
 **Section 7: Derived Metrics Validation**
@@ -258,14 +258,15 @@ Once most tests are migrated to use the action framework:
 ### Implemented Invariants
 
 See [src/invariants.ts](src/invariants.ts) for current implementations:
-1. `assertBeliefCountsMatch()`
-2. `assertMoneyConservation()`
-3. `assertTokenConservation()`
-4. `assertDelegationChainIntegrity()`
-5. `assertTradeDataConsistency()`
-6. `assertIndirectSupporterCountConsistency()`
-7. `assertNoOrphanedData()` - Checks referential integrity (Beliefs → Statements/Users, Implications → Statements/Attesters)
-8. `assertUniqueStatements()` - Verifies CID-based statement deduplication
+1. `assertBeliefCountsMatch()` - Belief counts match belief records
+2. `assertMoneyConservation()` - Money conservation (totalReceived = sum of contributions)
+3. `assertTokenConservation()` - Token conservation (sold = held + burned)
+4. `assertDelegationChainIntegrity()` - Delegation chain integrity (no cycles)
+5. `assertTradeDataConsistency()` - Token transfer consistency (trade data)
+6. `assertIndirectSupporterCountConsistency()` - Indirect supporter count vs list
+7. `assertNoOrphanedData()` - Referential integrity (Beliefs → Statements/Users, Implications → Statements/Attesters)
+8. `assertUniqueStatements()` - CID-based statement deduplication
+9. `assertMonotonicProjectFunding()` - Monotonic project funding (totalReceived never decreases without refunds)
 
 ---
 
