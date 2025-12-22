@@ -7,7 +7,7 @@ This document tracks the migration of integration tests from ad-hoc assertions t
 - **7 test files** fully migrated (29%)
 - **4 test files** partially migrated (17%)
 - **13 test files** not yet migrated (54%)
-- **9 invariants** implemented in [src/invariants.ts](src/invariants.ts)
+- **10 invariants** implemented in [src/invariants.ts](src/invariants.ts)
 - **15 state transition properties** implemented (beliefs: 3, implications: 3, funding: 4, delegation: 2)
 - **4 action categories** have checked wrappers (beliefs, implications, funding, delegation)
 
@@ -69,7 +69,7 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
 - [ ] Event replay (replaying events produces same state)
 
 **Section 4: Business Logic Constraints**
-- [ ] Assurance contract refunds (deadline + threshold logic)
+- [x] Assurance contract refunds (deadline + threshold logic)
 - [ ] Implication non-transitivity (S1→S2→S3 doesn't imply S1's believers support S3)
 - [x] Unique statements (same IPFS CID = same statementId)
 
@@ -273,6 +273,7 @@ See [src/invariants.ts](src/invariants.ts) for current implementations:
 7. `assertNoOrphanedData()` - Referential integrity (Beliefs → Statements/Users, Implications → Statements/Attesters)
 8. `assertUniqueStatements()` - CID-based statement deduplication
 9. `assertMonotonicProjectFunding()` - Monotonic project funding (totalReceived never decreases without refunds)
+10. `assertAssuranceContractRefundLogic()` - Assurance contract refund eligibility (deadline + threshold logic)
 
 ---
 

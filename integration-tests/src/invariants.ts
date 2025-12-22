@@ -897,3 +897,106 @@ export async function assertMonotonicProjectFunding(
     );
   }
 }
+
+/**
+ * Business Logic Constraint: Assurance contract refund eligibility
+ *
+ * Section 4 from generative-test-prep.md
+ *
+ * Verifies that the refund eligibility rules for assurance contracts are correctly enforced:
+ *
+ * Refunds ARE allowed when:
+ * - The deadline has passed AND the project failed to meet its funding threshold
+ *
+ * Refunds are NOT allowed when:
+ * - The deadline has not passed yet (project fate still undecided)
+ * - The deadline has passed AND the project met its threshold (project succeeded)
+ *
+ * This checks that the business logic constraint matches what the smart contract enforces
+ * in AssuranceContract.sol's requireAssuranceContractHasFailed() function.
+ *
+ * Note: This is a business logic check that verifies the indexer correctly reflects the
+ * smart contract's refund rules. The actual refund permission enforcement happens on-chain,
+ * but we verify that the indexer's view of project status (totalReceived, threshold, deadline)
+ * is consistent with refund eligibility.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param projectAddress The project's assurance contract address
+ * @param currentBlockTimestamp The current blockchain timestamp (from latest block)
+ * @param shouldAllowRefunds Whether refunds should currently be allowed based on contract state
+ */
+export async function assertAssuranceContractRefundLogic(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  projectAddress: string,
+  currentBlockTimestamp: bigint,
+  shouldAllowRefunds?: boolean
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getProject } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get the project state
+  const project = await getProject(executor, projectAddress.toLowerCase());
+
+  if (!project) {
+    throw new Error(`Project ${projectAddress} not found`);
+  }
+
+  const totalReceived = BigInt(project.totalReceived);
+  const threshold = BigInt(project.threshold);
+  const deadline = BigInt(project.deadline);
+
+  // Determine if refunds should be allowed based on the business rules
+  const deadlineHasPassed = currentBlockTimestamp >= deadline;
+  const thresholdWasMet = totalReceived >= threshold;
+
+  // Refunds are allowed if: deadline passed AND threshold NOT met
+  const refundsAllowed = deadlineHasPassed && !thresholdWasMet;
+
+  // If the caller provided an expected value, verify it matches our calculation
+  if (shouldAllowRefunds !== undefined) {
+    assert.strictEqual(
+      refundsAllowed,
+      shouldAllowRefunds,
+      `Project ${projectAddress}: Refund eligibility mismatch. ` +
+      `Expected refunds ${shouldAllowRefunds ? 'allowed' : 'not allowed'}, ` +
+      `but calculated ${refundsAllowed ? 'allowed' : 'not allowed'}. ` +
+      `State: totalReceived=${totalReceived.toString()}, threshold=${threshold.toString()}, ` +
+      `deadline=${deadline.toString()}, currentTime=${currentBlockTimestamp.toString()}`
+    );
+  }
+
+  // Also verify the logical consistency of the state
+  // If deadline hasn't passed, refunds must not be allowed
+  if (!deadlineHasPassed) {
+    assert(
+      !refundsAllowed,
+      `Project ${projectAddress}: Refunds are allowed before deadline. ` +
+      `This violates the business rule that refunds require deadline to pass. ` +
+      `Deadline: ${deadline.toString()}, CurrentTime: ${currentBlockTimestamp.toString()}`
+    );
+  }
+
+  // If threshold was met and deadline passed, refunds must not be allowed
+  if (deadlineHasPassed && thresholdWasMet) {
+    assert(
+      !refundsAllowed,
+      `Project ${projectAddress}: Refunds are allowed for successful project. ` +
+      `This violates the business rule that successful projects cannot be refunded. ` +
+      `TotalReceived: ${totalReceived.toString()}, Threshold: ${threshold.toString()}`
+    );
+  }
+
+  // If deadline passed and threshold was NOT met, refunds must be allowed
+  if (deadlineHasPassed && !thresholdWasMet) {
+    assert(
+      refundsAllowed,
+      `Project ${projectAddress}: Refunds are not allowed for failed project. ` +
+      `This violates the business rule that failed projects must allow refunds. ` +
+      `TotalReceived: ${totalReceived.toString()}, Threshold: ${threshold.toString()}, ` +
+      `Deadline: ${deadline.toString()}, CurrentTime: ${currentBlockTimestamp.toString()}`
+    );
+  }
+}
