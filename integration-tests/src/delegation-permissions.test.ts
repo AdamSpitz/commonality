@@ -11,7 +11,6 @@
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  depositETH,
   delegateNote,
   revokeNote,
   reclaimFunds,
@@ -25,6 +24,11 @@ import {
 } from '@commonality/sdk';
 import { DelegatableNotesAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import {
+  depositETHChecked,
+  delegateNoteChecked,
+  revokeNoteChecked,
+} from './delegation-actions-checked.js';
 
 describe('Delegation Permissions Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -42,6 +46,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const charlieClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -58,9 +63,9 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for permission test',
     }));
 
-    // Alice creates a note
+    // Alice creates a note (with checked wrapper)
     testLog('  Alice creating a note...');
-    const { noteId } = await depositETH(aliceClients, contract, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
@@ -95,6 +100,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const charlieClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -110,19 +116,26 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for revocation permission test',
     }));
 
-    // Alice creates a note and delegates to Bob
-    testLog('  Alice creating and delegating note to Bob...');
-    const { noteId } = await depositETH(aliceClients, contract, {
+    // Alice creates a note (with checked wrapper)
+    testLog('  Alice creating note...');
+    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
 
-    const { delegatedNoteId } = await delegateNote(aliceClients, contract, {
-      noteId,
-      owners: [aliceClients.account],
-      delegateTo: bobClients.account,
-      amount: parseEther('1.0'),
-    });
+    // Alice delegates to Bob (with checked wrapper)
+    testLog('  Alice delegating note to Bob...');
+    const { delegatedNoteId } = await delegateNoteChecked(
+      aliceClients,
+      contract,
+      graphqlClient,
+      {
+        noteId,
+        owners: [aliceClients.account],
+        delegateTo: bobClients.account,
+        amount: parseEther('1.0'),
+      }
+    );
 
     testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
@@ -152,6 +165,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const charlieClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -167,25 +181,32 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for revoked note test',
     }));
 
-    // Alice creates a note and delegates to Bob
-    testLog('  Alice creating and delegating note to Bob...');
-    const { noteId } = await depositETH(aliceClients, contract, {
+    // Alice creates a note (with checked wrapper)
+    testLog('  Alice creating note...');
+    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
 
-    const { delegatedNoteId } = await delegateNote(aliceClients, contract, {
-      noteId,
-      owners: [aliceClients.account],
-      delegateTo: bobClients.account,
-      amount: parseEther('1.0'),
-    });
+    // Alice delegates to Bob (with checked wrapper)
+    testLog('  Alice delegating note to Bob...');
+    const { delegatedNoteId } = await delegateNoteChecked(
+      aliceClients,
+      contract,
+      graphqlClient,
+      {
+        noteId,
+        owners: [aliceClients.account],
+        delegateTo: bobClients.account,
+        amount: parseEther('1.0'),
+      }
+    );
 
     testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
-    // Alice revokes the note
+    // Alice revokes the note (with checked wrapper)
     testLog('  Alice revoking the note...');
-    await revokeNote(aliceClients, contract, {
+    await revokeNoteChecked(aliceClients, contract, graphqlClient, {
       noteId: delegatedNoteId,
       owners: [bobClients.account, aliceClients.account],
     });
@@ -217,6 +238,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -231,9 +253,9 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for reclaim permission test',
     }));
 
-    // Alice creates a note
+    // Alice creates a note (with checked wrapper)
     testLog('  Alice creating a note...');
-    const { noteId } = await depositETH(aliceClients, contract, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
@@ -277,42 +299,37 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for valid revocation test',
     }));
 
-    // Alice creates a note and delegates to Bob
-    testLog('  Alice creating and delegating note to Bob...');
-    const { noteId } = await depositETH(aliceClients, contract, {
+    // Alice creates a note (with checked wrapper)
+    testLog('  Alice creating note...');
+    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
 
-    const { delegatedNoteId } = await delegateNote(aliceClients, contract, {
-      noteId,
-      owners: [aliceClients.account],
-      delegateTo: bobClients.account,
-      amount: parseEther('1.0'),
-    });
+    // Alice delegates to Bob (with checked wrapper)
+    testLog('  Alice delegating note to Bob...');
+    const { delegatedNoteId } = await delegateNoteChecked(
+      aliceClients,
+      contract,
+      graphqlClient,
+      {
+        noteId,
+        owners: [aliceClients.account],
+        delegateTo: bobClients.account,
+        amount: parseEther('1.0'),
+      }
+    );
 
     testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
-    // Alice (the parent) revokes the note - this should succeed
+    // Alice (the parent) revokes the note - this should succeed (with checked wrapper)
     testLog('  Alice revoking note from Bob (should succeed)...');
+    const tx = await revokeNoteChecked(aliceClients, contract, graphqlClient, {
+      noteId: delegatedNoteId,
+      owners: [bobClients.account, aliceClients.account],
+    });
 
-    let revocationSucceeded = true;
-    try {
-      const tx = await revokeNote(aliceClients, contract, {
-        noteId: delegatedNoteId,
-        owners: [bobClients.account, aliceClients.account],
-      });
-
-      const receipt = await aliceClients.publicClient.getTransactionReceipt({ hash: tx });
-      testLog(`  ✓ Revocation succeeded: ${tx}`);
-
-      // Wait for indexer to sync
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-    } catch (error) {
-      revocationSucceeded = false;
-      console.error('  Unexpected error:', error);
-    }
-
-    assert.ok(revocationSucceeded, 'Parent should be able to revoke child\'s note');
+    testLog(`  ✓ Revocation succeeded: ${tx}`);
+    // The checked wrapper automatically verifies the revocation properties and invariants
   });
 });

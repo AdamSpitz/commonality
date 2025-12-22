@@ -4,12 +4,12 @@ This document tracks the migration of integration tests from ad-hoc assertions t
 
 ## Current Status (as of 2025-12-22)
 
-- **5 test files** fully migrated (21%)
+- **6 test files** fully migrated (25%)
 - **5 test files** partially migrated (21%)
-- **14 test files** not yet migrated (58%)
+- **13 test files** not yet migrated (54%)
 - **9 invariants** implemented in [src/invariants.ts](src/invariants.ts)
-- **12 state transition properties** implemented (beliefs: 3, implications: 3, funding: 3, refund: 1, withdrawal: 1, indirect: 1)
-- **3 action categories** have checked wrappers (beliefs, implications, funding)
+- **14 state transition properties** implemented (beliefs: 3, implications: 3, funding: 3, delegation: 2)
+- **4 action categories** have checked wrappers (beliefs, implications, funding, delegation)
 
 ---
 
@@ -17,11 +17,12 @@ This document tracks the migration of integration tests from ad-hoc assertions t
 
 ### 1.1 Create Missing Action Wrappers
 
-- [ ] **Delegation actions** (`delegation-actions-checked.ts`)
-  - [ ] `createNoteChecked()` - Create a delegation note
-  - [ ] `delegateNoteChecked()` - Delegate a note to another address
-  - [ ] `spendDelegatedNoteChecked()` - Spend a delegated note
-  - [ ] Define properties in `delegation-action-properties.ts`
+- [x] **Delegation actions** (`delegation-actions-checked.ts`)
+  - [x] `depositETHChecked()` - Create a delegation note by depositing ETH
+  - [x] `delegateNoteChecked()` - Delegate a note to another address
+  - [x] `revokeNoteChecked()` - Revoke a delegated note
+  - [x] `spendDelegatedNoteChecked()` - Spend a delegated note (purchaseFromPrimaryMarketWithNotes)
+  - [x] Define properties in `delegation-action-properties.ts`
 
 - [ ] **Marketplace actions** (`marketplace-actions-checked.ts`)
   - [ ] `listTokensForSaleChecked()` - List tokens on secondary market
@@ -58,7 +59,7 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
 - [x] Indirect support propagation
 - [x] Refund mechanics (verify refunds restore correct balances)
 - [x] Withdrawal mechanics (verify withdrawals don't corrupt funding data)
-- [ ] Delegation permissions (verify only valid spender can spend)
+- [x] Delegation permissions (verify delegation chain truncation on revocation)
 - [ ] Token burn effects (verify burned tokens reduce held tokens correctly)
 
 **Section 3: Query Consistency**
@@ -165,9 +166,9 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
   - Edge case handling with try-catch assertions
   - Needs: Refund/withdrawal action wrappers
 
-- [ ] **delegation-permissions.test.ts**
-  - Permission validation with try-catch
-  - Needs: Delegation action wrappers + permission invariants
+- [x] **delegation-permissions.test.ts**
+  - Now uses delegation action wrappers (depositETHChecked, delegateNoteChecked, revokeNoteChecked)
+  - Automatically verifies delegation chain integrity and revocation properties
 
 - [ ] **mutable-refs.test.ts**
   - Mutable reference testing
@@ -211,35 +212,35 @@ Once most tests are migrated to use the action framework:
 
 ### File-by-File Migration Status
 
-**Fully Migrated (5):**
+**Fully Migrated (6):**
 1. ✅ conceptspace-beliefs.test.ts
 2. ✅ conceptspace-implications.test.ts
 3. ✅ conceptspace-indirect-support.test.ts
 4. ✅ pubstarter-basic.test.ts
 5. ✅ pubstarter-lifecycle.test.ts
+6. ✅ delegation-permissions.test.ts
 
 **Partially Migrated (5):**
-6. 🟡 pubstarter-burn-tokens.test.ts
-7. 🟡 pubstarter-multiple-tokens.test.ts
-8. 🟡 conceptspace-create-statement-workflow.test.ts
-9. 🟡 delegation-basic.test.ts
-10. 🟡 delegation-spending.test.ts
+7. 🟡 pubstarter-burn-tokens.test.ts
+8. 🟡 pubstarter-multiple-tokens.test.ts
+9. 🟡 conceptspace-create-statement-workflow.test.ts
+10. 🟡 delegation-basic.test.ts
+11. 🟡 delegation-spending.test.ts
 
-**Not Yet Migrated (14):**
-11. ❌ hello-world.test.ts
-12. ❌ end-to-end-workflows.test.ts
-13. ❌ fundingportal-alignment.test.ts
-14. ❌ pubstarter-filtering-sorting.test.ts
-15. ❌ pubstarter-edge-cases.test.ts
-16. ❌ conceptspace-multiple-attesters.test.ts
-17. ❌ conceptspace-user-profiles.test.ts
-18. ❌ conceptspace-discovery.test.ts
-19. ❌ fundingportal-leaderboards.test.ts
-20. ❌ mutable-refs.test.ts
-21. ❌ fundingportal-indirect-alignment.test.ts
-22. ❌ fundingportal-aggregated-metrics.test.ts
-23. ❌ marketplace-secondary.test.ts
-24. ❌ delegation-permissions.test.ts
+**Not Yet Migrated (13):**
+12. ❌ hello-world.test.ts
+13. ❌ end-to-end-workflows.test.ts
+14. ❌ fundingportal-alignment.test.ts
+15. ❌ pubstarter-filtering-sorting.test.ts
+16. ❌ pubstarter-edge-cases.test.ts
+17. ❌ conceptspace-multiple-attesters.test.ts
+18. ❌ conceptspace-user-profiles.test.ts
+19. ❌ conceptspace-discovery.test.ts
+20. ❌ fundingportal-leaderboards.test.ts
+21. ❌ mutable-refs.test.ts
+22. ❌ fundingportal-indirect-alignment.test.ts
+23. ❌ fundingportal-aggregated-metrics.test.ts
+24. ❌ marketplace-secondary.test.ts
 
 ### Available Action Wrappers
 
@@ -251,9 +252,12 @@ Once most tests are migrated to use the action framework:
 - `buyProjectTokensChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
 - `refundProjectTokensChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
 - `withdrawProjectFundsChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
+- `depositETHChecked()` - [src/delegation-actions-checked.ts](src/delegation-actions-checked.ts)
+- `delegateNoteChecked()` - [src/delegation-actions-checked.ts](src/delegation-actions-checked.ts)
+- `revokeNoteChecked()` - [src/delegation-actions-checked.ts](src/delegation-actions-checked.ts)
+- `spendDelegatedNoteChecked()` - [src/delegation-actions-checked.ts](src/delegation-actions-checked.ts)
 
 **Needed:**
-- Delegation: create, delegate, spend
 - Marketplace: list, buy
 - Token burning: burn
 
