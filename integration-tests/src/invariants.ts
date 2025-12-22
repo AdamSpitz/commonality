@@ -171,10 +171,10 @@ export async function assertBeliefCountsMatch(
  * State Consistency Invariant #2: Money conservation
  *
  * For any assurance contract (project):
- * - totalReceived should equal the sum of all individual contribution amounts
+ * - totalReceived should equal (sum of contributions) - (sum of refunds)
  *
  * This checks that the cached aggregated total on the Project entity
- * matches the sum of all individual Contribution records in the database.
+ * matches the sum of all individual Contribution records minus Refund records.
  *
  * Note: This checks money conservation at the indexer level. A more complete
  * check would also verify that the indexer's totalReceived matches the
@@ -186,7 +186,7 @@ export async function assertMoneyConservation(
   projectAddress: string
 ): Promise<void> {
   // Import SDK functions dynamically to avoid circular dependencies
-  const { getProject, getProjectContributions } = await import('@commonality/sdk');
+  const { getProject, getProjectContributions, getProjectRefunds } = await import('@commonality/sdk');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -201,19 +201,31 @@ export async function assertMoneyConservation(
   // Get all contributions for this project
   const contributions = await getProjectContributions(executor, projectAddress.toLowerCase());
 
+  // Get all refunds for this project
+  const refunds = await getProjectRefunds(executor, projectAddress.toLowerCase());
+
   // Sum up all individual contribution amounts
-  const actualTotal = contributions.reduce((sum, contribution) => {
-    return sum + BigInt(contribution.amount);
+  const totalContributed = contributions.reduce((sum, contribution) => {
+    return sum + BigInt(contribution.totalCost);
   }, 0n);
+
+  // Sum up all individual refund amounts
+  const totalRefunded = refunds.reduce((sum, refund) => {
+    return sum + BigInt(refund.totalRefund);
+  }, 0n);
+
+  // Calculate expected total: contributions - refunds
+  const expectedTotal = totalContributed - totalRefunded;
 
   const cachedTotal = BigInt(project.totalReceived);
 
   // Verify the totals match
   assert.strictEqual(
     cachedTotal,
-    actualTotal,
+    expectedTotal,
     `Project ${projectAddress}: totalReceived mismatch. ` +
-    `Expected ${actualTotal.toString()} (sum from ${contributions.length} individual contributions), ` +
+    `Expected ${expectedTotal.toString()} (${totalContributed.toString()} from ${contributions.length} contributions ` +
+    `minus ${totalRefunded.toString()} from ${refunds.length} refunds), ` +
     `got ${cachedTotal.toString()} (from cached totalReceived)`
   );
 }

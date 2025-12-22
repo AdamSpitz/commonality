@@ -7,6 +7,7 @@ import {
   getAllProjects,
   getProjectTokens,
   getProjectContributions,
+  getProjectRefunds,
   getUserContributions,
   getSaleListing,
   getActiveSaleListings,
@@ -43,6 +44,10 @@ export const pubstarterResolvers = {
 
     projectContributions: (_: any, { projectAddress }: { projectAddress: string }, { client }: { client: GraphQLClient }) => {
       return getProjectContributions(client, projectAddress);
+    },
+
+    projectRefunds: (_: any, { projectAddress }: { projectAddress: string }, { client }: { client: GraphQLClient }) => {
+      return getProjectRefunds(client, projectAddress);
     },
 
     userContributions: (_: any, { userAddress }: { userAddress: string }, { client }: { client: GraphQLClient }) => {

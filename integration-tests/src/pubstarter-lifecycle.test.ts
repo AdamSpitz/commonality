@@ -10,9 +10,6 @@
 import assert from 'assert';
 import {
   createProject,
-  buyProjectTokens,
-  refundProjectTokens,
-  withdrawProjectFunds,
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
@@ -30,8 +27,8 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertMoneyConservation, assertTokenConservation, assertMonotonicProjectFunding } from './invariants.js';
-import { buyProjectTokensChecked } from './funding-actions-checked.js';
+import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
+import { buyProjectTokensChecked, refundProjectTokensChecked, withdrawProjectFundsChecked } from './funding-actions-checked.js';
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
@@ -113,9 +110,6 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
     await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
-    // Capture initial funding for monotonic check
-    const initialFunding = BigInt(initialProject.totalReceived);
-
     // Contributor buys enough tokens to meet threshold
     testLog('  Contributor buying 50 tokens (0.5 ETH total)...');
     const assuranceContract: AssuranceContract = {
@@ -144,12 +138,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     testLog(`  Project total received: ${fundedProject.totalReceived}`);
     assert.ok(BigInt(fundedProject.totalReceived) >= threshold, 'Project should have reached threshold');
 
-    // Verify invariants: money and token conservation after contribution
-    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
-    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
-
-    // Verify monotonic funding property: totalReceived should have increased
-    await assertMonotonicProjectFunding(graphqlClient, projectDetails.assuranceContractAddress, initialFunding);
+    // Note: Money conservation, token conservation, and monotonic funding are automatically
+    // verified by buyProjectTokensChecked()
 
     // Get creator's balance before withdrawal
     const balanceBefore = await creatorClients.publicClient.getBalance({
@@ -159,15 +149,13 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Creator withdraws funds
     testLog('  Creator withdrawing funds...');
-    const withdrawHash = await withdrawProjectFunds(
+    await withdrawProjectFundsChecked(
       creatorClients,
-      assuranceContract
+      assuranceContract,
+      graphqlClient
     );
 
-    const withdrawReceipt = await creatorClients.publicClient.getTransactionReceipt({ hash: withdrawHash });
-    await waitForSync(graphqlClient, withdrawReceipt.blockNumber, 15000);
-
-    // Verify creator received funds
+    // Verify creator received funds (ETH balance check)
     const balanceAfter = await creatorClients.publicClient.getBalance({
       address: creatorClients.account,
     });
@@ -258,12 +246,11 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       await getProject(graphqlClient, projectDetails.assuranceContractAddress),
       'Unfunded project'
     );
-
-    // Verify invariants: money and token conservation after contribution (even though project failed)
-    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
-    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
     testLog(`  Project total received: ${unfundedProject.totalReceived}`);
     assert.ok(BigInt(unfundedProject.totalReceived) < threshold, 'Project should not have reached threshold');
+
+    // Note: Money conservation and token conservation are automatically
+    // verified by buyProjectTokensChecked()
 
     // Wait for deadline to pass by advancing blockchain time
     testLog('  Advancing blockchain time past deadline...');
@@ -313,21 +300,20 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Contributor gets refund
     testLog('  Contributor requesting refund...');
-    const refundHash = await refundProjectTokens(
+    await refundProjectTokensChecked(
       contributorClients,
       assuranceContract,
+      graphqlClient,
       {
         holder: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [10n],
+        refundAmount: parseEther('0.1'), // 10 tokens * 0.01 ETH each
       }
     );
 
-    const refundReceipt = await contributorClients.publicClient.getTransactionReceipt({ hash: refundHash });
-    await waitForSync(graphqlClient, refundReceipt.blockNumber, 15000);
-
-    // Verify contributor received refund
+    // Verify contributor received refund (ETH balance check)
     const balanceAfter = await contributorClients.publicClient.getBalance({
       address: contributorClients.account,
     });

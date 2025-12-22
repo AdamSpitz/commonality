@@ -16,6 +16,8 @@
 import type { Hash, Address } from 'viem';
 import {
   buyProjectTokens,
+  refundProjectTokens,
+  withdrawProjectFunds,
   waitForSync,
   type TestClients,
   type AssuranceContract,
@@ -26,7 +28,11 @@ import {
   type ActionContext,
   type ActionRunOptions,
 } from './action-framework.js';
-import { buyProjectTokensMetadata } from './funding-action-properties.js';
+import {
+  buyProjectTokensMetadata,
+  refundProjectTokensMetadata,
+  withdrawProjectFundsMetadata,
+} from './funding-action-properties.js';
 
 /**
  * Buy tokens from a project (with property checking)
@@ -100,6 +106,142 @@ export async function buyProjectTokensChecked(
       return hash;
     },
     buyProjectTokensMetadata,
+    context,
+    options
+  );
+}
+
+/**
+ * Refund tokens back to the assurance contract (with property checking)
+ *
+ * This wrapper runs the refundProjectTokens action and automatically:
+ * 1. Checks that totalReceived decreases by the exact refund amount
+ * 2. Verifies money conservation (totalReceived matches sum of contributions minus refunds)
+ * 3. Verifies token conservation (sold = held + burned)
+ *
+ * @param clients - Test wallet and public clients
+ * @param assuranceContract - The project's assurance contract instance
+ * @param graphqlClient - GraphQL client for the indexer
+ * @param params - Refund parameters
+ * @param params.holder - Address that owns the tokens being refunded
+ * @param params.tokenAddress - Address of the project's ERC1155 token contract
+ * @param params.tokenIds - Token IDs to refund
+ * @param params.tokenCounts - Quantity for each token ID
+ * @param params.refundAmount - Total refund amount in wei (for property checking)
+ * @param options - Optional: control which checks run
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * const txHash = await refundProjectTokensChecked(
+ *   clients,
+ *   assuranceContract,
+ *   graphqlClient,
+ *   {
+ *     holder: bob.address,
+ *     tokenAddress: projectDetails.tokenAddress,
+ *     tokenIds: [0n],
+ *     tokenCounts: [10n],
+ *     refundAmount: parseEther('1.0')
+ *   }
+ * );
+ * // State transition properties and invariants are automatically verified
+ * ```
+ */
+export async function refundProjectTokensChecked(
+  clients: TestClients,
+  assuranceContract: AssuranceContract,
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  params: {
+    holder: Address;
+    tokenAddress: Address;
+    tokenIds: bigint[];
+    tokenCounts: bigint[];
+    refundAmount: bigint;
+  },
+  options?: ActionRunOptions
+): Promise<Hash> {
+  const projectAddress = assuranceContract.address;
+
+  const context: ActionContext = {
+    graphqlClient,
+    contracts: { pubstarter: assuranceContract },
+    entities: {
+      projectAddress,
+      userAddress: clients.account,
+    },
+    extra: {
+      refundAmount: params.refundAmount,
+    },
+  };
+
+  return await runActionAndCheckProperties(
+    async () => {
+      const hash = await refundProjectTokens(clients, assuranceContract, {
+        holder: params.holder,
+        tokenAddress: params.tokenAddress,
+        tokenIds: params.tokenIds,
+        tokenCounts: params.tokenCounts,
+      });
+      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
+      await waitForSync(graphqlClient, receipt.blockNumber);
+      return hash;
+    },
+    refundProjectTokensMetadata,
+    context,
+    options
+  );
+}
+
+/**
+ * Withdraw funds from a successful project (with property checking)
+ *
+ * This wrapper runs the withdrawProjectFunds action and automatically:
+ * 1. Checks that totalReceived remains unchanged (withdrawal doesn't alter history)
+ * 2. Verifies contribution count remains the same
+ * 3. Verifies money conservation still holds
+ *
+ * @param clients - Test wallet and public clients
+ * @param assuranceContract - The project's assurance contract instance
+ * @param graphqlClient - GraphQL client for the indexer
+ * @param options - Optional: control which checks run
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * const txHash = await withdrawProjectFundsChecked(
+ *   clients,
+ *   assuranceContract,
+ *   graphqlClient
+ * );
+ * // State transition properties and invariants are automatically verified
+ * ```
+ */
+export async function withdrawProjectFundsChecked(
+  clients: TestClients,
+  assuranceContract: AssuranceContract,
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  options?: ActionRunOptions
+): Promise<Hash> {
+  const projectAddress = assuranceContract.address;
+
+  const context: ActionContext = {
+    graphqlClient,
+    contracts: { pubstarter: assuranceContract },
+    entities: {
+      projectAddress,
+      userAddress: clients.account,
+    },
+  };
+
+  return await runActionAndCheckProperties(
+    async () => {
+      const hash = await withdrawProjectFunds(clients, assuranceContract);
+      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
+      await waitForSync(graphqlClient, receipt.blockNumber);
+      return hash;
+    },
+    withdrawProjectFundsMetadata,
     context,
     options
   );

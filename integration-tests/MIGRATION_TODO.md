@@ -8,6 +8,7 @@ This document tracks the migration of integration tests from ad-hoc assertions t
 - **5 test files** partially migrated (21%)
 - **14 test files** not yet migrated (58%)
 - **9 invariants** implemented in [src/invariants.ts](src/invariants.ts)
+- **12 state transition properties** implemented (beliefs: 3, implications: 3, funding: 3, refund: 1, withdrawal: 1, indirect: 1)
 - **3 action categories** have checked wrappers (beliefs, implications, funding)
 
 ---
@@ -27,11 +28,10 @@ This document tracks the migration of integration tests from ad-hoc assertions t
   - [ ] `buyTokensFromMarketplaceChecked()` - Buy from secondary market
   - [ ] Define properties in `marketplace-action-properties.ts`
 
-- [ ] **Project creation actions** (`project-creation-actions-checked.ts`)
-  - [ ] `createProjectChecked()` - Create a new crowdfunding project
-  - [ ] `withdrawProjectFundsChecked()` - Withdraw funds from successful project
-  - [ ] `refundContributionChecked()` - Refund from failed project
-  - [ ] Define properties in `project-action-properties.ts`
+- [x] **Withdrawal and refund actions** (added to `funding-actions-checked.ts`)
+  - [x] `withdrawProjectFundsChecked()` - Withdraw funds from successful project
+  - [x] `refundProjectTokensChecked()` - Refund from failed project
+  - [x] Updated `funding-action-properties.ts` with refund and withdrawal properties
 
 - [ ] **Token burn actions** (add to `funding-actions-checked.ts`)
   - [ ] `burnProjectTokensChecked()` - Burn project tokens
@@ -56,9 +56,10 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
 - [x] Project funding
 - [x] Token transfer consistency (trade data)
 - [x] Indirect support propagation
+- [x] Refund mechanics (verify refunds restore correct balances)
+- [x] Withdrawal mechanics (verify withdrawals don't corrupt funding data)
 - [ ] Delegation permissions (verify only valid spender can spend)
 - [ ] Token burn effects (verify burned tokens reduce held tokens correctly)
-- [ ] Refund mechanics (verify refunds restore correct balances)
 
 **Section 3: Query Consistency**
 - [x] Indirect supporter count vs list
@@ -248,11 +249,12 @@ Once most tests are migrated to use the action framework:
 - `clearOpinionChecked()` - [src/belief-actions-checked.ts](src/belief-actions-checked.ts)
 - `attestImplicationChecked()` - [src/implication-actions-checked.ts](src/implication-actions-checked.ts)
 - `buyProjectTokensChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
+- `refundProjectTokensChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
+- `withdrawProjectFundsChecked()` - [src/funding-actions-checked.ts](src/funding-actions-checked.ts)
 
 **Needed:**
 - Delegation: create, delegate, spend
 - Marketplace: list, buy
-- Project lifecycle: create, withdraw, refund
 - Token burning: burn
 
 ### Implemented Invariants

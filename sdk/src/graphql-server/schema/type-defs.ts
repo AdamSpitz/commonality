@@ -96,6 +96,19 @@ export const typeDefs = `#graphql
     transactionHash: String
   }
 
+  type Refund {
+    id: ID!
+    projectAddress: Address!
+    participant: Address!
+    erc1155Address: Address
+    tokenIds: String
+    tokenCounts: String
+    totalRefund: String!
+    createdAt: String!
+    blockNumber: String!
+    transactionHash: String
+  }
+
   type SaleListing {
     marketplaceAddress: Address!
     listingId: String!
@@ -314,6 +327,7 @@ export const typeDefs = `#graphql
     allProjects(options: BrowseStatementsOptions): [Project!]!
     projectTokens(projectAddress: Address!): [ProjectToken!]!
     projectContributions(projectAddress: Address!): [Contribution!]!
+    projectRefunds(projectAddress: Address!): [Refund!]!
     userContributions(userAddress: Address!): [Contribution!]!
     saleListing(marketplaceAddress: Address!, listingId: String!): SaleListing
     activeSaleListings(marketplaceAddress: Address): [SaleListing!]!

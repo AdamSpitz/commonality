@@ -45,6 +45,19 @@ export interface Contribution {
   transactionHash?: string;
 }
 
+export interface Refund {
+  id: string;
+  projectAddress: string;
+  participant: string;
+  erc1155Address?: string;
+  tokenIds?: string;
+  tokenCounts?: string;
+  totalRefund: string;
+  createdAt: string;
+  blockNumber: string;
+  transactionHash?: string;
+}
+
 export interface SaleListing {
   id: string;
   projectAddress: string;
@@ -269,6 +282,37 @@ export async function getUserContributions(
   );
 
   return result.userContributions || [];
+}
+
+/**
+ * Get refunds for a specific project
+ */
+export async function getProjectRefunds(
+  executor: GraphQLExecutor,
+  projectAddress: string
+): Promise<Refund[]> {
+  const result = await executeQuery<{ projectRefunds: Refund[] }>(
+    executor,
+    `
+      query GetProjectRefunds($projectAddress: Address!) {
+        projectRefunds(projectAddress: $projectAddress) {
+          id
+          projectAddress
+          participant
+          erc1155Address
+          tokenIds
+          tokenCounts
+          totalRefund
+          createdAt
+          blockNumber
+          transactionHash
+        }
+      }
+    `,
+    { projectAddress }
+  );
+
+  return result.projectRefunds || [];
 }
 
 /**

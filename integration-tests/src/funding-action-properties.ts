@@ -111,11 +111,128 @@ export const moneyConservationInvariant: InvariantCheck = {
 };
 
 /**
+ * State Transition Property #2: Refund Mechanics
+ *
+ * When a refund is processed:
+ * - The project's totalReceived should decrease by the refund amount
+ * - Money conservation should still hold (totalReceived = sum of contributions minus refunds)
+ * - Token conservation should still hold (tokens are returned to the contract)
+ *
+ * This verifies:
+ * - Refunds correctly reduce the project's funding
+ * - The exact refund amount is reflected in totalReceived
+ * - No money is lost or duplicated during refund
+ */
+export const refundMechanicsProperty: StateTransitionProperty = {
+  name: 'refundMechanics',
+  captureState: captureFundingState,
+  check: async (context: ActionContext, before: FundingState, after: FundingState) => {
+    const { extra } = context;
+
+    if (!extra?.refundAmount) {
+      throw new Error('refundAmount is required in context.extra for refundMechanicsProperty');
+    }
+
+    const refundAmount = BigInt(extra.refundAmount);
+    const expectedTotal = before.totalReceived - refundAmount;
+
+    assert.strictEqual(
+      after.totalReceived,
+      expectedTotal,
+      `Total received mismatch after refund. ` +
+      `Before: ${before.totalReceived}, ` +
+      `Refund: ${refundAmount}, ` +
+      `Expected: ${expectedTotal}, ` +
+      `Got: ${after.totalReceived}`
+    );
+
+    // Note: contribution count should remain the same - refunds don't delete contributions
+    // The contribution records remain as historical records
+  },
+};
+
+/**
+ * State Transition Property #3: Withdrawal Mechanics
+ *
+ * When funds are withdrawn from a successful project:
+ * - The withdrawal should succeed (no revert)
+ * - The project's totalReceived should remain the same (withdrawal doesn't change history)
+ * - Money conservation should still hold
+ *
+ * This verifies:
+ * - Withdrawals don't corrupt the funding data
+ * - Historical funding data is preserved
+ */
+export const withdrawalMechanicsProperty: StateTransitionProperty = {
+  name: 'withdrawalMechanics',
+  captureState: captureFundingState,
+  check: async (context: ActionContext, before: FundingState, after: FundingState) => {
+    // Withdrawal should not change totalReceived - it's a historical record
+    assert.strictEqual(
+      after.totalReceived,
+      before.totalReceived,
+      `Total received should not change after withdrawal. ` +
+      `Before: ${before.totalReceived}, ` +
+      `After: ${after.totalReceived}`
+    );
+
+    // Contribution count should also remain the same
+    assert.strictEqual(
+      after.contributionCount,
+      before.contributionCount,
+      `Contribution count should not change after withdrawal. ` +
+      `Before: ${before.contributionCount}, ` +
+      `After: ${after.contributionCount}`
+    );
+  },
+};
+
+/**
+ * Invariant Check: Token Conservation
+ *
+ * Tokens sold should equal tokens held + tokens burned.
+ */
+export const tokenConservationInvariant: InvariantCheck = {
+  name: 'tokenConservation',
+  check: async (context: ActionContext) => {
+    const { graphqlClient, entities } = context;
+    const { projectAddress } = entities;
+
+    if (!projectAddress) {
+      throw new Error('projectAddress is required in context.entities');
+    }
+
+    const { assertTokenConservation } = await import('./invariants.js');
+    await assertTokenConservation(graphqlClient, projectAddress);
+  },
+};
+
+/**
  * Action metadata for buyProjectTokens
  */
 export const buyProjectTokensMetadata: ActionMetadata = {
   name: 'buyProjectTokens',
   category: 'funding',
   stateTransitionProperties: [projectFundingProperty],
+  invariantsToCheck: [moneyConservationInvariant, tokenConservationInvariant],
+};
+
+/**
+ * Action metadata for refundProjectTokens
+ */
+export const refundProjectTokensMetadata: ActionMetadata = {
+  name: 'refundProjectTokens',
+  category: 'funding',
+  stateTransitionProperties: [refundMechanicsProperty],
+  invariantsToCheck: [moneyConservationInvariant, tokenConservationInvariant],
+};
+
+/**
+ * Action metadata for withdrawProjectFunds
+ */
+export const withdrawProjectFundsMetadata: ActionMetadata = {
+  name: 'withdrawProjectFunds',
+  category: 'funding',
+  stateTransitionProperties: [withdrawalMechanicsProperty],
   invariantsToCheck: [moneyConservationInvariant],
 };
