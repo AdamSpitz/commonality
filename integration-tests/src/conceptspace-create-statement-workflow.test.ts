@@ -28,6 +28,7 @@ import {
 } from '@commonality/sdk';
 import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertUniqueStatements } from './invariants.js';
 
 describe('Conceptspace Create Statement Workflow', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -502,5 +503,74 @@ describe('Conceptspace Create Statement Workflow', () => {
     assert.strictEqual(statement.believerCount, 1, 'Statement should still have 1 believer');
 
     testLog('  ✓ Gracefully handled list update failure (statement still created)');
+  });
+
+  it('should deduplicate statements with identical content (CID-based)', async function() {
+    this.timeout(30000);
+
+    const clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+
+    // Create identical statement content
+    const statementData: StatementContent = {
+      statementType: 'statement',
+      content: 'We should prioritize climate action now.',
+      title: 'Climate Action Priority',
+      metadata: {
+        version: 1,
+      },
+    };
+
+    testLog('  Creating first statement...');
+
+    // Create the statement the first time
+    const result1 = await createAndSignStatement(
+      clients,
+      {
+        beliefs: beliefsContract,
+        mutableRefUpdater: mutableRefUpdaterContract,
+      },
+      statementData,
+      {
+        graphqlClient,
+        addToCreatedList: true,
+      }
+    );
+
+    testLog(`  First statement CID: ${result1.cid}`);
+
+    // Wait for sync
+    const receipt1 = await clients.publicClient.getTransactionReceipt({ hash: result1.signTxHash });
+    await waitForSync(graphqlClient, receipt1.blockNumber, 15000);
+
+    const statementId1 = cidToBytes32(result1.cid);
+
+    testLog('  Creating second statement with identical content...');
+
+    // Create the same statement again
+    const result2 = await createAndSignStatement(
+      clients,
+      {
+        beliefs: beliefsContract,
+        mutableRefUpdater: mutableRefUpdaterContract,
+      },
+      statementData,
+      {
+        graphqlClient,
+        addToCreatedList: true,
+      }
+    );
+
+    testLog(`  Second statement CID: ${result2.cid}`);
+
+    const statementId2 = cidToBytes32(result2.cid);
+
+    // Verify that both statements have the same CID (deduplication)
+    await assertUniqueStatements(
+      statementId1,
+      statementId2,
+      'when creating statement with identical content twice'
+    );
+
+    testLog('  ✓ CID-based deduplication working correctly');
   });
 });

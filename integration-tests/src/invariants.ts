@@ -785,3 +785,43 @@ async function checkOrphanedImplications(
     }
   }
 }
+
+/**
+ * Business Logic Constraint: Unique statements (CID-based deduplication)
+ *
+ * Section 4 from generative-test-prep.md
+ *
+ * Verifies that statements with identical IPFS content have the same statementId.
+ * This checks that the CID-based deduplication is working correctly.
+ *
+ * In the Commonality system, statement IDs are derived from IPFS content identifiers (CIDs).
+ * Two statements with identical content should produce the same CID, and therefore should
+ * have the same statementId in the database. This function verifies this property by:
+ *
+ * 1. Taking two statementIds that are expected to represent identical content
+ * 2. Verifying they are actually the same ID (i.e., deduplication occurred)
+ *
+ * This is primarily a test helper to verify deduplication behavior when creating statements.
+ * It's typically called after attempting to create a "duplicate" statement to verify that
+ * the system correctly identified it as a duplicate and returned the existing statement's ID.
+ *
+ * @param statementId1 First statement ID (expected to be identical to statementId2)
+ * @param statementId2 Second statement ID (expected to be identical to statementId1)
+ * @param context Optional context string for error messages (e.g., "after creating statement with same content")
+ */
+export async function assertUniqueStatements(
+  statementId1: string,
+  statementId2: string,
+  context?: string
+): Promise<void> {
+  const contextMsg = context ? ` ${context}` : '';
+
+  assert.strictEqual(
+    statementId1.toLowerCase(),
+    statementId2.toLowerCase(),
+    `Statement uniqueness violation${contextMsg}. ` +
+    `Two statements with identical IPFS content should have the same statementId (CID-based deduplication). ` +
+    `Got ${statementId1} and ${statementId2}. ` +
+    `This indicates that either the CID calculation is non-deterministic or deduplication is not working correctly.`
+  );
+}

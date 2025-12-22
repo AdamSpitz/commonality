@@ -7,7 +7,7 @@ This document tracks the migration of integration tests from ad-hoc assertions t
 - **5 test files** fully migrated (21%)
 - **5 test files** partially migrated (21%)
 - **14 test files** not yet migrated (58%)
-- **7 invariants** implemented in [src/invariants.ts](src/invariants.ts)
+- **8 invariants** implemented in [src/invariants.ts](src/invariants.ts)
 - **3 action categories** have checked wrappers (beliefs, implications, funding)
 
 ---
@@ -69,7 +69,7 @@ Based on [generative-test-prep.md](generative-test-prep.md), these invariants ar
 **Section 4: Business Logic Constraints**
 - [ ] Assurance contract refunds (deadline + threshold logic)
 - [ ] Implication non-transitivity (S1→S2→S3 doesn't imply S1's believers support S3)
-- [ ] Unique statements (same IPFS CID = same statementId)
+- [x] Unique statements (same IPFS CID = same statementId)
 
 **Section 5: Edge Case Validation**
 - [ ] Empty states (zero believers/disbelievers)
@@ -265,6 +265,7 @@ See [src/invariants.ts](src/invariants.ts) for current implementations:
 5. `assertTradeDataConsistency()`
 6. `assertIndirectSupporterCountConsistency()`
 7. `assertNoOrphanedData()` - Checks referential integrity (Beliefs → Statements/Users, Implications → Statements/Attesters)
+8. `assertUniqueStatements()` - Verifies CID-based statement deduplication
 
 ---
 
