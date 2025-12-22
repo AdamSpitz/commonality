@@ -20,7 +20,6 @@ import {
   getProjectContributions,
   waitForSync,
   assertNotNull,
-  type GraphQLClient,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
@@ -28,7 +27,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertMoneyConservation } from './invariants.js';
+import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
 import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
@@ -41,7 +40,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-multiple-tokens';
 
-  let graphqlClient: GraphQLClient;
+  let graphqlClient: ReturnType<typeof createGraphQLClient>;
 
   before(() => {
     if (!PUBSTARTER_ADDRESS) {
@@ -233,10 +232,12 @@ describe('Pubstarter Multiple Token Types Tests', () => {
 
     testLog('  ✓ All contribution records verified');
 
-    // Verify invariant: money conservation across multiple token types and purchases
+    // Verify invariants: money and token conservation across multiple token types and purchases
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     testLog('  ✓ Money conservation verified');
+    testLog('  ✓ Token conservation verified');
     testLog('  Test completed successfully!');
   });
 });

@@ -217,3 +217,104 @@ export async function assertMoneyConservation(
     `got ${cachedTotal.toString()} (from cached totalReceived)`
   );
 }
+
+/**
+ * State Consistency Invariant #3: Token conservation
+ *
+ * For any project (assurance contract):
+ * - For each tokenId: tokens sold (from contributions) should equal tokens held by users + tokens burned
+ *
+ * This verifies that tokens are neither created nor destroyed incorrectly in the indexer.
+ * It checks the accounting equation: Sold = Held + Burned
+ *
+ * Where:
+ * - Sold = sum of tokenCounts from all Contribution records
+ * - Burned = sum of tokenCounts from all TokenBurn records
+ * - Held = Sold - Burned (implicitly calculated, since we don't track live balances)
+ *
+ * Note: This is a consistency check at the indexer level. We're verifying that
+ * the indexer's view of sold vs burned is internally consistent. A more complete
+ * check (Section 8) would also verify against actual ERC1155 balances on-chain.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param projectAddress The project's assurance contract address
+ */
+export async function assertTokenConservation(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  projectAddress: string
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getProjectContributions, getTokenBurns } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get all contributions for this project (tokens purchased)
+  const contributions = await getProjectContributions(executor, projectAddress.toLowerCase());
+
+  // Get the ERC1155 address from the first contribution
+  // (All contributions for a project should have the same ERC1155 address)
+  if (contributions.length === 0) {
+    // No contributions yet - nothing to check
+    return;
+  }
+
+  const erc1155Address = contributions[0].erc1155Address;
+  if (!erc1155Address) {
+    throw new Error(`Contribution for project ${projectAddress} has no erc1155Address`);
+  }
+
+  // Get all token burns for this ERC1155 (tokens destroyed)
+  const burns = await getTokenBurns(executor, erc1155Address.toLowerCase());
+
+  // Calculate total sold and burned per tokenId
+  const tokenStats = new Map<string, { sold: bigint; burned: bigint }>();
+
+  // Process contributions (tokens sold)
+  for (const contribution of contributions) {
+    if (contribution.erc1155Address?.toLowerCase() !== erc1155Address.toLowerCase()) {
+      continue; // Skip contributions for different tokens
+    }
+
+    const tokenIds = JSON.parse(contribution.tokenIds) as string[];
+    const tokenCounts = JSON.parse(contribution.tokenCounts) as string[];
+
+    for (let i = 0; i < tokenIds.length; i++) {
+      const tokenId = tokenIds[i];
+      const count = BigInt(tokenCounts[i]);
+
+      const stats = tokenStats.get(tokenId) || { sold: 0n, burned: 0n };
+      stats.sold += count;
+      tokenStats.set(tokenId, stats);
+    }
+  }
+
+  // Process burns (tokens destroyed)
+  for (const burn of burns) {
+    const tokenIds = JSON.parse(burn.tokenIds) as string[];
+    const tokenCounts = JSON.parse(burn.tokenCounts) as string[];
+
+    for (let i = 0; i < tokenIds.length; i++) {
+      const tokenId = tokenIds[i];
+      const count = BigInt(tokenCounts[i]);
+
+      const stats = tokenStats.get(tokenId) || { sold: 0n, burned: 0n };
+      stats.burned += count;
+      tokenStats.set(tokenId, stats);
+    }
+  }
+
+  // Verify conservation for each tokenId
+  for (const [tokenId, stats] of tokenStats.entries()) {
+    // Check that burned tokens don't exceed sold tokens
+    // (Held = Sold - Burned must be >= 0)
+    const held = stats.sold - stats.burned;
+
+    assert(
+      held >= 0n,
+      `ERC1155 ${erc1155Address} tokenId ${tokenId}: Token conservation violation. ` +
+      `Burned (${stats.burned.toString()}) exceeds sold (${stats.sold.toString()}). ` +
+      `This would mean ${(-held).toString()} tokens were burned that were never purchased.`
+    );
+  }
+}

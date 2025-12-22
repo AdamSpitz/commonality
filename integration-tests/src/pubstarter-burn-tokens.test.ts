@@ -23,7 +23,6 @@ import {
   getTokenBurnsByUser,
   waitForSync,
   assertNotNull,
-  type GraphQLClient,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
@@ -31,6 +30,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertTokenConservation } from './invariants.js';
 
 
 describe('Pubstarter Token Burning Tests', () => {
@@ -42,7 +42,7 @@ describe('Pubstarter Token Burning Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-burn-tokens';
 
-  let graphqlClient: GraphQLClient;
+  let graphqlClient: ReturnType<typeof createGraphQLClient>;
 
   before(() => {
     if (!PUBSTARTER_ADDRESS) {
@@ -106,6 +106,10 @@ describe('Pubstarter Token Burning Tests', () => {
       abi: AssuranceContractAbi,
     };
 
+    // Verify token conservation (initial state: 0 sold, 0 burned)
+    testLog('  Verifying initial token conservation...');
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
+
     // Investor buys tokens (will keep them - investor)
     testLog('  Investor buying tokens (will hold)...');
     const investorBuyHash = await buyProjectTokens(
@@ -125,6 +129,10 @@ describe('Pubstarter Token Burning Tests', () => {
     });
     await waitForSync(graphqlClient, investorReceipt.blockNumber, 15000);
 
+    // Verify token conservation (10 sold, 0 burned, 10 held)
+    testLog('  Verifying token conservation after investor purchase...');
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
+
     // Donor buys tokens and will burn them
     testLog('  Donor buying tokens (will burn)...');
     const donorBuyHash = await buyProjectTokens(
@@ -143,6 +151,10 @@ describe('Pubstarter Token Burning Tests', () => {
       hash: donorBuyHash
     });
     await waitForSync(graphqlClient, donorReceipt.blockNumber, 15000);
+
+    // Verify token conservation (30 tokenId 0 + 5 tokenId 1 sold, 0 burned, all held)
+    testLog('  Verifying token conservation after donor purchase...');
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Check initial burn count for this token (may be non-zero on non-fresh blockchain)
     testLog('  Checking initial burn count...');
@@ -165,6 +177,10 @@ describe('Pubstarter Token Burning Tests', () => {
       hash: burnHash
     });
     await waitForSync(graphqlClient, burnReceipt.blockNumber, 15000);
+
+    // Verify token conservation (30 tokenId 0 sold, 20 burned, 10 held; 5 tokenId 1 sold, 5 burned, 0 held)
+    testLog('  Verifying token conservation after donor burn...');
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Verify burn was tracked
     testLog('  Verifying burn was tracked...');
@@ -249,6 +265,10 @@ describe('Pubstarter Token Burning Tests', () => {
       hash: partialBurnHash
     });
     await waitForSync(graphqlClient, partialBurnReceipt.blockNumber, 15000);
+
+    // Verify token conservation (30 tokenId 0 sold, 25 burned, 5 held)
+    testLog('  Verifying token conservation after partial burn...');
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Verify partial burn
     testLog('  Verifying partial burn...');

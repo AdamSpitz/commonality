@@ -23,7 +23,6 @@ import {
   getProjectContributions,
   waitForSync,
   assertNotNull,
-  type GraphQLClient,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
@@ -31,7 +30,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertMoneyConservation } from './invariants.js';
+import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
 import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
@@ -43,7 +42,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-lifecycle';
 
-  let graphqlClient: GraphQLClient;
+  let graphqlClient: ReturnType<typeof createGraphQLClient>;
 
   before(() => {
     graphqlClient = createGraphQLClient(GRAPHQL_URL);
@@ -110,8 +109,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     assert.strictEqual(initialProject.totalReceived, '0', 'Project should start with 0 received');
     assert.strictEqual(initialProject.threshold, threshold.toString(), 'Threshold should match');
 
-    // Verify invariant: money conservation (should have 0 contributions initially)
+    // Verify invariants: money and token conservation (should have 0 contributions initially)
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Contributor buys enough tokens to meet threshold
     testLog('  Contributor buying 50 tokens (0.5 ETH total)...');
@@ -141,8 +141,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     testLog(`  Project total received: ${fundedProject.totalReceived}`);
     assert.ok(BigInt(fundedProject.totalReceived) >= threshold, 'Project should have reached threshold');
 
-    // Verify invariant: money conservation after contribution
+    // Verify invariants: money and token conservation after contribution
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Get creator's balance before withdrawal
     const balanceBefore = await creatorClients.publicClient.getBalance({
@@ -252,8 +253,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       'Unfunded project'
     );
 
-    // Verify invariant: money conservation after contribution (even though project failed)
+    // Verify invariants: money and token conservation after contribution (even though project failed)
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
     testLog(`  Project total received: ${unfundedProject.totalReceived}`);
     assert.ok(BigInt(unfundedProject.totalReceived) < threshold, 'Project should not have reached threshold');
 

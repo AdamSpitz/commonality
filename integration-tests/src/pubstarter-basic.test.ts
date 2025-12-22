@@ -22,7 +22,6 @@ import {
   getProject,
   waitForSync,
   assertNotNull,
-  type GraphQLClient,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
@@ -30,7 +29,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertMoneyConservation } from './invariants.js';
+import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
 import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
@@ -49,7 +48,7 @@ describe('Pubstarter Basic Integration Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-basic';
 
-  let graphqlClient: GraphQLClient;
+  let graphqlClient: ReturnType<typeof createGraphQLClient>;
 
   before(() => {
     graphqlClient = createGraphQLClient(GRAPHQL_URL);
@@ -142,8 +141,9 @@ describe('Pubstarter Basic Integration Tests', () => {
       'Project ID (assurance contract address) should match'
     );
 
-    // Verify invariant: money conservation (should have 0 contributions initially)
+    // Verify invariants: money and token conservation (should have 0 contributions initially)
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Contributor buys some tokens
     testLog('  Contributor buying tokens...');
@@ -173,6 +173,11 @@ describe('Pubstarter Basic Integration Tests', () => {
     testLog(`  Tokens purchased! Tx: ${buyHash}`);
     testLog('  ✓ State transition properties verified');
     testLog('  ✓ Money conservation verified');
+
+    // Verify token conservation (10 of token 1 sold, 0 burned)
+    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    testLog('  ✓ Token conservation verified');
+
     testLog('  Test completed successfully!');
   });
 
