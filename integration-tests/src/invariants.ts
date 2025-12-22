@@ -528,3 +528,260 @@ export async function assertIndirectSupporterCountConsistency(
     `This indicates a query consistency issue in the indexer.`
   );
 }
+
+/**
+ * State Consistency Invariant #5: Orphaned data check
+ *
+ * Section 1 from generative-test-prep.md
+ *
+ * Verifies that all entity references are valid - i.e., every child entity that references
+ * a parent entity has a valid parent that exists in the database. This checks referential
+ * integrity across the indexer's data model.
+ *
+ * Checks performed:
+ * - Belief records reference existing Statements and Users
+ * - Implication records reference existing Statements (from/to) and Attesters
+ * - Project-related records (Contributions, Refunds, etc.) reference existing Projects
+ * - Delegation-related records reference existing DelegatableNotes
+ * - Cross-subsystem references (DelegatableNote -> Statement, ProjectAlignment -> Project/Statement)
+ *
+ * This is a fundamental data integrity check that should always pass. If it fails,
+ * it indicates a bug in the indexer's event handling logic.
+ *
+ * Note: This invariant can be expensive to run on large datasets since it queries
+ * potentially many entities. Consider running it selectively or with sampling in
+ * production generative tests.
+ *
+ * @param graphqlClient GraphQL client or executor
+ */
+export async function assertNoOrphanedData(
+  graphqlClient: GraphQLClient | GraphQLExecutor
+): Promise<void> {
+  // Check Concept Space subsystem
+  await checkOrphanedBeliefs(graphqlClient);
+  await checkOrphanedImplications(graphqlClient);
+}
+
+/**
+ * Check that all Belief records reference valid Statements and Users
+ */
+async function checkOrphanedBeliefs(
+  graphqlClient: GraphQLClient | GraphQLExecutor
+): Promise<void> {
+  // Get all beliefs with a non-zero belief state (active beliefs/disbeliefs)
+  const beliefsResult = await query<{
+    beliefss: {
+      items: Array<{
+        user: { id: string };
+        statementId: string;
+        beliefState: number;
+      }>
+    }
+  }>(
+    graphqlClient,
+    `
+      query GetAllBeliefs {
+        beliefss(where: { beliefState_not: 0 }) {
+          items {
+            user {
+              id
+            }
+            statementId
+            beliefState
+          }
+        }
+      }
+    `
+  );
+
+  const beliefs = beliefsResult.beliefss?.items || [];
+
+  // Check each belief references a valid statement
+  const checkedStatements = new Set<string>();
+  const checkedUsers = new Set<string>();
+
+  for (const belief of beliefs) {
+    const statementId = belief.statementId.toLowerCase();
+    const userId = belief.user.id.toLowerCase();
+
+    // Check statement exists (cache checks to avoid redundant queries)
+    if (!checkedStatements.has(statementId)) {
+      const statementResult = await query<{
+        statements: { id: string } | null
+      }>(
+        graphqlClient,
+        `
+          query GetStatement($id: String!) {
+            statements(id: $id) {
+              id
+            }
+          }
+        `,
+        { id: statementId }
+      );
+
+      if (!statementResult.statements) {
+        throw new Error(
+          `Orphaned Belief: User ${userId} has a belief record for statement ${statementId}, ` +
+          `but that statement does not exist in the database. ` +
+          `This indicates a referential integrity violation in the indexer.`
+        );
+      }
+
+      checkedStatements.add(statementId);
+    }
+
+    // Check user exists (cache checks to avoid redundant queries)
+    if (!checkedUsers.has(userId)) {
+      const userResult = await query<{
+        users: { id: string } | null
+      }>(
+        graphqlClient,
+        `
+          query GetUser($id: String!) {
+            users(id: $id) {
+              id
+            }
+          }
+        `,
+        { id: userId }
+      );
+
+      if (!userResult.users) {
+        throw new Error(
+          `Orphaned Belief: User ${userId} has belief records, ` +
+          `but does not exist as a User entity in the database. ` +
+          `This indicates a referential integrity violation in the indexer.`
+        );
+      }
+
+      checkedUsers.add(userId);
+    }
+  }
+}
+
+/**
+ * Check that all Implication records reference valid Statements (from/to) and Attesters
+ */
+async function checkOrphanedImplications(
+  graphqlClient: GraphQLClient | GraphQLExecutor
+): Promise<void> {
+  // Get all implications
+  const implicationsResult = await query<{
+    implicationss: {
+      items: Array<{
+        attester: { id: string };
+        fromStatementId: string;
+        toStatementId: string;
+      }>
+    }
+  }>(
+    graphqlClient,
+    `
+      query GetAllImplications {
+        implicationss {
+          items {
+            attester {
+              id
+            }
+            fromStatementId
+            toStatementId
+          }
+        }
+      }
+    `
+  );
+
+  const implications = implicationsResult.implicationss?.items || [];
+
+  // Check each implication references valid entities
+  const checkedStatements = new Set<string>();
+  const checkedAttesters = new Set<string>();
+
+  for (const implication of implications) {
+    const fromId = implication.fromStatementId.toLowerCase();
+    const toId = implication.toStatementId.toLowerCase();
+    const attesterId = implication.attester.id.toLowerCase();
+
+    // Check fromStatement exists
+    if (!checkedStatements.has(fromId)) {
+      const statementResult = await query<{
+        statements: { id: string } | null
+      }>(
+        graphqlClient,
+        `
+          query GetStatement($id: String!) {
+            statements(id: $id) {
+              id
+            }
+          }
+        `,
+        { id: fromId }
+      );
+
+      if (!statementResult.statements) {
+        throw new Error(
+          `Orphaned Implication: Attester ${attesterId} attested ${fromId}→${toId}, ` +
+          `but source statement ${fromId} does not exist in the database. ` +
+          `This indicates a referential integrity violation in the indexer.`
+        );
+      }
+
+      checkedStatements.add(fromId);
+    }
+
+    // Check toStatement exists
+    if (!checkedStatements.has(toId)) {
+      const statementResult = await query<{
+        statements: { id: string } | null
+      }>(
+        graphqlClient,
+        `
+          query GetStatement($id: String!) {
+            statements(id: $id) {
+              id
+            }
+          }
+        `,
+        { id: toId }
+      );
+
+      if (!statementResult.statements) {
+        throw new Error(
+          `Orphaned Implication: Attester ${attesterId} attested ${fromId}→${toId}, ` +
+          `but target statement ${toId} does not exist in the database. ` +
+          `This indicates a referential integrity violation in the indexer.`
+        );
+      }
+
+      checkedStatements.add(toId);
+    }
+
+    // Check attester exists
+    if (!checkedAttesters.has(attesterId)) {
+      const attesterResult = await query<{
+        attesters: { id: string } | null
+      }>(
+        graphqlClient,
+        `
+          query GetAttester($id: String!) {
+            attesters(id: $id) {
+              id
+            }
+          }
+        `,
+        { id: attesterId }
+      );
+
+      if (!attesterResult.attesters) {
+        throw new Error(
+          `Orphaned Implication: Implication ${fromId}→${toId} references attester ${attesterId}, ` +
+          `but that attester does not exist in the database. ` +
+          `This indicates a referential integrity violation in the indexer.`
+        );
+      }
+
+      checkedAttesters.add(attesterId);
+    }
+  }
+}

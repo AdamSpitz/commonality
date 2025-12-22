@@ -29,6 +29,7 @@ import {
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { attestImplicationChecked } from './implication-actions-checked.js';
+import { assertNoOrphanedData } from './invariants.js';
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -247,6 +248,9 @@ describe('Conceptspace Implications', () => {
       imp => imp.fromStatementId.toLowerCase() === s1Id.toLowerCase()
     );
     assert.strictEqual(s1ToS3, undefined, 'S1 -> S3 should NOT exist (implications are not transitive)');
+
+    // Verify no orphaned data (all implications reference valid statements and attesters)
+    await assertNoOrphanedData(graphqlClient);
 
     testLog('  ✓ Confirmed: implications are NOT transitive');
     testLog('  ✓ To find indirect support for S3 from S1 believers, need direct S1->S3 attestation');

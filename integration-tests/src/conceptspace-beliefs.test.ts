@@ -31,7 +31,7 @@ import {
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertBeliefCountsMatch } from './invariants.js';
+import { assertBeliefCountsMatch, assertNoOrphanedData } from './invariants.js';
 import {
   believeStatementChecked,
   disbelieveStatementChecked,
@@ -298,8 +298,9 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(resultWithMetrics.metrics.directDisbelievers, 0, 'Should have 0 disbelievers');
     assert.strictEqual(resultWithMetrics.metrics.indirectSupporters, 0, 'Should have 0 indirect supporters');
 
-    // Verify invariant: belief counts match individual records
+    // Verify invariants: belief counts match individual records and no orphaned data
     await assertBeliefCountsMatch(graphqlClient, statementId);
+    await assertNoOrphanedData(graphqlClient);
 
     testLog('  ✓ Fetch with metrics successful');
 
