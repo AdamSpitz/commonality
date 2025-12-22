@@ -142,7 +142,6 @@ See [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for detailed impl
   - [ ] Implication bidirectionality (blockchain-to-indexer verification)
 - [ ] Section 2: State Transition Properties
   - [ ] Indirect support propagation
-  - [ ] Token transfers
 - [ ] Section 3: Query Consistency
 - [ ] Section 4: Business Logic Constraints
 - [ ] Section 5: Edge Case Validation

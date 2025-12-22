@@ -6,10 +6,6 @@ This document tracks the implementation of invariant checking in the integration
 
 The following invariants from [generative-test-prep.md](generative-test-prep.md) should be implemented next:
 
-### Section 2: State Transition Properties
-
-- [ ] **Token transfers**: When tokens move via secondary market, verify balances change correctly
-
 ### Section 3: Query Consistency
 
 - [ ] **Direct vs aggregated counts**: Count individual records vs cached counts for various entities

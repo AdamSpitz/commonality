@@ -48,6 +48,7 @@ import {
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertTradeDataConsistency } from './invariants.js';
 
 
 
@@ -74,8 +75,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up test clients...');
-    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const buyerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const sellerClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const buyerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Seller: ${sellerClients.account}`);
     testLog(`  Buyer: ${buyerClients.account}`);
@@ -223,6 +224,10 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(trade.count, '3', 'Trade count should be 3');
     assert.strictEqual(trade.orderType, 'sale_listing', 'Trade type should be sale_listing');
 
+    // Verify trade data consistency invariant
+    testLog('  Checking trade data consistency invariant...');
+    await assertTradeDataConsistency(graphqlClient, projectDetails.marketplaceAddress, fulfillHash);
+
     testLog('  Sale listing test passed!');
   });
 
@@ -234,7 +239,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for cancellation test...');
-    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const sellerClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS({ title: 'Cancel Test Project' });
@@ -344,7 +349,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for buy order test...');
-    const buyerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const buyerClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
     const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create a project
@@ -457,6 +462,10 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(trade.orderType, 'buy_order', 'Trade type should be buy_order');
     assert.strictEqual(trade.count, '2', 'Trade count should be 2');
 
+    // Verify trade data consistency invariant
+    testLog('  Checking trade data consistency invariant...');
+    await assertTradeDataConsistency(graphqlClient, projectDetails.marketplaceAddress, fulfillHash);
+
     testLog('  Buy order test passed!');
   });
 
@@ -468,8 +477,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for buy order cancellation...');
-    const buyerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const buyerClients = createIsolatedTestClients(SUITE_NAME, 5, RPC_URL);
+    const sellerClients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS({ title: 'Cancel Buy Order Test' });

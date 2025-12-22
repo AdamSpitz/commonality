@@ -406,3 +406,80 @@ export async function assertDelegationChainIntegrity(
     `Chain[${chain.length - 1}]: ${lastChainLink.address}, Owner: ${note.owner}`
   );
 }
+
+/**
+ * State Transition Property: Token transfer consistency
+ *
+ * Section 2 from generative-test-prep.md
+ *
+ * When tokens are transferred in the secondary market (via trade), verify that:
+ * - The trade record has internally consistent data
+ * - Buyer and seller are different addresses
+ * - Token count is greater than 0
+ * - Total price equals count * pricePerToken
+ *
+ * This is a basic sanity check on trade data. A more complete check would verify
+ * actual ERC1155 balance changes on-chain (Section 8: Cross-Subsystem Consistency),
+ * but that requires querying the blockchain directly and is more expensive.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param marketplaceAddress The marketplace contract address
+ * @param transactionHash The transaction hash of the trade to check
+ */
+export async function assertTradeDataConsistency(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  marketplaceAddress: string,
+  transactionHash: string
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getMarketplaceTrades } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get all trades for this marketplace
+  const allTrades = await getMarketplaceTrades(executor, marketplaceAddress);
+
+  // Find the specific trade by transaction hash
+  const trade = allTrades.find(
+    t => t.transactionHash.toLowerCase() === transactionHash.toLowerCase()
+  );
+
+  if (!trade) {
+    throw new Error(
+      `Trade not found for marketplace ${marketplaceAddress} ` +
+      `in transaction ${transactionHash}`
+    );
+  }
+
+  // Check that buyer and seller are different
+  const buyerNormalized = trade.buyer.toLowerCase();
+  const sellerNormalized = trade.seller.toLowerCase();
+
+  assert.notStrictEqual(
+    buyerNormalized,
+    sellerNormalized,
+    `Trade ${trade.id}: Buyer and seller must be different addresses. ` +
+    `Both are ${trade.buyer}`
+  );
+
+  // Check that count is greater than 0
+  const count = BigInt(trade.count);
+  assert(
+    count > 0n,
+    `Trade ${trade.id}: Count must be greater than 0. Got ${count.toString()}`
+  );
+
+  // Check that totalPrice = count * pricePerToken
+  const pricePerToken = BigInt(trade.pricePerToken);
+  const totalPrice = BigInt(trade.totalPrice);
+  const expectedTotalPrice = count * pricePerToken;
+
+  assert.strictEqual(
+    totalPrice,
+    expectedTotalPrice,
+    `Trade ${trade.id}: Total price mismatch. ` +
+    `Expected ${expectedTotalPrice.toString()} (${count.toString()} * ${pricePerToken.toString()}), ` +
+    `got ${totalPrice.toString()}`
+  );
+}
