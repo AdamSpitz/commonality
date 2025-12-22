@@ -31,6 +31,7 @@ import {
 
 import { DelegatableNotesAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertDelegationChainIntegrity } from './invariants.js';
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -89,6 +90,9 @@ describe('Delegation System', () => {
     assert.strictEqual(note.owner.toLowerCase(), clients.account.toLowerCase(), 'Owner should be depositor');
     assert.strictEqual(note.rootOwner.toLowerCase(), clients.account.toLowerCase(), 'Root should be depositor');
     assert.strictEqual(note.active, true, 'Note should be active');
+
+    // Verify delegation chain integrity
+    await assertDelegationChainIntegrity(graphqlClient, noteId.toString());
   });
 
   it('should delegate a note to another user', async function() {
@@ -136,6 +140,9 @@ describe('Delegation System', () => {
     // Check delegation chain depth
     const delegationChain = await getDelegationChain(graphqlClient, delegatedNoteId.toString());
     assert.strictEqual(delegationChain.length, 2, 'Delegation chain should have 2 entries (user1 -> user2)');
+
+    // Verify delegation chain integrity
+    await assertDelegationChainIntegrity(graphqlClient, delegatedNoteId.toString());
 
     // Verify user2 can query their notes
     const user2Notes = await getNotesByOwner(graphqlClient, user2.account);
@@ -189,12 +196,18 @@ describe('Delegation System', () => {
     assert.strictEqual(delegatedNote.amount, delegateAmount.toString(), 'Delegated note should have 3 ETH');
     assert.strictEqual(delegatedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Delegated note owner should be user2');
 
+    // Verify delegation chain integrity for delegated note
+    await assertDelegationChainIntegrity(graphqlClient, delegatedNoteId.toString());
+
     // Check remainder note (should have 7 ETH, still owned by user1)
     const remainderNote = await getNote(graphqlClient, remainderNoteId.toString());
     assertNotNull(remainderNote, 'Remainder note');
     const expectedRemainder = depositAmount - delegateAmount;
     assert.strictEqual(remainderNote.amount, expectedRemainder.toString(), 'Remainder note should have 7 ETH');
     assert.strictEqual(remainderNote.owner.toLowerCase(), user1.account.toLowerCase(), 'Remainder note owner should still be user1');
+
+    // Verify delegation chain integrity for remainder note
+    await assertDelegationChainIntegrity(graphqlClient, remainderNoteId.toString());
   });
 
   it('should support multi-level delegation chains', async function() {
@@ -260,6 +273,9 @@ describe('Delegation System', () => {
     // Check delegation chain (should be 3 deep: user1 -> user2 -> user3)
     const finalChain = await getDelegationChain(graphqlClient, note3.toString());
     assert.strictEqual(finalChain.length, 3, 'Delegation chain should have 3 entries');
+
+    // Verify delegation chain integrity
+    await assertDelegationChainIntegrity(graphqlClient, note3.toString());
   });
 
   it('should allow revoking a delegation', async function() {
@@ -322,6 +338,9 @@ describe('Delegation System', () => {
     // Check delegation chain (should be 2 deep after revocation: user1 -> user2)
     const revokedChain = await getDelegationChain(graphqlClient, note3.toString());
     assert.strictEqual(revokedChain.length, 2, 'Delegation chain should have 2 entries after revocation');
+
+    // Verify delegation chain integrity after revocation
+    await assertDelegationChainIntegrity(graphqlClient, note3.toString());
   });
 
   it('should allow reclaiming funds from a root note', async function() {

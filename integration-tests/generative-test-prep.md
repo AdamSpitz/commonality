@@ -139,15 +139,8 @@ This is a planning document. As we implement invariant checks, we'll track progr
 See [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for detailed implementation notes.
 
 - [ ] Section 1: State Consistency Invariants
-  - [x] **Belief counts match belief records** - Implemented in `src/invariants.ts`, used in `conceptspace-beliefs.test.ts`
-  - [x] **Token conservation** - Implemented in `src/invariants.ts`, used in `pubstarter-burn-tokens.test.ts`, `pubstarter-basic.test.ts`, `pubstarter-lifecycle.test.ts`, `pubstarter-multiple-tokens.test.ts`
-  - [x] **Money conservation** - Implemented in `src/invariants.ts`, used in `pubstarter-basic.test.ts`, `pubstarter-lifecycle.test.ts`, `pubstarter-multiple-tokens.test.ts`
-  - [ ] Delegation chain integrity
   - [ ] Implication bidirectionality (blockchain-to-indexer verification)
-- [x] Section 2: State Transition Properties
-  - [x] **Belief transitions** - Implemented in `src/belief-action-properties.ts`, used in `conceptspace-beliefs.test.ts`
-  - [x] **Project funding** - Implemented in `src/funding-action-properties.ts`, used in `pubstarter-*.test.ts`
-  - [x] **Implication bidirectionality** - Implemented in `src/implication-action-properties.ts`, used in `conceptspace-implications.test.ts`
+- [ ] Section 2: State Transition Properties
   - [ ] Indirect support propagation
   - [ ] Token transfers
 - [ ] Section 3: Query Consistency

@@ -31,6 +31,7 @@ import {
 } from '@commonality/sdk';
 import { DelegatableNotesAbi, PubstarterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { assertDelegationChainIntegrity } from './invariants.js';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface
@@ -91,6 +92,9 @@ describe('Delegation Spending', () => {
 
     const depositReceipt = await user1.publicClient.getTransactionReceipt({ hash: depositHash });
     await waitForSync(graphqlClient, depositReceipt.blockNumber);
+
+    // Verify delegation chain integrity after deposit
+    await assertDelegationChainIntegrity(graphqlClient, noteId.toString());
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
@@ -196,6 +200,9 @@ describe('Delegation Spending', () => {
     );
 
     await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: delegateHash })).blockNumber);
+
+    // Verify delegation chain integrity after delegation
+    await assertDelegationChainIntegrity(graphqlClient, note2.toString());
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));

@@ -318,3 +318,91 @@ export async function assertTokenConservation(
     );
   }
 }
+
+/**
+ * State Consistency Invariant #4: Delegation chain integrity
+ *
+ * For any delegation note with a chain:
+ * - Following the delegation chain should never create a cycle
+ * - Each address in the chain should appear exactly once
+ * - The chain positions should be sequential (0, 1, 2, ...)
+ * - The first position (0) should be the rootOwner
+ * - The last position should be the current owner (leaf)
+ *
+ * This verifies that delegation chains maintain their integrity and don't contain
+ * logical inconsistencies like cycles or duplicate addresses.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param noteId The delegation note ID to check
+ */
+export async function assertDelegationChainIntegrity(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  noteId: string
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getNote, getDelegationChain } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get the note
+  const note = await getNote(executor, noteId);
+  if (!note) {
+    throw new Error(`Note ${noteId} not found`);
+  }
+
+  // Get the delegation chain
+  const chain = await getDelegationChain(executor, noteId);
+
+  if (chain.length === 0) {
+    // No chain means this is a root note with no delegations
+    // Verify that owner === rootOwner
+    assert.strictEqual(
+      note.owner.toLowerCase(),
+      note.rootOwner.toLowerCase(),
+      `Note ${noteId}: Root note (no chain) should have owner === rootOwner. ` +
+      `Owner: ${note.owner}, RootOwner: ${note.rootOwner}`
+    );
+    return;
+  }
+
+  // Check for duplicate addresses (cycle detection)
+  const addressSet = new Set<string>();
+  for (const link of chain) {
+    const normalizedAddress = link.address.toLowerCase();
+    if (addressSet.has(normalizedAddress)) {
+      throw new Error(
+        `Note ${noteId}: Delegation chain contains cycle. ` +
+        `Address ${link.address} appears multiple times in the chain.`
+      );
+    }
+    addressSet.add(normalizedAddress);
+  }
+
+  // Check that positions are sequential
+  for (let i = 0; i < chain.length; i++) {
+    assert.strictEqual(
+      chain[i].position,
+      i,
+      `Note ${noteId}: Chain position mismatch at index ${i}. ` +
+      `Expected position ${i}, got ${chain[i].position}`
+    );
+  }
+
+  // Check that first position (0) is the rootOwner
+  assert.strictEqual(
+    chain[0].address.toLowerCase(),
+    note.rootOwner.toLowerCase(),
+    `Note ${noteId}: First chain position (0) should be rootOwner. ` +
+    `Chain[0]: ${chain[0].address}, RootOwner: ${note.rootOwner}`
+  );
+
+  // Check that last position is the current owner (leaf)
+  const lastChainLink = chain[chain.length - 1];
+  assert.strictEqual(
+    lastChainLink.address.toLowerCase(),
+    note.owner.toLowerCase(),
+    `Note ${noteId}: Last chain position should be current owner (leaf). ` +
+    `Chain[${chain.length - 1}]: ${lastChainLink.address}, Owner: ${note.owner}`
+  );
+}
