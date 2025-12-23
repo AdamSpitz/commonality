@@ -10,49 +10,36 @@
 
 import assert from 'assert';
 import {
-  believeStatement,
   uploadToIPFS,
   cidToBytes32,
-  attestImplication,
-  type BeliefsContract,
   type ImplicationsContract,
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
   getImplicationsFrom,
   getImplicationsTo,
-  waitForSync,
   type GraphQLClient,
 } from '@commonality/sdk';
-import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
+import { ImplicationsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { TEST_TIMEOUTS, INDEXER_SYNC_TIMEOUT } from './test-timeouts.js';
+import { TEST_TIMEOUTS } from './test-timeouts.js';
+import { attestImplicationChecked } from './implication-actions-checked.js';
 
 describe('Multiple Attesters Tests (F2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'conceptspace-multiple-attesters';
 
-  let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;
   let graphqlClient: GraphQLClient;
 
   before(() => {
-    if (!BELIEFS_CONTRACT_ADDRESS) {
-      throw new Error('BELIEFS_CONTRACT_ADDRESS not set');
-    }
     if (!IMPLICATIONS_CONTRACT_ADDRESS) {
       throw new Error('IMPLICATIONS_CONTRACT_ADDRESS not set');
     }
-
-    beliefsContract = {
-      address: BELIEFS_CONTRACT_ADDRESS,
-      abi: BeliefsAbi,
-    };
 
     implicationsContract = {
       address: IMPLICATIONS_CONTRACT_ADDRESS,
@@ -87,14 +74,10 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  S2 -> S3 (Attester 2)');
 
     // Attester 1 attests S1 -> S2
-    const tx1 = await attestImplication(attester1, implicationsContract, s1Cid, s2Cid);
-    const receipt1 = await attester1.publicClient.getTransactionReceipt({ hash: tx1 });
-    await waitForSync(graphqlClient, receipt1.blockNumber, INDEXER_SYNC_TIMEOUT);
+    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, s1Cid, s2Cid);
 
     // Attester 2 attests S2 -> S3
-    const tx2 = await attestImplication(attester2, implicationsContract, s2Cid, s3Cid);
-    const receipt2 = await attester2.publicClient.getTransactionReceipt({ hash: tx2 });
-    await waitForSync(graphqlClient, receipt2.blockNumber, INDEXER_SYNC_TIMEOUT);
+    await attestImplicationChecked(attester2, implicationsContract, graphqlClient, s2Cid, s3Cid);
 
     // Query implications from S1 - should only find S1->S2 from Attester 1
     const implicationsFromS1 = await getImplicationsFrom(graphqlClient, s1Id);
@@ -148,17 +131,9 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  Three different attesters will attest SA -> SB');
 
     // All three attesters attest SA -> SB
-    const tx1 = await attestImplication(attester1, implicationsContract, sACid, sBCid);
-    const receipt1 = await attester1.publicClient.getTransactionReceipt({ hash: tx1 });
-    await waitForSync(graphqlClient, receipt1.blockNumber, INDEXER_SYNC_TIMEOUT);
-
-    const tx2 = await attestImplication(attester2, implicationsContract, sACid, sBCid);
-    const receipt2 = await attester2.publicClient.getTransactionReceipt({ hash: tx2 });
-    await waitForSync(graphqlClient, receipt2.blockNumber, INDEXER_SYNC_TIMEOUT);
-
-    const tx3 = await attestImplication(attester3, implicationsContract, sACid, sBCid);
-    const receipt3 = await attester3.publicClient.getTransactionReceipt({ hash: tx3 });
-    await waitForSync(graphqlClient, receipt3.blockNumber, INDEXER_SYNC_TIMEOUT);
+    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, sACid, sBCid);
+    await attestImplicationChecked(attester2, implicationsContract, graphqlClient, sACid, sBCid);
+    await attestImplicationChecked(attester3, implicationsContract, graphqlClient, sACid, sBCid);
 
     // Query all implications from SA
     const allImplications = await getImplicationsFrom(graphqlClient, sAId);
@@ -207,14 +182,10 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  Attester 2 attests: S3 -> S2');
 
     // Attester 1 attests S1 -> S2
-    const tx1 = await attestImplication(attester1, implicationsContract, s1Cid, s2Cid);
-    const receipt1 = await attester1.publicClient.getTransactionReceipt({ hash: tx1 });
-    await waitForSync(graphqlClient, receipt1.blockNumber, INDEXER_SYNC_TIMEOUT);
+    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, s1Cid, s2Cid);
 
     // Attester 2 attests S3 -> S2
-    const tx2 = await attestImplication(attester2, implicationsContract, s3Cid, s2Cid);
-    const receipt2 = await attester2.publicClient.getTransactionReceipt({ hash: tx2 });
-    await waitForSync(graphqlClient, receipt2.blockNumber, INDEXER_SYNC_TIMEOUT);
+    await attestImplicationChecked(attester2, implicationsContract, graphqlClient, s3Cid, s2Cid);
 
     // Query all implications to S2 (no filter)
     testLog('  Querying all implications to S2 (no filter)...');
@@ -286,9 +257,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  Creating implications from two different attesters...');
 
     // Attester 1 attests specific -> general
-    const tx1 = await attestImplication(attester1, implicationsContract, specificCid, generalCid);
-    const receipt1 = await attester1.publicClient.getTransactionReceipt({ hash: tx1 });
-    await waitForSync(graphqlClient, receipt1.blockNumber, INDEXER_SYNC_TIMEOUT);
+    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, specificCid, generalCid);
 
     // Verify implications can be queried by specific attester
     const attester1Implications = await getImplicationsTo(
