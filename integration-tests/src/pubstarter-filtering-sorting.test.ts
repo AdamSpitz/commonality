@@ -14,7 +14,6 @@ import assert from 'assert';
 import {
   uploadToIPFS,
   createProject,
-  buyProjectTokens,
   type PubstarterContract,
   type AssuranceContract,
 } from '@commonality/sdk';
@@ -35,6 +34,7 @@ import {
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { buyProjectTokensChecked } from './funding-actions-checked.js';
 
 describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -293,9 +293,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
       abi: AssuranceContractAbi,
     };
 
-    await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributorClients,
       assuranceContract1,
+      graphqlClient,
       {
         buyer: contributorClients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -311,9 +312,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buy2Hash = await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributorClients,
       assuranceContract2,
+      graphqlClient,
       {
         buyer: contributorClients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -322,9 +324,6 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         totalCost: parseEther('2.0'),
       }
     );
-
-    const buy2Receipt = await contributorClients.publicClient.getTransactionReceipt({ hash: buy2Hash });
-    await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
 
     // Query by funding progress (highest first)
     testLog('  Querying projects sorted by funding progress...');
