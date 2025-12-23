@@ -1,4 +1,4 @@
-# Invariant Implementation Progress
+# Invariant Implementation Guidelines
 
 This document provides guidelines for implementing invariant checks in the integration tests, as outlined in [generative-test-prep.md](generative-test-prep.md).
 
@@ -17,12 +17,7 @@ When adding new invariant checks:
    - Call it at the end of complex test scenarios
    - Don't overdo it - use judgment about when checks add value
 
-3. **Update [MIGRATION_TODO.md](MIGRATION_TODO.md)**
-   - Mark the invariant as implemented
-   - Update the count in the "Current Status" section
-   - The code itself serves as documentation for implementation details
-
-4. **Consider performance**
+3. **Consider performance**
    - Some invariants may be expensive (e.g., replaying all events)
    - Mark expensive checks clearly and use them sparingly
    - Consider making them opt-in via environment variables

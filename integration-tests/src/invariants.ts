@@ -1083,3 +1083,158 @@ function extractFieldByPath(obj: any, path: string): any {
 
   return current;
 }
+
+/**
+ * Business Logic Constraint: Implication non-transitivity
+ *
+ * Section 4 from generative-test-prep.md
+ *
+ * Verifies that the system correctly implements non-transitive implication semantics.
+ * Just because S1→S2 and S2→S3 exist doesn't mean the system should automatically
+ * show S1's believers as indirect supporters of S3. There must be a DIRECT attestation
+ * of S1→S3 for that support to propagate.
+ *
+ * This is a fundamental business rule that prevents unintended support propagation
+ * through long implication chains. For example:
+ * - Alice believes "I support climate action" (S1)
+ * - Attester says S1→"I support carbon taxes" (S2)
+ * - Attester says S2→"I support $500/ton carbon tax" (S3)
+ *
+ * Alice should appear as an indirect supporter of S2 (one hop), but NOT S3 (two hops),
+ * unless there's a direct S1→S3 attestation.
+ *
+ * This function verifies the non-transitivity property by:
+ * 1. Checking that S1→S2 and S2→S3 implications exist
+ * 2. Verifying that NO S1→S3 implication exists
+ * 3. Confirming that believers of S1 appear as indirect supporters of S2
+ * 4. Confirming that believers of S1 do NOT appear as indirect supporters of S3
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param s1Id Statement ID for the first statement (source)
+ * @param s2Id Statement ID for the middle statement
+ * @param s3Id Statement ID for the third statement (target)
+ * @param attesterAddress Address of the attester who created the implications
+ * @param believerAddress Address of a user who believes S1 (for verification)
+ */
+export async function assertImplicationNonTransitivity(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  s1Id: string,
+  s2Id: string,
+  s3Id: string,
+  attesterAddress: string,
+  believerAddress: string
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const {
+    getImplicationsFrom,
+    getIndirectSupporters,
+    getUserBelief,
+    BELIEVES,
+    DISBELIEVES,
+  } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  const normalizedAttester = attesterAddress.toLowerCase();
+  const normalizedBeliever = believerAddress.toLowerCase();
+  const normalizedS1 = s1Id.toLowerCase();
+  const normalizedS2 = s2Id.toLowerCase();
+  const normalizedS3 = s3Id.toLowerCase();
+
+  // Step 1: Verify S1→S2 implication exists
+  const implicationsFromS1 = await getImplicationsFrom(executor, normalizedS1);
+  const s1ToS2 = implicationsFromS1.find(
+    (imp) =>
+      imp.toStatementId.toLowerCase() === normalizedS2 &&
+      ((imp.attester as any).id || imp.attester).toLowerCase() === normalizedAttester
+  );
+
+  assert.ok(
+    s1ToS2,
+    `Non-transitivity test setup error: S1→S2 implication should exist. ` +
+    `Attester ${attesterAddress} has not attested ${s1Id}→${s2Id}`
+  );
+
+  // Step 2: Verify S2→S3 implication exists
+  const implicationsFromS2 = await getImplicationsFrom(executor, normalizedS2);
+  const s2ToS3 = implicationsFromS2.find(
+    (imp) =>
+      imp.toStatementId.toLowerCase() === normalizedS3 &&
+      ((imp.attester as any).id || imp.attester).toLowerCase() === normalizedAttester
+  );
+
+  assert.ok(
+    s2ToS3,
+    `Non-transitivity test setup error: S2→S3 implication should exist. ` +
+    `Attester ${attesterAddress} has not attested ${s2Id}→${s3Id}`
+  );
+
+  // Step 3: Verify NO S1→S3 implication exists (critical for this test)
+  const s1ToS3 = implicationsFromS1.find(
+    (imp) =>
+      imp.toStatementId.toLowerCase() === normalizedS3 &&
+      ((imp.attester as any).id || imp.attester).toLowerCase() === normalizedAttester
+  );
+
+  assert.ok(
+    !s1ToS3,
+    `Non-transitivity test setup error: S1→S3 implication should NOT exist. ` +
+    `Found unexpected direct attestation ${s1Id}→${s3Id} by ${attesterAddress}. ` +
+    `This test requires S1→S2 and S2→S3 to exist WITHOUT a direct S1→S3.`
+  );
+
+  // Step 4: Verify the believer believes S1
+  const believerS1Belief = await getUserBelief(executor, normalizedBeliever, normalizedS1);
+  assert.strictEqual(
+    believerS1Belief?.beliefState,
+    BELIEVES,
+    `Non-transitivity test setup error: User ${believerAddress} should believe S1 (${s1Id}). ` +
+    `Got beliefState: ${believerS1Belief?.beliefState}`
+  );
+
+  // Step 5: Verify the believer does NOT explicitly disbelieve S2 or S3
+  // (If they disbelieve, they won't appear as indirect supporters regardless)
+  const believerS2Belief = await getUserBelief(executor, normalizedBeliever, normalizedS2);
+  assert.notStrictEqual(
+    believerS2Belief?.beliefState,
+    DISBELIEVES,
+    `Non-transitivity test setup error: User ${believerAddress} should NOT disbelieve S2 (${s2Id}). ` +
+    `This would prevent them from appearing as indirect supporter.`
+  );
+
+  const believerS3Belief = await getUserBelief(executor, normalizedBeliever, normalizedS3);
+  assert.notStrictEqual(
+    believerS3Belief?.beliefState,
+    DISBELIEVES,
+    `Non-transitivity test setup error: User ${believerAddress} should NOT disbelieve S3 (${s3Id}). ` +
+    `This would prevent them from appearing as indirect supporter.`
+  );
+
+  // Step 6: Verify believer appears as indirect supporter of S2 (one hop: S1→S2)
+  const s2IndirectSupporters = await getIndirectSupporters(executor, normalizedS2, normalizedAttester);
+  const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
+
+  assert.ok(
+    s2SupporterAddresses.includes(normalizedBeliever),
+    `Implication transitivity violation: User ${believerAddress} believes S1 (${s1Id}), ` +
+    `and S1→S2 exists, so they should appear as indirect supporter of S2 (${s2Id}). ` +
+    `Found ${s2IndirectSupporters.length} indirect supporters, ` +
+    `but ${believerAddress} is not among them: [${s2SupporterAddresses.join(', ')}]`
+  );
+
+  // Step 7: Verify believer does NOT appear as indirect supporter of S3 (two hops: S1→S2→S3)
+  // This is the CORE non-transitivity check
+  const s3IndirectSupporters = await getIndirectSupporters(executor, normalizedS3, normalizedAttester);
+  const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
+
+  assert.ok(
+    !s3SupporterAddresses.includes(normalizedBeliever),
+    `Implication NON-transitivity violation: User ${believerAddress} believes S1 (${s1Id}), ` +
+    `and we have S1→S2 and S2→S3 (but NO direct S1→S3), so they should NOT appear ` +
+    `as indirect supporter of S3 (${s3Id}). The system incorrectly propagated support ` +
+    `through TWO hops. This violates the business rule that implications are non-transitive. ` +
+    `Found ${s3IndirectSupporters.length} indirect supporters of S3: [${s3SupporterAddresses.join(', ')}], ` +
+    `and ${believerAddress} should NOT be in this list.`
+  );
+}

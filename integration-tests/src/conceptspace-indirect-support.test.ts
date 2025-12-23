@@ -625,4 +625,98 @@ describe('Conceptspace Indirect Support', () => {
 
     testLog('  ✓ Disbelieved statements correctly excluded from indirect support');
   });
+
+  it('should enforce non-transitivity: S1→S2→S3 does NOT make S1 believers indirect supporters of S3', async function() {
+    this.timeout(40000);
+
+    const believerClients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
+    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+
+    // Create a three-level implication chain: S1 → S2 → S3
+    // where believer believes S1, but should NOT appear as indirect supporter of S3
+    const s1 = {
+      statementType: 'text',
+      text: 'I support climate action',
+    };
+    const s2 = {
+      statementType: 'text',
+      text: 'I support carbon taxes',
+    };
+    const s3 = {
+      statementType: 'text',
+      text: 'I support a $500/ton carbon tax',
+    };
+
+    const s1Cid = await uploadToIPFS(s1);
+    const s2Cid = await uploadToIPFS(s2);
+    const s3Cid = await uploadToIPFS(s3);
+    const s1Id = cidToBytes32(s1Cid);
+    const s2Id = cidToBytes32(s2Cid);
+    const s3Id = cidToBytes32(s3Cid);
+
+    testLog(`  S1: "${s1.text}"`);
+    testLog(`  S2: "${s2.text}"`);
+    testLog(`  S3: "${s3.text}"`);
+
+    // Believer believes S1
+    testLog('  Believer believes S1...');
+    await believeStatementChecked(believerClients, beliefsContract, graphqlClient, s1Cid);
+
+    // Create implication chain: S1 → S2 → S3 (but NO direct S1 → S3)
+    testLog('  Creating implication chain: S1 → S2 → S3...');
+    await attestImplicationChecked(
+      attesterClients,
+      implicationsContract,
+      graphqlClient,
+      s1Cid,
+      s2Cid,
+      [believerClients.account]  // Believer believes S1, so should appear as indirect supporter of S2
+    );
+
+    await attestImplicationChecked(
+      attesterClients,
+      implicationsContract,
+      graphqlClient,
+      s2Cid,
+      s3Cid,
+      []  // No believers of S2 yet - the point is that S1's believers should NOT propagate here
+    );
+
+    // Verify S1 → S2 worked correctly: believer should support S2 indirectly
+    const s2IndirectSupporters = await getIndirectSupporters(graphqlClient, s2Id, attesterClients.account);
+    const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
+    const believerAddress = believerClients.account.toLowerCase();
+
+    assert.ok(
+      s2SupporterAddresses.includes(believerAddress),
+      'Believer should appear as indirect supporter of S2 (one hop via S1→S2)'
+    );
+
+    testLog('  ✓ Believer correctly appears as indirect supporter of S2 (one hop)');
+
+    // Verify S1 → S2 → S3 does NOT make believer an indirect supporter of S3 (two hops)
+    const s3IndirectSupporters = await getIndirectSupporters(graphqlClient, s3Id, attesterClients.account);
+    const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
+
+    assert.ok(
+      !s3SupporterAddresses.includes(believerAddress),
+      'Believer should NOT appear as indirect supporter of S3 (two hops - non-transitive)'
+    );
+
+    testLog('  ✓ Believer correctly excluded from S3 indirect support (two hops - non-transitive)');
+
+    // Use the assertImplicationNonTransitivity invariant to verify this property
+    testLog('  Running assertImplicationNonTransitivity invariant check...');
+    const { assertImplicationNonTransitivity } = await import('./invariants.js');
+    await assertImplicationNonTransitivity(
+      graphqlClient,
+      s1Id,
+      s2Id,
+      s3Id,
+      attesterClients.account,
+      believerClients.account
+    );
+
+    testLog('  ✓ Non-transitivity invariant verified: implications do NOT propagate through 2+ hops');
+  });
 });
