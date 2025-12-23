@@ -47,6 +47,10 @@ import {
   DelegatableNotesAbi,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { attestImplicationChecked } from './implication-actions-checked.js';
+import { buyProjectTokensChecked } from './funding-actions-checked.js';
+import { attestProjectAlignmentChecked } from './alignment-actions-checked.js';
+import { depositETHChecked } from './delegation-actions-checked.js';
 
 describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -95,17 +99,14 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       abi: ImplicationsAbi,
     };
 
-    const implHash = await attestImplication(
+    const implHash = await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       s1Cid,
       s2Cid
     );
     testLog(`  Implication attested: ${implHash}`);
-
-    // Wait for indexer
-    const implReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implHash });
-    await waitForSync(graphqlClient, implReceipt.blockNumber, 15000);
 
     // Create two projects
     const pubstarterContract: PubstarterContract = {
@@ -165,24 +166,24 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       abi: ProjectAlignmentAbi,
     };
 
-    const align1Hash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       alignmentContract,
+      graphqlClient,
       p1Details.assuranceContractAddress,
-      s1Cid
+      s1Cid,
+      s1Id
     );
-    const align2Hash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       alignmentContract,
+      graphqlClient,
       p2Details.assuranceContractAddress,
-      s2Cid
+      s2Cid,
+      s2Id
     );
 
     testLog(`  Alignments attested`);
-
-    // Wait for alignments
-    const align2Receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: align2Hash });
-    await waitForSync(graphqlClient, align2Receipt.blockNumber, 15000);
 
     // Contributors fund the projects
     testLog('  Contributors funding projects...');
@@ -196,9 +197,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     };
 
     // Contributor 1 contributes 0.5 ETH to Project 1
-    const buy1Hash = await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract1,
+      graphqlClient,
       {
         buyer: contributor1Clients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -209,9 +211,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     );
 
     // Contributor 2 contributes 0.3 ETH to Project 2
-    const buy2Hash = await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributor2Clients,
       assuranceContract2,
+      graphqlClient,
       {
         buyer: contributor2Clients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -222,10 +225,6 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     );
 
     testLog(`  Contributions made`);
-
-    // Wait for contributions
-    const buy2Receipt = await contributor2Clients.publicClient.getTransactionReceipt({ hash: buy2Hash });
-    await waitForSync(graphqlClient, buy2Receipt.blockNumber, 15000);
 
     // Now query total funding for S2 (broader cause)
     // Should include both projects: direct (P2) and indirect (P1 via S1->S2)
@@ -275,18 +274,20 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     };
 
     testLog('  Depositing notes...');
-    const { hash: note1Hash } = await depositETH(
+    await depositETHChecked(
       donor1Clients,
       delegatableNotesContract,
+      graphqlClient,
       {
         amount: parseEther('1.0'),
         intendedStatementId: causeId,
       }
     );
 
-    const { hash: note2Hash } = await depositETH(
+    await depositETHChecked(
       donor2Clients,
       delegatableNotesContract,
+      graphqlClient,
       {
         amount: parseEther('0.5'),
         intendedStatementId: causeId,
@@ -294,10 +295,6 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     );
 
     testLog('  Notes deposited');
-
-    // Wait for both notes to sync
-    const note2Receipt = await donor2Clients.publicClient.getTransactionReceipt({ hash: note2Hash });
-    await waitForSync(graphqlClient, note2Receipt.blockNumber, 15000);
 
     // Query funding metrics
     testLog('  Querying available funding...');
@@ -343,14 +340,13 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       address: IMPLICATIONS_ADDRESS,
       abi: ImplicationsAbi,
     };
-    const implHash = await attestImplication(
+    await attestImplicationChecked(
       attesterClients,
       implicationsContract,
+      graphqlClient,
       s1Cid,
       s2Cid
     );
-    const implReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: implHash });
-    await waitForSync(graphqlClient, implReceipt.blockNumber, 15000);
 
     // Create projects
     const pubstarterContract: PubstarterContract = {
@@ -403,21 +399,22 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       abi: ProjectAlignmentAbi,
     };
 
-    await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       alignmentContract,
+      graphqlClient,
       p1Details.assuranceContractAddress,
-      s1Cid
+      s1Cid,
+      s1Id
     );
-    const align2Hash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       alignmentContract,
+      graphqlClient,
       p2Details.assuranceContractAddress,
-      s2Cid
+      s2Cid,
+      s2Id
     );
-
-    const align2Receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: align2Hash });
-    await waitForSync(graphqlClient, align2Receipt.blockNumber, 15000);
 
     // Query all aligned projects for S2
     testLog('  Querying all aligned projects for S2...');
