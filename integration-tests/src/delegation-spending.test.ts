@@ -10,12 +10,9 @@
 
 import assert from 'assert';
 import {
-  depositETH,
-  delegateNote,
   uploadToIPFS,
   cidToBytes32,
   createProject,
-  purchaseFromPrimaryMarketWithNotes,
   type DelegatableNotesContract,
   type PubstarterContract,
   type AssuranceContract,
@@ -26,12 +23,15 @@ import {
   getDelegationChain,
   getProject,
   getProjectContributions,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import { DelegatableNotesAbi, PubstarterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertDelegationChainIntegrity } from './invariants.js';
+import {
+  depositETHChecked,
+  delegateNoteChecked,
+  spendDelegatedNoteChecked,
+} from './delegation-actions-checked.js';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface
@@ -83,25 +83,19 @@ describe('Delegation Spending', () => {
     const statementCid = await uploadToIPFS(statementContent);
     const statementId = cidToBytes32(statementCid);
 
-    // User 1 deposits 5 ETH into a note
+    // User 1 deposits 5 ETH into a note (automatically verifies delegation chain integrity)
     const depositAmount = 5000000000000000000n; // 5 ETH
-    const { hash: depositHash, noteId } = await depositETH(user1, delegatableNotesContract, {
+    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
       intendedStatementId: statementId,
     });
-
-    const depositReceipt = await user1.publicClient.getTransactionReceipt({ hash: depositHash });
-    await waitForSync(graphqlClient, depositReceipt.blockNumber);
-
-    // Verify delegation chain integrity after deposit
-    await assertDelegationChainIntegrity(graphqlClient, noteId.toString());
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
     const deadline = nowInSeconds + 86400n; // 24 hours from now
     const threshold = 3000000000000000000n; // 3 ETH threshold
 
-    const { hash: projectHash, projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProject(user1, pubstarterContract, {
       metadataURI: 'ipfs://project-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: user1.account,
@@ -114,19 +108,18 @@ describe('Delegation Spending', () => {
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
     });
 
-    const projectReceipt = await user1.publicClient.getTransactionReceipt({ hash: projectHash });
-    await waitForSync(graphqlClient, projectReceipt.blockNumber);
-
     // The assurance contract IS the primary market (implements ERC1155PrimaryMarket)
     const primaryMarketAddress = projectDetails.assuranceContractAddress;
 
     // Spend the note to purchase tokens (buy 20 tokens = 1 ETH)
+    // Automatically verifies delegation chain integrity
     const purchaseAmount = 1000000000000000000n; // 1 ETH
     const tokensToBuy = 20n;
 
-    const purchaseHash = await purchaseFromPrimaryMarketWithNotes(
+    await spendDelegatedNoteChecked(
       user1,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteIds: [noteId],
         chains: [[user1.account]], // Single-level chain (just user1)
@@ -137,9 +130,6 @@ describe('Delegation Spending', () => {
         counts: [tokensToBuy],
       }
     );
-
-    const purchaseReceipt = await user1.publicClient.getTransactionReceipt({ hash: purchaseHash });
-    await waitForSync(graphqlClient, purchaseReceipt.blockNumber);
 
     // Verify the project received the funds
     const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
@@ -171,7 +161,7 @@ describe('Delegation Spending', () => {
     const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
-    // User 1 deposits ETH
+    // User 1 deposits ETH (automatically verifies delegation chain integrity)
     const statementContent = {
       statementType: 'text',
       text: 'Support education initiatives',
@@ -180,17 +170,16 @@ describe('Delegation Spending', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
-    const { hash: depositHash, noteId: note1 } = await depositETH(user1, delegatableNotesContract, {
+    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
       intendedStatementId: statementId,
     });
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: depositHash })).blockNumber);
-
-    // User 1 delegates to User 2
-    const { hash: delegateHash, delegatedNoteId: note2 } = await delegateNote(
+    // User 1 delegates to User 2 (automatically verifies delegation chain integrity)
+    const { delegatedNoteId: note2 } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteId: note1,
         owners: [user1.account],
@@ -199,14 +188,9 @@ describe('Delegation Spending', () => {
       }
     );
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: delegateHash })).blockNumber);
-
-    // Verify delegation chain integrity after delegation
-    await assertDelegationChainIntegrity(graphqlClient, note2.toString());
-
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { hash: projectHash, projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProject(user1, pubstarterContract, {
       metadataURI: 'ipfs://project-metadata-2',
       contractURI: 'ipfs://contract-metadata-2',
       owner: user1.account,
@@ -219,18 +203,18 @@ describe('Delegation Spending', () => {
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
     });
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: projectHash })).blockNumber);
-
     // The assurance contract IS the primary market
     const primaryMarketAddress = projectDetails.assuranceContractAddress;
 
     // User 2 (delegate) spends the note on behalf of User 1 (root)
+    // Automatically verifies delegation chain integrity
     const purchaseAmount = 3000000000000000000n; // 3 ETH
     const tokensToBuy = 60n;
 
-    const purchaseHash = await purchaseFromPrimaryMarketWithNotes(
+    await spendDelegatedNoteChecked(
       user2,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteIds: [note2],
         chains: [[user2.account, user1.account]], // Chain: user2 (leaf) -> user1 (root)
@@ -241,8 +225,6 @@ describe('Delegation Spending', () => {
         counts: [tokensToBuy],
       }
     );
-
-    await waitForSync(graphqlClient, (await user2.publicClient.getTransactionReceipt({ hash: purchaseHash })).blockNumber);
 
     // Verify the project received funds
     const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
@@ -275,7 +257,7 @@ describe('Delegation Spending', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
-    // User 1 deposits
+    // User 1 deposits (automatically verifies delegation chain integrity)
     const statementContent = {
       statementType: 'text',
       text: 'Fund climate research',
@@ -284,17 +266,16 @@ describe('Delegation Spending', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 8000000000000000000n; // 8 ETH
-    const { hash: d1Hash, noteId: note1 } = await depositETH(user1, delegatableNotesContract, {
+    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
       intendedStatementId: statementId,
     });
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: d1Hash })).blockNumber);
-
-    // User 1 -> User 2
-    const { hash: d2Hash, delegatedNoteId: note2 } = await delegateNote(
+    // User 1 -> User 2 (automatically verifies delegation chain integrity)
+    const { delegatedNoteId: note2 } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteId: note1,
         owners: [user1.account],
@@ -303,12 +284,11 @@ describe('Delegation Spending', () => {
       }
     );
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: d2Hash })).blockNumber);
-
-    // User 2 -> User 3
-    const { hash: d3Hash, delegatedNoteId: note3 } = await delegateNote(
+    // User 2 -> User 3 (automatically verifies delegation chain integrity)
+    const { delegatedNoteId: note3 } = await delegateNoteChecked(
       user2,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteId: note2,
         owners: [user2.account, user1.account],
@@ -317,15 +297,13 @@ describe('Delegation Spending', () => {
       }
     );
 
-    await waitForSync(graphqlClient, (await user2.publicClient.getTransactionReceipt({ hash: d3Hash })).blockNumber);
-
     // Verify delegation chain
     const chain = await getDelegationChain(graphqlClient, note3.toString());
     assert.strictEqual(chain.length, 3, 'Should have 3-level delegation chain');
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { hash: projectHash, projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProject(user1, pubstarterContract, {
       metadataURI: 'ipfs://project-metadata-3',
       contractURI: 'ipfs://contract-metadata-3',
       owner: user1.account,
@@ -338,18 +316,18 @@ describe('Delegation Spending', () => {
       tokenPrices: [50000000000000000n],
     });
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: projectHash })).blockNumber);
-
     // The assurance contract IS the primary market
     const primaryMarketAddress = projectDetails.assuranceContractAddress;
 
     // User 3 (end of delegation chain) spends the note
+    // Automatically verifies delegation chain integrity
     const purchaseAmount = 2000000000000000000n; // 2 ETH
     const tokensToBuy = 40n;
 
-    const purchaseHash = await purchaseFromPrimaryMarketWithNotes(
+    await spendDelegatedNoteChecked(
       user3,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteIds: [note3],
         chains: [[user3.account, user2.account, user1.account]], // Full chain: user3 -> user2 -> user1
@@ -360,8 +338,6 @@ describe('Delegation Spending', () => {
         counts: [tokensToBuy],
       }
     );
-
-    await waitForSync(graphqlClient, (await user3.publicClient.getTransactionReceipt({ hash: purchaseHash })).blockNumber);
 
     // Verify project received funds
     const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
@@ -387,7 +363,7 @@ describe('Delegation Spending', () => {
 
     const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    // User 1 deposits 10 ETH
+    // User 1 deposits 10 ETH (automatically verifies delegation chain integrity)
     const statementContent = {
       statementType: 'text',
       text: 'Support arts and culture',
@@ -396,16 +372,14 @@ describe('Delegation Spending', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
-    const { hash: depositHash, noteId } = await depositETH(user1, delegatableNotesContract, {
+    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
       intendedStatementId: statementId,
     });
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: depositHash })).blockNumber);
-
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { hash: projectHash, projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProject(user1, pubstarterContract, {
       metadataURI: 'ipfs://project-metadata-4',
       contractURI: 'ipfs://contract-metadata-4',
       owner: user1.account,
@@ -418,18 +392,18 @@ describe('Delegation Spending', () => {
       tokenPrices: [50000000000000000n],
     });
 
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: projectHash })).blockNumber);
-
     // The assurance contract IS the primary market
     const primaryMarketAddress = projectDetails.assuranceContractAddress;
 
     // Spend only 2 ETH from the 10 ETH note
+    // Automatically verifies delegation chain integrity
     const purchaseAmount = 2000000000000000000n; // 2 ETH
     const tokensToBuy = 40n;
 
-    const purchaseHash = await purchaseFromPrimaryMarketWithNotes(
+    await spendDelegatedNoteChecked(
       user1,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteIds: [noteId],
         chains: [[user1.account]],
@@ -440,8 +414,6 @@ describe('Delegation Spending', () => {
         counts: [tokensToBuy],
       }
     );
-
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: purchaseHash })).blockNumber);
 
     // Verify project received only 2 ETH
     const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
