@@ -11,9 +11,6 @@
 
 import assert from 'assert';
 import {
-  depositETH,
-  delegateNote,
-  revokeNote,
   reclaimFunds,
   uploadToIPFS,
   cidToBytes32,
@@ -31,7 +28,11 @@ import {
 
 import { DelegatableNotesAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertDelegationChainIntegrity } from './invariants.js';
+import {
+  depositETHChecked,
+  delegateNoteChecked,
+  revokeNoteChecked,
+} from './delegation-actions-checked.js';
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -72,13 +73,15 @@ describe('Delegation System', () => {
 
     // Deposit 1 ETH
     const depositAmount = 1000000000000000000n; // 1 ETH
-    const { hash, noteId } = await depositETH(clients, delegatableNotesContract, {
-      amount: depositAmount,
-      intendedStatementId: statementId,
-    });
-
-    const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber);
+    const { noteId } = await depositETHChecked(
+      clients,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: depositAmount,
+        intendedStatementId: statementId,
+      }
+    );
 
     // Query the note
     const note = await getNote(graphqlClient, noteId.toString());
@@ -90,9 +93,6 @@ describe('Delegation System', () => {
     assert.strictEqual(note.owner.toLowerCase(), clients.account.toLowerCase(), 'Owner should be depositor');
     assert.strictEqual(note.rootOwner.toLowerCase(), clients.account.toLowerCase(), 'Root should be depositor');
     assert.strictEqual(note.active, true, 'Note should be active');
-
-    // Verify delegation chain integrity
-    await assertDelegationChainIntegrity(graphqlClient, noteId.toString());
   });
 
   it('should delegate a note to another user', async function() {
@@ -110,24 +110,28 @@ describe('Delegation System', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 2000000000000000000n; // 2 ETH
-    const { hash: depositHash, noteId } = await depositETH(user1, delegatableNotesContract, {
-      amount: depositAmount,
-      intendedStatementId: statementId,
-    });
-
-    const depositReceipt = await user1.publicClient.getTransactionReceipt({ hash: depositHash });
-    await waitForSync(graphqlClient, depositReceipt.blockNumber);
+    const { noteId } = await depositETHChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: depositAmount,
+        intendedStatementId: statementId,
+      }
+    );
 
     // User 1 delegates full amount to User 2
-    const { hash: delegateHash, delegatedNoteId } = await delegateNote(user1, delegatableNotesContract, {
-      noteId,
-      owners: [user1.account], // Current chain: just user1
-      delegateTo: user2.account,
-      amount: depositAmount, // Full amount
-    });
-
-    const delegateReceipt = await user1.publicClient.getTransactionReceipt({ hash: delegateHash });
-    await waitForSync(graphqlClient, delegateReceipt.blockNumber);
+    const { delegatedNoteId } = await delegateNoteChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        noteId,
+        owners: [user1.account], // Current chain: just user1
+        delegateTo: user2.account,
+        amount: depositAmount, // Full amount
+      }
+    );
 
     // Query the delegated note
     const delegatedNote = await getNote(graphqlClient, delegatedNoteId.toString());
@@ -140,9 +144,6 @@ describe('Delegation System', () => {
     // Check delegation chain depth
     const delegationChain = await getDelegationChain(graphqlClient, delegatedNoteId.toString());
     assert.strictEqual(delegationChain.length, 2, 'Delegation chain should have 2 entries (user1 -> user2)');
-
-    // Verify delegation chain integrity
-    await assertDelegationChainIntegrity(graphqlClient, delegatedNoteId.toString());
 
     // Verify user2 can query their notes
     const user2Notes = await getNotesByOwner(graphqlClient, user2.account);
@@ -166,19 +167,22 @@ describe('Delegation System', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
-    const { hash: depositHash, noteId } = await depositETH(user1, delegatableNotesContract, {
-      amount: depositAmount,
-      intendedStatementId: statementId,
-    });
-
-    const depositReceipt = await user1.publicClient.getTransactionReceipt({ hash: depositHash });
-    await waitForSync(graphqlClient, depositReceipt.blockNumber);
+    const { noteId } = await depositETHChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: depositAmount,
+        intendedStatementId: statementId,
+      }
+    );
 
     // User 1 delegates 3 ETH to User 2 (partial delegation)
     const delegateAmount = 3000000000000000000n; // 3 ETH
-    const { hash: delegateHash, delegatedNoteId, remainderNoteId } = await delegateNote(
+    const { delegatedNoteId, remainderNoteId } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteId,
         owners: [user1.account],
@@ -187,17 +191,11 @@ describe('Delegation System', () => {
       }
     );
 
-    const delegateReceipt = await user1.publicClient.getTransactionReceipt({ hash: delegateHash });
-    await waitForSync(graphqlClient, delegateReceipt.blockNumber);
-
     // Check delegated note (should have 3 ETH, owned by user2)
     const delegatedNote = await getNote(graphqlClient, delegatedNoteId.toString());
     assertNotNull(delegatedNote, 'Delegated note');
     assert.strictEqual(delegatedNote.amount, delegateAmount.toString(), 'Delegated note should have 3 ETH');
     assert.strictEqual(delegatedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Delegated note owner should be user2');
-
-    // Verify delegation chain integrity for delegated note
-    await assertDelegationChainIntegrity(graphqlClient, delegatedNoteId.toString());
 
     // Check remainder note (should have 7 ETH, still owned by user1)
     const remainderNote = await getNote(graphqlClient, remainderNoteId.toString());
@@ -205,9 +203,6 @@ describe('Delegation System', () => {
     const expectedRemainder = depositAmount - delegateAmount;
     assert.strictEqual(remainderNote.amount, expectedRemainder.toString(), 'Remainder note should have 7 ETH');
     assert.strictEqual(remainderNote.owner.toLowerCase(), user1.account.toLowerCase(), 'Remainder note owner should still be user1');
-
-    // Verify delegation chain integrity for remainder note
-    await assertDelegationChainIntegrity(graphqlClient, remainderNoteId.toString());
   });
 
   it('should support multi-level delegation chains', async function() {
@@ -226,18 +221,21 @@ describe('Delegation System', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 5000000000000000000n; // 5 ETH
-    const { hash: depositHash, noteId: note1 } = await depositETH(user1, delegatableNotesContract, {
-      amount: depositAmount,
-      intendedStatementId: statementId,
-    });
-
-    const depositReceipt = await user1.publicClient.getTransactionReceipt({ hash: depositHash });
-    await waitForSync(graphqlClient, depositReceipt.blockNumber);
-
-    // User 1 delegates to User 2
-    const { hash: delegate1Hash, delegatedNoteId: note2 } = await delegateNote(
+    const { noteId: note1 } = await depositETHChecked(
       user1,
       delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: depositAmount,
+        intendedStatementId: statementId,
+      }
+    );
+
+    // User 1 delegates to User 2
+    const { delegatedNoteId: note2 } = await delegateNoteChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
       {
         noteId: note1,
         owners: [user1.account],
@@ -246,13 +244,11 @@ describe('Delegation System', () => {
       }
     );
 
-    const delegate1Receipt = await user1.publicClient.getTransactionReceipt({ hash: delegate1Hash });
-    await waitForSync(graphqlClient, delegate1Receipt.blockNumber);
-
     // User 2 delegates to User 3
-    const { hash: delegate2Hash, delegatedNoteId: note3 } = await delegateNote(
+    const { delegatedNoteId: note3 } = await delegateNoteChecked(
       user2,
       delegatableNotesContract,
+      graphqlClient,
       {
         noteId: note2,
         owners: [user2.account, user1.account], // Chain: user2 (leaf) -> user1 (root)
@@ -260,9 +256,6 @@ describe('Delegation System', () => {
         amount: depositAmount,
       }
     );
-
-    const delegate2Receipt = await user2.publicClient.getTransactionReceipt({ hash: delegate2Hash });
-    await waitForSync(graphqlClient, delegate2Receipt.blockNumber);
 
     // Check final note
     const finalNote = await getNote(graphqlClient, note3.toString());
@@ -273,9 +266,6 @@ describe('Delegation System', () => {
     // Check delegation chain (should be 3 deep: user1 -> user2 -> user3)
     const finalChain = await getDelegationChain(graphqlClient, note3.toString());
     assert.strictEqual(finalChain.length, 3, 'Delegation chain should have 3 entries');
-
-    // Verify delegation chain integrity
-    await assertDelegationChainIntegrity(graphqlClient, note3.toString());
   });
 
   it('should allow revoking a delegation', async function() {
@@ -294,41 +284,51 @@ describe('Delegation System', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 4000000000000000000n; // 4 ETH
-    const { hash: depositHash, noteId: note1 } = await depositETH(user1, delegatableNotesContract, {
-      amount: depositAmount,
-      intendedStatementId: statementId,
-    });
-
-    const depositReceipt = await user1.publicClient.getTransactionReceipt({ hash: depositHash });
-    await waitForSync(graphqlClient, depositReceipt.blockNumber);
+    const { noteId: note1 } = await depositETHChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: depositAmount,
+        intendedStatementId: statementId,
+      }
+    );
 
     // User 1 -> User 2 -> User 3 delegation chain
-    const { hash: d1Hash, delegatedNoteId: note2 } = await delegateNote(user1, delegatableNotesContract, {
-      noteId: note1,
-      owners: [user1.account],
-      delegateTo: user2.account,
-      amount: depositAmount,
-    });
-    await user1.publicClient.getTransactionReceipt({ hash: d1Hash });
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: d1Hash })).blockNumber);
+    const { delegatedNoteId: note2 } = await delegateNoteChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        noteId: note1,
+        owners: [user1.account],
+        delegateTo: user2.account,
+        amount: depositAmount,
+      }
+    );
 
-    const { hash: d2Hash, delegatedNoteId: note3 } = await delegateNote(user2, delegatableNotesContract, {
-      noteId: note2,
-      owners: [user2.account, user1.account],
-      delegateTo: user3.account,
-      amount: depositAmount,
-    });
-    await user2.publicClient.getTransactionReceipt({ hash: d2Hash });
-    await waitForSync(graphqlClient, (await user2.publicClient.getTransactionReceipt({ hash: d2Hash })).blockNumber);
+    const { delegatedNoteId: note3 } = await delegateNoteChecked(
+      user2,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        noteId: note2,
+        owners: [user2.account, user1.account],
+        delegateTo: user3.account,
+        amount: depositAmount,
+      }
+    );
 
     // User 2 revokes (takes back control from user3)
-    const revokeHash = await revokeNote(user2, delegatableNotesContract, {
-      noteId: note3,
-      owners: [user3.account, user2.account, user1.account], // Current chain
-    });
-
-    const revokeReceipt = await user2.publicClient.getTransactionReceipt({ hash: revokeHash });
-    await waitForSync(graphqlClient, revokeReceipt.blockNumber);
+    await revokeNoteChecked(
+      user2,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        noteId: note3,
+        owners: [user3.account, user2.account, user1.account], // Current chain
+      }
+    );
 
     // Check that the note is now owned by user2 again
     const revokedNote = await getNote(graphqlClient, note3.toString());
@@ -338,9 +338,6 @@ describe('Delegation System', () => {
     // Check delegation chain (should be 2 deep after revocation: user1 -> user2)
     const revokedChain = await getDelegationChain(graphqlClient, note3.toString());
     assert.strictEqual(revokedChain.length, 2, 'Delegation chain should have 2 entries after revocation');
-
-    // Verify delegation chain integrity after revocation
-    await assertDelegationChainIntegrity(graphqlClient, note3.toString());
   });
 
   it('should allow reclaiming funds from a root note', async function() {
@@ -357,13 +354,15 @@ describe('Delegation System', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 1000000000000000000n; // 1 ETH
-    const { hash: depositHash, noteId } = await depositETH(user1, delegatableNotesContract, {
-      amount: depositAmount,
-      intendedStatementId: statementId,
-    });
-
-    const depositReceipt = await user1.publicClient.getTransactionReceipt({ hash: depositHash });
-    await waitForSync(graphqlClient, depositReceipt.blockNumber);
+    const { noteId } = await depositETHChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: depositAmount,
+        intendedStatementId: statementId,
+      }
+    );
 
     // Get balance before reclaim
     const balanceBefore = await user1.publicClient.getBalance({ address: user1.account });
@@ -398,26 +397,38 @@ describe('Delegation System', () => {
     const statement1 = await uploadToIPFS({ statementType: 'text', text: 'Cause A' });
     const statement2 = await uploadToIPFS({ statementType: 'text', text: 'Cause B' });
 
-    const { hash: d1Hash, noteId: noteId1 } = await depositETH(user1, delegatableNotesContract, {
-      amount: 1000000000000000000n,
-      intendedStatementId: cidToBytes32(statement1),
-    });
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: d1Hash })).blockNumber);
+    const { noteId: noteId1 } = await depositETHChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: 1000000000000000000n,
+        intendedStatementId: cidToBytes32(statement1),
+      }
+    );
 
-    const { hash: d2Hash, noteId: noteId2 } = await depositETH(user1, delegatableNotesContract, {
-      amount: 2000000000000000000n,
-      intendedStatementId: cidToBytes32(statement2),
-    });
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: d2Hash })).blockNumber);
+    await depositETHChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        amount: 2000000000000000000n,
+        intendedStatementId: cidToBytes32(statement2),
+      }
+    );
 
     // Delegate one of them to user2
-    const { hash: delegateHash } = await delegateNote(user1, delegatableNotesContract, {
-      noteId: noteId1,
-      owners: [user1.account],
-      delegateTo: user2.account,
-      amount: 1000000000000000000n,
-    });
-    await waitForSync(graphqlClient, (await user1.publicClient.getTransactionReceipt({ hash: delegateHash })).blockNumber);
+    await delegateNoteChecked(
+      user1,
+      delegatableNotesContract,
+      graphqlClient,
+      {
+        noteId: noteId1,
+        owners: [user1.account],
+        delegateTo: user2.account,
+        amount: 1000000000000000000n,
+      }
+    );
 
     // Query notes by root
     const rootNotes = await getNotesByRoot(graphqlClient, user1.account);
