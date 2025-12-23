@@ -10,25 +10,20 @@
 
 import assert from 'assert';
 import {
-  believeStatement,
   uploadToIPFS,
   cidToBytes32,
-  attestImplication,
   type BeliefsContract,
   type ImplicationsContract,
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
-  getStatement,
-  getUserBelief,
   getImplicationsFrom,
   getImplicationsTo,
-  waitForSync,
-  assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { attestImplicationChecked } from './implication-actions-checked.js';
+import { believeStatementChecked } from './belief-actions-checked.js';
 import { assertNoOrphanedData } from './invariants.js';
 
 describe('Conceptspace Implications', () => {
@@ -119,33 +114,15 @@ describe('Conceptspace Implications', () => {
 
     const specificCid = await uploadToIPFS(specificStatement);
     const generalCid = await uploadToIPFS(generalStatement);
-    const specificId = cidToBytes32(specificCid);
-    const generalId = cidToBytes32(generalCid);
 
     testLog(`  Specific: "${specificStatement.text}"`);
     testLog(`  General: "${generalStatement.text}"`);
 
     // User believes the specific statement
     testLog('  User believes specific statement...');
-    let txHash = await believeStatement(userClients, beliefsContract, specificCid);
-    let receipt = await userClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    await believeStatementChecked(userClients, beliefsContract, graphqlClient, specificCid);
 
-    // Verify only direct support initially
-    let specificStmt = assertNotNull(
-      await getStatement(graphqlClient, specificId),
-      'Specific statement'
-    );
-    let generalStmt = await getStatement(graphqlClient, generalId);
-
-    assert.strictEqual(specificStmt.believerCount, 1, 'Specific statement should have 1 direct believer');
-    // General statement may not exist yet in the indexer if no one has interacted with it
-    assert.ok(
-      !generalStmt || generalStmt.believerCount === 0,
-      'General statement should have 0 direct believers initially (or not exist yet)'
-    );
-
-    testLog('  ✓ Direct support recorded');
+    testLog('  ✓ Direct support recorded (verified by property checks)');
 
     // Attester creates implication: specific -> general
     testLog('  Attester creates implication (specific -> general)...');
@@ -154,7 +131,8 @@ describe('Conceptspace Implications', () => {
       implicationsContract,
       graphqlClient,
       specificCid,
-      generalCid
+      generalCid,
+      [userClients.account] // User who believes the specific statement should appear as indirect supporter
     );
 
     testLog('  ✓ Implication created (verified by property checks)');
@@ -221,28 +199,18 @@ describe('Conceptspace Implications', () => {
     const s2 = await uploadToIPFS({ statementType: 'text', text: 'Statement 2' });
     const s3 = await uploadToIPFS({ statementType: 'text', text: 'Statement 3' });
     const s1Id = cidToBytes32(s1);
-    const s2Id = cidToBytes32(s2);
     const s3Id = cidToBytes32(s3);
 
     testLog('  Creating chain: S1 -> S2 -> S3...');
 
-    // Attest S1 -> S2
+    // Attest S1 -> S2 (checked action verifies the implication exists)
     await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1, s2);
 
-    // Attest S2 -> S3
+    // Attest S2 -> S3 (checked action verifies the implication exists)
     await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2, s3);
 
-    // Verify S1 -> S2 exists
-    const s1Implications = await getImplicationsFrom(graphqlClient, s1Id);
-    assert.strictEqual(s1Implications.length, 1);
-    assert.strictEqual(s1Implications[0].toStatementId.toLowerCase(), s2Id.toLowerCase());
-
-    // Verify S2 -> S3 exists
-    const s2Implications = await getImplicationsFrom(graphqlClient, s2Id);
-    assert.strictEqual(s2Implications.length, 1);
-    assert.strictEqual(s2Implications[0].toStatementId.toLowerCase(), s3Id.toLowerCase());
-
     // Verify S1 -> S3 does NOT exist (no transitivity)
+    // This is the key business logic check for non-transitivity
     const s3ImplicationsTo = await getImplicationsTo(graphqlClient, s3Id);
     const s1ToS3 = s3ImplicationsTo.find(
       imp => imp.fromStatementId.toLowerCase() === s1Id.toLowerCase()
