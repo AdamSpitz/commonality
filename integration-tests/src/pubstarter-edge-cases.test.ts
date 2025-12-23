@@ -6,6 +6,9 @@
  * - Refund after project failure (deadline passed without meeting threshold)
  * - Project deadline edge cases
  * - Withdrawal permission checks
+ *
+ * NOTE: This test file has been refactored to use the action framework,
+ * which automatically checks state transition properties and invariants.
  */
 
 import assert from 'assert';
@@ -27,6 +30,11 @@ import {
 import { PubstarterAbi, AssuranceContractAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { assertAssuranceContractRefundLogic } from './invariants.js';
+import {
+  buyProjectTokensChecked,
+  refundProjectTokensChecked,
+  withdrawProjectFundsChecked,
+} from './funding-actions-checked.js';
 
 describe('Pubstarter Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -146,18 +154,15 @@ describe('Pubstarter Edge Cases', () => {
       abi: AssuranceContractAbi,
     };
 
-    // Bob buys a small amount (not enough to meet threshold)
+    // Bob buys a small amount (not enough to meet threshold) - properties checked automatically
     testLog('  Bob purchasing tokens...');
-    const purchaseTx = await buyProjectTokens(bobClients, assuranceContract, {
+    await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
       buyer: bobClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [0n],
       tokenCounts: [5n],
       totalCost: tokenPrice * 5n,
     });
-
-    const receipt = await bobClients.publicClient.getTransactionReceipt({ hash: purchaseTx });
-    await waitForSync(graphqlClient, receipt.blockNumber);
 
     // Note: We can't reliably check refund logic before deadline in integration tests
     // because by the time the indexer syncs, the blockchain time may have already advanced.
@@ -211,20 +216,21 @@ describe('Pubstarter Edge Cases', () => {
     await bobClients.publicClient.waitForTransactionReceipt({ hash: approveHash });
     testLog('  Tokens approved for transfer');
 
-    // Bob should be able to refund his tokens now
+    // Bob should be able to refund his tokens now - properties checked automatically
     testLog('  Bob attempting refund after project failure...');
 
     let refundSucceeded = true;
     let refundError: any = null;
     try {
-      const refundTx = await refundProjectTokens(bobClients, assuranceContract, {
+      const refundTx = await refundProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
         holder: bobClients.account,
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],
         tokenCounts: [5n],
+        refundAmount: tokenPrice * 5n,
       });
 
-      testLog(`  ✓ Refund succeeded: ${refundTx}`);
+      testLog(`  ✓ Refund succeeded: ${refundTx} (state transitions verified)`);
     } catch (error) {
       refundSucceeded = false;
       refundError = error;
@@ -282,18 +288,15 @@ describe('Pubstarter Edge Cases', () => {
       abi: AssuranceContractAbi,
     };
 
-    // Bob buys enough tokens to meet the threshold
+    // Bob buys enough tokens to meet the threshold - properties checked automatically
     testLog('  Bob purchasing tokens to meet threshold...');
-    const purchaseTx = await buyProjectTokens(bobClients, assuranceContract, {
+    await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
       buyer: bobClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [0n],
       tokenCounts: [15n],
       totalCost: tokenPrice * 15n,
     });
-
-    const receipt = await bobClients.publicClient.getTransactionReceipt({ hash: purchaseTx });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify threshold was met
     const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
@@ -322,13 +325,13 @@ describe('Pubstarter Edge Cases', () => {
 
     assert.ok(withdrawalFailed, 'Non-recipient withdrawal should fail');
 
-    // Alice (the recipient) should be able to withdraw
+    // Alice (the recipient) should be able to withdraw - properties checked automatically
     testLog('  Alice withdrawing funds (should succeed)...');
 
     let aliceWithdrawalSucceeded = true;
     try {
-      const withdrawTx = await withdrawProjectFunds(aliceClients, assuranceContract);
-      testLog(`  ✓ Alice withdrawal succeeded: ${withdrawTx}`);
+      const withdrawTx = await withdrawProjectFundsChecked(aliceClients, assuranceContract, graphqlClient);
+      testLog(`  ✓ Alice withdrawal succeeded: ${withdrawTx} (state transitions verified)`);
     } catch (error) {
       aliceWithdrawalSucceeded = false;
       console.error('  Unexpected error during Alice withdrawal:', error);
@@ -344,6 +347,7 @@ describe('Pubstarter Edge Cases', () => {
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -382,18 +386,18 @@ describe('Pubstarter Edge Cases', () => {
       abi: AssuranceContractAbi,
     };
 
-    // Bob should be able to buy before deadline
+    // Bob should be able to buy before deadline - properties checked automatically
     testLog('  Bob purchasing before deadline...');
     let purchaseBeforeSucceeded = true;
     try {
-      await buyProjectTokens(bobClients, assuranceContract, {
+      await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
         buyer: bobClients.account,
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],
         tokenCounts: [5n],
         totalCost: tokenPrice * 5n,
       });
-      testLog('  ✓ Purchase before deadline succeeded');
+      testLog('  ✓ Purchase before deadline succeeded (state transitions verified)');
     } catch (error) {
       purchaseBeforeSucceeded = false;
       console.error('  Unexpected error purchasing before deadline:', error);
@@ -419,14 +423,14 @@ describe('Pubstarter Edge Cases', () => {
     testLog('  Bob purchasing after deadline (should still succeed per contract design)...');
     let purchaseAfterSucceeded = true;
     try {
-      await buyProjectTokens(bobClients, assuranceContract, {
+      await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
         buyer: bobClients.account,
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],
         tokenCounts: [5n],
         totalCost: tokenPrice * 5n,
       });
-      testLog('  ✓ Purchase after deadline succeeded (as expected)');
+      testLog('  ✓ Purchase after deadline succeeded (as expected, state transitions verified)');
     } catch (error) {
       purchaseAfterSucceeded = false;
       console.error('  Unexpected error purchasing after deadline:', error);
