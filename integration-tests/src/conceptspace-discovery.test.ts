@@ -9,7 +9,6 @@
 
 import assert from 'assert';
 import {
-  believeStatement,
   uploadToIPFS,
   cidToBytes32,
   type BeliefsContract,
@@ -19,10 +18,10 @@ import {
   browseStatementsByMostSupporters,
   browseStatementsByNewest,
   getAllStatements,
-  waitForSync,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { believeStatementChecked } from './belief-actions-checked.js';
 
 describe('Statement Discovery & Browsing', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -70,24 +69,16 @@ describe('Statement Discovery & Browsing', () => {
     testLog('  Creating statements with different support levels...');
 
     // Popular statement: All three users believe it
-    await believeStatement(aliceClients, beliefsContract, popularStatement);
-    await believeStatement(bobClients, beliefsContract, popularStatement);
-    const txPopular = await believeStatement(charlieClients, beliefsContract, popularStatement);
-    const receiptPopular = await charlieClients.publicClient.getTransactionReceipt({ hash: txPopular });
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, popularStatement);
+    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, popularStatement);
+    await believeStatementChecked(charlieClients, beliefsContract, graphqlClient, popularStatement);
 
     // Moderate statement: Alice and Bob believe it
-    await believeStatement(aliceClients, beliefsContract, moderateStatement);
-    const txModerate = await believeStatement(bobClients, beliefsContract, moderateStatement);
-    const receiptModerate = await bobClients.publicClient.getTransactionReceipt({ hash: txModerate });
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, moderateStatement);
+    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, moderateStatement);
 
     // Unpopular statement: Only Alice believes it
-    const txUnpopular = await believeStatement(aliceClients, beliefsContract, unpopularStatement);
-    const receiptUnpopular = await aliceClients.publicClient.getTransactionReceipt({ hash: txUnpopular });
-
-    // Wait for indexer
-    testLog('  Waiting for indexer to sync...');
-    const maxBlock = [receiptPopular.blockNumber, receiptModerate.blockNumber, receiptUnpopular.blockNumber].reduce((a, b) => a > b ? a : b);
-    await waitForSync(graphqlClient, maxBlock);
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, unpopularStatement);
 
     // Browse by most supporters (descending order)
     testLog('  Browsing statements by most supporters...');
@@ -165,18 +156,9 @@ describe('Statement Discovery & Browsing', () => {
     testLog('  Creating statements in sequence...');
 
     // Create them in order (believing creates the statement if it doesn't exist)
-    const txOld = await believeStatement(aliceClients, beliefsContract, oldStatement);
-    await aliceClients.publicClient.waitForTransactionReceipt({ hash: txOld });
-
-    const txMiddle = await believeStatement(aliceClients, beliefsContract, middleStatement);
-    await aliceClients.publicClient.waitForTransactionReceipt({ hash: txMiddle });
-
-    const txNew = await believeStatement(aliceClients, beliefsContract, newStatement);
-    const receiptNew = await aliceClients.publicClient.getTransactionReceipt({ hash: txNew });
-
-    // Wait for indexer
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receiptNew.blockNumber);
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, oldStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, middleStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, newStatement);
 
     // Browse by newest
     testLog('  Browsing newest statements...');
@@ -243,15 +225,9 @@ describe('Statement Discovery & Browsing', () => {
     }
 
     // Believe all statements
-    let lastReceipt;
     for (const statement of statements) {
-      const tx = await believeStatement(aliceClients, beliefsContract, statement);
-      lastReceipt = await aliceClients.publicClient.getTransactionReceipt({ hash: tx });
+      await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, statement);
     }
-
-    // Wait for indexer
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, lastReceipt!.blockNumber);
 
     // Test pagination: Get first 2 statements
     testLog('  Testing pagination with limit=2...');
