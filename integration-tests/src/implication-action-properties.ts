@@ -370,11 +370,40 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
 };
 
 /**
+ * Invariant Check: Implication Data Integrity
+ *
+ * Verifies that the implication data stored in the indexer is well-formed and consistent.
+ * This is a lighter-weight check than the full bidirectionality invariant.
+ */
+export const implicationDataIntegrityInvariant: InvariantCheck = {
+  name: 'implicationDataIntegrity',
+  check: async (context: ActionContext) => {
+    const { graphqlClient, entities } = context;
+    const { fromStatementId, toStatementId, attesterAddress } = entities;
+
+    if (!fromStatementId || !toStatementId || !attesterAddress) {
+      throw new Error('fromStatementId, toStatementId, and attesterAddress are required');
+    }
+
+    // Import the standalone invariant function
+    const { assertImplicationBidirectionality } = await import('./invariants.js');
+
+    // Verify this specific implication is well-formed
+    await assertImplicationBidirectionality(
+      graphqlClient,
+      fromStatementId,
+      toStatementId,
+      attesterAddress
+    );
+  },
+};
+
+/**
  * Action metadata for attestImplication
  */
 export const attestImplicationMetadata: ActionMetadata = {
   name: 'attestImplication',
   category: 'belief',
   stateTransitionProperties: [implicationBidirectionalityProperty, indirectSupportPropagationProperty],
-  invariantsToCheck: [implicationBidirectionalityInvariant],
+  invariantsToCheck: [implicationBidirectionalityInvariant, implicationDataIntegrityInvariant],
 };

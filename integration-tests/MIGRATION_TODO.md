@@ -1,6 +1,6 @@
-# Property-Based Testing Migration
+# Property-Based Testing Framework
 
-This document tracks the migration of integration tests to the property-based testing framework described in [generative-test-prep.md](generative-test-prep.md).
+This integration test suite uses a property-based testing framework that automatically verifies invariants and state transition properties after each action.
 
 ## Quick Start
 
@@ -28,12 +28,12 @@ The checked wrappers automatically verify state transition properties and invari
 
 ## Available Action Wrappers
 
-**Beliefs:** `believeStatementChecked`, `disbelieveStatementChecked`, `clearOpinionChecked`
-**Implications:** `attestImplicationChecked`
-**Funding:** `buyProjectTokensChecked`, `refundProjectTokensChecked`, `withdrawProjectFundsChecked`, `burnTokensChecked`
-**Delegation:** `depositETHChecked`, `delegateNoteChecked`, `revokeNoteChecked`, `spendDelegatedNoteChecked`
-**Marketplace:** `createSaleListingChecked`, `fulfillSaleListingChecked`
+- **Beliefs:** `believeStatementChecked`, `disbelieveStatementChecked`, `clearOpinionChecked`
+- **Implications:** `attestImplicationChecked`
+- **Funding:** `buyProjectTokensChecked`, `refundProjectTokensChecked`, `withdrawProjectFundsChecked`, `burnTokensChecked`
+- **Delegation:** `depositETHChecked`, `delegateNoteChecked`, `revokeNoteChecked`, `spendDelegatedNoteChecked`
+- **Marketplace:** `createSaleListingChecked`, `fulfillSaleListingChecked`
 
-## Implemented Invariants
+## Implemented Invariants and Properties
 
-See [src/invariants.ts](src/invariants.ts) for all implemented invariants. The code itself serves as documentation for what's been implemented.
+See [src/invariants.ts](src/invariants.ts) for all implemented invariants. The code itself serves as the source of truth for what's been implemented.
