@@ -9,8 +9,6 @@
 
 import assert from 'assert';
 import {
-  believeStatement,
-  disbelieveStatement,
   uploadToIPFS,
   cidToBytes32,
   type BeliefsContract,
@@ -19,10 +17,10 @@ import {
   createGraphQLClient,
   getUserBeliefs,
   getUserDisbeliefs,
-  waitForSync,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { believeStatementChecked, disbelieveStatementChecked } from './belief-actions-checked.js';
 
 describe('User Profile Queries', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -68,16 +66,9 @@ describe('User Profile Queries', () => {
 
     testLog('  Alice signing statements 1 and 2...');
 
-    // Alice believes statements 1 and 2
-    const tx1 = await believeStatement(aliceClients, beliefsContract, statement1);
-    const receipt1 = await aliceClients.publicClient.getTransactionReceipt({ hash: tx1 });
-
-    const tx2 = await believeStatement(aliceClients, beliefsContract, statement2);
-    const receipt2 = await aliceClients.publicClient.getTransactionReceipt({ hash: tx2 });
-
-    // Wait for indexer to sync
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt2.blockNumber);
+    // Alice believes statements 1 and 2 (Checked actions verify belief counts automatically)
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, statement1);
+    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, statement2);
 
     // Query Alice's beliefs
     testLog('  Querying Alice\'s beliefs...');
@@ -123,16 +114,9 @@ describe('User Profile Queries', () => {
 
     testLog('  Alice disbelieving statements...');
 
-    // Alice disbelieves both statements
-    const tx1 = await disbelieveStatement(aliceClients, beliefsContract, statement1);
-    const receipt1 = await aliceClients.publicClient.getTransactionReceipt({ hash: tx1 });
-
-    const tx2 = await disbelieveStatement(aliceClients, beliefsContract, statement2);
-    const receipt2 = await aliceClients.publicClient.getTransactionReceipt({ hash: tx2 });
-
-    // Wait for indexer
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt2.blockNumber);
+    // Alice disbelieves both statements (Checked actions verify disbelief counts automatically)
+    await disbelieveStatementChecked(aliceClients, beliefsContract, graphqlClient, statement1);
+    await disbelieveStatementChecked(aliceClients, beliefsContract, graphqlClient, statement2);
 
     // Query Alice's disbeliefs
     testLog('  Querying Alice\'s disbeliefs...');
@@ -184,20 +168,12 @@ describe('User Profile Queries', () => {
 
     testLog('  Bob signing statements...');
 
-    // Bob believes statements 1 and 3
-    const tx1 = await believeStatement(bobClients, beliefsContract, statement1);
-    await bobClients.publicClient.waitForTransactionReceipt({ hash: tx1 });
+    // Bob believes statements 1 and 3 (Checked actions verify belief counts automatically)
+    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, statement1);
+    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, statement3);
 
-    const tx2 = await believeStatement(bobClients, beliefsContract, statement3);
-    const receipt2 = await bobClients.publicClient.getTransactionReceipt({ hash: tx2 });
-
-    // Bob disbelieves statement 2
-    const tx3 = await disbelieveStatement(bobClients, beliefsContract, statement2);
-    const receipt3 = await bobClients.publicClient.getTransactionReceipt({ hash: tx3 });
-
-    // Wait for indexer
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt3.blockNumber);
+    // Bob disbelieves statement 2 (Checked actions verify disbelief counts automatically)
+    await disbelieveStatementChecked(bobClients, beliefsContract, graphqlClient, statement2);
 
     // Alice queries Bob's profile (simulating viewing another user's profile)
     testLog('  Alice querying Bob\'s profile...');
