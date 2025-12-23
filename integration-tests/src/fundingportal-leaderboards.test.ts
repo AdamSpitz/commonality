@@ -10,12 +10,8 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  attestImplication,
   createProject,
-  buyProjectTokens,
-  attestProjectAlignment,
   cidToBytes32,
-  type ImplicationsContract,
   type PubstarterContract,
   type AssuranceContract,
   type ProjectAlignmentContract,
@@ -27,20 +23,20 @@ import {
   getUserContributionRankForCause,
   type GraphQLClient,
 } from '@commonality/sdk';
-import { parseEther, type Address, keccak256, toBytes } from 'viem';
+import { parseEther, type Address } from 'viem';
 import {
-  ImplicationsAbi,
   PubstarterAbi,
   AssuranceContractAbi,
   ProjectAlignmentAbi,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { buyProjectTokensChecked } from './funding-actions-checked.js';
+import { attestProjectAlignmentChecked } from './alignment-actions-checked.js';
 
 describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
-  const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as Address;
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
   const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
 
@@ -127,21 +123,22 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       abi: ProjectAlignmentAbi,
     };
 
-    await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       alignmentContract,
+      graphqlClient,
       p1Details.assuranceContractAddress,
-      causeCid
+      causeCid,
+      causeId
     );
-    const align2Hash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       alignmentContract,
+      graphqlClient,
       p2Details.assuranceContractAddress,
-      causeCid
+      causeCid,
+      causeId
     );
-
-    const align2Receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: align2Hash });
-    await waitForSync(graphqlClient, align2Receipt.blockNumber, 15000);
 
     // Contributors make contributions
     testLog('  Making contributions...');
@@ -155,9 +152,10 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     };
 
     // Contributor 1: 2 ETH to P1, 1 ETH to P2 = 3 ETH total
-    await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract1,
+      graphqlClient,
       {
         buyer: contributor1Clients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -166,9 +164,10 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         totalCost: parseEther('2.0'),
       }
     );
-    await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract2,
+      graphqlClient,
       {
         buyer: contributor1Clients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -179,9 +178,10 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     );
 
     // Contributor 2: 1.5 ETH to P1 = 1.5 ETH total
-    await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributor2Clients,
       assuranceContract1,
+      graphqlClient,
       {
         buyer: contributor2Clients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -192,9 +192,10 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     );
 
     // Contributor 3: 0.5 ETH to P2 = 0.5 ETH total
-    const buy3Hash = await buyProjectTokens(
+    await buyProjectTokensChecked(
       contributor3Clients,
       assuranceContract2,
+      graphqlClient,
       {
         buyer: contributor3Clients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -203,10 +204,6 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         totalCost: parseEther('0.5'),
       }
     );
-
-    testLog('  Waiting for indexer...');
-    const buy3Receipt = await contributor3Clients.publicClient.getTransactionReceipt({ hash: buy3Hash });
-    await waitForSync(graphqlClient, buy3Receipt.blockNumber, 15000);
 
     // Query top contributors
     testLog('  Querying top contributors...');
@@ -309,15 +306,14 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       abi: ProjectAlignmentAbi,
     };
 
-    const alignHash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       alignmentContract,
+      graphqlClient,
       pDetails.assuranceContractAddress,
-      causeCid
+      causeCid,
+      causeId
     );
-
-    const alignReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: alignHash });
-    await waitForSync(graphqlClient, alignReceipt.blockNumber, 15000);
 
     // Make contributions
     testLog('  Making contributions...');
@@ -326,7 +322,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       abi: AssuranceContractAbi,
     };
 
-    await buyProjectTokens(contributor1Clients, assuranceContract, {
+    await buyProjectTokensChecked(contributor1Clients, assuranceContract, graphqlClient, {
       buyer: contributor1Clients.account,
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
@@ -334,7 +330,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       totalCost: parseEther('5.0'),
     });
 
-    await buyProjectTokens(contributor2Clients, assuranceContract, {
+    await buyProjectTokensChecked(contributor2Clients, assuranceContract, graphqlClient, {
       buyer: contributor2Clients.account,
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
@@ -342,16 +338,13 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       totalCost: parseEther('2.0'),
     });
 
-    const buy3Hash = await buyProjectTokens(contributor3Clients, assuranceContract, {
+    await buyProjectTokensChecked(contributor3Clients, assuranceContract, graphqlClient, {
       buyer: contributor3Clients.account,
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
       tokenCounts: [100n],
       totalCost: parseEther('1.0'),
     });
-
-    const buy3Receipt = await contributor3Clients.publicClient.getTransactionReceipt({ hash: buy3Hash });
-    await waitForSync(graphqlClient, buy3Receipt.blockNumber, 15000);
 
     // Query rank for contributor 2
     testLog('  Querying rank for Contributor 2...');
