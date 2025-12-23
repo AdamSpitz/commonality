@@ -4,26 +4,20 @@
  * This is a basic smoke test that:
  * 1. Creates a statement (by generating a CID for mock IPFS content)
  * 2. Has a user express belief in that statement
- * 3. Waits for the indexer to sync
- * 4. Queries the indexer to verify the belief was recorded
+ * 3. Verifies the belief was recorded (via checked action)
  */
 
-import assert from 'assert';
 import {
-  believeStatement,
   uploadToIPFS,
   cidToBytes32,
   type BeliefsContract,
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
-  getStatement,
-  getUserBelief,
-  waitForSync,
-  assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { believeStatementChecked } from './belief-actions-checked.js';
 
 describe('Hello World Integration Test', () => {
   // Test configuration - these should match your local setup
@@ -66,42 +60,8 @@ describe('Hello World Integration Test', () => {
     };
 
     testLog('  Submitting belief transaction...');
-    const txHash = await believeStatement(clients, beliefsContract, statementCid);
-    testLog(`  Transaction: ${txHash}`);
+    await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
-    // Get the block number of the transaction
-    const receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    testLog(`  Block: ${receipt.blockNumber}`);
-
-    // 4. Wait for indexer to sync
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-    testLog('  Indexer synced!');
-
-    // 5. Query the belief back from the indexer
-    testLog('  Querying belief from indexer...');
-    const userBelief = assertNotNull(
-      await getUserBelief(graphqlClient, clients.account, statementId),
-      'User belief'
-    );
-
-    // 6. Assert the belief was recorded correctly
-    assert.strictEqual(userBelief.beliefState, 1, 'User should believe the statement (beliefState=1)');
-    assert.strictEqual(
-      userBelief.statementId.toLowerCase(),
-      statementId.toLowerCase(),
-      'Statement ID should match'
-    );
-
-    testLog('  ✓ Belief recorded and queried successfully!');
-
-    // 7. Also check the statement's supporter count
-    const statement = assertNotNull(
-      await getStatement(graphqlClient, statementId),
-      'Statement'
-    );
-    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
-
-    testLog('  ✓ Statement has correct supporter count!');
+    testLog('  ✓ Belief recorded correctly (verified by property checks)');
   });
 });
