@@ -1336,3 +1336,117 @@ export async function assertImplicationNonTransitivity(
     `and ${believerAddress} should NOT be in this list.`
   );
 }
+
+/**
+ * State Consistency Invariant: Ref contract-indexer consistency
+ *
+ * Section 1 from generative-test-prep.md
+ *
+ * Verifies that the value of a mutable ref in the indexer matches the value
+ * stored directly on the blockchain contract. This checks that the indexer
+ * correctly tracks ref updates.
+ *
+ * This is a cross-subsystem consistency check (Section 8) that ensures the
+ * indexer's view of mutable refs matches the on-chain state.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param mutableRefContract The MutableRefUpdater contract instance
+ * @param userAddress The owner of the ref
+ * @param refName The name of the ref to check
+ */
+export async function assertRefContractIndexerConsistency(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  mutableRefContract: any,
+  userAddress: string,
+  refName: string
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getUserRef, getRef } = await import('@commonality/sdk');
+  const { createIsolatedTestClients } = await import('./test-utils.js');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get value from indexer
+  const indexerRef = await getUserRef(executor, userAddress, refName);
+  const indexerValue = indexerRef?.value ?? '';
+
+  // Get value from contract - we need to create a minimal clients object
+  // For read-only operations, we can use a public client
+  const clients = createIsolatedTestClients('ref-check', 0, process.env.RPC_URL || 'http://localhost:8545');
+  const contractValue = await getRef(clients, mutableRefContract, userAddress as `0x${string}`, refName);
+
+  // Verify they match
+  assert.strictEqual(
+    indexerValue,
+    contractValue,
+    `Ref ${refName} for user ${userAddress}: Indexer value doesn't match contract value. ` +
+    `Indexer: "${indexerValue}", Contract: "${contractValue}". ` +
+    `This indicates the indexer is out of sync with the blockchain.`
+  );
+}
+
+/**
+ * State Consistency Invariant: Ref history ordering
+ *
+ * Section 1 from generative-test-prep.md
+ *
+ * Verifies that the history entries for a mutable ref are properly ordered.
+ * The history should be sorted by block number and transaction index, with
+ * newer entries appearing first (reverse chronological order).
+ *
+ * This checks that the indexer correctly maintains temporal ordering of events.
+ *
+ * @param graphqlClient GraphQL client or executor
+ * @param userAddress The owner of the ref
+ * @param refName The name of the ref to check
+ */
+export async function assertRefHistoryOrdering(
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  userAddress: string,
+  refName: string
+): Promise<void> {
+  // Import SDK functions dynamically to avoid circular dependencies
+  const { getUserRefHistory } = await import('@commonality/sdk');
+
+  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+  const executor = graphqlClient as any;
+
+  // Get history
+  const history = await getUserRefHistory(executor, userAddress, refName);
+
+  // Check that history is in reverse chronological order (newest first)
+  // Each entry should have a blockNumber and transactionIndex
+  for (let i = 0; i < history.length - 1; i++) {
+    const current = history[i];
+    const next = history[i + 1];
+
+    // Compare block numbers
+    const currentBlock = BigInt(current.blockNumber);
+    const nextBlock = BigInt(next.blockNumber);
+
+    if (currentBlock < nextBlock) {
+      throw new Error(
+        `Ref ${refName} for user ${userAddress}: History ordering violation. ` +
+        `Entry at index ${i} has blockNumber ${currentBlock}, ` +
+        `but entry at index ${i + 1} has blockNumber ${nextBlock}. ` +
+        `History should be in reverse chronological order (newest first).`
+      );
+    }
+
+    // If same block, compare log indices (lower logIndex = earlier in block)
+    if (currentBlock === nextBlock) {
+      const currentLogIndex = current.logIndex ?? 0;
+      const nextLogIndex = next.logIndex ?? 0;
+
+      if (currentLogIndex < nextLogIndex) {
+        throw new Error(
+          `Ref ${refName} for user ${userAddress}: History ordering violation within block ${currentBlock}. ` +
+          `Entry at index ${i} has logIndex ${currentLogIndex}, ` +
+          `but entry at index ${i + 1} has logIndex ${nextLogIndex}. ` +
+          `Within the same block, history should be ordered by log index (newest first).`
+        );
+      }
+    }
+  }
+}
