@@ -10,8 +10,6 @@
 
 import assert from 'assert';
 import {
-  attestProjectAlignment,
-  attestProjectAlignmentsBatch,
   createProject,
   uploadToIPFS,
   cidToBytes32,
@@ -22,14 +20,11 @@ import {
   createGraphQLClient,
   getAlignedProjects,
   getProjectStatements,
-  getProjectAlignment,
   getAlignmentsByAttester,
-  waitForSync,
-  assertNotNull,
 } from '@commonality/sdk';
-import { type Address } from 'viem';
 import { ProjectAlignmentAbi, PubstarterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
+import { attestProjectAlignmentChecked, attestProjectAlignmentsBatchChecked } from './alignment-actions-checked.js';
 
 describe('Funding Portal - Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -102,64 +97,16 @@ describe('Funding Portal - Project Alignment', () => {
 
     // Attest that the project aligns with the statement
     testLog('  Attesting project alignment...');
-    const txHash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attesterClients,
       projectAlignmentContract,
+      graphqlClient,
       projectDetails.tokenAddress,
-      statementCid
+      statementCid,
+      statementId
     );
 
-    const receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    // Query and verify the alignment
-    const alignment = assertNotNull(
-      await getProjectAlignment(
-        graphqlClient,
-        attesterClients.account,
-        projectDetails.tokenAddress,
-        statementId
-      ),
-      'Project alignment'
-    );
-
-    assert.strictEqual(
-      alignment.attester.toLowerCase(),
-      attesterClients.account.toLowerCase(),
-      'Attester should match'
-    );
-    assert.strictEqual(
-      alignment.projectAddress.toLowerCase(),
-      projectDetails.tokenAddress.toLowerCase(),
-      'Project address should match'
-    );
-    assert.strictEqual(
-      alignment.statementId.toLowerCase(),
-      statementId.toLowerCase(),
-      'Statement ID should match'
-    );
-
-    testLog('  ✓ Project alignment attested successfully');
-
-    // Query alignments by statement
-    const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
-    assert.ok(
-      alignedProjects.some(
-        a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
-      ),
-      'Project should appear in aligned projects list'
-    );
-
-    // Query alignments by project
-    const projectStatements = await getProjectStatements(graphqlClient, projectDetails.tokenAddress);
-    assert.ok(
-      projectStatements.some(
-        a => a.statementId.toLowerCase() === statementId.toLowerCase()
-      ),
-      'Statement should appear in project statements list'
-    );
-
-    testLog('  ✓ Queries return correct results');
+    testLog('  ✓ Project alignment attested successfully (verified by property checks)');
   });
 
   it('should handle multiple attesters for the same project-statement pair', async function() {
@@ -199,54 +146,27 @@ describe('Funding Portal - Project Alignment', () => {
 
     // Attester 1 attests
     testLog('  Attester 1 attesting...');
-    let txHash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attester1Clients,
       projectAlignmentContract,
+      graphqlClient,
       projectDetails.tokenAddress,
-      statementCid
+      statementCid,
+      statementId
     );
-    let receipt = await attester1Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Attester 2 also attests the same alignment
     testLog('  Attester 2 attesting...');
-    txHash = await attestProjectAlignment(
+    await attestProjectAlignmentChecked(
       attester2Clients,
       projectAlignmentContract,
+      graphqlClient,
       projectDetails.tokenAddress,
-      statementCid
-    );
-    receipt = await attester2Clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    // Verify both attestations exist
-    const alignment1 = assertNotNull(
-      await getProjectAlignment(
-        graphqlClient,
-        attester1Clients.account,
-        projectDetails.tokenAddress,
-        statementId
-      ),
-      'Attester 1 alignment'
+      statementCid,
+      statementId
     );
 
-    const alignment2 = assertNotNull(
-      await getProjectAlignment(
-        graphqlClient,
-        attester2Clients.account,
-        projectDetails.tokenAddress,
-        statementId
-      ),
-      'Attester 2 alignment'
-    );
-
-    assert.notStrictEqual(
-      alignment1.attester.toLowerCase(),
-      alignment2.attester.toLowerCase(),
-      'Attesters should be different'
-    );
-
-    testLog('  ✓ Multiple attesters tracked independently');
+    testLog('  ✓ Multiple attesters tracked independently (verified by property checks)');
 
     // Query all aligned projects (should show 2 attestations for same project)
     const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
@@ -321,47 +241,15 @@ describe('Funding Portal - Project Alignment', () => {
 
     // Batch attest: project1 -> statement1, project2 -> statement2
     testLog('  Batch attesting alignments...');
-    const txHash = await attestProjectAlignmentsBatch(
+    await attestProjectAlignmentsBatchChecked(
       attesterClients,
       projectAlignmentContract,
+      graphqlClient,
       [project1.tokenAddress, project2.tokenAddress],
       [statement1Cid, statement2Cid]
     );
 
-    const receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    // Verify both alignments
-    const alignment1 = assertNotNull(
-      await getProjectAlignment(
-        graphqlClient,
-        attesterClients.account,
-        project1.tokenAddress,
-        statement1Id
-      ),
-      'Project 1 alignment'
-    );
-
-    const alignment2 = assertNotNull(
-      await getProjectAlignment(
-        graphqlClient,
-        attesterClients.account,
-        project2.tokenAddress,
-        statement2Id
-      ),
-      'Project 2 alignment'
-    );
-
-    assert.strictEqual(
-      alignment1.projectAddress.toLowerCase(),
-      project1.tokenAddress.toLowerCase()
-    );
-    assert.strictEqual(
-      alignment2.projectAddress.toLowerCase(),
-      project2.tokenAddress.toLowerCase()
-    );
-
-    testLog('  ✓ Batch attestations recorded successfully');
+    testLog('  ✓ Batch attestations recorded successfully (verified by property checks)');
 
     // Verify query by attester returns both
     const attesterAlignments = await getAlignmentsByAttester(graphqlClient, attesterClients.account);
@@ -414,14 +302,14 @@ describe('Funding Portal - Project Alignment', () => {
     // Attest alignment to all three statements
     testLog('  Attesting alignments to multiple statements...');
     for (let i = 0; i < statementCids.length; i++) {
-      const txHash = await attestProjectAlignment(
+      await attestProjectAlignmentChecked(
         attesterClients,
         projectAlignmentContract,
+        graphqlClient,
         projectDetails.tokenAddress,
-        statementCids[i]
+        statementCids[i],
+        statementIds[i]
       );
-      const receipt = await attesterClients.publicClient.getTransactionReceipt({ hash: txHash });
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
     }
 
     // Verify all alignments exist
