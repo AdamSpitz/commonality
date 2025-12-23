@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  reclaimFunds,
   uploadToIPFS,
   cidToBytes32,
   type DelegatableNotesContract,
@@ -22,7 +21,6 @@ import {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 
@@ -32,6 +30,7 @@ import {
   depositETHChecked,
   delegateNoteChecked,
   revokeNoteChecked,
+  reclaimFundsChecked,
 } from './delegation-actions-checked.js';
 
 describe('Delegation System', () => {
@@ -367,10 +366,8 @@ describe('Delegation System', () => {
     // Get balance before reclaim
     const balanceBefore = await user1.publicClient.getBalance({ address: user1.account });
 
-    // Reclaim the funds
-    const reclaimHash = await reclaimFunds(user1, delegatableNotesContract, noteId);
-    const reclaimReceipt = await user1.publicClient.getTransactionReceipt({ hash: reclaimHash });
-    await waitForSync(graphqlClient, reclaimReceipt.blockNumber);
+    // Reclaim the funds (with property checking)
+    const reclaimHash = await reclaimFundsChecked(user1, delegatableNotesContract, graphqlClient, noteId);
 
     // Get balance after reclaim
     const balanceAfter = await user1.publicClient.getBalance({ address: user1.account });
@@ -380,11 +377,8 @@ describe('Delegation System', () => {
     const balanceDiff = balanceAfter - balanceBefore;
     assert(balanceDiff > 0n, 'Balance should increase after reclaim');
 
-    // Note should be marked as inactive (not deleted, just inactive with 0 amount)
-    const reclaimedNote = await getNote(graphqlClient, noteId.toString());
-    assertNotNull(reclaimedNote, 'Reclaimed note');
-    assert.strictEqual(reclaimedNote.active, false, 'Note should be inactive after reclaim');
-    assert.strictEqual(reclaimedNote.amount, '0', 'Note amount should be 0 after reclaim');
+    // The checked wrapper already verified that the note is inactive and amount is 0
+    testLog('  ✓ State transition properties verified (note inactive, amount 0)');
   });
 
   it('should track notes by root depositor', async function() {

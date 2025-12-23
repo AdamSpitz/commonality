@@ -249,3 +249,53 @@ export const spendDelegatedNoteMetadata: ActionMetadata = {
   // When spending notes, we check delegation chain integrity for each note used
   invariantsToCheck: [delegationChainInvariant],
 };
+
+/**
+ * State Transition Property #4: Reclaim Funds
+ *
+ * When funds are reclaimed from a note:
+ * - The note should become inactive
+ * - The note amount should become 0
+ * - The note should still exist (not deleted, just inactive)
+ */
+export const reclaimFundsProperty: StateTransitionProperty = {
+  name: 'reclaimFunds',
+  captureState: captureDelegationState,
+  check: async (context: ActionContext, before: DelegationState, after: DelegationState) => {
+    // Verify the note existed before
+    assert.ok(
+      before.noteExists,
+      `Reclaim failed: note ${context.entities.delegationNoteId} should exist before reclaim`
+    );
+
+    // Verify the note still exists after (not deleted)
+    assert.ok(
+      after.noteExists,
+      `Reclaim failed: note ${context.entities.delegationNoteId} should still exist after reclaim`
+    );
+
+    // Verify the note is now inactive
+    assert.strictEqual(
+      after.active,
+      false,
+      `Note ${context.entities.delegationNoteId} should be inactive after reclaim`
+    );
+
+    // Verify the amount is now 0
+    assert.strictEqual(
+      after.amount,
+      0n,
+      `Note ${context.entities.delegationNoteId} amount should be 0 after reclaim. Got: ${after.amount}`
+    );
+  },
+};
+
+/**
+ * Action metadata for reclaimFunds
+ */
+export const reclaimFundsMetadata: ActionMetadata = {
+  name: 'reclaimFunds',
+  category: 'delegation',
+  stateTransitionProperties: [reclaimFundsProperty],
+  invariantsToCheck: [delegationChainInvariant],
+};

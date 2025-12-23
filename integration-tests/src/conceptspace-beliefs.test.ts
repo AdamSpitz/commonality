@@ -13,7 +13,6 @@
 
 import assert from 'assert';
 import {
-  believeStatement,
   uploadToIPFS,
   cidToBytes32,
   NO_OPINION,
@@ -26,7 +25,6 @@ import {
   getStatement,
   getUserBelief,
   getStatementWithContent,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
@@ -262,9 +260,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Express belief to create the statement onchain
     testLog('  User believes the statement...');
-    const txHash = await believeStatement(clients, beliefsContract, statementCid);
-    const receipt = await clients.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    const txHash = await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
     // Test basic usage: fetch statement metadata
     testLog('  Fetching statement with getStatementWithContent (basic)...');

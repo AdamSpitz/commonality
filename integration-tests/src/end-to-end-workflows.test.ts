@@ -7,7 +7,6 @@
 
 import assert from 'assert';
 import {
-  attestProjectAlignment,
   createProject,
   purchaseFromPrimaryMarketWithNotes,
   uploadToIPFS,
@@ -45,6 +44,7 @@ import { testLog, createIsolatedTestClients } from './setup.js';
 import { believeStatementChecked } from './belief-actions-checked.js';
 import { attestImplicationChecked } from './implication-actions-checked.js';
 import { depositETHChecked, delegateNoteChecked } from './delegation-actions-checked.js';
+import { attestProjectAlignmentChecked } from './alignment-actions-checked.js';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -142,17 +142,15 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Attester attesting project alignment...');
-      const alignmentTxHash = await attestProjectAlignment(
+      const alignmentTxHash = await attestProjectAlignmentChecked(
         attesterClients,
         projectAlignmentContract,
+        graphqlClient,
         projectResult.projectDetails.assuranceContractAddress,
-        statementCid
+        statementCid,
+        statementId
       );
-      const alignmentReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
-      testLog(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
-
-      // 8. Wait for indexer to sync alignment
-      await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
+      testLog(`  Alignment attestation: ${alignmentTxHash}`);
 
       // 9. Verify project alignment was recorded
       const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
@@ -345,17 +343,15 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Attester attesting project alignment...');
-      const alignmentTxHash = await attestProjectAlignment(
+      const alignmentTxHash = await attestProjectAlignmentChecked(
         delegateUserClients, // Use delegate user as attester
         projectAlignmentContract,
+        graphqlClient,
         projectResult.projectDetails.assuranceContractAddress,
-        statementCid
+        statementCid,
+        statementId
       );
-      const alignmentReceipt = await delegateUserClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
-      testLog(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
-
-      // 13. Wait for indexer to sync alignment
-      await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
+      testLog(`  Alignment attestation: ${alignmentTxHash}`);
 
       // 14. Verify project alignment was recorded
       const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
@@ -508,17 +504,15 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Attester attesting project alignment with S1...');
-      const alignmentTxHash = await attestProjectAlignment(
+      const alignmentTxHash = await attestProjectAlignmentChecked(
         attesterClients,
         projectAlignmentContract,
+        graphqlClient,
         projectResult.projectDetails.assuranceContractAddress,
-        statement1Cid
+        statement1Cid,
+        statement1Id
       );
-      const alignmentReceipt = await attesterClients.publicClient.getTransactionReceipt({ hash: alignmentTxHash });
-      testLog(`  Alignment attestation: ${alignmentTxHash} (block ${alignmentReceipt.blockNumber})`);
-
-      // 8. Wait for indexer to sync alignment
-      await waitForSync(graphqlClient, alignmentReceipt.blockNumber);
+      testLog(`  Alignment attestation: ${alignmentTxHash}`);
 
       // 9. Verify direct alignment with S1
       const directAlignments = await getAlignedProjects(graphqlClient, statement1Id);

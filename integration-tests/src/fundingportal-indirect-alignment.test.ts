@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  attestProjectAlignment,
   createProject,
   uploadToIPFS,
   cidToBytes32,
@@ -23,7 +22,6 @@ import {
   createGraphQLClient,
   getAlignedProjects,
   getIndirectlyAlignedProjects,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import {
@@ -33,6 +31,7 @@ import {
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { attestImplicationChecked } from './implication-actions-checked.js';
+import { attestProjectAlignmentChecked } from './alignment-actions-checked.js';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -133,14 +132,14 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align the project with S1 (specific statement)
     testLog('  Aligning project with S1 (renewable energy)...');
-    let txHash = await attestProjectAlignment(
+    let txHash = await attestProjectAlignmentChecked(
       alignmentAttester,
       projectAlignmentContract,
+      graphqlClient,
       projectDetails.tokenAddress,
-      s1Cid
+      s1Cid,
+      s1Id
     );
-    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify direct alignment with S1
     const directAlignments = await getAlignedProjects(graphqlClient, s1Id);
@@ -269,25 +268,25 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align Project A with S1 (indirect to S2)
     testLog('  Aligning Project A with S1...');
-    txHash = await attestProjectAlignment(
+    txHash = await attestProjectAlignmentChecked(
       alignmentAttester,
       projectAlignmentContract,
+      graphqlClient,
       projectA.tokenAddress,
-      s1Cid
+      s1Cid,
+      s1Id
     );
-    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Align Project B directly with S2
     testLog('  Aligning Project B directly with S2...');
-    txHash = await attestProjectAlignment(
+    txHash = await attestProjectAlignmentChecked(
       alignmentAttester,
       projectAlignmentContract,
+      graphqlClient,
       projectB.tokenAddress,
-      s2Cid
+      s2Cid,
+      s2Id
     );
-    receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Query S2 for direct alignments only
     const directAlignments = await getAlignedProjects(graphqlClient, s2Id);
@@ -395,14 +394,14 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     });
 
     testLog('  Aligning project with S1...');
-    txHash = await attestProjectAlignment(
+    txHash = await attestProjectAlignmentChecked(
       alignmentAttester,
       projectAlignmentContract,
+      graphqlClient,
       projectDetails.tokenAddress,
-      s1Cid
+      s1Cid,
+      s1Id
     );
-    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Query for indirect alignment with S2 (one level up)
     testLog('  Querying S2 for indirect alignments...');
@@ -506,14 +505,14 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       tokenPrices: [5n * 10n**18n],
     });
 
-    txHash = await attestProjectAlignment(
+    txHash = await attestProjectAlignmentChecked(
       alignmentAttester,
       projectAlignmentContract,
+      graphqlClient,
       projectDetails.tokenAddress,
-      s1Cid
+      s1Cid,
+      s1Id
     );
-    let receipt = await alignmentAttester.publicClient.getTransactionReceipt({ hash: txHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Query S2 trusting only attester 1
     testLog('  Querying with trusted attester 1...');

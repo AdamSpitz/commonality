@@ -18,6 +18,7 @@ import {
   depositETH,
   delegateNote,
   revokeNote,
+  reclaimFunds,
   purchaseFromPrimaryMarketWithNotes,
   waitForSync,
   type TestClients,
@@ -33,6 +34,7 @@ import {
   depositETHMetadata,
   delegateNoteMetadata,
   revokeNoteMetadata,
+  reclaimFundsMetadata,
   spendDelegatedNoteMetadata,
 } from './delegation-action-properties.js';
 
@@ -332,6 +334,66 @@ export async function spendDelegatedNoteChecked(
         allNoteIds: params.noteIds.map(id => id.toString()),
       },
     },
+    options
+  );
+
+  return result;
+}
+
+/**
+ * Reclaim funds from a delegatable note (with property checking)
+ *
+ * This wrapper runs the reclaimFunds action and automatically:
+ * 1. Verifies the note becomes inactive
+ * 2. Verifies the note amount becomes 0
+ * 3. Verifies delegation chain integrity
+ *
+ * @param clients - Test wallet and public clients
+ * @param delegatableNotesContract - The DelegatableNotes contract instance
+ * @param graphqlClient - GraphQL client for the indexer
+ * @param noteId - The ID of the note to reclaim
+ * @param options - Optional: control which checks run
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * const txHash = await reclaimFundsChecked(
+ *   clients,
+ *   delegatableNotesContract,
+ *   graphqlClient,
+ *   noteId
+ * );
+ * // State transition properties and invariants are automatically verified
+ * ```
+ */
+export async function reclaimFundsChecked(
+  clients: TestClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  noteId: bigint,
+  options?: ActionRunOptions
+): Promise<Hash> {
+  const context: ActionContext = {
+    graphqlClient,
+    contracts: { delegation: delegatableNotesContract },
+    entities: {
+      delegationNoteId: noteId.toString(),
+      userAddress: clients.account,
+    },
+  };
+
+  const result = await runActionAndCheckProperties(
+    async () => {
+      const hash = await reclaimFunds(clients, delegatableNotesContract, noteId);
+
+      // Wait for indexer to sync
+      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
+      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+
+      return hash;
+    },
+    reclaimFundsMetadata,
+    context,
     options
   );
 

@@ -707,28 +707,27 @@ With the suggested improvements (especially #3, #4, and #6), confidence would in
 If I had to prioritize the suggestions:
 
 ### High Priority (Do Soon)
-1. **Complete the migration** - Finish converting all tests to use checked wrappers
-2. **Add expected failure support** (#3) - Critical for permission/validation testing
-3. **Create negative test suites** (#6) - Essential for security and robustness
-4. **Document conventions** (#1, #5) - Clarify when to use checked vs unchecked
+1. **Add expected failure support** (#3) - Critical for permission/validation testing
+2. **Create negative test suites** (#6) - Essential for security and robustness
+3. **Document conventions** (#1, #5) - Clarify when to use checked vs unchecked
 
 ### Medium Priority (Next Phase)
-5. **Add system-wide invariants** (#4) - Important for catching subtle bugs
-6. **Add before-action invariant checking** (#2) - Helps isolate failures
-7. **Improve type safety** (#10) - Reduces bugs and improves DX
-8. **Expand state transition checks** (#5) - More thorough verification
+4. **Add system-wide invariants** (#4) - Important for catching subtle bugs
+5. **Add before-action invariant checking** (#2) - Helps isolate failures
+6. **Improve type safety** (#10) - Reduces bugs and improves DX
+7. **Expand state transition checks** (#5) - More thorough verification
 
 ### Low Priority (Nice to Have)
-9. **Performance tracking** (#7) - Useful but not critical for correctness
-10. **Generic pattern helpers** (#8) - Code quality improvement
-11. **Generative test hooks** (#9) - Can add when implementing generative tests
+8. **Performance tracking** (#7) - Useful but not critical for correctness
+9. **Generic pattern helpers** (#8) - Code quality improvement
+10. **Generative test hooks** (#9) - Can add when implementing generative tests
 
 ## Conclusion
 
 This is **excellent work**. The property-based testing framework is well-architected, the code is clean and readable, and the approach will scale beautifully to both handcrafted scenarios and generative testing.
 
 The main areas for improvement are:
-1. **Completeness**: Finish migrating all tests, add negative test coverage
+1. **Completeness**: Add negative test coverage
 2. **Systematic coverage**: Add cross-system invariants, expand property checks
 3. **Developer experience**: Improve type safety, document conventions
 4. **Future-proofing**: Add hooks for generative testing when needed
