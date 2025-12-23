@@ -29,6 +29,7 @@ import {
 import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { assertUniqueStatements } from './invariants.js';
+import { createAndSignStatementChecked } from './workflow-actions-checked.js';
 
 describe('Conceptspace Create Statement Workflow', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -81,16 +82,16 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     testLog(`  Creating statement: "${statementData.title}"`);
 
-    // Call the high-level workflow function
-    const result = await createAndSignStatement(
+    // Call the high-level workflow function (with property checking)
+    const result = await createAndSignStatementChecked(
       clients,
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
+      graphqlClient,
       statementData,
       {
-        graphqlClient,
         addToCreatedList: true,
       }
     );
@@ -103,20 +104,9 @@ describe('Conceptspace Create Statement Workflow', () => {
     assert.ok(result.signTxHash, 'Should have a sign transaction hash');
     assert.ok(result.updateListTxHash, 'Should have an update list transaction hash');
 
-    // Wait for sync
-    const receipt = await clients.publicClient.getTransactionReceipt({ hash: result.signTxHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    if (result.updateListTxHash) {
-      const listReceipt = await clients.publicClient.getTransactionReceipt({
-        hash: result.updateListTxHash
-      });
-      await waitForSync(graphqlClient, listReceipt.blockNumber, 15000);
-    }
-
     const statementId = cidToBytes32(result.cid);
 
-    // Verify statement was created and signed
+    // Verify statement was created and signed (checked wrapper already verified belief counts)
     const statement = assertNotNull(
       await getStatement(graphqlClient, statementId),
       'Statement'
@@ -168,15 +158,15 @@ describe('Conceptspace Create Statement Workflow', () => {
     let listUpdatedCalled = false;
     let cidFromCallback = '';
 
-    const result = await createAndSignStatement(
+    const result = await createAndSignStatementChecked(
       clients,
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
+      graphqlClient,
       statementData,
       {
-        graphqlClient,
         addToCreatedList: true,
         onIPFSUpload: (cid) => {
           testLog(`    → IPFS upload callback: ${cid}`);
@@ -218,12 +208,13 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     testLog('  Creating statement without list update...');
 
-    const result = await createAndSignStatement(
+    const result = await createAndSignStatementChecked(
       clients,
       {
         beliefs: beliefsContract,
         // Note: not providing mutableRefUpdater
       },
+      graphqlClient,
       statementData,
       {
         addToCreatedList: false, // Explicitly disable
@@ -234,13 +225,9 @@ describe('Conceptspace Create Statement Workflow', () => {
     assert.ok(result.signTxHash, 'Should have a sign transaction hash');
     assert.strictEqual(result.updateListTxHash, undefined, 'Should not have update list tx hash');
 
-    // Wait for sync
-    const receipt = await clients.publicClient.getTransactionReceipt({ hash: result.signTxHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
     const statementId = cidToBytes32(result.cid);
 
-    // Verify statement was created and signed
+    // Verify statement was created and signed (checked wrapper already verified belief counts)
     const statement = assertNotNull(
       await getStatement(graphqlClient, statementId),
       'Statement'
@@ -279,15 +266,15 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     testLog(`  Creating statement with references: "${statementData.title}"`);
 
-    const result = await createAndSignStatement(
+    const result = await createAndSignStatementChecked(
       clients,
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
+      graphqlClient,
       statementData,
       {
-        graphqlClient,
         addToCreatedList: true,
       }
     );
@@ -326,25 +313,19 @@ describe('Conceptspace Create Statement Workflow', () => {
     const results = [];
     for (let i = 0; i < statements.length; i++) {
       testLog(`    Creating statement ${i + 1}/3...`);
-      const result = await createAndSignStatement(
+      const result = await createAndSignStatementChecked(
         clients,
         {
           beliefs: beliefsContract,
           mutableRefUpdater: mutableRefUpdaterContract,
         },
+        graphqlClient,
         statements[i],
         {
-          graphqlClient,
           addToCreatedList: true,
         }
       );
       results.push(result);
-
-      // Wait for sync after each statement
-      const receipt = await clients.publicClient.getTransactionReceipt({
-        hash: result.signTxHash
-      });
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
     }
 
     // Verify all statements were created
@@ -470,15 +451,16 @@ describe('Conceptspace Create Statement Workflow', () => {
     };
 
     // This should succeed for steps 1 & 2, but log an error for step 3
-    const result = await createAndSignStatement(
+    // We use the checked wrapper which will verify the belief was created correctly
+    const result = await createAndSignStatementChecked(
       clients,
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
+      invalidGraphqlClient,
       statementData,
       {
-        graphqlClient: invalidGraphqlClient,
         addToCreatedList: true,
       }
     );
@@ -489,13 +471,9 @@ describe('Conceptspace Create Statement Workflow', () => {
     // List update failed, so updateListTxHash should be undefined
     assert.strictEqual(result.updateListTxHash, undefined, 'Update list tx hash should be undefined after failure');
 
-    // Wait for sync
-    const receipt = await clients.publicClient.getTransactionReceipt({ hash: result.signTxHash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
     const statementId = cidToBytes32(result.cid);
 
-    // Verify statement exists and is signed
+    // Verify statement exists and is signed (using real graphqlClient, not the invalid one)
     const statement = assertNotNull(
       await getStatement(graphqlClient, statementId),
       'Statement'
@@ -523,39 +501,35 @@ describe('Conceptspace Create Statement Workflow', () => {
     testLog('  Creating first statement...');
 
     // Create the statement the first time
-    const result1 = await createAndSignStatement(
+    const result1 = await createAndSignStatementChecked(
       clients,
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
+      graphqlClient,
       statementData,
       {
-        graphqlClient,
         addToCreatedList: true,
       }
     );
 
     testLog(`  First statement CID: ${result1.cid}`);
 
-    // Wait for sync
-    const receipt1 = await clients.publicClient.getTransactionReceipt({ hash: result1.signTxHash });
-    await waitForSync(graphqlClient, receipt1.blockNumber, 15000);
-
     const statementId1 = cidToBytes32(result1.cid);
 
     testLog('  Creating second statement with identical content...');
 
     // Create the same statement again
-    const result2 = await createAndSignStatement(
+    const result2 = await createAndSignStatementChecked(
       clients,
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
+      graphqlClient,
       statementData,
       {
-        graphqlClient,
         addToCreatedList: true,
       }
     );
