@@ -140,6 +140,19 @@ export interface ActionRunOptions {
 
   /** Override: skip expensive checks even if not globally disabled */
   skipExpensiveChecks?: boolean;
+
+  /**
+   * Expect the action to fail/revert
+   * When true, the action must throw an error, and state should remain unchanged
+   */
+  expectFailure?: boolean;
+
+  /**
+   * Expected error message or pattern
+   * Only checked if expectFailure is true
+   * Can be a string (substring match) or RegExp (pattern match)
+   */
+  expectedError?: string | RegExp;
 }
 
 /**
@@ -181,6 +194,8 @@ export async function runActionAndCheckProperties<TResult>(
     skipSpecificInvariants = [],
     skipSpecificTransitions = [],
     skipExpensiveChecks = false,
+    expectFailure = false,
+    expectedError,
   } = options;
 
   // Determine if we should skip expensive checks globally
@@ -210,6 +225,92 @@ export async function runActionAndCheckProperties<TResult>(
 
   // Execute the action
   let result: TResult;
+
+  if (expectFailure) {
+    // Action should fail - verify it throws and state remains unchanged
+    let caughtError: Error | undefined;
+
+    try {
+      result = await action();
+      // If we get here, the action didn't fail as expected
+      throw new Error(
+        `Expected action '${metadata.name}' to fail, but it succeeded.\n` +
+        `Entities: ${JSON.stringify(context.entities, null, 2)}`
+      );
+    } catch (error: any) {
+      caughtError = error;
+
+      // Check if this is the "action didn't fail" error we just threw
+      if (error.message?.includes('Expected action') && error.message?.includes('to fail, but it succeeded')) {
+        throw error;
+      }
+
+      // Verify the error message if an expected error was specified
+      if (expectedError !== undefined) {
+        const errorMessage = error.message || String(error);
+        const matches = typeof expectedError === 'string'
+          ? errorMessage.includes(expectedError)
+          : expectedError.test(errorMessage);
+
+        if (!matches) {
+          throw new Error(
+            `Action '${metadata.name}' failed as expected, but with wrong error message.\n` +
+            `Expected error matching: ${expectedError}\n` +
+            `Actual error: ${errorMessage}\n` +
+            `Entities: ${JSON.stringify(context.entities, null, 2)}`
+          );
+        }
+      }
+    }
+
+    // Verify state remained unchanged by comparing before and after states
+    if (!skipStateTransitions && metadata.stateTransitionProperties) {
+      for (const [i, prop] of metadata.stateTransitionProperties.entries()) {
+        if (skipSpecificTransitions.includes(prop.name)) {
+          continue;
+        }
+
+        try {
+          const after = await prop.captureState(context);
+          const before = beforeStates[i].state;
+
+          // For failed actions, we expect the state to be unchanged
+          // We do a deep comparison of the before and after states
+          // Use a custom replacer to handle BigInt values
+          const bigIntReplacer = (_key: string, value: any) =>
+            typeof value === 'bigint' ? value.toString() : value;
+
+          const beforeJson = JSON.stringify(before, bigIntReplacer);
+          const afterJson = JSON.stringify(after, bigIntReplacer);
+
+          if (beforeJson !== afterJson) {
+            throw new Error(
+              `State changed after failed action '${metadata.name}'\n` +
+              `Property: ${prop.name}\n` +
+              `Before: ${beforeJson}\n` +
+              `After: ${afterJson}\n` +
+              `Entities: ${JSON.stringify(context.entities, null, 2)}`
+            );
+          }
+        } catch (error: any) {
+          // If this is the error we just threw about state changing, re-throw it
+          if (error.message?.includes('State changed after failed action')) {
+            throw error;
+          }
+          // Otherwise, it's an error in capturing state - report it
+          throw new Error(
+            `Failed to verify state unchanged for property '${prop.name}' ` +
+            `after expected failure of action '${metadata.name}':\n${error.message}`
+          );
+        }
+      }
+    }
+
+    // Return undefined for failed actions (we know result is not set)
+    return undefined as TResult;
+  }
+
+  // Normal flow: action should succeed
   try {
     result = await action();
   } catch (error: any) {
