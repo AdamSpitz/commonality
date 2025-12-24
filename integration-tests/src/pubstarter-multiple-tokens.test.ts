@@ -7,8 +7,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
-  buyProjectTokens,
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
@@ -18,7 +16,6 @@ import {
   getProject,
   getProjectTokens,
   getProjectContributions,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -28,7 +25,7 @@ import {
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
 import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
-import { buyProjectTokensChecked } from './funding-actions-checked.js';
+import { createProjectChecked, buyProjectTokensChecked } from './funding-actions-checked.js';
 
 
 describe('Pubstarter Multiple Token Types Tests', () => {
@@ -87,9 +84,10 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -105,11 +103,6 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     );
 
     testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
-
-    // Wait for indexer to sync
-    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    testLog('  Waiting for indexer to sync project creation...');
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
     // Verify all 3 token types are tracked
     testLog('  Verifying token types in indexer...');

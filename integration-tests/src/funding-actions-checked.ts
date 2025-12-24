@@ -15,6 +15,7 @@
 
 import type { Hash, Address } from 'viem';
 import {
+  createProject,
   buyProjectTokens,
   refundProjectTokens,
   withdrawProjectFunds,
@@ -22,6 +23,8 @@ import {
   waitForSync,
   type TestClients,
   type AssuranceContract,
+  type PubstarterContract,
+  type ProjectDetails,
 } from '@commonality/sdk';
 import type { GraphQLClient, GraphQLExecutor } from './invariants.js';
 import {
@@ -30,11 +33,109 @@ import {
   type ActionRunOptions,
 } from './action-framework.js';
 import {
+  createProjectMetadata,
   buyProjectTokensMetadata,
   refundProjectTokensMetadata,
   withdrawProjectFundsMetadata,
   burnTokensMetadata,
 } from './funding-action-properties.js';
+
+/**
+ * Create a new crowdfunding project (with property checking)
+ *
+ * This wrapper runs the createProject action and automatically:
+ * 1. Verifies the project exists in the indexer after creation
+ * 2. Checks that initial totalReceived is 0
+ * 3. Verifies initial contribution count is 0
+ *
+ * @param clients - Test wallet and public clients
+ * @param pubstarterContract - The Pubstarter factory contract instance
+ * @param graphqlClient - GraphQL client for the indexer
+ * @param params - Project creation parameters
+ * @param params.metadataURI - Base URI for token metadata
+ * @param params.contractURI - Contract-level metadata URI
+ * @param params.owner - Owner of the token contract
+ * @param params.recipient - Address that will receive funds if project succeeds
+ * @param params.threshold - Minimum funding amount required for project success
+ * @param params.deadline - Unix timestamp deadline for the funding campaign
+ * @param params.projectMetadataCid - IPFS CID for project metadata
+ * @param params.tokenIds - Token IDs to create
+ * @param params.tokenCounts - Supply for each token ID
+ * @param params.tokenPrices - Price for each token ID (in wei)
+ * @param options - Optional: control which checks run
+ * @returns Object containing transaction hash and project details
+ *
+ * @example
+ * ```typescript
+ * const { hash, projectDetails } = await createProjectChecked(
+ *   clients,
+ *   pubstarterContract,
+ *   graphqlClient,
+ *   {
+ *     metadataURI: 'https://example.com/metadata/',
+ *     contractURI: 'https://example.com/contract',
+ *     owner: alice.address,
+ *     recipient: alice.address,
+ *     threshold: parseEther('10'),
+ *     deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+ *     projectMetadataCid: 'Qm...',
+ *     tokenIds: [0n],
+ *     tokenCounts: [100n],
+ *     tokenPrices: [parseEther('0.1')]
+ *   }
+ * );
+ * // State transition properties and invariants are automatically verified
+ * ```
+ */
+export async function createProjectChecked(
+  clients: TestClients,
+  pubstarterContract: PubstarterContract,
+  graphqlClient: GraphQLClient | GraphQLExecutor,
+  params: {
+    metadataURI: string;
+    contractURI: string;
+    owner: Address;
+    recipient: Address;
+    threshold: bigint;
+    deadline: bigint;
+    projectMetadataCid: string;
+    tokenIds: bigint[];
+    tokenCounts: bigint[];
+    tokenPrices: bigint[];
+  },
+  options?: ActionRunOptions
+): Promise<{ hash: Hash; projectDetails: ProjectDetails }> {
+  // We don't know the project address yet, so we'll capture it after creation
+  let projectDetails: ProjectDetails | null = null;
+
+  const result = await runActionAndCheckProperties(
+    async () => {
+      const result = await createProject(clients, pubstarterContract, params);
+      projectDetails = result.projectDetails;
+      const receipt = await clients.publicClient.getTransactionReceipt({ hash: result.hash });
+      await waitForSync(graphqlClient, receipt.blockNumber);
+      return result;
+    },
+    createProjectMetadata,
+    {
+      graphqlClient,
+      contracts: { pubstarter: pubstarterContract },
+      entities: {
+        // We'll update this after the action completes
+        get projectAddress() {
+          if (!projectDetails) {
+            throw new Error('Project details not yet available');
+          }
+          return projectDetails.assuranceContractAddress;
+        },
+        userAddress: clients.account,
+      },
+    },
+    options
+  );
+
+  return result;
+}
 
 /**
  * Buy tokens from a project (with property checking)

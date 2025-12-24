@@ -64,31 +64,7 @@ The framework is clearly designed for both handcrafted and random scenarios:
 
 ## Suggestions for Improvement
 
-### 1. Inconsistent Coverage of "Checked" Wrappers
-
-**Issue**: Looking at the test files, you have these `-checked.ts` wrapper files:
-- ✅ `belief-actions-checked.ts`
-- ✅ `delegation-actions-checked.ts`
-- ✅ `funding-actions-checked.ts`
-- ✅ `marketplace-actions-checked.ts`
-- ✅ `alignment-actions-checked.ts`
-- ✅ `implication-actions-checked.ts`
-- ✅ `mutable-ref-actions-checked.ts`
-- ✅ `workflow-actions-checked.ts`
-
-But some test files still use raw SDK actions. For example, in [pubstarter-basic.test.ts:102-117](src/pubstarter-basic.test.ts#L102-L117), `createProject` is called directly without a checked wrapper.
-
-**Recommendation**:
-- Create checked wrappers for ALL user actions, or
-- Document which actions intentionally don't need checking and why
-- Establish a clear convention for when to use checked vs unchecked actions
-
-**Convention suggestion**:
-- **Setup/Arrangement**: Can use unchecked actions (we don't care about the properties, just getting into a state)
-- **Action under test**: Always use checked wrappers
-- **Cleanup**: Can use unchecked
-
-### 2. Asymmetric Invariant Checking
+### 1. Asymmetric Invariant Checking
 
 **Issue**: The framework runs invariants AFTER actions, but not before. This means:
 - You can't detect if the system starts in a bad state
@@ -109,7 +85,7 @@ This would be especially valuable for:
 - Verifying that invariants hold throughout the test suite
 - Generative testing where you want to verify system consistency at every step
 
-### 3. Limited Cross-Action Invariants
+### 2. Limited Cross-Action Invariants
 
 **Issue**: Your invariants mostly check single-entity consistency. But some important invariants span multiple entities:
 
@@ -160,7 +136,7 @@ These could be run:
 - Periodically during long generative test runs
 - On-demand for expensive checks
 
-### 4. State Transition Properties Don't Verify All Transitions
+### 3. State Transition Properties Don't Verify All Transitions
 
 **Issue**: For belief transitions ([belief-action-properties.ts:72-128](src/belief-action-properties.ts#L72-L128)), you verify the counts changed correctly, but you don't systematically verify:
 
@@ -208,7 +184,7 @@ export const beliefTransitionProperty: StateTransitionProperty = {
 };
 ```
 
-### 5. Missing "Negative" Property Tests
+### 4. Missing "Negative" Property Tests
 
 **Issue**: Your properties verify that valid actions work correctly, but don't systematically verify that invalid actions are rejected. Important negative cases:
 
@@ -271,7 +247,7 @@ interface ActionMetadata {
 }
 ```
 
-### 6. No Performance/Gas Tracking
+### 5. No Performance/Gas Tracking
 
 **Issue**: While not strictly necessary for correctness, tracking performance metrics would be valuable for:
 - Detecting performance regressions
@@ -323,7 +299,7 @@ export async function runActionAndCheckProperties<TResult>(
 }
 ```
 
-### 7. Potential for More Reusable Generic Patterns
+### 6. Potential for More Reusable Generic Patterns
 
 **Issue**: You have `assertAggregatedCountConsistency` ([invariants.ts:1014-1067](src/invariants.ts#L1014-L1067)) which is excellent! There are opportunities for more generic helpers.
 
@@ -376,7 +352,7 @@ export async function assertEntityExists(
 
 These would reduce code duplication and make it easier to add new invariants.
 
-### 8. Consider Fuzz Testing Hooks
+### 7. Consider Fuzz Testing Hooks
 
 **Issue**: For generative testing, you'll want to generate random but valid action sequences. Currently, there's no metadata to help with this.
 
@@ -471,7 +447,7 @@ async function runGenerativeTest(
 }
 ```
 
-### 9. Type Safety Improvements
+### 8. Type Safety Improvements
 
 **Issue**: Lots of `as any` casts for the GraphQL executor ([belief-action-properties.ts:49](src/belief-action-properties.ts#L49), etc.). This loses type safety.
 
@@ -633,19 +609,19 @@ With the suggested improvements (especially #3, #4, and #6), confidence would in
 If I had to prioritize the suggestions:
 
 ### High Priority (Do Soon)
-1. **Create negative test suites** (#5) - Essential for security and robustness
-2. **Document conventions** (#1, #4) - Clarify when to use checked vs unchecked
+1. **Create negative test suites** (#4) - Essential for security and robustness
+2. **Document conventions** (#3) - Clarify when to use checked vs unchecked
 
 ### Medium Priority (Next Phase)
-3. **Add system-wide invariants** (#3) - Important for catching subtle bugs
-4. **Add before-action invariant checking** (#2) - Helps isolate failures
-5. **Improve type safety** (#9) - Reduces bugs and improves DX
-6. **Expand state transition checks** (#4) - More thorough verification
+3. **Add system-wide invariants** (#2) - Important for catching subtle bugs
+4. **Add before-action invariant checking** (#1) - Helps isolate failures
+5. **Improve type safety** (#8) - Reduces bugs and improves DX
+6. **Expand state transition checks** (#3) - More thorough verification
 
 ### Low Priority (Nice to Have)
-7. **Performance tracking** (#6) - Useful but not critical for correctness
-8. **Generic pattern helpers** (#7) - Code quality improvement
-9. **Generative test hooks** (#8) - Can add when implementing generative tests
+7. **Performance tracking** (#5) - Useful but not critical for correctness
+8. **Generic pattern helpers** (#6) - Code quality improvement
+9. **Generative test hooks** (#7) - Can add when implementing generative tests
 
 ## Conclusion
 
@@ -658,3 +634,10 @@ The main areas for improvement are:
 4. **Future-proofing**: Add hooks for generative testing when needed
 
 Keep going with this approach - it's the right direction!
+
+## Recent Improvements
+
+- ✅ Added `createProjectChecked` wrapper with state transition properties (2025-12-24)
+  - Created `projectCreationProperty` to verify projects are correctly initialized
+  - Updated `pubstarter-multiple-tokens.test.ts` to use the checked wrapper
+  - All integration tests passing

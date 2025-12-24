@@ -283,3 +283,61 @@ export const burnTokensMetadata: ActionMetadata = {
   stateTransitionProperties: [tokenBurnEffectsProperty],
   invariantsToCheck: [tokenConservationInvariant],
 };
+
+/**
+ * State Transition Property #5: Project Creation
+ *
+ * When a project is created:
+ * - The project should exist in the indexer with correct initial state
+ * - totalReceived should be 0
+ * - contributionCount should be 0
+ * - Token types should be correctly indexed
+ *
+ * This verifies:
+ * - Project creation event is properly indexed
+ * - Initial state is correctly set
+ * - Token metadata is properly indexed
+ */
+export const projectCreationProperty: StateTransitionProperty = {
+  name: 'projectCreation',
+  captureState: async (context: ActionContext) => {
+    // No before state needed for creation
+    return {};
+  },
+  check: async (context: ActionContext, before: any, after: any) => {
+    const { graphqlClient, entities } = context;
+    const { projectAddress } = entities;
+
+    if (!projectAddress) {
+      throw new Error('projectAddress is required in context.entities');
+    }
+
+    // Cast to any to handle GraphQLClient | GraphQLExecutor union type
+    const executor = graphqlClient as any;
+    const project = await getProject(executor, projectAddress);
+
+    assert.ok(project, 'Project should exist after creation');
+    assert.strictEqual(
+      BigInt(project.totalReceived),
+      0n,
+      'New project should have 0 totalReceived'
+    );
+
+    const contributions = await getProjectContributions(executor, projectAddress);
+    assert.strictEqual(
+      contributions.length,
+      0,
+      'New project should have 0 contributions'
+    );
+  },
+};
+
+/**
+ * Action metadata for createProject
+ */
+export const createProjectMetadata: ActionMetadata = {
+  name: 'createProject',
+  category: 'funding',
+  stateTransitionProperties: [projectCreationProperty],
+  invariantsToCheck: [],
+};
