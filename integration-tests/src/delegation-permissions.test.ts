@@ -6,21 +6,23 @@
  * - Only parent in chain can revoke
  * - Cannot delegate/spend/revoke someone else's note
  * - Cannot spend revoked notes
+ *
+ * This test demonstrates the use of the expectFailure framework for
+ * systematic negative testing. All failing actions verify:
+ * 1. The action throws an error
+ * 2. State remains unchanged (verified by state transition properties)
+ * 3. Invariants still hold after the failed action
  */
 
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  delegateNote,
-  revokeNote,
-  reclaimFunds,
   cidToBytes32,
   uploadToIPFS,
   type DelegatableNotesContract,
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
-  waitForSync,
 } from '@commonality/sdk';
 import { DelegatableNotesAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
@@ -28,6 +30,7 @@ import {
   depositETHChecked,
   delegateNoteChecked,
   revokeNoteChecked,
+  reclaimFundsChecked,
 } from './delegation-actions-checked.js';
 
 describe('Delegation Permissions Edge Cases', () => {
@@ -63,7 +66,7 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for permission test',
     }));
 
-    // Alice creates a note (with checked wrapper)
+    // Alice creates a note
     testLog('  Alice creating a note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
@@ -73,23 +76,31 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog(`  Note created: ${noteId}`);
 
     // Bob (not the owner) tries to delegate Alice's note to Charlie
+    // Using expectFailure framework - automatically verifies:
+    // 1. Action throws an error
+    // 2. State remains unchanged
+    // 3. Invariants still hold
     testLog('  Bob attempting to delegate Alice\'s note (should fail)...');
 
-    let delegationFailed = false;
-    try {
-      await delegateNote(bobClients, contract, {
+    const result = await delegateNoteChecked(
+      bobClients,
+      contract,
+      graphqlClient,
+      {
         noteId,
         owners: [aliceClients.account], // Claiming Alice is the owner
         delegateTo: charlieClients.account,
         amount: parseEther('0.5'),
-      });
-    } catch (error) {
-      // Transaction should revert
-      delegationFailed = true;
-      testLog('  ✓ Delegation failed as expected');
-    }
+      },
+      {
+        expectFailure: true,
+        expectedError: /revert/i,
+      }
+    );
 
-    assert.ok(delegationFailed, 'Non-owner delegation should fail');
+    // Result should be undefined for failed actions
+    assert.strictEqual(result, undefined, 'Failed action should return undefined');
+    testLog('  ✓ Delegation failed as expected and state remained unchanged');
   });
 
   it('should prevent non-parent from revoking a delegated note', async () => {
@@ -116,14 +127,14 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for revocation permission test',
     }));
 
-    // Alice creates a note (with checked wrapper)
+    // Alice creates a note
     testLog('  Alice creating note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
 
-    // Alice delegates to Bob (with checked wrapper)
+    // Alice delegates to Bob
     testLog('  Alice delegating note to Bob...');
     const { delegatedNoteId } = await delegateNoteChecked(
       aliceClients,
@@ -140,21 +151,25 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
     // Charlie (not in the delegation chain) tries to revoke the note
+    // Using expectFailure framework
     testLog('  Charlie attempting to revoke Bob\'s note (should fail)...');
 
-    let revocationFailed = false;
-    try {
-      await revokeNote(charlieClients, contract, {
+    const result = await revokeNoteChecked(
+      charlieClients,
+      contract,
+      graphqlClient,
+      {
         noteId: delegatedNoteId,
         owners: [bobClients.account, aliceClients.account],
-      });
-    } catch (error) {
-      // Transaction should revert
-      revocationFailed = true;
-      testLog('  ✓ Revocation failed as expected');
-    }
+      },
+      {
+        expectFailure: true,
+        expectedError: /revert/i,
+      }
+    );
 
-    assert.ok(revocationFailed, 'Non-parent revocation should fail');
+    assert.strictEqual(result, undefined, 'Failed action should return undefined');
+    testLog('  ✓ Revocation failed as expected and state remained unchanged');
   });
 
   it('should prevent delegating a revoked note', async () => {
@@ -181,14 +196,14 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for revoked note test',
     }));
 
-    // Alice creates a note (with checked wrapper)
+    // Alice creates a note
     testLog('  Alice creating note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
       intendedStatementId: statementCid,
     });
 
-    // Alice delegates to Bob (with checked wrapper)
+    // Alice delegates to Bob
     testLog('  Alice delegating note to Bob...');
     const { delegatedNoteId } = await delegateNoteChecked(
       aliceClients,
@@ -204,7 +219,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     testLog(`  Note delegated to Bob: ${delegatedNoteId}`);
 
-    // Alice revokes the note (with checked wrapper)
+    // Alice revokes the note
     testLog('  Alice revoking the note...');
     await revokeNoteChecked(aliceClients, contract, graphqlClient, {
       noteId: delegatedNoteId,
@@ -212,23 +227,27 @@ describe('Delegation Permissions Edge Cases', () => {
     });
 
     // Bob tries to delegate the revoked note to Charlie
+    // Using expectFailure framework
     testLog('  Bob attempting to delegate revoked note (should fail)...');
 
-    let delegationFailed = false;
-    try {
-      await delegateNote(bobClients, contract, {
+    const result = await delegateNoteChecked(
+      bobClients,
+      contract,
+      graphqlClient,
+      {
         noteId: delegatedNoteId,
         owners: [bobClients.account, aliceClients.account],
         delegateTo: charlieClients.account,
         amount: parseEther('0.5'),
-      });
-    } catch (error) {
-      // Transaction should revert
-      delegationFailed = true;
-      testLog('  ✓ Delegation of revoked note failed as expected');
-    }
+      },
+      {
+        expectFailure: true,
+        expectedError: /revert/i,
+      }
+    );
 
-    assert.ok(delegationFailed, 'Delegation of revoked note should fail');
+    assert.strictEqual(result, undefined, 'Failed action should return undefined');
+    testLog('  ✓ Delegation of revoked note failed as expected and state remained unchanged');
   });
 
   it('should prevent non-owner from reclaiming funds', async () => {
@@ -253,7 +272,7 @@ describe('Delegation Permissions Edge Cases', () => {
       text: 'Test statement for reclaim permission test',
     }));
 
-    // Alice creates a note (with checked wrapper)
+    // Alice creates a note
     testLog('  Alice creating a note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
@@ -263,18 +282,22 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog(`  Note created: ${noteId}`);
 
     // Bob tries to reclaim Alice's funds
+    // Using expectFailure framework
     testLog('  Bob attempting to reclaim Alice\'s funds (should fail)...');
 
-    let reclaimFailed = false;
-    try {
-      await reclaimFunds(bobClients, contract, noteId);
-    } catch (error) {
-      // Transaction should revert
-      reclaimFailed = true;
-      testLog('  ✓ Reclaim failed as expected');
-    }
+    const result = await reclaimFundsChecked(
+      bobClients,
+      contract,
+      graphqlClient,
+      noteId,
+      {
+        expectFailure: true,
+        expectedError: /revert/i,
+      }
+    );
 
-    assert.ok(reclaimFailed, 'Non-owner reclaim should fail');
+    assert.strictEqual(result, undefined, 'Failed action should return undefined');
+    testLog('  ✓ Reclaim failed as expected and state remained unchanged');
   });
 
   it('should allow parent to revoke note from child', async () => {

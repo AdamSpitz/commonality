@@ -609,7 +609,7 @@ With the suggested improvements (especially #3, #4, and #6), confidence would in
 If I had to prioritize the suggestions:
 
 ### High Priority (Do Soon)
-1. **Create negative test suites** (#4) - Essential for security and robustness
+1. ~~**Create negative test suites** (#4) - Essential for security and robustness~~ ✅ **COMPLETED**
 2. **Document conventions** (#3) - Clarify when to use checked vs unchecked
 
 ### Medium Priority (Next Phase)
@@ -634,10 +634,3 @@ The main areas for improvement are:
 4. **Future-proofing**: Add hooks for generative testing when needed
 
 Keep going with this approach - it's the right direction!
-
-## Recent Improvements
-
-- ✅ Added `createProjectChecked` wrapper with state transition properties (2025-12-24)
-  - Created `projectCreationProperty` to verify projects are correctly initialized
-  - Updated `pubstarter-multiple-tokens.test.ts` to use the checked wrapper
-  - All integration tests passing
