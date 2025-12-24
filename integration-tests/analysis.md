@@ -628,7 +628,7 @@ If I had to prioritize the suggestions:
 This is **excellent work**. The property-based testing framework is well-architected, the code is clean and readable, and the approach will scale beautifully to both handcrafted scenarios and generative testing.
 
 The main areas for improvement are:
-1. **Completeness**: Add negative test coverage
+1. **Completeness**: Add negative test coverage (still necessary, or done now? if done, please delete this item)
 2. **Systematic coverage**: Add cross-system invariants, expand property checks
 3. **Developer experience**: Improve type safety, document conventions
 4. **Future-proofing**: Add hooks for generative testing when needed
