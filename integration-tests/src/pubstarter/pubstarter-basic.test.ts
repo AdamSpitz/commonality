@@ -11,8 +11,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
-  buyProjectTokens,
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
@@ -20,7 +18,6 @@ import {
 import {
   createGraphQLClient,
   getProject,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -29,8 +26,8 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { assertMoneyConservation, assertTokenConservation, assertMonotonicProjectFunding } from '../utils/invariants.js';
-import { buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
+import { assertTokenConservation, assertMonotonicProjectFunding } from '../utils/invariants.js';
+import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 
 
 describe('Pubstarter Basic Integration Tests', () => {
@@ -93,15 +90,16 @@ describe('Pubstarter Basic Integration Tests', () => {
     const tokenCounts = [100n, 50n]; // Mint 100 of token 1, 50 of token 2
     const tokenPrices = [parseEther('0.01'), parseEther('0.02')]; // 0.01 ETH and 0.02 ETH
 
-    testLog('  Creating project...');
+    testLog('  Creating project (with property checking)...');
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -120,28 +118,15 @@ describe('Pubstarter Basic Integration Tests', () => {
     testLog(`  Token: ${projectDetails.tokenAddress}`);
     testLog(`  Marketplace: ${projectDetails.marketplaceAddress}`);
     testLog(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog('  ✓ Project creation properties verified');
 
-    // Wait for indexer to sync
-    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    testLog('  Waiting for indexer to sync...');
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    // Query the project from the indexer
-    testLog('  Querying project from indexer...');
+    // Query the project for the initial funding value
     const project = assertNotNull(
       await getProject(graphqlClient, projectDetails.assuranceContractAddress),
       'Project'
     );
 
-    testLog(`  Project found! Total received: ${project.totalReceived}`);
-    assert.strictEqual(
-      project.id.toLowerCase(),
-      projectDetails.assuranceContractAddress.toLowerCase(),
-      'Project ID (assurance contract address) should match'
-    );
-
-    // Verify invariants: money and token conservation (should have 0 contributions initially)
-    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    // Verify token conservation (should have 0 contributions initially)
     await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
 
     // Capture initial funding for monotonic check
@@ -196,7 +181,7 @@ describe('Pubstarter Basic Integration Tests', () => {
       throw new Error('PUBSTARTER_ADDRESS not set in environment - the main Pubstarter contract must be deployed');
     }
 
-    testLog('  Creating a minimal test project...');
+    testLog('  Creating a minimal test project (with property checking)...');
     const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     const projectMetadataCid = await uploadToIPFS({
@@ -208,9 +193,10 @@ describe('Pubstarter Basic Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -227,6 +213,7 @@ describe('Pubstarter Basic Integration Tests', () => {
 
     testLog(`  Minimal project created! Tx: ${hash}`);
     testLog(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
+    testLog('  ✓ Project creation properties verified');
 
     testLog('  Minimal project test passed!');
   });

@@ -7,7 +7,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
   purchaseFromPrimaryMarketWithNotes,
   uploadToIPFS,
   cidToBytes32,
@@ -30,8 +29,8 @@ import {
   getNotesByStatement,
   getDelegationChain,
   getProject,
-  waitForSync,
   assertNotNull,
+  waitForSync,
 } from '@commonality/sdk';
 import {
   BeliefsAbi,
@@ -45,6 +44,7 @@ import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { depositETHChecked, delegateNoteChecked } from '../delegation/delegation-actions-checked.js';
 import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';
+import { createProjectChecked } from '../actions/funding-actions-checked.js';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -130,8 +130,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project aligned with statement...');
-      const projectResult = await createProject(userClients, pubstarterContract, projectParams);
-      testLog(`  Project created: ${projectResult.hash}`);
+      const projectResult = await createProjectChecked(userClients, pubstarterContract, graphqlClient, projectParams);
+      testLog('  ✓ Project creation properties verified');
       testLog(`  Token contract: ${projectResult.projectDetails.tokenAddress}`);
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
@@ -332,8 +332,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project for delegation test...');
-      const projectResult = await createProject(rootUserClients, pubstarterContract, projectParams);
-      testLog(`  Project created: ${projectResult.hash}`);
+      const projectResult = await createProjectChecked(rootUserClients, pubstarterContract, graphqlClient, projectParams);
+      testLog('  ✓ Project creation properties verified');
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 12. Attester attests that the project aligns with the statement
@@ -493,8 +493,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project aligned with S1 (specific statement)...');
-      const projectResult = await createProject(userClients, pubstarterContract, projectParams);
-      testLog(`  Project created: ${projectResult.hash}`);
+      const projectResult = await createProjectChecked(userClients, pubstarterContract, graphqlClient, projectParams);
+      testLog('  ✓ Project creation properties verified');
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 7. Attester attests that the project aligns with S1 (specific statement)

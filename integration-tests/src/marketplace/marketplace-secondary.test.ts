@@ -14,7 +14,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
   uploadToIPFS,
   cancelSaleListing,
   createBuyOrder,
@@ -34,8 +33,8 @@ import {
   getActiveBuyOrders,
   getMarketplaceTrades,
   getTokenTrades,
-  waitForSync,
   assertNotNull,
+  waitForSync,
   type GraphQLClient,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -45,7 +44,7 @@ import {
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
+import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { createSaleListingChecked, fulfillSaleListingChecked } from './marketplace-actions-checked.js';
 
 
@@ -90,9 +89,10 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -107,11 +107,8 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    testLog(`  Project created! Marketplace: ${projectDetails.marketplaceAddress}`);
-
-    // Wait for indexer to sync
-    const receipt = await sellerClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
+    testLog(`  Marketplace: ${projectDetails.marketplaceAddress}`);
 
     // Seller buys some tokens from the primary market
     testLog('  Seller buying tokens from primary market...');
@@ -237,9 +234,10 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -254,8 +252,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    const receipt = await sellerClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
 
     // Buy and approve tokens
     const assuranceContract: AssuranceContract = {
@@ -313,7 +310,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     const cancelReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: cancelHash });
-    await waitForSync(graphqlClient, cancelReceipt.blockNumber, 15000);
+    await waitForSync(graphqlClient, cancelReceipt.blockNumber);
 
     // Verify listing is cancelled
     const cancelledListing = assertNotNull(
@@ -348,9 +345,10 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -365,8 +363,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    const receipt = await sellerClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
 
     // Seller buys tokens from primary market
     const assuranceContract: AssuranceContract = {
@@ -406,7 +403,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     const orderReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: orderHash });
-    await waitForSync(graphqlClient, orderReceipt.blockNumber, 15000);
+    await waitForSync(graphqlClient, orderReceipt.blockNumber);
 
     // Query the buy order
     const buyOrder = assertNotNull(
@@ -430,7 +427,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     const fulfillReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: fulfillHash });
-    await waitForSync(graphqlClient, fulfillReceipt.blockNumber, 15000);
+    await waitForSync(graphqlClient, fulfillReceipt.blockNumber);
 
     // Query updated buy order
     const updatedOrder = assertNotNull(
@@ -472,9 +469,10 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -489,8 +487,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    const receipt = await sellerClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
 
     // Buyer creates a buy order
     testLog('  Creating buy order to cancel...');
@@ -510,7 +507,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     const orderReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: orderHash });
-    await waitForSync(graphqlClient, orderReceipt.blockNumber, 15000);
+    await waitForSync(graphqlClient, orderReceipt.blockNumber);
 
     // Verify order exists
     const order = assertNotNull(
@@ -528,7 +525,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     const cancelReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: cancelHash });
-    await waitForSync(graphqlClient, cancelReceipt.blockNumber, 15000);
+    await waitForSync(graphqlClient, cancelReceipt.blockNumber);
 
     // Verify order is cancelled
     const cancelledOrder = assertNotNull(

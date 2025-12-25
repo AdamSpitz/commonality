@@ -98,7 +98,6 @@ for (let i = 0; i < 100; i++) {
 
 ### Phase 1: Complete the Migration
 - [ ] **Create checked wrappers for all remaining actions**
-  - [ ] `createProjectChecked` (currently unchecked in pubstarter tests)
   - [ ] Any other SDK actions used in tests
 
 - [ ] **Remove manual assertions from tests**

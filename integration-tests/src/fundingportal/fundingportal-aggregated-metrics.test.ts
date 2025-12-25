@@ -12,12 +12,6 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  believeStatement,
-  attestImplication,
-  createProject,
-  buyProjectTokens,
-  attestProjectAlignment,
-  depositETH,
   cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
@@ -29,7 +23,6 @@ import {
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
-  waitForSync,
   assertNotNull,
   getTotalFundingForCause,
   getAllAlignedProjectsForCause,
@@ -48,7 +41,7 @@ import {
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
-import { buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
+import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { depositETHChecked } from '../delegation/delegation-actions-checked.js';
 
@@ -117,9 +110,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Project 1 aligned with S1 (specific cause)
     testLog('  Creating Project 1...');
     const project1Metadata = await uploadToIPFS({ title: 'Open Source AI Safety Project' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+    const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -133,14 +127,16 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenPrices: [parseEther('0.1')],
       }
     );
+    testLog('  ✓ Project creation properties verified');
     testLog(`  Project 1: ${p1Details.assuranceContractAddress}`);
 
     // Project 2 aligned with S2 (broader cause)
     testLog('  Creating Project 2...');
     const project2Metadata = await uploadToIPFS({ title: 'General AI Safety Research' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+    const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -154,11 +150,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenPrices: [parseEther('0.05')],
       }
     );
+    testLog('  ✓ Project creation properties verified');
     testLog(`  Project 2: ${p2Details.assuranceContractAddress}`);
-
-    // Wait for projects to be indexed
-    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
-    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
 
     // Align projects with statements
     const alignmentContract: ProjectAlignmentContract = {
@@ -355,9 +348,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     };
 
     const p1Metadata = await uploadToIPFS({ title: 'Cancer Research Lab' });
-    const { projectDetails: p1Details } = await createProject(
+    const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -371,11 +365,13 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenPrices: [parseEther('0.1')],
       }
     );
+    testLog('  ✓ Project creation properties verified');
 
     const p2Metadata = await uploadToIPFS({ title: 'General Medical Research' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+    const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -389,9 +385,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenPrices: [parseEther('0.1')],
       }
     );
-
-    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
-    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
 
     // Align projects
     const alignmentContract: ProjectAlignmentContract = {

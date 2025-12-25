@@ -13,13 +13,11 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  createProject,
   type PubstarterContract,
   type AssuranceContract,
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
-  waitForSync,
   getProjectsByDate,
   getProjectsByDeadline,
   getProjectsByFundingGoal,
@@ -34,7 +32,7 @@ import {
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
+import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 
 describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -65,9 +63,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Create 3 projects at different times
     const p1Metadata = await uploadToIPFS({ title: 'Project 1 - Oldest' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -82,13 +81,11 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
       }
     );
 
-    const p1Receipt = await creator1Clients.publicClient.getTransactionReceipt({ hash: p1Hash });
-    await waitForSync(graphqlClient, p1Receipt.blockNumber, 15000);
-
     const p2Metadata = await uploadToIPFS({ title: 'Project 2 - Middle' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -103,13 +100,11 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
       }
     );
 
-    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
-    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
-
     const p3Metadata = await uploadToIPFS({ title: 'Project 3 - Newest' });
-    const { hash: p3Hash, projectDetails: p3Details } = await createProject(
+    const { hash: p3Hash, projectDetails: p3Details } = await createProjectChecked(
       creator3Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p3/',
         contractURI: 'https://example.com/p3/contract',
@@ -123,9 +118,6 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         tokenPrices: [parseEther('0.01')],
       }
     );
-
-    const p3Receipt = await creator3Clients.publicClient.getTransactionReceipt({ hash: p3Hash });
-    await waitForSync(graphqlClient, p3Receipt.blockNumber, 15000);
 
     // Query projects sorted by date (newest first)
     testLog('  Querying projects sorted by date...');
@@ -171,9 +163,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Project with soon deadline
     const p1Metadata = await uploadToIPFS({ title: 'Soon Deadline' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -190,9 +183,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Project with far deadline
     const p2Metadata = await uploadToIPFS({ title: 'Far Deadline' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -206,9 +200,6 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         tokenPrices: [parseEther('0.01')],
       }
     );
-
-    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
-    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
 
     // Query by deadline (soonest first)
     testLog('  Querying projects sorted by deadline...');
@@ -249,9 +240,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Create two projects with same threshold
     const p1Metadata = await uploadToIPFS({ title: 'High Progress Project' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -267,9 +259,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     );
 
     const p2Metadata = await uploadToIPFS({ title: 'Low Progress Project' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -283,9 +276,6 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         tokenPrices: [parseEther('0.01')],
       }
     );
-
-    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
-    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
 
     // Fund P1 to 80% (8 ETH out of 10 ETH)
     const assuranceContract1: AssuranceContract = {
@@ -373,9 +363,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Small project (1 ETH threshold)
     const p1Metadata = await uploadToIPFS({ title: 'Small Project' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProject(
+    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -392,9 +383,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Large project (100 ETH threshold)
     const p2Metadata = await uploadToIPFS({ title: 'Large Project' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProject(
+    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -408,9 +400,6 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         tokenPrices: [parseEther('0.01')],
       }
     );
-
-    const p2Receipt = await creator2Clients.publicClient.getTransactionReceipt({ hash: p2Hash });
-    await waitForSync(graphqlClient, p2Receipt.blockNumber, 15000);
 
     // Query projects with threshold >= 10 ETH
     testLog('  Filtering projects with threshold >= 10 ETH...');

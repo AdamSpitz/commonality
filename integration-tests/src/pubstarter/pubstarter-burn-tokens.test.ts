@@ -8,7 +8,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
@@ -19,7 +18,6 @@ import {
   getTokenBurns,
   getUserTokenBurns,
   getTokenBurnsByUser,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -28,7 +26,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { buyProjectTokensChecked, burnTokensChecked } from '../actions/funding-actions-checked.js';
+import { createProjectChecked, buyProjectTokensChecked, burnTokensChecked } from '../actions/funding-actions-checked.js';
 
 
 describe('Pubstarter Token Burning Tests', () => {
@@ -76,9 +74,10 @@ describe('Pubstarter Token Burning Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -94,10 +93,7 @@ describe('Pubstarter Token Burning Tests', () => {
     );
 
     testLog(`  Project created! Token address: ${projectDetails.tokenAddress}`);
-
-    // Wait for indexer
-    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
 
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,

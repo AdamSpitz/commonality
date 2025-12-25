@@ -9,7 +9,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
@@ -18,7 +17,6 @@ import {
   createGraphQLClient,
   getProject,
   getProjectContributions,
-  waitForSync,
   assertNotNull,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -27,8 +25,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { assertMoneyConservation, assertTokenConservation } from '../utils/invariants.js';
-import { buyProjectTokensChecked, refundProjectTokensChecked, withdrawProjectFundsChecked } from '../actions/funding-actions-checked.js';
+import { createProjectChecked, buyProjectTokensChecked, refundProjectTokensChecked, withdrawProjectFundsChecked } from '../actions/funding-actions-checked.js';
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
@@ -75,9 +72,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -93,14 +91,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     );
 
     testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
-
-    // Wait for indexer to sync
-    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-    // Verify invariants: money and token conservation (should have 0 contributions initially)
-    await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
-    await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
+    testLog('  ✓ Project creation properties verified');
 
     // Contributor buys enough tokens to meet threshold
     testLog('  Contributor buying 50 tokens (0.5 ETH total)...');
@@ -183,9 +174,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -201,9 +193,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     );
 
     testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
-
-    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
 
     // Contributor buys some tokens (but not enough to reach threshold)
     testLog('  Contributor buying 10 tokens (0.1 ETH)...');
@@ -336,9 +326,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProject(
+    const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
+      graphqlClient,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -354,9 +345,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     );
 
     testLog(`  Project created! Assurance Contract: ${projectDetails.assuranceContractAddress}`);
-
-    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+    testLog('  ✓ Project creation properties verified');
 
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,

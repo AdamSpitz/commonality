@@ -10,7 +10,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
   uploadToIPFS,
   cidToBytes32,
   type ProjectAlignmentContract,
@@ -25,6 +24,7 @@ import {
 import { ProjectAlignmentAbi, PubstarterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestProjectAlignmentChecked, attestProjectAlignmentsBatchChecked } from '../actions/alignment-actions-checked.js';
+import { createProjectChecked } from '../actions/funding-actions-checked.js';
 
 describe('Funding Portal - Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -80,7 +80,7 @@ describe('Funding Portal - Project Alignment', () => {
     // Create a project
     testLog('  Creating a crowdfunding project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProject(projectOwnerClients, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -93,6 +93,7 @@ describe('Funding Portal - Project Alignment', () => {
       tokenPrices: [10n * 10n**18n, 20n * 10n**18n], // 10 ETH, 20 ETH
     });
 
+    testLog('  ✓ Project creation properties verified');
     testLog(`  Project created at: ${projectDetails.tokenAddress}`);
 
     // Attest that the project aligns with the statement
@@ -129,7 +130,7 @@ describe('Funding Portal - Project Alignment', () => {
     // Create a project
     testLog('  Creating a project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProject(projectOwnerClients, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -142,6 +143,7 @@ describe('Funding Portal - Project Alignment', () => {
       tokenPrices: [5n * 10n**18n],
     });
 
+    testLog('  ✓ Project creation properties verified');
     testLog(`  Project: ${projectDetails.tokenAddress}`);
 
     // Attester 1 attests
@@ -210,7 +212,7 @@ describe('Funding Portal - Project Alignment', () => {
     testLog('  Creating projects...');
     const currentTime = Math.floor(Date.now() / 1000);
 
-    const { projectDetails: project1 } = await createProject(projectOwnerClients, pubstarterContract, {
+    const { projectDetails: project1 } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -222,8 +224,9 @@ describe('Funding Portal - Project Alignment', () => {
       tokenCounts: [50n],
       tokenPrices: [2n * 10n**18n],
     });
+    testLog('  ✓ Project creation properties verified');
 
-    const { projectDetails: project2 } = await createProject(projectOwnerClients, pubstarterContract, {
+    const { projectDetails: project2 } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -235,6 +238,7 @@ describe('Funding Portal - Project Alignment', () => {
       tokenCounts: [75n],
       tokenPrices: [3n * 10n**18n],
     });
+    testLog('  ✓ Project creation properties verified');
 
     testLog(`  Project 1: ${project1.tokenAddress}`);
     testLog(`  Project 2: ${project2.tokenAddress}`);
@@ -284,7 +288,7 @@ describe('Funding Portal - Project Alignment', () => {
     // Create one project
     testLog('  Creating project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProject(projectOwnerClients, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -297,6 +301,7 @@ describe('Funding Portal - Project Alignment', () => {
       tokenPrices: [3n * 10n**18n],
     });
 
+    testLog('  ✓ Project creation properties verified');
     testLog(`  Project: ${projectDetails.tokenAddress}`);
 
     // Attest alignment to all three statements

@@ -14,7 +14,6 @@
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  createProject,
   buyProjectTokens,
   refundProjectTokens,
   withdrawProjectFunds,
@@ -25,11 +24,11 @@ import {
 import {
   createGraphQLClient,
   getProject,
-  waitForSync,
 } from '@commonality/sdk';
 import { PubstarterAbi, AssuranceContractAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
+  createProjectChecked,
   buyProjectTokensChecked,
   refundProjectTokensChecked,
   withdrawProjectFundsChecked,
@@ -67,9 +66,10 @@ describe('Pubstarter Edge Cases', () => {
 
     const tokenPrice = parseEther('0.1');
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
+    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
 
     testLog('  Creating project...');
-    const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -81,6 +81,7 @@ describe('Pubstarter Edge Cases', () => {
       tokenCounts: [100n],
       tokenPrices: [tokenPrice],
     });
+    testLog('  ✓ Project creation properties verified');
 
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
@@ -135,7 +136,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(currentTime + 2); // 2 seconds from now
 
     testLog('  Creating project with short deadline...');
-    const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -147,6 +148,7 @@ describe('Pubstarter Edge Cases', () => {
       tokenCounts: [100n],
       tokenPrices: [tokenPrice],
     });
+    testLog('  ✓ Project creation properties verified');
 
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
@@ -259,7 +261,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
     testLog('  Creating project with Alice as recipient...');
-    const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -271,6 +273,7 @@ describe('Pubstarter Edge Cases', () => {
       tokenCounts: [100n],
       tokenPrices: [tokenPrice],
     });
+    testLog('  ✓ Project creation properties verified');
 
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,
@@ -347,7 +350,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(currentTime + 3);
 
     testLog('  Creating project...');
-    const { projectDetails } = await createProject(aliceClients, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -359,6 +362,7 @@ describe('Pubstarter Edge Cases', () => {
       tokenCounts: [100n],
       tokenPrices: [tokenPrice],
     });
+    testLog('  ✓ Project creation properties verified');
 
     const assuranceContract: AssuranceContract = {
       address: projectDetails.assuranceContractAddress,

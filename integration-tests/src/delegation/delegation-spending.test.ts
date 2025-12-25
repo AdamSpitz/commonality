@@ -12,7 +12,6 @@ import assert from 'assert';
 import {
   uploadToIPFS,
   cidToBytes32,
-  createProject,
   type DelegatableNotesContract,
   type PubstarterContract,
   type AssuranceContract,
@@ -32,6 +31,7 @@ import {
   delegateNoteChecked,
   spendDelegatedNoteChecked,
 } from './delegation-actions-checked.js';
+import { createProjectChecked } from '../actions/funding-actions-checked.js';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface
@@ -95,7 +95,7 @@ describe('Delegation Spending', () => {
     const deadline = nowInSeconds + 86400n; // 24 hours from now
     const threshold = 3000000000000000000n; // 3 ETH threshold
 
-    const { projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://project-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: user1.account,
@@ -107,6 +107,7 @@ describe('Delegation Spending', () => {
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
     });
+    testLog('  ✓ Project creation properties verified');
 
     // The assurance contract IS the primary market (implements ERC1155PrimaryMarket)
     const primaryMarketAddress = projectDetails.assuranceContractAddress;
@@ -190,7 +191,7 @@ describe('Delegation Spending', () => {
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://project-metadata-2',
       contractURI: 'ipfs://contract-metadata-2',
       owner: user1.account,
@@ -202,6 +203,7 @@ describe('Delegation Spending', () => {
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
     });
+    testLog('  ✓ Project creation properties verified');
 
     // The assurance contract IS the primary market
     const primaryMarketAddress = projectDetails.assuranceContractAddress;
@@ -303,7 +305,7 @@ describe('Delegation Spending', () => {
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://project-metadata-3',
       contractURI: 'ipfs://contract-metadata-3',
       owner: user1.account,
@@ -315,6 +317,7 @@ describe('Delegation Spending', () => {
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n],
     });
+    testLog('  ✓ Project creation properties verified');
 
     // The assurance contract IS the primary market
     const primaryMarketAddress = projectDetails.assuranceContractAddress;
@@ -379,7 +382,7 @@ describe('Delegation Spending', () => {
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProject(user1, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
       metadataURI: 'ipfs://project-metadata-4',
       contractURI: 'ipfs://contract-metadata-4',
       owner: user1.account,
@@ -391,6 +394,7 @@ describe('Delegation Spending', () => {
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n],
     });
+    testLog('  ✓ Project creation properties verified');
 
     // The assurance contract IS the primary market
     const primaryMarketAddress = projectDetails.assuranceContractAddress;

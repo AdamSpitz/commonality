@@ -11,7 +11,6 @@
 
 import assert from 'assert';
 import {
-  createProject,
   uploadToIPFS,
   cidToBytes32,
   type ProjectAlignmentContract,
@@ -32,6 +31,7 @@ import {
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';
+import { createProjectChecked } from '../actions/funding-actions-checked.js';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -115,7 +115,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Create a project
     testLog('  Creating a renewable energy project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProject(projectOwner, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -128,6 +128,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       tokenPrices: [10n * 10n**18n],
     });
 
+    testLog('  ✓ Project creation properties verified');
     testLog(`  Project created at: ${projectDetails.tokenAddress}`);
 
     // Align the project with S1 (specific statement)
@@ -239,7 +240,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     const currentTime = Math.floor(Date.now() / 1000);
 
     testLog('  Creating Project A (housing)...');
-    const { projectDetails: projectA } = await createProject(projectOwner, pubstarterContract, {
+    const { projectDetails: projectA } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -251,9 +252,10 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       tokenCounts: [100n],
       tokenPrices: [5n * 10n**18n],
     });
+    testLog('  ✓ Project creation properties verified');
 
     testLog('  Creating Project B (poverty)...');
-    const { projectDetails: projectB } = await createProject(projectOwner, pubstarterContract, {
+    const { projectDetails: projectB } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -265,6 +267,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       tokenCounts: [50n],
       tokenPrices: [6n * 10n**18n],
     });
+    testLog('  ✓ Project creation properties verified');
 
     // Align Project A with S1 (indirect to S2)
     testLog('  Aligning Project A with S1...');
@@ -380,7 +383,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Create a project aligned with S1
     testLog('  Creating solar panel project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProject(projectOwner, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -392,6 +395,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       tokenCounts: [100n],
       tokenPrices: [8n * 10n**18n],
     });
+    testLog('  ✓ Project creation properties verified');
 
     testLog('  Aligning project with S1...');
     txHash = await attestProjectAlignmentChecked(
@@ -492,7 +496,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Create and align a project
     const projectOwner = alignmentAttester; // Reuse for simplicity
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProject(projectOwner, pubstarterContract, {
+    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -504,6 +508,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       tokenCounts: [80n],
       tokenPrices: [5n * 10n**18n],
     });
+    testLog('  ✓ Project creation properties verified');
 
     txHash = await attestProjectAlignmentChecked(
       alignmentAttester,
