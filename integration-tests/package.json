@@ -10,7 +10,7 @@
     "test:watch": "mocha --watch 'src/**/*.test.ts'"
   },
   "dependencies": {
-    "@commonality/sdk": "workspace:*"
+    "@commonality/sdk": "*"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",

@@ -15,9 +15,9 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
 
 ## Dev stuff you can do
 
-    pnpm install
-    pnpm run dev
-    pnpm run build
+    npm install
+    npm run dev
+    npm run build
 
 ## Code organization
 

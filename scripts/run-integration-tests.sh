@@ -30,10 +30,10 @@ docker-compose up -d
 # Run tests on host machine
 cd integration-tests
 if [ -n "$1" ]; then
-    pnpm test -- "$1"
+    npm test -- "$1"
     EXIT_CODE=$?
 else
-    pnpm test
+    npm test
     EXIT_CODE=$?
 fi
 
