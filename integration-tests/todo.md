@@ -105,10 +105,6 @@ for (let i = 0; i < 100; i++) {
   - [ ] Delete ad-hoc state verification (rely on state transition properties)
   - [ ] Keep only scenario-specific logging
 
-- [ ] **Remove manual invariant calls**
-  - [ ] Find all `assertMoneyConservation`, `assertTokenConservation`, etc. calls in test files
-  - [ ] Ensure these invariants are in the relevant action metadata
-  - [ ] Delete the manual calls
 
 - [ ] **Audit all test files**
   - [ ] Go through each of the ~25 test files
