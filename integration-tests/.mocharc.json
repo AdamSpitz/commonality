@@ -1,7 +1,7 @@
 {
   "node-option": ["import=tsx"],
   "extensions": ["ts"],
-  "require": ["src/setup.ts"],
+  "require": ["src/utils/setup.ts"],
   "spec": ["src/**/*.test.ts"],
   "timeout": 30000,
   "reporter": "dot"
