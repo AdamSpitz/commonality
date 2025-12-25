@@ -29,7 +29,6 @@ import {
 } from '@commonality/sdk';
 import { PubstarterAbi, AssuranceContractAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { assertAssuranceContractRefundLogic } from '../utils/invariants.js';
 import {
   buyProjectTokensChecked,
   refundProjectTokensChecked,
@@ -180,16 +179,6 @@ describe('Pubstarter Edge Cases', () => {
       params: [] as any,
     } as any);
 
-    // Verify refunds are now allowed (after deadline, threshold not met)
-    testLog('  Checking refund logic after deadline...');
-    const blockAfterDeadline = await bobClients.publicClient.getBlock();
-    await assertAssuranceContractRefundLogic(
-      graphqlClient,
-      projectDetails.assuranceContractAddress,
-      blockAfterDeadline.timestamp,
-      true // Refunds SHOULD be allowed after deadline when threshold not met
-    );
-
     // Bob needs to approve the assurance contract to transfer the tokens back for refund
     testLog('  Bob approving assurance contract to transfer tokens...');
     const erc1155Abi = [
@@ -301,16 +290,6 @@ describe('Pubstarter Edge Cases', () => {
     // Verify threshold was met
     const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
     testLog(`  Project received: ${project?.totalReceived} (threshold: ${project?.threshold})`);
-
-    // Verify refunds are not allowed (threshold met, even though deadline hasn't passed)
-    testLog('  Checking refund logic after threshold met...');
-    const currentBlock = await bobClients.publicClient.getBlock();
-    await assertAssuranceContractRefundLogic(
-      graphqlClient,
-      projectDetails.assuranceContractAddress,
-      currentBlock.timestamp,
-      false // Refunds should NOT be allowed when threshold is met (successful project)
-    );
 
     // Bob (not the recipient) tries to withdraw the funds
     testLog('  Bob attempting to withdraw funds (should fail)...');

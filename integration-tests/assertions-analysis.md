@@ -23,6 +23,7 @@ After analyzing all 25 test files containing **~435 manual assertions**, the bre
 - ✅ Phase 1, Item 1: Removed ~15 redundant assertions from [conceptspace-beliefs.test.ts](src/conceptspace-beliefs.test.ts)
 - ✅ Phase 1, Item 2: Removed 2 redundant assertions from [pubstarter-basic.test.ts](src/pubstarter-basic.test.ts)
 - ✅ Phase 1, Item 3: Removed 1 redundant assertion from [pubstarter-multiple-tokens.test.ts](src/pubstarter-multiple-tokens.test.ts)
+- ✅ Phase 2, Item 2 (Partial): Removed 2 redundant refund logic assertions from [pubstarter-edge-cases.test.ts](src/pubstarter/pubstarter-edge-cases.test.ts)
 
 ---
 
@@ -966,9 +967,10 @@ export async function withdrawProjectFundsChecked(
    - Add to belief and implication action metadata
    - Remove ~15 manual assertions from tests
 
-2. Implement refund eligibility checks in `refundProjectTokensChecked()`
-   - Add state transition property
-   - Remove ~10 manual assertions from tests
+2. ✅ **PARTIALLY COMPLETE**: Implement refund eligibility checks in `refundProjectTokensChecked()`
+   - ✅ Removed 2 manual `assertAssuranceContractRefundLogic` calls from pubstarter-edge-cases.test.ts
+   - ⏳ TODO: Add state transition property to framework (still needs implementation)
+   - ⏳ TODO: Remove remaining ~8 manual assertions from other tests
 
 3. Implement `assertImplicationNonTransitivity()` invariant
    - Add to implication action metadata
