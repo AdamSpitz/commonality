@@ -135,13 +135,13 @@ fi
 cd "$SCRIPT_DIR/../integration-tests"
 if [ -n "$TEST_PATTERN" ]; then
     log_message "Running tests: $TEST_PATTERN"
-    if ! npm test -- "$TEST_PATTERN" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
+    if ! pnpm test -- "$TEST_PATTERN" 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
         log_message "✗ Tests failed!"
         exit 1
     fi
 else
     log_message "Running tests..."
-    if ! npm test 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
+    if ! pnpm test 2>&1 | tee -a "$ORCHESTRATION_LOG"; then
         log_message "✗ Tests failed!"
         exit 1
     fi

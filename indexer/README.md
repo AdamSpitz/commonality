@@ -6,8 +6,8 @@ Here's an indexer to index blockchain events and provide a GraphQL API (which is
 
 To sync contract ABIs from the hardhat project:
 
-    npm run sync-abis
+    pnpm run sync-abis
 
 To run the indexer locally:
 
-    npm run dev
+    pnpm run dev

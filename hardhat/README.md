@@ -10,5 +10,5 @@ See fake-data-generation/README.md (in this directory).
 
 ## Dev stuff you can do:
 
-    npm run build
-    npm run test
+    pnpm run build
+    pnpm run test

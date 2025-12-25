@@ -82,7 +82,7 @@ wait_for_hardhat() {
 # Start hardhat node in background
 echo "Starting Hardhat node in background..."
 cd "$SCRIPT_DIR/.."
-npm run hardhat:node > "$NODE_LOG" 2>&1 &
+pnpm run hardhat:node > "$NODE_LOG" 2>&1 &
 HARDHAT_PID=$!
 
 # Save PID immediately so cleanup can find it even if we fail later
@@ -154,7 +154,7 @@ echo ""
 echo "Deploying contracts..."
 # Add a 60 second timeout for deployment in case it hangs
 # Use a cross-platform timeout approach (macOS doesn't have timeout command by default)
-npm run deploy-local > "$DEPLOY_LOG" 2>&1 &
+pnpm run deploy-local > "$DEPLOY_LOG" 2>&1 &
 DEPLOY_PID=$!
 
 # Wait up to 60 seconds for deployment to complete
@@ -200,6 +200,6 @@ echo "Hardhat node is running in the background (PID: $HARDHAT_PID)"
 echo "To stop it later, run: kill $HARDHAT_PID"
 echo ""
 echo "Next steps:"
-echo "  1. Start the indexer: cd indexer && npm run dev:no-ui"
-echo "  2. Run tests: cd integration-tests && npm test"
+echo "  1. Start the indexer: cd indexer && pnpm run dev:no-ui"
+echo "  2. Run tests: cd integration-tests && pnpm test"
 echo ""

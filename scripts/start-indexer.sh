@@ -50,7 +50,7 @@ fi
 # Start indexer in background
 echo "Starting Ponder indexer in background..."
 cd "$INDEXER_DIR"
-npm run dev:no-ui > "$INDEXER_LOG" 2>&1 &
+pnpm run dev:no-ui > "$INDEXER_LOG" 2>&1 &
 INDEXER_PID=$!
 
 # Save PID immediately so cleanup can find it even if we fail later
@@ -110,5 +110,5 @@ echo "GraphQL endpoint: http://localhost:42069/graphql"
 echo "To stop it later, run: ./scripts/stop-indexer.sh"
 echo ""
 echo "Next steps:"
-echo "  Run tests: cd integration-tests && npm test"
+echo "  Run tests: cd integration-tests && pnpm test"
 echo ""

@@ -4,6 +4,13 @@ The way we do development on this project is that we write specs in English, and
 
 The main spec is in [specs/README.md](specs/README.md).
 
+## Setup
+
+This project uses pnpm. The exact version is pinned in package.json via the `packageManager` field.
+
+    corepack enable
+    pnpm install
+
 ## Main artifacts
 
 ### Smart contracts
@@ -28,7 +35,7 @@ There's an [sdk/](sdk/) directory for user actions and queries. The intention is
 
 To run the full integration test suite (starts Hardhat and indexer in Docker, runs tests, cleans up):
 
-    npm run integration-tests
+    pnpm run integration-tests
 
 The script now uses Docker for both Hardhat and the indexer. Tests run on the host machine. See [integration-tests/README.md](integration-tests/README.md) for more details.
 

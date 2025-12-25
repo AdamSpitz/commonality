@@ -1,0 +1,6 @@
+packages:
+  - 'sdk'
+  - 'integration-tests'
+  - 'hardhat'
+  - 'indexer'
+  - 'ui'
