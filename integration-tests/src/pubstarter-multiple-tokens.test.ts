@@ -171,21 +171,6 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       }
     );
 
-    // Verify project totals
-    testLog('  Verifying project funding totals...');
-    const updatedProject = assertNotNull(
-      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
-      'Updated project'
-    );
-
-    const expectedTotal = parseEther('0.5'); // 0.05 + 0.15 + 0.3
-    assert.strictEqual(
-      BigInt(updatedProject.totalReceived),
-      expectedTotal,
-      'Total received should match sum of all purchases'
-    );
-    testLog(`  ✓ Total received: ${updatedProject.totalReceived} wei`);
-
     // Verify contributions were tracked correctly
     testLog('  Verifying contribution records...');
     const contributions = await getProjectContributions(
