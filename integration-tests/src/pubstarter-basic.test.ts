@@ -134,7 +134,6 @@ describe('Pubstarter Basic Integration Tests', () => {
     );
 
     testLog(`  Project found! Total received: ${project.totalReceived}`);
-    assert.strictEqual(project.totalReceived, '0', 'Project should start with 0 received');
     assert.strictEqual(
       project.id.toLowerCase(),
       projectDetails.assuranceContractAddress.toLowerCase(),
@@ -228,10 +227,6 @@ describe('Pubstarter Basic Integration Tests', () => {
 
     testLog(`  Minimal project created! Tx: ${hash}`);
     testLog(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
-
-    // Verify the transaction succeeded
-    const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
-    assert.strictEqual(receipt.status, 'success', 'Transaction should succeed');
 
     testLog('  Minimal project test passed!');
   });

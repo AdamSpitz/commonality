@@ -19,7 +19,9 @@ After analyzing all 25 test files containing **~435 manual assertions**, the bre
 
 **Key Finding**: The migration to checked actions is incomplete. About **43% of assertions (152 total)** should be removed or moved into the framework, significantly reducing test verbosity while improving coverage.
 
-**Progress**: ✅ Removed ~15 redundant assertions from [conceptspace-beliefs.test.ts](src/conceptspace-beliefs.test.ts) (Phase 1, Item 1 complete)
+**Progress**:
+- ✅ Phase 1, Item 1: Removed ~15 redundant assertions from [conceptspace-beliefs.test.ts](src/conceptspace-beliefs.test.ts)
+- ✅ Phase 1, Item 2: Removed 2 redundant assertions from [pubstarter-basic.test.ts](src/pubstarter-basic.test.ts)
 
 ---
 
@@ -578,11 +580,11 @@ assert.strictEqual(statement.believerCount, 1); // Framework already checked thi
 - **Kept** SDK feature testing: `getStatementWithContent` with metrics
 - **Result**: Removed ~15 assertions (58% reduction)
 
-#### `pubstarter-basic.test.ts` (238 lines, 3 assertions)
-- **Remove** line 137 (initial totalReceived check - framework covers)
-- **Remove** line 234 (transaction success check - redundant)
-- **Keep** lines 145-146 (explicit invariant calls serve as documentation)
-- **Result**: Remove 2 assertions (67% reduction)
+#### `pubstarter-basic.test.ts` ✅ **COMPLETED**
+- ✅ **Removed** line 137 (initial totalReceived check - framework covers)
+- ✅ **Removed** line 234 (transaction success check - redundant)
+- **Kept** lines 145-146 (explicit invariant calls serve as documentation)
+- **Result**: Removed 2 assertions (67% reduction)
 
 #### `pubstarter-lifecycle.test.ts` (479 lines, 12 assertions)
 - **Move to framework**: lines 148-152, 286-291, 307-313 (refund logic checks)
@@ -934,12 +936,13 @@ export async function withdrawProjectFundsChecked(
 **Impact**: High (reduce test noise by ~30%)
 
 1. ✅ **COMPLETED**: Remove belief count assertions from `conceptspace-beliefs.test.ts` (~15 removals)
-2. Remove funding state assertions from `pubstarter-*.test.ts` files (~20 removals)
-3. Remove transaction receipt status checks (~5 removals)
-4. Remove duplicate invariant calls that are already in checked actions (~10 removals)
+2. ✅ **COMPLETED**: Remove redundant assertions from `pubstarter-basic.test.ts` (~2 removals)
+3. Remove funding state assertions from remaining `pubstarter-*.test.ts` files (~18 removals)
+4. Remove transaction receipt status checks (~5 removals)
+5. Remove duplicate invariant calls that are already in checked actions (~10 removals)
 
 **Total**: ~50 assertion removals, minimal risk
-**Progress**: ~15 of ~50 completed (30%)
+**Progress**: ~17 of ~50 completed (34%)
 
 ---
 
