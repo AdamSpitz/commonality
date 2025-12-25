@@ -58,7 +58,7 @@ services:
     # This prevents the gateway from redirecting to CID.ipfs.localhost which doesn't resolve
     entrypoint: >
       sh -c "
-      ipfs init --profile=test || true &&
+      if [ ! -f /data/ipfs/config ]; then ipfs init --profile=test; fi &&
       ipfs config --json Gateway.PublicGateways '{\"localhost\": {\"Paths\": [\"/ipfs\", \"/ipns\"], \"UseSubdomains\": false}}' &&
       ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001 &&
       ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080 &&
@@ -90,6 +90,8 @@ services:
         condition: service_healthy
       ipfs:
         condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
     environment:
       # Point to hardhat-node service
       - PONDER_RPC_URL_31337=http://hardhat-node:8545
@@ -110,6 +112,35 @@ services:
       timeout: 10s
       retries: 30
       start_period: 10s
+    networks:
+      - commonality
+
+  # Integration test runner (use with `docker-compose run test-runner`)
+  test-runner:
+    build:
+      context: .
+      dockerfile: ./integration-tests/Dockerfile
+    volumes:
+      # Mount only integration test source for live updates
+      # SDK source is baked into the image to work with Linux node_modules
+      - ./integration-tests/src:/workspace/integration-tests/src
+      - ./integration-tests/tsconfig.json:/workspace/integration-tests/tsconfig.json
+      - ./integration-tests/.mocharc.json:/workspace/integration-tests/.mocharc.json
+      # Mount .env for contract addresses
+      - ./.env:/workspace/integration-tests/.env
+    working_dir: /workspace/integration-tests
+    depends_on:
+      indexer:
+        condition: service_healthy
+    environment:
+      # Tests connect to services via Docker network
+      - HARDHAT_NETWORK_URL=http://hardhat-node:8545
+      - INDEXER_URL=http://indexer:42069
+      - IPFS_GATEWAY=http://ipfs:8080/ipfs
+      - IPFS_API=http://ipfs:5001
+      # Allow passing test pattern via environment
+      - TEST_PATTERN=${TEST_PATTERN:-}
+    command: sh -c "pnpm test ${TEST_PATTERN}"
     networks:
       - commonality
 
