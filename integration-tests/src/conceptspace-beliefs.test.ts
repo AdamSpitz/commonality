@@ -15,15 +15,10 @@ import assert from 'assert';
 import {
   uploadToIPFS,
   cidToBytes32,
-  NO_OPINION,
-  BELIEVES,
-  DISBELIEVES,
   type BeliefsContract,
 } from '@commonality/sdk';
 import {
   createGraphQLClient,
-  getStatement,
-  getUserBelief,
   getStatementWithContent,
   assertNotNull,
 } from '@commonality/sdk';
@@ -80,38 +75,17 @@ describe('Conceptspace Beliefs', () => {
     testLog('  User believes the statement...');
     await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
-    // Basic verification (detailed checks happen in the action framework)
-    let userBelief = assertNotNull(
-      await getUserBelief(graphqlClient, clients.account, statementId),
-      'User belief'
-    );
-    assert.strictEqual(userBelief.beliefState, BELIEVES, 'User should believe the statement');
-
     testLog('  ✓ Belief recorded correctly (state transitions verified)');
 
     // Change to disbelief - properties checked automatically (includes waitForSync)
     testLog('  User changes to disbelief...');
     await disbelieveStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
-    // Basic verification
-    userBelief = assertNotNull(
-      await getUserBelief(graphqlClient, clients.account, statementId),
-      'User belief'
-    );
-    assert.strictEqual(userBelief.beliefState, DISBELIEVES, 'User should disbelieve the statement');
-
     testLog('  ✓ Disbelief recorded correctly (state transitions verified)');
 
     // Clear opinion - properties checked automatically (includes waitForSync)
     testLog('  User clears opinion...');
     await clearOpinionChecked(clients, beliefsContract, graphqlClient, statementCid);
-
-    // Basic verification
-    userBelief = assertNotNull(
-      await getUserBelief(graphqlClient, clients.account, statementId),
-      'User belief'
-    );
-    assert.strictEqual(userBelief.beliefState, NO_OPINION, 'User should have no opinion');
 
     testLog('  ✓ Opinion cleared correctly (state transitions verified)');
   });
@@ -136,46 +110,15 @@ describe('Conceptspace Beliefs', () => {
     testLog('  User 1 believes...');
     await believeStatementChecked(clients1, beliefsContract, graphqlClient, statementCid);
 
-    let statement = assertNotNull(
-      await getStatement(graphqlClient, statementId),
-      'Statement'
-    );
-    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
-
     // User 2 also believes - properties checked automatically (includes waitForSync)
     testLog('  User 2 believes...');
     await believeStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
-
-    statement = assertNotNull(
-      await getStatement(graphqlClient, statementId),
-      'Statement'
-    );
-    assert.strictEqual(statement.believerCount, 2, 'Statement should have 2 believers');
-
-    // Verify both users' beliefs
-    const user1Belief = assertNotNull(
-      await getUserBelief(graphqlClient, clients1.account, statementId),
-      'User 1 belief'
-    );
-    const user2Belief = assertNotNull(
-      await getUserBelief(graphqlClient, clients2.account, statementId),
-      'User 2 belief'
-    );
-    assert.strictEqual(user1Belief.beliefState, BELIEVES, 'User 1 should believe');
-    assert.strictEqual(user2Belief.beliefState, BELIEVES, 'User 2 should believe');
 
     testLog('  ✓ Multiple users tracked correctly (state transitions verified)');
 
     // User 2 changes to disbelief - properties checked automatically (includes waitForSync)
     testLog('  User 2 changes to disbelief...');
     await disbelieveStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
-
-    statement = assertNotNull(
-      await getStatement(graphqlClient, statementId),
-      'Statement'
-    );
-    assert.strictEqual(statement.believerCount, 1, 'Statement should have 1 believer');
-    assert.strictEqual(statement.disbelieverCount, 1, 'Statement should have 1 disbeliever');
 
     testLog('  ✓ User state changes tracked correctly (state transitions verified)');
   });
@@ -197,8 +140,6 @@ describe('Conceptspace Beliefs', () => {
 
     const statement1Cid = await uploadToIPFS(statement1Content);
     const statement2Cid = await uploadToIPFS(statement2Content);
-    const statement1Id = cidToBytes32(statement1Cid);
-    const statement2Id = cidToBytes32(statement2Cid);
 
     testLog(`  Statement 1: "${statement1Content.text}"`);
     testLog(`  Statement 2: "${statement2Content.text}"`);
@@ -209,33 +150,6 @@ describe('Conceptspace Beliefs', () => {
 
     testLog('  User disbelieves statement 2...');
     await disbelieveStatementChecked(clients, beliefsContract, graphqlClient, statement2Cid);
-
-    // Verify both statements tracked independently
-    const belief1 = assertNotNull(
-      await getUserBelief(graphqlClient, clients.account, statement1Id),
-      'Belief 1'
-    );
-    const belief2 = assertNotNull(
-      await getUserBelief(graphqlClient, clients.account, statement2Id),
-      'Belief 2'
-    );
-
-    assert.strictEqual(belief1.beliefState, BELIEVES, 'User should believe statement 1');
-    assert.strictEqual(belief2.beliefState, DISBELIEVES, 'User should disbelieve statement 2');
-
-    const stmt1 = assertNotNull(
-      await getStatement(graphqlClient, statement1Id),
-      'Statement 1'
-    );
-    const stmt2 = assertNotNull(
-      await getStatement(graphqlClient, statement2Id),
-      'Statement 2'
-    );
-
-    assert.strictEqual(stmt1.believerCount, 1);
-    assert.strictEqual(stmt1.disbelieverCount, 0);
-    assert.strictEqual(stmt2.believerCount, 0);
-    assert.strictEqual(stmt2.disbelieverCount, 1);
 
     testLog('  ✓ Multiple statements tracked independently (state transitions verified)');
   });

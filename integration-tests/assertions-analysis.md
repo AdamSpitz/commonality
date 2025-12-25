@@ -19,6 +19,8 @@ After analyzing all 25 test files containing **~435 manual assertions**, the bre
 
 **Key Finding**: The migration to checked actions is incomplete. About **43% of assertions (152 total)** should be removed or moved into the framework, significantly reducing test verbosity while improving coverage.
 
+**Progress**: ✅ Removed ~15 redundant assertions from [conceptspace-beliefs.test.ts](src/conceptspace-beliefs.test.ts) (Phase 1, Item 1 complete)
+
 ---
 
 ## Category 1: Already Covered by Framework (~32%)
@@ -571,11 +573,10 @@ assert.strictEqual(statement.believerCount, 1); // Framework already checked thi
 
 ### High Priority: Remove Redundant Assertions
 
-#### `conceptspace-beliefs.test.ts` (311 lines, 26 assertions)
-- **Remove** lines 88, 102, 114, 143-144, 153, 164-165, 177-179, 223-225, 235-238
-  - All belief/disbelief count checks (framework covers)
-- **Keep** lines 269-282 (SDK feature: `getStatementWithContent` with metrics)
-- **Result**: Remove ~15 assertions (58% reduction)
+#### `conceptspace-beliefs.test.ts` ✅ **COMPLETED**
+- ✅ **Removed** all redundant belief/disbelief count checks (framework covers)
+- **Kept** SDK feature testing: `getStatementWithContent` with metrics
+- **Result**: Removed ~15 assertions (58% reduction)
 
 #### `pubstarter-basic.test.ts` (238 lines, 3 assertions)
 - **Remove** line 137 (initial totalReceived check - framework covers)
@@ -932,12 +933,13 @@ export async function withdrawProjectFundsChecked(
 **Effort**: Low
 **Impact**: High (reduce test noise by ~30%)
 
-1. Remove belief count assertions from `conceptspace-beliefs.test.ts` (~15 removals)
+1. ✅ **COMPLETED**: Remove belief count assertions from `conceptspace-beliefs.test.ts` (~15 removals)
 2. Remove funding state assertions from `pubstarter-*.test.ts` files (~20 removals)
 3. Remove transaction receipt status checks (~5 removals)
 4. Remove duplicate invariant calls that are already in checked actions (~10 removals)
 
 **Total**: ~50 assertion removals, minimal risk
+**Progress**: ~15 of ~50 completed (30%)
 
 ---
 
