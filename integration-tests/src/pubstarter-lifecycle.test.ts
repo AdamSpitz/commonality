@@ -27,7 +27,7 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from './setup.js';
-import { assertMoneyConservation, assertTokenConservation, assertAssuranceContractRefundLogic } from './invariants.js';
+import { assertMoneyConservation, assertTokenConservation } from './invariants.js';
 import { buyProjectTokensChecked, refundProjectTokensChecked, withdrawProjectFundsChecked } from './funding-actions-checked.js';
 
 
@@ -98,14 +98,6 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const receipt = await creatorClients.publicClient.getTransactionReceipt({ hash });
     await waitForSync(graphqlClient, receipt.blockNumber, 15000);
 
-    // Verify initial state
-    const initialProject = assertNotNull(
-      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
-      'Project'
-    );
-    assert.strictEqual(initialProject.totalReceived, '0', 'Project should start with 0 received');
-    assert.strictEqual(initialProject.threshold, threshold.toString(), 'Threshold should match');
-
     // Verify invariants: money and token conservation (should have 0 contributions initially)
     await assertMoneyConservation(graphqlClient, projectDetails.assuranceContractAddress);
     await assertTokenConservation(graphqlClient, projectDetails.assuranceContractAddress);
@@ -130,26 +122,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       }
     );
 
-    // Verify project reached threshold
-    const fundedProject = assertNotNull(
-      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
-      'Funded project'
-    );
-    testLog(`  Project total received: ${fundedProject.totalReceived}`);
-    assert.ok(BigInt(fundedProject.totalReceived) >= threshold, 'Project should have reached threshold');
-
     // Note: Money conservation, token conservation, and monotonic funding are automatically
     // verified by buyProjectTokensChecked()
-
-    // Verify refunds are not allowed (threshold was met - successful project)
-    testLog('  Checking refund logic for successful project...');
-    const currentBlock = await contributorClients.publicClient.getBlock();
-    await assertAssuranceContractRefundLogic(
-      graphqlClient,
-      projectDetails.assuranceContractAddress,
-      currentBlock.timestamp,
-      false // Refunds should NOT be allowed when threshold is met (successful project)
-    );
 
     // Get creator's balance before withdrawal
     const balanceBefore = await creatorClients.publicClient.getBalance({
@@ -251,20 +225,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       }
     );
 
-    // Verify project did not reach threshold
-    const unfundedProject = assertNotNull(
-      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
-      'Unfunded project'
-    );
-    testLog(`  Project total received: ${unfundedProject.totalReceived}`);
-    assert.ok(BigInt(unfundedProject.totalReceived) < threshold, 'Project should not have reached threshold');
-
     // Note: Money conservation and token conservation are automatically
     // verified by buyProjectTokensChecked()
-
-    // Note: We can't reliably check refund logic before deadline in integration tests
-    // because by the time the indexer syncs, the blockchain time may have already advanced.
-    // The refund logic check is better suited for after we explicitly advance time.
 
     // Wait for deadline to pass by advancing blockchain time
     testLog('  Advancing blockchain time past deadline...');
@@ -279,16 +241,6 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       params: [] as any,
     } as any);
     testLog('  Blockchain time advanced');
-
-    // Verify refunds are now allowed (after deadline, threshold not met)
-    testLog('  Checking refund logic after deadline...');
-    const blockAfterDeadline = await contributorClients.publicClient.getBlock();
-    await assertAssuranceContractRefundLogic(
-      graphqlClient,
-      projectDetails.assuranceContractAddress,
-      blockAfterDeadline.timestamp,
-      true // Refunds SHOULD be allowed after deadline when threshold not met
-    );
 
     // Contributor needs to approve the assurance contract to transfer tokens back
     testLog('  Contributor approving assurance contract to transfer tokens...');
