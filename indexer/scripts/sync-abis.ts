@@ -1,11 +1,11 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env npx tsx
 /**
  * Syncs ABI files from Hardhat compiled artifacts to the indexer.
  *
- * Usage: pnpm run sync-abis
+ * Usage: npm run sync-abis
  *
  * This script:
- * 1. Runs `pnpm run build` in the hardhat directory to compile contracts
+ * 1. Runs `npm run build` in the hardhat directory to compile contracts
  * 2. Reads the compiled artifacts
  * 3. Generates TypeScript ABI files in indexer/abis/
  */
@@ -37,7 +37,7 @@ function main() {
   // Step 1: Compile contracts
   console.log("Step 1: Compiling contracts...");
   try {
-    execSync("pnpm run build", {
+    execSync("npm run build", {
       cwd: HARDHAT_ROOT,
       stdio: "inherit",
     });
@@ -63,7 +63,7 @@ function main() {
 
       // Generate TypeScript file
       const tsContent = `// Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
-// Run \`pnpm run sync-abis\` to regenerate
+// Run \`npm run sync-abis\` to regenerate
 
 export const ${contractName}Abi = ${JSON.stringify(abi, null, 2)} as const;
 `;

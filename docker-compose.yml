@@ -11,7 +11,7 @@ services:
       # Mount project root so deploy script can write .env files
       - .:/workspace
     working_dir: /workspace/hardhat
-    command: pnpm exec hardhat node --hostname 0.0.0.0
+    command: npx hardhat node --hostname 0.0.0.0
     healthcheck:
       test: |
         curl -f -X POST -H "Content-Type: application/json" \
@@ -34,7 +34,7 @@ services:
       # Mount project root so deploy script can write .env files
       - .:/workspace
     working_dir: /workspace/hardhat
-    command: pnpm exec hardhat run scripts/deploy-local.js --network localhost
+    command: npx hardhat run scripts/deploy-local.js --network localhost
     depends_on:
       hardhat-node:
         condition: service_healthy

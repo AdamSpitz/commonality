@@ -2,7 +2,7 @@
  * Local Deployment Script
  *
  * Deploys contracts to local Hardhat node and updates .env file
- * Usage: pnpm exec hardhat run scripts/deploy-local.js --network localhost
+ * Usage: npx hardhat run scripts/deploy-local.js --network localhost
  */
 
 import hre from 'hardhat';
@@ -127,8 +127,8 @@ async function main() {
   console.log('✓ Updated integration-tests/.env.local');
 
   console.log('\n=== Deployment Complete ===\n');
-  console.log('You can now start the indexer with: cd indexer && pnpm run dev');
-  console.log('Or run integration tests with: cd integration-tests && pnpm test');
+  console.log('You can now start the indexer with: cd indexer && npm run dev');
+  console.log('Or run integration tests with: cd integration-tests && npm test');
 }
 
 main()
