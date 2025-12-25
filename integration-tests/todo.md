@@ -15,11 +15,9 @@ We've built an excellent property-based testing framework with automatic invaria
 ### Well-Migrated Tests ✅
 - [hello-world.test.ts](src/workflows/hello-world.test.ts) - Clean, uses `believeStatementChecked`, minimal assertions
 - [conceptspace-beliefs.test.ts](src/conceptspace/conceptspace-beliefs.test.ts) - Uses checked wrappers throughout
-
-### Partially Migrated Tests ⚠️
-- [conceptspace-create-statement-workflow.test.ts](src/conceptspace/conceptspace-create-statement-workflow.test.ts) - Uses checked wrappers but has manual assertions (lines 103-135, 188-191, etc.)
-- [end-to-end-workflows.test.ts](src/workflows/end-to-end-workflows.test.ts) - Mixes checked actions with manual assertions
-- [pubstarter-basic.test.ts](src/pubstarter/pubstarter-basic.test.ts) - Uses `buyProjectTokensChecked` but `createProject` is unchecked, manual invariant checks (lines 144-146)
+- [conceptspace-create-statement-workflow.test.ts](src/conceptspace/conceptspace-create-statement-workflow.test.ts) - Uses checked wrappers throughout, manual assertions removed
+- [pubstarter-basic.test.ts](src/pubstarter/pubstarter-basic.test.ts) - Uses `createProjectChecked` and `buyProjectTokensChecked`, manual invariant checks removed
+- [end-to-end-workflows.test.ts](src/workflows/end-to-end-workflows.test.ts) - Uses checked wrappers throughout, manual assertions removed except for scenario-specific indirect alignment verification
 
 ## What Belongs in Tests vs What Doesn't
 
@@ -91,20 +89,13 @@ for (let i = 0; i < 100; i++) {
 
 **We're not quite there yet because:**
 1. Some actions don't have checked wrappers
-2. Manual assertions are scattered throughout tests
-3. Manual invariant calls haven't been moved to action metadata
+2. Not all test files have been audited for consistent use of checked wrappers
 
 ## Concrete Next Steps
 
 ### Phase 1: Complete the Migration
 - [ ] **Create checked wrappers for all remaining actions**
   - [ ] Any other SDK actions used in tests
-
-- [ ] **Remove manual assertions from tests**
-  - [ ] Review each test file
-  - [ ] Delete ad-hoc state verification (rely on state transition properties)
-  - [ ] Keep only scenario-specific logging
-
 
 - [ ] **Audit all test files**
   - [ ] Go through each of the ~25 test files

@@ -14,11 +14,7 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getProject,
-  assertNotNull,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
@@ -26,7 +22,6 @@ import {
   AssuranceContractAbi
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { assertMonotonicProjectFunding } from '../utils/invariants.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 
 
@@ -120,15 +115,6 @@ describe('Pubstarter Basic Integration Tests', () => {
     testLog(`  Assurance Contract: ${projectDetails.assuranceContractAddress}`);
     testLog('  ✓ Project creation properties verified');
 
-    // Query the project for the initial funding value
-    const project = assertNotNull(
-      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
-      'Project'
-    );
-
-    // Capture initial funding for monotonic check
-    const initialFunding = BigInt(project.totalReceived);
-
     // Contributor buys some tokens
     testLog('  Contributor buying tokens...');
     const assuranceContract: AssuranceContract = {
@@ -158,10 +144,6 @@ describe('Pubstarter Basic Integration Tests', () => {
     testLog('  ✓ State transition properties verified');
     testLog('  ✓ Money conservation verified');
     testLog('  ✓ Token conservation verified');
-
-    // Verify monotonic funding property: totalReceived should have increased
-    await assertMonotonicProjectFunding(graphqlClient, projectDetails.assuranceContractAddress, initialFunding);
-    testLog('  ✓ Monotonic funding property verified');
 
     testLog('  Test completed successfully!');
   });
