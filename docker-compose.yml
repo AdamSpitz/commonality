@@ -115,35 +115,6 @@ services:
     networks:
       - commonality
 
-  # Integration test runner (use with `docker-compose run test-runner`)
-  test-runner:
-    build:
-      context: .
-      dockerfile: ./integration-tests/Dockerfile
-    volumes:
-      # Mount only integration test source for live updates
-      # SDK source is baked into the image to work with Linux node_modules
-      - ./integration-tests/src:/workspace/integration-tests/src
-      - ./integration-tests/tsconfig.json:/workspace/integration-tests/tsconfig.json
-      - ./integration-tests/.mocharc.json:/workspace/integration-tests/.mocharc.json
-      # Mount .env for contract addresses
-      - ./.env:/workspace/integration-tests/.env
-    working_dir: /workspace/integration-tests
-    depends_on:
-      indexer:
-        condition: service_healthy
-    environment:
-      # Tests connect to services via Docker network
-      - HARDHAT_NETWORK_URL=http://hardhat-node:8545
-      - INDEXER_URL=http://indexer:42069
-      - IPFS_GATEWAY=http://ipfs:8080/ipfs
-      - IPFS_API=http://ipfs:5001
-      # Allow passing test pattern via environment
-      - TEST_PATTERN=${TEST_PATTERN:-}
-    command: sh -c "pnpm test ${TEST_PATTERN}"
-    networks:
-      - commonality
-
 networks:
   commonality:
     driver: bridge
