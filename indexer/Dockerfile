@@ -1,16 +1,18 @@
 # Dockerfile for Ponder indexer
 FROM node:20-alpine
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+# Install curl for healthcheck and pnpm
+RUN apk add --no-cache curl && \
+    corepack enable && \
+    corepack prepare pnpm@10.26.2 --activate
 
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (no lockfile in workspace packages)
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -20,4 +22,4 @@ EXPOSE 42069
 
 # Start Ponder in dev mode (no UI for integration tests)
 # Use dev:no-ui which doesn't require DATABASE_SCHEMA
-CMD ["npm", "run", "dev:no-ui"]
+CMD ["pnpm", "run", "dev:no-ui"]

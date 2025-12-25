@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx hardhat compile",
-    "test": "npx hardhat test",
-    "deploy-local": "npx hardhat run scripts/deploy-local.js --network localhost",
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy-local": "hardhat run scripts/deploy-local.js --network localhost",
     "gen:users": "node fake-data-generation/generateUsers.js",
     "gen:statements": "node fake-data-generation/generateStatements.js",
     "gen:simulate": "node fake-data-generation/runSimulation.js",
