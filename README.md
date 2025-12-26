@@ -47,6 +47,8 @@ We're in the middle of a couple of big things:
   - Writing the integration-tests. (Much is done; I'm not sure what exactly is left to implement.)
   - Writing the UI. (Not much done, and not really tested, even manually; I don't trust the UI at all yet.)
 
-Another big thing to do soon:
+Other big things to do soon:
   - Generative testing. There's an early attempt at fake-data generation in hardhat/fake-data-generation, but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.
     - Once we have this, it'd be cool to generate a bunch of user actions and run them through the sdk (using the same setup we're currently using for the integration-tests), just as a smoke test to see if anything catches fire.
+  - Implement the Implication Attester AI service.
+  - Set up deployment for testnet and mainnet.
