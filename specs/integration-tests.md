@@ -1,10 +1,10 @@
 # Integration test specs
 
-We've been trying to write some tests for the indexer, but they ended up being fragile and more trouble than they were worth, so I've deleted them and now I'd like to start over more slowly and carefully.
+We've got some tests intended to test the smart contracts and indexer together. See the top-level "integration-tests" directory.
 
-The general approach I'd like to try is: I'll start a fresh hardhat node in one terminal (so there's no data in it), a fresh indexer in a second terminal, and then in a third terminal I'll run the tests.
+We've got a docker-compose setup with a few pieces: hardhat node, IPFS node, indexer.
 
-The tests are meant to be normal "unit test" style tests - we're not generating random fake data yet, we're just writing down some basic scenarios and running them, then waiting for the indexer to catch up (I think Ponder has a way to check which block number it's up to, or something like that), and making sure that the indexer's API returns the correct data.
+The tests are meant to be normal handcrafted-scenario tests - we're not generating random fake data yet, we're just writing down some basic scenarios and running them, then waiting for the indexer to catch up (I think Ponder has a way to check which block number it's up to, or something like that), and making sure that the indexer's API returns the correct data.
 
 The tests will run various user actions, involving:
   - Writing data to IFPS. (Just use whatever IPFS system we're using for the app - Pinata, I think.)
