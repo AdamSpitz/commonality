@@ -22,6 +22,12 @@ export const ImplicationsAbi = [
         "internalType": "bytes32",
         "name": "toStatementId",
         "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "explanationCid",
+        "type": "bytes32"
       }
     ],
     "name": "ImplicationAttestation",
@@ -37,6 +43,11 @@ export const ImplicationsAbi = [
       {
         "internalType": "bytes32",
         "name": "toStatementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "explanationCid",
         "type": "bytes32"
       }
     ],
@@ -55,6 +66,11 @@ export const ImplicationsAbi = [
       {
         "internalType": "bytes32[]",
         "name": "toStatementIds",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "explanationCids",
         "type": "bytes32[]"
       }
     ],
@@ -87,6 +103,64 @@ export const ImplicationsAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "explanations",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "fromStatementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "toStatementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getExplanation",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",

@@ -85,6 +85,7 @@ export interface Implication {
   attester: { id: string };
   fromStatementId: string;
   toStatementId: string;
+  explanationCid: string;
   createdAt: string;
   blockNumber: string;
 }
@@ -109,6 +110,7 @@ export async function getImplicationsFrom(
               }
               fromStatementId
               toStatementId
+              explanationCid
               createdAt
               blockNumber
             }
@@ -130,6 +132,7 @@ export async function getImplicationsFrom(
               }
               fromStatementId
               toStatementId
+              explanationCid
               createdAt
               blockNumber
             }
@@ -162,6 +165,7 @@ export async function getImplicationsTo(
               }
               fromStatementId
               toStatementId
+              explanationCid
               createdAt
               blockNumber
             }
@@ -183,6 +187,7 @@ export async function getImplicationsTo(
               }
               fromStatementId
               toStatementId
+              explanationCid
               createdAt
               blockNumber
             }
@@ -218,6 +223,7 @@ export async function getImplication(
           }
           fromStatementId
           toStatementId
+          explanationCid
           createdAt
           blockNumber
         }

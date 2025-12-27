@@ -31,6 +31,7 @@ export const typeDefs = `#graphql
     attester: Address!
     fromStatementId: ID!
     toStatementId: ID!
+    explanationCid: ID!
     createdAt: String!
     blockNumber: String!
   }

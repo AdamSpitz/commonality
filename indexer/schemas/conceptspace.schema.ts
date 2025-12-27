@@ -75,6 +75,8 @@ export const implications = onchainTable(
     attester: t.hex().notNull(),
     fromStatementId: t.hex().notNull(),
     toStatementId: t.hex().notNull(),
+    // IPFS CID of the explanation (bytes32, can be zero)
+    explanationCid: t.hex().notNull(),
     // When attested
     createdAt: t.bigint().notNull(),
     blockNumber: t.bigint().notNull(),

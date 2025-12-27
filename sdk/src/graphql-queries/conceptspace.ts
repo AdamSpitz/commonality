@@ -30,6 +30,7 @@ export interface Implication {
   attester: string;
   fromStatementId: string;
   toStatementId: string;
+  explanationCid: string;
   createdAt: string;
   blockNumber: string;
 }
@@ -126,6 +127,7 @@ export async function getImplicationsFrom(
           attester
           fromStatementId
           toStatementId
+          explanationCid
           createdAt
           blockNumber
         }
@@ -153,6 +155,7 @@ export async function getImplicationsTo(
           attester
           fromStatementId
           toStatementId
+          explanationCid
           createdAt
           blockNumber
         }
@@ -181,6 +184,7 @@ export async function getImplication(
           attester
           fromStatementId
           toStatementId
+          explanationCid
           createdAt
           blockNumber
         }

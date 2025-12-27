@@ -187,7 +187,7 @@ ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
  * Creates implication records and ensures statements exist
  */
 ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
-  const { attester, fromStatementId, toStatementId } = event.args;
+  const { attester, fromStatementId, toStatementId, explanationCid } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
@@ -209,6 +209,7 @@ ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
       attester,
       fromStatementId,
       toStatementId,
+      explanationCid,
       createdAt: timestamp,
       blockNumber,
     });
@@ -222,6 +223,16 @@ ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
           implicationCount: att.implicationCount + 1,
         });
     }
+  } else {
+    // Update explanation if re-attesting
+    await context.db
+      .update(implications, {
+        attester,
+        fromStatementId,
+        toStatementId,
+      })
+      .set({
+        explanationCid,
+      });
   }
-  // If it already exists, we ignore re-attestations (idempotent)
 });

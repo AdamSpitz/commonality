@@ -115,6 +115,7 @@ describe('Conceptspace Indirect Support', () => {
       graphqlClient,
       specificCid,
       generalCid,
+      undefined, // No explanation
       [user1Clients.account, user2Clients.account] // These users believe the specific statement
     );
 
@@ -178,6 +179,7 @@ describe('Conceptspace Indirect Support', () => {
       graphqlClient,
       specific1Cid,
       generalCid,
+      undefined, // No explanation
       [user1Clients.account]
     );
 
@@ -187,6 +189,7 @@ describe('Conceptspace Indirect Support', () => {
       graphqlClient,
       specific2Cid,
       generalCid,
+      undefined, // No explanation
       [user2Clients.account]
     );
 
@@ -265,6 +268,7 @@ describe('Conceptspace Indirect Support', () => {
       graphqlClient,
       specificCid,
       generalCid,
+      undefined, // No explanation
       [user1Clients.account, user2Clients.account]
     );
 
@@ -342,9 +346,9 @@ describe('Conceptspace Indirect Support', () => {
 
     // Create convergent implications
     testLog('  Creating convergent implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sGeneralCid, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sGeneralCid, [user2Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, sGeneralCid, [user3Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sGeneralCid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sGeneralCid, undefined, [user2Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, sGeneralCid, undefined, [user3Clients.account]);
 
     // Verify all 3 implications exist
     const implicationsTo = await getImplicationsTo(graphqlClient, sGeneralId);
@@ -415,8 +419,8 @@ describe('Conceptspace Indirect Support', () => {
 
     // Create implications: S1 -> Target, S2 -> Target
     testLog('  Creating implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sTargetCid, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sTargetCid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sTargetCid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sTargetCid, undefined, [user1Clients.account]);
 
     // Get indirect supporters - User1 should appear only once despite believing 2 implying statements
     const indirectSupporters = await getIndirectSupporters(graphqlClient, sTargetId);
@@ -504,9 +508,9 @@ describe('Conceptspace Indirect Support', () => {
 
     // Create implications
     testLog('  Creating implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, target1Cid, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, target2Cid, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, target3Cid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, target1Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, target2Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, target3Cid, undefined, [user1Clients.account]);
 
     // Use the new getUserIndirectSupport function
     testLog('  Getting all indirect support for User1 with single function call...');
@@ -602,8 +606,8 @@ describe('Conceptspace Indirect Support', () => {
 
     // Create implications
     testLog('  Creating implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source1Cid, target1Cid, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source2Cid, target2Cid, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source1Cid, target1Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source2Cid, target2Cid, undefined, [user1Clients.account]);
 
     // Use getUserIndirectSupport
     testLog('  Getting indirect support for User1...');
@@ -670,6 +674,7 @@ describe('Conceptspace Indirect Support', () => {
       graphqlClient,
       s1Cid,
       s2Cid,
+      undefined, // No explanation
       [believerClients.account]  // Believer believes S1, so should appear as indirect supporter of S2
     );
 
@@ -679,6 +684,7 @@ describe('Conceptspace Indirect Support', () => {
       graphqlClient,
       s2Cid,
       s3Cid,
+      undefined, // No explanation
       []  // No believers of S2 yet - the point is that S1's believers should NOT propagate here
     );
 

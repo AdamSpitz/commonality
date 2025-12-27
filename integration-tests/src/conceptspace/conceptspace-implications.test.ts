@@ -132,6 +132,7 @@ describe('Conceptspace Implications', () => {
       graphqlClient,
       specificCid,
       generalCid,
+      undefined, // No explanation
       [userClients.account] // User who believes the specific statement should appear as indirect supporter
     );
 

@@ -44,6 +44,7 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  * @param graphqlClient - GraphQL client for the indexer
  * @param fromStatementCid - IPFS CID of the statement that implies
  * @param toStatementCid - IPFS CID of the statement that is implied
+ * @param explanationCid - Optional: IPFS CID of the explanation for this implication
  * @param expectedIndirectSupporters - Optional: addresses of users who should appear as indirect supporters
  * @param options - Optional: control which checks run
  * @returns Transaction hash
@@ -59,6 +60,16 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  *   'QmGeneralStatement'
  * );
  *
+ * // With explanation
+ * const txHash = await attestImplicationChecked(
+ *   clients,
+ *   implicationsContract,
+ *   graphqlClient,
+ *   'QmSpecificStatement',
+ *   'QmGeneralStatement',
+ *   'QmExplanation123'
+ * );
+ *
  * // With expected indirect supporters verification
  * const txHash = await attestImplicationChecked(
  *   clients,
@@ -66,6 +77,7 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  *   graphqlClient,
  *   'QmSpecificStatement',
  *   'QmGeneralStatement',
+ *   undefined,
  *   [user1.account, user2.account] // These users believe the specific statement
  * );
  * // State transition properties and invariants are automatically verified
@@ -77,6 +89,7 @@ export async function attestImplicationChecked(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   fromStatementCid: string,
   toStatementCid: string,
+  explanationCid?: string,
   expectedIndirectSupporters?: string[],
   options?: ActionRunOptions
 ): Promise<Hash> {
@@ -101,7 +114,8 @@ export async function attestImplicationChecked(
         clients,
         implicationsContract,
         fromStatementCid,
-        toStatementCid
+        toStatementCid,
+        explanationCid
       );
       const receipt = await clients.publicClient.getTransactionReceipt({ hash });
       await waitForSync(graphqlClient, receipt.blockNumber);

@@ -126,21 +126,30 @@ export interface ImplicationsContract {
 
 /**
  * Attest that one statement implies another
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param implicationsContract - The Implications contract instance
+ * @param fromStatementCid - IPFS CID of the source statement
+ * @param toStatementCid - IPFS CID of the implied statement
+ * @param explanationCid - IPFS CID of the explanation (optional, defaults to zero hash)
+ * @returns Transaction hash
  */
 export async function attestImplication(
   clients: TestClients,
   implicationsContract: ImplicationsContract,
   fromStatementCid: string,
-  toStatementCid: string
+  toStatementCid: string,
+  explanationCid?: string
 ): Promise<Hash> {
   const fromStatementId = cidToBytes32(fromStatementCid);
   const toStatementId = cidToBytes32(toStatementCid);
+  const explanationId = explanationCid ? cidToBytes32(explanationCid) : '0x0000000000000000000000000000000000000000000000000000000000000000';
 
   const hash = await clients.walletClient.writeContract({
     address: implicationsContract.address,
     abi: implicationsContract.abi,
     functionName: 'attestImplication',
-    args: [fromStatementId, toStatementId],
+    args: [fromStatementId, toStatementId, explanationId],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -151,21 +160,32 @@ export async function attestImplication(
 
 /**
  * Batch attest multiple implications
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param implicationsContract - The Implications contract instance
+ * @param fromStatementCids - Array of IPFS CIDs of source statements
+ * @param toStatementCids - Array of IPFS CIDs of implied statements
+ * @param explanationCids - Array of IPFS CIDs of explanations (optional, defaults to zero hashes)
+ * @returns Transaction hash
  */
 export async function attestImplicationsBatch(
   clients: TestClients,
   implicationsContract: ImplicationsContract,
   fromStatementCids: string[],
-  toStatementCids: string[]
+  toStatementCids: string[],
+  explanationCids?: string[]
 ): Promise<Hash> {
   const fromStatementIds = fromStatementCids.map(cidToBytes32);
   const toStatementIds = toStatementCids.map(cidToBytes32);
+  const explanationIds = explanationCids
+    ? explanationCids.map(cidToBytes32)
+    : fromStatementCids.map(() => '0x0000000000000000000000000000000000000000000000000000000000000000');
 
   const hash = await clients.walletClient.writeContract({
     address: implicationsContract.address,
     abi: implicationsContract.abi,
     functionName: 'attestImplicationsInBatch',
-    args: [fromStatementIds, toStatementIds],
+    args: [fromStatementIds, toStatementIds, explanationIds],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

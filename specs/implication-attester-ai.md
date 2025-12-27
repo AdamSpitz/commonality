@@ -330,8 +330,3 @@ X-Payment-Proof: <payment_transaction_hash>  // If paying for a 402 request
 }
 ```
 
-
-
-## To do
-
-Extend Implications.sol to include `explanationCid` parameter. Also incorporate this into the hardhat unit tests, the indexer, the sdk, and the integration-tests.
