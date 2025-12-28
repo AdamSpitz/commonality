@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.33;
 
 // AI-generated from specs/README.md and specs/integration.md
 // Implications contract for Concept Space: Links related statements via implication attestations

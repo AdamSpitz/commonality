@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.33;
 
 // AI-generated from specs/README.md
 // ProjectAlignment contract for Funding Portals: Links projects to statements/causes
