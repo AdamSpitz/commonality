@@ -65,7 +65,8 @@ abstract contract AssuranceContract {
         require(msg.sender == _recipient, "Only recipient can withdraw");
         requireAssuranceContractHasSucceeded();
         uint256 value = address(this).balance;
-        payable(_recipient).transfer(value);
+        (bool success, ) = payable(_recipient).call{value: value}("");
+        require(success, "ETH transfer failed");
         emit AssuranceContractWithdrawal(_recipient, value);
     }
 

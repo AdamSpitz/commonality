@@ -182,7 +182,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     if (tokenType == TokenType.ERC20) {
       if (token == address(0)) {
-        payable(caller).transfer(amount);
+        (bool success, ) = payable(caller).call{value: amount}("");
+        require(success, "ETH transfer failed");
       } else {
         IERC20(token).safeTransfer(caller, amount);
       }

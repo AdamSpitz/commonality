@@ -167,7 +167,8 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         requireRefundsAllowed();
         uint256 refundValue = erc1155TotalCost(erc1155Addr, ids, counts);
         setTotalReceivedValue(getTotalReceivedValue() - refundValue);
-        payable(holder).transfer(refundValue);
+        (bool success, ) = payable(holder).call{value: refundValue}("");
+        require(success, "ETH transfer failed");
         IERC1155(erc1155Addr).safeBatchTransferFrom(
             holder,
             address(this),

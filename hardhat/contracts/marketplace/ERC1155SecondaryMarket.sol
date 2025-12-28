@@ -202,7 +202,8 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
 
         // Transfer payment from this contract (which just received
         // payment; note that this function is payable) to seller
-        payable(seller).transfer(totalCost);
+        (bool success, ) = payable(seller).call{value: totalCost}("");
+        require(success, "ETH transfer failed");
 
         _erc1155.safeTransferFrom(
             address(this),
@@ -313,7 +314,8 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
 
         // Transfer payment to seller; note that we received
         // the ETH when the buy order was created.
-        payable(seller).transfer(totalCost);
+        (bool success, ) = payable(seller).call{value: totalCost}("");
+        require(success, "ETH transfer failed");
 
         emit BuyOrderFulfilled(buyOrderId, seller, count);
     }
@@ -332,8 +334,9 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         require(buyer == _msgSender(), "Not the buyer");
 
         delete _buyOrders[buyOrderId];
-        
-        payable(buyer).transfer(refund);
+
+        (bool success, ) = payable(buyer).call{value: refund}("");
+        require(success, "ETH transfer failed");
 
         emit BuyOrderCancelled(buyOrderId);
     }
