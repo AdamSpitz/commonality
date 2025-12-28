@@ -59,6 +59,11 @@ That's roughly what I'm doing with the smart contracts - they're simple enough a
 But also this might be useful with things other than code artifacts. e.g. It might be useful if AI could write up English descriptions of some things and then I can bless them.
 
 
+### Reviews
+
+See specs/reviews.md.
+
+
 ## Main components
 
 The overall system is made of two big components: Concept Space and Funding Portals.

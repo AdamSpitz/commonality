@@ -1,5 +1,8 @@
 # Subjectiv: trust-graph-mediated event streams
 
+I haven't completely decided whether or not to include this yet. For now, consider this to be just thinking out loud - don't implement any of this.
+
+
 I want a subsystem called subjectiv.
 
 The point of the system is to allow the creation of trust-graph-mediated event streams.
