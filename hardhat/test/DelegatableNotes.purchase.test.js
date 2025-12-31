@@ -5,7 +5,6 @@ const { ethers } = hre;
 describe("DelegatableNotes - Purchase Functionality", function () {
   let notes;
   let alice, bob, charlie, seller;
-  let statementId;
   let erc1155Token;
   let assuranceContract;
   let marketplace;
@@ -16,8 +15,6 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     // Deploy DelegatableNotes
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
     notes = await DelegatableNotes.deploy();
-
-    statementId = ethers.encodeBytes32String("test-statement");
 
     // Deploy PremintingERC1155 for testing
     const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
@@ -61,7 +58,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     it("Should purchase tokens using a single note with exact amount", async function () {
       const paymentAmount = ethers.parseEther("0.3"); // Buy 3 of token 1
 
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
@@ -83,14 +80,13 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       expect(newNote.tokenType).to.equal(1); // ERC1155
       expect(newNote.tokenId).to.equal(1);
       expect(newNote.amount).to.equal(3);
-      expect(newNote.intendedStatementId).to.equal(statementId);
     });
 
     it("Should purchase tokens using a single note with leftover", async function () {
       const depositAmount = ethers.parseEther("1.0");
       const paymentAmount = ethers.parseEther("0.3");
 
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: depositAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: depositAmount });
 
       await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
@@ -116,7 +112,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     it("Should purchase multiple token types in one transaction", async function () {
       const paymentAmount = ethers.parseEther("0.8"); // 3×0.1 + 1×0.5 = 0.8
 
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
@@ -140,7 +136,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
     it("Should emit ERC1155Purchased event", async function () {
       const paymentAmount = ethers.parseEther("0.3");
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       await expect(
         notes.connect(alice).purchaseFromPrimaryMarket(
@@ -159,7 +155,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
   describe("NoteConsumed Event", function () {
     it("Should emit NoteConsumed event when note is fully consumed", async function () {
       const paymentAmount = ethers.parseEther("0.3");
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       await expect(
         notes.connect(alice).purchaseFromPrimaryMarket(
@@ -186,7 +182,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       const paymentAmount = ethers.parseEther("0.3");
       const expectedRemaining = depositAmount - paymentAmount;
 
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: depositAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: depositAmount });
 
       await expect(
         notes.connect(alice).purchaseFromPrimaryMarket(
@@ -214,8 +210,8 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       const totalPayment = ethers.parseEther("0.3");
 
       // Create two notes
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount1 });
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount2 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount1 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount2 });
 
       const tx = notes.connect(alice).purchaseFromPrimaryMarket(
         [1, 2],
@@ -243,7 +239,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       const paymentAmount = ethers.parseEther("0.3");
       const expectedRemaining = depositAmount - paymentAmount;
 
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: depositAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: depositAmount });
 
       await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
@@ -263,7 +259,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
     it("Should delete note after full consumption", async function () {
       const paymentAmount = ethers.parseEther("0.3");
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       await notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
@@ -286,7 +282,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
   describe("NoteCreated Event for Output Notes", function () {
     it("Should emit NoteCreated event for output note", async function () {
       const paymentAmount = ethers.parseEther("0.3");
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       await expect(
         notes.connect(alice).purchaseFromPrimaryMarket(
@@ -306,14 +302,13 @@ describe("DelegatableNotes - Purchase Functionality", function () {
           3, // amount (token count)
           await erc1155Token.getAddress(), // token
           1, // tokenType (ERC1155)
-          1, // tokenId
-          statementId // intendedStatementId (preserved from input note)
+          1 // tokenId
         );
     });
 
     it("Should emit NoteCreated for each output token type", async function () {
       const paymentAmount = ethers.parseEther("0.8"); // 3×0.1 + 1×0.5 = 0.8
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       const tx = notes.connect(alice).purchaseFromPrimaryMarket(
         [1],
@@ -334,8 +329,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
           3,
           await erc1155Token.getAddress(),
           1,
-          1,
-          statementId
+          1
         );
 
       // Should emit NoteCreated for token 3
@@ -347,37 +341,15 @@ describe("DelegatableNotes - Purchase Functionality", function () {
           1,
           await erc1155Token.getAddress(),
           1,
-          3,
-          statementId
+          3
         );
-    });
-
-    it("Should preserve intendedStatementId in output notes", async function () {
-      const customStatementId = ethers.encodeBytes32String("climate-change");
-      const paymentAmount = ethers.parseEther("0.3");
-
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, customStatementId, { value: paymentAmount });
-
-      await notes.connect(alice).purchaseFromPrimaryMarket(
-        [1],
-        [[alice.address]],
-        paymentAmount,
-        await assuranceContract.getAddress(),
-        await erc1155Token.getAddress(),
-        [1],
-        [3]
-      );
-
-      // Verify output note has the same intendedStatementId
-      const outputNote = await notes.notes(2);
-      expect(outputNote.intendedStatementId).to.equal(customStatementId);
     });
 
     it("Should preserve delegation chain in output notes", async function () {
       const paymentAmount = ethers.parseEther("0.3");
 
       // Alice deposits
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: paymentAmount });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: paymentAmount });
 
       // Alice delegates to Bob
       await notes.connect(alice).delegate(1, [alice.address], bob.address, paymentAmount);
@@ -414,8 +386,8 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       const paymentAmount = ethers.parseEther("0.6"); // Use 2/3 of total
 
       // Create two notes with different amounts
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount1 });
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount2 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount1 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount2 });
 
       const tx = notes.connect(alice).purchaseFromPrimaryMarket(
         [1, 2],
@@ -448,9 +420,9 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       const amount3 = ethers.parseEther("0.333333333333333333");
       const paymentAmount = ethers.parseEther("0.5");
 
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount1 });
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount2 });
-      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, statementId, { value: amount3 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount1 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount2 });
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount3 });
 
       await notes.connect(alice).purchaseFromPrimaryMarket(
         [1, 2, 3],

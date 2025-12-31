@@ -32,7 +32,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address token;
     TokenType tokenType;
     uint256 tokenId;
-    bytes32 intendedStatementId;
   }
 
   // Depth limit to prevent gas exhaustion from extremely long chains
@@ -48,8 +47,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 amount,
     address token,
     TokenType tokenType,
-    uint256 tokenId,
-    bytes32 intendedStatementId
+    uint256 tokenId
   );
   event NoteDelegated(
     uint256 indexed parentNoteId,
@@ -118,8 +116,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address token,
     TokenType tokenType,
     uint256 tokenId,
-    uint256 amount,
-    bytes32 intendedStatementId
+    uint256 amount
   ) public payable nonReentrant returns (uint256) {
     address owner = _msgSender();
     uint256 actualAmount;
@@ -150,11 +147,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       amount: actualAmount,
       token: token,
       tokenType: tokenType,
-      tokenId: tokenId,
-      intendedStatementId: intendedStatementId
+      tokenId: tokenId
     });
 
-    emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId, intendedStatementId);
+    emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId);
     return noteId;
   }
 
@@ -242,8 +238,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         amount: amountToDelegate,
         token: note.token,
         tokenType: note.tokenType,
-        tokenId: note.tokenId,
-        intendedStatementId: note.intendedStatementId
+        tokenId: note.tokenId
       });
 
       // Update original note with remainder (keep same chain)
@@ -309,7 +304,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param paymentAmount Total amount to spend in ETH
    * @return paymentChains The delegation chains of the payment notes
    * @return spentAmounts The amount spent from each note
-   * @return statementIds The intended statement IDs from each note
    */
   function _executePurchase(
     uint256[] calldata noteIds,
@@ -317,8 +311,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 paymentAmount
   ) private returns (
     address[][] memory paymentChains,
-    uint256[] memory spentAmounts,
-    bytes32[] memory statementIds
+    uint256[] memory spentAmounts
   ) {
     require(noteIds.length > 0, "Must provide at least one note");
     require(noteIds.length == chains.length, "Array length mismatch");
@@ -335,7 +328,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     );
 
     // Consume payment notes and cache data for output notes
-    return _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
+    (address[][] memory paymentChains, uint256[] memory spentAmounts) =
+      _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
+    return (paymentChains, spentAmounts);
   }
 
   /**
@@ -364,8 +359,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Execute common purchase logic
     (
       address[][] memory paymentChains,
-      uint256[] memory spentAmounts,
-      bytes32[] memory statementIds
+      uint256[] memory spentAmounts
     ) = _executePurchase(noteIds, chains, paymentAmount);
 
     // Execute primary market purchase
@@ -384,7 +378,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       counts,
       paymentChains,
       spentAmounts,
-      statementIds,
       paymentAmount
     );
 
@@ -423,8 +416,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     // Execute common purchase logic
     (
       address[][] memory paymentChains,
-      uint256[] memory spentAmounts,
-      bytes32[] memory statementIds
+      uint256[] memory spentAmounts
     ) = _executePurchase(noteIds, chains, paymentAmount);
 
     // Execute secondary market purchase
@@ -451,7 +443,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       counts,
       paymentChains,
       spentAmounts,
-      statementIds,
       paymentAmount
     );
 
@@ -501,12 +492,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 totalAvailable
   ) private returns (
     address[][] memory paymentChains,
-    uint256[] memory spentAmounts,
-    bytes32[] memory statementIds
+    uint256[] memory spentAmounts
   ) {
     paymentChains = new address[][](noteIds.length);
     spentAmounts = new uint256[](noteIds.length);
-    statementIds = new bytes32[](noteIds.length);
 
     for (uint256 i = 0; i < noteIds.length; i++) {
       paymentChains[i] = chains[i];
@@ -519,7 +508,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         }
         spentAmounts[i] = paymentAmount - alreadySpent;
       }
-      statementIds[i] = notes[noteIds[i]].intendedStatementId;
 
       // Reduce note amounts (spending from the notes)
       notes[noteIds[i]].amount -= spentAmounts[i];
@@ -536,7 +524,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       emit NoteConsumed(noteIds[i], spentAmounts[i], remainingAmount, deleted);
     }
 
-    return (paymentChains, spentAmounts, statementIds);
+    return (paymentChains, spentAmounts);
   }
 
   function _createNotesForPurchasedTokens(
@@ -545,7 +533,6 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] memory counts,
     address[][] memory chains,
     uint256[] memory spentAmounts,
-    bytes32[] memory statementIds,
     uint256 totalSpent
   ) private returns (uint256[] memory outputNoteIds) {
     uint256 maxOutputs = tokenIds.length * chains.length;
@@ -576,8 +563,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
             amount: share,
             token: erc1155Contract,
             tokenType: TokenType.ERC1155,
-            tokenId: tokenId,
-            intendedStatementId: statementIds[c]
+            tokenId: tokenId
           });
 
           // Emit NoteCreated event for indexer
@@ -587,8 +573,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
             share,
             erc1155Contract,
             TokenType.ERC1155,
-            tokenId,
-            statementIds[c]
+            tokenId
           );
 
           outputNoteIds[outputIndex++] = newNoteId;
