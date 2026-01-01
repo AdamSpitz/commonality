@@ -328,7 +328,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     );
 
     // Consume payment notes and cache data for output notes
-    (address[][] memory paymentChains, uint256[] memory spentAmounts) =
+    (paymentChains, spentAmounts) =
       _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
     return (paymentChains, spentAmounts);
   }
