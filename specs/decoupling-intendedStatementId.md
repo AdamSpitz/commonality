@@ -12,6 +12,4 @@ But maybe we could use some kind of attestation system, where the original money
 
 Or maybe DelegatableNotes could be written so that when each note is created, its creator specifies "here's the contract and function that you call when you're ready to spend the note, and here are the args you need to pass in" (which obviously needs to be written very carefully to avoid smart-contract vulnerabilities), and then the whole "intended use" system can simply be a middleware that can be tacked onto any action to have it emit an event saying "this is intended for statement S" before going on to do whatever the actual action is.
 
-I kinda like that last idea, if it can be done safely.
-
-Does that make sense to you?
+Hmm, but that feels very dangerous - could open the door to the depositor tricking the delegate into calling a malicious contract. Probably better to just have whitelisted final actions.
