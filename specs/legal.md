@@ -81,3 +81,29 @@ If you wanted to be extremely conservative:
   - Let emerge: Community builds UIs, runs indexers, creates the integration
 
 This protects you but delays getting traction.
+
+
+## Summary from me
+
+Okay, so trying to describe all the pieces here and how we describe them:
+
+  - Statements are simple immutable displayable linked documents, stored as DAG-JSON. The system isn't even specific to statements, and has no dependency whatsoever on anything involving finance.
+  - Conceptspace is about belief attestations and implication attestations. Nothing to do with finance.
+  - If we provide PremintingERC1155 and FreeERC1155 at all, they're very basic tutorial-level smart contracts. Any legal trouble is going to have more to do with whatever larger system we build out of them.
+  - AlignmentAttestations can be made generic, not about these token projects specifically. It's a generic way of saying "I attest that this thingy is aligned with that cause." Nothing to do with finance (though some higher-level system might use it to attest to a project's alignment).
+  - DelegatableNotes (now that we've removed the intendedStatementId) has nothing to do with purposes, it's just a pure financial primitive.
+
+Hmm, I'm starting to get the picture that (if this analysis is correct) the legally-scarier pieces might be the UIs, not the smart contracts.
+
+  - "Here are some projects that have been attested to be aligned with this cause."
+    - What if the cause is Bad? Now our site is helping fund Bad stuff.
+    - What if the attestations are malicious/misleading? People might be tricked into donating to bad projects.
+  - "Here's a project you can donate to or invest in."
+    - What if the project is a scam? Now our site is showing scams.
+    - What if the project is for a Bad purpose? Now our site is helping fund Bad stuff.
+    - The idea that you can "invest" (by selling your donation receipt on a secondary market) makes this sound like a security.
+
+Thoughts on how to deal with that:
+  - Can we make it so that there's a generic indexer system (maybe we can use The Graph?) where we don't index every cause (in fact, I don't even see how we could), but rather if someone out there is interested in a particular cause, they provide the statementId and some payment (not to us, but to The Graph or whatever) and then that's how they spin up the indexer for their cause?
+  - Same for UIs? We don't host a universal one. Or we just put the UI on IPFS or something?
+  - Don't call it "investing". Call the tokens "donation receipts"; sure, it's possible to buy and sell donation receipts (and we do integrate buttons for that into the UI), but (a) the donation receipts don't have any intrinsic value other than the social recognition from having them displayed online, and (b) maybe it helps if the UI is on IPFS rather than hosted on a domain we control?
