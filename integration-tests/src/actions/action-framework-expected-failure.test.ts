@@ -61,7 +61,6 @@ describe('Action Framework Expected Failure', () => {
     testLog('  Alice creating a note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     testLog(`  Note created: ${noteId}`);
@@ -117,7 +116,6 @@ describe('Action Framework Expected Failure', () => {
     testLog('  Alice creating a note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     // Bob tries to delegate Alice's note with expectedError substring check
@@ -167,7 +165,6 @@ describe('Action Framework Expected Failure', () => {
     testLog('  Alice creating a note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     // Alice tries to delegate her own note (this WILL succeed)

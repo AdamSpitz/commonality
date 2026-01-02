@@ -87,7 +87,6 @@ describe('Delegation Spending', () => {
     const depositAmount = 5000000000000000000n; // 5 ETH
     const { noteId } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
-      intendedStatementId: statementId,
     });
 
     // Create a project
@@ -173,7 +172,6 @@ describe('Delegation Spending', () => {
     const depositAmount = 10000000000000000000n; // 10 ETH
     const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
-      intendedStatementId: statementId,
     });
 
     // User 1 delegates to User 2 (automatically verifies delegation chain integrity)
@@ -270,7 +268,6 @@ describe('Delegation Spending', () => {
     const depositAmount = 8000000000000000000n; // 8 ETH
     const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
-      intendedStatementId: statementId,
     });
 
     // User 1 -> User 2 (automatically verifies delegation chain integrity)
@@ -377,7 +374,6 @@ describe('Delegation Spending', () => {
     const depositAmount = 10000000000000000000n; // 10 ETH
     const { noteId } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
       amount: depositAmount,
-      intendedStatementId: statementId,
     });
 
     // Create a project

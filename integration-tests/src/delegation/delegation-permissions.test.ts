@@ -70,7 +70,6 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog('  Alice creating a note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     testLog(`  Note created: ${noteId}`);
@@ -131,7 +130,6 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog('  Alice creating note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     // Alice delegates to Bob
@@ -200,7 +198,6 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog('  Alice creating note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     // Alice delegates to Bob
@@ -276,7 +273,6 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog('  Alice creating a note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     testLog(`  Note created: ${noteId}`);
@@ -326,7 +322,6 @@ describe('Delegation Permissions Edge Cases', () => {
     testLog('  Alice creating note...');
     const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
       amount: parseEther('1.0'),
-      intendedStatementId: statementCid,
     });
 
     // Alice delegates to Bob (with checked wrapper)

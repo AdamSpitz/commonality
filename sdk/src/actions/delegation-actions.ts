@@ -30,14 +30,12 @@ export const TokenType = {
  * @param delegatableNotesContract - The DelegatableNotes contract instance
  * @param params - Deposit parameters
  * @param params.amount - Amount of ETH to deposit (in wei)
- * @param params.intendedStatementId - The statement/cause this note is intended to support
  * @returns Transaction hash and the newly created noteId
  *
  * @example
  * ```typescript
  * const { noteId } = await depositETH(clients, contract, {
- *   amount: parseEther('1.0'),
- *   intendedStatementId: '0x1234...'
+ *   amount: parseEther('1.0')
  * });
  * ```
  */
@@ -46,7 +44,6 @@ export async function depositETH(
   delegatableNotesContract: DelegatableNotesContract,
   params: {
     amount: bigint;
-    intendedStatementId: `0x${string}`;
   }
 ): Promise<{ hash: Hash; noteId: bigint }> {
   const hash = await clients.walletClient.writeContract({
@@ -58,7 +55,6 @@ export async function depositETH(
       TokenType.ERC20, // TokenType.ERC20 for ETH
       0n, // tokenId (unused for ETH)
       0n, // amount parameter (unused for ETH, use msg.value)
-      params.intendedStatementId,
     ],
     value: params.amount,
     chain: clients.walletClient.chain,

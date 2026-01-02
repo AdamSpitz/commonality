@@ -49,7 +49,6 @@ import {
  * @param graphqlClient - GraphQL client for the indexer
  * @param params - Deposit parameters
  * @param params.amount - Amount of ETH to deposit (in wei)
- * @param params.intendedStatementId - The statement/cause this note is intended to support
  * @param options - Optional: control which checks run
  * @returns Object containing transaction hash and the newly created noteId
  *
@@ -60,8 +59,7 @@ import {
  *   delegatableNotesContract,
  *   graphqlClient,
  *   {
- *     amount: parseEther('1.0'),
- *     intendedStatementId: statementCid
+ *     amount: parseEther('1.0')
  *   }
  * );
  * // Delegation chain integrity is automatically verified
@@ -73,7 +71,6 @@ export async function depositETHChecked(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   params: {
     amount: bigint;
-    intendedStatementId: `0x${string}`;
   },
   options?: ActionRunOptions
 ): Promise<{ hash: Hash; noteId: bigint }> {

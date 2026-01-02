@@ -273,7 +273,6 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       graphqlClient,
       {
         amount: parseEther('1.0'),
-        intendedStatementId: causeId,
       }
     );
 
@@ -283,7 +282,6 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       graphqlClient,
       {
         amount: parseEther('0.5'),
-        intendedStatementId: causeId,
       }
     );
 

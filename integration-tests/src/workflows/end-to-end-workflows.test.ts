@@ -148,7 +148,6 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  User depositing ${depositAmount} ETH into delegatable note...`);
       const depositResult = await depositETHChecked(userClients, delegatableNotesContract, graphqlClient, {
         amount: depositAmount,
-        intendedStatementId: statementId,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
       testLog('  ✓ Deposit properties verified');
@@ -227,7 +226,6 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Root user depositing ${depositAmount} ETH into delegatable note...`);
       const depositResult = await depositETHChecked(rootUserClients, delegatableNotesContract, graphqlClient, {
         amount: depositAmount,
-        intendedStatementId: statementId,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
       testLog('  ✓ Deposit properties verified');

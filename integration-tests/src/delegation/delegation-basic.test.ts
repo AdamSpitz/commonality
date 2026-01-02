@@ -78,7 +78,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: depositAmount,
-        intendedStatementId: statementId,
       }
     );
 
@@ -115,7 +114,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: depositAmount,
-        intendedStatementId: statementId,
       }
     );
 
@@ -172,7 +170,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: depositAmount,
-        intendedStatementId: statementId,
       }
     );
 
@@ -226,7 +223,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: depositAmount,
-        intendedStatementId: statementId,
       }
     );
 
@@ -289,7 +285,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: depositAmount,
-        intendedStatementId: statementId,
       }
     );
 
@@ -359,7 +354,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: depositAmount,
-        intendedStatementId: statementId,
       }
     );
 
@@ -397,7 +391,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: 1000000000000000000n,
-        intendedStatementId: cidToBytes32(statement1),
       }
     );
 
@@ -407,7 +400,6 @@ describe('Delegation System', () => {
       graphqlClient,
       {
         amount: 2000000000000000000n,
-        intendedStatementId: cidToBytes32(statement2),
       }
     );
 
