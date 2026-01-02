@@ -74,26 +74,30 @@ export async function depositETHChecked(
   },
   options?: ActionRunOptions
 ): Promise<{ hash: Hash; noteId: bigint }> {
-  // First execute the action to get the noteId
-  const result = await depositETH(clients, delegatableNotesContract, params);
-
-  // Wait for indexer to sync
-  const receipt = await clients.publicClient.getTransactionReceipt({ hash: result.hash });
-  await waitForSync(graphqlClient, receipt.blockNumber, 15000);
-
-  // Now check properties with the noteId
+  // Context that will be populated during action execution
   const context: ActionContext = {
     graphqlClient,
     contracts: { delegation: delegatableNotesContract },
     entities: {
-      delegationNoteId: result.noteId.toString(),
+      delegationNoteId: '', // Will be set after action completes
       userAddress: clients.account,
     },
   };
 
-  // Check invariants (no state transition properties for creation)
-  await runActionAndCheckProperties(
-    async () => result,
+  // Execute action and wait for sync before invariant checks
+  const result = await runActionAndCheckProperties(
+    async () => {
+      const actionResult = await depositETH(clients, delegatableNotesContract, params);
+
+      // Wait for indexer to sync
+      const receipt = await clients.publicClient.getTransactionReceipt({ hash: actionResult.hash });
+      await waitForSync(graphqlClient, receipt.blockNumber);
+
+      // Update context with the note ID for invariant checking
+      context.entities.delegationNoteId = actionResult.noteId.toString();
+
+      return actionResult;
+    },
     depositETHMetadata,
     context,
     options
@@ -167,7 +171,7 @@ export async function delegateNoteChecked(
 
       // Wait for indexer to sync
       const receipt = await clients.publicClient.getTransactionReceipt({ hash: actionResult.hash });
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, receipt.blockNumber);
 
       // Update context with the delegated note ID for invariant checking
       context.entities.delegationNoteId = actionResult.delegatedNoteId.toString();
@@ -237,7 +241,7 @@ export async function revokeNoteChecked(
 
       // Wait for indexer to sync
       const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, receipt.blockNumber);
 
       return hash;
     },
@@ -313,7 +317,7 @@ export async function spendDelegatedNoteChecked(
 
       // Wait for indexer to sync
       const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, receipt.blockNumber);
 
       return hash;
     },
@@ -385,7 +389,7 @@ export async function reclaimFundsChecked(
 
       // Wait for indexer to sync
       const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber, 15000);
+      await waitForSync(graphqlClient, receipt.blockNumber);
 
       return hash;
     },
