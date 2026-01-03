@@ -18,7 +18,6 @@ export interface Note {
   token: string;
   tokenType: number;
   tokenId: string;
-  intendedStatementId: string;
   chainHash: string;
   active: boolean;
   parentNoteId?: string;
@@ -52,7 +51,6 @@ export async function getNote(
           token
           tokenType
           tokenId
-          intendedStatementId
           chainHash
           active
           parentNoteId
@@ -87,7 +85,6 @@ export async function getNotesByOwner(
           token
           tokenType
           tokenId
-          intendedStatementId
           chainHash
           active
           parentNoteId
@@ -122,7 +119,6 @@ export async function getNotesByRoot(
           token
           tokenType
           tokenId
-          intendedStatementId
           chainHash
           active
           parentNoteId
@@ -160,32 +156,4 @@ export async function getDelegationChain(
   );
 
   return result.delegationChain || [];
-}
-
-/**
- * Get all notes intended for a specific statement
- */
-export async function getNotesByStatement(
-  executor: GraphQLExecutor,
-  statementId: string
-): Promise<Note[]> {
-  const result = await executeQuery<{ notesByStatement: Note[] }>(
-    executor,
-    `
-      query GetNotesByStatement($statementId: ID!) {
-        notesByStatement(statementId: $statementId) {
-          id
-          owner
-          amount
-          intendedStatementId
-          active
-          createdAt
-          blockNumber
-        }
-      }
-    `,
-    { statementId }
-  );
-
-  return result.notesByStatement || [];
 }

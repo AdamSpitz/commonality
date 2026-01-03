@@ -115,7 +115,7 @@ async function createNoteEvent(
  * Creates a new note record with initial (root) delegation chain
  */
 ponder.on("DelegatableNotes:NoteCreated", async ({ event, context }) => {
-  const { noteId, owner, amount, token, tokenType, tokenId, intendedStatementId } = event.args;
+  const { noteId, owner, amount, token, tokenType, tokenId } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
   const transactionHash = event.transaction.hash;
@@ -132,7 +132,6 @@ ponder.on("DelegatableNotes:NoteCreated", async ({ event, context }) => {
     tokenType,
     tokenId: tokenId || 0n,
     amount,
-    intendedStatementId,
     chainHash,
     active: true,
     parentNoteId: null,
@@ -321,7 +320,6 @@ ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
     tokenType: originalNote.tokenType,
     tokenId: originalNote.tokenId,
     amount: splitAmount,
-    intendedStatementId: originalNote.intendedStatementId,
     chainHash: originalNote.chainHash, // Will be updated by NoteDelegated
     active: true,
     parentNoteId: originalLeafId,

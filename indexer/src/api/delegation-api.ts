@@ -96,7 +96,6 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
       amount: note.amount.toString(),
       token: note.token,
       tokenType: note.tokenType,
-      intendedStatementId: note.intendedStatementId,
     });
   } catch (error) {
     console.error("Error fetching delegation chain:", error);
@@ -124,7 +123,6 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
  *       amount: "1000000000000000000",
  *       token: "0x0000...",
  *       tokenType: 0,
- *       intendedStatementId: "0xabc...",
  *       rootOwner: "0xAlice...",
  *       chain: ["0xAlice...", "0xBob...", "0x123..."] // if includeChains=true
  *     },
@@ -170,7 +168,6 @@ app.get("/api/active-notes/:address", async (c) => {
         token: note.token,
         tokenType: note.tokenType,
         tokenId: note.tokenId.toString(),
-        intendedStatementId: note.intendedStatementId,
         rootOwner: note.rootOwner,
         createdAt: note.createdAt.toString(),
       };
@@ -241,14 +238,10 @@ app.get("/api/available-funding/:statementId", async (c) => {
       return c.json(invalidInputError("token", "Must be a valid Ethereum address"), 400);
     }
 
-    // Get all active notes for this statement
-    const notes = await db
-      .select()
-      .from(schema.delegatableNotes)
-      .where(and(
-        eq(schema.delegatableNotes.intendedStatementId, statementId),
-        eq(schema.delegatableNotes.active, true)
-      ));
+    // TODO: Re-implement using NoteIntent attestations
+    // intendedStatementId has been removed from DelegatableNotes and moved to NoteIntent contract
+    // For now, we return empty results until NoteIntent indexing is implemented
+    const notes: any[] = [];
 
     // Filter by token type if specified
     let filteredNotes = notes;

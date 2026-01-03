@@ -15,7 +15,6 @@ export interface Note {
   token: string;
   tokenType: number; // 0 = ERC20, 1 = ERC1155
   tokenId: string;
-  intendedStatementId: string;
   owner: string; // Current leaf owner
   rootOwner: string; // Root depositor
   active: boolean;
@@ -49,7 +48,6 @@ export async function getNote(
           token
           tokenType
           tokenId
-          intendedStatementId
           owner
           rootOwner
           active
@@ -85,7 +83,6 @@ export async function getNotesByOwner(
             token
             tokenType
             tokenId
-            intendedStatementId
             owner
             rootOwner
             active
@@ -122,7 +119,6 @@ export async function getNotesByRoot(
             token
             tokenType
             tokenId
-            intendedStatementId
             owner
             rootOwner
             active
@@ -164,40 +160,4 @@ export async function getDelegationChain(
   );
 
   return result.delegationChainss?.items || [];
-}
-
-/**
- * Get all notes intended for a specific statement
- */
-export async function getNotesByStatement(
-  client: GraphQLClient,
-  statementId: string
-): Promise<Note[]> {
-  const result = await query<{ delegatableNotess: { items: Note[] } }>(
-    client,
-    `
-      query GetNotesByStatement($statementId: String!) {
-        delegatableNotess(where: { intendedStatementId: $statementId, active: true }) {
-          items {
-            id
-            chainHash
-            amount
-            token
-            tokenType
-            tokenId
-            intendedStatementId
-            owner
-            rootOwner
-            active
-            parentNoteId
-            createdAt
-            updatedAt
-          }
-        }
-      }
-    `,
-    { statementId: statementId.toLowerCase() }
-  );
-
-  return result.delegatableNotess?.items || [];
 }

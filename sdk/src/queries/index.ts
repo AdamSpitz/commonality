@@ -76,7 +76,6 @@ export {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  getNotesByStatement,
   type Note,
   type DelegationChainLink,
 } from './delegation-queries.js';

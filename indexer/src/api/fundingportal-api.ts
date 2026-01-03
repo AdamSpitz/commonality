@@ -245,15 +245,9 @@ app.get("/api/available-funding/:statementId", async (c) => {
     }
 
   // Step 1: Get direct funding (notes intended for this statement)
-  const directNotes = await db
-    .select()
-    .from(schema.delegatableNotes)
-    .where(
-      and(
-        eq(schema.delegatableNotes.intendedStatementId, statementId),
-        eq(schema.delegatableNotes.active, true)
-      )
-    );
+  // TODO: Re-implement using NoteIntent attestations
+  // intendedStatementId has been removed from DelegatableNotes and moved to NoteIntent contract
+  const directNotes: any[] = [];
 
   // Step 2: Find schema.statements that imply this statement
   const implyingStatements = await db
@@ -269,18 +263,8 @@ app.get("/api/available-funding/:statementId", async (c) => {
   const implyingIds = [...new Set(implyingStatements.map((s) => s.fromStatementId))];
 
   // Step 3: Get indirect funding (notes intended for implying schema.statements)
-  let indirectNotes: any[] = [];
-  if (implyingIds.length > 0) {
-    indirectNotes = await db
-      .select()
-      .from(schema.delegatableNotes)
-      .where(
-        and(
-          inArray(schema.delegatableNotes.intendedStatementId, implyingIds),
-          eq(schema.delegatableNotes.active, true)
-        )
-      );
-  }
+  // TODO: Re-implement using NoteIntent attestations
+  const indirectNotes: any[] = [];
 
   // Step 4: Calculate totals
   let directFunding = 0n;
