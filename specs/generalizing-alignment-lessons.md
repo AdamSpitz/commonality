@@ -64,15 +64,22 @@ When tests fail, the error is just "alignment not found." There's no easy way to
 
 ## Why This Was Tricky (Attempt #1)
 
-### 1. The Dual Query System Problem
+### 1. ~~The Dual Query System Problem~~ ✅ RESOLVED
 
-**The Issue:** The codebase has TWO different query systems that coexist:
+**The Issue (Historical):** The codebase HAD two different query systems that coexisted:
 - `sdk/src/queries/` - Direct Ponder indexer queries (older system)
 - `sdk/src/graphql-queries/` - GraphQL-based queries through a local executor (newer system)
 
 **What Went Wrong:** Initial implementation completely rewrote `sdk/src/graphql-queries/funding-portals.ts`, removing complex query functions (`getTotalFundingForCause`, `getAllAlignedProjectsForCause`, etc.) that integration tests depended on. This broke the build immediately.
 
-**The Fix:** Don't rewrite files - just modify what needs changing. Re-export missing functions from the old query system until they can be properly migrated.
+**The Fix (2026-01-04):** Migrated to unified GraphQL query system:
+- Eliminated ~1,637 lines of duplicate wrapper functions from SDK
+- All simple wrappers moved to `integration-tests/src/utils/graphql-helpers.ts`
+- SDK now only exports types + 3 complex composite functions
+- Single source of truth for all queries
+- All 340 tests passing
+
+**Result:** This is no longer a problem. The codebase now has ONE query system.
 
 ### 2. Case Sensitivity with bytes32 Padding
 
@@ -296,14 +303,20 @@ When schema changes, there's no migration system like Django/Rails/Prisma. Just 
 
 **Ideal Solution:** Add a proper migration system (or use Ponder's migration features if they exist).
 
-### 3. Dual Query Systems
+### 3. ~~Dual Query Systems~~ ✅ RESOLVED (2026-01-04)
 
-Having two query systems (`queries/` and `graphql-queries/`) means:
+**Historical Problem:** Having two query systems (`queries/` and `graphql-queries/`) meant:
 - Must update both for every schema change
 - Easy to forget one
 - No warning if they get out of sync
 
-**Ideal Solution:** Pick one query system and deprecate the other.
+**Solution Implemented:** Unified GraphQL query system:
+- SDK exports only types and complex composite functions
+- Integration tests use `graphql-helpers.ts` for all simple queries
+- Single source of truth via `executeQuery()` from GraphQL executor
+- Eliminated 1,637 lines of duplicate code
+
+**Current Status:** This is no longer an issue. Schema changes now only require updating one place.
 
 ### 4. Docker Development Experience
 
@@ -337,8 +350,8 @@ Before claiming a schema change is complete:
 - [ ] **Indexer event handler updated with normalization**
 - [ ] **Normalization strategy documented and applied everywhere**
 - [ ] **All SDK action functions updated**
-- [ ] **All query functions in BOTH systems updated**
-- [ ] **GraphQL type definitions updated**
+- [ ] **All query functions in graphql-helpers.ts updated**
+- [ ] **GraphQL type definitions in SDK updated** (types only, not wrappers)
 - [ ] **GraphQL resolvers updated**
 - [ ] **Integration tests have proper wait/sync logic**
 - [ ] **Manual verification that data is being stored correctly** (check database directly)
@@ -528,14 +541,14 @@ export function addressToBytes32(address: Address): `0x${string}` {
 ### Step 6: Find and Update ALL Query Functions (Read Path)
 ```bash
 # Find all query functions that use the old fields
-grep -r "projectAddress" sdk/src --include="*.ts" | grep -v node_modules
-grep -r "ProjectAlignment" sdk/src --include="*.ts" | grep -v node_modules
+grep -r "projectAddress" integration-tests/src/utils/graphql-helpers.ts
+grep -r "ProjectAlignment" sdk/src/graphql-queries --include="*.ts"
 ```
 
-- Update each query function incrementally
-- **Don't delete or rewrite entire files** - just modify what's needed
-- Check BOTH query systems (`queries/` and `graphql-queries/`)
-- Update GraphQL type definitions AND resolvers
+- Update query functions in `integration-tests/src/utils/graphql-helpers.ts`
+- Update type definitions in SDK (`sdk/src/graphql-queries/*.ts`)
+- Update GraphQL resolvers in indexer if needed
+- **Note:** As of 2026-01-04, there is only ONE query system (GraphQL), making this simpler
 
 **Key Pattern for GraphQL Queries:**
 ```typescript
@@ -594,11 +607,13 @@ Before claiming a schema change is complete:
 - [ ] Indexer schema updated with new fields
 - [ ] Indexer event handler updated with normalization
 - [ ] All SDK action functions updated
-- [ ] All query functions in BOTH systems updated
-- [ ] GraphQL type definitions updated
-- [ ] GraphQL resolvers updated
+- [ ] All query functions in `graphql-helpers.ts` updated
+- [ ] GraphQL type definitions in SDK updated (types only)
+- [ ] GraphQL resolvers in indexer updated if needed
 - [ ] Backward compatibility maintained where possible
 - [ ] Integration tests run against fresh database
+
+**Note:** As of 2026-01-04, there is only one query system (GraphQL), simplifying this checklist.
 
 **Note:** See the "Updated Critical Checklist" section above for the expanded checklist that includes Docker cache busting and manual verification steps learned from Attempt #2.
 
