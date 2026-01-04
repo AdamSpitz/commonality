@@ -14,19 +14,17 @@ import {
   type PubstarterContract,
   type AssuranceContract,
   type ProjectAlignmentContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getTopContributorsForCause,
-  getUserContributionRankForCause,
   type GraphQLClient,
-} from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
-import {
   PubstarterAbi,
   AssuranceContractAbi,
   ProjectAlignmentAbi,
 } from '@commonality/sdk';
+import {
+  getTopContributorsForCause,
+  getUserContributionRankForCause,
+} from '../utils/graphql-helpers.js';
+import { parseEther, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';

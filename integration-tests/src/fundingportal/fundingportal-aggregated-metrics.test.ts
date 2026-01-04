@@ -24,14 +24,7 @@ import {
 import {
   createGraphQLClient,
   assertNotNull,
-  getTotalFundingForCause,
-  getAllAlignedProjectsForCause,
-  getTopContributorsForCause,
-  getUserContributionRankForCause,
   type GraphQLClient,
-} from '@commonality/sdk';
-import { parseEther, type Address, keccak256, toBytes } from 'viem';
-import {
   BeliefsAbi,
   ImplicationsAbi,
   PubstarterAbi,
@@ -39,6 +32,13 @@ import {
   ProjectAlignmentAbi,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
+import {
+  getTotalFundingForCause,
+  getAllAlignedProjectsForCause,
+  getTopContributorsForCause,
+  getUserContributionRankForCause,
+} from '../utils/graphql-helpers.js';
+import { parseEther, type Address, keccak256, toBytes } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';

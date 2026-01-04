@@ -12,17 +12,17 @@ import assert from 'assert';
 import {
   uploadToIPFS,
   type MutableRefUpdaterContract,
+  createGraphQLClient,
+  getRef,
+  assertNotNull,
+  MutableRefUpdaterAbi,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
   getUserRef,
   getUserRefs,
   getUserRefHistory,
   getRefsByName,
-  getRef,
-  assertNotNull,
-} from '@commonality/sdk';
-import { MutableRefUpdaterAbi } from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { updateRefChecked, appendToUserListChecked } from './mutable-ref-actions-checked.js';
 

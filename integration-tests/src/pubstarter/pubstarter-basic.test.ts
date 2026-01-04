@@ -15,12 +15,10 @@ import {
   type PubstarterContract,
   type AssuranceContract,
   createGraphQLClient,
+  PubstarterAbi,
+  AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
-import {
-  PubstarterAbi,
-  AssuranceContractAbi
-} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 

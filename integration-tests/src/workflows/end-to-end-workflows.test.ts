@@ -16,7 +16,6 @@ import {
   type DelegatableNotesContract,
   type ProjectAlignmentContract,
   createGraphQLClient,
-  getIndirectlyAlignedProjects,
   waitForSync,
   BeliefsAbi,
   ImplicationsAbi,
@@ -28,6 +27,7 @@ import {
   getUserBelief,
   getUserBeliefs,
   getImplicationsFrom,
+  getIndirectlyAlignedProjects,
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';

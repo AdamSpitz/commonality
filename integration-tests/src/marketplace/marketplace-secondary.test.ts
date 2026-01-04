@@ -20,29 +20,19 @@ import {
   fulfillBuyOrder,
   cancelBuyOrder,
   approveERC1155ForMarketplace,
+  createGraphQLClient,
+  assertNotNull,
+  waitForSync,
   type PubstarterContract,
   type AssuranceContract,
   type SecondaryMarketContract,
-} from '@commonality/sdk';
-import {
-  createGraphQLClient,
-  getProject,
-  getSaleListing,
-  getActiveSaleListings,
-  getBuyOrder,
-  getActiveBuyOrders,
-  getMarketplaceTrades,
-  getTokenTrades,
-  assertNotNull,
-  waitForSync,
   type GraphQLClient,
-} from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
-import {
   PubstarterAbi,
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
+import { parseEther, type Address } from 'viem';
+import { getProject, getSaleListing, getActiveSaleListings, getBuyOrder, getActiveBuyOrders, getMarketplaceTrades, getTokenTrades } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { createSaleListingChecked, fulfillSaleListingChecked } from './marketplace-actions-checked.js';

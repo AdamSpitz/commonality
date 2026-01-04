@@ -14,17 +14,16 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type DelegatableNotesContract,
+  createGraphQLClient,
+  assertNotNull,
+  DelegatableNotesAbi,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
   getNote,
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  assertNotNull,
-} from '@commonality/sdk';
-
-import { DelegatableNotesAbi } from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   depositETHChecked,

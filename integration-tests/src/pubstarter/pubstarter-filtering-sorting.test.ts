@@ -15,22 +15,19 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
+  PubstarterAbi,
+  AssuranceContractAbi,
+} from '@commonality/sdk';
+import { parseEther, type Address } from 'viem';
+import {
   getProjectsByDate,
   getProjectsByDeadline,
   getProjectsByFundingGoal,
   getProjectsByFundingProgress,
   getProjectsByAmountRaised,
   getProjectsFiltered,
-  type GraphQLClient,
-} from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
-import {
-  PubstarterAbi,
-  AssuranceContractAbi,
-} from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 
@@ -42,7 +39,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-filtering-sorting';
 
-  let graphqlClient: GraphQLClient;
+  let graphqlClient: ReturnType<typeof createGraphQLClient>;
 
   before(() => {
     graphqlClient = createGraphQLClient(GRAPHQL_URL);

@@ -15,16 +15,17 @@ import {
   type DelegatableNotesContract,
   type PubstarterContract,
   type AssuranceContract,
+  createGraphQLClient,
+  assertNotNull,
+  DelegatableNotesAbi,
+  PubstarterAbi,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
   getNote,
   getDelegationChain,
   getProject,
   getProjectContributions,
-  assertNotNull,
-} from '@commonality/sdk';
-import { DelegatableNotesAbi, PubstarterAbi } from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   depositETHChecked,

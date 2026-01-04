@@ -12,11 +12,11 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
+import { getRef } from '@commonality/sdk';
 import {
   getUserRef,
   getUserRefHistory,
-  getRef,
-} from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import {
   assertRefContractIndexerConsistency,
   assertRefHistoryOrdering,
