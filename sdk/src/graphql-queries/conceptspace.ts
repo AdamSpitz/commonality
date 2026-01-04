@@ -1,21 +1,17 @@
 /**
  * GraphQL-based conceptspace queries
  *
- * MIGRATION STATUS: Most wrapper functions have been removed from exports.
- * Tests now use graphql-helpers.ts instead of these wrapper functions.
- *
- * This file now only exports:
+ * This file exports:
  * - Type definitions (used throughout the codebase)
- * - Complex composite functions (getStatementWithContent, getUserIndirectSupport, getIndirectSupporterCount)
+ * - Complex composite functions that do more than just wrap a GraphQL query
  *
- * Simple wrapper functions (getStatement, getUserBelief, etc.) are no longer exported
- * but remain in this file for now. They can be deleted in a future cleanup.
+ * Simple wrapper functions have been removed. Tests should use the graphql-helpers module.
  */
 
 import { executeQuery, type GraphQLExecutor } from '../graphql-server/index.js';
 
 // ============================================================================
-// Conceptspace Queries
+// Type Definitions
 // ============================================================================
 
 export interface Statement {
@@ -66,10 +62,52 @@ export interface BrowseStatementsOptions {
   orderDirection?: string;
 }
 
-/**
- * Get statement by ID
- */
-export async function getStatement(
+export interface StatementContent {
+  statementType: string;
+  title?: string;
+  excerpt?: string;
+  content?: string;
+  references?: Array<{
+    statementId: string;
+    context?: string;
+  }>;
+}
+
+export interface StatementWithContent {
+  statement: Statement;
+  content: StatementContent | null;
+  metrics?: {
+    directBelievers: number;
+    directDisbelievers: number;
+    indirectSupporters: number;
+  };
+}
+
+export interface GetStatementWithContentOptions {
+  includeMetrics?: boolean;
+  timeout?: number;
+  attesterAddress?: string;
+}
+
+export interface IndirectSupportInfo {
+  statement: StatementListItem;
+  supportedVia: Array<{
+    directlyBelievedStatement: StatementListItem;
+    viaStatementId: string;
+  }>;
+}
+
+export interface GetUserIndirectSupportOptions {
+  trustedAttesters?: string[];
+  limit?: number;
+  offset?: number;
+}
+
+// ============================================================================
+// Internal Helper Functions (not exported - used by complex functions below)
+// ============================================================================
+
+async function getStatement(
   executor: GraphQLExecutor,
   statementId: string
 ): Promise<Statement | null> {
@@ -95,10 +133,7 @@ export async function getStatement(
   return result.statement;
 }
 
-/**
- * Get user's belief about a statement
- */
-export async function getUserBelief(
+async function getUserBelief(
   executor: GraphQLExecutor,
   userAddress: string,
   statementId: string
@@ -119,10 +154,7 @@ export async function getUserBelief(
   return result.userBelief;
 }
 
-/**
- * Get implications from a statement (what it implies)
- */
-export async function getImplicationsFrom(
+async function getImplicationsFrom(
   executor: GraphQLExecutor,
   statementId: string,
   attesterAddress?: string
@@ -147,209 +179,7 @@ export async function getImplicationsFrom(
   return result.implicationsFrom || [];
 }
 
-/**
- * Get implications to a statement (what implies it)
- */
-export async function getImplicationsTo(
-  executor: GraphQLExecutor,
-  statementId: string,
-  attesterAddress?: string
-): Promise<Implication[]> {
-  const result = await executeQuery<{ implicationsTo: Implication[] }>(
-    executor,
-    `
-      query GetImplicationsTo($statementId: ID!, $attesterAddress: Address) {
-        implicationsTo(statementId: $statementId, attesterAddress: $attesterAddress) {
-          attester
-          fromStatementId
-          toStatementId
-          explanationCid
-          createdAt
-          blockNumber
-        }
-      }
-    `,
-    { statementId, attesterAddress }
-  );
-
-  return result.implicationsTo || [];
-}
-
-/**
- * Get a specific implication attestation
- */
-export async function getImplication(
-  executor: GraphQLExecutor,
-  attesterAddress: string,
-  fromStatementId: string,
-  toStatementId: string
-): Promise<Implication | null> {
-  const result = await executeQuery<{ implication: Implication | null }>(
-    executor,
-    `
-      query GetImplication($attesterAddress: Address!, $fromStatementId: ID!, $toStatementId: ID!) {
-        implication(attesterAddress: $attesterAddress, fromStatementId: $fromStatementId, toStatementId: $toStatementId) {
-          attester
-          fromStatementId
-          toStatementId
-          explanationCid
-          createdAt
-          blockNumber
-        }
-      }
-    `,
-    { attesterAddress, fromStatementId, toStatementId }
-  );
-
-  return result.implication;
-}
-
-/**
- * Compute indirect supporters for a statement
- */
-export async function getIndirectSupporters(
-  executor: GraphQLExecutor,
-  statementId: string,
-  attesterAddress?: string
-): Promise<IndirectSupporter[]> {
-  const result = await executeQuery<{ indirectSupporters: IndirectSupporter[] }>(
-    executor,
-    `
-      query GetIndirectSupporters($statementId: ID!, $attesterAddress: Address) {
-        indirectSupporters(statementId: $statementId, attesterAddress: $attesterAddress) {
-          user
-          viaStatementId
-          viaStatement {
-            id
-            believerCount
-            disbelieverCount
-            cid
-            statementType
-            title
-            excerpt
-            createdAt
-          }
-        }
-      }
-    `,
-    { statementId, attesterAddress }
-  );
-
-  return result.indirectSupporters || [];
-}
-
-/**
- * Get count of indirect supporters for a statement
- */
-export async function getIndirectSupporterCount(
-  executor: GraphQLExecutor,
-  statementId: string,
-  attesterAddress?: string
-): Promise<number> {
-  const result = await executeQuery<{ indirectSupporterCount: number }>(
-    executor,
-    `
-      query GetIndirectSupporterCount($statementId: ID!, $attesterAddress: Address) {
-        indirectSupporterCount(statementId: $statementId, attesterAddress: $attesterAddress)
-      }
-    `,
-    { statementId, attesterAddress }
-  );
-
-  return result.indirectSupporterCount || 0;
-}
-
-/**
- * Browse statements by most supporters
- */
-export async function browseStatementsByMostSupporters(
-  executor: GraphQLExecutor,
-  options: BrowseStatementsOptions = {}
-): Promise<StatementListItem[]> {
-  const result = await executeQuery<{ browseStatementsByMostSupporters: StatementListItem[] }>(
-    executor,
-    `
-      query BrowseByMostSupporters($options: BrowseStatementsOptions) {
-        browseStatementsByMostSupporters(options: $options) {
-          id
-          cid
-          statementType
-          title
-          excerpt
-          believerCount
-          disbelieverCount
-          createdAt
-        }
-      }
-    `,
-    { options }
-  );
-
-  return result.browseStatementsByMostSupporters || [];
-}
-
-/**
- * Browse newest statements
- */
-export async function browseStatementsByNewest(
-  executor: GraphQLExecutor,
-  options: BrowseStatementsOptions = {}
-): Promise<StatementListItem[]> {
-  const result = await executeQuery<{ browseStatementsByNewest: StatementListItem[] }>(
-    executor,
-    `
-      query BrowseByNewest($options: BrowseStatementsOptions) {
-        browseStatementsByNewest(options: $options) {
-          id
-          cid
-          statementType
-          title
-          excerpt
-          believerCount
-          disbelieverCount
-          createdAt
-        }
-      }
-    `,
-    { options }
-  );
-
-  return result.browseStatementsByNewest || [];
-}
-
-/**
- * Get all statements
- */
-export async function getAllStatements(
-  executor: GraphQLExecutor,
-  options: BrowseStatementsOptions = {}
-): Promise<StatementListItem[]> {
-  const result = await executeQuery<{ allStatements: StatementListItem[] }>(
-    executor,
-    `
-      query GetAllStatements($options: BrowseStatementsOptions) {
-        allStatements(options: $options) {
-          id
-          cid
-          statementType
-          title
-          excerpt
-          believerCount
-          disbelieverCount
-          createdAt
-        }
-      }
-    `,
-    { options }
-  );
-
-  return result.allStatements || [];
-}
-
-/**
- * Get statements a user directly believes
- */
-export async function getUserBeliefs(
+async function getUserBeliefs(
   executor: GraphQLExecutor,
   userAddress: string
 ): Promise<StatementListItem[]> {
@@ -375,166 +205,35 @@ export async function getUserBeliefs(
   return result.userBeliefs || [];
 }
 
-/**
- * Get statements a user directly disbelieves
- */
-export async function getUserDisbeliefs(
-  executor: GraphQLExecutor,
-  userAddress: string
-): Promise<StatementListItem[]> {
-  const result = await executeQuery<{ userDisbeliefs: StatementListItem[] }>(
-    executor,
-    `
-      query GetUserDisbeliefs($userAddress: Address!) {
-        userDisbeliefs(userAddress: $userAddress) {
-          id
-          cid
-          statementType
-          title
-          excerpt
-          believerCount
-          disbelieverCount
-          createdAt
-        }
-      }
-    `,
-    { userAddress }
-  );
-
-  return result.userDisbeliefs || [];
-}
-
-export interface StatementSuggestion {
-  statement: StatementListItem;
-  reason: string;
-  relationshipType: string;
-}
+// ============================================================================
+// Exported Complex Functions
+// ============================================================================
 
 /**
- * Get statement suggestions for a given statement
+ * Get count of indirect supporters for a statement.
+ * This is more efficient than fetching the full list when you only need the count.
  */
-export async function getStatementSuggestions(
+export async function getIndirectSupporterCount(
   executor: GraphQLExecutor,
   statementId: string,
-  userAddress?: string,
   attesterAddress?: string
-): Promise<StatementSuggestion[]> {
-  const result = await executeQuery<{ statementSuggestions: StatementSuggestion[] }>(
+): Promise<number> {
+  const result = await executeQuery<{ indirectSupporterCount: number }>(
     executor,
     `
-      query GetStatementSuggestions($statementId: ID!, $userAddress: Address, $attesterAddress: Address) {
-        statementSuggestions(statementId: $statementId, userAddress: $userAddress, attesterAddress: $attesterAddress) {
-          statement {
-            id
-            cid
-            statementType
-            title
-            excerpt
-            believerCount
-            disbelieverCount
-            createdAt
-          }
-          reason
-          relationshipType
-        }
+      query GetIndirectSupporterCount($statementId: ID!, $attesterAddress: Address) {
+        indirectSupporterCount(statementId: $statementId, attesterAddress: $attesterAddress)
       }
     `,
-    { statementId, userAddress, attesterAddress }
+    { statementId, attesterAddress }
   );
 
-  return result.statementSuggestions || [];
+  return result.indirectSupporterCount || 0;
 }
-
-export interface StatementContent {
-  statementType: string;
-  content: string;
-  title?: string;
-  references?: Array<{
-    statementId: string;
-    label?: string;
-    relationship?: string;
-  }>;
-  metadata?: {
-    createdDate?: string;
-    version?: number;
-    [key: string]: any;
-  };
-  [key: string]: any;
-}
-
-export interface StatementWithContent {
-  statement: Statement;
-  content: StatementContent | null;
-  metrics?: {
-    directBelievers: number;
-    directDisbelievers: number;
-    indirectSupporters: number;
-  };
-}
-
-export interface GetStatementWithContentOptions {
-  /** Include support metrics (believer/disbeliever/indirect supporter counts) */
-  includeMetrics?: boolean;
-  /** Timeout for IPFS fetch in milliseconds (defaults to 10000) */
-  timeout?: number;
-  /** Attester address to use for indirect supporter calculations */
-  attesterAddress?: string;
-}
-
-export interface IndirectSupportInfo {
-  statement: StatementListItem;
-  supportedVia: Array<{
-    directlyBelievedStatement: StatementListItem;
-    viaStatementId: string;
-  }>;
-}
-
-export interface GetUserIndirectSupportOptions {
-  trustedAttesters?: string[];
-  limit?: number;
-  offset?: number;
-}
-
 
 /**
- * Get statement with its IPFS content and optional metrics.
- *
- * This is a higher-level convenience function that:
- * 1. Fetches statement metadata from the indexer
- * 2. Fetches the statement content from IPFS (if CID exists)
- * 3. Optionally fetches support metrics
- *
- * Benefits over manual fetching:
- * - Centralized IPFS gateway configuration
- * - Consistent error handling and retry logic
- * - Single function call instead of multiple queries
- * - Automatic timeout handling for IPFS requests
- *
- * @param executor GraphQL executor
- * @param statementId The statement ID
- * @param options Optional configuration
- * @returns Statement with content and optional metrics, or null if statement not found
- *
- * @example
- * ```typescript
- * // Basic usage
- * const result = await getStatementWithContent(executor, statementId);
- * if (result) {
- *   console.log('Statement:', result.statement);
- *   console.log('Content:', result.content);
- * }
- *
- * // With metrics
- * const result = await getStatementWithContent(executor, statementId, {
- *   includeMetrics: true
- * });
- * console.log('Metrics:', result?.metrics);
- *
- * // With custom timeout
- * const result = await getStatementWithContent(executor, statementId, {
- *   timeout: 5000
- * });
- * ```
+ * Get statement with IPFS content and optional metrics.
+ * This is a complex function that combines GraphQL queries with IPFS fetching.
  */
 export async function getStatementWithContent(
   executor: GraphQLExecutor,
@@ -598,11 +297,6 @@ export async function getStatementWithContent(
  *
  * Note: Indirect support only applies to statements the user hasn't directly opined on.
  * If they directly believe or disbelieve a statement, it's not considered indirect support.
- *
- * @param executor GraphQL executor
- * @param userAddress The user's address
- * @param options Optional filtering and pagination options
- * @returns Array of statements the user indirectly supports, with information about how
  */
 export async function getUserIndirectSupport(
   executor: GraphQLExecutor,
