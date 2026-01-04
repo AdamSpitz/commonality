@@ -16,15 +16,13 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type BeliefsContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getStatementWithContent,
   assertNotNull,
+  BeliefsAbi,
 } from '@commonality/sdk';
-import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { assertBeliefCountsMatch, assertNoOrphanedData } from '../utils/invariants.js';
+import { getStatementWithContent } from '../utils/graphql-helpers.js';
 import {
   believeStatementChecked,
   disbelieveStatementChecked,

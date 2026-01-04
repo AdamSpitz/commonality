@@ -496,7 +496,8 @@ export async function assertIndirectSupporterCountConsistency(
   attesterAddress?: string
 ): Promise<void> {
   // Import SDK functions dynamically to avoid circular dependencies
-  const { getIndirectSupporterCount, getIndirectSupporters } = await import('@commonality/sdk');
+  const { getIndirectSupporterCount } = await import('@commonality/sdk');
+  const { getIndirectSupporters } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -1115,8 +1116,8 @@ export async function assertImplicationBidirectionality(
   toStatementId: string,
   attesterAddress: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getImplicationsFrom } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getImplicationsFrom } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -1222,14 +1223,13 @@ export async function assertImplicationNonTransitivity(
   attesterAddress: string,
   believerAddress: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
+  // Import SDK constants and query functions dynamically to avoid circular dependencies
+  const { BELIEVES, DISBELIEVES } = await import('@commonality/sdk');
   const {
     getImplicationsFrom,
     getIndirectSupporters,
     getUserBelief,
-    BELIEVES,
-    DISBELIEVES,
-  } = await import('@commonality/sdk');
+  } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;

@@ -13,14 +13,14 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type ImplicationsContract,
+  createGraphQLClient,
+  type GraphQLClient,
+  ImplicationsAbi,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
   getImplicationsFrom,
   getImplicationsTo,
-  type GraphQLClient,
-} from '@commonality/sdk';
-import { ImplicationsAbi } from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { TEST_TIMEOUTS } from '../utils/test-timeouts.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

@@ -15,22 +15,20 @@ import {
   type PubstarterContract,
   type DelegatableNotesContract,
   type ProjectAlignmentContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getUserBelief,
-  getUserBeliefs,
-  getImplicationsFrom,
   getIndirectlyAlignedProjects,
   waitForSync,
-} from '@commonality/sdk';
-import {
   BeliefsAbi,
   ImplicationsAbi,
   PubstarterAbi,
   ProjectAlignmentAbi,
-  DelegatableNotesAbi
+  DelegatableNotesAbi,
 } from '@commonality/sdk';
+import {
+  getUserBelief,
+  getUserBeliefs,
+  getImplicationsFrom,
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

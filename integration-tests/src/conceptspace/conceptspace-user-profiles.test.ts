@@ -12,13 +12,13 @@ import {
   uploadToIPFS,
   cidToBytes32,
   type BeliefsContract,
+  createGraphQLClient,
+  BeliefsAbi,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
   getUserBeliefs,
   getUserDisbeliefs,
-} from '@commonality/sdk';
-import { BeliefsAbi } from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 
