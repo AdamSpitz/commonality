@@ -22,7 +22,7 @@ import {
   approveERC1155ForMarketplace,
   createGraphQLClient,
   assertNotNull,
-  waitForSync,
+  waitForIndexerSync,
   type PubstarterContract,
   type AssuranceContract,
   type SecondaryMarketContract,
@@ -299,8 +299,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       { saleListingId: 0n }
     );
 
-    const cancelReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: cancelHash });
-    await waitForSync(graphqlClient, cancelReceipt.blockNumber);
+    await waitForIndexerSync(graphqlClient, sellerClients.publicClient, cancelHash);
 
     // Verify listing is cancelled
     const cancelledListing = assertNotNull(
@@ -392,8 +391,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    const orderReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: orderHash });
-    await waitForSync(graphqlClient, orderReceipt.blockNumber);
+    await waitForIndexerSync(graphqlClient, buyerClients.publicClient, orderHash);
 
     // Query the buy order
     const buyOrder = assertNotNull(
@@ -416,8 +414,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    const fulfillReceipt = await sellerClients.publicClient.getTransactionReceipt({ hash: fulfillHash });
-    await waitForSync(graphqlClient, fulfillReceipt.blockNumber);
+    await waitForIndexerSync(graphqlClient, sellerClients.publicClient, fulfillHash);
 
     // Query updated buy order
     const updatedOrder = assertNotNull(
@@ -496,8 +493,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    const orderReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: orderHash });
-    await waitForSync(graphqlClient, orderReceipt.blockNumber);
+    await waitForIndexerSync(graphqlClient, buyerClients.publicClient, orderHash);
 
     // Verify order exists
     const order = assertNotNull(
@@ -514,8 +510,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       { buyOrderId: 0n }
     );
 
-    const cancelReceipt = await buyerClients.publicClient.getTransactionReceipt({ hash: cancelHash });
-    await waitForSync(graphqlClient, cancelReceipt.blockNumber);
+    await waitForIndexerSync(graphqlClient, buyerClients.publicClient, cancelHash);
 
     // Verify order is cancelled
     const cancelledOrder = assertNotNull(

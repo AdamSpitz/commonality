@@ -174,19 +174,20 @@ export async function waitForSync(
 }
 
 /**
- * Wait for the indexer to sync to the current blockchain block
+ * Wait for the indexer to sync after a transaction
  *
  * This is a convenience wrapper around waitForSync that automatically
- * fetches the current block number from the blockchain and waits for
- * the indexer to catch up to it.
+ * fetches the transaction receipt to get the block number, then waits
+ * for the indexer to process that block.
  *
- * Use this when you want to ensure the indexer has processed all blocks
- * up to the current chain state, without needing to manually track block numbers.
+ * This ensures the indexer has processed the specific transaction before
+ * querying for its effects.
  *
  * @param client - GraphQL client or executor for the indexer
  * @param publicClient - Public client (viem) for reading blockchain state
+ * @param txHash - Transaction hash to wait for
  * @param timeoutMs - Maximum time to wait (default from INDEXER_SYNC.MAX_WAIT_MS)
- * @returns Promise that resolves when indexer catches up to current block
+ * @returns Promise that resolves when indexer has processed the transaction's block
  * @throws Error if timeout is reached or sync appears stuck
  *
  * @example
@@ -199,21 +200,25 @@ export async function waitForSync(
  * });
  * const graphqlClient = createGraphQLClient();
  *
- * // Perform some blockchain actions...
- * await someContractWrite();
+ * // Perform a blockchain action
+ * const txHash = await someContractWrite();
  *
- * // Wait for indexer to catch up
- * await waitForIndexerSync(graphqlClient, publicClient);
+ * // Wait for indexer to process this specific transaction
+ * await waitForIndexerSync(graphqlClient, publicClient, txHash);
  *
- * // Now query the indexer knowing it has the latest data
+ * // Now query the indexer knowing it has indexed this transaction
  * const data = await queryIndexer();
  * ```
  */
 export async function waitForIndexerSync(
   client: GraphQLClient | { indexerClient: GraphQLClient },
-  publicClient: { getBlockNumber: () => Promise<bigint> },
+  publicClient: {
+    getBlockNumber: () => Promise<bigint>;
+    getTransactionReceipt: (args: { hash: `0x${string}` }) => Promise<{ blockNumber: bigint }>;
+  },
+  txHash: `0x${string}`,
   timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
-  const currentBlock = await publicClient.getBlockNumber();
-  return waitForSync(client, currentBlock, timeoutMs);
+  const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
+  return waitForSync(client, receipt.blockNumber, timeoutMs);
 }

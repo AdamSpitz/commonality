@@ -20,7 +20,7 @@ import {
   refundProjectTokens,
   withdrawProjectFunds,
   burnTokens,
-  waitForSync,
+  waitForIndexerSync,
   type TestClients,
   type AssuranceContract,
   type PubstarterContract,
@@ -112,8 +112,7 @@ export async function createProjectChecked(
     async () => {
       const result = await createProject(clients, pubstarterContract, params);
       projectDetails = result.projectDetails;
-      const receipt = await clients.publicClient.getTransactionReceipt({ hash: result.hash });
-      await waitForSync(graphqlClient, receipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, clients.publicClient, result.hash);
       return result;
     },
     createProjectMetadata,
@@ -204,8 +203,7 @@ export async function buyProjectTokensChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await buyProjectTokens(clients, assuranceContract, params);
-      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     buyProjectTokensMetadata,
@@ -286,8 +284,7 @@ export async function refundProjectTokensChecked(
         tokenIds: params.tokenIds,
         tokenCounts: params.tokenCounts,
       });
-      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     refundProjectTokensMetadata,
@@ -340,8 +337,7 @@ export async function withdrawProjectFundsChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await withdrawProjectFunds(clients, assuranceContract);
-      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     withdrawProjectFundsMetadata,
@@ -408,8 +404,7 @@ export async function burnTokensChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await burnTokens(clients, tokenAddress, params);
-      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     burnTokensMetadata,

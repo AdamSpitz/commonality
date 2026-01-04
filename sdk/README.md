@@ -40,8 +40,8 @@ const clients = createTestClients(privateKey, rpcUrl);
 // Perform actions
 const txHash = await believeStatement(clients, beliefsContract, statementCid);
 
-// Wait for indexer to catch up to current blockchain state
-await waitForIndexerSync(executor, clients.publicClient);
+// Wait for indexer to process this transaction
+await waitForIndexerSync(executor, clients.publicClient, txHash);
 
 // Query data (now includes the latest changes)
 const statement = await getStatement(executor, statementId);
@@ -54,10 +54,11 @@ When you perform blockchain actions (transactions), the indexer needs time to pr
 ```typescript
 import { waitForIndexerSync, waitForSync } from '@commonality/sdk';
 
-// Option 1: Wait for indexer to catch up to current blockchain state
-await waitForIndexerSync(graphqlClient, publicClient);
+// Option 1: Wait for indexer to process a specific transaction (recommended)
+const txHash = await someContractWrite();
+await waitForIndexerSync(graphqlClient, publicClient, txHash);
 
-// Option 2: Wait for a specific block number (more precise)
+// Option 2: Wait for a specific block number
 const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
 await waitForSync(graphqlClient, receipt.blockNumber);
 ```
