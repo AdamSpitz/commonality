@@ -172,3 +172,48 @@ export async function waitForSync(
     `This may indicate indexer is slow, stuck, or the target block doesn't exist.`
   );
 }
+
+/**
+ * Wait for the indexer to sync to the current blockchain block
+ *
+ * This is a convenience wrapper around waitForSync that automatically
+ * fetches the current block number from the blockchain and waits for
+ * the indexer to catch up to it.
+ *
+ * Use this when you want to ensure the indexer has processed all blocks
+ * up to the current chain state, without needing to manually track block numbers.
+ *
+ * @param client - GraphQL client or executor for the indexer
+ * @param publicClient - Public client (viem) for reading blockchain state
+ * @param timeoutMs - Maximum time to wait (default from INDEXER_SYNC.MAX_WAIT_MS)
+ * @returns Promise that resolves when indexer catches up to current block
+ * @throws Error if timeout is reached or sync appears stuck
+ *
+ * @example
+ * ```typescript
+ * import { createPublicClient, http } from 'viem';
+ * import { waitForIndexerSync, createGraphQLClient } from '@commonality/sdk';
+ *
+ * const publicClient = createPublicClient({
+ *   transport: http('http://localhost:8545')
+ * });
+ * const graphqlClient = createGraphQLClient();
+ *
+ * // Perform some blockchain actions...
+ * await someContractWrite();
+ *
+ * // Wait for indexer to catch up
+ * await waitForIndexerSync(graphqlClient, publicClient);
+ *
+ * // Now query the indexer knowing it has the latest data
+ * const data = await queryIndexer();
+ * ```
+ */
+export async function waitForIndexerSync(
+  client: GraphQLClient | { indexerClient: GraphQLClient },
+  publicClient: { getBlockNumber: () => Promise<bigint> },
+  timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
+): Promise<void> {
+  const currentBlock = await publicClient.getBlockNumber();
+  return waitForSync(client, currentBlock, timeoutMs);
+}

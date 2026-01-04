@@ -7,6 +7,7 @@ export {
   createGraphQLClient,
   assertNotNull,
   waitForSync,
+  waitForIndexerSync,
   type GraphQLClient,
 } from './common.js';
 
