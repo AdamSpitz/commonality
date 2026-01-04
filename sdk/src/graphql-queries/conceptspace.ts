@@ -1,7 +1,15 @@
 /**
  * GraphQL-based conceptspace queries
  *
- * These functions use the local GraphQL executor instead of direct indexer queries
+ * MIGRATION STATUS: Most wrapper functions have been removed from exports.
+ * Tests now use graphql-helpers.ts instead of these wrapper functions.
+ *
+ * This file now only exports:
+ * - Type definitions (used throughout the codebase)
+ * - Complex composite functions (getStatementWithContent, getUserIndirectSupport, getIndirectSupporterCount)
+ *
+ * Simple wrapper functions (getStatement, getUserBelief, etc.) are no longer exported
+ * but remain in this file for now. They can be deleted in a future cleanup.
  */
 
 import { executeQuery, type GraphQLExecutor } from '../graphql-server/index.js';
