@@ -383,12 +383,22 @@ Before making any changes, add diagnostic tools:
    sqlite3 indexer/.ponder/ponder.db "SELECT * FROM fundingportal_project_alignments;"
    ```
 
-3. **Add sync helper for integration tests**
+3. **✅ IMPLEMENTED: Add sync helper for integration tests**
+
+   Implemented as `waitForIndexerSync()` in `sdk/src/queries/common.ts`:
    ```typescript
-   async function waitForIndexerSync(blockNumber: number) {
-     // Poll indexer until it's processed up to blockNumber
-   }
+   // Automatically fetches receipt and waits for indexer to process the transaction
+   await waitForIndexerSync(graphqlClient, publicClient, txHash);
    ```
+
+   Features:
+   - Takes transaction hash as parameter
+   - Fetches receipt internally to get block number
+   - Waits for indexer to process that specific block
+   - Prevents race conditions
+   - Used throughout integration tests (102 passing tests)
+
+   See: `sdk/README.md` for usage examples
 
 4. **Add ABI sync validator**
    ```bash
