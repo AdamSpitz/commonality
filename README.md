@@ -4,6 +4,10 @@ The way we do development on this project is that we write specs in English, and
 
 The main spec is in [specs/README.md](specs/README.md).
 
+## Project Leadership
+
+The project-lead notes are stored in `project-lead-notes.md` for continuity between AI sessions.
+
 ## Main artifacts
 
 ### Smart contracts
