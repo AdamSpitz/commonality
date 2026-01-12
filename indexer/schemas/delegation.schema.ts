@@ -30,8 +30,6 @@ export const delegatableNotes = onchainTable("delegation_notes", (t) => ({
   tokenId: t.bigint().notNull().default(0n), // Only relevant for ERC1155
   // Amount in the note
   amount: t.bigint().notNull(),
-  // Intended statement alignment (bytes32 as hex)
-  intendedStatementId: t.hex().notNull(),
   // Chain hash (commitment to delegation chain)
   chainHash: t.hex().notNull(),
   // Status tracking
@@ -47,8 +45,6 @@ export const delegatableNotes = onchainTable("delegation_notes", (t) => ({
   ownerIdx: index().on(table.owner, table.active),
   // Index for finding notes by root owner
   rootOwnerIdx: index().on(table.rootOwner, table.active),
-  // Index for finding notes by intended statement
-  statementIdx: index().on(table.intendedStatementId, table.active),
   // Index for finding notes by token
   tokenIdx: index().on(table.token, table.tokenType, table.active),
 }));

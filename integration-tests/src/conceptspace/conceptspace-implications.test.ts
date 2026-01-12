@@ -14,13 +14,14 @@ import {
   cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
+  createGraphQLClient,
+  BeliefsAbi,
+  ImplicationsAbi,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
   getImplicationsFrom,
   getImplicationsTo,
-} from '@commonality/sdk';
-import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';

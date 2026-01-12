@@ -183,7 +183,6 @@ export const typeDefs = `#graphql
     token: Address!
     tokenType: Int!
     tokenId: String!
-    intendedStatementId: ID!
     chainHash: String!
     active: Boolean!
     parentNoteId: String
@@ -356,7 +355,6 @@ export const typeDefs = `#graphql
     notesByOwner(ownerAddress: Address!): [Note!]!
     notesByRoot(rootAddress: Address!): [Note!]!
     delegationChain(noteId: ID!): [DelegationChainLink!]!
-    notesByStatement(statementId: ID!): [Note!]!
 
     # ========================================================================
     # Funding Portals Queries

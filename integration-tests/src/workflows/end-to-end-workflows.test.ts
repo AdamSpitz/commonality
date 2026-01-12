@@ -15,22 +15,20 @@ import {
   type PubstarterContract,
   type DelegatableNotesContract,
   type ProjectAlignmentContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getUserBelief,
-  getUserBeliefs,
-  getImplicationsFrom,
-  getIndirectlyAlignedProjects,
-  waitForSync,
-} from '@commonality/sdk';
-import {
+  waitForIndexerSync,
   BeliefsAbi,
   ImplicationsAbi,
   PubstarterAbi,
   ProjectAlignmentAbi,
-  DelegatableNotesAbi
+  DelegatableNotesAbi,
 } from '@commonality/sdk';
+import {
+  getUserBelief,
+  getUserBeliefs,
+  getImplicationsFrom,
+  getIndirectlyAlignedProjects,
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
@@ -171,7 +169,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 14. Wait for indexer to sync purchase
-      await waitForSync(graphqlClient, purchaseReceipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, userClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ End-to-end workflow completed successfully!');
@@ -307,7 +305,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 16. Wait for indexer to sync purchase
-      await waitForSync(graphqlClient, purchaseReceipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, delegateUserClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ Delegation chain workflow completed successfully!');

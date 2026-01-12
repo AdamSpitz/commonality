@@ -7,6 +7,7 @@ export {
   createGraphQLClient,
   assertNotNull,
   waitForSync,
+  waitForIndexerSync,
   type GraphQLClient,
 } from './common.js';
 
@@ -76,7 +77,6 @@ export {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  getNotesByStatement,
   type Note,
   type DelegationChainLink,
 } from './delegation-queries.js';

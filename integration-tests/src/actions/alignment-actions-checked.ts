@@ -7,7 +7,7 @@
  * Usage:
  *   // Instead of:
  *   await attestProjectAlignment(clients, contract, projectAddress, statementCid);
- *   await waitForSync(graphqlClient, blockNumber);
+ *   await waitForIndexerSync(graphqlClient, publicClient);
  *   // ... manual assertions ...
  *
  *   // Write:
@@ -18,7 +18,7 @@ import type { Hash, Address } from 'viem';
 import {
   attestProjectAlignment,
   attestProjectAlignmentsBatch,
-  waitForSync,
+  waitForIndexerSync,
   type TestClients,
   type ProjectAlignmentContract,
 } from '@commonality/sdk';
@@ -90,8 +90,7 @@ export async function attestProjectAlignmentChecked(
         projectAddress,
         statementCid
       );
-      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestProjectAlignmentMetadata,
@@ -153,8 +152,7 @@ export async function attestProjectAlignmentsBatchChecked(
         projectAddresses,
         statementCids
       );
-      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
-      await waitForSync(graphqlClient, receipt.blockNumber);
+      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestProjectAlignmentsBatchMetadata,

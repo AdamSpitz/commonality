@@ -14,14 +14,15 @@ import {
   cidToBytes32,
   type ProjectAlignmentContract,
   type PubstarterContract,
+  createGraphQLClient,
+  ProjectAlignmentAbi,
+  PubstarterAbi,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
   getAlignedProjects,
   getProjectStatements,
   getAlignmentsByAttester,
-} from '@commonality/sdk';
-import { ProjectAlignmentAbi, PubstarterAbi } from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestProjectAlignmentChecked, attestProjectAlignmentsBatchChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';

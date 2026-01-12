@@ -163,8 +163,8 @@ export async function assertMoneyConservation(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   projectAddress: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getProject, getProjectContributions, getProjectRefunds } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getProject, getProjectContributions, getProjectRefunds } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -233,8 +233,8 @@ export async function assertTokenConservation(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   projectAddress: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getProjectContributions, getTokenBurns } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getProjectContributions, getTokenBurns } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -329,8 +329,8 @@ export async function assertDelegationChainIntegrity(
   graphqlClient: GraphQLClient | GraphQLExecutor,
   noteId: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getNote, getDelegationChain } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getNote, getDelegationChain } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -421,8 +421,8 @@ export async function assertTradeDataConsistency(
   marketplaceAddress: string,
   transactionHash: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getMarketplaceTrades } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getMarketplaceTrades } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -496,7 +496,8 @@ export async function assertIndirectSupporterCountConsistency(
   attesterAddress?: string
 ): Promise<void> {
   // Import SDK functions dynamically to avoid circular dependencies
-  const { getIndirectSupporterCount, getIndirectSupporters } = await import('@commonality/sdk');
+  const { getIndirectSupporterCount } = await import('@commonality/sdk');
+  const { getIndirectSupporters } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -843,8 +844,8 @@ export async function assertMonotonicProjectFunding(
   expectedBefore: bigint,
   allowRefunds: boolean = false
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getProject } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getProject } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -909,8 +910,8 @@ export async function assertAssuranceContractRefundLogic(
   currentBlockTimestamp: bigint,
   shouldAllowRefunds?: boolean
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getProject } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getProject } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -1115,8 +1116,8 @@ export async function assertImplicationBidirectionality(
   toStatementId: string,
   attesterAddress: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getImplicationsFrom } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getImplicationsFrom } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -1222,14 +1223,13 @@ export async function assertImplicationNonTransitivity(
   attesterAddress: string,
   believerAddress: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
+  // Import SDK constants and query functions dynamically to avoid circular dependencies
+  const { BELIEVES, DISBELIEVES } = await import('@commonality/sdk');
   const {
     getImplicationsFrom,
     getIndirectSupporters,
     getUserBelief,
-    BELIEVES,
-    DISBELIEVES,
-  } = await import('@commonality/sdk');
+  } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
@@ -1360,8 +1360,9 @@ export async function assertRefContractIndexerConsistency(
   userAddress: string,
   refName: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getUserRef, getRef } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getUserRef } = await import('./graphql-helpers.js');
+  const { getRef } = await import('@commonality/sdk');
   const { createIsolatedTestClients } = await import('./test-utils.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
@@ -1406,8 +1407,8 @@ export async function assertRefHistoryOrdering(
   userAddress: string,
   refName: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getUserRefHistory } = await import('@commonality/sdk');
+  // Import query functions dynamically to avoid circular dependencies
+  const { getUserRefHistory } = await import('./graphql-helpers.js');
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;

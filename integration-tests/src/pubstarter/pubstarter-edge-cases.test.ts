@@ -20,12 +20,11 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getProject,
+  PubstarterAbi,
+  AssuranceContractAbi,
 } from '@commonality/sdk';
-import { PubstarterAbi, AssuranceContractAbi } from '@commonality/sdk';
+import { getProject } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   createProjectChecked,

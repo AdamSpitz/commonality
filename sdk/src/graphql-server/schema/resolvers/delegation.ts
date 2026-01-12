@@ -7,7 +7,6 @@ import {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  getNotesByStatement,
   type GraphQLClient,
 } from '../../../queries/index.js';
 
@@ -28,10 +27,6 @@ export const delegationResolvers = {
 
     delegationChain: (_: any, { noteId }: { noteId: string }, { client }: { client: GraphQLClient }) => {
       return getDelegationChain(client, noteId);
-    },
-
-    notesByStatement: (_: any, { statementId }: { statementId: string }, { client }: { client: GraphQLClient }) => {
-      return getNotesByStatement(client, statementId);
     },
   },
 };

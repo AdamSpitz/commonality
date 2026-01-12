@@ -1,5 +1,5 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
-// Run 'npm run sync-abis' to regenerate
+// Run sync-abis to regenerate
 export const DelegatableNotesAbi = [
     {
         "inputs": [],
@@ -209,12 +209,6 @@ export const DelegatableNotesAbi = [
                 "internalType": "uint256",
                 "name": "tokenId",
                 "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "bytes32",
-                "name": "intendedStatementId",
-                "type": "bytes32"
             }
         ],
         "name": "NoteCreated",
@@ -343,11 +337,6 @@ export const DelegatableNotesAbi = [
                 "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "intendedStatementId",
-                "type": "bytes32"
             }
         ],
         "name": "deposit",
@@ -408,11 +397,6 @@ export const DelegatableNotesAbi = [
                 "internalType": "uint256",
                 "name": "tokenId",
                 "type": "uint256"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "intendedStatementId",
-                "type": "bytes32"
             }
         ],
         "stateMutability": "view",

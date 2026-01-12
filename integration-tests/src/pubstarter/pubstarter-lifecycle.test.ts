@@ -12,18 +12,16 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getProject,
-  getProjectContributions,
   assertNotNull,
+  PubstarterAbi,
+  AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
-  PubstarterAbi,
-  AssuranceContractAbi
-} from '@commonality/sdk';
+  getProject,
+  getProjectContributions,
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked, refundProjectTokensChecked, withdrawProjectFundsChecked } from '../actions/funding-actions-checked.js';
 

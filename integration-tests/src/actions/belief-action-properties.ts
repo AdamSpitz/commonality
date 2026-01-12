@@ -13,12 +13,11 @@ import {
   type ActionMetadata,
 } from './action-framework.js';
 import {
-  getStatement,
-  getUserBelief,
   NO_OPINION,
   BELIEVES,
   DISBELIEVES,
 } from '@commonality/sdk';
+import { getStatement, getUserBelief } from '../utils/graphql-helpers.js';
 import { assertBeliefCountsMatch } from '../utils/invariants.js';
 
 /**

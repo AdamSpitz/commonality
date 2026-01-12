@@ -24,14 +24,7 @@ import {
 import {
   createGraphQLClient,
   assertNotNull,
-  getTotalFundingForCause,
-  getAllAlignedProjectsForCause,
-  getTopContributorsForCause,
-  getUserContributionRankForCause,
   type GraphQLClient,
-} from '@commonality/sdk';
-import { parseEther, type Address, keccak256, toBytes } from 'viem';
-import {
   BeliefsAbi,
   ImplicationsAbi,
   PubstarterAbi,
@@ -39,6 +32,13 @@ import {
   ProjectAlignmentAbi,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
+import {
+  getTotalFundingForCause,
+  getAllAlignedProjectsForCause,
+  getTopContributorsForCause,
+  getUserContributionRankForCause,
+} from '../utils/graphql-helpers.js';
+import { parseEther, type Address, keccak256, toBytes } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
@@ -246,7 +246,9 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     testLog('  Test passed!');
   });
 
-  it('should calculate total available funding from delegatable notes for a cause', async function() {
+  // TODO: Re-enable once NoteIntent attestation system is implemented
+  // This test requires querying notes by intendedStatementId, which has been moved to NoteIntent contract
+  it.skip('should calculate total available funding from delegatable notes for a cause', async function() {
     this.timeout(40000);
 
     testLog('  Setting up delegatable notes scenario...');

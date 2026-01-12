@@ -16,7 +16,7 @@ import {
   getAlignedProjects,
   getProjectStatements,
   getProjectAlignment,
-} from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 import { assertNoOrphanedData } from '../utils/invariants.js';
 
 /**

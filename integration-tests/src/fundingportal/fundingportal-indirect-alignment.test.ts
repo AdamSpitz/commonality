@@ -16,18 +16,16 @@ import {
   type ProjectAlignmentContract,
   type PubstarterContract,
   type ImplicationsContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
-  getAlignedProjects,
-  getIndirectlyAlignedProjects,
   assertNotNull,
-} from '@commonality/sdk';
-import {
   ProjectAlignmentAbi,
   PubstarterAbi,
-  ImplicationsAbi
+  ImplicationsAbi,
 } from '@commonality/sdk';
+import {
+  getAlignedProjects,
+  getIndirectlyAlignedProjects,
+} from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';

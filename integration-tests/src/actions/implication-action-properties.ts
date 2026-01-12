@@ -13,15 +13,17 @@ import {
   type ActionMetadata,
 } from './action-framework.js';
 import {
+  NO_OPINION,
+  DISBELIEVES,
+  getIndirectSupporterCount,
+} from '@commonality/sdk';
+import {
   getImplicationsFrom,
   getImplicationsTo,
   getIndirectSupporters,
-  getIndirectSupporterCount,
   getStatement,
   getUserBelief,
-  NO_OPINION,
-  DISBELIEVES,
-} from '@commonality/sdk';
+} from '../utils/graphql-helpers.js';
 
 /**
  * State captured before/after an implication action

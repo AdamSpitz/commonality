@@ -337,26 +337,11 @@ export async function getTotalFundingForCause(
     }
   }
 
-  // Get all notes for this statement/cause
-  const notesResult = await query<{ delegatableNotess: { items: Array<{ amount: string }> } }>(
-    client,
-    `
-      query GetNotesByStatement($statementId: String!) {
-        delegatableNotess(where: {
-          intendedStatementId: $statementId,
-          active: true
-        }) {
-          items {
-            amount
-          }
-        }
-      }
-    `,
-    { statementId: statementId.toLowerCase() }
-  );
-
-  const notes = notesResult.delegatableNotess?.items || [];
-  const totalAvailable = notes.reduce((sum, note) => sum + BigInt(note.amount), 0n);
+  // TODO: Re-implement using NoteIntent attestations
+  // intendedStatementId has been removed from DelegatableNotes and moved to NoteIntent contract
+  // For now, we return 0 for notes until NoteIntent indexing is implemented
+  const notes: Array<{ amount: string }> = [];
+  const totalAvailable = 0n;
 
   return {
     totalRaisedAcrossProjects: totalRaised,

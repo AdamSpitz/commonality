@@ -172,3 +172,53 @@ export async function waitForSync(
     `This may indicate indexer is slow, stuck, or the target block doesn't exist.`
   );
 }
+
+/**
+ * Wait for the indexer to sync after a transaction
+ *
+ * This is a convenience wrapper around waitForSync that automatically
+ * fetches the transaction receipt to get the block number, then waits
+ * for the indexer to process that block.
+ *
+ * This ensures the indexer has processed the specific transaction before
+ * querying for its effects.
+ *
+ * @param client - GraphQL client or executor for the indexer
+ * @param publicClient - Public client (viem) for reading blockchain state
+ * @param txHash - Transaction hash to wait for
+ * @param timeoutMs - Maximum time to wait (default from INDEXER_SYNC.MAX_WAIT_MS)
+ * @returns Promise that resolves when indexer has processed the transaction's block
+ * @throws Error if timeout is reached or sync appears stuck
+ *
+ * @example
+ * ```typescript
+ * import { createPublicClient, http } from 'viem';
+ * import { waitForIndexerSync, createGraphQLClient } from '@commonality/sdk';
+ *
+ * const publicClient = createPublicClient({
+ *   transport: http('http://localhost:8545')
+ * });
+ * const graphqlClient = createGraphQLClient();
+ *
+ * // Perform a blockchain action
+ * const txHash = await someContractWrite();
+ *
+ * // Wait for indexer to process this specific transaction
+ * await waitForIndexerSync(graphqlClient, publicClient, txHash);
+ *
+ * // Now query the indexer knowing it has indexed this transaction
+ * const data = await queryIndexer();
+ * ```
+ */
+export async function waitForIndexerSync(
+  client: GraphQLClient | { indexerClient: GraphQLClient },
+  publicClient: {
+    getBlockNumber: () => Promise<bigint>;
+    getTransactionReceipt: (args: { hash: `0x${string}` }) => Promise<{ blockNumber: bigint }>;
+  },
+  txHash: `0x${string}`,
+  timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
+): Promise<void> {
+  const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
+  return waitForSync(client, receipt.blockNumber, timeoutMs);
+}

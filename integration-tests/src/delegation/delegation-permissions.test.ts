@@ -20,11 +20,9 @@ import {
   cidToBytes32,
   uploadToIPFS,
   type DelegatableNotesContract,
-} from '@commonality/sdk';
-import {
   createGraphQLClient,
+  DelegatableNotesAbi,
 } from '@commonality/sdk';
-import { DelegatableNotesAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   depositETHChecked,
