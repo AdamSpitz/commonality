@@ -76,6 +76,9 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
     }
 
     const note = noteResults[0];
+    if (!note) {
+      return c.json({ error: "Note not found" }, 404);
+    }
 
     // Get chain entries ordered by position
     const chainEntries = await db
@@ -347,7 +350,6 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
       token: note.token,
       tokenType: note.tokenType,
       tokenId: note.tokenId.toString(),
-      intendedStatementId: note.intendedStatementId,
       active: note.active,
       createdAt: note.createdAt.toString(),
     }));

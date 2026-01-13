@@ -499,10 +499,11 @@ ponder.on("DelegatableNotes:ERC1155Purchased", async ({ event, context }) => {
   const transactionHash = event.transaction.hash;
 
   // Record event for the purchase
+  const primaryNote = inputNoteIds[0]!;
   await createNoteEvent(
     context,
     "purchased",
-    inputNoteIds[0], // Primary note involved
+    primaryNote,
     buyer,
     timestamp,
     blockNumber,
