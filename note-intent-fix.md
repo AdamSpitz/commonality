@@ -13,26 +13,57 @@ See `specs/decoupling-intendedStatementId.md` for the full design rationale.
 
 ## Issues to Fix
 
-### Issue 1: GraphQL Query Naming Mismatch (Causes Immediate Test Failures) ✅ DONE
+### Issue 1: GraphQL Query Naming Mismatch ⚠️ INVESTIGATION IN PROGRESS
 
-**Status:** Fixed on 2026-01-25
+**Status:** Under investigation (2026-01-25)
 
 **Symptom:** Tests fail with `Error: Note X not found` after `depositETH` action.
 
-**Root Cause:** The integration tests query the Ponder indexer using query names that don't exist in Ponder's auto-generated GraphQL schema.
+**Investigation Findings:**
 
-**Changes Made:**
+The original description of this issue was **partially incorrect**. Here's what was discovered:
 
-Updated `integration-tests/src/utils/graphql-helpers.ts`:
+1. **Architecture is more complex than documented:**
+   - Tests use `createGraphQLClient(GRAPHQL_URL)` from the SDK
+   - This is **aliased** to `createGraphQLExecutor` in `sdk/src/index.ts`
+   - Tests get a `GraphQLExecutor` with the SDK's own GraphQL schema, NOT a direct Ponder connection
+   - The SDK schema has resolvers that internally query Ponder
 
-| Function | Before | After |
-|----------|--------|-------|
-| `getNote()` | `note(id: $id)` with `ID!` | `delegatableNote(id: $id)` with `BigInt!` |
-| `getNotesByOwner()` | `notesByOwner(ownerAddress: ...)` | `delegatableNotess(where: { owner: $owner, active: true })` |
-| `getNotesByRoot()` | `notesByRoot(rootAddress: ...)` | `delegatableNotess(where: { rootOwner: $rootAddress, active: true })` |
-| `getDelegationChain()` | `delegationChain(noteId: ...)` | `delegationChainss(where: { noteId: $noteId }, orderBy: "position")` |
+2. **Correct query flow:**
+   ```
+   Test → SDK schema (note, notesByOwner) → SDK resolvers → SDK queries → Ponder (delegatableNotes, delegatableNotess)
+   ```
 
-All functions now use Ponder's auto-generated query names and return the `items` array from the paginated response format.
+3. **Ponder generates `delegatableNotes` (with 's'), not `delegatableNote`:**
+   - Singular lookup: `delegatableNotes(id: $id)`
+   - Plural lookup: `delegatableNotess(where: {...})`
+   - The SDK's `delegation-queries.ts` already uses these correct names
+
+4. **The integration tests should use SDK schema names:**
+   - `note(id: $id)` - SDK schema name (correct)
+   - `notesByOwner(ownerAddress: ...)` - SDK schema name (correct)
+   - The SDK resolvers translate these to Ponder's query names
+
+**Current State:**
+
+- Integration tests use SDK schema names (`note`, `notesByOwner`, etc.) ✅
+- SDK queries use Ponder names (`delegatableNotes`, `delegatableNotess`, etc.) ✅
+- Tests still fail with "Note X not found"
+
+**Remaining Investigation:**
+
+The query naming is correct. The failure likely has a different root cause:
+- Indexer sync timing issue
+- Docker networking issue
+- Ponder configuration issue
+- Contract deployment issue in test environment
+
+**Files examined:**
+- `sdk/src/index.ts` - `createGraphQLClient` is aliased to `createGraphQLExecutor`
+- `sdk/src/graphql-server/server.ts` - Executor executes against SDK schema
+- `sdk/src/queries/delegation-queries.ts` - Uses correct Ponder query names
+- `sdk/src/graphql-server/schema/resolvers/delegation.ts` - Resolvers call SDK queries
+- `integration-tests/src/utils/graphql-helpers.ts` - Uses SDK schema names
 
 ---
 
@@ -157,7 +188,7 @@ Still references `intendedStatementId` as part of notes:
 
 ## Implementation Order
 
-1. ~~**Fix GraphQL query names first**~~ ✅ Done - Tests should now find notes correctly
+1. **Investigate "Note not found" failures** ⚠️ In Progress - Query naming is correct, root cause still unknown
 2. **Add NoteIntent to Ponder config and schema** - Foundation for indexing
 3. **Implement NoteIntentAttested event handler** - Start capturing attestations
 4. **Update API endpoints** - Make attestation data queryable

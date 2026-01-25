@@ -1331,11 +1331,11 @@ export async function getNote(
   executor: GraphQLExecutor,
   noteId: string
 ): Promise<Note | null> {
-  const result = await executeQuery<{ delegatableNote: Note | null }>(
+  const result = await executeQuery<{ note: Note | null }>(
     executor,
     `
-      query GetNote($id: BigInt!) {
-        delegatableNote(id: $id) {
+      query GetNote($id: ID!) {
+        note(id: $id) {
           id
           owner
           rootOwner
@@ -1355,7 +1355,7 @@ export async function getNote(
     { id: noteId }
   );
 
-  return result.delegatableNote;
+  return result.note;
 }
 
 /**
@@ -1365,33 +1365,31 @@ export async function getNotesByOwner(
   executor: GraphQLExecutor,
   ownerAddress: string
 ): Promise<Note[]> {
-  const result = await executeQuery<{ delegatableNotess: { items: Note[] } }>(
+  const result = await executeQuery<{ notesByOwner: Note[] }>(
     executor,
     `
-      query GetNotesByOwner($ownerAddress: String!) {
-        delegatableNotess(where: { owner: $ownerAddress, active: true }) {
-          items {
-            id
-            owner
-            rootOwner
-            amount
-            token
-            tokenType
-            tokenId
-            chainHash
-            active
-            parentNoteId
-            createdAt
-            createdAtBlock
-            updatedAt
-          }
+      query GetNotesByOwner($ownerAddress: Address!) {
+        notesByOwner(ownerAddress: $ownerAddress) {
+          id
+          owner
+          rootOwner
+          amount
+          token
+          tokenType
+          tokenId
+          chainHash
+          active
+          parentNoteId
+          createdAt
+          createdAtBlock
+          updatedAt
         }
       }
     `,
-    { ownerAddress: ownerAddress.toLowerCase() }
+    { ownerAddress }
   );
 
-  return result.delegatableNotess?.items || [];
+  return result.notesByOwner || [];
 }
 
 /**
@@ -1401,33 +1399,31 @@ export async function getNotesByRoot(
   executor: GraphQLExecutor,
   rootAddress: string
 ): Promise<Note[]> {
-  const result = await executeQuery<{ delegatableNotess: { items: Note[] } }>(
+  const result = await executeQuery<{ notesByRoot: Note[] }>(
     executor,
     `
-      query GetNotesByRoot($rootAddress: String!) {
-        delegatableNotess(where: { rootOwner: $rootAddress, active: true }) {
-          items {
-            id
-            owner
-            rootOwner
-            amount
-            token
-            tokenType
-            tokenId
-            chainHash
-            active
-            parentNoteId
-            createdAt
-            createdAtBlock
-            updatedAt
-          }
+      query GetNotesByRoot($rootAddress: Address!) {
+        notesByRoot(rootAddress: $rootAddress) {
+          id
+          owner
+          rootOwner
+          amount
+          token
+          tokenType
+          tokenId
+          chainHash
+          active
+          parentNoteId
+          createdAt
+          createdAtBlock
+          updatedAt
         }
       }
     `,
-    { rootAddress: rootAddress.toLowerCase() }
+    { rootAddress }
   );
 
-  return result.delegatableNotess?.items || [];
+  return result.notesByRoot || [];
 }
 
 /**
@@ -1437,23 +1433,21 @@ export async function getDelegationChain(
   executor: GraphQLExecutor,
   noteId: string
 ): Promise<DelegationChainLink[]> {
-  const result = await executeQuery<{ delegationChainss: { items: DelegationChainLink[] } }>(
+  const result = await executeQuery<{ delegationChain: DelegationChainLink[] }>(
     executor,
     `
-      query GetDelegationChain($noteId: BigInt!) {
-        delegationChainss(where: { noteId: $noteId }, orderBy: "position", orderDirection: "asc") {
-          items {
-            address
-            position
-            createdAt
-          }
+      query GetDelegationChain($noteId: ID!) {
+        delegationChain(noteId: $noteId) {
+          address
+          position
+          createdAt
         }
       }
     `,
     { noteId }
   );
 
-  return result.delegationChainss?.items || [];
+  return result.delegationChain || [];
 }
 
 // ============================================================================
