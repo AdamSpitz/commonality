@@ -13,57 +13,36 @@ See `specs/decoupling-intendedStatementId.md` for the full design rationale.
 
 ## Issues to Fix
 
-### Issue 1: GraphQL Query Naming Mismatch ⚠️ INVESTIGATION IN PROGRESS
+### Issue 1: GraphQL Query Naming Mismatch ✅ RESOLVED
 
-**Status:** Under investigation (2026-01-25)
+**Status:** Fixed (2026-01-25)
 
 **Symptom:** Tests fail with `Error: Note X not found` after `depositETH` action.
 
-**Investigation Findings:**
+**Root Cause:** **Stale Docker image**
 
-The original description of this issue was **partially incorrect**. Here's what was discovered:
+The Docker image for the indexer was built on December 26, 2025, before the `intendedStatementId` field was removed from the schema. The old image still had `intendedStatementId` in the Ponder schema, causing a mismatch between the schema and the event handlers.
 
-1. **Architecture is more complex than documented:**
-   - Tests use `createGraphQLClient(GRAPHQL_URL)` from the SDK
-   - This is **aliased** to `createGraphQLExecutor` in `sdk/src/index.ts`
-   - Tests get a `GraphQLExecutor` with the SDK's own GraphQL schema, NOT a direct Ponder connection
-   - The SDK schema has resolvers that internally query Ponder
+**Solution:** Rebuild the Docker image to get the current code:
 
-2. **Correct query flow:**
-   ```
-   Test → SDK schema (note, notesByOwner) → SDK resolvers → SDK queries → Ponder (delegatableNotes, delegatableNotess)
-   ```
+```bash
+docker compose build --no-cache indexer
+```
 
-3. **Ponder generates `delegatableNotes` (with 's'), not `delegatableNote`:**
-   - Singular lookup: `delegatableNotes(id: $id)`
-   - Plural lookup: `delegatableNotess(where: {...})`
-   - The SDK's `delegation-queries.ts` already uses these correct names
+**Verification:** After rebuilding, all 102 integration tests pass (plus 238 hardhat tests).
 
-4. **The integration tests should use SDK schema names:**
-   - `note(id: $id)` - SDK schema name (correct)
-   - `notesByOwner(ownerAddress: ...)` - SDK schema name (correct)
-   - The SDK resolvers translate these to Ponder's query names
+**Investigation History:**
 
-**Current State:**
+The original investigation found that the query naming was correct:
+- Tests use SDK schema names (`note`, `notesByOwner`, etc.)
+- SDK queries use Ponder names (`delegatableNotes`, `delegatableNotess`, etc.)
+- The architecture flow is: Test → SDK schema → SDK resolvers → SDK queries → Ponder
 
-- Integration tests use SDK schema names (`note`, `notesByOwner`, etc.) ✅
-- SDK queries use Ponder names (`delegatableNotes`, `delegatableNotess`, etc.) ✅
-- Tests still fail with "Note X not found"
-
-**Remaining Investigation:**
-
-The query naming is correct. The failure likely has a different root cause:
-- Indexer sync timing issue
-- Docker networking issue
-- Ponder configuration issue
-- Contract deployment issue in test environment
-
-**Files examined:**
-- `sdk/src/index.ts` - `createGraphQLClient` is aliased to `createGraphQLExecutor`
-- `sdk/src/graphql-server/server.ts` - Executor executes against SDK schema
-- `sdk/src/queries/delegation-queries.ts` - Uses correct Ponder query names
-- `sdk/src/graphql-server/schema/resolvers/delegation.ts` - Resolvers call SDK queries
-- `integration-tests/src/utils/graphql-helpers.ts` - Uses SDK schema names
+The real issue was identified by:
+1. Querying Ponder's schema directly: `curl ... '{"query":"{ __type(name: \"delegatableNotes\") { fields { name } } }"}'`
+2. Seeing `intendedStatementId` in the schema (which should have been removed)
+3. Checking the Docker image creation date (`docker images --format '{{.Repository}}\t{{.CreatedAt}}'`)
+4. Rebuilding the image and verifying the schema was updated
 
 ---
 
@@ -188,7 +167,7 @@ Still references `intendedStatementId` as part of notes:
 
 ## Implementation Order
 
-1. **Investigate "Note not found" failures** ⚠️ In Progress - Query naming is correct, root cause still unknown
+1. **~~Investigate "Note not found" failures~~** ✅ Resolved - Stale Docker image; rebuild with `docker compose build --no-cache indexer`
 2. **Add NoteIntent to Ponder config and schema** - Foundation for indexing
 3. **Implement NoteIntentAttested event handler** - Start capturing attestations
 4. **Update API endpoints** - Make attestation data queryable
