@@ -24,8 +24,9 @@ cd "$SCRIPT_DIR/.."
 # Clean up any existing containers and volumes
 docker-compose down -v 2>/dev/null || true
 
-# Start all services - docker-compose automatically handles dependencies and health checks
-docker-compose up -d
+# Start all services with forced rebuild to ensure we test against latest code
+# Docker's layer caching makes this fast when nothing has changed
+docker-compose up -d --build
 
 # Run tests on host machine
 cd integration-tests
