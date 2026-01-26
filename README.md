@@ -8,6 +8,11 @@ The main spec is in [specs/README.md](specs/README.md).
 
 The project-lead notes are stored in `project-lead-notes.md` for continuity between AI sessions.
 
+## Feedback loops
+
+- `npm run build` to make sure everything builds and type-checks
+- `npm run test` to run the tests
+
 ## Main artifacts
 
 ### Smart contracts
