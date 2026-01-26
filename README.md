@@ -1,63 +1,38 @@
 # Commonality
 
-The way we do development on this project is that we write specs in English, and we ask AI to write the code.
+## Specification
 
 The main spec is in [specs/README.md](specs/README.md).
 
-## Project Leadership
+## AI memory notes
 
-The project-lead notes are stored in `project-lead-notes.md` for continuity between AI sessions.
+We often use ephemeral AI instances to implement particular tasks. To maintain continuity between sessions, use [progress.txt](progress.txt) for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
+
+## Documentation
+
+For long-term documentation, there are many .md files all over the project. Try to make sure none of them gets "orphaned" - i.e. make sure they're all "reachable" transitively via links from this top-level README.md file.
 
 ## Feedback loops
 
 - `npm run build` to make sure everything builds and type-checks
 - `npm run test` to run the tests
 
-## Main artifacts
+Ideally, Git should be set up so that code can't be committed to the master branch if these don't pass. I'm not sure whether this is set up yet or not; if not, setting it up would be a good task to do.
 
-### Smart contracts
+## Artifacts
 
-The [hardhat/](hardhat/) directory (or at least the hardhat/contracts directory) is meant to be considered "part of the spec". Don't blow it away. (You can blow away the tests and recreate them if you want.)
+Main artifacts:
+  - Smart contracts
+  - Indexer
+  - SDK: used by both the integration-tests and the UI code
+  - Integration tests
+  - UI
+  - AI attester (not written yet)
 
-See [hardhat/README.md](hardhat/README.md) for more info.
+See [ARTIFACTS.md](ARTIFACTS.md) for more detail.
 
-Also note that the hardhat/ directory contains the fake-data generation system; see [hardhat/fake-data-generation/README.md](hardhat/fake-data-generation/README.md).
+## To-do list
 
-### Indexer
+See [TODO.md](TODO.md) for a high-level list of what we've been working on lately and intend to work on soon.
 
-The indexer uses [Ponder](https://ponder.sh/) to index blockchain events and provide a GraphQL API.
-
-See [indexer/README.md](indexer/README.md) for more info.
-
-### SDK
-
-There's an [sdk/](sdk/) directory for user actions and queries. The intention is for this code to be used by both the integration-tests and the ui code.
-
-### Integration Tests
-
-To run the full integration test suite (starts Hardhat and indexer in Docker, runs tests, cleans up):
-
-    npm run integration-tests
-
-The script now uses Docker for both Hardhat and the indexer. Tests run on the host machine. See [integration-tests/README.md](integration-tests/README.md) for more details.
-
-### UI
-
-We're starting to implement the UI in the top-level "ui" directory, though not much is really implemented yet. It should use the sdk for user actions and queries, though.
-
-### Docker
-
-We now have a Docker Compose setup for running Hardhat and the Ponder indexer. This provides a clean, isolated environment for development and testing.
-
-
-## What we've been working on lately
-
-We're in the middle of a couple of big things:
-  - Writing the integration-tests. (Much is done; I'm not sure what exactly is left to implement.)
-  - Writing the UI. (Not much done, and not really tested, even manually; I don't trust the UI at all yet.)
-
-Other big things to do soon:
-  - Generative testing. There's an early attempt at fake-data generation in hardhat/fake-data-generation, but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.
-    - Once we have this, it'd be cool to generate a bunch of user actions and run them through the sdk (using the same setup we're currently using for the integration-tests), just as a smoke test to see if anything catches fire.
-  - Implement the Implication Attester AI service.
-  - Set up deployment for testnet and mainnet.
+We can also use gitlab.com's issue tracking system.
