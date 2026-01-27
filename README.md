@@ -34,3 +34,7 @@ See [ARTIFACTS.md](ARTIFACTS.md) for more detail.
 See [TODO.md](TODO.md) for a high-level list of what we've been working on lately and intend to work on soon.
 
 We can also use gitlab.com's issue tracking system.
+
+## Current project status
+
+For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
