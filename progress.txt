@@ -96,3 +96,30 @@ The UI couldn't be added as a npm workspace because of a peer dependency conflic
 ### Build and tests
 - `npm run build` passes (now includes UI)
 - `npm run test` passes (102 tests)
+
+## Implemented BrowseStatementsPage (2026-01-27)
+
+### What was done
+Implemented the BrowseStatementsPage UI component with sorting functionality.
+
+**Features:**
+- Toggle between "Most Supporters" and "Newest" sorting
+- Statement cards showing title, excerpt, supporter count, statement type, date
+- Clickable cards that navigate to individual statement pages
+- Loading and error states
+- Empty state message
+
+**Implementation details:**
+- Uses `createGraphQLExecutor` and `executeQuery` from SDK (same pattern as other pages)
+- Queries `browseStatementsByMostSupporters` or `browseStatementsByNewest` based on sort selection
+- Uses Material UI components (ToggleButtonGroup, Card, Chip, etc.)
+
+### Files changed
+- `ui/src/conceptspace/pages/BrowseStatementsPage.tsx` - Full implementation
+
+### Build and tests
+- `npm run build` passes
+- `npm run test` passes (102 tests)
+
+### What's next (from ui/TODO.md)
+- Settings Page - Configure trusted implication attesters
