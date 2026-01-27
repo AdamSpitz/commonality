@@ -26,3 +26,6 @@ export { TEST_TIMEOUTS, INDEXER_SYNC, TEST_PRIVATE_KEYS } from './constants.js';
 
 // Re-export ABIs
 export * from './abis.js';
+
+// Re-export displayable document types and utilities
+export * from './displayable-document.js';

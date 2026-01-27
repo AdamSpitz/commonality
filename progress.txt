@@ -22,3 +22,32 @@ AI: use this file to write notes to yourself.
 4. **Renderer component**: A React component that renders displayable documents according to the spec (handles markdown-restricted, assets, references, extras display)
 
 The spec work is done. The next session should implement the SDK types and functions.
+
+## SDK Displayable Document Implementation (2026-01-27)
+
+### What was done
+- Created `sdk/src/displayable-document.ts` with:
+  - **Types**: `DisplayableDocument`, `DisplayFormat`, `Asset`, `InlineAsset`, `CidAsset`, `DocumentReference`, `LegacyStatement`, `ValidationResult`
+  - **Creation**: `createDisplayableDocument()` - creates and validates documents, `toCanonicalJson()` - for deterministic CID generation
+  - **Validation**: `validateDisplayableDocument()` - checks required fields, format values, content size, external URL restrictions, asset/reference structure
+  - **Legacy detection**: `isLegacyStatement()` - detects old format (has `statementType` but no `format`)
+  - **Migration**: `migrateLegacyStatement()` - converts old → new format, including `{ref:N}` → `[ref](ref:N)` syntax
+  - **Helper**: `createStatement()` - convenience function for conceptspace statements with proper extras
+
+- Exported from `sdk/src/index.ts`
+
+### Key decisions
+- Validation checks for external URLs using regex patterns (forbidden in markdown-restricted)
+- Max content size: 50,000 characters (per spec)
+- Assets must have either `data` (base64) OR `cid`, not both
+- Migration converts `statementId` → `cid` since statement IDs ARE CIDs
+- `createDisplayableDocument()` throws on validation failure (fail-fast)
+
+### Files changed
+- `sdk/src/displayable-document.ts` (new)
+- `sdk/src/index.ts` (added export)
+
+### What's next
+1. **Indexer updates**: Make sure the indexer can handle both old and new formats during transition
+2. **Integration tests**: Add tests that create statements using the new displayable-document format
+3. **Renderer component**: A React component that renders displayable documents
