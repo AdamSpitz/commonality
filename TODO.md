@@ -19,4 +19,3 @@ Also, here are some meta-level tasks that would be good to do before we do any m
 ## Miscellaneous TODO.md files
 
 - [ui/TODO.md](ui/TODO.md)
-- [integration-tests/TODO.md](integration-tests/TODO.md)
