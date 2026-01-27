@@ -25,3 +25,30 @@ High-level stuff is all in order, it's time to implement. See TODO.md for curren
 2. UI work
 3. Indexer updates (the failed attempt noted previously was trying to handle legacy formats; simpler now that there's no legacy to worry about)
 4. Renderer component for displayable documents
+
+## Failed attempt: BrowseStatementsPage (2026-01-27)
+
+### What was attempted
+Tried to implement BrowseStatementsPage UI component with sorting (most supporters, newest).
+
+### The problem
+The UI doesn't compile even before any changes. When you run `npm run build` from ui/, you get errors like:
+- `Module '"@commonality/sdk"' has no exported member 'getStatementSuggestions'`
+- `Module '"@commonality/sdk"' has no exported member 'getUserBelief'`
+- `Module '"@commonality/sdk"' has no exported member 'StatementContent'`
+- etc.
+
+The existing UI code (StatementPage.tsx, UserProfilePage.tsx, StatementSuggestions.tsx, etc.) imports functions and types from `@commonality/sdk` that aren't actually exported from the SDK.
+
+### Why this is a bigger task
+Fixing this requires either:
+1. Adding the missing exports to the SDK (in `sdk/src/graphql-queries/index.ts` and `sdk/src/graphql-queries/conceptspace.ts`)
+2. Or refactoring the UI to use `executeQuery` directly instead of wrapper functions
+
+Either approach touches multiple files and needs careful testing. The UI build was apparently broken before the pre-commit hook was added, so fixing it is a prerequisite for any UI work.
+
+### Recommendation
+Before implementing BrowseStatementsPage or any other UI feature:
+1. First fix the SDK exports so the UI compiles
+2. Verify `npm run build` passes end-to-end
+3. Then implement new features incrementally
