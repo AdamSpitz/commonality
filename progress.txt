@@ -52,3 +52,5 @@ Before implementing BrowseStatementsPage or any other UI feature:
 1. First fix the SDK exports so the UI compiles
 2. Verify `npm run build` passes end-to-end
 3. Then implement new features incrementally
+
+(User's question: why didn't the pre-commit hook running "npm run build" at the top level catch this? Oh, maybe the top-level one doesn't run the ui one? That's an oversight; fix the ui build, then add it to the top-level build.)
