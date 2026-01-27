@@ -80,3 +80,5 @@ Before attempting indexer changes, verify that `npm run build` passes cleanly. T
    - **Option B**: Align TypeScript strictness settings between SDK and indexer, then add SDK as dependency.
 
 Option A is probably simpler - the functions are small and self-contained.
+
+(Note from user: why do we have a notion of "legacy statement" at all? No need for backward compatibility.)
