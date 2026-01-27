@@ -12,7 +12,6 @@ Other big things to do soon:
   - Set up deployment for testnet and mainnet.
 
 Also, here are some meta-level tasks that would be good to do before we do any more work on the actual code base:
-  - Get Git set up so that we can't commit to master if the build or tests fail.
   - Make sure the project has good documentation, all reachable transitively from this top-level README.md file.
   - Flesh out specs/reviews.md. I'd like to have a good checklist for doing overall reviews of the code base.
 

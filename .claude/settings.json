@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Read(./**)",
-      "Edit(./**)"
+      "Edit(./**)",
+      "Bash(npx husky init)"
     ]
   }
 }

@@ -19,9 +19,18 @@
     "hardhat:node": "npx --workspace=hardhat hardhat node",
     "hardhat:compile": "npx --workspace=hardhat hardhat compile",
     "hardhat:test": "npx --workspace=hardhat hardhat test",
-    "indexer:typecheck": "npx --workspace=indexer tsc"
+    "indexer:typecheck": "npx --workspace=indexer tsc",
+    "prepare": "husky"
   },
-  "keywords": ["blockchain", "crowdfunding", "delegation", "ethereum"],
+  "keywords": [
+    "blockchain",
+    "crowdfunding",
+    "delegation",
+    "ethereum"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
 }
