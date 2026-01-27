@@ -1,84 +1,27 @@
 AI: use this file to write notes to yourself.
 
-## Displayable Documents Decoupling (2026-01-27)
+## Removed Legacy Statement Code (2026-01-27)
 
 ### What was done
-- Updated specs/statements.md to clarify that a Statement IS a displayable document (not a separate format)
-- Added migration notes for old format → new format
-- Updated specs/displayable-documents.md to document current usage (statements, explanations, project descriptions)
+Per user feedback ("why do we have a notion of 'legacy statement' at all? No need for backward compatibility."), removed legacy statement support from `sdk/src/displayable-document.ts`:
 
-### What's next for displayable-documents
-1. **SDK implementation**: Create TypeScript types and functions for:
-   - DisplayableDocument type (matching the spec)
-   - createDisplayableDocument() - creates with canonical JSON
-   - validateDisplayableDocument() - checks format rules
-   - isLegacyStatement() - detects old format
-   - migrateLegacyStatement() - converts old → new
+- **Removed** `LegacyStatement` type
+- **Removed** `isLegacyStatement()` function
+- **Removed** `migrateLegacyStatement()` function
 
-2. **Indexer updates**: Make sure the indexer can handle both old and new formats during transition
+**Kept**:
+- `DisplayableDocument` type and all related types
+- `createDisplayableDocument()` and `createStatement()`
+- `validateDisplayableDocument()`
+- `isDisplayableDocument()` (useful type guard)
+- `toCanonicalJson()`
 
-3. **Integration tests**: Add tests that create statements using the new displayable-document format
-
-4. **Renderer component**: A React component that renders displayable documents according to the spec (handles markdown-restricted, assets, references, extras display)
-
-The spec work is done. The next session should implement the SDK types and functions.
-
-## SDK Displayable Document Implementation (2026-01-27)
-
-### What was done
-- Created `sdk/src/displayable-document.ts` with:
-  - **Types**: `DisplayableDocument`, `DisplayFormat`, `Asset`, `InlineAsset`, `CidAsset`, `DocumentReference`, `LegacyStatement`, `ValidationResult`
-  - **Creation**: `createDisplayableDocument()` - creates and validates documents, `toCanonicalJson()` - for deterministic CID generation
-  - **Validation**: `validateDisplayableDocument()` - checks required fields, format values, content size, external URL restrictions, asset/reference structure
-  - **Legacy detection**: `isLegacyStatement()` - detects old format (has `statementType` but no `format`)
-  - **Migration**: `migrateLegacyStatement()` - converts old → new format, including `{ref:N}` → `[ref](ref:N)` syntax
-  - **Helper**: `createStatement()` - convenience function for conceptspace statements with proper extras
-
-- Exported from `sdk/src/index.ts`
-
-### Key decisions
-- Validation checks for external URLs using regex patterns (forbidden in markdown-restricted)
-- Max content size: 50,000 characters (per spec)
-- Assets must have either `data` (base64) OR `cid`, not both
-- Migration converts `statementId` → `cid` since statement IDs ARE CIDs
-- `createDisplayableDocument()` throws on validation failure (fail-fast)
-
-### Files changed
-- `sdk/src/displayable-document.ts` (new)
-- `sdk/src/index.ts` (added export)
+### Build and tests
+Both `npm run build` and `npm run test` pass.
 
 ### What's next
-1. **Indexer updates**: Make sure the indexer can handle both old and new formats during transition
-2. **Integration tests**: Add tests that create statements using the new displayable-document format
-3. **Renderer component**: A React component that renders displayable documents
-
-## Failed Attempt: Indexer Displayable Document Support (2026-01-27)
-
-### What was attempted
-Tried to update the indexer's `src/conceptspace/utils/ipfs.ts` to handle both legacy statements and new displayable documents by:
-1. Adding `@commonality/sdk` as a dependency to the indexer (`"@commonality/sdk": "file:../sdk"`)
-2. Importing `isLegacyStatement`, `isDisplayableDocument`, `migrateLegacyStatement` from the SDK
-3. Creating a `NormalizedStatementContent` type that the indexer could use consistently
-4. Updating `fetchStatementContent()` to detect format and normalize both legacy and new formats
-5. Updating `ipfsSyncJob.ts` to use the normalized content
-
-### What went wrong
-When running `npm run build`, the indexer's TypeScript compilation started checking the SDK's source files (because of the `file:../sdk` dependency). The indexer has stricter TypeScript settings (`noUncheckedIndexedAccess: true`) than the SDK, which caused pre-existing SDK code to fail type-checking.
-
-### Pre-existing SDK TypeScript issues
-Before attempting indexer changes, verify that `npm run build` passes cleanly. The SDK appears to have pre-existing TypeScript errors that manifest when checked with stricter settings:
-- `sdk/src/actions/delegation-actions.ts` - "Object is possibly 'undefined'" errors
-- `sdk/src/actions/pubstarter-actions.ts` - "Object is possibly 'undefined'" errors
-- `sdk/src/graphql-queries/conceptspace.ts` - "possibly 'undefined'" errors
-- `sdk/src/queries/conceptspace-queries.ts` - "Object is possibly 'undefined'" errors
-- `sdk/src/queries/funding-portals-queries.ts` - type assignment errors
-
-### Recommendation for next attempt
-1. **First**: Fix the pre-existing SDK TypeScript errors so `npm run build` passes cleanly
-2. **Then**: Either:
-   - **Option A**: Don't add SDK as indexer dependency. Instead, copy the small amount of needed code (just `isLegacyStatement`, `isDisplayableDocument`, `migrateLegacyStatement` - about 50 lines) directly into the indexer. This avoids the cross-package TypeScript strictness issue.
-   - **Option B**: Align TypeScript strictness settings between SDK and indexer, then add SDK as dependency.
-
-Option A is probably simpler - the functions are small and self-contained.
-
-(Note from user: why do we have a notion of "legacy statement" at all? No need for backward compatibility.)
+High-level stuff is all in order, it's time to implement. See TODO.md for current priorities:
+1. Integration tests - add tests using the new displayable-document format
+2. UI work
+3. Indexer updates (the failed attempt noted previously was trying to handle legacy formats; simpler now that there's no legacy to worry about)
+4. Renderer component for displayable documents

@@ -61,29 +61,6 @@ export interface DisplayableDocument {
   extras?: Record<string, unknown>;
 }
 
-/**
- * Legacy statement format (pre-displayable-documents)
- *
- * Used for backward compatibility during migration.
- */
-export interface LegacyStatement {
-  statementType: string;
-  content?: string;
-  title?: string;
-  excerpt?: string;
-  references?: Array<{
-    statementId: string;
-    label?: string;
-    context?: string;
-    relationship?: string;
-  }>;
-  metadata?: {
-    title?: string;
-    createdDate?: string;
-    [key: string]: unknown;
-  };
-}
-
 /** Result of validation */
 export interface ValidationResult {
   valid: boolean;
@@ -321,34 +298,8 @@ function validateReference(ref: unknown, index: number): string[] {
   return errors;
 }
 
-// ============================================================================
-// Legacy Detection and Migration
-// ============================================================================
-
 /**
- * Detects if a document is in the legacy statement format.
- *
- * Per spec: If a document has a `format` field → new format.
- * If it has `statementType` but no `format` → legacy format.
- */
-export function isLegacyStatement(doc: unknown): doc is LegacyStatement {
-  if (!doc || typeof doc !== 'object' || Array.isArray(doc)) {
-    return false;
-  }
-
-  const d = doc as Record<string, unknown>;
-
-  // New format has `format` field
-  if ('format' in d) {
-    return false;
-  }
-
-  // Legacy format has `statementType` without `format`
-  return 'statementType' in d && typeof d.statementType === 'string';
-}
-
-/**
- * Checks if a document is a valid DisplayableDocument (new format).
+ * Checks if a document is a valid DisplayableDocument.
  */
 export function isDisplayableDocument(doc: unknown): doc is DisplayableDocument {
   if (!doc || typeof doc !== 'object' || Array.isArray(doc)) {
@@ -357,83 +308,6 @@ export function isDisplayableDocument(doc: unknown): doc is DisplayableDocument 
 
   const d = doc as Record<string, unknown>;
   return 'format' in d && 'content' in d;
-}
-
-/**
- * Migrates a legacy statement to the new displayable document format.
- *
- * Migration rules:
- * - `statementType` → `extras.statementType`
- * - `content` → `content`
- * - `title` → `extras.title`
- * - `excerpt` → `extras.excerpt`
- * - `metadata.*` → `extras.*`
- * - `references[].statementId` → `references[].cid` (statementId IS a CID)
- * - `references[].label` → `references[].label`
- * - Old `{ref:N}` syntax in content → `[ref](ref:N)` syntax
- *
- * @param legacy - The legacy statement to migrate
- * @returns The migrated displayable document
- */
-export function migrateLegacyStatement(legacy: LegacyStatement): DisplayableDocument {
-  const extras: Record<string, unknown> = {};
-
-  // Migrate statementType
-  if (legacy.statementType) {
-    extras.statementType = legacy.statementType;
-  }
-
-  // Migrate title
-  if (legacy.title) {
-    extras.title = legacy.title;
-  } else if (legacy.metadata?.title) {
-    extras.title = legacy.metadata.title;
-  }
-
-  // Migrate excerpt
-  if (legacy.excerpt) {
-    extras.excerpt = legacy.excerpt;
-  }
-
-  // Migrate metadata fields
-  if (legacy.metadata) {
-    for (const [key, value] of Object.entries(legacy.metadata)) {
-      if (key !== 'title') {
-        // title already handled above
-        extras[key] = value;
-      }
-    }
-  }
-
-  // Migrate references
-  const references: DocumentReference[] = [];
-  if (legacy.references) {
-    for (const ref of legacy.references) {
-      references.push({
-        cid: ref.statementId,
-        label: ref.label || ref.context || ref.relationship,
-      });
-    }
-  }
-
-  // Migrate content, converting {ref:N} to [ref](ref:N) syntax
-  let content = legacy.content || '';
-  content = content.replace(/\{ref:(\d+)\}/g, '[ref](ref:$1)');
-
-  const doc: DisplayableDocument = {
-    format: 'markdown-restricted',
-    content,
-  };
-
-  if (references.length > 0) {
-    doc.references = references;
-  }
-
-  if (Object.keys(extras).length > 0) {
-    doc.extras = extras;
-  }
-
-  return doc;
 }
 
 // ============================================================================
