@@ -51,3 +51,32 @@ The spec work is done. The next session should implement the SDK types and funct
 1. **Indexer updates**: Make sure the indexer can handle both old and new formats during transition
 2. **Integration tests**: Add tests that create statements using the new displayable-document format
 3. **Renderer component**: A React component that renders displayable documents
+
+## Failed Attempt: Indexer Displayable Document Support (2026-01-27)
+
+### What was attempted
+Tried to update the indexer's `src/conceptspace/utils/ipfs.ts` to handle both legacy statements and new displayable documents by:
+1. Adding `@commonality/sdk` as a dependency to the indexer (`"@commonality/sdk": "file:../sdk"`)
+2. Importing `isLegacyStatement`, `isDisplayableDocument`, `migrateLegacyStatement` from the SDK
+3. Creating a `NormalizedStatementContent` type that the indexer could use consistently
+4. Updating `fetchStatementContent()` to detect format and normalize both legacy and new formats
+5. Updating `ipfsSyncJob.ts` to use the normalized content
+
+### What went wrong
+When running `npm run build`, the indexer's TypeScript compilation started checking the SDK's source files (because of the `file:../sdk` dependency). The indexer has stricter TypeScript settings (`noUncheckedIndexedAccess: true`) than the SDK, which caused pre-existing SDK code to fail type-checking.
+
+### Pre-existing SDK TypeScript issues
+Before attempting indexer changes, verify that `npm run build` passes cleanly. The SDK appears to have pre-existing TypeScript errors that manifest when checked with stricter settings:
+- `sdk/src/actions/delegation-actions.ts` - "Object is possibly 'undefined'" errors
+- `sdk/src/actions/pubstarter-actions.ts` - "Object is possibly 'undefined'" errors
+- `sdk/src/graphql-queries/conceptspace.ts` - "possibly 'undefined'" errors
+- `sdk/src/queries/conceptspace-queries.ts` - "Object is possibly 'undefined'" errors
+- `sdk/src/queries/funding-portals-queries.ts` - type assignment errors
+
+### Recommendation for next attempt
+1. **First**: Fix the pre-existing SDK TypeScript errors so `npm run build` passes cleanly
+2. **Then**: Either:
+   - **Option A**: Don't add SDK as indexer dependency. Instead, copy the small amount of needed code (just `isLegacyStatement`, `isDisplayableDocument`, `migrateLegacyStatement` - about 50 lines) directly into the indexer. This avoids the cross-package TypeScript strictness issue.
+   - **Option B**: Align TypeScript strictness settings between SDK and indexer, then add SDK as dependency.
+
+Option A is probably simpler - the functions are small and self-contained.
