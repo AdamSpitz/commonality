@@ -3,7 +3,6 @@
  *
  * Tests token burning functionality which allows users to convert from
  * "investors" (holding tokens) to "donors" (burned tokens).
- * Covers TODO item B3 from integration-tests-todo.md.
  */
 
 import assert from 'assert';

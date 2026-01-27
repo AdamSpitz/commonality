@@ -2,7 +2,6 @@
  * Pubstarter Multiple Token Types Tests
  *
  * Tests purchasing different token types from the same project at different prices.
- * Covers TODO item B2 from integration-tests-todo.md.
  */
 
 import assert from 'assert';

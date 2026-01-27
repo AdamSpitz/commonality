@@ -17,8 +17,6 @@ For long-term documentation, there are many .md files all over the project. Try 
 - `npm run build` to make sure everything builds and type-checks
 - `npm run test` to run the tests
 
-Ideally, Git should be set up so that code can't be committed to the master branch if these don't pass. I'm not sure whether this is set up yet or not; if not, setting it up would be a good task to do.
-
 ## Artifacts
 
 Main artifacts:

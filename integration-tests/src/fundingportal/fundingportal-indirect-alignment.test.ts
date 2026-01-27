@@ -5,8 +5,6 @@
  * - Project aligned with S1, user queries S2 where S1 → S2
  * - Multiple implication levels
  * - Filter by direct vs indirect alignment
- *
- * This addresses item E1 from specs/integration-tests-todo.md
  */
 
 import assert from 'assert';
