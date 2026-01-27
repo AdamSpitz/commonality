@@ -2,21 +2,7 @@ import { Box, Paper, Typography, Alert, Link as MuiLink } from '@mui/material'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { Link as RouterLink } from 'react-router-dom'
-
-interface StatementContent {
-  statementType: string
-  content: string
-  title?: string
-  references?: Array<{
-    statementId: string
-    label?: string
-    relationship?: string
-  }>
-  metadata?: {
-    createdDate?: string
-    version?: number
-  }
-}
+import { type StatementContent } from '@commonality/sdk'
 
 interface StatementRendererProps {
   statementId: string
@@ -85,7 +71,7 @@ export function StatementRenderer({
     return processedText
   }
 
-  const processedContent = processContent(content.content)
+  const processedContent = processContent(content.content || '')
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>

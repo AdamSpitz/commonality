@@ -17,6 +17,19 @@ import * as raw from 'multiformats/codecs/raw';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { Buffer } from 'buffer';
 
+// Safe environment variable access that works in both Node.js and browser
+// Uses globalThis to avoid TypeScript errors about missing process type
+function getEnvVar(name: string): string | undefined {
+  // Try Node.js process.env
+  const proc = (globalThis as any).process;
+  if (proc?.env?.[name]) {
+    return proc.env[name];
+  }
+  // In browser with Vite, env vars are replaced at build time
+  // The actual VITE_ prefixed vars are handled by Vite's define plugin
+  return undefined;
+}
+
 // ============================================================================
 // Client Setup
 // ============================================================================
@@ -115,7 +128,7 @@ export async function fetchFromIPFS(
   cid: string,
   timeoutMs: number = 10000
 ): Promise<object | null> {
-  const ipfsGateway = process.env.IPFS_GATEWAY || process.env.VITE_IPFS_GATEWAY;
+  const ipfsGateway = getEnvVar('IPFS_GATEWAY') || getEnvVar('VITE_IPFS_GATEWAY');
 
   if (ipfsGateway) {
     // Fetch from real IPFS gateway
@@ -189,7 +202,7 @@ export function clearMockIPFS(): void {
  * The mock store allows fetching content back via fetchFromMockIPFS().
  */
 export async function uploadToIPFS(content: object): Promise<string> {
-  const ipfsApi = process.env.IPFS_API || process.env.VITE_IPFS_API;
+  const ipfsApi = getEnvVar('IPFS_API') || getEnvVar('VITE_IPFS_API');
 
   if (ipfsApi) {
     // Upload to actual IPFS node

@@ -4,6 +4,17 @@
 
 import { INDEXER_SYNC } from '../constants.js';
 
+// Safe environment variable access that works in both Node.js and browser
+// Uses globalThis to avoid TypeScript errors about missing process type
+function getEnvVar(name: string): string | undefined {
+  // Try Node.js process.env
+  const proc = (globalThis as any).process;
+  if (proc?.env?.[name]) {
+    return proc.env[name];
+  }
+  return undefined;
+}
+
 export interface GraphQLClient {
   url: string;
 }
@@ -129,7 +140,7 @@ export async function waitForSync(
         stuckCount++;
         if (stuckCount >= MAX_STUCK_ATTEMPTS) {
           // Log warning but don't fail - indexer might just be caught up
-          if (process.env.VERBOSE_TESTS === 'true') {
+          if (getEnvVar('VERBOSE_TESTS') === 'true') {
             console.warn(
               `⚠️  Indexer appears stuck at block ${currentBlock} ` +
               `(target: ${targetBlockNum}, attempts: ${stuckCount})`
@@ -143,7 +154,7 @@ export async function waitForSync(
 
       if (currentBlock >= targetBlockNum) {
         // Success! Log timing info if verbose mode enabled
-        if (process.env.VERBOSE_TESTS === 'true') {
+        if (getEnvVar('VERBOSE_TESTS') === 'true') {
           const elapsed = Date.now() - startTime;
           console.log(
             `✓ Indexer synced to block ${targetBlockNum} ` +

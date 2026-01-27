@@ -70,7 +70,13 @@ export interface StatementContent {
   references?: Array<{
     statementId: string;
     context?: string;
+    label?: string;
+    relationship?: string;
   }>;
+  metadata?: {
+    createdDate?: string;
+    version?: number;
+  };
 }
 
 export interface StatementWithContent {
@@ -103,8 +109,14 @@ export interface GetUserIndirectSupportOptions {
   offset?: number;
 }
 
+export interface StatementSuggestion {
+  statement: StatementListItem;
+  reason: string;
+  relationshipType: string;
+}
+
 // ============================================================================
-// Internal Helper Functions (not exported - used by complex functions below)
+// Internal Helper Functions (not exported)
 // ============================================================================
 
 async function getStatement(
@@ -133,27 +145,6 @@ async function getStatement(
   return result.statement;
 }
 
-async function getUserBelief(
-  executor: GraphQLExecutor,
-  userAddress: string,
-  statementId: string
-): Promise<UserBelief | null> {
-  const result = await executeQuery<{ userBelief: UserBelief | null }>(
-    executor,
-    `
-      query GetUserBelief($userAddress: Address!, $statementId: ID!) {
-        userBelief(userAddress: $userAddress, statementId: $statementId) {
-          statementId
-          beliefState
-        }
-      }
-    `,
-    { userAddress, statementId }
-  );
-
-  return result.userBelief;
-}
-
 async function getImplicationsFrom(
   executor: GraphQLExecutor,
   statementId: string,
@@ -179,7 +170,38 @@ async function getImplicationsFrom(
   return result.implicationsFrom || [];
 }
 
-async function getUserBeliefs(
+// ============================================================================
+// Exported Query Functions
+// ============================================================================
+
+/**
+ * Get a user's belief state for a specific statement.
+ */
+export async function getUserBelief(
+  executor: GraphQLExecutor,
+  userAddress: string,
+  statementId: string
+): Promise<UserBelief | null> {
+  const result = await executeQuery<{ userBelief: UserBelief | null }>(
+    executor,
+    `
+      query GetUserBelief($userAddress: Address!, $statementId: ID!) {
+        userBelief(userAddress: $userAddress, statementId: $statementId) {
+          statementId
+          beliefState
+        }
+      }
+    `,
+    { userAddress, statementId }
+  );
+
+  return result.userBelief;
+}
+
+/**
+ * Get all statements a user believes (beliefState === 1).
+ */
+export async function getUserBeliefs(
   executor: GraphQLExecutor,
   userAddress: string
 ): Promise<StatementListItem[]> {
@@ -203,6 +225,35 @@ async function getUserBeliefs(
   );
 
   return result.userBeliefs || [];
+}
+
+/**
+ * Get all statements a user disbelieves (beliefState === 2).
+ */
+export async function getUserDisbeliefs(
+  executor: GraphQLExecutor,
+  userAddress: string
+): Promise<StatementListItem[]> {
+  const result = await executeQuery<{ userDisbeliefs: StatementListItem[] }>(
+    executor,
+    `
+      query GetUserDisbeliefs($userAddress: Address!) {
+        userDisbeliefs(userAddress: $userAddress) {
+          id
+          cid
+          statementType
+          title
+          excerpt
+          believerCount
+          disbelieverCount
+          createdAt
+        }
+      }
+    `,
+    { userAddress }
+  );
+
+  return result.userDisbeliefs || [];
 }
 
 // ============================================================================
@@ -392,4 +443,39 @@ export async function getUserIndirectSupport(
   const end = options.limit ? start + options.limit : undefined;
 
   return results.slice(start, end);
+}
+
+/**
+ * Get statement suggestions for a given statement.
+ * Returns statements that are related via implications and have more supporters.
+ */
+export async function getStatementSuggestions(
+  executor: GraphQLExecutor,
+  statementId: string,
+  attesterAddress?: string
+): Promise<StatementSuggestion[]> {
+  const result = await executeQuery<{ statementSuggestions: StatementSuggestion[] }>(
+    executor,
+    `
+      query GetStatementSuggestions($statementId: ID!, $attesterAddress: Address) {
+        statementSuggestions(statementId: $statementId, attesterAddress: $attesterAddress) {
+          statement {
+            id
+            cid
+            statementType
+            title
+            excerpt
+            believerCount
+            disbelieverCount
+            createdAt
+          }
+          reason
+          relationshipType
+        }
+      }
+    `,
+    { statementId, attesterAddress }
+  );
+
+  return result.statementSuggestions || [];
 }

@@ -54,3 +54,29 @@ Before implementing BrowseStatementsPage or any other UI feature:
 3. Then implement new features incrementally
 
 (User's question: why didn't the pre-commit hook running "npm run build" at the top level catch this? Oh, maybe the top-level one doesn't run the ui one? That's an oversight; fix the ui build, then add it to the top-level build.)
+
+## Fixed UI Build - SDK Exports (2026-01-27)
+
+### What was done
+Fixed the UI build by:
+1. **Exported missing types from SDK** (`StatementContent`, `IndirectSupportInfo`, `StatementSuggestion`)
+2. **Exported missing functions** (`getUserBelief`, `getUserBeliefs`, `getUserDisbeliefs`, `getStatementSuggestions`)
+3. **Updated `StatementContent` type** to include `metadata` and additional reference fields that the UI uses
+4. **Fixed `process.env` browser compatibility** - SDK was using `process.env` directly which fails in browser context. Added `getEnvVar()` helper that accesses environment variables safely via `globalThis`
+5. **Updated UI `StatementRenderer`** to use SDK's `StatementContent` type instead of local definition
+
+### Files changed
+- `sdk/src/graphql-queries/index.ts` - Added exports
+- `sdk/src/graphql-queries/conceptspace.ts` - Added types, made internal functions exported, added `getStatementSuggestions`
+- `sdk/src/actions/common.ts` - Added `getEnvVar()` helper
+- `sdk/src/queries/common.ts` - Added `getEnvVar()` helper
+- `ui/src/conceptspace/components/StatementRenderer.tsx` - Use SDK type
+
+### Build and tests
+- `npm run build` passes (including UI build)
+- `npm run test` passes (102 tests passing)
+
+### What's next
+The UI now compiles. Next priorities:
+- Continue with UI work (BrowseStatementsPage, etc.)
+- Consider adding UI build to top-level build/pre-commit hook

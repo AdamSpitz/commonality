@@ -7,10 +7,19 @@
 
 import { createGraphQLExecutor, type GraphQLExecutor } from '../graphql-server/index.js';
 
-// Re-export GraphQL query functions
-// Note: conceptspace and pubstarter wrapper functions have been removed - tests should use executeQuery() directly
-// Only export functions that aren't simple wrappers (e.g., getIndirectSupporterCount, getStatementWithContent)
-export { getIndirectSupporterCount, getStatementWithContent, getUserIndirectSupport } from './conceptspace.js';
+// Re-export GraphQL query functions for conceptspace
+export {
+  getIndirectSupporterCount,
+  getStatementWithContent,
+  getUserIndirectSupport,
+  getUserBelief,
+  getUserBeliefs,
+  getUserDisbeliefs,
+  getStatementSuggestions,
+  type StatementContent,
+  type IndirectSupportInfo,
+  type StatementSuggestion,
+} from './conceptspace.js';
 // Pubstarter: All functions are simple wrappers, so we don't export any (tests use graphql-helpers.ts)
 // Delegation: All functions are simple wrappers, so we don't export any (tests use graphql-helpers.ts)
 // Funding Portals: All functions are simple wrappers, so we don't export any (tests use graphql-helpers.ts)
