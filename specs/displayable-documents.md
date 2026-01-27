@@ -128,6 +128,19 @@ Documents are identified by their content hash (IPFS CID). Use canonical JSON en
 
 ## Relationship to Other Systems
 
-This spec defines the displayable document format. Other systems (like conceptspace statements, attestations, etc.) can use these documents as their content layer. A "statement" is application-level structure that contains or references a displayable document.
+This spec defines the displayable document format. Other systems (like conceptspace statements, attestations, etc.) can use these documents as their content layer.
+
+### Current usage
+
+- **Conceptspace statements**: See [statements.md](statements.md). A statement IS a displayable document; any conceptspace-specific metadata goes in the `extras` field.
+- **Implication explanations**: When an AI attester publishes "S1 implies S2", the explanation can be a displayable document.
+- **Project descriptions**: Pubstarter project descriptions could use this format.
+
+### Architecture
 
 The documentspace layer is just "immutable JSON identified by CID." This displayable-documents spec is a convention for documents meant to be rendered for humans, with the critical property that everything is visible to signers.
+
+This separation enables:
+- Generic tooling (validators, renderers) that works across all applications
+- Applications can add domain-specific semantics via `extras` without changing the core format
+- Legal separation: the displayable-documents layer has nothing to do with tokens/funding

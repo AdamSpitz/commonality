@@ -1,37 +1,73 @@
 # Modelling statements
 
-A Statement should be represented as a JSON document that we upload to IPFS.
+A Statement in Conceptspace is simply a **displayable document** (see [displayable-documents.md](displayable-documents.md)) that someone might want to sign/believe. A statement's ID is its IPFS CID.
 
-Let's put a "statementType" field on it, so that in the future we can support different schemas. A statement's ID is the IPFS CID of this JSON document.
+## Relationship to Displayable Documents
 
-Statement schema (there's just one type for now):
+The displayable-documents spec provides the generic foundation:
+- `format`: how to render the content (e.g., `markdown-restricted`)
+- `content`: the actual text
+- `assets`: embedded images etc.
+- `references`: links to other documents
+- `extras`: application-specific metadata
+
+For Conceptspace statements, we use the `extras` field for any domain-specific data. For example:
+
+```json
+{
+  "format": "markdown-restricted",
+  "content": "Democracy requires active citizen participation...",
+  "references": [
+    { "cid": "bafyrei...", "label": "Related proposal" }
+  ],
+  "extras": {
+    "statementType": "statement",
+    "topic": "governance",
+    "createdDate": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+## Migration from old format
+
+The old statement format looked like:
 ```json
 {
   "statementType": "statement",
-  "content": "...",           // Markdown content
-  "references": [...],        // Optional array of references to other statements
-  "metadata": {...}           // Optional metadata (title, version, createdDate)
+  "content": "...",
+  "references": [{ "statementId": "...", "label": "...", "relationship": "..." }],
+  "metadata": { "title": "...", "createdDate": "..." }
 }
 ```
 
-The `references` array (if present) contains objects like:
-```json
-{
-  "statementId": "QmXyz...",           // IPFS CID of referenced statement
-  "label": "...",                      // Optional human-readable label
-  "relationship": "..."                // Optional: "supports", "opposes", "alternative", "related"
-}
-```
+The indexer should support both formats during the transition period:
+- If a document has a `format` field → treat as displayable document (new format)
+- If a document has a `statementType` field but no `format` → treat as legacy statement
 
-The content can use placeholders like `{ref:0}`, `{ref:1}` etc. to reference items in the references array. This is useful for coalition-building (e.g., "I support either {ref:0} or {ref:1}") and finding common ground.
+## Reference syntax in content
 
-Important details:
-  - Use canonical JSON formatting (sorted keys, no whitespace, UTF-8) so identical statements produce identical CIDs
-  - Maximum content size: 50k characters
-  - When rendering Markdown, sanitize to prevent XSS. Maybe use react-markdown and rehype-sanitize with strict schema? (I'm going on AI recommendation for that; I've never used those and don't know what they are.)
-  - Handle circular references gracefully (limit expansion depth when expanding references)
-  - If a statement CID can't be retrieved from IPFS or is invalid, still show the ID and support counts but display a warning
-  - Indexers should pin any statement CIDs they encounter (to ensure availability) and optionally cache metadata (title, excerpt?) in the indexer's DB for search/display.
+In `markdown-restricted` format, references use `[text](ref:N)` syntax per the displayable-documents spec.
+
+For backward compatibility with old statements using `{ref:0}` placeholders, renderers should treat both syntaxes equivalently during the transition.
+
+## Conceptspace-specific extras
+
+The following `extras` fields are recognized by Conceptspace:
+- `statementType`: (string) Always "statement" for now; reserved for future schema variations
+- `topic`: (string) Optional topic/category hint for indexers
+- `createdDate`: (ISO 8601 string) When the statement was authored
+
+Indexers may extract these for search/filtering, but per the displayable-documents principle, `extras` MUST always be shown in full to users viewing the document.
+
+## Important implementation details
+
+From displayable-documents.md, the key rules that apply to statements:
+- Use canonical JSON (sorted keys, no whitespace, UTF-8) so identical content produces identical CIDs
+- Maximum content size: 50k characters
+- Sanitize markdown to prevent XSS
+- All referenced content must be immutable (CIDs only, no http:// URLs)
+- If a referenced document can't be fetched, show a placeholder with the CID, not silent omission
+- Indexers should pin statement CIDs and cache display metadata (excerpt, believer counts)
 
 ## Users can keep a list of saved statements
 
