@@ -78,5 +78,21 @@ Fixed the UI build by:
 
 ### What's next
 The UI now compiles. Next priorities:
+- Add UI build to top-level build, so it will be run by the pre-commit hook
 - Continue with UI work (BrowseStatementsPage, etc.)
-- Consider adding UI build to top-level build/pre-commit hook
+
+## Added UI build to top-level build (2026-01-27)
+
+### What was done
+Added the UI build to the top-level `npm run build` command so the pre-commit hook will catch UI build failures.
+
+The UI couldn't be added as a npm workspace because of a peer dependency conflict: `connectkit@1.9.1` requires React 17.x or 18.x, but the UI uses React 19. The UI was already working with its own separate `npm install` (which handles peer deps differently).
+
+**Solution**: Instead of adding UI as a workspace, added a separate `ui:build` script and chained it in the main build.
+
+### Files changed
+- `package.json` - Added `ui:build` script, updated `build` script to include `&& npm run ui:build`
+
+### Build and tests
+- `npm run build` passes (now includes UI)
+- `npm run test` passes (102 tests)
