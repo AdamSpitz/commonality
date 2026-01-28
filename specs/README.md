@@ -61,7 +61,7 @@ But also this might be useful with things other than code artifacts. e.g. It mig
 
 ### Reviews
 
-See specs/reviews.md.
+See REVIEWS.md.
 
 
 ## Main components
