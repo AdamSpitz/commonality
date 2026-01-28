@@ -156,3 +156,30 @@ Future work could:
 - Add a query to list known attesters from the indexer
 - Integrate the trusted attesters with other pages (StatementPage, etc.) to filter indirect support
 - Add social account connection settings when that feature is implemented
+
+## Fleshed out specs/reviews.md (2026-01-27)
+
+### What was done
+Expanded the sparse `specs/reviews.md` file into a comprehensive review checklist covering all main artifacts.
+
+**Sections added:**
+- Quick health checks (build/test commands)
+- Smart contracts (hardhat/) - security, tests, events
+- Indexer (indexer/) - schema sync, ABIs, event handling
+- SDK (sdk/) - exports, environment handling
+- Integration tests - coverage, sync waits, cleanup
+- UI (ui/) - build, validation, error handling, organization
+- Documentation - reachability, feedback loops
+- Cross-cutting concerns - TypeScript, ABIs in sync
+
+This was a meta-level task from TODO.md: "Flesh out specs/reviews.md. I'd like to have a good checklist for doing overall reviews of the code base."
+
+### Files changed
+- `specs/reviews.md` - Comprehensive review checklist
+
+### Build and tests
+- `npm run build` passes
+- `npm run test` passes (238 hardhat + 102 integration)
+
+### What's next
+High-level stuff is all in order, it's time to implement. See TODO.md for current priorities.
