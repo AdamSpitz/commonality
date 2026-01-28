@@ -57,8 +57,8 @@ export {
 
 // Import and re-export Funding Portal schema
 export {
-  projectAlignments,
-  projectAlignmentsRelations,
+  alignmentAttestations,
+  alignmentAttestationsRelations,
 } from "./schemas/fundingportal.schema";
 
 // Import and re-export Mutable Refs schema

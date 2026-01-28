@@ -1,8 +1,8 @@
 /**
- * State transition properties and invariants for project alignment actions
+ * State transition properties and invariants for alignment attestation actions
  *
  * This defines the properties that should hold when attesters create
- * project alignment attestations.
+ * alignment attestations linking subjects to statements.
  */
 
 import assert from 'assert';
@@ -13,9 +13,9 @@ import {
   type ActionMetadata,
 } from './action-framework.js';
 import {
-  getAlignedProjects,
-  getProjectStatements,
-  getProjectAlignment,
+  getAlignedSubjects,
+  getSubjectStatements,
+  getAlignmentAttestation,
 } from '../utils/graphql-helpers.js';
 import { assertNoOrphanedData } from '../utils/invariants.js';
 
@@ -23,26 +23,26 @@ import { assertNoOrphanedData } from '../utils/invariants.js';
  * State captured before/after an alignment attestation action
  */
 interface AlignmentState {
-  /** Number of projects aligned with a statement (from statement's perspective) */
-  alignedProjectCount: number;
-  /** Number of statements a project is aligned with (from project's perspective) */
-  projectStatementCount: number;
+  /** Number of subjects aligned with a statement (from statement's perspective) */
+  alignedSubjectCount: number;
+  /** Number of statements a subject is aligned with (from subject's perspective) */
+  subjectStatementCount: number;
   /** Whether the specific alignment exists */
   alignmentExists: boolean;
 }
 
 /**
- * Capture the current state of project-statement alignments
+ * Capture the current state of subject-statement alignments
  */
 async function captureAlignmentState(context: ActionContext): Promise<AlignmentState> {
   const { graphqlClient, entities } = context;
-  const { statementId, projectAddress, attesterAddress } = entities;
+  const { statementId, subjectAddress, attesterAddress } = entities;
 
   if (!statementId) {
     throw new Error('statementId is required in context.entities for alignment state');
   }
-  if (!projectAddress) {
-    throw new Error('projectAddress is required in context.entities for alignment state');
+  if (!subjectAddress) {
+    throw new Error('subjectAddress is required in context.entities for alignment state');
   }
   if (!attesterAddress) {
     throw new Error('attesterAddress is required in context.entities for alignment state');
@@ -51,23 +51,23 @@ async function captureAlignmentState(context: ActionContext): Promise<AlignmentS
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = graphqlClient as any;
 
-  // Get all projects aligned with this statement
-  const alignedProjects = await getAlignedProjects(executor, statementId);
+  // Get all subjects aligned with this statement
+  const alignedSubjects = await getAlignedSubjects(executor, statementId);
 
-  // Get all statements this project is aligned with
-  const projectStatements = await getProjectStatements(executor, projectAddress);
+  // Get all statements this subject is aligned with
+  const subjectStatements = await getSubjectStatements(executor, subjectAddress);
 
   // Check if this specific alignment exists
-  const alignment = await getProjectAlignment(
+  const alignment = await getAlignmentAttestation(
     executor,
     attesterAddress,
-    projectAddress,
+    subjectAddress,
     statementId
   );
 
   return {
-    alignedProjectCount: alignedProjects.length,
-    projectStatementCount: projectStatements.length,
+    alignedSubjectCount: alignedSubjects.length,
+    subjectStatementCount: subjectStatements.length,
     alignmentExists: alignment !== null,
   };
 }
@@ -75,10 +75,10 @@ async function captureAlignmentState(context: ActionContext): Promise<AlignmentS
 /**
  * State Transition Property #1: Alignment Attestation
  *
- * When an attester creates a project-statement alignment:
+ * When an attester creates a subject-statement alignment:
  * - The alignment should exist in the indexer
- * - The count of projects aligned with the statement should increase by 1
- * - The count of statements the project is aligned with should increase by 1
+ * - The count of subjects aligned with the statement should increase by 1
+ * - The count of statements the subject is aligned with should increase by 1
  *
  * This verifies:
  * - Alignments are correctly recorded
@@ -98,21 +98,21 @@ export const alignmentAttestationProperty: StateTransitionProperty = {
 
     // The alignment count from statement's perspective should increase by 1
     assert.strictEqual(
-      after.alignedProjectCount,
-      before.alignedProjectCount + 1,
-      `Aligned project count mismatch. ` +
-      `Before: ${before.alignedProjectCount}, ` +
-      `After: ${after.alignedProjectCount}, ` +
+      after.alignedSubjectCount,
+      before.alignedSubjectCount + 1,
+      `Aligned subject count mismatch. ` +
+      `Before: ${before.alignedSubjectCount}, ` +
+      `After: ${after.alignedSubjectCount}, ` +
       `Expected increase of 1`
     );
 
-    // The alignment count from project's perspective should increase by 1
+    // The alignment count from subject's perspective should increase by 1
     assert.strictEqual(
-      after.projectStatementCount,
-      before.projectStatementCount + 1,
-      `Project statement count mismatch. ` +
-      `Before: ${before.projectStatementCount}, ` +
-      `After: ${after.projectStatementCount}, ` +
+      after.subjectStatementCount,
+      before.subjectStatementCount + 1,
+      `Subject statement count mismatch. ` +
+      `Before: ${before.subjectStatementCount}, ` +
+      `After: ${after.subjectStatementCount}, ` +
       `Expected increase of 1`
     );
   },
@@ -122,8 +122,8 @@ export const alignmentAttestationProperty: StateTransitionProperty = {
  * State Transition Property #2: Alignment Bidirectionality
  *
  * After creating an alignment:
- * - Querying by statement should return the project
- * - Querying by project should return the statement
+ * - Querying by statement should return the subject
+ * - Querying by subject should return the statement
  * - Querying by attester should return the alignment
  *
  * This verifies that all query paths are consistent.
@@ -133,46 +133,46 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
   captureState: async () => ({}), // No state to capture, we just verify after
   check: async (context: ActionContext, before: any, after: any) => {
     const { graphqlClient, entities } = context;
-    const { statementId, projectAddress, attesterAddress } = entities;
+    const { statementId, subjectAddress, attesterAddress } = entities;
 
-    if (!statementId || !projectAddress || !attesterAddress) {
-      throw new Error('statementId, projectAddress, and attesterAddress are required');
+    if (!statementId || !subjectAddress || !attesterAddress) {
+      throw new Error('statementId, subjectAddress, and attesterAddress are required');
     }
 
     const executor = graphqlClient as any;
 
-    // Query by statement - should include this project
-    const alignedProjects = await getAlignedProjects(executor, statementId);
-    const projectFound = alignedProjects.some(
-      a => a.projectAddress.toLowerCase() === projectAddress.toLowerCase() &&
+    // Query by statement - should include this subject
+    const alignedSubjects = await getAlignedSubjects(executor, statementId);
+    const subjectFound = alignedSubjects.some(
+      a => a.subjectAddress.toLowerCase() === subjectAddress.toLowerCase() &&
            a.attester.toLowerCase() === attesterAddress.toLowerCase()
     );
     assert.ok(
-      projectFound,
-      `Project ${projectAddress} should appear in aligned projects for statement ${statementId}`
+      subjectFound,
+      `Subject ${subjectAddress} should appear in aligned subjects for statement ${statementId}`
     );
 
-    // Query by project - should include this statement
-    const projectStatements = await getProjectStatements(executor, projectAddress);
-    const statementFound = projectStatements.some(
+    // Query by subject - should include this statement
+    const subjectStatements = await getSubjectStatements(executor, subjectAddress);
+    const statementFound = subjectStatements.some(
       a => a.statementId.toLowerCase() === statementId.toLowerCase() &&
            a.attester.toLowerCase() === attesterAddress.toLowerCase()
     );
     assert.ok(
       statementFound,
-      `Statement ${statementId} should appear in statements for project ${projectAddress}`
+      `Statement ${statementId} should appear in statements for subject ${subjectAddress}`
     );
 
     // Query the specific alignment - should exist
-    const alignment = await getProjectAlignment(
+    const alignment = await getAlignmentAttestation(
       executor,
       attesterAddress,
-      projectAddress,
+      subjectAddress,
       statementId
     );
     assert.ok(
       alignment,
-      `Alignment should exist for attester ${attesterAddress}, project ${projectAddress}, statement ${statementId}`
+      `Alignment should exist for attester ${attesterAddress}, subject ${subjectAddress}, statement ${statementId}`
     );
   },
 };
@@ -182,7 +182,7 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
  *
  * All alignment records should reference valid entities:
  * - Every alignment references a Statement that exists
- * - Every alignment references a Project that exists
+ * - Every alignment references a Subject that exists
  * - Every alignment references an Attester that exists
  *
  * This is a referential integrity check.
@@ -196,10 +196,10 @@ export const noOrphanedAlignmentDataInvariant: InvariantCheck = {
 };
 
 /**
- * Action metadata for attestProjectAlignment
+ * Action metadata for attestAlignment
  */
-export const attestProjectAlignmentMetadata: ActionMetadata = {
-  name: 'attestProjectAlignment',
+export const attestAlignmentMetadata: ActionMetadata = {
+  name: 'attestAlignment',
   category: 'other',
   stateTransitionProperties: [
     alignmentAttestationProperty,
@@ -209,14 +209,14 @@ export const attestProjectAlignmentMetadata: ActionMetadata = {
 };
 
 /**
- * Action metadata for attestProjectAlignmentsBatch
+ * Action metadata for attestAlignmentsBatch
  *
  * For batch operations, we skip the detailed state transition checks
  * (since they would need to track multiple alignments) and just verify
  * the invariants hold.
  */
-export const attestProjectAlignmentsBatchMetadata: ActionMetadata = {
-  name: 'attestProjectAlignmentsBatch',
+export const attestAlignmentsBatchMetadata: ActionMetadata = {
+  name: 'attestAlignmentsBatch',
   category: 'other',
   stateTransitionProperties: [],
   invariantsToCheck: [noOrphanedAlignmentDataInvariant],

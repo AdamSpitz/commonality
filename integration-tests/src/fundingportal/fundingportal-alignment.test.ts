@@ -1,56 +1,57 @@
 /**
- * Funding Portal - Project Alignment Integration Tests
+ * Funding Portal - Alignment Attestations Integration Tests
  *
- * Tests for the ProjectAlignment contract functionality:
- * - Attest that a project is aligned with a statement/cause
+ * Tests for the AlignmentAttestations contract functionality:
+ * - Attest that a subject is aligned with a statement/cause
  * - Batch attest multiple alignments
- * - Query alignments by project, statement, or attester
- * - Multiple attesters for same project-statement pair
+ * - Query alignments by subject, statement, or attester
+ * - Multiple attesters for same subject-statement pair
  */
 
 import assert from 'assert';
 import {
   uploadToIPFS,
   cidToBytes32,
-  type ProjectAlignmentContract,
+  type AlignmentAttestationsContract,
   type PubstarterContract,
   createGraphQLClient,
-  ProjectAlignmentAbi,
+  AlignmentAttestationsAbi,
   PubstarterAbi,
+  PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk';
 import {
-  getAlignedProjects,
-  getProjectStatements,
+  getAlignedSubjects,
+  getSubjectStatements,
   getAlignmentsByAttester,
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { attestProjectAlignmentChecked, attestProjectAlignmentsBatchChecked } from '../actions/alignment-actions-checked.js';
+import { attestAlignmentChecked, attestAlignmentsBatchChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 
-describe('Funding Portal - Project Alignment', () => {
+describe('Funding Portal - Alignment Attestations', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}`;
+  const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as `0x${string}`;
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'fundingportal-alignment';
 
-  let projectAlignmentContract: ProjectAlignmentContract;
+  let alignmentAttestationsContract: AlignmentAttestationsContract;
   let pubstarterContract: PubstarterContract;
   let graphqlClient: ReturnType<typeof createGraphQLClient>;
 
-  before(() => {
-    if (!PROJECT_ALIGNMENT_ADDRESS) {
-      throw new Error('PROJECT_ALIGNMENT_ADDRESS not set');
+  before(async () => {
+    if (!ALIGNMENT_ATTESTATIONS_ADDRESS) {
+      throw new Error('ALIGNMENT_ATTESTATIONS_ADDRESS not set');
     }
     if (!PUBSTARTER_ADDRESS) {
       throw new Error('PUBSTARTER_ADDRESS not set');
     }
 
-    projectAlignmentContract = {
-      address: PROJECT_ALIGNMENT_ADDRESS,
-      abi: ProjectAlignmentAbi,
+    alignmentAttestationsContract = {
+      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
+      abi: AlignmentAttestationsAbi,
     };
 
     pubstarterContract = {
@@ -61,7 +62,7 @@ describe('Funding Portal - Project Alignment', () => {
     graphqlClient = createGraphQLClient(GRAPHQL_URL);
   });
 
-  it('should attest a single project alignment', async function() {
+  it('should attest a single alignment', async function() {
     this.timeout(30000);
 
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -98,20 +99,21 @@ describe('Funding Portal - Project Alignment', () => {
     testLog(`  Project created at: ${projectDetails.tokenAddress}`);
 
     // Attest that the project aligns with the statement
-    testLog('  Attesting project alignment...');
-    await attestProjectAlignmentChecked(
+    testLog('  Attesting alignment...');
+    await attestAlignmentChecked(
       attesterClients,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectDetails.tokenAddress,
       statementCid,
+      PROJECT_ALIGNMENT_TOPIC,
       statementId
     );
 
-    testLog('  ✓ Project alignment attested successfully (verified by property checks)');
+    testLog('  ✓ Alignment attested successfully (verified by property checks)');
   });
 
-  it('should handle multiple attesters for the same project-statement pair', async function() {
+  it('should handle multiple attesters for the same subject-statement pair', async function() {
     this.timeout(30000);
 
     const attester1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -149,37 +151,39 @@ describe('Funding Portal - Project Alignment', () => {
 
     // Attester 1 attests
     testLog('  Attester 1 attesting...');
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attester1Clients,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectDetails.tokenAddress,
       statementCid,
+      PROJECT_ALIGNMENT_TOPIC,
       statementId
     );
 
     // Attester 2 also attests the same alignment
     testLog('  Attester 2 attesting...');
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attester2Clients,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectDetails.tokenAddress,
       statementCid,
+      PROJECT_ALIGNMENT_TOPIC,
       statementId
     );
 
     testLog('  ✓ Multiple attesters tracked independently (verified by property checks)');
 
-    // Query all aligned projects (should show 2 attestations for same project)
-    const alignedProjects = await getAlignedProjects(graphqlClient, statementId);
-    const matchingAlignments = alignedProjects.filter(
-      a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
+    // Query all aligned subjects (should show 2 attestations for same subject)
+    const alignedSubjects = await getAlignedSubjects(graphqlClient, statementId);
+    const matchingAlignments = alignedSubjects.filter(
+      a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
     assert.strictEqual(
       matchingAlignments.length,
       2,
-      'Should have 2 attestations for the same project'
+      'Should have 2 attestations for the same subject'
     );
 
     testLog('  ✓ Queries show both attestations');
@@ -246,12 +250,13 @@ describe('Funding Portal - Project Alignment', () => {
 
     // Batch attest: project1 -> statement1, project2 -> statement2
     testLog('  Batch attesting alignments...');
-    await attestProjectAlignmentsBatchChecked(
+    await attestAlignmentsBatchChecked(
       attesterClients,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       [project1.tokenAddress, project2.tokenAddress],
-      [statement1Cid, statement2Cid]
+      [statement1Cid, statement2Cid],
+      [PROJECT_ALIGNMENT_TOPIC, PROJECT_ALIGNMENT_TOPIC]
     );
 
     testLog('  ✓ Batch attestations recorded successfully (verified by property checks)');
@@ -266,7 +271,7 @@ describe('Funding Portal - Project Alignment', () => {
     testLog('  ✓ All alignments queryable by attester');
   });
 
-  it('should allow same attester to link one project to multiple statements', async function() {
+  it('should allow same attester to link one subject to multiple statements', async function() {
     this.timeout(30000);
 
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -308,36 +313,37 @@ describe('Funding Portal - Project Alignment', () => {
     // Attest alignment to all three statements
     testLog('  Attesting alignments to multiple statements...');
     for (let i = 0; i < statementCids.length; i++) {
-      await attestProjectAlignmentChecked(
+      await attestAlignmentChecked(
         attesterClients,
-        projectAlignmentContract,
+        alignmentAttestationsContract,
         graphqlClient,
         projectDetails.tokenAddress,
         statementCids[i],
+        PROJECT_ALIGNMENT_TOPIC,
         statementIds[i]
       );
     }
 
     // Verify all alignments exist
-    const projectStatements = await getProjectStatements(
+    const subjectStatements = await getSubjectStatements(
       graphqlClient,
       projectDetails.tokenAddress,
       attesterClients.account
     );
 
     assert.ok(
-      projectStatements.length >= 3,
-      'Project should be aligned with at least 3 statements'
+      subjectStatements.length >= 3,
+      'Subject should be aligned with at least 3 statements'
     );
 
     // Verify each statement ID is present
     for (const statementId of statementIds) {
-      const found = projectStatements.some(
+      const found = subjectStatements.some(
         a => a.statementId.toLowerCase() === statementId.toLowerCase()
       );
-      assert.ok(found, `Statement ${statementId} should be aligned with project`);
+      assert.ok(found, `Statement ${statementId} should be aligned with subject`);
     }
 
-    testLog('  ✓ Project aligned with multiple statements');
+    testLog('  ✓ Subject aligned with multiple statements');
   });
 });

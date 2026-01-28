@@ -1,40 +1,53 @@
 /**
- * User actions for Funding Portals subsystem (ProjectAlignment)
+ * User actions for Funding Portals subsystem (AlignmentAttestations)
  */
 
 import { type Address, type Hash } from 'viem';
 import { cidToBytes32, type TestClients } from './common.js';
 
 // ============================================================================
-// ProjectAlignment Actions (Funding Portals)
+// AlignmentAttestations Actions (Funding Portals)
 // ============================================================================
 
-export interface ProjectAlignmentContract {
+export interface AlignmentAttestationsContract {
   address: Address;
   abi: any;
 }
 
 /**
- * Attest that a project is aligned with a statement/cause
- *
- * @param topicStatementCid Optional topic CID for indexer filtering. Pass null/undefined for no topic.
- *                          For project-alignment attestations, use a known hardcoded statement.
+ * Convert a CID string or bytes32 to bytes32
+ * If the input is already a 0x-prefixed 66-character hex string, return it as-is.
+ * Otherwise, parse it as a CID and convert to bytes32.
  */
-export async function attestProjectAlignment(
+function toBytes32(cidOrBytes32: string): `0x${string}` {
+  if (cidOrBytes32.startsWith('0x') && cidOrBytes32.length === 66) {
+    return cidOrBytes32 as `0x${string}`;
+  }
+  return cidToBytes32(cidOrBytes32);
+}
+
+/**
+ * Attest that a subject (project, user, etc.) is aligned with a statement/cause
+ *
+ * @param topicStatementCidOrId Required topic for indexer filtering.
+ *                              Can be a CID string or a bytes32 (like PROJECT_ALIGNMENT_TOPIC).
+ *                              Every attestation must explicitly declare its topic.
+ */
+export async function attestAlignment(
   clients: TestClients,
-  projectAlignmentContract: ProjectAlignmentContract,
-  projectAddress: Address,
+  alignmentAttestationsContract: AlignmentAttestationsContract,
+  subjectAddress: Address,
   statementCid: string,
-  topicStatementCid?: string | null
+  topicStatementCidOrId: string
 ): Promise<Hash> {
   const statementId = cidToBytes32(statementCid);
-  const topicStatementId = topicStatementCid ? cidToBytes32(topicStatementCid) : '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`;
+  const topicStatementId = toBytes32(topicStatementCidOrId);
 
   const hash = await clients.walletClient.writeContract({
-    address: projectAlignmentContract.address,
-    abi: projectAlignmentContract.abi,
+    address: alignmentAttestationsContract.address,
+    abi: alignmentAttestationsContract.abi,
     functionName: 'attestAlignment',
-    args: [projectAddress, statementId, topicStatementId],
+    args: [subjectAddress, statementId, topicStatementId],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -44,30 +57,27 @@ export async function attestProjectAlignment(
 }
 
 /**
- * Batch attest multiple project alignments
+ * Batch attest multiple alignments
  *
- * @param topicStatementCids Optional array of topic CIDs for indexer filtering.
- *                           Must have same length as other arrays if provided.
- *                           Pass null/undefined to use no topic for all.
+ * @param topicStatementCidsOrIds Required array of topics for indexer filtering.
+ *                                Can be CID strings or bytes32 values.
+ *                                Must have same length as other arrays.
  */
-export async function attestProjectAlignmentsBatch(
+export async function attestAlignmentsBatch(
   clients: TestClients,
-  projectAlignmentContract: ProjectAlignmentContract,
-  projectAddresses: Address[],
+  alignmentAttestationsContract: AlignmentAttestationsContract,
+  subjectAddresses: Address[],
   statementCids: string[],
-  topicStatementCids?: (string | null)[] | null
+  topicStatementCidsOrIds: string[]
 ): Promise<Hash> {
   const statementIds = statementCids.map(cidToBytes32);
-  const zeroBytes32 = '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`;
-  const topicStatementIds = topicStatementCids
-    ? topicStatementCids.map(cid => cid ? cidToBytes32(cid) : zeroBytes32)
-    : statementCids.map(() => zeroBytes32);
+  const topicStatementIds = topicStatementCidsOrIds.map(toBytes32);
 
   const hash = await clients.walletClient.writeContract({
-    address: projectAlignmentContract.address,
-    abi: projectAlignmentContract.abi,
+    address: alignmentAttestationsContract.address,
+    abi: alignmentAttestationsContract.abi,
     functionName: 'attestAlignmentsInBatch',
-    args: [projectAddresses, statementIds, topicStatementIds],
+    args: [subjectAddresses, statementIds, topicStatementIds],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

@@ -83,15 +83,24 @@ export {
 
 // Funding portals queries
 export {
-  getAlignedProjects,
-  getProjectStatements,
-  getProjectAlignment,
+  // New function names
+  getAlignedSubjects,
+  getSubjectStatements,
+  getAlignmentAttestation,
   getAlignmentsByAttester,
-  getIndirectlyAlignedProjects,
+  getIndirectlyAlignedSubjects,
   getTotalFundingForCause,
   getAllAlignedProjectsForCause,
   getTopContributorsForCause,
   getUserContributionRankForCause,
+  // Backwards compatibility aliases
+  getAlignedProjects,
+  getProjectStatements,
+  getProjectAlignment,
+  getIndirectlyAlignedProjects,
+  // Types
+  type AlignmentAttestation,
+  type IndirectSubjectAlignment,
   type ProjectAlignment,
   type IndirectProjectAlignment,
   type CauseFundingMetrics,

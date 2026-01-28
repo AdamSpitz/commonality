@@ -13,11 +13,12 @@ import assert from 'assert';
 import {
   uploadToIPFS,
   cidToBytes32,
+  PROJECT_ALIGNMENT_TOPIC,
   type BeliefsContract,
   type ImplicationsContract,
   type PubstarterContract,
   type AssuranceContract,
-  type ProjectAlignmentContract,
+  type AlignmentAttestationsContract,
   type DelegatableNotesContract,
   TokenType,
 } from '@commonality/sdk';
@@ -29,7 +30,7 @@ import {
   ImplicationsAbi,
   PubstarterAbi,
   AssuranceContractAbi,
-  ProjectAlignmentAbi,
+  AlignmentAttestationsAbi,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
 import {
@@ -42,7 +43,7 @@ import { parseEther, type Address, keccak256, toBytes } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
-import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';
+import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { depositETHChecked } from '../delegation/delegation-actions-checked.js';
 
 describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
@@ -53,7 +54,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const BELIEFS_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as Address;
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as Address;
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-  const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
+  const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as Address;
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as Address;
 
   // Test suite name for unique account derivation
@@ -154,25 +155,27 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     testLog(`  Project 2: ${p2Details.assuranceContractAddress}`);
 
     // Align projects with statements
-    const alignmentContract: ProjectAlignmentContract = {
-      address: PROJECT_ALIGNMENT_ADDRESS,
-      abi: ProjectAlignmentAbi,
+    const alignmentContract: AlignmentAttestationsContract = {
+      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
+      abi: AlignmentAttestationsAbi,
     };
 
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
       graphqlClient,
       p1Details.assuranceContractAddress,
       s1Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s1Id
     );
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
       graphqlClient,
       p2Details.assuranceContractAddress,
       s2Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s2Id
     );
 
@@ -388,25 +391,27 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     testLog('  ✓ Project creation properties verified');
 
     // Align projects
-    const alignmentContract: ProjectAlignmentContract = {
-      address: PROJECT_ALIGNMENT_ADDRESS,
-      abi: ProjectAlignmentAbi,
+    const alignmentContract: AlignmentAttestationsContract = {
+      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
+      abi: AlignmentAttestationsAbi,
     };
 
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
       graphqlClient,
       p1Details.assuranceContractAddress,
       s1Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s1Id
     );
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
       graphqlClient,
       p2Details.assuranceContractAddress,
       s2Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s2Id
     );
 

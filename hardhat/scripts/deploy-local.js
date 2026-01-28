@@ -28,12 +28,12 @@ async function main() {
   const implicationsAddress = await implications.getAddress();
   console.log(`✓ Implications: ${implicationsAddress}`);
 
-  // Deploy ProjectAlignment contract
-  const ProjectAlignment = await ethers.getContractFactory('ProjectAlignment');
-  const projectAlignment = await ProjectAlignment.deploy();
-  await projectAlignment.waitForDeployment();
-  const projectAlignmentAddress = await projectAlignment.getAddress();
-  console.log(`✓ ProjectAlignment: ${projectAlignmentAddress}`);
+  // Deploy AlignmentAttestations contract
+  const AlignmentAttestations = await ethers.getContractFactory('AlignmentAttestations');
+  const alignmentAttestations = await AlignmentAttestations.deploy();
+  await alignmentAttestations.waitForDeployment();
+  const alignmentAttestationsAddress = await alignmentAttestations.getAddress();
+  console.log(`✓ AlignmentAttestations: ${alignmentAttestationsAddress}`);
 
   // Deploy DelegatableNotes contract
   const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
@@ -95,8 +95,8 @@ async function main() {
   const updates = {
     'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
-    'PROJECT_ALIGNMENT_CONTRACT_ADDRESS': projectAlignmentAddress,
-    'PROJECT_ALIGNMENT_ADDRESS': projectAlignmentAddress,  // For Ponder config compatibility
+    'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS': alignmentAttestationsAddress,
+    'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,  // For Ponder config compatibility
     'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
     'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,  // For Ponder config compatibility
     'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,

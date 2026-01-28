@@ -49,11 +49,11 @@ export class TestHelpers {
     await this.contracts.implications.waitForDeployment();
     console.log(`  Implications: ${await this.contracts.implications.getAddress()}`);
 
-    // Deploy ProjectAlignment contract
-    const ProjectAlignment = await ethers.getContractFactory('ProjectAlignment');
-    this.contracts.projectAlignment = await ProjectAlignment.deploy();
-    await this.contracts.projectAlignment.waitForDeployment();
-    console.log(`  ProjectAlignment: ${await this.contracts.projectAlignment.getAddress()}`);
+    // Deploy AlignmentAttestations contract
+    const AlignmentAttestations = await ethers.getContractFactory('AlignmentAttestations');
+    this.contracts.alignmentAttestations = await AlignmentAttestations.deploy();
+    await this.contracts.alignmentAttestations.waitForDeployment();
+    console.log(`  AlignmentAttestations: ${await this.contracts.alignmentAttestations.getAddress()}`);
 
     // Deploy DelegatableNotes contract
     const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
@@ -249,12 +249,12 @@ export class TestHelpers {
   }
 
   /**
-   * Attest that a project aligns with a statement
+   * Attest that a subject aligns with a statement
    */
-  async attestProjectAlignment(attester, projectAddress, statementCID) {
-    const tx = await this.contracts.projectAlignment
+  async attestAlignment(attester, subjectAddress, statementCID, topicStatementCID) {
+    const tx = await this.contracts.alignmentAttestations
       .connect(attester)
-      .attest(projectAddress, statementCID);
+      .attestAlignment(subjectAddress, statementCID, topicStatementCID);
     await tx.wait();
     return tx;
   }
@@ -322,7 +322,7 @@ export class TestHelpers {
         ...process.env,
         BELIEFS_CONTRACT_ADDRESS: '',
         IMPLICATIONS_CONTRACT_ADDRESS: '',
-        PROJECT_ALIGNMENT_ADDRESS: '',
+        ALIGNMENT_ATTESTATIONS_ADDRESS: '',
         DELEGATABLE_NOTES_ADDRESS: '',
         ASSURANCE_CONTRACTS_ADDRESS: '',
         PONDER_RPC_URL_31337: 'http://localhost:8545',
@@ -337,8 +337,8 @@ export class TestHelpers {
       if (this.contracts.implications) {
         env.IMPLICATIONS_CONTRACT_ADDRESS = this.contracts.implications.target;
       }
-      if (this.contracts.projectAlignment) {
-        env.PROJECT_ALIGNMENT_ADDRESS = this.contracts.projectAlignment.target;
+      if (this.contracts.alignmentAttestations) {
+        env.ALIGNMENT_ATTESTATIONS_ADDRESS = this.contracts.alignmentAttestations.target;
       }
       if (this.contracts.delegatableNotes) {
         env.DELEGATABLE_NOTES_ADDRESS = this.contracts.delegatableNotes.target;

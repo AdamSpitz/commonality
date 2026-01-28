@@ -14,14 +14,15 @@ import {
   type ImplicationsContract,
   type PubstarterContract,
   type DelegatableNotesContract,
-  type ProjectAlignmentContract,
+  type AlignmentAttestationsContract,
   createGraphQLClient,
   waitForIndexerSync,
   BeliefsAbi,
   ImplicationsAbi,
   PubstarterAbi,
-  ProjectAlignmentAbi,
+  AlignmentAttestationsAbi,
   DelegatableNotesAbi,
+  PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk';
 import {
   getUserBelief,
@@ -33,7 +34,7 @@ import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { depositETHChecked, delegateNoteChecked } from '../delegation/delegation-actions-checked.js';
-import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';
+import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 
 
@@ -119,18 +120,19 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 7. Attester attests that the project aligns with the statement
-      const projectAlignmentContract: ProjectAlignmentContract = {
+      const alignmentAttestationsContract: AlignmentAttestationsContract = {
         address: PROJECT_ALIGNMENT_CONTRACT_ADDRESS,
-        abi: ProjectAlignmentAbi,
+        abi: AlignmentAttestationsAbi,
       };
 
       testLog('  Attester attesting project alignment...');
-      const alignmentTxHash = await attestProjectAlignmentChecked(
+      const alignmentTxHash = await attestAlignmentChecked(
         attesterClients,
-        projectAlignmentContract,
+        alignmentAttestationsContract,
         graphqlClient,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
+        PROJECT_ALIGNMENT_TOPIC,
         statementId
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
@@ -268,18 +270,19 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 12. Attester attests that the project aligns with the statement
-      const projectAlignmentContract: ProjectAlignmentContract = {
+      const alignmentAttestationsContract: AlignmentAttestationsContract = {
         address: PROJECT_ALIGNMENT_CONTRACT_ADDRESS,
-        abi: ProjectAlignmentAbi,
+        abi: AlignmentAttestationsAbi,
       };
 
       testLog('  Attester attesting project alignment...');
-      const alignmentTxHash = await attestProjectAlignmentChecked(
+      const alignmentTxHash = await attestAlignmentChecked(
         delegateUserClients, // Use delegate user as attester
-        projectAlignmentContract,
+        alignmentAttestationsContract,
         graphqlClient,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
+        PROJECT_ALIGNMENT_TOPIC,
         statementId
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
@@ -391,18 +394,19 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
       // 7. Attester attests that the project aligns with S1 (specific statement)
-      const projectAlignmentContract: ProjectAlignmentContract = {
+      const alignmentAttestationsContract: AlignmentAttestationsContract = {
         address: PROJECT_ALIGNMENT_CONTRACT_ADDRESS,
-        abi: ProjectAlignmentAbi,
+        abi: AlignmentAttestationsAbi,
       };
 
       testLog('  Attester attesting project alignment with S1...');
-      const alignmentTxHash = await attestProjectAlignmentChecked(
+      const alignmentTxHash = await attestAlignmentChecked(
         attesterClients,
-        projectAlignmentContract,
+        alignmentAttestationsContract,
         graphqlClient,
         projectResult.projectDetails.assuranceContractAddress,
         statement1Cid,
+        PROJECT_ALIGNMENT_TOPIC,
         statement1Id
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);

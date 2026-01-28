@@ -19,7 +19,7 @@ import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 import { DelegatableNotesAbi } from "./abis/DelegatableNotesAbi";
 
 // Funding Portal ABIs
-import { ProjectAlignmentAbi } from "./abis/ProjectAlignmentAbi";
+import { AlignmentAttestationsAbi } from "./abis/AlignmentAttestationsAbi";
 
 // Mutable Refs ABIs
 import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
@@ -46,7 +46,7 @@ const DELEGATABLE_NOTES_ADDRESS = (process.env.DELEGATABLE_NOTES_ADDRESS && proc
 // ============================================================================
 // FUNDING PORTAL CONTRACT ADDRESSES
 // ============================================================================
-const PROJECT_ALIGNMENT_ADDRESS = (process.env.PROJECT_ALIGNMENT_ADDRESS && process.env.PROJECT_ALIGNMENT_ADDRESS !== '') ? process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}` : undefined;
+const ALIGNMENT_ATTESTATIONS_ADDRESS = (process.env.ALIGNMENT_ATTESTATIONS_ADDRESS && process.env.ALIGNMENT_ATTESTATIONS_ADDRESS !== '') ? process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
 // MUTABLE REFS CONTRACT ADDRESSES
@@ -185,13 +185,13 @@ export default createConfig({
     // FUNDING PORTAL INDEXER CONTRACTS
     // ========================================================================
     // These are logically separate from the foundational subsystems above.
-    // The Funding Portal indexer tracks project alignment attestations and
+    // The Funding Portal indexer tracks alignment attestations and
     // federates queries to other subsystems' APIs for cross-cutting views.
 
-    ProjectAlignment: {
-      abi: ProjectAlignmentAbi,
+    AlignmentAttestations: {
+      abi: AlignmentAttestationsAbi,
       chain: "hardhat",
-      address: PROJECT_ALIGNMENT_ADDRESS,
+      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
       startBlock: FUNDING_PORTAL_START_BLOCK,
     },
 

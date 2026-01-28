@@ -1454,6 +1454,16 @@ export async function getDelegationChain(
 // Funding Portals Queries
 // ============================================================================
 
+export interface AlignmentAttestation {
+  attester: string;
+  subjectAddress: string;
+  statementId: string;
+  topicStatementId: string;
+  createdAt: string;
+  blockNumber: string;
+}
+
+// Legacy alias for backwards compatibility
 export interface ProjectAlignment {
   attester: string;
   projectAddress: string;
@@ -1502,21 +1512,22 @@ export interface AlignedProjectWithDetails {
 }
 
 /**
- * Get projects aligned with a statement
+ * Get subjects aligned with a statement
  */
-export async function getAlignedProjects(
+export async function getAlignedSubjects(
   executor: GraphQLExecutor,
   statementId: string,
   attesterAddress?: string
-): Promise<ProjectAlignment[]> {
-  const result = await executeQuery<{ alignedProjects: ProjectAlignment[] }>(
+): Promise<AlignmentAttestation[]> {
+  const result = await executeQuery<{ alignedSubjects: AlignmentAttestation[] }>(
     executor,
     `
-      query GetAlignedProjects($statementId: ID!, $attesterAddress: Address) {
-        alignedProjects(statementId: $statementId, attesterAddress: $attesterAddress) {
+      query GetAlignedSubjects($statementId: ID!, $attesterAddress: Address) {
+        alignedSubjects(statementId: $statementId, attesterAddress: $attesterAddress) {
           attester
-          projectAddress
+          subjectAddress
           statementId
+          topicStatementId
           createdAt
           blockNumber
         }
@@ -1525,38 +1536,112 @@ export async function getAlignedProjects(
     { statementId, attesterAddress }
   );
 
-  return result.alignedProjects || [];
+  return result.alignedSubjects || [];
 }
 
 /**
- * Get statements aligned with a project
+ * Get projects aligned with a statement (legacy alias)
+ */
+export async function getAlignedProjects(
+  executor: GraphQLExecutor,
+  statementId: string,
+  attesterAddress?: string
+): Promise<ProjectAlignment[]> {
+  const alignments = await getAlignedSubjects(executor, statementId, attesterAddress);
+  return alignments.map(a => ({
+    attester: a.attester,
+    projectAddress: a.subjectAddress,
+    statementId: a.statementId,
+    createdAt: a.createdAt,
+    blockNumber: a.blockNumber,
+  }));
+}
+
+/**
+ * Get statements aligned with a subject
+ */
+export async function getSubjectStatements(
+  executor: GraphQLExecutor,
+  subjectAddress: string,
+  attesterAddress?: string
+): Promise<AlignmentAttestation[]> {
+  const result = await executeQuery<{ subjectStatements: AlignmentAttestation[] }>(
+    executor,
+    `
+      query GetSubjectStatements($subjectAddress: Address!, $attesterAddress: Address) {
+        subjectStatements(subjectAddress: $subjectAddress, attesterAddress: $attesterAddress) {
+          attester
+          subjectAddress
+          statementId
+          topicStatementId
+          createdAt
+          blockNumber
+        }
+      }
+    `,
+    { subjectAddress, attesterAddress }
+  );
+
+  return result.subjectStatements || [];
+}
+
+/**
+ * Get statements aligned with a project (legacy alias)
  */
 export async function getProjectStatements(
   executor: GraphQLExecutor,
   projectAddress: string,
   attesterAddress?: string
 ): Promise<ProjectAlignment[]> {
-  const result = await executeQuery<{ projectStatements: ProjectAlignment[] }>(
+  const alignments = await getSubjectStatements(executor, projectAddress, attesterAddress);
+  return alignments.map(a => ({
+    attester: a.attester,
+    projectAddress: a.subjectAddress,
+    statementId: a.statementId,
+    createdAt: a.createdAt,
+    blockNumber: a.blockNumber,
+  }));
+}
+
+/**
+ * Get a specific alignment attestation
+ */
+export async function getAlignmentAttestation(
+  executor: GraphQLExecutor,
+  attesterAddress: string,
+  subjectAddress: string,
+  statementId: string
+): Promise<AlignmentAttestation | null> {
+  const result = await executeQuery<{ alignmentAttestation: AlignmentAttestation | null }>(
     executor,
     `
-      query GetProjectStatements($projectAddress: Address!, $attesterAddress: Address) {
-        projectStatements(projectAddress: $projectAddress, attesterAddress: $attesterAddress) {
+      query GetAlignmentAttestation(
+        $attesterAddress: Address!
+        $subjectAddress: Address!
+        $statementId: ID!
+      ) {
+        alignmentAttestation(
+          attesterAddress: $attesterAddress
+          subjectAddress: $subjectAddress
+          statementId: $statementId
+        ) {
           attester
-          projectAddress
+          subjectAddress
           statementId
+          topicStatementId
           createdAt
           blockNumber
         }
       }
     `,
-    { projectAddress, attesterAddress }
+    { attesterAddress, subjectAddress, statementId }
   );
 
-  return result.projectStatements || [];
+  return result.alignmentAttestation;
 }
 
 /**
- * Get a specific project alignment
+ * Get a specific project alignment (legacy alias)
  */
 export async function getProjectAlignment(
   executor: GraphQLExecutor,
@@ -1564,31 +1649,15 @@ export async function getProjectAlignment(
   projectAddress: string,
   statementId: string
 ): Promise<ProjectAlignment | null> {
-  const result = await executeQuery<{ projectAlignment: ProjectAlignment | null }>(
-    executor,
-    `
-      query GetProjectAlignment(
-        $attesterAddress: Address!
-        $projectAddress: Address!
-        $statementId: ID!
-      ) {
-        projectAlignment(
-          attesterAddress: $attesterAddress
-          projectAddress: $projectAddress
-          statementId: $statementId
-        ) {
-          attester
-          projectAddress
-          statementId
-          createdAt
-          blockNumber
-        }
-      }
-    `,
-    { attesterAddress, projectAddress, statementId }
-  );
-
-  return result.projectAlignment;
+  const alignment = await getAlignmentAttestation(executor, attesterAddress, projectAddress, statementId);
+  if (!alignment) return null;
+  return {
+    attester: alignment.attester,
+    projectAddress: alignment.subjectAddress,
+    statementId: alignment.statementId,
+    createdAt: alignment.createdAt,
+    blockNumber: alignment.blockNumber,
+  };
 }
 
 /**

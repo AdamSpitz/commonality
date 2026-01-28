@@ -1,0 +1,122 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.33;
+
+// AI-generated from specs/README.md
+// AlignmentAttestations contract: Links any subject address to statements/causes
+// Generalized from ProjectAlignment to support any subject (projects, users, etc.)
+
+/**
+ * @title AlignmentAttestations
+ * @notice Allows attesters to declare that a subject (project, user, etc.) is aligned with a statement/cause
+ * @dev Any address can be an attester. Subjects are identified by address.
+ *      Statements are IPFS CIDs (bytes32).
+ *      Similar pattern to Implications.sol but for subject-statement relationships.
+ *
+ *      The topicStatementId field allows indexers to filter attestations by topic.
+ *      Every attestation must explicitly declare its topic (topicStatementId cannot be zero).
+ *      This enables the no-need-to-coordinate benefit: different topics can be linked via implication attestations.
+ */
+contract AlignmentAttestations {
+    /**
+     * @notice Emitted when an attester declares that a subject is aligned with a statement
+     * @param attester The address making the attestation
+     * @param subjectAddress The address of the subject (project, user, etc.)
+     * @param statementId The IPFS CID of the statement this subject aligns with
+     * @param topicStatementId The IPFS CID of the topic for indexer filtering (must be non-zero)
+     */
+    event AlignmentAttestation(
+        address indexed attester,
+        address indexed subjectAddress,
+        bytes32 indexed statementId,
+        bytes32 topicStatementId
+    );
+
+    // Mapping to track if an alignment has been attested by a specific attester
+    // attester => subjectAddress => statementId => exists
+    mapping(address => mapping(address => mapping(bytes32 => bool)))
+        public attestations;
+
+    /**
+     * @notice Attest that a subject is aligned with a statement/cause
+     * @dev Can be called multiple times by the same attester for the same pair (idempotent)
+     * @param subjectAddress The address of the subject (project, user, etc.)
+     * @param statementId The IPFS CID of the statement
+     * @param topicStatementId The IPFS CID of the topic for indexer filtering (must be non-zero)
+     */
+    function attestAlignment(address subjectAddress, bytes32 statementId, bytes32 topicStatementId)
+        external
+    {
+        require(
+            subjectAddress != address(0),
+            "Invalid subject address"
+        );
+        require(
+            statementId != bytes32(0),
+            "Invalid statement ID"
+        );
+        require(
+            topicStatementId != bytes32(0),
+            "Invalid topic statement ID"
+        );
+
+        attestations[msg.sender][subjectAddress][statementId] = true;
+
+        emit AlignmentAttestation(msg.sender, subjectAddress, statementId, topicStatementId);
+    }
+
+    /**
+     * @notice Batch attest multiple alignments
+     * @param subjectAddresses Array of subject addresses
+     * @param statementIds Array of statement IPFS CIDs
+     * @param topicStatementIds Array of topic IPFS CIDs for indexer filtering (must be non-zero)
+     */
+    function attestAlignmentsInBatch(
+        address[] calldata subjectAddresses,
+        bytes32[] calldata statementIds,
+        bytes32[] calldata topicStatementIds
+    ) external {
+        require(
+            subjectAddresses.length == statementIds.length &&
+            statementIds.length == topicStatementIds.length,
+            "Arrays must have same length"
+        );
+
+        for (uint256 i = 0; i < subjectAddresses.length; i++) {
+            address subjectAddress = subjectAddresses[i];
+            bytes32 statementId = statementIds[i];
+            bytes32 topicStatementId = topicStatementIds[i];
+
+            require(
+                subjectAddress != address(0),
+                "Invalid subject address"
+            );
+            require(
+                statementId != bytes32(0),
+                "Invalid statement ID"
+            );
+            require(
+                topicStatementId != bytes32(0),
+                "Invalid topic statement ID"
+            );
+
+            attestations[msg.sender][subjectAddress][statementId] = true;
+
+            emit AlignmentAttestation(msg.sender, subjectAddress, statementId, topicStatementId);
+        }
+    }
+
+    /**
+     * @notice Check if an attester has attested an alignment
+     * @param attester The address of the attester
+     * @param subjectAddress The subject address
+     * @param statementId The statement IPFS CID
+     * @return Whether the attestation exists
+     */
+    function hasAttestation(
+        address attester,
+        address subjectAddress,
+        bytes32 statementId
+    ) external view returns (bool) {
+        return attestations[attester][subjectAddress][statementId];
+    }
+}

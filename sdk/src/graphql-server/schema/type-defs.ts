@@ -201,16 +201,16 @@ export const typeDefs = `#graphql
   # Funding Portals Types
   # ============================================================================
 
-  type ProjectAlignment {
+  type AlignmentAttestation {
     attester: Address!
-    projectAddress: Address!
+    subjectAddress: Address!
     statementId: ID!
     createdAt: String!
     blockNumber: String!
   }
 
-  type IndirectProjectAlignment {
-    projectAddress: Address!
+  type IndirectSubjectAlignment {
+    subjectAddress: Address!
     directStatementId: ID!
     indirectStatementId: ID!
     attester: Address!
@@ -360,13 +360,13 @@ export const typeDefs = `#graphql
     # Funding Portals Queries
     # ========================================================================
 
-    alignedProjects(statementId: ID!, attesterAddress: Address): [ProjectAlignment!]!
-    projectStatements(projectAddress: Address!, attesterAddress: Address): [ProjectAlignment!]!
-    projectAlignment(attesterAddress: Address!, projectAddress: Address!, statementId: ID!): ProjectAlignment
-    alignmentsByAttester(attesterAddress: Address!): [ProjectAlignment!]!
-    
+    alignedSubjects(statementId: ID!, attesterAddress: Address): [AlignmentAttestation!]!
+    subjectStatements(subjectAddress: Address!, attesterAddress: Address): [AlignmentAttestation!]!
+    alignmentAttestation(attesterAddress: Address!, subjectAddress: Address!, statementId: ID!): AlignmentAttestation
+    alignmentsByAttester(attesterAddress: Address!): [AlignmentAttestation!]!
+
     # Complex funding queries
-    indirectlyAlignedProjects(statementId: ID!, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): [IndirectProjectAlignment!]!
+    indirectlyAlignedSubjects(statementId: ID!, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): [IndirectSubjectAlignment!]!
     totalFundingForCause(statementId: ID!, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): CauseFundingMetrics!
     allAlignedProjectsForCause(statementId: ID!, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): [AlignedProjectWithDetails!]!
     topContributorsForCause(statementId: ID!, limit: Int = 10, trustedImplicationAttester: Address, trustedAlignmentAttester: Address): [ContributorStats!]!

@@ -1,39 +1,44 @@
 /**
- * GraphQL queries for Funding Portals subsystem (ProjectAlignment)
+ * GraphQL queries for Funding Portals subsystem (AlignmentAttestations)
  */
 
 import { query, type GraphQLClient } from './common.js';
 
 // ============================================================================
-// ProjectAlignment Queries (Funding Portals)
+// AlignmentAttestation Queries (Funding Portals)
 // ============================================================================
 
-export interface ProjectAlignment {
+export interface AlignmentAttestation {
   attester: string;
-  projectAddress: string;
+  subjectAddress: string;
   statementId: string;
+  topicStatementId: string;
   createdAt: string;
   blockNumber: string;
 }
 
+// Re-export with old name for backwards compatibility
+export type ProjectAlignment = AlignmentAttestation;
+
 /**
- * Get all project alignments for a specific statement (by attester if provided)
+ * Get all alignment attestations for a specific statement (by attester if provided)
  */
-export async function getAlignedProjects(
+export async function getAlignedSubjects(
   client: GraphQLClient,
   statementId: string,
   attesterAddress?: string
-): Promise<ProjectAlignment[]> {
+): Promise<AlignmentAttestation[]> {
   if (attesterAddress) {
-    const result = await query<{ projectAlignmentss: { items: ProjectAlignment[] } }>(
+    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
       client,
       `
-        query GetAlignedProjects($statementId: String!, $attester: String!) {
-          projectAlignmentss(where: { statementId: $statementId, attester: $attester }) {
+        query GetAlignedSubjects($statementId: String!, $attester: String!) {
+          alignmentAttestationss(where: { statementId: $statementId, attester: $attester }) {
             items {
               attester
-              projectAddress
+              subjectAddress
               statementId
+              topicStatementId
               createdAt
               blockNumber
             }
@@ -42,17 +47,18 @@ export async function getAlignedProjects(
       `,
       { statementId: statementId.toLowerCase(), attester: attesterAddress.toLowerCase() }
     );
-    return result.projectAlignmentss?.items || [];
+    return result.alignmentAttestationss?.items || [];
   } else {
-    const result = await query<{ projectAlignmentss: { items: ProjectAlignment[] } }>(
+    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
       client,
       `
-        query GetAlignedProjects($statementId: String!) {
-          projectAlignmentss(where: { statementId: $statementId }) {
+        query GetAlignedSubjects($statementId: String!) {
+          alignmentAttestationss(where: { statementId: $statementId }) {
             items {
               attester
-              projectAddress
+              subjectAddress
               statementId
+              topicStatementId
               createdAt
               blockNumber
             }
@@ -61,80 +67,89 @@ export async function getAlignedProjects(
       `,
       { statementId: statementId.toLowerCase() }
     );
-    return result.projectAlignmentss?.items || [];
+    return result.alignmentAttestationss?.items || [];
   }
 }
 
+// Backwards compatibility alias
+export const getAlignedProjects = getAlignedSubjects;
+
 /**
- * Get all statement alignments for a specific project (by attester if provided)
+ * Get all statement alignments for a specific subject (by attester if provided)
  */
-export async function getProjectStatements(
+export async function getSubjectStatements(
   client: GraphQLClient,
-  projectAddress: string,
+  subjectAddress: string,
   attesterAddress?: string
-): Promise<ProjectAlignment[]> {
+): Promise<AlignmentAttestation[]> {
   if (attesterAddress) {
-    const result = await query<{ projectAlignmentss: { items: ProjectAlignment[] } }>(
+    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
       client,
       `
-        query GetProjectStatements($projectAddress: String!, $attester: String!) {
-          projectAlignmentss(where: { projectAddress: $projectAddress, attester: $attester }) {
+        query GetSubjectStatements($subjectAddress: String!, $attester: String!) {
+          alignmentAttestationss(where: { subjectAddress: $subjectAddress, attester: $attester }) {
             items {
               attester
-              projectAddress
+              subjectAddress
               statementId
+              topicStatementId
               createdAt
               blockNumber
             }
           }
         }
       `,
-      { projectAddress: projectAddress.toLowerCase(), attester: attesterAddress.toLowerCase() }
+      { subjectAddress: subjectAddress.toLowerCase(), attester: attesterAddress.toLowerCase() }
     );
-    return result.projectAlignmentss?.items || [];
+    return result.alignmentAttestationss?.items || [];
   } else {
-    const result = await query<{ projectAlignmentss: { items: ProjectAlignment[] } }>(
+    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
       client,
       `
-        query GetProjectStatements($projectAddress: String!) {
-          projectAlignmentss(where: { projectAddress: $projectAddress }) {
+        query GetSubjectStatements($subjectAddress: String!) {
+          alignmentAttestationss(where: { subjectAddress: $subjectAddress }) {
             items {
               attester
-              projectAddress
+              subjectAddress
               statementId
+              topicStatementId
               createdAt
               blockNumber
             }
           }
         }
       `,
-      { projectAddress: projectAddress.toLowerCase() }
+      { subjectAddress: subjectAddress.toLowerCase() }
     );
-    return result.projectAlignmentss?.items || [];
+    return result.alignmentAttestationss?.items || [];
   }
 }
 
+// Backwards compatibility alias
+export const getProjectStatements = getSubjectStatements;
+
 /**
- * Get a specific project alignment attestation
+ * Get a specific alignment attestation
  */
-export async function getProjectAlignment(
+export async function getAlignmentAttestation(
   client: GraphQLClient,
   attesterAddress: string,
-  projectAddress: string,
+  subjectAddress: string,
   statementId: string
-): Promise<ProjectAlignment | null> {
-  const result = await query<{ projectAlignments: ProjectAlignment | null }>(
+): Promise<AlignmentAttestation | null> {
+  const result = await query<{ alignmentAttestations: AlignmentAttestation | null }>(
     client,
     `
-      query GetProjectAlignment($attester: String!, $projectAddress: String!, $statementId: String!) {
-        projectAlignments(
+      query GetAlignmentAttestation($attester: String!, $subjectAddress: String!, $statementId: String!) {
+        alignmentAttestations(
           attester: $attester,
-          projectAddress: $projectAddress,
+          subjectAddress: $subjectAddress,
           statementId: $statementId
         ) {
           attester
-          projectAddress
+          subjectAddress
           statementId
+          topicStatementId
           createdAt
           blockNumber
         }
@@ -142,13 +157,16 @@ export async function getProjectAlignment(
     `,
     {
       attester: attesterAddress.toLowerCase(),
-      projectAddress: projectAddress.toLowerCase(),
+      subjectAddress: subjectAddress.toLowerCase(),
       statementId: statementId.toLowerCase()
     }
   );
 
-  return result.projectAlignments;
+  return result.alignmentAttestations;
 }
+
+// Backwards compatibility alias
+export const getProjectAlignment = getAlignmentAttestation;
 
 /**
  * Get all alignments by a specific attester
@@ -156,16 +174,17 @@ export async function getProjectAlignment(
 export async function getAlignmentsByAttester(
   client: GraphQLClient,
   attesterAddress: string
-): Promise<ProjectAlignment[]> {
-  const result = await query<{ projectAlignmentss: { items: ProjectAlignment[] } }>(
+): Promise<AlignmentAttestation[]> {
+  const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
     client,
     `
       query GetAlignmentsByAttester($attester: String!) {
-        projectAlignmentss(where: { attester: $attester }) {
+        alignmentAttestationss(where: { attester: $attester }) {
           items {
             attester
-            projectAddress
+            subjectAddress
             statementId
+            topicStatementId
             createdAt
             blockNumber
           }
@@ -175,38 +194,41 @@ export async function getAlignmentsByAttester(
     { attester: attesterAddress.toLowerCase() }
   );
 
-  return result.projectAlignmentss?.items || [];
+  return result.alignmentAttestationss?.items || [];
 }
 
 // ============================================================================
 // Indirect Alignment Queries (via Implication Graph)
 // ============================================================================
 
-export interface IndirectProjectAlignment {
-  projectAddress: string;
-  directStatementId: string; // Statement the project is directly aligned with
+export interface IndirectSubjectAlignment {
+  subjectAddress: string;
+  directStatementId: string; // Statement the subject is directly aligned with
   indirectStatementId: string; // Statement we queried for (implied by directStatementId)
   attester: string;
 }
 
+// Backwards compatibility alias
+export type IndirectProjectAlignment = IndirectSubjectAlignment;
+
 /**
- * Get projects that are indirectly aligned with a statement via the implication graph.
+ * Get subjects that are indirectly aligned with a statement via the implication graph.
  *
- * A project is indirectly aligned with statement S2 if:
- * - The project is directly aligned with statement S1
+ * A subject is indirectly aligned with statement S2 if:
+ * - The subject is directly aligned with statement S1
  * - S1 implies S2 (according to a trusted attester)
  *
  * @param client GraphQL client
- * @param statementId The statement to find indirectly aligned projects for
+ * @param statementId The statement to find indirectly aligned subjects for
  * @param trustedImplicationAttester Optional: filter implications by this attester
  * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
-export async function getIndirectlyAlignedProjects(
+export async function getIndirectlyAlignedSubjects(
   client: GraphQLClient,
   statementId: string,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
-): Promise<IndirectProjectAlignment[]> {
+): Promise<IndirectSubjectAlignment[]> {
   // Step 1: Find all statements that imply the target statement
   const implicationsResult = trustedImplicationAttester
     ? await query<{ implicationss: { items: Array<{ fromStatementId: string; attester: { id: string } }> } }>(
@@ -248,11 +270,11 @@ export async function getIndirectlyAlignedProjects(
     return [];
   }
 
-  // Step 2: For each implying statement, find projects aligned with it
-  const indirectAlignments: IndirectProjectAlignment[] = [];
+  // Step 2: For each implying statement, find subjects aligned with it
+  const indirectAlignments: IndirectSubjectAlignment[] = [];
 
   for (const implication of implications) {
-    const alignments = await getAlignedProjects(
+    const alignments = await getAlignedSubjects(
       client,
       implication.fromStatementId,
       trustedAlignmentAttester
@@ -260,7 +282,7 @@ export async function getIndirectlyAlignedProjects(
 
     for (const alignment of alignments) {
       indirectAlignments.push({
-        projectAddress: alignment.projectAddress,
+        subjectAddress: alignment.subjectAddress,
         directStatementId: implication.fromStatementId,
         indirectStatementId: statementId,
         attester: alignment.attester,
@@ -270,6 +292,9 @@ export async function getIndirectlyAlignedProjects(
 
   return indirectAlignments;
 }
+
+// Backwards compatibility alias
+export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
 
 // ============================================================================
 // Aggregated Funding Metrics (E2)
@@ -298,14 +323,14 @@ export async function getTotalFundingForCause(
   trustedAlignmentAttester?: string
 ): Promise<CauseFundingMetrics> {
   // Get all directly aligned projects
-  const directAlignments = await getAlignedProjects(
+  const directAlignments = await getAlignedSubjects(
     client,
     statementId,
     trustedAlignmentAttester
   );
 
   // Get all indirectly aligned projects
-  const indirectAlignments = await getIndirectlyAlignedProjects(
+  const indirectAlignments = await getIndirectlyAlignedSubjects(
     client,
     statementId,
     trustedImplicationAttester,
@@ -314,8 +339,8 @@ export async function getTotalFundingForCause(
 
   // Combine and deduplicate project addresses
   const allProjectAddresses = new Set<string>();
-  directAlignments.forEach(a => allProjectAddresses.add(a.projectAddress.toLowerCase()));
-  indirectAlignments.forEach(a => allProjectAddresses.add(a.projectAddress.toLowerCase()));
+  directAlignments.forEach(a => allProjectAddresses.add(a.subjectAddress.toLowerCase()));
+  indirectAlignments.forEach(a => allProjectAddresses.add(a.subjectAddress.toLowerCase()));
 
   // Fetch project details for all aligned projects
   let totalRaised = 0n;
@@ -373,14 +398,14 @@ export async function getAllAlignedProjectsForCause(
   deadline: string;
 }>> {
   // Get all directly aligned projects
-  const directAlignments = await getAlignedProjects(
+  const directAlignments = await getAlignedSubjects(
     client,
     statementId,
     trustedAlignmentAttester
   );
 
   // Get all indirectly aligned projects
-  const indirectAlignments = await getIndirectlyAlignedProjects(
+  const indirectAlignments = await getIndirectlyAlignedSubjects(
     client,
     statementId,
     trustedImplicationAttester,
@@ -390,10 +415,10 @@ export async function getAllAlignedProjectsForCause(
   // Track which projects are direct vs indirect
   const projectMap = new Map<string, 'direct' | 'indirect'>();
   directAlignments.forEach(a =>
-    projectMap.set(a.projectAddress.toLowerCase(), 'direct')
+    projectMap.set(a.subjectAddress.toLowerCase(), 'direct')
   );
   indirectAlignments.forEach(a => {
-    const addr = a.projectAddress.toLowerCase();
+    const addr = a.subjectAddress.toLowerCase();
     // Don't override direct with indirect
     if (!projectMap.has(addr)) {
       projectMap.set(addr, 'indirect');

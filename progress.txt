@@ -18,3 +18,45 @@ Key decisions:
 - Indexer updates topic on re-attestation if different
 
 All 242 hardhat tests pass.
+
+## Completed: Rename ProjectAlignment → AlignmentAttestations (per specs/alignment-attestations-refactoring.md)
+
+Task: Renamed contract and generalized terminology from "project" to "subject" to support attestations for any subject type.
+
+Key changes:
+1. Contract renamed: ProjectAlignment.sol → AlignmentAttestations.sol
+2. Event renamed: ProjectAlignmentAttestation → AlignmentAttestation
+3. Parameter renamed: projectAddress → subjectAddress
+4. topicStatementId is now REQUIRED (must be non-zero)
+5. Added PROJECT_ALIGNMENT_TOPIC constant using keccak256("project-alignment-attestations")
+   - TODO: Replace with real IPFS CID for a proper topic statement
+
+Files changed:
+- hardhat/contracts/alignment-attestations/AlignmentAttestations.sol (NEW)
+- hardhat/test/AlignmentAttestations.test.js (NEW - 24 tests)
+- indexer/schemas/fundingportal.schema.ts - Renamed table and columns
+- indexer/src/fundingportal/index.ts - Updated handler for new event name
+- indexer/ponder.config.ts - Updated contract name and ABI import
+- indexer/src/api/fundingportal-api.ts - Updated all references
+- indexer/abis/AlignmentAttestationsAbi.ts - Regenerated via sync-abis
+- sdk/src/abis.ts - Export new ABI
+- sdk/src/actions/common.ts - Added PROJECT_ALIGNMENT_TOPIC constant
+- sdk/src/actions/funding-portals-actions.ts - Updated to use new contract/event names
+- sdk/src/actions/index.ts - Updated exports
+- sdk/src/queries/funding-portals-queries.ts - Updated queries with new table/field names
+- sdk/src/queries/index.ts - Added new function exports with backwards compatibility aliases
+- sdk/src/graphql-server/schema/type-defs.ts - Updated GraphQL types
+- sdk/src/graphql-server/schema/resolvers/funding-portals.ts - Updated resolver imports/names
+- integration-tests/src/fundingportal/*.test.ts - Updated all tests to use PROJECT_ALIGNMENT_TOPIC
+- integration-tests/src/workflows/end-to-end-workflows.test.ts - Updated for new API
+- integration-tests/src/actions/alignment-actions-checked.ts - Updated signature
+
+Key decisions:
+- topicStatementId is REQUIRED (non-zero) to ensure proper indexer filtering
+- Using deterministic keccak256 hash as placeholder topic until real IPFS CID is created
+- Renamed projectAddress → subjectAddress throughout to indicate any subject can be aligned
+
+All feedback loops pass:
+- 24 hardhat tests pass
+- Indexer type check passes
+- SDK builds successfully

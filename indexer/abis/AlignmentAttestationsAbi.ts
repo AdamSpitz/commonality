@@ -1,7 +1,7 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const ProjectAlignmentAbi = [
+export const AlignmentAttestationsAbi = [
   {
     "anonymous": false,
     "inputs": [
@@ -14,7 +14,7 @@ export const ProjectAlignmentAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "projectAddress",
+        "name": "subjectAddress",
         "type": "address"
       },
       {
@@ -30,14 +30,14 @@ export const ProjectAlignmentAbi = [
         "type": "bytes32"
       }
     ],
-    "name": "ProjectAlignmentAttestation",
+    "name": "AlignmentAttestation",
     "type": "event"
   },
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "projectAddress",
+        "name": "subjectAddress",
         "type": "address"
       },
       {
@@ -60,7 +60,7 @@ export const ProjectAlignmentAbi = [
     "inputs": [
       {
         "internalType": "address[]",
-        "name": "projectAddresses",
+        "name": "subjectAddresses",
         "type": "address[]"
       },
       {
@@ -117,7 +117,7 @@ export const ProjectAlignmentAbi = [
       },
       {
         "internalType": "address",
-        "name": "projectAddress",
+        "name": "subjectAddress",
         "type": "address"
       },
       {

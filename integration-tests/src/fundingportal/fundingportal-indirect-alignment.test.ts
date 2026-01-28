@@ -11,12 +11,13 @@ import assert from 'assert';
 import {
   uploadToIPFS,
   cidToBytes32,
-  type ProjectAlignmentContract,
+  PROJECT_ALIGNMENT_TOPIC,
+  type AlignmentAttestationsContract,
   type PubstarterContract,
   type ImplicationsContract,
   createGraphQLClient,
   assertNotNull,
-  ProjectAlignmentAbi,
+  AlignmentAttestationsAbi,
   PubstarterAbi,
   ImplicationsAbi,
 } from '@commonality/sdk';
@@ -26,27 +27,27 @@ import {
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
-import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';
+import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_ADDRESS as `0x${string}`;
+  const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as `0x${string}`;
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'fundingportal-indirect-alignment';
 
-  let projectAlignmentContract: ProjectAlignmentContract;
+  let alignmentAttestationsContract: AlignmentAttestationsContract;
   let pubstarterContract: PubstarterContract;
   let implicationsContract: ImplicationsContract;
   let graphqlClient: ReturnType<typeof createGraphQLClient>;
 
   before(() => {
-    if (!PROJECT_ALIGNMENT_ADDRESS) {
-      throw new Error('PROJECT_ALIGNMENT_ADDRESS not set');
+    if (!ALIGNMENT_ATTESTATIONS_ADDRESS) {
+      throw new Error('ALIGNMENT_ATTESTATIONS_ADDRESS not set');
     }
     if (!PUBSTARTER_ADDRESS) {
       throw new Error('PUBSTARTER_ADDRESS not set');
@@ -55,9 +56,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       throw new Error('IMPLICATIONS_CONTRACT_ADDRESS not set');
     }
 
-    projectAlignmentContract = {
-      address: PROJECT_ALIGNMENT_ADDRESS,
-      abi: ProjectAlignmentAbi,
+    alignmentAttestationsContract = {
+      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
+      abi: AlignmentAttestationsAbi,
     };
 
     pubstarterContract = {
@@ -129,12 +130,13 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align the project with S1 (specific statement)
     testLog('  Aligning project with S1 (renewable energy)...');
-    let txHash = await attestProjectAlignmentChecked(
+    let txHash = await attestAlignmentChecked(
       alignmentAttester,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectDetails.tokenAddress,
       s1Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s1Id
     );
 
@@ -267,23 +269,25 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align Project A with S1 (indirect to S2)
     testLog('  Aligning Project A with S1...');
-    txHash = await attestProjectAlignmentChecked(
+    txHash = await attestAlignmentChecked(
       alignmentAttester,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectA.tokenAddress,
       s1Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s1Id
     );
 
     // Align Project B directly with S2
     testLog('  Aligning Project B directly with S2...');
-    txHash = await attestProjectAlignmentChecked(
+    txHash = await attestAlignmentChecked(
       alignmentAttester,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectB.tokenAddress,
       s2Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s2Id
     );
 
@@ -394,12 +398,13 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  ✓ Project creation properties verified');
 
     testLog('  Aligning project with S1...');
-    txHash = await attestProjectAlignmentChecked(
+    txHash = await attestAlignmentChecked(
       alignmentAttester,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectDetails.tokenAddress,
       s1Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s1Id
     );
 
@@ -506,12 +511,13 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     });
     testLog('  ✓ Project creation properties verified');
 
-    txHash = await attestProjectAlignmentChecked(
+    txHash = await attestAlignmentChecked(
       alignmentAttester,
-      projectAlignmentContract,
+      alignmentAttestationsContract,
       graphqlClient,
       projectDetails.tokenAddress,
       s1Cid,
+      PROJECT_ALIGNMENT_TOPIC,
       s1Id
     );
 

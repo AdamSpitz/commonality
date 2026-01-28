@@ -44,6 +44,7 @@ export interface ActionContext {
   entities: {
     statementId?: string;
     projectAddress?: string;
+    subjectAddress?: string;
     userAddress?: string;
     delegationNoteId?: string;
     fromStatementId?: string;

@@ -13,12 +13,13 @@ import {
   cidToBytes32,
   type PubstarterContract,
   type AssuranceContract,
-  type ProjectAlignmentContract,
+  type AlignmentAttestationsContract,
   createGraphQLClient,
   type GraphQLClient,
   PubstarterAbi,
   AssuranceContractAbi,
-  ProjectAlignmentAbi,
+  AlignmentAttestationsAbi,
+  PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk';
 import {
   getTopContributorsForCause,
@@ -27,14 +28,14 @@ import {
 import { parseEther, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
-import { attestProjectAlignmentChecked } from '../actions/alignment-actions-checked.js';
+import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 
 describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-  const PROJECT_ALIGNMENT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
+  const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'fundingportal-leaderboards';
@@ -115,25 +116,27 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     testLog('  ✓ Project creation properties verified');
 
     // Align both projects with the cause
-    const alignmentContract: ProjectAlignmentContract = {
-      address: PROJECT_ALIGNMENT_ADDRESS,
-      abi: ProjectAlignmentAbi,
+    const alignmentContract: AlignmentAttestationsContract = {
+      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
+      abi: AlignmentAttestationsAbi,
     };
 
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
       graphqlClient,
       p1Details.assuranceContractAddress,
       causeCid,
+      PROJECT_ALIGNMENT_TOPIC,
       causeId
     );
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
       graphqlClient,
       p2Details.assuranceContractAddress,
       causeCid,
+      PROJECT_ALIGNMENT_TOPIC,
       causeId
     );
 
@@ -297,17 +300,18 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     testLog('  ✓ Project creation properties verified');
 
     // Align project
-    const alignmentContract: ProjectAlignmentContract = {
-      address: PROJECT_ALIGNMENT_ADDRESS,
-      abi: ProjectAlignmentAbi,
+    const alignmentContract: AlignmentAttestationsContract = {
+      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
+      abi: AlignmentAttestationsAbi,
     };
 
-    await attestProjectAlignmentChecked(
+    await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
       graphqlClient,
       pDetails.assuranceContractAddress,
       causeCid,
+      PROJECT_ALIGNMENT_TOPIC,
       causeId
     );
 

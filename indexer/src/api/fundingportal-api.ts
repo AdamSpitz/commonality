@@ -6,7 +6,7 @@
  * Pubstarter, Delegation) and federates queries to those APIs for cross-cutting views.
  *
  * The GraphQL API is auto-generated from the schema tables:
- * - schema.projectAlignments
+ * - schema.alignmentAttestations
  *
  * All queries support filtering, sorting, and pagination through the
  * auto-generated GraphQL schema.
@@ -15,7 +15,7 @@
  * - /api/aligned-schema.projects/:statementId - Get all schema.projects aligned with a statement (directly + indirectly)
  * - /api/available-funding/:statementId - Get total available funding for a statement (from delegatable notes)
  * - /api/contributor-leaderboard/:statementId - Get top contributors across all aligned schema.projects
- * - /api/project-schema.statements/:projectAddress - Get all schema.statements a project is aligned with
+ * - /api/project-schema.statements/:subjectAddress - Get all schema.statements a project is aligned with
  */
 
 import { db } from "ponder:api";
@@ -55,14 +55,14 @@ app.use("/graphql", graphql({ db, schema }));
  *   statementId: "0xabc...",
  *   directlyAlignedProjects: [
  *     {
- *       projectAddress: "0xproject1...",
+ *       subjectAddress: "0xproject1...",
  *       attesters: ["0x123..."],
  *       projectDetails: { ... }
  *     }
  *   ],
  *   indirectlyAlignedProjects: [
  *     {
- *       projectAddress: "0xproject2...",
+ *       subjectAddress: "0xproject2...",
  *       alignedVia: "0xstatement2...",
  *       attesters: ["0x456..."],
  *       projectDetails: { ... }
@@ -88,23 +88,23 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
   // Step 1: Find schema.projects directly aligned with this statement
   const directAlignments = await db
     .select({
-      projectAddress: schema.projectAlignments.projectAddress,
-      attester: schema.projectAlignments.attester,
+      subjectAddress: schema.alignmentAttestations.subjectAddress,
+      attester: schema.alignmentAttestations.attester,
     })
-    .from(schema.projectAlignments)
+    .from(schema.alignmentAttestations)
     .where(
       and(
-        eq(schema.projectAlignments.statementId, statementId),
-        inArray(schema.projectAlignments.attester, trustedAttesters)
+        eq(schema.alignmentAttestations.statementId, statementId),
+        inArray(schema.alignmentAttestations.attester, trustedAttesters)
       )
     );
 
   // Group by project and collect attesters
   const directProjectMap = new Map<string, string[]>();
   for (const alignment of directAlignments) {
-    const existing = directProjectMap.get(alignment.projectAddress) || [];
+    const existing = directProjectMap.get(alignment.subjectAddress) || [];
     existing.push(alignment.attester);
-    directProjectMap.set(alignment.projectAddress, existing);
+    directProjectMap.set(alignment.subjectAddress, existing);
   }
 
   // Step 2: Find schema.statements that imply this statement (from trusted attesters)
@@ -125,15 +125,15 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
   if (implyingIds.length > 0) {
     indirectAlignments = await db
       .select({
-        projectAddress: schema.projectAlignments.projectAddress,
-        statementId: schema.projectAlignments.statementId,
-        attester: schema.projectAlignments.attester,
+        subjectAddress: schema.alignmentAttestations.subjectAddress,
+        statementId: schema.alignmentAttestations.statementId,
+        attester: schema.alignmentAttestations.attester,
       })
-      .from(schema.projectAlignments)
+      .from(schema.alignmentAttestations)
       .where(
         and(
-          inArray(schema.projectAlignments.statementId, implyingIds),
-          inArray(schema.projectAlignments.attester, trustedAttesters)
+          inArray(schema.alignmentAttestations.statementId, implyingIds),
+          inArray(schema.alignmentAttestations.attester, trustedAttesters)
         )
       );
   }
@@ -142,17 +142,17 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
   const indirectProjectMap = new Map<string, { alignedVia: Set<string>; attesters: Set<string> }>();
   for (const alignment of indirectAlignments) {
     // Skip if already directly aligned
-    if (directProjectMap.has(alignment.projectAddress)) {
+    if (directProjectMap.has(alignment.subjectAddress)) {
       continue;
     }
 
-    const existing = indirectProjectMap.get(alignment.projectAddress) || {
+    const existing = indirectProjectMap.get(alignment.subjectAddress) || {
       alignedVia: new Set(),
       attesters: new Set(),
     };
     existing.alignedVia.add(alignment.statementId);
     existing.attesters.add(alignment.attester);
-    indirectProjectMap.set(alignment.projectAddress, existing);
+    indirectProjectMap.set(alignment.subjectAddress, existing);
   }
 
   // Step 4: Get project details from Pubstarter subsystem
@@ -185,13 +185,13 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
 
   // Step 5: Build response
   const directlyAlignedProjects = Array.from(directProjectMap.entries()).map(([address, attesters]) => ({
-    projectAddress: address,
+    subjectAddress: address,
     attesters,
     projectDetails: projectDetails.get(address) || null,
   }));
 
   const indirectlyAlignedProjects = Array.from(indirectProjectMap.entries()).map(([address, data]) => ({
-    projectAddress: address,
+    subjectAddress: address,
     alignedVia: Array.from(data.alignedVia),
     attesters: Array.from(data.attesters),
     projectDetails: projectDetails.get(address) || null,
@@ -356,16 +356,16 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
 
   // Step 1: Get all aligned schema.projects (direct + indirect)
   const directAlignments = await db
-    .select({ projectAddress: schema.projectAlignments.projectAddress })
-    .from(schema.projectAlignments)
+    .select({ subjectAddress: schema.alignmentAttestations.subjectAddress })
+    .from(schema.alignmentAttestations)
     .where(
       and(
-        eq(schema.projectAlignments.statementId, statementId),
-        inArray(schema.projectAlignments.attester, trustedAttesters)
+        eq(schema.alignmentAttestations.statementId, statementId),
+        inArray(schema.alignmentAttestations.attester, trustedAttesters)
       )
     );
 
-  const directProjectAddresses = [...new Set(directAlignments.map((a) => a.projectAddress))];
+  const directProjectAddresses = [...new Set(directAlignments.map((a) => a.subjectAddress))];
 
   // Find implying schema.statements
   const implyingStatements = await db
@@ -383,15 +383,15 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
   let indirectProjectAddresses: string[] = [];
   if (implyingIds.length > 0) {
     const indirectAlignments = await db
-      .select({ projectAddress: schema.projectAlignments.projectAddress })
-      .from(schema.projectAlignments)
+      .select({ subjectAddress: schema.alignmentAttestations.subjectAddress })
+      .from(schema.alignmentAttestations)
       .where(
         and(
-          inArray(schema.projectAlignments.statementId, implyingIds),
-          inArray(schema.projectAlignments.attester, trustedAttesters)
+          inArray(schema.alignmentAttestations.statementId, implyingIds),
+          inArray(schema.alignmentAttestations.attester, trustedAttesters)
         )
       );
-    indirectProjectAddresses = [...new Set(indirectAlignments.map((a) => a.projectAddress))];
+    indirectProjectAddresses = [...new Set(indirectAlignments.map((a) => a.subjectAddress))];
   }
 
   const allProjectAddresses = [...new Set([...directProjectAddresses, ...indirectProjectAddresses])];
@@ -463,7 +463,7 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
  *
  * Example: GET /api/project-schema.statements/0xproject...?attesters=0x123,0x456
  * Response: {
- *   projectAddress: "0xproject...",
+ *   subjectAddress: "0xproject...",
  *   alignedStatements: [
  *     {
  *       statementId: "0xstatement1...",
@@ -475,12 +475,12 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
  *   totalStatements: 3
  * }
  */
-app.get("/api/project-schema.statements/:projectAddress", async (c) => {
+app.get("/api/project-schema.statements/:subjectAddress", async (c) => {
   try {
-    const projectAddress = c.req.param("projectAddress");
+    const subjectAddress = c.req.param("subjectAddress");
 
-    if (!isValidAddress(projectAddress)) {
-      return c.json(invalidInputError("projectAddress", "Must be a valid Ethereum address"), 400);
+    if (!isValidAddress(subjectAddress)) {
+      return c.json(invalidInputError("subjectAddress", "Must be a valid Ethereum address"), 400);
     }
 
     const trustedAttesters = parseAddressList(c.req.query("attesters"));
@@ -492,14 +492,14 @@ app.get("/api/project-schema.statements/:projectAddress", async (c) => {
   // Get all alignments for this project
   const alignments = await db
     .select({
-      statementId: schema.projectAlignments.statementId,
-      attester: schema.projectAlignments.attester,
+      statementId: schema.alignmentAttestations.statementId,
+      attester: schema.alignmentAttestations.attester,
     })
-    .from(schema.projectAlignments)
+    .from(schema.alignmentAttestations)
     .where(
       and(
-        eq(schema.projectAlignments.projectAddress, projectAddress),
-        inArray(schema.projectAlignments.attester, trustedAttesters)
+        eq(schema.alignmentAttestations.subjectAddress, subjectAddress),
+        inArray(schema.alignmentAttestations.attester, trustedAttesters)
       )
     );
 
@@ -542,7 +542,7 @@ app.get("/api/project-schema.statements/:projectAddress", async (c) => {
   }));
 
     return c.json({
-      projectAddress,
+      subjectAddress,
       alignedStatements,
       totalStatements: alignedStatements.length,
     });

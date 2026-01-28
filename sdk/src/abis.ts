@@ -9,7 +9,7 @@
 export { BeliefsAbi } from '../../indexer/abis/BeliefsAbi.js';
 export { ImplicationsAbi } from '../../indexer/abis/ImplicationsAbi.js';
 export { DelegatableNotesAbi } from '../../indexer/abis/DelegatableNotesAbi.js';
-export { ProjectAlignmentAbi } from '../../indexer/abis/ProjectAlignmentAbi.js';
+export { AlignmentAttestationsAbi } from '../../indexer/abis/AlignmentAttestationsAbi.js';
 export { MutableRefUpdaterAbi } from '../../indexer/abis/MutableRefUpdaterAbi.js';
 export { AssuranceContractAbi } from '../../indexer/abis/AssuranceContractAbi.js';
 export { ERC1155SecondaryMarketAbi } from '../../indexer/abis/ERC1155SecondaryMarketAbi.js';

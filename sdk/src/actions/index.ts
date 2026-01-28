@@ -11,6 +11,7 @@ export {
   fetchFromIPFS,
   fetchFromMockIPFS,
   clearMockIPFS,
+  PROJECT_ALIGNMENT_TOPIC,
   type TestClients,
 } from './common.js';
 
@@ -64,9 +65,9 @@ export {
 
 // Funding portals actions
 export {
-  attestProjectAlignment,
-  attestProjectAlignmentsBatch,
-  type ProjectAlignmentContract,
+  attestAlignment,
+  attestAlignmentsBatch,
+  type AlignmentAttestationsContract,
 } from './funding-portals-actions.js';
 
 // Mutable refs actions

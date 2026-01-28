@@ -1,26 +1,26 @@
 /**
- * Checked versions of project alignment actions
+ * Checked versions of alignment attestation actions
  *
- * These wrapper functions execute project alignment actions and automatically verify
+ * These wrapper functions execute alignment actions and automatically verify
  * state transition properties and invariants.
  *
  * Usage:
  *   // Instead of:
- *   await attestProjectAlignment(clients, contract, projectAddress, statementCid);
+ *   await attestAlignment(clients, contract, subjectAddress, statementCid, topicStatementCid);
  *   await waitForIndexerSync(graphqlClient, publicClient);
  *   // ... manual assertions ...
  *
  *   // Write:
- *   await attestProjectAlignmentChecked(clients, contract, graphqlClient, projectAddress, statementCid, statementId);
+ *   await attestAlignmentChecked(clients, contract, graphqlClient, subjectAddress, statementCid, topicStatementCid, statementId);
  */
 
 import type { Hash, Address } from 'viem';
 import {
-  attestProjectAlignment,
-  attestProjectAlignmentsBatch,
+  attestAlignment,
+  attestAlignmentsBatch,
   waitForIndexerSync,
   type TestClients,
-  type ProjectAlignmentContract,
+  type AlignmentAttestationsContract,
 } from '@commonality/sdk';
 import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
@@ -29,54 +29,57 @@ import {
   type ActionRunOptions,
 } from './action-framework.js';
 import {
-  attestProjectAlignmentMetadata,
-  attestProjectAlignmentsBatchMetadata,
+  attestAlignmentMetadata,
+  attestAlignmentsBatchMetadata,
 } from './alignment-action-properties.js';
 
 /**
- * Attest a project-statement alignment (with property checking)
+ * Attest a subject-statement alignment (with property checking)
  *
- * This wrapper runs the attestProjectAlignment action and automatically:
+ * This wrapper runs the attestAlignment action and automatically:
  * 1. Checks that the alignment is created in the indexer
  * 2. Verifies that both forward and reverse query indexes are updated
  * 3. Verifies bidirectional query consistency
  * 4. Checks that no orphaned data exists
  *
  * @param clients - Test wallet and public clients
- * @param projectAlignmentContract - The ProjectAlignment contract instance
+ * @param alignmentAttestationsContract - The AlignmentAttestations contract instance
  * @param graphqlClient - GraphQL client for the indexer
- * @param projectAddress - Address of the project to align
+ * @param subjectAddress - Address of the subject (project, user, etc.) to align
  * @param statementCid - IPFS CID of the statement
+ * @param topicStatementCid - IPFS CID of the topic for indexer filtering
  * @param statementId - Statement ID (bytes32 derived from CID)
  * @param options - Optional: control which checks run
  * @returns Transaction hash
  *
  * @example
  * ```typescript
- * const txHash = await attestProjectAlignmentChecked(
+ * const txHash = await attestAlignmentChecked(
  *   clients,
- *   projectAlignmentContract,
+ *   alignmentAttestationsContract,
  *   graphqlClient,
  *   projectDetails.tokenAddress,
  *   statementCid,
+ *   topicStatementCid,
  *   cidToBytes32(statementCid)
  * );
  * // State transition properties and invariants are automatically verified
  * ```
  */
-export async function attestProjectAlignmentChecked(
+export async function attestAlignmentChecked(
   clients: TestClients,
-  projectAlignmentContract: ProjectAlignmentContract,
+  alignmentAttestationsContract: AlignmentAttestationsContract,
   graphqlClient: GraphQLClient | GraphQLExecutor,
-  projectAddress: Address,
+  subjectAddress: Address,
   statementCid: string,
+  topicStatementCid: string,
   statementId: string,
   options?: ActionRunOptions
 ): Promise<Hash> {
   const context: ActionContext = {
     graphqlClient,
     entities: {
-      projectAddress,
+      subjectAddress,
       statementId,
       attesterAddress: clients.account,
     },
@@ -84,56 +87,60 @@ export async function attestProjectAlignmentChecked(
 
   return await runActionAndCheckProperties(
     async () => {
-      const hash = await attestProjectAlignment(
+      const hash = await attestAlignment(
         clients,
-        projectAlignmentContract,
-        projectAddress,
-        statementCid
+        alignmentAttestationsContract,
+        subjectAddress,
+        statementCid,
+        topicStatementCid
       );
       await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
-    attestProjectAlignmentMetadata,
+    attestAlignmentMetadata,
     context,
     options
   );
 }
 
 /**
- * Attest multiple project-statement alignments in a batch (with property checking)
+ * Attest multiple subject-statement alignments in a batch (with property checking)
  *
- * This wrapper runs the attestProjectAlignmentsBatch action and automatically:
+ * This wrapper runs the attestAlignmentsBatch action and automatically:
  * 1. Checks that no orphaned data exists after the batch operation
  *
  * Note: State transition property checks are skipped for batch operations since
  * tracking multiple alignments would require more complex state management.
  *
  * @param clients - Test wallet and public clients
- * @param projectAlignmentContract - The ProjectAlignment contract instance
+ * @param alignmentAttestationsContract - The AlignmentAttestations contract instance
  * @param graphqlClient - GraphQL client for the indexer
- * @param projectAddresses - Addresses of the projects to align
- * @param statementCids - IPFS CIDs of the statements (parallel to projectAddresses)
+ * @param subjectAddresses - Addresses of the subjects to align
+ * @param statementCids - IPFS CIDs of the statements (parallel to subjectAddresses)
+ * @param topicStatementCids - IPFS CIDs of the topics (parallel to subjectAddresses)
  * @param options - Optional: control which checks run
  * @returns Transaction hash
  *
  * @example
  * ```typescript
- * const txHash = await attestProjectAlignmentsBatchChecked(
+ * const txHash = await attestAlignmentsBatchChecked(
  *   clients,
- *   projectAlignmentContract,
+ *   alignmentAttestationsContract,
  *   graphqlClient,
  *   [project1.tokenAddress, project2.tokenAddress],
- *   [statement1Cid, statement2Cid]
+ *   [statement1Cid, statement2Cid],
+ *   [topicCid, topicCid]
  * );
  * // Invariants are automatically verified
  * ```
  */
-export async function attestProjectAlignmentsBatchChecked(
+export async function attestAlignmentsBatchChecked(
   clients: TestClients,
-  projectAlignmentContract: ProjectAlignmentContract,
+  alignmentAttestationsContract: AlignmentAttestationsContract,
   graphqlClient: GraphQLClient | GraphQLExecutor,
-  projectAddresses: Address[],
+  subjectAddresses: Address[],
   statementCids: string[],
+  topicStatementCids: string[],
   options?: ActionRunOptions
 ): Promise<Hash> {
   // For batch operations, we don't track specific entities since there are many
@@ -146,16 +153,17 @@ export async function attestProjectAlignmentsBatchChecked(
 
   return await runActionAndCheckProperties(
     async () => {
-      const hash = await attestProjectAlignmentsBatch(
+      const hash = await attestAlignmentsBatch(
         clients,
-        projectAlignmentContract,
-        projectAddresses,
-        statementCids
+        alignmentAttestationsContract,
+        subjectAddresses,
+        statementCids,
+        topicStatementCids
       );
       await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
       return hash;
     },
-    attestProjectAlignmentsBatchMetadata,
+    attestAlignmentsBatchMetadata,
     context,
     options
   );

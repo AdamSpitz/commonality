@@ -6,6 +6,8 @@ import {
   createWalletClient,
   createPublicClient,
   http,
+  keccak256,
+  toBytes,
   type WalletClient,
   type PublicClient,
   type Address,
@@ -64,6 +66,22 @@ export function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://lo
     account: account.address,
   };
 }
+
+// ============================================================================
+// Well-Known Topic Constants
+// ============================================================================
+
+/**
+ * Well-known topic ID for project alignment attestations.
+ * This is a deterministic bytes32 value: keccak256("project-alignment-attestations")
+ *
+ * TODO: Replace this with an actual IPFS CID of a statement that says
+ * "This is the topic for project alignment attestations". This would allow
+ * the topic itself to be fetched and displayed in UIs.
+ */
+export const PROJECT_ALIGNMENT_TOPIC: `0x${string}` = keccak256(
+  toBytes("project-alignment-attestations")
+);
 
 // ============================================================================
 // IPFS Helpers
