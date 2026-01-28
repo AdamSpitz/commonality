@@ -1,1 +1,20 @@
 AI: use this file to write notes to yourself.
+
+## Completed: Generalize ProjectAlignment with topicStatementId (per specs/decoupling.md)
+
+Task: Added topicStatementId field to ProjectAlignment contract to allow indexers to filter attestations by topic.
+
+Files changed:
+- hardhat/contracts/project-alignment/ProjectAlignment.sol - Added topicStatementId parameter to event and functions
+- hardhat/test/ProjectAlignment.test.js - Updated tests for new parameter
+- indexer/schemas/fundingportal.schema.ts - Added topicStatementId column and topic index
+- indexer/src/fundingportal/index.ts - Updated handler to extract and store topicStatementId
+- indexer/abis/ProjectAlignmentAbi.ts - Regenerated ABI (via npm run sync-abis)
+- sdk/src/actions/funding-portals-actions.ts - Added optional topicStatementCid parameter (backward compatible)
+
+Key decisions:
+- topicStatementId is optional (can be bytes32(0) for no topic)
+- SDK functions default to zero bytes32 if no topic provided (backward compatible)
+- Indexer updates topic on re-attestation if different
+
+All 242 hardhat tests pass.

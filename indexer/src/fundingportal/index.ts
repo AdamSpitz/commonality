@@ -14,9 +14,12 @@ import { projectAlignments } from "ponder:schema";
 /**
  * Handle ProjectAlignmentAttestation events from the ProjectAlignment contract
  * Creates project alignment records linking projects to statements
+ *
+ * The topicStatementId field allows filtering attestations by topic.
+ * This enables indexers to only process attestations for specific topics.
  */
 ponder.on("ProjectAlignment:ProjectAlignmentAttestation", async ({ event, context }) => {
-  const { attester, projectAddress, statementId } = event.args;
+  const { attester, projectAddress, statementId, topicStatementId } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
@@ -33,9 +36,21 @@ ponder.on("ProjectAlignment:ProjectAlignmentAttestation", async ({ event, contex
       attester,
       projectAddress,
       statementId,
+      topicStatementId,
       createdAt: timestamp,
       blockNumber,
     });
+  } else {
+    // If it already exists but with a different topic, update the topic
+    // (The topic is the latest one used for this project-statement pair)
+    if (existing.topicStatementId !== topicStatementId) {
+      await context.db.update(projectAlignments, {
+        attester,
+        projectAddress,
+        statementId,
+      }).set({
+        topicStatementId,
+      });
+    }
   }
-  // If it already exists, we ignore re-attestations (idempotent)
 });

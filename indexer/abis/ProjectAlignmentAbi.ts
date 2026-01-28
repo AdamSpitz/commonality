@@ -22,6 +22,12 @@ export const ProjectAlignmentAbi = [
         "internalType": "bytes32",
         "name": "statementId",
         "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
       }
     ],
     "name": "ProjectAlignmentAttestation",
@@ -37,6 +43,11 @@ export const ProjectAlignmentAbi = [
       {
         "internalType": "bytes32",
         "name": "statementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "topicStatementId",
         "type": "bytes32"
       }
     ],
@@ -55,6 +66,11 @@ export const ProjectAlignmentAbi = [
       {
         "internalType": "bytes32[]",
         "name": "statementIds",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "topicStatementIds",
         "type": "bytes32[]"
       }
     ],
