@@ -1,9 +1,8 @@
 # What we've been working on lately
 
 We're in the middle of a couple of big things:
-  - Writing the integration-tests. (Much is done; I'm not sure what exactly is left to implement.)
-  - Writing the UI. (Not much done, and not really tested, even manually; I don't trust the UI at all yet.)
   - Decoupling and generalizing some pieces of the system. See [specs/decoupling.md](specs/decoupling.md).
+  - Writing the UI. (Maybe the conceptspace MVP is in-theory done? But not really tested, even manually; I don't trust the UI at all yet.)
 
 Other big things to do soon:
   - Generative testing. There's an early attempt at fake-data generation in hardhat/fake-data-generation, but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.
@@ -17,4 +16,4 @@ Also, here are some meta-level tasks that would be good to do before we do any m
 
 ## Miscellaneous TODO.md files
 
-- [ui/TODO.md](ui/TODO.md)
+- [ui/todo.md](ui/todo.md)
