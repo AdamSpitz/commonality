@@ -150,7 +150,7 @@ Components:
 **Domain:** Cross-cutting views that join concepts, projects, and funding
 
 Components:
-  - **Smart contracts:** `ProjectAlignment` - for attesting that projects align with statements
+  - **Smart contracts:** `AlignmentAttestations` - for attesting that subjects (typically projects) align with statements
   - **Indexer:** Handles complex federated queries by calling the GraphQL APIs of other indexers (Concept Space, Pubstarter, Marketplace, Delegation). Computes indirect project alignment via implication graphs, aggregates funding by cause, generates contributor leaderboards.
   - **UI:** Cause-specific funding portals showing all aligned projects (direct and indirect), available funding from delegatable notes, cross-project contributor rankings
 
@@ -246,7 +246,7 @@ See [implication-attester-ai.md](implication-attester-ai.md) for more detail. Th
 
 See the hardhat/contracts directory; the pubstarter stuff is old code that I wrote a while ago, but I think it should be useful.
 
-I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract called ProjectAlignment that allows anyone to emit ProjectAlignmentAttestation events. (Okay, this now exists, in hardhat/contracts.)
+I don't think that old code includes anything related to doing a whole funding portal for many projects, though. So let's make a smart contract for alignment attestations. (This now exists as `AlignmentAttestations` in hardhat/contracts/alignment-attestations, emitting `AlignmentAttestation` events with a required `topicStatementId` field for indexer filtering.)
 
 In the long run I'd like the DelegatableNotes smart contract to support various DEXes or DEX aggregators for spending the notes; for now it's fine to just use the primary and secondary market capabilities of our own (Kickstarter-like) contracts. (This is also already done.)
 

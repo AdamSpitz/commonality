@@ -63,7 +63,7 @@ The simulation performs these actions:
 - `setBelief` - User expresses belief/disbelief in a statement (50% weight)
 - `setBeliefsInBatch` - User signs multiple statements at once (20% weight)
 - `attestImplication` - Attester publishes S1→S2 relationship (15% weight)
-- `attestProjectAlignment` - Attest that a project aligns with a statement (15% weight)
+- `attestAlignment` - Attest that a subject (e.g., project) aligns with a statement (15% weight)
 
 ## Metrics Collected
 
@@ -179,7 +179,7 @@ This is a basic version. The full generative testing plan includes:
 Deploying contracts...
   Beliefs: 0x5FbDB2315678afecb367f032d93F642f64180aa3
   Implications: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
-  ProjectAlignment: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+  AlignmentAttestations: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
 
 Generating users...
 Generated 50 users
@@ -219,11 +219,11 @@ Results Summary:
     setBelief: 617
     setBeliefsInBatch: 247
     attestImplication: 185
-    attestProjectAlignment: 186
+    attestAlignment: 186
 
   Gas usage:
     setBelief: mean=45231, p95=45876, max=46123
     setBeliefsInBatch: mean=78456, p95=92341, max=108234
     attestImplication: mean=56789, p95=57234, max=58123
-    attestProjectAlignment: mean=52341, p95=53123, max=54234
+    attestAlignment: mean=52341, p95=53123, max=54234
 ```

@@ -1,6 +1,6 @@
 # Funding Portals
 
-Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are aligned with statement S"). Anyone can submit ProjectAlignmentAttestation events of the form "project P is aligned with statement S". Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
+Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are aligned with statement S"). Anyone can submit AlignmentAttestation events of the form "subject S is aligned with statement T" (where the subject is typically a project address). Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
 
 Some points about this:
 

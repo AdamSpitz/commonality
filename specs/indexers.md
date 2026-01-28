@@ -30,7 +30,7 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 └──────────────────┘
 
 ┌──────────────────┐
-│ Funding Portal   │  Watches: ProjectAlignment
+│ Funding Portal   │  Watches: AlignmentAttestations
 │ Indexer          │  Exports: GraphQL API for cross-cutting queries
 │                  │  Dependencies: Queries Concept Space, Pubstarter, Delegation APIs
 └──────────────────┘
@@ -97,7 +97,7 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 **Domain:** Cross-cutting queries joining concepts, projects, and funding
 
 **Data stored:**
-- Project alignment attestations (projectAddress → statementId, by attester)
+- Alignment attestations (subjectAddress → statementId, by attester)
 - Cached results of expensive federated queries
 - Aggregated contributor data across aligned projects
 
@@ -212,7 +212,7 @@ This gives clean separation (good for code quality) with simple deployment (good
 - Event audit trail
 
 ### ✅ **Funding Portal** - Implemented
-- Event handlers for ProjectAlignment attestations
+- Event handlers for AlignmentAttestations
 - Simple but complete for its scope
 - **Missing: Federated query implementation** (currently only stores attestations, doesn't federate queries to other subsystems)
 

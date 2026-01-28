@@ -23,7 +23,7 @@ Hmm, I'm starting to get the picture that (if this analysis is correct) the lega
     - The idea that you can "invest" (by selling your donation receipt on a secondary market) makes this sound like a security.
 
 Improvements to make:
-  - Generalize ProjectAlignmentAttestation into AlignmentAttestation.
+  - ~~Generalize ProjectAlignmentAttestation into AlignmentAttestation.~~ **Done.** Now called `AlignmentAttestations` contract with `AlignmentAttestation` event.
   - See if there's a third-party secondary marketplace we could use. (OpenSea Seaport? Hmm, maybe not, it uses offchain orderbooks.) Then we can ditch ERC1155SecondaryMarket.
   - Split the pieces into separate projects. In particular:
     - conceptspace

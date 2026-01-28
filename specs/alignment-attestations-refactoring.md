@@ -35,7 +35,7 @@ Per [decoupling.md](decoupling.md), the alignment attestation system should be g
 This list may be incomplete; use your judgment when implementing.
 
 ### Contract Layer
-- [ ] `hardhat/contracts/project-alignment/ProjectAlignment.sol` → `hardhat/contracts/alignment-attestations/AlignmentAttestations.sol`
+- [x] `hardhat/contracts/project-alignment/ProjectAlignment.sol` → `hardhat/contracts/alignment-attestations/AlignmentAttestations.sol`
   - Rename contract `ProjectAlignment` → `AlignmentAttestations`
   - Rename event `ProjectAlignmentAttestation` → `AlignmentAttestation`
   - Rename parameter `projectAddress` → `subjectAddress` (in event, functions, mappings)
@@ -43,52 +43,52 @@ This list may be incomplete; use your judgment when implementing.
   - Update comments and error messages
 
 ### Tests
-- [ ] `hardhat/test/ProjectAlignment.test.js` → `hardhat/test/AlignmentAttestations.test.js`
+- [x] `hardhat/test/ProjectAlignment.test.js` → `hardhat/test/AlignmentAttestations.test.js`
   - Update all references
   - Add tests for topicStatementId being required (should revert on zero)
   - Update existing tests that passed zero for topicStatementId
 
 ### Indexer
-- [ ] `indexer/abis/ProjectAlignmentAbi.ts` → `indexer/abis/AlignmentAttestationsAbi.ts`
-- [ ] `indexer/abis/ProjectAlignmentAbi.js` → `indexer/abis/AlignmentAttestationsAbi.js`
-- [ ] `indexer/schemas/fundingportal.schema.ts` - Update table/column names if needed
-- [ ] `indexer/src/fundingportal/index.ts` - Update event handler references
-- [ ] `indexer/ponder.config.ts` - Update contract references
-- [ ] `indexer/scripts/sync-abis.ts` - Update ABI sync paths
+- [x] `indexer/abis/ProjectAlignmentAbi.ts` → `indexer/abis/AlignmentAttestationsAbi.ts`
+- [x] `indexer/abis/ProjectAlignmentAbi.js` → `indexer/abis/AlignmentAttestationsAbi.js`
+- [x] `indexer/schemas/fundingportal.schema.ts` - Update table/column names if needed
+- [x] `indexer/src/fundingportal/index.ts` - Update event handler references
+- [x] `indexer/ponder.config.ts` - Update contract references
+- [x] `indexer/scripts/sync-abis.ts` - Update ABI sync paths
 
 ### SDK
-- [ ] `sdk/src/abis.ts` - Update ABI imports and exports
-- [ ] `sdk/src/actions/funding-portals-actions.ts` - Update function names and parameters
-- [ ] `sdk/src/actions/index.ts` - Update exports
-- [ ] `sdk/src/queries/funding-portals-queries.ts` - Update query references
-- [ ] `sdk/src/graphql-queries/funding-portals.ts` - Update GraphQL queries
-- [ ] `sdk/src/graphql-queries/index.ts` - Update exports
-- [ ] `sdk/src/graphql-server/schema/type-defs.ts` - Update type definitions
-- [ ] `sdk/src/graphql-server/schema/resolvers/funding-portals.ts` - Update resolvers
+- [x] `sdk/src/abis.ts` - Update ABI imports and exports
+- [x] `sdk/src/actions/funding-portals-actions.ts` - Update function names and parameters
+- [x] `sdk/src/actions/index.ts` - Update exports
+- [x] `sdk/src/queries/funding-portals-queries.ts` - Update query references
+- [x] `sdk/src/graphql-queries/funding-portals.ts` - Update GraphQL queries
+- [x] `sdk/src/graphql-queries/index.ts` - Update exports
+- [x] `sdk/src/graphql-server/schema/type-defs.ts` - Update type definitions
+- [x] `sdk/src/graphql-server/schema/resolvers/funding-portals.ts` - Update resolvers
 
 ### Integration Tests
-- [ ] `integration-tests/src/fundingportal/fundingportal-alignment.test.ts`
-- [ ] `integration-tests/src/fundingportal/fundingportal-indirect-alignment.test.ts`
-- [ ] `integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts`
-- [ ] `integration-tests/src/fundingportal/fundingportal-leaderboards.test.ts`
-- [ ] `integration-tests/src/workflows/end-to-end-workflows.test.ts`
-- [ ] `integration-tests/src/actions/alignment-action-properties.ts`
-- [ ] `integration-tests/src/actions/alignment-actions-checked.ts`
-- [ ] `integration-tests/src/utils/graphql-helpers.ts`
-- [ ] `integration-tests/src/utils/invariants.ts`
+- [x] `integration-tests/src/fundingportal/fundingportal-alignment.test.ts`
+- [x] `integration-tests/src/fundingportal/fundingportal-indirect-alignment.test.ts`
+- [x] `integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts`
+- [x] `integration-tests/src/fundingportal/fundingportal-leaderboards.test.ts`
+- [x] `integration-tests/src/workflows/end-to-end-workflows.test.ts`
+- [x] `integration-tests/src/actions/alignment-action-properties.ts`
+- [x] `integration-tests/src/actions/alignment-actions-checked.ts`
+- [x] `integration-tests/src/utils/graphql-helpers.ts`
+- [x] `integration-tests/src/utils/invariants.ts`
 
 ### Other
-- [ ] `hardhat/scripts/deploy-local.js` - Update deployment references
-- [ ] `hardhat/integration-test-helpers.js` - Update helper references
-- [ ] `hardhat/fake-data-generation/runSimulation.js` - Update simulation code
-- [ ] `hardhat/contracts/delegation/NoteIntent.sol` - Check if it references ProjectAlignment
+- [x] `hardhat/scripts/deploy-local.js` - Update deployment references
+- [x] `hardhat/integration-test-helpers.js` - Update helper references
+- [ ] `hardhat/fake-data-generation/runSimulation.js` - Update simulation code (not yet implemented/tested)
+- [x] `hardhat/contracts/delegation/NoteIntent.sol` - Check if it references ProjectAlignment (it doesn't)
 
 ### Documentation/Specs
-- [ ] `specs/README.md` - Update references
-- [ ] `specs/fundingportals.md` - Update references
-- [ ] `specs/indexers.md` - Update references
-- [ ] `specs/legal.md` - Update references
-- [ ] `specs/decoupling.md` - Update references, mark this refactoring as done
+- [x] `specs/README.md` - Update references
+- [x] `specs/fundingportals.md` - Update references
+- [x] `specs/indexers.md` - Update references
+- [x] `specs/legal.md` - Update references
+- [x] `specs/decoupling.md` - Update references, mark this refactoring as done
 - [ ] `progress.txt` - Clear/update notes
 
 ## Implementation Order
