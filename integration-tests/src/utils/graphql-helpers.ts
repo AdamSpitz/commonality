@@ -1695,20 +1695,20 @@ export async function getIndirectlyAlignedProjects(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<IndirectProjectAlignment[]> {
-  const result = await executeQuery<{ indirectlyAlignedProjects: IndirectProjectAlignment[] }>(
+  const result = await executeQuery<{ indirectlyAlignedSubjects: { subjectAddress: string; directStatementId: string; indirectStatementId: string; attester: string }[] }>(
     executor,
     `
-      query GetIndirectlyAlignedProjects(
+      query GetIndirectlyAlignedSubjects(
         $statementId: ID!
         $trustedImplicationAttester: Address
         $trustedAlignmentAttester: Address
       ) {
-        indirectlyAlignedProjects(
+        indirectlyAlignedSubjects(
           statementId: $statementId
           trustedImplicationAttester: $trustedImplicationAttester
           trustedAlignmentAttester: $trustedAlignmentAttester
         ) {
-          projectAddress
+          subjectAddress
           directStatementId
           indirectStatementId
           attester
@@ -1718,7 +1718,13 @@ export async function getIndirectlyAlignedProjects(
     { statementId, trustedImplicationAttester, trustedAlignmentAttester }
   );
 
-  return result.indirectlyAlignedProjects || [];
+  // Map subjectAddress to projectAddress for backward compatibility
+  return (result.indirectlyAlignedSubjects || []).map(a => ({
+    projectAddress: a.subjectAddress,
+    directStatementId: a.directStatementId,
+    indirectStatementId: a.indirectStatementId,
+    attester: a.attester,
+  }));
 }
 
 /**

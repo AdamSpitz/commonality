@@ -60,3 +60,14 @@ All feedback loops pass:
 - 24 hardhat tests pass
 - Indexer type check passes
 - SDK builds successfully
+
+
+## Fixed: Indirect alignment query mismatch
+
+The previous AlignmentAttestations rename broke the `getIndirectlyAlignedProjects` helper in integration-tests.
+
+The issue: The GraphQL schema was renamed from `indirectlyAlignedProjects` → `indirectlyAlignedSubjects` and `projectAddress` → `subjectAddress`, but the integration-tests helper still used the old names.
+
+Fix: Updated `integration-tests/src/utils/graphql-helpers.ts` to use `indirectlyAlignedSubjects` query and map `subjectAddress` → `projectAddress` for backward compatibility.
+
+All 102 integration tests pass now.
