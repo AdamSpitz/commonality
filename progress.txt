@@ -123,3 +123,36 @@ Implemented the BrowseStatementsPage UI component with sorting functionality.
 
 ### What's next (from ui/TODO.md)
 - Settings Page - Configure trusted implication attesters
+
+## Implemented SettingsPage (2026-01-27)
+
+### What was done
+Implemented the Settings Page with trusted implication attester configuration.
+
+**Features:**
+- Add trusted attester addresses (with validation)
+- Remove attesters from the list
+- Persist settings in localStorage
+- Clear UI feedback for actions (success/error alerts)
+- Info banner explaining that official attester AI isn't deployed yet
+
+**Implementation details:**
+- Uses localStorage key `commonality:trustedAttesters` to persist array of addresses
+- Validates Ethereum address format (0x + 40 hex chars)
+- Prevents duplicate addresses (case-insensitive check)
+- Uses Material UI components (TextField, Button, List, Alert, etc.)
+
+### Files changed
+- `ui/src/conceptspace/pages/SettingsPage.tsx` - Full implementation
+- `ui/TODO.md` - Marked Settings Page as done
+
+### Build and tests
+- `npm run build` passes
+- `npm run test` passes (102 tests)
+
+### What's next
+The Settings page is complete. The trusted attesters are stored in localStorage.
+Future work could:
+- Add a query to list known attesters from the indexer
+- Integrate the trusted attesters with other pages (StatementPage, etc.) to filter indirect support
+- Add social account connection settings when that feature is implemented
