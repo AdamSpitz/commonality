@@ -1,5 +1,9 @@
-# Concept Space UI - MVP Component List
+## UI to-dos
 
-## Core Pages
-3. **Browse/Search Page** - DONE (sorting by most supporters, newest)
-5. **Settings Page** - DONE (trusted attester configuration with localStorage)
+## Concept Space UI - MVP
+
+Maybe done?
+
+## Other subsystem UIs
+
+Not even started yet, I think.
