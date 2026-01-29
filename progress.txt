@@ -72,4 +72,17 @@ Next from TODO.md displayable-documents list:
 - Statement creation flow: update UI to produce displayable documents via publishDocument
 - Indexer awareness: parse new format for excerpts/search
 
+## Statement creation flow updated to DisplayableDocument (Jan 2026)
+
+Updated the statement creation flow to produce DisplayableDocuments instead of legacy StatementContent:
+- `createAndSignStatement()` now accepts `StatementContent | DisplayableDocument` — uses `publishDocument()` (canonical JSON) for DisplayableDocuments, falls back to `uploadToIPFS()` for legacy format.
+- CreateStatementForm.tsx now uses `createStatement()` from the SDK to produce a DisplayableDocument, instead of manually constructing a StatementContent object.
+- All integration tests updated to use `createStatement()` and the new format (references use CID-based `DocumentReference` instead of old `statementId` format).
+- The checked wrapper (`createAndSignStatementChecked`) also updated to accept `DisplayableDocument`.
+- Files changed: sdk/src/actions/conceptspace-actions.ts, ui/src/conceptspace/components/CreateStatementForm.tsx, integration-tests/src/conceptspace/conceptspace-create-statement-workflow.test.ts, integration-tests/src/actions/workflow-actions-checked.ts
+- All feedback loops pass (build + 72 SDK tests + 243 hardhat tests).
+
+Next from TODO.md displayable-documents list:
+- Indexer awareness: parse new format for excerpts/search
+
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.

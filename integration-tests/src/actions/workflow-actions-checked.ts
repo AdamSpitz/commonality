@@ -23,6 +23,7 @@ import {
   type BeliefsContract,
   type MutableRefUpdaterContract,
   type StatementContent,
+  type DisplayableDocument,
   type CreateAndSignStatementOptions,
 } from '@commonality/sdk';
 import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
@@ -82,7 +83,7 @@ export async function createAndSignStatementChecked(
     mutableRefUpdater?: MutableRefUpdaterContract;
   },
   graphqlClient: GraphQLClient | GraphQLExecutor,
-  statementData: StatementContent,
+  statementData: StatementContent | DisplayableDocument,
   workflowOptions?: Omit<CreateAndSignStatementOptions, 'graphqlClient'>,
   checkOptions?: ActionRunOptions
 ): Promise<CreateAndSignStatementResult> {

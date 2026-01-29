@@ -11,13 +11,13 @@ import {
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   createAndSignStatement,
+  createStatement,
   createGraphQLClient,
   BeliefsAbi,
   MutableRefUpdaterAbi,
   type BeliefsContract,
   type MutableRefUpdaterContract,
   type TestClients,
-  type StatementContent,
 } from '@commonality/sdk'
 
 interface CreateStatementFormProps {
@@ -61,14 +61,10 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
     setIsCreating(true)
 
     try {
-      // Create statement data
-      const statementData: StatementContent = {
-        statementType: 'statement',
+      // Create statement as a DisplayableDocument
+      const statementData = createStatement({
         content: content.trim(),
-        metadata: {
-          createdDate: new Date().toISOString(),
-        },
-      }
+      })
 
       // Set up contracts
       const beliefsContract: BeliefsContract = {

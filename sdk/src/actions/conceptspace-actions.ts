@@ -5,6 +5,7 @@
 import { type Address, type Hash } from 'viem';
 import { cidToBytes32, type TestClients } from './common.js';
 import type { StatementContent } from '../graphql-queries/conceptspace.js';
+import { type DisplayableDocument, isDisplayableDocument, publishDocument } from '../displayable-document.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -239,7 +240,7 @@ export interface CreateAndSignStatementResult {
  * @param contracts - Contract instances needed for the workflow
  * @param contracts.beliefs - The Beliefs contract for signing statements
  * @param contracts.mutableRefUpdater - The MutableRefUpdater contract (required if addToCreatedList is true)
- * @param statementData - The statement content to create and sign
+ * @param statementData - The statement content to create and sign (DisplayableDocument or legacy StatementContent)
  * @param options - Optional configuration for callbacks and behavior
  * @returns Result containing CID and transaction hashes
  *
@@ -285,7 +286,7 @@ export async function createAndSignStatement(
     beliefs: BeliefsContract;
     mutableRefUpdater?: { address: Address; abi: any };
   },
-  statementData: StatementContent,
+  statementData: StatementContent | DisplayableDocument,
   options: CreateAndSignStatementOptions = {}
 ): Promise<CreateAndSignStatementResult> {
   const {
@@ -310,8 +311,14 @@ export async function createAndSignStatement(
 
   try {
     // Step 1: Upload content to IPFS
-    const { uploadToIPFS } = await import('./common.js');
-    cid = await uploadToIPFS(statementData);
+    // Use publishDocument for DisplayableDocuments (canonical JSON encoding),
+    // fall back to plain uploadToIPFS for legacy StatementContent.
+    if (isDisplayableDocument(statementData)) {
+      cid = await publishDocument(statementData);
+    } else {
+      const { uploadToIPFS } = await import('./common.js');
+      cid = await uploadToIPFS(statementData);
+    }
 
     if (onIPFSUpload) {
       onIPFSUpload(cid);

@@ -12,9 +12,9 @@
 import assert from 'assert';
 import {
   createAndSignStatement,
+  createStatement,
   type BeliefsContract,
   type MutableRefUpdaterContract,
-  type StatementContent,
   cidToBytes32,
 } from '@commonality/sdk';
 import {
@@ -64,17 +64,11 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    const statementData: StatementContent = {
-      statementType: 'statement',
+    const statementData = createStatement({
       content: 'We should invest in renewable energy infrastructure.',
-      title: 'Renewable Energy Investment',
-      metadata: {
-        createdDate: new Date().toISOString(),
-        version: 1,
-      },
-    };
+    });
 
-    testLog(`  Creating statement: "${statementData.title}"`);
+    testLog(`  Creating statement (displayable document format)`);
 
     // Call the high-level workflow function (with property checking)
     const result = await createAndSignStatementChecked(
@@ -101,13 +95,9 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    const statementData: StatementContent = {
-      statementType: 'statement',
+    const statementData = createStatement({
       content: 'We need comprehensive healthcare reform.',
-      metadata: {
-        createdDate: new Date().toISOString(),
-      },
-    };
+    });
 
     testLog('  Testing progress callbacks...');
 
@@ -157,13 +147,9 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    const statementData: StatementContent = {
-      statementType: 'statement',
+    const statementData = createStatement({
       content: 'This statement should not be added to the created list.',
-      metadata: {
-        createdDate: new Date().toISOString(),
-      },
-    };
+    });
 
     testLog('  Creating statement without list update...');
 
@@ -193,29 +179,15 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
-    const statementData: StatementContent = {
-      statementType: 'statement',
-      content: 'I support {ref:0} and {ref:1} because they lead to better outcomes.',
-      title: 'Support for Multiple Policies',
+    const statementData = createStatement({
+      content: 'I support [renewable energy](ref:0) and [healthcare reform](ref:1) because they lead to better outcomes.',
       references: [
-        {
-          statementId: 'QmReferenceStatement1',
-          label: 'renewable energy',
-          relationship: 'supports',
-        },
-        {
-          statementId: 'QmReferenceStatement2',
-          label: 'healthcare reform',
-          relationship: 'supports',
-        },
+        { cid: 'bafyreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', label: 'renewable energy' },
+        { cid: 'bafyreibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', label: 'healthcare reform' },
       ],
-      metadata: {
-        createdDate: new Date().toISOString(),
-        version: 1,
-      },
-    };
+    });
 
-    testLog(`  Creating statement with references: "${statementData.title}"`);
+    testLog('  Creating statement with references (displayable document format)');
 
     const result = await createAndSignStatementChecked(
       clients,
@@ -241,22 +213,10 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
-    const statements: StatementContent[] = [
-      {
-        statementType: 'statement',
-        content: 'First statement about climate change.',
-        metadata: { createdDate: new Date().toISOString() },
-      },
-      {
-        statementType: 'statement',
-        content: 'Second statement about economic policy.',
-        metadata: { createdDate: new Date().toISOString() },
-      },
-      {
-        statementType: 'statement',
-        content: 'Third statement about education reform.',
-        metadata: { createdDate: new Date().toISOString() },
-      },
+    const statements = [
+      createStatement({ content: 'First statement about climate change.' }),
+      createStatement({ content: 'Second statement about economic policy.' }),
+      createStatement({ content: 'Third statement about education reform.' }),
     ];
 
     testLog('  Creating 3 statements sequentially...');
@@ -294,13 +254,9 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    const statementData: StatementContent = {
-      statementType: 'statement',
+    const statementData = createStatement({
       content: 'This should fail due to missing mutableRefUpdater.',
-      metadata: {
-        createdDate: new Date().toISOString(),
-      },
-    };
+    });
 
     testLog('  Testing validation: missing mutableRefUpdater...');
 
@@ -334,13 +290,9 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    const statementData: StatementContent = {
-      statementType: 'statement',
+    const statementData = createStatement({
       content: 'This should fail due to missing graphqlClient.',
-      metadata: {
-        createdDate: new Date().toISOString(),
-      },
-    };
+    });
 
     testLog('  Testing validation: missing graphqlClient...');
 
@@ -374,13 +326,9 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    const statementData: StatementContent = {
-      statementType: 'statement',
+    const statementData = createStatement({
       content: 'Testing graceful handling of list update failures.',
-      metadata: {
-        createdDate: new Date().toISOString(),
-      },
-    };
+    });
 
     testLog('  Creating statement with invalid GraphQL client...');
 
@@ -422,15 +370,10 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
-    // Create identical statement content
-    const statementData: StatementContent = {
-      statementType: 'statement',
+    // Create identical statement content — canonical JSON ensures same CID
+    const statementData = createStatement({
       content: 'We should prioritize climate action now.',
-      title: 'Climate Action Priority',
-      metadata: {
-        version: 1,
-      },
-    };
+    });
 
     testLog('  Creating first statement...');
 
