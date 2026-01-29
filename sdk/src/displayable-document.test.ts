@@ -5,8 +5,11 @@ import {
   createStatement,
   validateDisplayableDocument,
   isDisplayableDocument,
+  publishDocument,
+  fetchDocument,
 } from './displayable-document.js';
 import type { DisplayableDocument } from './displayable-document.js';
+import { clearMockIPFS } from './actions/common.js';
 
 // ============================================================================
 // toCanonicalJson
@@ -576,5 +579,113 @@ describe('document identity via canonical JSON', () => {
     const doc1 = createDisplayableDocument({ format: 'text/plain', content: 'hello' });
     const doc2 = createDisplayableDocument({ format: 'text/plain', content: 'world' });
     assert.notStrictEqual(toCanonicalJson(doc1), toCanonicalJson(doc2));
+  });
+});
+
+// ============================================================================
+// publishDocument + fetchDocument
+// ============================================================================
+
+describe('publishDocument', () => {
+  beforeEach(() => {
+    clearMockIPFS();
+  });
+
+  it('publishes a valid document and returns a CID string', async () => {
+    const doc = createDisplayableDocument({
+      format: 'text/plain',
+      content: 'Hello world',
+    });
+    const cid = await publishDocument(doc);
+    assert.ok(typeof cid === 'string');
+    assert.ok(cid.length > 0);
+  });
+
+  it('returns the same CID for the same document content', async () => {
+    const doc1 = createDisplayableDocument({
+      format: 'text/plain',
+      content: 'Deterministic test',
+    });
+    const doc2 = createDisplayableDocument({
+      format: 'text/plain',
+      content: 'Deterministic test',
+    });
+    const cid1 = await publishDocument(doc1);
+    const cid2 = await publishDocument(doc2);
+    assert.strictEqual(cid1, cid2);
+  });
+
+  it('returns the same CID regardless of original key order', async () => {
+    // Manually construct objects with different key orders
+    const doc1 = { content: 'hello', format: 'text/plain' } as DisplayableDocument;
+    const doc2 = { format: 'text/plain', content: 'hello' } as DisplayableDocument;
+    const cid1 = await publishDocument(doc1);
+    const cid2 = await publishDocument(doc2);
+    assert.strictEqual(cid1, cid2);
+  });
+
+  it('returns different CIDs for different documents', async () => {
+    const doc1 = createDisplayableDocument({ format: 'text/plain', content: 'hello' });
+    const doc2 = createDisplayableDocument({ format: 'text/plain', content: 'world' });
+    const cid1 = await publishDocument(doc1);
+    const cid2 = await publishDocument(doc2);
+    assert.notStrictEqual(cid1, cid2);
+  });
+
+  it('throws on invalid document', async () => {
+    const bad = { format: 'bad-format', content: 'hello' } as unknown as DisplayableDocument;
+    await assert.rejects(() => publishDocument(bad), /Invalid displayable document/);
+  });
+});
+
+describe('fetchDocument', () => {
+  beforeEach(() => {
+    clearMockIPFS();
+  });
+
+  it('round-trips a document through publish and fetch', async () => {
+    const doc = createDisplayableDocument({
+      format: 'text/plain',
+      content: 'Round trip test',
+    });
+    const cid = await publishDocument(doc);
+    const fetched = await fetchDocument(cid);
+    assert.ok(fetched !== null);
+    assert.strictEqual(fetched!.format, 'text/plain');
+    assert.strictEqual(fetched!.content, 'Round trip test');
+  });
+
+  it('round-trips a document with all optional fields', async () => {
+    const doc = createDisplayableDocument({
+      format: 'markdown-restricted',
+      content: '# Hello\n\nSee [ref](ref:0) and ![img](asset:logo)',
+      assets: {
+        logo: { mimeType: 'image/png', data: 'base64data' },
+      },
+      references: [{ cid: 'bafyrei123', label: 'Related doc' }],
+      extras: { topic: 'test', nested: { a: 1 } },
+    });
+    const cid = await publishDocument(doc);
+    const fetched = await fetchDocument(cid);
+    assert.ok(fetched !== null);
+    assert.strictEqual(fetched!.format, 'markdown-restricted');
+    assert.ok(fetched!.assets);
+    assert.ok(fetched!.assets!.logo);
+    assert.strictEqual(fetched!.references!.length, 1);
+    assert.strictEqual(fetched!.references![0].label, 'Related doc');
+    assert.strictEqual(fetched!.extras!.topic, 'test');
+  });
+
+  it('returns null for a non-existent CID', async () => {
+    const result = await fetchDocument('bafyreifake123nonexistent');
+    assert.strictEqual(result, null);
+  });
+
+  it('returns null if fetched content is not a valid displayable document', async () => {
+    // Publish raw non-document content via the underlying IPFS mock
+    const { uploadToIPFS: upload } = await import('./actions/common.js');
+    const cid = await upload({ notADocument: true });
+    const result = await fetchDocument(cid);
+    assert.strictEqual(result, null);
   });
 });

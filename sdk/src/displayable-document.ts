@@ -8,6 +8,8 @@
  * See specs/displayable-documents.md for the full specification.
  */
 
+import { uploadToIPFS, fetchFromIPFS } from './actions/common.js';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -356,4 +358,51 @@ export function createStatement(options: CreateStatementOptions): DisplayableDoc
     references: options.references,
     extras,
   });
+}
+
+// ============================================================================
+// IPFS Publish / Fetch
+// ============================================================================
+
+/**
+ * Publish a DisplayableDocument to IPFS using canonical JSON encoding.
+ *
+ * Canonical JSON (sorted keys, no whitespace) ensures identical documents
+ * always produce the same CID.
+ *
+ * @param doc - A valid DisplayableDocument
+ * @returns The IPFS CID of the published document
+ * @throws Error if the document fails validation
+ */
+export async function publishDocument(doc: DisplayableDocument): Promise<string> {
+  const validation = validateDisplayableDocument(doc);
+  if (!validation.valid) {
+    throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);
+  }
+
+  // Canonical-encode then re-parse so uploadToIPFS serializes with sorted keys
+  const canonical = toCanonicalJson(doc);
+  const normalized = JSON.parse(canonical) as object;
+
+  return uploadToIPFS(normalized);
+}
+
+/**
+ * Fetch a DisplayableDocument from IPFS by CID and validate it.
+ *
+ * @param cid - The IPFS CID to fetch
+ * @returns The validated DisplayableDocument, or null if not found or invalid
+ */
+export async function fetchDocument(cid: string): Promise<DisplayableDocument | null> {
+  const raw = await fetchFromIPFS(cid);
+  if (raw === null) {
+    return null;
+  }
+
+  const validation = validateDisplayableDocument(raw);
+  if (!validation.valid) {
+    return null;
+  }
+
+  return raw as DisplayableDocument;
 }

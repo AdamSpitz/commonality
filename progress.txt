@@ -38,4 +38,18 @@ Added unit test infrastructure and tests for sdk/src/displayable-document.ts:
 
 Next: TODO.md says to work on displayable-documents decoupling. The SDK types/validation/creation are tested now. Possible next steps: displayable document renderer (for UI), or broader decoupling work from specs/decoupling.md.
 
+## publishDocument / fetchDocument helpers (Jan 2026)
+
+Added IPFS publish/fetch glue for displayable documents in sdk/src/displayable-document.ts:
+- `publishDocument(doc)`: validates, canonical-JSON-encodes, uploads to IPFS, returns CID. Canonical encoding ensures identical documents always get the same CID regardless of key order.
+- `fetchDocument(cid)`: fetches from IPFS, validates as displayable document, returns typed `DisplayableDocument | null`.
+- 9 new tests (72 total SDK tests): round-trip, deterministic CIDs, key-order invariance, invalid doc rejection, non-existent CID, invalid fetched content.
+- Files changed: sdk/src/displayable-document.ts, sdk/src/displayable-document.test.ts
+- All feedback loops pass (build + 72 SDK tests).
+
+Next from TODO.md displayable-documents list:
+- Renderer component (UI): update StatementRenderer to render DisplayableDocument instead of legacy StatementContent
+- Statement creation flow: update UI to produce displayable documents via publishDocument
+- Indexer awareness: parse new format for excerpts/search
+
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
