@@ -17,4 +17,14 @@ All feedback loops pass:
 - Indexer type check passes
 - SDK builds successfully
 
+## Third-party secondary marketplace research (Jan 2026)
+
+Researched whether Seaport, SudoSwap, Rarible, or Reservoir could replace our ERC1155SecondaryMarket.
+Conclusion: keep our custom contract. Details written up in specs/legal.md.
+Key reasons:
+- Seaport/Reservoir use off-chain orderbooks (can't call from DelegatableNotes on-chain)
+- SudoSwap is an AMM, not an orderbook — different mental model, would need architecture rethink
+- Our contract is simple/generic enough that publishing it isn't a legal concern
+- The real legal concerns are about the UI/descriptions, not the contracts
+
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
