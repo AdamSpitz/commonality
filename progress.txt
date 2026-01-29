@@ -27,4 +27,15 @@ Key reasons:
 - Our contract is simple/generic enough that publishing it isn't a legal concern
 - The real legal concerns are about the UI/descriptions, not the contracts
 
+## SDK unit test setup (Jan 2026)
+
+Added unit test infrastructure and tests for sdk/src/displayable-document.ts:
+- Set up Mocha + tsx in SDK workspace (matching integration-tests pattern)
+- 63 unit tests covering: toCanonicalJson, validateDisplayableDocument, createDisplayableDocument, isDisplayableDocument, createStatement, document identity via canonical JSON
+- Added `npm run sdk:test` to root package.json (runs before hardhat:test in `npm run test`)
+- SDK tsconfig excludes test files from build output
+- Files changed: sdk/package.json, sdk/tsconfig.json, sdk/.mocharc.json, sdk/src/displayable-document.test.ts, package.json
+
+Next: TODO.md says to work on displayable-documents decoupling. The SDK types/validation/creation are tested now. Possible next steps: displayable document renderer (for UI), or broader decoupling work from specs/decoupling.md.
+
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
