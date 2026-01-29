@@ -52,4 +52,24 @@ Next from TODO.md displayable-documents list:
 - Statement creation flow: update UI to produce displayable documents via publishDocument
 - Indexer awareness: parse new format for excerpts/search
 
+## DisplayableDocument renderer component (Jan 2026)
+
+Updated StatementRenderer to render DisplayableDocument per the spec in specs/displayable-documents.md:
+- Detects format using `isDisplayableDocument()` — branches to new renderer or legacy renderer
+- text/plain: whitespace-preserving plain text
+- markdown-restricted: ReactMarkdown with rehype-sanitize, resolves `[text](ref:N)` to router links via references array, resolves `![alt](asset:key)` to inline base64 data URIs or IPFS gateway URLs
+- Extras displayed in full as a key-value table (spec requirement: everything visible)
+- Unknown top-level fields rendered as raw JSON (spec requirement)
+- Error placeholders for missing assets/references (never silently omit)
+- External URLs rendered as plain text (defensive sanitization)
+- Legacy StatementContent rendering preserved unchanged for backward compatibility
+- Updated StatementWithContent SDK type to accept `StatementContent | DisplayableDocument | null`
+- Updated StatementPage.tsx state type to match
+- Files changed: ui/src/conceptspace/components/StatementRenderer.tsx, ui/src/conceptspace/pages/StatementPage.tsx, sdk/src/graphql-queries/conceptspace.ts
+- All feedback loops pass (build succeeds).
+
+Next from TODO.md displayable-documents list:
+- Statement creation flow: update UI to produce displayable documents via publishDocument
+- Indexer awareness: parse new format for excerpts/search
+
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.

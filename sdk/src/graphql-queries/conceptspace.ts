@@ -9,6 +9,7 @@
  */
 
 import { executeQuery, type GraphQLExecutor } from '../graphql-server/index.js';
+import type { DisplayableDocument } from '../displayable-document.js';
 
 // ============================================================================
 // Type Definitions
@@ -81,7 +82,7 @@ export interface StatementContent {
 
 export interface StatementWithContent {
   statement: Statement;
-  content: StatementContent | null;
+  content: StatementContent | DisplayableDocument | null;
   metrics?: {
     directBelievers: number;
     directDisbelievers: number;
