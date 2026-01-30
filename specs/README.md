@@ -14,6 +14,7 @@ Key ideas:
   - Implication attestations reduce coordination friction: Use AI-generated "S1 implies S2" attestations to eliminate the need for everyone to rally around a single canonical statement. People can create improved/alternative versions while inheriting indirect support.
   - Retroactive funding via resellable NFTs: separate the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) by making contribution NFTs tradeable on secondary markets, creating a VC-like system for public goods.
   - Composable delegation enables nano-trustees: Allow people to contribute funds but delegate spending decisions to trusted individuals (who can further delegate), creating chains of specialized judgment without requiring everyone to evaluate every project.
+  - AI skills make this system easy to use.
 
 
 ## What to do with this spec
@@ -99,6 +100,13 @@ See [tech.md](tech.md) for details on tech choices and rationale (why blockchain
 ## Terminology / concepts
 
 We may want to generate a list of terms and concepts, just to pin down what we mean by each term. For now let's not bother - let's just try to make this top-level spec use terms clearly. (I previously tried generating a file called specs/glossary.md, but honestly it was more trouble than it was worth.)
+
+
+## AI skills
+
+There can be various AI skills to aid in (or partially automate) using various aspects of the system.
+
+See [ai-skills.md](ai-skills.md) for more info.
 
 
 ## Artifacts
