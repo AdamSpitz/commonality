@@ -7,7 +7,7 @@ Displayable documents — next steps:
   - ~~**Renderer component (UI):**~~ Done. StatementRenderer now handles both DisplayableDocument and legacy StatementContent.
   - ~~**Save/load helpers (SDK):**~~ Done. `publishDocument` and `fetchDocument` in `sdk/src/displayable-document.ts`.
   - ~~**Statement creation flow:**~~ Done. `createAndSignStatement()` now accepts `DisplayableDocument`, CreateStatementForm uses `createStatement()`, and integration tests use the new format.
-  - **Indexer awareness:** The indexer already fetches and caches IPFS content. It may need updates to parse the new displayable-document format for excerpt generation and search indexing (vs. the legacy statement format). The dual-format detection logic is described in `specs/statements.md`.
+  - ~~**Indexer awareness:**~~ Done. `fetchStatementContent()` now detects both DisplayableDocument (has `format` field) and legacy StatementContent (has `statementType` but no `format`), extracting `statementType` from `extras` for new format and `metadata.title` for legacy. Excerpt generation works for both.
 
 Other big things to do soon:
   - Writing the UI. (Maybe the conceptspace MVP is in-theory done? But not really tested, even manually; I don't trust the UI at all yet.) We just added Vitest + Testing Library, but haven't written any UI tests yet.

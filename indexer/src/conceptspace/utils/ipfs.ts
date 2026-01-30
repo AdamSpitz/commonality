@@ -52,30 +52,31 @@ export function cidToBytes32(cidString: string): `0x${string}` {
 }
 
 /**
- * Statement JSON structure (from specs/statements.md)
+ * Parsed statement content from IPFS, supporting both legacy StatementContent
+ * and new DisplayableDocument formats.
+ *
+ * Format detection per specs/statements.md:
+ * - Has `format` field → DisplayableDocument (new format)
+ * - Has `statementType` but no `format` → legacy StatementContent
  */
-export interface StatementContent {
-  statementType: string;
-  content: string;
-  references?: Array<{
-    statementId: string;
-    label?: string;
-    relationship?: "supports" | "opposes" | "alternative" | "related";
-  }>;
-  metadata?: {
-    title?: string;
-    version?: string;
-    createdDate?: string;
-  };
+export interface FetchedStatementContent {
+  /** The raw parsed JSON object (stored as JSON string in the database) */
+  raw: Record<string, unknown>;
+  /** The text content for excerpt generation */
+  textContent: string;
+  /** Statement type (top-level for legacy, extras.statementType for new format) */
+  statementType: string | null;
+  /** Title (metadata.title for legacy, null for new format) */
+  title: string | null;
 }
 
 /**
- * Fetch statement content from IPFS
- * Returns null if fetch fails
+ * Fetch statement content from IPFS, supporting both legacy and DisplayableDocument formats.
+ * Returns null if fetch fails or content is unrecognized.
  */
 export async function fetchStatementContent(
   cidString: string
-): Promise<StatementContent | null> {
+): Promise<FetchedStatementContent | null> {
   try {
     const url = `${IPFS_GATEWAY}/${cidString}`;
     const response = await fetch(url, {
@@ -87,15 +88,43 @@ export async function fetchStatementContent(
       return null;
     }
 
-    const content = (await response.json()) as Record<string, unknown>;
+    const raw = (await response.json()) as Record<string, unknown>;
 
-    // Basic validation
-    if (typeof content.statementType !== "string" || typeof content.content !== "string") {
-      console.warn(`Invalid statement format for ${cidString}`);
-      return null;
+    // Detect format per specs/statements.md:
+    // Has `format` field → DisplayableDocument (new format)
+    if (typeof raw.format === "string" && typeof raw.content === "string") {
+      const extras =
+        typeof raw.extras === "object" && raw.extras !== null && !Array.isArray(raw.extras)
+          ? (raw.extras as Record<string, unknown>)
+          : null;
+
+      return {
+        raw,
+        textContent: raw.content as string,
+        statementType:
+          extras && typeof extras.statementType === "string" ? extras.statementType : null,
+        title: null,
+      };
     }
 
-    return content as unknown as StatementContent;
+    // Has `statementType` but no `format` → legacy StatementContent
+    if (typeof raw.statementType === "string" && typeof raw.content === "string") {
+      const metadata =
+        typeof raw.metadata === "object" && raw.metadata !== null && !Array.isArray(raw.metadata)
+          ? (raw.metadata as Record<string, unknown>)
+          : null;
+
+      return {
+        raw,
+        textContent: raw.content as string,
+        statementType: raw.statementType as string,
+        title: metadata && typeof metadata.title === "string" ? metadata.title : null,
+      };
+    }
+
+    // Neither format detected
+    console.warn(`Unrecognized content format for ${cidString}`);
+    return null;
   } catch (error) {
     console.warn(`Error fetching IPFS content for ${cidString}:`, error);
     return null;

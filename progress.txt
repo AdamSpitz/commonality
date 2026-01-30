@@ -85,4 +85,18 @@ Updated the statement creation flow to produce DisplayableDocuments instead of l
 Next from TODO.md displayable-documents list:
 - Indexer awareness: parse new format for excerpts/search
 
+## Indexer DisplayableDocument awareness (Jan 2026)
+
+Updated the indexer to detect and parse both DisplayableDocument and legacy StatementContent formats:
+- `fetchStatementContent()` now returns `FetchedStatementContent` with unified fields (`raw`, `textContent`, `statementType`, `title`)
+- Format detection per specs/statements.md: has `format` field → DisplayableDocument, has `statementType` but no `format` → legacy
+- For DisplayableDocument: extracts `statementType` from `extras.statementType`, title is null (no title concept in the format)
+- For legacy: extracts `statementType` from top-level, `title` from `metadata.title`
+- Excerpt generation (`extractExcerpt`) already works for both formats (strips markdown from text content)
+- `ipfsSyncJob.ts` updated to use the new unified return shape
+- Files changed: indexer/src/conceptspace/utils/ipfs.ts, indexer/src/conceptspace/utils/ipfsSyncJob.ts
+- All feedback loops pass (build succeeds, indexer typecheck passes).
+
+This completes all four displayable-documents TODO items (renderer, save/load, creation flow, indexer awareness).
+
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.

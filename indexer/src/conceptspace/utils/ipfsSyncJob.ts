@@ -92,10 +92,10 @@ async function syncStatementContent(
     await ctx.db
       .update(statements, { id: statementId })
       .set({
-        content: JSON.stringify(content),
+        content: JSON.stringify(content.raw),
         statementType: content.statementType,
-        title: content.metadata?.title || null,
-        excerpt: extractExcerpt(content.content),
+        title: content.title,
+        excerpt: extractExcerpt(content.textContent),
         contentFetched: true,
       });
 
