@@ -10,7 +10,8 @@
 
 import assert from 'assert';
 import {
-  uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
@@ -67,22 +68,16 @@ describe('Conceptspace Implications', () => {
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create two statements
-    const statement1Content = {
-      statementType: 'text',
-      text: 'We should reduce carbon emissions by 50% by 2030',
-    };
-    const statement2Content = {
-      statementType: 'text',
-      text: 'We should take action on climate change',
-    };
+    const statement1Text = 'We should reduce carbon emissions by 50% by 2030';
+    const statement2Text = 'We should take action on climate change';
 
-    const statement1Cid = await uploadToIPFS(statement1Content);
-    const statement2Cid = await uploadToIPFS(statement2Content);
+    const statement1Cid = await publishDocument(createStatement({ content: statement1Text }));
+    const statement2Cid = await publishDocument(createStatement({ content: statement2Text }));
     const statement1Id = cidToBytes32(statement1Cid);
     const statement2Id = cidToBytes32(statement2Cid);
 
-    testLog(`  Statement 1 (specific): "${statement1Content.text}"`);
-    testLog(`  Statement 2 (general): "${statement2Content.text}"`);
+    testLog(`  Statement 1 (specific): "${statement1Text}"`);
+    testLog(`  Statement 2 (general): "${statement2Text}"`);
 
     // Attest that statement 1 implies statement 2
     testLog('  Attesting that statement 1 implies statement 2...');
@@ -104,20 +99,14 @@ describe('Conceptspace Implications', () => {
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: specific -> general
-    const specificStatement = {
-      statementType: 'text',
-      text: 'We should adopt universal healthcare with a single-payer system',
-    };
-    const generalStatement = {
-      statementType: 'text',
-      text: 'Everyone should have access to healthcare',
-    };
+    const specificText = 'We should adopt universal healthcare with a single-payer system';
+    const generalText = 'Everyone should have access to healthcare';
 
-    const specificCid = await uploadToIPFS(specificStatement);
-    const generalCid = await uploadToIPFS(generalStatement);
+    const specificCid = await publishDocument(createStatement({ content: specificText }));
+    const generalCid = await publishDocument(createStatement({ content: generalText }));
 
-    testLog(`  Specific: "${specificStatement.text}"`);
-    testLog(`  General: "${generalStatement.text}"`);
+    testLog(`  Specific: "${specificText}"`);
+    testLog(`  General: "${generalText}"`);
 
     // User believes the specific statement
     testLog('  User believes specific statement...');
@@ -148,27 +137,18 @@ describe('Conceptspace Implications', () => {
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create three specific statements that all imply a general one
-    const general = {
-      statementType: 'text',
-      text: 'We need education reform',
-    };
-    const specific1 = {
-      statementType: 'text',
-      text: 'We should increase teacher salaries',
-    };
-    const specific2 = {
-      statementType: 'text',
-      text: 'We should reduce class sizes',
-    };
+    const generalText = 'We need education reform';
+    const specific1Text = 'We should increase teacher salaries';
+    const specific2Text = 'We should reduce class sizes';
 
-    const generalCid = await uploadToIPFS(general);
-    const specific1Cid = await uploadToIPFS(specific1);
-    const specific2Cid = await uploadToIPFS(specific2);
+    const generalCid = await publishDocument(createStatement({ content: generalText }));
+    const specific1Cid = await publishDocument(createStatement({ content: specific1Text }));
+    const specific2Cid = await publishDocument(createStatement({ content: specific2Text }));
     const generalId = cidToBytes32(generalCid);
 
-    testLog(`  General: "${general.text}"`);
-    testLog(`  Specific 1: "${specific1.text}"`);
-    testLog(`  Specific 2: "${specific2.text}"`);
+    testLog(`  General: "${generalText}"`);
+    testLog(`  Specific 1: "${specific1Text}"`);
+    testLog(`  Specific 2: "${specific2Text}"`);
 
     // Create implications: specific1 -> general, specific2 -> general
     testLog('  Creating implications...');
@@ -197,9 +177,9 @@ describe('Conceptspace Implications', () => {
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create chain: S1 -> S2 -> S3
-    const s1 = await uploadToIPFS({ statementType: 'text', text: 'Statement 1' });
-    const s2 = await uploadToIPFS({ statementType: 'text', text: 'Statement 2' });
-    const s3 = await uploadToIPFS({ statementType: 'text', text: 'Statement 3' });
+    const s1 = await publishDocument(createStatement({ content: 'Statement 1' }));
+    const s2 = await publishDocument(createStatement({ content: 'Statement 2' }));
+    const s3 = await publishDocument(createStatement({ content: 'Statement 3' }));
     const s1Id = cidToBytes32(s1);
     const s3Id = cidToBytes32(s3);
 

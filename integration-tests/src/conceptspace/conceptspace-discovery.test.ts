@@ -10,6 +10,8 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type BeliefsContract,
   createGraphQLClient,
@@ -51,20 +53,17 @@ describe('Statement Discovery & Browsing', () => {
     };
 
     // Create three statements with different levels of support
-    const popularStatement = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Very popular statement - everyone signs this',
-    });
+    const popularStatement = await publishDocument(createStatement({
+      content: 'Very popular statement - everyone signs this',
+    }));
 
-    const moderateStatement = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Moderately popular statement - two people sign',
-    });
+    const moderateStatement = await publishDocument(createStatement({
+      content: 'Moderately popular statement - two people sign',
+    }));
 
-    const unpopularStatement = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Unpopular statement - only one person signs',
-    });
+    const unpopularStatement = await publishDocument(createStatement({
+      content: 'Unpopular statement - only one person signs',
+    }));
 
     testLog('  Creating statements with different support levels...');
 
@@ -138,20 +137,17 @@ describe('Statement Discovery & Browsing', () => {
     };
 
     // Create statements in sequence
-    const oldStatement = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Old statement created first',
-    });
+    const oldStatement = await publishDocument(createStatement({
+      content: 'Old statement created first',
+    }));
 
-    const middleStatement = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Middle statement created second',
-    });
+    const middleStatement = await publishDocument(createStatement({
+      content: 'Middle statement created second',
+    }));
 
-    const newStatement = await uploadToIPFS({
-      statementType: 'text',
-      text: 'New statement created third',
-    });
+    const newStatement = await publishDocument(createStatement({
+      content: 'New statement created third',
+    }));
 
     testLog('  Creating statements in sequence...');
 

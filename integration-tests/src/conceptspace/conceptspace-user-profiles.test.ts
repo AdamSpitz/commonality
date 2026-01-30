@@ -9,7 +9,8 @@
 
 import assert from 'assert';
 import {
-  uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type BeliefsContract,
   createGraphQLClient,
@@ -47,18 +48,15 @@ describe('User Profile Queries', () => {
     };
 
     // Create three statements
-    const statement1 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Climate change is real and caused by humans',
-    });
-    const statement2 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Renewable energy should be prioritized',
-    });
-    const statement3 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Carbon taxes are an effective policy tool',
-    });
+    const statement1 = await publishDocument(createStatement({
+      content: 'Climate change is real and caused by humans',
+    }));
+    const statement2 = await publishDocument(createStatement({
+      content: 'Renewable energy should be prioritized',
+    }));
+    const statement3 = await publishDocument(createStatement({
+      content: 'Carbon taxes are an effective policy tool',
+    }));
 
     const statementId1 = cidToBytes32(statement1);
     const statementId2 = cidToBytes32(statement2);
@@ -100,14 +98,12 @@ describe('User Profile Queries', () => {
     };
 
     // Create statements to disbelieve
-    const statement1 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'The earth is flat',
-    });
-    const statement2 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Vaccines cause autism',
-    });
+    const statement1 = await publishDocument(createStatement({
+      content: 'The earth is flat',
+    }));
+    const statement2 = await publishDocument(createStatement({
+      content: 'Vaccines cause autism',
+    }));
 
     const statementId1 = cidToBytes32(statement1);
     const statementId2 = cidToBytes32(statement2);
@@ -153,18 +149,15 @@ describe('User Profile Queries', () => {
     };
 
     // Create statements
-    const statement1 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Universal healthcare should be a human right',
-    });
-    const statement2 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Education should be free for all',
-    });
-    const statement3 = await uploadToIPFS({
-      statementType: 'text',
-      text: 'Housing is a fundamental human need',
-    });
+    const statement1 = await publishDocument(createStatement({
+      content: 'Universal healthcare should be a human right',
+    }));
+    const statement2 = await publishDocument(createStatement({
+      content: 'Education should be free for all',
+    }));
+    const statement3 = await publishDocument(createStatement({
+      content: 'Housing is a fundamental human need',
+    }));
 
     testLog('  Bob signing statements...');
 

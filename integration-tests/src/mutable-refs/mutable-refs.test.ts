@@ -11,6 +11,8 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
+  createStatement,
+  publishDocument,
   type MutableRefUpdaterContract,
   createGraphQLClient,
   getRef,

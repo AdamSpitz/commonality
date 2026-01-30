@@ -11,6 +11,8 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type ImplicationsContract,
   createGraphQLClient,
@@ -59,13 +61,9 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Attester 2: ${attester2.account}`);
 
     // Create statements
-    const s1Content = { statementType: 'text', text: 'We should ban fossil fuels by 2030' };
-    const s2Content = { statementType: 'text', text: 'We should take climate action' };
-    const s3Content = { statementType: 'text', text: 'We should protect the environment' };
-
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
-    const s3Cid = await uploadToIPFS(s3Content);
+    const s1Cid = await publishDocument(createStatement({ content: 'We should ban fossil fuels by 2030' }));
+    const s2Cid = await publishDocument(createStatement({ content: 'We should take climate action' }));
+    const s3Cid = await publishDocument(createStatement({ content: 'We should protect the environment' }));
     const s1Id = cidToBytes32(s1Cid);
     const s2Id = cidToBytes32(s2Cid);
     const s3Id = cidToBytes32(s3Cid);
@@ -120,11 +118,8 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Attester 3: ${attester3.account}`);
 
     // Create two statements
-    const sAContent = { statementType: 'text', text: 'We should implement a universal basic income program' };
-    const sBContent = { statementType: 'text', text: 'We should work to reduce poverty levels' };
-
-    const sACid = await uploadToIPFS(sAContent);
-    const sBCid = await uploadToIPFS(sBContent);
+    const sACid = await publishDocument(createStatement({ content: 'We should implement a universal basic income program' }));
+    const sBCid = await publishDocument(createStatement({ content: 'We should work to reduce poverty levels' }));
     const sAId = cidToBytes32(sACid);
     const sBId = cidToBytes32(sBCid);
 
@@ -168,13 +163,9 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
-    const s1Content = { statementType: 'text', text: 'We should invest in renewable energy' };
-    const s2Content = { statementType: 'text', text: 'We should combat climate change' };
-    const s3Content = { statementType: 'text', text: 'We should invest in solar panels' };
-
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
-    const s3Cid = await uploadToIPFS(s3Content);
+    const s1Cid = await publishDocument(createStatement({ content: 'We should invest in renewable energy' }));
+    const s2Cid = await publishDocument(createStatement({ content: 'We should combat climate change' }));
+    const s3Cid = await publishDocument(createStatement({ content: 'We should invest in solar panels' }));
     const s1Id = cidToBytes32(s1Cid);
     const s2Id = cidToBytes32(s2Cid);
 

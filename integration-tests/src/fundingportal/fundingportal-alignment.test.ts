@@ -11,6 +11,8 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type AlignmentAttestationsContract,
   type PubstarterContract,
@@ -69,14 +71,11 @@ describe('Funding Portal - Alignment Attestations', () => {
     const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create a statement
-    const statementContent = {
-      statementType: 'text',
-      text: 'We support open source software development',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementText = 'We support open source software development';
+    const statementCid = await publishDocument(createStatement({ content: statementText }));
     const statementId = cidToBytes32(statementCid);
 
-    testLog(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement: "${statementText}"`);
     testLog(`  Statement ID: ${statementId}`);
 
     // Create a project
@@ -121,14 +120,11 @@ describe('Funding Portal - Alignment Attestations', () => {
     const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a statement
-    const statementContent = {
-      statementType: 'text',
-      text: 'Climate change is a critical issue',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementText = 'Climate change is a critical issue';
+    const statementCid = await publishDocument(createStatement({ content: statementText }));
     const statementId = cidToBytes32(statementCid);
 
-    testLog(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement: "${statementText}"`);
 
     // Create a project
     testLog('  Creating a project...');

@@ -9,6 +9,8 @@ import assert from 'assert';
 import {
   purchaseFromPrimaryMarketWithNotes,
   uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
@@ -70,12 +72,11 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Attester account: ${attesterClients.account}`);
 
       // 2. Create a statement about a cause
-      const statementContent = {
-        statementType: 'text',
-        text: 'We should fund open source infrastructure projects',
-      };
+      const statementDoc = createStatement({
+        content: 'We should fund open source infrastructure projects',
+      });
 
-      const statementCid = await uploadToIPFS(statementContent);
+      const statementCid = await publishDocument(statementDoc);
       const statementId = cidToBytes32(statementCid);
 
       testLog(`  Statement CID: ${statementCid}`);
@@ -195,12 +196,11 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Delegate user account: ${delegateUserClients.account}`);
 
       // 2. Create a statement about a cause
-      const statementContent = {
-        statementType: 'text',
-        text: 'We should support renewable energy research',
-      };
+      const statementDoc = createStatement({
+        content: 'We should support renewable energy research',
+      });
 
-      const statementCid = await uploadToIPFS(statementContent);
+      const statementCid = await publishDocument(statementDoc);
       const statementId = cidToBytes32(statementCid);
 
       testLog(`  Statement CID: ${statementCid}`);
@@ -332,19 +332,17 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Attester account: ${attesterClients.account}`);
 
       // 2. Create two statements: S1 (specific) and S2 (general)
-      const statement1Content = {
-        statementType: 'text',
-        text: 'Solar panel efficiency should be improved through research',
-      };
+      const statement1Doc = createStatement({
+        content: 'Solar panel efficiency should be improved through research',
+      });
 
-      const statement2Content = {
-        statementType: 'text',
-        text: 'Renewable energy research is important',
-      };
+      const statement2Doc = createStatement({
+        content: 'Renewable energy research is important',
+      });
 
-      const statement1Cid = await uploadToIPFS(statement1Content);
+      const statement1Cid = await publishDocument(statement1Doc);
       const statement1Id = cidToBytes32(statement1Cid);
-      const statement2Cid = await uploadToIPFS(statement2Content);
+      const statement2Cid = await publishDocument(statement2Doc);
       const statement2Id = cidToBytes32(statement2Cid);
 
       testLog(`  Statement 1 (specific): ${statement1Cid}`);
@@ -460,19 +458,17 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Attester account: ${attesterClients.account}`);
 
       // 2. Create two statements: S1 and S2
-      const statement1Content = {
-        statementType: 'text',
-        text: 'Carbon emissions must be reduced to prevent climate change',
-      };
+      const statement1Doc = createStatement({
+        content: 'Carbon emissions must be reduced to prevent climate change',
+      });
 
-      const statement2Content = {
-        statementType: 'text',
-        text: 'Climate change is a serious threat',
-      };
+      const statement2Doc = createStatement({
+        content: 'Climate change is a serious threat',
+      });
 
-      const statement1Cid = await uploadToIPFS(statement1Content);
+      const statement1Cid = await publishDocument(statement1Doc);
       const statement1Id = cidToBytes32(statement1Cid);
-      const statement2Cid = await uploadToIPFS(statement2Content);
+      const statement2Cid = await publishDocument(statement2Doc);
       const statement2Id = cidToBytes32(statement2Cid);
 
       testLog(`  Statement 1: ${statement1Cid}`);

@@ -13,7 +13,8 @@
 
 import assert from 'assert';
 import {
-  uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type BeliefsContract,
   createGraphQLClient,
@@ -59,14 +60,11 @@ describe('Conceptspace Beliefs', () => {
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement
-    const statementContent = {
-      statementType: 'text',
-      text: 'We should lower taxes',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementData = createStatement({ content: 'We should lower taxes' });
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
-    testLog(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement: "${statementData.content}"`);
     testLog(`  Statement ID: ${statementId}`);
 
     // Express belief - properties checked automatically (includes waitForSync)
@@ -95,14 +93,11 @@ describe('Conceptspace Beliefs', () => {
     const clients2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create a statement
-    const statementContent = {
-      statementType: 'text',
-      text: 'We should fund space exploration',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementData = createStatement({ content: 'We should fund space exploration' });
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
-    testLog(`  Statement: "${statementContent.text}"`);
+    testLog(`  Statement: "${statementData.content}"`);
 
     // User 1 believes - properties checked automatically (includes waitForSync)
     testLog('  User 1 believes...');
@@ -127,20 +122,14 @@ describe('Conceptspace Beliefs', () => {
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create two statements
-    const statement1Content = {
-      statementType: 'text',
-      text: 'Democracy is the best form of government',
-    };
-    const statement2Content = {
-      statementType: 'text',
-      text: 'Free markets lead to prosperity',
-    };
+    const statement1Data = createStatement({ content: 'Democracy is the best form of government' });
+    const statement2Data = createStatement({ content: 'Free markets lead to prosperity' });
 
-    const statement1Cid = await uploadToIPFS(statement1Content);
-    const statement2Cid = await uploadToIPFS(statement2Content);
+    const statement1Cid = await publishDocument(statement1Data);
+    const statement2Cid = await publishDocument(statement2Data);
 
-    testLog(`  Statement 1: "${statement1Content.text}"`);
-    testLog(`  Statement 2: "${statement2Content.text}"`);
+    testLog(`  Statement 1: "${statement1Data.content}"`);
+    testLog(`  Statement 2: "${statement2Data.content}"`);
 
     // Believe statement 1, disbelieve statement 2 - properties checked automatically (includes waitForSync)
     testLog('  User believes statement 1...');
@@ -158,17 +147,13 @@ describe('Conceptspace Beliefs', () => {
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement
-    // Note: In the test environment, uploadToIPFS just creates a CID without actually
-    // uploading to IPFS, so the content won't be available from a gateway
-    const statementContent = {
-      statementType: 'text',
+    const statementData = createStatement({
       content: 'We should invest heavily in renewable energy infrastructure to combat climate change.',
-      title: 'Renewable Energy Investment',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    });
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
-    testLog(`  Statement: "${statementContent.title}"`);
+    testLog(`  Statement CID: ${statementCid}`);
 
     // Express belief to create the statement onchain
     testLog('  User believes the statement...');
@@ -186,7 +171,7 @@ describe('Conceptspace Beliefs', () => {
 
     // IPFS content should be available now that we have a local IPFS node
     assert.ok(result!.content, 'Content should be fetched from local IPFS');
-    assert.strictEqual(result!.content!.statementType, 'text', 'Content should have correct type');
+    assert.strictEqual(result!.content!.format, 'markdown-restricted', 'Content should have DisplayableDocument format');
     assert.ok(result!.content!.content, 'Content should have text');
 
     // Verify metrics are not included by default

@@ -11,7 +11,8 @@ import { parseEther } from 'viem';
 import {
   delegateNote,
   cidToBytes32,
-  uploadToIPFS,
+  createStatement,
+  publishDocument,
   type DelegatableNotesContract,
 } from '@commonality/sdk';
 import {
@@ -52,10 +53,9 @@ describe('Action Framework Expected Failure', () => {
     };
 
     // Create a statement CID
-    const statementCid = cidToBytes32(await uploadToIPFS({
-      statementType: 'text',
-      text: 'Test statement for expectFailure test',
-    }));
+    const statementCid = cidToBytes32(await publishDocument(createStatement({
+      content: 'Test statement for expectFailure test',
+    })));
 
     // Alice creates a note
     testLog('  Alice creating a note...');
@@ -107,10 +107,9 @@ describe('Action Framework Expected Failure', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await uploadToIPFS({
-      statementType: 'text',
-      text: 'Test statement for error message check',
-    }));
+    const statementCid = cidToBytes32(await publishDocument(createStatement({
+      content: 'Test statement for error message check',
+    })));
 
     // Alice creates a note
     testLog('  Alice creating a note...');
@@ -156,10 +155,9 @@ describe('Action Framework Expected Failure', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await uploadToIPFS({
-      statementType: 'text',
-      text: 'Test statement for success/failure mismatch',
-    }));
+    const statementCid = cidToBytes32(await publishDocument(createStatement({
+      content: 'Test statement for success/failure mismatch',
+    })));
 
     // Alice creates a note
     testLog('  Alice creating a note...');

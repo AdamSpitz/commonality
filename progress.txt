@@ -101,6 +101,23 @@ This completes all four displayable-documents TODO items (renderer, save/load, c
 
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
 
+## Legacy StatementContent cleanup: end-to-end-workflows.test.ts migrated (Jan 2026)
+
+Migrated integration-tests/src/workflows/end-to-end-workflows.test.ts from legacy StatementContent to DisplayableDocument:
+- Replaced 6 instances of `uploadToIPFS({ statementType: 'text', text: '...' })` with `createStatement()` + `publishDocument()`
+- Updated imports: added `createStatement, publishDocument` (kept `uploadToIPFS` for project metadata uploads)
+- Workflows 1-4 all updated: renamed local vars from `statementContent`/`statement1Content`/`statement2Content` to `statementDoc`/`statement1Doc`/`statement2Doc`
+- Files changed: integration-tests/src/workflows/end-to-end-workflows.test.ts
+- All feedback loops pass (build + 72 SDK tests).
+
+## Legacy StatementContent cleanup: action-framework-expected-failure.test.ts migrated (Jan 2026)
+
+Migrated integration-tests/src/actions/action-framework-expected-failure.test.ts from legacy StatementContent to DisplayableDocument:
+- Replaced 3 instances of `uploadToIPFS({ statementType: 'text', text: '...' })` with `createStatement()` + `publishDocument()`
+- Updated imports: `uploadToIPFS` → `createStatement, publishDocument`
+- Files changed: integration-tests/src/actions/action-framework-expected-failure.test.ts
+- All feedback loops pass (build + 72 SDK tests + 243 hardhat tests + 102 integration tests).
+
 ## Legacy StatementContent cleanup: hello-world.test.ts migrated (Jan 2026)
 
 Migrated integration-tests/src/workflows/hello-world.test.ts from legacy StatementContent to DisplayableDocument:
@@ -110,17 +127,19 @@ Migrated integration-tests/src/workflows/hello-world.test.ts from legacy Stateme
 - All feedback loops pass (build + 72 SDK tests).
 
 This is the first file migrated as a tracer bullet for TODO.md step 1 ("Migrate remaining integration tests"). The pattern is simple and repeatable. Remaining files to migrate (in recommended order):
-1. action-framework-expected-failure.test.ts (3 legacy statements)
-2. delegation-spending.test.ts (4)
-3. conceptspace-beliefs.test.ts (5)
-4. delegation-permissions.test.ts (5)
-5. delegation-basic.test.ts (8)
-6. conceptspace-user-profiles.test.ts (8)
-7. end-to-end-workflows.test.ts (6)
-8. conceptspace-discovery.test.ts (7)
-9. conceptspace-implications.test.ts (10)
-10. conceptspace-multiple-attesters.test.ts (11)
-11. fundingportal-alignment.test.ts (7)
-12. fundingportal-indirect-alignment.test.ts (9)
-13. mutable-refs.test.ts (6)
-14. conceptspace-indirect-support.test.ts (27)
+1. ~~action-framework-expected-failure.test.ts (3 legacy statements)~~ Done (Jan 2026)
+2. ~~delegation-spending.test.ts (4)~~ Done (Jan 2026)
+3. ~~conceptspace-beliefs.test.ts (5)~~ Done (Jan 2026)
+4. ~~delegation-permissions.test.ts (5)~~ Done (Jan 2026)
+5. ~~delegation-basic.test.ts (8)~~ Done (Jan 2026)
+6. ~~conceptspace-user-profiles.test.ts (8)~~ Done (Jan 2026)
+7. ~~end-to-end-workflows.test.ts (6)~~ Done (Jan 2026)
+8. ~~conceptspace-discovery.test.ts (7)
+9. ~~conceptspace-implications.test.ts (10)
+10. ~~conceptspace-multiple-attesters.test.ts (11)
+11. ~~fundingportal-alignment.test.ts (7)
+12. ~~fundingportal-indirect-alignment.test.ts (9)
+13. ~~mutable-refs.test.ts (6)
+14. ~~conceptspace-indirect-support.test.ts (27)
+
+(User's note: we hit our Claude limit but I think I finished it by myself. Tests pass. Maybe this migration is done now?)

@@ -10,6 +10,8 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   PROJECT_ALIGNMENT_TOPIC,
   type AlignmentAttestationsContract,
@@ -82,22 +84,16 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     const projectOwner = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: S1 (specific) and S2 (broader)
-    const s1Content = {
-      statementType: 'text',
-      text: 'We should fund renewable energy research',
-    };
-    const s2Content = {
-      statementType: 'text',
-      text: 'We should combat climate change',
-    };
+    const s1Text = 'We should fund renewable energy research';
+    const s2Text = 'We should combat climate change';
 
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
+    const s1Cid = await publishDocument(createStatement({ content: s1Text }));
+    const s2Cid = await publishDocument(createStatement({ content: s2Text }));
     const s1Id = cidToBytes32(s1Cid);
     const s2Id = cidToBytes32(s2Cid);
 
-    testLog(`  S1 (specific): "${s1Content.text}"`);
-    testLog(`  S2 (broader): "${s2Content.text}"`);
+    testLog(`  S1 (specific): "${s1Text}"`);
+    testLog(`  S2 (broader): "${s2Text}"`);
 
     // Create an implication: S1 → S2 (renewable energy research implies climate action)
     testLog('  Creating implication S1 → S2...');

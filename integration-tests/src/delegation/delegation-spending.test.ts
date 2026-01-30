@@ -10,7 +10,8 @@
 
 import assert from 'assert';
 import {
-  uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type DelegatableNotesContract,
   type PubstarterContract,
@@ -77,11 +78,10 @@ describe('Delegation Spending', () => {
     const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement for the intended purpose
-    const statementContent = {
-      statementType: 'text',
-      text: 'Fund open source development',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementData = createStatement({
+      content: 'Fund open source development',
+    });
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
     // User 1 deposits 5 ETH into a note (automatically verifies delegation chain integrity)
@@ -163,11 +163,10 @@ describe('Delegation Spending', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits ETH (automatically verifies delegation chain integrity)
-    const statementContent = {
-      statementType: 'text',
-      text: 'Support education initiatives',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementData = createStatement({
+      content: 'Support education initiatives',
+    });
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
@@ -259,11 +258,10 @@ describe('Delegation Spending', () => {
     const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits (automatically verifies delegation chain integrity)
-    const statementContent = {
-      statementType: 'text',
-      text: 'Fund climate research',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementData = createStatement({
+      content: 'Fund climate research',
+    });
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 8000000000000000000n; // 8 ETH
@@ -365,11 +363,10 @@ describe('Delegation Spending', () => {
     const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // User 1 deposits 10 ETH (automatically verifies delegation chain integrity)
-    const statementContent = {
-      statementType: 'text',
-      text: 'Support arts and culture',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementData = createStatement({
+      content: 'Support arts and culture',
+    });
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH

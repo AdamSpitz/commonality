@@ -11,8 +11,8 @@
 
 import assert from 'assert';
 import {
-  uploadToIPFS,
-  cidToBytes32,
+  createStatement,
+  publishDocument,
   type DelegatableNotesContract,
   createGraphQLClient,
   assertNotNull,
@@ -62,12 +62,9 @@ describe('Delegation System', () => {
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement for the intended purpose
-    const statementContent = {
-      statementType: 'text',
-      text: 'Fund education initiatives',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
-    const statementId = cidToBytes32(statementCid);
+    await publishDocument(createStatement({
+      content: 'Fund education initiatives',
+    }));
 
     // Deposit 1 ETH
     const depositAmount = 1000000000000000000n; // 1 ETH
@@ -99,12 +96,9 @@ describe('Delegation System', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits
-    const statementContent = {
-      statementType: 'text',
-      text: 'Support renewable energy',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
-    const statementId = cidToBytes32(statementCid);
+    await publishDocument(createStatement({
+      content: 'Support renewable energy',
+    }));
 
     const depositAmount = 2000000000000000000n; // 2 ETH
     const { noteId } = await depositETHChecked(
@@ -155,12 +149,9 @@ describe('Delegation System', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits 10 ETH
-    const statementContent = {
-      statementType: 'text',
-      text: 'Fund healthcare research',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
-    const statementId = cidToBytes32(statementCid);
+    await publishDocument(createStatement({
+      content: 'Fund healthcare research',
+    }));
 
     const depositAmount = 10000000000000000000n; // 10 ETH
     const { noteId } = await depositETHChecked(
@@ -208,12 +199,9 @@ describe('Delegation System', () => {
     const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
-    const statementContent = {
-      statementType: 'text',
-      text: 'Support scientific research',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
-    const statementId = cidToBytes32(statementCid);
+    await publishDocument(createStatement({
+      content: 'Support scientific research',
+    }));
 
     const depositAmount = 5000000000000000000n; // 5 ETH
     const { noteId: note1 } = await depositETHChecked(
@@ -270,12 +258,9 @@ describe('Delegation System', () => {
     const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
-    const statementContent = {
-      statementType: 'text',
-      text: 'Support climate action',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
-    const statementId = cidToBytes32(statementCid);
+    await publishDocument(createStatement({
+      content: 'Support climate action',
+    }));
 
     const depositAmount = 4000000000000000000n; // 4 ETH
     const { noteId: note1 } = await depositETHChecked(
@@ -339,12 +324,9 @@ describe('Delegation System', () => {
     const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // User 1 deposits
-    const statementContent = {
-      statementType: 'text',
-      text: 'Support local communities',
-    };
-    const statementCid = await uploadToIPFS(statementContent);
-    const statementId = cidToBytes32(statementCid);
+    await publishDocument(createStatement({
+      content: 'Support local communities',
+    }));
 
     const depositAmount = 1000000000000000000n; // 1 ETH
     const { noteId } = await depositETHChecked(
@@ -381,8 +363,8 @@ describe('Delegation System', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits two notes
-    const statement1 = await uploadToIPFS({ statementType: 'text', text: 'Cause A' });
-    const statement2 = await uploadToIPFS({ statementType: 'text', text: 'Cause B' });
+    await publishDocument(createStatement({ content: 'Cause A' }));
+    await publishDocument(createStatement({ content: 'Cause B' }));
 
     const { noteId: noteId1 } = await depositETHChecked(
       user1,
