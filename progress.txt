@@ -158,3 +158,22 @@ Next from TODO.md legacy cleanup list:
 - Step 4: Remove legacy detection from indexer's fetchStatementContent()
 - Step 5: Remove StatementContent interface from SDK
 - Step 6: Update StatementPage.tsx and workflow-actions-checked.ts
+
+## Legacy StatementContent cleanup: createAndSignStatement() simplified (Jan 2026)
+
+Removed legacy StatementContent support from createAndSignStatement() per TODO.md step 3:
+- Changed parameter type from `StatementContent | DisplayableDocument` to just `DisplayableDocument`
+- Removed `StatementContent` import (no longer needed)
+- Removed `isDisplayableDocument` import (no longer needed)
+- Removed the legacy `uploadToIPFS` fallback branch - now always uses `publishDocument()`
+- Simplified IPFS upload logic from 9 lines to 2 lines
+- Updated JSDoc parameter description and examples to reflect DisplayableDocument-only usage
+- Files changed: sdk/src/actions/conceptspace-actions.ts
+- All feedback loops pass (SDK build + 72 SDK tests + 243 hardhat tests + indexer typecheck).
+
+Key decision: All callers (UI, integration tests, workflow-actions-checked) already use `createStatement()` which produces DisplayableDocument format, so removing legacy support has zero functional impact.
+
+Next from TODO.md legacy cleanup list:
+- Step 4: Remove legacy detection from indexer's fetchStatementContent()
+- Step 5: Remove StatementContent interface from SDK
+- Step 6: Update StatementPage.tsx and workflow-actions-checked.ts
