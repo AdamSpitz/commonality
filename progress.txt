@@ -100,3 +100,27 @@ Updated the indexer to detect and parse both DisplayableDocument and legacy Stat
 This completes all four displayable-documents TODO items (renderer, save/load, creation flow, indexer awareness).
 
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
+
+## Legacy StatementContent cleanup: hello-world.test.ts migrated (Jan 2026)
+
+Migrated integration-tests/src/workflows/hello-world.test.ts from legacy StatementContent to DisplayableDocument:
+- Replaced `uploadToIPFS({ statementType: 'text', text: '...' })` with `createStatement()` + `publishDocument()`
+- Updated imports: `uploadToIPFS` → `createStatement, publishDocument`
+- Files changed: integration-tests/src/workflows/hello-world.test.ts
+- All feedback loops pass (build + 72 SDK tests).
+
+This is the first file migrated as a tracer bullet for TODO.md step 1 ("Migrate remaining integration tests"). The pattern is simple and repeatable. Remaining files to migrate (in recommended order):
+1. action-framework-expected-failure.test.ts (3 legacy statements)
+2. delegation-spending.test.ts (4)
+3. conceptspace-beliefs.test.ts (5)
+4. delegation-permissions.test.ts (5)
+5. delegation-basic.test.ts (8)
+6. conceptspace-user-profiles.test.ts (8)
+7. end-to-end-workflows.test.ts (6)
+8. conceptspace-discovery.test.ts (7)
+9. conceptspace-implications.test.ts (10)
+10. conceptspace-multiple-attesters.test.ts (11)
+11. fundingportal-alignment.test.ts (7)
+12. fundingportal-indirect-alignment.test.ts (9)
+13. mutable-refs.test.ts (6)
+14. conceptspace-indirect-support.test.ts (27)

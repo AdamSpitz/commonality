@@ -8,7 +8,8 @@
  */
 
 import {
-  uploadToIPFS,
+  createStatement,
+  publishDocument,
   cidToBytes32,
   type BeliefsContract,
 } from '@commonality/sdk';
@@ -41,13 +42,12 @@ describe('Hello World Integration Test', () => {
     testLog(`  Using account: ${clients.account}`);
     testLog(`  Beliefs contract: ${BELIEFS_CONTRACT_ADDRESS}`);
 
-    // 2. Create a statement (mock IPFS upload)
-    const statementContent = {
-      statementType: 'text',
-      text: 'Hello World! This is a test statement.',
-    };
+    // 2. Create a statement (displayable document format)
+    const statementData = createStatement({
+      content: 'Hello World! This is a test statement.',
+    });
 
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementCid = await publishDocument(statementData);
     const statementId = cidToBytes32(statementCid);
 
     testLog(`  Statement CID: ${statementCid}`);
