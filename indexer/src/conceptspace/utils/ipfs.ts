@@ -52,27 +52,24 @@ export function cidToBytes32(cidString: string): `0x${string}` {
 }
 
 /**
- * Parsed statement content from IPFS, supporting both legacy StatementContent
- * and new DisplayableDocument formats.
- *
- * Format detection per specs/statements.md:
- * - Has `format` field → DisplayableDocument (new format)
- * - Has `statementType` but no `format` → legacy StatementContent
+ * Parsed statement content from IPFS.
+ * Expects DisplayableDocument format per specs/statements.md.
  */
 export interface FetchedStatementContent {
   /** The raw parsed JSON object (stored as JSON string in the database) */
   raw: Record<string, unknown>;
   /** The text content for excerpt generation */
   textContent: string;
-  /** Statement type (top-level for legacy, extras.statementType for new format) */
+  /** Statement type (from extras.statementType) */
   statementType: string | null;
-  /** Title (metadata.title for legacy, null for new format) */
+  /** Title (always null for DisplayableDocument format) */
   title: string | null;
 }
 
 /**
- * Fetch statement content from IPFS, supporting both legacy and DisplayableDocument formats.
- * Returns null if fetch fails or content is unrecognized.
+ * Fetch statement content from IPFS.
+ * Expects DisplayableDocument format per specs/statements.md.
+ * Returns null if fetch fails or content is not a valid DisplayableDocument.
  */
 export async function fetchStatementContent(
   cidString: string
@@ -90,8 +87,7 @@ export async function fetchStatementContent(
 
     const raw = (await response.json()) as Record<string, unknown>;
 
-    // Detect format per specs/statements.md:
-    // Has `format` field → DisplayableDocument (new format)
+    // Validate DisplayableDocument format per specs/statements.md
     if (typeof raw.format === "string" && typeof raw.content === "string") {
       const extras =
         typeof raw.extras === "object" && raw.extras !== null && !Array.isArray(raw.extras)
@@ -107,23 +103,8 @@ export async function fetchStatementContent(
       };
     }
 
-    // Has `statementType` but no `format` → legacy StatementContent
-    if (typeof raw.statementType === "string" && typeof raw.content === "string") {
-      const metadata =
-        typeof raw.metadata === "object" && raw.metadata !== null && !Array.isArray(raw.metadata)
-          ? (raw.metadata as Record<string, unknown>)
-          : null;
-
-      return {
-        raw,
-        textContent: raw.content as string,
-        statementType: raw.statementType as string,
-        title: metadata && typeof metadata.title === "string" ? metadata.title : null,
-      };
-    }
-
-    // Neither format detected
-    console.warn(`Unrecognized content format for ${cidString}`);
+    // Not a valid DisplayableDocument
+    console.warn(`Invalid DisplayableDocument format for ${cidString}`);
     return null;
   } catch (error) {
     console.warn(`Error fetching IPFS content for ${cidString}:`, error);

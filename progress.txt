@@ -173,7 +173,16 @@ Removed legacy StatementContent support from createAndSignStatement() per TODO.m
 
 Key decision: All callers (UI, integration tests, workflow-actions-checked) already use `createStatement()` which produces DisplayableDocument format, so removing legacy support has zero functional impact.
 
+## Legacy StatementContent cleanup: indexer fetchStatementContent() simplified (Jan 2026)
+
+Removed legacy StatementContent detection from indexer's fetchStatementContent() per TODO.md step 4:
+- Removed the legacy `statementType` detection branch (lines 110-123)
+- Removed mentions of "supporting both legacy StatementContent and new DisplayableDocument formats" from comments
+- Updated JSDoc to clarify that only DisplayableDocument format is expected
+- Changed warning message from "Neither format detected" to "Invalid DisplayableDocument format"
+- Files changed: indexer/src/conceptspace/utils/ipfs.ts
+- Indexer type check passes.
+
 Next from TODO.md legacy cleanup list:
-- Step 4: Remove legacy detection from indexer's fetchStatementContent()
 - Step 5: Remove StatementContent interface from SDK
 - Step 6: Update StatementPage.tsx and workflow-actions-checked.ts
