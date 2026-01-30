@@ -2,12 +2,13 @@
 
 I'm wondering to what degree I can decouple the various pieces of this system, and make each thing stand on its own (while still being usable together to accomplish the vision of the project).
 
-  - conceptspace is storing these "statement" things, with links between them or whatever, but honestly there's nothing about that that needs to be specific to this conceptspace app. It's basically just "immutable documents with links between them". e.g. Maybe any DAG-JSON structure is fine? Or at least maybe represent the structures and links using DAG-JSON, and then there can be some other (fairly separate) convention for how to represent displayable content (plain text or formatted text or whatever). It doesn't really matter how we represent a statement, except that it has to be immutable so that people can't be misled into having their signature attached to something different from what they saw. (See [displayable-documents.md](displayable-documents.md) for some more thoughts on this.)
-    - So then the "meat" of conceptspace would be the belief attestations and the implication attestations. But those are just referring to these immutable displayable linked documents.
-  - ERC-1155 tokens:
-    - I think our system should work okay with any ERC-1155 token? We provide a couple of basic ones like PremintingERC1155 and FreeERC1155 as an easy way to make something (and I imagine we'll have a UI for creating those once I get around to implementing the UI), but I don't think anything else in our system depends on it being those specific contracts. I think we can make an ERC1155PrimaryMarket and ERC1155SecondaryMarket for any ERC1155.
+Stuff that's pretty nicely decoupled:
+  - Statements are simply displayable-documents.
+  - Our system should work okay with any ERC-1155 token; we provide a couple of basic ones like PremintingERC1155 and FreeERC1155 as an easy way to make something (and I imagine we'll have a UI for creating those once I get around to implementing the UI), but I don't think anything else in our system depends on it being those specific contracts. I think we can make an ERC1155PrimaryMarket and ERC1155SecondaryMarket for any ERC1155.
+  - Project alignment attestations are done using the more-general AlignmentAttestations contract.
+
+Stuff that's not as good as I'd like:
   - The DelegatableNotes contract is more coupled to the other stuff than I'd like. The only terminal actions it can do involve ERC1155PrimaryMarket and ERC1155SecondaryMarket. Maybe we could generalize that somehow (but gotta be careful not to leave it too open-ended: at the very least it needs to be possible for the initial creator of a note to know what kinds of actions can be done with it).
-  - ~~ProjectAlignmentAttestation can probably be generalized to AlignmentAttestation in general.~~ **Done.** The contract is now `AlignmentAttestations` with a required `topicStatementId` field, allowing indexers to filter by topic. The `subjectAddress` parameter (formerly `projectAddress`) can be any address, not just projects. See [alignment-attestations-refactoring.md](alignment-attestations-refactoring.md) for details.
 
 The goal of the decoupling is kinda twofold:
   - First, I kinda feel like these systems really *should* exist independently because they'd be useful for other purposes.

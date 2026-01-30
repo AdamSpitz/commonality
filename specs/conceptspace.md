@@ -1,6 +1,6 @@
 # Concept Space
 
-Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes. Users can "sign" these statements (by submitting an onchain transaction) to show belief/disbelief/no-opinion (the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to). Anyone (though this'll probably be done by AI, not by humans) can publish ImplicationAttestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements.
+Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes. (Each statement is a displayable document, as described in displayable-documents.md.) Users can "sign" these statements (by submitting an onchain transaction) to show belief/disbelief/no-opinion (the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to). Anyone (though this'll probably be done by AI, not by humans) can publish ImplicationAttestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements.
 
 Some points about this:
     

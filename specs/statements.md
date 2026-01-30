@@ -28,22 +28,6 @@ For Conceptspace statements, we use the `extras` field for any domain-specific d
 }
 ```
 
-## Migration from old format
-
-The old statement format looked like:
-```json
-{
-  "statementType": "statement",
-  "content": "...",
-  "references": [{ "statementId": "...", "label": "...", "relationship": "..." }],
-  "metadata": { "title": "...", "createdDate": "..." }
-}
-```
-
-The indexer should support both formats during the transition period:
-- If a document has a `format` field → treat as displayable document (new format)
-- If a document has a `statementType` field but no `format` → treat as legacy statement
-
 ## Reference syntax in content
 
 In `markdown-restricted` format, references use `[text](ref:N)` syntax per the displayable-documents spec.

@@ -196,7 +196,7 @@ In specs/graphql, there should be some graphql schema files (or at least a half-
 
 #### Modelling Statements
 
-A Statement should be represented as a JSON document that we upload to IPFS. A statement's ID is the IPFS CID of this JSON document. See [statements.md](statements.md) for the JSON schema, reference system, and rendering requirements.
+A Statement should be represented as a displayable-document (see [displayable-documents.md](displayable-documents.md)), which is a JSON document that we upload to IPFS. A statement's ID is the IPFS CID of this JSON document. See [statements.md](statements.md) for more info.
 
 There's also a smart contract called MutableRefUpdater that we use to store a list of "here's the statements this user has created/saved", kept in a mutable ref onchain.
 
