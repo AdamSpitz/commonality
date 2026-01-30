@@ -199,3 +199,19 @@ Completed TODO.md steps 5-6, removing the last traces of legacy StatementContent
 **The legacy StatementContent cleanup is now complete.** All code throughout the project (contracts, SDK, indexer, UI, integration tests) now uses the DisplayableDocument format exclusively. No backward compatibility code remains.
 
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
+
+
+## Displayable-documents verification (Jan 2026)
+
+Verified that the displayable-documents refactoring/decoupling is complete per TODO.md request:
+- ✅ SDK has full implementation: types, creation, validation, canonical JSON, IPFS integration, 72 tests
+- ✅ UI renderer implements all spec requirements (text/plain, markdown-restricted, assets, refs, extras, unknown fields)
+- ✅ Statement creation flow uses DisplayableDocument exclusively
+- ✅ Indexer parses DisplayableDocument format
+- ✅ Legacy StatementContent completely removed from codebase
+- ✅ All feedback loops pass (72 SDK + 243 hardhat + 102 integration tests)
+- ✅ Decoupling achieved: statements are now simply displayable documents with domain metadata in extras
+
+Updated specs/displayable-documents.md with comprehensive verification details.
+Updated TODO.md to mark displayable-documents work as complete.
+

@@ -147,4 +147,47 @@ This separation enables:
 
 ## Progress
 
-I believe this may now be complete. Check to make sure?
+**VERIFIED COMPLETE** (January 2026)
+
+The displayable-documents system has been fully implemented and is now the sole document format throughout the codebase:
+
+✅ **SDK Foundation**
+- Types: `DisplayableDocument`, `DisplayFormat`, `Asset`, `DocumentReference` (sdk/src/displayable-document.ts)
+- Creation: `createDisplayableDocument()`, `createStatement()` helper
+- Validation: `validateDisplayableDocument()` with comprehensive checks
+- Canonical JSON: `toCanonicalJson()` for deterministic CID generation
+- IPFS integration: `publishDocument()`, `fetchDocument()`
+- 72 unit tests covering all functionality
+
+✅ **UI Renderer** (ui/src/conceptspace/components/StatementRenderer.tsx)
+- Format support: `text/plain`, `markdown-restricted`
+- Asset resolution: inline base64 and CID-based
+- Reference resolution: `[text](ref:N)` → router links
+- Extras display: full JSON rendering (per spec requirement)
+- Unknown fields: displayed as raw JSON (per spec requirement)
+- Error handling: placeholders for missing assets/refs (never silent omission)
+
+✅ **Statement Creation Flow**
+- UI uses `createStatement()` SDK helper
+- Produces DisplayableDocument format exclusively
+- `createAndSignStatement()` uses `publishDocument()` for canonical encoding
+- Integration tests updated to new format
+
+✅ **Indexer Support** (indexer/src/conceptspace/utils/ipfs.ts)
+- Parses DisplayableDocument format
+- Extracts text content, statement type from extras
+- Generates search excerpts
+
+✅ **Legacy Cleanup**
+- `StatementContent` interface removed from SDK
+- Legacy rendering code removed from UI
+- Legacy detection removed from indexer
+- All 102 integration tests migrated to DisplayableDocument
+- All feedback loops pass (72 SDK tests, 243 hardhat tests, 102 integration tests)
+
+✅ **Decoupling Achieved**
+- Displayable documents are now a standalone, generic layer
+- Statements are simply displayable documents (per specs/statements.md)
+- Domain-specific metadata lives in `extras` field
+- No coupling to token/funding contracts
+- Reusable for other use cases (implication explanations, project descriptions, etc.)
