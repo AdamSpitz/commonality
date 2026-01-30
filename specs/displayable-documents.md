@@ -144,3 +144,7 @@ This separation enables:
 - Generic tooling (validators, renderers) that works across all applications
 - Applications can add domain-specific semantics via `extras` without changing the core format
 - Legal separation: the displayable-documents layer has nothing to do with tokens/funding
+
+## Progress
+
+I believe this may now be complete. Check to make sure?
