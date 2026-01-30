@@ -143,3 +143,18 @@ This is the first file migrated as a tracer bullet for TODO.md step 1 ("Migrate 
 14. ~~conceptspace-indirect-support.test.ts (27)
 
 (User's note: we hit our Claude limit but I think I finished it by myself. Tests pass. Maybe this migration is done now?)
+## Legacy StatementContent cleanup: LegacyStatementRenderer removed (Jan 2026)
+
+Removed legacy StatementContent rendering code from StatementRenderer.tsx per TODO.md step 2:
+- Removed `StatementContent` import and `isDisplayableDocument` import (no longer needed)
+- Changed `StatementRendererProps.content` type from `StatementContent | DisplayableDocument | null` to `DisplayableDocument | null`
+- Removed the `isDisplayableDocument(content)` branch - now directly renders `DisplayableDocumentRenderer`
+- Deleted the entire `LegacyStatementRenderer` component (96 lines removed)
+- Files changed: ui/src/conceptspace/components/StatementRenderer.tsx
+- All feedback loops pass (SDK build + 72 SDK tests + 243 hardhat tests + indexer typecheck + UI typecheck).
+
+Next from TODO.md legacy cleanup list:
+- Step 3: Remove StatementContent from createAndSignStatement() parameter type
+- Step 4: Remove legacy detection from indexer's fetchStatementContent()
+- Step 5: Remove StatementContent interface from SDK
+- Step 6: Update StatementPage.tsx and workflow-actions-checked.ts
