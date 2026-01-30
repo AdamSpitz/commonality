@@ -7,7 +7,6 @@ import {
   getStatementWithContent,
   getUserBelief,
   type Statement,
-  type StatementContent,
   type DisplayableDocument,
 } from '@commonality/sdk'
 import { StatementRenderer } from '../components/StatementRenderer'
@@ -20,7 +19,7 @@ export function StatementPage() {
   const { address } = useAccount()
 
   const [statement, setStatement] = useState<Statement | null>(null)
-  const [statementContent, setStatementContent] = useState<StatementContent | DisplayableDocument | null>(null)
+  const [statementContent, setStatementContent] = useState<DisplayableDocument | null>(null)
   const [userBeliefState, setUserBeliefState] = useState<number>(0)
   const [indirectSupporters, setIndirectSupporters] = useState<number>(0)
   const [loading, setLoading] = useState(true)

@@ -63,26 +63,9 @@ export interface BrowseStatementsOptions {
   orderDirection?: string;
 }
 
-export interface StatementContent {
-  statementType: string;
-  title?: string;
-  excerpt?: string;
-  content?: string;
-  references?: Array<{
-    statementId: string;
-    context?: string;
-    label?: string;
-    relationship?: string;
-  }>;
-  metadata?: {
-    createdDate?: string;
-    version?: number;
-  };
-}
-
 export interface StatementWithContent {
   statement: Statement;
-  content: StatementContent | DisplayableDocument | null;
+  content: DisplayableDocument | null;
   metrics?: {
     directBelievers: number;
     directDisbelievers: number;
@@ -305,11 +288,11 @@ export async function getStatementWithContent(
   }
 
   // Fetch IPFS content if CID exists
-  let content: StatementContent | null = null;
+  let content: DisplayableDocument | null = null;
   if (statement.cid) {
     // Use the unified fetchFromIPFS which respects IPFS_GATEWAY env var
     const { fetchFromIPFS } = await import('../actions/common.js');
-    content = await fetchFromIPFS(statement.cid, timeout) as StatementContent | null;
+    content = await fetchFromIPFS(statement.cid, timeout) as DisplayableDocument | null;
   }
 
   // Fetch metrics if requested

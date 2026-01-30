@@ -16,7 +16,6 @@ export {
   getUserBeliefs,
   getUserDisbeliefs,
   getStatementSuggestions,
-  type StatementContent,
   type IndirectSupportInfo,
   type StatementSuggestion,
 } from './conceptspace.js';
