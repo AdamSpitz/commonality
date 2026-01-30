@@ -183,6 +183,19 @@ Removed legacy StatementContent detection from indexer's fetchStatementContent()
 - Files changed: indexer/src/conceptspace/utils/ipfs.ts
 - Indexer type check passes.
 
-Next from TODO.md legacy cleanup list:
-- Step 5: Remove StatementContent interface from SDK
-- Step 6: Update StatementPage.tsx and workflow-actions-checked.ts
+## Legacy StatementContent cleanup: StatementContent interface removed (Jan 2026)
+
+Completed TODO.md steps 5-6, removing the last traces of legacy StatementContent:
+- Removed `StatementContent` interface from sdk/src/graphql-queries/conceptspace.ts
+- Updated `StatementWithContent.content` type from `StatementContent | DisplayableDocument | null` to just `DisplayableDocument | null`
+- Updated `getStatementWithContent()` to fetch/return `DisplayableDocument` instead of union type
+- Removed `StatementContent` export from sdk/src/graphql-queries/index.ts
+- Updated StatementPage.tsx to use `DisplayableDocument` instead of `StatementContent | DisplayableDocument` union
+- Updated workflow-actions-checked.ts to accept `DisplayableDocument` instead of union type
+- Fixed UI build issue: excluded test files from tsconfig.app.json (test dependencies not installed yet)
+- Files changed: sdk/src/graphql-queries/conceptspace.ts, sdk/src/graphql-queries/index.ts, ui/src/conceptspace/pages/StatementPage.tsx, integration-tests/src/actions/workflow-actions-checked.ts, ui/tsconfig.app.json
+- All feedback loops pass (72 SDK tests, 243 hardhat tests, indexer typecheck, UI build).
+
+**The legacy StatementContent cleanup is now complete.** All code throughout the project (contracts, SDK, indexer, UI, integration tests) now uses the DisplayableDocument format exclusively. No backward compatibility code remains.
+
+High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
