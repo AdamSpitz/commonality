@@ -32,6 +32,7 @@ import {
   parsePositiveInt,
   invalidInputError,
 } from "../utils/validation";
+import { runIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob";
 
 const app = new Hono();
 
@@ -40,6 +41,59 @@ app.use("/sql/*", client({ db, schema }));
 
 // GraphQL API (auto-generated from schema)
 app.use("/graphql", graphql({ db, schema }));
+
+/**
+ * Custom API endpoint: Manually trigger IPFS content sync
+ *
+ * This is useful for E2E tests or situations where you want to force
+ * immediate IPFS content fetching instead of waiting for the background job.
+ *
+ * Returns:
+ *   - success: boolean
+ *   - message: string
+ *   - syncedCount: number (if successful)
+ */
+app.post("/api/sync-ipfs", async (c) => {
+  try {
+    let successCount = 0;
+    let failureCount = 0;
+
+    await runIpfsSyncIteration({
+      db,
+      log: {
+        info: (msg: string) => {
+          console.log(`[Manual IPFS Sync] ${msg}`);
+          if (msg.includes("succeeded")) {
+            const match = msg.match(/(\d+) succeeded, (\d+) failed/);
+            if (match) {
+              successCount = parseInt(match[1], 10);
+              failureCount = parseInt(match[2], 10);
+            }
+          }
+        },
+        warn: (msg: string) => console.warn(`[Manual IPFS Sync] ${msg}`),
+        error: (msg: string) => console.error(`[Manual IPFS Sync] ${msg}`),
+      },
+    });
+
+    return c.json({
+      success: true,
+      message: "IPFS sync completed",
+      syncedCount: successCount,
+      failedCount: failureCount,
+    });
+  } catch (error) {
+    console.error("Error during manual IPFS sync:", error);
+    return c.json(
+      {
+        success: false,
+        message: "IPFS sync failed",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      500
+    );
+  }
+});
 
 /**
  * Custom API endpoint: Get indirect supporters of a statement
