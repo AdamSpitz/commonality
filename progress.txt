@@ -2,6 +2,81 @@ AI: use this file to write notes to yourself.
 
 High-level stuff is all in order, it's time to implement.
 
+## Session (2026-01-31 afternoon) - Wagmi Mock Connector Research (COMPLETED)
+
+**Task:** Research wagmi connector capabilities for private key account support in E2E tests
+
+**Key Findings:**
+
+1. **Wagmi mock connector ONLY accepts addresses, NOT private keys**
+   - Parameter type: `accounts: readonly [Address, ...Address[]]`
+   - Documentation confirms it takes address strings (0x...), not private key accounts
+   - Source: https://wagmi.sh/core/api/connectors/mock
+
+2. **Wagmi does NOT support hoisting private key accounts to wagmiConfig**
+   - This is a known limitation discussed in GitHub issue #3480
+   - Quote: "Wagmi currently does not support hoisting Private Key & Mnemonic Accounts to the top-level Wagmi Config"
+   - Workaround mentioned: "creating a custom connector based on Viem account"
+   - Source: https://github.com/wevm/wagmi/discussions/3480
+
+3. **Current implementation already converts private keys correctly**
+   - `ui/src/wagmi.ts` createMockConfig() function (lines 33-60):
+     - Accepts `addressOrPkey: 0x${string}`
+     - Converts private key to account using `privateKeyToAccount(addressOrPkey)`
+     - But then ONLY passes the address to mock connector: `mock({ accounts: [address] })`
+     - The actual account object with signing capability is discarded!
+
+4. **The root problem:**
+   - SDK actions expect `walletClient.account` to be a full viem Account object with signing methods
+   - Wagmi's useWalletClient() hook returns a wallet client from the connected connector
+   - Mock connector only knows about the address, not the private key
+   - Therefore walletClient.account is either undefined or a minimal object without signing capability
+
+5. **Why approach #3 (from previous session) won't work:**
+   - The previous session recommended "Update wallet fixture to use private key accounts"
+   - But wagmi's mock connector fundamentally doesn't support this
+   - Even if we pass the full account object to createMockConfig, we can only pass the address to mock()
+   - The wallet client returned by useWalletClient() will still not have signing capability
+
+**Conclusion:**
+
+Approach #3 from the previous session is **NOT viable**. The wagmi mock connector cannot provide a wallet client with private key signing capabilities.
+
+**Recommended new approach:**
+
+We need to create a **custom connector** that wraps a viem account with private key:
+
+1. Create `ui/e2e/fixtures/privateKeyConnector.ts`:
+   - Custom wagmi connector that holds a full viem account (from privateKeyToAccount)
+   - Implements the Connector interface
+   - Provides getProvider(), getAccounts(), etc.
+   - Most importantly: makes the full account object available to walletClient
+
+2. Use the custom connector in createMockConfig instead of mock():
+   ```typescript
+   connectors: [createPrivateKeyConnector(privateKey)]
+   ```
+
+3. This matches the workaround mentioned in GitHub discussions: "creating a custom connector based on Viem account"
+
+**Alternative approach (potentially simpler):**
+
+Instead of fighting with wagmi, modify the UI components to NOT use the SDK actions directly. Instead:
+- Use wagmi's native hooks: `useWriteContract()`, `useSimulateContract()`, etc.
+- These hooks handle signing through the connector properly
+- Create a thin adapter layer that translates SDK action patterns to wagmi patterns
+- Keep SDK actions as-is for integration tests (which use createTestClients with real accounts)
+
+This second approach is more aligned with wagmi's architecture and may be more maintainable.
+
+**Next steps:**
+
+This research task is complete. The findings show that the problem is architectural and requires either:
+1. Building a custom connector (complex, but keeps SDK actions unchanged)
+2. Refactoring UI to use wagmi hooks instead of SDK actions (simpler, more idiomatic)
+
+The project lead or next implementer should decide which approach to take.
+
 ## Latest session (2026-01-31) - Wagmi Client Configuration Investigation (INCOMPLETE - TASK LARGER THAN EXPECTED)
 
 **Task attempted:** Fix wagmi client configuration to make connected account available for signing transactions
@@ -100,142 +175,3 @@ E2E testing infrastructure is now set up with Playwright.
 Docker integration for E2E tests is now complete - Playwright can start/stop backend services automatically.
 Wallet connection testing is now working - E2E tests can inject Hardhat accounts via wagmi mock connector.
 Next priority: Write E2E tests for critical workflows (statement creation, belief expression, etc.).
-
-## Latest session (2026-01-31) - Console Logging for E2E Tests (COMPLETED)
-
-**Task completed:** Add browser console logging to E2E tests to capture errors during statement creation submission
-
-**What was accomplished:**
-- Created `ui/e2e/statement-creation.spec.ts` with comprehensive console logging
-  - Captures all browser console messages (page.on('console'))
-  - Captures uncaught page errors (page.on('pageerror'))
-  - Logs all messages on test failure for debugging
-  - Takes screenshots on failure
-- Updated `ui/playwright.config.ts` to add automatic screenshot and video capture on failure
-  - Added `screenshot: 'only-on-failure'`
-  - Added `video: 'retain-on-failure'`
-
-**ROOT CAUSE IDENTIFIED:**
-The console logging immediately revealed the problem:
-```
-Error creating statement: Error: Failed to sign statement (CID: bafkreic7xna7e3vwgqkzhrgxfzd7yqb6g53gsiaxl7yxwjeqaolbyism5i): Could not find an Account to execute with this Action.
-Please provide an Account with the `account` argument on the Action, or by supplying an `account` to the Client.
-```
-
-**Key findings:**
-- IPFS upload works correctly ✅ (Statement uploaded to IPFS: bafkreic...)
-- The wagmi client doesn't have an account configured for signing transactions ❌
-- The SDK's `createAndSignStatement` function can't find the connected wallet account
-- This is a configuration issue in how the UI sets up the wagmi client
-
-**Next steps:**
-The next implementer should fix the wagmi client configuration to ensure the connected account is available for signing transactions. The issue is likely in:
-- `ui/src/main.tsx` - Check how wagmi config is created
-- `ui/src/conceptspace/components/CreateStatementForm.tsx` - Check how the client is passed to SDK actions
-- Compare with integration-tests to see how they configure the client with accounts
-
-**Files changed:**
-- Created: `ui/e2e/statement-creation.spec.ts` (new test with console logging)
-- Modified: `ui/playwright.config.ts` (added screenshot/video capture on failure)
-- Modified: `progress.txt` (this file)
-
-**Test results:**
-- Console logging test: SUCCESSFUL ✅ (captured the exact error)
-- Root cause identified: wagmi client account configuration issue
-- Validation test: 1/2 passing ✅
-- Full workflow test: 0/2 passing (expected, root cause now known)
-
-## Latest session (2026-01-31) - Statement Creation E2E Test Infrastructure (PARTIAL)
-
-**Task attempted:** Write E2E test for statement creation workflow
-
-**THIS WAS A LARGER TASK THAN EXPECTED** - Task stopped partway through
-
-**What was completed successfully:**
-- Updated global-setup.ts to copy contract addresses from integration-tests/.env.local to ui/.env
-  - After Docker services start and are healthy, the setup now copies:
-    - BELIEFS_CONTRACT_ADDRESS → VITE_BELIEFS_CONTRACT_ADDRESS
-    - MUTABLE_REF_UPDATER_CONTRACT_ADDRESS → VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS
-    - Hardcoded VITE_GRAPHQL_URL=http://localhost:42069/graphql
-  - This makes contract addresses available to the UI via Vite's import.meta.env
-  - The copying preserves existing .env content (like VITE_WALLETCONNECT_PROJECT_ID)
-  - Added proper imports: readFileSync, writeFileSync from 'fs'
-
-**What was attempted but incomplete:**
-- Created statement-creation.spec.ts with 3 test cases
-- Fixed various UI understanding issues:
-  - HomePage button is "Create and Sign Statement", not "Create Statement"
-  - Browse page route is "/statements", not "/conceptspace/browse"
-  - Statement detail route is "/statement/:id", not "/conceptspace/statement/:id"
-- Tests kept timing out waiting for success message after form submission
-
-**The problem:**
-The main E2E test ("should create a statement and see it appear on browse page") times out after 60 seconds waiting for the success message "statement created and signed successfully". This suggests the transaction is failing silently or there's an error preventing submission.
-
-**Recommendation for breaking down the task:**
-The statement creation E2E test needs more incremental debugging:
-
-1. **First**: Create a minimal E2E test that just verifies the form loads and can be filled (no submission)
-2. **Then**: Add browser console logging to the test using `page.on('console', msg => console.log(msg.text()))`
-3. **Then**: Add screenshot capture on failure to see what error messages appear in the UI
-4. **Then**: Manually test by running `npm run dev` (after starting Docker) to see if statement creation works
-5. **Then**: Add more specific error checking in CreateStatementForm component
-6. **Finally**: Once manual testing works, write the E2E test
-
-The infrastructure pieces are all in place (Docker, wallet injection, contract address copying), but the actual transaction flow needs debugging to understand why it's failing.
-
-**Files changed:**
-- Modified: ui/e2e/global-setup.ts (contract address copying - COMMITTED)
-- Created then deleted: ui/e2e/statement-creation.spec.ts (incomplete, needs debugging approach)
-- Modified: progress.txt (this file)
-
-**Test results:**
-- Unit tests: 265/265 passing ✅
-- TypeScript compilation: ✅ passes
-- Simple validation E2E test: PASSING ✅
-- Full statement creation E2E test: FAILING (timeout) ❌
-
-**Notes for next implementer:**
-- The global-setup.ts changes are good and should be kept
-- Contract addresses are now being copied correctly to ui/.env
-- The next task should be: "Debug why statement creation fails in E2E tests"
-- Consider using smaller, more incremental tests with better error visibility
-- The HomePage button to show the form is "Create and Sign Statement" (not "Create Statement")
-- After form submission, there are two buttons with same name: one to show form, one to submit it
-
-## Session (2026-01-31) - Statement Creation Form UI Tests (COMPLETED)
-
-**Task completed:** Create minimal E2E test for statement creation form (UI only, no submission)
-
-**What was accomplished:**
-- Created `ui/e2e/statement-creation-form.spec.ts` with 4 passing UI tests
-- Tests verify form display, field interaction, validation, and cancel functionality
-- All tests pass (4/4) and confirm the form UI works correctly
-- This diagnostic test confirms the timeout issue is NOT in the UI layer
-
-**Test cases implemented:**
-1. Form displays when "Create and Sign Statement" button is clicked
-2. Submit button enables/disables based on content
-3. Cancel button hides the form and returns to initial state
-4. Validation works correctly for empty/whitespace-only content
-
-**Key findings:**
-- Form loads correctly ✅
-- Form fields are interactive ✅
-- Validation logic works ✅
-- Cancel flow works ✅
-- **Conclusion:** The timeout issue in statement creation must be in the transaction submission flow, not the UI
-
-**Files changed:**
-- Created: `ui/e2e/statement-creation-form.spec.ts` (4 new passing tests)
-- Modified: `progress.txt` (this file)
-
-**Test results:**
-- All E2E tests: 9/9 passing ✅
-- Unit tests: 265/265 passing ✅
-- TypeScript compilation: ✅
-- Build: ✅
-
-**Next steps:**
-The next implementer should add console logging and screenshot capture to debug the transaction submission flow. The recommended next task is:
-"Add browser console logging to E2E tests to capture errors during statement creation submission"
