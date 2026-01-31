@@ -1,6 +1,100 @@
 AI: use this file to write notes to yourself.
 
 High-level stuff is all in order, it's time to implement.
+
+## Latest session (2026-01-31) - Wagmi Client Configuration Investigation (INCOMPLETE - TASK LARGER THAN EXPECTED)
+
+**Task attempted:** Fix wagmi client configuration to make connected account available for signing transactions
+
+**THIS WAS A LARGER TASK THAN EXPECTED** - Task stopped due to architectural complexity
+
+**Root cause analysis:**
+The E2E test failure is due to a fundamental architectural mismatch between:
+1. The SDK (`@commonality/sdk`) - designed for test environments with direct private key access
+2. The UI - using wagmi which abstracts away private keys and uses browser wallets
+
+**The problem in detail:**
+
+The SDK's actions (like `believeStatement`, `createAndSignStatement`) expect a `TestClients` object with:
+```typescript
+{
+  walletClient: WalletClient,  // Must have .account property for signing
+  publicClient: PublicClient,
+  account: Address
+}
+```
+
+In test/integration environments, the wallet client is created with `createWalletClient({ account: privateKeyToAccount(privateKey), ... })`, which gives it a full viem account object with signing capabilities.
+
+In the UI using wagmi:
+- `useWalletClient()` returns a wallet client from the connected browser wallet
+- wagmi's mock connector (used in E2E tests) doesn't support the same signing methods
+- Error progression:
+  1. First: "Could not find an Account" - walletClient.account was undefined
+  2. After adding `{ address }`: "Account type undefined is not supported" - account missing `type` property
+  3. After adding `{ address, type: 'json-rpc' }`: "method eth_sendTransaction not supported" - json-rpc accounts expect RPC-level signing, not available in mock connector
+
+**Why this is a larger task:**
+
+Fixing this properly requires ONE of these approaches:
+
+1. **Refactor the SDK** to not require `walletClient.account` for signing
+   - Make SDK actions use wagmi's hooks directly (useWriteContract, etc.)
+   - This is a significant SDK refactoring affecting all actions
+
+2. **Create a UI-specific wrapper layer** around SDK actions
+   - Wrapper translates between wagmi patterns and SDK expectations
+   - Maintains SDK as-is for integration tests
+   - Requires designing and implementing the wrapper API
+
+3. **Make E2E tests use real wallet simulation** with private keys
+   - Use wagmi's `privateKeyToAccount` to create proper accounts in E2E tests
+   - This might require changes to how wagmi's mock connector works
+   - May need to inject private key into browser context (security implications)
+
+**Recommendation for breaking down the task:**
+
+The smallest viable approach is #3 - modify E2E test wallet setup:
+
+1. **First subtask:** Research wagmi connector capabilities
+   - Can wagmi's mock connector accept a private key account instead of just an address?
+   - Check wagmi documentation and source code
+
+2. **Second subtask:** Update wallet fixture to use private key accounts
+   - Modify `ui/e2e/fixtures/wallet.ts` to create accounts from private keys
+   - Pass the full account object to wagmi config, not just the address
+
+3. **Third subtask:** Ensure walletClient has proper account in UI components
+   - The walletClient from wagmi should then have a proper account object
+   - Test that transactions work in E2E environment
+
+4. **Future consideration:** For production UI (not E2E tests)
+   - Real browser wallets (MetaMask, WalletConnect) handle signing differently
+   - May need separate code path for production vs E2E
+   - OR: Refactor SDK to be wallet-agnostic (approach #1 above)
+
+**Files involved:**
+- `ui/src/conceptspace/components/CreateStatementForm.tsx` - attempted fix here
+- `ui/src/conceptspace/components/BeliefControls.tsx` - attempted fix here
+- `ui/e2e/fixtures/wallet.ts` - should be modified for proper account injection
+- `ui/src/wagmi.ts` - mock config creation
+- `sdk/src/actions/conceptspace-actions.ts` - uses walletClient.account!
+
+**Changes reverted:** All attempted changes reverted, clean slate for next implementer
+
+**Test results:**
+- SDK tests: 72/72 passing ✅
+- Hardhat tests: 243/243 passing ✅
+- Integration tests: 102/102 passing ✅
+- UI unit tests: 265/265 passing ✅
+- E2E tests: 10/11 passing (statement creation still failing with account/signing issue)
+
+**Notes for next implementer:**
+- Don't try to patch the account object in UI components - that's treating symptoms not cause
+- The fix needs to be in how E2E tests set up the wagmi mock connector
+- Look at `ui/e2e/fixtures/wallet.ts` and `ui/src/wagmi.ts` createMockConfig
+- The mock connector needs to use a proper viem account created from a private key
+- Integration tests show the pattern: `privateKeyToAccount(privateKey)` creates proper accounts
 All conceptspace UI unit tests are now complete (265 tests across all components and pages).
 E2E testing infrastructure is now set up with Playwright.
 Docker integration for E2E tests is now complete - Playwright can start/stop backend services automatically.
