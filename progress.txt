@@ -215,3 +215,28 @@ Verified that the displayable-documents refactoring/decoupling is complete per T
 Updated specs/displayable-documents.md with comprehensive verification details.
 Updated TODO.md to mark displayable-documents work as complete.
 
+## AI Skills specification expansion (Jan 2026)
+
+Expanded specs/ai-skills.md with 9 comprehensive AI skill ideas beyond the initial "statement finder/writer":
+- Project discovery and evaluation: help users navigate funding portals, filter projects, evaluate alignment
+- Delegation advisor: guide users through delegatable notes, suggest trustees, manage delegation chains
+- Funding strategy advisor: bridge VC/investment thinking with public goods, analyze secondary markets
+- Cause discovery and coalition building: identify commonality, suggest alliances, navigate implication graph
+- Attester management and trust configuration: help users configure trusted attesters, understand non-transitive implications
+- Social verification and identity linking: guide through Twitter/social linking, unique-human verification
+- Project creation assistant: help creators set up projects, write descriptions, choose alignment statements
+- Analytics and insights: personalized metrics, impact tracking, ecosystem-wide patterns, ROI analysis
+- Onboarding and education: progressive concept introduction, adaptive explanations, interactive tutorials
+- Watchdog and notification system: monitor causes, alert on events, provide digest summaries
+
+These skills cover the full user journey and make the system accessible to both crypto-native and mainstream users.
+
+Added mode annotations (autonomous vs interactive vs hybrid) to each skill:
+- Primarily autonomous: Watchdog/notifications (the killer autonomous use case)
+- Hybrid (high value in both modes): Project discovery, delegation advisor, funding strategy, cause discovery, analytics
+- Primarily interactive: Onboarding, social verification, attester config, project creation, statement writing
+
+Key insight: Most skills benefit from autonomous components (monitoring, alerting, pattern detection) feeding into interactive sessions (queries, planning, decisions). The autonomous layer surfaces signals; the interactive layer enables deep-dives and decision-making.
+
+High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
+
