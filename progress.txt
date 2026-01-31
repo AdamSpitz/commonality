@@ -251,3 +251,26 @@ Fixed critical navigation bug in StatementSuggestions component:
 
 Next priority from TODO.md: Write UI tests (starting with CreateStatementForm, StatementPage, and BeliefControls).
 
+## UI testing tracer bullet: BeliefControls component tests (Jan 2026)
+
+Created first interactive component test as a tracer bullet for UI testing approach:
+- Added 11 comprehensive tests for BeliefControls component (ui/src/conceptspace/components/BeliefControls.test.tsx)
+- Tests cover both disconnected and connected wallet states
+- Tests validate button rendering, state messages (NO_OPINION, BELIEVES, DISBELIEVES), conditional Clear Opinion button
+- Used Vitest + Testing Library + wagmi mocking pattern
+- Fixed package.json version mismatch (@vitest/coverage-v8 4.0.18 → 3.2.4 to match vitest 3.2.4)
+- Key decisions:
+  - Mock wagmi hooks (useAccount, useWalletClient, usePublicClient) to avoid wallet connection complexity
+  - Use exact regex matches (/^believe$/i) to distinguish "Believe" from "Disbelieve" buttons
+  - Focus tracer bullet on rendering/state logic, not transaction execution (would require complex SDK mocking)
+- Files changed: ui/src/conceptspace/components/BeliefControls.test.tsx (new), ui/package.json (version fix)
+- All feedback loops pass: 16 UI tests (5 SupportMetrics + 11 BeliefControls), 72 SDK tests, UI build succeeds
+
+This tracer bullet validates that:
+1. Vitest + Testing Library setup works correctly
+2. MUI components render properly in tests
+3. wagmi hook mocking pattern is viable
+4. Pattern can be replicated for other interactive components
+
+Next: Write tests for CreateStatementForm or StatementPage using this established pattern.
+
