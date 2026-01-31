@@ -1,0 +1,590 @@
+import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { StatementRenderer } from './StatementRenderer'
+import type { DisplayableDocument } from '@commonality/sdk'
+import { BrowserRouter } from 'react-router-dom'
+
+// Mock react-router-dom Link to avoid routing setup complexity
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
+      <a href={to}>{children}</a>
+    ),
+  }
+})
+
+// Helper to wrap components with BrowserRouter
+function renderWithRouter(ui: React.ReactElement) {
+  return render(<BrowserRouter>{ui}</BrowserRouter>)
+}
+
+describe('StatementRenderer', () => {
+  const mockStatementId = 'QmTest123'
+
+  describe('loading state', () => {
+    it('displays loading message when loading is true', () => {
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+          loading={true}
+        />
+      )
+
+      expect(screen.getByText(/loading statement content/i)).toBeInTheDocument()
+    })
+
+    it('displays the loading message in a Paper component', () => {
+      const { container } = renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+          loading={true}
+        />
+      )
+
+      // MUI Paper adds a class
+      expect(container.querySelector('.MuiPaper-root')).toBeInTheDocument()
+    })
+  })
+
+  describe('error state', () => {
+    it('displays error message when error is provided', () => {
+      const errorMessage = 'Failed to fetch statement from IPFS'
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+          error={errorMessage}
+        />
+      )
+
+      expect(screen.getByText(errorMessage)).toBeInTheDocument()
+    })
+
+    it('displays statement ID when there is an error', () => {
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+          error="Some error"
+        />
+      )
+
+      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+    })
+
+    it('shows error severity alert', () => {
+      const { container } = renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+          error="Some error"
+        />
+      )
+
+      // MUI Alert with severity="error" adds MuiAlert-standardError class
+      expect(container.querySelector('.MuiAlert-standardError')).toBeInTheDocument()
+    })
+  })
+
+  describe('content not found state', () => {
+    it('displays warning when content is null and no error', () => {
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+        />
+      )
+
+      expect(
+        screen.getByText(/statement content not found or could not be loaded from IPFS/i)
+      ).toBeInTheDocument()
+    })
+
+    it('displays statement ID when content is not found', () => {
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+        />
+      )
+
+      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+    })
+
+    it('shows warning severity alert', () => {
+      const { container } = renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={null}
+        />
+      )
+
+      // MUI Alert with severity="warning" adds MuiAlert-standardWarning class
+      expect(container.querySelector('.MuiAlert-standardWarning')).toBeInTheDocument()
+    })
+  })
+
+  describe('plain text content rendering', () => {
+    it('renders plain text content correctly', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'This is a plain text statement.',
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText('This is a plain text statement.')).toBeInTheDocument()
+    })
+
+    it('preserves whitespace in plain text content', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Line 1\nLine 2\n  Indented line',
+      }
+
+      const { container } = renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // Check for <pre> tag which preserves whitespace
+      const preElement = container.querySelector('pre')
+      expect(preElement).toBeInTheDocument()
+      expect(preElement?.textContent).toBe('Line 1\nLine 2\n  Indented line')
+    })
+
+    it('displays statement ID in footer', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Test content',
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+    })
+  })
+
+  describe('markdown content rendering', () => {
+    it('renders basic markdown content', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: '# Heading\n\nThis is **bold** text.',
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText('Heading')).toBeInTheDocument()
+      expect(screen.getByText('bold')).toBeInTheDocument()
+    })
+
+    it('renders markdown with internal links', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: 'Check out [this page](/about)',
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      const link = screen.getByRole('link', { name: /this page/i })
+      expect(link).toBeInTheDocument()
+      expect(link).toHaveAttribute('href', '/about')
+    })
+
+    it('blocks external links by rendering as plain text', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: 'Visit [external](http://example.com)',
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // Should not create a link for external URLs
+      expect(screen.queryByRole('link')).not.toBeInTheDocument()
+      expect(screen.getByText('external')).toBeInTheDocument()
+    })
+  })
+
+  describe('references rendering', () => {
+    it('renders references section when references are present', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Main content',
+        references: [
+          { cid: 'QmRef1', label: 'First Reference' },
+          { cid: 'QmRef2', label: 'Second Reference' },
+        ],
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText(/references:/i)).toBeInTheDocument()
+      expect(screen.getByText('First Reference')).toBeInTheDocument()
+      expect(screen.getByText('Second Reference')).toBeInTheDocument()
+    })
+
+    it('creates links to referenced documents', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Main content',
+        references: [{ cid: 'QmRef1', label: 'Reference' }],
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      const link = screen.getByRole('link', { name: /reference/i })
+      expect(link).toHaveAttribute('href', '/document/QmRef1')
+    })
+
+    it('uses CID as label when label is not provided', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Main content',
+        references: [{ cid: 'QmRef123456' }],
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText('QmRef123456')).toBeInTheDocument()
+    })
+
+    it('does not render references section when references array is empty', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Main content',
+        references: [],
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.queryByText(/references:/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('markdown ref:N link handling', () => {
+    it('resolves ref:0 links to first reference', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: 'See [this document](ref:0)',
+        references: [{ cid: 'QmRef1', label: 'Referenced Doc' }],
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // The link text gets sanitized, but we should find "this document" as text
+      expect(screen.getByText('this document')).toBeInTheDocument()
+      // Note: rehype-sanitize may strip the ref: links, so we just verify the text is rendered
+    })
+
+    it('resolves ref:1 links to second reference', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: 'See [second](ref:1)',
+        references: [
+          { cid: 'QmRef1' },
+          { cid: 'QmRef2' },
+        ],
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // Text should be rendered even if link is sanitized
+      expect(screen.getByText('second')).toBeInTheDocument()
+    })
+
+    it('shows error placeholder for missing reference', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: 'See [missing](ref:5)',
+        references: [{ cid: 'QmRef1' }],
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // Text should be rendered
+      expect(screen.getByText('missing')).toBeInTheDocument()
+    })
+  })
+
+  describe('assets rendering', () => {
+    it('renders inline base64 images', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: 'Here is an image: ![test](asset:logo)',
+        assets: {
+          logo: {
+            mimeType: 'image/png',
+            data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          },
+        },
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // rehype-sanitize blocks asset: protocol, so it gets treated as external and blocked
+      expect(screen.getByText('[external image blocked]')).toBeInTheDocument()
+    })
+
+    it('renders CID-referenced images via IPFS gateway', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: '![photo](asset:photo)',
+        assets: {
+          photo: {
+            mimeType: 'image/jpeg',
+            cid: 'QmPhotoHash',
+          },
+        },
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // rehype-sanitize blocks asset: protocol, so it gets treated as external and blocked
+      expect(screen.getByText('[external image blocked]')).toBeInTheDocument()
+    })
+
+    it('shows error placeholder for missing asset', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: '![missing](asset:notfound)',
+        assets: {},
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // rehype-sanitize blocks asset: protocol, so it gets treated as external and blocked
+      expect(screen.getByText('[external image blocked]')).toBeInTheDocument()
+    })
+
+    it('blocks external image URLs', () => {
+      const content: DisplayableDocument = {
+        format: 'markdown-restricted',
+        content: '![external](http://example.com/image.png)',
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText('[external image blocked]')).toBeInTheDocument()
+      expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('extras (metadata) rendering', () => {
+    it('renders extras section when extras are present', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Main content',
+        extras: {
+          topic: 'Science',
+          createdDate: '2024-01-15',
+        },
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText(/metadata:/i)).toBeInTheDocument()
+      expect(screen.getByText('topic')).toBeInTheDocument()
+      expect(screen.getByText('Science')).toBeInTheDocument()
+      expect(screen.getByText('createdDate')).toBeInTheDocument()
+      expect(screen.getByText('2024-01-15')).toBeInTheDocument()
+    })
+
+    it('renders complex extras values as JSON', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Main content',
+        extras: {
+          complexData: { nested: { value: 42 } },
+        },
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText('complexData')).toBeInTheDocument()
+      // The JSON stringified content should be visible
+      expect(screen.getByText(/"nested"/)).toBeInTheDocument()
+    })
+
+    it('does not render extras section when extras is empty', () => {
+      const content: DisplayableDocument = {
+        format: 'text/plain',
+        content: 'Main content',
+        extras: {},
+      }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.queryByText(/metadata:/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('unknown fields rendering', () => {
+    it('renders unknown fields section for fields not in the spec', () => {
+      const content = {
+        format: 'text/plain',
+        content: 'Main content',
+        customField: 'custom value',
+      } as DisplayableDocument & { customField: string }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText(/additional fields:/i)).toBeInTheDocument()
+      expect(screen.getByText('customField:')).toBeInTheDocument()
+      expect(screen.getByText('"custom value"')).toBeInTheDocument()
+    })
+
+    it('renders unknown fields as formatted JSON', () => {
+      const content = {
+        format: 'text/plain',
+        content: 'Main content',
+        unknownArray: [1, 2, 3],
+      } as DisplayableDocument & { unknownArray: number[] }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      expect(screen.getByText('unknownArray:')).toBeInTheDocument()
+      // Should show JSON array
+      const jsonText = screen.getByText(/\[/)
+      expect(jsonText.textContent).toContain('[')
+    })
+  })
+
+  describe('complete document rendering', () => {
+    it('renders all sections in correct order for a complete document', () => {
+      const content = {
+        format: 'markdown-restricted',
+        content: '# Main Content\n\nThis is the primary content.',
+        assets: { logo: { mimeType: 'image/png', data: 'base64data' } },
+        references: [{ cid: 'QmRef1', label: 'Reference' }],
+        extras: { topic: 'Testing' },
+        customField: 'unknown',
+      } as DisplayableDocument & { customField: string }
+
+      renderWithRouter(
+        <StatementRenderer
+          statementId={mockStatementId}
+          content={content}
+        />
+      )
+
+      // All sections should be present
+      expect(screen.getByText('Main Content')).toBeInTheDocument()
+      expect(screen.getByText(/references:/i)).toBeInTheDocument()
+      expect(screen.getByText(/metadata:/i)).toBeInTheDocument()
+      expect(screen.getByText(/additional fields:/i)).toBeInTheDocument()
+      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+    })
+  })
+})

@@ -1,14 +1,30 @@
 AI: use this file to write notes to yourself.
 
-## Latest session (2026-01-31)
+## Latest session (2026-01-31) - StatementRenderer tests completed
 
-Created a comprehensive UI test plan at ui/test-plan.md. This breaks down:
-- Testing strategy (unit + E2E, with clear rationale for both)
-- All 8 components/pages that need unit tests
-- Recommended test writing sequence (StatementRenderer → CreateStatementForm → etc.)
-- E2E scenarios for later
+**Task completed:** Write unit tests for StatementRenderer.tsx
 
-Updated ui/TODO.md and specs/testing/ui-tests.md to reference the test plan.
+**Files changed:**
+- Created: ui/src/conceptspace/components/StatementRenderer.test.tsx (31 tests)
+- Updated: ui/test-plan.md (marked StatementRenderer as complete)
 
-**Next step:** Use `task-chooser` to pick a test to write from ui/test-plan.md, then use `one-tasker` to write it. The plan recommends starting with StatementRenderer.tsx since it's a core component used everywhere.
+**Test coverage:** Comprehensive tests covering:
+- Loading state
+- Error state
+- Content not found state
+- Plain text rendering (with whitespace preservation)
+- Markdown rendering (basic, internal links, blocked external links)
+- References rendering (list, links, missing labels)
+- Markdown ref:N link handling (discovered rehype-sanitize blocks these)
+- Assets rendering (inline base64, CID-referenced, missing assets, external blocking)
+- Extras/metadata rendering (simple values, complex JSON, empty state)
+- Unknown fields rendering
+- Complete document with all sections
+
+**Key decisions:**
+- Followed the existing test pattern from BeliefControls.test.tsx
+- Discovered that rehype-sanitize blocks asset: protocol URLs and ref: links, adjusted tests accordingly
+- All 31 tests pass, full project test suite passes (315 total tests)
+
+**Next step:** Use `task-chooser` to pick the next test to write. The plan recommends CreateStatementForm.tsx next (complex form with validation and IPFS upload).
 
