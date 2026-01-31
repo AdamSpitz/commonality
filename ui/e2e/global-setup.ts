@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync } from 'fs';
 
 /**
  * Global setup for Playwright E2E tests
@@ -12,7 +13,76 @@ import { fileURLToPath } from 'url';
  * The setup waits for all services to become healthy before allowing tests
  * to run. Docker Compose handles the orchestration via depends_on and
  * healthchecks defined in docker-compose.yml.
+ *
+ * After services are ready, it copies contract addresses from integration-tests/.env.local
+ * to ui/.env so the UI can access them via Vite's import.meta.env.
  */
+
+/**
+ * Copy contract addresses from integration-tests/.env.local to ui/.env
+ * This makes the deployed contract addresses available to the UI via Vite env vars
+ */
+function copyContractAddresses(projectRoot: string): void {
+  try {
+    const integrationEnvPath = resolve(projectRoot, 'integration-tests/.env.local');
+    const uiEnvPath = resolve(projectRoot, 'ui/.env');
+
+    // Read the integration tests env file (contains contract addresses)
+    const integrationEnv = readFileSync(integrationEnvPath, 'utf-8');
+
+    // Extract contract addresses we need for the UI
+    const addressesToCopy = [
+      'BELIEFS_CONTRACT_ADDRESS',
+      'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
+    ];
+
+    // Parse the addresses
+    const addresses: Record<string, string> = {};
+    for (const line of integrationEnv.split('\n')) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+
+      for (const key of addressesToCopy) {
+        if (trimmedLine.startsWith(`${key}=`)) {
+          const value = trimmedLine.substring(key.length + 1);
+          addresses[key] = value;
+        }
+      }
+    }
+
+    // Read existing ui/.env file (to preserve VITE_WALLETCONNECT_PROJECT_ID)
+    let uiEnv = '';
+    try {
+      uiEnv = readFileSync(uiEnvPath, 'utf-8');
+    } catch {
+      // File doesn't exist yet, that's okay
+    }
+
+    // Remove any existing contract address lines from ui/.env
+    const existingLines = uiEnv.split('\n').filter(line => {
+      const trimmedLine = line.trim();
+      return !addressesToCopy.some(key => trimmedLine.startsWith(`VITE_${key}=`));
+    });
+
+    // Add contract addresses as VITE_ prefixed env vars
+    const newLines = [
+      ...existingLines,
+      '',
+      '# Contract addresses (auto-populated by E2E test setup)',
+      `VITE_BELIEFS_CONTRACT_ADDRESS=${addresses.BELIEFS_CONTRACT_ADDRESS || ''}`,
+      `VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS=${addresses.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || ''}`,
+      `VITE_GRAPHQL_URL=http://localhost:42069/graphql`,
+    ];
+
+    // Write back to ui/.env
+    writeFileSync(uiEnvPath, newLines.join('\n'));
+
+    console.log('   ✓ Contract addresses copied to ui/.env');
+  } catch (error) {
+    console.warn('   ⚠️  Failed to copy contract addresses:', error);
+    console.warn('   Tests may fail if UI cannot access contract addresses');
+  }
+}
 
 export default async function globalSetup() {
   console.log('🚀 Starting Docker Compose services for E2E tests...');
@@ -70,6 +140,11 @@ export default async function globalSetup() {
           console.log('   - IPFS API: http://localhost:5001');
           console.log('   - IPFS Gateway: http://localhost:8080');
           console.log('   - GraphQL Indexer: http://localhost:42069');
+
+          // Copy contract addresses to UI .env file
+          console.log('📝 Copying contract addresses to ui/.env...');
+          copyContractAddresses(projectRoot);
+
           return;
         }
 

@@ -7,7 +7,65 @@ Docker integration for E2E tests is now complete - Playwright can start/stop bac
 Wallet connection testing is now working - E2E tests can inject Hardhat accounts via wagmi mock connector.
 Next priority: Write E2E tests for critical workflows (statement creation, belief expression, etc.).
 
-## Latest session (2026-01-31) - Wallet Connection E2E Testing (Tracer Bullet)
+## Latest session (2026-01-31) - Statement Creation E2E Test Infrastructure (PARTIAL)
+
+**Task attempted:** Write E2E test for statement creation workflow
+
+**THIS WAS A LARGER TASK THAN EXPECTED** - Task stopped partway through
+
+**What was completed successfully:**
+- Updated global-setup.ts to copy contract addresses from integration-tests/.env.local to ui/.env
+  - After Docker services start and are healthy, the setup now copies:
+    - BELIEFS_CONTRACT_ADDRESS → VITE_BELIEFS_CONTRACT_ADDRESS
+    - MUTABLE_REF_UPDATER_CONTRACT_ADDRESS → VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS
+    - Hardcoded VITE_GRAPHQL_URL=http://localhost:42069/graphql
+  - This makes contract addresses available to the UI via Vite's import.meta.env
+  - The copying preserves existing .env content (like VITE_WALLETCONNECT_PROJECT_ID)
+  - Added proper imports: readFileSync, writeFileSync from 'fs'
+
+**What was attempted but incomplete:**
+- Created statement-creation.spec.ts with 3 test cases
+- Fixed various UI understanding issues:
+  - HomePage button is "Create and Sign Statement", not "Create Statement"
+  - Browse page route is "/statements", not "/conceptspace/browse"
+  - Statement detail route is "/statement/:id", not "/conceptspace/statement/:id"
+- Tests kept timing out waiting for success message after form submission
+
+**The problem:**
+The main E2E test ("should create a statement and see it appear on browse page") times out after 60 seconds waiting for the success message "statement created and signed successfully". This suggests the transaction is failing silently or there's an error preventing submission.
+
+**Recommendation for breaking down the task:**
+The statement creation E2E test needs more incremental debugging:
+
+1. **First**: Create a minimal E2E test that just verifies the form loads and can be filled (no submission)
+2. **Then**: Add browser console logging to the test using `page.on('console', msg => console.log(msg.text()))`
+3. **Then**: Add screenshot capture on failure to see what error messages appear in the UI
+4. **Then**: Manually test by running `npm run dev` (after starting Docker) to see if statement creation works
+5. **Then**: Add more specific error checking in CreateStatementForm component
+6. **Finally**: Once manual testing works, write the E2E test
+
+The infrastructure pieces are all in place (Docker, wallet injection, contract address copying), but the actual transaction flow needs debugging to understand why it's failing.
+
+**Files changed:**
+- Modified: ui/e2e/global-setup.ts (contract address copying - COMMITTED)
+- Created then deleted: ui/e2e/statement-creation.spec.ts (incomplete, needs debugging approach)
+- Modified: progress.txt (this file)
+
+**Test results:**
+- Unit tests: 265/265 passing ✅
+- TypeScript compilation: ✅ passes
+- Simple validation E2E test: PASSING ✅
+- Full statement creation E2E test: FAILING (timeout) ❌
+
+**Notes for next implementer:**
+- The global-setup.ts changes are good and should be kept
+- Contract addresses are now being copied correctly to ui/.env
+- The next task should be: "Debug why statement creation fails in E2E tests"
+- Consider using smaller, more incremental tests with better error visibility
+- The HomePage button to show the form is "Create and Sign Statement" (not "Create Statement")
+- After form submission, there are two buttons with same name: one to show form, one to submit it
+
+## Previous session (2026-01-31) - Wallet Connection E2E Testing (Tracer Bullet)
 
 **Task completed:** Implement wallet injection for E2E tests using wagmi mock connector
 
