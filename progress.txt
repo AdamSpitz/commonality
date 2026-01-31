@@ -1,30 +1,32 @@
 AI: use this file to write notes to yourself.
 
-## Latest session (2026-01-31) - StatementRenderer tests completed
+## Latest session (2026-01-31) - CreateStatementForm tests completed
 
-**Task completed:** Write unit tests for StatementRenderer.tsx
+**Task completed:** Write comprehensive unit tests for CreateStatementForm.tsx
 
 **Files changed:**
-- Created: ui/src/conceptspace/components/StatementRenderer.test.tsx (31 tests)
-- Updated: ui/test-plan.md (marked StatementRenderer as complete)
+- Created: ui/src/conceptspace/components/CreateStatementForm.test.tsx (28 tests)
+- Updated: ui/test-plan.md (marked CreateStatementForm as complete)
 
 **Test coverage:** Comprehensive tests covering:
-- Loading state
-- Error state
-- Content not found state
-- Plain text rendering (with whitespace preservation)
-- Markdown rendering (basic, internal links, blocked external links)
-- References rendering (list, links, missing labels)
-- Markdown ref:N link handling (discovered rehype-sanitize blocks these)
-- Assets rendering (inline base64, CID-referenced, missing assets, external blocking)
-- Extras/metadata rendering (simple values, complex JSON, empty state)
-- Unknown fields rendering
-- Complete document with all sections
+- Wallet connection states (connected vs disconnected)
+- Form display and input handling
+- Submit button enabled/disabled states
+- Content validation (empty, whitespace-only, trimmed content)
+- Statement creation workflow (createStatement, createAndSignStatement calls)
+- Loading state during creation (button disabled, loading indicator)
+- Success state (success message, content cleared, callback invoked)
+- Error handling (contract not configured, transaction failures, generic errors)
+- Error/success message clearing on re-submission
+- Form re-enabling after errors
+- IPFS and blockchain callbacks (onIPFSUpload, onSigned, onListUpdated)
 
 **Key decisions:**
-- Followed the existing test pattern from BeliefControls.test.tsx
-- Discovered that rehype-sanitize blocks asset: protocol URLs and ref: links, adjusted tests accordingly
-- All 31 tests pass, full project test suite passes (315 total tests)
+- Followed the existing test pattern from BeliefControls.test.tsx and StatementRenderer.test.tsx
+- Mocked wagmi hooks (useAccount, useWalletClient, usePublicClient)
+- Mocked SDK functions (createStatement, createAndSignStatement, createGraphQLClient)
+- Used vi.stubEnv to mock environment variables for contract addresses
+- All 28 tests pass, full project test suite passes (75 total tests)
 
-**Next step:** Use `task-chooser` to pick the next test to write. The plan recommends CreateStatementForm.tsx next (complex form with validation and IPFS upload).
+**Next step:** Use `task-chooser` to pick the next test to write. The plan recommends StatementSuggestions.tsx next (related statements feature).
 

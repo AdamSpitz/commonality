@@ -21,11 +21,11 @@
 - [x] BeliefControls.tsx - Has comprehensive unit tests
 - [x] SupportMetrics.tsx - Has test file (need to verify coverage)
 - [x] StatementRenderer.tsx - Has comprehensive unit tests (31 tests covering all render states, formats, and edge cases)
+- [x] CreateStatementForm.tsx - Has comprehensive unit tests (28 tests covering wallet states, form validation, submission workflow, error handling, and callbacks)
 
 ### 📝 Need unit tests
 
 #### Components (Priority: High)
-- [ ] CreateStatementForm.tsx - Complex form with validation, IPFS upload
 - [ ] StatementSuggestions.tsx - Related statements feature
 
 #### Pages (Priority: Medium)
@@ -40,7 +40,7 @@
 Suggested order (dependencies first, high-value features prioritized):
 
 1. ~~**StatementRenderer**~~ - ✅ Complete (31 tests)
-2. **CreateStatementForm** - Critical feature, complex logic
+2. ~~**CreateStatementForm**~~ - ✅ Complete (28 tests)
 3. **StatementSuggestions** - Related to core feature
 4. **StatementPage** - Integration of multiple components
 5. **BrowseStatementsPage** - Discovery feature
