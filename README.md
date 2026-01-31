@@ -17,6 +17,8 @@ For long-term documentation, there are many .md files all over the project. Try 
 - `npm run build` to make sure everything builds and type-checks
 - `npm run test` to run the tests
 
+Note that these are both run by the Git pre-commit hook, and the whole thing takes a few minutes to run, so if you're ready to commit and the only thing left to do is run the build and the tests, it's okay to just attempt to commit and make sure it goes through; no need to run the whole test suite only to have it run again when you commit immediately afterward.
+
 ## Artifacts
 
 Main artifacts:
