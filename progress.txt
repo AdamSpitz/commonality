@@ -265,3 +265,89 @@ Instead of refactoring existing components, consider creating **a custom wagmi c
 **Recommendation for next session:**
 
 Try the custom connector approach instead. It's truly minimal and doesn't require touching production code or tests.
+
+## Session (2026-01-31 evening #2) - Custom PrivateKeyConnector Implementation Attempt (INCOMPLETE - TASK LARGER THAN EXPECTED)
+
+**Task attempted:** Create `ui/e2e/fixtures/privateKeyConnector.ts` - a custom wagmi connector for E2E tests with private key signing
+
+**THIS WAS A LARGER TASK THAN EXPECTED** - Task stopped after extensive exploration revealed complexity
+
+**What I discovered:**
+
+After thoroughly exploring the wagmi connector architecture:
+
+1. **Connector interface complexity:**
+   - Wagmi connectors use the `CreateConnectorFn` pattern from `@wagmi/core`
+   - Must implement: setup(), connect(), disconnect(), getAccounts(), getChainId(), getProvider(), isAuthorized(), switchChain()
+   - Must handle event emitters for change/connect/disconnect events
+   - Must implement proper onAccountsChanged, onChainChanged, onDisconnect handlers
+
+2. **Provider implementation requirements:**
+   - The `getProvider()` method must return an EIP-1193 compatible provider
+   - This provider must implement a custom `request` function that handles ALL wallet RPC methods
+   - Key methods needed: eth_requestAccounts, eth_accounts, eth_chainId, eth_sendTransaction, personal_sign, eth_signTypedData_v4, wallet_switchEthereumChain
+   - The mock connector implementation is ~250 lines just for the provider logic (ui/node_modules/@wagmi/core/dist/esm/connectors/mock.js)
+
+3. **The core challenge:**
+   - For signing to work with a private key, the provider's eth_sendTransaction handler must:
+     - Accept transaction parameters
+     - Sign the transaction locally using the private key account
+     - Send the signed transaction to the RPC endpoint
+     - Return the transaction hash
+   - This requires understanding viem's account signing internals and properly bridging them to the EIP-1193 provider interface
+
+4. **Alternative that might exist but wasn't found:**
+   - Checked if wagmi has a built-in connector for private key accounts - none found
+   - Checked if viem provides helper functions for EIP-1193 provider creation with accounts - didn't find clear examples
+   - The viem `custom()` transport creates a provider, but it's designed to wrap existing providers, not create signing providers from scratch
+
+**Why this is larger than expected:**
+
+This isn't a "50-100 line" custom connector. It requires:
+- Deep understanding of EIP-1193 provider spec
+- Implementing complex RPC method handling logic
+- Properly integrating viem account signing with RPC requests
+- Handling edge cases for different transaction types, signing methods, etc.
+- Thorough testing to ensure it works with all SDK actions
+
+Estimated complexity: ~200-300 lines for a robust implementation
+
+**Recommended approach for breaking this down:**
+
+Instead of building a full custom connector from scratch, consider these smaller alternatives:
+
+1. **Option A: Modify SDK to accept wagmi hooks (SIMPLEST for E2E tests)**
+   - Create a small adapter layer that translates wagmi hook patterns to SDK patterns
+   - E2E tests would only need this adapter, not changes to production code
+   - Example: `createWagmiClients(useWalletClient(), usePublicClient())` helper
+   - Adapter could handle the account mismatch by using wagmi's native signing methods
+
+2. **Option B: Use viem's test client in E2E environment (CLEANEST separation)**
+   - E2E tests bypass the UI components' SDK calls entirely
+   - Instead, E2E tests directly call contracts using viem test clients (like integration tests do)
+   - UI components continue to use wagmi, but we don't test the signing flow in E2E
+   - We verify UI behavior (forms, validation) separately from blockchain integration
+
+3. **Option C: Find/adapt an existing connector implementation**
+   - Search npm for wagmi connectors that support private keys
+   - Adapt the mock connector code specifically for private key signing (fork and modify)
+   - This at least gives us a starting point rather than building from scratch
+
+**Files explored:**
+- ui/node_modules/@wagmi/core/dist/types/connectors/createConnector.d.ts - Connector interface
+- ui/node_modules/@wagmi/core/dist/esm/connectors/mock.js - Mock connector implementation (~250 lines)
+- ui/src/wagmi.ts - Current mock config setup
+- ui/e2e/fixtures/wallet.ts - Wallet fixture
+- sdk/src/actions/common.ts - How createTestClients() works
+- sdk/src/actions/conceptspace-actions.ts - How SDK actions use walletClient.account
+
+**Changes made:** None - task stopped during exploration phase
+
+**Recommendation for project lead:**
+
+This E2E testing blocker requires an architectural decision:
+- Do we invest ~4-8 hours building a robust custom connector?
+- Do we change how UI components interact with the SDK (adapter layer)?
+- Do we change our E2E testing strategy (bypass wagmi, test contract calls directly)?
+
+Current approach (custom connector) is more complex than initially estimated.
