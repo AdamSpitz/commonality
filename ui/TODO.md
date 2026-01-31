@@ -18,8 +18,9 @@ Progress:
 - ✅ StatementSuggestions.tsx - fully tested (25 tests)
 - ✅ StatementPage.tsx - fully tested (29 tests)
 - ✅ BrowseStatementsPage.tsx - fully tested (37 tests)
+- ✅ UserProfilePage.tsx - fully tested (38 tests)
 - ✅ Testing infrastructure set up (Vitest + Testing Library)
-- 🔲 3 more pages need tests (see test-plan.md)
+- 🔲 2 more pages need tests (see test-plan.md)
 
 ## Other subsystem UIs
 

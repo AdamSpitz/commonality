@@ -1,10 +1,44 @@
 AI: use this file to write notes to yourself.
 
 High-level stuff is all in order, it's time to implement. Current priority:
-write unit tests for the remaining 3 pages (UserProfilePage, HomePage, SettingsPage).
+write unit tests for the remaining 2 pages (HomePage, SettingsPage).
 See ui/test-plan.md and ui/TODO.md.
 
-## Latest session (2026-01-31) - BrowseStatementsPage Unit Tests
+## Latest session (2026-01-31) - UserProfilePage Unit Tests
+
+**Task completed:** Write comprehensive unit tests for UserProfilePage.tsx
+
+**What was done:**
+- Created UserProfilePage.test.tsx with 38 comprehensive tests
+- Tests cover:
+  - Loading state (spinner display, no error/content while loading)
+  - No wallet connected state (connect wallet message, no data fetching)
+  - Error states (Error messages, non-Error exceptions, console logging, spinner hidden)
+  - Own profile vs other user profile (heading changes, "Create Statement" button visibility)
+  - Address display (monospace font, params vs connected address)
+  - Tabs (labels with counts, default selection, switching between tabs)
+  - Beliefs tab (empty state, statement cards, title/excerpt fallbacks, navigation, multiple statements)
+  - Disbeliefs tab (empty state, statement display)
+  - Indirect Support tab (support info display, empty state, pluralization, truncation after 3 items, ID fallback, navigation)
+  - API integration (executor creation, SDK function calls with correct parameters)
+  - Data refetching (refetch when displayAddress changes)
+
+**Files changed:**
+- Created: ui/src/conceptspace/pages/UserProfilePage.test.tsx
+- Updated: ui/test-plan.md (marked UserProfilePage as complete)
+- Updated: ui/TODO.md (updated progress tracker)
+- Updated: progress.txt (this file)
+
+**Test results:**
+- All 38 new tests pass ✅
+- Full test suite: 204/204 tests passing ✅
+- Build and typecheck: successful ✅
+
+**Next steps:**
+- Next page to test: HomePage.tsx
+- Then: SettingsPage
+
+## Previous session (2026-01-31) - BrowseStatementsPage Unit Tests
 
 **Task completed:** Write comprehensive unit tests for BrowseStatementsPage.tsx
 
