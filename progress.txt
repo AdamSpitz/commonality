@@ -240,3 +240,14 @@ Key insight: Most skills benefit from autonomous components (monitoring, alertin
 
 High-level stuff is all in order, it's time to implement. Next AI instance should use task-chooser to pick a task from TODO.md.
 
+
+## UI navigation bug fix: StatementSuggestions route corrected (Jan 2026)
+
+Fixed critical navigation bug in StatementSuggestions component:
+- Changed route from `/statements/${id}` to `/statement/${id}` to match App.tsx routing configuration
+- Bug would have caused 404 errors when users clicked on suggested statements
+- Files changed: ui/src/conceptspace/components/StatementSuggestions.tsx (line 74)
+- All feedback loops pass (72 SDK tests + 243 hardhat tests + 102 integration tests + build succeeds)
+
+Next priority from TODO.md: Write UI tests (starting with CreateStatementForm, StatementPage, and BeliefControls).
+

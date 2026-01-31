@@ -71,7 +71,7 @@ export function StatementSuggestions({ statementId, userAddress }: StatementSugg
 
       {suggestions.map((suggestion, index) => (
         <Card key={index} sx={{ mb: 2 }}>
-          <CardActionArea onClick={() => navigate(`/statements/${suggestion.statement.id}`)}>
+          <CardActionArea onClick={() => navigate(`/statement/${suggestion.statement.id}`)}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
                 <Chip
