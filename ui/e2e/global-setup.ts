@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * Global setup for Playwright E2E tests
@@ -16,7 +17,9 @@ import { resolve } from 'path';
 export default async function globalSetup() {
   console.log('🚀 Starting Docker Compose services for E2E tests...');
 
-  // Get the project root directory (one level up from ui/)
+  // Get the project root directory (two levels up from e2e/)
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
   const projectRoot = resolve(__dirname, '../..');
 
   try {

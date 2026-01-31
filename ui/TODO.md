@@ -37,20 +37,23 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
 - [x] Create `scripts/run-e2e-tests.sh` script (similar to run-integration-tests.sh)
 
 #### 2. Wallet Connection Testing
-- [ ] Configure Playwright to inject Hardhat test accounts as wallets
-  - Use `@wagmi/core` testing utilities or Playwright's wallet mocking
+- [x] Configure Playwright to inject Hardhat test accounts as wallets
+  - Used wagmi's mock connector (more reliable than browser extensions)
   - Hardhat provides 10 test accounts (ACCOUNT_0 through ACCOUNT_9)
   - Each account has 10,000 ETH and known private keys
-- [ ] Reuse SDK's `TEST_PRIVATE_KEYS` from `@commonality/sdk`
-- [ ] Create test helpers to connect specific Hardhat accounts
+- [x] Reuse SDK's `TEST_PRIVATE_KEYS` from `@commonality/sdk`
+- [x] Create test helpers to connect specific Hardhat accounts
+  - Created `e2e/fixtures/wallet.ts` with WalletFixture class
+  - Provides `wallet.connect('ACCOUNT_0')` method for tests
 - [ ] Assign different accounts to different test files (avoid nonce conflicts)
   - Can reuse pattern from integration-tests/src/utils/test-utils.ts
+  - Not needed yet since tests are isolated, but will be needed for complex workflows
 
 #### 3. Test Coverage - Critical Workflows
-- [ ] **Wallet connection flow**
-  - Connect Hardhat account via ConnectKit UI
+- [x] **Wallet connection flow** (tracer bullet done)
+  - Connect Hardhat account via ConnectKit Mock Connector
   - Verify connected address displays correctly
-  - Test network switching to hardhat chain
+  - 3 passing tests in wallet-connection.spec.ts
 - [ ] **Statement creation workflow**
   - Connect wallet
   - Fill out CreateStatementForm

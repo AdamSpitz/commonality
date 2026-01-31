@@ -4,9 +4,77 @@ High-level stuff is all in order, it's time to implement.
 All conceptspace UI unit tests are now complete (265 tests across all components and pages).
 E2E testing infrastructure is now set up with Playwright.
 Docker integration for E2E tests is now complete - Playwright can start/stop backend services automatically.
-Next priority: see TODO.md for other big items (expand E2E tests with backend, generative testing, implication attester, deployment).
+Wallet connection testing is now working - E2E tests can inject Hardhat accounts via wagmi mock connector.
+Next priority: Write E2E tests for critical workflows (statement creation, belief expression, etc.).
 
-## Latest session (2026-01-31) - Docker Integration for E2E Tests
+## Latest session (2026-01-31) - Wallet Connection E2E Testing (Tracer Bullet)
+
+**Task completed:** Implement wallet injection for E2E tests using wagmi mock connector
+
+**What was done:**
+- Updated wagmi.ts to add createMockConfig() function
+  - Accepts either an address or private key
+  - Creates wagmi config with mock connector instead of real wallet extensions
+  - Allows tests to inject specific Hardhat test accounts
+- Modified main.tsx to expose wallet setup function
+  - Created Root component with dynamic wagmi config state
+  - Exposed window._setupTestWallet() function for Playwright tests
+  - Allows tests to swap wagmi config at runtime
+- Created e2e/fixtures/wallet.ts with WalletFixture class
+  - Maps ACCOUNT_0 through ACCOUNT_9 to Hardhat test account private keys
+  - Provides wallet.connect(accountName) method for tests
+  - Handles clicking ConnectKit's Mock Connector button
+  - Exports custom test() with wallet fixture built-in
+- Created e2e/wallet-connection.spec.ts with 3 tracer bullet tests
+  - Test 1: Connect ACCOUNT_0 and verify address displays
+  - Test 2: Connect ACCOUNT_1 in different test (proves isolation works)
+  - Test 3: Verify connected state on home page (Welcome Back message)
+- Fixed ESM __dirname issue in global-setup.ts and global-teardown.ts
+  - Added fileURLToPath and dirname imports
+  - Converted __dirname to ESM-compatible approach
+
+**Key decisions:**
+- Used wagmi's mock connector instead of browser extension automation (more reliable)
+- Followed pattern from rombrom.com article on testing dApps with Playwright
+- Reused TEST_PRIVATE_KEYS from @commonality/sdk for consistency
+- Made wagmi config dynamic via React state (allows runtime swapping)
+- Fixed strict mode violations by using specific text assertions ("Connected as:")
+
+**Files changed:**
+- Modified: ui/src/wagmi.ts (added createMockConfig function)
+- Modified: ui/src/main.tsx (made config dynamic, exposed _setupTestWallet)
+- Created: ui/e2e/fixtures/wallet.ts (WalletFixture class)
+- Created: ui/e2e/wallet-connection.spec.ts (3 tracer bullet tests)
+- Modified: ui/e2e/global-setup.ts (fixed ESM __dirname issue)
+- Modified: ui/e2e/global-teardown.ts (fixed ESM __dirname issue)
+- Modified: ui/TODO.md (will update in next step)
+- Modified: progress.txt (this file)
+
+**Test results:**
+- E2E tests: 3/3 passing ✅
+- Unit tests: 265/265 passing ✅
+- TypeScript compilation: ✅ passes
+- Build: successful ✅
+
+**Next steps:**
+- Expand E2E tests with more complex workflows:
+  - Statement creation (fill form, submit transaction, wait for indexer)
+  - Belief expression (navigate to statement, express belief, verify count)
+  - User profile (view own profile, verify data displays)
+- Create E2E test utilities for common patterns:
+  - GraphQL polling helpers (wait for indexer to sync)
+  - Transaction waiting utilities
+  - Environment variable loading
+
+**Notes for next implementer:**
+- Wallet injection works via wagmi mock connector (no browser extensions needed)
+- Use `import { test, expect } from './fixtures/wallet'` in E2E tests
+- Call `await wallet.connect('ACCOUNT_0')` to inject Hardhat account
+- wallet.address will contain the connected address
+- Tests run with full Docker backend (hardhat, IPFS, indexer)
+- All services start/stop automatically via global setup/teardown
+
+## Previous session (2026-01-31) - Docker Integration for E2E Tests
 
 **Task completed:** Create Docker integration for E2E tests (global setup/teardown)
 
