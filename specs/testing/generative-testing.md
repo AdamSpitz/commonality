@@ -4,7 +4,7 @@
 
 Let's have some scripts for doing generative testing. The goal is to validate the entire system through automated simulation, finding bugs before production, validating scalability with 10,000+ users, and checking correctness of graph algorithms and economic incentives.
 
-Write them in TypeScript. Use viem for blockchain stuff. Use Hardhat local node for deterministic testing.
+We should be able to generate a bunch of user actions and run them through the sdk (using the same setup we're currently using for the integration-tests), just as a smoke test to see if anything catches fire.
 
 Here's what I'm imagining:
   - Hardcode a JSON data structure describing a "universe".
@@ -25,3 +25,6 @@ Here's what I'm imagining:
   - Track metrics: gas usage per action type (mean/p95/p99/max), indexer query response times, graph algorithm execution times, coverage (% of contract functions/state transitions exercised), statistical properties (validate belief distributions, statement popularity follows power law, delegation chain lengths), security (damage quantification from attack scenarios).
   - Persist test artifacts to JSON: universe.json (domains/positions), users.json (profiles/keys), attesters.json (configurations), statements.json (generated content), actions.json (action log), state snapshots, test results.
 
+## Current progress
+
+There's an early attempt at fake-data generation in hardhat/fake-data-generation, but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.
