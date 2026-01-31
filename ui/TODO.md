@@ -60,13 +60,17 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
   - 4 passing tests in statement-creation-form.spec.ts
   - Tests verify form display, field interaction, validation, cancel flow
   - Confirms UI is working correctly - timeout issue is in transaction layer
-- [ ] **Statement creation workflow** (infrastructure ready, needs debugging)
-  - Contract addresses now copied to ui/.env automatically
-  - Form UI tests confirm the problem is in transaction submission
-  - Next step: Add console logging to capture browser errors during submission
-  - Then add screenshot capture on failure to see UI error messages
-  - Then manually test with `npm run dev` to debug transaction flow
-  - See progress.txt for detailed breakdown suggestions
+- [ ] **Statement creation workflow** (root cause identified, needs fix)
+  - ✅ Console logging added - successfully captured the error
+  - ✅ Screenshot/video capture on failure configured in Playwright
+  - **ROOT CAUSE IDENTIFIED:** Wagmi client doesn't have account configured for signing
+    - Error: "Could not find an Account to execute with this Action"
+    - IPFS upload works ✅
+    - Transaction signing fails ❌
+  - Next step: Fix wagmi client configuration to make connected account available for signing
+    - Check ui/src/main.tsx for wagmi config setup
+    - Compare with integration-tests to see how they configure clients with accounts
+    - Ensure SDK actions receive a client with the connected account
 - [ ] **Belief expression workflow**
   - Navigate to existing statement
   - Express belief (sign transaction)
