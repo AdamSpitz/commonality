@@ -293,11 +293,15 @@ See [indexers.md](indexers.md) for the federated indexer architecture (Concept S
 
 #### Integration testing (blockchain plus indexer together)
 
-See [integration-tests.md](integration-tests.md).
+See [testing/integration-tests.md](testing/integration-tests.md).
 
 #### Generative testing
 
-See [generative-testing-plan.md](generative-testing-plan.md) for the overall plan for generative testing (universe generation, user simulation, multiple attester types, test scenarios, invariant validation, metrics tracking). For the actual implementation, see [../hardhat/fake-data-generation/README.md](../hardhat/fake-data-generation/README.md).
+See [testing/generative-testing-plan.md](testing/generative-testing-plan.md) for the overall plan for generative testing (universe generation, user simulation, multiple attester types, test scenarios, invariant validation, metrics tracking). For the actual implementation, see [../hardhat/fake-data-generation/README.md](../hardhat/fake-data-generation/README.md).
+
+#### UI testing
+
+See [testing/ui-tests.md](testing/ui-tests.md).
 
 
 ## A bit more philosophizing
