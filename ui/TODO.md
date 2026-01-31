@@ -16,8 +16,9 @@ Progress:
 - ✅ StatementRenderer.tsx - fully tested (31 tests)
 - ✅ CreateStatementForm.tsx - fully tested (28 tests)
 - ✅ StatementSuggestions.tsx - fully tested (25 tests)
+- ✅ StatementPage.tsx - fully tested (29 tests)
 - ✅ Testing infrastructure set up (Vitest + Testing Library)
-- 🔲 5 more pages need tests (see test-plan.md)
+- 🔲 4 more pages need tests (see test-plan.md)
 
 ## Other subsystem UIs
 

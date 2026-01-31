@@ -23,6 +23,7 @@
 - [x] StatementRenderer.tsx - Has comprehensive unit tests (31 tests covering all render states, formats, and edge cases)
 - [x] CreateStatementForm.tsx - Has comprehensive unit tests (28 tests covering wallet states, form validation, submission workflow, error handling, and callbacks)
 - [x] StatementSuggestions.tsx - Has comprehensive unit tests (25 tests covering loading states, error handling, empty state, suggestions display, navigation, and API integration)
+- [x] StatementPage.tsx - Has comprehensive unit tests (29 tests covering loading, errors, content errors, successful rendering, wallet states, data refetching, API integration, and state transitions)
 
 ### 📝 Need unit tests
 
@@ -30,10 +31,9 @@
 - None remaining!
 
 #### Pages (Priority: Medium)
-- [ ] HomePage.tsx - Entry point, likely simple routing/layout
-- [ ] StatementPage.tsx - Shows statement details + BeliefControls + SupportMetrics
 - [ ] BrowseStatementsPage.tsx - List view with filtering/searching
 - [ ] UserProfilePage.tsx - User's beliefs and activity
+- [ ] HomePage.tsx - Entry point, likely simple routing/layout
 - [ ] SettingsPage.tsx - User settings management
 
 ## Test Writing Sequence
@@ -43,7 +43,7 @@ Suggested order (dependencies first, high-value features prioritized):
 1. ~~**StatementRenderer**~~ - ✅ Complete (31 tests)
 2. ~~**CreateStatementForm**~~ - ✅ Complete (28 tests)
 3. ~~**StatementSuggestions**~~ - ✅ Complete (25 tests)
-4. **StatementPage** - Integration of multiple components
+4. ~~**StatementPage**~~ - ✅ Complete (29 tests)
 5. **BrowseStatementsPage** - Discovery feature
 6. **UserProfilePage** - User-specific views
 7. **HomePage** - Likely simple, test last
