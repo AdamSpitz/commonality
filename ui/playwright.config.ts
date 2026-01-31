@@ -23,6 +23,10 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
+  /* Global setup/teardown for Docker services */
+  globalSetup: './e2e/global-setup.ts',
+  globalTeardown: './e2e/global-teardown.ts',
+
   /* Configure projects for major browsers */
   projects: [
     {

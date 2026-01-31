@@ -3,9 +3,68 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 All conceptspace UI unit tests are now complete (265 tests across all components and pages).
 E2E testing infrastructure is now set up with Playwright.
-Next priority: see TODO.md for other big items (expand E2E tests, generative testing, implication attester, deployment).
+Docker integration for E2E tests is now complete - Playwright can start/stop backend services automatically.
+Next priority: see TODO.md for other big items (expand E2E tests with backend, generative testing, implication attester, deployment).
 
-## Latest session (2026-01-31) - Playwright E2E Setup
+## Latest session (2026-01-31) - Docker Integration for E2E Tests
+
+**Task completed:** Create Docker integration for E2E tests (global setup/teardown)
+
+**What was done:**
+- Created ui/e2e/global-setup.ts - starts Docker Compose services before E2E tests
+  - Runs `docker-compose up -d --build` to start all backend services
+  - Waits for all services to become healthy (checks indexer health, which depends on all others)
+  - Provides clear console output showing service URLs and health status
+  - Max 2-minute timeout with progress logging every 2 seconds
+  - Shows docker-compose logs if startup fails for debugging
+- Created ui/e2e/global-teardown.ts - cleans up Docker services after tests
+  - Runs `docker-compose down -v` to remove containers and volumes
+  - Ensures fresh state for next test run
+  - Doesn't throw on cleanup errors (allows test results to be reported)
+- Updated ui/playwright.config.ts to use globalSetup and globalTeardown
+- Created ui/scripts/run-e2e-tests.sh convenience script
+  - Wrapper around `npm run test:e2e` for consistency with integration tests
+  - Supports passing arguments to Playwright (e.g., --ui, --headed, test name patterns)
+  - Made executable with chmod +x
+
+**Key decisions:**
+- Reused existing docker-compose.yml from root (same services as integration tests)
+- Used Docker Compose's healthcheck feature to wait for services to be ready
+- Checked indexer health as the signal that all services are ready (it depends on all others)
+- Used `docker-compose ps --format json` to parse service health status programmatically
+- Set reasonable timeout (2 minutes) with helpful progress logging
+
+**Files changed:**
+- Created: ui/e2e/global-setup.ts
+- Created: ui/e2e/global-teardown.ts
+- Modified: ui/playwright.config.ts (added globalSetup/globalTeardown)
+- Created: ui/scripts/run-e2e-tests.sh (executable convenience wrapper)
+- Modified: ui/TODO.md (marked Docker Integration section as complete)
+- Modified: progress.txt (this file)
+
+**Test results:**
+- TypeScript compilation: ✅ passes
+- Unit tests: 265/265 passing ✅
+- Build: successful ✅
+- Playwright config validation: ✅ can list tests
+
+**Next steps:**
+- The Docker setup/teardown infrastructure is now ready
+- Next task: Wallet Connection Testing (inject Hardhat test accounts)
+- After that: Write E2E tests for critical workflows (statement creation, belief expression, etc.)
+
+**Notes for next implementer:**
+- The global setup/teardown will run automatically when you execute `npm run test:e2e`
+- Use `./ui/scripts/run-e2e-tests.sh` for convenience (mirrors integration test script)
+- Docker services will be available at:
+  - Hardhat node: http://localhost:8545
+  - IPFS API: http://localhost:5001
+  - IPFS Gateway: http://localhost:8080
+  - GraphQL Indexer: http://localhost:42069
+- Services are torn down automatically after tests complete
+- Fresh state is guaranteed for each test run (docker-compose down -v removes volumes)
+
+## Previous session (2026-01-31) - Playwright E2E Setup
 
 **Task completed:** Set up Playwright and write initial E2E "tracer bullet" test
 

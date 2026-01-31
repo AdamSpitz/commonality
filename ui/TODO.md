@@ -26,15 +26,15 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
 ### Implementation Steps
 
 #### 1. Docker Integration
-- [ ] Create `ui/e2e/global-setup.ts` to start Docker Compose services
+- [x] Create `ui/e2e/global-setup.ts` to start Docker Compose services
   - Run `docker-compose up -d --build` (reuse existing docker-compose.yml)
   - Wait for healthchecks to pass (hardhat-node, ipfs, indexer)
   - Services expose: blockchain (8545), IPFS (5001/8080), GraphQL (42069)
-- [ ] Create `ui/e2e/global-teardown.ts` to clean up
+- [x] Create `ui/e2e/global-teardown.ts` to clean up
   - Run `docker-compose down -v` to remove containers and volumes
   - Ensures fresh state for next test run
-- [ ] Update `playwright.config.ts` to use global setup/teardown
-- [ ] Create `scripts/run-e2e-tests.sh` script (similar to run-integration-tests.sh)
+- [x] Update `playwright.config.ts` to use global setup/teardown
+- [x] Create `scripts/run-e2e-tests.sh` script (similar to run-integration-tests.sh)
 
 #### 2. Wallet Connection Testing
 - [ ] Configure Playwright to inject Hardhat test accounts as wallets
