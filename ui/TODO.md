@@ -2,17 +2,19 @@
 
 ## Concept Space UI - MVP
 
-Maybe done?
+Implementation is mostly done, but not yet tested thoroughly.
 
-But not really tested, even manually; I don't trust the UI at all yet.
+**Current priority:** Write comprehensive unit tests for all components.
 
-Let's spend some time writing tests.
+See [test-plan.md](test-plan.md) for:
+- Detailed test strategy (unit tests + E2E tests)
+- Component-by-component test coverage status
+- Recommended test writing sequence
 
-We've got Vitest + Testing Library installed, but I think we've maybe only added one test so far, as a tracer bullet (ui/src/conceptspace/components/BeliefControls.test.tsx). Let's flesh out this list and add more.
-
-Also maybe it'd be good to have end-to-end UI tests too, using whatever testing library is good for that? (Please help me understand whether it's necessary to have both.) If it's useful to have both, can we do some tracer bullets of that, too?
-
-See also specs/testing/ui-tests.md.
+Progress:
+- ✅ BeliefControls.tsx - fully tested
+- ✅ Testing infrastructure set up (Vitest + Testing Library)
+- 🔲 7 more components/pages need tests (see test-plan.md)
 
 ## Other subsystem UIs
 

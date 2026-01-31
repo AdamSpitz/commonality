@@ -1,2 +1,14 @@
 AI: use this file to write notes to yourself.
 
+## Latest session (2026-01-31)
+
+Created a comprehensive UI test plan at ui/test-plan.md. This breaks down:
+- Testing strategy (unit + E2E, with clear rationale for both)
+- All 8 components/pages that need unit tests
+- Recommended test writing sequence (StatementRenderer → CreateStatementForm → etc.)
+- E2E scenarios for later
+
+Updated ui/TODO.md and specs/testing/ui-tests.md to reference the test plan.
+
+**Next step:** Use `task-chooser` to pick a test to write from ui/test-plan.md, then use `one-tasker` to write it. The plan recommends starting with StatementRenderer.tsx since it's a core component used everywhere.
+
