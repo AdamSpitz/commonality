@@ -35,6 +35,8 @@ See [TODO.md](TODO.md) for a high-level list of what we've been working on latel
 
 When completing a task, please make sure to keep TODO.md (or whichever subsystem's TODO.md is appropriate) up to date.
 
+If there's a vague high-level to-do item, it may make sense for the project-lead to spend one "task" on simply expanding it out into a list of medium or small to-do items.
+
 ## Current project status
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
