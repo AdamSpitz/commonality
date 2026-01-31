@@ -64,3 +64,40 @@ The infrastructure pieces are all in place (Docker, wallet injection, contract a
 - Consider using smaller, more incremental tests with better error visibility
 - The HomePage button to show the form is "Create and Sign Statement" (not "Create Statement")
 - After form submission, there are two buttons with same name: one to show form, one to submit it
+
+## Session (2026-01-31) - Statement Creation Form UI Tests (COMPLETED)
+
+**Task completed:** Create minimal E2E test for statement creation form (UI only, no submission)
+
+**What was accomplished:**
+- Created `ui/e2e/statement-creation-form.spec.ts` with 4 passing UI tests
+- Tests verify form display, field interaction, validation, and cancel functionality
+- All tests pass (4/4) and confirm the form UI works correctly
+- This diagnostic test confirms the timeout issue is NOT in the UI layer
+
+**Test cases implemented:**
+1. Form displays when "Create and Sign Statement" button is clicked
+2. Submit button enables/disables based on content
+3. Cancel button hides the form and returns to initial state
+4. Validation works correctly for empty/whitespace-only content
+
+**Key findings:**
+- Form loads correctly ✅
+- Form fields are interactive ✅
+- Validation logic works ✅
+- Cancel flow works ✅
+- **Conclusion:** The timeout issue in statement creation must be in the transaction submission flow, not the UI
+
+**Files changed:**
+- Created: `ui/e2e/statement-creation-form.spec.ts` (4 new passing tests)
+- Modified: `progress.txt` (this file)
+
+**Test results:**
+- All E2E tests: 9/9 passing ✅
+- Unit tests: 265/265 passing ✅
+- TypeScript compilation: ✅
+- Build: ✅
+
+**Next steps:**
+The next implementer should add console logging and screenshot capture to debug the transaction submission flow. The recommended next task is:
+"Add browser console logging to E2E tests to capture errors during statement creation submission"

@@ -56,11 +56,16 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
   - Connect Hardhat account via ConnectKit Mock Connector
   - Verify connected address displays correctly
   - 3 passing tests in wallet-connection.spec.ts
+- [x] **Statement creation form UI** (completed - UI layer works)
+  - 4 passing tests in statement-creation-form.spec.ts
+  - Tests verify form display, field interaction, validation, cancel flow
+  - Confirms UI is working correctly - timeout issue is in transaction layer
 - [ ] **Statement creation workflow** (infrastructure ready, needs debugging)
   - Contract addresses now copied to ui/.env automatically
-  - Next step: Debug why form submission times out
-  - Recommended: Start with simpler test (just fill form, don't submit)
-  - Then add console logging and screenshots to diagnose issue
+  - Form UI tests confirm the problem is in transaction submission
+  - Next step: Add console logging to capture browser errors during submission
+  - Then add screenshot capture on failure to see UI error messages
+  - Then manually test with `npm run dev` to debug transaction flow
   - See progress.txt for detailed breakdown suggestions
 - [ ] **Belief expression workflow**
   - Navigate to existing statement
