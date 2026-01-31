@@ -1,7 +1,7 @@
 # What we've been working on lately
 
 Main thing I want to work on next:
-  - Writing and testing the UI. See [ui/TODO.md]. Let's start with the conceptspace UI, and let's make sure it's well tested.
+  - Writing and testing the UI. See [ui/TODO.md](ui/TODO.md). Let's start with the conceptspace UI, and let's make sure it's well tested.
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.
