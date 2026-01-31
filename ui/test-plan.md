@@ -26,6 +26,7 @@
 - [x] StatementPage.tsx - Has comprehensive unit tests (29 tests covering loading, errors, content errors, successful rendering, wallet states, data refetching, API integration, and state transitions)
 - [x] BrowseStatementsPage.tsx - Has comprehensive unit tests (37 tests covering loading, errors, empty state, successful rendering, sort toggle, date formatting, API integration, and state transitions)
 - [x] UserProfilePage.tsx - Has comprehensive unit tests (38 tests covering loading, errors, wallet states, own profile vs other profile, address display, tabs, beliefs/disbeliefs/indirect support rendering, navigation, API integration, and data refetching)
+- [x] HomePage.tsx - Has comprehensive unit tests (21 tests covering disconnected state, connected state, address display, quick actions, profile links, form toggle, statement creation callback, and address-dependent links)
 
 ### 📝 Need unit tests
 
@@ -33,7 +34,6 @@
 - None remaining!
 
 #### Pages (Priority: Medium)
-- [ ] HomePage.tsx - Entry point, likely simple routing/layout
 - [ ] SettingsPage.tsx - User settings management
 
 ## Test Writing Sequence
@@ -46,7 +46,7 @@ Suggested order (dependencies first, high-value features prioritized):
 4. ~~**StatementPage**~~ - ✅ Complete (29 tests)
 5. ~~**BrowseStatementsPage**~~ - ✅ Complete (37 tests)
 6. ~~**UserProfilePage**~~ - ✅ Complete (38 tests)
-7. **HomePage** - Likely simple, test last
+7. ~~**HomePage**~~ - ✅ Complete (21 tests)
 8. **SettingsPage** - Lower priority UX feature
 
 ## E2E Test Scenarios (Future)

@@ -1,10 +1,37 @@
 AI: use this file to write notes to yourself.
 
 High-level stuff is all in order, it's time to implement. Current priority:
-write unit tests for the remaining 2 pages (HomePage, SettingsPage).
+write unit tests for the remaining 1 page (SettingsPage).
 See ui/test-plan.md and ui/TODO.md.
 
-## Latest session (2026-01-31) - UserProfilePage Unit Tests
+## Latest session (2026-01-31) - HomePage Unit Tests
+
+**Task completed:** Write comprehensive unit tests for HomePage.tsx
+
+**What was done:**
+- Created HomePage.test.tsx with 21 comprehensive tests
+- Tests cover:
+  - Disconnected state (welcome heading, platform description, connect wallet prompt, no connected-only content)
+  - Connected state (welcome back heading, address in alert, quick actions, activity section, profile links, browse link)
+  - Create Statement form toggle (default hidden, show on click, hide quick actions, cancel button, restore on cancel)
+  - Statement creation callback (navigates to /statement/{cid}, hides form, passes callback prop)
+  - Address-dependent links (profile links update when address changes)
+
+**Files changed:**
+- Created: ui/src/conceptspace/pages/HomePage.test.tsx
+- Updated: ui/test-plan.md (marked HomePage as complete)
+- Updated: ui/TODO.md (updated progress tracker)
+- Updated: progress.txt (this file)
+
+**Test results:**
+- All 21 new tests pass ✅
+- Full test suite: 225/225 tests passing ✅
+- Build and typecheck: successful ✅
+
+**Next steps:**
+- Next page to test: SettingsPage
+
+## Previous session (2026-01-31) - UserProfilePage Unit Tests
 
 **Task completed:** Write comprehensive unit tests for UserProfilePage.tsx
 
