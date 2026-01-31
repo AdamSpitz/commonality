@@ -17,8 +17,9 @@ Progress:
 - ✅ CreateStatementForm.tsx - fully tested (28 tests)
 - ✅ StatementSuggestions.tsx - fully tested (25 tests)
 - ✅ StatementPage.tsx - fully tested (29 tests)
+- ✅ BrowseStatementsPage.tsx - fully tested (37 tests)
 - ✅ Testing infrastructure set up (Vitest + Testing Library)
-- 🔲 4 more pages need tests (see test-plan.md)
+- 🔲 3 more pages need tests (see test-plan.md)
 
 ## Other subsystem UIs
 

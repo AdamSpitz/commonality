@@ -1,6 +1,41 @@
 AI: use this file to write notes to yourself.
 
-## Latest session (2026-01-31) - StatementPage Unit Tests
+High-level stuff is all in order, it's time to implement. Current priority:
+write unit tests for the remaining 3 pages (UserProfilePage, HomePage, SettingsPage).
+See ui/test-plan.md and ui/TODO.md.
+
+## Latest session (2026-01-31) - BrowseStatementsPage Unit Tests
+
+**Task completed:** Write comprehensive unit tests for BrowseStatementsPage.tsx
+
+**What was done:**
+- Created BrowseStatementsPage.test.tsx with 37 comprehensive tests
+- Tests cover:
+  - Loading state (spinner display, no error/empty shown while loading)
+  - Error states (Error messages, non-Error exceptions, console logging, spinner hidden)
+  - Empty state (no statements, missing query key, spinner hidden)
+  - Successful rendering (heading, sort controls, cards, links, supporter counts, excerpts, type chips, disbeliever counts, title fallback)
+  - Date formatting (valid dates, null dates)
+  - Sort toggle (default sort, switch to newest, switch back, error clearing on sort change)
+  - API integration (executor URL, limit parameter, query fields)
+  - State transitions (loading→success, loading→error, loading→empty, loading on sort switch)
+
+**Files changed:**
+- Created: ui/src/conceptspace/pages/BrowseStatementsPage.test.tsx
+- Updated: ui/test-plan.md (marked BrowseStatementsPage as complete)
+- Updated: ui/TODO.md (updated progress tracker)
+- Updated: progress.txt (this file)
+
+**Test results:**
+- All 37 new tests pass
+- Full test suite: 166/166 tests passing
+- Build and typecheck: successful
+
+**Next steps:**
+- Next page to test: UserProfilePage.tsx
+- Then: HomePage, SettingsPage
+
+## Previous session (2026-01-31) - StatementPage Unit Tests
 
 **Task completed:** Write comprehensive unit tests for StatementPage.tsx
 
