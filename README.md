@@ -33,6 +33,8 @@ See [ARTIFACTS.md](ARTIFACTS.md) for more detail.
 
 See [TODO.md](TODO.md) for a high-level list of what we've been working on lately and intend to work on soon.
 
+When completing a task, please make sure to keep TODO.md (or whichever subsystem's TODO.md is appropriate) up to date.
+
 ## Current project status
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
