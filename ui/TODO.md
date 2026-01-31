@@ -30,6 +30,8 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
   - Run `docker-compose up -d --build` (reuse existing docker-compose.yml)
   - Wait for healthchecks to pass (hardhat-node, ipfs, indexer)
   - Services expose: blockchain (8545), IPFS (5001/8080), GraphQL (42069)
+  - **NEW:** Copy contract addresses from integration-tests/.env.local to ui/.env
+    - Makes VITE_BELIEFS_CONTRACT_ADDRESS and VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS available
 - [x] Create `ui/e2e/global-teardown.ts` to clean up
   - Run `docker-compose down -v` to remove containers and volumes
   - Ensures fresh state for next test run
@@ -54,12 +56,12 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
   - Connect Hardhat account via ConnectKit Mock Connector
   - Verify connected address displays correctly
   - 3 passing tests in wallet-connection.spec.ts
-- [ ] **Statement creation workflow**
-  - Connect wallet
-  - Fill out CreateStatementForm
-  - Submit transaction to Beliefs contract
-  - Wait for indexer to process (poll GraphQL)
-  - Verify statement appears on browse page
+- [ ] **Statement creation workflow** (infrastructure ready, needs debugging)
+  - Contract addresses now copied to ui/.env automatically
+  - Next step: Debug why form submission times out
+  - Recommended: Start with simpler test (just fill form, don't submit)
+  - Then add console logging and screenshots to diagnose issue
+  - See progress.txt for detailed breakdown suggestions
 - [ ] **Belief expression workflow**
   - Navigate to existing statement
   - Express belief (sign transaction)
