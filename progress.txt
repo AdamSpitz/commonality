@@ -1,32 +1,18 @@
 AI: use this file to write notes to yourself.
 
-## Latest session (2026-01-31) - CreateStatementForm tests completed
+## Latest session (2026-01-31) - UI Unit Tests Value Analysis
 
-**Task completed:** Write comprehensive unit tests for CreateStatementForm.tsx
+**Task:** Analyze whether UI unit tests (Vitest + Testing Library) are worthwhile or should be replaced with Playwright E2E tests.
 
-**Files changed:**
-- Created: ui/src/conceptspace/components/CreateStatementForm.test.tsx (28 tests)
-- Updated: ui/test-plan.md (marked CreateStatementForm as complete)
+**Analysis completed.** See detailed recommendation below.
 
-**Test coverage:** Comprehensive tests covering:
-- Wallet connection states (connected vs disconnected)
-- Form display and input handling
-- Submit button enabled/disabled states
-- Content validation (empty, whitespace-only, trimmed content)
-- Statement creation workflow (createStatement, createAndSignStatement calls)
-- Loading state during creation (button disabled, loading indicator)
-- Success state (success message, content cleared, callback invoked)
-- Error handling (contract not configured, transaction failures, generic errors)
-- Error/success message clearing on re-submission
-- Form re-enabling after errors
-- IPFS and blockchain callbacks (onIPFSUpload, onSigned, onListUpdated)
+**Key findings:**
+1. Examined 3 existing test files (BeliefControls, StatementRenderer, CreateStatementForm) with 75 total tests
+2. Found that unit tests ARE providing significant value beyond what E2E tests would catch
+3. Most tests focus on logic and state management, not just trivial rendering
+4. Unit tests catch edge cases and error conditions that would be expensive to test E2E
+5. Fast feedback loop is critical for development velocity
 
-**Key decisions:**
-- Followed the existing test pattern from BeliefControls.test.tsx and StatementRenderer.test.tsx
-- Mocked wagmi hooks (useAccount, useWalletClient, usePublicClient)
-- Mocked SDK functions (createStatement, createAndSignStatement, createGraphQLClient)
-- Used vi.stubEnv to mock environment variables for contract addresses
-- All 28 tests pass, full project test suite passes (75 total tests)
+**Recommendation:** KEEP the unit tests AND add Playwright E2E tests for critical workflows. The testing strategy in specs/testing/ui-tests.md is correct.
 
-**Next step:** Use `task-chooser` to pick the next test to write. The plan recommends StatementSuggestions.tsx next (related statements feature).
-
+**Next step:** Continue implementing unit tests per test-plan.md, then add E2E tests for critical user journeys.
