@@ -22,11 +22,12 @@
 - [x] SupportMetrics.tsx - Has test file (need to verify coverage)
 - [x] StatementRenderer.tsx - Has comprehensive unit tests (31 tests covering all render states, formats, and edge cases)
 - [x] CreateStatementForm.tsx - Has comprehensive unit tests (28 tests covering wallet states, form validation, submission workflow, error handling, and callbacks)
+- [x] StatementSuggestions.tsx - Has comprehensive unit tests (25 tests covering loading states, error handling, empty state, suggestions display, navigation, and API integration)
 
 ### 📝 Need unit tests
 
 #### Components (Priority: High)
-- [ ] StatementSuggestions.tsx - Related statements feature
+- None remaining!
 
 #### Pages (Priority: Medium)
 - [ ] HomePage.tsx - Entry point, likely simple routing/layout
@@ -41,7 +42,7 @@ Suggested order (dependencies first, high-value features prioritized):
 
 1. ~~**StatementRenderer**~~ - ✅ Complete (31 tests)
 2. ~~**CreateStatementForm**~~ - ✅ Complete (28 tests)
-3. **StatementSuggestions** - Related to core feature
+3. ~~**StatementSuggestions**~~ - ✅ Complete (25 tests)
 4. **StatementPage** - Integration of multiple components
 5. **BrowseStatementsPage** - Discovery feature
 6. **UserProfilePage** - User-specific views

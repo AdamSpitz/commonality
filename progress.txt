@@ -1,18 +1,30 @@
 AI: use this file to write notes to yourself.
 
-## Latest session (2026-01-31) - UI Unit Tests Value Analysis
+## Latest session (2026-01-31) - StatementSuggestions Unit Tests
 
-**Task:** Analyze whether UI unit tests (Vitest + Testing Library) are worthwhile or should be replaced with Playwright E2E tests.
+**Task completed:** Write comprehensive unit tests for StatementSuggestions.tsx
 
-**Analysis completed.** See detailed recommendation below.
+**What was done:**
+- Created StatementSuggestions.test.tsx with 25 comprehensive tests
+- Tests cover:
+  - Loading state (spinner display)
+  - Error states (network errors, non-Error exceptions, console logging)
+  - Empty state (render nothing when no suggestions)
+  - Suggestions display (headers, titles, excerpts, reasons, believer counts, relationship chips)
+  - Navigation (clicking cards navigates to statement pages)
+  - API integration (GraphQL executor, refetching on prop changes)
+  - State transitions (loading → success/error/empty)
 
-**Key findings:**
-1. Examined 3 existing test files (BeliefControls, StatementRenderer, CreateStatementForm) with 75 total tests
-2. Found that unit tests ARE providing significant value beyond what E2E tests would catch
-3. Most tests focus on logic and state management, not just trivial rendering
-4. Unit tests catch edge cases and error conditions that would be expensive to test E2E
-5. Fast feedback loop is critical for development velocity
+**Files changed:**
+- Created: ui/src/conceptspace/components/StatementSuggestions.test.tsx
+- Updated: ui/test-plan.md (marked StatementSuggestions as complete)
+- Updated: ui/TODO.md (updated progress tracker)
 
-**Recommendation:** KEEP the unit tests AND add Playwright E2E tests for critical workflows. The testing strategy in specs/testing/ui-tests.md is correct.
+**Test results:**
+- All 25 new tests pass ✅
+- Full test suite: 100/100 tests passing ✅
+- Build and typecheck: successful ✅
 
-**Next step:** Continue implementing unit tests per test-plan.md, then add E2E tests for critical user journeys.
+**Next steps:**
+- Next component to test: StatementPage.tsx (integrates multiple components)
+- Then: BrowseStatementsPage, UserProfilePage, HomePage, SettingsPage

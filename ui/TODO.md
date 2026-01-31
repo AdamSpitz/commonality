@@ -12,9 +12,12 @@ See [test-plan.md](test-plan.md) for:
 - Recommended test writing sequence
 
 Progress:
-- ✅ BeliefControls.tsx - fully tested
+- ✅ BeliefControls.tsx - fully tested (11 tests)
+- ✅ StatementRenderer.tsx - fully tested (31 tests)
+- ✅ CreateStatementForm.tsx - fully tested (28 tests)
+- ✅ StatementSuggestions.tsx - fully tested (25 tests)
 - ✅ Testing infrastructure set up (Vitest + Testing Library)
-- 🔲 7 more components/pages need tests (see test-plan.md)
+- 🔲 5 more pages need tests (see test-plan.md)
 
 ## Other subsystem UIs
 
