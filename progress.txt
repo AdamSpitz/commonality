@@ -175,3 +175,93 @@ E2E testing infrastructure is now set up with Playwright.
 Docker integration for E2E tests is now complete - Playwright can start/stop backend services automatically.
 Wallet connection testing is now working - E2E tests can inject Hardhat accounts via wagmi mock connector.
 Next priority: Write E2E tests for critical workflows (statement creation, belief expression, etc.).
+
+## Session (2026-01-31 evening) - Wagmi Hooks Proof-of-Concept Attempt (INCOMPLETE - TASK LARGER THAN EXPECTED)
+
+**Task attempted:** Create a minimal proof-of-concept using wagmi's useWriteContract hook for statement creation
+
+**THIS WAS A LARGER TASK THAN EXPECTED** - Task stopped due to test maintenance burden
+
+**What I tried:**
+
+Attempted to refactor `CreateStatementForm.tsx` to use wagmi's native hooks instead of SDK actions:
+- Replace `createAndSignStatement` SDK action with direct `useWriteContract` and `useWaitForTransactionReceipt` hooks
+- Keep IPFS upload using SDK's `publishDocument` (doesn't require signing)
+- Use wagmi's `writeContract` for the `setBelief` transaction (works with mock connector)
+
+**Why this became larger than expected:**
+
+1. **Extensive unit test coverage:** The component has 265 comprehensive unit tests
+2. **Tests are tightly coupled to SDK actions:** Tests mock `createAndSignStatement` and verify its exact calling patterns
+3. **Refactoring ripple effect:** Changing the implementation requires rewriting most of the test suite:
+   - Mock setup changes (replace `createAndSignStatement` with wagmi hooks)
+   - Test assertions changes (verify `useWriteContract` calls instead of SDK action calls)
+   - Callback behavior changes (SDK callbacks vs wagmi hook states)
+   - Loading state logic changes (useEffect-based vs SDK promise-based)
+
+4. **Not a minimal change:** What started as a "proof of concept" turned into a full refactoring of both component and tests
+
+**The fundamental problem:**
+
+The UI components are architected around SDK actions, but wagmi connectors (especially mock) work differently:
+- SDK actions expect a wallet client with `account` property for signing
+- Wagmi hooks handle signing internally through connectors
+- This architectural mismatch affects not just the code but the entire test suite
+
+**Recommended approach (revised):**
+
+Instead of refactoring existing components, consider creating **a custom wagmi connector** for E2E tests:
+
+1. **Create `ui/e2e/fixtures/privateKeyConnector.ts`:**
+   - Custom connector that wraps a viem account with full signing capabilities
+   - Implements wagmi's Connector interface
+   - Returns a wallet client that has the proper `account` object the SDK expects
+
+2. **Benefits:**
+   - NO changes to UI components needed
+   - NO changes to unit tests needed
+   - NO changes to SDK needed
+   - Minimal, focused change (one new file)
+   - Keeps production code separate from test infrastructure
+
+3. **Implementation sketch:**
+   ```typescript
+   // Connector that makes a private key account available to walletClient
+   class PrivateKeyConnector extends Connector {
+     constructor(private account: PrivateKeyAccount) { ... }
+
+     async getProvider() {
+       // Return a provider that can sign with the private key
+     }
+
+     async getAccounts() {
+       return [this.account.address]
+     }
+
+     // Key: Make account available to walletClient
+     async getWalletClient() {
+       return createWalletClient({
+         account: this.account,  // Full account with signing!
+         ...
+       })
+     }
+   }
+   ```
+
+4. **Why this is better:**
+   - Smallest possible change
+   - Isolated to test infrastructure
+   - Production UI remains idiomatic wagmi
+   - SDK remains unchanged
+   - All existing tests pass without modification
+
+**Files that would need changes (custom connector approach):**
+- `ui/e2e/fixtures/privateKeyConnector.ts` (NEW - ~50-100 lines)
+- `ui/src/wagmi.ts` - Update `createMockConfig` to use custom connector
+- `ui/e2e/fixtures/wallet.ts` - Minimal updates to pass private key
+
+**Changes reverted:** All attempted changes to CreateStatementForm.tsx reverted, clean slate for next implementer
+
+**Recommendation for next session:**
+
+Try the custom connector approach instead. It's truly minimal and doesn't require touching production code or tests.
