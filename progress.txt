@@ -7,6 +7,50 @@ Docker integration for E2E tests is now complete - Playwright can start/stop bac
 Wallet connection testing is now working - E2E tests can inject Hardhat accounts via wagmi mock connector.
 Next priority: Write E2E tests for critical workflows (statement creation, belief expression, etc.).
 
+## Latest session (2026-01-31) - Console Logging for E2E Tests (COMPLETED)
+
+**Task completed:** Add browser console logging to E2E tests to capture errors during statement creation submission
+
+**What was accomplished:**
+- Created `ui/e2e/statement-creation.spec.ts` with comprehensive console logging
+  - Captures all browser console messages (page.on('console'))
+  - Captures uncaught page errors (page.on('pageerror'))
+  - Logs all messages on test failure for debugging
+  - Takes screenshots on failure
+- Updated `ui/playwright.config.ts` to add automatic screenshot and video capture on failure
+  - Added `screenshot: 'only-on-failure'`
+  - Added `video: 'retain-on-failure'`
+
+**ROOT CAUSE IDENTIFIED:**
+The console logging immediately revealed the problem:
+```
+Error creating statement: Error: Failed to sign statement (CID: bafkreic7xna7e3vwgqkzhrgxfzd7yqb6g53gsiaxl7yxwjeqaolbyism5i): Could not find an Account to execute with this Action.
+Please provide an Account with the `account` argument on the Action, or by supplying an `account` to the Client.
+```
+
+**Key findings:**
+- IPFS upload works correctly ✅ (Statement uploaded to IPFS: bafkreic...)
+- The wagmi client doesn't have an account configured for signing transactions ❌
+- The SDK's `createAndSignStatement` function can't find the connected wallet account
+- This is a configuration issue in how the UI sets up the wagmi client
+
+**Next steps:**
+The next implementer should fix the wagmi client configuration to ensure the connected account is available for signing transactions. The issue is likely in:
+- `ui/src/main.tsx` - Check how wagmi config is created
+- `ui/src/conceptspace/components/CreateStatementForm.tsx` - Check how the client is passed to SDK actions
+- Compare with integration-tests to see how they configure the client with accounts
+
+**Files changed:**
+- Created: `ui/e2e/statement-creation.spec.ts` (new test with console logging)
+- Modified: `ui/playwright.config.ts` (added screenshot/video capture on failure)
+- Modified: `progress.txt` (this file)
+
+**Test results:**
+- Console logging test: SUCCESSFUL ✅ (captured the exact error)
+- Root cause identified: wagmi client account configuration issue
+- Validation test: 1/2 passing ✅
+- Full workflow test: 0/2 passing (expected, root cause now known)
+
 ## Latest session (2026-01-31) - Statement Creation E2E Test Infrastructure (PARTIAL)
 
 **Task attempted:** Write E2E test for statement creation workflow
