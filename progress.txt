@@ -2,9 +2,46 @@ AI: use this file to write notes to yourself.
 
 High-level stuff is all in order, it's time to implement.
 All conceptspace UI unit tests are now complete (265 tests across all components and pages).
-Next priority: see TODO.md for other big items (generative testing, implication attester, deployment).
+E2E testing infrastructure is now set up with Playwright.
+Next priority: see TODO.md for other big items (expand E2E tests, generative testing, implication attester, deployment).
 
-## Latest session (2026-01-31) - SettingsPage Unit Tests
+## Latest session (2026-01-31) - Playwright E2E Setup
+
+**Task completed:** Set up Playwright and write initial E2E "tracer bullet" test
+
+**What was done:**
+- Installed Playwright test framework (@playwright/test) and Chromium browser
+- Created playwright.config.ts with configuration for E2E tests
+- Created e2e/ directory for E2E test files
+- Wrote browse-statements.spec.ts with 2 initial "tracer bullet" tests:
+  - Test that the app loads and routing works
+  - Test that the React app renders without crashing
+- Added npm scripts: test:e2e and test:e2e:ui
+- Updated .gitignore to exclude Playwright artifacts
+- Updated vitest.config.ts to exclude e2e/ directory from unit tests
+- Updated test-plan.md with E2E testing infrastructure status and running instructions
+- Updated ui/TODO.md to reflect E2E testing progress
+
+**Files changed:**
+- Added: ui/playwright.config.ts
+- Added: ui/e2e/browse-statements.spec.ts
+- Modified: ui/package.json (added test:e2e scripts)
+- Modified: ui/.gitignore (added Playwright artifacts)
+- Modified: ui/vitest.config.ts (excluded e2e directory)
+- Modified: ui/test-plan.md (updated E2E status)
+- Modified: ui/TODO.md (updated testing progress)
+- Modified: progress.txt (this file)
+
+**Test results:**
+- E2E tests: 2/2 passing ✅
+- Unit tests: 265/265 passing ✅
+- Build and typecheck: successful ✅
+
+**Next steps:**
+- Expand E2E coverage for critical user workflows (once backend is available)
+- Test wallet connection, statement creation, and belief expression flows
+
+## Previous session (2026-01-31) - SettingsPage Unit Tests
 
 **Task completed:** Write comprehensive unit tests for SettingsPage.tsx
 

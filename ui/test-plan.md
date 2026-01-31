@@ -46,9 +46,16 @@ Suggested order (dependencies first, high-value features prioritized):
 7. ~~**HomePage**~~ - ✅ Complete (21 tests)
 8. ~~**SettingsPage**~~ - ✅ Complete (40 tests)
 
-## E2E Test Scenarios (Future)
+## E2E Test Scenarios
 
-Once unit tests are solid, add E2E tests for:
+### ✅ Tracer Bullet (Initial Setup)
+- [x] Basic app loading and routing (browse-statements.spec.ts) - 2 tests
+  - Verifies React app renders without crashing
+  - Validates routing between pages works
+
+### 🔲 Future E2E Tests
+
+Once ready to test with a running backend, add E2E tests for:
 
 1. **Core workflow:** Connect wallet → Create statement → Express belief
 2. **Discovery workflow:** Browse statements → View statement → Express belief
@@ -58,9 +65,27 @@ Once unit tests are solid, add E2E tests for:
 
 - ✅ Vitest + Testing Library installed
 - ✅ Mocking pattern established (see BeliefControls.test.tsx)
-- 🔲 E2E framework not yet added (recommend Playwright when needed)
+- ✅ Playwright E2E framework installed and configured
+- ✅ Initial E2E "tracer bullet" test created (e2e/browse-statements.spec.ts)
+- ✅ npm scripts added: `npm run test:e2e` and `npm run test:e2e:ui`
 - 🔲 CI/CD integration (run tests on every commit)
+
+## Running Tests
+
+### Unit Tests
+```bash
+npm run test          # Run all unit tests once
+npm run test:watch    # Run unit tests in watch mode
+```
+
+### E2E Tests
+```bash
+npm run test:e2e      # Run E2E tests headless
+npm run test:e2e:ui   # Run E2E tests with Playwright UI
+```
 
 ## Next Steps for Implementation
 
-The `one-tasker` skill should pick tasks from the test writing sequence above, one component at a time, following the pattern established in BeliefControls.test.tsx.
+All unit tests complete! Next priorities:
+1. Expand E2E test coverage for critical user workflows (once backend is running)
+2. Set up CI/CD integration for automated testing
