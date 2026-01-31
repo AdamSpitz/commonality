@@ -14,6 +14,8 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
 
 ### Statement finder/writer
 
+**Mode: Primarily interactive, with autonomous suggestions**
+
   - (Include a description of what conceptspace is, what statements are, what implication attestations are.)
   - You may be called upon to:
     - Help your user understand what conceptspace is and why it's useful to have these implication attestations between statements.
@@ -21,8 +23,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Follow the implication links to try to find a more-popular version of a statement. Advise your user on which version(s) of a concept might be best to sign.
     - Improve existing statements in various ways.
   - So instead of the user having to navigate the links himself (potentially requiring him to follow chains of many links, look carefully at which ones are more popular than others, wade through large numbers of similar statements, etc.), you can simply present him with a small number of choices (this one is more popular, that one is a slightly more-faithful representation of what you believe).
+  - **Autonomous use cases:** Can proactively suggest "you signed S1, maybe also sign S2 which is more popular and equivalent" without being asked.
+  - **Interactive use cases:** Core statement creation, finding/improving statements requires human-in-the-loop dialogue.
 
 ### Project discovery and evaluation
+
+**Mode: Hybrid - valuable as both autonomous and interactive**
 
   - (Include a description of the funding portals system, alignment attestations, retroactive funding via resellable NFTs.)
   - You may be called upon to:
@@ -34,8 +40,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Identify promising early-stage projects that might be good investment opportunities (for those interested in the retroactive funding/VC aspect).
     - Track the user's contribution history and suggest related causes or projects they might want to support.
   - This skill makes it easier for users to navigate the potentially-large number of projects without getting overwhelmed, and helps them make informed funding decisions aligned with their values.
+  - **Autonomous use cases:** Monitor new project launches, alert on promising early-stage projects matching user's interests, track projects approaching deadlines.
+  - **Interactive use cases:** Deep comparison of similar projects, "help me find a journalism project about X", evaluation discussions.
 
 ### Delegation advisor
+
+**Mode: Hybrid - autonomous monitoring with interactive decision support**
 
   - (Include a description of delegatable notes, composable delegation chains, revocation, transparency, and note intentions.)
   - You may be called upon to:
@@ -47,8 +57,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Help the user balance between delegating (less work) and maintaining control (more aligned with their specific preferences).
     - Suggest appropriate delegation strategies (e.g. "delegate 70% to a trusted expert, keep 30% for your own direct decisions").
   - This skill helps users leverage the power of composable delegation without needing to understand all the technical details, making the "nano-trustee" concept accessible to everyone.
+  - **Autonomous use cases:** Monitor delegate activity, alert on inactive or questionable delegate behavior, flag when delegation chains break.
+  - **Interactive use cases:** "Who should I delegate to?", explaining delegation chains, strategic planning for delegation splits.
 
 ### Funding strategy advisor
+
+**Mode: Hybrid - critical autonomous market monitoring with interactive strategy planning**
 
   - You may be called upon to:
     - Help investors understand the retroactive funding model: how to identify promising early projects, when to buy tokens, when to sell on the secondary market.
@@ -59,8 +73,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Advise on portfolio diversification: "you've funded 5 journalism projects; consider diversifying into technical projects or other categories".
     - Track market opportunities: "these tokens you bought early are now worth 3x; several donors are looking to buy them".
   - This skill bridges the gap between traditional VC/investment thinking and public goods funding, making the system useful for both altruistic donors and strategic investors.
+  - **Autonomous use cases:** Monitor secondary markets for tokens user holds, alert on price movements and buy/sell opportunities, track when projects user invested in early are gaining traction.
+  - **Interactive use cases:** "Should I sell these tokens now?", portfolio analysis, strategic planning for investor vs donor decisions.
 
 ### Cause discovery and coalition building
+
+**Mode: Hybrid - autonomous pattern detection with interactive coalition strategy**
 
   - You may be called upon to:
     - Help users discover causes and statements that align with their values through interactive dialogue.
@@ -71,8 +89,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Suggest high-profile signers and influencers who support the same causes, enabling users to connect with like-minded communities.
     - Help users formulate "umbrella statements" that can unite multiple related but distinct beliefs.
   - This skill helps users navigate the social/political landscape of causes and build larger coalitions, making the system more effective at coordinating aligned people.
+  - **Autonomous use cases:** Identify when statements user signed both imply a higher-support commonality statement, detect trending causes aligned with user's beliefs, alert when high-profile signers join user's causes.
+  - **Interactive use cases:** "Help me find commonality between these groups", strategic coalition planning, crafting umbrella statements.
 
 ### Attester management and trust configuration
+
+**Mode: Primarily interactive, with autonomous quality alerts**
 
   - You may be called upon to:
     - Help users understand what implication attesters are and why multiple attesters might exist.
@@ -82,8 +104,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Explain how non-transitive implications work and why this design choice was made.
     - Help users understand the impact of attester choice: "if you trust Attester A instead of B, statement S would have 50 fewer indirect supporters".
   - This skill helps users navigate the subjective nature of implication relationships and configure the system to match their personal preferences.
+  - **Autonomous use cases:** Alert when trusted attester makes questionable implication (e.g., linking seemingly unrelated statements).
+  - **Interactive use cases:** Configuration decisions, understanding trade-offs between attesters, explaining non-transitive implications.
 
 ### Social verification and identity linking
+
+**Mode: Primarily interactive (one-time setup tasks)**
 
   - (Include description of linking social accounts, unique-human verification, high-profile signers.)
   - You may be called upon to:
@@ -94,8 +120,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Identify high-profile signers for causes the user cares about, facilitating "spreading up the popularity hierarchy".
     - Suggest outreach strategies for getting influencers to sign statements or fund projects.
   - This skill makes the social/viral aspects of the system more accessible and helps users leverage social proof effectively.
+  - **Autonomous use cases:** Minimal - possibly identify when new high-profile signers join causes user cares about.
+  - **Interactive use cases:** Guiding through verification process, explaining privacy trade-offs, outreach strategy planning.
 
 ### Project creation assistant
+
+**Mode: Primarily interactive, with autonomous opportunity identification**
 
   - You may be called upon to:
     - Help users create well-structured crowdfunding projects: writing compelling descriptions, choosing appropriate funding goals and deadlines.
@@ -106,8 +136,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Help users create project metadata and descriptions that will be well-received by both donors and investors.
     - Generate project progress updates and communications to contributors.
   - This skill lowers the barrier to entry for project creators and helps them set up projects in ways that maximize their chances of success.
+  - **Autonomous use cases:** Identify underserved causes (high support, few projects) and suggest project opportunities to potential creators.
+  - **Interactive use cases:** Project setup, description writing, strategy planning - all highly interactive human-driven processes.
 
 ### Analytics and insights
+
+**Mode: Hybrid - autonomous reporting with interactive deep-dives**
 
   - You may be called upon to:
     - Provide personalized analytics: "you've signed 15 statements supporting 3 main causes; you've funded 8 projects with $500 total".
@@ -118,8 +152,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Track ROI for investors: "your early investment in Project P has appreciated 2.5x; here's the current market".
     - Identify underserved causes: "statement S has 500 supporters but only 2 aligned projects; opportunity for creators".
   - This skill helps users understand their impact and discover opportunities, making the system more engaging and effective.
+  - **Autonomous use cases:** Periodic digest reports (weekly/monthly), anomaly detection, pattern identification, ROI tracking alerts.
+  - **Interactive use cases:** "Show me my impact over the last year", deep-dive analysis, comparative queries, explanation of patterns.
 
 ### Onboarding and education
+
+**Mode: Primarily interactive (inherently conversational)**
 
   - You may be called upon to:
     - Provide personalized onboarding experiences for new users, explaining concepts progressively rather than all at once.
@@ -130,8 +168,12 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Suggest next steps for users at different stages of engagement.
     - Provide use-case examples relevant to the user's interests.
   - This skill is crucial for adoption, making the system accessible to people who aren't crypto-native or familiar with the concepts.
+  - **Autonomous use cases:** Minimal - possibly contextual tips based on user actions.
+  - **Interactive use cases:** Onboarding conversations, answering questions, guided tutorials - all require human-in-the-loop.
 
 ### Watchdog and notification system
+
+**Mode: Primarily autonomous (core value is continuous monitoring)**
 
   - You may be called upon to:
     - Monitor causes the user cares about and notify them of important events: new projects aligned with their causes, projects approaching deadlines, funding goals reached.
@@ -142,6 +184,8 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
     - Notify users about governance/system events if applicable.
     - Provide personalized digest summaries: "here's what happened in your causes this week".
   - This skill keeps users engaged without requiring constant monitoring, making the system more practical for busy people.
+  - **Autonomous use cases:** All of the above - event monitoring, alerts, digests. This is the quintessential autonomous agent use case.
+  - **Interactive use cases:** "Show me all my recent alerts", configure notification preferences, "explain this alert in more detail".
 
 ### what else?
 
