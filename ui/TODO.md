@@ -4,12 +4,11 @@
 
 Implementation is mostly done, but not yet tested thoroughly.
 
-**Current priority:** Write comprehensive unit tests for all components.
+**Unit tests: COMPLETE.** All components and pages have comprehensive unit tests (265 tests total).
 
 See [test-plan.md](test-plan.md) for:
 - Detailed test strategy (unit tests + E2E tests)
 - Component-by-component test coverage status
-- Recommended test writing sequence
 
 Progress:
 - ✅ BeliefControls.tsx - fully tested (11 tests)
@@ -20,8 +19,8 @@ Progress:
 - ✅ BrowseStatementsPage.tsx - fully tested (37 tests)
 - ✅ UserProfilePage.tsx - fully tested (38 tests)
 - ✅ HomePage.tsx - fully tested (21 tests)
+- ✅ SettingsPage.tsx - fully tested (40 tests)
 - ✅ Testing infrastructure set up (Vitest + Testing Library)
-- 🔲 1 more page needs tests (see test-plan.md)
 
 ## Other subsystem UIs
 
