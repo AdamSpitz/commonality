@@ -2,6 +2,48 @@ AI: use this file to write notes to yourself.
 
 High-level stuff is all in order, it's time to implement.
 
+## Current priority (2026-02-01):
+Fix E2E test concurrency issue before adding more tests. Tests that create blockchain state fail when run in parallel. Need to configure Playwright to serialize these tests.
+
+## Session (2026-02-01) - E2E Test Concurrency Fix (COMPLETED ✅)
+
+**Task:** Configure Playwright to serialize tests to avoid blockchain state conflicts
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**Problem:**
+When running multiple E2E tests in parallel (Playwright default: 2 workers), tests that modify blockchain state interfered with each other:
+- IPFS sync contention (multiple statements created simultaneously)
+- Indexer processing delays (couldn't keep up with rapid events)
+- Tests failed when run together but passed individually
+
+**Solution:**
+Updated [ui/playwright.config.ts](ui/playwright.config.ts) to disable parallel execution:
+- Set `fullyParallel: false` (was `true`)
+- Set `workers: 1` for all environments (was only for CI)
+- Added clear comment explaining why serialization is needed
+
+**Rationale:**
+E2E tests share the same Docker backend (Hardhat node, IPFS, GraphQL indexer). Tests that create statements or express beliefs modify this shared state and must run serially to avoid race conditions.
+
+**Trade-off:**
+- Slower test execution (~1 minute for 11 tests vs potentially faster parallel)
+- More reliable tests (no flaky failures from state conflicts)
+- Acceptable for current test suite size (can optimize later if needed)
+
+**Files changed:**
+- `ui/playwright.config.ts` - Disabled parallel execution, set workers to 1
+
+**Test results:**
+All test suites passing ✅:
+- SDK tests: 72/72 passing
+- Hardhat tests: 243/243 passing
+- UI unit tests: 265/265 passing
+- **E2E tests: 11/11 passing** (was failing when run in parallel)
+
+**Next steps:**
+Can now safely add more E2E tests for belief expression and other workflows without concurrency issues.
+
 ## Session (2026-01-31 afternoon) - Wagmi Mock Connector Research (COMPLETED)
 
 **Task:** Research wagmi connector capabilities for private key account support in E2E tests
@@ -568,4 +610,102 @@ The E2E testing infrastructure blocker is now fully resolved. All 11 E2E tests p
 1. Write additional E2E tests for critical workflows (belief expression, other features)
 2. Continue with conceptspace UI implementation
 3. Eventually: generative testing, AI attester service, deployment
+
+## Session (2026-01-31 evening #6) - Belief Expression E2E Test (INCOMPLETE - TASK LARGER THAN EXPECTED)
+
+**Task attempted:** Write E2E test for belief expression workflow
+
+**THIS WAS A LARGER TASK THAN EXPECTED** - Task stopped due to test concurrency issues
+
+**What I attempted:**
+
+Created `ui/e2e/belief-expression.spec.ts` with three tests:
+1. Express belief in a statement and verify UI updates
+2. Express disbelief in a statement and verify UI updates
+3. Verify GraphQL query returns correct belief state
+
+Each test followed the same pattern as `statement-creation.spec.ts`:
+- Create a statement using SDK (bypass wagmi)
+- Express belief/disbelief using SDK
+- Trigger manual IPFS sync
+- Navigate to statement page
+- Verify UI shows correct belief state and counts
+
+**The problem discovered:**
+
+When running tests individually (e.g., `npx playwright test statement-creation.spec.ts`):
+- ✅ Tests pass (2/2 passed in 25.8s)
+- ✅ IPFS sync works correctly (syncedCount: 1, failedCount: 0)
+- ✅ Statements appear on UI
+
+When running all E2E tests together (including the new belief expression tests):
+- ❌ Multiple tests fail (4/14 failed)
+- ❌ Statements don't appear on browse/detail pages
+- ❌ Tests timeout waiting for statement content
+
+**Root cause:**
+
+Running multiple statement-creation tests concurrently causes issues:
+1. **IPFS sync contention:** Multiple tests creating statements simultaneously may overwhelm the IPFS sync endpoint or indexer
+2. **Indexer processing delays:** The indexer might not keep up with rapid blockchain events from parallel tests
+3. **Test isolation:** Tests aren't properly isolated - they share the same Docker backend (Hardhat, IPFS, indexer)
+
+**Why this is larger than expected:**
+
+The original task ("write E2E test for belief expression") seemed straightforward, but it revealed an architectural issue with the E2E test infrastructure:
+
+1. **Need for test serialization:** Tests that create blockchain state probably need to run sequentially, not in parallel
+   - Playwright runs tests in parallel by default (2 workers)
+   - Statement-creation tests interfere with each other when run concurrently
+
+2. **Need for better test isolation strategies:**
+   - Option A: Configure Playwright to run statement-creation tests serially (`fullyParallel: false` or `workers: 1`)
+   - Option B: Add longer wait times and retry logic for indexer sync
+   - Option C: Use test fixtures to ensure each test gets isolated blockchain state
+   - Option D: Use different accounts + test-specific tags/filters to avoid conflicts
+
+3. **Need to update existing tests:** Even `statement-creation.spec.ts` fails when run with other similar tests
+
+**Recommended approach for breaking down the task:**
+
+**First subtask: Fix test concurrency**
+1. Update `ui/playwright.config.ts` to serialize tests that modify blockchain state
+   - Use `test.describe.serial()` for statement-creation tests
+   - OR: Configure specific test files to run with `workers: 1`
+2. Verify existing `statement-creation.spec.ts` passes when run with full test suite
+3. Document the concurrency constraint
+
+**Second subtask: Add belief expression tests**
+1. After fixing concurrency, add the belief expression test file
+2. Use `test.describe.serial()` to ensure tests run one at a time
+3. OR: Create test helpers that handle proper synchronization/waiting
+
+**Alternative simpler approach:**
+
+Just configure Playwright to run all E2E tests serially (workers: 1):
+- Simplest fix
+- Slower test execution (~30s per test = ~5 minutes for 10 tests)
+- But more reliable for tests that modify shared blockchain state
+- Can optimize later if test suite grows large
+
+**Files involved:**
+- `ui/playwright.config.ts` - Need to configure test serialization
+- `ui/e2e/belief-expression.spec.ts` - New test file (created but removed)
+- `ui/e2e/statement-creation.spec.ts` - Existing test (works alone, fails with others)
+
+**Changes reverted:**
+- Removed `ui/e2e/belief-expression.spec.ts`
+- All other files unchanged
+
+**Test results:**
+- Running statement-creation alone: 2/2 passing ✅
+- Running all tests together: 4/14 failing (including statement-creation) ❌
+
+**Recommendation for next session:**
+
+1. **Quick fix:** Update `playwright.config.ts` to set `workers: 1` or use `fullyParallel: false` for E2E tests
+2. **Verify:** Run full E2E suite and confirm all 11 existing tests still pass
+3. **Then:** Add the belief expression tests (they should work once concurrency is fixed)
+
+This is a smaller, more focused task that addresses the root cause before adding more tests.
 
