@@ -65,7 +65,7 @@ app.post("/api/sync-ipfs", async (c) => {
           console.log(`[Manual IPFS Sync] ${msg}`);
           if (msg.includes("succeeded")) {
             const match = msg.match(/(\d+) succeeded, (\d+) failed/);
-            if (match) {
+            if (match && match[1] && match[2]) {
               successCount = parseInt(match[1], 10);
               failureCount = parseInt(match[2], 10);
             }

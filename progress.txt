@@ -515,3 +515,57 @@ Try Option A first (simplest, most surgical):
 
 If Option A doesn't work (e.g., SDK already has the env var set but there's a different issue), then investigate why IPFS upload/fetch isn't working between Docker and host.
 
+## Session (2026-01-31 evening #5) - IPFS Configuration Fix (COMPLETED ✅)
+
+**Task:** Fix IPFS configuration for E2E tests by setting IPFS_API environment variable
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**Solution implemented:**
+
+Set `process.env.IPFS_API = 'http://localhost:5001'` at the top of `ui/e2e/utils/blockchain.ts` before importing the SDK. This ensures the SDK uses the real IPFS node instead of mock IPFS when E2E tests call SDK actions.
+
+**Why this works:**
+
+1. **SDK behavior:** The SDK's `uploadToIPFS()` function checks for `IPFS_API` or `VITE_IPFS_API` environment variables. If neither is set, it falls back to mock (in-memory) IPFS.
+
+2. **Previous problem:** E2E tests ran in Node.js (Playwright) and didn't have `IPFS_API` set, so SDK used mock IPFS. The indexer tried to fetch from the real IPFS node and couldn't find the content.
+
+3. **Fix:** Setting `process.env.IPFS_API` before SDK import ensures all E2E test SDK calls use the real IPFS node at `http://localhost:5001`, which is the same IPFS instance the indexer uses.
+
+**Files changed:**
+
+1. `ui/e2e/utils/blockchain.ts` - Added IPFS_API environment variable configuration
+2. `indexer/src/api/conceptspace-api.ts` - Fixed TypeScript error for regex match groups (unrelated but needed for build to pass)
+
+**Test results:**
+
+All test suites passing ✅:
+- SDK tests: 72/72 passing
+- Hardhat tests: 243/243 passing
+- Integration tests: 102/102 passing
+- UI unit tests: 265/265 passing
+- **E2E tests: 11/11 passing** (was 10/11 before fix)
+
+**E2E test output confirms fix:**
+
+```
+Statement uploaded to IPFS: QmYu1vhZr3hJ9zLD4HaioWTNM9PfpXKmj8A7vGUk9hAxXr
+Statement signed, tx hash: 0x6f68a1fb89723372b405b506452e37162eb47f4260926592f423137fff1c79a7
+Created list updated, tx hash: 0xf74487f5f941019a9d4aef676a15b19e909cab7728dac4e59b2e82dbd4f84bb3
+IPFS sync result: { success: true, message: 'IPFS sync completed', syncedCount: 1, failedCount: 0 }
+Statement found on browse page!
+```
+
+**Key success metrics:**
+- IPFS sync now shows `syncedCount: 1, failedCount: 0` (was `syncedCount: 0, failedCount: 1`)
+- Statement successfully appears on browse page
+- Full end-to-end workflow working: IPFS upload → blockchain transactions → indexer sync → UI display
+
+**Recommendation:**
+
+The E2E testing infrastructure blocker is now fully resolved. All 11 E2E tests pass. Next steps from [TODO.md](TODO.md):
+1. Write additional E2E tests for critical workflows (belief expression, other features)
+2. Continue with conceptspace UI implementation
+3. Eventually: generative testing, AI attester service, deployment
+

@@ -14,6 +14,13 @@
  * via the GraphQL indexer.
  */
 
+// Configure SDK to use real IPFS instead of mock for E2E tests
+// This ensures IPFS content uploaded by SDK is available to the indexer
+// The indexer runs in Docker and fetches from the same IPFS node
+if (!process.env.IPFS_API) {
+  process.env.IPFS_API = 'http://localhost:5001'
+}
+
 import { createTestClients, type TestClients } from '@commonality/sdk'
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk'
 import type { AccountName } from '../fixtures/wallet'
