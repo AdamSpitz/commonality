@@ -3,9 +3,49 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-12):
-IPFS content fetch bug fixed. Next: User profile workflow E2E test, or continue with other conceptspace UI work.
+User profile workflow E2E tests COMPLETED. All 16 E2E tests passing. Next: Continue with other conceptspace UI work, generative testing, AI attester service, or deployment.
 
-Fixed issue: SDK's getEnvVar now checks import.meta.env for Vite browser builds (commit 5831353). Statement detail page should now be able to fetch IPFS content via VITE_IPFS_GATEWAY.
+## Session (2026-02-12) - User Profile Workflow E2E Tests (COMPLETED ✅)
+
+**Task:** Re-implement user profile workflow E2E tests (fixing the deleted user-profile.spec.ts)
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**What was accomplished:**
+
+1. Created `ui/e2e/user-profile.spec.ts` with 3 comprehensive tests:
+   - Display connected user profile with beliefs → verify "My Profile" heading, address display, beliefs list
+   - Switch between tabs → test Beliefs, Disbeliefs, and Indirect Support tab navigation
+   - View other user profile via URL → verify "User Profile" heading (not "My Profile") and no "Create Statement" button
+
+2. **Key fix: Client-side navigation preserves wallet state**
+   - Problem: Previous tests used `page.goto('/profile')` which loses wagmi mock wallet state
+   - Solution: Use `page.locator('header').getByRole('link', { name: 'My Profile' }).click()` for client-side navigation
+   - This keeps the wallet connected because React Router handles navigation without page reload
+
+3. **Test strategy (same pattern as other E2E tests):**
+   - Create statements and express beliefs via SDK (bypassing wagmi)
+   - Navigate using UI links (preserves wallet state)
+   - Verify profile page content via Playwright
+
+**Test results:**
+All 16 E2E tests passing ✅ (was 13 before):
+- user-profile.spec.ts: 3 tests (NEW)
+- belief-expression.spec.ts: 2 tests
+- statement-creation.spec.ts: 2 tests
+- statement-creation-form.spec.ts: 4 tests
+- browse-statements.spec.ts: 2 tests
+- wallet-connection.spec.ts: 3 tests
+
+UI unit tests: 265/265 passing ✅
+Build: passing ✅
+
+**Files changed:**
+- `ui/e2e/user-profile.spec.ts` (NEW) - 3 E2E tests for user profile workflow
+- `ui/TODO.md` - Marked user profile workflow as completed
+
+**Next steps:**
+Continue with other conceptspace UI work, generative testing, AI attester service, or testnet/mainnet deployment.
 
 ## Session (2026-02-12) - Belief Expression E2E Tests (COMPLETED ✅)
 

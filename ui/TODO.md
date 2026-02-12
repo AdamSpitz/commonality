@@ -75,13 +75,13 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
   - Wait for indexing
   - Verify believer/disbeliever count updates on statement page
   - 2 passing tests in belief-expression.spec.ts
-- [ ] **User profile workflow** (REMOVED — needs reimplementation)
-  - user-profile.spec.ts was deleted: mock wallet state doesn't survive full-page
-    navigations (`page.goto`), so all own-profile tests fail. Fixing requires either
-    client-side navigation (click nav links) or reconnecting wallet after each goto.
-  - The UserProfilePage component itself works fine (unit tests pass).
-  - When reimplementing, connect wallet AFTER navigating to /profile, or use
-    `page.getByRole('link', { name: /my profile/i }).click()` for client-side nav.
+- [x] **User profile workflow** (COMPLETED)
+  - 3 E2E tests in user-profile.spec.ts:
+    - Display connected user profile with beliefs
+    - Switch between tabs (Beliefs, Disbeliefs, Indirect Support)
+    - View other user profile via URL
+  - Key insight: use client-side navigation (`page.locator('header').getByRole('link', { name: 'My Profile' }).click()`)
+    instead of `page.goto('/profile')` to preserve wagmi mock wallet state
 
 #### 4. Test Infrastructure
 - [x] Create E2E test utilities (ui/e2e/utils/)
