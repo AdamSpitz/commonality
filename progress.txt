@@ -2,8 +2,48 @@ AI: use this file to write notes to yourself.
 
 High-level stuff is all in order, it's time to implement.
 
-## Current priority (2026-02-01):
-Fix E2E test concurrency issue before adding more tests. Tests that create blockchain state fail when run in parallel. Need to configure Playwright to serialize these tests.
+## Current priority (2026-02-12):
+Belief expression E2E tests are done. Next: User profile workflow E2E test, or continue with other conceptspace UI work.
+
+Known issue: Statement detail page can't fetch IPFS content in browser (VITE_IPFS_GATEWAY not wired through SDK's getEnvVar to import.meta.env). Support metrics work fine via GraphQL. Browse page excerpts work because the indexer syncs IPFS content server-side.
+
+## Session (2026-02-12) - Belief Expression E2E Tests (COMPLETED ✅)
+
+**Task:** Write E2E tests for belief expression workflow
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**What was accomplished:**
+
+1. Created `ui/e2e/belief-expression.spec.ts` with 2 tests:
+   - Express belief → verify believer count increases (1→2 direct believers)
+   - Express disbelief → verify disbeliever count appears on statement page
+
+2. Fixed `ui/e2e/statement-creation.spec.ts`:
+   - Updated browse page text assertion to use `.first()`
+   - Needed because multiple statements now exist in the same test run
+
+**Test strategy:**
+- Create statement via SDK (bypassing wagmi), same pattern as statement-creation tests
+- Express belief/disbelief via SDK from different accounts (ACCOUNT_1, ACCOUNT_2)
+- Verify support metrics on statement detail page (via GraphQL indexer, not IPFS)
+- Statement content text is NOT verified on detail page (IPFS fetch broken in browser)
+
+**Test results:**
+All 13 E2E tests passing ✅ (was 11 before):
+- belief-expression.spec.ts: 2 tests
+- statement-creation.spec.ts: 2 tests
+- statement-creation-form.spec.ts: 4 tests
+- browse-statements.spec.ts: 2 tests
+- wallet-connection.spec.ts: 3 tests
+
+UI unit tests: 265/265 passing ✅
+Build: passing ✅
+
+**Next steps:**
+1. User profile workflow E2E test (next item in ui/TODO.md)
+2. Fix IPFS content fetch in browser (getEnvVar needs to check import.meta.env for VITE_ vars)
+3. Continue with conceptspace UI implementation
 
 ## Session (2026-02-01) - E2E Test Concurrency Fix (COMPLETED ✅)
 

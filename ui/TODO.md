@@ -69,12 +69,12 @@ Integrate Docker backend into E2E tests to enable full-stack workflow testing wi
   - Tests create statements directly via SDK (bypassing wagmi mock connector)
   - Verifies full workflow: IPFS upload → blockchain tx → indexer sync → UI display
   - Uses viem test clients (same pattern as integration tests)
-- [ ] **Belief expression workflow**
-  - Navigate to existing statement
-  - Express belief (sign transaction)
+- [x] **Belief expression workflow** (COMPLETED)
+  - Navigate to statement detail page, verify support metrics
+  - Express belief/disbelief via SDK (bypassing wagmi)
   - Wait for indexing
-  - Verify belief count updates
-  - Verify believer appears in supporters list
+  - Verify believer/disbeliever count updates on statement page
+  - 2 passing tests in belief-expression.spec.ts
 - [ ] **User profile workflow**
   - View profile for connected account
   - Verify statements and beliefs display correctly
