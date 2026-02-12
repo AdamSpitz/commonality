@@ -3,9 +3,9 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-12):
-Belief expression E2E tests are done. Next: User profile workflow E2E test, or continue with other conceptspace UI work.
+IPFS content fetch bug fixed. Next: User profile workflow E2E test, or continue with other conceptspace UI work.
 
-Known issue: Statement detail page can't fetch IPFS content in browser (VITE_IPFS_GATEWAY not wired through SDK's getEnvVar to import.meta.env). Support metrics work fine via GraphQL. Browse page excerpts work because the indexer syncs IPFS content server-side.
+Fixed issue: SDK's getEnvVar now checks import.meta.env for Vite browser builds (commit 5831353). Statement detail page should now be able to fetch IPFS content via VITE_IPFS_GATEWAY.
 
 ## Session (2026-02-12) - Belief Expression E2E Tests (COMPLETED ✅)
 
