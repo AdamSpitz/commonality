@@ -116,8 +116,9 @@ test.describe('Statement Creation Workflow', () => {
     await page.goto('/statements')
 
     // The statement should appear in the list (after indexer processes it)
-    // Increased timeout because indexer may need time to sync
-    await expect(page.getByText(statementContent)).toBeVisible({
+    // Use .first() because the text may appear in multiple cards if other tests
+    // created statements in the same run (IPFS sync excerpt may match multiple cards)
+    await expect(page.getByText(statementContent).first()).toBeVisible({
       timeout: 20000,
     })
 
