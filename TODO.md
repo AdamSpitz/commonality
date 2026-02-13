@@ -1,7 +1,7 @@
 # What we've been working on lately
 
 Main thing I want to work on next:
-  - Implement the Implication Attester AI service.
+  - AI Attester service implementation in progress (see attester/)
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.

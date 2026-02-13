@@ -8,10 +8,12 @@
     "sdk",
     "integration-tests",
     "hardhat",
-    "indexer"
+    "indexer",
+    "attester"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present && npm run indexer:typecheck && npm run ui:build",
+    "build": "npm run build --workspaces --if-present && npm run indexer:typecheck && npm run ui:build && npm run attester:build",
+    "attester:build": "cd attester && npm run build",
     "ui:build": "cd ui && npm run build",
     "test": "npm run sdk:test && npm run hardhat:test && npm run integration-tests && npm run ui:test && npm run ui:test:e2e",
     "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",

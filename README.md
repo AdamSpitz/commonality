@@ -27,7 +27,7 @@ Main artifacts:
   - SDK: used by both the integration-tests and the UI code
   - Integration tests
   - UI
-  - AI attester (not written yet)
+  - AI attester (basic service implemented, see attester/)
 
 See [ARTIFACTS.md](ARTIFACTS.md) for more detail.
 
@@ -43,4 +43,4 @@ If there's a vague high-level to-do item, it may make sense for the project-lead
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
-Current focus: Have we moved on to implementing generative testing? 
+Current focus: AI Attester service implementation in progress. Basic service created with Express API, OpenRouter integration, and SDK integration for publishing attestations. 
