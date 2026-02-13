@@ -96,7 +96,7 @@ async function main() {
   const pubstarterAddress = await pubstarter.getAddress();
   console.log(`✓ Pubstarter: ${pubstarterAddress}`);
 
-  // Save deployment info
+  // Save deployment info (JSON record with metadata)
   const deploymentInfo = {
     network,
     deployer: deployer.address,
@@ -114,58 +114,97 @@ async function main() {
     }
   };
 
-  // Save to deployments directory
   const deploymentsDir = join(process.cwd(), 'deployments');
   await fs.mkdir(deploymentsDir, { recursive: true });
-  
+
   const deploymentFile = join(deploymentsDir, `${network}-${Date.now()}.json`);
   await fs.writeFile(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
-  console.log(`\n✓ Deployment info saved to: ${deploymentFile}`);
+  console.log(`\n✓ Deployment JSON saved to: ${deploymentFile}`);
 
-  // For localhost, also update .env file
-  if (network === 'localhost') {
-    const envPath = join(process.cwd(), '..', '.env');
-    console.log(`\n=== Updating ${envPath} ===\n`);
+  // Write deployments/<network>.env (committable contract addresses)
+  const rootDir = join(process.cwd(), '..');
+  const networkEnvPath = join(rootDir, 'deployments', `${network}.env`);
+  const addressEntries = {
+    'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
+    'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
+    'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS': alignmentAttestationsAddress,
+    'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,
+    'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
+    'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
+    'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
+    'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,
+    'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
+    'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
+    'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
+    'PUBSTARTER_ADDRESS': pubstarterAddress,
+    'START_BLOCK': '1',
+  };
 
-    let envContent = '';
-    try {
-      envContent = await fs.readFile(envPath, 'utf-8');
-    } catch (err) {
-      console.log('No existing .env file, creating new one');
-    }
-
-    const updates = {
-      'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
-      'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
-      'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS': alignmentAttestationsAddress,
-      'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,
-      'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
-      'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
-      'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
-      'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,
-      'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
-      'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
-      'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
-      'PUBSTARTER_ADDRESS': pubstarterAddress,
-    };
-
-    for (const [key, value] of Object.entries(updates)) {
-      const regex = new RegExp(`^${key}=.*$`, 'm');
-      if (regex.test(envContent)) {
-        envContent = envContent.replace(regex, `${key}=${value}`);
-      } else {
-        envContent += `\n${key}=${value}`;
-      }
-    }
-
-    await fs.writeFile(envPath, envContent);
-    console.log('✓ Updated .env file with contract addresses');
-
-    // Also write .env file for integration tests
-    const testEnvPath = join(process.cwd(), '..', 'integration-tests', '.env.local');
-    await fs.writeFile(testEnvPath, envContent);
-    console.log('✓ Updated integration-tests/.env.local');
+  let networkEnvContent = `# Contract addresses for ${network}\n`;
+  networkEnvContent += `# Auto-populated by: npx hardhat run scripts/deploy.js --network ${network}\n`;
+  networkEnvContent += `# Deployed: ${new Date().toISOString()}\n\n`;
+  for (const [key, value] of Object.entries(addressEntries)) {
+    networkEnvContent += `${key}=${value}\n`;
   }
+  await fs.writeFile(networkEnvPath, networkEnvContent);
+  console.log(`✓ Contract addresses saved to: ${networkEnvPath}`);
+  console.log('  (commit this file to share addresses with other services)');
+
+  // Propagate addresses to service .env files
+  console.log(`\n=== Propagating to service .env files ===\n`);
+
+  // Helper: update or append key=value in env content
+  function updateEnv(content, key, value) {
+    const regex = new RegExp(`^${key}=.*$`, 'm');
+    if (regex.test(content)) {
+      return content.replace(regex, `${key}=${value}`);
+    }
+    return content + `\n${key}=${value}`;
+  }
+
+  // Root .env
+  const rootEnvPath = join(rootDir, '.env');
+  let rootEnvContent = '';
+  try {
+    rootEnvContent = await fs.readFile(rootEnvPath, 'utf-8');
+  } catch (err) {
+    console.log('  No existing .env file, creating new one');
+  }
+  for (const [key, value] of Object.entries(addressEntries)) {
+    rootEnvContent = updateEnv(rootEnvContent, key, value);
+  }
+  await fs.writeFile(rootEnvPath, rootEnvContent);
+  console.log('  ✓ Updated .env');
+
+  // integration-tests/.env.local
+  const testEnvPath = join(rootDir, 'integration-tests', '.env.local');
+  await fs.writeFile(testEnvPath, rootEnvContent);
+  console.log('  ✓ Updated integration-tests/.env.local');
+
+  // ui/.env — needs VITE_ prefix
+  const uiEnvPath = join(rootDir, 'ui', '.env');
+  let uiEnvContent = '';
+  try {
+    uiEnvContent = await fs.readFile(uiEnvPath, 'utf-8');
+  } catch (err) {
+    console.log('  No existing ui/.env, creating new one');
+  }
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_BELIEFS_CONTRACT_ADDRESS', beliefsAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
+  await fs.writeFile(uiEnvPath, uiEnvContent);
+  console.log('  ✓ Updated ui/.env');
+
+  // attester/.env — just the contract address
+  const attesterEnvPath = join(rootDir, 'attester', '.env');
+  let attesterEnvContent = '';
+  try {
+    attesterEnvContent = await fs.readFile(attesterEnvPath, 'utf-8');
+  } catch (err) {
+    console.log('  No existing attester/.env, creating new one');
+  }
+  attesterEnvContent = updateEnv(attesterEnvContent, 'IMPLICATIONS_CONTRACT_ADDRESS', implicationsAddress);
+  await fs.writeFile(attesterEnvPath, attesterEnvContent);
+  console.log('  ✓ Updated attester/.env');
 
   // Print summary
   console.log('\n=== Deployment Complete ===\n');
@@ -179,11 +218,15 @@ async function main() {
   console.log(`  ERC1155Factory:          ${erc1155FactoryAddress}`);
   console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);
   console.log(`  Pubstarter:              ${pubstarterAddress}`);
-  
+
+  console.log('\nNext steps:');
+  console.log(`  - Commit deployments/${network}.env to share addresses`);
   if (network === 'localhost') {
-    console.log('\nYou can now:');
     console.log('  - Start the indexer: cd indexer && npm run dev');
     console.log('  - Run integration tests: cd integration-tests && npm test');
+  } else {
+    console.log('  - Run: ./scripts/setup-env.sh ' + network);
+    console.log('    (to regenerate all service .env files from secrets + addresses)');
   }
 }
 

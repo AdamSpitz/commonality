@@ -58,11 +58,21 @@ function copyContractAddresses(projectRoot: string): void {
       // File doesn't exist yet, that's okay
     }
 
-    // Remove any existing contract address lines from ui/.env
+    // Remove any existing auto-populated lines from ui/.env
+    const autoPopulatedPrefixes = [
+      ...addressesToCopy.map(key => `VITE_${key}=`),
+      'VITE_GRAPHQL_URL=',
+      '# Contract addresses (auto-populated',
+    ];
     const existingLines = uiEnv.split('\n').filter(line => {
       const trimmedLine = line.trim();
-      return !addressesToCopy.some(key => trimmedLine.startsWith(`VITE_${key}=`));
+      return !autoPopulatedPrefixes.some(prefix => trimmedLine.startsWith(prefix));
     });
+
+    // Remove trailing blank lines to prevent accumulation
+    while (existingLines.length > 0 && existingLines[existingLines.length - 1].trim() === '') {
+      existingLines.pop();
+    }
 
     // Add contract addresses as VITE_ prefixed env vars
     const newLines = [

@@ -26,11 +26,11 @@ docker-compose up
 ### Prerequisites
 
 1. **Get Sepolia ETH** - Obtain testnet ETH from a faucet
-2. **Configure Environment** - Copy `.env.example` to `.env` and set:
+2. **Configure secrets** - Copy `.env.secrets.example` to `.env.secrets` and set:
    ```bash
    DEPLOYER_PRIVATE_KEY=0x...  # Your deployer wallet private key (NEVER commit!)
-   SEPOLIA_RPC_URL=https://rpc.sepolia.org  # Or use Alchemy/Infura
    ```
+   Optionally set `SEPOLIA_RPC_URL` in `.env.secrets` if you want a private RPC (default: `https://rpc.sepolia.org`).
 
 ### Deploy Contracts
 
@@ -41,9 +41,15 @@ npx hardhat run scripts/deploy.js --network sepolia
 
 This will:
 - Deploy all smart contracts to Sepolia
-- Save deployment info to `hardhat/deployments/sepolia-<timestamp>.json`
-- Update `.env` with deployed contract addresses
-- Update `integration-tests/.env.local` for testing against testnet
+- Save contract addresses to `deployments/sepolia.env` (commit this!)
+- Save detailed deployment metadata to `hardhat/deployments/sepolia-<timestamp>.json`
+- Update `.env`, `ui/.env`, `attester/.env`, and `integration-tests/.env.local` with addresses
+
+To regenerate all service `.env` files later (e.g. on a fresh clone):
+
+```bash
+./scripts/setup-env.sh sepolia
+```
 
 ### Verify Contracts (Optional but Recommended)
 
@@ -58,14 +64,14 @@ See [attester/README.md](attester/README.md) for comprehensive Render deployment
 
 **Summary:**
 
-1. Push code to GitHub
+1. Push code to GitHub (including `deployments/sepolia.env` with contract addresses)
 2. Create new Web Service on Render
 3. Connect to GitHub repository
-4. Configure environment variables:
+4. Configure environment variables (secrets only — contract addresses come from the deployment file):
    ```
    ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
    ATTESTER_PRIVATE_KEY=0x...
-   IMPLICATIONS_CONTRACT_ADDRESS=0x...  # From contract deployment
+   IMPLICATIONS_CONTRACT_ADDRESS=0x...  # Copy from deployments/sepolia.env
    OPENROUTER_API_KEY=sk-...
    X402_PAYMENT_ADDRESS=0x...
    ```
@@ -85,7 +91,7 @@ Before deploying to mainnet:
 ### Prerequisites
 
 1. **Mainnet ETH** - Sufficient ETH for deployment gas (estimate: 0.05-0.1 ETH)
-2. **Configure Environment**:
+2. **Configure secrets** in `.env.secrets`:
    ```bash
    DEPLOYER_PRIVATE_KEY=0x...  # Use hardware wallet or secure key management
    MAINNET_RPC_URL=https://eth.llamarpc.com  # Or use Alchemy/Infura
@@ -98,6 +104,8 @@ Before deploying to mainnet:
 cd hardhat
 npx hardhat run scripts/deploy.js --network mainnet
 ```
+
+After deployment, commit `deployments/mainnet.env` and run `./scripts/setup-env.sh mainnet` to propagate addresses.
 
 ### Post-Deployment Checklist
 
@@ -343,55 +351,77 @@ The project documentation mentions considering Base/Base Sepolia (see [specs/tec
 
 ## Environment Variables
 
-### Required for Deployment
+Environment configuration is split into two categories:
+
+### Secrets (manual — `.env.secrets`)
+
+You set these once. They never get committed. Copy `.env.secrets.example` to `.env.secrets`:
 
 ```bash
-# Deployment credentials
-DEPLOYER_PRIVATE_KEY=0x...  # Private key for deployer wallet
-
-# Network RPC URLs
-SEPOLIA_RPC_URL=https://rpc.sepolia.org
-MAINNET_RPC_URL=https://eth.llamarpc.com
-
-# IPFS Configuration (for production)
-IPFS_API=https://ipfs.io/api/v0  # Or Pinata/Infura IPFS
-IPFS_GATEWAY=https://ipfs.io/ipfs
+DEPLOYER_PRIVATE_KEY=0x...        # Wallet for deploying contracts
+ATTESTER_PRIVATE_KEY=0x...        # Wallet for the attester service
+OPENROUTER_API_KEY=sk-...         # LLM API key for attester
+VITE_WALLETCONNECT_PROJECT_ID=... # From cloud.walletconnect.com
+# ETHERSCAN_API_KEY=...           # Optional, for contract verification
+# X402_PAYMENT_ADDRESS=0x...      # Optional, payment recipient
 ```
 
-### Auto-Populated by Deployment Script
+### Contract Addresses (auto-populated — `deployments/<network>.env`)
 
-The deployment script automatically updates `.env` with:
+The deploy script writes these. They are committed to git so all services can reference them:
 
-```bash
-BELIEFS_CONTRACT_ADDRESS=0x...
-IMPLICATIONS_CONTRACT_ADDRESS=0x...
-DELEGATABLE_NOTES_ADDRESS=0x...
-ALIGNMENT_ATTESTATIONS_ADDRESS=0x...
-ASSURANCE_CONTRACT_FACTORY_ADDRESS=0x...
-ERC1155_FACTORY_ADDRESS=0x...
-MARKETPLACE_FACTORY_ADDRESS=0x...
-PUBSTARTER_ADDRESS=0x...
-MUTABLE_REF_UPDATER_ADDRESS=0x...
 ```
+deployments/
+  ├── localhost.env   # Local Hardhat node addresses
+  ├── sepolia.env     # Testnet addresses (after deploying)
+  └── mainnet.env     # Production addresses (after deploying)
+```
+
+Each file contains all contract addresses (BELIEFS_CONTRACT_ADDRESS, IMPLICATIONS_CONTRACT_ADDRESS, etc.).
+
+### How it fits together
+
+```
+.env.secrets              ← you fill in (gitignored)
+deployments/<network>.env ← deploy script fills in (committed)
+         ↓
+  ./scripts/setup-env.sh <network>
+         ↓
+  .env                    ← root (hardhat, docker-compose, indexer)
+  attester/.env           ← attester service
+  ui/.env                 ← frontend (VITE_ prefixed)
+  integration-tests/.env.local
+```
+
+The deploy script also propagates addresses to service `.env` files automatically. Use `setup-env.sh` to regenerate them later (e.g. on a fresh clone, or to switch networks).
 
 ### Attester Service Variables
 
 See [attester/README.md](attester/README.md) for full list. Key variables:
 
 ```bash
-ETHEREUM_RPC_URL=...  # RPC endpoint for network
-ATTESTER_PRIVATE_KEY=0x...  # Attester wallet (needs ETH)
-IMPLICATIONS_CONTRACT_ADDRESS=0x...  # From deployment
-OPENROUTER_API_KEY=sk-...  # LLM API key
-X402_PAYMENT_ADDRESS=0x...  # Payment recipient
+ETHEREUM_RPC_URL=...                # RPC endpoint for network
+ATTESTER_PRIVATE_KEY=0x...          # Attester wallet (needs ETH) — from .env.secrets
+IMPLICATIONS_CONTRACT_ADDRESS=0x... # From deployments/<network>.env
+OPENROUTER_API_KEY=sk-...           # LLM API key — from .env.secrets
+X402_PAYMENT_ADDRESS=0x...          # Payment recipient — from .env.secrets
 ```
 
 ## Deployment Artifacts
 
 ### Contract Deployment Records
 
-After deployment, find deployment info in:
+After deployment, find deployment info in two places:
 
+**Committable addresses** (use these):
+```
+deployments/
+  ├── localhost.env
+  ├── sepolia.env
+  └── mainnet.env
+```
+
+**Detailed JSON metadata** (gitignored, for reference):
 ```
 hardhat/deployments/
   ├── localhost-<timestamp>.json
@@ -399,12 +429,7 @@ hardhat/deployments/
   └── mainnet-<timestamp>.json
 ```
 
-Each file contains:
-- Contract addresses
-- Deployer address
-- Block number
-- Transaction hash
-- Timestamp
+Each JSON file contains: contract addresses, deployer address, block number, transaction hash, timestamp.
 
 ### Indexer Configuration
 
@@ -465,7 +490,7 @@ networks: {
 
 ## Security Best Practices
 
-1. **Never commit private keys** - Use `.env` (gitignored) or hardware wallets
+1. **Never commit private keys** - Use `.env.secrets` (gitignored) or hardware wallets
 2. **Use separate wallets** - Different keys for deployer, attester, and admin roles
 3. **Test on testnet first** - Always deploy to Sepolia before mainnet
 4. **Verify contract source** - Publish verified source on Etherscan

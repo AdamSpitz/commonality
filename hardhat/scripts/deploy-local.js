@@ -79,52 +79,94 @@ async function main() {
   const pubstarterAddress = await pubstarter.getAddress();
   console.log(`✓ Pubstarter: ${pubstarterAddress}`);
 
-  // Update .env file
-  const envPath = join(process.cwd(), '..', '.env');
-  console.log(`\n=== Updating ${envPath} ===\n`);
+  // Write deployments/localhost.env (committable contract addresses)
+  const rootDir = join(process.cwd(), '..');
+  const deploymentsDir = join(rootDir, 'deployments');
+  await fs.mkdir(deploymentsDir, { recursive: true });
 
-  // Read existing .env
-  let envContent = '';
-  try {
-    envContent = await fs.readFile(envPath, 'utf-8');
-  } catch (err) {
-    console.log('No existing .env file, creating new one');
-  }
-
-  // Update or add contract addresses and IPFS configuration
-  const updates = {
+  const addressEntries = {
     'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
     'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS': alignmentAttestationsAddress,
-    'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,  // For Ponder config compatibility
+    'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,
     'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
-    'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,  // For Ponder config compatibility
+    'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
     'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
-    'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,  // For Ponder config compatibility
+    'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
     'PUBSTARTER_ADDRESS': pubstarterAddress,
-    'IPFS_API': 'http://localhost:5001',
-    'IPFS_GATEWAY': 'http://localhost:8080/ipfs',
+    'START_BLOCK': '1',
   };
 
-  for (const [key, value] of Object.entries(updates)) {
+  let networkEnvContent = `# Contract addresses for localhost (Hardhat node)\n`;
+  networkEnvContent += `# Auto-populated by: npx hardhat run scripts/deploy-local.js --network localhost\n`;
+  networkEnvContent += `# Deployed: ${new Date().toISOString()}\n\n`;
+  for (const [key, value] of Object.entries(addressEntries)) {
+    networkEnvContent += `${key}=${value}\n`;
+  }
+  await fs.writeFile(join(deploymentsDir, 'localhost.env'), networkEnvContent);
+  console.log('✓ Updated deployments/localhost.env');
+
+  // Helper: update or append key=value in env content
+  function updateEnv(content, key, value) {
     const regex = new RegExp(`^${key}=.*$`, 'm');
-    if (regex.test(envContent)) {
-      envContent = envContent.replace(regex, `${key}=${value}`);
-    } else {
-      envContent += `\n${key}=${value}`;
+    if (regex.test(content)) {
+      return content.replace(regex, `${key}=${value}`);
     }
+    return content + `\n${key}=${value}`;
   }
 
-  await fs.writeFile(envPath, envContent);
-  console.log('✓ Updated .env file with contract addresses');
+  // Propagate to service .env files
+  console.log(`\n=== Propagating to service .env files ===\n`);
 
-  // Also write .env file for integration tests
-  const testEnvPath = join(process.cwd(), '..', 'integration-tests', '.env.local');
-  await fs.writeFile(testEnvPath, envContent);
-  console.log('✓ Updated integration-tests/.env.local');
+  // Root .env
+  const rootEnvPath = join(rootDir, '.env');
+  let rootEnvContent = '';
+  try {
+    rootEnvContent = await fs.readFile(rootEnvPath, 'utf-8');
+  } catch (err) {
+    console.log('  No existing .env file, creating new one');
+  }
+  for (const [key, value] of Object.entries(addressEntries)) {
+    rootEnvContent = updateEnv(rootEnvContent, key, value);
+  }
+  rootEnvContent = updateEnv(rootEnvContent, 'IPFS_API', 'http://localhost:5001');
+  rootEnvContent = updateEnv(rootEnvContent, 'IPFS_GATEWAY', 'http://localhost:8080/ipfs');
+  await fs.writeFile(rootEnvPath, rootEnvContent);
+  console.log('  ✓ Updated .env');
+
+  // integration-tests/.env.local
+  const testEnvPath = join(rootDir, 'integration-tests', '.env.local');
+  await fs.writeFile(testEnvPath, rootEnvContent);
+  console.log('  ✓ Updated integration-tests/.env.local');
+
+  // ui/.env — needs VITE_ prefix
+  const uiEnvPath = join(rootDir, 'ui', '.env');
+  let uiEnvContent = '';
+  try {
+    uiEnvContent = await fs.readFile(uiEnvPath, 'utf-8');
+  } catch (err) {
+    console.log('  No existing ui/.env, creating new one');
+  }
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_BELIEFS_CONTRACT_ADDRESS', beliefsAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
+  await fs.writeFile(uiEnvPath, uiEnvContent);
+  console.log('  ✓ Updated ui/.env');
+
+  // attester/.env — just the contract address
+  const attesterEnvPath = join(rootDir, 'attester', '.env');
+  let attesterEnvContent = '';
+  try {
+    attesterEnvContent = await fs.readFile(attesterEnvPath, 'utf-8');
+  } catch (err) {
+    console.log('  No existing attester/.env, creating new one');
+  }
+  attesterEnvContent = updateEnv(attesterEnvContent, 'IMPLICATIONS_CONTRACT_ADDRESS', implicationsAddress);
+  await fs.writeFile(attesterEnvPath, attesterEnvContent);
+  console.log('  ✓ Updated attester/.env');
 
   console.log('\n=== Deployment Complete ===\n');
   console.log('You can now start the indexer with: cd indexer && npm run dev');

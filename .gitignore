@@ -1,5 +1,10 @@
 .DS_Store
 node_modules
 .env
+.env.secrets
+attester/.env
+ui/.env
+integration-tests/.env.local
 typechain-types/
 attester/dist
+hardhat/deployments/
