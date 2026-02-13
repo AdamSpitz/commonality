@@ -1,7 +1,7 @@
 # What we've been working on lately
 
 Main thing I want to work on next:
-  - Set up deployment for testnet and mainnet.
+  - ✅ Set up deployment for testnet and mainnet. (DONE - see hardhat/scripts/deploy.js)
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.

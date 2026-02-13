@@ -3,6 +3,60 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-13):
+Set up deployment for testnet and mainnet - COMPLETED ✅
+
+## Session (2026-02-13) - Testnet and Mainnet Deployment Setup (COMPLETED ✅)
+
+**Task:** Set up deployment configuration for testnet (Sepolia) and mainnet
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**What was accomplished:**
+
+1. **Updated hardhat.config.cjs:**
+   - Added Sepolia testnet network configuration
+   - Added Mainnet network configuration
+   - Both networks use environment variables for RPC URLs and private keys
+
+2. **Created new deployment script** (`hardhat/scripts/deploy.js`):
+   - Unified script that works for localhost, testnet, and mainnet
+   - Saves deployment info to `deployments/<network>-<timestamp>.json`
+   - Shows deployer address and balance before deployment
+   - Prints all contract addresses at the end
+   - For localhost, still updates .env file automatically
+
+3. **Updated .env.example:**
+   - Added DEPLOYER_PRIVATE_KEY placeholder (with security warning)
+   - Added SEPOLIA_RPC_URL configuration
+   - Added MAINNET_RPC_URL configuration
+
+**Files changed:**
+- `hardhat/hardhat.config.cjs` - Added Sepolia and Mainnet network configs
+- `hardhat/scripts/deploy.js` (NEW) - Unified deployment script for all networks
+- `.env.example` - Added deployment configuration variables
+
+**Build status:** ✅ All packages build successfully
+
+**How to deploy:**
+```bash
+# Local deployment
+npx hardhat run scripts/deploy.js --network localhost
+
+# Testnet deployment (requires DEPLOYER_PRIVATE_KEY in .env)
+npx hardhat run scripts/deploy.js --network sepolia
+
+# Mainnet deployment (requires DEPLOYER_PRIVATE_KEY in .env)
+npx hardhat run scripts/deploy.js --network mainnet
+```
+
+**Next steps:**
+1. Implement attack scenarios for generative testing
+2. Add invariant checking to validate contract state consistency
+3. Consider adding contract verification on Etherscan
+
+---
+
+## Previous priority (2026-02-13):
 Implement Funding and Delegation actions for generative testing - COMPLETED ✅
 
 ## Session (2026-02-13) - Funding and Delegation Actions for Generative Testing (COMPLETED ✅)

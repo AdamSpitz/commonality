@@ -43,4 +43,4 @@ If there's a vague high-level to-do item, it may make sense for the project-lead
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
-Current focus: AI Attester service implementation complete and ready for deployment on Render. 
+Current focus: Deployment infrastructure is set up for testnet and mainnet. Next priorities are generative testing (attack scenarios and invariant checking) or deploying the contracts. 
