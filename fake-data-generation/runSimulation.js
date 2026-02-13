@@ -5,6 +5,8 @@ import { dirname, join } from 'path';
 import { generateUsers } from './generateUsers.js';
 import { generateStatements } from './generateStatements.js';
 import { FundingAndDelegationActions } from './fundingAndDelegationActions.js';
+import { AttackScenarios } from './attackScenarios.js';
+import { InvariantChecker } from './invariantChecker.js';
 
 const { ethers } = hre;
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +29,8 @@ class SimulationRunner {
       errors: []
     };
     this.fundingDelegation = null;
+    this.attackScenarios = null;
+    this.invariantChecker = null;
   }
 
   async initialize(numUsers = 50) {
@@ -65,6 +69,22 @@ class SimulationRunner {
     // Initialize funding and delegation actions
     console.log('\nInitializing funding and delegation actions...');
     this.fundingDelegation = new FundingAndDelegationActions(
+      this.contracts,
+      this.users,
+      this.statements
+    );
+
+    // Initialize attack scenarios
+    console.log('\nInitializing attack scenarios module...');
+    this.attackScenarios = new AttackScenarios(
+      this.contracts,
+      this.users,
+      this.statements
+    );
+
+    // Initialize invariant checker
+    console.log('\nInitializing invariant checker...');
+    this.invariantChecker = new InvariantChecker(
       this.contracts,
       this.users,
       this.statements
@@ -485,16 +505,88 @@ class SimulationRunner {
       console.log(`\n  Errors: ${metricsReport.errors.length}`);
     }
   }
+
+  async runAttackScenarios() {
+    console.log('\n=== Running Attack Scenarios ===\n');
+
+    if (!this.attackScenarios) {
+      console.log('Attack scenarios not initialized');
+      return;
+    }
+
+    // Take snapshot before attacks
+    await this.invariantChecker.takeSnapshot('before_attacks');
+
+    // Run Sybil attack
+    console.log('\n--- Sybil Attack ---');
+    await this.attackScenarios.sybilAttack(this.users[0], 30);
+
+    // Run spam attack
+    console.log('\n--- Spam Attack ---');
+    await this.attackScenarios.spamAttack(30);
+
+    // Run malicious attester attack
+    console.log('\n--- Malicious Attester Attack ---');
+    await this.attackScenarios.maliciousAttesterAttack(20);
+
+    // Run commission exploitation attack
+    console.log('\n--- Commission Exploitation Attack ---');
+    await this.attackScenarios.commissionExploitationAttack();
+
+    // Detect attacks
+    const detectionResults = await this.attackScenarios.detectAttacks();
+
+    // Take snapshot after attacks
+    await this.invariantChecker.takeSnapshot('after_attacks');
+
+    return {
+      attackResults: this.attackScenarios.getResults(),
+      detectionResults
+    };
+  }
+
+  async runInvariantChecks() {
+    console.log('\n=== Running Invariant Checks ===\n');
+
+    if (!this.invariantChecker) {
+      console.log('Invariant checker not initialized');
+      return;
+    }
+
+    // Take initial snapshot
+    await this.invariantChecker.takeSnapshot('initial');
+
+    // Run all invariant checks
+    const results = await this.invariantChecker.runAllChecks();
+
+    return results;
+  }
 }
 
 // Main execution
 async function main() {
   const numUsers = parseInt(process.argv[2]) || 50;
   const numRounds = parseInt(process.argv[3]) || 5;
+  const runAttacks = process.argv.includes('--attacks');
+  const runInvariants = process.argv.includes('--invariants');
 
   const simulation = new SimulationRunner();
   await simulation.initialize(numUsers);
   await simulation.runSimulation(numRounds);
+
+  // Run attack scenarios if requested
+  if (runAttacks) {
+    await simulation.runAttackScenarios();
+  }
+
+  // Run invariant checks if requested
+  if (runInvariants) {
+    await simulation.runInvariantChecks();
+  }
+
+  // Always run invariant checks after simulation
+  await simulation.runInvariantChecks();
+
   await simulation.saveResults();
 }
 

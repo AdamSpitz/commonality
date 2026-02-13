@@ -5,6 +5,61 @@ High-level stuff is all in order, it's time to implement.
 ## Current priority (2026-02-13):
 Set up deployment for testnet and mainnet - COMPLETED ✅
 
+## Session (2026-02-13) - Attack Scenarios and Invariant Checking (COMPLETED ✅)
+
+**Task:** Implement attack scenarios and invariant checking for generative testing
+
+**TASK COMPLETED SUCCESSFULLY ✅
+
+**What was accomplished:**
+
+1. **Created attackScenarios.js module** (`fake-data-generation/attackScenarios.js`):
+   - `AttackScenarios` class with 4 attack types:
+     - Sybil attacks: Creates many fake identities to inflate belief counts
+     - Spam attacks: Floods system with low-quality statements
+     - Malicious attester attacks: Creates false implication attestations
+     - Commission exploitation attacks: Attempts to exploit project funding mechanisms
+   - Attack detection with recommendations for countermeasures
+
+2. **Created invariantChecker.js module** (`fake-data-generation/invariantChecker.js`):
+   - `InvariantChecker` class with 4 invariant checks:
+     - Contract state consistency: Validates belief states, contract addresses, implications
+     - Economic conservation: Verifies no unexpected value creation/destruction
+     - Graph algorithm correctness: Checks for cycles, self-loops using DFS with visited set
+     - Indexer consistency: Verifies events have required fields, no orphan implications
+
+3. **Updated runSimulation.js**:
+   - Integrated AttackScenarios and InvariantChecker into simulation runner
+   - Added `runAttackScenarios()` method for executing attack tests
+   - Added `runInvariantChecks()` method for validation
+   - Updated main() to support --attacks and --invariants flags
+   - Runs invariant checks automatically after simulation
+
+4. **Usage**:
+   ```bash
+   # Run simulation with attacks
+   npx hardhat run fake-data-generation/runSimulation.js --network localhost -- --attacks
+
+   # Run simulation with invariant checks
+   npx hardhat run fake-data-generation/runSimulation.js --network localhost -- --invariants
+
+   # Run both (default)
+   npx hardhat run fake-data-generation/runSimulation.js --network localhost
+   ```
+
+**Files changed:**
+- `fake-data-generation/attackScenarios.js` (NEW) - Attack scenarios implementation
+- `fake-data-generation/invariantChecker.js` (NEW) - Invariant checking implementation
+- `fake-data-generation/runSimulation.js` - Integrated new modules
+- `TODO.md` - Marked attack scenarios and invariant checking as completed
+
+**Build status:** ✅ All packages build successfully
+**Test status:** ✅ All tests pass (72 SDK, 243 Hardhat, 102 Integration, 265 UI unit, 16 E2E)
+
+**Next steps:**
+1. Complete pre-generated data workflow (save statements and attestations to Git for reuse)
+2. Consider contract verification on Etherscan for deployed contracts
+
 ## Session (2026-02-13) - Testnet and Mainnet Deployment Setup (COMPLETED ✅)
 
 **Task:** Set up deployment configuration for testnet (Sepolia) and mainnet
