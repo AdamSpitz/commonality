@@ -39,6 +39,8 @@ When completing a task, please make sure to keep TODO.md (or whichever subsystem
 
 If there's a vague high-level to-do item, it may make sense for the project-lead to spend one "task" on simply expanding it out into a list of medium or small to-do items.
 
-## Current project status
+## High-level overview of current status
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
+
+Current focus: Have we moved on to implementing generative testing? 
