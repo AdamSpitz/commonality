@@ -1,0 +1,227 @@
+[
+  {
+    "id": 0,
+    "address": "0xD75cf4cAFb5846b5466F3EFa5efbb88ECD7EB0dC",
+    "privateKey": "0xeeecdbed7957a4e544366500102ee1437085bffd27d33fba4c4157cfd974d032",
+    "type": "LENIENT",
+    "threshold": 0.6,
+    "description": "Permissive evaluation, allows loose connections",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 1,
+    "address": "0x98a0653aD49AabA4b439E6017bfd6b1C320bDfB4",
+    "privateKey": "0xdb1f9bc9cdb9ddba0c4f0c5d7f360e8506a21ecf659895df460663e7b46d9e3c",
+    "type": "MALICIOUS",
+    "threshold": 0.5,
+    "description": "Random/incorrect evaluations for testing robustness",
+    "bias": "random",
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 2,
+    "address": "0xaf4F7700D099DF738978b6A07773ee549c21b35E",
+    "privateKey": "0x49b15ad8c9733dcded614aa4804fc0f3b17d6a8dc3a18cabaa79530366583058",
+    "type": "LENIENT",
+    "threshold": 0.6,
+    "description": "Permissive evaluation, allows loose connections",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 3,
+    "address": "0xB1ce9142D4E057338566d89301c1302BD76867F2",
+    "privateKey": "0x55e3211089e21896ed7b383342a25ed2c3295912d85856b4084725129f6a8bfd",
+    "type": "LENIENT",
+    "threshold": 0.6,
+    "description": "Permissive evaluation, allows loose connections",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 4,
+    "address": "0x8BD0160FC4d0896a56704cD2554E55Da38f9c15b",
+    "privateKey": "0xe10c2378ff715885270f502fdba4543c93a98865397c588f50cc0315bc1110b4",
+    "type": "POLITICAL_LEFT",
+    "threshold": 0.75,
+    "description": "Evaluates through left-leaning political lens",
+    "bias": "left",
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 5,
+    "address": "0xBdcfe74636df9bB741169ED896BB15d24B548d46",
+    "privateKey": "0x4dbf073ab278b8b44f76f146fd5971fdea20298f25a79052790e1eb0422f6bc3",
+    "type": "NEUTRAL",
+    "threshold": 0.8,
+    "description": "Balanced evaluation requiring clear logical connection",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 6,
+    "address": "0xE4bd74148D6d8Fe081F379227E8ca1e26A157BdF",
+    "privateKey": "0x19caaca0146dca58fcef1d971ed47cf0c0b2ad48bfd1b9ef11aadee2d6abfc4c",
+    "type": "POLITICAL_RIGHT",
+    "threshold": 0.75,
+    "description": "Evaluates through right-leaning political lens",
+    "bias": "right",
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 7,
+    "address": "0x575ed71290CCdC8e02269583Dc948d8418fCa216",
+    "privateKey": "0x3581d4b65e02ab2e2687b8848c351f3007bcb05bc33a0ce458b33d1acff85f1a",
+    "type": "POLITICAL_RIGHT",
+    "threshold": 0.75,
+    "description": "Evaluates through right-leaning political lens",
+    "bias": "right",
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 8,
+    "address": "0x98A8b428dce3458d457097D0B410dF6cb844a6FB",
+    "privateKey": "0xe2f68512c362559f3a4c022d405347a32441f2b683de5d44a8dc2b5f923af5f9",
+    "type": "POLITICAL_LEFT",
+    "threshold": 0.75,
+    "description": "Evaluates through left-leaning political lens",
+    "bias": "left",
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 9,
+    "address": "0xedBb5eDE4708F318196a44E0fc0A845ef54C77a9",
+    "privateKey": "0xea45b10081daadeb4f9032f7e52feaa50924378968b660315e4cce8d2bf2b227",
+    "type": "NEUTRAL",
+    "threshold": 0.8,
+    "description": "Balanced evaluation requiring clear logical connection",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 10,
+    "address": "0xF2cDeEcDfCeA7418C90Bd373F62Bf014f356b694",
+    "privateKey": "0x20c65f2b10b0de2afcc7911ac7e135babe77956181cac28120c8cf0a7fc7f828",
+    "type": "STRICT",
+    "threshold": 0.95,
+    "description": "Very high bar for implication, only obvious logical entailments",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 11,
+    "address": "0x307745223540820681481562020D8bFA1399c9ed",
+    "privateKey": "0x15ad181e8f5d2c568f3aa23452f7b368b040f77674569fb758b0c8b4377b29d1",
+    "type": "STRICT",
+    "threshold": 0.95,
+    "description": "Very high bar for implication, only obvious logical entailments",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 12,
+    "address": "0x0B891bC3DC62973e576B38Bcda43F441BaA475A4",
+    "privateKey": "0x61a45979b6571cf055f98735937be621f212ed50da8e3c6acfdeb86cbee94f50",
+    "type": "POLITICAL_LEFT",
+    "threshold": 0.75,
+    "description": "Evaluates through left-leaning political lens",
+    "bias": "left",
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 13,
+    "address": "0xaC3a34EaF323f429Ea4DeF11728fC6016298F94b",
+    "privateKey": "0xd47e7408ada87f2a0c80641f607a09f9d560691ccb4098877589d22ab1ee2ab3",
+    "type": "NEUTRAL",
+    "threshold": 0.8,
+    "description": "Balanced evaluation requiring clear logical connection",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  },
+  {
+    "id": 14,
+    "address": "0x476e38B9e8D4b78169203a212905BBbd7e9e1BD5",
+    "privateKey": "0x9368586258b1dfe6ff63bc85cd9095681045bff030c71b03acf3a4c83facb223",
+    "type": "NEUTRAL",
+    "threshold": 0.8,
+    "description": "Balanced evaluation requiring clear logical connection",
+    "bias": null,
+    "stats": {
+      "totalAttestations": 0,
+      "acceptedRequests": 0,
+      "rejectedRequests": 0,
+      "lastAttestationBlock": 0
+    }
+  }
+]

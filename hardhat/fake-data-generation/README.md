@@ -9,8 +9,9 @@ The generative testing suite consists of:
 1. **Universe Configuration** (`universe.json`) - Defines domains (politics, crypto, religion, music, climate, technology) and statement templates
 2. **User Generator** (`generateUsers.js`) - Creates random users with Ethereum addresses, interests, engagement levels, and wealth distribution
 3. **Statement Generator** (`generateStatements.js`) - Generates statements from the universe configuration
-4. **Simulation Runner** (`runSimulation.js`) - Main test orchestrator that deploys contracts and executes random user actions
-5. **Utilities** (`utils.js`) - Helper functions for the test suite
+4. **Attester Generator** (`generateAttesters.js`) - Creates implication attesters with different evaluation strategies (neutral, strict, lenient, biased, malicious)
+5. **Simulation Runner** (`runSimulation.js`) - Main test orchestrator that deploys contracts and executes random user actions
+6. **Utilities** (`utils.js`) - Helper functions for the test suite
 
 ## Quick Start
 
@@ -35,6 +36,9 @@ node fake-data-generation/generateUsers.js 50
 
 # Generate statements
 node fake-data-generation/generateStatements.js
+
+# Generate attesters
+node fake-data-generation/generateAttesters.js 15
 ```
 
 ## Generated Files
@@ -43,6 +47,7 @@ After running the simulation, you'll find:
 
 - `users.json` - Generated user profiles with addresses and private keys
 - `statements.json` - Generated statements from the universe
+- `attesters.json` - Generated implication attesters with evaluation strategies
 - `actions.json` - Log of all actions performed during simulation
 - `metrics.json` - Gas usage statistics and performance metrics
 
@@ -56,6 +61,23 @@ Users are generated with:
 - **Wealth** - Power law distribution (1% whales, 9% large holders, 90% small holders)
 - **Interests** - 1-4 domains they care about with specific positions
 - **Trust network** - 0-5 other users they might delegate to
+
+### Attester Types
+
+Implication attesters are specialized accounts that evaluate whether statement S1 implies statement S2:
+
+- **NEUTRAL** (30%) - Balanced evaluation with 0.8 threshold requiring clear logical connection
+- **STRICT** (20%) - Very high 0.95 threshold, only obvious logical entailments
+- **LENIENT** (20%) - Permissive 0.6 threshold, allows loose connections
+- **POLITICAL_LEFT** (10%) - Left-leaning political lens for evaluation
+- **POLITICAL_RIGHT** (10%) - Right-leaning political lens for evaluation
+- **MALICIOUS** (10%) - Random evaluations for testing system robustness
+
+Each attester has:
+- **Ethereum address and private key** - For signing attestations
+- **Evaluation threshold** - Confidence score required to attest implication
+- **Bias** - Some attesters have political or other biases affecting evaluation
+- **Statistics tracking** - Counts of attestations made
 
 ### Simulation Actions
 
@@ -153,11 +175,12 @@ Example output:
 
 This is a basic version. The full generative testing plan includes:
 
-- **OpenRouter integration** - Use LLMs to evaluate implications instead of random
+- [x] **Attester generation** - ✓ Completed: Generate implication attesters with different evaluation strategies
+- **OpenRouter integration** - Use LLMs to evaluate implications instead of simulated logic
 - **More contract types** - Add AssuranceContract, DelegatableNotes, SecondaryMarket
 - **Funding actions** - Create projects, purchase tokens, trade on secondary market
 - **Delegation actions** - Create notes, delegate, spend, split/merge
-- **Attack scenarios** - Sybil attacks, malicious attesters, spam
+- **Attack scenarios** - Sybil attacks, spam, commission exploitation
 - **Invariant checking** - Validate contract state consistency
 - **Scale testing** - Run with 1000+ users
 - **Visualization** - Generate graphs of the belief network and funding flows

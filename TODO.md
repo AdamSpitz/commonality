@@ -6,6 +6,10 @@ Main thing I want to work on next:
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.
+    - ✅ Attester generation implemented (generateAttesters.js with different attester types)
+    - ⏳ OpenRouter integration for LLM-based implication evaluation
+    - ⏳ Funding and delegation actions
+    - ⏳ Attack scenarios and invariant checking
   - Implement the Implication Attester AI service.
   - Set up deployment for testnet and mainnet.
 
