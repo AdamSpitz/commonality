@@ -8,7 +8,8 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "mocha"
   },
   "dependencies": {
     "@commonality/sdk": "1.0.0",
@@ -17,7 +18,9 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.10.0",
+    "mocha": "^10.8.2",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0"
   }

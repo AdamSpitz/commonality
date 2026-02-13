@@ -17,3 +17,4 @@
 - [x] Add proper error handling for blockchain failures
 - [x] Add batch processing for evaluating multiple statement pairs
 - [x] Deploy to production (Render)
+- [x] Add unit tests for core modules
