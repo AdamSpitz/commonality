@@ -10,8 +10,10 @@ The generative testing suite consists of:
 2. **User Generator** (`generateUsers.js`) - Creates random users with Ethereum addresses, interests, engagement levels, and wealth distribution
 3. **Statement Generator** (`generateStatements.js`) - Generates statements from the universe configuration
 4. **Attester Generator** (`generateAttesters.js`) - Creates implication attesters with different evaluation strategies (neutral, strict, lenient, biased, malicious)
-5. **Simulation Runner** (`runSimulation.js`) - Main test orchestrator that deploys contracts and executes random user actions
-6. **Utilities** (`utils.js`) - Helper functions for the test suite
+5. **OpenRouter Integration** (`openrouter.js`) - LLM-based implication evaluation using OpenRouter API
+6. **LLM Attester** (`llmAttester.js`) - Integrates attesters with LLM evaluation for intelligent implication testing
+7. **Simulation Runner** (`runSimulation.js`) - Main test orchestrator that deploys contracts and executes random user actions
+8. **Utilities** (`utils.js`) - Helper functions for the test suite
 
 ## Quick Start
 
@@ -93,6 +95,104 @@ The simulation performs these actions:
 - **Action counts** - how many of each action type were performed
 - **Errors** - any failures during execution
 - **Block numbers** - timeline of actions
+
+## LLM-Based Implication Evaluation (OpenRouter)
+
+The generative testing suite now supports intelligent implication evaluation using Large Language Models via the OpenRouter API. This allows attesters to use actual reasoning rather than random decisions.
+
+### Features
+
+- **LLM Evaluation**: Uses Claude 3.5 Haiku (or other models) to evaluate whether S1 implies S2
+- **Attester Integration**: Different attester types apply their thresholds and biases to LLM results
+- **Batch Processing**: Evaluate multiple implication pairs efficiently
+- **Cost Estimation**: Built-in tools to estimate API costs before running large batches
+
+### Configuration
+
+Set your OpenRouter API key as an environment variable:
+
+```bash
+export OPENROUTER_API_KEY=sk-or-your-key-here
+export OPENROUTER_MODEL=anthropic/claude-3.5-haiku  # Optional, defaults to haiku
+```
+
+Get an API key at: https://openrouter.ai/keys
+
+### Testing the Integration
+
+Run the test script to verify everything is working:
+
+```bash
+# From the hardhat directory
+cd /home/adam/Projects/commonality/hardhat
+
+# Run 3 test evaluations
+node fake-data-generation/testOpenRouter.js 3
+
+# Run more tests
+node fake-data-generation/testOpenRouter.js 10
+```
+
+The test script will:
+1. Validate your OpenRouter setup
+2. Run single evaluations with different attester types
+3. Run batch evaluations
+4. Show cost estimates
+
+### Using in Simulations
+
+To use LLM-based evaluation in your simulation, modify the simulation runner to use the `llmAttester.js` module:
+
+```javascript
+import { evaluateImplicationWithAttester } from './llmAttester.js';
+
+// Instead of random evaluation:
+const result = await evaluateImplicationWithAttester(
+  attester,
+  statement1,
+  statement2,
+  process.env.OPENROUTER_API_KEY
+);
+
+if (result.implies) {
+  // Publish attestation
+}
+```
+
+### Cost Estimation
+
+Estimate costs before running large batches:
+
+```javascript
+import { estimateEvaluationCost } from './llmAttester.js';
+
+const estimate = estimateEvaluationCost(100); // 100 evaluations
+console.log(`Estimated cost: $${estimate.totalCostUsd}`);
+// Output: Estimated cost: $0.20
+```
+
+Typical costs (Claude 3.5 Haiku):
+- Per evaluation: ~$0.002 USD
+- 100 evaluations: ~$0.20 USD
+- 1000 evaluations: ~$2.00 USD
+
+### API Reference
+
+**`evaluateImplicationWithLLM(statement1, statement2, apiKey, model)`**
+- Evaluates a single implication pair using LLM
+- Returns: `{ implies, confidence, reasoning, model, usage }`
+
+**`evaluateImplicationWithAttester(attester, statement1, statement2, apiKey)`**
+- Evaluates with attester-specific thresholds and biases applied
+- Returns: `{ implies, confidence, llmConfidence, reasoning, attesterId, ... }`
+
+**`batchEvaluateImplications(pairs, apiKey, model, options)`**
+- Batch evaluation with rate limiting
+- Options: `{ delayMs, onProgress }`
+
+**`batchAttesterEvaluations(attesters, pairs, apiKey, options)`**
+- Evaluate multiple attesters across multiple pairs
+- Options: `{ maxPairsPerAttester, delayBetweenCalls, onProgress }`
 
 ## Indexer Integration Tests
 
@@ -176,7 +276,7 @@ Example output:
 This is a basic version. The full generative testing plan includes:
 
 - [x] **Attester generation** - ✓ Completed: Generate implication attesters with different evaluation strategies
-- **OpenRouter integration** - Use LLMs to evaluate implications instead of simulated logic
+- [x] **OpenRouter integration** - ✓ Completed: Use LLMs via OpenRouter API to evaluate implications with intelligent reasoning
 - **More contract types** - Add AssuranceContract, DelegatableNotes, SecondaryMarket
 - **Funding actions** - Create projects, purchase tokens, trade on secondary market
 - **Delegation actions** - Create notes, delegate, spend, split/merge
@@ -190,7 +290,7 @@ This is a basic version. The full generative testing plan includes:
 ## Notes
 
 - Currently uses mock statement IDs (keccak256 hashes) instead of real IPFS CIDs
-- Implication attestations are random rather than LLM-evaluated
+- Implication attestations can now use LLM evaluation via OpenRouter (set OPENROUTER_API_KEY to enable)
 - Project addresses are randomly generated for testing
 - All tests run on Hardhat's local network (deterministic for reproducibility)
 
