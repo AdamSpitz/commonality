@@ -6,7 +6,7 @@ This hardhat project should be considered "source code" (i.e. part of the spec);
 
 ## Generative tests
 
-See fake-data-generation/README.md (in this directory).
+See [fake-data-generation/README.md](../fake-data-generation/README.md) (in the project root).
 
 ## Dev stuff you can do:
 

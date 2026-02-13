@@ -6,7 +6,7 @@ The [hardhat/](hardhat/) directory (or at least the hardhat/contracts directory)
 
 See [hardhat/README.md](hardhat/README.md) for more info.
 
-Also note that the hardhat/ directory contains the fake-data generation system; see [hardhat/fake-data-generation/README.md](hardhat/fake-data-generation/README.md).
+The fake-data generation system is in its own directory at the project root; see [fake-data-generation/README.md](fake-data-generation/README.md).
 
 ## Indexer
 

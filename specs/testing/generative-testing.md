@@ -27,4 +27,4 @@ Here's what I'm imagining:
 
 ## Current progress
 
-There's an early attempt at fake-data generation in hardhat/fake-data-generation, but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.
+There's an early attempt at fake-data generation in fake-data-generation/ (at the project root), but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.

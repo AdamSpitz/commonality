@@ -15,32 +15,36 @@ The generative testing suite consists of:
 7. **Simulation Runner** (`runSimulation.js`) - Main test orchestrator that deploys contracts and executes random user actions
 8. **Utilities** (`utils.js`) - Helper functions for the test suite
 
+## Important: Hardhat dependency
+
+Although this directory lives at the project root, the simulation scripts (`runSimulation.js`, `fundingAndDelegationActions.js`) import the Hardhat runtime environment (`import hre from 'hardhat'`) to deploy and interact with smart contracts. This means **scripts must be run from the `hardhat/` directory** so that Hardhat can find its config file (`hardhat.config.cjs`) and compiled contract artifacts. You can also use the `npm run gen:*` scripts defined in `hardhat/package.json`.
+
 ## Quick Start
 
 ### Generate test data and run simulation:
 
 ```bash
-# From the hardhat directory
+# From the hardhat directory (needed for hardhat runtime - see note above)
 cd /home/adam/Projects/commonality/hardhat
 
 # Run the simulation (will auto-generate data if needed)
-node fake-data-generation/runSimulation.js [numUsers] [numRounds]
+node ../fake-data-generation/runSimulation.js [numUsers] [numRounds]
 
 # Example: 50 users, 5 rounds
-node fake-data-generation/runSimulation.js 50 5
+node ../fake-data-generation/runSimulation.js 50 5
 ```
 
 ### Generate data separately:
 
 ```bash
-# Generate users
-node fake-data-generation/generateUsers.js 50
+# Generate users (run from hardhat/ directory)
+node ../fake-data-generation/generateUsers.js 50
 
 # Generate statements
-node fake-data-generation/generateStatements.js
+node ../fake-data-generation/generateStatements.js
 
 # Generate attesters
-node fake-data-generation/generateAttesters.js 15
+node ../fake-data-generation/generateAttesters.js 15
 ```
 
 ## Generated Files
@@ -135,14 +139,14 @@ Get an API key at: https://openrouter.ai/keys
 Run the test script to verify everything is working:
 
 ```bash
-# From the hardhat directory
+# From the hardhat directory (needed for hardhat runtime)
 cd /home/adam/Projects/commonality/hardhat
 
 # Run 3 test evaluations
-node fake-data-generation/testOpenRouter.js 3
+node ../fake-data-generation/testOpenRouter.js 3
 
 # Run more tests
-node fake-data-generation/testOpenRouter.js 10
+node ../fake-data-generation/testOpenRouter.js 10
 ```
 
 The test script will:

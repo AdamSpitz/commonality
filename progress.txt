@@ -67,7 +67,7 @@ Implement Funding and Delegation actions for generative testing - COMPLETED ✅
 
 **What was accomplished:**
 
-1. **Created fundingAndDelegationActions.js module** (`hardhat/fake-data-generation/fundingAndDelegationActions.js`):
+1. **Created fundingAndDelegationActions.js module** (`fake-data-generation/fundingAndDelegationActions.js`):
    - `FundingAndDelegationActions` class for managing funding and delegation operations
    - Project tracking: stores created projects with ERC1155, marketplace, and assurance contract addresses
    - Note tracking: tracks created notes with owner, amount, token type, and token ID
@@ -86,7 +86,7 @@ Implement Funding and Delegation actions for generative testing - COMPLETED ✅
    - `spendNotesOnPrimaryMarket()` - Spends notes to purchase tokens from primary market
    - `reclaimNoteFunds()` - Reclaims funds from root notes
 
-4. **Updated Simulation Runner** (`hardhat/fake-data-generation/runSimulation.js`):
+4. **Updated Simulation Runner** (`fake-data-generation/runSimulation.js`):
    - Deploys DelegatableNotes, Pubstarter factories, and main Pubstarter contract
    - Integrated FundingAndDelegationActions into simulation
    - Added 6 new action types to simulation:
@@ -98,15 +98,15 @@ Implement Funding and Delegation actions for generative testing - COMPLETED ✅
      - `revokeDelegation` (2% weight)
    - Adjusted existing action weights to accommodate new actions
 
-5. **Updated Documentation** (`hardhat/fake-data-generation/README.md`):
+5. **Updated Documentation** (`fake-data-generation/README.md`):
    - Added documentation for all new funding and delegation actions
    - Marked funding and delegation actions as completed in Future Enhancements
    - Organized actions into categories (Belief & Implication, Funding, Delegation)
 
 **Files changed:**
-- `hardhat/fake-data-generation/fundingAndDelegationActions.js` (NEW) - Core funding and delegation logic
-- `hardhat/fake-data-generation/runSimulation.js` - Integrated new actions into simulation
-- `hardhat/fake-data-generation/README.md` - Updated documentation
+- `fake-data-generation/fundingAndDelegationActions.js` (NEW) - Core funding and delegation logic
+- `fake-data-generation/runSimulation.js` - Integrated new actions into simulation
+- `fake-data-generation/README.md` - Updated documentation
 - `TODO.md` - Marked funding and delegation as complete
 - `progress.txt` - This file
 
@@ -496,7 +496,7 @@ x402 payment integration for AI Attester service - COMPLETED ✅
 
 **What was accomplished:**
 
-1. Created `hardhat/fake-data-generation/openrouter.js`:
+1. Created `fake-data-generation/openrouter.js`:
    - `evaluateImplicationWithLLM()` - Core function to evaluate S1→S2 using OpenRouter API
    - `batchEvaluateImplications()` - Rate-limited batch processing
    - `getAvailableModels()` - Fetch available models from OpenRouter
@@ -504,7 +504,7 @@ x402 payment integration for AI Attester service - COMPLETED ✅
    - JSON response parsing with fallback text extraction
    - Error handling with conservative fallbacks
 
-2. Created `hardhat/fake-data-generation/llmAttester.js`:
+2. Created `fake-data-generation/llmAttester.js`:
    - `evaluateImplicationWithAttester()` - Integrates attesters with LLM evaluation
    - Applies attester-specific thresholds and biases (left/right/malicious)
    - Tracks attester statistics (total/accepted/rejected attestations)
@@ -512,7 +512,7 @@ x402 payment integration for AI Attester service - COMPLETED ✅
    - `estimateEvaluationCost()` - Cost estimation tool (~$0.002 per evaluation)
    - `validateOpenRouterSetup()` - Configuration validation
 
-3. Created `hardhat/fake-data-generation/testOpenRouter.js`:
+3. Created `fake-data-generation/testOpenRouter.js`:
    - Test script to verify OpenRouter integration
    - Tests single evaluations, batch evaluations, and different attester types
    - Shows cost estimates and token usage
@@ -533,10 +533,10 @@ x402 payment integration for AI Attester service - COMPLETED ✅
    - Updated TODO.md with completion status
 
 **Files changed:**
-- `hardhat/fake-data-generation/openrouter.js` (NEW) - Core OpenRouter integration
-- `hardhat/fake-data-generation/llmAttester.js` (NEW) - Attester + LLM integration
-- `hardhat/fake-data-generation/testOpenRouter.js` (NEW) - Test script
-- `hardhat/fake-data-generation/README.md` - Documentation updates
+- `fake-data-generation/openrouter.js` (NEW) - Core OpenRouter integration
+- `fake-data-generation/llmAttester.js` (NEW) - Attester + LLM integration
+- `fake-data-generation/testOpenRouter.js` (NEW) - Test script
+- `fake-data-generation/README.md` - Documentation updates
 - `TODO.md` - Marked OpenRouter integration as completed
 
 **Next steps:**
@@ -553,7 +553,7 @@ x402 payment integration for AI Attester service - COMPLETED ✅
 
 **What was accomplished:**
 
-1. Created `hardhat/fake-data-generation/generateAttesters.js` with:
+1. Created `fake-data-generation/generateAttesters.js` with:
    - 6 different attester types with varying thresholds and biases:
      - NEUTRAL (30%): Balanced evaluation with 0.8 threshold
      - STRICT (20%): High 0.95 threshold for obvious entailments only
@@ -591,9 +591,9 @@ x402 payment integration for AI Attester service - COMPLETED ✅
    - Updated TODO.md with progress on generative testing
 
 **Files changed:**
-- `hardhat/fake-data-generation/generateAttesters.js` (NEW) - Attester generation script
-- `hardhat/fake-data-generation/README.md` - Documentation for attester generation
-- `hardhat/fake-data-generation/attesters.json` (NEW) - Generated attester data
+- `fake-data-generation/generateAttesters.js` (NEW) - Attester generation script
+- `fake-data-generation/README.md` - Documentation for attester generation
+- `fake-data-generation/attesters.json` (NEW) - Generated attester data
 - `TODO.md` - Updated generative testing progress
 
 **Next steps:**
