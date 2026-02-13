@@ -4,8 +4,15 @@ import { evaluateImplicationWithLLM } from './evaluator.js';
 import { uploadToIpfs, fetchFromIpfs } from './ipfs.js';
 import { publishAttestation, getBlockchainClients } from './blockchain.js';
 import { calculatePaymentRequired, validatePayment, getPaymentFromHeader, createPaymentRequiredResponse, } from './payment.js';
+import { createRateLimiter } from './rateLimit.js';
 const app = express();
 app.use(express.json());
+const config = loadConfig();
+const evaluationRateLimiter = createRateLimiter({
+    windowMs: config.rateLimitWindowMs,
+    maxRequests: config.rateLimitMaxRequests,
+    message: 'Too many evaluation requests. Please wait before trying again.',
+});
 async function getCurrentGasPrice() {
     try {
         const { testClients } = getBlockchainClients();
@@ -28,7 +35,7 @@ async function requirePayment(req, res, next) {
     }
     next();
 }
-app.post('/evaluate-implication', requirePayment, async (req, res) => {
+app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (req, res) => {
     const startTime = Date.now();
     try {
         const { fromStatementId, toStatementId } = req.body;
@@ -198,7 +205,6 @@ app.get('/quote', async (_req, res) => {
         });
     }
 });
-const config = loadConfig();
 app.listen(config.port, () => {
     console.log(`Implication Attester AI service listening on port ${config.port}`);
 });

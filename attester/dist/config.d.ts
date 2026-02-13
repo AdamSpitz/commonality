@@ -13,6 +13,8 @@ export interface AttesterConfig {
     gasPriceMultiplier: number;
     estimatedInputTokens: number;
     estimatedOutputTokens: number;
+    rateLimitWindowMs: number;
+    rateLimitMaxRequests: number;
 }
 export declare function loadConfig(): AttesterConfig;
 //# sourceMappingURL=config.d.ts.map

@@ -39,6 +39,10 @@ ETH_USD_PRICE=3000          # ETH price for cost calculation
 GAS_PRICE_MULTIPLIER=1.2     # Safety margin for gas price
 ESTIMATED_INPUT_TOKENS=1000
 ESTIMATED_OUTPUT_TOKENS=200
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=60000     # Time window in milliseconds
+RATE_LIMIT_MAX_REQUESTS=10     # Max requests per window
 ```
 
 ## Running
@@ -96,6 +100,15 @@ Evaluate whether statement S1 implies statement S2. Requires x402 payment.
 }
 ```
 
+**Response (429 Rate Limit Exceeded):**
+```json
+{
+  "error": "rate_limit_exceeded",
+  "message": "Too many evaluation requests. Please wait before trying again.",
+  "retryAfter": 45
+}
+```
+
 To make a request with payment:
 1. Call `/quote` to get current price
 2. Send payment to the payment address
@@ -126,7 +139,7 @@ Health check endpoint with ETH balance status.
 ## Next Steps
 
 - [x] Add x402 payment integration
-- [ ] Add rate limiting
+- [x] Add rate limiting
 - [ ] Add batch processing (cron job)
 - [ ] Add event-driven automation (watch for new statements)
 - [ ] Deploy to production (Render or similar)

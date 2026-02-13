@@ -3,7 +3,58 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-13):
-x402 payment integration for AI Attester service - implementation in progress.
+Rate limiting for AI Attester service - COMPLETED ✅
+
+## Session (2026-02-13) - Rate Limiting for AI Attester (COMPLETED ✅)
+
+**Task:** Add rate limiting to the AI Attester service
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**What was accomplished:**
+
+1. **Created rateLimit.ts module** (`attester/src/rateLimit.ts`):
+   - `createRateLimiter()` - Factory function for creating rate limiter middleware
+   - IP-based request tracking with configurable window and max requests
+   - Returns 429 status with retryAfter header when limit exceeded
+   - Automatic cleanup of expired entries every 60 seconds
+
+2. **Updated config.ts**:
+   - Added `RATE_LIMIT_WINDOW_MS` (default: 60000ms)
+   - Added `RATE_LIMIT_MAX_REQUESTS` (default: 10)
+
+3. **Updated index.ts**:
+   - Applied rate limiter to `/evaluate-implication` endpoint
+   - Rate limiting runs before payment validation
+
+4. **Rate Limit Behavior:**
+   - Tracks requests by IP address (respects X-Forwarded-For header)
+   - Default: 10 requests per minute per IP
+   - Returns 429 with retryAfter seconds when exceeded
+   - In-memory store with automatic cleanup
+
+5. **Updated Documentation:**
+   - `.env.example` - Added rate limit configuration variables
+   - `README.md` - Added rate limiting section and 429 response example
+   - `TODO.md` - Marked rate limiting as completed
+
+**Files changed:**
+- `attester/src/rateLimit.ts` (NEW) - Rate limiting middleware
+- `attester/src/config.ts` - Added rate limit configuration
+- `attester/src/index.ts` - Applied rate limiter to evaluate endpoint
+- `attester/.env.example` - Added rate limit variables
+- `attester/README.md` - Updated documentation
+- `attester/TODO.md` - Marked rate limiting as done
+- `TODO.md` - Updated progress
+
+**Build status:** ✅ All packages build successfully
+**Test status:** ✅ All tests pass (72 SDK, 243 Hardhat, 102 Integration, 265 UI unit, 16 E2E)
+
+**Next steps:**
+1. Add batch processing for evaluating multiple statement pairs
+2. Deploy to production (Render)
+
+x402 payment integration for AI Attester service - COMPLETED ✅
 
 ## Session (2026-02-13) - x402 Payment Integration (COMPLETED ✅)
 

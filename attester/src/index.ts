@@ -9,9 +9,18 @@ import {
   getPaymentFromHeader,
   createPaymentRequiredResponse,
 } from './payment.js';
+import { createRateLimiter } from './rateLimit.js';
 
 const app = express();
 app.use(express.json());
+
+const config = loadConfig();
+
+const evaluationRateLimiter = createRateLimiter({
+  windowMs: config.rateLimitWindowMs,
+  maxRequests: config.rateLimitMaxRequests,
+  message: 'Too many evaluation requests. Please wait before trying again.',
+});
 
 async function getCurrentGasPrice(): Promise<bigint> {
   try {
@@ -54,7 +63,7 @@ interface EvaluateImplicationResponse {
   processingTime: number;
 }
 
-app.post('/evaluate-implication', requirePayment, async (req: Request, res: Response) => {
+app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (req: Request, res: Response) => {
   const startTime = Date.now();
   
   try {
@@ -244,8 +253,6 @@ app.get('/quote', async (_req: Request, res: Response) => {
     });
   }
 });
-
-const config = loadConfig();
 
 app.listen(config.port, () => {
   console.log(`Implication Attester AI service listening on port ${config.port}`);

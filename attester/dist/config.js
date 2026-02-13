@@ -20,6 +20,8 @@ export function loadConfig() {
         gasPriceMultiplier: parseFloat(process.env.GAS_PRICE_MULTIPLIER || '1.2'),
         estimatedInputTokens: parseInt(process.env.ESTIMATED_INPUT_TOKENS || '1000', 10),
         estimatedOutputTokens: parseInt(process.env.ESTIMATED_OUTPUT_TOKENS || '200', 10),
+        rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
+        rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10', 10),
     };
 }
 //# sourceMappingURL=config.js.map

@@ -13,7 +13,7 @@
 
 ## TODO
 
-- [ ] Add rate limiting
+- [x] Add rate limiting
 - [ ] Add proper error handling for blockchain failures
 - [ ] Add batch processing for evaluating multiple statement pairs
 - [ ] Deploy to production (Render)
