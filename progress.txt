@@ -3,7 +3,65 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-13):
-Set up deployment for testnet and mainnet - COMPLETED ✅
+Pre-generated data workflow for generative testing - COMPLETED ✅
+
+## Session (2026-02-13) - Pre-generated Data Workflow (COMPLETED ✅)
+
+**Task:** Complete the data generation workflow with pre-generated statements and attestations
+
+**TASK COMPLETED SUCCESSFULLY ✅
+
+**What was accomplished:**
+
+1. **Created generateAttestations.js module** (`fake-data-generation/generateAttestations.js`):
+   - Pre-generates implication attestations using LLM (OpenRouter)
+   - Evaluates statement pairs within each domain
+   - Saves results to `attestations.json` for reuse across test runs
+   - Includes metadata (attestations.metadata.json) with generation info
+   - Provides loadAttestations(), getAttestation(), hasAttestations() utilities
+
+2. **Updated runSimulation.js**:
+   - Integrated pre-generated attestations loading in initialize()
+   - Added getPreGeneratedAttestation() method for looking up attestations
+   - Modified attestImplication action to use pre-generated data when available
+   - Added --no-pregenerated flag to disable pre-generated attestations
+
+3. **Added npm script** (`hardhat/package.json`):
+   - `npm run gen:attestations` - Generate pre-computed attestations
+
+4. **Usage:**
+
+   ```bash
+   # Generate pre-computed attestations (requires OPENROUTER_API_KEY)
+   cd hardhat
+   export OPENROUTER_API_KEY=sk-or-your-key-here
+   npm run gen:attestations 50   # 50 pairs per domain (default)
+
+   # Run simulation with pre-generated attestations (default)
+   npm run gen:simulate
+
+   # Run simulation without pre-generated attestations
+   npm run gen:simulate -- --no-pregenerated
+   ```
+
+**Benefits:**
+- Saves OpenRouter credits by generating data once and reusing it
+- Deterministic test runs with consistent implications
+- Can regenerate attestations anytime with `gen:attestations`
+- Falls back to random if no pre-generated data exists
+
+**Files changed:**
+- `fake-data-generation/generateAttestations.js` (NEW) - Attestation generation module
+- `fake-data-generation/runSimulation.js` - Integrated pre-generated attestations
+- `hardhat/package.json` - Added gen:attestations script
+- `TODO.md` - Marked pre-generated data workflow as completed
+
+**Build status:** ✅ All packages build successfully
+**Test status:** ✅ All tests pass (72 SDK, 243 Hardhat, 102 Integration, 265 UI unit, 16 E2E)
+
+**Next steps:**
+1. Consider contract verification on Etherscan for deployed contracts
+2. Continue with other generative testing enhancements (scale testing, visualization)
 
 ## Session (2026-02-13) - Attack Scenarios and Invariant Checking (COMPLETED ✅)
 
@@ -57,7 +115,7 @@ Set up deployment for testnet and mainnet - COMPLETED ✅
 **Test status:** ✅ All tests pass (72 SDK, 243 Hardhat, 102 Integration, 265 UI unit, 16 E2E)
 
 **Next steps:**
-1. Complete pre-generated data workflow (save statements and attestations to Git for reuse)
+1. Complete pre-generated data workflow (save statements and attestations to Git for reuse) - COMPLETED ✅
 2. Consider contract verification on Etherscan for deployed contracts
 
 ## Session (2026-02-13) - Testnet and Mainnet Deployment Setup (COMPLETED ✅)

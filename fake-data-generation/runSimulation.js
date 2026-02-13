@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { generateUsers } from './generateUsers.js';
 import { generateStatements } from './generateStatements.js';
+import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
 import { FundingAndDelegationActions } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
@@ -22,6 +23,7 @@ class SimulationRunner {
     this.contracts = {};
     this.users = [];
     this.statements = [];
+    this.attestations = [];
     this.actions = [];
     this.metrics = {
       gasUsed: {},
@@ -31,6 +33,7 @@ class SimulationRunner {
     this.fundingDelegation = null;
     this.attackScenarios = null;
     this.invariantChecker = null;
+    this.usePreGeneratedAttestations = true;
   }
 
   async initialize(numUsers = 50) {
@@ -60,6 +63,20 @@ class SimulationRunner {
       console.log(`Loaded ${this.statements.length} existing statements`);
     } catch (err) {
       this.statements = await generateStatements();
+    }
+
+    // Load pre-generated attestations
+    console.log('\nLoading pre-generated attestations...');
+    const attestationsExist = await hasAttestations();
+    if (attestationsExist && this.usePreGeneratedAttestations) {
+      this.attestations = await loadAttestations();
+      console.log(`Loaded ${this.attestations.length} pre-generated attestations`);
+    } else if (this.usePreGeneratedAttestations) {
+      console.log('No pre-generated attestations found. Set OPENROUTER_API_KEY and run:');
+      console.log('  node ../fake-data-generation/generateAttestations.js');
+      console.log('Or disable with --no-pregenerated flag');
+    } else {
+      console.log('Using random attestation decisions (no LLM)');
     }
 
     // Fund users with ETH
@@ -174,6 +191,15 @@ class SimulationRunner {
     return this.statements[Math.floor(Math.random() * this.statements.length)];
   }
 
+  getPreGeneratedAttestation(fromStatementId, toStatementId) {
+    if (!this.usePreGeneratedAttestations || this.attestations.length === 0) {
+      return null;
+    }
+    return this.attestations.find(a => 
+      a.fromStatementId === fromStatementId && a.toStatementId === toStatementId
+    );
+  }
+
   getRelevantStatements(user) {
     // Get statements matching user's interests
     const relevant = this.statements.filter(stmt => {
@@ -243,13 +269,31 @@ class SimulationRunner {
         }
 
         case 'attestImplication': {
-          // For this basic version, random implications
-          // In full version, would use OpenRouter to evaluate
+          // Try to use pre-generated attestation, otherwise use random
           const stmt1 = this.getRandomStatement();
           const stmt2 = this.getRandomStatement();
 
           if (stmt1.id !== stmt2.id && stmt1.domain === stmt2.domain) {
-            const implies = Math.random() > 0.7; // 30% chance of implication
+            let implies = false;
+
+            // Check pre-generated attestations first
+            const preGen = this.getPreGeneratedAttestation(stmt1.statementId, stmt2.statementId);
+            if (preGen) {
+              implies = true;
+              console.log(`  Using pre-generated attestation: ${preGen.id} (confidence: ${preGen.confidence})`);
+            } else if (this.attestations.length > 0) {
+              // Find any attestation where S1 appears as source
+              const outbound = this.attestations.filter(a => a.fromStatementId === stmt1.statementId);
+              if (outbound.length > 0) {
+                const randomAtt = outbound[Math.floor(Math.random() * outbound.length)];
+                if (randomAtt.toStatementId === stmt2.statementId) {
+                  implies = true;
+                }
+              }
+            } else {
+              // Fallback to random for testing without LLM
+              implies = Math.random() > 0.7; // 30% chance of implication
+            }
 
             if (implies) {
               const contract = this.contracts.implications.connect(wallet);
@@ -569,8 +613,11 @@ async function main() {
   const numRounds = parseInt(process.argv[3]) || 5;
   const runAttacks = process.argv.includes('--attacks');
   const runInvariants = process.argv.includes('--invariants');
+  const usePreGenerated = !process.argv.includes('--no-pregenerated');
 
   const simulation = new SimulationRunner();
+  simulation.usePreGeneratedAttestations = usePreGenerated;
+  
   await simulation.initialize(numUsers);
   await simulation.runSimulation(numRounds);
 
