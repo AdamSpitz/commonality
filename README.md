@@ -12,6 +12,16 @@ We often use ephemeral AI instances to implement particular tasks. To maintain c
 
 For long-term documentation, there are many .md files all over the project. Try to make sure none of them gets "orphaned" - i.e. make sure they're all "reachable" transitively via links from this top-level README.md file.
 
+## Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for comprehensive deployment instructions covering:
+- Local development deployment (Docker Compose)
+- Testnet deployment (Sepolia)
+- Mainnet deployment (with security checklist)
+- AI Attester service deployment (Render)
+- UI deployment to IPFS (not yet implemented, but documented)
+- Environment configuration and troubleshooting
+
 ## Feedback loops
 
 - `npm run build` to make sure everything builds and type-checks
