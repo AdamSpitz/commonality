@@ -5,7 +5,8 @@ Main thing I want to work on next:
     - ✅ x402 payment integration added
     - ✅ /status endpoint added
     - ✅ Rate limiting added
-    - ⏳ Batch processing, deployment
+    - ✅ Batch processing added
+    - ⏳ Deployment
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.

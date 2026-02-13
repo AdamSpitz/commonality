@@ -2,7 +2,13 @@
 
 I'm worried about this code base getting away from me. So let's try making a list of big important stuff to check.
 
-## Quick health checks
+## Most recent reviews
+
+None yet. (So any of the usual types of review would be good to do, and record here.)
+
+## Areas to review
+
+### Quick health checks
 
 Run these commands to verify the build is healthy:
 
@@ -12,7 +18,7 @@ npm run test        # Should pass (hardhat unit tests)
 npm run integration-tests  # Should pass (full stack)
 ```
 
-## Smart contracts (hardhat/)
+### Smart contracts (hardhat/)
 
 This is the most important part of the system to get right. Bugs here can lose people's money.
 
@@ -22,7 +28,7 @@ This is the most important part of the system to get right. Bugs here can lose p
 - [ ] Do event emissions match what the indexer expects? (Check ponder.schema.ts against contract events)
 - [ ] Are there any hardcoded addresses that should be configurable?
 
-## Indexer (indexer/)
+### Indexer (indexer/)
 
 - [ ] Does the indexer start without errors? (`npm run dev` in indexer/)
 - [ ] Does the schema (ponder.schema.ts) match the contracts' event structures?
@@ -30,7 +36,7 @@ This is the most important part of the system to get right. Bugs here can lose p
 - [ ] Are all relevant events being indexed?
 - [ ] Do GraphQL queries return expected data shapes?
 
-## SDK (sdk/)
+### SDK (sdk/)
 
 - [ ] Does it build? (`npm run build` in sdk/)
 - [ ] Are all public exports documented in index.ts?
@@ -38,7 +44,7 @@ This is the most important part of the system to get right. Bugs here can lose p
 - [ ] Is there any logic duplicated between SDK and UI that should be consolidated?
 - [ ] Are environment variables handled correctly for both Node and browser contexts?
 
-## Integration tests (integration-tests/)
+### Integration tests (integration-tests/)
 
 - [ ] Do the integration tests pass? (`npm run integration-tests` from root)
 - [ ] Is there reasonable coverage of the main user flows?
@@ -46,7 +52,7 @@ This is the most important part of the system to get right. Bugs here can lose p
 - [ ] Are indexer sync waits handled correctly? (waitForIndexerSync after transactions)
 - [ ] Do tests clean up after themselves? (Docker volumes cleared between runs)
 
-## UI (ui/)
+### UI (ui/)
 
 - [ ] Does it build? (`npm run build` in ui/)
 - [ ] Does it run locally? (`npm run dev` in ui/)
@@ -55,14 +61,14 @@ This is the most important part of the system to get right. Bugs here can lose p
 - [ ] Are error states handled gracefully?
 - [ ] Is the code organized into subsystem directories? (conceptspace/, pubstarter/, delegation/, fundingportal/)
 
-## Documentation
+### Documentation
 
 - [ ] Is all documentation reachable from README.md? (no orphaned .md files)
 - [ ] Are the feedback loops documented? (build, test commands)
 - [ ] Is progress.txt being used for short-term notes?
 - [ ] Does TODO.md reflect current priorities?
 
-## Cross-cutting concerns
+### Cross-cutting concerns
 
 - [ ] Are there any TypeScript errors in `npm run build`?
 - [ ] Are there any console warnings/errors when running locally?

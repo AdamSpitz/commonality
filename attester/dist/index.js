@@ -35,6 +35,85 @@ async function requirePayment(req, res, next) {
     }
     next();
 }
+async function processSingleEvaluation(fromStatementId, toStatementId, config) {
+    const startTime = Date.now();
+    try {
+        let statement1Content;
+        let statement2Content;
+        try {
+            statement1Content = await fetchFromIpfs(fromStatementId);
+        }
+        catch {
+            return {
+                fromStatementId,
+                toStatementId,
+                success: false,
+                error: `Could not fetch fromStatementId content from IPFS: ${fromStatementId}`,
+                processingTime: Date.now() - startTime,
+            };
+        }
+        try {
+            statement2Content = await fetchFromIpfs(toStatementId);
+        }
+        catch {
+            return {
+                fromStatementId,
+                toStatementId,
+                success: false,
+                error: `Could not fetch toStatementId content from IPFS: ${toStatementId}`,
+                processingTime: Date.now() - startTime,
+            };
+        }
+        const statement1 = JSON.parse(statement1Content);
+        const statement2 = JSON.parse(statement2Content);
+        const s1Text = statement1.content?.text || statement1.text || statement1Content;
+        const s2Text = statement2.content?.text || statement2.text || statement2Content;
+        const evaluation = await evaluateImplicationWithLLM(s1Text, s2Text, config.openRouterApiKey, config.openRouterModel);
+        if (!evaluation.implies || evaluation.confidence === 'low') {
+            return {
+                fromStatementId,
+                toStatementId,
+                success: true,
+                decision: evaluation.implies,
+                confidence: evaluation.confidence,
+                explanation: evaluation.reasoning,
+                explanationCid: null,
+                transactionHash: null,
+                processingTime: Date.now() - startTime,
+            };
+        }
+        const explanationData = {
+            fromStatementId,
+            toStatementId,
+            decision: evaluation.implies,
+            confidence: evaluation.confidence,
+            reasoning: evaluation.reasoning,
+            timestamp: new Date().toISOString(),
+        };
+        const { cid: explanationCid } = await uploadToIpfs(JSON.stringify(explanationData));
+        const txHash = await publishAttestation(fromStatementId, toStatementId, explanationCid);
+        return {
+            fromStatementId,
+            toStatementId,
+            success: true,
+            decision: evaluation.implies,
+            confidence: evaluation.confidence,
+            explanation: evaluation.reasoning,
+            explanationCid,
+            transactionHash: txHash,
+            processingTime: Date.now() - startTime,
+        };
+    }
+    catch (error) {
+        return {
+            fromStatementId,
+            toStatementId,
+            success: false,
+            error: error instanceof Error ? error.message : 'An unexpected error occurred',
+            processingTime: Date.now() - startTime,
+        };
+    }
+}
 app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (req, res) => {
     const startTime = Date.now();
     try {
@@ -112,6 +191,66 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
     }
     catch (error) {
         console.error('Error in /evaluate-implication:', error);
+        res.status(500).json({
+            error: 'internal_error',
+            message: error instanceof Error ? error.message : 'An unexpected error occurred',
+        });
+    }
+});
+app.post('/evaluate-implications-batch', evaluationRateLimiter, requirePayment, async (req, res) => {
+    const batchStartTime = Date.now();
+    try {
+        const { evaluations } = req.body;
+        if (!evaluations || !Array.isArray(evaluations)) {
+            res.status(400).json({
+                error: 'invalid_request',
+                message: 'Missing required field: evaluations (must be an array)',
+            });
+            return;
+        }
+        const MAX_BATCH_SIZE = 10;
+        if (evaluations.length > MAX_BATCH_SIZE) {
+            res.status(400).json({
+                error: 'batch_too_large',
+                message: `Batch size exceeds maximum of ${MAX_BATCH_SIZE} evaluations`,
+                details: { requested: evaluations.length, maximum: MAX_BATCH_SIZE },
+            });
+            return;
+        }
+        if (evaluations.length === 0) {
+            res.status(400).json({
+                error: 'invalid_request',
+                message: 'Evaluations array cannot be empty',
+            });
+            return;
+        }
+        for (const item of evaluations) {
+            if (!item.fromStatementId || !item.toStatementId) {
+                res.status(400).json({
+                    error: 'invalid_request',
+                    message: 'Each evaluation must have fromStatementId and toStatementId',
+                });
+                return;
+            }
+        }
+        const config = loadConfig();
+        const results = [];
+        for (const item of evaluations) {
+            const result = await processSingleEvaluation(item.fromStatementId, item.toStatementId, config);
+            results.push(result);
+        }
+        const successful = results.filter(r => r.success).length;
+        const failed = results.filter(r => !r.success).length;
+        res.json({
+            total: evaluations.length,
+            successful,
+            failed,
+            results,
+            totalProcessingTime: Date.now() - batchStartTime,
+        });
+    }
+    catch (error) {
+        console.error('Error in /evaluate-implications-batch:', error);
         res.status(500).json({
             error: 'internal_error',
             message: error instanceof Error ? error.message : 'An unexpected error occurred',

@@ -132,6 +132,72 @@ Get current price estimate for evaluation.
 
 Check if an attestation exists for a statement pair.
 
+### POST /evaluate-implications-batch
+
+Evaluate multiple statement implication pairs in a single request. Requires x402 payment. Maximum 10 evaluations per batch.
+
+**Request:**
+```json
+{
+  "evaluations": [
+    {
+      "fromStatementId": "bafybeigram...",
+      "toStatementId": "bafybei..."
+    },
+    {
+      "fromStatementId": "bafybeiabc...",
+      "toStatementId": "bafybeixyz..."
+    }
+  ]
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "total": 2,
+  "successful": 2,
+  "failed": 0,
+  "results": [
+    {
+      "fromStatementId": "bafybeigram...",
+      "toStatementId": "bafybei...",
+      "success": true,
+      "decision": true,
+      "confidence": "high",
+      "explanation": "S2 is a direct subset of S1's claims...",
+      "explanationCid": "bafybeigram...",
+      "transactionHash": "0x...",
+      "processingTime": 3421
+    },
+    {
+      "fromStatementId": "bafybeiabc...",
+      "toStatementId": "bafybeixyz...",
+      "success": true,
+      "decision": false,
+      "confidence": "low",
+      "explanation": "No clear logical connection...",
+      "explanationCid": null,
+      "transactionHash": null,
+      "processingTime": 2890
+    }
+  ],
+  "totalProcessingTime": 6311
+}
+```
+
+**Response (400 Bad Request - Batch too large):**
+```json
+{
+  "error": "batch_too_large",
+  "message": "Batch size exceeds maximum of 10 evaluations",
+  "details": {
+    "requested": 15,
+    "maximum": 10
+  }
+}
+```
+
 ### GET /health
 
 Health check endpoint with ETH balance status.
@@ -140,6 +206,6 @@ Health check endpoint with ETH balance status.
 
 - [x] Add x402 payment integration
 - [x] Add rate limiting
-- [ ] Add batch processing (cron job)
+- [x] Add batch processing for evaluating multiple statement pairs
 - [ ] Add event-driven automation (watch for new statements)
 - [ ] Deploy to production (Render or similar)
