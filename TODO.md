@@ -1,13 +1,7 @@
 # What we've been working on lately
 
 Main thing I want to work on next:
-  - AI Attester service implementation in progress (see attester/)
-    - ✅ x402 payment integration added
-    - ✅ /status endpoint added
-    - ✅ Rate limiting added
-    - ✅ Batch processing added
-    - ✅ Blockchain error handling added
-    - ✅ Deployment (Render configuration ready)
+  - Set up deployment for testnet and mainnet.
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.
@@ -15,7 +9,6 @@ Other big things to do soon:
     - ✅ OpenRouter integration for LLM-based implication evaluation (openrouter.js, llmAttester.js)
     - ✅ Funding and delegation actions (fundingAndDelegationActions.js with project creation, token purchases, note delegation)
     - ⏳ Attack scenarios and invariant checking
-  - Set up deployment for testnet and mainnet.
 
 ## Miscellaneous TODO.md files
 
