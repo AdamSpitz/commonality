@@ -8,3 +8,4 @@ integration-tests/.env.local
 typechain-types/
 attester/dist
 hardhat/deployments/
+deployments/localhost.env
