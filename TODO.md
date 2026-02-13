@@ -7,7 +7,7 @@ Main thing I want to work on next:
     - ✅ Rate limiting added
     - ✅ Batch processing added
     - ✅ Blockchain error handling added
-    - ⏳ Deployment
+    - ✅ Deployment (Render configuration ready)
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.

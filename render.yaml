@@ -1,0 +1,57 @@
+# Render deployment configuration for Commonality services
+# See https://render.com/docs/blueprint-spec
+
+services:
+  # AI Attester Service
+  - type: web
+    name: commonality-attester
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: attester/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: ETHEREUM_RPC_URL
+        sync: false  # Set in Render dashboard
+      - key: ATTESTER_PRIVATE_KEY
+        sync: false  # Set in Render dashboard
+      - key: IMPLICATIONS_CONTRACT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-haiku
+      - key: IPFS_API
+        value: https://ipfs.io/api/v0  # Public IPFS gateway
+      - key: IPFS_GATEWAY
+        value: https://ipfs.io/ipfs  # Public IPFS gateway
+      - key: X402_PAYMENT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: SERVICE_MARGIN_PERCENT
+        value: 20
+      - key: ETH_USD_PRICE
+        value: 3000
+      - key: GAS_PRICE_MULTIPLIER
+        value: 1.2
+      - key: ESTIMATED_INPUT_TOKENS
+        value: 1000
+      - key: ESTIMATED_OUTPUT_TOKENS
+        value: 200
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 60000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 10
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: standard
+
+# Note: Deploy by pushing to your Git repository and connecting it to Render
+# Environment variables that must be set in Render dashboard:
+# - ETHEREUM_RPC_URL: URL of Ethereum RPC (e.g., Alchemy, Infura)
+# - ATTESTER_PRIVATE_KEY: Private key for attester wallet (keep secret!)
+# - IMPLICATIONS_CONTRACT_ADDRESS: Address of deployed Implications contract
+# - OPENROUTER_API_KEY: API key for OpenRouter LLM service
+# - X402_PAYMENT_ADDRESS: Address to receive x402 payments
