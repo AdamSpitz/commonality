@@ -2,6 +2,9 @@
 
 Main thing I want to work on next:
   - AI Attester service implementation in progress (see attester/)
+    - ✅ x402 payment integration added
+    - ✅ /status endpoint added
+    - ⏳ Rate limiting, batch processing, deployment
 
 Other big things to do soon:
   - Generative testing. See specs/testing/generative-testing.md.

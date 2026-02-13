@@ -43,4 +43,4 @@ If there's a vague high-level to-do item, it may make sense for the project-lead
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
-Current focus: AI Attester service implementation in progress. Basic service created with Express API, OpenRouter integration, and SDK integration for publishing attestations. 
+Current focus: AI Attester service implementation in progress. Basic service with x402 payments, /status, /quote endpoints complete. 

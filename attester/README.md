@@ -6,9 +6,10 @@ This is a standalone service that evaluates whether one statement implies anothe
 
 The Implication Attester AI service:
 1. Accepts requests to evaluate S1 → S2 implications
-2. Fetches statement content from IPFS
-3. Uses OpenRouter (LLM) to evaluate logical implication
-4. If evaluation is positive (high/medium confidence), publishes an on-chain attestation
+2. Requires payment via x402 protocol
+3. Fetches statement content from IPFS
+4. Uses OpenRouter (LLM) to evaluate logical implication
+5. If evaluation is positive (high/medium confidence), publishes an on-chain attestation
 
 ## Configuration
 
@@ -30,6 +31,14 @@ IPFS_GATEWAY=http://localhost:8080
 
 # Server
 PORT=3000
+
+# x402 Payment
+X402_PAYMENT_ADDRESS=0x...  # Address to receive payments
+SERVICE_MARGIN_PERCENT=20   # Markup to cover operational costs
+ETH_USD_PRICE=3000          # ETH price for cost calculation
+GAS_PRICE_MULTIPLIER=1.2     # Safety margin for gas price
+ESTIMATED_INPUT_TOKENS=1000
+ESTIMATED_OUTPUT_TOKENS=200
 ```
 
 ## Running
@@ -47,7 +56,7 @@ npm start
 
 ### POST /evaluate-implication
 
-Evaluate whether statement S1 implies statement S2.
+Evaluate whether statement S1 implies statement S2. Requires x402 payment.
 
 **Request:**
 ```json
@@ -57,7 +66,7 @@ Evaluate whether statement S1 implies statement S2.
 }
 ```
 
-**Response:**
+**Response (200 OK):**
 ```json
 {
   "alreadyAttested": false,
@@ -71,14 +80,53 @@ Evaluate whether statement S1 implies statement S2.
 }
 ```
 
+**Response (402 Payment Required):**
+```json
+{
+  "error": "payment_required",
+  "message": "Payment required to process this request",
+  "paymentDetails": {
+    "amount": "0.000037",
+    "amountUsd": "0.11",
+    "currency": "ETH",
+    "address": "0x...",
+    "paymentId": "pay_1234567890_abc",
+    "expiresAt": "2026-02-13T12:00:00Z"
+  }
+}
+```
+
+To make a request with payment:
+1. Call `/quote` to get current price
+2. Send payment to the payment address
+3. Include payment proof in header: `X-Payment-Proof: payment:<paymentId>`
+
+### GET /quote
+
+Get current price estimate for evaluation.
+
+**Response:**
+```json
+{
+  "price": "0.000037",
+  "priceUsd": "0.11",
+  "currency": "ETH",
+  "expiresAt": "2026-02-13T12:00:00Z"
+}
+```
+
+### GET /status/:fromStatementId/:toStatementId
+
+Check if an attestation exists for a statement pair.
+
 ### GET /health
 
-Health check endpoint.
+Health check endpoint with ETH balance status.
 
 ## Next Steps
 
-- [ ] Add x402 payment integration
+- [x] Add x402 payment integration
+- [ ] Add rate limiting
 - [ ] Add batch processing (cron job)
 - [ ] Add event-driven automation (watch for new statements)
-- [ ] Add admin UI for reviewing attestations
 - [ ] Deploy to production (Render or similar)

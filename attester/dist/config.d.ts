@@ -7,6 +7,12 @@ export interface AttesterConfig {
     ipfsApiUrl: string;
     ipfsGatewayUrl: string;
     port: number;
+    paymentAddress: string;
+    serviceMarginPercent: number;
+    ethUsdPrice: number;
+    gasPriceMultiplier: number;
+    estimatedInputTokens: number;
+    estimatedOutputTokens: number;
 }
 export declare function loadConfig(): AttesterConfig;
 //# sourceMappingURL=config.d.ts.map

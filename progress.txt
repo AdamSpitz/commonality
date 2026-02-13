@@ -3,7 +3,75 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-13):
-Implication Attester AI service - basic implementation complete. Next: x402 payment integration, batch processing, or deployment.
+x402 payment integration for AI Attester service - implementation in progress.
+
+## Session (2026-02-13) - x402 Payment Integration (COMPLETED ✅)
+
+**Task:** Implement x402 payment integration for the Implication Attester AI service
+
+**TASK COMPLETED SUCCESSFULLY ✅
+
+**What was accomplished:**
+
+1. **Created payment.ts module** (`attester/src/payment.ts`):
+   - `calculatePaymentRequired()` - Calculates payment using cost-plus pricing formula
+   - `validatePayment()` - Validates payment ID and expiry
+   - `getPaymentFromHeader()` - Extracts payment ID from X-Payment-Proof header
+   - `createPaymentRequiredResponse()` - Creates 402 response structure
+   - LLM pricing lookup table for various models
+   - 15-minute payment window with automatic cleanup
+
+2. **Updated config.ts**:
+   - Added payment configuration fields:
+     - `X402_PAYMENT_ADDRESS` - Address to receive payments
+     - `SERVICE_MARGIN_PERCENT` - 20% default markup
+     - `ETH_USD_PRICE` - ETH price for cost calculation
+     - `GAS_PRICE_MULTIPLIER` - 1.2x gas price safety margin
+     - `ESTIMATED_INPUT_TOKENS` - 1000 default
+     - `ESTIMATED_OUTPUT_TOKENS` - 200 default
+
+3. **Updated index.ts**:
+   - Added `requirePayment` middleware for x402 payment flow
+   - Added `/quote` endpoint to get current price
+   - Added `/status/:fromStatementId/:toStatementId` endpoint
+   - Updated `/health` to show ETH balance and payment config
+   - Updated to version 0.2.0
+
+4. **Payment Flow**:
+   - Client calls `/quote` to get current price
+   - Server returns 402 with payment details (amount, address, paymentId, expiry)
+   - Client sends payment to the payment address
+   - Client retries with `X-Payment-Proof: payment:<paymentId>` header
+   - Server validates payment and processes request
+
+5. **Cost-plus Pricing Formula**:
+   ```
+   payment = (gas_cost + llm_cost) * (1 + margin_percent)
+   ```
+   - Estimated gas: 50,000 units
+   - LLM cost: Based on model pricing (input/output tokens)
+   - Default margin: 20%
+
+6. **Updated Documentation**:
+   - `.env.example` - Added all payment config variables
+   - `README.md` - Added payment flow documentation
+   - `TODO.md` - Marked payment as completed
+
+**Files changed:**
+- `attester/src/config.ts` - Added payment configuration
+- `attester/src/payment.ts` (NEW) - Payment handling module
+- `attester/src/index.ts` - Added payment middleware and endpoints
+- `attester/.env.example` - Added payment variables
+- `attester/README.md` - Updated documentation
+- `attester/TODO.md` - Marked payment as done
+- `TODO.md` - Updated progress
+
+**Build status:** ✅ All packages build successfully
+
+**Next steps:**
+1. Add rate limiting
+2. Add batch processing for evaluating multiple statement pairs
+3. Deploy to production (Render)
 
 ## Session (2026-02-13) - Implication Attester AI Service (COMPLETED ✅)
 

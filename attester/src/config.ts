@@ -7,6 +7,12 @@ export interface AttesterConfig {
   ipfsApiUrl: string;
   ipfsGatewayUrl: string;
   port: number;
+  paymentAddress: string;
+  serviceMarginPercent: number;
+  ethUsdPrice: number;
+  gasPriceMultiplier: number;
+  estimatedInputTokens: number;
+  estimatedOutputTokens: number;
 }
 
 export function loadConfig(): AttesterConfig {
@@ -26,5 +32,11 @@ export function loadConfig(): AttesterConfig {
     ipfsApiUrl: process.env.IPFS_API || 'http://localhost:5001',
     ipfsGatewayUrl: process.env.IPFS_GATEWAY || 'http://localhost:8080',
     port: parseInt(process.env.PORT || '3000', 10),
+    paymentAddress: required('X402_PAYMENT_ADDRESS', process.env.X402_PAYMENT_ADDRESS),
+    serviceMarginPercent: parseFloat(process.env.SERVICE_MARGIN_PERCENT || '20'),
+    ethUsdPrice: parseFloat(process.env.ETH_USD_PRICE || '3000'),
+    gasPriceMultiplier: parseFloat(process.env.GAS_PRICE_MULTIPLIER || '1.2'),
+    estimatedInputTokens: parseInt(process.env.ESTIMATED_INPUT_TOKENS || '1000', 10),
+    estimatedOutputTokens: parseInt(process.env.ESTIMATED_OUTPUT_TOKENS || '200', 10),
   };
 }

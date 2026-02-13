@@ -7,11 +7,12 @@
 - [x] IPFS integration for fetching statements and storing explanations
 - [x] SDK integration for publishing attestations
 - [x] Health check endpoint
+- [x] x402 payment integration (cost-plus pricing)
+- [x] /status endpoint to check existing attestations
+- [x] /quote endpoint for price estimation
 
 ## TODO
 
-- [ ] Add x402 payment integration (per spec)
-- [ ] Add /status endpoint to check existing attestations
 - [ ] Add rate limiting
 - [ ] Add proper error handling for blockchain failures
 - [ ] Add batch processing for evaluating multiple statement pairs
