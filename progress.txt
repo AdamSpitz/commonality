@@ -3,6 +3,75 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-13):
+Blockchain error handling for AI Attester service - COMPLETED ✅
+
+## Session (2026-02-13) - Blockchain Error Handling for AI Attester (COMPLETED ✅)
+
+**Task:** Add proper error handling for blockchain failures
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**What was accomplished:**
+
+1. **Created errors.ts module** (`attester/src/errors.ts`):
+   - `BlockchainError` - Base error class with error code and retryable flag
+   - `InsufficientFundsError` - When attester lacks ETH for gas
+   - `TransactionRevertedError` - When transaction is reverted by EVM (with revert reason extraction)
+   - `ConnectionError` - When blockchain node is unreachable (retryable)
+   - `NonceError` - When nonce is invalid (retryable)
+   - `GasPriceError` - When gas estimation fails (retryable)
+   - `ContractError` - When contract interaction fails
+   - `classifyBlockchainError()` - Parses viem errors and classifies into specific types
+   - `formatBlockchainError()` - Formats errors for API responses
+   - `getHttpStatusForError()` - Maps error types to appropriate HTTP status codes
+
+2. **Updated blockchain.ts** (`attester/src/blockchain.ts`):
+   - Added try-catch with error classification to `getBlockchainClients()`
+   - Added try-catch with error classification to `publishAttestation()`
+   - Added `checkAttesterBalance()` function to verify sufficient funds
+   - Added `getAttesterAddress()` helper function
+   - All blockchain operations now throw classified errors
+
+3. **Updated index.ts endpoints** (`attester/src/index.ts`):
+   - `/evaluate-implication` - Catches blockchain errors and returns appropriate HTTP status codes (503 for connection/funds issues, 422 for reverts, etc.)
+   - `/evaluate-implications-batch` - Same error handling for batch operations
+   - `/health` - Improved to check blockchain connectivity and report connection errors
+   - `/attester-status` - New endpoint to check attester balance and operational status
+   - `processSingleEvaluation()` - Handles blockchain errors gracefully, returns partial results when attestation fails
+
+4. **Error Response Format**:
+   ```json
+   {
+     "error": "INSUFFICIENT_FUNDS",
+     "message": "Insufficient funds for transaction",
+     "retryable": false,
+     "details": { ... }
+   }
+   ```
+
+5. **HTTP Status Codes**:
+   - 503 Service Unavailable: Connection errors, insufficient funds, nonce/gas issues
+   - 422 Unprocessable Entity: Transaction reverted by contract logic
+   - 500 Internal Server Error: Configuration/contract setup errors
+
+6. **Updated Documentation**:
+   - `attester/TODO.md` - Marked blockchain error handling as completed
+   - `TODO.md` - Updated root TODO with completion status
+
+**Files changed:**
+- `attester/src/errors.ts` (NEW) - Blockchain error classification and handling
+- `attester/src/blockchain.ts` - Added error handling and balance checking
+- `attester/src/index.ts` - Updated endpoints with proper error handling
+- `attester/TODO.md` - Marked error handling as done
+- `TODO.md` - Updated progress
+
+**Build status:** ✅ All packages build successfully
+**Test status:** ✅ SDK tests pass, Hardhat tests pass, Integration tests pass, UI unit tests pass, E2E tests pass
+
+**Next steps:**
+1. Deploy to production (Render)
+
+## Previous priority (2026-02-13):
 Batch processing for AI Attester service - COMPLETED ✅
 
 ## Session (2026-02-13) - Batch Processing for AI Attester (COMPLETED ✅)

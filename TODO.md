@@ -6,6 +6,7 @@ Main thing I want to work on next:
     - ✅ /status endpoint added
     - ✅ Rate limiting added
     - ✅ Batch processing added
+    - ✅ Blockchain error handling added
     - ⏳ Deployment
 
 Other big things to do soon:

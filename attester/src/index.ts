@@ -2,7 +2,7 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import { loadConfig } from './config.js';
 import { evaluateImplicationWithLLM } from './evaluator.js';
 import { uploadToIpfs, fetchFromIpfs } from './ipfs.js';
-import { publishAttestation, getBlockchainClients } from './blockchain.js';
+import { publishAttestation, getBlockchainClients, checkAttesterBalance } from './blockchain.js';
 import {
   calculatePaymentRequired,
   validatePayment,
@@ -10,6 +10,12 @@ import {
   createPaymentRequiredResponse,
 } from './payment.js';
 import { createRateLimiter } from './rateLimit.js';
+import {
+  BlockchainError,
+  classifyBlockchainError,
+  formatBlockchainError,
+  getHttpStatusForError,
+} from './errors.js';
 
 const app = express();
 app.use(express.json());
@@ -165,7 +171,28 @@ async function processSingleEvaluation(
     };
 
     const { cid: explanationCid } = await uploadToIpfs(JSON.stringify(explanationData));
-    const txHash = await publishAttestation(fromStatementId, toStatementId, explanationCid);
+
+    // Publish attestation with blockchain error handling
+    let txHash: string;
+    try {
+      txHash = await publishAttestation(fromStatementId, toStatementId, explanationCid);
+    } catch (error) {
+      const blockchainError = classifyBlockchainError(error);
+      const formattedError = formatBlockchainError(blockchainError);
+      
+      return {
+        fromStatementId,
+        toStatementId,
+        success: false,
+        decision: evaluation.implies,
+        confidence: evaluation.confidence,
+        explanation: evaluation.reasoning,
+        explanationCid,
+        transactionHash: null,
+        error: formattedError.message,
+        processingTime: Date.now() - startTime,
+      };
+    }
 
     return {
       fromStatementId,
@@ -268,7 +295,29 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
 
     const { cid: explanationCid } = await uploadToIpfs(JSON.stringify(explanationData));
 
-    const txHash = await publishAttestation(fromStatementId, toStatementId, explanationCid);
+    // Publish attestation with blockchain error handling
+    let txHash: string;
+    try {
+      txHash = await publishAttestation(fromStatementId, toStatementId, explanationCid);
+    } catch (error) {
+      const blockchainError = classifyBlockchainError(error);
+      const formattedError = formatBlockchainError(blockchainError);
+      const statusCode = getHttpStatusForError(blockchainError);
+      
+      console.error('Blockchain error in /evaluate-implication:', blockchainError);
+      res.status(statusCode).json({
+        alreadyAttested: false,
+        decision: evaluation.implies,
+        confidence: evaluation.confidence,
+        explanation: evaluation.reasoning,
+        explanationCid,
+        transactionHash: null,
+        gasUsed: null,
+        processingTime: Date.now() - startTime,
+        error: formattedError,
+      });
+      return;
+    }
 
     res.json({
       alreadyAttested: false,
@@ -282,6 +331,20 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
     } as EvaluateImplicationResponse);
   } catch (error) {
     console.error('Error in /evaluate-implication:', error);
+    
+    // Check if it's a blockchain error
+    if (error instanceof BlockchainError) {
+      const formattedError = formatBlockchainError(error);
+      const statusCode = getHttpStatusForError(error);
+      res.status(statusCode).json({
+        error: formattedError.error,
+        message: formattedError.message,
+        details: formattedError.details,
+        retryable: formattedError.retryable,
+      });
+      return;
+    }
+    
     res.status(500).json({
       error: 'internal_error',
       message: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -355,6 +418,20 @@ app.post('/evaluate-implications-batch', evaluationRateLimiter, requirePayment, 
     } as BatchEvaluationResponse);
   } catch (error) {
     console.error('Error in /evaluate-implications-batch:', error);
+    
+    // Check if it's a blockchain error
+    if (error instanceof BlockchainError) {
+      const formattedError = formatBlockchainError(error);
+      const statusCode = getHttpStatusForError(error);
+      res.status(statusCode).json({
+        error: formattedError.error,
+        message: formattedError.message,
+        details: formattedError.details,
+        retryable: formattedError.retryable,
+      });
+      return;
+    }
+    
     res.status(500).json({
       error: 'internal_error',
       message: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -367,24 +444,34 @@ app.get('/health', async (_req: Request, res: Response) => {
     const config = loadConfig();
     let ethBalance = '0';
     let lowBalanceWarning = false;
+    let blockchainConnected = false;
+    let blockchainError: string | null = null;
     
     try {
-      const { testClients } = getBlockchainClients();
-      const balance = await testClients.publicClient.getBalance({
-        address: testClients.account,
-      });
-      ethBalance = (Number(balance) / 1e18).toFixed(4);
-      lowBalanceWarning = Number(balance) < BigInt(1e16);
-    } catch {
+      const balanceInfo = await checkAttesterBalance();
+      ethBalance = (Number(balanceInfo.balance) / 1e18).toFixed(4);
+      lowBalanceWarning = !balanceInfo.hasSufficientFunds;
+      blockchainConnected = true;
+    } catch (error) {
       lowBalanceWarning = true;
+      blockchainConnected = false;
+      const classifiedError = classifyBlockchainError(error);
+      blockchainError = classifiedError.message;
     }
 
-    res.json({
-      status: lowBalanceWarning ? 'degraded' : 'healthy',
+    const status = !blockchainConnected 
+      ? 'degraded' 
+      : lowBalanceWarning 
+        ? 'degraded' 
+        : 'healthy';
+
+    const response: Record<string, unknown> = {
+      status,
       details: {
         ethBalance,
         ethBalanceUsd: (parseFloat(ethBalance) * config.ethUsdPrice).toFixed(2),
         lowBalanceWarning,
+        blockchainConnected,
         openRouterConfigured: !!config.openRouterApiKey,
         ethereumConfigured: !!config.ethereumPrivateKey,
         ipfsConfigured: !!config.ipfsApiUrl,
@@ -392,7 +479,16 @@ app.get('/health', async (_req: Request, res: Response) => {
       },
       uptime: process.uptime(),
       version: '0.2.0',
-    });
+    };
+
+    if (blockchainError) {
+      response.details = {
+        ...response.details as Record<string, unknown>,
+        blockchainError,
+      };
+    }
+
+    res.status(status === 'healthy' ? 200 : 503).json(response);
   } catch (error) {
     res.status(503).json({
       status: 'unhealthy',
@@ -449,6 +545,35 @@ app.get('/quote', async (_req: Request, res: Response) => {
     res.status(500).json({
       error: 'internal_error',
       message: error instanceof Error ? error.message : 'An unexpected error occurred',
+    });
+  }
+});
+
+app.get('/attester-status', async (_req: Request, res: Response) => {
+  try {
+    const balanceInfo = await checkAttesterBalance();
+    
+    res.json({
+      address: await (async () => {
+        const { testClients } = getBlockchainClients();
+        return testClients.account;
+      })(),
+      balanceWei: balanceInfo.balance.toString(),
+      balanceEth: (Number(balanceInfo.balance) / 1e18).toFixed(6),
+      hasSufficientFunds: balanceInfo.hasSufficientFunds,
+      minimumRequiredEth: (Number(balanceInfo.minimumRequired) / 1e18).toFixed(6),
+      canPublishAttestations: balanceInfo.hasSufficientFunds,
+    });
+  } catch (error) {
+    const blockchainError = classifyBlockchainError(error);
+    const formattedError = formatBlockchainError(blockchainError);
+    const statusCode = getHttpStatusForError(blockchainError);
+    
+    res.status(statusCode).json({
+      error: formattedError.error,
+      message: formattedError.message,
+      details: formattedError.details,
+      retryable: formattedError.retryable,
     });
   }
 });
