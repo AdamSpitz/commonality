@@ -3,6 +3,68 @@ AI: use this file to write notes to yourself.
 High-level stuff is all in order, it's time to implement.
 
 ## Current priority (2026-02-13):
+Implement Funding and Delegation actions for generative testing - COMPLETED ✅
+
+## Session (2026-02-13) - Funding and Delegation Actions for Generative Testing (COMPLETED ✅)
+
+**Task:** Add funding and delegation actions to the generative testing suite
+
+**TASK COMPLETED SUCCESSFULLY ✅**
+
+**What was accomplished:**
+
+1. **Created fundingAndDelegationActions.js module** (`hardhat/fake-data-generation/fundingAndDelegationActions.js`):
+   - `FundingAndDelegationActions` class for managing funding and delegation operations
+   - Project tracking: stores created projects with ERC1155, marketplace, and assurance contract addresses
+   - Note tracking: tracks created notes with owner, amount, token type, and token ID
+
+2. **Funding Actions Implemented:**
+   - `createProject()` - Creates complete Pubstarter projects with ERC1155 tokens, marketplace, and assurance contract
+   - `purchaseFromPrimaryMarket()` - Purchases tokens from project's primary market (AssuranceContract)
+   - `createSecondaryMarketListing()` - Creates sale listings on the secondary marketplace
+   - `purchaseFromSecondaryMarket()` - Purchases tokens from secondary market listings
+   - `withdrawProjectFunds()` - Allows project recipient to withdraw funds after success
+
+3. **Delegation Actions Implemented:**
+   - `depositToNote()` - Deposits ETH to create a delegatable note in DelegatableNotes contract
+   - `delegateNote()` - Delegates note ownership to another user (supports partial delegation with splitting)
+   - `revokeDelegation()` - Revokes delegation and reclaims note ownership
+   - `spendNotesOnPrimaryMarket()` - Spends notes to purchase tokens from primary market
+   - `reclaimNoteFunds()` - Reclaims funds from root notes
+
+4. **Updated Simulation Runner** (`hardhat/fake-data-generation/runSimulation.js`):
+   - Deploys DelegatableNotes, Pubstarter factories, and main Pubstarter contract
+   - Integrated FundingAndDelegationActions into simulation
+   - Added 6 new action types to simulation:
+     - `createProject` (5% weight)
+     - `purchaseFromPrimaryMarket` (8% weight)
+     - `createSecondaryMarketListing` (5% weight)
+     - `depositToNote` (6% weight)
+     - `delegateNote` (4% weight)
+     - `revokeDelegation` (2% weight)
+   - Adjusted existing action weights to accommodate new actions
+
+5. **Updated Documentation** (`hardhat/fake-data-generation/README.md`):
+   - Added documentation for all new funding and delegation actions
+   - Marked funding and delegation actions as completed in Future Enhancements
+   - Organized actions into categories (Belief & Implication, Funding, Delegation)
+
+**Files changed:**
+- `hardhat/fake-data-generation/fundingAndDelegationActions.js` (NEW) - Core funding and delegation logic
+- `hardhat/fake-data-generation/runSimulation.js` - Integrated new actions into simulation
+- `hardhat/fake-data-generation/README.md` - Updated documentation
+- `TODO.md` - Marked funding and delegation as complete
+- `progress.txt` - This file
+
+**Build status:** ✅ All packages build successfully
+**Test status:** ✅ All existing tests pass
+
+**Next steps:**
+1. Implement attack scenarios (Sybil attacks, spam, commission exploitation)
+2. Add invariant checking to validate contract state consistency
+3. Set up deployment for testnet and mainnet
+
+## Previous priority (2026-02-13):
 Add unit tests for AI Attester service - COMPLETED ✅
 
 ## Session (2026-02-13) - Unit Tests for AI Attester (COMPLETED ✅)

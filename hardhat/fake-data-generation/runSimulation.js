@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { generateUsers } from './generateUsers.js';
 import { generateStatements } from './generateStatements.js';
+import { FundingAndDelegationActions } from './fundingAndDelegationActions.js';
 
 const { ethers } = hre;
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +26,7 @@ class SimulationRunner {
       actionCounts: {},
       errors: []
     };
+    this.fundingDelegation = null;
   }
 
   async initialize(numUsers = 50) {
@@ -60,6 +62,14 @@ class SimulationRunner {
     console.log('\nFunding user accounts...');
     await this.fundUsers();
 
+    // Initialize funding and delegation actions
+    console.log('\nInitializing funding and delegation actions...');
+    this.fundingDelegation = new FundingAndDelegationActions(
+      this.contracts,
+      this.users,
+      this.statements
+    );
+
     console.log('\n=== Initialization Complete ===\n');
   }
 
@@ -81,6 +91,40 @@ class SimulationRunner {
     this.contracts.projectAlignment = await ProjectAlignment.deploy();
     await this.contracts.projectAlignment.waitForDeployment();
     console.log(`  ProjectAlignment: ${await this.contracts.projectAlignment.getAddress()}`);
+
+    // Deploy DelegatableNotes contract
+    const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
+    this.contracts.delegatableNotes = await DelegatableNotes.deploy();
+    await this.contracts.delegatableNotes.waitForDeployment();
+    console.log(`  DelegatableNotes: ${await this.contracts.delegatableNotes.getAddress()}`);
+
+    // Deploy Pubstarter factories and main contract
+    console.log('  Deploying Pubstarter factories...');
+    
+    // Deploy PremintingERC1155Factory
+    const PremintingERC1155Factory = await ethers.getContractFactory('PremintingERC1155Factory');
+    const premintingFactory = await PremintingERC1155Factory.deploy();
+    await premintingFactory.waitForDeployment();
+    
+    // Deploy MarketplaceFactory
+    const MarketplaceFactory = await ethers.getContractFactory('MarketplaceFactory');
+    const marketplaceFactory = await MarketplaceFactory.deploy();
+    await marketplaceFactory.waitForDeployment();
+    
+    // Deploy AssuranceContractFactory
+    const AssuranceContractFactory = await ethers.getContractFactory('AssuranceContractFactory');
+    const assuranceFactory = await AssuranceContractFactory.deploy();
+    await assuranceFactory.waitForDeployment();
+    
+    // Deploy main Pubstarter contract
+    const Pubstarter = await ethers.getContractFactory('Pubstarter');
+    this.contracts.pubstarter = await Pubstarter.deploy(
+      await premintingFactory.getAddress(),
+      await marketplaceFactory.getAddress(),
+      await assuranceFactory.getAddress()
+    );
+    await this.contracts.pubstarter.waitForDeployment();
+    console.log(`  Pubstarter: ${await this.contracts.pubstarter.getAddress()}`);
   }
 
   async fundUsers() {
@@ -211,6 +255,111 @@ class SimulationRunner {
           break;
         }
 
+        // Funding actions
+        case 'createProject': {
+          const result = await this.fundingDelegation.createProject(user);
+          if (result.success) {
+            this.recordAction('createProject', user, { project: result.project }, result.receipt);
+          } else {
+            this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+          }
+          break;
+        }
+
+        case 'purchaseFromPrimaryMarket': {
+          // Only if there are existing projects
+          if (this.fundingDelegation.createdProjects.length > 0) {
+            const project = this.fundingDelegation.createdProjects[
+              Math.floor(Math.random() * this.fundingDelegation.createdProjects.length)
+            ];
+            const tokenId = project.tokenIds[Math.floor(Math.random() * project.tokenIds.length)];
+            const count = Math.floor(Math.random() * 5) + 1; // 1-5 tokens
+            
+            const result = await this.fundingDelegation.purchaseFromPrimaryMarket(user, project, tokenId, count);
+            if (result.success) {
+              this.recordAction('purchaseFromPrimaryMarket', user, { project: project.erc1155, tokenId, count }, result.receipt);
+            } else {
+              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+            }
+          }
+          break;
+        }
+
+        case 'createSecondaryMarketListing': {
+          // Only if there are existing projects
+          if (this.fundingDelegation.createdProjects.length > 0) {
+            const project = this.fundingDelegation.createdProjects[
+              Math.floor(Math.random() * this.fundingDelegation.createdProjects.length)
+            ];
+            const tokenId = project.tokenIds[Math.floor(Math.random() * project.tokenIds.length)];
+            const count = Math.floor(Math.random() * 3) + 1; // 1-3 tokens
+            const pricePerToken = ethers.parseEther((Math.random() * 0.1 + 0.01).toFixed(4));
+            
+            const result = await this.fundingDelegation.createSecondaryMarketListing(
+              user, project, tokenId, count, pricePerToken
+            );
+            if (result.success) {
+              this.recordAction('createSecondaryMarketListing', user, { 
+                project: project.erc1155, 
+                tokenId, 
+                count, 
+                listingId: result.listingId 
+              }, result.receipt);
+            } else {
+              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+            }
+          }
+          break;
+        }
+
+        // Delegation actions
+        case 'depositToNote': {
+          const amount = ethers.parseEther((Math.random() * 0.5 + 0.1).toFixed(2)); // 0.1-0.6 ETH
+          const result = await this.fundingDelegation.depositToNote(user, amount);
+          if (result.success) {
+            this.recordAction('depositToNote', user, { noteId: result.note?.noteId, amount: amount.toString() }, result.receipt);
+          } else {
+            this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+          }
+          break;
+        }
+
+        case 'delegateNote': {
+          const userNotes = this.fundingDelegation.getUserNotes(user);
+          if (userNotes.length > 0) {
+            const note = userNotes[Math.floor(Math.random() * userNotes.length)];
+            const delegateTo = this.getRandomUser().address;
+            const amountToDelegate = BigInt(note.amount) / BigInt(2); // Delegate half
+            
+            const result = await this.fundingDelegation.delegateNote(user, note.noteId, delegateTo, amountToDelegate);
+            if (result.success) {
+              this.recordAction('delegateNote', user, { 
+                noteId: note.noteId, 
+                delegateTo, 
+                amount: amountToDelegate.toString() 
+              }, result.receipt);
+            } else {
+              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+            }
+          }
+          break;
+        }
+
+        case 'revokeDelegation': {
+          const userNotes = this.fundingDelegation.getUserNotes(user);
+          // Find delegated notes (notes owned by user but with different original owner - simplified check)
+          if (userNotes.length > 0) {
+            const note = userNotes[Math.floor(Math.random() * userNotes.length)];
+            const result = await this.fundingDelegation.revokeDelegation(user, note.noteId);
+            if (result.success) {
+              this.recordAction('revokeDelegation', user, { noteId: note.noteId }, result.receipt);
+            } else {
+              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+            }
+          }
+          break;
+        }
+
         default:
           console.log(`Unknown action type: ${actionType}`);
       }
@@ -250,10 +399,16 @@ class SimulationRunner {
     console.log('=== Running Simulation ===\n');
 
     const actionTypes = [
-      { type: 'setBelief', weight: 0.5 },
-      { type: 'setBeliefsInBatch', weight: 0.2 },
-      { type: 'attestImplication', weight: 0.15 },
-      { type: 'attestProjectAlignment', weight: 0.15 }
+      { type: 'setBelief', weight: 0.35 },
+      { type: 'setBeliefsInBatch', weight: 0.15 },
+      { type: 'attestImplication', weight: 0.10 },
+      { type: 'attestProjectAlignment', weight: 0.10 },
+      { type: 'createProject', weight: 0.05 },
+      { type: 'purchaseFromPrimaryMarket', weight: 0.08 },
+      { type: 'createSecondaryMarketListing', weight: 0.05 },
+      { type: 'depositToNote', weight: 0.06 },
+      { type: 'delegateNote', weight: 0.04 },
+      { type: 'revokeDelegation', weight: 0.02 }
     ];
 
     for (let round = 0; round < rounds; round++) {

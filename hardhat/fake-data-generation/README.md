@@ -84,10 +84,22 @@ Each attester has:
 ### Simulation Actions
 
 The simulation performs these actions:
-- `setBelief` - User expresses belief/disbelief in a statement (50% weight)
-- `setBeliefsInBatch` - User signs multiple statements at once (20% weight)
-- `attestImplication` - Attester publishes S1→S2 relationship (15% weight)
-- `attestAlignment` - Attest that a subject (e.g., project) aligns with a statement (15% weight)
+
+### Belief & Implication Actions
+- `setBelief` - User expresses belief/disbelief in a statement (35% weight)
+- `setBeliefsInBatch` - User signs multiple statements at once (15% weight)
+- `attestImplication` - Attester publishes S1→S2 relationship (10% weight)
+- `attestAlignment` - Attest that a subject (e.g., project) aligns with a statement (10% weight)
+
+### Funding Actions
+- `createProject` - Create a new Pubstarter project with ERC1155 tokens (5% weight)
+- `purchaseFromPrimaryMarket` - Buy tokens from project's primary market (8% weight)
+- `createSecondaryMarketListing` - List tokens on secondary marketplace (5% weight)
+
+### Delegation Actions
+- `depositToNote` - Deposit ETH to create a delegatable note (6% weight)
+- `delegateNote` - Delegate note ownership to another user (4% weight)
+- `revokeDelegation` - Revoke a delegation and reclaim note ownership (2% weight)
 
 ## Metrics Collected
 
@@ -277,9 +289,8 @@ This is a basic version. The full generative testing plan includes:
 
 - [x] **Attester generation** - ✓ Completed: Generate implication attesters with different evaluation strategies
 - [x] **OpenRouter integration** - ✓ Completed: Use LLMs via OpenRouter API to evaluate implications with intelligent reasoning
-- **More contract types** - Add AssuranceContract, DelegatableNotes, SecondaryMarket
-- **Funding actions** - Create projects, purchase tokens, trade on secondary market
-- **Delegation actions** - Create notes, delegate, spend, split/merge
+- [x] **Funding actions** - ✓ Completed: Create projects, purchase tokens from primary/secondary markets
+- [x] **Delegation actions** - ✓ Completed: Create notes, delegate to users, revoke delegations
 - **Attack scenarios** - Sybil attacks, spam, commission exploitation
 - **Invariant checking** - Validate contract state consistency
 - **Scale testing** - Run with 1000+ users
