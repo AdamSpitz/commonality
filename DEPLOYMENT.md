@@ -9,7 +9,7 @@ Commonality consists of several deployable components:
 1. **Smart Contracts** - Core protocol contracts deployed to Ethereum (or L2)
 2. **Ponder Indexer** - GraphQL indexer for contract events
 3. **AI Attester Service** - Evaluates statement implications using LLMs
-4. **Frontend UI** - User interface (deployment TBD)
+4. **Frontend UI** - User interface deployed to IPFS via Pinata, accessed via ENS + eth.limo
 
 ## Local Deployment (Development)
 
@@ -115,211 +115,141 @@ After deployment, commit `deployments/mainnet.env` and run `./scripts/setup-env.
 - [ ] Configure indexer for mainnet
 - [ ] Deploy attester service to production (Render)
 - [ ] Set up monitoring and alerting
-- [ ] Update frontend to use mainnet contracts
+- [ ] Deploy frontend to IPFS and update ENS (`./scripts/deploy-ui.sh mainnet` + `./scripts/update-ens.sh`)
 - [ ] Announce deployment to community
 
-## UI Deployment (IPFS)
+## UI Deployment (IPFS + ENS)
 
-**Status:** Not yet implemented ⚠️
-
-### Why IPFS?
+The UI is deployed as a static site to IPFS via [Pinata](https://www.pinata.cloud/), with an ENS name pointing to the IPFS content hash. Users access the UI at `https://<name>.eth.limo`.
 
 Per [specs/legal.md](specs/legal.md), the UI must be deployed to IPFS (not centralized hosting) to maintain the project's decentralized nature and reduce legal exposure.
 
-### How to Deploy UI to IPFS
+### Overview
 
-The UI is a static Vite + React application that can be built and deployed to IPFS:
+1. Build the UI with the correct contract addresses baked in
+2. Upload the build to IPFS via Pinata (returns a CID)
+3. Update the ENS name's contenthash to point to the new CID
+4. The UI is accessible at `https://<name>.eth.limo`
 
-#### 1. Build the UI
+Since contract addresses are baked into the Vite build at compile time (`VITE_*` env vars), each network (sepolia, mainnet) needs its own build and its own CID.
 
-```bash
-cd ui
-npm run build
-```
+### Prerequisites
 
-This creates a production build in `ui/dist/` with optimized static files.
+1. **Pinata account** — Sign up at https://app.pinata.cloud and create an API key (needs `pinFileToIPFS` permission). Add the JWT to `.env.secrets`:
+   ```
+   PINATA_JWT=your_jwt_token
+   ```
 
-#### 2. Deploy to IPFS
+2. **ENS name** — Register an ENS name (e.g. on https://app.ens.domains). Add the owner wallet's private key to `.env.secrets`:
+   ```
+   ENS_OWNER_PRIVATE_KEY=0x...
+   ```
 
-**Option A: Using Pinata (Recommended for production)**
+3. **Contracts deployed** — The target network must have contracts deployed (i.e. `deployments/<network>.env` must exist).
 
-Pinata provides reliable IPFS pinning with CDN delivery:
-
-```bash
-# Install Pinata CLI
-npm install -g pinata-upload-cli
-
-# Upload dist folder to Pinata
-pinata-upload -k YOUR_API_KEY -s YOUR_SECRET ui/dist
-
-# Returns: ipfs://Qm... or https://gateway.pinata.cloud/ipfs/Qm...
-```
-
-**Option B: Using Fleek (Automated CI/CD)**
-
-Fleek provides automated IPFS deployment with DNS and CDN:
-
-1. Connect GitHub repository to Fleek
-2. Configure build settings:
-   - Build command: `cd ui && npm run build`
-   - Publish directory: `ui/dist`
-3. Fleek auto-deploys on git push
-4. Get IPFS CID and gateway URL
-
-**Option C: Using local IPFS node**
-
-For testing or self-hosting:
+### Deploy UI to IPFS
 
 ```bash
-# Make sure IPFS daemon is running
-ipfs daemon
-
-# Add dist folder to IPFS
-ipfs add -r ui/dist
-
-# Pin the content to keep it available
-ipfs pin add <IPFS_CID>
-
-# Access via gateway: http://localhost:8080/ipfs/<IPFS_CID>
+./scripts/deploy-ui.sh <network>
 ```
 
-**Option D: Using web3.storage**
+This script:
+1. Runs `setup-env.sh <network>` to populate `ui/.env` with contract addresses
+2. Builds the UI (`npm run build` in `ui/`)
+3. Uploads `ui/dist/` to Pinata
+4. Prints the IPFS CID
 
-Free IPFS/Filecoin storage:
+Example:
+```bash
+./scripts/deploy-ui.sh sepolia
+# Setting up environment for sepolia...
+# Building UI...
+# Uploading ui/dist/ to Pinata...
+#
+# Upload complete!
+#   CID:     QmXyz...
+#   Gateway: https://gateway.pinata.cloud/ipfs/QmXyz...
+#
+# To update ENS contenthash:
+#   ./scripts/update-ens.sh <ens-name> QmXyz...
+```
+
+Verify the upload by visiting the gateway URL in a browser.
+
+### Update ENS Contenthash
 
 ```bash
-# Install w3 CLI
-npm install -g @web3-storage/w3cli
-
-# Login and upload
-w3 login
-w3 put ui/dist --name commonality-ui
-
-# Returns IPFS CID and gateway URL
+./scripts/update-ens.sh <ens-name> <cid> [--network sepolia|mainnet]
 ```
 
-#### 3. Configure Environment Variables
+Default network is `mainnet`. Use `--network sepolia` for testnet ENS names.
 
-Before building, update `ui/.env` with production contract addresses:
+This script:
+1. Encodes the IPFS CID as an ENS contenthash ([EIP-1577](https://eips.ethereum.org/EIPS/eip-1577))
+2. Looks up the ENS name's resolver
+3. Calls `setContenthash` on the resolver
+4. Waits for transaction confirmation
+
+Example:
+```bash
+./scripts/update-ens.sh commonality.eth QmXyz...
+./scripts/update-ens.sh commonality.eth QmXyz... --network sepolia
+```
+
+After the transaction confirms, the UI is accessible at:
+- `https://commonality.eth.limo` (via [eth.limo](https://eth.limo/) gateway)
+- `ipfs://QmXyz...` (in IPFS-compatible browsers)
+
+### Typical Workflow
 
 ```bash
-# WalletConnect Project ID (required for wallet connection)
-VITE_WALLETCONNECT_PROJECT_ID=your_project_id_here
+# 1. Deploy contracts to sepolia
+cd hardhat && npx hardhat run scripts/deploy.js --network sepolia
 
-# Contract addresses (copy from deployment output)
-VITE_BELIEFS_CONTRACT_ADDRESS=0x...
-VITE_IMPLICATIONS_CONTRACT_ADDRESS=0x...
-# ... etc
+# 2. Build + upload UI for sepolia
+./scripts/deploy-ui.sh sepolia
+# → CID: QmAbc...
+
+# 3. Test via gateway
+#    Visit https://gateway.pinata.cloud/ipfs/QmAbc...
+
+# 4. (Optionally) Point a testnet ENS name at it
+./scripts/update-ens.sh myapp.eth QmAbc... --network sepolia
+
+# 5. Deploy contracts to mainnet
+cd hardhat && npx hardhat run scripts/deploy.js --network mainnet
+
+# 6. Build + upload UI for mainnet (different CID due to different addresses)
+./scripts/deploy-ui.sh mainnet
+# → CID: QmXyz...
+
+# 7. Point production ENS name at it
+./scripts/update-ens.sh myapp.eth QmXyz...
+# → https://myapp.eth.limo
 ```
-
-**Note:** Vite requires `VITE_` prefix for environment variables to be included in the build.
-
-#### 4. Update Contract Addresses in Build
-
-After deploying contracts, the UI needs to know the addresses. Two approaches:
-
-**Option A: Build-time configuration (simpler)**
-- Update `ui/.env` with contract addresses
-- Rebuild UI: `npm run build`
-- Deploy new build to IPFS
-
-**Option B: Runtime configuration (more flexible)**
-- Store contract addresses in a separate JSON file on IPFS
-- UI fetches configuration at runtime
-- Allows updating contract addresses without rebuilding UI
-- See [specs/legal.md](specs/legal.md) for considerations
-
-#### 5. Access the Deployed UI
-
-After deployment, the UI is accessible via:
-
-- **IPFS gateway:** `https://gateway.pinata.cloud/ipfs/<CID>`
-- **IPFS protocol:** `ipfs://<CID>` (in IPFS-compatible browsers)
-- **Custom domain:** Configure DNS TXT record pointing to IPFS CID
-- **ENS domain:** Link ENS name to IPFS content hash
 
 ### UI Deployment Checklist
 
-Before deploying UI to production:
-
-- [ ] All smart contracts deployed to target network
-- [ ] Contract addresses added to `ui/.env` with `VITE_` prefix
-- [ ] WalletConnect Project ID configured
-- [ ] Indexer GraphQL endpoint URL configured
-- [ ] Build succeeds: `npm run build` in `ui/`
-- [ ] Preview works locally: `npm run preview`
-- [ ] Test wallet connection with target network
-- [ ] Test key workflows (create statement, express belief, etc.)
-- [ ] Choose IPFS pinning service (Pinata, Fleek, web3.storage)
-- [ ] Upload built UI to IPFS
-- [ ] Verify UI loads from IPFS gateway
-- [ ] Test end-to-end on deployed infrastructure
-- [ ] Consider setting up custom domain (optional)
-- [ ] Consider setting up ENS name (optional)
-
-### Continuous Deployment
-
-For automated IPFS deployment on code changes:
-
-**Using GitHub Actions + Pinata:**
-
-```yaml
-# .github/workflows/deploy-ui.yml
-name: Deploy UI to IPFS
-
-on:
-  push:
-    branches: [main]
-    paths: ['ui/**']
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: cd ui && npm install && npm run build
-      - name: Upload to Pinata
-        env:
-          PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
-        run: |
-          # Upload ui/dist to Pinata
-          # Update DNS/ENS with new CID
-```
-
-**Using Fleek:**
-- Automatic deployment on git push
-- No GitHub Actions needed
-- Built-in CDN and custom domains
+- [ ] Smart contracts deployed to target network
+- [ ] `PINATA_JWT` set in `.env.secrets`
+- [ ] `ENS_OWNER_PRIVATE_KEY` set in `.env.secrets`
+- [ ] `VITE_WALLETCONNECT_PROJECT_ID` set in `.env.secrets`
+- [ ] Indexer GraphQL endpoint URL configured (`VITE_GRAPHQL_URL`)
+- [ ] Run `./scripts/deploy-ui.sh <network>` — note the CID
+- [ ] Verify the build at `https://gateway.pinata.cloud/ipfs/<CID>`
+- [ ] Run `./scripts/update-ens.sh <name>.eth <CID> [--network ...]`
+- [ ] Verify the UI loads at `https://<name>.eth.limo`
+- [ ] Test wallet connection and key workflows on the deployed UI
 
 ### Important Notes
 
-1. **Immutability:** Each IPFS deployment gets a unique CID. To update the UI, deploy a new version and update references (DNS, ENS, etc.)
+1. **Immutability:** Each IPFS deployment gets a unique CID. To update the UI, deploy a new version and update the ENS contenthash.
 
-2. **Pinning:** Content must be pinned to remain available on IPFS. Use a pinning service (Pinata, Fleek, web3.storage) for production.
+2. **Pinning:** Content uploaded via Pinata is pinned automatically. As long as your Pinata account is active, the content remains available.
 
-3. **Gateway Performance:** Public IPFS gateways can be slow. Consider using Pinata/Fleek CDN or running your own gateway for better performance.
+3. **Environment Variables:** Vite only includes `VITE_*` prefixed variables in the build. Contract addresses and the GraphQL URL are baked in at build time by `setup-env.sh`.
 
-4. **Environment Variables:** Vite only includes `VITE_*` prefixed variables in the build. Regular `ENV_VAR` won't be accessible.
-
-5. **API Endpoints:** The UI needs to connect to:
-   - Ethereum RPC (via WalletConnect/wagmi)
-   - Ponder indexer GraphQL endpoint
-   - IPFS gateway (for fetching statement content)
-
-   Configure these in the environment or as build-time constants.
-
-### Future Implementation
-
-This UI IPFS deployment process needs to be implemented. Recommended steps:
-
-1. Create deployment script: `ui/scripts/deploy-ipfs.sh`
-2. Add deployment documentation to `ui/README.md`
-3. Test deployment to Pinata or web3.storage
-4. Set up automated deployment (GitHub Actions or Fleek)
-5. Configure custom domain or ENS name
-
-See [TODO.md](TODO.md) for tracking implementation progress.
+4. **Network-specific builds:** Because contract addresses differ between sepolia and mainnet, each network needs its own build and CID. If you have separate ENS names for testnet and mainnet, each gets its own contenthash.
 
 ## Network Configuration
 

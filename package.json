@@ -37,6 +37,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "multiformats": "^13.0.0",
+    "viem": "^2.40.3"
   }
 }
