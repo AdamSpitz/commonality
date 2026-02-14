@@ -1,12 +1,10 @@
 # Commonality
 
-## Specification
+## Where to find various files
 
-The main spec is in [specs/README.md](specs/README.md).
-
-## AI memory notes
-
-We often use ephemeral AI instances to implement particular tasks. To maintain continuity between sessions, use [progress.txt](progress.txt) for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
+  - The main spec is in [specs/README.md](specs/README.md).
+  - To maintain continuity between ephemeral AI instances, use [progress.txt](progress.txt) for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
+  - Reviews go in [REVIEWS.md](REVIEWS.md).
 
 ## Documentation
 
