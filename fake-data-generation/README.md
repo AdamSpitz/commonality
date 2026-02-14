@@ -192,6 +192,37 @@ Typical costs (Claude 3.5 Haiku):
 - 100 evaluations: ~$0.20 USD
 - 1000 evaluations: ~$2.00 USD
 
+### Pre-generated Attestations for Cost Savings
+
+To avoid calling OpenRouter on every test run, you can pre-generate attestations once and save them:
+
+```bash
+# Generate pre-computed attestations (requires OPENROUTER_API_KEY)
+cd /home/adam/Projects/commonality/hardhat
+export OPENROUTER_API_KEY=sk-or-your-key-here
+
+# Generate 50 pairs per domain (default)
+npm run gen:attestations
+
+# Or specify number of pairs per domain
+npm run gen:attestations 100
+```
+
+This creates:
+- `attestations.json` - Pre-computed implication attestations
+- `attestations.metadata.json` - Generation metadata
+
+**Running simulations:**
+```bash
+# Use pre-generated attestations (default)
+npm run gen:simulate
+
+# Use random attestions instead (no LLM)
+npm run gen:simulate -- --no-pregenerated
+```
+
+The simulation will use pre-generated attestations when available, falling back to random decisions otherwise.
+
 ### API Reference
 
 **`evaluateImplicationWithLLM(statement1, statement2, apiKey, model)`**
@@ -295,8 +326,9 @@ This is a basic version. The full generative testing plan includes:
 - [x] **OpenRouter integration** - ✓ Completed: Use LLMs via OpenRouter API to evaluate implications with intelligent reasoning
 - [x] **Funding actions** - ✓ Completed: Create projects, purchase tokens from primary/secondary markets
 - [x] **Delegation actions** - ✓ Completed: Create notes, delegate to users, revoke delegations
-- **Attack scenarios** - Sybil attacks, spam, commission exploitation
-- **Invariant checking** - Validate contract state consistency
+- [x] **Attack scenarios** - ✓ Completed: Sybil attacks, spam, malicious attester, commission exploitation
+- [x] **Invariant checking** - ✓ Completed: Validate contract state consistency
+- [x] **Pre-generated data** - ✓ Completed: Generate attestations once, reuse for deterministic test runs
 - **Scale testing** - Run with 1000+ users
 - **Visualization** - Generate graphs of the belief network and funding flows
 - **Deep data validation** - Compare every blockchain event with indexed records
