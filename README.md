@@ -37,7 +37,7 @@ Main artifacts:
   - SDK: used by both the integration-tests and the UI code
   - Integration tests
   - UI
-  - AI attester (basic service implemented, see attester/)
+  - AI attester
 
 See [ARTIFACTS.md](ARTIFACTS.md) for more detail.
 
