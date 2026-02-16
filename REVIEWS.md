@@ -10,16 +10,49 @@ Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned i
 
 ### Review — 2026-02-16
 
-STILL IN PROGRESS.
-
 **Project context**: Blockchain application with smart contracts, Ponder indexer, SDK, integration tests, UI, and AI Attester service.
 
-**Chunks completed**: [x] Smart contracts review, [x] Indexer review, [x] SDK review
-**Chunks remaining**: [ ] Integration tests review, [ ] UI review, [ ] Attester review, [ ] Architecture coherence, [ ] Code quality patterns, [ ] Documentation completeness, [ ] Test coverage check, [ ] Tech debt assessment, [ ] Synthesis
+**Chunks completed**: [x] Smart contracts review, [x] Indexer review, [x] SDK review, [x] Integration tests review, [x] UI review, [x] Attester review, [x] Architecture coherence, [x] Code quality patterns, [x] Documentation completeness, [x] Test coverage check, [x] Tech debt assessment, [x] Synthesis
+**Chunks remaining**: []
 
 **Commits since last review**: N/A - first review
 
-**Findings**:
+#### Architecture Coherence
+- ✅ Clean separation: contracts, indexer, SDK, integration-tests, UI, attester
+- ✅ SDK properly abstracts contracts and provides GraphQL queries
+- ✅ Each component has clear responsibilities
+- ✅ No circular dependencies detected
+- ✅ Docker Compose orchestrates multi-service setup
+- Status: **Healthy**
+
+#### Code Quality Patterns
+- ✅ TypeScript throughout
+- ✅ Consistent code style
+- ✅ Well-organized modules by feature
+- Status: **Healthy**
+
+#### Documentation
+- ✅ README.md at root with project overview
+- ✅ Per-artifact READMEs (hardhat, indexer, sdk, attester, ui, integration-tests)
+- ✅ Specs in specs/ directory with detailed documentation
+- ✅ DEPLOYMENT.md with comprehensive deployment instructions
+- ✅ AGENTS.md for AI conventions
+- ✅ Good use of TODO.md files for tracking
+- Status: **Excellent**
+
+#### Test Coverage
+- ✅ Unit tests in hardhat (243 passing)
+- ✅ Unit tests in SDK
+- ✅ Unit tests in attester
+- ✅ Integration tests covering major workflows
+- ✅ Unit tests in UI (vitest)
+- ✅ E2E tests in UI (playwright)
+- Status: **Good**
+
+#### Tech Debt
+- ⚠️ 8 TODOs found (mostly around NoteIntent attestation system - known future work)
+- ⚠️ Node.js v23.5.0 not officially supported by Hardhat (warning only)
+- Status: **Low** (minor TODOs, mostly known future work)
 
 #### Specialized Domain Reviews
 
@@ -51,8 +84,44 @@ STILL IN PROGRESS.
 - ⚠️ Package.json uses ./src/index.js as main but no dist output committed
 - Status: **Healthy**
 
-**Integration tests**: Not yet reviewed
+**Integration tests**:
+- ✅ Uses Docker Compose with healthchecks for proper orchestration
+- ✅ Clean containers/volumes between runs
+- ✅ SDK properly used for actions and GraphQL for queries
+- ✅ waitForIndexerSync() used consistently after all transactions
+- ✅ Account isolation via createIsolatedTestClients() - each suite gets unique accounts
+- ✅ Comprehensive coverage: workflows, conceptspace, delegation, fundingportal, marketplace, pubstarter, mutable-refs
+- ✅ Environment validation with clear error messages
+- ✅ Test suite can run full or filtered (e.g., `./run-integration-tests.sh delegation`)
+- Status: **Healthy**
 
-**UI**: Not yet reviewed
+**UI**:
+- ✅ Build passes (tsc + vite build)
+- ✅ Uses React 19, MUI, TanStack Query, Wagmi
+- ✅ Form validation with clear error messages
+- ✅ Markdown sanitized via rehype-sanitize
+- ✅ Loading states shown during async ops
+- ✅ Error states displayed with Alert component
+- ✅ Organized by feature (conceptspace/, shared/)
+- ✅ Uses SDK properly
+- ⚠️ No Error Boundary for catching crashes
+- ⚠️ URL params (statementId, address) not strictly validated before use
+- Status: **Healthy** (minor: add Error Boundary and validate URL params)
 
-**Attester**: Not yet reviewed
+**Attester**:
+- ✅ Build passes (npm run build)
+- ✅ Well-organized: separate modules for blockchain, config, errors, evaluator, ipfs, payment, rateLimit
+- ✅ Comprehensive error handling with BlockchainError classification
+- ✅ Input validation on all endpoints (required fields, batch size limits)
+- ✅ x402 payment protocol with validation
+- ✅ Rate limiting configured
+- ✅ Health endpoint with ETH balance check
+- ✅ Has tests (rateLimit, payment, errors)
+- Status: **Healthy**
+
+**Overall health**: Good
+
+**Action items**:
+- [ ] Add indexer/abis to .gitignore
+- [ ] Add Error Boundary component in UI
+- [ ] Validate URL params (statementId, address) in UI pages
