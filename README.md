@@ -34,6 +34,7 @@ Main artifacts:
   - Indexer
   - SDK: used by both the integration-tests and the UI code
   - Integration tests
+  - Fake data generation system is in [fake-data-generation/](fake-data-generation/README.md)
   - UI
   - AI attester
 
