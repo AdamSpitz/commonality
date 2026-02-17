@@ -297,7 +297,9 @@ class SimulationRunner {
 
             if (implies) {
               const contract = this.contracts.implications.connect(wallet);
-              tx = await contract.attestImplication(stmt1.statementId, stmt2.statementId);
+              // Contract requires 3 params: fromStatementId, toStatementId, explanationCid
+              const explanationCid = ethers.zeroPadValue(ethers.id('explanation'), 32);
+              tx = await contract.attestImplication(stmt1.statementId, stmt2.statementId, explanationCid);
               receipt = await tx.wait();
 
               this.recordAction('attestImplication', user, { from: stmt1.id, to: stmt2.id }, receipt);
@@ -311,8 +313,10 @@ class SimulationRunner {
           const projectAddress = ethers.Wallet.createRandom().address;
           const stmt = this.getRandomStatement();
 
-          const contract = this.contracts.projectAlignment.connect(wallet);
-          tx = await contract.attestAlignment(projectAddress, stmt.statementId);
+          // Use alignmentAttestations contract - it requires 3 params: subjectAddress, statementId, topicStatementId
+          const contract = this.contracts.alignmentAttestations.connect(wallet);
+          const topicStatementId = ethers.zeroPadValue(ethers.id('topic'), 32);
+          tx = await contract.attestAlignment(projectAddress, stmt.statementId, topicStatementId);
           receipt = await tx.wait();
 
           this.recordAction('attestProjectAlignment', user, { project: projectAddress, statement: stmt.id }, receipt);
