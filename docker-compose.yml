@@ -1,5 +1,10 @@
 services:
+  # =============================================================================
   # Hardhat local blockchain node
+  # =============================================================================
+  # Persists chain data to allow restarting while keeping chain state.
+  # Use COMMONALITY_DATA_DIR to configure where data is stored.
+  # Wipe this directory if you want a fresh chain.
   hardhat-node:
     build:
       context: ./hardhat
@@ -10,6 +15,8 @@ services:
     volumes:
       # Mount project root so deploy script can write .env files
       - .:/workspace
+      # Persist chain data - set COMMONALITY_DATA_DIR to configure location
+      - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
     working_dir: /workspace/hardhat
     command: npx hardhat node --hostname 0.0.0.0
     healthcheck:
@@ -24,7 +31,9 @@ services:
     networks:
       - commonality
 
+  # =============================================================================
   # One-shot service to deploy contracts
+  # =============================================================================
   hardhat-deploy:
     build:
       context: ./hardhat
@@ -33,6 +42,8 @@ services:
     volumes:
       # Mount project root so deploy script can write .env files
       - .:/workspace
+      # Access chain data for deployment
+      - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
     working_dir: /workspace/hardhat
     command: npx hardhat run scripts/deploy-local.js --network localhost
     depends_on:
@@ -44,7 +55,11 @@ services:
     networks:
       - commonality
 
+  # =============================================================================
   # Local IPFS node for testing
+  # =============================================================================
+  # Persists IPFS data to the configured COMMONALITY_DATA_DIR.
+  # Wipe this directory if you want a fresh IPFS node (new peer ID).
   ipfs:
     image: ipfs/kubo:latest
     container_name: commonality-ipfs
@@ -52,8 +67,8 @@ services:
       - "5001:5001"  # API port
       - "8080:8080"  # Gateway port
     volumes:
-      # Use ephemeral storage - fresh IPFS node each run
-      - ipfs-data:/data/ipfs
+      # Use configurable data directory for IPFS storage
+      - ${COMMONALITY_DATA_DIR:-./data}/ipfs:/data/ipfs
     # Custom entrypoint to configure IPFS for path-based gateway (no subdomain redirects)
     # This prevents the gateway from redirecting to CID.ipfs.localhost which doesn't resolve
     entrypoint: >
@@ -73,7 +88,11 @@ services:
     networks:
       - commonality
 
+  # =============================================================================
   # Ponder indexer service
+  # =============================================================================
+  # Persists indexer sync state to the configured COMMONALITY_DATA_DIR.
+  # Wipe this directory if you want to reindex from scratch.
   indexer:
     build:
       context: ./indexer
@@ -84,6 +103,8 @@ services:
     volumes:
       # Mount project root to access .env file
       - .:/workspace
+      # Persist indexer database and sync state
+      - ${COMMONALITY_DATA_DIR:-./data}/ponder:/app/.ponder
     working_dir: /app
     depends_on:
       hardhat-node:
@@ -95,8 +116,8 @@ services:
     environment:
       # Point to hardhat-node service
       - PONDER_RPC_URL_31337=http://hardhat-node:8545
-      # Use ephemeral in-memory database for tests (fresh state each run)
-      - PONDER_EPHEMERAL=true
+      # Use ephemeral database if PONDER_EPHEMERAL=true is set
+      - PONDER_EPHEMERAL=${PONDER_EPHEMERAL:-false}
       # Point to local IPFS gateway
       - IPFS_GATEWAY=http://ipfs:8080/ipfs
       - IPFS_API=http://ipfs:5001
@@ -119,5 +140,26 @@ networks:
   commonality:
     driver: bridge
 
-volumes:
-  ipfs-data:
+# =============================================================================
+# Data Storage
+# =============================================================================
+# All persistent data is stored in directories under COMMONALITY_DATA_DIR
+# (defaults to ./data in the project root).
+#
+# Directory structure:
+#   ${COMMONALITY_DATA_DIR}/
+#     ├── hardhat/          # Blockchain chain data
+#     ├── ipfs/             # IPFS node data
+#     └── ponder/           # Indexer sync state and database
+#
+# To use a different location (e.g., for integration tests):
+#   export COMMONALITY_DATA_DIR=/tmp/commonality-integration-tests-data
+#   docker-compose up -d
+#
+# To wipe all data and start fresh:
+#   rm -rf ${COMMONALITY_DATA_DIR:-./data}
+#   docker-compose up -d
+#
+# Or use the provided scripts:
+#   ./dev.sh              # Local development (uses ./data)
+#   ./scripts/run-integration-tests.sh  # Integration tests (uses /tmp/commonality-it)

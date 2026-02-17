@@ -18,8 +18,33 @@ Commonality consists of several deployable components:
 The fastest way to run Commonality locally:
 
 ```bash
+# Start services (preserves existing data in ./data)
 docker-compose up
+
+# Or use the dev script for more options:
+./dev.sh              # Start services (preserves existing data)
+./dev.sh --fresh     # Start with fresh data (wipes ./data)
+./dev.sh --stop      # Stop services without wiping data
+./dev.sh --wipe     # Wipe data directory only
 ```
+
+All data is stored in `./data/` by default:
+- `./data/hardhat/` - Blockchain chain data
+- `./data/ipfs/` - IPFS node data  
+- `./data/ponder/` - Indexer sync state
+
+To use a custom data directory:
+```bash
+export COMMONALITY_DATA_DIR=/custom/path ./dev.sh
+```
+
+### Running Integration Tests
+
+```bash
+./scripts/run-integration-tests.sh
+```
+
+This uses a separate data directory (`/tmp/commonality-it`) that's wiped after tests complete.
 
 ## Testnet Deployment (Sepolia)
 
