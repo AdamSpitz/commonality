@@ -1,5 +1,6 @@
 import hre from 'hardhat';
-import { ethers } from hre;
+import pkg from 'hardhat';
+const { ethers } = pkg;
 
 const { ethers: ethersObj } = hre;
 

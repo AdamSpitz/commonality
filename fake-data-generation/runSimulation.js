@@ -123,11 +123,11 @@ class SimulationRunner {
     await this.contracts.implications.waitForDeployment();
     console.log(`  Implications: ${await this.contracts.implications.getAddress()}`);
 
-    // Deploy ProjectAlignment contract
-    const ProjectAlignment = await ethers.getContractFactory('ProjectAlignment');
-    this.contracts.projectAlignment = await ProjectAlignment.deploy();
-    await this.contracts.projectAlignment.waitForDeployment();
-    console.log(`  ProjectAlignment: ${await this.contracts.projectAlignment.getAddress()}`);
+    // Deploy AlignmentAttestations contract
+    const AlignmentAttestations = await ethers.getContractFactory('AlignmentAttestations');
+    this.contracts.alignmentAttestations = await AlignmentAttestations.deploy();
+    await this.contracts.alignmentAttestations.waitForDeployment();
+    console.log(`  AlignmentAttestations: ${await this.contracts.alignmentAttestations.getAddress()}`);
 
     // Deploy DelegatableNotes contract
     const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
