@@ -7,6 +7,9 @@
 #   ./dev.sh --fresh      # Start with fresh data (wipes ./data)
 #   ./dev.sh --stop       # Stop services without wiping data
 #   ./dev.sh --wipe       # Wipe data directory only (doesn't start services)
+#   ./dev.sh --seed       # Start services and populate with fake data
+#   ./dev.sh --seed=small # Start services with small dataset (10 users, 3 rounds)
+#   ./dev.sh --seed=medium # Start services with medium dataset (50 users, 5 rounds)
 #
 # Data is stored in ./data/ by default:
 #   ./data/
@@ -28,10 +31,13 @@ show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  --fresh    Start with fresh data (wipes $DATA_DIR)"
-    echo "  --stop     Stop services without wiping data"
-    echo "  --wipe     Wipe data directory only (doesn't start)"
-    echo "  --help     Show this help message"
+    echo "  --fresh       Start with fresh data (wipes $DATA_DIR)"
+    echo "  --stop        Stop services without wiping data"
+    echo "  --wipe        Wipe data directory only (doesn't start)"
+    echo "  --seed        Start services and populate with fake data (default: 10 users, 3 rounds)"
+    echo "  --seed=small Start services with small dataset (10 users, 3 rounds)"
+    echo "  --seed=medium Start services with medium dataset (50 users, 5 rounds)"
+    echo "  --help        Show this help message"
     echo ""
     echo "Environment variables:"
     echo "  COMMONALITY_DATA_DIR    Set data directory (default: ./data)"
@@ -51,13 +57,11 @@ wipe_data() {
         echo "To avoid this issue in the future, you can configure docker to run as your user:"
         echo "  https://docs.docker.com/engine/install/linux-postinstall/"
         echo ""
-        echo "For now, manually remove the directory and try again:"
-        echo "  sudo rm -rf $DATA_DIR"
-        echo ""
-        echo "Or, if you have sudo privileges without password, press Enter to try again..."
-        read -r
-        sudo rm -rf "$DATA_DIR" || exit 1
+        echo "Trying to continue anyway..."
     fi
+    
+    # Create fresh directory
+    mkdir -p "$DATA_DIR"
     echo "Data wiped."
 }
 
@@ -78,6 +82,76 @@ stop_services() {
     echo "Services stopped (data preserved in $DATA_DIR)."
 }
 
+seed_data() {
+    local size="${1:-small}"
+    
+    echo "Starting services with fake data (size: $size)..."
+    
+    # Start services (don't wipe - might have permission issues)
+    docker-compose up -d
+    
+    # Wait for indexer to be healthy
+    echo ""
+    echo "Waiting for indexer to be ready..."
+    local max_attempts=60
+    local attempt=0
+    
+    while [ $attempt -lt $max_attempts ]; do
+        if curl -s -X POST -H "Content-Type: application/json" \
+            --data '{"query":"{ _meta { block { number } } }"}' \
+            http://localhost:42069/graphql > /dev/null 2>&1; then
+            echo "Indexer is ready!"
+            break
+        fi
+        attempt=$((attempt + 1))
+        if [ $((attempt % 10)) -eq 0 ]; then
+            echo "  Still waiting... ($attempt/$max_attempts)"
+        fi
+        sleep 1
+    done
+    
+    if [ $attempt -eq $max_attempts ]; then
+        echo "Error: Indexer did not become ready in time"
+        docker-compose logs indexer | tail -20
+        exit 1
+    fi
+    
+    # Give it a moment to stabilize
+    sleep 2
+    
+    # Run the simulation
+    echo ""
+    echo "Running fake data generation..."
+    echo "================================"
+    
+    cd "$SCRIPT_DIR/hardhat"
+    
+    case "$size" in
+        small)
+            npm run gen:small
+            ;;
+        medium)
+            npm run gen:medium
+            ;;
+        large)
+            npm run gen:large
+            ;;
+        *)
+            npm run gen:simulate
+            ;;
+    esac
+    
+    echo ""
+    echo "================================"
+    echo "Fake data generation complete!"
+    echo ""
+    echo "The indexer is now catching up with the new blockchain data."
+    echo "This may take a moment depending on the amount of data."
+    echo ""
+    echo "Services are running. Use 'docker-compose logs -f' to view logs."
+    echo "To stop services: docker-compose down"
+}
+
 case "${1:-}" in
     --fresh)
         wipe_data
@@ -88,6 +162,14 @@ case "${1:-}" in
         ;;
     --wipe)
         wipe_data
+        ;;
+    --seed|--seed=*)
+        # Extract the size argument (e.g., --seed=small -> small)
+        if [[ "$1" == --seed=* ]]; then
+            seed_data "${1#*=}"
+        else
+            seed_data "small"
+        fi
         ;;
     --help|-h)
         show_usage

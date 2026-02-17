@@ -18,7 +18,7 @@ services:
       # Persist chain data - set COMMONALITY_DATA_DIR to configure location
       - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
     working_dir: /workspace/hardhat
-    command: npx hardhat node --hostname 0.0.0.0
+    command: node node_modules/hardhat/internal/cli/bootstrap.js node --hostname 0.0.0.0
     healthcheck:
       test: |
         curl -f -X POST -H "Content-Type: application/json" \
@@ -45,7 +45,7 @@ services:
       # Access chain data for deployment
       - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
     working_dir: /workspace/hardhat
-    command: npx hardhat run scripts/deploy-local.js --network localhost
+    command: node node_modules/hardhat/internal/cli/bootstrap.js run scripts/deploy-local.js --network localhost
     depends_on:
       hardhat-node:
         condition: service_healthy

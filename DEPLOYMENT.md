@@ -25,8 +25,22 @@ docker-compose up
 ./dev.sh              # Start services (preserves existing data)
 ./dev.sh --fresh     # Start with fresh data (wipes ./data)
 ./dev.sh --stop      # Stop services without wiping data
-./dev.sh --wipe     # Wipe data directory only
+./dev.sh --wipe      # Wipe data directory only
+
+# Populate with fake data:
+./dev.sh --seed         # Small dataset (10 users, 3 rounds) - default
+./dev.sh --seed=small   # Small dataset (10 users, 3 rounds)
+./dev.sh --seed=medium  # Medium dataset (50 users, 5 rounds)
 ```
+
+After running with `--seed`, the local environment will be populated with:
+- Generated users with various engagement levels and interests
+- Statements across different domains (politics, crypto, religion, music, climate, technology)
+- Beliefs, implications, and alignment attestations
+- Sample projects and funding actions
+- Delegation notes
+
+The Ponder indexer will automatically index all the new data, making it queryable via GraphQL.
 
 All data is stored in `./data/` by default:
 - `./data/hardhat/` - Blockchain chain data
