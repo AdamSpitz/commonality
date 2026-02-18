@@ -1,0 +1,25 @@
+{
+  "name": "fake-data-generation",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "gen:users": "node generateUsers.js",
+    "gen:statements": "node generateStatements.js",
+    "gen:attesters": "node generateAttesters.js",
+    "gen:attestations": "node generateAttestations.js",
+    "gen:simulate": "node runSimulation.js",
+    "gen:small": "node runSimulation.js 10 3",
+    "gen:medium": "node runSimulation.js 50 5",
+    "gen:large": "node runSimulation.js 100 10",
+    "gen:clean": "rm -f users.json statements.json actions.json metrics.json"
+  },
+  "dependencies": {
+    "@commonality/sdk": "file:../sdk",
+    "dotenv": "^16.4.0",
+    "viem": "^2.21.3"
+  },
+  "devDependencies": {
+    "ethers": "^6.15.0",
+    "hardhat": "^2.27.0"
+  }
+}

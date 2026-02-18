@@ -133,7 +133,10 @@ seed_data() {
     echo "Running fake data generation..."
     echo "================================"
     
-    cd "$SCRIPT_DIR/hardhat"
+    cd "$SCRIPT_DIR/fake-data-generation"
+    
+    # Install dependencies
+    npm install
     
     # If using hardhat accounts, generate users first
     if [[ "$extra_args" == *"--use-hardhat-accounts"* ]]; then

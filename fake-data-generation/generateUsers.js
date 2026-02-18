@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import hre from 'hardhat';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -108,11 +108,12 @@ async function getHardhatAccounts(count) {
 }
 
 function generateUser(id, universe, hardhatAccount = null) {
-  let wallet;
+  let account;
   if (hardhatAccount) {
-    wallet = new ethers.Wallet(hardhatAccount.privateKey);
+    account = privateKeyToAccount(hardhatAccount.privateKey);
   } else {
-    wallet = ethers.Wallet.createRandom();
+    const privateKey = generatePrivateKey();
+    account = privateKeyToAccount(privateKey);
   }
   const engagement = selectEngagementLevel();
 
@@ -136,8 +137,8 @@ function generateUser(id, universe, hardhatAccount = null) {
 
   return {
     id,
-    address: wallet.address,
-    privateKey: wallet.privateKey,
+    address: account.address,
+    privateKey: account.privateKey,
     engagement: engagement.level,
     actionsPerRound: engagement.actionsPerRound,
     wealth: generateWealth(),

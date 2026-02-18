@@ -17,34 +17,38 @@ The generative testing suite consists of:
 
 ## Important: Hardhat dependency
 
-Although this directory lives at the project root, the simulation scripts (`runSimulation.js`, `fundingAndDelegationActions.js`) import the Hardhat runtime environment (`import hre from 'hardhat'`) to deploy and interact with smart contracts. This means **scripts must be run from the `hardhat/` directory** so that Hardhat can find its config file (`hardhat.config.cjs`) and compiled contract artifacts. You can also use the `npm run gen:*` scripts defined in `hardhat/package.json`.
+The simulation scripts (`runSimulation.js`, `fundingAndDelegationActions.js`) import the Hardhat runtime environment (`import hre from 'hardhat'`) to deploy and interact with smart contracts. This means scripts must be run from the `hardhat/` directory so that Hardhat can find its config file (`hardhat.config.cjs`) and compiled contract artifacts.
 
 ## Quick Start
 
-### Generate test data and run simulation:
+### Running with npm scripts
+
+From the fake-data-generation directory (installs dependencies first):
 
 ```bash
-# From the hardhat directory (needed for hardhat runtime - see note above)
-cd /home/adam/Projects/commonality/hardhat
+cd /home/adam/Projects/commonality/fake-data-generation
+npm install
 
 # Run the simulation (will auto-generate data if needed)
-node ../fake-data-generation/runSimulation.js [numUsers] [numRounds]
+npm run gen:simulate
 
-# Example: 50 users, 5 rounds
-node ../fake-data-generation/runSimulation.js 50 5
+# Or with custom parameters
+npm run gen:small   # 10 users, 3 rounds
+npm run gen:medium # 50 users, 5 rounds
+npm run gen:large  # 100 users, 10 rounds
 ```
 
 ### Generate data separately:
 
 ```bash
-# Generate users (run from hardhat/ directory)
-node ../fake-data-generation/generateUsers.js 50
+# Generate users
+npm run gen:users
 
 # Generate statements
-node ../fake-data-generation/generateStatements.js
+npm run gen:statements
 
 # Generate attesters
-node ../fake-data-generation/generateAttesters.js 15
+npm run gen:attesters
 ```
 
 ## Generated Files
@@ -136,7 +140,7 @@ Get an API key at: https://openrouter.ai/keys
 
 ### Testing the Integration
 
-Run the test script to verify everything is working:
+Run the test script from the hardhat directory (needed for hardhat runtime):
 
 ```bash
 # From the hardhat directory (needed for hardhat runtime)
@@ -194,11 +198,12 @@ Typical costs (Claude 3.5 Haiku):
 
 ### Pre-generated Attestations for Cost Savings
 
-To avoid calling OpenRouter on every test run, you can pre-generate attestations once and save them:
+To avoid calling OpenRouter on every test run, you can pre-generate attestations once and save them. First ensure dependencies are installed, then run:
 
 ```bash
 # Generate pre-computed attestations (requires OPENROUTER_API_KEY)
-cd /home/adam/Projects/commonality/hardhat
+cd /home/adam/Projects/commonality/fake-data-generation
+npm install
 export OPENROUTER_API_KEY=sk-or-your-key-here
 
 # Generate 50 pairs per domain (default)

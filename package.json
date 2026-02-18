@@ -9,7 +9,8 @@
     "integration-tests",
     "hardhat",
     "indexer",
-    "attester"
+    "attester",
+    "fake-data-generation"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present && npm run indexer:typecheck && npm run ui:build && npm run attester:build",

@@ -6,15 +6,7 @@
   "scripts": {
     "build": "npx hardhat compile",
     "test": "npx hardhat test",
-    "deploy-local": "npx hardhat run scripts/deploy-local.js --network localhost",
-    "gen:users": "node ../fake-data-generation/generateUsers.js",
-    "gen:statements": "node ../fake-data-generation/generateStatements.js",
-    "gen:attestations": "node ../fake-data-generation/generateAttestations.js",
-    "gen:simulate": "node ../fake-data-generation/runSimulation.js",
-    "gen:small": "node ../fake-data-generation/runSimulation.js 10 3",
-    "gen:medium": "node ../fake-data-generation/runSimulation.js 50 5",
-    "gen:large": "node ../fake-data-generation/runSimulation.js 100 10",
-    "gen:clean": "rm -f ../fake-data-generation/users.json ../fake-data-generation/statements.json ../fake-data-generation/actions.json ../fake-data-generation/metrics.json"
+    "deploy-local": "npx hardhat run scripts/deploy-local.js --network localhost"
   },
   "keywords": [],
   "author": "",

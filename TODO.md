@@ -1,9 +1,7 @@
 # What we've been working on lately
 
 Main thing I want to work on next:
-  - (DONE) Fix the bug in the dev.sh stuff - Fixed contract API mismatches:
-    - attestImplication: Added missing `explanationCid` parameter (3rd param)
-    - attestProjectAlignment: Changed `projectAlignment` to `alignmentAttestations` and added missing `topicStatementId` parameter
+  - Fake Data Generation Refactoring (see below).
 
 Other big things to do soon:
   - Honestly, it kinda seems like we might be ready to deploy the conceptspace stuff? (We don't have UIs yet for the other major subsystems.) But I'm uneasy, because this whole project was built mostly by LLMs, and I don't quite feel confident that I understand what's in it or whether it works or not.
@@ -50,3 +48,55 @@ But these queries don't exist in the Ponder-generated GraphQL schema. The availa
 ## Miscellaneous TODO.md files
 
 - [ui/TODO.md](ui/TODO.md)
+
+---
+
+## Fake Data Generation Refactoring
+
+### Goal
+Refactor fake-data-generation to use the SDK and read contract addresses from `.env`, removing dependency on hardhat runtime.
+
+### Tasks
+
+#### Phase 1: Setup (30 min)
+- [X] 1.1 Add SDK as dependency to fake-data-generation/package.json
+- [X] 1.2 Add dotenv for reading .env file
+- [X] 1.3 Create shared contract address loading logic
+
+#### Phase 2: Refactor generateUsers.js (15 min)
+- [X] 2.1 Replace ethers with SDK createTestClients
+- [X] 2.2 Keep generation logic (no contract interaction)
+
+#### Phase 3: Refactor runSimulation.js (1.5 hrs)
+- [ ] 3.1 Remove deployContracts() - just read addresses from .env
+- [ ] 3.2 Replace setBelief/setBeliefsInBatch calls with SDK
+- [ ] 3.3 Replace attestImplication calls with SDK  
+- [ ] 3.4 Replace attestAlignment calls with SDK
+- [ ] 3.5 Update fundUsers to use viem instead of ethers
+
+#### Phase 4: Refactor fundingAndDelegationActions.js (1 hr)
+- [ ] 4.1 Replace createProject with SDK action
+- [ ] 4.2 Replace purchaseFromPrimaryMarket with SDK action
+- [ ] 4.3 Replace createSecondaryMarketListing with SDK action
+- [ ] 4.4 Replace fulfillSaleListing with SDK action
+- [ ] 4.5 Replace withdraw with SDK action
+- [ ] 4.6 Replace depositToNote with SDK action
+- [ ] 4.7 Replace delegateNote with SDK action
+- [ ] 4.8 Replace revokeDelegation with SDK action
+
+#### Phase 5: Refactor attackScenarios.js (30 min)
+- [ ] 5.1 Replace setBelief calls with SDK
+- [ ] 5.2 Replace attestImplication calls with SDK
+
+#### Phase 6: Refactor invariantChecker.js (15 min)
+- [ ] 6.1 Replace ethers contract calls with SDK
+
+#### Phase 7: Testing (30 min)
+- [ ] 7.1 Update dev.sh to run npm install once
+- [ ] 7.2 Test ./dev.sh --seed=large works
+- [ ] 7.3 Verify .env is read correctly
+
+### Notes
+- SDK already has most needed actions in conceptspace-, delegation-, and pubstarter-actions
+- May need to add missing SDK actions (e.g., getBalance wrapper)
+- Use `http://localhost:8545` for RPC instead of hardhat runtime
