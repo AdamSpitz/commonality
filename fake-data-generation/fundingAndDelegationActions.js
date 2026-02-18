@@ -18,6 +18,7 @@ class FundingAndDelegationActions {
     this.statements = statements;
     this.createdProjects = [];
     this.createdNotes = []; // Track created notes: { noteId, owner, amount, token, tokenType, tokenId }
+    this.userTokens = new Map(); // user.address -> [{ erc1155, tokenId, count, listedCount }]
   }
 
   getWalletForUser(user) {
@@ -33,16 +34,46 @@ class FundingAndDelegationActions {
   }
 
   getUserNotes(user) {
-    return this.createdNotes.filter(note => note.owner === user.address);
+    return this.createdNotes.filter(note => note.owner === user.address && !note.delegated && !note.revoked);
   }
 
   getDelegatableNotes(user) {
-    // Get notes that can be delegated (ETH-based notes owned by user)
     return this.createdNotes.filter(note => 
       note.owner === user.address && 
       note.token === ethers.ZeroAddress &&
-      note.tokenType === 0 // ERC20 type for ETH
+      note.tokenType === 0 &&
+      !note.delegated &&
+      !note.revoked
     );
+  }
+
+  getDelegatableNotesExcluding(user, excludeAddresses) {
+    return this.createdNotes.filter(note => 
+      note.owner === user.address && 
+      note.token === ethers.ZeroAddress &&
+      note.tokenType === 0 &&
+      !note.delegated &&
+      !note.revoked &&
+      !excludeAddresses.includes(note.originalOwner) &&
+      !excludeAddresses.includes(note.owner)
+    );
+  }
+
+  getRevocableNotes(user) {
+    return this.createdNotes.filter(note => 
+      note.owner === user.address && 
+      note.delegated === true &&
+      !note.revoked
+    );
+  }
+
+  getUserTokens(user) {
+    return this.userTokens.get(user.address) || [];
+  }
+
+  getAvailableTokens(user) {
+    const tokens = this.userTokens.get(user.address) || [];
+    return tokens.filter(t => (t.listedCount || 0) < t.count);
   }
 
   /**
@@ -71,48 +102,48 @@ class FundingAndDelegationActions {
     ];
 
     try {
-      const tx = await pubstarter.pubstart(
-        user.address, // recipient
+      const result = await pubstarter.createERC1155AndMarketplaceAndAssuranceContract.staticCall(
+        'https://example.com/metadata/',
+        'https://example.com/contract.json',
+        user.address,
+        user.address,
         threshold,
         deadline,
         projectMetadataCid,
-        'https://example.com/metadata/', // metadataURI
-        'https://example.com/contract.json', // contractURI
+        tokenIds,
+        maxSupplies,
+        prices
+      );
+
+      const tx = await pubstarter.createERC1155AndMarketplaceAndAssuranceContract(
+        'https://example.com/metadata/',
+        'https://example.com/contract.json',
+        user.address,
+        user.address,
+        threshold,
+        deadline,
+        projectMetadataCid,
         tokenIds,
         maxSupplies,
         prices
       );
 
       const receipt = await tx.wait();
-      
-      // Parse events to get created contract addresses
-      const projectCreatedEvent = receipt.logs
-        .map(log => {
-          try {
-            return pubstarter.interface.parseLog(log);
-          } catch {
-            return null;
-          }
-        })
-        .find(event => event && event.name === 'ProjectCreated');
 
-      if (projectCreatedEvent) {
-        const project = {
-          owner: user.address,
-          erc1155: projectCreatedEvent.args.erc1155,
-          marketplace: projectCreatedEvent.args.marketplace,
-          assuranceContract: projectCreatedEvent.args.assuranceContract,
-          threshold: threshold.toString(),
-          deadline,
-          tokenIds,
-          prices: prices.map(p => p.toString())
-        };
-        
-        this.createdProjects.push(project);
-        return { success: true, project, receipt };
-      }
+      const [erc1155, marketplace, assuranceContract] = result;
+      const project = {
+        owner: user.address,
+        erc1155: erc1155,
+        marketplace: marketplace,
+        assuranceContract: assuranceContract,
+        threshold: threshold.toString(),
+        deadline,
+        tokenIds,
+        prices: prices.map(p => p.toString())
+      };
 
-      return { success: true, receipt };
+      this.createdProjects.push(project);
+      return { success: true, project, receipt };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -151,6 +182,19 @@ class FundingAndDelegationActions {
       );
 
       const receipt = await tx.wait();
+
+      // Track user tokens - now with listed count
+      if (!this.userTokens.has(user.address)) {
+        this.userTokens.set(user.address, []);
+      }
+      const userTokenList = this.userTokens.get(user.address);
+      const existingToken = userTokenList.find(t => t.erc1155 === project.erc1155 && t.tokenId === tokenId);
+      if (existingToken) {
+        existingToken.count += count;
+      } else {
+        userTokenList.push({ erc1155: project.erc1155, tokenId, count, listedCount: 0 });
+      }
+
       return { success: true, receipt, totalCost: totalCost.toString() };
     } catch (error) {
       return { success: false, error: error.message };
@@ -164,6 +208,18 @@ class FundingAndDelegationActions {
     const wallet = this.getWalletForUser(user);
     
     try {
+      if (!project || !project.erc1155 || !project.marketplace) {
+        throw new Error(`Invalid project: missing erc1155 or marketplace`);
+      }
+
+      if (!tokenId || tokenId === undefined) {
+        throw new Error(`Invalid tokenId: ${tokenId}`);
+      }
+
+      if (!pricePerToken || typeof pricePerToken !== 'bigint') {
+        throw new Error(`Invalid pricePerToken: ${pricePerToken}`);
+      }
+      
       // First approve the marketplace to transfer tokens
       const erc1155 = await ethers.getContractAt('IERC1155', project.erc1155, wallet);
       const marketplace = await ethers.getContractAt(
@@ -185,18 +241,34 @@ class FundingAndDelegationActions {
       const tx = await marketplace.createSaleListing(tokenId, count, pricePerToken);
       const receipt = await tx.wait();
 
-      // Parse listing ID from event
-      const listingEvent = receipt.logs
-        .map(log => {
-          try {
-            return marketplace.interface.parseLog(log);
-          } catch {
-            return null;
-          }
-        })
-        .find(event => event && event.name === 'SaleListingCreated');
+      // Parse listing ID from event - with robust null checking
+      let listingId = 'unknown';
+      try {
+        const listingEvent = receipt.logs
+          .map(log => {
+            try {
+              return marketplace.interface.parseLog(log);
+            } catch {
+              return null;
+            }
+          })
+          .find(event => event && event.name === 'SaleListingCreated');
 
-      const listingId = listingEvent ? listingEvent.args.listingId.toString() : null;
+        if (listingEvent?.args?.listingId) {
+          listingId = listingEvent.args.listingId.toString();
+        }
+      } catch (eventError) {
+        console.log('Event parsing warning:', eventError.message);
+      }
+
+      // Track listed tokens
+      const userTokenList = this.userTokens.get(user.address);
+      if (userTokenList) {
+        const tokenIdx = userTokenList.findIndex(t => t.erc1155 === project.erc1155 && t.tokenId === tokenId);
+        if (tokenIdx !== -1) {
+          userTokenList[tokenIdx].listedCount = (userTokenList[tokenIdx].listedCount || 0) + count;
+        }
+      }
 
       return { success: true, receipt, listingId };
     } catch (error) {
@@ -223,6 +295,19 @@ class FundingAndDelegationActions {
 
       const tx = await marketplace.fulfillSaleListing(listingId, count, { value: totalCost });
       const receipt = await tx.wait();
+
+      // Track user tokens
+      if (!this.userTokens.has(user.address)) {
+        this.userTokens.set(user.address, []);
+      }
+      const userTokenList = this.userTokens.get(user.address);
+      const tokenIdNum = listing.tokenId.toNumber();
+      const existingToken = userTokenList.find(t => t.erc1155 === project.erc1155 && t.tokenId === tokenIdNum);
+      if (existingToken) {
+        existingToken.count += count;
+      } else {
+        userTokenList.push({ erc1155: project.erc1155, tokenId: tokenIdNum, count, listedCount: 0 });
+      }
 
       return { success: true, receipt, totalCost: totalCost.toString() };
     } catch (error) {
@@ -299,7 +384,10 @@ class FundingAndDelegationActions {
           amount: amount.toString(),
           token: ethers.ZeroAddress,
           tokenType: 0, // ERC20
-          tokenId: 0
+          tokenId: 0,
+          delegated: false,
+          revoked: false,
+          originalOwner: user.address
         };
         this.createdNotes.push(note);
         return { success: true, note, receipt };
@@ -365,14 +453,17 @@ class FundingAndDelegationActions {
         // Update original note
         note.amount = (BigInt(note.amount) - BigInt(splitAmount)).toString();
 
-        // Add delegated note
+        // Add delegated note (it's already delegated, so mark it as such)
         this.createdNotes.push({
           noteId: delegatedNoteId,
           owner: delegateTo,
           amount: splitAmount,
           token: note.token,
           tokenType: note.tokenType,
-          tokenId: note.tokenId
+          tokenId: note.tokenId,
+          delegated: true,
+          revoked: false,
+          originalOwner: note.originalOwner || user.address
         });
 
         return { 
@@ -385,6 +476,7 @@ class FundingAndDelegationActions {
         // Full delegation
         const delegatedNoteId = noteId;
         note.owner = delegateTo;
+        note.delegated = true;
         return { success: true, delegatedNoteId, receipt };
       }
     } catch (error) {
@@ -417,8 +509,9 @@ class FundingAndDelegationActions {
       const tx = await delegatableNotes.revoke(noteId, owners);
       const receipt = await tx.wait();
 
-      // Update note ownership back to user
+      // Update note ownership back to user and mark as revoked
       note.owner = user.address;
+      note.revoked = true;
 
       return { success: true, receipt };
     } catch (error) {

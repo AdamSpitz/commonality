@@ -10,6 +10,7 @@
 #   ./dev.sh --seed       # Start services and populate with fake data
 #   ./dev.sh --seed=small # Start services with small dataset (10 users, 3 rounds)
 #   ./dev.sh --seed=medium # Start services with medium dataset (50 users, 5 rounds)
+#   ./dev.sh --seed --use-hardhat-accounts  # Use hardhat accounts for first 20 users
 #
 # Data is stored in ./data/ by default:
 #   ./data/
@@ -27,6 +28,10 @@ cd "$SCRIPT_DIR"
 
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 
+size="small"
+extra_args=""
+parts=()
+
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -37,6 +42,7 @@ show_usage() {
     echo "  --seed        Start services and populate with fake data (default: 10 users, 3 rounds)"
     echo "  --seed=small Start services with small dataset (10 users, 3 rounds)"
     echo "  --seed=medium Start services with medium dataset (50 users, 5 rounds)"
+    echo "  --use-hardhat-accounts  Use hardhat accounts instead of random wallets (for first 20 users)"
     echo "  --help        Show this help message"
     echo ""
     echo "Environment variables:"
@@ -84,6 +90,7 @@ stop_services() {
 
 seed_data() {
     local size="${1:-small}"
+    local extra_args="${2:-}"
     
     echo "Starting services with fake data (size: $size)..."
     
@@ -128,16 +135,16 @@ seed_data() {
     
     case "$size" in
         small)
-            npm run gen:small
+            npm run gen:small -- $extra_args
             ;;
         medium)
-            npm run gen:medium
+            npm run gen:medium -- $extra_args
             ;;
         large)
-            npm run gen:large
+            npm run gen:large -- $extra_args
             ;;
         *)
-            npm run gen:simulate
+            npm run gen:simulate -- $extra_args
             ;;
     esac
     
@@ -165,11 +172,25 @@ case "${1:-}" in
         ;;
     --seed|--seed=*)
         # Extract the size argument (e.g., --seed=small -> small)
+        # and any extra arguments (e.g., --use-hardhat-accounts)
+        size="small"
+        extra_args=""
+        
         if [[ "$1" == --seed=* ]]; then
-            seed_data "${1#*=}"
-        else
-            seed_data "small"
+            # Split by space to get size and any extra args
+            # e.g., --seed=small --use-hardhat-accounts
+            parts=(${1#*=})
+            size="${parts[0]}"
+            shift
         fi
+        
+        # Collect any remaining arguments that start with --
+        while [[ "$1" == --* ]]; do
+            extra_args="$extra_args $1"
+            shift
+        done
+        
+        seed_data "$size" "$extra_args"
         ;;
     --help|-h)
         show_usage

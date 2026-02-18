@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import hre from 'hardhat';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -83,8 +84,27 @@ function addCorrelations(interests) {
   return interests;
 }
 
-function generateUser(id, universe) {
-  const wallet = ethers.Wallet.createRandom();
+const DEFAULT_ACCOUNT_COUNT = 20;
+
+async function getHardhatAccounts(count) {
+  const signers = await hre.ethers.getSigners();
+  const accounts = [];
+  for (let i = 0; i < Math.min(count, signers.length); i++) {
+    const signer = signers[i];
+    const address = await signer.getAddress();
+    const privateKey = signer.privateKey;
+    accounts.push({ address, privateKey });
+  }
+  return accounts;
+}
+
+function generateUser(id, universe, hardhatAccount = null) {
+  let wallet;
+  if (hardhatAccount) {
+    wallet = new ethers.Wallet(hardhatAccount.privateKey);
+  } else {
+    wallet = ethers.Wallet.createRandom();
+  }
   const engagement = selectEngagementLevel();
 
   // Each user cares about 1-4 domains
@@ -118,15 +138,24 @@ function generateUser(id, universe) {
   };
 }
 
-async function generateUsers(count) {
+async function generateUsers(count, options = {}) {
+  const { useHardhatAccounts = false, hardhatAccountCount = DEFAULT_ACCOUNT_COUNT } = options;
+  
   const universePath = join(__dirname, 'universe.json');
   const universe = JSON.parse(await fs.readFile(universePath, 'utf-8'));
+
+  let hardhatAccounts = [];
+  if (useHardhatAccounts) {
+    hardhatAccounts = await getHardhatAccounts(hardhatAccountCount);
+    console.log(`Using ${hardhatAccounts.length} hardhat accounts`);
+  }
 
   const users = [];
 
   // Generate users
   for (let i = 0; i < count; i++) {
-    users.push(generateUser(i, universe));
+    const hardhatAccount = useHardhatAccounts && i < hardhatAccounts.length ? hardhatAccounts[i] : null;
+    users.push(generateUser(i, universe, hardhatAccount));
   }
 
   // Establish trust networks
@@ -171,8 +200,12 @@ async function generateUsers(count) {
 
 // Run if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const count = parseInt(process.argv[2]) || 50;
-  generateUsers(count).catch(console.error);
+  const args = process.argv.slice(2);
+  const count = parseInt(args.find(a => !a.startsWith('--')) || 50);
+  const useHardhatAccounts = args.includes('--use-hardhat-accounts');
+  const hardhatAccountCount = parseInt(args.find(a => a.startsWith('--hardhat-count='))?.split('=')[1]) || DEFAULT_ACCOUNT_COUNT;
+  
+  generateUsers(count, { useHardhatAccounts, hardhatAccountCount }).catch(console.error);
 }
 
 export { generateUsers };

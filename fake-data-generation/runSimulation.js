@@ -34,6 +34,7 @@ class SimulationRunner {
     this.attackScenarios = null;
     this.invariantChecker = null;
     this.usePreGeneratedAttestations = true;
+    this.useHardhatAccounts = false;
   }
 
   async initialize(numUsers = 50) {
@@ -51,7 +52,7 @@ class SimulationRunner {
       this.users = JSON.parse(data);
       console.log(`Loaded ${this.users.length} existing users`);
     } catch (err) {
-      this.users = await generateUsers(numUsers);
+      this.users = await generateUsers(numUsers, { useHardhatAccounts: this.useHardhatAccounts });
     }
 
     // Generate or load statements
@@ -165,18 +166,39 @@ class SimulationRunner {
   }
 
   async fundUsers() {
-    const [funder] = await ethers.getSigners();
-
-    for (const user of this.users) {
-      const amount = ethers.parseEther(user.wealth.toString());
-      const tx = await funder.sendTransaction({
-        to: user.address,
-        value: amount
-      });
-      await tx.wait();
+    const signers = await ethers.getSigners();
+    const funders = signers.slice(0, 5); // Use first 5 accounts as funders
+    
+    let fundedCount = 0;
+    let failedCount = 0;
+    
+    for (let i = 0; i < this.users.length; i++) {
+      const user = this.users[i];
+      const funder = funders[i % funders.length];
+      
+      // Give users more ETH than their stated wealth to cover gas costs
+      // Base amount + wealth + buffer for gas
+      const baseAmount = ethers.parseEther('1'); // 1 ETH base
+      const wealthAmount = ethers.parseEther(user.wealth.toString());
+      const gasBuffer = ethers.parseEther('0.5'); // 0.5 ETH buffer for gas
+      const totalAmount = baseAmount + wealthAmount + gasBuffer;
+      
+      try {
+        const tx = await funder.sendTransaction({
+          to: user.address,
+          value: totalAmount
+        });
+        await tx.wait();
+        fundedCount++;
+      } catch (err) {
+        failedCount++;
+        if (failedCount <= 3) {
+          console.log(`  Failed to fund user ${user.id}: ${err.message}`);
+        }
+      }
     }
 
-    console.log(`  Funded ${this.users.length} users`);
+    console.log(`  Funded ${fundedCount} users (${failedCount} failed)`);
   }
 
   getWalletForUser(user) {
@@ -335,46 +357,71 @@ class SimulationRunner {
         }
 
         case 'purchaseFromPrimaryMarket': {
-          // Only if there are existing projects
-          if (this.fundingDelegation.createdProjects.length > 0) {
-            const project = this.fundingDelegation.createdProjects[
-              Math.floor(Math.random() * this.fundingDelegation.createdProjects.length)
-            ];
-            const tokenId = project.tokenIds[Math.floor(Math.random() * project.tokenIds.length)];
-            const count = Math.floor(Math.random() * 5) + 1; // 1-5 tokens
-            
-            const result = await this.fundingDelegation.purchaseFromPrimaryMarket(user, project, tokenId, count);
-            if (result.success) {
-              this.recordAction('purchaseFromPrimaryMarket', user, { project: project.erc1155, tokenId, count }, result.receipt);
-            } else {
-              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+          // Only if there are existing projects and user has enough ETH
+          const wallet = new ethers.Wallet(user.privateKey, ethers.provider);
+          const balance = await ethers.provider.getBalance(user.address);
+          const estimatedCost = ethers.parseEther('2');
+          
+          if (this.fundingDelegation.createdProjects.length > 0 && balance > estimatedCost) {
+            try {
+              const project = this.fundingDelegation.createdProjects[
+                Math.floor(Math.random() * this.fundingDelegation.createdProjects.length)
+              ];
+              if (!project || !project.tokenIds || !project.tokenIds.length) break;
+              const tokenId = project.tokenIds[Math.floor(Math.random() * project.tokenIds.length)];
+              const count = Math.floor(Math.random() * 2) + 1; // 1-2 tokens only
+              
+              const result = await this.fundingDelegation.purchaseFromPrimaryMarket(user, project, tokenId, count);
+              if (result.success) {
+                this.recordAction('purchaseFromPrimaryMarket', user, { project: project.erc1155, tokenId, count }, result.receipt);
+              } else {
+                this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+              }
+            } catch (err) {
+              this.metrics.errors.push({ action: actionType, user: user.id, error: err.message });
             }
           }
           break;
         }
 
         case 'createSecondaryMarketListing': {
-          // Only if there are existing projects
-          if (this.fundingDelegation.createdProjects.length > 0) {
-            const project = this.fundingDelegation.createdProjects[
-              Math.floor(Math.random() * this.fundingDelegation.createdProjects.length)
-            ];
-            const tokenId = project.tokenIds[Math.floor(Math.random() * project.tokenIds.length)];
-            const count = Math.floor(Math.random() * 3) + 1; // 1-3 tokens
-            const pricePerToken = ethers.parseEther((Math.random() * 0.1 + 0.01).toFixed(4));
-            
-            const result = await this.fundingDelegation.createSecondaryMarketListing(
-              user, project, tokenId, count, pricePerToken
-            );
-            if (result.success) {
-              this.recordAction('createSecondaryMarketListing', user, { 
-                project: project.erc1155, 
-                tokenId, 
-                count, 
-                listingId: result.listingId 
-              }, result.receipt);
-            } else {
-              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+          // Only if user has available (non-listed) tokens and has ETH for gas
+          const userTokens = this.fundingDelegation.getAvailableTokens(user);
+          const wallet = new ethers.Wallet(user.privateKey, ethers.provider);
+          const balance = await ethers.provider.getBalance(user.address);
+          
+          if (userTokens.length > 0 && this.fundingDelegation.createdProjects.length > 0 && balance > ethers.parseEther('0.1')) {
+            try {
+              const userToken = userTokens[Math.floor(Math.random() * userTokens.length)];
+              if (!userToken || !userToken.tokenId || !userToken.count || userToken.count <= 0) break;
+              
+              const project = this.fundingDelegation.createdProjects.find(p => p.erc1155 === userToken.erc1155);
+              if (!project || !project.marketplace) break;
+              
+              const available = userToken.count - (userToken.listedCount || 0);
+              if (available <= 0) break;
+              
+              const count = Math.floor(Math.random() * available) + 1;
+              if (count <= 0) break;
+              
+              const pricePerToken = ethers.parseEther((Math.random() * 0.05 + 0.01).toFixed(4));
+              if (!pricePerToken || pricePerToken <= 0n) break;
+              
+              const result = await this.fundingDelegation.createSecondaryMarketListing(
+                user, project, userToken.tokenId, count, pricePerToken
+              );
+              if (result.success) {
+                this.recordAction('createSecondaryMarketListing', user, { 
+                  project: userToken.erc1155, 
+                  tokenId: userToken.tokenId, 
+                  count, 
+                  listingId: result.listingId 
+                }, result.receipt);
+              } else {
+                this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+              }
+            } catch (err) {
+              this.metrics.errors.push({ action: actionType, user: user.id, error: err.message });
             }
           }
           break;
@@ -382,18 +429,28 @@ class SimulationRunner {
 
         // Delegation actions
         case 'depositToNote': {
-          const amount = ethers.parseEther((Math.random() * 0.5 + 0.1).toFixed(2)); // 0.1-0.6 ETH
-          const result = await this.fundingDelegation.depositToNote(user, amount);
-          if (result.success) {
-            this.recordAction('depositToNote', user, { noteId: result.note?.noteId, amount: amount.toString() }, result.receipt);
-          } else {
-            this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+          const wallet = new ethers.Wallet(user.privateKey, ethers.provider);
+          const balance = await ethers.provider.getBalance(user.address);
+          const amount = ethers.parseEther((Math.random() * 0.3 + 0.05).toFixed(2)); // 0.05-0.35 ETH
+          const needed = amount + ethers.parseEther('1'); // amount + larger gas buffer
+          
+          if (balance > needed) {
+            try {
+              const result = await this.fundingDelegation.depositToNote(user, amount);
+              if (result.success) {
+                this.recordAction('depositToNote', user, { noteId: result.note?.noteId, amount: amount.toString() }, result.receipt);
+              } else {
+                this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+              }
+            } catch (err) {
+              this.metrics.errors.push({ action: actionType, user: user.id, error: err.message });
+            }
           }
           break;
         }
 
         case 'delegateNote': {
-          const userNotes = this.fundingDelegation.getUserNotes(user);
+          const userNotes = this.fundingDelegation.getDelegatableNotesExcluding(user, [user.address]);
           if (userNotes.length > 0) {
             const note = userNotes[Math.floor(Math.random() * userNotes.length)];
             const delegateTo = this.getRandomUser().address;
@@ -407,14 +464,14 @@ class SimulationRunner {
                 amount: amountToDelegate.toString() 
               }, result.receipt);
             } else {
-              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error, noteId: note.noteId });
             }
           }
           break;
         }
 
         case 'revokeDelegation': {
-          const userNotes = this.fundingDelegation.getUserNotes(user);
+          const userNotes = this.fundingDelegation.getRevocableNotes(user);
           // Find delegated notes (notes owned by user but with different original owner - simplified check)
           if (userNotes.length > 0) {
             const note = userNotes[Math.floor(Math.random() * userNotes.length)];
@@ -422,7 +479,7 @@ class SimulationRunner {
             if (result.success) {
               this.recordAction('revokeDelegation', user, { noteId: note.noteId }, result.receipt);
             } else {
-              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
+              this.metrics.errors.push({ action: actionType, user: user.id, error: result.error, noteId: note.noteId });
             }
           }
           break;
@@ -519,22 +576,8 @@ class SimulationRunner {
     const metricsReport = {
       totalActions: this.actions.length,
       actionCounts: this.metrics.actionCounts,
-      gasUsage: {},
       errors: this.metrics.errors
     };
-
-    for (const [actionType, gasValues] of Object.entries(this.metrics.gasUsed)) {
-      if (gasValues.length > 0) {
-        gasValues.sort((a, b) => a - b);
-        metricsReport.gasUsage[actionType] = {
-          count: gasValues.length,
-          mean: Math.round(gasValues.reduce((a, b) => a + b) / gasValues.length),
-          median: gasValues[Math.floor(gasValues.length / 2)],
-          p95: gasValues[Math.floor(gasValues.length * 0.95)],
-          max: gasValues[gasValues.length - 1]
-        };
-      }
-    }
 
     const metricsPath = join(__dirname, 'metrics.json');
     await fs.writeFile(metricsPath, JSON.stringify(metricsReport, null, 2));
@@ -545,12 +588,37 @@ class SimulationRunner {
     for (const [type, count] of Object.entries(metricsReport.actionCounts)) {
       console.log(`    ${type}: ${count}`);
     }
-    console.log(`\n  Gas usage:`);
-    for (const [type, stats] of Object.entries(metricsReport.gasUsage)) {
-      console.log(`    ${type}: mean=${stats.mean}, p95=${stats.p95}, max=${stats.max}`);
-    }
     if (metricsReport.errors.length > 0) {
       console.log(`\n  Errors: ${metricsReport.errors.length}`);
+      const errorsByType = {};
+      for (const err of metricsReport.errors) {
+        errorsByType[err.action] = (errorsByType[err.action] || 0) + 1;
+      }
+      console.log(`  Errors by type:`, errorsByType);
+      console.log(`  Error details:`);
+      for (const err of metricsReport.errors.slice(0, 15)) {
+        console.log(`    - ${err.action} (user ${err.user}): ${err.error}`);
+        if (err.noteId) {
+          console.log(`      noteId: ${err.noteId}`);
+        }
+      }
+      if (metricsReport.errors.length > 15) {
+        console.log(`    ... and ${metricsReport.errors.length - 15} more`);
+      }
+    }
+
+    // Show hardhat account[0] actions if using hardhat accounts
+    if (this.useHardhatAccounts && this.users.length > 0) {
+      const hardhatAccount0Address = this.users[0].address;
+      const hardhat0Actions = this.actions.filter(a => a.userId === this.users[0].id);
+      console.log(`\n  Hardhat account[0] (${hardhatAccount0Address.slice(0, 10)}...) actions: ${hardhat0Actions.length}`);
+      if (hardhat0Actions.length > 0) {
+        const actionsByType = {};
+        for (const action of hardhat0Actions) {
+          actionsByType[action.actionType] = (actionsByType[action.actionType] || 0) + 1;
+        }
+        console.log(`    Breakdown:`, actionsByType);
+      }
     }
   }
 
@@ -613,14 +681,17 @@ class SimulationRunner {
 
 // Main execution
 async function main() {
-  const numUsers = parseInt(process.argv[2]) || 50;
-  const numRounds = parseInt(process.argv[3]) || 5;
-  const runAttacks = process.argv.includes('--attacks');
-  const runInvariants = process.argv.includes('--invariants');
-  const usePreGenerated = !process.argv.includes('--no-pregenerated');
+  const args = process.argv.slice(2);
+  const numUsers = parseInt(args.find(a => !a.startsWith('--')) || 50);
+  const numRounds = parseInt(args.find((a, i) => i > 0 && !args[i-1].startsWith('--') && !a.startsWith('--')) || 5);
+  const runAttacks = args.includes('--attacks');
+  const runInvariants = args.includes('--invariants');
+  const usePreGenerated = !args.includes('--no-pregenerated');
+  const useHardhatAccounts = args.includes('--use-hardhat-accounts');
 
   const simulation = new SimulationRunner();
   simulation.usePreGeneratedAttestations = usePreGenerated;
+  simulation.useHardhatAccounts = useHardhatAccounts;
   
   await simulation.initialize(numUsers);
   await simulation.runSimulation(numRounds);

@@ -114,14 +114,23 @@ class InvariantChecker {
         const logs = await this.contracts.implications.queryFilter(filter);
         
         for (const log of logs.slice(0, 20)) {
-          const fromExists = this.statements.some(s => s.statementId === log.args.fromStatement);
-          const toExists = this.statements.some(s => s.statementId === log.args.toStatement);
+          // Indexed parameters are in topics, not args
+          // topics[0] = event hash, topics[1] = attester, topics[2] = fromStatementId, topics[3] = toStatementId
+          const fromId = log.topics[2] ? ethersObj.zeroPadValue(log.topics[2], 32) : null;
+          const toId = log.topics[3] ? ethersObj.zeroPadValue(log.topics[3], 32) : null;
+          
+          if (!fromId || !toId) continue;
+          
+          const fromIdStr = fromId.toString();
+          const toIdStr = toId.toString();
+          const fromExists = this.statements.some(s => s.statementId === fromIdStr);
+          const toExists = this.statements.some(s => s.statementId === toIdStr);
           
           if (!fromExists || !toExists) {
             errors.push({
               type: 'ORPHAN_IMPLICATION',
-              from: log.args.fromStatement,
-              to: log.args.toStatement,
+              from: fromIdStr,
+              to: toIdStr,
               missingFrom: !fromExists,
               missingTo: !toExists
             });
@@ -266,8 +275,11 @@ class InvariantChecker {
       const outDegree = {};
 
       for (const log of logs) {
-        const from = log.args.fromStatement;
-        const to = log.args.toStatement;
+        // Indexed parameters are in topics: [eventHash, attester, fromStatementId, toStatementId]
+        const from = log.topics[2] ? ethersObj.zeroPadValue(log.topics[2], 32).toString() : null;
+        const to = log.topics[3] ? ethersObj.zeroPadValue(log.topics[3], 32).toString() : null;
+        
+        if (!from || !to) continue;
 
         if (!graph[from]) graph[from] = [];
         graph[from].push(to);
@@ -425,8 +437,13 @@ class InvariantChecker {
         // Verify implication chain consistency
         const statementsWithImplications = new Set();
         for (const log of implLogs) {
-          statementsWithImplications.add(log.args.fromStatement);
-          statementsWithImplications.add(log.args.toStatement);
+          // Indexed parameters are in topics
+          if (log.topics[2]) {
+            statementsWithImplications.add(ethersObj.zeroPadValue(log.topics[2], 32).toString());
+          }
+          if (log.topics[3]) {
+            statementsWithImplications.add(ethersObj.zeroPadValue(log.topics[3], 32).toString());
+          }
         }
 
         // Verify all referenced statements exist in our statements list
