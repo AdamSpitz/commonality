@@ -15,41 +15,34 @@ Commonality consists of several deployable components:
 
 ### Quick Start with Docker Compose
 
-The fastest way to run Commonality locally:
+The fastest way to run Commonality locally is to use the dev.sh script:
 
 ```bash
-# Start services (preserves existing data in ./data)
-docker-compose up
-
-# Or use the dev script for more options:
-./dev.sh              # Start services (preserves existing data)
-./dev.sh --fresh     # Start with fresh data (wipes ./data)
 ./dev.sh --stop      # Stop services without wiping data
 ./dev.sh --wipe      # Wipe data directory only
+./dev.sh --start     # Start services (preserves existing data)
+./dev.sh --fresh     # Wipe, then start
 
 # Populate with fake data:
 ./dev.sh --seed         # Small dataset (10 users, 3 rounds) - default
 ./dev.sh --seed=small   # Small dataset (10 users, 3 rounds)
 ./dev.sh --seed=medium  # Medium dataset (50 users, 5 rounds)
+./dev.sh --seed=large   # Large dataset (100 users, 10 rounds)
+
+# Use hardhat accounts for the first 20 users (so you can connect with your wallet):
+# The 0th user will be 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (the default hardhat account)
+./dev.sh --seed --use-hardhat-accounts
+./dev.sh --seed=large --use-hardhat-accounts
 ```
 
-After running with `--seed`, the local environment will be populated with:
-- Generated users with various engagement levels and interests
-- Statements across different domains (politics, crypto, religion, music, climate, technology)
-- Beliefs, implications, and alignment attestations
-- Sample projects and funding actions
-- Delegation notes
-
-The Ponder indexer will automatically index all the new data, making it queryable via GraphQL.
-
-All data is stored in `./data/` by default:
-- `./data/hardhat/` - Blockchain chain data
-- `./data/ipfs/` - IPFS node data  
-- `./data/ponder/` - Indexer sync state
-
-To use a custom data directory:
+All data (hardhat, ipfs, ponder) is stored in `./data/` by default. To use a custom data directory:
 ```bash
 export COMMONALITY_DATA_DIR=/custom/path ./dev.sh
+```
+
+To use the UI locally:
+```bash
+cd ui && npm run dev
 ```
 
 ### Running Integration Tests

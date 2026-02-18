@@ -86,16 +86,25 @@ function addCorrelations(interests) {
 
 const DEFAULT_ACCOUNT_COUNT = 20;
 
-async function getHardhatAccounts(count) {
-  const signers = await hre.ethers.getSigners();
+const HARDHAT_DEFAULT_MNEMONIC = 'test test test test test test test test test test test junk';
+
+function getHardhatAccountsFromMnemonic(count) {
   const accounts = [];
-  for (let i = 0; i < Math.min(count, signers.length); i++) {
-    const signer = signers[i];
-    const address = await signer.getAddress();
-    const privateKey = signer.privateKey;
-    accounts.push({ address, privateKey });
+  for (let i = 0; i < count; i++) {
+    const wallet = ethers.HDNodeWallet.fromMnemonic(
+      ethers.Mnemonic.fromPhrase(HARDHAT_DEFAULT_MNEMONIC),
+      `m/44'/60'/0'/0/${i}`
+    );
+    accounts.push({
+      address: wallet.address,
+      privateKey: wallet.privateKey
+    });
   }
   return accounts;
+}
+
+async function getHardhatAccounts(count) {
+  return getHardhatAccountsFromMnemonic(count);
 }
 
 function generateUser(id, universe, hardhatAccount = null) {

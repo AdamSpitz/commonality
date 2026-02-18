@@ -3,7 +3,8 @@
 # Script for local development with persistent state
 #
 # Usage:
-#   ./dev.sh              # Start services (preserves existing data)
+#   ./dev.sh              # Show this help message
+#   ./dev.sh --start      # Start services (preserves existing data)
 #   ./dev.sh --fresh      # Start with fresh data (wipes ./data)
 #   ./dev.sh --stop       # Stop services without wiping data
 #   ./dev.sh --wipe       # Wipe data directory only (doesn't start services)
@@ -36,6 +37,7 @@ show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
+    echo "  --start       Start services (preserves existing data)"
     echo "  --fresh       Start with fresh data (wipes $DATA_DIR)"
     echo "  --stop        Stop services without wiping data"
     echo "  --wipe        Wipe data directory only (doesn't start)"
@@ -133,6 +135,12 @@ seed_data() {
     
     cd "$SCRIPT_DIR/hardhat"
     
+    # If using hardhat accounts, generate users first
+    if [[ "$extra_args" == *"--use-hardhat-accounts"* ]]; then
+        echo "Generating users with hardhat accounts..."
+        npm run gen:users -- $extra_args
+    fi
+    
     case "$size" in
         small)
             npm run gen:small -- $extra_args
@@ -164,6 +172,9 @@ case "${1:-}" in
         wipe_data
         start_services
         ;;
+    --start)
+        start_services
+        ;;
     --stop)
         stop_services
         ;;
@@ -192,11 +203,8 @@ case "${1:-}" in
         
         seed_data "$size" "$extra_args"
         ;;
-    --help|-h)
+    --help|-h|"")
         show_usage
-        ;;
-    "")
-        start_services
         ;;
     *)
         echo "Error: Unknown option: $1"
