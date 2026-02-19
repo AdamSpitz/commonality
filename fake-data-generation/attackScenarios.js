@@ -5,6 +5,7 @@ import {
   ImplicationsAbi,
   PubstarterAbi,
   AssuranceContractAbi,
+  cidToBytes32,
 } from '@commonality/sdk';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 
@@ -26,10 +27,6 @@ const hardhat = {
 };
 
 const BELIEVES = 1;
-
-function cidToBytes32(cid) {
-  return keccak256(toBytes(cid));
-}
 
 function createTestClients(privateKey, rpcUrl = RPC_URL) {
   const account = privateKeyToAccount(privateKey);

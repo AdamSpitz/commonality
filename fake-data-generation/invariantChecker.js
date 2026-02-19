@@ -4,6 +4,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import {
   BeliefsAbi,
   ImplicationsAbi,
+  cidToBytes32,
 } from '@commonality/sdk';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 
@@ -72,11 +73,12 @@ class InvariantChecker {
     if (this.contracts.beliefs) {
       try {
         for (const stmt of this.statements.slice(0, 50)) {
+          const statementId = cidToBytes32(stmt.statementId);
           const belief = await publicClient.readContract({
             address: this.contracts.beliefs.address,
             abi: BeliefsAbi,
             functionName: 'beliefs',
-            args: [this.users[0]?.address || zeroAddress, stmt.statementId]
+            args: [this.users[0]?.address || zeroAddress, statementId]
           });
           snapshot.beliefs[stmt.id] = belief;
         }
@@ -110,11 +112,12 @@ class InvariantChecker {
       try {
         for (const user of this.users.slice(0, 10)) {
           for (const stmt of this.statements.slice(0, 10)) {
+            const statementId = cidToBytes32(stmt.statementId);
             const belief = await publicClient.readContract({
               address: this.contracts.beliefs.address,
               abi: BeliefsAbi,
               functionName: 'beliefs',
-              args: [user.address, stmt.statementId]
+              args: [user.address, statementId]
             });
             
             const beliefNum = Number(belief);

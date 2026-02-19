@@ -10,20 +10,20 @@ Other big things to do soon:
 
 ## Issues Found: setBelief / UI Query Problems
 
-### Issue 1: setBelief points to statements with no content
+### Issue 1: setBelief points to statements with no content [FIXED]
 
-When the simulation generates `setBelief` or `setBeliefsInBatch` actions, it uses statementIds derived from `keccak256(JSON.stringify(content))` in `fake-data-generation/generateStatements.js:17`. These are never actually published to IPFS, so when the indexer processes the DirectSupport events:
+**Problem**: When the simulation generated `setBelief` or `setBeliefsInBatch` actions, it used statementIds derived from `keccak256(JSON.stringify(content))`. These were never actually published to IPFS, so when the indexer processed the DirectSupport events:
 
-- It creates statement placeholder records in the database (see `indexer/src/conceptspace/index.ts:35-60`)
-- The IPFS sync job tries to fetch content but nothing exists at the derived CID
-- Results in empty/placeholder statements with no actual content
+- It created statement placeholder records in the database
+- The IPFS sync job tried to fetch content but nothing existed at the derived CID
+- Resulted in empty/placeholder statements with no actual content
 
-**Impact**: Even though beliefs ARE being recorded, the statements have no content to display.
+**Solution implemented**: Modified `fake-data-generation/runSimulation.js` to:
+1. Upload statements to IPFS during simulation initialization using the SDK's `publishDocument` function
+2. Store the real IPFS CID in each statement
+3. Use the CID (not the mock keccak256 hash) when calling `setBelief`
 
-**Fix options**:
-1. Have the simulation actually publish statements to IPFS before calling setBelief
-2. Use real IPFS CIDs from the start
-3. Add sample statements directly to the indexer database (not via IPFS)
+The `.env` file already has `IPFS_API=http://localhost:5001` configured, which points to the local IPFS node from docker-compose.
 
 ---
 

@@ -18,6 +18,9 @@ import {
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi,
   DelegatableNotesAbi,
+  createStatement,
+  publishDocument,
+  cidToBytes32,
 } from '@commonality/sdk';
 
 const hardhat = {
@@ -189,6 +192,10 @@ class SimulationRunner {
       this.statements = await generateStatements();
     }
 
+    // Upload statements to IPFS
+    console.log('\nUploading statements to IPFS...');
+    await this.uploadStatementsToIPFS();
+
     // Load pre-generated attestations
     console.log('\nLoading pre-generated attestations...');
     const attestationsExist = await hasAttestations();
@@ -275,6 +282,53 @@ class SimulationRunner {
 
   getClientsForUser(user) {
     return createTestClients(user.privateKey, RPC_URL);
+  }
+
+  async uploadStatementsToIPFS() {
+    const statementsWithCid = this.statements.filter(s => s.cid);
+    if (statementsWithCid.length === this.statements.length) {
+      console.log(`  All ${this.statements.length} statements already have CIDs, skipping upload`);
+      return;
+    }
+
+    let uploaded = 0;
+    let failed = 0;
+
+    for (const stmt of this.statements) {
+      if (stmt.cid) continue;
+
+      try {
+        const doc = createStatement({
+          content: stmt.content.text,
+          topic: stmt.domain,
+          extras: {
+            domain: stmt.domain,
+            position: stmt.position,
+            statementType: stmt.statementType,
+            references: stmt.content.references,
+          },
+        });
+
+        const cid = await publishDocument(doc);
+        stmt.cid = cid;
+        uploaded++;
+
+        if (uploaded % 10 === 0) {
+          console.log(`  Uploaded ${uploaded}/${this.statements.length} statements...`);
+        }
+      } catch (err) {
+        failed++;
+        console.error(`  Failed to upload statement ${stmt.id}: ${err.message}`);
+      }
+    }
+
+    console.log(`  Uploaded ${uploaded} statements to IPFS (${failed} failed)`);
+
+    if (uploaded > 0) {
+      const stmtsPath = join(__dirname, 'statements.json');
+      await fs.writeFile(stmtsPath, JSON.stringify(this.statements, null, 2));
+      console.log(`  Saved statements with CIDs to ${stmtsPath}`);
+    }
   }
 
   async fundUsers() {
@@ -378,10 +432,15 @@ class SimulationRunner {
           const stmt = statements[Math.floor(Math.random() * statements.length)];
           const beliefState = Math.random() > 0.1 ? 1 : 2; // 90% believe, 10% disbelieve
 
+          if (!stmt.cid) {
+            console.warn(`  Statement ${stmt.id} has no CID, skipping`);
+            break;
+          }
+
           if (beliefState === 1) {
-            hash = await believeStatement(clients, this.contracts.beliefs, stmt.statementId);
+            hash = await believeStatement(clients, this.contracts.beliefs, stmt.cid);
           } else {
-            hash = await disbelieveStatement(clients, this.contracts.beliefs, stmt.statementId);
+            hash = await disbelieveStatement(clients, this.contracts.beliefs, stmt.cid);
           }
           receipt = await publicClient.getTransactionReceipt({ hash });
 
@@ -397,8 +456,17 @@ class SimulationRunner {
 
           for (let i = 0; i < numStatements; i++) {
             const stmt = statements[Math.floor(Math.random() * statements.length)];
-            selected.push(stmt.statementId);
+            if (!stmt.cid) {
+              console.warn(`  Statement ${stmt.id} has no CID, skipping`);
+              continue;
+            }
+            selected.push(stmt.cid);
             beliefs.push(Math.random() > 0.1 ? 1 : 2);
+          }
+
+          if (selected.length === 0) {
+            console.warn(`  No statements with CIDs available, skipping batch`);
+            break;
           }
 
           // Use SDK's believeStatement for each - batch not in SDK yet, call individually
@@ -411,7 +479,7 @@ class SimulationRunner {
           }
           receipt = await publicClient.getTransactionReceipt({ hash });
 
-          this.recordAction('setBeliefsInBatch', user, { count: numStatements }, receipt);
+          this.recordAction('setBeliefsInBatch', user, { count: selected.length }, receipt);
           break;
         }
 
