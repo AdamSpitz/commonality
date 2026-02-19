@@ -3,14 +3,21 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { generateStatements } from './generateStatements.js';
 import { loadEnv, RPC_URL } from './loadEnv.js';
 import {
+  BeliefsAbi,
+  ImplicationsAbi,
+  AlignmentAttestationsAbi,
+  PubstarterAbi,
+  AssuranceContractAbi,
+  ERC1155SecondaryMarketAbi,
+  DelegatableNotesAbi,
+} from '@commonality/sdk';
+import {
   createProject as sdkCreateProject,
   buyProjectTokens,
   withdrawProjectFunds as sdkWithdrawProjectFunds,
   createSaleListing,
   fulfillSaleListing,
   approveERC1155ForMarketplace,
-} from '@commonality/sdk';
-import {
   depositETH as sdkDepositETH,
   delegateNote as sdkDelegateNote,
   revokeNote as sdkRevokeNote,
@@ -207,7 +214,7 @@ class FundingAndDelegationActions {
 
       const hash = await buyProjectTokens(
         clients,
-        { address: project.assuranceContract, abi: this.contracts.pubstarter?.abi },
+        { address: project.assuranceContract, abi: AssuranceContractAbi },
         {
           buyer: user.address,
           tokenAddress: project.erc1155,
@@ -263,7 +270,7 @@ class FundingAndDelegationActions {
 
       const hash = await createSaleListing(
         clients,
-        { address: project.marketplace, abi: this.contracts.pubstarter?.abi },
+        { address: project.marketplace, abi: ERC1155SecondaryMarketAbi },
         {
           tokenId: BigInt(tokenId),
           count: BigInt(count),
@@ -273,7 +280,7 @@ class FundingAndDelegationActions {
 
       const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      let listingId = listingId = 'unknown';
+      let listingId = 'unknown';
       try {
         const logs = receipt.logs;
         for (const log of logs) {
@@ -320,7 +327,7 @@ class FundingAndDelegationActions {
 
       const hash = await fulfillSaleListing(
         clients,
-        { address: project.marketplace, abi: this.contracts.pubstarter?.abi },
+        { address: project.marketplace, abi: ERC1155SecondaryMarketAbi },
         {
           saleListingId: BigInt(listingId),
           count: BigInt(count),
@@ -360,7 +367,7 @@ class FundingAndDelegationActions {
 
       const hash = await sdkWithdrawProjectFunds(
         clients,
-        { address: project.assuranceContract, abi: this.contracts.pubstarter?.abi }
+        { address: project.assuranceContract, abi: AssuranceContractAbi }
       );
 
       const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
