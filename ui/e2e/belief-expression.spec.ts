@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
 import {
   createAndSignStatement,
   createStatement,
@@ -28,16 +29,6 @@ import {
  * (VITE_IPFS_GATEWAY not wired through to SDK's fetchFromIPFS). The support
  * metrics on the detail page come from the GraphQL indexer and work correctly.
  */
-
-/** Trigger the indexer's manual IPFS sync and wait for it to complete */
-async function triggerSync(graphqlUrl: string): Promise<void> {
-  const syncResponse = await fetch(
-    `${graphqlUrl.replace('/graphql', '')}/conceptspace/api/sync-ipfs`,
-    { method: 'POST' }
-  )
-  const syncResult = await syncResponse.json()
-  console.log('IPFS sync result:', syncResult)
-}
 
 /** Create a statement and wait for indexer to process it */
 async function createTestStatement(
@@ -68,12 +59,20 @@ async function createTestStatement(
     }
   )
 
-  // Wait for indexer + trigger IPFS sync
-  await new Promise((r) => setTimeout(r, 1000))
-  await triggerSync(graphqlUrl)
-  await new Promise((r) => setTimeout(r, 500))
+  // Wait for indexer to be ready
+  await waitForIndexer(graphqlUrl)
+
+  // Trigger IPFS sync with retry (fetches IPFS content for existing statements)
+  await triggerSyncWithRetry(graphqlUrl)
+
+  // Additional wait for indexer to process events
+  await new Promise((r) => setTimeout(r, 2000))
 
   const statementId = cidToBytes32(result.cid)
+
+  // Wait for statement to be indexed
+  await waitForStatement(graphqlUrl, statementId)
+
   return { cid: result.cid, statementId, statementContent }
 }
 

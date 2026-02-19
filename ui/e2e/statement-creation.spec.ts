@@ -1,5 +1,7 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
+import { cidToBytes32 } from '@commonality/sdk'
 import {
   createAndSignStatement,
   createStatement,
@@ -97,20 +99,17 @@ test.describe('Statement Creation Workflow', () => {
     console.log('Sign tx hash:', result.signTxHash)
     console.log('Update list tx hash:', result.updateListTxHash)
 
-    // Wait a bit for the indexer to process the blockchain events
-    await page.waitForTimeout(1000)
+    // Wait for indexer to be ready
+    await waitForIndexer(graphqlUrl)
 
-    // Trigger IPFS content sync manually
+    // Trigger IPFS content sync with retry
     // The background sync job runs every 5 minutes, but E2E tests need immediate results
     console.log('Triggering manual IPFS sync...')
-    const syncResponse = await fetch(`${graphqlUrl.replace('/graphql', '')}/conceptspace/api/sync-ipfs`, {
-      method: 'POST',
-    })
-    const syncResult = await syncResponse.json()
-    console.log('IPFS sync result:', syncResult)
+    await triggerSyncWithRetry(graphqlUrl)
 
-    // Wait a bit more for the sync to complete
-    await page.waitForTimeout(500)
+    // Wait for statement to be indexed
+    const statementId = cidToBytes32(result.cid)
+    await waitForStatement(graphqlUrl, statementId)
 
     // Navigate to browse page
     await page.goto('/statements')

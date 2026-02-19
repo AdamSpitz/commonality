@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
 import {
   createAndSignStatement,
   createStatement,
@@ -25,16 +26,6 @@ import {
  * - Navigate to profile page via UI navigation (preserves wallet state)
  * - Verify profile page shows the user's beliefs
  */
-
-/** Trigger the indexer's manual IPFS sync and wait for it to complete */
-async function triggerSync(graphqlUrl: string): Promise<void> {
-  const syncResponse = await fetch(
-    `${graphqlUrl.replace('/graphql', '')}/conceptspace/api/sync-ipfs`,
-    { method: 'POST' }
-  )
-  const syncResult = await syncResponse.json()
-  console.log('IPFS sync result:', syncResult)
-}
 
 /** Create a statement and wait for indexer to process it */
 async function createTestStatement(
@@ -65,12 +56,20 @@ async function createTestStatement(
     }
   )
 
-  // Wait for indexer + trigger IPFS sync
-  await new Promise((r) => setTimeout(r, 1000))
-  await triggerSync(graphqlUrl)
-  await new Promise((r) => setTimeout(r, 500))
+  // Wait for indexer to be ready
+  await waitForIndexer(graphqlUrl)
+
+  // Trigger IPFS sync with retry
+  await triggerSyncWithRetry(graphqlUrl)
+
+  // Additional wait for indexer to process events
+  await new Promise((r) => setTimeout(r, 2000))
 
   const statementId = cidToBytes32(result.cid)
+
+  // Wait for statement to be indexed
+  await waitForStatement(graphqlUrl, statementId)
+
   return { cid: result.cid, statementId, statementContent }
 }
 
@@ -169,7 +168,7 @@ test.describe('User Profile Workflow', () => {
     console.log('\n=== CREATING STATEMENTS FOR TAB TEST ===')
 
     // Create a statement and express disbelief from another account
-    const { cid } = await createTestStatement(
+    const { cid, statementId } = await createTestStatement(
       'ACCOUNT_1',
       beliefsContract,
       mutableRefContract,
@@ -182,10 +181,10 @@ test.describe('User Profile Workflow', () => {
     const { disbelieveStatement } = await import('@commonality/sdk')
     await disbelieveStatement(clients, beliefsContract, cid)
 
-    // Wait for indexer
-    await new Promise((r) => setTimeout(r, 1000))
-    await triggerSync(graphqlUrl)
-    await new Promise((r) => setTimeout(r, 500))
+    // Wait for indexer and sync
+    await waitForIndexer(graphqlUrl)
+    await triggerSyncWithRetry(graphqlUrl)
+    await waitForStatement(graphqlUrl, statementId)
 
     // Navigate to profile via nav link (in AppBar header)
     await page.locator('header').getByRole('link', { name: 'My Profile' }).click()
