@@ -695,9 +695,16 @@ class SimulationRunner {
   }
 
   async saveResults() {
+    const bigIntReplacer = (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    };
+
     // Save actions log
     const actionsPath = join(__dirname, 'actions.json');
-    await fs.writeFile(actionsPath, JSON.stringify(this.actions, null, 2));
+    await fs.writeFile(actionsPath, JSON.stringify(this.actions, bigIntReplacer, 2));
 
     // Calculate and save metrics
     const metricsReport = {
@@ -707,7 +714,7 @@ class SimulationRunner {
     };
 
     const metricsPath = join(__dirname, 'metrics.json');
-    await fs.writeFile(metricsPath, JSON.stringify(metricsReport, null, 2));
+    await fs.writeFile(metricsPath, JSON.stringify(metricsReport, bigIntReplacer, 2));
 
     console.log('Results Summary:');
     console.log(`  Total actions: ${metricsReport.totalActions}`);

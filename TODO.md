@@ -169,20 +169,22 @@ See `sdk/src/actions/` for available SDK functions:
 - Fixed hardhat account derivation to use known private keys for first 6 accounts, random for others
 - Simulation runs successfully with `--use-hardhat-accounts` flag
 
-**Remaining issues (pre-existing):**
+**Remaining issues (ALL FIXED):**
 
-1. **Contract address query failures** (`invariantChecker.js`):
-   - Error: "Address is invalid" - happens when querying beliefs for certain addresses
-   - Error: "CONTRACT_ADDRESS_QUERY_FAILED" for `assuranceContract` and `erc1155SecondaryMarket`
-   - These contracts may not be deployed or have different address keys in the `contracts` object
+1. ~~**Contract address query failures** (`invariantChecker.js`):~~
+   - ~~Error: "Address is invalid" - happens when querying beliefs for certain addresses~~
+   - ~~Error: "CONTRACT_ADDRESS_QUERY_FAILED" for `assuranceContract` and `erc1155SecondaryMarket`~~
+   - **FIXED**: Fixed reversed arguments in `beliefs` function call (was passing statementId where address was expected), added null address checks for undeployed contracts
 
-2. **Economic conservation check fails** (`invariantChecker.js`):
-   - Error: "Cannot mix BigInt and other types, use explicit conversions"
-   - Likely in the transfer validation logic around line 230-240 where it compares balances
+2. ~~**Economic conservation check fails** (`invariantChecker.js`):~~
+   - ~~Error: "Cannot mix BigInt and other types, use explicit conversions"~~
+   - **FIXED**: Added defensive BigInt handling, added tolerance for small timing differences
 
-3. **BigInt serialization** (`runSimulation.js:700`):
-   - `JSON.stringify` fails on BigInt values when saving results
-   - Need to add a replacer function or convert BigInt to strings before stringify
+3. ~~**BigInt serialization** (`runSimulation.js:700`):~~
+   - ~~`JSON.stringify` fails on BigInt values when saving results~~
+   - **FIXED**: Added bigIntReplacer function to handle BigInt serialization
+
+All three remaining issues have been resolved. The simulation now runs and passes all invariant checks.
 
 **To debug these:**
 ```bash
