@@ -1,8 +1,48 @@
-import hre from 'hardhat';
-import pkg from 'hardhat';
-const { ethers } = pkg;
+import { createPublicClient, createWalletClient, http, parseEther, getBalance, isAddress, zeroAddress, zeroPadValue, getAddress } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import {
+  BeliefsAbi,
+  ImplicationsAbi,
+} from '@commonality/sdk';
+import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 
-const { ethers: ethersObj } = hre;
+loadEnv();
+
+const hardhat = {
+  id: 31337,
+  name: 'Hardhat',
+  network: 'hardhat',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: { http: ['http://localhost:8545'] },
+    public: { http: ['http://localhost:8545'] },
+  },
+};
+
+const publicClient = createPublicClient({
+  chain: hardhat,
+  transport: http(RPC_URL),
+});
+
+function createTestClients(privateKey) {
+  const account = privateKeyToAccount(privateKey);
+
+  const walletClient = createWalletClient({
+    account,
+    chain: hardhat,
+    transport: http(RPC_URL),
+  });
+
+  return {
+    walletClient,
+    publicClient,
+    account: account.address,
+  };
+}
 
 class InvariantChecker {
   constructor(contracts, users, statements) {
@@ -28,14 +68,15 @@ class InvariantChecker {
       balances: {}
     };
 
-    // Snapshot beliefs contract state
     if (this.contracts.beliefs) {
       try {
         for (const stmt of this.statements.slice(0, 50)) {
-          const belief = await this.contracts.beliefs.beliefs(
-            stmt.statementId,
-            this.users[0]?.address || ethersObj.ZeroAddress
-          );
+          const belief = await publicClient.readContract({
+            address: this.contracts.beliefs.address,
+            abi: BeliefsAbi,
+            functionName: 'beliefs',
+            args: [stmt.statementId, this.users[0]?.address || zeroAddress]
+          });
           snapshot.beliefs[stmt.id] = belief;
         }
       } catch (err) {
@@ -43,12 +84,11 @@ class InvariantChecker {
       }
     }
 
-    // Snapshot contract ETH balances
     for (const [name, contract] of Object.entries(this.contracts)) {
       try {
-        snapshot.balances[name] = await ethersObj.provider.getBalance(
-          await contract.getAddress()
-        );
+        snapshot.balances[name] = await getBalance(publicClient, {
+          address: contract.address
+        });
       } catch (err) {
         // Contract may not have getAddress
       }
@@ -62,15 +102,16 @@ class InvariantChecker {
     console.log('\n  Checking contract state consistency...');
     const errors = [];
 
-    // Check 1: Belief state should be valid (0=none, 1=believe, 2=disbelieve)
     if (this.contracts.beliefs) {
       try {
         for (const user of this.users.slice(0, 10)) {
           for (const stmt of this.statements.slice(0, 10)) {
-            const belief = await this.contracts.beliefs.beliefs(
-              stmt.statementId,
-              user.address
-            );
+            const belief = await publicClient.readContract({
+              address: this.contracts.beliefs.address,
+              abi: BeliefsAbi,
+              functionName: 'beliefs',
+              args: [stmt.statementId, user.address]
+            });
             
             if (belief !== 0n && belief !== 1n && belief !== 2n) {
               errors.push({
@@ -83,7 +124,7 @@ class InvariantChecker {
           }
         }
       } catch (err) {
-        if (err.message.includes('resolveName') || err.message.includes('HardhatEthersProvider')) {
+        if (err.message.includes('resolveName')) {
           console.log('    (Warning: Provider issue - skipping belief query)');
         } else {
           errors.push({ type: 'BELIEF_QUERY_FAILED', error: err.message });
@@ -91,11 +132,10 @@ class InvariantChecker {
       }
     }
 
-    // Check 2: All contracts should have valid addresses
     for (const [name, contract] of Object.entries(this.contracts)) {
       try {
-        const address = await contract.getAddress();
-        if (!ethersObj.isAddress(address) || address === ethersObj.ZeroAddress) {
+        const address = getAddress(contract.address);
+        if (!isAddress(address) || address === zeroAddress) {
           errors.push({
             type: 'INVALID_CONTRACT_ADDRESS',
             contract: name,
@@ -107,17 +147,28 @@ class InvariantChecker {
       }
     }
 
-    // Check 3: Implications should reference valid statements
     if (this.contracts.implications) {
       try {
-        const filter = this.contracts.implications.filters.ImplicationAttestation();
-        const logs = await this.contracts.implications.queryFilter(filter);
+        const logs = await publicClient.getLogs({
+          address: this.contracts.implications.address,
+          event: {
+            type: 'event',
+            name: 'ImplicationAttestation',
+            inputs: [
+              { name: 'attester', type: 'address', indexed: true },
+              { name: 'fromStatementId', type: 'bytes32', indexed: true },
+              { name: 'toStatementId', type: 'bytes32', indexed: true },
+              { name: 'explanationId', type: 'bytes32', indexed: false },
+              { name: 'belief', type: 'uint8', indexed: false }
+            ]
+          },
+          fromBlock: 0n,
+          toBlock: 'latest'
+        });
         
         for (const log of logs.slice(0, 20)) {
-          // Indexed parameters are in topics, not args
-          // topics[0] = event hash, topics[1] = attester, topics[2] = fromStatementId, topics[3] = toStatementId
-          const fromId = log.topics[2] ? ethersObj.zeroPadValue(log.topics[2], 32) : null;
-          const toId = log.topics[3] ? ethersObj.zeroPadValue(log.topics[3], 32) : null;
+          const fromId = log.args.fromStatementId ? zeroPadValue(log.args.fromStatementId, 32) : null;
+          const toId = log.args.toStatementId ? zeroPadValue(log.args.toStatementId, 32) : null;
           
           if (!fromId || !toId) continue;
           
@@ -161,34 +212,34 @@ class InvariantChecker {
     const initialBalances = {};
     for (const user of this.users) {
       try {
-        initialBalances[user.address] = await ethersObj.provider.getBalance(user.address);
+        initialBalances[user.address] = await getBalance(publicClient, {
+          address: user.address
+        });
       } catch (err) {
         // Skip
       }
     }
 
-    // Perform a small transfer and verify conservation
     if (this.users.length >= 2) {
       const sender = this.users[0];
       const receiver = this.users[1];
-      const amount = ethersObj.parseEther('0.001');
+      const amount = parseEther('0.001');
 
       try {
-        const senderWallet = new ethersObj.Wallet(sender.privateKey, ethersObj.provider);
-        const senderBefore = await ethersObj.provider.getBalance(sender.address);
-        const receiverBefore = await ethersObj.provider.getBalance(receiver.address);
+        const clients = createTestClients(sender.privateKey);
+        const senderBefore = await getBalance(publicClient, { address: sender.address });
+        const receiverBefore = await getBalance(publicClient, { address: receiver.address });
 
-        const tx = await senderWallet.sendTransaction({
+        const hash = await clients.walletClient.sendTransaction({
           to: receiver.address,
           value: amount
         });
-        const receipt = await tx.wait();
+        const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-        const senderAfter = await ethersObj.provider.getBalance(sender.address);
-        const receiverAfter = await ethersObj.provider.getBalance(receiver.address);
+        const senderAfter = await getBalance(publicClient, { address: sender.address });
+        const receiverAfter = await getBalance(publicClient, { address: receiver.address });
         const gasUsed = receipt.gasUsed * receipt.gasPrice;
 
-        // Sender balance should decrease by amount + gas
         const senderExpected = senderBefore - amount - gasUsed;
         if (senderAfter !== senderExpected) {
           errors.push({
@@ -199,7 +250,6 @@ class InvariantChecker {
           });
         }
 
-        // Receiver balance should increase by exactly amount
         const receiverExpected = receiverBefore + amount;
         if (receiverAfter !== receiverExpected) {
           errors.push({
@@ -210,19 +260,18 @@ class InvariantChecker {
           });
         }
 
-        // Revert the transfer for subsequent tests
-        const revertTx = await new ethersObj.Wallet(receiver.privateKey, ethersObj.provider).sendTransaction({
+        const revertClients = createTestClients(receiver.privateKey);
+        const revertHash = await revertClients.walletClient.sendTransaction({
           to: sender.address,
           value: amount
         });
-        await revertTx.wait();
+        await publicClient.waitForTransactionReceipt({ hash: revertHash });
 
       } catch (err) {
         errors.push({ type: 'TRANSFER_FAILED', error: err.message });
       }
     }
 
-    // Check for unexpected ETH creation in contracts
     if (this.snapshots.length >= 2) {
       const prev = this.snapshots[this.snapshots.length - 2];
       const curr = this.snapshots[this.snapshots.length - 1];
@@ -231,8 +280,7 @@ class InvariantChecker {
         const prevBalance = prev.balances?.[name];
         if (prevBalance && balance > prevBalance) {
           const increase = balance - prevBalance;
-          // Allow small increases from user deposits, but flag large ones
-          if (increase > ethersObj.parseEther('1')) {
+          if (increase > parseEther('1')) {
             errors.push({
               type: 'UNEXPECTED_VALUE_CREATION',
               contract: name,
@@ -266,18 +314,30 @@ class InvariantChecker {
     }
 
     try {
-      const filter = this.contracts.implications.filters.ImplicationAttestation();
-      const logs = await this.contracts.implications.queryFilter(filter);
+      const logs = await publicClient.getLogs({
+        address: this.contracts.implications.address,
+        event: {
+          type: 'event',
+          name: 'ImplicationAttestation',
+          inputs: [
+            { name: 'attester', type: 'address', indexed: true },
+            { name: 'fromStatementId', type: 'bytes32', indexed: true },
+            { name: 'toStatementId', type: 'bytes32', indexed: true },
+            { name: 'explanationId', type: 'bytes32', indexed: false },
+            { name: 'belief', type: 'uint8', indexed: false }
+          ]
+        },
+        fromBlock: 0n,
+        toBlock: 'latest'
+      });
 
-      // Build adjacency list
       const graph = {};
       const inDegree = {};
       const outDegree = {};
 
       for (const log of logs) {
-        // Indexed parameters are in topics: [eventHash, attester, fromStatementId, toStatementId]
-        const from = log.topics[2] ? ethersObj.zeroPadValue(log.topics[2], 32).toString() : null;
-        const to = log.topics[3] ? ethersObj.zeroPadValue(log.topics[3], 32).toString() : null;
+        const from = log.args.fromStatementId ? zeroPadValue(log.args.fromStatementId, 32).toString() : null;
+        const to = log.args.toStatementId ? zeroPadValue(log.args.toStatementId, 32).toString() : null;
         
         if (!from || !to) continue;
 
@@ -288,7 +348,6 @@ class InvariantChecker {
         inDegree[to] = (inDegree[to] || 0) + 1;
       }
 
-      // Check for cycles using DFS with visited set
       const visited = new Set();
       const recursionStack = new Set();
       let cycleNode = null;
@@ -325,7 +384,6 @@ class InvariantChecker {
         }
       }
 
-      // Check for self-loops
       for (const [from, neighbors] of Object.entries(graph)) {
         if (neighbors.includes(from)) {
           errors.push({
@@ -335,7 +393,6 @@ class InvariantChecker {
         }
       }
 
-      // Verify BFS would work (all nodes reachable from any start)
       const bfsReachable = (start, graph) => {
         const queue = [start];
         const reachable = new Set([start]);
@@ -356,7 +413,6 @@ class InvariantChecker {
       const startNodes = Object.keys(graph).slice(0, 3);
       for (const start of startNodes) {
         const reachable = bfsReachable(start, graph);
-        // This is just a sanity check - we expect some reachability
         if (reachable.size === 0) {
           errors.push({
             type: 'UNREACHABLE_GRAPH',
@@ -386,19 +442,23 @@ class InvariantChecker {
     console.log('\n  Checking indexer consistency...');
     const errors = [];
 
-    // Since we don't have direct indexer access in this context,
-    // we'll verify that the contracts have the expected events
-    // that the indexer would need to track
-
-    // Check Beliefs events
     if (this.contracts.beliefs) {
       try {
-        const beliefFilter = this.contracts.beliefs.filters.DirectSupport();
-        const beliefLogs = await this.contracts.beliefs.queryFilter(
-          beliefFilter
-        );
+        const beliefLogs = await publicClient.getLogs({
+          address: this.contracts.beliefs.address,
+          event: {
+            type: 'event',
+            name: 'DirectSupport',
+            inputs: [
+              { name: 'attester', type: 'address', indexed: true },
+              { name: 'statementId', type: 'bytes32', indexed: true },
+              { name: 'belief', type: 'uint8', indexed: false }
+            ]
+          },
+          fromBlock: 0n,
+          toBlock: 'latest'
+        });
 
-        // Verify each belief event has required fields
         for (const log of beliefLogs.slice(0, 10)) {
           if (!log.args) {
             errors.push({
@@ -408,17 +468,15 @@ class InvariantChecker {
           }
         }
 
-        // Calculate direct believers per statement
         const believersByStatement = {};
         for (const log of beliefLogs) {
           const stmt = log.args.statementId;
           const belief = log.args.belief;
-          if (belief === 1n) { // believe
+          if (belief === 1n) {
             believersByStatement[stmt] = (believersByStatement[stmt] || 0) + 1;
           }
         }
 
-        // Store for later comparison
         this.believersByStatement = believersByStatement;
 
       } catch (err) {
@@ -426,27 +484,35 @@ class InvariantChecker {
       }
     }
 
-    // Check Implications events
     if (this.contracts.implications) {
       try {
-        const implFilter = this.contracts.implications.filters.ImplicationAttestation();
-        const implLogs = await this.contracts.implications.queryFilter(
-          implFilter
-        );
+        const implLogs = await publicClient.getLogs({
+          address: this.contracts.implications.address,
+          event: {
+            type: 'event',
+            name: 'ImplicationAttestation',
+            inputs: [
+              { name: 'attester', type: 'address', indexed: true },
+              { name: 'fromStatementId', type: 'bytes32', indexed: true },
+              { name: 'toStatementId', type: 'bytes32', indexed: true },
+              { name: 'explanationId', type: 'bytes32', indexed: false },
+              { name: 'belief', type: 'uint8', indexed: false }
+            ]
+          },
+          fromBlock: 0n,
+          toBlock: 'latest'
+        });
 
-        // Verify implication chain consistency
         const statementsWithImplications = new Set();
         for (const log of implLogs) {
-          // Indexed parameters are in topics
-          if (log.topics[2]) {
-            statementsWithImplications.add(ethersObj.zeroPadValue(log.topics[2], 32).toString());
+          if (log.args.fromStatementId) {
+            statementsWithImplications.add(zeroPadValue(log.args.fromStatementId, 32).toString());
           }
-          if (log.topics[3]) {
-            statementsWithImplications.add(ethersObj.zeroPadValue(log.topics[3], 32).toString());
+          if (log.args.toStatementId) {
+            statementsWithImplications.add(zeroPadValue(log.args.toStatementId, 32).toString());
           }
         }
 
-        // Verify all referenced statements exist in our statements list
         for (const stmtId of statementsWithImplications) {
           const exists = this.statements.some(s => s.statementId === stmtId);
           if (!exists) {

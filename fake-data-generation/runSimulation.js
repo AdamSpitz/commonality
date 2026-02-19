@@ -1,4 +1,5 @@
-import hre from 'hardhat';
+import { createPublicClient, createWalletClient, http, parseEther, keccak256, toBytes } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -8,10 +9,132 @@ import { generateAttestations, loadAttestations, hasAttestations } from './gener
 import { FundingAndDelegationActions } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
+import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
+import {
+  BeliefsAbi,
+  ImplicationsAbi,
+  AlignmentAttestationsAbi,
+  PubstarterAbi,
+  AssuranceContractAbi,
+  ERC1155SecondaryMarketAbi,
+  DelegatableNotesAbi,
+} from '@commonality/sdk';
 
-const { ethers } = hre;
+const hardhat = {
+  id: 31337,
+  name: 'Hardhat',
+  network: 'hardhat',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: { http: ['http://localhost:8545'] },
+    public: { http: ['http://localhost:8545'] },
+  },
+};
+
+const BELIEVES = 1;
+const DISBELIEVES = 2;
+
+function cidToBytes32(cid) {
+  return keccak256(toBytes(cid));
+}
+
+function createTestClients(privateKey, rpcUrl = 'http://localhost:8545') {
+  const account = privateKeyToAccount(privateKey);
+
+  const walletClient = createWalletClient({
+    account,
+    chain: hardhat,
+    transport: http(rpcUrl),
+  });
+
+  const publicClient = createPublicClient({
+    chain: hardhat,
+    transport: http(rpcUrl),
+  });
+
+  return {
+    walletClient,
+    publicClient,
+    account: account.address,
+  };
+}
+
+async function believeStatement(clients, contract, statementCid) {
+  const statementId = cidToBytes32(statementCid);
+  const hash = await clients.walletClient.writeContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: 'setBelief',
+    args: [statementId, BELIEVES],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+async function disbelieveStatement(clients, contract, statementCid) {
+  const statementId = cidToBytes32(statementCid);
+  const hash = await clients.walletClient.writeContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: 'setBelief',
+    args: [statementId, DISBELIEVES],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+const PROJECT_ALIGNMENT_TOPIC = keccak256(toBytes("project-alignment-attestations"));
+
+async function attestImplication(clients, contract, fromStatementCid, toStatementCid, explanationCid = '0x0000000000000000000000000000000000000000000000000000000000000000') {
+  const fromStatementId = cidToBytes32(fromStatementCid);
+  const toStatementId = cidToBytes32(toStatementCid);
+  const explanationId = explanationCid;
+
+  const hash = await clients.walletClient.writeContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: 'attestImplication',
+    args: [fromStatementId, toStatementId, explanationId],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+async function attestAlignment(clients, contract, subjectAddress, statementCid, topicStatementId) {
+  const statementId = cidToBytes32(statementCid);
+
+  const hash = await clients.walletClient.writeContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: 'attestAlignment',
+    args: [subjectAddress, statementId, topicStatementId],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+loadEnv();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+function toBytes32(cidOrBytes32) {
+  if (cidOrBytes32.startsWith('0x') && cidOrBytes32.length === 66) {
+    return cidOrBytes32;
+  }
+  return cidOrBytes32;
+}
 
 /**
  * Main simulation runner
@@ -20,6 +143,7 @@ const __dirname = dirname(__filename);
 
 class SimulationRunner {
   constructor() {
+    this.clients = {};
     this.contracts = {};
     this.users = [];
     this.statements = [];
@@ -40,9 +164,8 @@ class SimulationRunner {
   async initialize(numUsers = 50) {
     console.log('=== Initializing Simulation ===\n');
 
-    // Deploy contracts
-    console.log('Deploying contracts...');
-    await this.deployContracts();
+    console.log('Loading contract addresses from .env...');
+    this.loadContracts();
 
     // Generate or load users
     console.log('\nGenerating users...');
@@ -111,84 +234,76 @@ class SimulationRunner {
     console.log('\n=== Initialization Complete ===\n');
   }
 
-  async deployContracts() {
-    // Deploy Beliefs contract
-    const Beliefs = await ethers.getContractFactory('Beliefs');
-    this.contracts.beliefs = await Beliefs.deploy();
-    await this.contracts.beliefs.waitForDeployment();
-    console.log(`  Beliefs: ${await this.contracts.beliefs.getAddress()}`);
+  loadContracts() {
+    this.contracts = {
+      beliefs: {
+        address: CONTRACT_ADDRESSES.beliefs,
+        abi: BeliefsAbi
+      },
+      implications: {
+        address: CONTRACT_ADDRESSES.implications,
+        abi: ImplicationsAbi
+      },
+      alignmentAttestations: {
+        address: CONTRACT_ADDRESSES.alignmentAttestations,
+        abi: AlignmentAttestationsAbi
+      },
+      delegatableNotes: {
+        address: CONTRACT_ADDRESSES.delegatableNotes,
+        abi: DelegatableNotesAbi
+      },
+      pubstarter: {
+        address: CONTRACT_ADDRESSES.pubstarter,
+        abi: PubstarterAbi
+      },
+      assuranceContract: {
+        address: null,
+        abi: AssuranceContractAbi
+      },
+      erc1155SecondaryMarket: {
+        address: null,
+        abi: ERC1155SecondaryMarketAbi
+      }
+    };
 
-    // Deploy Implications contract
-    const Implications = await ethers.getContractFactory('Implications');
-    this.contracts.implications = await Implications.deploy();
-    await this.contracts.implications.waitForDeployment();
-    console.log(`  Implications: ${await this.contracts.implications.getAddress()}`);
+    console.log(`  Beliefs: ${this.contracts.beliefs.address}`);
+    console.log(`  Implications: ${this.contracts.implications.address}`);
+    console.log(`  AlignmentAttestations: ${this.contracts.alignmentAttestations.address}`);
+    console.log(`  DelegatableNotes: ${this.contracts.delegatableNotes.address}`);
+    console.log(`  Pubstarter: ${this.contracts.pubstarter.address}`);
+  }
 
-    // Deploy AlignmentAttestations contract
-    const AlignmentAttestations = await ethers.getContractFactory('AlignmentAttestations');
-    this.contracts.alignmentAttestations = await AlignmentAttestations.deploy();
-    await this.contracts.alignmentAttestations.waitForDeployment();
-    console.log(`  AlignmentAttestations: ${await this.contracts.alignmentAttestations.getAddress()}`);
-
-    // Deploy DelegatableNotes contract
-    const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
-    this.contracts.delegatableNotes = await DelegatableNotes.deploy();
-    await this.contracts.delegatableNotes.waitForDeployment();
-    console.log(`  DelegatableNotes: ${await this.contracts.delegatableNotes.getAddress()}`);
-
-    // Deploy Pubstarter factories and main contract
-    console.log('  Deploying Pubstarter factories...');
-    
-    // Deploy PremintingERC1155Factory
-    const PremintingERC1155Factory = await ethers.getContractFactory('PremintingERC1155Factory');
-    const premintingFactory = await PremintingERC1155Factory.deploy();
-    await premintingFactory.waitForDeployment();
-    
-    // Deploy MarketplaceFactory
-    const MarketplaceFactory = await ethers.getContractFactory('MarketplaceFactory');
-    const marketplaceFactory = await MarketplaceFactory.deploy();
-    await marketplaceFactory.waitForDeployment();
-    
-    // Deploy AssuranceContractFactory
-    const AssuranceContractFactory = await ethers.getContractFactory('AssuranceContractFactory');
-    const assuranceFactory = await AssuranceContractFactory.deploy();
-    await assuranceFactory.waitForDeployment();
-    
-    // Deploy main Pubstarter contract
-    const Pubstarter = await ethers.getContractFactory('Pubstarter');
-    this.contracts.pubstarter = await Pubstarter.deploy(
-      await premintingFactory.getAddress(),
-      await marketplaceFactory.getAddress(),
-      await assuranceFactory.getAddress()
-    );
-    await this.contracts.pubstarter.waitForDeployment();
-    console.log(`  Pubstarter: ${await this.contracts.pubstarter.getAddress()}`);
+  getClientsForUser(user) {
+    return createTestClients(user.privateKey, RPC_URL);
   }
 
   async fundUsers() {
-    const signers = await ethers.getSigners();
-    const funders = signers.slice(0, 5); // Use first 5 accounts as funders
+    const publicClient = createPublicClient({
+      chain: hardhat,
+      transport: http(RPC_URL)
+    });
+
+    const funders = this.users.slice(0, 5);
+    const funderClients = funders.map(u => this.getClientsForUser(u));
     
     let fundedCount = 0;
     let failedCount = 0;
     
     for (let i = 0; i < this.users.length; i++) {
       const user = this.users[i];
-      const funder = funders[i % funders.length];
+      const funderClient = funderClients[i % funderClients.length];
       
-      // Give users more ETH than their stated wealth to cover gas costs
-      // Base amount + wealth + buffer for gas
-      const baseAmount = ethers.parseEther('1'); // 1 ETH base
-      const wealthAmount = ethers.parseEther(user.wealth.toString());
-      const gasBuffer = ethers.parseEther('0.5'); // 0.5 ETH buffer for gas
+      const baseAmount = parseEther('1');
+      const wealthAmount = parseEther(user.wealth.toString());
+      const gasBuffer = parseEther('0.5');
       const totalAmount = baseAmount + wealthAmount + gasBuffer;
       
       try {
-        const tx = await funder.sendTransaction({
+        const hash = await funderClient.walletClient.sendTransaction({
           to: user.address,
           value: totalAmount
         });
-        await tx.wait();
+        await publicClient.waitForTransactionReceipt({ hash });
         fundedCount++;
       } catch (err) {
         failedCount++;
@@ -201,8 +316,8 @@ class SimulationRunner {
     console.log(`  Funded ${fundedCount} users (${failedCount} failed)`);
   }
 
-  getWalletForUser(user) {
-    return new ethers.Wallet(user.privateKey, ethers.provider);
+  getClientsForUser(user) {
+    return createTestClients(user.privateKey, RPC_URL);
   }
 
   getRandomUser() {
@@ -251,10 +366,11 @@ class SimulationRunner {
   }
 
   async performAction(actionType, user) {
-    const wallet = this.getWalletForUser(user);
+    const clients = this.getClientsForUser(user);
+    const publicClient = clients.publicClient;
 
     try {
-      let tx, receipt;
+      let hash, receipt;
 
       switch (actionType) {
         case 'setBelief': {
@@ -262,9 +378,12 @@ class SimulationRunner {
           const stmt = statements[Math.floor(Math.random() * statements.length)];
           const beliefState = Math.random() > 0.1 ? 1 : 2; // 90% believe, 10% disbelieve
 
-          const contract = this.contracts.beliefs.connect(wallet);
-          tx = await contract.setBelief(stmt.statementId, beliefState);
-          receipt = await tx.wait();
+          if (beliefState === 1) {
+            hash = await believeStatement(clients, this.contracts.beliefs, stmt.statementId);
+          } else {
+            hash = await disbelieveStatement(clients, this.contracts.beliefs, stmt.statementId);
+          }
+          receipt = await publicClient.getTransactionReceipt({ hash });
 
           this.recordAction('setBelief', user, { statementId: stmt.id, beliefState }, receipt);
           break;
@@ -282,9 +401,15 @@ class SimulationRunner {
             beliefs.push(Math.random() > 0.1 ? 1 : 2);
           }
 
-          const contract = this.contracts.beliefs.connect(wallet);
-          tx = await contract.setBeliefsInBatch(selected, beliefs);
-          receipt = await tx.wait();
+          // Use SDK's believeStatement for each - batch not in SDK yet, call individually
+          for (let i = 0; i < selected.length; i++) {
+            if (beliefs[i] === 1) {
+              hash = await believeStatement(clients, this.contracts.beliefs, selected[i]);
+            } else {
+              hash = await disbelieveStatement(clients, this.contracts.beliefs, selected[i]);
+            }
+          }
+          receipt = await publicClient.getTransactionReceipt({ hash });
 
           this.recordAction('setBeliefsInBatch', user, { count: numStatements }, receipt);
           break;
@@ -318,11 +443,14 @@ class SimulationRunner {
             }
 
             if (implies) {
-              const contract = this.contracts.implications.connect(wallet);
-              // Contract requires 3 params: fromStatementId, toStatementId, explanationCid
-              const explanationCid = ethers.zeroPadValue(ethers.id('explanation'), 32);
-              tx = await contract.attestImplication(stmt1.statementId, stmt2.statementId, explanationCid);
-              receipt = await tx.wait();
+              hash = await attestImplication(
+                clients,
+                this.contracts.implications,
+                stmt1.statementId,
+                stmt2.statementId,
+                '0x0000000000000000000000000000000000000000000000000000000000000000'
+              );
+              receipt = await publicClient.getTransactionReceipt({ hash });
 
               this.recordAction('attestImplication', user, { from: stmt1.id, to: stmt2.id }, receipt);
             }
@@ -331,15 +459,19 @@ class SimulationRunner {
         }
 
         case 'attestProjectAlignment': {
-          // Mock project address
-          const projectAddress = ethers.Wallet.createRandom().address;
+          // Mock project address - generate from private key
+          const mockWallet = privateKeyToAccount('0x' + Math.random().toString(16).slice(2).padStart(64, '0'));
+          const projectAddress = mockWallet.address;
           const stmt = this.getRandomStatement();
 
-          // Use alignmentAttestations contract - it requires 3 params: subjectAddress, statementId, topicStatementId
-          const contract = this.contracts.alignmentAttestations.connect(wallet);
-          const topicStatementId = ethers.zeroPadValue(ethers.id('topic'), 32);
-          tx = await contract.attestAlignment(projectAddress, stmt.statementId, topicStatementId);
-          receipt = await tx.wait();
+          hash = await attestAlignment(
+            clients,
+            this.contracts.alignmentAttestations,
+            projectAddress,
+            stmt.statementId,
+            PROJECT_ALIGNMENT_TOPIC
+          );
+          receipt = await publicClient.getTransactionReceipt({ hash });
 
           this.recordAction('attestProjectAlignment', user, { project: projectAddress, statement: stmt.id }, receipt);
           break;
@@ -357,10 +489,8 @@ class SimulationRunner {
         }
 
         case 'purchaseFromPrimaryMarket': {
-          // Only if there are existing projects and user has enough ETH
-          const wallet = new ethers.Wallet(user.privateKey, ethers.provider);
-          const balance = await ethers.provider.getBalance(user.address);
-          const estimatedCost = ethers.parseEther('2');
+          const balance = await publicClient.getBalance({ address: user.address });
+          const estimatedCost = parseEther('2');
           
           if (this.fundingDelegation.createdProjects.length > 0 && balance > estimatedCost) {
             try {
@@ -385,12 +515,10 @@ class SimulationRunner {
         }
 
         case 'createSecondaryMarketListing': {
-          // Only if user has available (non-listed) tokens and has ETH for gas
           const userTokens = this.fundingDelegation.getAvailableTokens(user);
-          const wallet = new ethers.Wallet(user.privateKey, ethers.provider);
-          const balance = await ethers.provider.getBalance(user.address);
+          const balance = await publicClient.getBalance({ address: user.address });
           
-          if (userTokens.length > 0 && this.fundingDelegation.createdProjects.length > 0 && balance > ethers.parseEther('0.1')) {
+          if (userTokens.length > 0 && this.fundingDelegation.createdProjects.length > 0 && balance > parseEther('0.1')) {
             try {
               const userToken = userTokens[Math.floor(Math.random() * userTokens.length)];
               if (!userToken || !userToken.tokenId || !userToken.count || userToken.count <= 0) break;
@@ -404,7 +532,7 @@ class SimulationRunner {
               const count = Math.floor(Math.random() * available) + 1;
               if (count <= 0) break;
               
-              const pricePerToken = ethers.parseEther((Math.random() * 0.05 + 0.01).toFixed(4));
+              const pricePerToken = parseEther((Math.random() * 0.05 + 0.01).toFixed(4));
               if (!pricePerToken || pricePerToken <= 0n) break;
               
               const result = await this.fundingDelegation.createSecondaryMarketListing(
@@ -429,10 +557,9 @@ class SimulationRunner {
 
         // Delegation actions
         case 'depositToNote': {
-          const wallet = new ethers.Wallet(user.privateKey, ethers.provider);
-          const balance = await ethers.provider.getBalance(user.address);
-          const amount = ethers.parseEther((Math.random() * 0.3 + 0.05).toFixed(2)); // 0.05-0.35 ETH
-          const needed = amount + ethers.parseEther('1'); // amount + larger gas buffer
+          const balance = await publicClient.getBalance({ address: user.address });
+          const amount = parseEther((Math.random() * 0.3 + 0.05).toFixed(2)); // 0.05-0.35 ETH
+          const needed = amount + parseEther('1'); // amount + larger gas buffer
           
           if (balance > needed) {
             try {

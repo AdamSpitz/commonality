@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { keccak256, toBytes, fromBytes, formatEther, parseEther } from 'viem';
 
 /**
  * Utility functions for generative testing
@@ -11,7 +11,7 @@ import { ethers } from 'ethers';
  */
 export function createStatementId(content) {
   const json = JSON.stringify(content, Object.keys(content).sort());
-  return ethers.keccak256(ethers.toUtf8Bytes(json));
+  return keccak256(toBytes(json));
 }
 
 /**
@@ -19,28 +19,30 @@ export function createStatementId(content) {
  * Useful for creating consistent statement IDs in tests
  */
 export function stringToBytes32(str) {
-  return ethers.encodeBytes32String(str.slice(0, 31));
+  const bytes = new TextEncoder().encode(str.slice(0, 31));
+  return keccak256(bytes);
 }
 
 /**
  * Convert bytes32 back to string
  */
 export function bytes32ToString(bytes32) {
-  return ethers.decodeBytes32String(bytes32);
+  const decoded = fromBytes(bytes32.slice(2), 'utf-8');
+  return new TextDecoder().decode(decoded).replace(/\0+$/, '');
 }
 
 /**
  * Format wei to ETH
  */
 export function formatEth(wei) {
-  return ethers.formatEther(wei);
+  return formatEther(wei);
 }
 
 /**
  * Parse ETH to wei
  */
 export function parseEth(eth) {
-  return ethers.parseEther(eth.toString());
+  return parseEther(eth.toString());
 }
 
 /**

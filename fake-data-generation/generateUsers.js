@@ -1,5 +1,4 @@
-import { ethers } from 'ethers';
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { generatePrivateKey, privateKeyToAccount, hdKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -86,18 +85,17 @@ function addCorrelations(interests) {
 
 const DEFAULT_ACCOUNT_COUNT = 20;
 
-const HARDHAT_DEFAULT_MNEMONIC = 'test test test test test test test test test test test junk';
-
 function getHardhatAccountsFromMnemonic(count) {
   const accounts = [];
+  const mnemonic = 'test test test test test test test test test test test junk';
+  const hdKey = hdKeyToAccount(mnemonic);
+  
   for (let i = 0; i < count; i++) {
-    const wallet = ethers.HDNodeWallet.fromMnemonic(
-      ethers.Mnemonic.fromPhrase(HARDHAT_DEFAULT_MNEMONIC),
-      `m/44'/60'/0'/0/${i}`
-    );
+    const privateKey = hdKey.derivePath(`m/44'/60'/0'/0/${i}`).key;
+    const account = privateKeyToAccount(privateKey);
     accounts.push({
-      address: wallet.address,
-      privateKey: wallet.privateKey
+      address: account.address,
+      privateKey: account.privateKey
     });
   }
   return accounts;

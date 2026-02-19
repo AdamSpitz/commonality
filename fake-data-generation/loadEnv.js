@@ -13,6 +13,11 @@ if (fs.existsSync(envPath)) {
   console.warn('No .env file found at', envPath);
 }
 
+export function loadEnv() {
+  // Environment is already loaded at module import time
+  // This function exists for explicit re-loading if needed
+}
+
 export const CONTRACT_ADDRESSES = {
   beliefs: process.env.BELIEFS_CONTRACT_ADDRESS,
   implications: process.env.IMPLICATIONS_CONTRACT_ADDRESS,

@@ -1,7 +1,39 @@
-import hre from 'hardhat';
+import { createPublicClient, createWalletClient, http, parseEther, zeroAddress } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { generateStatements } from './generateStatements.js';
+import { loadEnv, RPC_URL } from './loadEnv.js';
+import {
+  createProject as sdkCreateProject,
+  buyProjectTokens,
+  withdrawProjectFunds as sdkWithdrawProjectFunds,
+  createSaleListing,
+  fulfillSaleListing,
+  approveERC1155ForMarketplace,
+} from '@commonality/sdk';
+import {
+  depositETH as sdkDepositETH,
+  delegateNote as sdkDelegateNote,
+  revokeNote as sdkRevokeNote,
+  reclaimFunds as sdkReclaimFunds,
+  purchaseFromPrimaryMarketWithNotes,
+} from '@commonality/sdk';
 
-const { ethers } = hre;
+loadEnv();
+
+const hardhat = {
+  id: 31337,
+  name: 'Hardhat',
+  network: 'hardhat',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: { http: ['http://localhost:8545'] },
+    public: { http: ['http://localhost:8545'] },
+  },
+};
 
 /**
  * Funding and Delegation Actions for Generative Testing
@@ -17,12 +49,34 @@ class FundingAndDelegationActions {
     this.users = users;
     this.statements = statements;
     this.createdProjects = [];
-    this.createdNotes = []; // Track created notes: { noteId, owner, amount, token, tokenType, tokenId }
-    this.userTokens = new Map(); // user.address -> [{ erc1155, tokenId, count, listedCount }]
+    this.createdNotes = [];
+    this.userTokens = new Map();
+    this.rpcUrl = RPC_URL || 'http://localhost:8545';
+  }
+
+  createClientsForUser(user) {
+    const account = privateKeyToAccount(user.privateKey);
+
+    const walletClient = createWalletClient({
+      account,
+      chain: hardhat,
+      transport: http(this.rpcUrl),
+    });
+
+    const publicClient = createPublicClient({
+      chain: hardhat,
+      transport: http(this.rpcUrl),
+    });
+
+    return {
+      walletClient,
+      publicClient,
+      account: account.address,
+    };
   }
 
   getWalletForUser(user) {
-    return new ethers.Wallet(user.privateKey, ethers.provider);
+    return this.createClientsForUser(user);
   }
 
   getRandomUser() {
@@ -40,7 +94,7 @@ class FundingAndDelegationActions {
   getDelegatableNotes(user) {
     return this.createdNotes.filter(note => 
       note.owner === user.address && 
-      note.token === ethers.ZeroAddress &&
+      note.token === zeroAddress &&
       note.tokenType === 0 &&
       !note.delegated &&
       !note.revoked
@@ -50,7 +104,7 @@ class FundingAndDelegationActions {
   getDelegatableNotesExcluding(user, excludeAddresses) {
     return this.createdNotes.filter(note => 
       note.owner === user.address && 
-      note.token === ethers.ZeroAddress &&
+      note.token === zeroAddress &&
       note.tokenType === 0 &&
       !note.delegated &&
       !note.revoked &&
@@ -84,61 +138,48 @@ class FundingAndDelegationActions {
       throw new Error('Pubstarter contract not deployed');
     }
 
-    const wallet = this.getWalletForUser(user);
-    const pubstarter = this.contracts.pubstarter.connect(wallet);
+    const clients = this.getWalletForUser(user);
 
-    // Generate random project parameters
-    const threshold = ethers.parseEther((Math.random() * 5 + 1).toFixed(2)); // 1-6 ETH
-    const deadline = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60); // 1 week from now
+    const threshold = parseEther((Math.random() * 5 + 1).toFixed(2));
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60));
     const projectMetadataCid = `ipfs://QmProject${Math.floor(Math.random() * 10000)}`;
     
-    // Token configuration
-    const tokenIds = [1, 2, 3]; // Three tiers of tokens
-    const maxSupplies = [100, 500, 1000];
+    const tokenIds = [1n, 2n, 3n];
+    const maxSupplies = [100n, 500n, 1000n];
     const prices = [
-      ethers.parseEther('0.1'),  // Tier 1: 0.1 ETH
-      ethers.parseEther('0.05'), // Tier 2: 0.05 ETH
-      ethers.parseEther('0.01')  // Tier 3: 0.01 ETH
+      parseEther('0.1'),
+      parseEther('0.05'),
+      parseEther('0.01')
     ];
 
     try {
-      const result = await pubstarter.createERC1155AndMarketplaceAndAssuranceContract.staticCall(
-        'https://example.com/metadata/',
-        'https://example.com/contract.json',
-        user.address,
-        user.address,
-        threshold,
-        deadline,
-        projectMetadataCid,
-        tokenIds,
-        maxSupplies,
-        prices
+      const { hash, projectDetails } = await sdkCreateProject(
+        clients,
+        { address: this.contracts.pubstarter.address, abi: this.contracts.pubstarter.abi },
+        {
+          metadataURI: 'https://example.com/metadata/',
+          contractURI: 'https://example.com/contract.json',
+          owner: user.address,
+          recipient: user.address,
+          threshold,
+          deadline,
+          projectMetadataCid,
+          tokenIds,
+          tokenCounts: maxSupplies,
+          tokenPrices: prices
+        }
       );
 
-      const tx = await pubstarter.createERC1155AndMarketplaceAndAssuranceContract(
-        'https://example.com/metadata/',
-        'https://example.com/contract.json',
-        user.address,
-        user.address,
-        threshold,
-        deadline,
-        projectMetadataCid,
-        tokenIds,
-        maxSupplies,
-        prices
-      );
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      const receipt = await tx.wait();
-
-      const [erc1155, marketplace, assuranceContract] = result;
       const project = {
         owner: user.address,
-        erc1155: erc1155,
-        marketplace: marketplace,
-        assuranceContract: assuranceContract,
+        erc1155: projectDetails.tokenAddress,
+        marketplace: projectDetails.marketplaceAddress,
+        assuranceContract: projectDetails.assuranceContractAddress,
         threshold: threshold.toString(),
-        deadline,
-        tokenIds,
+        deadline: Number(deadline),
+        tokenIds: tokenIds.map(n => Number(n)),
         prices: prices.map(p => p.toString())
       };
 
@@ -153,17 +194,9 @@ class FundingAndDelegationActions {
    * Funding Action: Purchase tokens from primary market
    */
   async purchaseFromPrimaryMarket(user, project, tokenId, count) {
-    const wallet = this.getWalletForUser(user);
+    const clients = this.getWalletForUser(user);
     
     try {
-      // Get the assurance contract
-      const assuranceContract = await ethers.getContractAt(
-        'MultiERC1155_AssuranceContract',
-        project.assuranceContract,
-        wallet
-      );
-
-      // Find the price for this token
       const tokenIndex = project.tokenIds.indexOf(tokenId);
       if (tokenIndex === -1) {
         throw new Error('Invalid token ID');
@@ -172,18 +205,20 @@ class FundingAndDelegationActions {
       const price = BigInt(project.prices[tokenIndex]);
       const totalCost = price * BigInt(count);
 
-      const tx = await assuranceContract.buyERC1155(
-        user.address,
-        project.erc1155,
-        [tokenId],
-        [count],
-        '0x', // data
-        { value: totalCost }
+      const hash = await buyProjectTokens(
+        clients,
+        { address: project.assuranceContract, abi: this.contracts.pubstarter?.abi },
+        {
+          buyer: user.address,
+          tokenAddress: project.erc1155,
+          tokenIds: [BigInt(tokenId)],
+          tokenCounts: [BigInt(count)],
+          totalCost
+        }
       );
 
-      const receipt = await tx.wait();
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      // Track user tokens - now with listed count
       if (!this.userTokens.has(user.address)) {
         this.userTokens.set(user.address, []);
       }
@@ -205,7 +240,7 @@ class FundingAndDelegationActions {
    * Funding Action: Create a sale listing on secondary market
    */
   async createSecondaryMarketListing(user, project, tokenId, count, pricePerToken) {
-    const wallet = this.getWalletForUser(user);
+    const clients = this.getWalletForUser(user);
     
     try {
       if (!project || !project.erc1155 || !project.marketplace) {
@@ -220,48 +255,42 @@ class FundingAndDelegationActions {
         throw new Error(`Invalid pricePerToken: ${pricePerToken}`);
       }
       
-      // First approve the marketplace to transfer tokens
-      const erc1155 = await ethers.getContractAt('IERC1155', project.erc1155, wallet);
-      const marketplace = await ethers.getContractAt(
-        'ERC1155SecondaryMarket',
-        project.marketplace,
-        wallet
+      await approveERC1155ForMarketplace(
+        clients,
+        project.erc1155,
+        project.marketplace
       );
 
-      // Check balance first
-      const balance = await erc1155.balanceOf(user.address, tokenId);
-      if (balance < count) {
-        throw new Error(`Insufficient balance: ${balance} < ${count}`);
-      }
+      const hash = await createSaleListing(
+        clients,
+        { address: project.marketplace, abi: this.contracts.pubstarter?.abi },
+        {
+          tokenId: BigInt(tokenId),
+          count: BigInt(count),
+          pricePerToken
+        }
+      );
 
-      // Approve marketplace
-      await (await erc1155.setApprovalForAll(project.marketplace, true)).wait();
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      // Create listing
-      const tx = await marketplace.createSaleListing(tokenId, count, pricePerToken);
-      const receipt = await tx.wait();
-
-      // Parse listing ID from event - with robust null checking
-      let listingId = 'unknown';
+      let listingId = listingId = 'unknown';
       try {
-        const listingEvent = receipt.logs
-          .map(log => {
-            try {
-              return marketplace.interface.parseLog(log);
-            } catch {
-              return null;
+        const logs = receipt.logs;
+        for (const log of logs) {
+          try {
+            const parsed = log;
+            if (parsed.topics && parsed.topics.length > 0) {
+              const topic = parsed.topics[0];
+              if (topic.includes('SaleListingCreated') || topic.length === 66) {
+                listingId = parsed.topics[1] ? BigInt(parsed.topics[1]).toString() : 'unknown';
+              }
             }
-          })
-          .find(event => event && event.name === 'SaleListingCreated');
-
-        if (listingEvent?.args?.listingId) {
-          listingId = listingEvent.args.listingId.toString();
+          } catch {}
         }
       } catch (eventError) {
         console.log('Event parsing warning:', eventError.message);
       }
 
-      // Track listed tokens
       const userTokenList = this.userTokens.get(user.address);
       if (userTokenList) {
         const tokenIdx = userTokenList.findIndex(t => t.erc1155 === project.erc1155 && t.tokenId === tokenId);
@@ -279,34 +308,37 @@ class FundingAndDelegationActions {
   /**
    * Funding Action: Purchase from secondary market
    */
-  async purchaseFromSecondaryMarket(user, project, listingId, count) {
-    const wallet = this.getWalletForUser(user);
+  async purchaseFromSecondaryMarket(user, project, listingId, count, pricePerToken) {
+    const clients = this.getWalletForUser(user);
     
     try {
-      const marketplace = await ethers.getContractAt(
-        'ERC1155SecondaryMarket',
-        project.marketplace,
-        wallet
+      if (!pricePerToken) {
+        throw new Error('pricePerToken is required');
+      }
+
+      const totalCost = pricePerToken * BigInt(count);
+
+      const hash = await fulfillSaleListing(
+        clients,
+        { address: project.marketplace, abi: this.contracts.pubstarter?.abi },
+        {
+          saleListingId: BigInt(listingId),
+          count: BigInt(count),
+          totalCost
+        }
       );
 
-      // Get listing details
-      const listing = await marketplace.getSaleListing(listingId);
-      const totalCost = listing.pricePerToken * BigInt(count);
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      const tx = await marketplace.fulfillSaleListing(listingId, count, { value: totalCost });
-      const receipt = await tx.wait();
-
-      // Track user tokens
       if (!this.userTokens.has(user.address)) {
         this.userTokens.set(user.address, []);
       }
       const userTokenList = this.userTokens.get(user.address);
-      const tokenIdNum = listing.tokenId.toNumber();
-      const existingToken = userTokenList.find(t => t.erc1155 === project.erc1155 && t.tokenId === tokenIdNum);
+      const existingToken = userTokenList.find(t => t.erc1155 === project.erc1155);
       if (existingToken) {
         existingToken.count += count;
       } else {
-        userTokenList.push({ erc1155: project.erc1155, tokenId: tokenIdNum, count, listedCount: 0 });
+        userTokenList.push({ erc1155: project.erc1155, tokenId: 0, count, listedCount: 0 });
       }
 
       return { success: true, receipt, totalCost: totalCost.toString() };
@@ -319,22 +351,19 @@ class FundingAndDelegationActions {
    * Funding Action: Withdraw funds from successful project
    */
   async withdrawProjectFunds(user, project) {
-    const wallet = this.getWalletForUser(user);
+    const clients = this.getWalletForUser(user);
     
     try {
-      // Only project recipient can withdraw
       if (user.address.toLowerCase() !== project.owner.toLowerCase()) {
         throw new Error('Only project recipient can withdraw');
       }
 
-      const assuranceContract = await ethers.getContractAt(
-        'MultiERC1155_AssuranceContract',
-        project.assuranceContract,
-        wallet
+      const hash = await sdkWithdrawProjectFunds(
+        clients,
+        { address: project.assuranceContract, abi: this.contracts.pubstarter?.abi }
       );
 
-      const tx = await assuranceContract.withdraw();
-      const receipt = await tx.wait();
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
       return { success: true, receipt };
     } catch (error) {
@@ -350,50 +379,30 @@ class FundingAndDelegationActions {
       throw new Error('DelegatableNotes contract not deployed');
     }
 
-    const wallet = this.getWalletForUser(user);
-    const delegatableNotes = this.contracts.delegatableNotes.connect(wallet);
+    const clients = this.getWalletForUser(user);
 
     try {
-      // Deposit ETH as ERC20 type (address 0)
-      const tx = await delegatableNotes.deposit(
-        ethers.ZeroAddress, // token address (ETH)
-        0, // TokenType.ERC20
-        0, // tokenId (not used for ETH)
-        amount,
-        { value: amount }
+      const { hash, noteId } = await sdkDepositETH(
+        clients,
+        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        { amount }
       );
 
-      const receipt = await tx.wait();
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      // Parse note ID from event
-      const noteCreatedEvent = receipt.logs
-        .map(log => {
-          try {
-            return delegatableNotes.interface.parseLog(log);
-          } catch {
-            return null;
-          }
-        })
-        .find(event => event && event.name === 'NoteCreated');
-
-      if (noteCreatedEvent) {
-        const noteId = noteCreatedEvent.args.noteId.toString();
-        const note = {
-          noteId,
-          owner: user.address,
-          amount: amount.toString(),
-          token: ethers.ZeroAddress,
-          tokenType: 0, // ERC20
-          tokenId: 0,
-          delegated: false,
-          revoked: false,
-          originalOwner: user.address
-        };
-        this.createdNotes.push(note);
-        return { success: true, note, receipt };
-      }
-
-      return { success: true, receipt };
+      const note = {
+        noteId: noteId.toString(),
+        owner: user.address,
+        amount: amount.toString(),
+        token: zeroAddress,
+        tokenType: 0,
+        tokenId: 0,
+        delegated: false,
+        revoked: false,
+        originalOwner: user.address
+      };
+      this.createdNotes.push(note);
+      return { success: true, note, receipt };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -407,11 +416,9 @@ class FundingAndDelegationActions {
       throw new Error('DelegatableNotes contract not deployed');
     }
 
-    const wallet = this.getWalletForUser(user);
-    const delegatableNotes = this.contracts.delegatableNotes.connect(wallet);
+    const clients = this.getWalletForUser(user);
 
     try {
-      // Find the note
       const note = this.createdNotes.find(n => n.noteId === noteId);
       if (!note) {
         throw new Error('Note not found');
@@ -421,41 +428,27 @@ class FundingAndDelegationActions {
         throw new Error('Not note owner');
       }
 
-      // Chain is just [user] for root notes
       const owners = [user.address];
 
-      const tx = await delegatableNotes.delegate(
-        noteId,
-        owners,
-        delegateTo,
-        amountToDelegate
+      const { hash, delegatedNoteId, remainderNoteId } = await sdkDelegateNote(
+        clients,
+        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        {
+          noteId: BigInt(noteId),
+          owners,
+          delegateTo,
+          amount: amountToDelegate
+        }
       );
 
-      const receipt = await tx.wait();
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      // Parse events to get new note IDs
-      const chainSplitEvent = receipt.logs
-        .map(log => {
-          try {
-            return delegatableNotes.interface.parseLog(log);
-          } catch {
-            return null;
-          }
-        })
-        .find(event => event && event.name === 'ChainSplit');
-
-      if (chainSplitEvent) {
-        // Partial delegation - update original note and create delegated note
-        const delegatedNoteId = chainSplitEvent.args.splitLeafId.toString();
-        const remainderNoteId = chainSplitEvent.args.remainderLeafId.toString();
-        const splitAmount = chainSplitEvent.args.splitAmount.toString();
-
-        // Update original note
+      if (remainderNoteId && remainderNoteId > 0n) {
+        const splitAmount = (BigInt(note.amount) - (BigInt(note.amount) * amountToDelegate / BigInt(note.amount))).toString();
         note.amount = (BigInt(note.amount) - BigInt(splitAmount)).toString();
 
-        // Add delegated note (it's already delegated, so mark it as such)
         this.createdNotes.push({
-          noteId: delegatedNoteId,
+          noteId: delegatedNoteId.toString(),
           owner: delegateTo,
           amount: splitAmount,
           token: note.token,
@@ -468,16 +461,14 @@ class FundingAndDelegationActions {
 
         return { 
           success: true, 
-          delegatedNoteId, 
-          remainderNoteId,
+          delegatedNoteId: delegatedNoteId.toString(), 
+          remainderNoteId: remainderNoteId.toString(),
           receipt 
         };
       } else {
-        // Full delegation
-        const delegatedNoteId = noteId;
         note.owner = delegateTo;
         note.delegated = true;
-        return { success: true, delegatedNoteId, receipt };
+        return { success: true, delegatedNoteId: delegatedNoteId.toString(), receipt };
       }
     } catch (error) {
       return { success: false, error: error.message };
@@ -492,24 +483,27 @@ class FundingAndDelegationActions {
       throw new Error('DelegatableNotes contract not deployed');
     }
 
-    const wallet = this.getWalletForUser(user);
-    const delegatableNotes = this.contracts.delegatableNotes.connect(wallet);
+    const clients = this.getWalletForUser(user);
 
     try {
-      // Find the note
       const note = this.createdNotes.find(n => n.noteId === noteId);
       if (!note) {
         throw new Error('Note not found');
       }
 
-      // For simplicity, assume chain is [current_owner, original_delegator]
-      // In a real scenario, we'd need to track the full chain
       const owners = [note.owner, user.address];
 
-      const tx = await delegatableNotes.revoke(noteId, owners);
-      const receipt = await tx.wait();
+      const hash = await sdkRevokeNote(
+        clients,
+        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        {
+          noteId: BigInt(noteId),
+          owners
+        }
+      );
 
-      // Update note ownership back to user and mark as revoked
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+
       note.owner = user.address;
       note.revoked = true;
 
@@ -527,11 +521,9 @@ class FundingAndDelegationActions {
       throw new Error('DelegatableNotes contract not deployed');
     }
 
-    const wallet = this.getWalletForUser(user);
-    const delegatableNotes = this.contracts.delegatableNotes.connect(wallet);
+    const clients = this.getWalletForUser(user);
 
     try {
-      // Calculate total cost
       let totalCost = BigInt(0);
       for (let i = 0; i < tokenIds.length; i++) {
         const tokenIndex = project.tokenIds.indexOf(tokenIds[i]);
@@ -540,26 +532,27 @@ class FundingAndDelegationActions {
         }
       }
 
-      // Build chains array
       const chains = noteIds.map(() => [user.address]);
 
-      const tx = await delegatableNotes.purchaseFromPrimaryMarket(
-        noteIds,
-        chains,
-        totalCost,
-        project.assuranceContract,
-        project.erc1155,
-        tokenIds,
-        counts
+      const hash = await purchaseFromPrimaryMarketWithNotes(
+        clients,
+        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        {
+          noteIds: noteIds.map(n => BigInt(n)),
+          chains,
+          paymentAmount: totalCost,
+          primaryMarket: project.assuranceContract,
+          erc1155Contract: project.erc1155,
+          tokenIds: tokenIds.map(n => BigInt(n)),
+          counts: counts.map(n => BigInt(n))
+        }
       );
 
-      const receipt = await tx.wait();
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      // Update note amounts
       for (const noteId of noteIds) {
         const note = this.createdNotes.find(n => n.noteId === noteId);
         if (note) {
-          // Simplified: evenly distribute cost across notes
           const costPerNote = totalCost / BigInt(noteIds.length);
           note.amount = (BigInt(note.amount) - costPerNote).toString();
         }
@@ -579,11 +572,9 @@ class FundingAndDelegationActions {
       throw new Error('DelegatableNotes contract not deployed');
     }
 
-    const wallet = this.getWalletForUser(user);
-    const delegatableNotes = this.contracts.delegatableNotes.connect(wallet);
+    const clients = this.getWalletForUser(user);
 
     try {
-      // Find the note
       const note = this.createdNotes.find(n => n.noteId === noteId);
       if (!note) {
         throw new Error('Note not found');
@@ -593,10 +584,14 @@ class FundingAndDelegationActions {
         throw new Error('Not note owner');
       }
 
-      const tx = await delegatableNotes.reclaimFunds(noteId);
-      const receipt = await tx.wait();
+      const hash = await sdkReclaimFunds(
+        clients,
+        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        BigInt(noteId)
+      );
 
-      // Remove the note from tracking
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+
       this.createdNotes = this.createdNotes.filter(n => n.noteId !== noteId);
 
       return { success: true, receipt };

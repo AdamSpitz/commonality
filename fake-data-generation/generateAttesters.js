@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -66,7 +66,8 @@ function selectAttesterType() {
 }
 
 function generateAttester(id) {
-  const wallet = ethers.Wallet.createRandom();
+  const privateKey = generatePrivateKey();
+  const wallet = privateKeyToAccount(privateKey);
   const type = selectAttesterType();
   const config = ATTESTER_TYPES[type];
 

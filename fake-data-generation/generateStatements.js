@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { keccak256, toBytes } from 'viem';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -12,9 +12,7 @@ const __dirname = dirname(__filename);
  */
 
 function createStatementId(content) {
-  // In a real system, this would be an IPFS CID
-  // For testing, we'll use a hash of the content
-  const hash = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify(content)));
+  const hash = keccak256(toBytes(JSON.stringify(content)));
   return hash;
 }
 
