@@ -16,10 +16,8 @@ import { onchainTable, primaryKey, relations, index } from "ponder";
  * Statements are created when we first see them referenced in events
  */
 export const statements = onchainTable("statements", (t) => ({
-  // IPFS CID as bytes32 (hex string)
-  id: t.hex().primaryKey(),
-  // Full IPFS CID string (for fetching)
-  cid: t.text(),
+  // IPFS CIDv1 as string (primary key)
+  cidV1: t.text().primaryKey(),
   // Cached content from IPFS (JSON string)
   content: t.text(),
   // Parsed fields for querying
@@ -45,7 +43,7 @@ export const beliefs = onchainTable(
   (t) => ({
     // Composite key: user + statement
     user: t.hex().notNull(),
-    statementId: t.hex().notNull(),
+    statementId: t.text().notNull(),
     // Belief state: 0=noOpinion, 1=believes, 2=disbelieves
     beliefState: t.integer().notNull(),
     // Last updated
@@ -73,10 +71,10 @@ export const implications = onchainTable(
   (t) => ({
     // Composite key: attester + from + to
     attester: t.hex().notNull(),
-    fromStatementId: t.hex().notNull(),
-    toStatementId: t.hex().notNull(),
-    // IPFS CID of the explanation (bytes32, can be zero)
-    explanationCid: t.hex().notNull(),
+    fromStatementId: t.text().notNull(),
+    toStatementId: t.text().notNull(),
+    // IPFS CIDv1 of the explanation (can be zero)
+    explanationCid: t.text().notNull(),
     // When attested
     createdAt: t.bigint().notNull(),
     blockNumber: t.bigint().notNull(),
@@ -131,7 +129,7 @@ export const statementsRelations = relations(statements, ({ many }) => ({
 export const beliefsRelations = relations(beliefs, ({ one }) => ({
   statement: one(statements, {
     fields: [beliefs.statementId],
-    references: [statements.id],
+    references: [statements.cidV1],
   }),
   user: one(users, {
     fields: [beliefs.user],
@@ -142,12 +140,12 @@ export const beliefsRelations = relations(beliefs, ({ one }) => ({
 export const implicationsRelations = relations(implications, ({ one }) => ({
   fromStatement: one(statements, {
     fields: [implications.fromStatementId],
-    references: [statements.id],
+    references: [statements.cidV1],
     relationName: "fromStatement",
   }),
   toStatement: one(statements, {
     fields: [implications.toStatementId],
-    references: [statements.id],
+    references: [statements.cidV1],
     relationName: "toStatement",
   }),
   attester: one(attesters, {

@@ -1,5 +1,6 @@
 import { base58btc } from "multiformats/bases/base58";
 import { CID } from "multiformats/cid";
+import { IpfsCidV1, IpfsCidBytes32 } from "../../utils/cid-types";
 
 // IPFS gateway URL - using Pinata as per spec
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
@@ -8,7 +9,7 @@ const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/i
  * Convert a bytes32 hex string to an IPFS CID string
  * Assumes CIDv1 with SHA-256 hash (32 bytes = 256 bits)
  */
-export function bytes32ToCid(bytes32: `0x${string}`): string {
+export function bytes32ToCid(bytes32: IpfsCidBytes32): IpfsCidV1 {
   // Remove 0x prefix and convert to bytes
   const digestHex = bytes32.slice(2);
   const digestBytes = new Uint8Array(32);
@@ -29,14 +30,14 @@ export function bytes32ToCid(bytes32: `0x${string}`): string {
   // Create CID - using dag-pb codec (0x70) for JSON content
   const cid = CID.createV1(0x70, { code: 0x12, size: 32, digest: multihash.slice(2), bytes: multihash });
 
-  return cid.toString();
+  return cid.toString() as IpfsCidV1;
 }
 
 /**
  * Convert an IPFS CID string to bytes32 hex
  * Extracts the 32-byte SHA-256 digest
  */
-export function cidToBytes32(cidString: string): `0x${string}` {
+export function cidToBytes32(cidString: IpfsCidV1): IpfsCidBytes32 {
   const cid = CID.parse(cidString);
   const digest = cid.multihash.digest;
 
@@ -48,7 +49,7 @@ export function cidToBytes32(cidString: string): `0x${string}` {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  return `0x${hex}` as `0x${string}`;
+  return `0x${hex}` as IpfsCidBytes32;
 }
 
 /**

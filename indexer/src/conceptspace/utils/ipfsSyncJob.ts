@@ -36,51 +36,50 @@ const firstSeenAt = new Map<string, number>();
 async function syncStatementContent(
   ctx: SyncJobContext,
   statement: {
-    id: string;
-    cid: string;
+    cidV1: string;
     createdAt: bigint;
   }
 ): Promise<boolean> {
-  const statementId = statement.id;
+  const cidV1 = statement.cidV1;
   const now = Date.now();
 
   // Track retry attempts
-  if (!retryAttempts.has(statementId)) {
-    retryAttempts.set(statementId, 0);
-    firstSeenAt.set(statementId, now);
+  if (!retryAttempts.has(cidV1)) {
+    retryAttempts.set(cidV1, 0);
+    firstSeenAt.set(cidV1, now);
   }
 
-  const attempts = retryAttempts.get(statementId)!;
-  const firstSeen = firstSeenAt.get(statementId)!;
+  const attempts = retryAttempts.get(cidV1)!;
+  const firstSeen = firstSeenAt.get(cidV1)!;
 
   // Check if we should give up
   if (attempts >= MAX_RETRIES) {
     ctx.log.warn(
-      `Giving up on statement ${statementId} after ${attempts} attempts`
+      `Giving up on statement ${cidV1} after ${attempts} attempts`
     );
     // Clean up tracking
-    retryAttempts.delete(statementId);
-    firstSeenAt.delete(statementId);
+    retryAttempts.delete(cidV1);
+    firstSeenAt.delete(cidV1);
     return false;
   }
 
   if (now - firstSeen > RETRY_TIMEOUT_MS) {
     ctx.log.warn(
-      `Giving up on statement ${statementId} after 24 hours (${attempts} attempts)`
+      `Giving up on statement ${cidV1} after 24 hours (${attempts} attempts)`
     );
     // Clean up tracking
-    retryAttempts.delete(statementId);
-    firstSeenAt.delete(statementId);
+    retryAttempts.delete(cidV1);
+    firstSeenAt.delete(cidV1);
     return false;
   }
 
   // Try to fetch content
   try {
-    const content = await fetchStatementContent(statement.cid);
+    const content = await fetchStatementContent(cidV1);
 
     if (!content) {
       // Fetch failed, increment retry counter
-      retryAttempts.set(statementId, attempts + 1);
+      retryAttempts.set(cidV1, attempts + 1);
       return false;
     }
 
@@ -90,7 +89,7 @@ async function syncStatementContent(
     const { statements } = await import("../../../ponder.schema.js");
 
     await ctx.db
-      .update(statements, { id: statementId })
+      .update(statements, { cidV1 })
       .set({
         content: JSON.stringify(content.raw),
         statementType: content.statementType,
@@ -99,18 +98,18 @@ async function syncStatementContent(
         contentFetched: true,
       });
 
-    ctx.log.info(`Successfully synced IPFS content for statement ${statementId}`);
+    ctx.log.info(`Successfully synced IPFS content for statement ${cidV1}`);
 
     // Clean up tracking
-    retryAttempts.delete(statementId);
-    firstSeenAt.delete(statementId);
+    retryAttempts.delete(cidV1);
+    firstSeenAt.delete(cidV1);
 
     return true;
   } catch (error) {
     ctx.log.error(
-      `Error syncing statement ${statementId}: ${error}`
+      `Error syncing statement ${cidV1}: ${error}`
     );
-    retryAttempts.set(statementId, attempts + 1);
+    retryAttempts.set(cidV1, attempts + 1);
     return false;
   }
 }

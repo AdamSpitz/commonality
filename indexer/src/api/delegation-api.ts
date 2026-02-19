@@ -26,11 +26,11 @@ import { eq, and, asc } from "ponder";
 import {
   parseBigIntSafe,
   isValidAddress,
-  isValidHash,
   parseBoolean,
   parsePositiveInt,
   invalidInputError,
 } from "../utils/validation";
+import { isValidCidV1 } from "../utils/cid-types";
 
 const app = new Hono();
 
@@ -229,8 +229,8 @@ app.get("/api/available-funding/:statementId", async (c) => {
   try {
     const statementId = c.req.param("statementId");
 
-    if (!isValidHash(statementId)) {
-      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    if (!isValidCidV1(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid IPFS CIDv1 (bafy...)"), 400);
     }
 
     const tokenTypeFilter = c.req.query("tokenType");

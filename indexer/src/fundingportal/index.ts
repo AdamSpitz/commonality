@@ -10,6 +10,8 @@
 
 import { ponder } from "ponder:registry";
 import { alignmentAttestations } from "ponder:schema";
+import { bytes32ToCid } from "../conceptspace/utils/ipfs";
+import { IpfsCidBytes32 } from "../utils/cid-types";
 
 /**
  * Handle AlignmentAttestation events from the AlignmentAttestations contract
@@ -23,11 +25,15 @@ ponder.on("AlignmentAttestations:AlignmentAttestation", async ({ event, context 
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
+  // Convert bytes32 to CIDv1 for storage
+  const statementIdCidV1 = bytes32ToCid(statementId as IpfsCidBytes32);
+  const topicStatementIdCidV1 = bytes32ToCid(topicStatementId as IpfsCidBytes32);
+
   // Check if this alignment already exists (contract allows re-attestation)
   const existing = await context.db.find(alignmentAttestations, {
     attester,
     subjectAddress,
-    statementId,
+    statementId: statementIdCidV1,
   });
 
   if (!existing) {
@@ -35,21 +41,21 @@ ponder.on("AlignmentAttestations:AlignmentAttestation", async ({ event, context 
     await context.db.insert(alignmentAttestations).values({
       attester,
       subjectAddress,
-      statementId,
-      topicStatementId,
+      statementId: statementIdCidV1,
+      topicStatementId: topicStatementIdCidV1,
       createdAt: timestamp,
       blockNumber,
     });
   } else {
     // If it already exists but with a different topic, update the topic
     // (The topic is the latest one used for this subject-statement pair)
-    if (existing.topicStatementId !== topicStatementId) {
+    if (existing.topicStatementId !== topicStatementIdCidV1) {
       await context.db.update(alignmentAttestations, {
         attester,
         subjectAddress,
-        statementId,
+        statementId: statementIdCidV1,
       }).set({
-        topicStatementId,
+        topicStatementId: topicStatementIdCidV1,
       });
     }
   }

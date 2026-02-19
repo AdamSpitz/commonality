@@ -16,8 +16,9 @@ import {
   users,
   attesters,
 } from "ponder:schema";
-import { bytes32ToCid } from "./utils/ipfs";
+import { bytes32ToCid, cidToBytes32 } from "./utils/ipfs";
 import { BeliefState } from "../constants";
+import { IpfsCidV1, IpfsCidBytes32 } from "../utils/cid-types";
 
 // Belief state constants (matching Solidity)
 const NO_OPINION = BeliefState.NO_OPINION;
@@ -34,19 +35,17 @@ const DISBELIEVES = BeliefState.DISBELIEVES;
  */
 async function ensureStatement(
   ctx: { db: any },
-  statementId: `0x${string}`,
+  statementIdBytes32: IpfsCidBytes32,
   timestamp: bigint
 ) {
-  const existing = await ctx.db.find(statements, { id: statementId });
+  const cidV1 = bytes32ToCid(statementIdBytes32);
+  const existing = await ctx.db.find(statements, { cidV1 });
 
   if (!existing) {
-    const cid = bytes32ToCid(statementId);
-
     // Create placeholder record
     // The background IPFS sync job will fetch content later
     await ctx.db.insert(statements).values({
-      id: statementId,
-      cid,
+      cidV1,
       content: null,
       statementType: null,
       title: null,
@@ -107,14 +106,17 @@ ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
+  // Convert bytes32 to CIDv1 for storage
+  const statementIdCidV1 = bytes32ToCid(statementId as IpfsCidBytes32);
+
   // Ensure statement and user exist
-  await ensureStatement(context, statementId, timestamp);
+  await ensureStatement(context, statementId as IpfsCidBytes32, timestamp);
   await ensureUser(context, user, timestamp);
 
   // Get existing belief (if any)
   const existingBelief = await context.db.find(beliefs, {
     user,
-    statementId,
+    statementId: statementIdCidV1,
   });
 
   const oldState = existingBelief?.beliefState ?? NO_OPINION;
@@ -123,7 +125,7 @@ ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
   // Update or insert belief record
   if (existingBelief) {
     await context.db
-      .update(beliefs, { user, statementId })
+      .update(beliefs, { user, statementId: statementIdCidV1 })
       .set({
         beliefState: newState,
         updatedAt: timestamp,
@@ -132,7 +134,7 @@ ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
   } else {
     await context.db.insert(beliefs).values({
       user,
-      statementId,
+      statementId: statementIdCidV1,
       beliefState: newState,
       updatedAt: timestamp,
       blockNumber,
@@ -149,10 +151,10 @@ ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
   if (oldState !== DISBELIEVES && newState === DISBELIEVES) disbelieverDelta = 1;
 
   if (believerDelta !== 0 || disbelieverDelta !== 0) {
-    const stmt = await context.db.find(statements, { id: statementId });
+    const stmt = await context.db.find(statements, { cidV1: statementIdCidV1 });
     if (stmt) {
       await context.db
-        .update(statements, { id: statementId })
+        .update(statements, { cidV1: statementIdCidV1 })
         .set({
           believerCount: stmt.believerCount + believerDelta,
           disbelieverCount: stmt.disbelieverCount + disbelieverDelta,
@@ -191,25 +193,30 @@ ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
+  // Convert bytes32 to CIDv1 for storage
+  const fromStatementIdCidV1 = bytes32ToCid(fromStatementId as IpfsCidBytes32);
+  const toStatementIdCidV1 = bytes32ToCid(toStatementId as IpfsCidBytes32);
+  const explanationCidV1 = bytes32ToCid(explanationCid as IpfsCidBytes32);
+
   // Ensure both statements and attester exist
-  await ensureStatement(context, fromStatementId, timestamp);
-  await ensureStatement(context, toStatementId, timestamp);
+  await ensureStatement(context, fromStatementId as IpfsCidBytes32, timestamp);
+  await ensureStatement(context, toStatementId as IpfsCidBytes32, timestamp);
   await ensureAttester(context, attester, timestamp);
 
   // Check if this implication already exists (contract allows re-attestation)
   const existing = await context.db.find(implications, {
     attester,
-    fromStatementId,
-    toStatementId,
+    fromStatementId: fromStatementIdCidV1,
+    toStatementId: toStatementIdCidV1,
   });
 
   if (!existing) {
     // Create new implication record
     await context.db.insert(implications).values({
       attester,
-      fromStatementId,
-      toStatementId,
-      explanationCid,
+      fromStatementId: fromStatementIdCidV1,
+      toStatementId: toStatementIdCidV1,
+      explanationCid: explanationCidV1,
       createdAt: timestamp,
       blockNumber,
     });
@@ -228,11 +235,11 @@ ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
     await context.db
       .update(implications, {
         attester,
-        fromStatementId,
-        toStatementId,
+        fromStatementId: fromStatementIdCidV1,
+        toStatementId: toStatementIdCidV1,
       })
       .set({
-        explanationCid,
+        explanationCid: explanationCidV1,
       });
   }
 });

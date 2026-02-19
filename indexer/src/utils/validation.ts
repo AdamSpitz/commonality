@@ -20,13 +20,6 @@ export function isValidHex(hex: string): hex is `0x${string}` {
 }
 
 /**
- * Validates that a string is a properly formatted 32-byte hash (0x + 64 hex chars)
- */
-export function isValidHash(hash: string): hash is `0x${string}` {
-  return /^0x[a-fA-F0-9]{64}$/.test(hash);
-}
-
-/**
  * Safely parses a string to BigInt, returning null if invalid
  */
 export function parseBigIntSafe(value: string): bigint | null {

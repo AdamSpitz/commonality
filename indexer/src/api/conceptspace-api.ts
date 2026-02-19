@@ -26,12 +26,12 @@ import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, inArray } from "ponder";
 import {
-  isValidHash,
   isValidAddress,
   parseAddressList,
   parsePositiveInt,
   invalidInputError,
 } from "../utils/validation";
+import { isValidCidV1 } from "../utils/cid-types";
 import { runIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob";
 
 const app = new Hono();
@@ -112,8 +112,8 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
   try {
     const statementId = c.req.param("statementId");
 
-    if (!isValidHash(statementId)) {
-      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    if (!isValidCidV1(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid IPFS CIDv1 (bafy...)"), 400);
     }
 
     const trustedAttesters = parseAddressList(c.req.query("schema.attesters"));
@@ -193,8 +193,8 @@ app.get("/api/statement-support/:statementId", async (c) => {
   try {
     const statementId = c.req.param("statementId");
 
-    if (!isValidHash(statementId)) {
-      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    if (!isValidCidV1(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid IPFS CIDv1 (bafy...)"), 400);
     }
 
     const trustedAttesters = parseAddressList(c.req.query("schema.attesters"));
@@ -203,7 +203,7 @@ app.get("/api/statement-support/:statementId", async (c) => {
     const statement = await db
       .select()
       .from(schema.statements)
-      .where(eq(schema.statements.id, statementId))
+      .where(eq(schema.statements.cidV1, statementId))
       .limit(1);
 
     if (statement.length === 0) {
@@ -341,21 +341,21 @@ app.get("/api/suggestions/:userAddress", async (c) => {
     const targetStatements = await db
       .select()
       .from(schema.statements)
-      .where(inArray(schema.statements.id, targetIds));
+      .where(inArray(schema.statements.cidV1, targetIds));
 
     // Get source statement believer counts for comparison
     const sourceIds = [...new Set(notYetBelieved.map((s) => s.fromStatementId))];
     const sourceStatements = await db
       .select()
       .from(schema.statements)
-      .where(inArray(schema.statements.id, sourceIds));
+      .where(inArray(schema.statements.cidV1, sourceIds));
 
-    const sourceMap = new Map(sourceStatements.map((s) => [s.id, s]));
+    const sourceMap = new Map(sourceStatements.map((s) => [s.cidV1, s]));
 
     // Build suggestions: target schema.statements more popular than source
     const suggestions = targetStatements
       .map((target) => {
-        const implication = notYetBelieved.find((i) => i.toStatementId === target.id);
+        const implication = notYetBelieved.find((i) => i.toStatementId === target.cidV1);
         const source = sourceMap.get(implication!.fromStatementId);
 
         if (!source || target.believerCount <= source.believerCount) {

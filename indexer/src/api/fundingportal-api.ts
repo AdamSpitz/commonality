@@ -24,12 +24,12 @@ import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, inArray } from "ponder";
 import {
-  isValidHash,
   isValidAddress,
   parseAddressList,
   parsePositiveInt,
   invalidInputError,
 } from "../utils/validation";
+import { isValidCidV1 } from "../utils/cid-types";
 
 const app = new Hono();
 
@@ -75,8 +75,8 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
   try {
     const statementId = c.req.param("statementId");
 
-    if (!isValidHash(statementId)) {
-      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    if (!isValidCidV1(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid IPFS CIDv1 (bafy...)"), 400);
     }
 
     const trustedAttesters = parseAddressList(c.req.query("attesters"));
@@ -85,7 +85,7 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
       return c.json(invalidInputError("attesters", "Must provide comma-separated list of valid addresses"), 400);
     }
 
-  // Step 1: Find schema.projects directly aligned with this statement
+    // Step 1: Find schema.projects directly aligned with this statement
   const directAlignments = await db
     .select({
       subjectAddress: schema.alignmentAttestations.subjectAddress,
@@ -197,12 +197,12 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
     projectDetails: projectDetails.get(address) || null,
   }));
 
-    return c.json({
-      statementId,
-      directlyAlignedProjects,
-      indirectlyAlignedProjects,
-      totalProjects: directlyAlignedProjects.length + indirectlyAlignedProjects.length,
-    });
+  return c.json({
+    statementId,
+    directlyAlignedProjects,
+    indirectlyAlignedProjects,
+    totalProjects: directlyAlignedProjects.length + indirectlyAlignedProjects.length,
+  });
   } catch (error) {
     console.error("Error fetching aligned schema.projects:", error);
     return c.json({ error: "Internal server error" }, 500);
@@ -234,8 +234,8 @@ app.get("/api/available-funding/:statementId", async (c) => {
   try {
     const statementId = c.req.param("statementId");
 
-    if (!isValidHash(statementId)) {
-      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    if (!isValidCidV1(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid IPFS CIDv1 (bafy...)"), 400);
     }
 
     const trustedAttesters = parseAddressList(c.req.query("attesters"));
@@ -342,8 +342,8 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
   try {
     const statementId = c.req.param("statementId");
 
-    if (!isValidHash(statementId)) {
-      return c.json(invalidInputError("statementId", "Must be a valid 32-byte hash"), 400);
+    if (!isValidCidV1(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid IPFS CIDv1 (bafy...)"), 400);
     }
 
     const trustedAttesters = parseAddressList(c.req.query("attesters"));
@@ -519,12 +519,11 @@ app.get("/api/project-schema.statements/:subjectAddress", async (c) => {
     const stmts = await db
       .select()
       .from(schema.statements)
-      .where(inArray(schema.statements.id, statementIds as `0x${string}`[]));
+      .where(inArray(schema.statements.cidV1, statementIds as string[]));
 
     for (const stmt of stmts) {
-      statementDetails.set(stmt.id, {
-        id: stmt.id,
-        cid: stmt.cid,
+      statementDetails.set(stmt.cidV1, {
+        cidV1: stmt.cidV1,
         statementType: stmt.statementType,
         title: stmt.title,
         excerpt: stmt.excerpt,

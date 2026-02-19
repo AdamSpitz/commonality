@@ -25,9 +25,10 @@ export const alignmentAttestations = onchainTable(
     // Composite key: attester + subject + statement
     attester: t.hex().notNull(),
     subjectAddress: t.hex().notNull(),
-    statementId: t.hex().notNull(),
-    // Topic for indexer filtering (must be non-zero)
-    topicStatementId: t.hex().notNull(),
+    // IPFS CIDv1 of the statement
+    statementId: t.text().notNull(),
+    // Topic for indexer filtering (must be non-zero, IPFS CIDv1)
+    topicStatementId: t.text().notNull(),
     // When attested
     createdAt: t.bigint().notNull(),
     blockNumber: t.bigint().notNull(),
