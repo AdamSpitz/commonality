@@ -1,4 +1,4 @@
-import { generatePrivateKey, privateKeyToAccount, hdKeyToAccount } from 'viem/accounts';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -85,17 +85,29 @@ function addCorrelations(interests) {
 
 const DEFAULT_ACCOUNT_COUNT = 20;
 
+const HARDHAT_PRIVATE_KEYS = [
+  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+  '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d',
+  '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a',
+  '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6',
+  '0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a',
+  '0x8b3a350cf5c34c9194ca8580a83d1183d3e932cb5bf0cb997b24fe9b4e8fd74c',
+];
+
 function getHardhatAccountsFromMnemonic(count) {
   const accounts = [];
-  const mnemonic = 'test test test test test test test test test test test junk';
-  const hdKey = hdKeyToAccount(mnemonic);
   
   for (let i = 0; i < count; i++) {
-    const privateKey = hdKey.derivePath(`m/44'/60'/0'/0/${i}`).key;
+    let privateKey;
+    if (i < HARDHAT_PRIVATE_KEYS.length) {
+      privateKey = HARDHAT_PRIVATE_KEYS[i];
+    } else {
+      privateKey = generatePrivateKey();
+    }
     const account = privateKeyToAccount(privateKey);
     accounts.push({
       address: account.address,
-      privateKey: account.privateKey
+      privateKey: privateKey
     });
   }
   return accounts;
@@ -107,10 +119,12 @@ async function getHardhatAccounts(count) {
 
 function generateUser(id, universe, hardhatAccount = null) {
   let account;
+  let privateKey;
   if (hardhatAccount) {
-    account = privateKeyToAccount(hardhatAccount.privateKey);
+    privateKey = hardhatAccount.privateKey;
+    account = privateKeyToAccount(privateKey);
   } else {
-    const privateKey = generatePrivateKey();
+    privateKey = generatePrivateKey();
     account = privateKeyToAccount(privateKey);
   }
   const engagement = selectEngagementLevel();
@@ -136,7 +150,7 @@ function generateUser(id, universe, hardhatAccount = null) {
   return {
     id,
     address: account.address,
-    privateKey: account.privateKey,
+    privateKey: privateKey,
     engagement: engagement.level,
     actionsPerRound: engagement.actionsPerRound,
     wealth: generateWealth(),

@@ -1,4 +1,5 @@
-import { createPublicClient, createWalletClient, http, parseEther, getBalance, isAddress, zeroAddress, zeroPadValue, getAddress } from 'viem';
+import { createPublicClient, createWalletClient, http, parseEther, isAddress, zeroAddress, getAddress } from 'viem';
+import { padHex } from 'viem/utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import {
   BeliefsAbi,
@@ -86,7 +87,7 @@ class InvariantChecker {
 
     for (const [name, contract] of Object.entries(this.contracts)) {
       try {
-        snapshot.balances[name] = await getBalance(publicClient, {
+        snapshot.balances[name] = await publicClient.getBalance({
           address: contract.address
         });
       } catch (err) {
@@ -167,8 +168,8 @@ class InvariantChecker {
         });
         
         for (const log of logs.slice(0, 20)) {
-          const fromId = log.args.fromStatementId ? zeroPadValue(log.args.fromStatementId, 32) : null;
-          const toId = log.args.toStatementId ? zeroPadValue(log.args.toStatementId, 32) : null;
+          const fromId = log.args.fromStatementId ? padHex(log.args.fromStatementId, 32) : null;
+          const toId = log.args.toStatementId ? padHex(log.args.toStatementId, 32) : null;
           
           if (!fromId || !toId) continue;
           
@@ -212,7 +213,7 @@ class InvariantChecker {
     const initialBalances = {};
     for (const user of this.users) {
       try {
-        initialBalances[user.address] = await getBalance(publicClient, {
+        initialBalances[user.address] = await publicClient.getBalance({
           address: user.address
         });
       } catch (err) {
@@ -227,8 +228,8 @@ class InvariantChecker {
 
       try {
         const clients = createTestClients(sender.privateKey);
-        const senderBefore = await getBalance(publicClient, { address: sender.address });
-        const receiverBefore = await getBalance(publicClient, { address: receiver.address });
+        const senderBefore = await publicClient.getBalance({ address: sender.address });
+        const receiverBefore = await publicClient.getBalance({ address: receiver.address });
 
         const hash = await clients.walletClient.sendTransaction({
           to: receiver.address,
@@ -236,8 +237,8 @@ class InvariantChecker {
         });
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-        const senderAfter = await getBalance(publicClient, { address: sender.address });
-        const receiverAfter = await getBalance(publicClient, { address: receiver.address });
+        const senderAfter = await publicClient.getBalance({ address: sender.address });
+        const receiverAfter = await publicClient.getBalance({ address: receiver.address });
         const gasUsed = receipt.gasUsed * receipt.gasPrice;
 
         const senderExpected = senderBefore - amount - gasUsed;
@@ -336,8 +337,8 @@ class InvariantChecker {
       const outDegree = {};
 
       for (const log of logs) {
-        const from = log.args.fromStatementId ? zeroPadValue(log.args.fromStatementId, 32).toString() : null;
-        const to = log.args.toStatementId ? zeroPadValue(log.args.toStatementId, 32).toString() : null;
+        const from = log.args.fromStatementId ? padHex(log.args.fromStatementId, 32).toString() : null;
+        const to = log.args.toStatementId ? padHex(log.args.toStatementId, 32).toString() : null;
         
         if (!from || !to) continue;
 
@@ -506,10 +507,10 @@ class InvariantChecker {
         const statementsWithImplications = new Set();
         for (const log of implLogs) {
           if (log.args.fromStatementId) {
-            statementsWithImplications.add(zeroPadValue(log.args.fromStatementId, 32).toString());
+            statementsWithImplications.add(padHex(log.args.fromStatementId, 32).toString());
           }
           if (log.args.toStatementId) {
-            statementsWithImplications.add(zeroPadValue(log.args.toStatementId, 32).toString());
+            statementsWithImplications.add(padHex(log.args.toStatementId, 32).toString());
           }
         }
 

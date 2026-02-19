@@ -135,8 +135,11 @@ seed_data() {
     
     cd "$SCRIPT_DIR/fake-data-generation"
     
-    # Install dependencies
-    npm install
+    # Only install dependencies if node_modules doesn't exist
+    if [ ! -d "node_modules" ]; then
+        echo "Installing dependencies..."
+        npm install
+    fi
     
     # If using hardhat accounts, generate users first
     if [[ "$extra_args" == *"--use-hardhat-accounts"* ]]; then
