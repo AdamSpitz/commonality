@@ -76,3 +76,6 @@ export {
   addToCreatedStatements,
   type MutableRefUpdaterContract,
 } from './mutable-refs-actions.js';
+
+// CID utilities
+export { cidToBytes32 } from '../cid-types.js';
