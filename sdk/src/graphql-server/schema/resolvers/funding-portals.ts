@@ -12,8 +12,8 @@ import {
   getAllAlignedProjectsForCause,
   getTopContributorsForCause,
   getUserContributionRankForCause,
-  type GraphQLClient,
 } from '../../../indexer-queries/index.js';
+import { GraphQLClient } from '../../../utils/graphqlClient.js';
 
 export const fundingPortalsResolvers = {
   Query: {

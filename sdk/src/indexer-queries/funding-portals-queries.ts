@@ -2,7 +2,10 @@
  * GraphQL queries for Funding Portals subsystem (AlignmentAttestations)
  */
 
-import { query, type GraphQLClient } from './common.js';
+import { query, type GraphQLClient } from '../utils/graphqlClient.js';
+export {
+  type ContributorStats,
+} from '../shared/types/index.js';
 
 // ============================================================================
 // AlignmentAttestation Queries (Funding Portals)
@@ -467,17 +470,6 @@ export async function getAllAlignedProjectsForCause(
 // ============================================================================
 // Contributor Leaderboards (E3)
 // ============================================================================
-
-export interface ContributorStats {
-  participant: string;
-  totalContributed: bigint;
-  totalRefunded: bigint;
-  netContribution: bigint;
-  contributionCount: number;
-  firstContributionAt?: bigint;
-  lastContributionAt?: bigint;
-  projectsContributedTo: number;
-}
 
 /**
  * Get top contributors for a specific cause (across all aligned projects).

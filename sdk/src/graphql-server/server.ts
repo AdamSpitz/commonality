@@ -5,7 +5,7 @@
 
 import { execute, parse, GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { createGraphQLClient, type GraphQLClient } from '../indexer-queries/common.js';
+import { createGraphQLClient, type GraphQLClient } from '../utils/indexer-sync.js';
 import { typeDefs, resolvers } from './schema/index.js';
 
 /**

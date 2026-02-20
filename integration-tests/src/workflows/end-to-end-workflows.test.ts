@@ -18,7 +18,7 @@ import {
   type DelegatableNotesContract,
   type AlignmentAttestationsContract,
   createGraphQLClient,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   BeliefsAbi,
   ImplicationsAbi,
   PubstarterAbi,
@@ -172,7 +172,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 14. Wait for indexer to sync purchase
-      await waitForIndexerSync(graphqlClient, userClients.publicClient, purchaseTxHash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, userClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ End-to-end workflow completed successfully!');
@@ -308,7 +308,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 16. Wait for indexer to sync purchase
-      await waitForIndexerSync(graphqlClient, delegateUserClients.publicClient, purchaseTxHash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, delegateUserClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ Delegation chain workflow completed successfully!');

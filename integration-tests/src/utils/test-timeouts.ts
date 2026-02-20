@@ -30,7 +30,7 @@ export const TEST_TIMEOUTS = {
 
 /**
  * Indexer sync wait timeout (in milliseconds).
- * Used with waitForIndexerSync() to wait for Ponder indexer to catch up.
+ * Used with waitForIndexerToSyncToTxHash() to wait for Ponder indexer to catch up.
  *
  * Default: 15 seconds should be sufficient for local testing.
  * Increase if tests fail with "Indexer did not sync in time" errors.

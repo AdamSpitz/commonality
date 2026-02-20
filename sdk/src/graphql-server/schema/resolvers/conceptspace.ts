@@ -16,8 +16,8 @@ import {
   getUserBeliefs,
   getUserDisbeliefs,
   getStatementSuggestions,
-  type GraphQLClient,
 } from '../../../indexer-queries/index.js';
+import { GraphQLClient } from '../../../utils/graphqlClient.js';
 
 export const conceptspaceResolvers = {
   Query: {

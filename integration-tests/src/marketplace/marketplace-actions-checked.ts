@@ -17,7 +17,7 @@ import type { Hash, Address } from 'viem';
 import {
   createSaleListing,
   fulfillSaleListing,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type TestClients,
   type SecondaryMarketContract,
 } from '@commonality/sdk';
@@ -95,7 +95,7 @@ export async function createSaleListingChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await createSaleListing(clients, marketplaceContract, params);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     createSaleListingMetadata,
@@ -168,7 +168,7 @@ export async function fulfillSaleListingChecked(
   hash = await runActionAndCheckProperties(
     async () => {
       const h = await fulfillSaleListing(clients, marketplaceContract, params);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, h);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, h);
 
       // Store hash in context for invariant checking
       context.extra!.transactionHash = h;

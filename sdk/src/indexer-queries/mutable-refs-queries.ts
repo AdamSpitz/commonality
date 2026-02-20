@@ -2,31 +2,16 @@
  * GraphQL queries for Mutable Refs subsystem
  */
 
-import { query, type GraphQLClient } from './common.js';
+import { query, type GraphQLClient } from '../utils/graphqlClient.js';
+
+export {
+  type MutableRef,
+  type RefUpdate,
+} from '../shared/types/index.js';
 
 // ============================================================================
 // Mutable Refs Queries
 // ============================================================================
-
-export interface MutableRef {
-  owner: string;
-  name: string;
-  value: string;
-  updatedAt: string;
-  updatedAtBlock: string;
-  transactionHash: string;
-}
-
-export interface RefUpdate {
-  id: string;
-  owner: string;
-  name: string;
-  value: string;
-  blockNumber: string;
-  timestamp: string;
-  transactionHash: string;
-  logIndex: number;
-}
 
 /**
  * Get the current value of a user's ref

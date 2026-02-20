@@ -67,19 +67,19 @@ describe('Conceptspace Beliefs', () => {
     testLog(`  Statement: "${statementData.content}"`);
     testLog(`  Statement ID: ${statementId}`);
 
-    // Express belief - properties checked automatically (includes waitForSync)
+    // Express belief - properties checked automatically (includes wait for sync)
     testLog('  User believes the statement...');
     await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
     testLog('  ✓ Belief recorded correctly (state transitions verified)');
 
-    // Change to disbelief - properties checked automatically (includes waitForSync)
+    // Change to disbelief - properties checked automatically (includes wait for sync)
     testLog('  User changes to disbelief...');
     await disbelieveStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
 
     testLog('  ✓ Disbelief recorded correctly (state transitions verified)');
 
-    // Clear opinion - properties checked automatically (includes waitForSync)
+    // Clear opinion - properties checked automatically (includes wait for sync)
     testLog('  User clears opinion...');
     await clearOpinionChecked(clients, beliefsContract, graphqlClient, statementCid);
 
@@ -99,17 +99,17 @@ describe('Conceptspace Beliefs', () => {
 
     testLog(`  Statement: "${statementData.content}"`);
 
-    // User 1 believes - properties checked automatically (includes waitForSync)
+    // User 1 believes - properties checked automatically (includes wait for sync)
     testLog('  User 1 believes...');
     await believeStatementChecked(clients1, beliefsContract, graphqlClient, statementCid);
 
-    // User 2 also believes - properties checked automatically (includes waitForSync)
+    // User 2 also believes - properties checked automatically (includes wait for sync)
     testLog('  User 2 believes...');
     await believeStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
 
     testLog('  ✓ Multiple users tracked correctly (state transitions verified)');
 
-    // User 2 changes to disbelief - properties checked automatically (includes waitForSync)
+    // User 2 changes to disbelief - properties checked automatically (includes wait for sync)
     testLog('  User 2 changes to disbelief...');
     await disbelieveStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
 
@@ -131,7 +131,7 @@ describe('Conceptspace Beliefs', () => {
     testLog(`  Statement 1: "${statement1Data.content}"`);
     testLog(`  Statement 2: "${statement2Data.content}"`);
 
-    // Believe statement 1, disbelieve statement 2 - properties checked automatically (includes waitForSync)
+    // Believe statement 1, disbelieve statement 2 - properties checked automatically (includes wait for sync)
     testLog('  User believes statement 1...');
     await believeStatementChecked(clients, beliefsContract, graphqlClient, statement1Cid);
 

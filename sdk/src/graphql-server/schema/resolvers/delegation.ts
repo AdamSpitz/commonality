@@ -7,8 +7,8 @@ import {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  type GraphQLClient,
 } from '../../../indexer-queries/index.js';
+import { GraphQLClient } from '../../../utils/graphqlClient.js';
 
 export const delegationResolvers = {
   Query: {

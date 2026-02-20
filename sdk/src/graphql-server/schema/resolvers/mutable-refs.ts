@@ -7,8 +7,8 @@ import {
   getUserRefs,
   getUserRefHistory,
   getRefsByName,
-  type GraphQLClient,
 } from '../../../indexer-queries/index.js';
+import { GraphQLClient } from '../../../utils/graphqlClient.js';
 
 export const mutableRefsResolvers = {
   Query: {

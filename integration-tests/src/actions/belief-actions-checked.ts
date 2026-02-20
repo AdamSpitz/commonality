@@ -19,7 +19,7 @@ import {
   disbelieveStatement,
   clearOpinion,
   cidToBytes32,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type TestClients,
   type BeliefsContract,
 } from '@commonality/sdk';
@@ -82,7 +82,7 @@ export async function believeStatementChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await believeStatement(clients, beliefsContract, statementCid);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     believeStatementMetadata,
@@ -138,7 +138,7 @@ export async function disbelieveStatementChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await disbelieveStatement(clients, beliefsContract, statementCid);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     disbelieveStatementMetadata,
@@ -194,7 +194,7 @@ export async function clearOpinionChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await clearOpinion(clients, beliefsContract, statementCid);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     clearOpinionMetadata,

@@ -33,7 +33,7 @@ This gives us a typed, maintainable API surface that's decoupled from indexer im
 
 ```typescript
 import { createGraphQLExecutor, createTestClients } from '@commonality/sdk';
-import { getStatement, believeStatement, waitForIndexerSync } from '@commonality/sdk';
+import { getStatement, believeStatement, waitForIndexerToSyncToTxHash } from '@commonality/sdk';
 
 // Set up executor and clients
 const executor = createGraphQLExecutor('http://localhost:42069/graphql');
@@ -43,7 +43,7 @@ const clients = createTestClients(privateKey, rpcUrl);
 const txHash = await believeStatement(clients, beliefsContract, statementCid);
 
 // Wait for indexer to process this transaction
-await waitForIndexerSync(executor, clients.publicClient, txHash);
+await waitForIndexerToSyncToTxHash(executor, clients.publicClient, txHash);
 
 // Query data (now includes the latest changes)
 const statement = await getStatement(executor, statementId);
@@ -51,18 +51,18 @@ const statement = await getStatement(executor, statementId);
 
 ### Indexer Synchronization
 
-When you perform blockchain actions (transactions), the indexer needs time to process the events and update its database. Use `waitForIndexerSync()` to ensure the indexer has caught up before querying:
+When you perform blockchain actions (transactions), the indexer needs time to process the events and update its database. Use `waitForIndexerToSyncToBlockNumber()` or  `waitForIndexerToSyncToTxHash()` to ensure the indexer has caught up before querying:
 
 ```typescript
-import { waitForIndexerSync, waitForSync } from '@commonality/sdk';
+import { waitForIndexerToSyncToTxHash, waitForIndexerToSyncToBlockNumber } from '@commonality/sdk';
 
-// Option 1: Wait for indexer to process a specific transaction (recommended)
+// Option 1: Wait for indexer to process a specific transaction (just a convenience wrapper around waitForIndexerToSyncToBlockNumber)
 const txHash = await someContractWrite();
-await waitForIndexerSync(graphqlClient, publicClient, txHash);
+await waitForIndexerToSyncToTxHash(graphqlClient, publicClient, txHash);
 
 // Option 2: Wait for a specific block number
 const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
-await waitForSync(graphqlClient, receipt.blockNumber);
+await waitForIndexerToSyncToBlockNumber(graphqlClient, receipt.blockNumber);
 ```
 
 ## Structure

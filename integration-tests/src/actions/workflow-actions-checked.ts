@@ -8,7 +8,7 @@
  * Usage:
  *   // Instead of:
  *   await createAndSignStatement(clients, contracts, data, options);
- *   await waitForIndexerSync(graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(graphqlClient, publicClient);
  *
  *   // Write:
  *   await createAndSignStatementChecked(clients, contracts, graphqlClient, data, options);
@@ -18,7 +18,7 @@ import type { Hash } from 'viem';
 import {
   createAndSignStatement,
   cidToBytes32,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type TestClients,
   type BeliefsContract,
   type MutableRefUpdaterContract,
@@ -108,9 +108,9 @@ export async function createAndSignStatementChecked(
   // Wait for sync on the sign transaction (the belief transaction)
   // Only if we have a valid graphqlClient
   try {
-    await waitForIndexerSync(graphqlClient, clients.publicClient, result.signTxHash);
+    await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, result.signTxHash);
   } catch (error) {
-    // If waitForIndexerSync fails (e.g., invalid graphqlClient in test scenarios),
+    // If waitForIndexerToSyncToTxHash fails (e.g., invalid graphqlClient in test scenarios),
     // skip the invariant checks and just return the result
     return result;
   }

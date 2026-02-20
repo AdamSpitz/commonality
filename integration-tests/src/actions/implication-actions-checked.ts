@@ -17,7 +17,7 @@ import type { Hash } from 'viem';
 import {
   attestImplication,
   cidToBytes32,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type TestClients,
   type ImplicationsContract,
 } from '@commonality/sdk';
@@ -117,7 +117,7 @@ export async function attestImplicationChecked(
         toStatementCid,
         explanationCid
       );
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestImplicationMetadata,

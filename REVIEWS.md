@@ -88,7 +88,7 @@ Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned i
 - ✅ Uses Docker Compose with healthchecks for proper orchestration
 - ✅ Clean containers/volumes between runs
 - ✅ SDK properly used for actions and GraphQL for queries
-- ✅ waitForIndexerSync() used consistently after all transactions
+- ✅ waitForIndexerToSyncToTxHash() used consistently after all transactions
 - ✅ Account isolation via createIsolatedTestClients() - each suite gets unique accounts
 - ✅ Comprehensive coverage: workflows, conceptspace, delegation, fundingportal, marketplace, pubstarter, mutable-refs
 - ✅ Environment validation with clear error messages

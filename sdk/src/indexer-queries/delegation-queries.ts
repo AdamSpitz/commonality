@@ -2,7 +2,7 @@
  * GraphQL queries for Delegation subsystem
  */
 
-import { query, type GraphQLClient } from './common.js';
+import { query, type GraphQLClient } from '../utils/graphqlClient.js';
 
 // ============================================================================
 // Delegation Queries

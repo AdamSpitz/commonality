@@ -7,7 +7,7 @@
  * Usage:
  *   // Instead of:
  *   await updateRef(clients, contract, refName, value);
- *   await waitForIndexerSync(graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(graphqlClient, publicClient);
  *
  *   // Write:
  *   await updateRefChecked(clients, contract, graphqlClient, refName, value);
@@ -17,7 +17,7 @@ import type { Hash } from 'viem';
 import {
   updateRef,
   appendToUserList,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type TestClients,
   type MutableRefUpdaterContract,
 } from '@commonality/sdk';
@@ -85,7 +85,7 @@ export async function updateRefChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await updateRef(clients, mutableRefContract, refName, value);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     updateRefMetadata,
@@ -147,7 +147,7 @@ export async function appendToUserListChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await appendToUserList(graphqlClient, clients, mutableRefContract, refName, itemToAppend);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     appendToUserListMetadata,

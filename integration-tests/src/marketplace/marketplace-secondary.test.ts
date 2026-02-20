@@ -22,7 +22,7 @@ import {
   approveERC1155ForMarketplace,
   createGraphQLClient,
   assertNotNull,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type PubstarterContract,
   type AssuranceContract,
   type SecondaryMarketContract,
@@ -299,7 +299,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       { saleListingId: 0n }
     );
 
-    await waitForIndexerSync(graphqlClient, sellerClients.publicClient, cancelHash);
+    await waitForIndexerToSyncToTxHash(graphqlClient, sellerClients.publicClient, cancelHash);
 
     // Verify listing is cancelled
     const cancelledListing = assertNotNull(
@@ -391,7 +391,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerSync(graphqlClient, buyerClients.publicClient, orderHash);
+    await waitForIndexerToSyncToTxHash(graphqlClient, buyerClients.publicClient, orderHash);
 
     // Query the buy order
     const buyOrder = assertNotNull(
@@ -414,7 +414,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerSync(graphqlClient, sellerClients.publicClient, fulfillHash);
+    await waitForIndexerToSyncToTxHash(graphqlClient, sellerClients.publicClient, fulfillHash);
 
     // Query updated buy order
     const updatedOrder = assertNotNull(
@@ -493,7 +493,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerSync(graphqlClient, buyerClients.publicClient, orderHash);
+    await waitForIndexerToSyncToTxHash(graphqlClient, buyerClients.publicClient, orderHash);
 
     // Verify order exists
     const order = assertNotNull(
@@ -510,7 +510,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       { buyOrderId: 0n }
     );
 
-    await waitForIndexerSync(graphqlClient, buyerClients.publicClient, cancelHash);
+    await waitForIndexerToSyncToTxHash(graphqlClient, buyerClients.publicClient, cancelHash);
 
     // Verify order is cancelled
     const cancelledOrder = assertNotNull(

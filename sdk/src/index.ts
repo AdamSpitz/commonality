@@ -15,7 +15,9 @@ export * from './graphql-queries/index.js';
 export * from './graphql-server/index.js';
 
 // Re-export common query utilities for tests
-export { waitForSync, waitForIndexerSync, assertNotNull } from './indexer-queries/common.js';
+export { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from './utils/indexer-sync.js';
+
+export { assertNotNull } from './utils/index.js';
 
 // For backward compatibility, export createGraphQLExecutor as createGraphQLClient
 // This allows existing code to work with the new executor-based system

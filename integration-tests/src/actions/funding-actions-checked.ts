@@ -20,7 +20,7 @@ import {
   refundProjectTokens,
   withdrawProjectFunds,
   burnTokens,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type TestClients,
   type AssuranceContract,
   type PubstarterContract,
@@ -112,7 +112,7 @@ export async function createProjectChecked(
     async () => {
       const result = await createProject(clients, pubstarterContract, params);
       projectDetails = result.projectDetails;
-      await waitForIndexerSync(graphqlClient, clients.publicClient, result.hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, result.hash);
       return result;
     },
     createProjectMetadata,
@@ -203,7 +203,7 @@ export async function buyProjectTokensChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await buyProjectTokens(clients, assuranceContract, params);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     buyProjectTokensMetadata,
@@ -284,7 +284,7 @@ export async function refundProjectTokensChecked(
         tokenIds: params.tokenIds,
         tokenCounts: params.tokenCounts,
       });
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     refundProjectTokensMetadata,
@@ -337,7 +337,7 @@ export async function withdrawProjectFundsChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await withdrawProjectFunds(clients, assuranceContract);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     withdrawProjectFundsMetadata,
@@ -404,7 +404,7 @@ export async function burnTokensChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await burnTokens(clients, tokenAddress, params);
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     burnTokensMetadata,

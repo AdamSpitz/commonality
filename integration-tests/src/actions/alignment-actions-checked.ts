@@ -7,7 +7,7 @@
  * Usage:
  *   // Instead of:
  *   await attestAlignment(clients, contract, subjectAddress, statementCid, topicStatementCid);
- *   await waitForIndexerSync(graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(graphqlClient, publicClient);
  *   // ... manual assertions ...
  *
  *   // Write:
@@ -18,7 +18,7 @@ import type { Hash, Address } from 'viem';
 import {
   attestAlignment,
   attestAlignmentsBatch,
-  waitForIndexerSync,
+  waitForIndexerToSyncToTxHash,
   type TestClients,
   type AlignmentAttestationsContract,
 } from '@commonality/sdk';
@@ -94,7 +94,7 @@ export async function attestAlignmentChecked(
         statementCid,
         topicStatementCid
       );
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestAlignmentMetadata,
@@ -160,7 +160,7 @@ export async function attestAlignmentsBatchChecked(
         statementCids,
         topicStatementCids
       );
-      await waitForIndexerSync(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestAlignmentsBatchMetadata,

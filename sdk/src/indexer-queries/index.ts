@@ -2,15 +2,6 @@
  * Queries index - exports all query functions
  */
 
-// Common utilities
-export {
-  createGraphQLClient,
-  assertNotNull,
-  waitForSync,
-  waitForIndexerSync,
-  type GraphQLClient,
-} from './common.js';
-
 // Conceptspace queries
 export {
   getStatement,

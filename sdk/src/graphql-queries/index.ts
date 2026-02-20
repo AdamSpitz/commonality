@@ -26,7 +26,7 @@ export {
 
 // Re-export the executor creation function and GraphQLClient type
 export { createGraphQLExecutor, type GraphQLExecutor };
-export type { GraphQLClient } from '../indexer-queries/common.js';
+export type { GraphQLClient } from '../utils/graphqlClient.js';
 
 // Re-export types from the old system for compatibility
 export type {
@@ -53,7 +53,22 @@ export type {
   ProjectAlignment,
   IndirectProjectAlignment,
   CauseFundingMetrics,
+} from '../indexer-queries/index.js';
+
+export type {
+} from '../shared/types/conceptspace.js';
+
+export type {
+} from '../shared/types/delegation.js';
+
+export type {
+} from '../shared/types/pubstarter.js';
+
+export type {
   ContributorStats,
+} from '../shared/types/funding-portals.js';
+
+export type {
   MutableRef,
   RefUpdate,
-} from '../indexer-queries/index.js';
+} from '../shared/types/mutable-refs.js';

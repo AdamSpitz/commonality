@@ -3,75 +3,8 @@
  */
 
 import { INDEXER_SYNC } from '../constants.js';
-
-// Safe environment variable access that works in both Node.js and browser
-function getEnvVar(name: string): string | undefined {
-  // Try Node.js process.env
-  const proc = (globalThis as any).process;
-  if (proc?.env?.[name]) {
-    return proc.env[name];
-  }
-  // Try Vite's import.meta.env (available in browser builds)
-  // In Node.js ESM, import.meta exists but import.meta.env is undefined
-  const metaEnv = (import.meta as any).env;
-  if (metaEnv?.[name]) {
-    return metaEnv[name];
-  }
-  return undefined;
-}
-
-export interface GraphQLClient {
-  url: string;
-}
-
-/**
- * Assert that a value is not null/undefined, throwing a descriptive error if it is
- */
-export function assertNotNull<T>(value: T | null | undefined, description: string): T {
-  if (value === null || value === undefined) {
-    throw new Error(`${description} not found in indexer`);
-  }
-  return value;
-}
-
-/**
- * Create a GraphQL client
- */
-export function createGraphQLClient(url = 'http://localhost:42069/graphql'): GraphQLClient {
-  return { url };
-}
-
-/**
- * Execute a GraphQL query
- */
-export async function query<T = any>(
-  client: GraphQLClient,
-  queryString: string,
-  variables?: Record<string, any>
-): Promise<T> {
-  const response = await fetch(client.url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: queryString,
-      variables,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
-  }
-
-  const result = await response.json() as { data?: T; errors?: any[] };
-
-  if (result.errors) {
-    throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-  }
-
-  return result.data as T;
-}
+import { GraphQLClient, query } from './graphqlClient.js';
+import { getEnvVar } from './index.js';
 
 /**
  * Wait for the indexer to sync to a specific block
@@ -88,7 +21,7 @@ export async function query<T = any>(
  * @returns Promise that resolves when indexer reaches target block
  * @throws Error if timeout is reached or sync appears stuck
  */
-export async function waitForSync(
+export async function waitForIndexerToSyncToBlockNumber(
   client: GraphQLClient | { indexerClient: GraphQLClient },
   targetBlock: bigint,
   timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
@@ -192,7 +125,7 @@ export async function waitForSync(
 /**
  * Wait for the indexer to sync after a transaction
  *
- * This is a convenience wrapper around waitForSync that automatically
+ * This is a convenience wrapper around waitForIndexerToSyncToBlockNumber that automatically
  * fetches the transaction receipt to get the block number, then waits
  * for the indexer to process that block.
  *
@@ -209,7 +142,7 @@ export async function waitForSync(
  * @example
  * ```typescript
  * import { createPublicClient, http } from 'viem';
- * import { waitForIndexerSync, createGraphQLClient } from '@commonality/sdk';
+ * import { waitForIndexerToSyncToTxHash, createGraphQLClient } from '@commonality/sdk';
  *
  * const publicClient = createPublicClient({
  *   transport: http('http://localhost:8545')
@@ -220,13 +153,13 @@ export async function waitForSync(
  * const txHash = await someContractWrite();
  *
  * // Wait for indexer to process this specific transaction
- * await waitForIndexerSync(graphqlClient, publicClient, txHash);
+ * await waitForIndexerToSyncToTxHash(graphqlClient, publicClient, txHash);
  *
  * // Now query the indexer knowing it has indexed this transaction
  * const data = await queryIndexer();
  * ```
  */
-export async function waitForIndexerSync(
+export async function waitForIndexerToSyncToTxHash(
   client: GraphQLClient | { indexerClient: GraphQLClient },
   publicClient: {
     getBlockNumber: () => Promise<bigint>;
@@ -236,5 +169,5 @@ export async function waitForIndexerSync(
   timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
   const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
-  return waitForSync(client, receipt.blockNumber, timeoutMs);
+  return waitForIndexerToSyncToBlockNumber(client, receipt.blockNumber, timeoutMs);
 }
