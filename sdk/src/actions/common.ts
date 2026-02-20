@@ -91,36 +91,6 @@ export const PROJECT_ALIGNMENT_TOPIC: `0x${string}` = keccak256(
 // ============================================================================
 
 /**
- * Convert IPFS CID to bytes32 for onchain storage
- */
-export function cidToBytes32(cid: string): `0x${string}` {
-  const parsed = CID.parse(cid);
-  const digest = parsed.multihash.digest;
-
-  if (digest.length !== 32) {
-    throw new Error('CID digest must be 32 bytes for bytes32 conversion');
-  }
-
-  return `0x${Buffer.from(digest).toString('hex')}` as `0x${string}`;
-}
-
-/**
- * Convert bytes32 to IPFS CID
- */
-export function bytes32ToCid(bytes32: `0x${string}`): string {
-  const digestBytes = Buffer.from(bytes32.slice(2), 'hex');
-  // Create a MultihashDigest directly from the bytes
-  const hash = {
-    code: sha256.code,
-    digest: digestBytes,
-    size: digestBytes.length,
-    bytes: new Uint8Array([0x12, 0x20, ...digestBytes]) // 0x12 = sha256 code, 0x20 = 32 bytes
-  };
-  const cid = CID.create(1, raw.code, hash);
-  return cid.toString();
-}
-
-/**
  * In-memory mock IPFS storage for unit tests
  * Maps CID -> content
  */

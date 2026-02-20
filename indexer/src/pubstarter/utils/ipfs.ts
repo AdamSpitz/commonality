@@ -2,9 +2,6 @@
  * IPFS utilities for Pubstarter metadata fetching
  */
 
-// IPFS gateway URL - using Pinata as per spec
-const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
-
 /**
  * Project metadata JSON structure
  * This should match the structure defined in the Pubstarter spec
@@ -23,10 +20,11 @@ export interface ProjectMetadata {
  * Returns null if fetch fails
  */
 export async function fetchProjectMetadata(
+  ipfsGateway: string,
   cidString: string
 ): Promise<ProjectMetadata | null> {
   try {
-    const url = `${IPFS_GATEWAY}/${cidString}`;
+    const url = `${ipfsGateway}/${cidString}`;
     const response = await fetch(url, {
       signal: AbortSignal.timeout(10000), // 10 second timeout
     });

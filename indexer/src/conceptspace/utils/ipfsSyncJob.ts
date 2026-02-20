@@ -8,21 +8,13 @@
  * by providing a retry mechanism for failed fetches.
  */
 
+import { SyncJobContext } from "../../utils/ipfsSyncJob.js";
+import { Logger } from "../../utils/logger.js";
 import { fetchStatementContent, extractExcerpt } from "./ipfs.js";
 
 // Configuration
-const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_RETRIES = 10;
 const RETRY_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-interface SyncJobContext {
-  db: any;
-  log: {
-    info: (msg: string) => void;
-    warn: (msg: string) => void;
-    error: (msg: string) => void;
-  };
-}
 
 /**
  * Track retry attempts per statement to avoid excessive retries
@@ -75,7 +67,7 @@ async function syncStatementContent(
 
   // Try to fetch content
   try {
-    const content = await fetchStatementContent(cidV1);
+    const content = await fetchStatementContent(ctx.ipfsGateway, cidV1);
 
     if (!content) {
       // Fetch failed, increment retry counter
@@ -117,7 +109,7 @@ async function syncStatementContent(
 /**
  * Run a single sync iteration - fetch pending statements and retry IPFS fetches
  */
-export async function runIpfsSyncIteration(ctx: SyncJobContext): Promise<void> {
+export async function runConceptspaceIpfsSyncIteration(ctx: SyncJobContext): Promise<void> {
   try {
     // Import statements schema dynamically
     const { statements } = await import("../../../ponder.schema.js");
@@ -158,32 +150,4 @@ export async function runIpfsSyncIteration(ctx: SyncJobContext): Promise<void> {
   } catch (error) {
     ctx.log.error(`IPFS sync job error: ${error}`);
   }
-}
-
-/**
- * Start the background IPFS sync job
- * Returns a cleanup function to stop the job
- */
-export function startIpfsSyncJob(ctx: SyncJobContext): () => void {
-  ctx.log.info(
-    `Starting IPFS sync job (interval: ${SYNC_INTERVAL_MS / 1000}s, max retries: ${MAX_RETRIES})`
-  );
-
-  // Run immediately on startup
-  runIpfsSyncIteration(ctx).catch((error) => {
-    ctx.log.error(`Initial IPFS sync failed: ${error}`);
-  });
-
-  // Then run periodically
-  const intervalId = setInterval(() => {
-    runIpfsSyncIteration(ctx).catch((error) => {
-      ctx.log.error(`Periodic IPFS sync failed: ${error}`);
-    });
-  }, SYNC_INTERVAL_MS);
-
-  // Return cleanup function
-  return () => {
-    clearInterval(intervalId);
-    ctx.log.info("IPFS sync job stopped");
-  };
 }

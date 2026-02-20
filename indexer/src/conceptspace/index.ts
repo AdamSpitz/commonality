@@ -16,9 +16,8 @@ import {
   users,
   attesters,
 } from "ponder:schema";
-import { bytes32ToCid, cidToBytes32 } from "./utils/ipfs";
 import { BeliefState } from "../constants";
-import { IpfsCidV1, IpfsCidBytes32 } from "../utils/cid-types";
+import { IpfsCidV1, IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
 
 // Belief state constants (matching Solidity)
 const NO_OPINION = BeliefState.NO_OPINION;

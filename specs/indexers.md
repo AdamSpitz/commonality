@@ -52,7 +52,7 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 - Reverse implication maps indexed by attester: `(implied_statement_id, attester_address, implying_statement_id)`
 - Implications are NOT transitive - indirect support is computed via direct implication lookups only (simple DB query, no graph traversal needed)
 - Time-series data for trending calculations ("signatures per time window")
-- Full-text search on statement content (see indexer/IPFS_SYNC_README.md)
+- Full-text search on statement content
 
 **Example query:** "Give me all statements that directly imply statement S, according to attesters A1 and A2" (then union their supporters for indirect support count)
 

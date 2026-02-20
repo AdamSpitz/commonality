@@ -1,4 +1,6 @@
 import { CID } from "multiformats";
+import { sha256 } from 'multiformats/hashes/sha2';
+import * as raw from 'multiformats/codecs/raw';
 
 /**
  * Different types for IPFS CIDs to prevent mixing up formats.
@@ -21,6 +23,7 @@ export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
 export function isValidCidV1(cid: string): boolean {
   return /^Qm[a-zA-Z0-9]{44}$/.test(cid) || /^baf[a-zA-Z0-9]{59}$/.test(cid);
 }
+
 /**
  * Convert IPFS CID to bytes32 for onchain storage
  */
@@ -36,29 +39,17 @@ export function cidToBytes32(cid: string): `0x${string}` {
 }
 
 /**
- * Convert a bytes32 hex string to an IPFS CID string
- * Assumes CIDv1 with SHA-256 hash (32 bytes = 256 bits)
+ * Convert bytes32 to IPFS CID
  */
-export function bytes32ToCid(bytes32: IpfsCidBytes32): IpfsCidV1 {
-  // Remove 0x prefix and convert to bytes
-  const digestHex = bytes32.slice(2);
-  const digestBytes = new Uint8Array(32);
-  for (let i = 0; i < 32; i++) {
-    digestBytes[i] = parseInt(digestHex.slice(i * 2, i * 2 + 2), 16);
-  }
-
-  // Create CIDv1 with:
-  // - version: 1
-  // - codec: 0x55 (raw) or 0x70 (dag-pb) - using dag-pb for JSON
-  // - hash function: 0x12 (sha2-256)
-  // - hash length: 0x20 (32 bytes)
-  const multihash = new Uint8Array(34);
-  multihash[0] = 0x12; // sha2-256
-  multihash[1] = 0x20; // 32 bytes
-  multihash.set(digestBytes, 2);
-
-  // Create CID - using dag-pb codec (0x70) for JSON content
-  const cid = CID.createV1(0x70, { code: 0x12, size: 32, digest: multihash.slice(2), bytes: multihash });
-
-  return cid.toString() as IpfsCidV1;
+export function bytes32ToCid(bytes32: `0x${string}`): string {
+  const digestBytes = Buffer.from(bytes32.slice(2), 'hex');
+  // Create a MultihashDigest directly from the bytes
+  const hash = {
+    code: sha256.code,
+    digest: digestBytes,
+    size: digestBytes.length,
+    bytes: new Uint8Array([0x12, 0x20, ...digestBytes]) // 0x12 = sha256 code, 0x20 = 32 bytes
+  };
+  const cid = CID.create(1, raw.code, hash);
+  return cid.toString();
 }

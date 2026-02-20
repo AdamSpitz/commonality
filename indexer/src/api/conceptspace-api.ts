@@ -32,7 +32,9 @@ import {
   invalidInputError,
 } from "../utils/validation";
 import { isValidCidV1 } from "../utils/cid-types";
-import { runIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob";
+import { runConceptspaceIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob";
+
+const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 
 const app = new Hono();
 
@@ -58,7 +60,8 @@ app.post("/api/sync-ipfs", async (c) => {
     let successCount = 0;
     let failureCount = 0;
 
-    await runIpfsSyncIteration({
+    await runConceptspaceIpfsSyncIteration({
+      ipfsGateway: IPFS_GATEWAY,
       db,
       log: {
         info: (msg: string) => {
