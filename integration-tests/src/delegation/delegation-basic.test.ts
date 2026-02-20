@@ -41,7 +41,7 @@ describe('Delegation System', () => {
   const SUITE_NAME = 'delegation-basic';
 
   let delegatableNotesContract: DelegatableNotesContract;
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     if (!DELEGATABLE_NOTES_ADDRESS) {

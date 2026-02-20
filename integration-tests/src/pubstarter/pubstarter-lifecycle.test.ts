@@ -34,7 +34,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-lifecycle';
 
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     graphqlClient = createGraphQLClient(GRAPHQL_URL);

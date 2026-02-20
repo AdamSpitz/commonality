@@ -49,7 +49,7 @@ describe('Delegation Spending', () => {
 
   let delegatableNotesContract: DelegatableNotesContract;
   let pubstarterContract: PubstarterContract;
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     if (!DELEGATABLE_NOTES_ADDRESS) {

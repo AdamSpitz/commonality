@@ -42,7 +42,7 @@ describe('Conceptspace Indirect Support', () => {
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     if (!BELIEFS_CONTRACT_ADDRESS) {

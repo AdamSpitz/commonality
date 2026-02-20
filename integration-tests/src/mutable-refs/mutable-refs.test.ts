@@ -37,7 +37,7 @@ describe('Mutable Refs', () => {
   const SUITE_NAME = 'mutable-refs';
 
   let mutableRefUpdaterContract: MutableRefUpdaterContract;
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     if (!MUTABLE_REF_UPDATER_CONTRACT_ADDRESS) {

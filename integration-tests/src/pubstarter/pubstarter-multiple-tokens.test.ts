@@ -33,7 +33,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-multiple-tokens';
 
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     if (!PUBSTARTER_ADDRESS) {

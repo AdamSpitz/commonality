@@ -45,7 +45,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   let alignmentAttestationsContract: AlignmentAttestationsContract;
   let pubstarterContract: PubstarterContract;
   let implicationsContract: ImplicationsContract;
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     if (!ALIGNMENT_ATTESTATIONS_ADDRESS) {

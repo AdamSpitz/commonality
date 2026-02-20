@@ -39,7 +39,7 @@ describe('Conceptspace Beliefs', () => {
   const SUITE_NAME = 'conceptspace-beliefs';
 
   let beliefsContract: BeliefsContract;
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     if (!BELIEFS_CONTRACT_ADDRESS) {

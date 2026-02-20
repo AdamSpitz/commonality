@@ -41,7 +41,7 @@ describe('Funding Portal - Alignment Attestations', () => {
 
   let alignmentAttestationsContract: AlignmentAttestationsContract;
   let pubstarterContract: PubstarterContract;
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(async () => {
     if (!ALIGNMENT_ATTESTATIONS_ADDRESS) {

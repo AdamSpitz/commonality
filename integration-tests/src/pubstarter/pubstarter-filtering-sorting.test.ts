@@ -39,7 +39,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-filtering-sorting';
 
-  let graphqlClient: ReturnType<typeof createGraphQLClient>;
+  let graphqlClient: GraphQLClient;
 
   before(() => {
     graphqlClient = createGraphQLClient(GRAPHQL_URL);
