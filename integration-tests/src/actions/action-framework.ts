@@ -17,8 +17,8 @@
  * and makes actions reusable in generative testing.
  */
 
-import { ActionTestingMachinery } from './action-machinery.js';
-export { ActionTestingMachinery };
+import { type ActionTestingMachinery } from './action-machinery.js';
+export { type ActionTestingMachinery };
 
 /**
  * Category of action - used for organizing and filtering
