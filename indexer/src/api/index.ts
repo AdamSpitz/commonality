@@ -13,23 +13,19 @@ import { Hono } from "hono";
 import { client, graphql } from "ponder";
 
 // Import subsystem APIs
-import conceptspaceApi from "./conceptspace-api";
-import pubstarterApi from "./pubstarter-api";
-import delegationApi from "./delegation-api";
-import fundingportalApi from "./fundingportal-api";
+import conceptspaceApi from "../conceptspace/api";
+import pubstarterApi from "../pubstarter/api";
+import delegationApi from "../delegation/api";
+import fundingportalApi from "../fundingportal/api";
 
 // Import background jobs
-import { IpfsSyncJobDesc, startIpfsSyncJobs } from "../utils/ipfsSyncJob.js";
+import { startIpfsSyncJobs } from "../utils/ipfsSyncJob.js";
 import { runPubstarterIpfsSyncIteration } from "../pubstarter/utils/ipfsSyncJob";
 import { runConceptspaceIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob.js";
 
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 
 const app = new Hono();
-
-// ============================================================================
-// ENDPOINTS
-// ============================================================================
 
 // Expose SQL client for direct queries (all tables)
 app.use("/sql/*", client({ db, schema }));

@@ -5,8 +5,6 @@
 // Common utilities
 export {
   createTestClients,
-  cidToBytes32,
-  bytes32ToCid,
   uploadToIPFS,
   fetchFromIPFS,
   fetchFromMockIPFS,

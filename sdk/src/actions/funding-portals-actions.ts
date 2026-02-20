@@ -3,7 +3,8 @@
  */
 
 import { type Address, type Hash } from 'viem';
-import { cidToBytes32, type TestClients } from './common.js';
+import { type TestClients } from './common.js';
+import { cidToBytes32 } from '../cid-types.js';
 
 // ============================================================================
 // AlignmentAttestations Actions (Funding Portals)

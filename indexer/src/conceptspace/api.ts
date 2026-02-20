@@ -32,7 +32,7 @@ import {
   invalidInputError,
 } from "../utils/validation";
 import { isValidCidV1 } from "../utils/cid-types";
-import { runConceptspaceIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob";
+import { runConceptspaceIpfsSyncIteration } from "./utils/ipfsSyncJob";
 
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 

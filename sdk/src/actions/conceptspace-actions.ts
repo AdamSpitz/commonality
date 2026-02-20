@@ -3,8 +3,9 @@
  */
 
 import { type Address, type Hash } from 'viem';
-import { cidToBytes32, type TestClients } from './common.js';
+import { type TestClients } from './common.js';
 import { type DisplayableDocument, publishDocument } from '../displayable-document.js';
+import { cidToBytes32 } from '../cid-types.js';
 
 // ============================================================================
 // Conceptspace Actions

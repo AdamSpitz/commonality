@@ -10,8 +10,7 @@
 
 import { ponder } from "ponder:registry";
 import { alignmentAttestations } from "ponder:schema";
-import { bytes32ToCid } from "../conceptspace/utils/ipfs";
-import { IpfsCidBytes32 } from "../utils/cid-types";
+import { IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
 
 /**
  * Handle AlignmentAttestation events from the AlignmentAttestations contract

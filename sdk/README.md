@@ -4,7 +4,7 @@ Client library for interacting with the Commonality protocol. Used by integratio
 
 ## Notes for AI working on this code
 
-If you modify any of this sdk code, please make sure "./scripts/run-integration-tests.sh" (in the top-level directory) succeeds when you're done.
+If you modify any of this sdk code, please make sure "npm run integration-tests" (in the top-level directory) succeeds when you're done.
 
 ## Architecture
 
@@ -19,6 +19,8 @@ The SDK provides two main interfaces:
    - Uses a local GraphQL executor that wraps the Ponder indexer
 
 ## Local GraphQL Approach
+
+NOTE: This is a little bit unusual, so pay attention.
 
 Rather than querying the Ponder indexer directly, we run a local GraphQL executor that:
 - Provides a clean, stable API schema (hides Ponder's auto-generated quirks)
@@ -65,17 +67,6 @@ await waitForSync(graphqlClient, receipt.blockNumber);
 
 ## Structure
 
-```
-sdk/
-├── src/
-│   ├── actions/              # Blockchain write operations
-│   ├── queries/              # Direct indexer queries (used by resolvers)
-│   ├── graphql-queries/      # Public query API (uses local GraphQL)
-│   ├── graphql-server/       # Local GraphQL schema and resolvers
-│   │   └── schema/
-│   │       ├── type-defs.ts  # GraphQL schema
-│   │       └── resolvers/    # Query resolvers
-│   └── abis.ts               # Smart contract ABIs
-```
-
-The `graphql-queries/` directory is the main public API for reading data. The `queries/` directory contains the underlying implementation that talks to the indexer.
+  - The `graphql-queries/` directory is the main public API for reading data.
+  - The `queries/` directory contains the underlying implementation that talks to the indexer.
+  - The `actions/` directory contains actions that "write" to the system (blockchain writes, IPFS uploads).
