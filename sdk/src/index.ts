@@ -22,10 +22,6 @@ export { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from 
 
 export { assertNotNull } from './utils/index.js';
 
-// For backward compatibility, export createGraphQLExecutor as createGraphQLClient
-// This allows existing code to work with the new executor-based system
-export { createGraphQLExecutor as createGraphQLClient } from './graphql-server/index.js';
-
 // Re-export constants for convenience
 export { TEST_TIMEOUTS, INDEXER_SYNC, TEST_PRIVATE_KEYS } from './constants.js';
 
