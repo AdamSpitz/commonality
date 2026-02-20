@@ -13,7 +13,8 @@
     "fake-data-generation"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present && npm run indexer:typecheck && npm run integration-tests:typecheck && npm run ui:build && npm run attester:build",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present && npm run ui:build",
     "attester:build": "cd attester && npm run build",
     "ui:build": "cd ui && npm run build",
     "test": "npm run sdk:test && npm run hardhat:test && npm run integration-tests && npm run ui:test && npm run ui:test:e2e",

@@ -12,7 +12,7 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   createAndSignStatement,
   createStatement,
-  createGraphQLClient,
+  createGraphQLExecutor,
   BeliefsAbi,
   MutableRefUpdaterAbi,
   type BeliefsContract,
@@ -83,7 +83,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
         account: address,
       }
 
-      const graphqlClient = createGraphQLClient(GRAPHQL_URL)
+      const graphqlExecutor = createGraphQLExecutor(GRAPHQL_URL)
 
       // Use the new high-level workflow function
       const result = await createAndSignStatement(
@@ -94,7 +94,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
         },
         statementData,
         {
-          graphqlClient,
+          graphqlExecutor,
           addToCreatedList: true,
           onIPFSUpload: (cid) => {
             console.log('Statement uploaded to IPFS:', cid)

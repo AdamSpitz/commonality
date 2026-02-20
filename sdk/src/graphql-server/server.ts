@@ -8,6 +8,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createGraphQLClient, type GraphQLClient } from '../utils/graphqlClient.js';
 import { typeDefs, resolvers } from './schema/index.js';
 
+export { createGraphQLClient, GraphQLClient };
+
+
 /**
  * GraphQL executor that can execute queries locally
  */

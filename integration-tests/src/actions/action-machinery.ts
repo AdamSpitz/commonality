@@ -1,17 +1,7 @@
-import { createGraphQLExecutor, GraphQLClient, GraphQLExecutor } from "@commonality/sdk";
-import { createGraphQLClient } from "../../../sdk/dist/sdk/src/utils";
+import { SDKMachinery, createSDKMachinery } from "@commonality/sdk";
 
-export type ActionTestingMachinery = {
-  graphqlClient: GraphQLClient;
-  graphqlExecutor: GraphQLExecutor;
-};
+export type ActionTestingMachinery = SDKMachinery;
 
 export function createActionTestingMachinery(indexerUrl?: string): ActionTestingMachinery {
-  const graphqlClient = createGraphQLClient(indexerUrl);
-  const graphqlExecutor = createGraphQLExecutor(indexerUrl);
-
-  return {
-    graphqlClient,
-    graphqlExecutor,
-  };
+  return createSDKMachinery(indexerUrl);
 }

@@ -1,21 +1,8 @@
-/**
- * Commonality SDK
- *
- * This SDK provides type-safe actions and queries for interacting with
- * the Commonality smart contracts and indexer.
- */
-
-// Re-export everything from actions
 export * from './actions/index.js';
-
-// Re-export types
 export * from './shared/types/index.js';
-
-// Re-export GraphQL-based queries (replaces old direct indexer queries)
 export * from './graphql-queries/index.js';
-
-// Re-export GraphQL server functionality
 export * from './graphql-server/index.js';
+export * from './machinery.js';
 
 // Re-export common query utilities for tests
 export { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from './utils/indexer-sync.js';
