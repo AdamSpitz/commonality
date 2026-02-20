@@ -13,7 +13,7 @@ import {
   getTopContributorsForCause,
   getUserContributionRankForCause,
   type GraphQLClient,
-} from '../../../queries/index.js';
+} from '../../../indexer-queries/index.js';
 
 export const fundingPortalsResolvers = {
   Query: {

@@ -26,7 +26,7 @@ export {
 
 // Re-export the executor creation function and GraphQLClient type
 export { createGraphQLExecutor, type GraphQLExecutor };
-export type { GraphQLClient } from '../queries/common.js';
+export type { GraphQLClient } from '../indexer-queries/common.js';
 
 // Re-export types from the old system for compatibility
 export type {
@@ -56,4 +56,4 @@ export type {
   ContributorStats,
   MutableRef,
   RefUpdate,
-} from '../queries/index.js';
+} from '../indexer-queries/index.js';

@@ -4,8 +4,8 @@
 
 import { type Address, type Hash } from 'viem';
 import { type TestClients, uploadToIPFS } from './common.js';
-import { getUserRef } from '../queries/mutable-refs-queries.js';
-import { type GraphQLClient } from '../queries/common.js';
+import { getUserRef } from '../indexer-queries/mutable-refs-queries.js';
+import { type GraphQLClient } from '../indexer-queries/common.js';
 
 // ============================================================================
 // Mutable Refs Actions

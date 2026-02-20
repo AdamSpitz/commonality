@@ -25,7 +25,7 @@ import {
   getProjectsByFundingProgress,
   getProjectsByAmountRaised,
   type GraphQLClient,
-} from '../../../queries/index.js';
+} from '../../../indexer-queries/index.js';
 
 export const pubstarterResolvers = {
   Query: {
