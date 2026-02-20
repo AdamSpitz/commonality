@@ -8,6 +8,8 @@ export {
 } from './conceptspace.js';
 
 export {
+  type Note,
+  type DelegationChainLink,
 } from './delegation.js';
 
 export {
@@ -26,10 +28,15 @@ export {
 } from './pubstarter.js';
 
 export {
-  ContributorStats,
+  type AlignmentAttestation,
+  type IndirectSubjectAlignment,
+  type ProjectAlignment,
+  type IndirectProjectAlignment,
+  type CauseFundingMetrics,
+  type ContributorStats,
 } from './funding-portals.js';
 
 export {
-  MutableRef,
-  RefUpdate,
+  type MutableRef,
+  type RefUpdate,
 } from './mutable-refs.js';

@@ -8,6 +8,9 @@
 // Re-export everything from actions
 export * from './actions/index.js';
 
+// Re-export types
+export * from './shared/types/index.js';
+
 // Re-export GraphQL-based queries (replaces old direct indexer queries)
 export * from './graphql-queries/index.js';
 

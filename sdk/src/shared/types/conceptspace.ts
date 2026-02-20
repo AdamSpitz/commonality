@@ -42,10 +42,7 @@ export interface StatementListItem {
 }
 
 export interface BrowseStatementsOptions {
-  /** Maximum number of results to return */
   limit?: number;
-  /** Offset for pagination */
   offset?: number;
-  /** Order direction */
   orderDirection?: 'asc' | 'desc';
 }

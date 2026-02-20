@@ -10,27 +10,18 @@
 
 import { executeQuery, type GraphQLExecutor } from '../graphql-server/index.js';
 import type { DisplayableDocument } from '../displayable-document.js';
+import {
+  Statement,
+  UserBelief,
+  StatementListItem,
+  IndirectSupporter,
+} from '../shared/types/conceptspace.js';
 
 // ============================================================================
 // Type Definitions
 // ============================================================================
 
-export interface Statement {
-  id: string;
-  believerCount: number;
-  disbelieverCount: number;
-  cid?: string;
-  statementType?: string;
-  title?: string;
-  excerpt?: string;
-  createdAt: string;
-}
-
-export interface UserBelief {
-  statementId: string;
-  beliefState: number; // 0=noOpinion, 1=believes, 2=disbelieves
-}
-
+// TODO: what's the reason for the almost-duplication between this and the one in shared/types?
 export interface Implication {
   attester: string;
   fromStatementId: string;
@@ -38,29 +29,6 @@ export interface Implication {
   explanationCid: string;
   createdAt: string;
   blockNumber: string;
-}
-
-export interface IndirectSupporter {
-  user: string;
-  viaStatementId: string;
-  viaStatement?: Statement;
-}
-
-export interface StatementListItem {
-  id: string;
-  cid: string;
-  statementType: string;
-  title: string;
-  excerpt: string;
-  believerCount: number;
-  disbelieverCount: number;
-  createdAt: string;
-}
-
-export interface BrowseStatementsOptions {
-  limit?: number;
-  offset?: number;
-  orderDirection?: string;
 }
 
 export interface StatementWithContent {
