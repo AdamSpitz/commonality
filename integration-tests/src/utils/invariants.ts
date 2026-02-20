@@ -8,6 +8,10 @@
  */
 
 import assert from 'assert';
+import { ActionTestingMachinery } from '../actions/action-machinery.js';
+import { getIndirectSupporterCount } from '@commonality/sdk';
+import { getIndirectSupporters } from './graphql-helpers.js';
+
 
 /**
  * GraphQL client type (simple HTTP client)
@@ -75,14 +79,14 @@ async function query<T = any>(
  * which demonstrates the pattern for checking any cached count against actual records.
  */
 export async function assertBeliefCountsMatch(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   statementId: string
 ): Promise<void> {
   const normalizedId = statementId.toLowerCase();
 
   // Check believerCount using generic helper
   await assertAggregatedCountConsistency(
-    graphqlClient,
+    machinery,
     // Count query: get the cached believerCount from Statement
     `
       query GetStatement($id: String!) {
@@ -114,7 +118,7 @@ export async function assertBeliefCountsMatch(
 
   // Check disbelieverCount using generic helper
   await assertAggregatedCountConsistency(
-    graphqlClient,
+    machinery,
     // Count query: get the cached disbelieverCount from Statement
     `
       query GetStatement($id: String!) {
@@ -160,31 +164,28 @@ export async function assertBeliefCountsMatch(
  * (Section 8) rather than a pure state consistency invariant.
  */
 export async function assertMoneyConservation(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getProject, getProjectContributions, getProjectRefunds } = await import('./graphql-helpers.js');
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
   // Get the project with its cached totalReceived
-  const project = await getProject(executor, projectAddress.toLowerCase());
+  const project = await getProject(machinery, projectAddress.toLowerCase());
 
   if (!project) {
     throw new Error(`Project ${projectAddress} not found`);
   }
 
   // Get all contributions for this project
-  const contributions = await getProjectContributions(executor, projectAddress.toLowerCase());
+  const contributions = await getProjectContributions(machinery, projectAddress.toLowerCase());
 
   // Get all refunds for this project
-  const refunds = await getProjectRefunds(executor, projectAddress.toLowerCase());
+  const refunds = await getProjectRefunds(machinery, projectAddress.toLowerCase());
 
   // Sum up all individual contribution amounts
   const totalContributed = contributions.reduce((sum, contribution) => {
-    return sum + BigInt(contribution.totalCost);
+    return sum + BigInt(contribution.totalCost!);
   }, 0n);
 
   // Sum up all individual refund amounts
@@ -230,18 +231,14 @@ export async function assertMoneyConservation(
  * @param projectAddress The project's assurance contract address
  */
 export async function assertTokenConservation(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getProjectContributions, getTokenBurns } = await import('./graphql-helpers.js');
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
   // Get all contributions for this project (tokens purchased)
-  const contributions = await getProjectContributions(executor, projectAddress.toLowerCase());
-
+  const contributions = await getProjectContributions(machinery, projectAddress.toLowerCase());
   // Get the ERC1155 address from the first contribution
   // (All contributions for a project should have the same ERC1155 address)
   if (contributions.length === 0) {
@@ -255,7 +252,7 @@ export async function assertTokenConservation(
   }
 
   // Get all token burns for this ERC1155 (tokens destroyed)
-  const burns = await getTokenBurns(executor, erc1155Address.toLowerCase());
+  const burns = await getTokenBurns(machinery, erc1155Address.toLowerCase());
 
   // Calculate total sold and burned per tokenId
   const tokenStats = new Map<string, { sold: bigint; burned: bigint }>();
@@ -266,8 +263,8 @@ export async function assertTokenConservation(
       continue; // Skip contributions for different tokens
     }
 
-    const tokenIds = JSON.parse(contribution.tokenIds) as string[];
-    const tokenCounts = JSON.parse(contribution.tokenCounts) as string[];
+    const tokenIds = JSON.parse(contribution.tokenIds!) as string[];
+    const tokenCounts = JSON.parse(contribution.tokenCounts!) as string[];
 
     for (let i = 0; i < tokenIds.length; i++) {
       const tokenId = tokenIds[i];
@@ -326,23 +323,20 @@ export async function assertTokenConservation(
  * @param noteId The delegation note ID to check
  */
 export async function assertDelegationChainIntegrity(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   noteId: string
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getNote, getDelegationChain } = await import('./graphql-helpers.js');
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
   // Get the note
-  const note = await getNote(executor, noteId);
+  const note = await getNote(machinery, noteId);
   if (!note) {
     throw new Error(`Note ${noteId} not found`);
   }
 
   // Get the delegation chain
-  const chain = await getDelegationChain(executor, noteId);
+  const chain = await getDelegationChain(machinery, noteId);
 
   if (chain.length === 0) {
     // No chain means this is a root note with no delegations
@@ -417,18 +411,15 @@ export async function assertDelegationChainIntegrity(
  * @param transactionHash The transaction hash of the trade to check
  */
 export async function assertTradeDataConsistency(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   marketplaceAddress: string,
   transactionHash: string
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getMarketplaceTrades } = await import('./graphql-helpers.js');
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
   // Get all trades for this marketplace
-  const allTrades = await getMarketplaceTrades(executor, marketplaceAddress);
+  const allTrades = await getMarketplaceTrades(machinery, marketplaceAddress);
 
   // Find the specific trade by transaction hash
   const trade = allTrades.find(
@@ -491,22 +482,15 @@ export async function assertTradeDataConsistency(
  * @param attesterAddress Optional: filter by specific trusted attester
  */
 export async function assertIndirectSupporterCountConsistency(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   statementId: string,
   attesterAddress?: string
 ): Promise<void> {
-  // Import SDK functions dynamically to avoid circular dependencies
-  const { getIndirectSupporterCount } = await import('@commonality/sdk');
-  const { getIndirectSupporters } = await import('./graphql-helpers.js');
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
   // Method 1: Get the count using the dedicated count query
-  const count = await getIndirectSupporterCount(executor, statementId, attesterAddress);
+  const count = await getIndirectSupporterCount(machinery, statementId, attesterAddress);
 
   // Method 2: Get the full list of supporters and count them
-  const supporters = await getIndirectSupporters(executor, statementId, attesterAddress);
+  const supporters = await getIndirectSupporters(machinery, statementId, attesterAddress);
   const actualCount = supporters.length;
 
   // Verify the count matches
@@ -546,19 +530,20 @@ export async function assertIndirectSupporterCountConsistency(
  * @param graphqlClient GraphQL client or executor
  */
 export async function assertNoOrphanedData(
-  graphqlClient: GraphQLClient | GraphQLExecutor
+  machinery: ActionTestingMachinery
 ): Promise<void> {
   // Check Concept Space subsystem
-  await checkOrphanedBeliefs(graphqlClient);
-  await checkOrphanedImplications(graphqlClient);
+  await checkOrphanedBeliefs(machinery);
+  await checkOrphanedImplications(machinery);
 }
 
 /**
  * Check that all Belief records reference valid Statements and Users
  */
 async function checkOrphanedBeliefs(
-  graphqlClient: GraphQLClient | GraphQLExecutor
+  machinery: ActionTestingMachinery
 ): Promise<void> {
+  const { graphqlExecutor } = machinery;
   // Get all beliefs with a non-zero belief state (active beliefs/disbeliefs)
   const beliefsResult = await query<{
     beliefss: {
@@ -569,7 +554,7 @@ async function checkOrphanedBeliefs(
       }>
     }
   }>(
-    graphqlClient,
+    graphqlExecutor,
     `
       query GetAllBeliefs {
         beliefss(where: { beliefState_not: 0 }) {
@@ -600,7 +585,7 @@ async function checkOrphanedBeliefs(
       const statementResult = await query<{
         statements: { id: string } | null
       }>(
-        graphqlClient,
+        graphqlExecutor,
         `
           query GetStatement($id: String!) {
             statements(id: $id) {
@@ -627,7 +612,7 @@ async function checkOrphanedBeliefs(
       const userResult = await query<{
         users: { id: string } | null
       }>(
-        graphqlClient,
+        graphqlExecutor,
         `
           query GetUser($id: String!) {
             users(id: $id) {
@@ -655,7 +640,7 @@ async function checkOrphanedBeliefs(
  * Check that all Implication records reference valid Statements (from/to) and Attesters
  */
 async function checkOrphanedImplications(
-  graphqlClient: GraphQLClient | GraphQLExecutor
+  machinery: ActionTestingMachinery
 ): Promise<void> {
   // Get all implications
   const implicationsResult = await query<{
@@ -667,7 +652,7 @@ async function checkOrphanedImplications(
       }>
     }
   }>(
-    graphqlClient,
+    machinery.graphqlExecutor,
     `
       query GetAllImplications {
         implicationss {
@@ -699,7 +684,7 @@ async function checkOrphanedImplications(
       const statementResult = await query<{
         statements: { id: string } | null
       }>(
-        graphqlClient,
+        machinery.graphqlExecutor,
         `
           query GetStatement($id: String!) {
             statements(id: $id) {
@@ -726,7 +711,7 @@ async function checkOrphanedImplications(
       const statementResult = await query<{
         statements: { id: string } | null
       }>(
-        graphqlClient,
+        machinery.graphqlExecutor,
         `
           query GetStatement($id: String!) {
             statements(id: $id) {
@@ -753,7 +738,7 @@ async function checkOrphanedImplications(
       const attesterResult = await query<{
         attesters: { id: string } | null
       }>(
-        graphqlClient,
+        machinery.graphqlExecutor,
         `
           query GetAttester($id: String!) {
             attesters(id: $id) {
@@ -839,16 +824,13 @@ export async function assertUniqueStatements(
  * @param allowRefunds If true, allows totalReceived to decrease (for tests that include refunds)
  */
 export async function assertMonotonicProjectFunding(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   projectAddress: string,
   expectedBefore: bigint,
   allowRefunds: boolean = false
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getProject } = await import('./graphql-helpers.js');
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
 
   // Get the current project state
   const project = await getProject(executor, projectAddress.toLowerCase());
@@ -905,16 +887,13 @@ export async function assertMonotonicProjectFunding(
  * @param shouldAllowRefunds Whether refunds should currently be allowed based on contract state
  */
 export async function assertAssuranceContractRefundLogic(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   projectAddress: string,
   currentBlockTimestamp: bigint,
   shouldAllowRefunds?: boolean
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getProject } = await import('./graphql-helpers.js');
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
 
   // Get the project state
   const project = await getProject(executor, projectAddress.toLowerCase());
@@ -1013,7 +992,7 @@ export async function assertAssuranceContractRefundLogic(
  * @param entityDescription Description for error messages (e.g., "Statement X's believerCount")
  */
 export async function assertAggregatedCountConsistency(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   countQuery: string,
   countQueryVariables: Record<string, any>,
   countFieldPath: string,
@@ -1024,7 +1003,7 @@ export async function assertAggregatedCountConsistency(
 ): Promise<void> {
   // Execute the count query
   const countResult = await query<any>(
-    graphqlClient,
+    machinery.graphqlExecutor,
     countQuery,
     countQueryVariables
   );
@@ -1040,7 +1019,7 @@ export async function assertAggregatedCountConsistency(
 
   // Execute the records query
   const recordsResult = await query<any>(
-    graphqlClient,
+    machinery.graphqlExecutor,
     recordsQuery,
     recordsQueryVariables
   );
@@ -1111,16 +1090,13 @@ function extractFieldByPath(obj: any, path: string): any {
  * @param attesterAddress The attester's address
  */
 export async function assertImplicationBidirectionality(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   fromStatementId: string,
   toStatementId: string,
   attesterAddress: string
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getImplicationsFrom } = await import('./graphql-helpers.js');
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
 
   const normalizedFrom = fromStatementId.toLowerCase();
   const normalizedTo = toStatementId.toLowerCase();
@@ -1216,7 +1192,7 @@ export async function assertImplicationBidirectionality(
  * @param believerAddress Address of a user who believes S1 (for verification)
  */
 export async function assertImplicationNonTransitivity(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   s1Id: string,
   s2Id: string,
   s3Id: string,
@@ -1230,9 +1206,6 @@ export async function assertImplicationNonTransitivity(
     getIndirectSupporters,
     getUserBelief,
   } = await import('./graphql-helpers.js');
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
 
   const normalizedAttester = attesterAddress.toLowerCase();
   const normalizedBeliever = believerAddress.toLowerCase();
@@ -1355,7 +1328,7 @@ export async function assertImplicationNonTransitivity(
  * @param refName The name of the ref to check
  */
 export async function assertRefContractIndexerConsistency(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   mutableRefContract: any,
   userAddress: string,
   refName: string
@@ -1364,9 +1337,6 @@ export async function assertRefContractIndexerConsistency(
   const { getUserRef } = await import('./graphql-helpers.js');
   const { getRef } = await import('@commonality/sdk');
   const { createIsolatedTestClients } = await import('./test-utils.js');
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
 
   // Get value from indexer
   const indexerRef = await getUserRef(executor, userAddress, refName);
@@ -1403,15 +1373,12 @@ export async function assertRefContractIndexerConsistency(
  * @param refName The name of the ref to check
  */
 export async function assertRefHistoryOrdering(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   userAddress: string,
   refName: string
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getUserRefHistory } = await import('./graphql-helpers.js');
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
 
   // Get history
   const history = await getUserRefHistory(executor, userAddress, refName);

@@ -15,8 +15,6 @@ import {
   publishDocument,
   cidToBytes32,
   type ImplicationsContract,
-  createGraphQLClient,
-  type GraphQLClient,
   ImplicationsAbi,
 } from '@commonality/sdk';
 import {
@@ -26,6 +24,7 @@ import {
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { TEST_TIMEOUTS } from '../utils/test-timeouts.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Multiple Attesters Tests (F2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -36,7 +35,7 @@ describe('Multiple Attesters Tests (F2)', () => {
   const SUITE_NAME = 'conceptspace-multiple-attesters';
 
   let implicationsContract: ImplicationsContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!IMPLICATIONS_CONTRACT_ADDRESS) {
@@ -48,7 +47,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       abi: ImplicationsAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should allow different attesters to publish different implications', async function() {
@@ -72,35 +71,35 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  S2 -> S3 (Attester 2)');
 
     // Attester 1 attests S1 -> S2
-    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, s1Cid, s2Cid);
+    await attestImplicationChecked(attester1, implicationsContract, machinery, s1Cid, s2Cid);
 
     // Attester 2 attests S2 -> S3
-    await attestImplicationChecked(attester2, implicationsContract, graphqlClient, s2Cid, s3Cid);
+    await attestImplicationChecked(attester2, implicationsContract, machinery, s2Cid, s3Cid);
 
     // Query implications from S1 - should only find S1->S2 from Attester 1
-    const implicationsFromS1 = await getImplicationsFrom(graphqlClient, s1Id);
+    const implicationsFromS1 = await getImplicationsFrom(machinery, s1Id);
     assert.strictEqual(
       implicationsFromS1.length,
       1,
       `Should have exactly 1 implication from S1, but found ${implicationsFromS1.length}`
     );
     assert.strictEqual(
-      implicationsFromS1[0].attester.id.toLowerCase(),
+      implicationsFromS1[0].attester.toLowerCase(),
       attester1.account.toLowerCase(),
-      `S1->S2 should be from Attester 1 (${attester1.account}), but was from ${implicationsFromS1[0].attester.id}`
+      `S1->S2 should be from Attester 1 (${attester1.account}), but was from ${implicationsFromS1[0].attester}`
     );
 
     // Query implications to S3 - should only find S2->S3 from Attester 2
-    const implicationsToS3 = await getImplicationsTo(graphqlClient, s3Id);
+    const implicationsToS3 = await getImplicationsTo(machinery, s3Id);
     assert.strictEqual(
       implicationsToS3.length,
       1,
       `Should have exactly 1 implication to S3, but found ${implicationsToS3.length}`
     );
     assert.strictEqual(
-      implicationsToS3[0].attester.id.toLowerCase(),
+      implicationsToS3[0].attester.toLowerCase(),
       attester2.account.toLowerCase(),
-      `S2->S3 should be from Attester 2 (${attester2.account}), but was from ${implicationsToS3[0].attester.id}`
+      `S2->S3 should be from Attester 2 (${attester2.account}), but was from ${implicationsToS3[0].attester}`
     );
 
     testLog('  ✓ Different attesters can publish different implications');
@@ -126,12 +125,12 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  Three different attesters will attest SA -> SB');
 
     // All three attesters attest SA -> SB
-    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, sACid, sBCid);
-    await attestImplicationChecked(attester2, implicationsContract, graphqlClient, sACid, sBCid);
-    await attestImplicationChecked(attester3, implicationsContract, graphqlClient, sACid, sBCid);
+    await attestImplicationChecked(attester1, implicationsContract, machinery, sACid, sBCid);
+    await attestImplicationChecked(attester2, implicationsContract, machinery, sACid, sBCid);
+    await attestImplicationChecked(attester3, implicationsContract, machinery, sACid, sBCid);
 
     // Query all implications from SA
-    const allImplications = await getImplicationsFrom(graphqlClient, sAId);
+    const allImplications = await getImplicationsFrom(machinery, sAId);
     assert.strictEqual(
       allImplications.length,
       3,
@@ -139,7 +138,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     );
 
     // Verify all three attesters are present
-    const attesterAddresses = allImplications.map(imp => imp.attester.id.toLowerCase());
+    const attesterAddresses = allImplications.map(imp => imp.attester.toLowerCase());
     assert.ok(
       attesterAddresses.includes(attester1.account.toLowerCase()),
       `Should include attestation from Attester 1 (${attester1.account}), but found attesters: ${attesterAddresses.join(', ')}`
@@ -173,14 +172,14 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  Attester 2 attests: S3 -> S2');
 
     // Attester 1 attests S1 -> S2
-    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, s1Cid, s2Cid);
+    await attestImplicationChecked(attester1, implicationsContract, machinery, s1Cid, s2Cid);
 
     // Attester 2 attests S3 -> S2
-    await attestImplicationChecked(attester2, implicationsContract, graphqlClient, s3Cid, s2Cid);
+    await attestImplicationChecked(attester2, implicationsContract, machinery, s3Cid, s2Cid);
 
     // Query all implications to S2 (no filter)
     testLog('  Querying all implications to S2 (no filter)...');
-    const allImplications = await getImplicationsTo(graphqlClient, s2Id);
+    const allImplications = await getImplicationsTo(machinery, s2Id);
     assert.strictEqual(
       allImplications.length,
       2,
@@ -190,7 +189,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     // Query implications to S2, filtering by Attester 1
     testLog(`  Querying implications to S2 (filter by Attester 1: ${attester1.account})...`);
     const attester1Implications = await getImplicationsTo(
-      graphqlClient,
+      machinery,
       s2Id,
       attester1.account
     );
@@ -200,15 +199,15 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should have 1 implication to S2 from Attester 1, but found ${attester1Implications.length}`
     );
     assert.strictEqual(
-      attester1Implications[0].attester.id.toLowerCase(),
+      attester1Implications[0].attester.toLowerCase(),
       attester1.account.toLowerCase(),
-      `Filtered result should be from Attester 1 (${attester1.account}), but was from ${attester1Implications[0].attester.id}`
+      `Filtered result should be from Attester 1 (${attester1.account}), but was from ${attester1Implications[0].attester}`
     );
 
     // Query implications to S2, filtering by Attester 2
     testLog(`  Querying implications to S2 (filter by Attester 2: ${attester2.account})...`);
     const attester2Implications = await getImplicationsTo(
-      graphqlClient,
+      machinery,
       s2Id,
       attester2.account
     );
@@ -218,9 +217,9 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should have 1 implication to S2 from Attester 2, but found ${attester2Implications.length}`
     );
     assert.strictEqual(
-      attester2Implications[0].attester.id.toLowerCase(),
+      attester2Implications[0].attester.toLowerCase(),
       attester2.account.toLowerCase(),
-      `Filtered result should be from Attester 2 (${attester2.account}), but was from ${attester2Implications[0].attester.id}`
+      `Filtered result should be from Attester 2 (${attester2.account}), but was from ${attester2Implications[0].attester}`
     );
 
     testLog('  ✓ Queries can filter implications by trusted attester');
@@ -248,11 +247,11 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog('  Creating implications from two different attesters...');
 
     // Attester 1 attests specific -> general
-    await attestImplicationChecked(attester1, implicationsContract, graphqlClient, specificCid, generalCid);
+    await attestImplicationChecked(attester1, implicationsContract, machinery, specificCid, generalCid);
 
     // Verify implications can be queried by specific attester
     const attester1Implications = await getImplicationsTo(
-      graphqlClient,
+      machinery,
       generalId,
       attester1.account
     );
@@ -263,7 +262,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     );
 
     const attester2Implications = await getImplicationsTo(
-      graphqlClient,
+      machinery,
       generalId,
       attester2.account
     );
@@ -290,7 +289,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Querying implications from unused attester: ${unusedAttester.account}`);
 
     // Query implications filtering by an attester who hasn't attested anything
-    const implications = await getImplicationsTo(graphqlClient, statementId, unusedAttester.account);
+    const implications = await getImplicationsTo(machinery, statementId, unusedAttester.account);
 
     assert.strictEqual(
       implications.length,

@@ -35,13 +35,13 @@ describe('Pubstarter Token Burning Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-burn-tokens';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!PUBSTARTER_ADDRESS) {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should track burned tokens and distinguish donors from investors', async function() {

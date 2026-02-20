@@ -34,17 +34,14 @@ interface DelegationState {
  * Capture the current state of a delegation note
  */
 async function captureDelegationState(context: ActionContext): Promise<DelegationState> {
-  const { graphqlClient, entities } = context;
+  const { machinery, entities } = context;
   const { delegationNoteId } = entities;
 
   if (!delegationNoteId) {
     throw new Error('delegationNoteId is required in context.entities');
   }
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
-  const note = await getNote(executor, delegationNoteId);
+  const note = await getNote(machinery, delegationNoteId);
 
   if (!note) {
     return {
@@ -57,7 +54,7 @@ async function captureDelegationState(context: ActionContext): Promise<Delegatio
     };
   }
 
-  const chain = await getDelegationChain(executor, delegationNoteId);
+  const chain = await getDelegationChain(machinery, delegationNoteId);
 
   return {
     noteExists: true,
@@ -198,14 +195,14 @@ export const delegationPermissionProperty: StateTransitionProperty = {
 export const delegationChainInvariant: InvariantCheck = {
   name: 'delegationChainIntegrity',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { delegationNoteId } = entities;
 
     if (!delegationNoteId) {
       throw new Error('delegationNoteId is required in context.entities');
     }
 
-    await assertDelegationChainIntegrity(graphqlClient, delegationNoteId);
+    await assertDelegationChainIntegrity(machinery, delegationNoteId);
   },
 };
 

@@ -14,7 +14,6 @@ import {
   cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
-  createGraphQLClient,
   getIndirectSupporterCount,
   assertNotNull,
   BeliefsAbi,
@@ -30,6 +29,7 @@ import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { assertIndirectSupporterCountConsistency } from '../utils/invariants.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Conceptspace Indirect Support', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -42,7 +42,7 @@ describe('Conceptspace Indirect Support', () => {
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!BELIEFS_CONTRACT_ADDRESS) {
@@ -62,7 +62,7 @@ describe('Conceptspace Indirect Support', () => {
       abi: ImplicationsAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should compute indirect supporter count', async function() {
@@ -92,18 +92,16 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 and User2 believe the specific statement
     testLog('  User1 and User2 believe specific statement...');
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, specificCid);
-    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, specificCid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, specificCid);
+    await believeStatementChecked(user2Clients, beliefsContract, machinery, specificCid);
 
     // Verify direct support
-    const specificStmt = assertNotNull(
-      await getStatement(graphqlClient, specificId),
-      'Specific statement'
-    );
+    const specificStmt = await getStatement(machinery, specificId);
+    assertNotNull(specificStmt, 'Specific statement');
     assert.strictEqual(specificStmt.believerCount, 2, 'Specific statement should have 2 direct believers');
 
     // General statement should have 0 indirect supporters initially (no implication yet)
-    let indirectCount = await getIndirectSupporterCount(graphqlClient, generalId);
+    let indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, generalId);
     assert.strictEqual(indirectCount, 0, 'General statement should have 0 indirect supporters initially');
 
     testLog('  ✓ Direct support verified, no indirect support yet');
@@ -113,7 +111,7 @@ describe('Conceptspace Indirect Support', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       specificCid,
       generalCid,
       undefined, // No explanation
@@ -121,7 +119,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Now general statement should have 2 indirect supporters
-    indirectCount = await getIndirectSupporterCount(graphqlClient, generalId);
+    indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, generalId);
     assert.strictEqual(
       indirectCount,
       2,
@@ -129,7 +127,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency: count should match list length
-    await assertIndirectSupporterCountConsistency(graphqlClient, generalId);
+    await assertIndirectSupporterCountConsistency(machinery, generalId);
 
     testLog('  ✓ Indirect supporter count computed correctly: 2 supporters');
     testLog('  ✓ Query consistency verified (count matches list)');
@@ -169,15 +167,15 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes specific1, User2 believes specific2
     testLog('  User1 believes specific1, User2 believes specific2...');
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, specific1Cid);
-    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, specific2Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, specific1Cid);
+    await believeStatementChecked(user2Clients, beliefsContract, machinery, specific2Cid);
 
     // Create implications: specific1 -> general, specific2 -> general
     testLog('  Creating implications...');
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       specific1Cid,
       generalCid,
       undefined, // No explanation
@@ -187,7 +185,7 @@ describe('Conceptspace Indirect Support', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       specific2Cid,
       generalCid,
       undefined, // No explanation
@@ -195,7 +193,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Get indirect supporters list
-    const indirectSupporters = await getIndirectSupporters(graphqlClient, generalId);
+    const indirectSupporters = await getIndirectSupporters(machinery, generalId);
 
     assert.strictEqual(indirectSupporters.length, 2, 'Should have 2 indirect supporters');
 
@@ -221,7 +219,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(graphqlClient, generalId);
+    await assertIndirectSupporterCountConsistency(machinery, generalId);
 
     testLog('  ✓ Indirect supporters list returned with correct details');
     testLog('  ✓ Query consistency verified');
@@ -254,19 +252,19 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 and User2 believe the specific statement
     testLog('  User1 and User2 believe specific statement...');
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, specificCid);
-    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, specificCid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, specificCid);
+    await believeStatementChecked(user2Clients, beliefsContract, machinery, specificCid);
 
     // User1 explicitly disbelieves the general statement
     testLog('  User1 explicitly disbelieves the general statement...');
-    await disbelieveStatementChecked(user1Clients, beliefsContract, graphqlClient, generalCid);
+    await disbelieveStatementChecked(user1Clients, beliefsContract, machinery, generalCid);
 
     // Create implication: specific -> general
     testLog('  Creating implication (specific -> general)...');
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       specificCid,
       generalCid,
       undefined, // No explanation
@@ -274,8 +272,8 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Get indirect supporters - should only include User2, not User1
-    const indirectSupporters = await getIndirectSupporters(graphqlClient, generalId);
-    const indirectCount = await getIndirectSupporterCount(graphqlClient, generalId);
+    const indirectSupporters = await getIndirectSupporters(machinery, generalId);
+    const indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, generalId);
 
     assert.strictEqual(
       indirectCount,
@@ -292,7 +290,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(graphqlClient, generalId);
+    await assertIndirectSupporterCountConsistency(machinery, generalId);
 
     testLog('  ✓ User1 correctly excluded from indirect support due to explicit disbelief');
     testLog('  ✓ User2 correctly included in indirect support');
@@ -341,18 +339,18 @@ describe('Conceptspace Indirect Support', () => {
 
     // Each user believes a different specific statement
     testLog('  Users believe their respective specific statements...');
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s1Cid);
-    await believeStatementChecked(user2Clients, beliefsContract, graphqlClient, s2Cid);
-    await believeStatementChecked(user3Clients, beliefsContract, graphqlClient, s3Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, s1Cid);
+    await believeStatementChecked(user2Clients, beliefsContract, machinery, s2Cid);
+    await believeStatementChecked(user3Clients, beliefsContract, machinery, s3Cid);
 
     // Create convergent implications
     testLog('  Creating convergent implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sGeneralCid, undefined, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sGeneralCid, undefined, [user2Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, sGeneralCid, undefined, [user3Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s1Cid, sGeneralCid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s2Cid, sGeneralCid, undefined, [user2Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s3Cid, sGeneralCid, undefined, [user3Clients.account]);
 
     // Verify all 3 implications exist
-    const implicationsTo = await getImplicationsTo(graphqlClient, sGeneralId);
+    const implicationsTo = await getImplicationsTo(machinery, sGeneralId);
     assert.strictEqual(
       implicationsTo.length,
       3,
@@ -360,8 +358,8 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Get indirect supporters
-    const indirectSupporters = await getIndirectSupporters(graphqlClient, sGeneralId);
-    const indirectCount = await getIndirectSupporterCount(graphqlClient, sGeneralId);
+    const indirectSupporters = await getIndirectSupporters(machinery, sGeneralId);
+    const indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, sGeneralId);
 
     assert.strictEqual(indirectCount, 3, 'Should have 3 indirect supporters');
     assert.strictEqual(indirectSupporters.length, 3, 'Supporters list should have 3 entries');
@@ -377,7 +375,7 @@ describe('Conceptspace Indirect Support', () => {
     assert.ok(userAddresses.includes(user3Address), 'User3 should be in supporters');
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(graphqlClient, sGeneralId);
+    await assertIndirectSupporterCountConsistency(machinery, sGeneralId);
 
     testLog('  ✓ All 3 users correctly identified as indirect supporters');
     testLog('  ✓ Multiple convergent implication chains handled correctly');
@@ -415,17 +413,17 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes both S1 and S2
     testLog('  User1 believes both S1 and S2...');
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s1Cid);
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s2Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, s1Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, s2Cid);
 
     // Create implications: S1 -> Target, S2 -> Target
     testLog('  Creating implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, sTargetCid, undefined, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, sTargetCid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s1Cid, sTargetCid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s2Cid, sTargetCid, undefined, [user1Clients.account]);
 
     // Get indirect supporters - User1 should appear only once despite believing 2 implying statements
-    const indirectSupporters = await getIndirectSupporters(graphqlClient, sTargetId);
-    const indirectCount = await getIndirectSupporterCount(graphqlClient, sTargetId);
+    const indirectSupporters = await getIndirectSupporters(machinery, sTargetId);
+    const indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, sTargetId);
 
     assert.strictEqual(
       indirectCount,
@@ -442,7 +440,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(graphqlClient, sTargetId);
+    await assertIndirectSupporterCountConsistency(machinery, sTargetId);
 
     testLog('  ✓ User correctly counted once despite multiple implication paths');
     testLog('  ✓ Query consistency verified');
@@ -450,6 +448,8 @@ describe('Conceptspace Indirect Support', () => {
 
   it('should efficiently get all indirect support for a user (getUserIndirectSupport)', async function() {
     this.timeout(40000);
+
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     const user1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
@@ -503,20 +503,19 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes all three specific statements
     testLog('  User1 believes S1, S2, S3...');
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s1Cid);
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s2Cid);
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, s3Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, s1Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, s2Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, s3Cid);
 
     // Create implications
     testLog('  Creating implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1Cid, target1Cid, undefined, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2Cid, target2Cid, undefined, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s3Cid, target3Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s1Cid, target1Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s2Cid, target2Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s3Cid, target3Cid, undefined, [user1Clients.account]);
 
     // Use the new getUserIndirectSupport function
     testLog('  Getting all indirect support for User1 with single function call...');
-    const executor = createGraphQLClient(GRAPHQL_URL);
-    const indirectSupport = await getUserIndirectSupport(executor, user1Clients.account);
+    const indirectSupport = await getUserIndirectSupport(machinery.graphqlExecutor, user1Clients.account);
 
     // Verify results
     assert.strictEqual(
@@ -598,22 +597,20 @@ describe('Conceptspace Indirect Support', () => {
 
     // User1 believes both source statements
     testLog('  User1 believes source1 and source2...');
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, source1Cid);
-    await believeStatementChecked(user1Clients, beliefsContract, graphqlClient, source2Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, source1Cid);
+    await believeStatementChecked(user1Clients, beliefsContract, machinery, source2Cid);
 
     // User1 explicitly disbelieves target1
     testLog('  User1 explicitly disbelieves target1...');
-    await disbelieveStatementChecked(user1Clients, beliefsContract, graphqlClient, target1Cid);
-
+    await disbelieveStatementChecked(user1Clients, beliefsContract, machinery, target1Cid);
     // Create implications
     testLog('  Creating implications...');
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source1Cid, target1Cid, undefined, [user1Clients.account]);
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, source2Cid, target2Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, source1Cid, target1Cid, undefined, [user1Clients.account]);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, source2Cid, target2Cid, undefined, [user1Clients.account]);
 
     // Use getUserIndirectSupport
     testLog('  Getting indirect support for User1...');
-    const executor = createGraphQLClient(GRAPHQL_URL);
-    const indirectSupport = await getUserIndirectSupport(executor, user1Clients.account);
+    const indirectSupport = await getUserIndirectSupport(machinery.graphqlExecutor, user1Clients.account);
 
     // Should only include target2, not target1 (which is explicitly disbelieved)
     assert.strictEqual(
@@ -665,14 +662,14 @@ describe('Conceptspace Indirect Support', () => {
 
     // Believer believes S1
     testLog('  Believer believes S1...');
-    await believeStatementChecked(believerClients, beliefsContract, graphqlClient, s1Cid);
+    await believeStatementChecked(believerClients, beliefsContract, machinery, s1Cid);
 
     // Create implication chain: S1 → S2 → S3 (but NO direct S1 → S3)
     testLog('  Creating implication chain: S1 → S2 → S3...');
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid,
       undefined, // No explanation
@@ -682,7 +679,7 @@ describe('Conceptspace Indirect Support', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s2Cid,
       s3Cid,
       undefined, // No explanation
@@ -690,7 +687,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify S1 → S2 worked correctly: believer should support S2 indirectly
-    const s2IndirectSupporters = await getIndirectSupporters(graphqlClient, s2Id, attesterClients.account);
+    const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Id, attesterClients.account);
     const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
     const believerAddress = believerClients.account.toLowerCase();
 
@@ -702,7 +699,7 @@ describe('Conceptspace Indirect Support', () => {
     testLog('  ✓ Believer correctly appears as indirect supporter of S2 (one hop)');
 
     // Verify S1 → S2 → S3 does NOT make believer an indirect supporter of S3 (two hops)
-    const s3IndirectSupporters = await getIndirectSupporters(graphqlClient, s3Id, attesterClients.account);
+    const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Id, attesterClients.account);
     const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
 
     assert.ok(
@@ -716,7 +713,7 @@ describe('Conceptspace Indirect Support', () => {
     testLog('  Running assertImplicationNonTransitivity invariant check...');
     const { assertImplicationNonTransitivity } = await import('../utils/invariants.js');
     await assertImplicationNonTransitivity(
-      graphqlClient,
+      machinery,
       s1Id,
       s2Id,
       s3Id,

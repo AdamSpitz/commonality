@@ -45,7 +45,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   let alignmentAttestationsContract: AlignmentAttestationsContract;
   let pubstarterContract: PubstarterContract;
   let implicationsContract: ImplicationsContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!ALIGNMENT_ATTESTATIONS_ADDRESS) {
@@ -73,7 +73,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       abi: ImplicationsAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should find projects indirectly aligned via single implication', async function() {

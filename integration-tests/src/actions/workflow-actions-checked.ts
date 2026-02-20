@@ -27,7 +27,7 @@ import {
 } from '@commonality/sdk';
 import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
-  runActionAndCheckProperties,
+  ActionTestingMachinery,
   type ActionContext,
   type ActionRunOptions,
 } from './action-framework.js';
@@ -81,7 +81,7 @@ export async function createAndSignStatementChecked(
     beliefs: BeliefsContract;
     mutableRefUpdater?: MutableRefUpdaterContract;
   },
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   statementData: DisplayableDocument,
   workflowOptions?: Omit<CreateAndSignStatementOptions, 'graphqlClient'>,
   checkOptions?: ActionRunOptions
@@ -97,7 +97,7 @@ export async function createAndSignStatementChecked(
     statementData,
     {
       ...workflowOptions,
-      graphqlClient,
+      graphqlClient: machinery.graphqlClient,
     }
   );
 
@@ -108,7 +108,7 @@ export async function createAndSignStatementChecked(
   // Wait for sync on the sign transaction (the belief transaction)
   // Only if we have a valid graphqlClient
   try {
-    await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, result.signTxHash);
+    await waitForIndexerToSyncToTxHash(machinery.graphqlExecutor, clients.publicClient, result.signTxHash);
   } catch (error) {
     // If waitForIndexerToSyncToTxHash fails (e.g., invalid graphqlClient in test scenarios),
     // skip the invariant checks and just return the result
@@ -118,7 +118,7 @@ export async function createAndSignStatementChecked(
   // Now check the properties using the belief action metadata
   // We check the "after" state since the action is already complete
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { beliefs: contracts.beliefs },
     entities: {
       statementId,

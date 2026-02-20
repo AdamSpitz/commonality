@@ -26,6 +26,7 @@ import {
   runActionAndCheckProperties,
   type ActionContext,
   type ActionRunOptions,
+  ActionTestingMachinery,
 } from './action-framework.js';
 import { attestImplicationMetadata } from './implication-action-properties.js';
 
@@ -86,7 +87,7 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
 export async function attestImplicationChecked(
   clients: TestClients,
   implicationsContract: ImplicationsContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   fromStatementCid: string,
   toStatementCid: string,
   explanationCid?: string,
@@ -98,7 +99,7 @@ export async function attestImplicationChecked(
   const attesterAddress = clients.account;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: {},
     entities: {
       fromStatementId,
@@ -117,7 +118,7 @@ export async function attestImplicationChecked(
         toStatementCid,
         explanationCid
       );
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlExecutor, clients.publicClient, hash);
       return hash;
     },
     attestImplicationMetadata,

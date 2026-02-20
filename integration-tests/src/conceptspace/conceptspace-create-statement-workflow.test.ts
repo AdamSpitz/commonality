@@ -17,13 +17,11 @@ import {
   type MutableRefUpdaterContract,
   cidToBytes32,
 } from '@commonality/sdk';
-import {
-  createGraphQLClient,
-} from '@commonality/sdk';
 import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { assertUniqueStatements } from '../utils/invariants.js';
 import { createAndSignStatementChecked } from '../actions/workflow-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Conceptspace Create Statement Workflow', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -36,7 +34,7 @@ describe('Conceptspace Create Statement Workflow', () => {
 
   let beliefsContract: BeliefsContract;
   let mutableRefUpdaterContract: MutableRefUpdaterContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!BELIEFS_CONTRACT_ADDRESS) {
@@ -56,7 +54,7 @@ describe('Conceptspace Create Statement Workflow', () => {
       abi: MutableRefUpdaterAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should create, sign, and add statement to list in one call', async function() {
@@ -77,7 +75,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
-      graphqlClient,
+      machinery,
       statementData,
       {
         addToCreatedList: true,
@@ -113,7 +111,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
-      graphqlClient,
+      machinery,
       statementData,
       {
         addToCreatedList: true,
@@ -159,7 +157,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         // Note: not providing mutableRefUpdater
       },
-      graphqlClient,
+      machinery,
       statementData,
       {
         addToCreatedList: false, // Explicitly disable
@@ -195,7 +193,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
-      graphqlClient,
+      machinery,
       statementData,
       {
         addToCreatedList: true,
@@ -230,7 +228,7 @@ describe('Conceptspace Create Statement Workflow', () => {
           beliefs: beliefsContract,
           mutableRefUpdater: mutableRefUpdaterContract,
         },
-        graphqlClient,
+        machinery,
         statements[i],
         {
           addToCreatedList: true,
@@ -269,7 +267,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         },
         statementData,
         {
-          graphqlClient,
+          graphqlClient: machinery.graphqlClient,
           addToCreatedList: true, // This requires mutableRefUpdater
         }
       );
@@ -349,7 +347,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
-      invalidGraphqlClient,
+      machinery,
       statementData,
       {
         addToCreatedList: true,
@@ -384,7 +382,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
-      graphqlClient,
+      machinery,
       statementData,
       {
         addToCreatedList: true,
@@ -404,7 +402,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
-      graphqlClient,
+      machinery,
       statementData,
       {
         addToCreatedList: true,

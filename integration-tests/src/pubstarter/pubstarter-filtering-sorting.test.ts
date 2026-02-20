@@ -39,10 +39,10 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-filtering-sorting';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should sort projects by date created (newest first)', async function() {

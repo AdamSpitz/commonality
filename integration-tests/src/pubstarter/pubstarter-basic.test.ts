@@ -38,10 +38,10 @@ describe('Pubstarter Basic Integration Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-basic';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should create a project, accept contributions, and allow withdrawal', async function() {

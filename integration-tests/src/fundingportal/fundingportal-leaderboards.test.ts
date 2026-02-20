@@ -40,10 +40,10 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'fundingportal-leaderboards';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should rank top contributors for a cause across multiple projects', async function() {

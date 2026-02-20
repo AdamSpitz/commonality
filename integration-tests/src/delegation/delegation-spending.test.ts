@@ -49,7 +49,7 @@ describe('Delegation Spending', () => {
 
   let delegatableNotesContract: DelegatableNotesContract;
   let pubstarterContract: PubstarterContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!DELEGATABLE_NOTES_ADDRESS) {
@@ -69,7 +69,7 @@ describe('Delegation Spending', () => {
       abi: PubstarterAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should spend a delegatable note to fund a project', async function() {

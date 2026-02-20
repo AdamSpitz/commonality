@@ -60,10 +60,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'fundingportal-aggregated-metrics';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should calculate total funding raised across all aligned projects for a cause', async function() {

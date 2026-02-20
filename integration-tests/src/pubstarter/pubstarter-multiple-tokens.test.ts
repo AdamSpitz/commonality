@@ -33,13 +33,13 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-multiple-tokens';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!PUBSTARTER_ADDRESS) {
       throw new Error('PUBSTARTER_ADDRESS not set in environment');
     }
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should handle multiple token types with different prices', async function() {

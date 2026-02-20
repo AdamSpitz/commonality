@@ -17,7 +17,6 @@ import {
   publishDocument,
   cidToBytes32,
   type BeliefsContract,
-  createGraphQLClient,
   assertNotNull,
   BeliefsAbi,
 } from '@commonality/sdk';
@@ -29,6 +28,7 @@ import {
   disbelieveStatementChecked,
   clearOpinionChecked,
 } from '../actions/belief-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -39,7 +39,7 @@ describe('Conceptspace Beliefs', () => {
   const SUITE_NAME = 'conceptspace-beliefs';
 
   let beliefsContract: BeliefsContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!BELIEFS_CONTRACT_ADDRESS) {
@@ -51,7 +51,7 @@ describe('Conceptspace Beliefs', () => {
       abi: BeliefsAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should record belief and disbelief from a single user', async function() {
@@ -69,19 +69,19 @@ describe('Conceptspace Beliefs', () => {
 
     // Express belief - properties checked automatically (includes wait for sync)
     testLog('  User believes the statement...');
-    await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
+    await believeStatementChecked(clients, beliefsContract, machinery, statementCid);
 
     testLog('  ✓ Belief recorded correctly (state transitions verified)');
 
     // Change to disbelief - properties checked automatically (includes wait for sync)
     testLog('  User changes to disbelief...');
-    await disbelieveStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
+    await disbelieveStatementChecked(clients, beliefsContract, machinery, statementCid);
 
     testLog('  ✓ Disbelief recorded correctly (state transitions verified)');
 
     // Clear opinion - properties checked automatically (includes wait for sync)
     testLog('  User clears opinion...');
-    await clearOpinionChecked(clients, beliefsContract, graphqlClient, statementCid);
+    await clearOpinionChecked(clients, beliefsContract, machinery, statementCid);
 
     testLog('  ✓ Opinion cleared correctly (state transitions verified)');
   });
@@ -101,17 +101,16 @@ describe('Conceptspace Beliefs', () => {
 
     // User 1 believes - properties checked automatically (includes wait for sync)
     testLog('  User 1 believes...');
-    await believeStatementChecked(clients1, beliefsContract, graphqlClient, statementCid);
+    await believeStatementChecked(clients1, beliefsContract, machinery, statementCid);
 
     // User 2 also believes - properties checked automatically (includes wait for sync)
     testLog('  User 2 believes...');
-    await believeStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
-
+    await believeStatementChecked(clients2, beliefsContract, machinery, statementCid);
     testLog('  ✓ Multiple users tracked correctly (state transitions verified)');
 
     // User 2 changes to disbelief - properties checked automatically (includes wait for sync)
     testLog('  User 2 changes to disbelief...');
-    await disbelieveStatementChecked(clients2, beliefsContract, graphqlClient, statementCid);
+    await disbelieveStatementChecked(clients2, beliefsContract, machinery, statementCid);
 
     testLog('  ✓ User state changes tracked correctly (state transitions verified)');
   });
@@ -133,10 +132,10 @@ describe('Conceptspace Beliefs', () => {
 
     // Believe statement 1, disbelieve statement 2 - properties checked automatically (includes wait for sync)
     testLog('  User believes statement 1...');
-    await believeStatementChecked(clients, beliefsContract, graphqlClient, statement1Cid);
+    await believeStatementChecked(clients, beliefsContract, machinery, statement1Cid);
 
     testLog('  User disbelieves statement 2...');
-    await disbelieveStatementChecked(clients, beliefsContract, graphqlClient, statement2Cid);
+    await disbelieveStatementChecked(clients, beliefsContract, machinery, statement2Cid);
 
     testLog('  ✓ Multiple statements tracked independently (state transitions verified)');
   });
@@ -157,11 +156,11 @@ describe('Conceptspace Beliefs', () => {
 
     // Express belief to create the statement onchain
     testLog('  User believes the statement...');
-    const txHash = await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
+    const txHash = await believeStatementChecked(clients, beliefsContract, machinery, statementCid);
 
     // Test basic usage: fetch statement metadata
     testLog('  Fetching statement with getStatementWithContent (basic)...');
-    const result = await getStatementWithContent(graphqlClient, statementId);
+    const result = await getStatementWithContent(machinery, statementId);
 
     assertNotNull(result, 'Statement result');
     assert.strictEqual(result!.statement.id, statementId, 'Statement ID should match');
@@ -181,26 +180,26 @@ describe('Conceptspace Beliefs', () => {
 
     // Test with metrics included
     testLog('  Fetching statement with metrics...');
-    const resultWithMetrics = await getStatementWithContent(graphqlClient, statementId, {
+    const resultWithMetrics = await getStatementWithContent(machinery, statementId, {
       includeMetrics: true
     });
 
     assertNotNull(resultWithMetrics, 'Statement result with metrics');
-    assertNotNull(resultWithMetrics.metrics, 'Metrics');
-    assert.strictEqual(resultWithMetrics.metrics.directBelievers, 1, 'Should have 1 direct believer');
-    assert.strictEqual(resultWithMetrics.metrics.directDisbelievers, 0, 'Should have 0 disbelievers');
-    assert.strictEqual(resultWithMetrics.metrics.indirectSupporters, 0, 'Should have 0 indirect supporters');
+    assertNotNull(resultWithMetrics!.metrics, 'Metrics');
+    assert.strictEqual(resultWithMetrics!.metrics!.directBelievers, 1, 'Should have 1 direct believer');
+    assert.strictEqual(resultWithMetrics!.metrics!.directDisbelievers, 0, 'Should have 0 disbelievers');
+    assert.strictEqual(resultWithMetrics!.metrics!.indirectSupporters, 0, 'Should have 0 indirect supporters');
 
     // Verify invariants: belief counts match individual records and no orphaned data
-    await assertBeliefCountsMatch(graphqlClient, statementId);
-    await assertNoOrphanedData(graphqlClient);
+    await assertBeliefCountsMatch(machinery, statementId);
+    await assertNoOrphanedData(machinery);
 
     testLog('  ✓ Fetch with metrics successful');
 
     // Test that it returns null for non-existent statement
     testLog('  Testing non-existent statement...');
     const nonExistentId = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-    const nonExistentResult = await getStatementWithContent(graphqlClient, nonExistentId);
+    const nonExistentResult = await getStatementWithContent(machinery, nonExistentId);
     assert.strictEqual(nonExistentResult, null, 'Should return null for non-existent statement');
 
     testLog('  ✓ Returns null for non-existent statement');

@@ -71,7 +71,7 @@ import {
 export async function createSaleListingChecked(
   clients: TestClients,
   marketplaceContract: SecondaryMarketContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   marketplaceAddress: Address,
   params: {
     tokenId: bigint;
@@ -141,7 +141,7 @@ export async function createSaleListingChecked(
 export async function fulfillSaleListingChecked(
   clients: TestClients,
   marketplaceContract: SecondaryMarketContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   marketplaceAddress: Address,
   params: {
     saleListingId: bigint;

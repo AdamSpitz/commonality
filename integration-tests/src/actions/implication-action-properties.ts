@@ -38,7 +38,7 @@ interface ImplicationState {
  * Capture the current state of implications for the statements involved
  */
 async function captureImplicationState(context: ActionContext): Promise<ImplicationState> {
-  const { graphqlClient, entities, extra } = context;
+  const { machinery, entities, extra } = context;
   const { fromStatementId, toStatementId, attesterAddress } = entities;
 
   if (!fromStatementId) {
@@ -52,10 +52,8 @@ async function captureImplicationState(context: ActionContext): Promise<Implicat
   }
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
-  const implicationsFrom = await getImplicationsFrom(executor, fromStatementId);
-  const implicationsTo = await getImplicationsTo(executor, toStatementId);
+  const implicationsFrom = await getImplicationsFrom(machinery, fromStatementId);
+  const implicationsTo = await getImplicationsTo(machinery, toStatementId);
 
   // Check if this specific implication already exists
   const specificImplicationExists = implicationsFrom.some(
@@ -90,7 +88,7 @@ export const implicationBidirectionalityProperty: StateTransitionProperty = {
   name: 'implicationBidirectionality',
   captureState: captureImplicationState,
   check: async (context: ActionContext, before: ImplicationState, after: ImplicationState) => {
-    const { entities } = context;
+    const { machinery, entities } = context;
     const { fromStatementId, toStatementId, attesterAddress } = entities;
 
     if (!fromStatementId || !toStatementId || !attesterAddress) {
@@ -139,8 +137,7 @@ export const implicationBidirectionalityProperty: StateTransitionProperty = {
     );
 
     // Query the implication to verify details
-    const executor = context.graphqlClient as any;
-    const implicationsFrom = await getImplicationsFrom(executor, fromStatementId);
+    const implicationsFrom = await getImplicationsFrom(machinery, fromStatementId);
     const newImplication = implicationsFrom.find(
       (imp) =>
         imp.toStatementId.toLowerCase() === toStatementId.toLowerCase() &&
@@ -179,18 +176,18 @@ export const implicationBidirectionalityInvariant: InvariantCheck = {
   name: 'implicationBidirectionalityConsistency',
   expensive: true,
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { fromStatementId, toStatementId, attesterAddress } = entities;
 
     if (!fromStatementId || !toStatementId || !attesterAddress) {
       throw new Error('fromStatementId, toStatementId, and attesterAddress are required');
     }
 
-    const executor = graphqlClient as any;
+    const executor = machinery.graphqlExecutor;
 
     // Get implications from both directions
-    const implicationsFrom = await getImplicationsFrom(executor, fromStatementId);
-    const implicationsTo = await getImplicationsTo(executor, toStatementId);
+    const implicationsFrom = await getImplicationsFrom(machinery, fromStatementId);
+    const implicationsTo = await getImplicationsTo(machinery, toStatementId);
 
     // Find this specific implication in both queries
     const foundInFrom = implicationsFrom.find(
@@ -253,17 +250,17 @@ interface IndirectSupportState {
  * Capture the indirect support state for the "to" statement
  */
 async function captureIndirectSupportState(context: ActionContext): Promise<IndirectSupportState> {
-  const { graphqlClient, entities } = context;
+  const { machinery, entities } = context;
   const { toStatementId } = entities;
 
   if (!toStatementId) {
     throw new Error('toStatementId is required in context.entities');
   }
 
-  const executor = graphqlClient as any;
+  const executor = machinery.graphqlExecutor;
 
-  const indirectSupporterCount = await getIndirectSupporterCount(executor, toStatementId);
-  const indirectSupporters = await getIndirectSupporters(executor, toStatementId);
+  const indirectSupporterCount = await getIndirectSupporterCount(machinery.graphqlExecutor, toStatementId);
+  const indirectSupporters = await getIndirectSupporters(machinery, toStatementId);
   const indirectSupporterAddresses = indirectSupporters.map(s => s.user.toLowerCase());
 
   return {
@@ -288,17 +285,17 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
   name: 'indirectSupportPropagation',
   captureState: captureIndirectSupportState,
   check: async (context: ActionContext, before: IndirectSupportState, after: IndirectSupportState) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { fromStatementId, toStatementId } = entities;
 
     if (!fromStatementId || !toStatementId) {
       throw new Error('fromStatementId and toStatementId are required');
     }
 
-    const executor = graphqlClient as any;
+    const executor = machinery.graphqlExecutor;
 
     // Get believers of the "from" statement
-    const fromStatement = await getStatement(executor, fromStatementId);
+    const fromStatement = await getStatement(machinery, fromStatementId);
     if (!fromStatement) {
       // If the from statement doesn't exist, there are no believers to propagate
       return;
@@ -336,7 +333,7 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
         const supporterLower = supporter.toLowerCase();
 
         // Check if this user explicitly disbelieves the target statement
-        const userBelief = await getUserBelief(executor, supporterLower, toStatementId);
+        const userBelief = await getUserBelief(machinery, supporterLower, toStatementId);
         const explicitlyDisbelieves = userBelief?.beliefState === DISBELIEVES;
 
         if (explicitlyDisbelieves) {
@@ -380,7 +377,7 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
 export const implicationDataIntegrityInvariant: InvariantCheck = {
   name: 'implicationDataIntegrity',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { fromStatementId, toStatementId, attesterAddress } = entities;
 
     if (!fromStatementId || !toStatementId || !attesterAddress) {
@@ -392,7 +389,7 @@ export const implicationDataIntegrityInvariant: InvariantCheck = {
 
     // Verify this specific implication is well-formed
     await assertImplicationBidirectionality(
-      graphqlClient,
+      machinery,
       fromStatementId,
       toStatementId,
       attesterAddress

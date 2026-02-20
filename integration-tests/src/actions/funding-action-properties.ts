@@ -27,7 +27,7 @@ interface FundingState {
  * Capture the current state of a project's funding
  */
 async function captureFundingState(context: ActionContext): Promise<FundingState> {
-  const { graphqlClient, entities } = context;
+  const { machinery, entities } = context;
   const { projectAddress } = entities;
 
   if (!projectAddress) {
@@ -35,9 +35,8 @@ async function captureFundingState(context: ActionContext): Promise<FundingState
   }
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-  const project = await getProject(executor, projectAddress);
-  const contributions = await getProjectContributions(executor, projectAddress);
+  const project = await getProject(machinery, projectAddress);
+  const contributions = await getProjectContributions(machinery, projectAddress);
 
   return {
     totalReceived: project ? BigInt(project.totalReceived) : BigInt(0),
@@ -99,14 +98,14 @@ export const projectFundingProperty: StateTransitionProperty = {
 export const moneyConservationInvariant: InvariantCheck = {
   name: 'moneyConservation',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { projectAddress } = entities;
 
     if (!projectAddress) {
       throw new Error('projectAddress is required in context.entities');
     }
 
-    await assertMoneyConservation(graphqlClient, projectAddress);
+    await assertMoneyConservation(machinery, projectAddress);
   },
 };
 
@@ -195,7 +194,7 @@ export const withdrawalMechanicsProperty: StateTransitionProperty = {
 export const tokenConservationInvariant: InvariantCheck = {
   name: 'tokenConservation',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { projectAddress } = entities;
 
     if (!projectAddress) {
@@ -203,7 +202,7 @@ export const tokenConservationInvariant: InvariantCheck = {
     }
 
     const { assertTokenConservation } = await import('../utils/invariants.js');
-    await assertTokenConservation(graphqlClient, projectAddress);
+    await assertTokenConservation(machinery, projectAddress);
   },
 };
 
@@ -305,7 +304,7 @@ export const projectCreationProperty: StateTransitionProperty = {
     return {};
   },
   check: async (context: ActionContext, before: any, after: any) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { projectAddress } = entities;
 
     if (!projectAddress) {
@@ -313,8 +312,7 @@ export const projectCreationProperty: StateTransitionProperty = {
     }
 
     // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-    const executor = graphqlClient as any;
-    const project = await getProject(executor, projectAddress);
+    const project = await getProject(machinery, projectAddress);
 
     assert.ok(project, 'Project should exist after creation');
     assert.strictEqual(
@@ -323,7 +321,7 @@ export const projectCreationProperty: StateTransitionProperty = {
       'New project should have 0 totalReceived'
     );
 
-    const contributions = await getProjectContributions(executor, projectAddress);
+    const contributions = await getProjectContributions(machinery, projectAddress);
     assert.strictEqual(
       contributions.length,
       0,

@@ -33,7 +33,7 @@ interface BeliefState {
  * Capture the current state of a statement and user's belief
  */
 async function captureBeliefState(context: ActionContext): Promise<BeliefState> {
-  const { graphqlClient, entities } = context;
+  const { machinery, entities } = context;
   const { statementId, userAddress } = entities;
 
   if (!statementId) {
@@ -45,9 +45,8 @@ async function captureBeliefState(context: ActionContext): Promise<BeliefState> 
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   // In practice, tests always pass GraphQLExecutor (from createGraphQLClient)
-  const executor = graphqlClient as any;
-  const statement = await getStatement(executor, statementId);
-  const userBelief = await getUserBelief(executor, userAddress, statementId);
+  const statement = await getStatement(machinery, statementId);
+  const userBelief = await getUserBelief(machinery, userAddress, statementId);
 
   return {
     believerCount: statement?.believerCount ?? 0,
@@ -135,14 +134,14 @@ export const beliefTransitionProperty: StateTransitionProperty = {
 export const beliefCountsInvariant: InvariantCheck = {
   name: 'beliefCountsMatch',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { statementId } = entities;
 
     if (!statementId) {
       throw new Error('statementId is required in context.entities');
     }
 
-    await assertBeliefCountsMatch(graphqlClient, statementId);
+    await assertBeliefCountsMatch(machinery, statementId);
   },
 };
 

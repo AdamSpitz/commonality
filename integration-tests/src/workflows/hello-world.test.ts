@@ -37,7 +37,7 @@ describe('Hello World Integration Test', () => {
 
     // 1. Setup clients with isolated test account
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Using account: ${clients.account}`);
     testLog(`  Beliefs contract: ${BELIEFS_CONTRACT_ADDRESS}`);

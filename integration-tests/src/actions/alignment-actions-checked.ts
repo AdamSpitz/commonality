@@ -27,6 +27,7 @@ import {
   runActionAndCheckProperties,
   type ActionContext,
   type ActionRunOptions,
+  ActionTestingMachinery,
 } from './action-framework.js';
 import {
   attestAlignmentMetadata,
@@ -44,7 +45,7 @@ import {
  *
  * @param clients - Test wallet and public clients
  * @param alignmentAttestationsContract - The AlignmentAttestations contract instance
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery
  * @param subjectAddress - Address of the subject (project, user, etc.) to align
  * @param statementCid - IPFS CID of the statement
  * @param topicStatementCid - IPFS CID of the topic for indexer filtering
@@ -57,7 +58,7 @@ import {
  * const txHash = await attestAlignmentChecked(
  *   clients,
  *   alignmentAttestationsContract,
- *   graphqlClient,
+ *   machinery,
  *   projectDetails.tokenAddress,
  *   statementCid,
  *   topicStatementCid,
@@ -69,7 +70,7 @@ import {
 export async function attestAlignmentChecked(
   clients: TestClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   subjectAddress: Address,
   statementCid: string,
   topicStatementCid: string,
@@ -77,7 +78,7 @@ export async function attestAlignmentChecked(
   options?: ActionRunOptions
 ): Promise<Hash> {
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     entities: {
       subjectAddress,
       statementId,
@@ -94,7 +95,7 @@ export async function attestAlignmentChecked(
         statementCid,
         topicStatementCid
       );
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestAlignmentMetadata,
@@ -137,7 +138,7 @@ export async function attestAlignmentChecked(
 export async function attestAlignmentsBatchChecked(
   clients: TestClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   subjectAddresses: Address[],
   statementCids: string[],
   topicStatementCids: string[],
@@ -145,7 +146,7 @@ export async function attestAlignmentsBatchChecked(
 ): Promise<Hash> {
   // For batch operations, we don't track specific entities since there are many
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     entities: {
       attesterAddress: clients.account,
     },
@@ -160,7 +161,7 @@ export async function attestAlignmentsBatchChecked(
         statementCids,
         topicStatementCids
       );
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestAlignmentsBatchMetadata,

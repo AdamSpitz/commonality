@@ -20,13 +20,11 @@ import {
   fulfillBuyOrder,
   cancelBuyOrder,
   approveERC1155ForMarketplace,
-  createGraphQLClient,
   assertNotNull,
   waitForIndexerToSyncToTxHash,
   type PubstarterContract,
   type AssuranceContract,
   type SecondaryMarketContract,
-  type GraphQLClient,
   PubstarterAbi,
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
@@ -36,6 +34,7 @@ import { getProject, getSaleListing, getActiveSaleListings, getBuyOrder, getActi
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { createSaleListingChecked, fulfillSaleListingChecked } from './marketplace-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
 
@@ -48,10 +47,10 @@ describe('Secondary Marketplace Integration Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'marketplace-secondary';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should create and fulfill a sale listing', async function() {
@@ -82,7 +81,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -110,7 +109,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     await buyProjectTokensChecked(
       sellerClients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: sellerClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -138,7 +137,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     await createSaleListingChecked(
       sellerClients,
       marketplaceContract,
-      graphqlClient,
+      machinery,
       projectDetails.marketplaceAddress,
       {
         tokenId: 1n,
@@ -150,10 +149,8 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Query the listing from indexer
     testLog('  Querying sale listing from indexer...');
-    const listing = assertNotNull(
-      await getSaleListing(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Sale listing'
-    );
+    const listing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(listing, 'Sale listing');
 
     testLog(`  Listing found! Price: ${listing.pricePerToken}, Count: ${listing.remainingCount}`);
     assert.strictEqual(listing.status, 'active', 'Listing should be active');
@@ -162,7 +159,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(listing.pricePerToken, parseEther('0.015').toString(), 'Price should be 0.015 ETH');
 
     // Verify active listings query
-    const activeListings = await getActiveSaleListings(graphqlClient, projectDetails.marketplaceAddress);
+    const activeListings = await getActiveSaleListings(machinery, projectDetails.marketplaceAddress);
     assert(activeListings.length >= 1, 'Should have at least 1 active listing');
     const ourListing = activeListings.find(l => l.listingId === '0');
     assert.ok(ourListing, 'Should find our listing');

@@ -49,7 +49,7 @@ describe('Pubstarter Negative Tests', () => {
       }
 
       const aliceClients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
-      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       const contract: PubstarterContract = {
         address: PUBSTARTER_ADDRESS,
@@ -115,7 +115,7 @@ describe('Pubstarter Negative Tests', () => {
       }
 
       const aliceClients = createIsolatedTestClients(SUITE_NAME, 7, RPC_URL);
-      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       const contract: PubstarterContract = {
         address: PUBSTARTER_ADDRESS,

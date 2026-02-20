@@ -38,7 +38,7 @@ interface RefState {
  * Capture the current state of a mutable ref
  */
 async function captureRefState(context: ActionContext): Promise<RefState> {
-  const { graphqlClient, entities, extra, contracts } = context;
+  const { machinery, entities, extra, contracts } = context;
   const { userAddress } = entities;
   const refName = extra?.refName as string;
 
@@ -51,9 +51,6 @@ async function captureRefState(context: ActionContext): Promise<RefState> {
   if (!contracts?.mutableRefUpdater) {
     throw new Error('mutableRefUpdater contract is required in context.contracts');
   }
-
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
 
   // Get current value from indexer
   const currentRef = await getUserRef(executor, userAddress, refName);
@@ -165,7 +162,7 @@ export const listAppendProperty: StateTransitionProperty = {
 export const refContractIndexerConsistency: InvariantCheck = {
   name: 'refContractIndexerConsistency',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities, extra, contracts } = context;
+    const { machinery, entities, extra, contracts } = context;
     const { userAddress } = entities;
     const refName = extra?.refName as string;
 
@@ -191,7 +188,7 @@ export const refContractIndexerConsistency: InvariantCheck = {
 export const refHistoryOrdering: InvariantCheck = {
   name: 'refHistoryOrdering',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities, extra } = context;
+    const { machinery, entities, extra } = context;
     const { userAddress } = entities;
     const refName = extra?.refName as string;
 

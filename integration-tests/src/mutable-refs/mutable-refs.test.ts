@@ -37,7 +37,7 @@ describe('Mutable Refs', () => {
   const SUITE_NAME = 'mutable-refs';
 
   let mutableRefUpdaterContract: MutableRefUpdaterContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!MUTABLE_REF_UPDATER_CONTRACT_ADDRESS) {
@@ -49,7 +49,7 @@ describe('Mutable Refs', () => {
       abi: MutableRefUpdaterAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should create and retrieve a ref', async function() {

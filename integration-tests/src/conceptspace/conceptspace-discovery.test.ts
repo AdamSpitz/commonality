@@ -14,7 +14,6 @@ import {
   publishDocument,
   cidToBytes32,
   type BeliefsContract,
-  createGraphQLClient,
   BeliefsAbi,
 } from '@commonality/sdk';
 import {
@@ -24,6 +23,7 @@ import {
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Statement Discovery & Browsing', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -41,7 +41,7 @@ describe('Statement Discovery & Browsing', () => {
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const charlieClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -68,20 +68,20 @@ describe('Statement Discovery & Browsing', () => {
     testLog('  Creating statements with different support levels...');
 
     // Popular statement: All three users believe it
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, popularStatement);
-    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, popularStatement);
-    await believeStatementChecked(charlieClients, beliefsContract, graphqlClient, popularStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, popularStatement);
+    await believeStatementChecked(bobClients, beliefsContract, machinery, popularStatement);
+    await believeStatementChecked(charlieClients, beliefsContract, machinery, popularStatement);
 
     // Moderate statement: Alice and Bob believe it
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, moderateStatement);
-    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, moderateStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, moderateStatement);
+    await believeStatementChecked(bobClients, beliefsContract, machinery, moderateStatement);
 
     // Unpopular statement: Only Alice believes it
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, unpopularStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, unpopularStatement);
 
     // Browse by most supporters (descending order)
     testLog('  Browsing statements by most supporters...');
-    const statementsBySupport = await browseStatementsByMostSupporters(graphqlClient, {
+    const statementsBySupport = await browseStatementsByMostSupporters(machinery, {
       limit: 100, // Increased limit to ensure we get all statements including those with low believer counts
       orderDirection: 'desc',
     });
@@ -129,7 +129,7 @@ describe('Statement Discovery & Browsing', () => {
     }
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     const beliefsContract: BeliefsContract = {
       address: BELIEFS_CONTRACT_ADDRESS,
@@ -152,13 +152,13 @@ describe('Statement Discovery & Browsing', () => {
     testLog('  Creating statements in sequence...');
 
     // Create them in order (believing creates the statement if it doesn't exist)
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, oldStatement);
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, middleStatement);
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, newStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, oldStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, middleStatement);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, newStatement);
 
     // Browse by newest
     testLog('  Browsing newest statements...');
-    const newestStatements = await browseStatementsByNewest(graphqlClient, {
+    const newestStatements = await browseStatementsByNewest(machinery, {
       limit: 10,
       orderDirection: 'desc',
     });
@@ -201,7 +201,7 @@ describe('Statement Discovery & Browsing', () => {
     }
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     const beliefsContract: BeliefsContract = {
       address: BELIEFS_CONTRACT_ADDRESS,
@@ -222,16 +222,16 @@ describe('Statement Discovery & Browsing', () => {
 
     // Believe all statements
     for (const statement of statements) {
-      await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, statement);
+      await believeStatementChecked(aliceClients, beliefsContract, machinery, statement);
     }
 
     // Test pagination: Get first 2 statements
     testLog('  Testing pagination with limit=2...');
-    const page1 = await getAllStatements(graphqlClient, { limit: 2, offset: 0 });
+    const page1 = await getAllStatements(machinery, { limit: 2, offset: 0 });
 
     // Test getting next page
     testLog('  Getting next page with offset=2...');
-    const page2 = await getAllStatements(graphqlClient, { limit: 2, offset: 2 });
+    const page2 = await getAllStatements(machinery, { limit: 2, offset: 2 });
 
     // Verify we got different statements
     assert.strictEqual(page1.length, 2, 'First page should have 2 statements');

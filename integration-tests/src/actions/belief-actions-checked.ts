@@ -34,6 +34,7 @@ import {
   disbelieveStatementMetadata,
   clearOpinionMetadata,
 } from './belief-action-properties.js';
+import { ActionTestingMachinery } from './action-machinery.js';
 
 /**
  * Express belief in a statement (with property checking)
@@ -63,7 +64,7 @@ import {
 export async function believeStatementChecked(
   clients: TestClients,
   beliefsContract: BeliefsContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   statementCid: string,
   options?: ActionRunOptions
 ): Promise<Hash> {
@@ -71,7 +72,7 @@ export async function believeStatementChecked(
   const userAddress = clients.account;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { beliefs: beliefsContract },
     entities: {
       statementId,
@@ -82,7 +83,7 @@ export async function believeStatementChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await believeStatement(clients, beliefsContract, statementCid);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     believeStatementMetadata,
@@ -119,7 +120,7 @@ export async function believeStatementChecked(
 export async function disbelieveStatementChecked(
   clients: TestClients,
   beliefsContract: BeliefsContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   statementCid: string,
   options?: ActionRunOptions
 ): Promise<Hash> {
@@ -127,7 +128,7 @@ export async function disbelieveStatementChecked(
   const userAddress = clients.account;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { beliefs: beliefsContract },
     entities: {
       statementId,
@@ -138,7 +139,7 @@ export async function disbelieveStatementChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await disbelieveStatement(clients, beliefsContract, statementCid);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     disbelieveStatementMetadata,
@@ -175,7 +176,7 @@ export async function disbelieveStatementChecked(
 export async function clearOpinionChecked(
   clients: TestClients,
   beliefsContract: BeliefsContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   statementCid: string,
   options?: ActionRunOptions
 ): Promise<Hash> {
@@ -183,7 +184,7 @@ export async function clearOpinionChecked(
   const userAddress = clients.account;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { beliefs: beliefsContract },
     entities: {
       statementId,
@@ -194,7 +195,7 @@ export async function clearOpinionChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await clearOpinion(clients, beliefsContract, statementCid);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     clearOpinionMetadata,

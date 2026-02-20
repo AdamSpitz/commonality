@@ -17,7 +17,8 @@
  * and makes actions reusable in generative testing.
  */
 
-import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
+import { ActionTestingMachinery } from './action-machinery.js';
+export { ActionTestingMachinery };
 
 /**
  * Category of action - used for organizing and filtering
@@ -29,8 +30,7 @@ export type ActionCategory = 'belief' | 'funding' | 'delegation' | 'marketplace'
  * Contains everything needed to verify properties about an action
  */
 export interface ActionContext {
-  /** GraphQL client for querying the indexer */
-  graphqlClient: GraphQLClient | GraphQLExecutor;
+  machinery: ActionTestingMachinery;
 
   /** Contract instances (only include what's relevant for this action) */
   contracts?: {

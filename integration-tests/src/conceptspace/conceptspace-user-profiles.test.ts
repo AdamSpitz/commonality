@@ -13,7 +13,6 @@ import {
   publishDocument,
   cidToBytes32,
   type BeliefsContract,
-  createGraphQLClient,
   BeliefsAbi,
 } from '@commonality/sdk';
 import {
@@ -22,6 +21,7 @@ import {
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('User Profile Queries', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -38,7 +38,7 @@ describe('User Profile Queries', () => {
 
     // Setup clients for Alice
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
 
@@ -65,13 +65,12 @@ describe('User Profile Queries', () => {
     testLog('  Alice signing statements 1 and 2...');
 
     // Alice believes statements 1 and 2 (Checked actions verify belief counts automatically)
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, statement1);
-    await believeStatementChecked(aliceClients, beliefsContract, graphqlClient, statement2);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, statement1);
+    await believeStatementChecked(aliceClients, beliefsContract, machinery, statement2);
 
     // Query Alice's beliefs
     testLog('  Querying Alice\'s beliefs...');
-    const aliceBeliefs = await getUserBeliefs(graphqlClient, aliceClients.account);
-
+    const aliceBeliefs = await getUserBeliefs(machinery, aliceClients.account);
     // Verify Alice believes the 2 statements created in this test
     const beliefIds = aliceBeliefs.map(b => b.id.toLowerCase());
     const expectedIds = [statementId1.toLowerCase(), statementId2.toLowerCase()];
@@ -90,7 +89,7 @@ describe('User Profile Queries', () => {
     }
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     const beliefsContract: BeliefsContract = {
       address: BELIEFS_CONTRACT_ADDRESS,
@@ -111,12 +110,12 @@ describe('User Profile Queries', () => {
     testLog('  Alice disbelieving statements...');
 
     // Alice disbelieves both statements (Checked actions verify disbelief counts automatically)
-    await disbelieveStatementChecked(aliceClients, beliefsContract, graphqlClient, statement1);
-    await disbelieveStatementChecked(aliceClients, beliefsContract, graphqlClient, statement2);
+    await disbelieveStatementChecked(aliceClients, beliefsContract, machinery, statement1);
+    await disbelieveStatementChecked(aliceClients, beliefsContract, machinery, statement2);
 
     // Query Alice's disbeliefs
     testLog('  Querying Alice\'s disbeliefs...');
-    const aliceDisbeliefs = await getUserDisbeliefs(graphqlClient, aliceClients.account);
+    const aliceDisbeliefs = await getUserDisbeliefs(machinery, aliceClients.account);
 
     // Verify Alice disbelieves the 2 statements created in this test
     const disbeliefIds = aliceDisbeliefs.map(b => b.id.toLowerCase());
@@ -138,7 +137,7 @@ describe('User Profile Queries', () => {
     // Setup clients for both users
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -162,16 +161,16 @@ describe('User Profile Queries', () => {
     testLog('  Bob signing statements...');
 
     // Bob believes statements 1 and 3 (Checked actions verify belief counts automatically)
-    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, statement1);
-    await believeStatementChecked(bobClients, beliefsContract, graphqlClient, statement3);
+    await believeStatementChecked(bobClients, beliefsContract, machinery, statement1);
+    await believeStatementChecked(bobClients, beliefsContract, machinery, statement3);
 
     // Bob disbelieves statement 2 (Checked actions verify disbelief counts automatically)
-    await disbelieveStatementChecked(bobClients, beliefsContract, graphqlClient, statement2);
+    await disbelieveStatementChecked(bobClients, beliefsContract, machinery, statement2);
 
     // Alice queries Bob's profile (simulating viewing another user's profile)
     testLog('  Alice querying Bob\'s profile...');
-    const bobBeliefs = await getUserBeliefs(graphqlClient, bobClients.account);
-    const bobDisbeliefs = await getUserDisbeliefs(graphqlClient, bobClients.account);
+    const bobBeliefs = await getUserBeliefs(machinery, bobClients.account);
+    const bobDisbeliefs = await getUserDisbeliefs(machinery, bobClients.account);
 
     // Verify Bob believes statements 1 and 3 (created in this test)
     const bobBeliefIds = bobBeliefs.map(b => b.id.toLowerCase());

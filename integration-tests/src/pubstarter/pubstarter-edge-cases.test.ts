@@ -65,7 +65,7 @@ describe('Pubstarter Edge Cases', () => {
 
     const tokenPrice = parseEther('0.1');
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog('  Creating project...');
     const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
@@ -114,7 +114,7 @@ describe('Pubstarter Edge Cases', () => {
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -239,7 +239,7 @@ describe('Pubstarter Edge Cases', () => {
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -328,7 +328,7 @@ describe('Pubstarter Edge Cases', () => {
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);

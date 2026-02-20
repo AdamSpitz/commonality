@@ -41,7 +41,7 @@ describe('Funding Portal - Alignment Attestations', () => {
 
   let alignmentAttestationsContract: AlignmentAttestationsContract;
   let pubstarterContract: PubstarterContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(async () => {
     if (!ALIGNMENT_ATTESTATIONS_ADDRESS) {
@@ -61,7 +61,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       abi: PubstarterAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should attest a single alignment', async function() {

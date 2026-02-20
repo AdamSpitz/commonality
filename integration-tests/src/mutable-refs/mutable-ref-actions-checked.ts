@@ -63,7 +63,7 @@ import {
 export async function updateRefChecked(
   clients: TestClients,
   mutableRefContract: MutableRefUpdaterContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   refName: string,
   value: string,
   options?: ActionRunOptions
@@ -123,7 +123,7 @@ export async function updateRefChecked(
  * ```
  */
 export async function appendToUserListChecked(
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   clients: TestClients,
   mutableRefContract: MutableRefUpdaterContract,
   refName: string,

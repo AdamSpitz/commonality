@@ -7,10 +7,10 @@
  * Usage:
  *   // Instead of:
  *   await delegateNote(clients, contract, params);
- *   await assertDelegationChainIntegrity(graphqlClient, noteId);
+ *   await assertDelegationChainIntegrity(machinery, noteId);
  *
  *   // Write:
- *   await delegateNoteChecked(clients, contract, graphqlClient, params);
+ *   await delegateNoteChecked(clients, contract, machinery, params);
  */
 
 import type { Hash, Address } from 'viem';
@@ -24,8 +24,8 @@ import {
   type TestClients,
   type DelegatableNotesContract,
 } from '@commonality/sdk';
-import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
+  ActionTestingMachinery,
   runActionAndCheckProperties,
   type ActionContext,
   type ActionRunOptions,
@@ -46,7 +46,7 @@ import {
  *
  * @param clients - Test wallet and public clients
  * @param delegatableNotesContract - The DelegatableNotes contract instance
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery
  * @param params - Deposit parameters
  * @param params.amount - Amount of ETH to deposit (in wei)
  * @param options - Optional: control which checks run
@@ -57,7 +57,7 @@ import {
  * const { noteId } = await depositETHChecked(
  *   clients,
  *   delegatableNotesContract,
- *   graphqlClient,
+ *   machinery,
  *   {
  *     amount: parseEther('1.0')
  *   }
@@ -68,7 +68,7 @@ import {
 export async function depositETHChecked(
   clients: TestClients,
   delegatableNotesContract: DelegatableNotesContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   params: {
     amount: bigint;
   },
@@ -76,7 +76,7 @@ export async function depositETHChecked(
 ): Promise<{ hash: Hash; noteId: bigint }> {
   // Context that will be populated during action execution
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { delegation: delegatableNotesContract },
     entities: {
       delegationNoteId: '', // Will be set after action completes
@@ -90,7 +90,7 @@ export async function depositETHChecked(
       const actionResult = await depositETH(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, actionResult.hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, actionResult.hash);
 
       // Update context with the note ID for invariant checking
       context.entities.delegationNoteId = actionResult.noteId.toString();
@@ -115,7 +115,7 @@ export async function depositETHChecked(
  *
  * @param clients - Test wallet and public clients
  * @param delegatableNotesContract - The DelegatableNotes contract instance
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery
  * @param params - Delegation parameters
  * @param params.noteId - The ID of the note to delegate
  * @param params.owners - The delegation chain (leaf first, root last) that proves ownership
@@ -129,7 +129,7 @@ export async function depositETHChecked(
  * const { delegatedNoteId } = await delegateNoteChecked(
  *   clients,
  *   delegatableNotesContract,
- *   graphqlClient,
+ *   machinery,
  *   {
  *     noteId: 1n,
  *     owners: [alice.address],
@@ -143,7 +143,7 @@ export async function depositETHChecked(
 export async function delegateNoteChecked(
   clients: TestClients,
   delegatableNotesContract: DelegatableNotesContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   params: {
     noteId: bigint;
     owners: Address[];
@@ -153,7 +153,7 @@ export async function delegateNoteChecked(
   options?: ActionRunOptions
 ): Promise<{ hash: Hash; delegatedNoteId: bigint; remainderNoteId: bigint }> {
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { delegation: delegatableNotesContract },
     entities: {
       delegationNoteId: params.noteId.toString(),
@@ -169,7 +169,7 @@ export async function delegateNoteChecked(
       const actionResult = await delegateNote(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, actionResult.hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, actionResult.hash);
 
       // Update context with the delegated note ID for invariant checking
       context.entities.delegationNoteId = actionResult.delegatedNoteId.toString();
@@ -193,7 +193,7 @@ export async function delegateNoteChecked(
  *
  * @param clients - Test wallet and public clients
  * @param delegatableNotesContract - The DelegatableNotes contract instance
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery
  * @param params - Revocation parameters
  * @param params.noteId - The ID of the note to revoke
  * @param params.owners - Current delegation chain (leaf first, root last)
@@ -205,7 +205,7 @@ export async function delegateNoteChecked(
  * await revokeNoteChecked(
  *   clients,
  *   delegatableNotesContract,
- *   graphqlClient,
+ *   machinery,
  *   {
  *     noteId: 2n,
  *     owners: [bob.address, alice.address]
@@ -217,7 +217,7 @@ export async function delegateNoteChecked(
 export async function revokeNoteChecked(
   clients: TestClients,
   delegatableNotesContract: DelegatableNotesContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   params: {
     noteId: bigint;
     owners: Address[];
@@ -225,7 +225,7 @@ export async function revokeNoteChecked(
   options?: ActionRunOptions
 ): Promise<Hash> {
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { delegation: delegatableNotesContract },
     entities: {
       delegationNoteId: params.noteId.toString(),
@@ -238,7 +238,7 @@ export async function revokeNoteChecked(
       const hash = await revokeNote(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
 
       return hash;
     },
@@ -262,7 +262,7 @@ export async function revokeNoteChecked(
  *
  * @param clients - Test wallet and public clients
  * @param delegatableNotesContract - The DelegatableNotes contract instance
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery
  * @param params - Purchase parameters
  * @param params.noteIds - IDs of notes to use for payment
  * @param params.chains - Delegation chains for each note (leaf first, root last)
@@ -279,7 +279,7 @@ export async function revokeNoteChecked(
  * await spendDelegatedNoteChecked(
  *   clients,
  *   delegatableNotesContract,
- *   graphqlClient,
+ *   machinery,
  *   {
  *     noteIds: [1n, 2n],
  *     chains: [[alice.address], [bob.address, alice.address]],
@@ -296,7 +296,7 @@ export async function revokeNoteChecked(
 export async function spendDelegatedNoteChecked(
   clients: TestClients,
   delegatableNotesContract: DelegatableNotesContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   params: {
     noteIds: bigint[];
     chains: Address[][];
@@ -313,7 +313,7 @@ export async function spendDelegatedNoteChecked(
       const hash = await purchaseFromPrimaryMarketWithNotes(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
 
       return hash;
     },
@@ -321,7 +321,7 @@ export async function spendDelegatedNoteChecked(
     // For spending, we check each note's chain integrity
     // We use the first note as the primary entity for context
     {
-      graphqlClient,
+      machinery,
       contracts: { delegation: delegatableNotesContract },
       entities: {
         delegationNoteId: params.noteIds[0]?.toString(),
@@ -347,7 +347,7 @@ export async function spendDelegatedNoteChecked(
  *
  * @param clients - Test wallet and public clients
  * @param delegatableNotesContract - The DelegatableNotes contract instance
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery
  * @param noteId - The ID of the note to reclaim
  * @param options - Optional: control which checks run
  * @returns Transaction hash
@@ -357,7 +357,7 @@ export async function spendDelegatedNoteChecked(
  * const txHash = await reclaimFundsChecked(
  *   clients,
  *   delegatableNotesContract,
- *   graphqlClient,
+ *   machinery,
  *   noteId
  * );
  * // State transition properties and invariants are automatically verified
@@ -366,12 +366,12 @@ export async function spendDelegatedNoteChecked(
 export async function reclaimFundsChecked(
   clients: TestClients,
   delegatableNotesContract: DelegatableNotesContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   noteId: bigint,
   options?: ActionRunOptions
 ): Promise<Hash> {
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { delegation: delegatableNotesContract },
     entities: {
       delegationNoteId: noteId.toString(),
@@ -384,7 +384,7 @@ export async function reclaimFundsChecked(
       const hash = await reclaimFunds(clients, delegatableNotesContract, noteId);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
 
       return hash;
     },

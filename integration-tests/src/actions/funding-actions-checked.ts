@@ -31,6 +31,7 @@ import {
   runActionAndCheckProperties,
   type ActionContext,
   type ActionRunOptions,
+  ActionTestingMachinery,
 } from './action-framework.js';
 import {
   createProjectMetadata,
@@ -90,7 +91,7 @@ import {
 export async function createProjectChecked(
   clients: TestClients,
   pubstarterContract: PubstarterContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   params: {
     metadataURI: string;
     contractURI: string;
@@ -112,12 +113,12 @@ export async function createProjectChecked(
     async () => {
       const result = await createProject(clients, pubstarterContract, params);
       projectDetails = result.projectDetails;
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, result.hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, result.hash);
       return result;
     },
     createProjectMetadata,
     {
-      graphqlClient,
+      machinery,
       contracts: { pubstarter: pubstarterContract },
       entities: {
         // We'll update this after the action completes
@@ -146,7 +147,7 @@ export async function createProjectChecked(
  *
  * @param clients - Test wallet and public clients
  * @param assuranceContract - The project's assurance contract instance
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery
  * @param params - Purchase parameters
  * @param params.buyer - Address that will receive the tokens
  * @param params.tokenAddress - Address of the project's ERC1155 token contract
@@ -176,7 +177,7 @@ export async function createProjectChecked(
 export async function buyProjectTokensChecked(
   clients: TestClients,
   assuranceContract: AssuranceContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   params: {
     buyer: Address;
     tokenAddress: Address;
@@ -189,7 +190,7 @@ export async function buyProjectTokensChecked(
   const projectAddress = assuranceContract.address;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { pubstarter: assuranceContract },
     entities: {
       projectAddress,
@@ -203,7 +204,7 @@ export async function buyProjectTokensChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await buyProjectTokens(clients, assuranceContract, params);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     buyProjectTokensMetadata,
@@ -252,7 +253,7 @@ export async function buyProjectTokensChecked(
 export async function refundProjectTokensChecked(
   clients: TestClients,
   assuranceContract: AssuranceContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   params: {
     holder: Address;
     tokenAddress: Address;
@@ -265,7 +266,7 @@ export async function refundProjectTokensChecked(
   const projectAddress = assuranceContract.address;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { pubstarter: assuranceContract },
     entities: {
       projectAddress,
@@ -284,7 +285,7 @@ export async function refundProjectTokensChecked(
         tokenIds: params.tokenIds,
         tokenCounts: params.tokenCounts,
       });
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     refundProjectTokensMetadata,
@@ -320,13 +321,13 @@ export async function refundProjectTokensChecked(
 export async function withdrawProjectFundsChecked(
   clients: TestClients,
   assuranceContract: AssuranceContract,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   options?: ActionRunOptions
 ): Promise<Hash> {
   const projectAddress = assuranceContract.address;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { pubstarter: assuranceContract },
     entities: {
       projectAddress,
@@ -337,7 +338,7 @@ export async function withdrawProjectFundsChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await withdrawProjectFunds(clients, assuranceContract);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     withdrawProjectFundsMetadata,
@@ -385,7 +386,7 @@ export async function withdrawProjectFundsChecked(
 export async function burnTokensChecked(
   clients: TestClients,
   tokenAddress: Address,
-  graphqlClient: GraphQLClient | GraphQLExecutor,
+  machinery: ActionTestingMachinery,
   projectAddress: Address,
   params: {
     tokenIds: bigint[];
@@ -394,7 +395,7 @@ export async function burnTokensChecked(
   options?: ActionRunOptions
 ): Promise<Hash> {
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     entities: {
       projectAddress,
       userAddress: clients.account,
@@ -404,7 +405,7 @@ export async function burnTokensChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await burnTokens(clients, tokenAddress, params);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     burnTokensMetadata,

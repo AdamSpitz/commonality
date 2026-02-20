@@ -66,7 +66,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
       const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);
       testLog(`  Attester account: ${attesterClients.account}`);
@@ -190,7 +190,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const rootUserClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
       const delegateUserClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  Root user account: ${rootUserClients.account}`);
       testLog(`  Delegate user account: ${delegateUserClients.account}`);
@@ -326,7 +326,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
       const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);
       testLog(`  Attester account: ${attesterClients.account}`);
@@ -452,7 +452,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
       const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-      const graphqlClient = createGraphQLClient(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);
       testLog(`  Attester account: ${attesterClients.account}`);

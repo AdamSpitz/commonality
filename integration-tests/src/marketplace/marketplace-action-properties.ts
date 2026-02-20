@@ -27,7 +27,7 @@ interface MarketplaceState {
  * Capture the current state of a sale listing
  */
 async function captureListingState(context: ActionContext): Promise<MarketplaceState> {
-  const { graphqlClient, entities, extra } = context;
+  const { machinery, entities, extra } = context;
   const { marketplaceAddress } = entities;
 
   if (!marketplaceAddress) {
@@ -40,7 +40,7 @@ async function captureListingState(context: ActionContext): Promise<MarketplaceS
   }
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
+  const executor = machinery.graphqlExecutor;
   const listing = await getSaleListing(executor, marketplaceAddress, listingId);
 
   return {
@@ -128,7 +128,7 @@ export const saleListingFulfillmentProperty: StateTransitionProperty = {
 export const tradeDataConsistencyInvariant: InvariantCheck = {
   name: 'tradeDataConsistency',
   check: async (context: ActionContext) => {
-    const { graphqlClient, entities, extra } = context;
+    const { machinery, entities, extra } = context;
     const { marketplaceAddress } = entities;
 
     if (!marketplaceAddress) {

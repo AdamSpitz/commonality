@@ -15,18 +15,17 @@ import {
   cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
-  createGraphQLClient,
   BeliefsAbi,
   ImplicationsAbi,
 } from '@commonality/sdk';
 import {
-  getImplicationsFrom,
   getImplicationsTo,
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { assertNoOrphanedData } from '../utils/invariants.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -39,7 +38,7 @@ describe('Conceptspace Implications', () => {
 
   let beliefsContract: BeliefsContract;
   let implicationsContract: ImplicationsContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!BELIEFS_CONTRACT_ADDRESS) {
@@ -59,7 +58,7 @@ describe('Conceptspace Implications', () => {
       abi: ImplicationsAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should record implication attestations', async function() {
@@ -84,7 +83,7 @@ describe('Conceptspace Implications', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       statement1Cid,
       statement2Cid
     );
@@ -110,7 +109,7 @@ describe('Conceptspace Implications', () => {
 
     // User believes the specific statement
     testLog('  User believes specific statement...');
-    await believeStatementChecked(userClients, beliefsContract, graphqlClient, specificCid);
+    await believeStatementChecked(userClients, beliefsContract, machinery, specificCid);
 
     testLog('  ✓ Direct support recorded (verified by property checks)');
 
@@ -119,7 +118,7 @@ describe('Conceptspace Implications', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       specificCid,
       generalCid,
       undefined, // No explanation
@@ -155,7 +154,7 @@ describe('Conceptspace Implications', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       specific1Cid,
       generalCid
     );
@@ -163,7 +162,7 @@ describe('Conceptspace Implications', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       specific2Cid,
       generalCid
     );
@@ -186,21 +185,21 @@ describe('Conceptspace Implications', () => {
     testLog('  Creating chain: S1 -> S2 -> S3...');
 
     // Attest S1 -> S2 (checked action verifies the implication exists)
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s1, s2);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s1, s2);
 
     // Attest S2 -> S3 (checked action verifies the implication exists)
-    await attestImplicationChecked(attesterClients, implicationsContract, graphqlClient, s2, s3);
+    await attestImplicationChecked(attesterClients, implicationsContract, machinery, s2, s3);
 
     // Verify S1 -> S3 does NOT exist (no transitivity)
     // This is the key business logic check for non-transitivity
-    const s3ImplicationsTo = await getImplicationsTo(graphqlClient, s3Id);
+    const s3ImplicationsTo = await getImplicationsTo(machinery, s3Id);
     const s1ToS3 = s3ImplicationsTo.find(
       imp => imp.fromStatementId.toLowerCase() === s1Id.toLowerCase()
     );
     assert.strictEqual(s1ToS3, undefined, 'S1 -> S3 should NOT exist (implications are not transitive)');
 
     // Verify no orphaned data (all implications reference valid statements and attesters)
-    await assertNoOrphanedData(graphqlClient);
+    await assertNoOrphanedData(machinery);
 
     testLog('  ✓ Confirmed: implications are NOT transitive');
     testLog('  ✓ To find indirect support for S3 from S1 believers, need direct S1->S3 attestation');

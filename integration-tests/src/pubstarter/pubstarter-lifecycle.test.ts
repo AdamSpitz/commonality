@@ -34,10 +34,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-lifecycle';
 
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should allow withdrawal when project reaches threshold', async function() {

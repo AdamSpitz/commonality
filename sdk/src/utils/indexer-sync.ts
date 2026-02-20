@@ -160,7 +160,7 @@ export async function waitForIndexerToSyncToBlockNumber(
  * ```
  */
 export async function waitForIndexerToSyncToTxHash(
-  client: GraphQLClient | { indexerClient: GraphQLClient },
+  client: GraphQLClient,
   publicClient: {
     getBlockNumber: () => Promise<bigint>;
     getTransactionReceipt: (args: { hash: `0x${string}` }) => Promise<{ blockNumber: bigint }>;

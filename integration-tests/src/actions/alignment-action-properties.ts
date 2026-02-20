@@ -35,7 +35,7 @@ interface AlignmentState {
  * Capture the current state of subject-statement alignments
  */
 async function captureAlignmentState(context: ActionContext): Promise<AlignmentState> {
-  const { graphqlClient, entities } = context;
+  const { machinery, entities } = context;
   const { statementId, subjectAddress, attesterAddress } = entities;
 
   if (!statementId) {
@@ -48,18 +48,15 @@ async function captureAlignmentState(context: ActionContext): Promise<AlignmentS
     throw new Error('attesterAddress is required in context.entities for alignment state');
   }
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = graphqlClient as any;
-
   // Get all subjects aligned with this statement
-  const alignedSubjects = await getAlignedSubjects(executor, statementId);
+  const alignedSubjects = await getAlignedSubjects(machinery, statementId);
 
   // Get all statements this subject is aligned with
-  const subjectStatements = await getSubjectStatements(executor, subjectAddress);
+  const subjectStatements = await getSubjectStatements(machinery, subjectAddress);
 
   // Check if this specific alignment exists
   const alignment = await getAlignmentAttestation(
-    executor,
+    machinery,
     attesterAddress,
     subjectAddress,
     statementId
@@ -132,17 +129,15 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
   name: 'alignmentBidirectionality',
   captureState: async () => ({}), // No state to capture, we just verify after
   check: async (context: ActionContext, before: any, after: any) => {
-    const { graphqlClient, entities } = context;
+    const { machinery, entities } = context;
     const { statementId, subjectAddress, attesterAddress } = entities;
 
     if (!statementId || !subjectAddress || !attesterAddress) {
       throw new Error('statementId, subjectAddress, and attesterAddress are required');
     }
 
-    const executor = graphqlClient as any;
-
     // Query by statement - should include this subject
-    const alignedSubjects = await getAlignedSubjects(executor, statementId);
+    const alignedSubjects = await getAlignedSubjects(machinery, statementId);
     const subjectFound = alignedSubjects.some(
       a => a.subjectAddress.toLowerCase() === subjectAddress.toLowerCase() &&
            a.attester.toLowerCase() === attesterAddress.toLowerCase()
@@ -153,7 +148,7 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
     );
 
     // Query by subject - should include this statement
-    const subjectStatements = await getSubjectStatements(executor, subjectAddress);
+    const subjectStatements = await getSubjectStatements(machinery, subjectAddress);
     const statementFound = subjectStatements.some(
       a => a.statementId.toLowerCase() === statementId.toLowerCase() &&
            a.attester.toLowerCase() === attesterAddress.toLowerCase()
@@ -165,7 +160,7 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
 
     // Query the specific alignment - should exist
     const alignment = await getAlignmentAttestation(
-      executor,
+      machinery,
       attesterAddress,
       subjectAddress,
       statementId
@@ -190,8 +185,8 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
 export const noOrphanedAlignmentDataInvariant: InvariantCheck = {
   name: 'noOrphanedAlignmentData',
   check: async (context: ActionContext) => {
-    const { graphqlClient } = context;
-    await assertNoOrphanedData(graphqlClient);
+    const { machinery } = context;
+    await assertNoOrphanedData(machinery);
   },
 };
 

@@ -14,7 +14,6 @@ import {
   createStatement,
   publishDocument,
   type DelegatableNotesContract,
-  createGraphQLClient,
   assertNotNull,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
@@ -31,6 +30,7 @@ import {
   revokeNoteChecked,
   reclaimFundsChecked,
 } from './delegation-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -41,7 +41,7 @@ describe('Delegation System', () => {
   const SUITE_NAME = 'delegation-basic';
 
   let delegatableNotesContract: DelegatableNotesContract;
-  let graphqlClient: GraphQLClient;
+  let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!DELEGATABLE_NOTES_ADDRESS) {
@@ -53,7 +53,7 @@ describe('Delegation System', () => {
       abi: DelegatableNotesAbi,
     };
 
-    graphqlClient = createGraphQLClient(GRAPHQL_URL);
+    machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
 
   it('should deposit ETH and create a note', async function() {
@@ -71,15 +71,15 @@ describe('Delegation System', () => {
     const { noteId } = await depositETHChecked(
       clients,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: depositAmount,
       }
     );
 
-    // Query the note
-    const note = await getNote(graphqlClient, noteId.toString());
-    assertNotNull(note, 'Note');
+    const noteOrNull = await getNote(machinery, noteId.toString());
+    assertNotNull(noteOrNull, 'Note');
+    const note = noteOrNull!;
 
     assert.strictEqual(note.amount, depositAmount.toString(), 'Note amount should match deposit');
     assert.strictEqual(note.token.toLowerCase(), '0x0000000000000000000000000000000000000000', 'Token should be address(0) for ETH');
@@ -104,7 +104,7 @@ describe('Delegation System', () => {
     const { noteId } = await depositETHChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: depositAmount,
       }
@@ -114,7 +114,7 @@ describe('Delegation System', () => {
     const { delegatedNoteId } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [user1.account], // Current chain: just user1
@@ -124,19 +124,19 @@ describe('Delegation System', () => {
     );
 
     // Query the delegated note
-    const delegatedNote = await getNote(graphqlClient, delegatedNoteId.toString());
+    const delegatedNote = await getNote(machinery, delegatedNoteId.toString());
     assertNotNull(delegatedNote, 'Delegated note');
 
-    assert.strictEqual(delegatedNote.amount, depositAmount.toString(), 'Delegated note should have full amount');
-    assert.strictEqual(delegatedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be user2');
-    assert.strictEqual(delegatedNote.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should still be user1');
+    assert.strictEqual(delegatedNote!.amount, depositAmount.toString(), 'Delegated note should have full amount');
+    assert.strictEqual(delegatedNote!.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be user2');
+    assert.strictEqual(delegatedNote!.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should still be user1');
 
     // Check delegation chain depth
-    const delegationChain = await getDelegationChain(graphqlClient, delegatedNoteId.toString());
+    const delegationChain = await getDelegationChain(machinery, delegatedNoteId.toString());
     assert.strictEqual(delegationChain.length, 2, 'Delegation chain should have 2 entries (user1 -> user2)');
 
     // Verify user2 can query their notes
-    const user2Notes = await getNotesByOwner(graphqlClient, user2.account);
+    const user2Notes = await getNotesByOwner(machinery, user2.account);
     assert(user2Notes.length > 0, 'User2 should have at least one note');
     const foundNote = user2Notes.find(n => n.id === delegatedNoteId.toString());
     assert(foundNote, 'User2 should own the delegated note');
@@ -157,7 +157,7 @@ describe('Delegation System', () => {
     const { noteId } = await depositETHChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: depositAmount,
       }
@@ -168,7 +168,7 @@ describe('Delegation System', () => {
     const { delegatedNoteId, remainderNoteId } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [user1.account],
@@ -178,17 +178,17 @@ describe('Delegation System', () => {
     );
 
     // Check delegated note (should have 3 ETH, owned by user2)
-    const delegatedNote = await getNote(graphqlClient, delegatedNoteId.toString());
+    const delegatedNote = await getNote(machinery, delegatedNoteId.toString());
     assertNotNull(delegatedNote, 'Delegated note');
-    assert.strictEqual(delegatedNote.amount, delegateAmount.toString(), 'Delegated note should have 3 ETH');
-    assert.strictEqual(delegatedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Delegated note owner should be user2');
+    assert.strictEqual(delegatedNote!.amount, delegateAmount.toString(), 'Delegated note should have 3 ETH');
+    assert.strictEqual(delegatedNote!.owner.toLowerCase(), user2.account.toLowerCase(), 'Delegated note owner should be user2');
 
     // Check remainder note (should have 7 ETH, still owned by user1)
-    const remainderNote = await getNote(graphqlClient, remainderNoteId.toString());
+    const remainderNote = await getNote(machinery, remainderNoteId.toString());
     assertNotNull(remainderNote, 'Remainder note');
     const expectedRemainder = depositAmount - delegateAmount;
-    assert.strictEqual(remainderNote.amount, expectedRemainder.toString(), 'Remainder note should have 7 ETH');
-    assert.strictEqual(remainderNote.owner.toLowerCase(), user1.account.toLowerCase(), 'Remainder note owner should still be user1');
+    assert.strictEqual(remainderNote!.amount, expectedRemainder.toString(), 'Remainder note should have 7 ETH');
+    assert.strictEqual(remainderNote!.owner.toLowerCase(), user1.account.toLowerCase(), 'Remainder note owner should still be user1');
   });
 
   it('should support multi-level delegation chains', async function() {
@@ -207,7 +207,7 @@ describe('Delegation System', () => {
     const { noteId: note1 } = await depositETHChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: depositAmount,
       }
@@ -217,7 +217,7 @@ describe('Delegation System', () => {
     const { delegatedNoteId: note2 } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note1,
         owners: [user1.account],
@@ -230,7 +230,7 @@ describe('Delegation System', () => {
     const { delegatedNoteId: note3 } = await delegateNoteChecked(
       user2,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note2,
         owners: [user2.account, user1.account], // Chain: user2 (leaf) -> user1 (root)
@@ -240,13 +240,13 @@ describe('Delegation System', () => {
     );
 
     // Check final note
-    const finalNote = await getNote(graphqlClient, note3.toString());
+    const finalNote = await getNote(machinery, note3.toString());
     assertNotNull(finalNote, 'Final note');
-    assert.strictEqual(finalNote.owner.toLowerCase(), user3.account.toLowerCase(), 'Final owner should be user3');
-    assert.strictEqual(finalNote.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should still be user1');
+    assert.strictEqual(finalNote!.owner.toLowerCase(), user3.account.toLowerCase(), 'Final owner should be user3');
+    assert.strictEqual(finalNote!.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should still be user1');
 
     // Check delegation chain (should be 3 deep: user1 -> user2 -> user3)
-    const finalChain = await getDelegationChain(graphqlClient, note3.toString());
+    const finalChain = await getDelegationChain(machinery, note3.toString());
     assert.strictEqual(finalChain.length, 3, 'Delegation chain should have 3 entries');
   });
 
@@ -266,7 +266,7 @@ describe('Delegation System', () => {
     const { noteId: note1 } = await depositETHChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: depositAmount,
       }
@@ -276,7 +276,7 @@ describe('Delegation System', () => {
     const { delegatedNoteId: note2 } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note1,
         owners: [user1.account],
@@ -288,7 +288,7 @@ describe('Delegation System', () => {
     const { delegatedNoteId: note3 } = await delegateNoteChecked(
       user2,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note2,
         owners: [user2.account, user1.account],
@@ -301,7 +301,7 @@ describe('Delegation System', () => {
     await revokeNoteChecked(
       user2,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note3,
         owners: [user3.account, user2.account, user1.account], // Current chain
@@ -309,12 +309,12 @@ describe('Delegation System', () => {
     );
 
     // Check that the note is now owned by user2 again
-    const revokedNote = await getNote(graphqlClient, note3.toString());
+    const revokedNote = await getNote(machinery, note3.toString());
     assertNotNull(revokedNote, 'Revoked note');
     assert.strictEqual(revokedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be user2 after revocation');
 
     // Check delegation chain (should be 2 deep after revocation: user1 -> user2)
-    const revokedChain = await getDelegationChain(graphqlClient, note3.toString());
+    const revokedChain = await getDelegationChain(machinery, note3.toString());
     assert.strictEqual(revokedChain.length, 2, 'Delegation chain should have 2 entries after revocation');
   });
 
@@ -332,7 +332,7 @@ describe('Delegation System', () => {
     const { noteId } = await depositETHChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: depositAmount,
       }
@@ -342,7 +342,7 @@ describe('Delegation System', () => {
     const balanceBefore = await user1.publicClient.getBalance({ address: user1.account });
 
     // Reclaim the funds (with property checking)
-    const reclaimHash = await reclaimFundsChecked(user1, delegatableNotesContract, graphqlClient, noteId);
+    const reclaimHash = await reclaimFundsChecked(user1, delegatableNotesContract, machinery, noteId);
 
     // Get balance after reclaim
     const balanceAfter = await user1.publicClient.getBalance({ address: user1.account });
@@ -369,7 +369,7 @@ describe('Delegation System', () => {
     const { noteId: noteId1 } = await depositETHChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: 1000000000000000000n,
       }
@@ -378,7 +378,7 @@ describe('Delegation System', () => {
     await depositETHChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: 2000000000000000000n,
       }
@@ -388,7 +388,7 @@ describe('Delegation System', () => {
     await delegateNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: noteId1,
         owners: [user1.account],
@@ -398,7 +398,7 @@ describe('Delegation System', () => {
     );
 
     // Query notes by root
-    const rootNotes = await getNotesByRoot(graphqlClient, user1.account);
+    const rootNotes = await getNotesByRoot(machinery, user1.account);
 
     // User 1 should still be the root of both notes (even though one is delegated)
     assert(rootNotes.length >= 2, 'User1 should be root of at least 2 notes');
