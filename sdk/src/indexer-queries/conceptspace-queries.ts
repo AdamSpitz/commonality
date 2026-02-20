@@ -3,21 +3,18 @@
  */
 
 import { query, type GraphQLClient } from '../utils/graphqlClient.js';
+import {
+  type Statement,
+  type UserBelief,
+  type Implication,
+  type IndirectSupporter,
+  type StatementListItem,
+  type BrowseStatementsOptions,
+} from '../shared/types/conceptspace.js';
 
 // ============================================================================
 // Conceptspace Queries
 // ============================================================================
-
-export interface Statement {
-  id: string;
-  believerCount: number;
-  disbelieverCount: number;
-  cid?: string;
-  statementType?: string;
-  title?: string;
-  excerpt?: string;
-  createdAt?: string;
-}
 
 /**
  * Get statement by ID
@@ -48,11 +45,6 @@ export async function getStatement(
   return result.statements;
 }
 
-export interface UserBelief {
-  statementId: string;
-  beliefState: number; // 0=noOpinion, 1=believes, 2=disbelieves
-}
-
 /**
  * Get user's belief about a statement
  */
@@ -80,15 +72,6 @@ export async function getUserBelief(
 // ============================================================================
 // Implications Queries
 // ============================================================================
-
-export interface Implication {
-  attester: { id: string };
-  fromStatementId: string;
-  toStatementId: string;
-  explanationCid: string;
-  createdAt: string;
-  blockNumber: string;
-}
 
 /**
  * Get implications from a statement (what it implies)
@@ -243,12 +226,6 @@ export async function getImplication(
 // Indirect Support Computation Queries
 // ============================================================================
 
-export interface IndirectSupporter {
-  user: string;
-  viaStatementId: string;
-  viaStatement?: Statement;
-}
-
 /**
  * Compute indirect supporters for a statement.
  * Returns users who believe statements that imply the target statement.
@@ -347,26 +324,6 @@ export async function getIndirectSupporterCount(
 // ============================================================================
 // Statement Discovery & Browsing Queries
 // ============================================================================
-
-export interface StatementListItem {
-  id: string;
-  cid: string;
-  statementType: string;
-  title: string;
-  excerpt: string;
-  believerCount: number;
-  disbelieverCount: number;
-  createdAt: string;
-}
-
-export interface BrowseStatementsOptions {
-  /** Maximum number of results to return */
-  limit?: number;
-  /** Offset for pagination */
-  offset?: number;
-  /** Order direction */
-  orderDirection?: 'asc' | 'desc';
-}
 
 /**
  * Browse statements by most supporters (direct believers)

@@ -28,14 +28,25 @@ export {
 export { createGraphQLExecutor, type GraphQLExecutor };
 export type { GraphQLClient } from '../utils/graphqlClient.js';
 
-// Re-export types from the old system for compatibility
+// Conceptspace types
+export {
+  type Statement,
+  type UserBelief,
+  type Implication,
+  type IndirectSupporter,
+  type StatementListItem,
+  type BrowseStatementsOptions,
+} from '../shared/types/conceptspace.js';
+
 export type {
-  Statement,
-  UserBelief,
-  Implication,
-  IndirectSupporter,
-  StatementListItem,
-  BrowseStatementsOptions,
+} from '../shared/types/conceptspace.js';
+
+export type {
+  Note,
+  DelegationChainLink,
+} from '../shared/types/delegation.js';
+
+export type {
   Project,
   ProjectToken,
   Contribution,
@@ -48,23 +59,12 @@ export type {
   ProjectSortField,
   SortDirection,
   ProjectWithMetrics,
-  Note,
-  DelegationChainLink,
-  ProjectAlignment,
-  IndirectProjectAlignment,
-  CauseFundingMetrics,
-} from '../indexer-queries/index.js';
-
-export type {
-} from '../shared/types/conceptspace.js';
-
-export type {
-} from '../shared/types/delegation.js';
-
-export type {
 } from '../shared/types/pubstarter.js';
 
 export type {
+  ProjectAlignment,
+  IndirectProjectAlignment,
+  CauseFundingMetrics,
   ContributorStats,
 } from '../shared/types/funding-portals.js';
 

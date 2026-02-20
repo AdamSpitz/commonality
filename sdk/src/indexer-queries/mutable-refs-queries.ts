@@ -4,10 +4,10 @@
 
 import { query, type GraphQLClient } from '../utils/graphqlClient.js';
 
-export {
+import {
   type MutableRef,
   type RefUpdate,
-} from '../shared/types/index.js';
+} from '../shared/types/mutable-refs.js';
 
 // ============================================================================
 // Mutable Refs Queries

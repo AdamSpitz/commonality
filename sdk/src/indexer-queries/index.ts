@@ -2,6 +2,16 @@
  * Queries index - exports all query functions
  */
 
+// Conceptspace types
+export {
+  type Statement,
+  type UserBelief,
+  type Implication,
+  type IndirectSupporter,
+  type StatementListItem,
+  type BrowseStatementsOptions,
+} from '../shared/types/conceptspace.js';
+
 // Conceptspace queries
 export {
   getStatement,
@@ -17,13 +27,22 @@ export {
   getUserBeliefs,
   getUserDisbeliefs,
   getStatementSuggestions,
-  type Statement,
-  type UserBelief,
-  type Implication,
-  type IndirectSupporter,
-  type StatementListItem,
-  type BrowseStatementsOptions,
 } from './conceptspace-queries.js';
+
+export {
+  type Project,
+  type ProjectToken,
+  type Contribution,
+  type Refund,
+  type SaleListing,
+  type BuyOrder,
+  type Trade,
+  type TokenBurn,
+  type ProjectFilterOptions,
+  type ProjectSortField,
+  type SortDirection,
+  type ProjectWithMetrics,
+} from '../shared/types/pubstarter.js';
 
 // Pubstarter queries
 export {
@@ -48,19 +67,12 @@ export {
   getProjectsByFundingGoal,
   getProjectsByFundingProgress,
   getProjectsByAmountRaised,
-  type Project,
-  type ProjectToken,
-  type Contribution,
-  type Refund,
-  type SaleListing,
-  type BuyOrder,
-  type Trade,
-  type TokenBurn,
-  type ProjectFilterOptions,
-  type ProjectSortField,
-  type SortDirection,
-  type ProjectWithMetrics,
 } from './pubstarter-queries.js';
+
+export {
+  type Note,
+  type DelegationChainLink,
+} from '../shared/types/delegation.js';
 
 // Delegation queries
 export {
@@ -68,9 +80,16 @@ export {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  type Note,
-  type DelegationChainLink,
 } from './delegation-queries.js';
+
+export {
+  type AlignmentAttestation,
+  type IndirectSubjectAlignment,
+  type ProjectAlignment,
+  type IndirectProjectAlignment,
+  type CauseFundingMetrics,
+  type ContributorStats,
+} from '../shared/types/funding-portals.js';
 
 // Funding portals queries
 export {
@@ -89,14 +108,12 @@ export {
   getProjectStatements,
   getProjectAlignment,
   getIndirectlyAlignedProjects,
-  // Types
-  type AlignmentAttestation,
-  type IndirectSubjectAlignment,
-  type ProjectAlignment,
-  type IndirectProjectAlignment,
-  type CauseFundingMetrics,
-  type ContributorStats,
 } from './funding-portals-queries.js';
+
+export {
+  type MutableRef,
+  type RefUpdate,
+} from '../shared/types/mutable-refs.js';
 
 // Mutable refs queries
 export {
@@ -104,6 +121,4 @@ export {
   getUserRefs,
   getUserRefHistory,
   getRefsByName,
-  type MutableRef,
-  type RefUpdate,
 } from './mutable-refs-queries.js';

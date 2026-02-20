@@ -3,25 +3,18 @@
  */
 
 import { query, type GraphQLClient } from '../utils/graphqlClient.js';
-export {
+import {
+  type AlignmentAttestation,
+  type IndirectSubjectAlignment,
+  type ProjectAlignment,
+  type IndirectProjectAlignment,
+  type CauseFundingMetrics,
   type ContributorStats,
-} from '../shared/types/index.js';
+} from '../shared/types/funding-portals.js';
 
 // ============================================================================
 // AlignmentAttestation Queries (Funding Portals)
 // ============================================================================
-
-export interface AlignmentAttestation {
-  attester: string;
-  subjectAddress: string;
-  statementId: string;
-  topicStatementId: string;
-  createdAt: string;
-  blockNumber: string;
-}
-
-// Re-export with old name for backwards compatibility
-export type ProjectAlignment = AlignmentAttestation;
 
 /**
  * Get all alignment attestations for a specific statement (by attester if provided)
@@ -204,16 +197,6 @@ export async function getAlignmentsByAttester(
 // Indirect Alignment Queries (via Implication Graph)
 // ============================================================================
 
-export interface IndirectSubjectAlignment {
-  subjectAddress: string;
-  directStatementId: string; // Statement the subject is directly aligned with
-  indirectStatementId: string; // Statement we queried for (implied by directStatementId)
-  attester: string;
-}
-
-// Backwards compatibility alias
-export type IndirectProjectAlignment = IndirectSubjectAlignment;
-
 /**
  * Get subjects that are indirectly aligned with a statement via the implication graph.
  *
@@ -302,13 +285,6 @@ export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
 // ============================================================================
 // Aggregated Funding Metrics (E2)
 // ============================================================================
-
-export interface CauseFundingMetrics {
-  totalRaisedAcrossProjects: bigint;
-  totalAvailableFromNotes: bigint;
-  projectCount: number;
-  noteCount: number;
-}
 
 /**
  * Get total funding raised for a cause (across all aligned projects).

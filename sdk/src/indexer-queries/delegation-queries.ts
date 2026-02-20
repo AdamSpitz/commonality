@@ -4,31 +4,14 @@
 
 import { query, type GraphQLClient } from '../utils/graphqlClient.js';
 
+import {
+  type Note,
+  type DelegationChainLink,
+} from '../shared/types/delegation.js';
+
 // ============================================================================
 // Delegation Queries
 // ============================================================================
-
-export interface Note {
-  id: string;
-  chainHash: string;
-  amount: string;
-  token: string;
-  tokenType: number; // 0 = ERC20, 1 = ERC1155
-  tokenId: string;
-  owner: string; // Current leaf owner
-  rootOwner: string; // Root depositor
-  active: boolean;
-  parentNoteId?: string;
-  createdAt: string;
-  createdAtBlock: string;
-  updatedAt: string;
-}
-
-export interface DelegationChainLink {
-  address: string;
-  position: number; // 0 = root, higher numbers = closer to leaf
-  createdAt: string;
-}
 
 /**
  * Get a note by ID
