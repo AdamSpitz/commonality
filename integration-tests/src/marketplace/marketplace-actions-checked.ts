@@ -23,6 +23,7 @@ import {
 } from '@commonality/sdk';
 import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
+  ActionTestingMachinery,
   runActionAndCheckProperties,
   type ActionContext,
   type ActionRunOptions,
@@ -82,7 +83,7 @@ export async function createSaleListingChecked(
   options?: ActionRunOptions
 ): Promise<Hash> {
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     entities: {
       marketplaceAddress,
       userAddress: clients.account,
@@ -95,7 +96,7 @@ export async function createSaleListingChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await createSaleListing(clients, marketplaceContract, params);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     createSaleListingMetadata,
@@ -153,7 +154,7 @@ export async function fulfillSaleListingChecked(
   let hash: Hash;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     entities: {
       marketplaceAddress,
       userAddress: clients.account,
@@ -168,7 +169,7 @@ export async function fulfillSaleListingChecked(
   hash = await runActionAndCheckProperties(
     async () => {
       const h = await fulfillSaleListing(clients, marketplaceContract, params);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, h);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, h);
 
       // Store hash in context for invariant checking
       context.extra!.transactionHash = h;

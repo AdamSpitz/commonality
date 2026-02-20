@@ -118,7 +118,7 @@ export async function attestImplicationChecked(
         toStatementCid,
         explanationCid
       );
-      await waitForIndexerToSyncToTxHash(machinery.graphqlExecutor, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     attestImplicationMetadata,

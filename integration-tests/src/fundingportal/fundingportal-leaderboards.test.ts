@@ -14,8 +14,6 @@ import {
   type PubstarterContract,
   type AssuranceContract,
   type AlignmentAttestationsContract,
-  createGraphQLClient,
-  type GraphQLClient,
   PubstarterAbi,
   AssuranceContractAbi,
   AlignmentAttestationsAbi,
@@ -29,6 +27,7 @@ import { parseEther, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -79,7 +78,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -99,7 +98,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -124,7 +123,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
-      graphqlClient,
+      machinery,
       p1Details.assuranceContractAddress,
       causeCid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -133,7 +132,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
-      graphqlClient,
+      machinery,
       p2Details.assuranceContractAddress,
       causeCid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -155,7 +154,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract1,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor1Clients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -167,7 +166,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract2,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor1Clients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -181,7 +180,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await buyProjectTokensChecked(
       contributor2Clients,
       assuranceContract1,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor2Clients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -195,7 +194,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await buyProjectTokensChecked(
       contributor3Clients,
       assuranceContract2,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor3Clients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -208,7 +207,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     // Query top contributors
     testLog('  Querying top contributors...');
     const topContributors = await getTopContributorsForCause(
-      graphqlClient,
+      machinery,
       causeId,
       10, // Get top 10
       attesterClients.account, // Trust this attester for implications
@@ -283,7 +282,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const { projectDetails: pDetails } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p/',
         contractURI: 'https://example.com/p/contract',
@@ -308,7 +307,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
-      graphqlClient,
+      machinery,
       pDetails.assuranceContractAddress,
       causeCid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -322,7 +321,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       abi: AssuranceContractAbi,
     };
 
-    await buyProjectTokensChecked(contributor1Clients, assuranceContract, graphqlClient, {
+    await buyProjectTokensChecked(contributor1Clients, assuranceContract, machinery, {
       buyer: contributor1Clients.account,
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
@@ -330,7 +329,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       totalCost: parseEther('5.0'),
     });
 
-    await buyProjectTokensChecked(contributor2Clients, assuranceContract, graphqlClient, {
+    await buyProjectTokensChecked(contributor2Clients, assuranceContract, machinery, {
       buyer: contributor2Clients.account,
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
@@ -338,7 +337,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       totalCost: parseEther('2.0'),
     });
 
-    await buyProjectTokensChecked(contributor3Clients, assuranceContract, graphqlClient, {
+    await buyProjectTokensChecked(contributor3Clients, assuranceContract, machinery, {
       buyer: contributor3Clients.account,
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
@@ -349,7 +348,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     // Query rank for contributor 2
     testLog('  Querying rank for Contributor 2...');
     const rankResult = await getUserContributionRankForCause(
-      graphqlClient,
+      machinery,
       causeId,
       contributor2Clients.account,
       attesterClients.account, // Trust this attester for implications
@@ -368,7 +367,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     // Query rank for a non-contributor
     testLog('  Querying rank for non-contributor...');
     const nonContributorRank = await getUserContributionRankForCause(
-      graphqlClient,
+      machinery,
       causeId,
       attesterClients.account, // Attester didn't contribute
       attesterClients.account, // Trust this attester for implications

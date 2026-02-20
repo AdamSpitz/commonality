@@ -12,36 +12,12 @@ import { ActionTestingMachinery } from '../actions/action-machinery';
 // Types (matching the GraphQL schema)
 // ============================================================================
 
-export interface Statement {
-  id: string;
-  believerCount: number;
-  disbelieverCount: number;
-  cid?: string | null;
-  statementType?: string | null;
-  title?: string | null;
-  excerpt?: string | null;
-  createdAt: string;
-}
-
-export interface UserBelief {
-  statementId: string;
-  beliefState: number; // 0=noOpinion, 1=believes, 2=disbelieves
-}
-
-export interface Implication {
-  attester: string;
-  fromStatementId: string;
-  toStatementId: string;
-  explanationCid: string;
-  createdAt: string;
-  blockNumber: string;
-}
-
-export interface IndirectSupporter {
-  user: string;
-  viaStatementId: string;
-  viaStatement?: Statement;
-}
+import {
+  type Statement,
+  type UserBelief,
+  type Implication,
+  type IndirectSupporter,
+} from '@commonality/sdk';
 
 export interface StatementWithContent {
   statement: Statement;
@@ -425,100 +401,16 @@ export async function getUserDisbeliefs(
 // Pubstarter Queries
 // ============================================================================
 
-export interface Project {
-  id: string;
-  totalReceived: string;
-  threshold: string;
-  deadline: string;
-  cid?: string;
-  title?: string;
-  description?: string;
-  createdAt: string;
-}
-
-export interface ProjectToken {
-  id: string;
-  projectId: string;
-  tokenId: string;
-  supply: string;
-  price: string;
-  createdAt: string;
-}
-
-export interface Contribution {
-  id: string;
-  projectAddress: string;
-  participant: string;
-  erc1155Address?: string;
-  tokenIds?: string;
-  tokenCounts?: string;
-  totalCost?: string;
-  amount: string;
-  timestamp: string;
-  createdAt?: string;
-  blockNumber: string;
-  transactionHash?: string;
-}
-
-export interface Refund {
-  id: string;
-  projectAddress: string;
-  participant: string;
-  erc1155Address?: string;
-  tokenIds?: string;
-  tokenCounts?: string;
-  totalRefund: string;
-  createdAt: string;
-  blockNumber: string;
-  transactionHash?: string;
-}
-
-export interface SaleListing {
-  id: string;
-  projectAddress: string;
-  tokenId: string;
-  seller: string;
-  amount: string;
-  pricePerToken: string;
-  createdAt: string;
-}
-
-export interface BuyOrder {
-  id: string;
-  projectAddress: string;
-  tokenId: string;
-  buyer: string;
-  amount: string;
-  pricePerToken: string;
-  createdAt: string;
-}
-
-export interface Trade {
-  id: string;
-  marketplaceAddress: string;
-  orderType: string;
-  orderId: string;
-  buyer: string;
-  seller: string;
-  tokenId: string;
-  count: string;
-  pricePerToken: string;
-  totalPrice: string;
-  createdAt: string;
-  blockNumber: string;
-  transactionHash: string;
-}
-
-export interface TokenBurn {
-  id: string;
-  erc1155Address: string;
-  burner: string;
-  tokenIds: string;
-  tokenCounts: string;
-  createdAt: string;
-  blockNumber: string;
-  transactionHash: string;
-}
+import {
+  type Project,
+  type ProjectToken,
+  type Contribution,
+  type Refund,
+  type SaleListing,
+  type BuyOrder,
+  type Trade,
+  type TokenBurn,
+} from '@commonality/sdk';
 
 export interface ProjectWithMetrics {
   project: Project;

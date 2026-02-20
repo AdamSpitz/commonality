@@ -19,7 +19,6 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  createGraphQLClient,
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
@@ -27,9 +26,8 @@ import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   createProjectChecked,
   buyProjectTokensChecked,
-  refundProjectTokensChecked,
-  withdrawProjectFundsChecked,
 } from '../actions/funding-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Pubstarter Negative Tests', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -65,7 +63,7 @@ describe('Pubstarter Negative Tests', () => {
       const { projectDetails } = await createProjectChecked(
         aliceClients,
         contract,
-        graphqlClient,
+        machinery,
         {
           metadataURI: 'https://example.com/metadata/',
           contractURI: 'https://example.com/contract',
@@ -91,7 +89,7 @@ describe('Pubstarter Negative Tests', () => {
       const result = await buyProjectTokensChecked(
         aliceClients,
         assuranceContract,
-        graphqlClient,
+        machinery,
         {
           buyer: aliceClients.account,
           tokenAddress: projectDetails.tokenAddress,
@@ -131,7 +129,7 @@ describe('Pubstarter Negative Tests', () => {
       const { projectDetails } = await createProjectChecked(
         aliceClients,
         contract,
-        graphqlClient,
+        machinery,
         {
           metadataURI: 'https://example.com/metadata/',
           contractURI: 'https://example.com/contract',
@@ -157,7 +155,7 @@ describe('Pubstarter Negative Tests', () => {
       const result = await buyProjectTokensChecked(
         aliceClients,
         assuranceContract,
-        graphqlClient,
+        machinery,
         {
           buyer: aliceClients.account,
           tokenAddress: projectDetails.tokenAddress,

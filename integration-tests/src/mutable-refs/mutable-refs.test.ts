@@ -11,10 +11,7 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  createStatement,
-  publishDocument,
   type MutableRefUpdaterContract,
-  createGraphQLClient,
   getRef,
   assertNotNull,
   MutableRefUpdaterAbi,
@@ -27,6 +24,7 @@ import {
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { updateRefChecked, appendToUserListChecked } from './mutable-ref-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Mutable Refs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -60,13 +58,13 @@ describe('Mutable Refs', () => {
     const refValue = 'QmTestValue123';
 
     testLog(`  Creating ref "${refName}" with value "${refValue}"...`);
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, refValue);
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, refValue);
 
     testLog('  ✓ Ref created and verified (checked by property checks)');
 
     // Additional verification: Query from indexer
-    const refResult = await getUserRef(graphqlClient, clients.account, refName);
-    const ref = assertNotNull(refResult, 'Ref from indexer');
+    const ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Ref from indexer');
     assert.strictEqual(ref.value, refValue, 'Ref value should match');
     assert.strictEqual(ref.name, refName, 'Ref name should match');
     assert.strictEqual(ref.owner.toLowerCase(), clients.account.toLowerCase(), 'Ref owner should match');
@@ -88,23 +86,21 @@ describe('Mutable Refs', () => {
     const value3 = 'QmValue3';
 
     testLog(`  Creating ref "${refName}"...`);
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, value1);
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, value1);
 
     testLog('  Updating ref to second value...');
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, value2);
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, value2);
 
     testLog('  Updating ref to third value...');
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, value3);
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, value3);
 
     // Current value should be the latest
-    const ref = assertNotNull(
-      await getUserRef(graphqlClient, clients.account, refName),
-      'Current ref'
-    );
+    const ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Current ref');
     assert.strictEqual(ref.value, value3, 'Current value should be value3');
 
     // History should show all three updates
-    const history = await getUserRefHistory(graphqlClient, clients.account, refName);
+    const history = await getUserRefHistory(machinery, clients.account, refName);
     assert.ok(history.length >= 3, 'Should have at least 3 history entries');
 
     // History is returned newest first
@@ -130,25 +126,28 @@ describe('Mutable Refs', () => {
     testLog('  Three users creating refs with same name...');
 
     // User 1 creates ref
-    await updateRefChecked(clients1, mutableRefUpdaterContract, graphqlClient, refName, value1);
+    await updateRefChecked(clients1, mutableRefUpdaterContract, machinery, refName, value1);
 
     // User 2 creates ref
-    await updateRefChecked(clients2, mutableRefUpdaterContract, graphqlClient, refName, value2);
+    await updateRefChecked(clients2, mutableRefUpdaterContract, machinery, refName, value2);
 
     // User 3 creates ref
-    await updateRefChecked(clients3, mutableRefUpdaterContract, graphqlClient, refName, value3);
+    await updateRefChecked(clients3, mutableRefUpdaterContract, machinery, refName, value3);
 
     // Each user should have their own independent value
-    const ref1 = assertNotNull(await getUserRef(graphqlClient, clients1.account, refName), 'User 1 ref');
-    const ref2 = assertNotNull(await getUserRef(graphqlClient, clients2.account, refName), 'User 2 ref');
-    const ref3 = assertNotNull(await getUserRef(graphqlClient, clients3.account, refName), 'User 3 ref');
+    const ref1 = await getUserRef(machinery, clients1.account, refName);
+    const ref2 = await getUserRef(machinery, clients2.account, refName);
+    const ref3 = await getUserRef(machinery, clients3.account, refName);
+    assertNotNull(ref1, 'User 1 ref');
+    assertNotNull(ref2, 'User 2 ref');
+    assertNotNull(ref3, 'User 3 ref');
 
     assert.strictEqual(ref1.value, value1, 'User 1 should have value1');
     assert.strictEqual(ref2.value, value2, 'User 2 should have value2');
     assert.strictEqual(ref3.value, value3, 'User 3 should have value3');
 
     // Query by name should find all three
-    const refsByName = await getRefsByName(graphqlClient, refName);
+    const refsByName = await getRefsByName(machinery, refName);
     const matchingUsers = refsByName.map(r => r.owner.toLowerCase());
     assert.ok(matchingUsers.includes(clients1.account.toLowerCase()), 'Should include user 1');
     assert.ok(matchingUsers.includes(clients2.account.toLowerCase()), 'Should include user 2');
@@ -170,11 +169,11 @@ describe('Mutable Refs', () => {
     testLog('  User creating multiple refs...');
 
     for (const ref of refs) {
-      await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, ref.name, ref.value);
+      await updateRefChecked(clients, mutableRefUpdaterContract, machinery, ref.name, ref.value);
     }
 
     // Get all refs for this user
-    const userRefs = await getUserRefs(graphqlClient, clients.account);
+    const userRefs = await getUserRefs(machinery, clients.account);
 
     // Should have at least these 3 refs (might have more from other tests)
     for (const expectedRef of refs) {
@@ -193,15 +192,16 @@ describe('Mutable Refs', () => {
     const refName = 'test-empty-ref';
 
     testLog('  Setting ref to non-empty value...');
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, 'QmSomeValue');
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, 'QmSomeValue');
 
-    let ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Non-empty ref');
+    let ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Non-empty ref');
     assert.strictEqual(ref.value, 'QmSomeValue', 'Should have non-empty value');
 
     testLog('  Clearing ref (empty string)...');
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, '');
-
-    ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Empty ref');
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, '');
+    ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Empty ref');
     assert.strictEqual(ref.value, '', 'Should have empty value');
 
     testLog('  ✓ Empty string values handled correctly (verified by property checks)');
@@ -220,9 +220,10 @@ describe('Mutable Refs', () => {
     const cid1 = await uploadToIPFS(statement1);
 
     testLog('  Creating ref with first statement...');
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, cid1);
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, cid1);
 
-    let ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'First ref');
+    let ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'First ref');
     assert.strictEqual(ref.value, cid1, 'Should point to first statement');
 
     // User creates more statements - update ref to point to a list
@@ -239,13 +240,14 @@ describe('Mutable Refs', () => {
     const listCid = await uploadToIPFS(statementList);
 
     testLog('  Updating ref to point to statement list...');
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, listCid);
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, listCid);
 
-    ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Updated ref');
+    ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Updated ref');
     assert.strictEqual(ref.value, listCid, 'Should point to statement list');
 
     // History should show the evolution
-    const history = await getUserRefHistory(graphqlClient, clients.account, refName);
+    const history = await getUserRefHistory(machinery, clients.account, refName);
     assert.ok(history.length >= 2, 'Should have at least 2 history entries');
     assert.strictEqual(history[0].value, listCid, 'Latest should be list CID');
     assert.strictEqual(history[1].value, cid1, 'First should be single statement CID');
@@ -266,7 +268,7 @@ describe('Mutable Refs', () => {
     assert.strictEqual(contractValue, '', 'Contract should return empty string for non-existent ref');
 
     // From indexer
-    const ref = await getUserRef(graphqlClient, clients.account, nonExistentRef);
+    const ref = await getUserRef(machinery, clients.account, nonExistentRef);
     assert.strictEqual(ref, null, 'Indexer should return null for non-existent ref');
 
     testLog('  ✓ Non-existent refs handled correctly');
@@ -289,28 +291,31 @@ describe('Mutable Refs', () => {
     const cid3 = await uploadToIPFS(statement3);
 
     testLog('  Adding first statement using appendToUserList...');
-    await appendToUserListChecked(graphqlClient, clients, mutableRefUpdaterContract, refName, cid1);
+    await appendToUserListChecked(machinery, clients, mutableRefUpdaterContract, refName, cid1);
 
     // Verify first statement was added (ref value is now a CID pointing to the list)
-    let ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'First ref');
+    let ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'First ref');
     const firstListCid = ref.value;
     // Accept both CIDv0 (Qm...) and CIDv1 (baf...) formats
     assert.ok(firstListCid.startsWith('Qm') || firstListCid.startsWith('baf'), 'Should have valid CID after first statement');
 
     testLog('  Adding second statement...');
-    await appendToUserListChecked(graphqlClient, clients, mutableRefUpdaterContract, refName, cid2);
+    await appendToUserListChecked(machinery, clients, mutableRefUpdaterContract, refName, cid2);
 
     // Verify second statement was added (CID should change)
-    ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Second ref');
+    ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Second ref');
     const secondListCid = ref.value;
     assert.ok(secondListCid.startsWith('Qm') || secondListCid.startsWith('baf'), 'Should have valid CID after second statement');
     assert.notStrictEqual(secondListCid, firstListCid, 'CID should change when adding second statement');
 
     testLog('  Adding third statement...');
-    await appendToUserListChecked(graphqlClient, clients, mutableRefUpdaterContract, refName, cid3);
+    await appendToUserListChecked(machinery, clients, mutableRefUpdaterContract, refName, cid3);
 
     // Verify third statement was added (CID should change again)
-    ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Third ref');
+    ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Third ref');
     const thirdListCid = ref.value;
     assert.ok(thirdListCid.startsWith('Qm') || thirdListCid.startsWith('baf'), 'Should have valid CID after third statement');
     assert.notStrictEqual(thirdListCid, secondListCid, 'CID should change when adding third statement');
@@ -331,17 +336,18 @@ describe('Mutable Refs', () => {
 
     // Simulate old format: just a single CID string
     const oldFormatCid = await uploadToIPFS({ text: 'Old format statement' });
-    await updateRefChecked(clients, mutableRefUpdaterContract, graphqlClient, refName, oldFormatCid);
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, oldFormatCid);
 
     // Now add a new statement using the helper - it should migrate the format
     const newStatement = { text: 'New statement after migration' };
     const newCid = await uploadToIPFS(newStatement);
 
     testLog('  Adding new statement to old-format ref...');
-    await appendToUserListChecked(graphqlClient, clients, mutableRefUpdaterContract, refName, newCid);
+    await appendToUserListChecked(machinery, clients, mutableRefUpdaterContract, refName, newCid);
 
     // Verify the format was migrated (CID should change from old single-CID format to new list format)
-    const ref = assertNotNull(await getUserRef(graphqlClient, clients.account, refName), 'Migrated ref');
+    const ref = await getUserRef(machinery, clients.account, refName);
+    assertNotNull(ref, 'Migrated ref');
     const migratedListCid = ref.value;
     assert.ok(migratedListCid.startsWith('Qm') || migratedListCid.startsWith('baf'), 'Should have valid CID after migration');
     assert.notStrictEqual(migratedListCid, oldFormatCid, 'CID should change after migration to list format');

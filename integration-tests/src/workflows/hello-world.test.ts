@@ -13,12 +13,10 @@ import {
   cidToBytes32,
   type BeliefsContract,
 } from '@commonality/sdk';
-import {
-  createGraphQLClient,
-} from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Hello World Integration Test', () => {
   // Test configuration - these should match your local setup
@@ -60,7 +58,7 @@ describe('Hello World Integration Test', () => {
     };
 
     testLog('  Submitting belief transaction...');
-    await believeStatementChecked(clients, beliefsContract, graphqlClient, statementCid);
+    await believeStatementChecked(clients, beliefsContract, machinery, statementCid);
 
     testLog('  ✓ Belief recorded correctly (verified by property checks)');
   });

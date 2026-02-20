@@ -21,7 +21,6 @@ import {
   createStatement,
   publishDocument,
   type DelegatableNotesContract,
-  createGraphQLClient,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
@@ -31,6 +30,7 @@ import {
   revokeNoteChecked,
   reclaimFundsChecked,
 } from './delegation-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Delegation Permissions Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -66,7 +66,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     // Alice creates a note
     testLog('  Alice creating a note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -82,7 +82,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const result = await delegateNoteChecked(
       bobClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [aliceClients.account], // Claiming Alice is the owner
@@ -125,7 +125,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     // Alice creates a note
     testLog('  Alice creating note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -134,7 +134,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const { delegatedNoteId } = await delegateNoteChecked(
       aliceClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [aliceClients.account],
@@ -152,7 +152,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const result = await revokeNoteChecked(
       charlieClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId: delegatedNoteId,
         owners: [bobClients.account, aliceClients.account],
@@ -192,7 +192,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     // Alice creates a note
     testLog('  Alice creating note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -201,7 +201,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const { delegatedNoteId } = await delegateNoteChecked(
       aliceClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [aliceClients.account],
@@ -214,7 +214,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     // Alice revokes the note
     testLog('  Alice revoking the note...');
-    await revokeNoteChecked(aliceClients, contract, graphqlClient, {
+    await revokeNoteChecked(aliceClients, contract, machinery, {
       noteId: delegatedNoteId,
       owners: [bobClients.account, aliceClients.account],
     });
@@ -226,7 +226,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const result = await delegateNoteChecked(
       bobClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId: delegatedNoteId,
         owners: [bobClients.account, aliceClients.account],
@@ -266,7 +266,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     // Alice creates a note
     testLog('  Alice creating a note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -279,7 +279,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const result = await reclaimFundsChecked(
       bobClients,
       contract,
-      graphqlClient,
+      machinery,
       noteId,
       {
         expectFailure: true,
@@ -314,7 +314,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     // Alice creates a note (with checked wrapper)
     testLog('  Alice creating note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -323,7 +323,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const { delegatedNoteId } = await delegateNoteChecked(
       aliceClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [aliceClients.account],
@@ -336,7 +336,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     // Alice (the parent) revokes the note - this should succeed (with checked wrapper)
     testLog('  Alice revoking note from Bob (should succeed)...');
-    const tx = await revokeNoteChecked(aliceClients, contract, graphqlClient, {
+    const tx = await revokeNoteChecked(aliceClients, contract, machinery, {
       noteId: delegatedNoteId,
       owners: [bobClients.account, aliceClients.account],
     });

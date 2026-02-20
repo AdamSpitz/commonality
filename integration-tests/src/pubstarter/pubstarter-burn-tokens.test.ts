@@ -10,20 +10,18 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  createGraphQLClient,
-  assertNotNull,
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
-  getProject,
   getTokenBurns,
   getUserTokenBurns,
   getTokenBurnsByUser,
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked, burnTokensChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
 describe('Pubstarter Token Burning Tests', () => {
@@ -74,7 +72,7 @@ describe('Pubstarter Token Burning Tests', () => {
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -103,7 +101,7 @@ describe('Pubstarter Token Burning Tests', () => {
     await buyProjectTokensChecked(
       investorClients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: investorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -119,7 +117,7 @@ describe('Pubstarter Token Burning Tests', () => {
     await buyProjectTokensChecked(
       donorClients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: donorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -131,7 +129,7 @@ describe('Pubstarter Token Burning Tests', () => {
 
     // Check initial burn count for this token (may be non-zero on non-fresh blockchain)
     testLog('  Checking initial burn count...');
-    let burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
+    let burns = await getTokenBurns(machinery, projectDetails.tokenAddress);
     const initialBurnCount = burns.length;
     testLog(`  Initial burns for this token: ${initialBurnCount}`);
 
@@ -141,7 +139,7 @@ describe('Pubstarter Token Burning Tests', () => {
     await burnTokensChecked(
       donorClients,
       projectDetails.tokenAddress,
-      graphqlClient,
+      machinery,
       projectDetails.assuranceContractAddress,
       {
         tokenIds: [0n, 1n],
@@ -151,7 +149,7 @@ describe('Pubstarter Token Burning Tests', () => {
 
     // Verify burn was tracked
     testLog('  Verifying burn was tracked...');
-    burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
+    burns = await getTokenBurns(machinery, projectDetails.tokenAddress);
     assert.strictEqual(burns.length, initialBurnCount + 1, 'Should have one more burn record');
 
     // Find the burn from our donor
@@ -182,7 +180,7 @@ describe('Pubstarter Token Burning Tests', () => {
 
     // Verify query by user works
     testLog('  Verifying user-specific burn query...');
-    const donorBurns = await getUserTokenBurns(graphqlClient, donorClients.account);
+    const donorBurns = await getUserTokenBurns(machinery, donorClients.account);
     assert(donorBurns.length >= 1, 'Donor should have at least one burn');
 
     // Check that donor has a burn for this specific token
@@ -191,7 +189,7 @@ describe('Pubstarter Token Burning Tests', () => {
     );
     assert.ok(donorBurnForThisToken, 'Donor should have burn for this token');
 
-    const investorBurns = await getUserTokenBurns(graphqlClient, investorClients.account);
+    const investorBurns = await getUserTokenBurns(machinery, investorClients.account);
     const investorBurnsForThisToken = investorBurns.filter(
       b => b.erc1155Address.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
@@ -202,14 +200,14 @@ describe('Pubstarter Token Burning Tests', () => {
     // Verify combined query
     testLog('  Verifying combined ERC1155 + user query...');
     const donorTokenBurns = await getTokenBurnsByUser(
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       donorClients.account
     );
     assert(donorTokenBurns.length >= 1, 'Should find at least one donor burn for this token');
 
     const investorTokenBurns = await getTokenBurnsByUser(
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       investorClients.account
     );
@@ -223,7 +221,7 @@ describe('Pubstarter Token Burning Tests', () => {
     await burnTokensChecked(
       investorClients,
       projectDetails.tokenAddress,
-      graphqlClient,
+      machinery,
       projectDetails.assuranceContractAddress,
       {
         tokenIds: [0n],
@@ -233,7 +231,7 @@ describe('Pubstarter Token Burning Tests', () => {
 
     // Verify partial burn
     testLog('  Verifying partial burn...');
-    burns = await getTokenBurns(graphqlClient, projectDetails.tokenAddress);
+    burns = await getTokenBurns(machinery, projectDetails.tokenAddress);
     assert.strictEqual(burns.length, initialBurnCount + 2, 'Should have two more burn records now');
 
     const investorBurn = burns.find(

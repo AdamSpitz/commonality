@@ -14,19 +14,13 @@ import {
   uploadToIPFS,
   cidToBytes32,
   PROJECT_ALIGNMENT_TOPIC,
-  type BeliefsContract,
   type ImplicationsContract,
   type PubstarterContract,
   type AssuranceContract,
   type AlignmentAttestationsContract,
   type DelegatableNotesContract,
-  TokenType,
 } from '@commonality/sdk';
 import {
-  createGraphQLClient,
-  assertNotNull,
-  type GraphQLClient,
-  BeliefsAbi,
   ImplicationsAbi,
   PubstarterAbi,
   AssuranceContractAbi,
@@ -36,22 +30,20 @@ import {
 import {
   getTotalFundingForCause,
   getAllAlignedProjectsForCause,
-  getTopContributorsForCause,
-  getUserContributionRankForCause,
 } from '../utils/graphql-helpers.js';
-import { parseEther, type Address, keccak256, toBytes } from 'viem';
+import { parseEther, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { depositETHChecked } from '../delegation/delegation-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
   // Contract addresses
-  const BELIEFS_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as Address;
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as Address;
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
   const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as Address;
@@ -96,7 +88,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const implHash = await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid
     );
@@ -114,7 +106,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -137,7 +129,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -163,7 +155,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
-      graphqlClient,
+      machinery,
       p1Details.assuranceContractAddress,
       s1Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -172,7 +164,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
-      graphqlClient,
+      machinery,
       p2Details.assuranceContractAddress,
       s2Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -196,7 +188,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract1,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor1Clients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -210,7 +202,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await buyProjectTokensChecked(
       contributor2Clients,
       assuranceContract2,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor2Clients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -226,7 +218,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Should include both projects: direct (P2) and indirect (P1 via S1->S2)
     testLog('  Querying total funding for S2...');
     const metrics = await getTotalFundingForCause(
-      graphqlClient,
+      machinery,
       s2Id,
       attesterClients.account, // Trust this attester for implications
       attesterClients.account  // Trust this attester for alignments
@@ -275,7 +267,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await depositETHChecked(
       donor1Clients,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: parseEther('1.0'),
       }
@@ -284,7 +276,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await depositETHChecked(
       donor2Clients,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         amount: parseEther('0.5'),
       }
@@ -295,7 +287,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Query funding metrics
     testLog('  Querying available funding...');
     const metrics = await getTotalFundingForCause(
-      graphqlClient,
+      machinery,
       causeId
     );
 
@@ -339,7 +331,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await attestImplicationChecked(
       attesterClients,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid
     );
@@ -354,7 +346,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -374,7 +366,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -399,7 +391,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
-      graphqlClient,
+      machinery,
       p1Details.assuranceContractAddress,
       s1Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -408,7 +400,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentContract,
-      graphqlClient,
+      machinery,
       p2Details.assuranceContractAddress,
       s2Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -418,7 +410,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Query all aligned projects for S2
     testLog('  Querying all aligned projects for S2...');
     const projects = await getAllAlignedProjectsForCause(
-      graphqlClient,
+      machinery,
       s2Id,
       attesterClients.account, // Trust this attester for implications
       attesterClients.account  // Trust this attester for alignments

@@ -487,7 +487,7 @@ export async function assertIndirectSupporterCountConsistency(
   attesterAddress?: string
 ): Promise<void> {
   // Method 1: Get the count using the dedicated count query
-  const count = await getIndirectSupporterCount(machinery, statementId, attesterAddress);
+  const count = await getIndirectSupporterCount(machinery.graphqlExecutor, statementId, attesterAddress);
 
   // Method 2: Get the full list of supporters and count them
   const supporters = await getIndirectSupporters(machinery, statementId, attesterAddress);
@@ -833,7 +833,7 @@ export async function assertMonotonicProjectFunding(
   const { getProject } = await import('./graphql-helpers.js');
 
   // Get the current project state
-  const project = await getProject(executor, projectAddress.toLowerCase());
+  const project = await getProject(machinery, projectAddress.toLowerCase());
 
   if (!project) {
     throw new Error(`Project ${projectAddress} not found`);
@@ -896,7 +896,7 @@ export async function assertAssuranceContractRefundLogic(
   const { getProject } = await import('./graphql-helpers.js');
 
   // Get the project state
-  const project = await getProject(executor, projectAddress.toLowerCase());
+  const project = await getProject(machinery, projectAddress.toLowerCase());
 
   if (!project) {
     throw new Error(`Project ${projectAddress} not found`);
@@ -1103,7 +1103,7 @@ export async function assertImplicationBidirectionality(
   const normalizedAttester = attesterAddress.toLowerCase();
 
   // Query the indexer for implications from this statement
-  const implications = await getImplicationsFrom(executor, normalizedFrom);
+  const implications = await getImplicationsFrom(machinery, normalizedFrom);
 
   const implication = implications.find(
     (imp) =>
@@ -1214,7 +1214,7 @@ export async function assertImplicationNonTransitivity(
   const normalizedS3 = s3Id.toLowerCase();
 
   // Step 1: Verify S1→S2 implication exists
-  const implicationsFromS1 = await getImplicationsFrom(executor, normalizedS1);
+  const implicationsFromS1 = await getImplicationsFrom(machinery, normalizedS1);
   const s1ToS2 = implicationsFromS1.find(
     (imp) =>
       imp.toStatementId.toLowerCase() === normalizedS2 &&
@@ -1228,7 +1228,7 @@ export async function assertImplicationNonTransitivity(
   );
 
   // Step 2: Verify S2→S3 implication exists
-  const implicationsFromS2 = await getImplicationsFrom(executor, normalizedS2);
+  const implicationsFromS2 = await getImplicationsFrom(machinery, normalizedS2);
   const s2ToS3 = implicationsFromS2.find(
     (imp) =>
       imp.toStatementId.toLowerCase() === normalizedS3 &&
@@ -1256,7 +1256,7 @@ export async function assertImplicationNonTransitivity(
   );
 
   // Step 4: Verify the believer believes S1
-  const believerS1Belief = await getUserBelief(executor, normalizedBeliever, normalizedS1);
+  const believerS1Belief = await getUserBelief(machinery, normalizedBeliever, normalizedS1);
   assert.strictEqual(
     believerS1Belief?.beliefState,
     BELIEVES,
@@ -1266,7 +1266,7 @@ export async function assertImplicationNonTransitivity(
 
   // Step 5: Verify the believer does NOT explicitly disbelieve S2 or S3
   // (If they disbelieve, they won't appear as indirect supporters regardless)
-  const believerS2Belief = await getUserBelief(executor, normalizedBeliever, normalizedS2);
+  const believerS2Belief = await getUserBelief(machinery, normalizedBeliever, normalizedS2);
   assert.notStrictEqual(
     believerS2Belief?.beliefState,
     DISBELIEVES,
@@ -1274,7 +1274,7 @@ export async function assertImplicationNonTransitivity(
     `This would prevent them from appearing as indirect supporter.`
   );
 
-  const believerS3Belief = await getUserBelief(executor, normalizedBeliever, normalizedS3);
+  const believerS3Belief = await getUserBelief(machinery, normalizedBeliever, normalizedS3);
   assert.notStrictEqual(
     believerS3Belief?.beliefState,
     DISBELIEVES,
@@ -1283,7 +1283,7 @@ export async function assertImplicationNonTransitivity(
   );
 
   // Step 6: Verify believer appears as indirect supporter of S2 (one hop: S1→S2)
-  const s2IndirectSupporters = await getIndirectSupporters(executor, normalizedS2, normalizedAttester);
+  const s2IndirectSupporters = await getIndirectSupporters(machinery, normalizedS2, normalizedAttester);
   const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
 
   assert.ok(
@@ -1296,7 +1296,7 @@ export async function assertImplicationNonTransitivity(
 
   // Step 7: Verify believer does NOT appear as indirect supporter of S3 (two hops: S1→S2→S3)
   // This is the CORE non-transitivity check
-  const s3IndirectSupporters = await getIndirectSupporters(executor, normalizedS3, normalizedAttester);
+  const s3IndirectSupporters = await getIndirectSupporters(machinery, normalizedS3, normalizedAttester);
   const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
 
   assert.ok(
@@ -1339,7 +1339,7 @@ export async function assertRefContractIndexerConsistency(
   const { createIsolatedTestClients } = await import('./test-utils.js');
 
   // Get value from indexer
-  const indexerRef = await getUserRef(executor, userAddress, refName);
+  const indexerRef = await getUserRef(machinery, userAddress, refName);
   const indexerValue = indexerRef?.value ?? '';
 
   // Get value from contract - we need to create a minimal clients object
@@ -1381,7 +1381,7 @@ export async function assertRefHistoryOrdering(
   const { getUserRefHistory } = await import('./graphql-helpers.js');
 
   // Get history
-  const history = await getUserRefHistory(executor, userAddress, refName);
+  const history = await getUserRefHistory(machinery, userAddress, refName);
 
   // Check that history is in reverse chronological order (newest first)
   // Each entry should have a blockNumber and transactionIndex

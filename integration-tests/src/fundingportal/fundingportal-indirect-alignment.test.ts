@@ -17,8 +17,6 @@ import {
   type AlignmentAttestationsContract,
   type PubstarterContract,
   type ImplicationsContract,
-  createGraphQLClient,
-  assertNotNull,
   AlignmentAttestationsAbi,
   PubstarterAbi,
   ImplicationsAbi,
@@ -31,6 +29,7 @@ import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -100,7 +99,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid
     );
@@ -108,7 +107,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Create a project
     testLog('  Creating a renewable energy project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -129,7 +128,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     let txHash = await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery ,
       projectDetails.tokenAddress,
       s1Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -137,7 +136,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     );
 
     // Verify direct alignment with S1
-    const directAlignments = await getAlignedProjects(graphqlClient, s1Id);
+    const directAlignments = await getAlignedProjects(machinery, s1Id);
     assert(directAlignments.length >= 1, 'Should have at least 1 direct alignment with S1');
     const ourDirectAlignment = directAlignments.find(
       a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
@@ -147,7 +146,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  ✓ Project directly aligned with S1');
 
     // Verify our project has NO direct alignment with S2
-    const s2DirectAlignments = await getAlignedProjects(graphqlClient, s2Id);
+    const s2DirectAlignments = await getAlignedProjects(machinery, s2Id);
     const ourS2DirectAlignment = s2DirectAlignments.find(
       a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
@@ -162,7 +161,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Query for indirect alignment with S2
     testLog('  Querying for projects indirectly aligned with S2...');
     const indirectAlignments = await getIndirectlyAlignedProjects(
-      graphqlClient,
+      machinery,
       s2Id,
       implicationAttester.account,
       alignmentAttester.account
@@ -225,7 +224,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     let txHash = await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid
     );
@@ -234,7 +233,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     const currentTime = Math.floor(Date.now() / 1000);
 
     testLog('  Creating Project A (housing)...');
-    const { projectDetails: projectA } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
+    const { projectDetails: projectA } = await createProjectChecked(projectOwner, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -249,7 +248,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  ✓ Project creation properties verified');
 
     testLog('  Creating Project B (poverty)...');
-    const { projectDetails: projectB } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
+    const { projectDetails: projectB } = await createProjectChecked(projectOwner, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -268,7 +267,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     txHash = await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       projectA.tokenAddress,
       s1Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -280,7 +279,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     txHash = await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       projectB.tokenAddress,
       s2Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -288,7 +287,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     );
 
     // Query S2 for direct alignments only
-    const directAlignments = await getAlignedProjects(graphqlClient, s2Id);
+    const directAlignments = await getAlignedProjects(machinery, s2Id);
     assert.strictEqual(
       directAlignments.length,
       1,
@@ -304,7 +303,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Query S2 for indirect alignments
     const indirectAlignments = await getIndirectlyAlignedProjects(
-      graphqlClient,
+      machinery,
       s2Id,
       implicationAttester.account,
       alignmentAttester.account
@@ -362,7 +361,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     let txHash = await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid
     );
@@ -371,7 +370,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     txHash = await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s2Cid,
       s3Cid
     );
@@ -379,7 +378,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Create a project aligned with S1
     testLog('  Creating solar panel project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -397,7 +396,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     txHash = await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       s1Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -407,7 +406,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Query for indirect alignment with S2 (one level up)
     testLog('  Querying S2 for indirect alignments...');
     const s2IndirectAlignments = await getIndirectlyAlignedProjects(
-      graphqlClient,
+      machinery,
       s2Id,
       implicationAttester.account,
       alignmentAttester.account
@@ -430,7 +429,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // the project when querying S3, since there's no direct implication S1 → S3
     testLog('  Querying S3 for indirect alignments...');
     const s3IndirectAlignments = await getIndirectlyAlignedProjects(
-      graphqlClient,
+      machinery,
       s3Id,
       implicationAttester.account,
       alignmentAttester.account
@@ -476,7 +475,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     let txHash = await attestImplicationChecked(
       implicationAttester1,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid
     );
@@ -485,7 +484,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     txHash = await attestImplicationChecked(
       implicationAttester2,
       implicationsContract,
-      graphqlClient,
+      machinery,
       s1Cid,
       s2Cid
     );
@@ -493,7 +492,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Create and align a project
     const projectOwner = alignmentAttester; // Reuse for simplicity
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(projectOwner, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwner.account,
@@ -510,7 +509,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     txHash = await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       s1Cid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -520,7 +519,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Query S2 trusting only attester 1
     testLog('  Querying with trusted attester 1...');
     const results1 = await getIndirectlyAlignedProjects(
-      graphqlClient,
+      machinery,
       s2Id,
       implicationAttester1.account,
       alignmentAttester.account
@@ -531,7 +530,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Query S2 trusting only attester 2
     testLog('  Querying with trusted attester 2...');
     const results2 = await getIndirectlyAlignedProjects(
-      graphqlClient,
+      machinery,
       s2Id,
       implicationAttester2.account,
       alignmentAttester.account
@@ -542,7 +541,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Query S2 without specifying attester (trust all)
     testLog('  Querying without trusted attester filter...');
     const resultsAll = await getIndirectlyAlignedProjects(
-      graphqlClient,
+      machinery,
       s2Id,
       undefined,
       alignmentAttester.account

@@ -14,13 +14,13 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  createGraphQLClient,
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
 describe('Pubstarter Basic Integration Tests', () => {
@@ -92,7 +92,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -128,7 +128,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     const buyHash = await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -170,7 +170,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',

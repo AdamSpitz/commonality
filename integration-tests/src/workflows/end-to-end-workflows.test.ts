@@ -17,7 +17,6 @@ import {
   type PubstarterContract,
   type DelegatableNotesContract,
   type AlignmentAttestationsContract,
-  createGraphQLClient,
   waitForIndexerToSyncToTxHash,
   BeliefsAbi,
   ImplicationsAbi,
@@ -38,6 +37,7 @@ import { attestImplicationChecked } from '../actions/implication-actions-checked
 import { depositETHChecked, delegateNoteChecked } from '../delegation/delegation-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
 describe('End-to-End Workflow Integration Tests', () => {
@@ -89,7 +89,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  User expressing belief in statement...');
-      await believeStatementChecked(userClients, beliefsContract, graphqlClient, statementCid);
+      await believeStatementChecked(userClients, beliefsContract, machinery, statementCid);
       testLog('  ✓ Belief properties verified');
 
       // 6. Create a crowdfunding project aligned with the statement
@@ -115,7 +115,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project aligned with statement...');
-      const projectResult = await createProjectChecked(userClients, pubstarterContract, graphqlClient, projectParams);
+      const projectResult = await createProjectChecked(userClients, pubstarterContract, machinery, projectParams);
       testLog('  ✓ Project creation properties verified');
       testLog(`  Token contract: ${projectResult.projectDetails.tokenAddress}`);
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
@@ -130,7 +130,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       const alignmentTxHash = await attestAlignmentChecked(
         attesterClients,
         alignmentAttestationsContract,
-        graphqlClient,
+        machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
         PROJECT_ALIGNMENT_TOPIC,
@@ -147,7 +147,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       const depositAmount = BigInt('2000000000000000'); // 0.002 ETH
       testLog(`  User depositing ${depositAmount} ETH into delegatable note...`);
-      const depositResult = await depositETHChecked(userClients, delegatableNotesContract, graphqlClient, {
+      const depositResult = await depositETHChecked(userClients, delegatableNotesContract, machinery, {
         amount: depositAmount,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
@@ -172,7 +172,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 14. Wait for indexer to sync purchase
-      await waitForIndexerToSyncToTxHash(graphqlClient, userClients.publicClient, purchaseTxHash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, userClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ End-to-end workflow completed successfully!');
@@ -213,7 +213,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Root user expressing belief in statement...');
-      await believeStatementChecked(rootUserClients, beliefsContract, graphqlClient, statementCid);
+      await believeStatementChecked(rootUserClients, beliefsContract, machinery, statementCid);
       testLog('  ✓ Belief properties verified');
 
       // 5. Root user deposits ETH into a delegatable note for the statement
@@ -224,7 +224,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       const depositAmount = BigInt('3000000000000000'); // 0.003 ETH
       testLog(`  Root user depositing ${depositAmount} ETH into delegatable note...`);
-      const depositResult = await depositETHChecked(rootUserClients, delegatableNotesContract, graphqlClient, {
+      const depositResult = await depositETHChecked(rootUserClients, delegatableNotesContract, machinery, {
         amount: depositAmount,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
@@ -233,7 +233,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 8. Root user delegates half of the note to delegate user
       const delegateAmount = depositAmount / 2n; // Delegate 0.0015 ETH
       testLog(`  Root user delegating ${delegateAmount} ETH to delegate...`);
-      const delegateResult = await delegateNoteChecked(rootUserClients, delegatableNotesContract, graphqlClient, {
+      const delegateResult = await delegateNoteChecked(rootUserClients, delegatableNotesContract, machinery, {
         noteId: depositResult.noteId,
         owners: [rootUserClients.account], // Current chain: root user owns note
         delegateTo: delegateUserClients.account,
@@ -265,7 +265,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project for delegation test...');
-      const projectResult = await createProjectChecked(rootUserClients, pubstarterContract, graphqlClient, projectParams);
+      const projectResult = await createProjectChecked(rootUserClients, pubstarterContract, machinery, projectParams);
       testLog('  ✓ Project creation properties verified');
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
@@ -279,7 +279,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       const alignmentTxHash = await attestAlignmentChecked(
         delegateUserClients, // Use delegate user as attester
         alignmentAttestationsContract,
-        graphqlClient,
+        machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
         PROJECT_ALIGNMENT_TOPIC,
@@ -308,7 +308,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 16. Wait for indexer to sync purchase
-      await waitForIndexerToSyncToTxHash(graphqlClient, delegateUserClients.publicClient, purchaseTxHash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, delegateUserClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ Delegation chain workflow completed successfully!');
@@ -358,7 +358,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       await attestImplicationChecked(
         attesterClients,
         implicationsContract,
-        graphqlClient,
+        machinery,
         statement1Cid,
         statement2Cid
       );
@@ -387,7 +387,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project aligned with S1 (specific statement)...');
-      const projectResult = await createProjectChecked(userClients, pubstarterContract, graphqlClient, projectParams);
+      const projectResult = await createProjectChecked(userClients, pubstarterContract, machinery, projectParams);
       testLog('  ✓ Project creation properties verified');
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
@@ -401,7 +401,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       const alignmentTxHash = await attestAlignmentChecked(
         attesterClients,
         alignmentAttestationsContract,
-        graphqlClient,
+        machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statement1Cid,
         PROJECT_ALIGNMENT_TOPIC,
@@ -413,7 +413,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 10. Query for projects indirectly aligned with S2 (general statement)
       testLog('  Querying for projects indirectly aligned with S2...');
       const indirectAlignments = await getIndirectlyAlignedProjects(
-        graphqlClient,
+        machinery,
         statement2Id,
         attesterClients.account, // Trust this attester's implications
         attesterClients.account  // Trust this attester's alignments
@@ -481,7 +481,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  User expressing belief in S1...');
-      await believeStatementChecked(userClients, beliefsContract, graphqlClient, statement1Cid);
+      await believeStatementChecked(userClients, beliefsContract, machinery, statement1Cid);
       testLog('  ✓ Belief properties verified');
 
       // 6. Attester creates implication: S1 → S2
@@ -494,7 +494,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       await attestImplicationChecked(
         attesterClients,
         implicationsContract,
-        graphqlClient,
+        machinery,
         statement1Cid,
         statement2Cid
       );
@@ -506,20 +506,20 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog('  Finding statement suggestions for user...');
 
       // Get all statements the user believes
-      const userBeliefs = await getUserBeliefs(graphqlClient, userClients.account);
+      const userBeliefs = await getUserBeliefs(machinery, userClients.account);
 
       // For each believed statement, get what it implies
       const suggestions = new Set<string>();
       for (const belief of userBeliefs) {
         const impliedStatements = await getImplicationsFrom(
-          graphqlClient,
+          machinery,
           belief.id,
           attesterClients.account // Trust this attester's implications
         );
         for (const implication of impliedStatements) {
           // Only suggest if user hasn't already expressed an opinion on it
           const existingBelief = await getUserBelief(
-            graphqlClient,
+            machinery,
             userClients.account,
             implication.toStatementId
           );

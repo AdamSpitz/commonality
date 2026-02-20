@@ -15,7 +15,6 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  createGraphQLClient,
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
@@ -30,6 +29,7 @@ import {
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -63,7 +63,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -82,7 +82,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -101,7 +101,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p3Hash, projectDetails: p3Details } = await createProjectChecked(
       creator3Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p3/',
         contractURI: 'https://example.com/p3/contract',
@@ -118,7 +118,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Query projects sorted by date (newest first)
     testLog('  Querying projects sorted by date...');
-    const projects = await getProjectsByDate(graphqlClient, 'desc');
+    const projects = await getProjectsByDate(machinery, 'desc');
 
     // Find our three projects in the results
     const projectAddresses = [
@@ -163,7 +163,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -183,7 +183,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -200,7 +200,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Query by deadline (soonest first)
     testLog('  Querying projects sorted by deadline...');
-    const projects = await getProjectsByDeadline(graphqlClient, 'asc');
+    const projects = await getProjectsByDeadline(machinery, 'asc');
 
     const projectAddresses = [
       p1Details.assuranceContractAddress.toLowerCase(),
@@ -240,7 +240,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -259,7 +259,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -283,7 +283,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     await buyProjectTokensChecked(
       contributorClients,
       assuranceContract1,
-      graphqlClient,
+      machinery,
       {
         buyer: contributorClients.account,
         tokenAddress: p1Details.tokenAddress,
@@ -302,7 +302,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     await buyProjectTokensChecked(
       contributorClients,
       assuranceContract2,
-      graphqlClient,
+      machinery,
       {
         buyer: contributorClients.account,
         tokenAddress: p2Details.tokenAddress,
@@ -314,7 +314,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Query by funding progress (highest first)
     testLog('  Querying projects sorted by funding progress...');
-    const projects = await getProjectsByFundingProgress(graphqlClient, 'desc');
+    const projects = await getProjectsByFundingProgress(machinery, 'desc');
 
     const projectAddresses = [
       p1Details.assuranceContractAddress.toLowerCase(),
@@ -363,7 +363,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p1/',
         contractURI: 'https://example.com/p1/contract',
@@ -383,7 +383,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/p2/',
         contractURI: 'https://example.com/p2/contract',
@@ -401,15 +401,15 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     // Query projects with threshold >= 10 ETH
     testLog('  Filtering projects with threshold >= 10 ETH...');
     const largeProjects = await getProjectsFiltered(
-      graphqlClient,
+      machinery,
       {
         minThreshold: parseEther('10.0'),
       }
     );
 
     // P1 should not be in results, P2 should be
-    const hasP1 = largeProjects.some(p => p.id.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
-    const hasP2 = largeProjects.some(p => p.id.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
+    const hasP1 = largeProjects.some(p => p.project.id.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
+    const hasP2 = largeProjects.some(p => p.project.id.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
 
     assert.strictEqual(hasP1, false, 'Small project should not be in filtered results');
     assert.strictEqual(hasP2, true, 'Large project should be in filtered results');

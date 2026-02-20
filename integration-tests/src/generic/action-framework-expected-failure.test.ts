@@ -15,15 +15,13 @@ import {
   publishDocument,
   type DelegatableNotesContract,
 } from '@commonality/sdk';
-import {
-  createGraphQLClient,
-} from '@commonality/sdk';
 import { DelegatableNotesAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   depositETHChecked,
   delegateNoteChecked,
 } from '../delegation/delegation-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Action Framework Expected Failure', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -59,7 +57,7 @@ describe('Action Framework Expected Failure', () => {
 
     // Alice creates a note
     testLog('  Alice creating a note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -74,7 +72,7 @@ describe('Action Framework Expected Failure', () => {
     const result = await delegateNoteChecked(
       bobClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [aliceClients.account],
@@ -113,7 +111,7 @@ describe('Action Framework Expected Failure', () => {
 
     // Alice creates a note
     testLog('  Alice creating a note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -123,7 +121,7 @@ describe('Action Framework Expected Failure', () => {
     await delegateNoteChecked(
       bobClients,
       contract,
-      graphqlClient,
+      machinery,
       {
         noteId,
         owners: [aliceClients.account],
@@ -161,7 +159,7 @@ describe('Action Framework Expected Failure', () => {
 
     // Alice creates a note
     testLog('  Alice creating a note...');
-    const { noteId } = await depositETHChecked(aliceClients, contract, graphqlClient, {
+    const { noteId } = await depositETHChecked(aliceClients, contract, machinery, {
       amount: parseEther('1.0'),
     });
 
@@ -174,7 +172,7 @@ describe('Action Framework Expected Failure', () => {
       await delegateNoteChecked(
         aliceClients,
         contract,
-        graphqlClient,
+        machinery,
         {
           noteId,
           owners: [aliceClients.account],

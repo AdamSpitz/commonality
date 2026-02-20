@@ -12,7 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
-import { getSaleListing, getBuyOrder } from '../utils/graphql-helpers.js';
+import { getSaleListing } from '../utils/graphql-helpers.js';
 
 /**
  * State captured before/after a marketplace action
@@ -41,7 +41,7 @@ async function captureListingState(context: ActionContext): Promise<MarketplaceS
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const executor = machinery.graphqlExecutor;
-  const listing = await getSaleListing(executor, marketplaceAddress, listingId);
+  const listing = await getSaleListing(machinery, marketplaceAddress, listingId);
 
   return {
     listingExists: listing !== null,
@@ -142,7 +142,7 @@ export const tradeDataConsistencyInvariant: InvariantCheck = {
     }
 
     const { assertTradeDataConsistency } = await import('../utils/invariants.js');
-    await assertTradeDataConsistency(graphqlClient, marketplaceAddress, transactionHash);
+    await assertTradeDataConsistency(machinery, marketplaceAddress, transactionHash);
   },
 };
 

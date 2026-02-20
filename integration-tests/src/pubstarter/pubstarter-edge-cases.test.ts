@@ -15,12 +15,10 @@ import assert from 'assert';
 import { parseEther } from 'viem';
 import {
   buyProjectTokens,
-  refundProjectTokens,
   withdrawProjectFunds,
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  createGraphQLClient,
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
@@ -32,6 +30,7 @@ import {
   refundProjectTokensChecked,
   withdrawProjectFundsChecked,
 } from '../actions/funding-actions-checked.js';
+import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Pubstarter Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -68,7 +67,7 @@ describe('Pubstarter Edge Cases', () => {
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog('  Creating project...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -135,7 +134,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(currentTime + 2); // 2 seconds from now
 
     testLog('  Creating project with short deadline...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -156,7 +155,7 @@ describe('Pubstarter Edge Cases', () => {
 
     // Bob buys a small amount (not enough to meet threshold) - properties checked automatically
     testLog('  Bob purchasing tokens...');
-    await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
+    await buyProjectTokensChecked(bobClients, assuranceContract, machinery, {
       buyer: bobClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [0n],
@@ -212,7 +211,7 @@ describe('Pubstarter Edge Cases', () => {
     let refundSucceeded = true;
     let refundError: any = null;
     try {
-      const refundTx = await refundProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
+      const refundTx = await refundProjectTokensChecked(bobClients, assuranceContract, machinery, {
         holder: bobClients.account,
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],
@@ -260,7 +259,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
     testLog('  Creating project with Alice as recipient...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -281,7 +280,7 @@ describe('Pubstarter Edge Cases', () => {
 
     // Bob buys enough tokens to meet the threshold - properties checked automatically
     testLog('  Bob purchasing tokens to meet threshold...');
-    await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
+    await buyProjectTokensChecked(bobClients, assuranceContract, machinery, {
       buyer: bobClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [0n],
@@ -290,7 +289,7 @@ describe('Pubstarter Edge Cases', () => {
     });
 
     // Verify threshold was met
-    const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
+    const project = await getProject(machinery, projectDetails.assuranceContractAddress);
     testLog(`  Project received: ${project?.totalReceived} (threshold: ${project?.threshold})`);
 
     // Bob (not the recipient) tries to withdraw the funds
@@ -311,7 +310,7 @@ describe('Pubstarter Edge Cases', () => {
 
     let aliceWithdrawalSucceeded = true;
     try {
-      const withdrawTx = await withdrawProjectFundsChecked(aliceClients, assuranceContract, graphqlClient);
+      const withdrawTx = await withdrawProjectFundsChecked(aliceClients, assuranceContract, machinery);
       testLog(`  ✓ Alice withdrawal succeeded: ${withdrawTx} (state transitions verified)`);
     } catch (error) {
       aliceWithdrawalSucceeded = false;
@@ -349,7 +348,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(currentTime + 3);
 
     testLog('  Creating project...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -372,7 +371,7 @@ describe('Pubstarter Edge Cases', () => {
     testLog('  Bob purchasing before deadline...');
     let purchaseBeforeSucceeded = true;
     try {
-      await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
+      await buyProjectTokensChecked(bobClients, assuranceContract, machinery, {
         buyer: bobClients.account,
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],
@@ -405,7 +404,7 @@ describe('Pubstarter Edge Cases', () => {
     testLog('  Bob purchasing after deadline (should still succeed per contract design)...');
     let purchaseAfterSucceeded = true;
     try {
-      await buyProjectTokensChecked(bobClients, assuranceContract, graphqlClient, {
+      await buyProjectTokensChecked(bobClients, assuranceContract, machinery, {
         buyer: bobClients.account,
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],

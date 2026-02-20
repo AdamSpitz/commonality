@@ -12,7 +12,6 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  createGraphQLClient,
   assertNotNull,
   PubstarterAbi,
   AssuranceContractAbi,
@@ -24,6 +23,7 @@ import {
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked, refundProjectTokensChecked, withdrawProjectFundsChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
@@ -73,7 +73,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -101,7 +101,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const buyHash = await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -125,7 +125,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     await withdrawProjectFundsChecked(
       creatorClients,
       assuranceContract,
-      graphqlClient
+      machinery
     );
 
     // Verify creator received funds (ETH balance check)
@@ -175,7 +175,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -203,7 +203,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const buyHash = await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -267,7 +267,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     await refundProjectTokensChecked(
       contributorClients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         holder: contributorClients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -327,7 +327,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -355,7 +355,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const buy1Hash = await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor1Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -370,7 +370,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const buy2Hash = await buyProjectTokensChecked(
       contributor2Clients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: contributor2Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -381,10 +381,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     );
 
     // Verify project received total of 0.5 ETH from both contributors
-    const fundedProject = assertNotNull(
-      await getProject(graphqlClient, projectDetails.assuranceContractAddress),
-      'Multi-contributor project'
-    );
+    const fundedProject = await getProject(machinery, projectDetails.assuranceContractAddress);
+    assertNotNull(fundedProject, 'Multi-contributor project');
 
     testLog(`  Project total received: ${fundedProject.totalReceived}`);
     const expectedTotal = parseEther('0.5'); // 0.2 + 0.3
@@ -396,7 +394,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Query and verify contributions
     const contributions = await getProjectContributions(
-      graphqlClient,
+      machinery,
       projectDetails.assuranceContractAddress
     );
 

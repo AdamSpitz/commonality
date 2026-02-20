@@ -53,11 +53,11 @@ async function captureRefState(context: ActionContext): Promise<RefState> {
   }
 
   // Get current value from indexer
-  const currentRef = await getUserRef(executor, userAddress, refName);
+  const currentRef = await getUserRef(machinery, userAddress, refName);
   const currentValue = currentRef?.value ?? null;
 
   // Get history count
-  const history = await getUserRefHistory(executor, userAddress, refName);
+  const history = await getUserRefHistory(machinery, userAddress, refName);
   const historyCount = history.length;
 
   // Get value directly from contract
@@ -172,7 +172,7 @@ export const refContractIndexerConsistency: InvariantCheck = {
     }
 
     await assertRefContractIndexerConsistency(
-      graphqlClient,
+      machinery,
       contracts.mutableRefUpdater,
       userAddress,
       refName
@@ -197,7 +197,7 @@ export const refHistoryOrdering: InvariantCheck = {
       return;
     }
 
-    await assertRefHistoryOrdering(graphqlClient, userAddress, refName);
+    await assertRefHistoryOrdering(machinery, userAddress, refName);
   },
 };
 

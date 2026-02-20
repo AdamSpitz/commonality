@@ -7,7 +7,7 @@
  * Usage:
  *   // Instead of:
  *   await attestAlignment(clients, contract, subjectAddress, statementCid, topicStatementCid);
- *   await waitForIndexerToSyncToTxHash(graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(machinery.graphqlClient, publicClient);
  *   // ... manual assertions ...
  *
  *   // Write:

@@ -15,14 +15,11 @@ import {
   cidToBytes32,
   type DelegatableNotesContract,
   type PubstarterContract,
-  type AssuranceContract,
-  createGraphQLClient,
   assertNotNull,
   DelegatableNotesAbi,
   PubstarterAbi,
 } from '@commonality/sdk';
 import {
-  getNote,
   getDelegationChain,
   getProject,
   getProjectContributions,
@@ -34,6 +31,7 @@ import {
   spendDelegatedNoteChecked,
 } from './delegation-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface
@@ -86,7 +84,7 @@ describe('Delegation Spending', () => {
 
     // User 1 deposits 5 ETH into a note (automatically verifies delegation chain integrity)
     const depositAmount = 5000000000000000000n; // 5 ETH
-    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
+    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 
@@ -95,7 +93,7 @@ describe('Delegation Spending', () => {
     const deadline = nowInSeconds + 86400n; // 24 hours from now
     const threshold = 3000000000000000000n; // 3 ETH threshold
 
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
       metadataURI: 'ipfs://project-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: user1.account,
@@ -120,7 +118,7 @@ describe('Delegation Spending', () => {
     await spendDelegatedNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteIds: [noteId],
         chains: [[user1.account]], // Single-level chain (just user1)
@@ -133,7 +131,7 @@ describe('Delegation Spending', () => {
     );
 
     // Verify the project received the funds
-    const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
+    const project = await getProject(machinery, projectDetails.assuranceContractAddress);
     assertNotNull(project, 'Project');
 
     assert.strictEqual(
@@ -143,7 +141,7 @@ describe('Delegation Spending', () => {
     );
 
     // Verify contributions were tracked
-    const contributions = await getProjectContributions(graphqlClient, projectDetails.assuranceContractAddress);
+    const contributions = await getProjectContributions(machinery, projectDetails.assuranceContractAddress);
     assert(contributions.length > 0, 'Should have at least one contribution');
 
     // Note: When using delegatable notes, the participant is the DelegatableNotes contract
@@ -170,7 +168,7 @@ describe('Delegation Spending', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
-    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
+    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 
@@ -178,7 +176,7 @@ describe('Delegation Spending', () => {
     const { delegatedNoteId: note2 } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note1,
         owners: [user1.account],
@@ -189,7 +187,7 @@ describe('Delegation Spending', () => {
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
       metadataURI: 'ipfs://project-metadata-2',
       contractURI: 'ipfs://contract-metadata-2',
       owner: user1.account,
@@ -214,7 +212,7 @@ describe('Delegation Spending', () => {
     await spendDelegatedNoteChecked(
       user2,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteIds: [note2],
         chains: [[user2.account, user1.account]], // Chain: user2 (leaf) -> user1 (root)
@@ -227,7 +225,7 @@ describe('Delegation Spending', () => {
     );
 
     // Verify the project received funds
-    const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
+    const project = await getProject(machinery, projectDetails.assuranceContractAddress);
     assertNotNull(project, 'Project');
     assert.strictEqual(
       project.totalReceived,
@@ -236,7 +234,7 @@ describe('Delegation Spending', () => {
     );
 
     // Verify contribution attribution
-    const contributions = await getProjectContributions(graphqlClient, projectDetails.assuranceContractAddress);
+    const contributions = await getProjectContributions(machinery, projectDetails.assuranceContractAddress);
     assert(contributions.length > 0, 'Should have contributions');
 
     // The contribution should be attributed to the DelegatableNotes contract
@@ -265,7 +263,7 @@ describe('Delegation Spending', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 8000000000000000000n; // 8 ETH
-    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
+    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 
@@ -273,7 +271,7 @@ describe('Delegation Spending', () => {
     const { delegatedNoteId: note2 } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note1,
         owners: [user1.account],
@@ -286,7 +284,7 @@ describe('Delegation Spending', () => {
     const { delegatedNoteId: note3 } = await delegateNoteChecked(
       user2,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteId: note2,
         owners: [user2.account, user1.account],
@@ -296,12 +294,12 @@ describe('Delegation Spending', () => {
     );
 
     // Verify delegation chain
-    const chain = await getDelegationChain(graphqlClient, note3.toString());
+    const chain = await getDelegationChain(machinery, note3.toString());
     assert.strictEqual(chain.length, 3, 'Should have 3-level delegation chain');
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
       metadataURI: 'ipfs://project-metadata-3',
       contractURI: 'ipfs://contract-metadata-3',
       owner: user1.account,
@@ -326,7 +324,7 @@ describe('Delegation Spending', () => {
     await spendDelegatedNoteChecked(
       user3,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteIds: [note3],
         chains: [[user3.account, user2.account, user1.account]], // Full chain: user3 -> user2 -> user1
@@ -339,7 +337,7 @@ describe('Delegation Spending', () => {
     );
 
     // Verify project received funds
-    const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
+    const project = await getProject(machinery, projectDetails.assuranceContractAddress);
     assertNotNull(project, 'Project');
     assert.strictEqual(
       project.totalReceived,
@@ -348,7 +346,7 @@ describe('Delegation Spending', () => {
     );
 
     // Verify contribution was tracked
-    const contributions = await getProjectContributions(graphqlClient, projectDetails.assuranceContractAddress);
+    const contributions = await getProjectContributions(machinery, projectDetails.assuranceContractAddress);
     assert(contributions.length > 0, 'Should have contributions');
     assert.strictEqual(
       contributions[0].totalCost,
@@ -370,13 +368,13 @@ describe('Delegation Spending', () => {
     const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
-    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, graphqlClient, {
+    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
       metadataURI: 'ipfs://project-metadata-4',
       contractURI: 'ipfs://contract-metadata-4',
       owner: user1.account,
@@ -401,7 +399,7 @@ describe('Delegation Spending', () => {
     await spendDelegatedNoteChecked(
       user1,
       delegatableNotesContract,
-      graphqlClient,
+      machinery,
       {
         noteIds: [noteId],
         chains: [[user1.account]],
@@ -414,7 +412,7 @@ describe('Delegation Spending', () => {
     );
 
     // Verify project received only 2 ETH
-    const project = await getProject(graphqlClient, projectDetails.assuranceContractAddress);
+    const project = await getProject(machinery, projectDetails.assuranceContractAddress);
     assertNotNull(project, 'Project');
     assert.strictEqual(
       project.totalReceived,
@@ -425,7 +423,7 @@ describe('Delegation Spending', () => {
     // The original note should be spent (or a remainder note created)
     // This behavior depends on the contract implementation
     // We verify the project received the correct amount
-    const contributions = await getProjectContributions(graphqlClient, projectDetails.assuranceContractAddress);
+    const contributions = await getProjectContributions(machinery, projectDetails.assuranceContractAddress);
     assert(contributions.length > 0, 'Should have contributions');
   });
 });

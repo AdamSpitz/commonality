@@ -7,10 +7,10 @@
  * Usage:
  *   // Instead of:
  *   await updateRef(clients, contract, refName, value);
- *   await waitForIndexerToSyncToTxHash(graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(machinery.graphqlClient, publicClient);
  *
  *   // Write:
- *   await updateRefChecked(clients, contract, graphqlClient, refName, value);
+ *   await updateRefChecked(clients, contract, machinery, refName, value);
  */
 
 import type { Hash } from 'viem';
@@ -23,6 +23,7 @@ import {
 } from '@commonality/sdk';
 import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
+  ActionTestingMachinery,
   runActionAndCheckProperties,
   type ActionContext,
   type ActionRunOptions,
@@ -71,7 +72,7 @@ export async function updateRefChecked(
   const userAddress = clients.account;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { mutableRefUpdater: mutableRefContract },
     entities: {
       userAddress,
@@ -85,7 +86,7 @@ export async function updateRefChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await updateRef(clients, mutableRefContract, refName, value);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     updateRefMetadata,
@@ -102,7 +103,7 @@ export async function updateRefChecked(
  * 2. Verifies that the ref value changed (new CID for the list)
  * 3. Checks that history is properly maintained
  *
- * @param graphqlClient - GraphQL client for the indexer
+ * @param machinery - Action testing machinery containing GraphQL client
  * @param clients - Test wallet and public clients
  * @param mutableRefContract - The MutableRefUpdater contract instance
  * @param refName - Name of the reference containing the list
@@ -133,7 +134,7 @@ export async function appendToUserListChecked(
   const userAddress = clients.account;
 
   const context: ActionContext = {
-    graphqlClient,
+    machinery,
     contracts: { mutableRefUpdater: mutableRefContract },
     entities: {
       userAddress,
@@ -146,8 +147,8 @@ export async function appendToUserListChecked(
 
   return await runActionAndCheckProperties(
     async () => {
-      const hash = await appendToUserList(graphqlClient, clients, mutableRefContract, refName, itemToAppend);
-      await waitForIndexerToSyncToTxHash(graphqlClient, clients.publicClient, hash);
+      const hash = await appendToUserList(machinery.graphqlClient, clients, mutableRefContract, refName, itemToAppend);
+      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },
     appendToUserListMetadata,

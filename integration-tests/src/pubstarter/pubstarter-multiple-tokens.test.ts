@@ -9,19 +9,17 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  createGraphQLClient,
-  assertNotNull,
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import {
-  getProject,
   getProjectTokens,
   getProjectContributions,
 } from '../utils/graphql-helpers.js';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
 describe('Pubstarter Multiple Token Types Tests', () => {
@@ -83,7 +81,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     const { projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -102,7 +100,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
 
     // Verify all 3 token types are tracked
     testLog('  Verifying token types in indexer...');
-    const tokens = await getProjectTokens(graphqlClient, projectDetails.assuranceContractAddress);
+    const tokens = await getProjectTokens(machinery, projectDetails.assuranceContractAddress);
 
     assert.strictEqual(tokens.length, 3, 'Should have 3 token types');
 
@@ -127,7 +125,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     const buy1Hash = await buyProjectTokensChecked(
       buyer1Clients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: buyer1Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -142,7 +140,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     const buy2Hash = await buyProjectTokensChecked(
       buyer2Clients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: buyer2Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -157,7 +155,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     const buy3Hash = await buyProjectTokensChecked(
       buyer1Clients,
       assuranceContract,
-      graphqlClient,
+      machinery,
       {
         buyer: buyer1Clients.account,
         tokenAddress: projectDetails.tokenAddress,
@@ -170,7 +168,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     // Verify contributions were tracked correctly
     testLog('  Verifying contribution records...');
     const contributions = await getProjectContributions(
-      graphqlClient,
+      machinery,
       projectDetails.assuranceContractAddress
     );
 

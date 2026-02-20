@@ -16,7 +16,6 @@ import {
   cidToBytes32,
   type AlignmentAttestationsContract,
   type PubstarterContract,
-  createGraphQLClient,
   AlignmentAttestationsAbi,
   PubstarterAbi,
   PROJECT_ALIGNMENT_TOPIC,
@@ -29,6 +28,7 @@ import {
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestAlignmentChecked, attestAlignmentsBatchChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
+import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Funding Portal - Alignment Attestations', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -81,7 +81,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create a project
     testLog('  Creating a crowdfunding project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -102,7 +102,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     await attestAlignmentChecked(
       attesterClients,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       statementCid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -129,7 +129,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create a project
     testLog('  Creating a project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -150,7 +150,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     await attestAlignmentChecked(
       attester1Clients,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       statementCid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -162,7 +162,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     await attestAlignmentChecked(
       attester2Clients,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       statementCid,
       PROJECT_ALIGNMENT_TOPIC,
@@ -172,7 +172,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     testLog('  ✓ Multiple attesters tracked independently (verified by property checks)');
 
     // Query all aligned subjects (should show 2 attestations for same subject)
-    const alignedSubjects = await getAlignedSubjects(graphqlClient, statementId);
+    const alignedSubjects = await getAlignedSubjects(machinery, statementId);
     const matchingAlignments = alignedSubjects.filter(
       a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
@@ -213,7 +213,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     testLog('  Creating projects...');
     const currentTime = Math.floor(Date.now() / 1000);
 
-    const { projectDetails: project1 } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
+    const { projectDetails: project1 } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -227,7 +227,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     });
     testLog('  ✓ Project creation properties verified');
 
-    const { projectDetails: project2 } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
+    const { projectDetails: project2 } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -249,7 +249,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     await attestAlignmentsBatchChecked(
       attesterClients,
       alignmentAttestationsContract,
-      graphqlClient,
+      machinery,
       [project1.tokenAddress, project2.tokenAddress],
       [statement1Cid, statement2Cid],
       [PROJECT_ALIGNMENT_TOPIC, PROJECT_ALIGNMENT_TOPIC]
@@ -258,7 +258,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     testLog('  ✓ Batch attestations recorded successfully (verified by property checks)');
 
     // Verify query by attester returns both
-    const attesterAlignments = await getAlignmentsByAttester(graphqlClient, attesterClients.account);
+    const attesterAlignments = await getAlignmentsByAttester(machinery, attesterClients.account);
     assert.ok(
       attesterAlignments.length >= 2,
       'Attester should have at least 2 alignments'
@@ -290,7 +290,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create one project
     testLog('  Creating project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, graphqlClient, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -312,7 +312,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       await attestAlignmentChecked(
         attesterClients,
         alignmentAttestationsContract,
-        graphqlClient,
+        machinery,
         projectDetails.tokenAddress,
         statementCids[i],
         PROJECT_ALIGNMENT_TOPIC,
@@ -322,7 +322,7 @@ describe('Funding Portal - Alignment Attestations', () => {
 
     // Verify all alignments exist
     const subjectStatements = await getSubjectStatements(
-      graphqlClient,
+      machinery,
       projectDetails.tokenAddress,
       attesterClients.account
     );

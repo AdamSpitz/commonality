@@ -169,7 +169,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     await fulfillSaleListingChecked(
       buyerClients,
       marketplaceContract,
-      graphqlClient,
+      machinery,
       projectDetails.marketplaceAddress,
       {
         saleListingId: 0n,
@@ -179,17 +179,15 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     // Query updated listing
-    const updatedListing = assertNotNull(
-      await getSaleListing(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Updated listing'
-    );
+    const updatedListing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(updatedListing, 'Updated listing');
 
     testLog(`  Updated listing remaining count: ${updatedListing.remainingCount}`);
     assert.strictEqual(updatedListing.remainingCount, '2', 'Should have 2 tokens remaining');
     assert.strictEqual(updatedListing.status, 'active', 'Listing should still be active');
 
     // Query trades for this marketplace
-    const trades = await getMarketplaceTrades(graphqlClient, projectDetails.marketplaceAddress);
+    const trades = await getMarketplaceTrades(machinery, projectDetails.marketplaceAddress);
     testLog(`  Found ${trades.length} trade(s) for this marketplace`);
     assert(trades.length >= 1, 'Should have at least 1 trade');
 
@@ -224,7 +222,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -247,7 +245,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    await buyProjectTokensChecked(sellerClients, assuranceContract, graphqlClient, {
+    await buyProjectTokensChecked(sellerClients, assuranceContract, machinery, {
       buyer: sellerClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [1n],
@@ -271,7 +269,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     await createSaleListingChecked(
       sellerClients,
       marketplaceContract,
-      graphqlClient,
+      machinery,
       projectDetails.marketplaceAddress,
       {
         tokenId: 1n,
@@ -282,10 +280,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     );
 
     // Verify listing exists
-    const listing = assertNotNull(
-      await getSaleListing(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Listing before cancel'
-    );
+    const listing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(listing, 'Listing before cancel');
     assert.strictEqual(listing.status, 'active', 'Listing should be active');
 
     // Cancel the listing
@@ -296,17 +292,15 @@ describe('Secondary Marketplace Integration Tests', () => {
       { saleListingId: 0n }
     );
 
-    await waitForIndexerToSyncToTxHash(graphqlClient, sellerClients.publicClient, cancelHash);
+    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, sellerClients.publicClient, cancelHash);
 
     // Verify listing is cancelled
-    const cancelledListing = assertNotNull(
-      await getSaleListing(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Listing after cancel'
-    );
+    const cancelledListing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(cancelledListing, 'Listing after cancel');
     assert.strictEqual(cancelledListing.status, 'cancelled', 'Listing should be cancelled');
 
     // Verify our listing is not in active listings
-    const activeListings = await getActiveSaleListings(graphqlClient, projectDetails.marketplaceAddress);
+    const activeListings = await getActiveSaleListings(machinery, projectDetails.marketplaceAddress);
     const ourActiveListing = activeListings.find(l => l.listingId === '0');
     assert.strictEqual(ourActiveListing, undefined, 'Our listing should not be in active listings');
 
@@ -334,7 +328,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -357,7 +351,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    await buyProjectTokensChecked(sellerClients, assuranceContract, graphqlClient, {
+    await buyProjectTokensChecked(sellerClients, assuranceContract, machinery, {
       buyer: sellerClients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [1n],
@@ -388,13 +382,11 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerToSyncToTxHash(graphqlClient, buyerClients.publicClient, orderHash);
+    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, buyerClients.publicClient, orderHash);
 
     // Query the buy order
-    const buyOrder = assertNotNull(
-      await getBuyOrder(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Buy order'
-    );
+    const buyOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(buyOrder, 'Buy order');
 
     assert.strictEqual(buyOrder.status, 'active', 'Buy order should be active');
     assert.strictEqual(buyOrder.buyer.toLowerCase(), buyerClients.account.toLowerCase(), 'Buyer should match');
@@ -411,19 +403,17 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerToSyncToTxHash(graphqlClient, sellerClients.publicClient, fulfillHash);
+    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, sellerClients.publicClient, fulfillHash);
 
     // Query updated buy order
-    const updatedOrder = assertNotNull(
-      await getBuyOrder(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Updated buy order'
-    );
+    const updatedOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(updatedOrder, 'Updated buy order');
 
     assert.strictEqual(updatedOrder.remainingCount, '2', 'Should have 2 tokens remaining');
     assert.strictEqual(updatedOrder.status, 'active', 'Order should still be active');
 
     // Query trades for this token
-    const trades = await getTokenTrades(graphqlClient, projectDetails.marketplaceAddress, 1n);
+    const trades = await getTokenTrades(machinery, projectDetails.marketplaceAddress, 1n);
     assert(trades.length >= 1, 'Should have at least 1 trade');
 
     // Find our trade (the one with our seller)
@@ -456,7 +446,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const { projectDetails } = await createProjectChecked(
       sellerClients,
       pubstarterContract,
-      graphqlClient,
+      machinery,
       {
         metadataURI: 'https://example.com/metadata/',
         contractURI: 'https://example.com/contract',
@@ -490,13 +480,11 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerToSyncToTxHash(graphqlClient, buyerClients.publicClient, orderHash);
+    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, buyerClients.publicClient, orderHash);
 
     // Verify order exists
-    const order = assertNotNull(
-      await getBuyOrder(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Buy order before cancel'
-    );
+    const order = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(order, 'Buy order before cancel');
     assert.strictEqual(order.status, 'active', 'Order should be active');
 
     // Cancel the order
@@ -507,17 +495,15 @@ describe('Secondary Marketplace Integration Tests', () => {
       { buyOrderId: 0n }
     );
 
-    await waitForIndexerToSyncToTxHash(graphqlClient, buyerClients.publicClient, cancelHash);
+    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, buyerClients.publicClient, cancelHash);
 
     // Verify order is cancelled
-    const cancelledOrder = assertNotNull(
-      await getBuyOrder(graphqlClient, projectDetails.marketplaceAddress, 0n),
-      'Buy order after cancel'
-    );
+    const cancelledOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
+    assertNotNull(cancelledOrder, 'Buy order after cancel');
     assert.strictEqual(cancelledOrder.status, 'cancelled', 'Order should be cancelled');
 
     // Verify our order is not in active orders
-    const activeOrders = await getActiveBuyOrders(graphqlClient, projectDetails.marketplaceAddress);
+    const activeOrders = await getActiveBuyOrders(machinery, projectDetails.marketplaceAddress);
     const ourActiveOrder = activeOrders.find(o => o.orderId === '0');
     assert.strictEqual(ourActiveOrder, undefined, 'Our order should not be in active orders');
 

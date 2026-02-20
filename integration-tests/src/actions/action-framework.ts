@@ -37,6 +37,7 @@ export interface ActionContext {
     beliefs?: any;
     pubstarter?: any;
     delegation?: any;
+    mutableRefUpdater?: any;
     // ... other contracts as needed
   };
 
@@ -50,6 +51,7 @@ export interface ActionContext {
     fromStatementId?: string;
     toStatementId?: string;
     attesterAddress?: string;
+    marketplaceAddress?: string;
     // ... other entity IDs as needed
   };
 
