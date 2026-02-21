@@ -11,7 +11,8 @@
     "gen:small": "node runSimulation.js 10 3",
     "gen:medium": "node runSimulation.js 50 5",
     "gen:large": "node runSimulation.js 100 10",
-    "gen:clean": "rm -f users.json statements.json actions.json metrics.json"
+    "gen:clean": "rm -f users.json statements.json actions.json metrics.json",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@commonality/sdk": "file:../sdk",
@@ -20,6 +21,8 @@
   },
   "devDependencies": {
     "ethers": "^6.15.0",
-    "hardhat": "^2.27.0"
+    "hardhat": "^2.27.0",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0"
   }
 }
