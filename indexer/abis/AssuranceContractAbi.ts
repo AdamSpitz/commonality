@@ -1,5 +1,5 @@
 /**
- * ABI for MultiERC1155_AssuranceContract
+ * ABI for MultiERC1155AssuranceContract
  * Combines events and functions from AssuranceContract, ERC1155PrimaryMarket, and ContractMetadata
  */
 

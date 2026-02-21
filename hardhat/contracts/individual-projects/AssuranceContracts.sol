@@ -1,20 +1,20 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "../utils/ContractMetadata.sol";
-import "./ERC1155PrimaryMarket.sol";
-import "./AssuranceContract.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ContractMetadata} from "../utils/ContractMetadata.sol";
+import {ERC1155PrimaryMarket} from "./ERC1155PrimaryMarket.sol";
+import {AssuranceContract} from "./AssuranceContract.sol";
 
 /**
- * @title MultiERC1155_AssuranceContract
+ * @title MultiERC1155AssuranceContract
  * @notice Combines assurance contract with ERC1155 token sales
  * @dev Holds pre-minted ERC1155 tokens and sells them at fixed prices.
  *      Tracks total received value to measure funding progress.
  *      Refunds only allowed if project failed.
  *      Implements AssuranceContract, ContractMetadata, and ERC1155PrimaryMarket.
  */
-contract MultiERC1155_AssuranceContract is
+contract MultiERC1155AssuranceContract is
     Ownable,
     ContractMetadata,
     AssuranceContract,
@@ -56,7 +56,7 @@ contract MultiERC1155_AssuranceContract is
         uint256[] memory prices
     ) external onlyOwner {
         require(ids.length == prices.length, "Arrays must be the same length");
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
             uint256 price = prices[i];
             // Note that we allow price = 0; can be useful for free tokens (promotional, badges, etc.)
@@ -114,8 +114,7 @@ contract MultiERC1155_AssuranceContract is
      * @dev Always returns true - buying is always allowed, even after deadline
      */
     function requireBuyingAllowed() internal view override {
-        // No conditions needed here. It's always okay to buy, even
-        // if the deadline has passed or whatever.
+        // Buying is always allowed, even after deadline.
     }
 
     /**

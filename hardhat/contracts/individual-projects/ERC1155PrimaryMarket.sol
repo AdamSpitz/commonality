@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 /**
  * @title ERC1155PrimaryMarket
@@ -105,7 +105,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         uint256[] calldata counts
     ) private view returns (uint256) {
         uint256 total = 0;
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             total += erc1155Price(erc1155Addr, ids[i]) * counts[i];
         }
         return total;

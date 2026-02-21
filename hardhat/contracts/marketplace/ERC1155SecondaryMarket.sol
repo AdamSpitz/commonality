@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title ERC1155SecondaryMarket
@@ -78,7 +78,13 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      * @param count The number of tokens wanted
      * @param pricePerToken The price per token in wei
      */
-    event BuyOrderCreated(uint256 indexed buyOrderId, address indexed buyer, uint256 tokenId, uint256 count, uint256 pricePerToken);
+    event BuyOrderCreated(
+        uint256 indexed buyOrderId,
+        address indexed buyer,
+        uint256 tokenId,
+        uint256 count,
+        uint256 pricePerToken
+    );
 
     /**
      * @notice Emitted when a buy order is fulfilled (partially or fully)

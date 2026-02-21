@@ -1,11 +1,11 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "../utils/FreeERC1155.sol";
-import "../utils/PremintingERC1155.sol";
-import "./AssuranceContracts.sol";
-import "../marketplace/ERC1155SecondaryMarket.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {FreeERC1155} from "../utils/FreeERC1155.sol";
+import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
+import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
+import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
 
 /**
  * @title FreeERC1155Factory
@@ -85,17 +85,17 @@ contract MarketplaceFactory {
 
 /**
  * @title AssuranceContractFactory
- * @notice Factory contract for creating MultiERC1155_AssuranceContract contracts
+ * @notice Factory contract for creating MultiERC1155AssuranceContract contracts
  */
 contract AssuranceContractFactory {
-  /**
-   * @notice Emitted when a new MultiERC1155_AssuranceContract is created
+   /**
+    * @notice Emitted when a new MultiERC1155AssuranceContract is created
    * @param assuranceContract The address of the created assurance contract
    */
   event PubstarterAssuranceContractCreated(address indexed assuranceContract);
 
-  /**
-   * @notice Creates a new MultiERC1155_AssuranceContract
+   /**
+    * @notice Creates a new MultiERC1155AssuranceContract
    * @param owner The address that will own the assurance contract
    * @param recipient The address that will receive funds if project succeeds
    * @param threshold The funding threshold for project success
@@ -109,8 +109,8 @@ contract AssuranceContractFactory {
     uint256 threshold,
     uint256 deadline,
     string memory projectMetadataCid
-  ) public returns (MultiERC1155_AssuranceContract) {
-    MultiERC1155_AssuranceContract ac = new MultiERC1155_AssuranceContract(
+  ) public returns (MultiERC1155AssuranceContract) {
+    MultiERC1155AssuranceContract ac = new MultiERC1155AssuranceContract(
       owner,
       recipient,
       threshold,

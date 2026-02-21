@@ -2,7 +2,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
 
-describe("MultiERC1155_AssuranceContract", function () {
+describe("MultiERC1155AssuranceContract", function () {
   let assuranceContract;
   let erc1155Token;
   let owner, recipient, alice, bob, charlie;
@@ -32,7 +32,7 @@ describe("MultiERC1155_AssuranceContract", function () {
     deadline = latestBlock.timestamp + 86400; // 24 hours from now
 
     const AssuranceContracts = await ethers.getContractFactory(
-      "MultiERC1155_AssuranceContract"
+      "MultiERC1155AssuranceContract"
     );
     assuranceContract = await AssuranceContracts.deploy(
       owner.address,
@@ -55,7 +55,7 @@ describe("MultiERC1155_AssuranceContract", function () {
   describe("Deployment", function () {
     it("Should emit AssuranceContractInitialized event", async function () {
       const AssuranceContracts = await ethers.getContractFactory(
-        "MultiERC1155_AssuranceContract"
+        "MultiERC1155AssuranceContract"
       );
 
       const contract = await AssuranceContracts.deploy(
@@ -73,7 +73,7 @@ describe("MultiERC1155_AssuranceContract", function () {
 
     it("Should emit ContractMetadataUpdated event", async function () {
       const AssuranceContracts = await ethers.getContractFactory(
-        "MultiERC1155_AssuranceContract"
+        "MultiERC1155AssuranceContract"
       );
       const metadataCid = "ipfs://QmProjectMetadata";
 

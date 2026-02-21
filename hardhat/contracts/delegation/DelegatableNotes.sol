@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "../individual-projects/ERC1155PrimaryMarket.sol";
-import "../marketplace/ERC1155SecondaryMarket.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
+import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
 
 /**
  * @title DelegatableNotes
@@ -127,14 +127,14 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       actualAmount = msg.value;
       tokenId = 0;
     } else if (tokenType == TokenType.ERC20) {
-      require(amount > 0, "Amount must be greater than 0");
-      require(msg.value == 0, "Do not send ETH for ERC20 deposits");
+      require(amount > 0, "Amount must be > 0");
+      require(msg.value == 0, "No ETH for ERC20");
       actualAmount = amount;
       tokenId = 0;
       IERC20(token).safeTransferFrom(owner, address(this), amount);
     } else {
-      require(amount > 0, "Amount must be greater than 0");
-      require(msg.value == 0, "Do not send ETH for ERC1155 deposits");
+      require(amount > 0, "Amount must be > 0");
+      require(msg.value == 0, "No ETH for ERC1155");
       actualAmount = amount;
       IERC1155(token).safeTransferFrom(owner, address(this), tokenId, amount, "");
     }
@@ -313,9 +313,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address[][] memory paymentChains,
     uint256[] memory spentAmounts
   ) {
-    require(noteIds.length > 0, "Must provide at least one note");
-    require(noteIds.length == chains.length, "Array length mismatch");
-    require(paymentAmount > 0, "Payment amount must be greater than 0");
+    require(noteIds.length > 0, "Notes required");
+    require(noteIds.length == chains.length, "Length mismatch");
+    require(paymentAmount > 0, "Payment must be > 0");
 
     address caller = _msgSender();
 
@@ -352,7 +352,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] calldata tokenIds,
     uint256[] calldata counts
   ) external nonReentrant {
-    require(tokenIds.length == counts.length, "Token IDs and counts length mismatch");
+    require(tokenIds.length == counts.length, "Length mismatch");
 
     address caller = _msgSender();
 
@@ -409,7 +409,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 saleListingId,
     uint256 tokenCount
   ) external nonReentrant {
-    require(tokenCount > 0, "Token count must be greater than 0");
+    require(tokenCount > 0, "Count must be > 0");
 
     address caller = _msgSender();
 

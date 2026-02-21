@@ -25,9 +25,9 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     );
 
     // Deploy AssuranceContract (acts as ERC1155PrimaryMarket)
-    const MultiERC1155_AssuranceContract = await ethers.getContractFactory("MultiERC1155_AssuranceContract");
+    const MultiERC1155AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
     const deadline = Math.floor(Date.now() / 1000) + 86400; // 1 day from now
-    assuranceContract = await MultiERC1155_AssuranceContract.deploy(
+    assuranceContract = await MultiERC1155AssuranceContract.deploy(
       seller.address,
       seller.address,
       ethers.parseEther("10"), // threshold
