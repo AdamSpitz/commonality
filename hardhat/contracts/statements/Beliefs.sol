@@ -4,6 +4,9 @@ pragma solidity 0.8.33;
 // AI-generated from specs/README.md and specs/integration.md
 // Beliefs contract for Concept Space: Tracks user beliefs about statements
 
+error InvalidBeliefState();
+error ArrayLengthMismatch();
+
 /**
  * @title Beliefs
  * @notice Tracks user beliefs about statements in the Concept Space
@@ -38,10 +41,7 @@ contract Beliefs {
      * @param beliefState The belief state (0=noOpinion, 1=believes, 2=disbelieves)
      */
     function setBelief(bytes32 statementId, uint8 beliefState) external {
-        require(
-            beliefState <= DISBELIEVES,
-            "Invalid belief state"
-        );
+        if (beliefState > DISBELIEVES) revert InvalidBeliefState();
 
         beliefs[msg.sender][statementId] = beliefState;
 
@@ -71,16 +71,10 @@ contract Beliefs {
         bytes32[] calldata statementIds,
         uint8[] calldata beliefStates
     ) external {
-        require(
-            statementIds.length == beliefStates.length,
-            "Arrays must have same length"
-        );
+        if (statementIds.length != beliefStates.length) revert ArrayLengthMismatch();
 
         for (uint256 i = 0; i < statementIds.length; i++) {
-            require(
-                beliefStates[i] <= DISBELIEVES,
-                "Invalid belief state"
-            );
+            if (beliefStates[i] > DISBELIEVES) revert InvalidBeliefState();
 
             beliefs[msg.sender][statementIds[i]] = beliefStates[i];
 

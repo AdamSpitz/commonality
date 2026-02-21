@@ -4,12 +4,16 @@ pragma solidity 0.8.33;
 // AI-generated from specs/README.md and specs/integration.md
 // Implications contract for Concept Space: Links related statements via implication attestations
 
+error StatementCannotImplyItself();
+error InvalidStatementID();
+error ArrayLengthMismatch();
+
 /**
  * @title Implications
  * @notice Allows attesters to declare that belief in one statement implies belief in another
  * @dev Any address can be an attester. Statements are IPFS CIDs (bytes32).
  *      No validation that statements exist on IPFS - trust model.
- *      Implications are unidirectional: fromStatement → toStatement
+ *      Implications are unidirectional: fromStatementId → toStatementId
  */
 contract Implications {
     /**
@@ -48,14 +52,8 @@ contract Implications {
         bytes32 toStatementId,
         bytes32 explanationCid
     ) external {
-        require(
-            fromStatementId != toStatementId,
-            "Statement cannot imply itself"
-        );
-        require(
-            fromStatementId != bytes32(0) && toStatementId != bytes32(0),
-            "Invalid statement ID"
-        );
+        if (fromStatementId == toStatementId) revert StatementCannotImplyItself();
+        if (fromStatementId == bytes32(0) || toStatementId == bytes32(0)) revert InvalidStatementID();
 
         attestations[msg.sender][fromStatementId][toStatementId] = true;
         explanations[msg.sender][fromStatementId][toStatementId] = explanationCid;
@@ -79,28 +77,16 @@ contract Implications {
         bytes32[] calldata toStatementIds,
         bytes32[] calldata explanationCids
     ) external {
-        require(
-            fromStatementIds.length == toStatementIds.length,
-            "Arrays must have same length"
-        );
-        require(
-            fromStatementIds.length == explanationCids.length,
-            "Arrays must have same length"
-        );
+        if (fromStatementIds.length != toStatementIds.length) revert ArrayLengthMismatch();
+        if (fromStatementIds.length != explanationCids.length) revert ArrayLengthMismatch();
 
         for (uint256 i = 0; i < fromStatementIds.length; i++) {
             bytes32 from = fromStatementIds[i];
             bytes32 to = toStatementIds[i];
             bytes32 explanation = explanationCids[i];
 
-            require(
-                from != to,
-                "Statement cannot imply itself"
-            );
-            require(
-                from != bytes32(0) && to != bytes32(0),
-                "Invalid statement ID"
-            );
+            if (from == to) revert StatementCannotImplyItself();
+            if (from == bytes32(0) || to == bytes32(0)) revert InvalidStatementID();
 
             attestations[msg.sender][from][to] = true;
             explanations[msg.sender][from][to] = explanation;

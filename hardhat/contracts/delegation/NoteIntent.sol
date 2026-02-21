@@ -9,6 +9,11 @@ pragma solidity 0.8.33;
  *      with any delegatable notes implementation, not just a specific deployment.
  */
 contract NoteIntent {
+
+    error InvalidNoteContractAddress();
+    error InvalidStatementId();
+    error ArrayLengthMismatch();
+
     /**
      * @notice Emitted when an attester declares a note's intended purpose
      * @param attester The address making the attestation
@@ -40,14 +45,8 @@ contract NoteIntent {
         uint256 noteId,
         bytes32 intendedStatementId
     ) external {
-        require(
-            noteContract != address(0),
-            "Invalid note contract address"
-        );
-        require(
-            intendedStatementId != bytes32(0),
-            "Invalid statement ID"
-        );
+        if (noteContract == address(0)) revert InvalidNoteContractAddress();
+        if (intendedStatementId == bytes32(0)) revert InvalidStatementId();
 
         attestations[msg.sender][noteContract][noteId] = intendedStatementId;
 
@@ -70,21 +69,12 @@ contract NoteIntent {
         uint256[] calldata noteIds,
         bytes32[] calldata intendedStatementIds
     ) external {
-        require(
-            noteIds.length == intendedStatementIds.length,
-            "Arrays must have same length"
-        );
-        require(
-            noteContract != address(0),
-            "Invalid note contract address"
-        );
+        if (noteIds.length != intendedStatementIds.length) revert ArrayLengthMismatch();
+        if (noteContract == address(0)) revert InvalidNoteContractAddress();
 
         for (uint256 i = 0; i < noteIds.length; i++) {
             bytes32 statementId = intendedStatementIds[i];
-            require(
-                statementId != bytes32(0),
-                "Invalid statement ID"
-            );
+            if (statementId == bytes32(0)) revert InvalidStatementId();
 
             attestations[msg.sender][noteContract][noteIds[i]] = statementId;
 

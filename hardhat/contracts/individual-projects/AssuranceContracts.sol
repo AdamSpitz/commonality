@@ -6,6 +6,9 @@ import {ContractMetadata} from "../utils/ContractMetadata.sol";
 import {ERC1155PrimaryMarket} from "./ERC1155PrimaryMarket.sol";
 import {AssuranceContract} from "./AssuranceContract.sol";
 
+error ArrayLengthMismatch();
+error PriceAlreadySet();
+
 /**
  * @title MultiERC1155AssuranceContract
  * @notice Combines assurance contract with ERC1155 token sales
@@ -55,13 +58,12 @@ contract MultiERC1155AssuranceContract is
         uint256[] memory ids,
         uint256[] memory prices
     ) external onlyOwner {
-        require(ids.length == prices.length, "Arrays must be the same length");
+        if (ids.length != prices.length) revert ArrayLengthMismatch();
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
             uint256 price = prices[i];
-            // Note that we allow price = 0; can be useful for free tokens (promotional, badges, etc.)
             uint256 currentPrice = _erc1155Prices[erc1155Addr][id];
-            require(currentPrice == 0, "Price already set");
+            if (currentPrice != 0) revert PriceAlreadySet();
             _erc1155Prices[erc1155Addr][id] = price;
             emit ERC1155Offered(erc1155Addr, id, price);
         }
@@ -114,7 +116,7 @@ contract MultiERC1155AssuranceContract is
      * @dev Always returns true - buying is always allowed, even after deadline
      */
     function requireBuyingAllowed() internal view override {
-        // Buying is always allowed, even after deadline.
+        // Buying is always allowed, even after deadline - no checks needed
     }
 
     /**

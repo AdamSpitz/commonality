@@ -37,7 +37,7 @@ contract PremintingERC1155 is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
   function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts) external onlyOwner {
     _mintBatch(to, ids, amounts, "");
     for (uint256 i = 0; i < ids.length; i++) {
-      emit URI(this.uri(ids[id]), ids[id]);
+      emit URI(this.uri(ids[i]), ids[i]);
     }
   }
 }

@@ -7,6 +7,9 @@ import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
 import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
 
+error InvalidOwnerAddress();
+error InvalidRecipientAddress();
+
 /**
  * @title FreeERC1155Factory
  * @notice Factory contract for creating FreeERC1155 token contracts
@@ -175,8 +178,8 @@ contract Pubstarter {
     uint256[] memory counts,
     uint256[] memory prices
   ) public returns (IERC1155, ERC1155SecondaryMarket, AssuranceContract) {
-    require(owner != address(0), "Invalid owner address");
-    require(recipient != address(0), "Invalid recipient address");
+    if (owner == address(0)) revert InvalidOwnerAddress();
+    if (recipient == address(0)) revert InvalidRecipientAddress();
 
     PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(address(this), metadataURI, contractURI);
 

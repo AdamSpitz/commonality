@@ -8,6 +8,13 @@ pragma solidity 0.8.33;
  *      This is an abstract contract that must be implemented by a concrete contract.
  * @author AdamSpitz
  */
+
+error OnlyRecipientCanWithdraw();
+error ETHTransferFailed();
+error NotEnoughFundingReceived();
+error ProjectReachedFundingGoal();
+error ProjectFateStillUndecided();
+
 abstract contract AssuranceContract {
     /**
      * @notice Emitted when the assurance contract is initialized
@@ -62,11 +69,11 @@ abstract contract AssuranceContract {
      * @dev Only the recipient can call this function. Reverts if the project has not succeeded.
      */
     function withdraw() external {
-        require(msg.sender == _recipient, "Only recipient can withdraw");
+        if (msg.sender != _recipient) revert OnlyRecipientCanWithdraw();
         requireAssuranceContractHasSucceeded();
         uint256 value = address(this).balance;
         (bool success, ) = payable(_recipient).call{value: value}("");
-        require(success, "ETH transfer failed");
+        if (!success) revert ETHTransferFailed();
         emit AssuranceContractWithdrawal(_recipient, value);
     }
 
@@ -75,10 +82,7 @@ abstract contract AssuranceContract {
      * @dev The project succeeds when the total received value meets or exceeds the threshold
      */
     function requireAssuranceContractHasSucceeded() internal view {
-        require(
-            getAssuranceContractProgress() >= _threshold,
-            "Not enough funding received"
-        );
+        if (getAssuranceContractProgress() < _threshold) revert NotEnoughFundingReceived();
     }
 
     /**
@@ -86,10 +90,7 @@ abstract contract AssuranceContract {
      * @dev The project fails when the deadline has passed and the threshold was not reached
      */
     function requireAssuranceContractHasFailed() internal view {
-        require(
-            getAssuranceContractProgress() < _threshold,
-            "Project reached funding goal"
-        );
-        require(block.timestamp >= _deadline, "Project fate still undecided");
+        if (getAssuranceContractProgress() >= _threshold) revert ProjectReachedFundingGoal();
+        if (block.timestamp < _deadline) revert ProjectFateStillUndecided();
     }
 }

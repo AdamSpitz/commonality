@@ -24,6 +24,26 @@ import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol"
 contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   using SafeERC20 for IERC20;
 
+  error EmptyChain();
+  error ChainTooLong();
+  error MustSendETH();
+  error ETHMustUseERC20Type();
+  error AmountMustBeGreaterThanZero();
+  error NoETHForERC20();
+  error NoETHForERC1155();
+  error NoteDoesNotExist();
+  error NotRootNoteOrNotOwner();
+  error ETHTransferFailed();
+  error InvalidChain();
+  error NotNoteOwner();
+  error InvalidDelegationAmount();
+  error CannotDelegateToZeroAddress();
+  error CircularDelegationDetected();
+  error CallerNotInChain();
+  error ArrayLengthMismatch();
+  error InsufficientBalance();
+  error ZeroAddress();
+
   enum TokenType { ERC20, ERC1155 }
 
   struct Note {
@@ -99,8 +119,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   }
 
   function _verifyAndComputeChainHash(address[] memory owners) private pure returns (bytes32) {
-    require(owners.length > 0, "Empty chain");
-    require(owners.length <= MAX_DELEGATION_DEPTH, "Chain too long");
+    if (owners.length == 0) revert EmptyChain();
+    if (owners.length > MAX_DELEGATION_DEPTH) revert ChainTooLong();
 
     // Build hash from root to leaf (owners[length-1] is root, owners[0] is leaf)
     bytes32 hash = bytes32(0);
@@ -122,19 +142,19 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 actualAmount;
 
     if (token == address(0)) {
-      require(msg.value > 0, "Must send ETH");
-      require(tokenType == TokenType.ERC20, "ETH must use ERC20 type");
+      if (msg.value == 0) revert MustSendETH();
+      if (tokenType != TokenType.ERC20) revert ETHMustUseERC20Type();
       actualAmount = msg.value;
       tokenId = 0;
     } else if (tokenType == TokenType.ERC20) {
-      require(amount > 0, "Amount must be > 0");
-      require(msg.value == 0, "No ETH for ERC20");
+      if (amount == 0) revert AmountMustBeGreaterThanZero();
+      if (msg.value != 0) revert NoETHForERC20();
       actualAmount = amount;
       tokenId = 0;
       IERC20(token).safeTransferFrom(owner, address(this), amount);
     } else {
-      require(amount > 0, "Amount must be > 0");
-      require(msg.value == 0, "No ETH for ERC1155");
+      if (amount == 0) revert AmountMustBeGreaterThanZero();
+      if (msg.value != 0) revert NoETHForERC1155();
       actualAmount = amount;
       IERC1155(token).safeTransferFrom(owner, address(this), tokenId, amount, "");
     }
@@ -163,11 +183,11 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    */
   function reclaimFunds(uint256 noteId) external nonReentrant {
     Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
+    if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
     address caller = _msgSender();
     bytes32 expectedHash = _computeChainHash(caller, bytes32(0));
-    require(note.chainHash == expectedHash, "Not a root note or not the owner");
+    if (note.chainHash != expectedHash) revert NotRootNoteOrNotOwner();
 
     address token = note.token;
     uint256 amount = note.amount;
@@ -179,7 +199,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     if (tokenType == TokenType.ERC20) {
       if (token == address(0)) {
         (bool success, ) = payable(caller).call{value: amount}("");
-        require(success, "ETH transfer failed");
+        if (!success) revert ETHTransferFailed();
       } else {
         IERC20(token).safeTransfer(caller, amount);
       }
@@ -207,17 +227,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 amountToDelegate
   ) external returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
     Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
+    if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
     bytes32 expectedHash = _verifyAndComputeChainHash(owners);
-    require(note.chainHash == expectedHash, "Invalid chain");
-    require(owners[0] == _msgSender(), "Not the note owner");
-    require(amountToDelegate > 0 && amountToDelegate <= note.amount, "Invalid delegation amount");
-    require(delegateTo != address(0), "Cannot delegate to zero address");
+    if (note.chainHash != expectedHash) revert InvalidChain();
+    if (owners[0] != _msgSender()) revert NotNoteOwner();
+    if (amountToDelegate == 0 || amountToDelegate > note.amount) revert InvalidDelegationAmount();
+    if (delegateTo == address(0)) revert CannotDelegateToZeroAddress();
 
-    // Check for circular delegation
     for (uint256 i = 0; i < owners.length; i++) {
-      require(owners[i] != delegateTo, "Circular delegation detected");
+      if (owners[i] == delegateTo) revert CircularDelegationDetected();
     }
 
     bytes32 newChainHash = _computeChainHash(delegateTo, note.chainHash);
@@ -263,12 +282,11 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address caller = _msgSender();
 
     Note storage note = notes[noteId];
-    require(note.chainHash != bytes32(0), "Note does not exist");
+    if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
     bytes32 expectedHash = _verifyAndComputeChainHash(owners);
-    require(note.chainHash == expectedHash, "Invalid chain");
+    if (note.chainHash != expectedHash) revert InvalidChain();
 
-    // Find caller in the chain
     bool found = false;
     uint256 callerIndex = 0;
     for (uint256 j = 0; j < owners.length; j++) {
@@ -278,7 +296,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
         break;
       }
     }
-    require(found, "Caller not in chain");
+    if (!found) revert CallerNotInChain();
 
     // Build new chain up to (and including) caller
     // callerIndex=0 means caller is leaf, so new chain length = 1
@@ -313,9 +331,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address[][] memory paymentChains,
     uint256[] memory spentAmounts
   ) {
-    require(noteIds.length > 0, "Notes required");
-    require(noteIds.length == chains.length, "Length mismatch");
-    require(paymentAmount > 0, "Payment must be > 0");
+    if (noteIds.length == 0) revert NoteDoesNotExist();
+    if (noteIds.length != chains.length) revert ArrayLengthMismatch();
+    if (paymentAmount == 0) revert AmountMustBeGreaterThanZero();
 
     address caller = _msgSender();
 
@@ -352,7 +370,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] calldata tokenIds,
     uint256[] calldata counts
   ) external nonReentrant {
-    require(tokenIds.length == counts.length, "Length mismatch");
+    if (tokenIds.length != counts.length) revert ArrayLengthMismatch();
 
     address caller = _msgSender();
 
@@ -409,7 +427,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 saleListingId,
     uint256 tokenCount
   ) external nonReentrant {
-    require(tokenCount > 0, "Count must be > 0");
+    if (tokenCount == 0) revert AmountMustBeGreaterThanZero();
 
     address caller = _msgSender();
 
@@ -465,20 +483,19 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address caller,
     uint256 requiredPayment
   ) private view returns (uint256 totalAvailable) {
-    // Validate all notes and sum available
     for (uint256 i = 0; i < noteIds.length; i++) {
       Note storage note = notes[noteIds[i]];
-      require(note.chainHash != bytes32(0), "Note does not exist");
+      if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
       bytes32 expectedHash = _verifyAndComputeChainHash(chains[i]);
-      require(note.chainHash == expectedHash, "Invalid chain");
-      require(chains[i][0] == caller, "Not the note owner");
-      require(note.token == address(0), "Notes must hold ETH");
+      if (note.chainHash != expectedHash) revert InvalidChain();
+      if (chains[i][0] != caller) revert NotNoteOwner();
+      if (note.token != address(0)) revert ZeroAddress();
 
       totalAvailable += note.amount;
     }
 
-    require(totalAvailable >= requiredPayment, "Insufficient funds in notes");
+    if (totalAvailable < requiredPayment) revert InsufficientBalance();
   }
 
   /**

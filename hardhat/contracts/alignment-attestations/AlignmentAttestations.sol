@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-// AI-generated from specs/README.md
-// AlignmentAttestations contract: Links any subject address to statements/causes
-// Generalized from ProjectAlignment to support any subject (projects, users, etc.)
-
 /**
  * @title AlignmentAttestations
  * @notice Allows attesters to declare that a subject (project, user, etc.) is aligned with a statement/cause
@@ -17,6 +13,12 @@ pragma solidity 0.8.33;
  *      This enables the no-need-to-coordinate benefit: different topics can be linked via implication attestations.
  */
 contract AlignmentAttestations {
+
+    error InvalidSubjectAddress();
+    error InvalidStatementId();
+    error InvalidTopicStatementId();
+    error ArrayLengthMismatch();
+
     /**
      * @notice Emitted when an attester declares that a subject is aligned with a statement
      * @param attester The address making the attestation
@@ -46,18 +48,9 @@ contract AlignmentAttestations {
     function attestAlignment(address subjectAddress, bytes32 statementId, bytes32 topicStatementId)
         external
     {
-        require(
-            subjectAddress != address(0),
-            "Invalid subject address"
-        );
-        require(
-            statementId != bytes32(0),
-            "Invalid statement ID"
-        );
-        require(
-            topicStatementId != bytes32(0),
-            "Invalid topic statement ID"
-        );
+        if (subjectAddress == address(0)) revert InvalidSubjectAddress();
+        if (statementId == bytes32(0)) revert InvalidStatementId();
+        if (topicStatementId == bytes32(0)) revert InvalidTopicStatementId();
 
         attestations[msg.sender][subjectAddress][statementId] = true;
 
@@ -75,29 +68,17 @@ contract AlignmentAttestations {
         bytes32[] calldata statementIds,
         bytes32[] calldata topicStatementIds
     ) external {
-        require(
-            subjectAddresses.length == statementIds.length &&
-            statementIds.length == topicStatementIds.length,
-            "Arrays must have same length"
-        );
+        if (subjectAddresses.length != statementIds.length ||
+            statementIds.length != topicStatementIds.length) revert ArrayLengthMismatch();
 
         for (uint256 i = 0; i < subjectAddresses.length; i++) {
             address subjectAddress = subjectAddresses[i];
             bytes32 statementId = statementIds[i];
             bytes32 topicStatementId = topicStatementIds[i];
 
-            require(
-                subjectAddress != address(0),
-                "Invalid subject address"
-            );
-            require(
-                statementId != bytes32(0),
-                "Invalid statement ID"
-            );
-            require(
-                topicStatementId != bytes32(0),
-                "Invalid topic statement ID"
-            );
+            if (subjectAddress == address(0)) revert InvalidSubjectAddress();
+            if (statementId == bytes32(0)) revert InvalidStatementId();
+            if (topicStatementId == bytes32(0)) revert InvalidTopicStatementId();
 
             attestations[msg.sender][subjectAddress][statementId] = true;
 
