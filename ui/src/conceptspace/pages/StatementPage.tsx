@@ -3,7 +3,7 @@ import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  createGraphQLExecutor,
+  createSDKMachinery,
   getStatementWithContent,
   getUserBelief,
   type Statement,
@@ -40,11 +40,11 @@ export function StatementPage() {
       setError(null)
       setContentError(null)
 
-      const executor = createGraphQLExecutor(GRAPHQL_URL)
+      const machinery = createSDKMachinery(GRAPHQL_URL)
 
       // Load statement with content and metrics using the new SDK function
       // IPFS gateway is configured via VITE_IPFS_GATEWAY env var
-      const result = await getStatementWithContent(executor, statementId, {
+      const result = await getStatementWithContent(machinery, statementId, {
         includeMetrics: true,
       })
 
@@ -69,7 +69,7 @@ export function StatementPage() {
 
       // Load user belief if connected
       if (address) {
-        const belief = await getUserBelief(executor, address, statementId)
+        const belief = await getUserBelief(machinery, address, statementId)
         setUserBeliefState(belief?.beliefState ?? 0)
       }
 

@@ -21,7 +21,6 @@ import {
   type TestClients,
   type ImplicationsContract,
 } from '@commonality/sdk';
-import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
   runActionAndCheckProperties,
   type ActionContext,

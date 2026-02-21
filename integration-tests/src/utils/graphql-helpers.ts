@@ -1,8 +1,5 @@
 /**
  * GraphQL query helpers for integration tests
- *
- * These helpers provide TypeScript types and query strings for common GraphQL operations.
- * Tests use executeQuery() directly with these helpers instead of wrapper functions.
  */
 
 import { executeSDKQuery } from '@commonality/sdk';

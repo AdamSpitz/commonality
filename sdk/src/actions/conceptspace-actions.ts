@@ -6,6 +6,7 @@ import { type Address, type Hash } from 'viem';
 import { type TestClients } from './common.js';
 import { type DisplayableDocument, publishDocument } from '../displayable-document.js';
 import { cidToBytes32 } from '../cid-types.js';
+import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -208,8 +209,8 @@ export interface CreateAndSignStatementOptions {
   onListUpdated?: (txHash: Hash) => void;
   /** Whether to add the statement to the user's created-statements list (default: true) */
   addToCreatedList?: boolean;
-  /** GraphQL client for querying the indexer (required if addToCreatedList is true) */
-  graphqlClient?: any;
+  /** SDK machinery for querying the indexer (required if addToCreatedList is true) */
+  machinery?: SDKMachinery;
 }
 
 export interface CreateAndSignStatementResult {
@@ -291,15 +292,15 @@ export async function createAndSignStatement(
     onSigned,
     onListUpdated,
     addToCreatedList = true,
-    graphqlClient,
+    machinery,
   } = options;
 
   // Validate inputs
   if (addToCreatedList && !contracts.mutableRefUpdater) {
     throw new Error('mutableRefUpdater contract is required when addToCreatedList is true');
   }
-  if (addToCreatedList && !graphqlClient) {
-    throw new Error('graphqlClient is required when addToCreatedList is true');
+  if (addToCreatedList && !machinery) {
+    throw new Error('machinery is required when addToCreatedList is true');
   }
 
   let cid: string;
@@ -335,7 +336,7 @@ export async function createAndSignStatement(
     try {
       const { addToCreatedStatements } = await import('../actions/mutable-refs-actions.js');
       updateListTxHash = await addToCreatedStatements(
-        graphqlClient,
+        machinery,
         clients,
         contracts.mutableRefUpdater,
         cid

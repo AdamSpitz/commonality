@@ -8,7 +8,6 @@
  * Simple wrapper functions have been removed. Tests should use the graphql-helpers module.
  */
 
-import { executeQuery, type GraphQLExecutor } from '../graphql-server/index.js';
 import type { DisplayableDocument } from '../displayable-document.js';
 import {
   Statement,
@@ -16,6 +15,7 @@ import {
   StatementListItem,
   IndirectSupporter,
 } from '../shared/types/conceptspace.js';
+import { SDKMachinery, executeSDKQuery } from '../machinery.js';
 
 // ============================================================================
 // Type Definitions
@@ -72,11 +72,11 @@ export interface StatementSuggestion {
 // ============================================================================
 
 async function getStatement(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   statementId: string
 ): Promise<Statement | null> {
-  const result = await executeQuery<{ statement: Statement | null }>(
-    executor,
+  const result = await executeSDKQuery<{ statement: Statement | null }>(
+    machinery,
     `
       query GetStatement($id: ID!) {
         statement(id: $id) {
@@ -98,12 +98,12 @@ async function getStatement(
 }
 
 async function getImplicationsFrom(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const result = await executeQuery<{ implicationsFrom: Implication[] }>(
-    executor,
+  const result = await executeSDKQuery<{ implicationsFrom: Implication[] }>(
+    machinery,
     `
       query GetImplicationsFrom($statementId: ID!, $attesterAddress: Address) {
         implicationsFrom(statementId: $statementId, attesterAddress: $attesterAddress) {
@@ -130,12 +130,12 @@ async function getImplicationsFrom(
  * Get a user's belief state for a specific statement.
  */
 export async function getUserBelief(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   userAddress: string,
   statementId: string
 ): Promise<UserBelief | null> {
-  const result = await executeQuery<{ userBelief: UserBelief | null }>(
-    executor,
+  const result = await executeSDKQuery<{ userBelief: UserBelief | null }>(
+    machinery,
     `
       query GetUserBelief($userAddress: Address!, $statementId: ID!) {
         userBelief(userAddress: $userAddress, statementId: $statementId) {
@@ -154,11 +154,11 @@ export async function getUserBelief(
  * Get all statements a user believes (beliefState === 1).
  */
 export async function getUserBeliefs(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await executeQuery<{ userBeliefs: StatementListItem[] }>(
-    executor,
+  const result = await executeSDKQuery<{ userBeliefs: StatementListItem[] }>(
+    machinery,
     `
       query GetUserBeliefs($userAddress: Address!) {
         userBeliefs(userAddress: $userAddress) {
@@ -183,11 +183,11 @@ export async function getUserBeliefs(
  * Get all statements a user disbelieves (beliefState === 2).
  */
 export async function getUserDisbeliefs(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await executeQuery<{ userDisbeliefs: StatementListItem[] }>(
-    executor,
+  const result = await executeSDKQuery<{ userDisbeliefs: StatementListItem[] }>(
+    machinery,
     `
       query GetUserDisbeliefs($userAddress: Address!) {
         userDisbeliefs(userAddress: $userAddress) {
@@ -217,12 +217,12 @@ export async function getUserDisbeliefs(
  * This is more efficient than fetching the full list when you only need the count.
  */
 export async function getIndirectSupporterCount(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   statementId: string,
   attesterAddress?: string
 ): Promise<number> {
-  const result = await executeQuery<{ indirectSupporterCount: number }>(
-    executor,
+  const result = await executeSDKQuery<{ indirectSupporterCount: number }>(
+    machinery,
     `
       query GetIndirectSupporterCount($statementId: ID!, $attesterAddress: Address) {
         indirectSupporterCount(statementId: $statementId, attesterAddress: $attesterAddress)
@@ -239,7 +239,7 @@ export async function getIndirectSupporterCount(
  * This is a complex function that combines GraphQL queries with IPFS fetching.
  */
 export async function getStatementWithContent(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   statementId: string,
   options: GetStatementWithContentOptions = {}
 ): Promise<StatementWithContent | null> {
@@ -250,7 +250,7 @@ export async function getStatementWithContent(
   } = options;
 
   // Fetch statement metadata
-  const statement = await getStatement(executor, statementId);
+  const statement = await getStatement(machinery, statementId);
   if (!statement) {
     return null;
   }
@@ -267,7 +267,7 @@ export async function getStatementWithContent(
   let metrics: StatementWithContent['metrics'] | undefined;
   if (includeMetrics) {
     const indirectSupporters = await getIndirectSupporterCount(
-      executor,
+      machinery,
       statementId,
       attesterAddress
     );
@@ -302,12 +302,12 @@ export async function getStatementWithContent(
  * If they directly believe or disbelieve a statement, it's not considered indirect support.
  */
 export async function getUserIndirectSupport(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   userAddress: string,
   options: GetUserIndirectSupportOptions = {}
 ): Promise<IndirectSupportInfo[]> {
   // Step 1: Get all statements the user directly believes
-  const userBeliefs = await getUserBeliefs(executor, userAddress);
+  const userBeliefs = await getUserBeliefs(machinery, userAddress);
 
   if (userBeliefs.length === 0) {
     return [];
@@ -316,7 +316,7 @@ export async function getUserIndirectSupport(
   // Step 2: For each belief, get implications FROM that statement
   // This tells us what statements are implied by the user's beliefs
   const implicationsQueries = userBeliefs.map(belief =>
-    getImplicationsFrom(executor, belief.id, options.trustedAttesters?.[0])
+    getImplicationsFrom(machinery, belief.id, options.trustedAttesters?.[0])
   );
 
   const implicationsResults = await Promise.all(implicationsQueries);
@@ -348,7 +348,7 @@ export async function getUserIndirectSupport(
   // (indirect support only applies to statements with no direct opinion)
   const targetIds = Array.from(allTargetIds);
   const beliefChecks = targetIds.map(targetId =>
-    getUserBelief(executor, userAddress, targetId)
+    getUserBelief(machinery, userAddress, targetId)
   );
 
   const beliefStates = await Promise.all(beliefChecks);
@@ -366,7 +366,7 @@ export async function getUserIndirectSupport(
   }
 
   // Step 6: Fetch full statement data for indirectly supported statements
-  const statementQueries = indirectlySupportedIds.map(id => getStatement(executor, id));
+  const statementQueries = indirectlySupportedIds.map(id => getStatement(machinery, id));
   const statements = await Promise.all(statementQueries);
 
   // Step 7: Build the result with information about how each statement is supported
@@ -402,12 +402,12 @@ export async function getUserIndirectSupport(
  * Returns statements that are related via implications and have more supporters.
  */
 export async function getStatementSuggestions(
-  executor: GraphQLExecutor,
+  machinery: SDKMachinery,
   statementId: string,
   attesterAddress?: string
 ): Promise<StatementSuggestion[]> {
-  const result = await executeQuery<{ statementSuggestions: StatementSuggestion[] }>(
-    executor,
+  const result = await executeSDKQuery<{ statementSuggestions: StatementSuggestion[] }>(
+    machinery,
     `
       query GetStatementSuggestions($statementId: ID!, $attesterAddress: Address) {
         statementSuggestions(statementId: $statementId, attesterAddress: $attesterAddress) {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Box, Typography, Card, CardContent, CardActionArea, Chip, Alert, CircularProgress } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import {
-  createGraphQLExecutor,
+  createSDKMachinery,
   getStatementSuggestions,
   type StatementSuggestion,
 } from '@commonality/sdk'
@@ -26,8 +26,8 @@ export function StatementSuggestions({ statementId, userAddress }: StatementSugg
         setLoading(true)
         setError(null)
 
-        const executor = createGraphQLExecutor(GRAPHQL_URL)
-        const data = await getStatementSuggestions(executor, statementId, userAddress)
+        const machinery = createSDKMachinery(GRAPHQL_URL)
+        const data = await getStatementSuggestions(machinery, statementId, userAddress)
         setSuggestions(data)
       } catch (err) {
         console.error('Error loading statement suggestions:', err)

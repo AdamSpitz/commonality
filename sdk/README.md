@@ -32,21 +32,21 @@ This gives us a typed, maintainable API surface that's decoupled from indexer im
 ## Usage
 
 ```typescript
-import { createGraphQLExecutor, createTestClients } from '@commonality/sdk';
+import { createSDKMachinery, createTestClients } from '@commonality/sdk';
 import { getStatement, believeStatement, waitForIndexerToSyncToTxHash } from '@commonality/sdk';
 
-// Set up executor and clients
-const executor = createGraphQLExecutor('http://localhost:42069/graphql');
+// Set up machinery and clients
+const machinery = createSDKMachinery('http://localhost:42069/graphql');
 const clients = createTestClients(privateKey, rpcUrl);
 
 // Perform actions
 const txHash = await believeStatement(clients, beliefsContract, statementCid);
 
 // Wait for indexer to process this transaction
-await waitForIndexerToSyncToTxHash(executor, clients.publicClient, txHash);
+await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, txHash);
 
 // Query data (now includes the latest changes)
-const statement = await getStatement(executor, statementId);
+const statement = await getStatement(machinery, statementId);
 ```
 
 ### Indexer Synchronization

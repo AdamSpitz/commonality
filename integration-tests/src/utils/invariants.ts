@@ -9,7 +9,7 @@
 
 import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
-import { getIndirectSupporterCount } from '@commonality/sdk';
+import { getIndirectSupporterCount, SDKMachinery } from '@commonality/sdk';
 import { getIndirectSupporters } from './graphql-helpers.js';
 
 
@@ -32,16 +32,12 @@ export interface GraphQLExecutor {
  * Supports both GraphQLClient and GraphQLExecutor types
  */
 async function query<T = any>(
-  clientOrExecutor: GraphQLClient | GraphQLExecutor,
+  machinery: SDKMachinery,
   queryString: string,
   variables?: Record<string, any>
 ): Promise<T> {
   // Extract the actual client from either type
-  const client = 'indexerClient' in clientOrExecutor
-    ? clientOrExecutor.indexerClient
-    : clientOrExecutor;
-
-  const response = await fetch(client.url, {
+  const response = await fetch(machinery.graphqlClient.url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -487,7 +483,7 @@ export async function assertIndirectSupporterCountConsistency(
   attesterAddress?: string
 ): Promise<void> {
   // Method 1: Get the count using the dedicated count query
-  const count = await getIndirectSupporterCount(machinery.graphqlExecutor, statementId, attesterAddress);
+  const count = await getIndirectSupporterCount(machinery, statementId, attesterAddress);
 
   // Method 2: Get the full list of supporters and count them
   const supporters = await getIndirectSupporters(machinery, statementId, attesterAddress);
@@ -543,7 +539,6 @@ export async function assertNoOrphanedData(
 async function checkOrphanedBeliefs(
   machinery: ActionTestingMachinery
 ): Promise<void> {
-  const { graphqlExecutor } = machinery;
   // Get all beliefs with a non-zero belief state (active beliefs/disbeliefs)
   const beliefsResult = await query<{
     beliefss: {
@@ -554,7 +549,7 @@ async function checkOrphanedBeliefs(
       }>
     }
   }>(
-    graphqlExecutor,
+    machinery,
     `
       query GetAllBeliefs {
         beliefss(where: { beliefState_not: 0 }) {
@@ -585,7 +580,7 @@ async function checkOrphanedBeliefs(
       const statementResult = await query<{
         statements: { id: string } | null
       }>(
-        graphqlExecutor,
+        machinery,
         `
           query GetStatement($id: String!) {
             statements(id: $id) {
@@ -612,7 +607,7 @@ async function checkOrphanedBeliefs(
       const userResult = await query<{
         users: { id: string } | null
       }>(
-        graphqlExecutor,
+        machinery,
         `
           query GetUser($id: String!) {
             users(id: $id) {
@@ -652,7 +647,7 @@ async function checkOrphanedImplications(
       }>
     }
   }>(
-    machinery.graphqlExecutor,
+    machinery,
     `
       query GetAllImplications {
         implicationss {
@@ -684,7 +679,7 @@ async function checkOrphanedImplications(
       const statementResult = await query<{
         statements: { id: string } | null
       }>(
-        machinery.graphqlExecutor,
+        machinery,
         `
           query GetStatement($id: String!) {
             statements(id: $id) {
@@ -711,7 +706,7 @@ async function checkOrphanedImplications(
       const statementResult = await query<{
         statements: { id: string } | null
       }>(
-        machinery.graphqlExecutor,
+        machinery,
         `
           query GetStatement($id: String!) {
             statements(id: $id) {
@@ -738,7 +733,7 @@ async function checkOrphanedImplications(
       const attesterResult = await query<{
         attesters: { id: string } | null
       }>(
-        machinery.graphqlExecutor,
+        machinery,
         `
           query GetAttester($id: String!) {
             attesters(id: $id) {
@@ -1003,7 +998,7 @@ export async function assertAggregatedCountConsistency(
 ): Promise<void> {
   // Execute the count query
   const countResult = await query<any>(
-    machinery.graphqlExecutor,
+    machinery,
     countQuery,
     countQueryVariables
   );
@@ -1019,7 +1014,7 @@ export async function assertAggregatedCountConsistency(
 
   // Execute the records query
   const recordsResult = await query<any>(
-    machinery.graphqlExecutor,
+    machinery,
     recordsQuery,
     recordsQueryVariables
   );

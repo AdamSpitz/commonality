@@ -6,6 +6,7 @@ import { type Address, type Hash } from 'viem';
 import { type TestClients, uploadToIPFS } from './common.js';
 import { getUserRef } from '../indexer-queries/mutable-refs-queries.js';
 import { type GraphQLClient } from '../utils/graphqlClient.js';
+import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================
 // Mutable Refs Actions
@@ -152,7 +153,7 @@ export async function getRef(
  * ```
  */
 export async function appendToUserList(
-  graphqlClient: GraphQLClient | { indexerClient: GraphQLClient },
+  machinery: SDKMachinery,
   clients: TestClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
   listName: string,
@@ -161,11 +162,8 @@ export async function appendToUserList(
 ): Promise<Hash> {
   const deduplicate = options?.deduplicate ?? true;
 
-  // Support both old GraphQLClient and new GraphQLExecutor
-  const actualClient = 'indexerClient' in graphqlClient ? graphqlClient.indexerClient : graphqlClient;
-
   // Fetch existing list from indexer
-  const existingRef = await getUserRef(actualClient, clients.account, listName);
+  const existingRef = await getUserRef(machinery.graphqlClient, clients.account, listName);
 
   let newList: string[];
 
@@ -237,13 +235,13 @@ export async function appendToUserList(
  * ```
  */
 export async function addToCreatedStatements(
-  graphqlClient: GraphQLClient | { indexerClient: GraphQLClient },
+  machinery: SDKMachinery,
   clients: TestClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
   statementCid: string
 ): Promise<Hash> {
   return await appendToUserList(
-    graphqlClient,
+    machinery,
     clients,
     mutableRefUpdaterContract,
     'created-statements',

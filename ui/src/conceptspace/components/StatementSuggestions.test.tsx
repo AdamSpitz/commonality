@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { StatementSuggestions } from './StatementSuggestions'
@@ -126,6 +127,7 @@ describe('StatementSuggestions', () => {
           disbelieverCount: 5,
           cid: 'QmTest1',
           statementType: 'conceptspace',
+          createdAt: '2024-01-01T00:00:00Z',
         },
         relationshipType: 'implies',
         reason: 'Because both statements share common concepts',
@@ -134,11 +136,12 @@ describe('StatementSuggestions', () => {
         statement: {
           id: 'stmt789',
           title: 'Related Statement 2',
-          excerpt: null,
+          excerpt: '',
           believerCount: 15,
           disbelieverCount: 2,
           cid: 'QmTest2',
           statementType: 'conceptspace',
+          createdAt: '2024-01-01T00:00:00Z',
         },
         relationshipType: 'implied-by',
         reason: 'This statement implies the main statement',
@@ -196,12 +199,13 @@ describe('StatementSuggestions', () => {
         {
           statement: {
             id: 'stmt999',
-            title: null,
+            title: '',
             excerpt: 'An excerpt',
             believerCount: 10,
             disbelieverCount: 1,
             cid: 'QmTest3',
             statementType: 'conceptspace',
+            createdAt: '2024-01-01T00:00:00Z',
           },
           relationshipType: 'implies',
           reason: 'Test reason',
@@ -417,12 +421,12 @@ describe('StatementSuggestions', () => {
           statement: {
             id: 'stmt456',
             title: 'Test Statement',
-            excerpt: null,
+            excerpt: '',
             believerCount: 10,
             disbelieverCount: 1,
             cid: 'QmTest',
             statementType: 'conceptspace',
-          },
+            createdAt: '2024-01-01T00:00:00Z',          },
           relationshipType: 'implies',
           reason: 'Test reason',
         },

@@ -12,12 +12,12 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   createAndSignStatement,
   createStatement,
-  createGraphQLExecutor,
   BeliefsAbi,
   MutableRefUpdaterAbi,
   type BeliefsContract,
   type MutableRefUpdaterContract,
   type TestClients,
+  createSDKMachinery,
 } from '@commonality/sdk'
 
 interface CreateStatementFormProps {
@@ -83,7 +83,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
         account: address,
       }
 
-      const graphqlExecutor = createGraphQLExecutor(GRAPHQL_URL)
+      const machinery = createSDKMachinery(GRAPHQL_URL);
 
       // Use the new high-level workflow function
       const result = await createAndSignStatement(
@@ -94,7 +94,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
         },
         statementData,
         {
-          graphqlExecutor,
+          machinery,
           addToCreatedList: true,
           onIPFSUpload: (cid) => {
             console.log('Statement uploaded to IPFS:', cid)

@@ -267,7 +267,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         },
         statementData,
         {
-          graphqlClient: machinery.graphqlClient,
+          machinery,
           addToCreatedList: true, // This requires mutableRefUpdater
         }
       );

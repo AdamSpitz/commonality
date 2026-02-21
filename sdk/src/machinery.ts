@@ -1,4 +1,4 @@
-import { createGraphQLClient, createGraphQLExecutor, GraphQLClient, GraphQLExecutor } from "./graphql-server";
+import { createGraphQLClient, createGraphQLExecutor, executeQuery, GraphQLClient, GraphQLExecutor } from "./graphql-server";
 
 export type SDKMachinery = {
   graphqlClient: GraphQLClient;
@@ -13,4 +13,12 @@ export function createSDKMachinery(indexerUrl?: string): SDKMachinery {
     graphqlClient,
     graphqlExecutor,
   };
+}
+
+export async function executeSDKQuery<T = any>(
+  machinery: SDKMachinery,
+  queryString: string,
+  variables?: Record<string, any>
+): Promise<T> {
+  return executeQuery(machinery.graphqlExecutor, queryString, variables);
 }

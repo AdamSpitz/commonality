@@ -21,7 +21,6 @@ import {
   type TestClients,
   type MutableRefUpdaterContract,
 } from '@commonality/sdk';
-import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
   ActionTestingMachinery,
   runActionAndCheckProperties,
@@ -147,7 +146,7 @@ export async function appendToUserListChecked(
 
   return await runActionAndCheckProperties(
     async () => {
-      const hash = await appendToUserList(machinery.graphqlClient, clients, mutableRefContract, refName, itemToAppend);
+      const hash = await appendToUserList(machinery, clients, mutableRefContract, refName, itemToAppend);
       await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
       return hash;
     },

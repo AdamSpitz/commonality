@@ -25,7 +25,6 @@ import {
   type DisplayableDocument,
   type CreateAndSignStatementOptions,
 } from '@commonality/sdk';
-import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
   ActionTestingMachinery,
   type ActionContext,
@@ -97,7 +96,7 @@ export async function createAndSignStatementChecked(
     statementData,
     {
       ...workflowOptions,
-      graphqlClient: machinery.graphqlClient,
+      machinery,
     }
   );
 

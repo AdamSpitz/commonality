@@ -16,7 +16,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  createGraphQLExecutor,
+  createSDKMachinery,
   getUserBeliefs,
   getUserDisbeliefs,
   getUserIndirectSupport,
@@ -77,13 +77,13 @@ export function UserProfilePage() {
       setLoading(true)
       setError(null)
 
-      const executor = createGraphQLExecutor(GRAPHQL_URL)
+      const machinery = createSDKMachinery(GRAPHQL_URL)
 
       // Load user's beliefs, disbeliefs, and indirect support in parallel
       const [userBeliefs, userDisbeliefs, userIndirectSupport] = await Promise.all([
-        getUserBeliefs(executor, displayAddress),
-        getUserDisbeliefs(executor, displayAddress),
-        getUserIndirectSupport(executor, displayAddress),
+        getUserBeliefs(machinery, displayAddress),
+        getUserDisbeliefs(machinery, displayAddress),
+        getUserIndirectSupport(machinery, displayAddress),
       ])
 
       setBeliefs(userBeliefs)

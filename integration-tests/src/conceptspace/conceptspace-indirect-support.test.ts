@@ -101,7 +101,7 @@ describe('Conceptspace Indirect Support', () => {
     assert.strictEqual(specificStmt.believerCount, 2, 'Specific statement should have 2 direct believers');
 
     // General statement should have 0 indirect supporters initially (no implication yet)
-    let indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, generalId);
+    let indirectCount = await getIndirectSupporterCount(machinery, generalId);
     assert.strictEqual(indirectCount, 0, 'General statement should have 0 indirect supporters initially');
 
     testLog('  ✓ Direct support verified, no indirect support yet');
@@ -119,7 +119,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Now general statement should have 2 indirect supporters
-    indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, generalId);
+    indirectCount = await getIndirectSupporterCount(machinery, generalId);
     assert.strictEqual(
       indirectCount,
       2,
@@ -273,7 +273,7 @@ describe('Conceptspace Indirect Support', () => {
 
     // Get indirect supporters - should only include User2, not User1
     const indirectSupporters = await getIndirectSupporters(machinery, generalId);
-    const indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, generalId);
+    const indirectCount = await getIndirectSupporterCount(machinery, generalId);
 
     assert.strictEqual(
       indirectCount,
@@ -359,7 +359,7 @@ describe('Conceptspace Indirect Support', () => {
 
     // Get indirect supporters
     const indirectSupporters = await getIndirectSupporters(machinery, sGeneralId);
-    const indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, sGeneralId);
+    const indirectCount = await getIndirectSupporterCount(machinery, sGeneralId);
 
     assert.strictEqual(indirectCount, 3, 'Should have 3 indirect supporters');
     assert.strictEqual(indirectSupporters.length, 3, 'Supporters list should have 3 entries');
@@ -423,7 +423,7 @@ describe('Conceptspace Indirect Support', () => {
 
     // Get indirect supporters - User1 should appear only once despite believing 2 implying statements
     const indirectSupporters = await getIndirectSupporters(machinery, sTargetId);
-    const indirectCount = await getIndirectSupporterCount(machinery.graphqlExecutor, sTargetId);
+    const indirectCount = await getIndirectSupporterCount(machinery, sTargetId);
 
     assert.strictEqual(
       indirectCount,
@@ -515,7 +515,7 @@ describe('Conceptspace Indirect Support', () => {
 
     // Use the new getUserIndirectSupport function
     testLog('  Getting all indirect support for User1 with single function call...');
-    const indirectSupport = await getUserIndirectSupport(machinery.graphqlExecutor, user1Clients.account);
+    const indirectSupport = await getUserIndirectSupport(machinery, user1Clients.account);
 
     // Verify results
     assert.strictEqual(
@@ -610,7 +610,7 @@ describe('Conceptspace Indirect Support', () => {
 
     // Use getUserIndirectSupport
     testLog('  Getting indirect support for User1...');
-    const indirectSupport = await getUserIndirectSupport(machinery.graphqlExecutor, user1Clients.account);
+    const indirectSupport = await getUserIndirectSupport(machinery, user1Clients.account);
 
     // Should only include target2, not target1 (which is explicitly disbelieved)
     assert.strictEqual(

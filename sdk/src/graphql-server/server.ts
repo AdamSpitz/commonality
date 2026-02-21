@@ -105,11 +105,3 @@ export async function executeQuery<T = any>(
 
   return result.data as T;
 }
-
-export async function executeSDKQuery<T = any>(
-  machinery: SDKMachinery,
-  queryString: string,
-  variables?: Record<string, any>
-): Promise<T> {
-  return executeQuery(machinery.graphqlExecutor, queryString, variables);
-}

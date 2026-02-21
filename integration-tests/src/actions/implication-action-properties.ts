@@ -255,7 +255,7 @@ async function captureIndirectSupportState(context: ActionContext): Promise<Indi
     throw new Error('toStatementId is required in context.entities');
   }
 
-  const indirectSupporterCount = await getIndirectSupporterCount(machinery.graphqlExecutor, toStatementId);
+  const indirectSupporterCount = await getIndirectSupporterCount(machinery, toStatementId);
   const indirectSupporters = await getIndirectSupporters(machinery, toStatementId);
   const indirectSupporterAddresses = indirectSupporters.map(s => s.user.toLowerCase());
 
