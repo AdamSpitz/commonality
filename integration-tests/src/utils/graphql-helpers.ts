@@ -5,8 +5,12 @@
  * Tests use executeQuery() directly with these helpers instead of wrapper functions.
  */
 
-import { executeQuery, type GraphQLExecutor } from '@commonality/sdk';
+import { executeSDKQuery } from '@commonality/sdk';
 import { ActionTestingMachinery } from '../actions/action-machinery';
+
+
+
+
 
 // ============================================================================
 // Types (matching the GraphQL schema)
@@ -118,8 +122,8 @@ export async function getStatement(
   machinery: ActionTestingMachinery,
   statementId: string
 ): Promise<Statement | null> {
-  const result = await executeQuery<{ statement: Statement | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ statement: Statement | null }>(
+    machinery,
     QUERY_GET_STATEMENT,
     { id: statementId }
   );
@@ -134,8 +138,8 @@ export async function getUserBelief(
   userAddress: string,
   statementId: string
 ): Promise<UserBelief | null> {
-  const result = await executeQuery<{ userBelief: UserBelief | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ userBelief: UserBelief | null }>(
+    machinery,
     QUERY_GET_USER_BELIEF,
     { userAddress, statementId }
   );
@@ -150,8 +154,8 @@ export async function getImplicationsFrom(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const result = await executeQuery<{ implicationsFrom: Implication[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ implicationsFrom: Implication[] }>(
+    machinery,
     QUERY_GET_IMPLICATIONS_FROM,
     { statementId, attesterAddress }
   );
@@ -166,8 +170,8 @@ export async function getImplicationsTo(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const result = await executeQuery<{ implicationsTo: Implication[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ implicationsTo: Implication[] }>(
+    machinery,
     QUERY_GET_IMPLICATIONS_TO,
     { statementId, attesterAddress }
   );
@@ -182,8 +186,8 @@ export async function getIndirectSupporters(
   statementId: string,
   attesterAddress?: string
 ): Promise<IndirectSupporter[]> {
-  const result = await executeQuery<{ indirectSupporters: IndirectSupporter[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ indirectSupporters: IndirectSupporter[] }>(
+    machinery,
     QUERY_GET_INDIRECT_SUPPORTERS,
     { statementId, attesterAddress }
   );
@@ -264,8 +268,8 @@ export async function browseStatementsByMostSupporters(
   machinery: ActionTestingMachinery,
   options?: { limit?: number; offset?: number; orderDirection?: string }
 ): Promise<any[]> {
-  const result = await executeQuery<{ browseStatementsByMostSupporters: any[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ browseStatementsByMostSupporters: any[] }>(
+    machinery,
     `
       query BrowseStatementsByMostSupporters($options: BrowseStatementsOptions) {
         browseStatementsByMostSupporters(options: $options) {
@@ -292,8 +296,8 @@ export async function browseStatementsByNewest(
   machinery: ActionTestingMachinery,
   options?: { limit?: number; offset?: number; orderDirection?: string }
 ): Promise<any[]> {
-  const result = await executeQuery<{ browseStatementsByNewest: any[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ browseStatementsByNewest: any[] }>(
+    machinery,
     `
       query BrowseStatementsByNewest($options: BrowseStatementsOptions) {
         browseStatementsByNewest(options: $options) {
@@ -320,8 +324,8 @@ export async function getAllStatements(
   machinery: ActionTestingMachinery,
   options?: { limit?: number; offset?: number }
 ): Promise<any[]> {
-  const result = await executeQuery<{ allStatements: any[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ allStatements: any[] }>(
+    machinery,
     `
       query GetAllStatements($options: BrowseStatementsOptions) {
         allStatements(options: $options) {
@@ -348,8 +352,8 @@ export async function getUserBeliefs(
   machinery: ActionTestingMachinery,
   userAddress: string
 ): Promise<any[]> {
-  const result = await executeQuery<{ userBeliefs: any[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ userBeliefs: any[] }>(
+    machinery,
     `
       query GetUserBeliefs($userAddress: Address!) {
         userBeliefs(userAddress: $userAddress) {
@@ -376,8 +380,8 @@ export async function getUserDisbeliefs(
   machinery: ActionTestingMachinery,
   userAddress: string
 ): Promise<any[]> {
-  const result = await executeQuery<{ userDisbeliefs: any[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ userDisbeliefs: any[] }>(
+    machinery,
     `
       query GetUserDisbeliefs($userAddress: Address!) {
         userDisbeliefs(userAddress: $userAddress) {
@@ -447,8 +451,8 @@ export async function getProject(
   machinery: ActionTestingMachinery,
   id: string
 ): Promise<Project | null> {
-  const result = await executeQuery<{ project: Project | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ project: Project | null }>(
+    machinery,
     `
       query GetProject($id: ID!) {
         project(id: $id) {
@@ -475,8 +479,8 @@ export async function getAllProjects(
   machinery: ActionTestingMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<Project[]> {
-  const result = await executeQuery<{ allProjects: Project[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ allProjects: Project[] }>(
+    machinery,
     `
       query GetAllProjects($options: BrowseStatementsOptions) {
         allProjects(options: $options) {
@@ -503,8 +507,8 @@ export async function getProjectTokens(
   machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<ProjectToken[]> {
-  const result = await executeQuery<{ projectTokens: ProjectToken[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectTokens: ProjectToken[] }>(
+    machinery,
     `
       query GetProjectTokens($projectAddress: Address!) {
         projectTokens(projectAddress: $projectAddress) {
@@ -529,8 +533,8 @@ export async function getProjectContributions(
   machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<Contribution[]> {
-  const result = await executeQuery<{ projectContributions: Contribution[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectContributions: Contribution[] }>(
+    machinery,
     `
       query GetProjectContributions($projectAddress: Address!) {
         projectContributions(projectAddress: $projectAddress) {
@@ -561,8 +565,8 @@ export async function getUserContributions(
   machinery: ActionTestingMachinery,
   userAddress: string
 ): Promise<Contribution[]> {
-  const result = await executeQuery<{ userContributions: Contribution[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ userContributions: Contribution[] }>(
+    machinery,
     `
       query GetUserContributions($userAddress: Address!) {
         userContributions(userAddress: $userAddress) {
@@ -593,8 +597,8 @@ export async function getProjectRefunds(
   machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<Refund[]> {
-  const result = await executeQuery<{ projectRefunds: Refund[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectRefunds: Refund[] }>(
+    machinery,
     `
       query GetProjectRefunds($projectAddress: Address!) {
         projectRefunds(projectAddress: $projectAddress) {
@@ -624,8 +628,8 @@ export async function getSaleListing(
   marketplaceAddress: string,
   listingId: bigint
 ): Promise<SaleListing | null> {
-  const result = await executeQuery<{ saleListing: SaleListing | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ saleListing: SaleListing | null }>(
+    machinery,
     `
       query GetSaleListing($marketplaceAddress: Address!, $listingId: String!) {
         saleListing(marketplaceAddress: $marketplaceAddress, listingId: $listingId) {
@@ -654,8 +658,8 @@ export async function getActiveSaleListings(
   machinery: ActionTestingMachinery,
   marketplaceAddress?: string
 ): Promise<SaleListing[]> {
-  const result = await executeQuery<{ activeSaleListings: SaleListing[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ activeSaleListings: SaleListing[] }>(
+    machinery,
     `
       query GetActiveSaleListings($marketplaceAddress: Address) {
         activeSaleListings(marketplaceAddress: $marketplaceAddress) {
@@ -685,8 +689,8 @@ export async function getBuyOrder(
   marketplaceAddress: string,
   orderId: bigint
 ): Promise<BuyOrder | null> {
-  const result = await executeQuery<{ buyOrder: BuyOrder | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ buyOrder: BuyOrder | null }>(
+    machinery,
     `
       query GetBuyOrder($marketplaceAddress: Address!, $orderId: String!) {
         buyOrder(marketplaceAddress: $marketplaceAddress, orderId: $orderId) {
@@ -715,8 +719,8 @@ export async function getActiveBuyOrders(
   machinery: ActionTestingMachinery,
   marketplaceAddress?: string
 ): Promise<BuyOrder[]> {
-  const result = await executeQuery<{ activeBuyOrders: BuyOrder[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ activeBuyOrders: BuyOrder[] }>(
+    machinery,
     `
       query GetActiveBuyOrders($marketplaceAddress: Address) {
         activeBuyOrders(marketplaceAddress: $marketplaceAddress) {
@@ -745,8 +749,8 @@ export async function getMarketplaceTrades(
   machinery: ActionTestingMachinery,
   marketplaceAddress?: string
 ): Promise<Trade[]> {
-  const result = await executeQuery<{ marketplaceTrades: Trade[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ marketplaceTrades: Trade[] }>(
+    machinery,
     `
       query GetMarketplaceTrades($marketplaceAddress: Address) {
         marketplaceTrades(marketplaceAddress: $marketplaceAddress) {
@@ -779,8 +783,8 @@ export async function getTokenTrades(
   projectAddress: string,
   tokenId: string | bigint
 ): Promise<Trade[]> {
-  const result = await executeQuery<{ tokenTrades: Trade[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ tokenTrades: Trade[] }>(
+    machinery,
     `
       query GetTokenTrades($projectAddress: Address!, $tokenId: String!) {
         tokenTrades(projectAddress: $projectAddress, tokenId: $tokenId) {
@@ -812,8 +816,8 @@ export async function getTokenBurns(
   machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await executeQuery<{ tokenBurns: TokenBurn[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ tokenBurns: TokenBurn[] }>(
+    machinery,
     `
       query GetTokenBurns($projectAddress: Address!) {
         tokenBurns(projectAddress: $projectAddress) {
@@ -840,8 +844,8 @@ export async function getUserTokenBurns(
   machinery: ActionTestingMachinery,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await executeQuery<{ userTokenBurns: TokenBurn[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ userTokenBurns: TokenBurn[] }>(
+    machinery,
     `
       query GetUserTokenBurns($userAddress: Address!) {
         userTokenBurns(userAddress: $userAddress) {
@@ -869,8 +873,8 @@ export async function getTokenBurnsByUser(
   projectAddress: string,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await executeQuery<{ tokenBurnsByUser: TokenBurn[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ tokenBurnsByUser: TokenBurn[] }>(
+    machinery,
     `
       query GetTokenBurnsByUser($projectAddress: Address!, $userAddress: Address!) {
         tokenBurnsByUser(projectAddress: $projectAddress, userAddress: $userAddress) {
@@ -911,8 +915,8 @@ export async function getProjectsFiltered(
       : undefined,
   };
 
-  const result = await executeQuery<{ projectsFiltered: ProjectWithMetrics[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectsFiltered: ProjectWithMetrics[] }>(
+    machinery,
     `
       query GetProjectsFiltered(
         $filterOptions: ProjectFilterOptions!
@@ -968,8 +972,8 @@ export async function getProjectsByDate(
   limit?: number,
   offset?: number
 ): Promise<Project[]> {
-  const result = await executeQuery<{ projectsByDate: Project[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectsByDate: Project[] }>(
+    machinery,
     `
       query GetProjectsByDate(
         $sortDirection: String
@@ -1012,8 +1016,8 @@ export async function getProjectsByDeadline(
   limit?: number,
   offset?: number
 ): Promise<Project[]> {
-  const result = await executeQuery<{ projectsByDeadline: Project[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectsByDeadline: Project[] }>(
+    machinery,
     `
       query GetProjectsByDeadline(
         $sortDirection: String
@@ -1056,8 +1060,8 @@ export async function getProjectsByFundingGoal(
   limit?: number,
   offset?: number
 ): Promise<Project[]> {
-  const result = await executeQuery<{ projectsByFundingGoal: Project[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectsByFundingGoal: Project[] }>(
+    machinery,
     `
       query GetProjectsByFundingGoal(
         $sortDirection: String
@@ -1100,8 +1104,8 @@ export async function getProjectsByFundingProgress(
   limit?: number,
   offset?: number
 ): Promise<ProjectWithFundingProgress[]> {
-  const result = await executeQuery<{ projectsByFundingProgress: Project[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectsByFundingProgress: Project[] }>(
+    machinery,
     `
       query GetProjectsByFundingProgress(
         $sortDirection: String
@@ -1158,8 +1162,8 @@ export async function getProjectsByAmountRaised(
   limit?: number,
   offset?: number
 ): Promise<Project[]> {
-  const result = await executeQuery<{ projectsByAmountRaised: Project[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ projectsByAmountRaised: Project[] }>(
+    machinery,
     `
       query GetProjectsByAmountRaised(
         $sortDirection: String
@@ -1224,8 +1228,8 @@ export async function getNote(
   machinery: ActionTestingMachinery,
   noteId: string
 ): Promise<Note | null> {
-  const result = await executeQuery<{ note: Note | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ note: Note | null }>(
+    machinery,
     `
       query GetNote($id: ID!) {
         note(id: $id) {
@@ -1258,8 +1262,8 @@ export async function getNotesByOwner(
   machinery: ActionTestingMachinery,
   ownerAddress: string
 ): Promise<Note[]> {
-  const result = await executeQuery<{ notesByOwner: Note[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ notesByOwner: Note[] }>(
+    machinery,
     `
       query GetNotesByOwner($ownerAddress: Address!) {
         notesByOwner(ownerAddress: $ownerAddress) {
@@ -1292,8 +1296,8 @@ export async function getNotesByRoot(
   machinery: ActionTestingMachinery,
   rootAddress: string
 ): Promise<Note[]> {
-  const result = await executeQuery<{ notesByRoot: Note[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ notesByRoot: Note[] }>(
+    machinery,
     `
       query GetNotesByRoot($rootAddress: Address!) {
         notesByRoot(rootAddress: $rootAddress) {
@@ -1326,8 +1330,8 @@ export async function getDelegationChain(
   machinery: ActionTestingMachinery,
   noteId: string
 ): Promise<DelegationChainLink[]> {
-  const result = await executeQuery<{ delegationChain: DelegationChainLink[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ delegationChain: DelegationChainLink[] }>(
+    machinery,
     `
       query GetDelegationChain($noteId: ID!) {
         delegationChain(noteId: $noteId) {
@@ -1412,8 +1416,8 @@ export async function getAlignedSubjects(
   statementId: string,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await executeQuery<{ alignedSubjects: AlignmentAttestation[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ alignedSubjects: AlignmentAttestation[] }>(
+    machinery,
     `
       query GetAlignedSubjects($statementId: ID!, $attesterAddress: Address) {
         alignedSubjects(statementId: $statementId, attesterAddress: $attesterAddress) {
@@ -1458,8 +1462,8 @@ export async function getSubjectStatements(
   subjectAddress: string,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await executeQuery<{ subjectStatements: AlignmentAttestation[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ subjectStatements: AlignmentAttestation[] }>(
+    machinery,
     `
       query GetSubjectStatements($subjectAddress: Address!, $attesterAddress: Address) {
         subjectStatements(subjectAddress: $subjectAddress, attesterAddress: $attesterAddress) {
@@ -1505,8 +1509,8 @@ export async function getAlignmentAttestation(
   subjectAddress: string,
   statementId: string
 ): Promise<AlignmentAttestation | null> {
-  const result = await executeQuery<{ alignmentAttestation: AlignmentAttestation | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ alignmentAttestation: AlignmentAttestation | null }>(
+    machinery,
     `
       query GetAlignmentAttestation(
         $attesterAddress: Address!
@@ -1560,8 +1564,8 @@ export async function getAlignmentsByAttester(
   machinery: ActionTestingMachinery,
   attesterAddress: string
 ): Promise<ProjectAlignment[]> {
-  const result = await executeQuery<{ alignmentsByAttester: ProjectAlignment[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ alignmentsByAttester: ProjectAlignment[] }>(
+    machinery,
     `
       query GetAlignmentsByAttester($attesterAddress: Address!) {
         alignmentsByAttester(attesterAddress: $attesterAddress) {
@@ -1588,8 +1592,8 @@ export async function getIndirectlyAlignedProjects(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<IndirectProjectAlignment[]> {
-  const result = await executeQuery<{ indirectlyAlignedSubjects: { subjectAddress: string; directStatementId: string; indirectStatementId: string; attester: string }[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ indirectlyAlignedSubjects: { subjectAddress: string; directStatementId: string; indirectStatementId: string; attester: string }[] }>(
+    machinery,
     `
       query GetIndirectlyAlignedSubjects(
         $statementId: ID!
@@ -1629,8 +1633,8 @@ export async function getTotalFundingForCause(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<CauseFundingMetrics> {
-  const result = await executeQuery<{ totalFundingForCause: CauseFundingMetrics }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ totalFundingForCause: CauseFundingMetrics }>(
+    machinery,
     `
       query GetTotalFundingForCause(
         $statementId: ID!
@@ -1669,8 +1673,8 @@ export async function getAllAlignedProjectsForCause(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<AlignedProjectWithDetails[]> {
-  const result = await executeQuery<{ allAlignedProjectsForCause: AlignedProjectWithDetails[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ allAlignedProjectsForCause: AlignedProjectWithDetails[] }>(
+    machinery,
     `
       query GetAllAlignedProjectsForCause(
         $statementId: ID!
@@ -1706,8 +1710,8 @@ export async function getTopContributorsForCause(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<ContributorStats[]> {
-  const result = await executeQuery<{ topContributorsForCause: ContributorStats[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ topContributorsForCause: ContributorStats[] }>(
+    machinery,
     `
       query GetTopContributorsForCause(
         $statementId: ID!
@@ -1748,8 +1752,8 @@ export async function getUserContributionRankForCause(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<ContributorRankResult | null> {
-  const result = await executeQuery<{ userContributionRankForCause: ContributorRankResult | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ userContributionRankForCause: ContributorRankResult | null }>(
+    machinery,
     `
       query GetUserContributionRankForCause(
         $statementId: ID!
@@ -1816,8 +1820,8 @@ export async function getUserRef(
   owner: string,
   name: string
 ): Promise<MutableRef | null> {
-  const result = await executeQuery<{ mutableRef: MutableRef | null }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ mutableRef: MutableRef | null }>(
+    machinery,
     `
       query GetUserRef($owner: String!, $name: String!) {
         mutableRef(owner: $owner, name: $name) {
@@ -1843,8 +1847,8 @@ export async function getUserRefs(
   machinery: ActionTestingMachinery,
   owner: string
 ): Promise<MutableRef[]> {
-  const result = await executeQuery<{ mutableRefsByOwner: MutableRef[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ mutableRefsByOwner: MutableRef[] }>(
+    machinery,
     `
       query GetUserRefs($owner: String!) {
         mutableRefsByOwner(owner: $owner) {
@@ -1872,8 +1876,8 @@ export async function getUserRefHistory(
   name: string,
   limit: number = 100
 ): Promise<RefUpdate[]> {
-  const result = await executeQuery<{ refUpdateHistory: RefUpdate[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ refUpdateHistory: RefUpdate[] }>(
+    machinery,
     `
       query GetUserRefHistory($owner: String!, $name: String!, $limit: Int!) {
         refUpdateHistory(owner: $owner, name: $name, limit: $limit) {
@@ -1902,8 +1906,8 @@ export async function getRefsByName(
   name: string,
   limit: number = 100
 ): Promise<MutableRef[]> {
-  const result = await executeQuery<{ mutableRefsByName: MutableRef[] }>(
-    machinery.graphqlExecutor,
+  const result = await executeSDKQuery<{ mutableRefsByName: MutableRef[] }>(
+    machinery,
     `
       query GetRefsByName($name: String!, $limit: Int!) {
         mutableRefsByName(name: $name, limit: $limit) {

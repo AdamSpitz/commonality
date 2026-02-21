@@ -39,8 +39,6 @@ async function captureListingState(context: ActionContext): Promise<MarketplaceS
     return { listingExists: false };
   }
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const executor = machinery.graphqlExecutor;
   const listing = await getSaleListing(machinery, marketplaceAddress, listingId);
 
   return {

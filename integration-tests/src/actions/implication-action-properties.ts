@@ -183,8 +183,6 @@ export const implicationBidirectionalityInvariant: InvariantCheck = {
       throw new Error('fromStatementId, toStatementId, and attesterAddress are required');
     }
 
-    const executor = machinery.graphqlExecutor;
-
     // Get implications from both directions
     const implicationsFrom = await getImplicationsFrom(machinery, fromStatementId);
     const implicationsTo = await getImplicationsTo(machinery, toStatementId);
@@ -257,8 +255,6 @@ async function captureIndirectSupportState(context: ActionContext): Promise<Indi
     throw new Error('toStatementId is required in context.entities');
   }
 
-  const executor = machinery.graphqlExecutor;
-
   const indirectSupporterCount = await getIndirectSupporterCount(machinery.graphqlExecutor, toStatementId);
   const indirectSupporters = await getIndirectSupporters(machinery, toStatementId);
   const indirectSupporterAddresses = indirectSupporters.map(s => s.user.toLowerCase());
@@ -291,8 +287,6 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
     if (!fromStatementId || !toStatementId) {
       throw new Error('fromStatementId and toStatementId are required');
     }
-
-    const executor = machinery.graphqlExecutor;
 
     // Get believers of the "from" statement
     const fromStatement = await getStatement(machinery, fromStatementId);

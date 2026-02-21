@@ -41,7 +41,6 @@ export const typeDefs = `#graphql
     viaStatementId: ID!
     viaStatement: Statement
   }
-
   type StatementListItem {
     id: ID!
     cid: String

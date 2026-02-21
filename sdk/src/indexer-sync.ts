@@ -2,9 +2,9 @@
  * Common GraphQL query utilities
  */
 
-import { INDEXER_SYNC } from '../constants.js';
-import { GraphQLClient, query } from './graphqlClient.js';
-import { getEnvVar } from './index.js';
+import { INDEXER_SYNC } from './constants.js';
+import { GraphQLClient, query } from './utils/graphqlClient.js';
+import { getEnvVar } from './utils/index.js';
 
 /**
  * Wait for the indexer to sync to a specific block

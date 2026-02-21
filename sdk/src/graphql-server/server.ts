@@ -7,6 +7,7 @@ import { execute, parse, GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createGraphQLClient, type GraphQLClient } from '../utils/graphqlClient.js';
 import { typeDefs, resolvers } from './schema/index.js';
+import { SDKMachinery } from '../machinery.js';
 
 export { createGraphQLClient, GraphQLClient };
 
@@ -103,4 +104,12 @@ export async function executeQuery<T = any>(
   }
 
   return result.data as T;
+}
+
+export async function executeSDKQuery<T = any>(
+  machinery: SDKMachinery,
+  queryString: string,
+  variables?: Record<string, any>
+): Promise<T> {
+  return executeQuery(machinery.graphqlExecutor, queryString, variables);
 }
