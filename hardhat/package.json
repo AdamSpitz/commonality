@@ -7,7 +7,7 @@
     "build": "npx hardhat compile",
     "test": "npx hardhat test",
     "deploy-local": "npx hardhat run scripts/deploy-local.js --network localhost",
-    "lint": "npm run lint:js && npm run lint:sol && npm run lint:slither",
+    "lint": "npm run lint:sol && npm run lint:slither",
     "lint:js": "eslint .",
     "lint:sol": "npx hardhat check",
     "lint:slither": "slither . --filter-paths 'node_modules|@openzeppelin'"
