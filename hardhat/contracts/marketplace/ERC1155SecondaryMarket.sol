@@ -142,6 +142,161 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 count,
         uint256 pricePerToken
     ) external nonReentrant {
+        if (count == 0) revert CountMustBeGreaterThanZero();
+        if (pricePerToken == 0) revert PriceMustBeGreaterThanZero();
+
+        address seller = _msgSender();
+
+        uint256 saleListingId = _nextSaleListingId;
+        _nextSaleListingId++;
+        _saleListings[saleListingId] = SaleListing({
+            seller: seller,
+            tokenId: tokenId,
+            count: count,
+            pricePerToken: pricePerToken
+        });
+
+        _erc1155.safeTransferFrom(
+            seller,
+            address(this),
+            tokenId,
+            count,
+            "0x"
+        );
+
+        emit SaleListingCreated(saleListingId, seller, tokenId, count, pricePerToken);
+    }
+
+    function fulfillSaleListing(uint256 saleListingId, uint256 count) external payable nonReentrant {
+        address buyer = _msgSender();
+        _fulfillSaleListingInternal(saleListingId, count, buyer);
+    }
+
+    function fulfillSaleListingTo(
+        uint256 saleListingId,
+        uint256 count,
+        address recipient
+    ) external payable nonReentrant {
+        if (recipient == address(0)) revert InvalidRecipient();
+        _fulfillSaleListingInternal(saleListingId, count, recipient);
+    }
+
+    function _fulfillSaleListingInternal(
+        uint256 saleListingId,
+        uint256 count,
+        address recipient
+    ) private {
+        SaleListing storage listing = _saleListings[saleListingId];
+        address seller = listing.seller;
+        uint256 tokenId = listing.tokenId;
+        uint256 listingCount = listing.count;
+        uint256 pricePerToken = listing.pricePerToken;
+        uint256 totalCost = count * pricePerToken;
+        if (seller == address(0)) revert ListingDoesNotExist();
+        if (count == 0 || count > listingCount) revert InvalidCount();
+        if (msg.value != totalCost) revert IncorrectPayment();
+
+        address buyer = _msgSender();
+
+        uint256 remaining = listingCount - count;
+        if (remaining == 0) {
+            delete _saleListings[saleListingId];
+        } else {
+            listing.count = remaining;
+        }
+
+        (bool success, ) = payable(seller).call{value: totalCost}("");
+        if (!success) revert ETHTransferFailed();
+
+        _erc1155.safeTransferFrom(
+            address(this),
+            recipient,
+            tokenId,
+            count,
+            "0x"
+        );
+
+        emit SaleListingFulfilled(saleListingId, buyer, count);
+    }
+
+    function cancelSaleListing(uint256 saleListingId) external nonReentrant {
+        SaleListing storage listing = _saleListings[saleListingId];
+        address seller = listing.seller;
+        uint256 tokenId = listing.tokenId;
+        uint256 count = listing.count;
+        if (seller == address(0)) revert ListingDoesNotExist();
+        if (seller != _msgSender()) revert NotTheSeller();
+
+        delete _saleListings[saleListingId];
+
+        _erc1155.safeTransferFrom(
+            address(this),
+            seller,
+            tokenId,
+            count,
+            "0x"
+        );
+
+        emit SaleListingCancelled(saleListingId);
+    }
+
+    function createBuyOrder(
+        uint256 tokenId,
+        uint256 count,
+        uint256 pricePerToken
+    ) external payable nonReentrant {
+        if (count == 0) revert AmountMustBeGreaterThanZero2();
+        if (pricePerToken == 0) revert MustSendETH();
+        if (msg.value != count * pricePerToken) revert IncorrectAmountOfETHSent();
+
+        address buyer = _msgSender();
+
+        uint256 buyOrderId = _nextBuyOrderId;
+        _nextBuyOrderId++;
+        _buyOrders[buyOrderId] = BuyOrder({
+            buyer: buyer,
+            tokenId: tokenId,
+            count: count,
+            pricePerToken: pricePerToken
+        });
+
+        emit BuyOrderCreated(buyOrderId, buyer, tokenId, count, pricePerToken);
+    }
+
+    function fulfillBuyOrder(uint256 buyOrderId, uint256 count) external nonReentrant {
+        BuyOrder storage order = _buyOrders[buyOrderId];
+        address buyer = order.buyer;
+        uint256 tokenId = order.tokenId;
+        uint256 pricePerToken = order.pricePerToken;
+        uint256 orderCount = order.count;
+        uint256 totalCost = count * pricePerToken;
+        if (buyer == address(0)) revert OrderDoesNotExist();
+        if (count == 0 || count > orderCount) revert InvalidCount();
+
+        address seller = _msgSender();
+
+        uint256 remaining = orderCount - count;
+        if (remaining == 0) {
+            delete _buyOrders[buyOrderId];
+        } else {
+            order.count = remaining;
+        }
+
+        _erc1155.safeTransferFrom(
+            seller,
+            buyer,
+            tokenId,
+            count,
+            "0x"
+        );
+
+        (bool success, ) = payable(seller).call{value: totalCost}("");
+        if (!success) revert ETHTransferFailed();
+
+        emit BuyOrderFulfilled(buyOrderId, seller, count);
+    }
+
+    function cancelBuyOrder(uint256 buyOrderId) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
         address buyer = order.buyer;
         uint256 pricePerToken = order.pricePerToken;

@@ -9,13 +9,14 @@ pragma solidity 0.8.33;
  * @author AdamSpitz
  */
 
-error OnlyRecipientCanWithdraw();
-error ETHTransferFailed();
-error NotEnoughFundingReceived();
-error ProjectReachedFundingGoal();
-error ProjectFateStillUndecided();
-
 abstract contract AssuranceContract {
+
+    error OnlyRecipientCanWithdraw();
+    error ETHTransferFailed();
+    error NotEnoughFundingReceived();
+    error ProjectReachedFundingGoal();
+    error ProjectFateStillUndecided();
+
     /**
      * @notice Emitted when the assurance contract is initialized
      * @param recipient The address that will receive funds if the project succeeds

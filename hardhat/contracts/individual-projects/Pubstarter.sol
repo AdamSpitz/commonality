@@ -5,6 +5,7 @@ pragma solidity 0.8.33;
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {FreeERC1155} from "../utils/FreeERC1155.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
+import {AssuranceContract} from "./AssuranceContract.sol";
 import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
 import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
 
@@ -186,7 +187,7 @@ contract Pubstarter {
 
     ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t));
 
-    MultiERC1155_AssuranceContract ac = _assuranceFactory.createAssuranceContract(
+    MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
       address(this),
       recipient,
       threshold,
