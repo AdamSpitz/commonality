@@ -115,8 +115,12 @@ contract MultiERC1155AssuranceContract is
      * @notice Checks if buying is allowed
      * @dev Always returns true - buying is always allowed, even after deadline
      */
+    /**
+     * @inheritdoc ERC1155PrimaryMarket
+     * @dev Buying is always allowed - no checks needed
+     */
+    // solhint-disable-next-line no-empty-blocks
     function requireBuyingAllowed() internal view override {
-        // Buying is always allowed, even after deadline - no checks needed
     }
 
     /**

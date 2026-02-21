@@ -68,7 +68,13 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      * @param count The number of tokens available for sale
      * @param pricePerToken The price per token in wei
      */
-    event SaleListingCreated(uint256 indexed saleListingId, address indexed seller, uint256 tokenId, uint256 count, uint256 pricePerToken);
+    event SaleListingCreated(
+        uint256 indexed saleListingId,
+        address indexed seller,
+        uint256 tokenId,
+        uint256 count,
+        uint256 pricePerToken
+    );
 
     /**
      * @notice Emitted when a sale listing is fulfilled (partially or fully)
