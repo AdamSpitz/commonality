@@ -1,13 +1,27 @@
 /**
  * GraphQL queries for Funding Portals subsystem (AlignmentAttestations)
+ *
+ * Note: The current schema uses projectAlignments/projectAddress naming.
+ * The TypeScript API uses the more generic subjectAddress/AlignmentAttestation naming.
+ * Field mapping (projectAddress → subjectAddress) is done in this layer.
+ * topicStatementId is not present in the current schema and is returned as ''.
  */
 
-import { query, type GraphQLClient } from '../utils/graphqlClient.js';
+import { request } from 'graphql-request';
+import { type GraphQLClient } from '../utils/graphqlClient.js';
+import {
+  GetAlignedSubjectsDocument,
+  GetSubjectStatementsDocument,
+  GetAlignmentAttestationDocument,
+  GetAlignmentsByAttesterDocument,
+  GetImplicationsToForFpDocument,
+  GetProjectTotalReceivedDocument,
+  GetProjectDetailsDocument,
+  GetParticipantSummariesDocument,
+} from '../generated/graphql.js';
 import {
   type AlignmentAttestation,
   type IndirectSubjectAlignment,
-  type ProjectAlignment,
-  type IndirectProjectAlignment,
   type CauseFundingMetrics,
   type ContributorStats,
 } from '../shared/types/funding-portals.js';
@@ -24,47 +38,19 @@ export async function getAlignedSubjects(
   statementId: string,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  if (attesterAddress) {
-    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
-      client,
-      `
-        query GetAlignedSubjects($statementId: String!, $attester: String!) {
-          alignmentAttestationss(where: { statementId: $statementId, attester: $attester }) {
-            items {
-              attester
-              subjectAddress
-              statementId
-              topicStatementId
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { statementId: statementId.toLowerCase(), attester: attesterAddress.toLowerCase() }
-    );
-    return result.alignmentAttestationss?.items || [];
-  } else {
-    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
-      client,
-      `
-        query GetAlignedSubjects($statementId: String!) {
-          alignmentAttestationss(where: { statementId: $statementId }) {
-            items {
-              attester
-              subjectAddress
-              statementId
-              topicStatementId
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { statementId: statementId.toLowerCase() }
-    );
-    return result.alignmentAttestationss?.items || [];
-  }
+  const result = await request(client.url, GetAlignedSubjectsDocument, {
+    statementId: statementId.toLowerCase(),
+    attester: attesterAddress?.toLowerCase() ?? null,
+  });
+  // Map projectAddress → subjectAddress; topicStatementId not in schema
+  return (result.projectAlignmentss?.items ?? []).map(item => ({
+    attester: item.attester,
+    subjectAddress: item.projectAddress,
+    statementId: item.statementId,
+    topicStatementId: '',
+    createdAt: String(item.createdAt),
+    blockNumber: String(item.blockNumber),
+  }));
 }
 
 // Backwards compatibility alias
@@ -78,47 +64,19 @@ export async function getSubjectStatements(
   subjectAddress: string,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  if (attesterAddress) {
-    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
-      client,
-      `
-        query GetSubjectStatements($subjectAddress: String!, $attester: String!) {
-          alignmentAttestationss(where: { subjectAddress: $subjectAddress, attester: $attester }) {
-            items {
-              attester
-              subjectAddress
-              statementId
-              topicStatementId
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { subjectAddress: subjectAddress.toLowerCase(), attester: attesterAddress.toLowerCase() }
-    );
-    return result.alignmentAttestationss?.items || [];
-  } else {
-    const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
-      client,
-      `
-        query GetSubjectStatements($subjectAddress: String!) {
-          alignmentAttestationss(where: { subjectAddress: $subjectAddress }) {
-            items {
-              attester
-              subjectAddress
-              statementId
-              topicStatementId
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { subjectAddress: subjectAddress.toLowerCase() }
-    );
-    return result.alignmentAttestationss?.items || [];
-  }
+  const result = await request(client.url, GetSubjectStatementsDocument, {
+    projectAddress: subjectAddress.toLowerCase(),
+    attester: attesterAddress?.toLowerCase() ?? null,
+  });
+  // Map projectAddress → subjectAddress; topicStatementId not in schema
+  return (result.projectAlignmentss?.items ?? []).map(item => ({
+    attester: item.attester,
+    subjectAddress: item.projectAddress,
+    statementId: item.statementId,
+    topicStatementId: '',
+    createdAt: String(item.createdAt),
+    blockNumber: String(item.blockNumber),
+  }));
 }
 
 // Backwards compatibility alias
@@ -133,32 +91,21 @@ export async function getAlignmentAttestation(
   subjectAddress: string,
   statementId: string
 ): Promise<AlignmentAttestation | null> {
-  const result = await query<{ alignmentAttestations: AlignmentAttestation | null }>(
-    client,
-    `
-      query GetAlignmentAttestation($attester: String!, $subjectAddress: String!, $statementId: String!) {
-        alignmentAttestations(
-          attester: $attester,
-          subjectAddress: $subjectAddress,
-          statementId: $statementId
-        ) {
-          attester
-          subjectAddress
-          statementId
-          topicStatementId
-          createdAt
-          blockNumber
-        }
-      }
-    `,
-    {
-      attester: attesterAddress.toLowerCase(),
-      subjectAddress: subjectAddress.toLowerCase(),
-      statementId: statementId.toLowerCase()
-    }
-  );
-
-  return result.alignmentAttestations;
+  const result = await request(client.url, GetAlignmentAttestationDocument, {
+    attester: attesterAddress.toLowerCase(),
+    projectAddress: subjectAddress.toLowerCase(),
+    statementId: statementId.toLowerCase(),
+  });
+  if (!result.projectAlignments) return null;
+  const item = result.projectAlignments;
+  return {
+    attester: item.attester,
+    subjectAddress: item.projectAddress,
+    statementId: item.statementId,
+    topicStatementId: '',
+    createdAt: String(item.createdAt),
+    blockNumber: String(item.blockNumber),
+  };
 }
 
 // Backwards compatibility alias
@@ -171,26 +118,18 @@ export async function getAlignmentsByAttester(
   client: GraphQLClient,
   attesterAddress: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await query<{ alignmentAttestationss: { items: AlignmentAttestation[] } }>(
-    client,
-    `
-      query GetAlignmentsByAttester($attester: String!) {
-        alignmentAttestationss(where: { attester: $attester }) {
-          items {
-            attester
-            subjectAddress
-            statementId
-            topicStatementId
-            createdAt
-            blockNumber
-          }
-        }
-      }
-    `,
-    { attester: attesterAddress.toLowerCase() }
-  );
-
-  return result.alignmentAttestationss?.items || [];
+  const result = await request(client.url, GetAlignmentsByAttesterDocument, {
+    attester: attesterAddress.toLowerCase(),
+  });
+  // Map projectAddress → subjectAddress; topicStatementId not in schema
+  return (result.projectAlignmentss?.items ?? []).map(item => ({
+    attester: item.attester,
+    subjectAddress: item.projectAddress,
+    statementId: item.statementId,
+    topicStatementId: '',
+    createdAt: String(item.createdAt),
+    blockNumber: String(item.blockNumber),
+  }));
 }
 
 // ============================================================================
@@ -216,41 +155,12 @@ export async function getIndirectlyAlignedSubjects(
   trustedAlignmentAttester?: string
 ): Promise<IndirectSubjectAlignment[]> {
   // Step 1: Find all statements that imply the target statement
-  const implicationsResult = trustedImplicationAttester
-    ? await query<{ implicationss: { items: Array<{ fromStatementId: string; attester: { id: string } }> } }>(
-        client,
-        `
-          query GetImplicationsTo($toStatementId: String!, $attester: String!) {
-            implicationss(where: { toStatementId: $toStatementId, attester: $attester }) {
-              items {
-                fromStatementId
-                attester {
-                  id
-                }
-              }
-            }
-          }
-        `,
-        { toStatementId: statementId.toLowerCase(), attester: trustedImplicationAttester.toLowerCase() }
-      )
-    : await query<{ implicationss: { items: Array<{ fromStatementId: string; attester: { id: string } }> } }>(
-        client,
-        `
-          query GetImplicationsTo($toStatementId: String!) {
-            implicationss(where: { toStatementId: $toStatementId }) {
-              items {
-                fromStatementId
-                attester {
-                  id
-                }
-              }
-            }
-          }
-        `,
-        { toStatementId: statementId.toLowerCase() }
-      );
+  const implicationsResult = await request(client.url, GetImplicationsToForFpDocument, {
+    toStatementId: statementId.toLowerCase(),
+    attester: trustedImplicationAttester?.toLowerCase() ?? null,
+  });
 
-  const implications = implicationsResult.implicationss?.items || [];
+  const implications = implicationsResult.implicationss?.items ?? [];
 
   if (implications.length === 0) {
     return [];
@@ -324,34 +234,25 @@ export async function getTotalFundingForCause(
   // Fetch project details for all aligned projects
   let totalRaised = 0n;
   for (const projectAddress of allProjectAddresses) {
-    const projectResult = await query<{ projects: { totalReceived: string } | null }>(
-      client,
-      `
-        query GetProjectTotalReceived($id: String!) {
-          projects(id: $id) {
-            totalReceived
-          }
-        }
-      `,
-      { id: projectAddress.toLowerCase() }
-    );
+    const projectResult = await request(client.url, GetProjectTotalReceivedDocument, {
+      id: projectAddress.toLowerCase(),
+    });
 
     if (projectResult.projects) {
-      totalRaised += BigInt(projectResult.projects.totalReceived);
+      totalRaised += BigInt(String(projectResult.projects.totalReceived));
     }
   }
 
   // TODO: Re-implement using NoteIntent attestations
   // intendedStatementId has been removed from DelegatableNotes and moved to NoteIntent contract
   // For now, we return 0 for notes until NoteIntent indexing is implemented
-  const notes: Array<{ amount: string }> = [];
   const totalAvailable = 0n;
 
   return {
     totalRaisedAcrossProjects: totalRaised,
     totalAvailableFromNotes: totalAvailable,
     projectCount: allProjectAddresses.size,
-    noteCount: notes.length,
+    noteCount: 0,
   };
 }
 
@@ -407,35 +308,18 @@ export async function getAllAlignedProjectsForCause(
   // Fetch project details
   const results = [];
   for (const [projectAddress, alignmentType] of projectMap.entries()) {
-    const projectResult = await query<{
-      projects: {
-        id: string;
-        totalReceived: string;
-        threshold: string;
-        deadline: string;
-      } | null
-    }>(
-      client,
-      `
-        query GetProjectDetails($id: String!) {
-          projects(id: $id) {
-            id
-            totalReceived
-            threshold
-            deadline
-          }
-        }
-      `,
-      { id: projectAddress.toLowerCase() }
-    );
+    const projectResult = await request(client.url, GetProjectDetailsDocument, {
+      id: projectAddress.toLowerCase(),
+    });
 
     if (projectResult.projects) {
+      const p = projectResult.projects;
       results.push({
-        projectAddress: projectResult.projects.id,
+        projectAddress: p.id,
         alignmentType,
-        totalReceived: projectResult.projects.totalReceived,
-        threshold: projectResult.projects.threshold,
-        deadline: projectResult.projects.deadline,
+        totalReceived: String(p.totalReceived),
+        threshold: String(p.threshold),
+        deadline: String(p.deadline),
       });
     }
   }
@@ -479,61 +363,38 @@ export async function getTopContributorsForCause(
   const participantMap = new Map<string, ContributorStats>();
 
   for (const project of alignedProjects) {
-    const summariesResult = await query<{
-      participantSummariess: {
-        items: Array<{
-          participant: string;
-          totalContributed: string;
-          totalRefunded: string;
-          netContribution: string;
-          contributionCount: number;
-          firstContributionAt: string | null;
-          lastContributionAt: string | null;
-        }>
-      }
-    }>(
-      client,
-      `
-        query GetParticipantSummaries($projectAddress: String!) {
-          participantSummariess(where: { projectAddress: $projectAddress }) {
-            items {
-              participant
-              totalContributed
-              totalRefunded
-              netContribution
-              contributionCount
-              firstContributionAt
-              lastContributionAt
-            }
-          }
-        }
-      `,
-      { projectAddress: project.projectAddress.toLowerCase() }
-    );
+    const summariesResult = await request(client.url, GetParticipantSummariesDocument, {
+      projectAddress: project.projectAddress.toLowerCase(),
+    });
 
-    const summaries = summariesResult.participantSummariess?.items || [];
+    const summaries = summariesResult.participantSummariess?.items ?? [];
 
     for (const summary of summaries) {
       const participant = summary.participant.toLowerCase();
       const existing = participantMap.get(participant);
 
+      // BigInt fields come as strings at runtime; convert to bigint for aggregation
+      const totalContributed = BigInt(String(summary.totalContributed));
+      const totalRefunded = BigInt(String(summary.totalRefunded));
+      const netContribution = BigInt(String(summary.netContribution));
+      const firstAt = summary.firstContributionAt != null ? BigInt(String(summary.firstContributionAt)) : undefined;
+      const lastAt = summary.lastContributionAt != null ? BigInt(String(summary.lastContributionAt)) : undefined;
+
       if (existing) {
         // Aggregate with existing stats
-        existing.totalContributed += BigInt(summary.totalContributed);
-        existing.totalRefunded += BigInt(summary.totalRefunded);
-        existing.netContribution += BigInt(summary.netContribution);
+        existing.totalContributed += totalContributed;
+        existing.totalRefunded += totalRefunded;
+        existing.netContribution += netContribution;
         existing.contributionCount += summary.contributionCount;
         existing.projectsContributedTo += 1;
 
         // Update first/last contribution times
-        if (summary.firstContributionAt) {
-          const firstAt = BigInt(summary.firstContributionAt);
+        if (firstAt !== undefined) {
           if (!existing.firstContributionAt || firstAt < existing.firstContributionAt) {
             existing.firstContributionAt = firstAt;
           }
         }
-        if (summary.lastContributionAt) {
-          const lastAt = BigInt(summary.lastContributionAt);
+        if (lastAt !== undefined) {
           if (!existing.lastContributionAt || lastAt > existing.lastContributionAt) {
             existing.lastContributionAt = lastAt;
           }
@@ -542,12 +403,12 @@ export async function getTopContributorsForCause(
         // Create new entry
         participantMap.set(participant, {
           participant,
-          totalContributed: BigInt(summary.totalContributed),
-          totalRefunded: BigInt(summary.totalRefunded),
-          netContribution: BigInt(summary.netContribution),
+          totalContributed,
+          totalRefunded,
+          netContribution,
           contributionCount: summary.contributionCount,
-          firstContributionAt: summary.firstContributionAt ? BigInt(summary.firstContributionAt) : undefined,
-          lastContributionAt: summary.lastContributionAt ? BigInt(summary.lastContributionAt) : undefined,
+          firstContributionAt: firstAt,
+          lastContributionAt: lastAt,
           projectsContributedTo: 1,
         });
       }

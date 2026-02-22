@@ -1,0 +1,61 @@
+query GetUserRef($owner: String!, $name: String!) {
+  mutableRefs(owner: $owner, name: $name) {
+    owner
+    name
+    value
+    updatedAt
+    updatedAtBlock
+    transactionHash
+  }
+}
+
+query GetUserRefs($owner: String!) {
+  mutableRefss(where: { owner: $owner }) {
+    items {
+      owner
+      name
+      value
+      updatedAt
+      updatedAtBlock
+      transactionHash
+    }
+  }
+}
+
+query GetUserRefHistory($owner: String!, $name: String!, $limit: Int!) {
+  refUpdatess(
+    where: { owner: $owner, name: $name }
+    orderBy: "blockNumber"
+    orderDirection: "desc"
+    limit: $limit
+  ) {
+    items {
+      id
+      owner
+      name
+      value
+      blockNumber
+      timestamp
+      transactionHash
+      logIndex
+    }
+  }
+}
+
+query GetRefsByName($name: String!, $limit: Int!) {
+  mutableRefss(
+    where: { name: $name }
+    orderBy: "updatedAt"
+    orderDirection: "desc"
+    limit: $limit
+  ) {
+    items {
+      owner
+      name
+      value
+      updatedAt
+      updatedAtBlock
+      transactionHash
+    }
+  }
+}

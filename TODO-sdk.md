@@ -90,21 +90,26 @@ Consumers can either:
   const result = await request(url, GetUserRefDocument, { owner, name });
   ```
 
-### Phase 2: Replace `indexer-queries/` internals (no public API changes)
+### Phase 2: Replace `indexer-queries/` internals (no public API changes) ✅ DONE
 
 `indexer-queries/` is a leaf dependency — only consumed by `graphql-server/` resolvers and one action file. We can swap its implementation without changing any public API or external consumer.
 
 For each subsystem, rewrite the query functions to use `graphql-request` + generated typed document nodes instead of raw `fetch` + hand-written query strings. Keep the same function signatures so the resolvers don't need to change yet.
 
-Order by complexity (smallest first):
+1. ✅ **Mutable Refs** (`mutable-refs-queries.ts`) — 4 functions
+2. ✅ **Delegation** (`delegation-queries.ts`) — 4 functions
+3. ✅ **Conceptspace** (`conceptspace-queries.ts`) — ~12 functions
+4. ✅ **Pubstarter** (`pubstarter-queries.ts`) — ~20 functions, `getProjectsFiltered` replaced dynamic query construction with a static document node using optional filter variables (null = no filter)
+5. ✅ **Funding Portals** (`funding-portals-queries.ts`) — simple queries + complex composite functions
 
-1. **Mutable Refs** (`mutable-refs-queries.ts`) — 4 functions
-2. **Delegation** (`delegation-queries.ts`) — 4 functions
-3. **Conceptspace** (`conceptspace-queries.ts`) — ~12 functions
-4. **Pubstarter** (`pubstarter-queries.ts`) — ~20 functions, `getProjectsFiltered` has dynamic query construction
-5. **Funding Portals** (`funding-portals-queries.ts`) — simple queries + complex composite functions that orchestrate multiple queries
+All subsystems now use `request()` from `graphql-request` with typed document nodes from `sdk/src/generated/graphql.ts`. `as unknown as ManualType` casts at extraction points handle BigInt→string mismatches (BigInt fields arrive as strings from JSON; `shared/types/` declares them as `string`).
 
-After each subsystem, run integration tests — the `graphql-server/` resolvers still call the same functions, so existing tests validate the swap.
+**Schema discoveries during Phase 2:**
+- `sdk/schema.graphql` uses `projectAlignments`/`projectAddress` naming (the Ponder schema source has been renamed to `alignmentAttestations`/`subjectAddress` but the generated schema isn't regenerated yet). The funding-portals queries now use the correct schema names and map `projectAddress → subjectAddress` in the TypeScript layer.
+- `implications` no longer has `explanationCid` in the schema. The `Implication` manual type still declares it; it will be undefined at runtime (pre-existing, fix in Phase 4 when manual types are deleted).
+- The old `funding-portals-queries.ts` used `alignmentAttestationss` (non-existent in schema) — those queries were silently broken. Phase 2 fixes them.
+
+Build passes: `npm run build` exits cleanly.
 
 ### Phase 3: Expose `indexer-queries/` directly to consumers
 

@@ -2,7 +2,26 @@
  * GraphQL queries for Pubstarter subsystem
  */
 
-import { query, type GraphQLClient } from '../utils/graphqlClient.js';
+import { request } from 'graphql-request';
+import { type GraphQLClient } from '../utils/graphqlClient.js';
+import {
+  GetProjectDocument,
+  GetAllProjectsDocument,
+  GetProjectsFilteredDocument,
+  GetProjectTokensDocument,
+  GetProjectContributionsDocument,
+  GetUserContributionsDocument,
+  GetProjectRefundsDocument,
+  GetSaleListingDocument,
+  GetActiveSaleListingsDocument,
+  GetBuyOrderDocument,
+  GetActiveBuyOrdersDocument,
+  GetMarketplaceTradesDocument,
+  GetTokenTradesDocument,
+  GetTokenBurnsDocument,
+  GetUserTokenBurnsDocument,
+  GetTokenBurnsByUserDocument,
+} from '../generated/graphql.js';
 import {
   type Project,
   type ProjectToken,
@@ -17,7 +36,6 @@ import {
   type SortDirection,
   type ProjectWithMetrics,
 } from '../shared/types/pubstarter.js';
-import { from } from 'multiformats/hashes/hasher';
 
 // ============================================================================
 // Pubstarter Queries
@@ -30,25 +48,11 @@ export async function getProject(
   client: GraphQLClient,
   assuranceContractAddress: string
 ): Promise<Project | null> {
-  const result = await query<{ projects: Project | null }>(
-    client,
-    `
-      query GetProject($id: String!) {
-        projects(id: $id) {
-          id
-          erc1155Address
-          recipient
-          threshold
-          deadline
-          totalReceived
-          metadataCid
-        }
-      }
-    `,
-    { id: assuranceContractAddress.toLowerCase() }
-  );
-
-  return result.projects;
+  const result = await request(client.url, GetProjectDocument, {
+    id: assuranceContractAddress.toLowerCase(),
+  });
+  // BigInt fields (threshold, deadline, totalReceived) come as strings at runtime
+  return result.projects as unknown as Project | null;
 }
 
 /**
@@ -57,27 +61,9 @@ export async function getProject(
 export async function getAllProjects(
   client: GraphQLClient
 ): Promise<Project[]> {
-  const result = await query<{ projectss: { items: Project[] } }>(
-    client,
-    `
-      query GetAllProjects {
-        projectss {
-          items {
-            id
-            erc1155Address
-            recipient
-            threshold
-            deadline
-            totalReceived
-            metadataCid
-            createdAt
-          }
-        }
-      }
-    `
-  );
-
-  return result.projectss?.items || [];
+  const result = await request(client.url, GetAllProjectsDocument);
+  // BigInt fields come as strings at runtime
+  return (result.projectss?.items ?? []) as unknown as Project[];
 }
 
 // ============================================================================
@@ -99,79 +85,22 @@ export async function getProjectsFiltered(
   sortBy?: ProjectSortField,
   sortDirection: SortDirection = 'desc'
 ): Promise<ProjectWithMetrics[]> {
-  // Build GraphQL query with filters
-  const whereConditions: string[] = [];
-  const variables: Record<string, any> = {};
+  // For fundingProgress sort, omit orderBy (sort client-side after fetching)
+  const serverOrderBy = sortBy && sortBy !== 'fundingProgress' ? sortBy : undefined;
 
-  if (filters?.minDeadline !== undefined) {
-    whereConditions.push('deadline_gte: $minDeadline');
-    variables.minDeadline = filters.minDeadline.toString();
-  }
-  if (filters?.maxDeadline !== undefined) {
-    whereConditions.push('deadline_lte: $maxDeadline');
-    variables.maxDeadline = filters.maxDeadline.toString();
-  }
-  if (filters?.minThreshold !== undefined) {
-    whereConditions.push('threshold_gte: $minThreshold');
-    variables.minThreshold = filters.minThreshold.toString();
-  }
-  if (filters?.maxThreshold !== undefined) {
-    whereConditions.push('threshold_lte: $maxThreshold');
-    variables.maxThreshold = filters.maxThreshold.toString();
-  }
-  if (filters?.minTotalReceived !== undefined) {
-    whereConditions.push('totalReceived_gte: $minTotalReceived');
-    variables.minTotalReceived = filters.minTotalReceived.toString();
-  }
-  if (filters?.maxTotalReceived !== undefined) {
-    whereConditions.push('totalReceived_lte: $maxTotalReceived');
-    variables.maxTotalReceived = filters.maxTotalReceived.toString();
-  }
+  const result = await request(client.url, GetProjectsFilteredDocument, {
+    minDeadline: (filters?.minDeadline ?? null) as unknown as bigint | null,
+    maxDeadline: (filters?.maxDeadline ?? null) as unknown as bigint | null,
+    minThreshold: (filters?.minThreshold ?? null) as unknown as bigint | null,
+    maxThreshold: (filters?.maxThreshold ?? null) as unknown as bigint | null,
+    minTotalReceived: (filters?.minTotalReceived ?? null) as unknown as bigint | null,
+    maxTotalReceived: (filters?.maxTotalReceived ?? null) as unknown as bigint | null,
+    orderBy: serverOrderBy ?? null,
+    orderDirection: serverOrderBy ? sortDirection : null,
+  });
 
-  const whereClause = whereConditions.length > 0
-    ? `where: { ${whereConditions.join(', ')} }`
-    : '';
-
-  // Determine order by clause
-  // Note: fundingProgress requires client-side sorting
-  let orderByClause = '';
-  if (sortBy && sortBy !== 'fundingProgress') {
-    orderByClause = `orderBy: "${sortBy}", orderDirection: "${sortDirection}"`;
-  }
-
-  const variableDeclarations = Object.keys(variables).length > 0
-    ? `(${Object.keys(variables).map(k => `$${k}: BigInt!`).join(', ')})`
-    : '';
-
-  // Build the arguments for projectss query
-  const queryArgs = whereClause && orderByClause
-    ? `${whereClause}, ${orderByClause}`
-    : whereClause || orderByClause;
-
-  const graphqlQuery = `
-    query GetProjectsFiltered${variableDeclarations} {
-      projectss${queryArgs ? `(${queryArgs})` : ''} {
-        items {
-          id
-          erc1155Address
-          recipient
-          threshold
-          deadline
-          totalReceived
-          metadataCid
-          createdAtBlock
-        }
-      }
-    }
-  `;
-
-  const result = await query<{ projectss: { items: Array<Project & { createdAtBlock: string }> } }>(
-    client,
-    graphqlQuery,
-    variables
-  );
-
-  const projects = result.projectss?.items || [];
+  // BigInt fields come as strings at runtime
+  const projects = (result.projectss?.items ?? []) as unknown as Array<Project & { createdAtBlock: string }>;
 
   // Add computed metrics
   const projectsWithMetrics: ProjectWithMetrics[] = projects.map(p => {
@@ -255,25 +184,11 @@ export async function getProjectTokens(
   client: GraphQLClient,
   assuranceContractAddress: string
 ): Promise<ProjectToken[]> {
-  const result = await query<{ projectTokenss: { items: ProjectToken[] } }>(
-    client,
-    `
-      query GetProjectTokens($projectAddress: String!) {
-        projectTokenss(where: { projectAddress: $projectAddress }) {
-          items {
-            projectAddress
-            erc1155Address
-            tokenId
-            price
-            createdAt
-          }
-        }
-      }
-    `,
-    { projectAddress: assuranceContractAddress.toLowerCase() }
-  );
-
-  return result.projectTokenss?.items || [];
+  const result = await request(client.url, GetProjectTokensDocument, {
+    projectAddress: assuranceContractAddress.toLowerCase(),
+  });
+  // BigInt fields (tokenId, price, createdAt) come as strings at runtime
+  return (result.projectTokenss?.items ?? []) as unknown as ProjectToken[];
 }
 
 /**
@@ -283,30 +198,11 @@ export async function getProjectContributions(
   client: GraphQLClient,
   assuranceContractAddress: string
 ): Promise<Contribution[]> {
-  const result = await query<{ contributionss: { items: Contribution[] } }>(
-    client,
-    `
-      query GetProjectContributions($projectAddress: String!) {
-        contributionss(where: { projectAddress: $projectAddress }) {
-          items {
-            id
-            participant
-            projectAddress
-            erc1155Address
-            tokenIds
-            tokenCounts
-            totalCost
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    { projectAddress: assuranceContractAddress.toLowerCase() }
-  );
-
-  return result.contributionss?.items || [];
+  const result = await request(client.url, GetProjectContributionsDocument, {
+    projectAddress: assuranceContractAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.contributionss?.items ?? []) as unknown as Contribution[];
 }
 
 /**
@@ -316,30 +212,11 @@ export async function getUserContributions(
   client: GraphQLClient,
   userAddress: string
 ): Promise<Contribution[]> {
-  const result = await query<{ contributionss: { items: Contribution[] } }>(
-    client,
-    `
-      query GetUserContributions($participant: String!) {
-        contributionss(where: { participant: $participant }) {
-          items {
-            id
-            participant
-            projectAddress
-            erc1155Address
-            tokenIds
-            tokenCounts
-            totalCost
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    { participant: userAddress.toLowerCase() }
-  );
-
-  return result.contributionss?.items || [];
+  const result = await request(client.url, GetUserContributionsDocument, {
+    participant: userAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.contributionss?.items ?? []) as unknown as Contribution[];
 }
 
 /**
@@ -349,30 +226,11 @@ export async function getProjectRefunds(
   client: GraphQLClient,
   assuranceContractAddress: string
 ): Promise<Refund[]> {
-  const result = await query<{ refundss: { items: Refund[] } }>(
-    client,
-    `
-      query GetProjectRefunds($projectAddress: String!) {
-        refundss(where: { projectAddress: $projectAddress }) {
-          items {
-            id
-            participant
-            projectAddress
-            erc1155Address
-            tokenIds
-            tokenCounts
-            totalRefund
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    { projectAddress: assuranceContractAddress.toLowerCase() }
-  );
-
-  return result.refundss?.items || [];
+  const result = await request(client.url, GetProjectRefundsDocument, {
+    projectAddress: assuranceContractAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.refundss?.items ?? []) as unknown as Refund[];
 }
 
 // ============================================================================
@@ -387,36 +245,12 @@ export async function getSaleListing(
   marketplaceAddress: string,
   listingId: bigint
 ): Promise<SaleListing | null> {
-  const result = await query<{ saleListingss: { items: SaleListing[] } }>(
-    client,
-    `
-      query GetSaleListing($marketplaceAddress: String!, $listingId: BigInt!) {
-        saleListingss(where: {
-          marketplaceAddress: $marketplaceAddress,
-          listingId: $listingId
-        }) {
-          items {
-            marketplaceAddress
-            listingId
-            seller
-            tokenId
-            originalCount
-            remainingCount
-            pricePerToken
-            status
-            createdAt
-            updatedAt
-          }
-        }
-      }
-    `,
-    {
-      marketplaceAddress: marketplaceAddress.toLowerCase(),
-      listingId: listingId.toString()
-    }
-  );
-
-  return result.saleListingss?.items[0] || null;
+  const result = await request(client.url, GetSaleListingDocument, {
+    marketplaceAddress: marketplaceAddress.toLowerCase(),
+    listingId,
+  });
+  // BigInt fields come as strings at runtime
+  return ((result.saleListingss?.items ?? [])[0] ?? null) as unknown as SaleListing | null;
 }
 
 /**
@@ -426,33 +260,11 @@ export async function getActiveSaleListings(
   client: GraphQLClient,
   marketplaceAddress: string
 ): Promise<SaleListing[]> {
-  const result = await query<{ saleListingss: { items: SaleListing[] } }>(
-    client,
-    `
-      query GetActiveSaleListings($marketplaceAddress: String!) {
-        saleListingss(where: {
-          marketplaceAddress: $marketplaceAddress,
-          status: "active"
-        }) {
-          items {
-            marketplaceAddress
-            listingId
-            seller
-            tokenId
-            originalCount
-            remainingCount
-            pricePerToken
-            status
-            createdAt
-            updatedAt
-          }
-        }
-      }
-    `,
-    { marketplaceAddress: marketplaceAddress.toLowerCase() }
-  );
-
-  return result.saleListingss?.items || [];
+  const result = await request(client.url, GetActiveSaleListingsDocument, {
+    marketplaceAddress: marketplaceAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.saleListingss?.items ?? []) as unknown as SaleListing[];
 }
 
 /**
@@ -463,36 +275,12 @@ export async function getBuyOrder(
   marketplaceAddress: string,
   orderId: bigint
 ): Promise<BuyOrder | null> {
-  const result = await query<{ buyOrderss: { items: BuyOrder[] } }>(
-    client,
-    `
-      query GetBuyOrder($marketplaceAddress: String!, $orderId: BigInt!) {
-        buyOrderss(where: {
-          marketplaceAddress: $marketplaceAddress,
-          orderId: $orderId
-        }) {
-          items {
-            marketplaceAddress
-            orderId
-            buyer
-            tokenId
-            originalCount
-            remainingCount
-            pricePerToken
-            status
-            createdAt
-            updatedAt
-          }
-        }
-      }
-    `,
-    {
-      marketplaceAddress: marketplaceAddress.toLowerCase(),
-      orderId: orderId.toString()
-    }
-  );
-
-  return result.buyOrderss?.items[0] || null;
+  const result = await request(client.url, GetBuyOrderDocument, {
+    marketplaceAddress: marketplaceAddress.toLowerCase(),
+    orderId,
+  });
+  // BigInt fields come as strings at runtime
+  return ((result.buyOrderss?.items ?? [])[0] ?? null) as unknown as BuyOrder | null;
 }
 
 /**
@@ -502,33 +290,11 @@ export async function getActiveBuyOrders(
   client: GraphQLClient,
   marketplaceAddress: string
 ): Promise<BuyOrder[]> {
-  const result = await query<{ buyOrderss: { items: BuyOrder[] } }>(
-    client,
-    `
-      query GetActiveBuyOrders($marketplaceAddress: String!) {
-        buyOrderss(where: {
-          marketplaceAddress: $marketplaceAddress,
-          status: "active"
-        }) {
-          items {
-            marketplaceAddress
-            orderId
-            buyer
-            tokenId
-            originalCount
-            remainingCount
-            pricePerToken
-            status
-            createdAt
-            updatedAt
-          }
-        }
-      }
-    `,
-    { marketplaceAddress: marketplaceAddress.toLowerCase() }
-  );
-
-  return result.buyOrderss?.items || [];
+  const result = await request(client.url, GetActiveBuyOrdersDocument, {
+    marketplaceAddress: marketplaceAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.buyOrderss?.items ?? []) as unknown as BuyOrder[];
 }
 
 /**
@@ -538,33 +304,11 @@ export async function getMarketplaceTrades(
   client: GraphQLClient,
   marketplaceAddress: string
 ): Promise<Trade[]> {
-  const result = await query<{ tradess: { items: Trade[] } }>(
-    client,
-    `
-      query GetMarketplaceTrades($marketplaceAddress: String!) {
-        tradess(where: { marketplaceAddress: $marketplaceAddress }) {
-          items {
-            id
-            marketplaceAddress
-            orderType
-            orderId
-            buyer
-            seller
-            tokenId
-            count
-            pricePerToken
-            totalPrice
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    { marketplaceAddress: marketplaceAddress.toLowerCase() }
-  );
-
-  return result.tradess?.items || [];
+  const result = await request(client.url, GetMarketplaceTradesDocument, {
+    marketplaceAddress: marketplaceAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.tradess?.items ?? []) as unknown as Trade[];
 }
 
 /**
@@ -575,39 +319,12 @@ export async function getTokenTrades(
   marketplaceAddress: string,
   tokenId: bigint
 ): Promise<Trade[]> {
-  const result = await query<{ tradess: { items: Trade[] } }>(
-    client,
-    `
-      query GetTokenTrades($marketplaceAddress: String!, $tokenId: BigInt!) {
-        tradess(where: {
-          marketplaceAddress: $marketplaceAddress,
-          tokenId: $tokenId
-        }) {
-          items {
-            id
-            marketplaceAddress
-            orderType
-            orderId
-            buyer
-            seller
-            tokenId
-            count
-            pricePerToken
-            totalPrice
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    {
-      marketplaceAddress: marketplaceAddress.toLowerCase(),
-      tokenId: tokenId.toString()
-    }
-  );
-
-  return result.tradess?.items || [];
+  const result = await request(client.url, GetTokenTradesDocument, {
+    marketplaceAddress: marketplaceAddress.toLowerCase(),
+    tokenId,
+  });
+  // BigInt fields come as strings at runtime
+  return (result.tradess?.items ?? []) as unknown as Trade[];
 }
 
 // ============================================================================
@@ -621,28 +338,11 @@ export async function getTokenBurns(
   client: GraphQLClient,
   erc1155Address: string
 ): Promise<TokenBurn[]> {
-  const result = await query<{ tokenBurnss: { items: TokenBurn[] } }>(
-    client,
-    `
-      query GetTokenBurns($erc1155Address: String!) {
-        tokenBurnss(where: { erc1155Address: $erc1155Address }) {
-          items {
-            id
-            erc1155Address
-            burner
-            tokenIds
-            tokenCounts
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    { erc1155Address: erc1155Address.toLowerCase() }
-  );
-
-  return result.tokenBurnss?.items || [];
+  const result = await request(client.url, GetTokenBurnsDocument, {
+    erc1155Address: erc1155Address.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.tokenBurnss?.items ?? []) as unknown as TokenBurn[];
 }
 
 /**
@@ -652,28 +352,11 @@ export async function getUserTokenBurns(
   client: GraphQLClient,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await query<{ tokenBurnss: { items: TokenBurn[] } }>(
-    client,
-    `
-      query GetUserTokenBurns($burner: String!) {
-        tokenBurnss(where: { burner: $burner }) {
-          items {
-            id
-            erc1155Address
-            burner
-            tokenIds
-            tokenCounts
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    { burner: userAddress.toLowerCase() }
-  );
-
-  return result.tokenBurnss?.items || [];
+  const result = await request(client.url, GetUserTokenBurnsDocument, {
+    burner: userAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.tokenBurnss?.items ?? []) as unknown as TokenBurn[];
 }
 
 /**
@@ -684,32 +367,10 @@ export async function getTokenBurnsByUser(
   erc1155Address: string,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await query<{ tokenBurnss: { items: TokenBurn[] } }>(
-    client,
-    `
-      query GetTokenBurnsByUser($erc1155Address: String!, $burner: String!) {
-        tokenBurnss(where: {
-          erc1155Address: $erc1155Address,
-          burner: $burner
-        }) {
-          items {
-            id
-            erc1155Address
-            burner
-            tokenIds
-            tokenCounts
-            createdAt
-            blockNumber
-            transactionHash
-          }
-        }
-      }
-    `,
-    {
-      erc1155Address: erc1155Address.toLowerCase(),
-      burner: userAddress.toLowerCase()
-    }
-  );
-
-  return result.tokenBurnss?.items || [];
+  const result = await request(client.url, GetTokenBurnsByUserDocument, {
+    erc1155Address: erc1155Address.toLowerCase(),
+    burner: userAddress.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.tokenBurnss?.items ?? []) as unknown as TokenBurn[];
 }

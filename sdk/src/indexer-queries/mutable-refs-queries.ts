@@ -2,7 +2,14 @@
  * GraphQL queries for Mutable Refs subsystem
  */
 
-import { query, type GraphQLClient } from '../utils/graphqlClient.js';
+import { request } from 'graphql-request';
+import { type GraphQLClient } from '../utils/graphqlClient.js';
+import {
+  GetUserRefDocument,
+  GetUserRefsDocument,
+  GetUserRefHistoryDocument,
+  GetRefsByNameDocument,
+} from '../generated/graphql.js';
 
 import {
   type MutableRef,
@@ -35,24 +42,12 @@ export async function getUserRef(
   owner: string,
   name: string
 ): Promise<MutableRef | null> {
-  const result = await query<{ mutableRefs: MutableRef | null }>(
-    client,
-    `
-      query GetUserRef($owner: String!, $name: String!) {
-        mutableRefs(owner: $owner, name: $name) {
-          owner
-          name
-          value
-          updatedAt
-          updatedAtBlock
-          transactionHash
-        }
-      }
-    `,
-    { owner: owner.toLowerCase(), name }
-  );
-
-  return result.mutableRefs;
+  const result = await request(client.url, GetUserRefDocument, {
+    owner: owner.toLowerCase(),
+    name,
+  });
+  // BigInt fields (updatedAt, updatedAtBlock) come as strings at runtime
+  return result.mutableRefs as unknown as MutableRef | null;
 }
 
 /**
@@ -74,26 +69,11 @@ export async function getUserRefs(
   client: GraphQLClient,
   owner: string
 ): Promise<MutableRef[]> {
-  const result = await query<{ mutableRefss: { items: MutableRef[] } }>(
-    client,
-    `
-      query GetUserRefs($owner: String!) {
-        mutableRefss(where: { owner: $owner }) {
-          items {
-            owner
-            name
-            value
-            updatedAt
-            updatedAtBlock
-            transactionHash
-          }
-        }
-      }
-    `,
-    { owner: owner.toLowerCase() }
-  );
-
-  return result.mutableRefss?.items || [];
+  const result = await request(client.url, GetUserRefsDocument, {
+    owner: owner.toLowerCase(),
+  });
+  // BigInt fields come as strings at runtime
+  return (result.mutableRefss?.items ?? []) as unknown as MutableRef[];
 }
 
 /**
@@ -122,33 +102,13 @@ export async function getUserRefHistory(
   name: string,
   limit: number = 100
 ): Promise<RefUpdate[]> {
-  const result = await query<{ refUpdatess: { items: RefUpdate[] } }>(
-    client,
-    `
-      query GetUserRefHistory($owner: String!, $name: String!, $limit: Int!) {
-        refUpdatess(
-          where: { owner: $owner, name: $name }
-          orderBy: "blockNumber"
-          orderDirection: "desc"
-          limit: $limit
-        ) {
-          items {
-            id
-            owner
-            name
-            value
-            blockNumber
-            timestamp
-            transactionHash
-            logIndex
-          }
-        }
-      }
-    `,
-    { owner: owner.toLowerCase(), name, limit }
-  );
-
-  return result.refUpdatess?.items || [];
+  const result = await request(client.url, GetUserRefHistoryDocument, {
+    owner: owner.toLowerCase(),
+    name,
+    limit,
+  });
+  // BigInt fields (blockNumber, timestamp) come as strings at runtime
+  return (result.refUpdatess?.items ?? []) as unknown as RefUpdate[];
 }
 
 /**
@@ -173,29 +133,10 @@ export async function getRefsByName(
   name: string,
   limit: number = 100
 ): Promise<MutableRef[]> {
-  const result = await query<{ mutableRefss: { items: MutableRef[] } }>(
-    client,
-    `
-      query GetRefsByName($name: String!, $limit: Int!) {
-        mutableRefss(
-          where: { name: $name }
-          orderBy: "updatedAt"
-          orderDirection: "desc"
-          limit: $limit
-        ) {
-          items {
-            owner
-            name
-            value
-            updatedAt
-            updatedAtBlock
-            transactionHash
-          }
-        }
-      }
-    `,
-    { name, limit }
-  );
-
-  return result.mutableRefss?.items || [];
+  const result = await request(client.url, GetRefsByNameDocument, {
+    name,
+    limit,
+  });
+  // BigInt fields come as strings at runtime
+  return (result.mutableRefss?.items ?? []) as unknown as MutableRef[];
 }

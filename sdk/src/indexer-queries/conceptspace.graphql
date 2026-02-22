@@ -1,0 +1,171 @@
+query GetStatement($id: String!) {
+  statements(id: $id) {
+    id
+    believerCount
+    disbelieverCount
+    cid
+    statementType
+    title
+    excerpt
+    createdAt
+  }
+}
+
+query GetUserBelief($user: String!, $statementId: String!) {
+  beliefs(user: $user, statementId: $statementId) {
+    statementId
+    beliefState
+  }
+}
+
+query GetImplicationsFrom($fromStatementId: String!, $attester: String) {
+  implicationss(where: { fromStatementId: $fromStatementId, attester: $attester }) {
+    items {
+      attester {
+        id
+      }
+      fromStatementId
+      toStatementId
+      createdAt
+      blockNumber
+    }
+  }
+}
+
+query GetImplicationsTo($toStatementId: String!, $attester: String) {
+  implicationss(where: { toStatementId: $toStatementId, attester: $attester }) {
+    items {
+      attester {
+        id
+      }
+      fromStatementId
+      toStatementId
+      createdAt
+      blockNumber
+    }
+  }
+}
+
+query GetImplication($attester: String!, $fromStatementId: String!, $toStatementId: String!) {
+  implications(
+    attester: $attester
+    fromStatementId: $fromStatementId
+    toStatementId: $toStatementId
+  ) {
+    attester {
+      id
+    }
+    fromStatementId
+    toStatementId
+    createdAt
+    blockNumber
+  }
+}
+
+query GetBelieversForStatement($statementId: String!) {
+  beliefss(where: { statementId: $statementId, beliefState: 1 }) {
+    items {
+      user {
+        id
+      }
+      beliefState
+    }
+  }
+}
+
+query BrowseByMostSupporters($limit: Int!, $offset: Int!, $orderDirection: String!) {
+  statementss(
+    limit: $limit
+    offset: $offset
+    orderBy: "believerCount"
+    orderDirection: $orderDirection
+  ) {
+    items {
+      id
+      cid
+      statementType
+      title
+      excerpt
+      believerCount
+      disbelieverCount
+      createdAt
+    }
+  }
+}
+
+query BrowseByNewest($limit: Int!, $offset: Int!, $orderDirection: String!) {
+  statementss(
+    limit: $limit
+    offset: $offset
+    orderBy: "createdAt"
+    orderDirection: $orderDirection
+  ) {
+    items {
+      id
+      cid
+      statementType
+      title
+      excerpt
+      believerCount
+      disbelieverCount
+      createdAt
+    }
+  }
+}
+
+query GetAllStatements($limit: Int!, $offset: Int!) {
+  statementss(limit: $limit, offset: $offset) {
+    items {
+      id
+      cid
+      statementType
+      title
+      excerpt
+      believerCount
+      disbelieverCount
+      createdAt
+    }
+  }
+}
+
+query GetUserBeliefs($user: String!) {
+  users(id: $user) {
+    beliefs(where: { beliefState: 1 }) {
+      items {
+        statementId
+        beliefState
+        statement {
+          id
+          cid
+          statementType
+          title
+          excerpt
+          believerCount
+          disbelieverCount
+          createdAt
+        }
+      }
+    }
+  }
+}
+
+query GetUserDisbeliefs($user: String!) {
+  users(id: $user) {
+    beliefs(where: { beliefState: 2 }) {
+      items {
+        statementId
+        beliefState
+        statement {
+          id
+          cid
+          statementType
+          title
+          excerpt
+          believerCount
+          disbelieverCount
+          createdAt
+        }
+      }
+    }
+  }
+}

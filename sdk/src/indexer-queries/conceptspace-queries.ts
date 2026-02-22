@@ -2,7 +2,21 @@
  * GraphQL queries for Conceptspace subsystem
  */
 
-import { query, type GraphQLClient } from '../utils/graphqlClient.js';
+import { request } from 'graphql-request';
+import { type GraphQLClient } from '../utils/graphqlClient.js';
+import {
+  GetStatementDocument,
+  GetUserBeliefDocument,
+  GetImplicationsFromDocument,
+  GetImplicationsToDocument,
+  GetImplicationDocument,
+  GetBelieversForStatementDocument,
+  BrowseByMostSupportersDocument,
+  BrowseByNewestDocument,
+  GetAllStatementsDocument,
+  GetUserBeliefsDocument,
+  GetUserDisbeliefsDocument,
+} from '../generated/graphql.js';
 import {
   type Statement,
   type UserBelief,
@@ -23,26 +37,11 @@ export async function getStatement(
   client: GraphQLClient,
   statementId: string
 ): Promise<Statement | null> {
-  const result = await query<{ statements: Statement | null }>(
-    client,
-    `
-      query GetStatement($id: String!) {
-        statements(id: $id) {
-          id
-          believerCount
-          disbelieverCount
-          cid
-          statementType
-          title
-          excerpt
-          createdAt
-        }
-      }
-    `,
-    { id: statementId.toLowerCase() }
-  );
-
-  return result.statements;
+  const result = await request(client.url, GetStatementDocument, {
+    id: statementId.toLowerCase(),
+  });
+  // BigInt fields (createdAt) come as strings at runtime
+  return result.statements as unknown as Statement | null;
 }
 
 /**
@@ -53,20 +52,11 @@ export async function getUserBelief(
   userAddress: string,
   statementId: string
 ): Promise<UserBelief | null> {
-  const result = await query<{ beliefs: UserBelief | null }>(
-    client,
-    `
-      query GetUserBelief($user: String!, $statementId: String!) {
-        beliefs(user: $user, statementId: $statementId) {
-          statementId
-          beliefState
-        }
-      }
-    `,
-    { user: userAddress.toLowerCase(), statementId: statementId.toLowerCase() }
-  );
-
-  return result.beliefs;
+  const result = await request(client.url, GetUserBeliefDocument, {
+    user: userAddress.toLowerCase(),
+    statementId: statementId.toLowerCase(),
+  });
+  return result.beliefs as unknown as UserBelief | null;
 }
 
 // ============================================================================
@@ -81,51 +71,12 @@ export async function getImplicationsFrom(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  if (attesterAddress) {
-    const result = await query<{ implicationss: { items: Implication[] } }>(
-      client,
-      `
-        query GetImplicationsFrom($fromStatementId: String!, $attester: String!) {
-          implicationss(where: { fromStatementId: $fromStatementId, attester: $attester }) {
-            items {
-              attester {
-                id
-              }
-              fromStatementId
-              toStatementId
-              explanationCid
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { fromStatementId: statementId.toLowerCase(), attester: attesterAddress.toLowerCase() }
-    );
-    return result.implicationss?.items || [];
-  } else {
-    const result = await query<{ implicationss: { items: Implication[] } }>(
-      client,
-      `
-        query GetImplicationsFrom($fromStatementId: String!) {
-          implicationss(where: { fromStatementId: $fromStatementId }) {
-            items {
-              attester {
-                id
-              }
-              fromStatementId
-              toStatementId
-              explanationCid
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { fromStatementId: statementId.toLowerCase() }
-    );
-    return result.implicationss?.items || [];
-  }
+  const result = await request(client.url, GetImplicationsFromDocument, {
+    fromStatementId: statementId.toLowerCase(),
+    attester: attesterAddress?.toLowerCase() ?? null,
+  });
+  // explanationCid is not in schema; BigInt fields come as strings at runtime
+  return (result.implicationss?.items ?? []) as unknown as Implication[];
 }
 
 /**
@@ -136,51 +87,12 @@ export async function getImplicationsTo(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  if (attesterAddress) {
-    const result = await query<{ implicationss: { items: Implication[] } }>(
-      client,
-      `
-        query GetImplicationsTo($toStatementId: String!, $attester: String!) {
-          implicationss(where: { toStatementId: $toStatementId, attester: $attester }) {
-            items {
-              attester {
-                id
-              }
-              fromStatementId
-              toStatementId
-              explanationCid
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { toStatementId: statementId.toLowerCase(), attester: attesterAddress.toLowerCase() }
-    );
-    return result.implicationss?.items || [];
-  } else {
-    const result = await query<{ implicationss: { items: Implication[] } }>(
-      client,
-      `
-        query GetImplicationsTo($toStatementId: String!) {
-          implicationss(where: { toStatementId: $toStatementId }) {
-            items {
-              attester {
-                id
-              }
-              fromStatementId
-              toStatementId
-              explanationCid
-              createdAt
-              blockNumber
-            }
-          }
-        }
-      `,
-      { toStatementId: statementId.toLowerCase() }
-    );
-    return result.implicationss?.items || [];
-  }
+  const result = await request(client.url, GetImplicationsToDocument, {
+    toStatementId: statementId.toLowerCase(),
+    attester: attesterAddress?.toLowerCase() ?? null,
+  });
+  // explanationCid is not in schema; BigInt fields come as strings at runtime
+  return (result.implicationss?.items ?? []) as unknown as Implication[];
 }
 
 /**
@@ -192,34 +104,13 @@ export async function getImplication(
   fromStatementId: string,
   toStatementId: string
 ): Promise<Implication | null> {
-  const result = await query<{ implications: Implication | null }>(
-    client,
-    `
-      query GetImplication($attester: String!, $fromStatementId: String!, $toStatementId: String!) {
-        implications(
-          attester: $attester,
-          fromStatementId: $fromStatementId,
-          toStatementId: $toStatementId
-        ) {
-          attester {
-            id
-          }
-          fromStatementId
-          toStatementId
-          explanationCid
-          createdAt
-          blockNumber
-        }
-      }
-    `,
-    {
-      attester: attesterAddress.toLowerCase(),
-      fromStatementId: fromStatementId.toLowerCase(),
-      toStatementId: toStatementId.toLowerCase()
-    }
-  );
-
-  return result.implications;
+  const result = await request(client.url, GetImplicationDocument, {
+    attester: attesterAddress.toLowerCase(),
+    fromStatementId: fromStatementId.toLowerCase(),
+    toStatementId: toStatementId.toLowerCase(),
+  });
+  // explanationCid is not in schema; BigInt fields come as strings at runtime
+  return result.implications as unknown as Implication | null;
 }
 
 // ============================================================================
@@ -249,22 +140,9 @@ export async function getIndirectSupporters(
 
   // Step 2: Fetch believers for all implications in parallel
   const believersQueries = implications.map(implication =>
-    query<{ beliefss: { items: Array<{ user: { id: string }; beliefState: number }> } }>(
-      client,
-      `
-        query GetBelievers($statementId: String!) {
-          beliefss(where: { statementId: $statementId, beliefState: 1 }) {
-            items {
-              user {
-                id
-              }
-              beliefState
-            }
-          }
-        }
-      `,
-      { statementId: implication.fromStatementId.toLowerCase() }
-    )
+    request(client.url, GetBelieversForStatementDocument, {
+      statementId: implication.fromStatementId.toLowerCase(),
+    })
   );
 
   const believersResults = await Promise.all(believersQueries);
@@ -273,7 +151,7 @@ export async function getIndirectSupporters(
   const userToViaStatement = new Map<string, string>();
 
   implications.forEach((implication, idx) => {
-    const believers = believersResults[idx].beliefss?.items || [];
+    const believers = (believersResults[idx].beliefss?.items ?? []) as Array<{ user: { id: string }; beliefState: number }>;
     believers.forEach(believer => {
       const userAddress = believer.user.id;
       // Store the first statement that led to this indirect support
@@ -334,33 +212,13 @@ export async function browseStatementsByMostSupporters(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await query<{ statementss: { items: StatementListItem[] } }>(
-    client,
-    `
-      query BrowseByMostSupporters($limit: Int!, $offset: Int!) {
-        statementss(
-          limit: $limit
-          offset: $offset
-          orderBy: "believerCount"
-          orderDirection: "${orderDirection}"
-        ) {
-          items {
-            id
-            cid
-            statementType
-            title
-            excerpt
-            believerCount
-            disbelieverCount
-            createdAt
-          }
-        }
-      }
-    `,
-    { limit, offset }
-  );
-
-  return result.statementss?.items || [];
+  const result = await request(client.url, BrowseByMostSupportersDocument, {
+    limit,
+    offset,
+    orderDirection,
+  });
+  // BigInt fields (createdAt) come as strings at runtime
+  return (result.statementss?.items ?? []) as unknown as StatementListItem[];
 }
 
 /**
@@ -372,33 +230,13 @@ export async function browseStatementsByNewest(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await query<{ statementss: { items: StatementListItem[] } }>(
-    client,
-    `
-      query BrowseByNewest($limit: Int!, $offset: Int!) {
-        statementss(
-          limit: $limit
-          offset: $offset
-          orderBy: "createdAt"
-          orderDirection: "${orderDirection}"
-        ) {
-          items {
-            id
-            cid
-            statementType
-            title
-            excerpt
-            believerCount
-            disbelieverCount
-            createdAt
-          }
-        }
-      }
-    `,
-    { limit, offset }
-  );
-
-  return result.statementss?.items || [];
+  const result = await request(client.url, BrowseByNewestDocument, {
+    limit,
+    offset,
+    orderDirection,
+  });
+  // BigInt fields (createdAt) come as strings at runtime
+  return (result.statementss?.items ?? []) as unknown as StatementListItem[];
 }
 
 /**
@@ -410,28 +248,12 @@ export async function getAllStatements(
 ): Promise<StatementListItem[]> {
   const { limit = 100, offset = 0 } = options;
 
-  const result = await query<{ statementss: { items: StatementListItem[] } }>(
-    client,
-    `
-      query GetAllStatements($limit: Int!, $offset: Int!) {
-        statementss(limit: $limit, offset: $offset) {
-          items {
-            id
-            cid
-            statementType
-            title
-            excerpt
-            believerCount
-            disbelieverCount
-            createdAt
-          }
-        }
-      }
-    `,
-    { limit, offset }
-  );
-
-  return result.statementss?.items || [];
+  const result = await request(client.url, GetAllStatementsDocument, {
+    limit,
+    offset,
+  });
+  // BigInt fields (createdAt) come as strings at runtime
+  return (result.statementss?.items ?? []) as unknown as StatementListItem[];
 }
 
 /**
@@ -441,44 +263,11 @@ export async function getUserBeliefs(
   client: GraphQLClient,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await query<{
-    users: {
-      beliefs: {
-        items: Array<{
-          statementId: string;
-          beliefState: number;
-          statement: StatementListItem;
-        }>
-      }
-    }
-  }>(
-    client,
-    `
-      query GetUserBeliefs($user: String!) {
-        users(id: $user) {
-          beliefs(where: { beliefState: 1 }) {
-            items {
-              statementId
-              beliefState
-              statement {
-                id
-                cid
-                statementType
-                title
-                excerpt
-                believerCount
-                disbelieverCount
-                createdAt
-              }
-            }
-          }
-        }
-      }
-    `,
-    { user: userAddress.toLowerCase() }
-  );
+  const result = await request(client.url, GetUserBeliefsDocument, {
+    user: userAddress.toLowerCase(),
+  });
 
-  return result.users?.beliefs?.items.map(item => item.statement) || [];
+  return (result.users?.beliefs?.items.map(item => item.statement) ?? []) as unknown as StatementListItem[];
 }
 
 /**
@@ -488,44 +277,11 @@ export async function getUserDisbeliefs(
   client: GraphQLClient,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await query<{
-    users: {
-      beliefs: {
-        items: Array<{
-          statementId: string;
-          beliefState: number;
-          statement: StatementListItem;
-        }>
-      }
-    }
-  }>(
-    client,
-    `
-      query GetUserDisbeliefs($user: String!) {
-        users(id: $user) {
-          beliefs(where: { beliefState: 2 }) {
-            items {
-              statementId
-              beliefState
-              statement {
-                id
-                cid
-                statementType
-                title
-                excerpt
-                believerCount
-                disbelieverCount
-                createdAt
-              }
-            }
-          }
-        }
-      }
-    `,
-    { user: userAddress.toLowerCase() }
-  );
+  const result = await request(client.url, GetUserDisbeliefsDocument, {
+    user: userAddress.toLowerCase(),
+  });
 
-  return result.users?.beliefs?.items.map(item => item.statement) || [];
+  return (result.users?.beliefs?.items.map(item => item.statement) ?? []) as unknown as StatementListItem[];
 }
 
 /**

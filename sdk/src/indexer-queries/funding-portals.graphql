@@ -1,0 +1,102 @@
+# Note: The schema currently uses projectAlignments/projectAlignmentss with projectAddress.
+# The TypeScript layer maps projectAddress <-> subjectAddress for API compatibility.
+
+query GetAlignedSubjects($statementId: String!, $attester: String) {
+  projectAlignmentss(
+    where: { statementId: $statementId, attester: $attester }
+  ) {
+    items {
+      attester
+      projectAddress
+      statementId
+      createdAt
+      blockNumber
+    }
+  }
+}
+
+query GetSubjectStatements($projectAddress: String!, $attester: String) {
+  projectAlignmentss(
+    where: { projectAddress: $projectAddress, attester: $attester }
+  ) {
+    items {
+      attester
+      projectAddress
+      statementId
+      createdAt
+      blockNumber
+    }
+  }
+}
+
+query GetAlignmentAttestation(
+  $attester: String!
+  $projectAddress: String!
+  $statementId: String!
+) {
+  projectAlignments(
+    attester: $attester
+    projectAddress: $projectAddress
+    statementId: $statementId
+  ) {
+    attester
+    projectAddress
+    statementId
+    createdAt
+    blockNumber
+  }
+}
+
+query GetAlignmentsByAttester($attester: String!) {
+  projectAlignmentss(where: { attester: $attester }) {
+    items {
+      attester
+      projectAddress
+      statementId
+      createdAt
+      blockNumber
+    }
+  }
+}
+
+query GetImplicationsToForFP($toStatementId: String!, $attester: String) {
+  implicationss(
+    where: { toStatementId: $toStatementId, attester: $attester }
+  ) {
+    items {
+      fromStatementId
+      attester {
+        id
+      }
+    }
+  }
+}
+
+query GetProjectTotalReceived($id: String!) {
+  projects(id: $id) {
+    totalReceived
+  }
+}
+
+query GetProjectDetails($id: String!) {
+  projects(id: $id) {
+    id
+    totalReceived
+    threshold
+    deadline
+  }
+}
+
+query GetParticipantSummaries($projectAddress: String!) {
+  participantSummariess(where: { projectAddress: $projectAddress }) {
+    items {
+      participant
+      totalContributed
+      totalRefunded
+      netContribution
+      contributionCount
+      firstContributionAt
+      lastContributionAt
+    }
+  }
+}
