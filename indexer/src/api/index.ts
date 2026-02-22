@@ -12,11 +12,11 @@ import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 
-// Import subsystem APIs
-import conceptspaceApi from "../conceptspace/api";
-import pubstarterApi from "../pubstarter/api";
-import delegationApi from "../delegation/api";
-import fundingportalApi from "../fundingportal/api";
+// Import subsystem API factories
+import { createConceptspaceApi } from "../conceptspace/api";
+import { createPubstarterApi } from "../pubstarter/api";
+import { createDelegationApi } from "../delegation/api";
+import { createFundingportalApi } from "../fundingportal/api";
 
 // Import background jobs
 import { startIpfsSyncJobs } from "../utils/ipfsSyncJob.js";
@@ -35,10 +35,10 @@ app.use("/", graphql({ db, schema }));
 app.use("/graphql", graphql({ db, schema }));
 
 // Subsystems
-app.route("/conceptspace", conceptspaceApi);
-app.route("/pubstarter", pubstarterApi);
-app.route("/delegation", delegationApi);
-app.route("/fundingportal", fundingportalApi);
+app.route("/conceptspace", createConceptspaceApi(db, schema));
+app.route("/pubstarter", createPubstarterApi(db, schema));
+app.route("/delegation", createDelegationApi(db, schema));
+app.route("/fundingportal", createFundingportalApi(db, schema));
 
 // Background IPFS sync jobs
 startIpfsSyncJobs(IPFS_GATEWAY, db, [

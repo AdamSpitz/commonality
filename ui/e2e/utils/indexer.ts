@@ -97,8 +97,8 @@ export async function waitForStatement(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: `query GetStatement($id: String!) {
-            statements(id: $id) {
-              id
+            statements(cidV1: $id) {
+              cidV1
               believerCount
             }
           }`,

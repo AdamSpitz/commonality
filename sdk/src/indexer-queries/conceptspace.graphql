@@ -1,9 +1,8 @@
 query GetStatement($id: String!) {
-  statements(id: $id) {
-    id
+  statements(cidV1: $id) {
+    cidV1
     believerCount
     disbelieverCount
-    cid
     statementType
     title
     excerpt
@@ -81,8 +80,7 @@ query BrowseByMostSupporters($limit: Int!, $offset: Int!, $orderDirection: Strin
     orderDirection: $orderDirection
   ) {
     items {
-      id
-      cid
+      cidV1
       statementType
       title
       excerpt
@@ -101,8 +99,7 @@ query BrowseByNewest($limit: Int!, $offset: Int!, $orderDirection: String!) {
     orderDirection: $orderDirection
   ) {
     items {
-      id
-      cid
+      cidV1
       statementType
       title
       excerpt
@@ -116,8 +113,7 @@ query BrowseByNewest($limit: Int!, $offset: Int!, $orderDirection: String!) {
 query GetAllStatements($limit: Int!, $offset: Int!) {
   statementss(limit: $limit, offset: $offset) {
     items {
-      id
-      cid
+      cidV1
       statementType
       title
       excerpt
@@ -135,8 +131,7 @@ query GetUserBeliefs($user: String!) {
         statementId
         beliefState
         statement {
-          id
-          cid
+          cidV1
           statementType
           title
           excerpt
@@ -156,8 +151,7 @@ query GetUserDisbeliefs($user: String!) {
         statementId
         beliefState
         statement {
-          id
-          cid
+          cidV1
           statementType
           title
           excerpt

@@ -86,8 +86,8 @@ export async function assertBeliefCountsMatch(
     // Count query: get the cached believerCount from Statement
     `
       query GetStatement($id: String!) {
-        statements(id: $id) {
-          id
+        statements(cidV1: $id) {
+          cidV1
           believerCount
         }
       }
@@ -118,8 +118,8 @@ export async function assertBeliefCountsMatch(
     // Count query: get the cached disbelieverCount from Statement
     `
       query GetStatement($id: String!) {
-        statements(id: $id) {
-          id
+        statements(cidV1: $id) {
+          cidV1
           disbelieverCount
         }
       }
@@ -578,13 +578,13 @@ async function checkOrphanedBeliefs(
     // Check statement exists (cache checks to avoid redundant queries)
     if (!checkedStatements.has(statementId)) {
       const statementResult = await query<{
-        statements: { id: string } | null
+        statements: { cidV1: string } | null
       }>(
         machinery,
         `
           query GetStatement($id: String!) {
-            statements(id: $id) {
-              id
+            statements(cidV1: $id) {
+              cidV1
             }
           }
         `,
@@ -677,13 +677,13 @@ async function checkOrphanedImplications(
     // Check fromStatement exists
     if (!checkedStatements.has(fromId)) {
       const statementResult = await query<{
-        statements: { id: string } | null
+        statements: { cidV1: string } | null
       }>(
         machinery,
         `
           query GetStatement($id: String!) {
-            statements(id: $id) {
-              id
+            statements(cidV1: $id) {
+              cidV1
             }
           }
         `,
@@ -704,13 +704,13 @@ async function checkOrphanedImplications(
     // Check toStatement exists
     if (!checkedStatements.has(toId)) {
       const statementResult = await query<{
-        statements: { id: string } | null
+        statements: { cidV1: string } | null
       }>(
         machinery,
         `
           query GetStatement($id: String!) {
-            statements(id: $id) {
-              id
+            statements(cidV1: $id) {
+              cidV1
             }
           }
         `,

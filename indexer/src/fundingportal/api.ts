@@ -18,8 +18,6 @@
  * - /api/project-schema.statements/:subjectAddress - Get all schema.statements a project is aligned with
  */
 
-import { db } from "ponder:api";
-import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, inArray } from "ponder";
@@ -31,6 +29,7 @@ import {
 } from "../utils/validation";
 import { isValidCidV1 } from "../utils/cid-types";
 
+export function createFundingportalApi(db: any, schema: any) {
 const app = new Hono();
 
 // Expose SQL client for direct queries
@@ -551,4 +550,5 @@ app.get("/api/project-schema.statements/:subjectAddress", async (c) => {
   }
 });
 
-export default app;
+  return app;
+}

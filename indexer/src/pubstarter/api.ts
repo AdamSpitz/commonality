@@ -18,15 +18,15 @@
  * auto-generated GraphQL schema.
  */
 
-import { db } from "ponder:api";
-import schema from "ponder:schema";
 import { Hono } from "hono";
 import { graphql } from "ponder";
 
-const app = new Hono();
+export function createPubstarterApi(db: any, schema: any) {
+  const app = new Hono();
 
-// GraphQL API for pubstarter data (auto-generated from schema)
-app.use("/", graphql({ db, schema }));
-app.use("/graphql", graphql({ db, schema }));
+  // GraphQL API for pubstarter data (auto-generated from schema)
+  app.use("/", graphql({ db, schema }));
+  app.use("/graphql", graphql({ db, schema }));
 
-export default app;
+  return app;
+}

@@ -22,7 +22,7 @@ type Meta {
 }
 
 type Query {
-  statements(id: String!): statements
+  statements(cidV1: String!): statements
   statementss(where: statementsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): statementsPage!
   beliefs(user: String!, statementId: String!): beliefs
   beliefss(where: beliefsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): beliefsPage!
@@ -66,8 +66,7 @@ type Query {
 }
 
 type statements {
-  id: String!
-  cid: String
+  cidV1: String!
   content: String
   statementType: String
   title: String
@@ -236,26 +235,16 @@ type statementsPage {
 input statementsFilter {
   AND: [statementsFilter]
   OR: [statementsFilter]
-  id: String
-  id_not: String
-  id_in: [String]
-  id_not_in: [String]
-  id_contains: String
-  id_not_contains: String
-  id_starts_with: String
-  id_ends_with: String
-  id_not_starts_with: String
-  id_not_ends_with: String
-  cid: String
-  cid_not: String
-  cid_in: [String]
-  cid_not_in: [String]
-  cid_contains: String
-  cid_not_contains: String
-  cid_starts_with: String
-  cid_ends_with: String
-  cid_not_starts_with: String
-  cid_not_ends_with: String
+  cidV1: String
+  cidV1_not: String
+  cidV1_in: [String]
+  cidV1_not_in: [String]
+  cidV1_contains: String
+  cidV1_not_contains: String
+  cidV1_starts_with: String
+  cidV1_ends_with: String
+  cidV1_not_starts_with: String
+  cidV1_not_ends_with: String
   content: String
   content_not: String
   content_in: [String]

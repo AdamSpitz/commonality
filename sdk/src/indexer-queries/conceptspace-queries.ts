@@ -41,7 +41,10 @@ export async function getStatement(
     id: statementId.toLowerCase(),
   });
   // BigInt fields (createdAt) come as strings at runtime
-  return result.statements as unknown as Statement | null;
+  // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
+  const raw = result.statements as any;
+  if (!raw) return null;
+  return { ...raw, id: raw.cidV1, cid: raw.cidV1 } as unknown as Statement;
 }
 
 /**
@@ -218,7 +221,8 @@ export async function browseStatementsByMostSupporters(
     orderDirection,
   });
   // BigInt fields (createdAt) come as strings at runtime
-  return (result.statementss?.items ?? []) as unknown as StatementListItem[];
+  // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
+  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
 }
 
 /**
@@ -236,7 +240,8 @@ export async function browseStatementsByNewest(
     orderDirection,
   });
   // BigInt fields (createdAt) come as strings at runtime
-  return (result.statementss?.items ?? []) as unknown as StatementListItem[];
+  // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
+  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
 }
 
 /**
@@ -253,7 +258,8 @@ export async function getAllStatements(
     offset,
   });
   // BigInt fields (createdAt) come as strings at runtime
-  return (result.statementss?.items ?? []) as unknown as StatementListItem[];
+  // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
+  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
 }
 
 /**
@@ -267,7 +273,12 @@ export async function getUserBeliefs(
     user: userAddress.toLowerCase(),
   });
 
-  return (result.users?.beliefs?.items.map(item => item.statement) ?? []) as unknown as StatementListItem[];
+  // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
+  return (result.users?.beliefs?.items.map(item => {
+    const s = item.statement as any;
+    if (!s) return s;
+    return { ...s, id: s.cidV1, cid: s.cidV1 };
+  }) ?? []) as unknown as StatementListItem[];
 }
 
 /**
@@ -281,7 +292,12 @@ export async function getUserDisbeliefs(
     user: userAddress.toLowerCase(),
   });
 
-  return (result.users?.beliefs?.items.map(item => item.statement) ?? []) as unknown as StatementListItem[];
+  // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
+  return (result.users?.beliefs?.items.map(item => {
+    const s = item.statement as any;
+    if (!s) return s;
+    return { ...s, id: s.cidV1, cid: s.cidV1 };
+  }) ?? []) as unknown as StatementListItem[];
 }
 
 /**
@@ -320,7 +336,7 @@ export async function getStatementSuggestions(
       suggestions.push({
         statement: {
           id: targetStatement.id,
-          cid: targetStatement.cid || '',
+          cid: targetStatement.cid ?? targetStatement.id,
           statementType: targetStatement.statementType || '',
           title: targetStatement.title || '',
           excerpt: targetStatement.excerpt || '',
@@ -343,7 +359,7 @@ export async function getStatementSuggestions(
       suggestions.push({
         statement: {
           id: sourceOfImplication.id,
-          cid: sourceOfImplication.cid || '',
+          cid: sourceOfImplication.cid ?? sourceOfImplication.id,
           statementType: sourceOfImplication.statementType || '',
           title: sourceOfImplication.title || '',
           excerpt: sourceOfImplication.excerpt || '',

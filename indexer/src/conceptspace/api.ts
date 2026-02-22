@@ -20,8 +20,6 @@
  * - /api/suggestions/:userAddress - Get statement suggestions for a user
  */
 
-import { db } from "ponder:api";
-import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, inArray } from "ponder";
@@ -36,6 +34,7 @@ import { runConceptspaceIpfsSyncIteration } from "./utils/ipfsSyncJob";
 
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 
+export function createConceptspaceApi(db: any, schema: any) {
 const app = new Hono();
 
 // Expose SQL client for direct queries
@@ -382,4 +381,5 @@ app.get("/api/suggestions/:userAddress", async (c) => {
   }
 });
 
-export default app;
+  return app;
+}

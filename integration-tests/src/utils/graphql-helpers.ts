@@ -40,12 +40,11 @@ export interface IndirectSupportInfo {
 // ============================================================================
 
 export const QUERY_GET_STATEMENT = `
-  query GetStatement($id: ID!) {
-    statement(id: $id) {
-      id
+  query GetStatement($id: String!) {
+    statements(cidV1: $id) {
+      cidV1
       believerCount
       disbelieverCount
-      cid
       statementType
       title
       excerpt
@@ -113,18 +112,18 @@ export const QUERY_GET_INDIRECT_SUPPORTERS = `
 // ============================================================================
 
 /**
- * Get statement by ID
+ * Get statement by CID
  */
 export async function getStatement(
   machinery: ActionTestingMachinery,
-  statementId: string
+  cidV1: string
 ): Promise<Statement | null> {
-  const result = await executeSDKQuery<{ statement: Statement | null }>(
+  const result = await executeSDKQuery<{ statements: Statement | null }>(
     machinery,
     QUERY_GET_STATEMENT,
-    { id: statementId }
+    { id: cidV1 }
   );
-  return result.statement;
+  return result.statements;
 }
 
 /**

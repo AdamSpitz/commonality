@@ -18,8 +18,6 @@
  * - /api/available-funding/:statementId - Get total available funding for a statement
  */
 
-import { db } from "ponder:api";
-import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { eq, and, asc } from "ponder";
@@ -32,6 +30,7 @@ import {
 } from "../utils/validation";
 import { isValidCidV1 } from "../utils/cid-types";
 
+export function createDelegationApi(db: any, schema: any) {
 const app = new Hono();
 
 // Expose SQL client for direct queries
@@ -442,4 +441,5 @@ app.get("/api/note-history/:noteId", async (c) => {
   }
 });
 
-export default app;
+  return app;
+}
