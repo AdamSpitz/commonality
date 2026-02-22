@@ -68,5 +68,5 @@ await waitForIndexerToSyncToBlockNumber(graphqlClient, receipt.blockNumber);
 ## Structure
 
   - The `graphql-queries/` directory is the main public API for reading data.
-  - The `queries/` directory contains the underlying implementation that talks to the indexer.
+  - The `indexer-queries/` directory contains the underlying implementation that talks to the indexer.
   - The `actions/` directory contains actions that "write" to the system (blockchain writes, IPFS uploads).
