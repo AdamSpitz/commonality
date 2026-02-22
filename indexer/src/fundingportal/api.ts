@@ -117,7 +117,7 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
       )
     );
 
-  const implyingIds = [...new Set(implyingStatements.map((s) => s.fromStatementId))];
+  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId))];
 
   // Step 3: Find schema.projects aligned with those implying schema.statements
   let indirectAlignments: any[] = [];
@@ -259,7 +259,7 @@ app.get("/api/available-funding/:statementId", async (c) => {
       )
     );
 
-  const implyingIds = [...new Set(implyingStatements.map((s) => s.fromStatementId))];
+  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId))];
 
   // Step 3: Get indirect funding (notes intended for implying schema.statements)
   // TODO: Re-implement using NoteIntent attestations
@@ -364,7 +364,7 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
       )
     );
 
-  const directProjectAddresses = [...new Set(directAlignments.map((a) => a.subjectAddress))];
+  const directProjectAddresses = [...new Set(directAlignments.map((a: { subjectAddress: string }) => a.subjectAddress))];
 
   // Find implying schema.statements
   const implyingStatements = await db
@@ -377,7 +377,7 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
       )
     );
 
-  const implyingIds = [...new Set(implyingStatements.map((s) => s.fromStatementId))];
+  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId))];
 
   let indirectProjectAddresses: string[] = [];
   if (implyingIds.length > 0) {
@@ -390,7 +390,7 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
           inArray(schema.alignmentAttestations.attester, trustedAttesters)
         )
       );
-    indirectProjectAddresses = [...new Set(indirectAlignments.map((a) => a.subjectAddress))];
+    indirectProjectAddresses = [...new Set(indirectAlignments.map((a: { subjectAddress: string }) => a.subjectAddress))] as string[];
   }
 
   const allProjectAddresses = [...new Set([...directProjectAddresses, ...indirectProjectAddresses])];

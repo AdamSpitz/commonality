@@ -86,7 +86,7 @@ app.get("/api/delegation-chain/:noteId", async (c) => {
       .where(eq(schema.delegationChains.noteId, noteId))
       .orderBy(asc(schema.delegationChains.position));
 
-    const chain = chainEntries.map((entry) => entry.address);
+    const chain = chainEntries.map((entry: { address: string }) => entry.address);
 
     return c.json({
       noteId: noteId.toString(),
@@ -182,7 +182,7 @@ app.get("/api/active-notes/:address", async (c) => {
           .where(eq(schema.delegationChains.noteId, note.id))
           .orderBy(asc(schema.delegationChains.position));
 
-        noteData.chain = chainEntries.map((entry) => entry.address);
+        noteData.chain = chainEntries.map((entry: { address: string }) => entry.address);
         noteData.chainLength = chainEntries.length;
       }
 
@@ -342,7 +342,7 @@ app.get("/api/notes-by-root-owner/:address", async (c) => {
     // Apply pagination
     const notes = allNotes.slice(offset, offset + limit);
 
-    const result = notes.map((note) => ({
+    const result = notes.map((note: { id: bigint; owner: string; rootOwner: string; amount: bigint; token: string; tokenType: number; tokenId: bigint; active: boolean; createdAt: bigint }) => ({
       noteId: note.id.toString(),
       currentOwner: note.owner,
       amount: note.amount.toString(),
@@ -416,7 +416,7 @@ app.get("/api/note-history/:noteId", async (c) => {
     // Apply pagination
     const events = allEvents.slice(offset, offset + limit);
 
-    const result = events.map((event) => ({
+    const result = events.map((event: { eventType: string; actor: string; amount: bigint | null; parentNoteId: bigint | null; childNoteId: bigint | null; data: string | null; createdAt: bigint; blockNumber: bigint; transactionHash: string }) => ({
       eventType: event.eventType,
       actor: event.actor,
       amount: event.amount ? event.amount.toString() : null,

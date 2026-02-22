@@ -142,7 +142,7 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
       return c.json({ indirectSupporters: [], totalCount: 0, limit, offset });
     }
 
-    const implyingIds = implyingStatements.map((s) => s.fromStatementId);
+    const implyingIds = implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId);
 
     // Step 2: Find all schema.users who believe those implying schema.statements
     const supporters = await db
@@ -166,8 +166,8 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
         )
       );
 
-    const disbelieverSet = new Set(disbelievers.map((d) => d.user));
-    const allIndirectSupporters = [...new Set(supporters.map((s) => s.user))]
+    const disbelieverSet = new Set(disbelievers.map((d: { user: string }) => d.user));
+    const allIndirectSupporters = [...new Set(supporters.map((s: { user: string }) => s.user))]
       .filter((user) => !disbelieverSet.has(user));
 
     const totalCount = allIndirectSupporters.length;
@@ -230,7 +230,7 @@ app.get("/api/statement-support/:statementId", async (c) => {
         );
 
       if (implyingStatements.length > 0) {
-        const implyingIds = implyingStatements.map((s) => s.fromStatementId);
+        const implyingIds = implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId);
 
         // Count unique believers of implying schema.statements
         const supporters = await db
@@ -254,8 +254,8 @@ app.get("/api/statement-support/:statementId", async (c) => {
             )
           );
 
-        const disbelieverSet = new Set(disbelievers.map((d) => d.user));
-        indirectCount = [...new Set(supporters.map((s) => s.user))]
+        const disbelieverSet = new Set(disbelievers.map((d: { user: string }) => d.user));
+        indirectCount = [...new Set(supporters.map((s: { user: string }) => s.user))]
           .filter((user) => !disbelieverSet.has(user)).length;
       }
     }
@@ -314,7 +314,7 @@ app.get("/api/suggestions/:userAddress", async (c) => {
       return c.json({ suggestions: [] });
     }
 
-    const believedIds = userBeliefs.map((b) => b.statementId);
+    const believedIds = userBeliefs.map((b: { statementId: string }) => b.statementId);
 
     // Find schema.statements implied by user's schema.beliefs (that user hasn't already signed)
     const impliedStatements = await db
@@ -332,13 +332,13 @@ app.get("/api/suggestions/:userAddress", async (c) => {
 
     // Filter out already-believed schema.statements and get their info
     const notYetBelieved = impliedStatements
-      .filter((s) => !believedIds.includes(s.toStatementId));
+      .filter((s: { toStatementId: string }) => !believedIds.includes(s.toStatementId));
 
     if (notYetBelieved.length === 0) {
       return c.json({ suggestions: [] });
     }
 
-    const targetIds = [...new Set(notYetBelieved.map((s) => s.toStatementId))];
+    const targetIds = [...new Set(notYetBelieved.map((s: { toStatementId: string }) => s.toStatementId))];
 
     const targetStatements = await db
       .select()
@@ -346,19 +346,19 @@ app.get("/api/suggestions/:userAddress", async (c) => {
       .where(inArray(schema.statements.cidV1, targetIds));
 
     // Get source statement believer counts for comparison
-    const sourceIds = [...new Set(notYetBelieved.map((s) => s.fromStatementId))];
+    const sourceIds = [...new Set(notYetBelieved.map((s: { fromStatementId: string }) => s.fromStatementId))];
     const sourceStatements = await db
       .select()
       .from(schema.statements)
       .where(inArray(schema.statements.cidV1, sourceIds));
 
-    const sourceMap = new Map(sourceStatements.map((s) => [s.cidV1, s]));
+    const sourceMap = new Map(sourceStatements.map((s: { cidV1: string; believerCount: number }) => [s.cidV1, s]));
 
     // Build suggestions: target schema.statements more popular than source
     const suggestions = targetStatements
-      .map((target) => {
-        const implication = notYetBelieved.find((i) => i.toStatementId === target.cidV1);
-        const source = sourceMap.get(implication!.fromStatementId);
+      .map((target: { cidV1: string; believerCount: number }) => {
+        const implication = notYetBelieved.find((i: { toStatementId: string; fromStatementId: string }) => i.toStatementId === target.cidV1);
+        const source: { cidV1: string; believerCount: number } | undefined = sourceMap.get(implication!.fromStatementId) as { cidV1: string; believerCount: number } | undefined;
 
         if (!source || target.believerCount <= source.believerCount) {
           return null;
@@ -370,8 +370,8 @@ app.get("/api/suggestions/:userAddress", async (c) => {
           popularityGain: target.believerCount - source.believerCount,
         };
       })
-      .filter(Boolean)
-      .sort((a, b) => b!.popularityGain - a!.popularityGain)
+      .filter((s: { suggestedStatement: { cidV1: string; believerCount: number }; becauseYouBelieve: { cidV1: string; believerCount: number }; popularityGain: number } | null): s is { suggestedStatement: { cidV1: string; believerCount: number }; becauseYouBelieve: { cidV1: string; believerCount: number }; popularityGain: number } => Boolean(s))
+      .sort((a: { suggestedStatement: { cidV1: string; believerCount: number }; becauseYouBelieve: { cidV1: string; believerCount: number }; popularityGain: number }, b: { suggestedStatement: { cidV1: string; believerCount: number }; becauseYouBelieve: { cidV1: string; believerCount: number }; popularityGain: number }) => b.popularityGain - a.popularityGain)
       .slice(0, limit);
 
     return c.json({ suggestions, limit });

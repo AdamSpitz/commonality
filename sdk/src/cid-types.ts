@@ -16,6 +16,13 @@ export function isIpfsCidV1(value: string): value is IpfsCidV1 {
   return value.startsWith("bafy") || value.startsWith("Qm");
 }
 
+export function ensureIpfsCidV1(value: string): IpfsCidV1 {
+  if (!isIpfsCidV1(value)) {
+    throw new Error(`Invalid IPFS CIDv1: ${value}`);
+  }
+  return value;
+}
+
 export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
   return value.startsWith("0x") && value.length === 66;
 }
