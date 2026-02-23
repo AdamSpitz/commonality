@@ -126,7 +126,7 @@ export async function getImplicationsFrom(
   attesterAddress?: string
 ): Promise<Implication[]> {
   const result = await request(machinery.graphqlClient.url, GetImplicationsFromDocument, {
-    fromStatementId: statementCid,
+    fromStatementCid: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
@@ -142,7 +142,7 @@ export async function getImplicationsTo(
   attesterAddress?: string
 ): Promise<Implication[]> {
   const result = await request(machinery.graphqlClient.url, GetImplicationsToDocument, {
-    toStatementId: statementCid,
+    toStatementCid: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
@@ -160,8 +160,8 @@ export async function getImplication(
 ): Promise<Implication | null> {
   const result = await request(machinery.graphqlClient.url, GetImplicationDocument, {
     attester: attesterAddress.toLowerCase(),
-    fromStatementId: fromStatementCid,
-    toStatementId: toStatementCid,
+    fromStatementCid: fromStatementCid,
+    toStatementCid: toStatementCid,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
   return result.implications as unknown as Implication | null;
@@ -279,6 +279,25 @@ export async function browseStatementsByMostSupporters(
  * Browse newest statements
  */
 export async function browseStatementsByNewest(
+  machinery: SDKMachinery,
+  options: BrowseStatementsOptions = {}
+): Promise<StatementListItem[]> {
+  const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
+
+  const result = await request(machinery.graphqlClient.url, BrowseByNewestDocument, {
+    limit,
+    offset,
+    orderDirection,
+  });
+  // BigInt fields (createdAt) come as strings at runtime
+  // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
+  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+}
+
+/**
+ * Browse newest statements
+ */
+export async function browseStatements(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {

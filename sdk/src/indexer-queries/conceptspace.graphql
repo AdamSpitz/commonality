@@ -110,6 +110,25 @@ query BrowseByNewest($limit: Int!, $offset: Int!, $orderDirection: String!) {
   }
 }
 
+query BrowseStatements($limit: Int!, $offset: Int!, $orderBy: String!, $orderDirection: String!) {
+  statementss(
+    limit: $limit
+    offset: $offset
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    items {
+      cidV1
+      statementType
+      title
+      excerpt
+      believerCount
+      disbelieverCount
+      createdAt
+    }
+  }
+}
+
 query GetAllStatements($limit: Int!, $offset: Int!) {
   statementss(limit: $limit, offset: $offset) {
     items {

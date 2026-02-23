@@ -158,7 +158,7 @@ export async function getIndirectlyAlignedSubjects(
 ): Promise<IndirectSubjectAlignment[]> {
   // Step 1: Find all statements that imply the target statement
   const implicationsResult = await request(machinery.graphqlClient.url, GetImplicationsToForFpDocument, {
-    toStatementId: statementCid,
+    toStatementCid: statementCid,
     attester: trustedImplicationAttester?.toLowerCase() ?? null,
   });
 
@@ -174,14 +174,14 @@ export async function getIndirectlyAlignedSubjects(
   for (const implication of implications) {
     const alignments = await getAlignedSubjects(
       machinery,
-      normalizeCidV1(implication.fromStatementId),
+      normalizeCidV1(implication.fromStatementCid),
       trustedAlignmentAttester
     );
 
     for (const alignment of alignments) {
       indirectAlignments.push({
         subjectAddress: alignment.subjectAddress,
-        directStatementCid: normalizeCidV1(implication.fromStatementId),
+        directStatementCid: normalizeCidV1(implication.fromStatementCid),
         indirectStatementCid: statementCid,
         attester: alignment.attester,
       });
