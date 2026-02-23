@@ -14,6 +14,7 @@ import {
   uploadToIPFS,
   cidToBytes32,
   PROJECT_ALIGNMENT_TOPIC,
+  type IpfsCidV1,
   type ImplicationsContract,
   type PubstarterContract,
   type AssuranceContract,
@@ -158,7 +159,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p1Details.assuranceContractAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
     await attestAlignmentChecked(
       attesterClients,
@@ -166,8 +167,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p2Details.assuranceContractAddress,
       s2Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s2Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     testLog(`  Alignments attested`);
@@ -218,7 +218,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     testLog('  Querying total funding for S2...');
     const metrics = await getTotalFundingForCause(
       machinery,
-      s2Id,
+      s2Cid,
       attesterClients.account, // Trust this attester for implications
       attesterClients.account  // Trust this attester for alignments
     );
@@ -287,7 +287,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     testLog('  Querying available funding...');
     const metrics = await getTotalFundingForCause(
       machinery,
-      causeId
+      causeCid
     );
 
     testLog(`  Total available from notes: ${metrics.totalAvailableFromNotes}`);
@@ -319,8 +319,6 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const s2Content = { text: 'Fund medical research' };
     const s1Cid = await uploadToIPFS(s1Content);
     const s2Cid = await uploadToIPFS(s2Content);
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
 
     // Attest implication
     const implicationsContract: ImplicationsContract = {
@@ -393,8 +391,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p1Details.assuranceContractAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s1Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
     await attestAlignmentChecked(
       attesterClients,
@@ -402,15 +399,14 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p2Details.assuranceContractAddress,
       s2Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s2Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Query all aligned projects for S2
     testLog('  Querying all aligned projects for S2...');
     const projects = await getAllAlignedProjectsForCause(
       machinery,
-      s2Id,
+      s2Cid,
       attesterClients.account, // Trust this attester for implications
       attesterClients.account  // Trust this attester for alignments
     );

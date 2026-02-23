@@ -13,7 +13,6 @@ import {
   uploadToIPFS,
   createStatement,
   publishDocument,
-  cidToBytes32,
   type ImplicationsContract,
   ImplicationsAbi,
 } from '@commonality/sdk';
@@ -63,10 +62,6 @@ describe('Multiple Attesters Tests (F2)', () => {
     const s1Cid = await publishDocument(createStatement({ content: 'We should ban fossil fuels by 2030' }));
     const s2Cid = await publishDocument(createStatement({ content: 'We should take climate action' }));
     const s3Cid = await publishDocument(createStatement({ content: 'We should protect the environment' }));
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
-    const s3Id = cidToBytes32(s3Cid);
-
     testLog('  S1 -> S2 (Attester 1)');
     testLog('  S2 -> S3 (Attester 2)');
 
@@ -77,7 +72,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     await attestImplicationChecked(attester2, implicationsContract, machinery, s2Cid, s3Cid);
 
     // Query implications from S1 - should only find S1->S2 from Attester 1
-    const implicationsFromS1 = await getImplicationsFrom(machinery, s1Id);
+    const implicationsFromS1 = await getImplicationsFrom(machinery, s1Cid);
     assert.strictEqual(
       implicationsFromS1.length,
       1,
@@ -90,7 +85,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     );
 
     // Query implications to S3 - should only find S2->S3 from Attester 2
-    const implicationsToS3 = await getImplicationsTo(machinery, s3Id);
+    const implicationsToS3 = await getImplicationsTo(machinery, s3Cid);
     assert.strictEqual(
       implicationsToS3.length,
       1,
@@ -119,9 +114,6 @@ describe('Multiple Attesters Tests (F2)', () => {
     // Create two statements
     const sACid = await publishDocument(createStatement({ content: 'We should implement a universal basic income program' }));
     const sBCid = await publishDocument(createStatement({ content: 'We should work to reduce poverty levels' }));
-    const sAId = cidToBytes32(sACid);
-    const sBId = cidToBytes32(sBCid);
-
     testLog('  Three different attesters will attest SA -> SB');
 
     // All three attesters attest SA -> SB
@@ -130,7 +122,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     await attestImplicationChecked(attester3, implicationsContract, machinery, sACid, sBCid);
 
     // Query all implications from SA
-    const allImplications = await getImplicationsFrom(machinery, sAId);
+    const allImplications = await getImplicationsFrom(machinery, sACid);
     assert.strictEqual(
       allImplications.length,
       3,
@@ -165,9 +157,6 @@ describe('Multiple Attesters Tests (F2)', () => {
     const s1Cid = await publishDocument(createStatement({ content: 'We should invest in renewable energy' }));
     const s2Cid = await publishDocument(createStatement({ content: 'We should combat climate change' }));
     const s3Cid = await publishDocument(createStatement({ content: 'We should invest in solar panels' }));
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
-
     testLog('  Attester 1 attests: S1 -> S2');
     testLog('  Attester 2 attests: S3 -> S2');
 
@@ -179,7 +168,7 @@ describe('Multiple Attesters Tests (F2)', () => {
 
     // Query all implications to S2 (no filter)
     testLog('  Querying all implications to S2 (no filter)...');
-    const allImplications = await getImplicationsTo(machinery, s2Id);
+    const allImplications = await getImplicationsTo(machinery, s2Cid);
     assert.strictEqual(
       allImplications.length,
       2,
@@ -190,7 +179,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Querying implications to S2 (filter by Attester 1: ${attester1.account})...`);
     const attester1Implications = await getImplicationsTo(
       machinery,
-      s2Id,
+      s2Cid,
       attester1.account
     );
     assert.strictEqual(
@@ -208,7 +197,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Querying implications to S2 (filter by Attester 2: ${attester2.account})...`);
     const attester2Implications = await getImplicationsTo(
       machinery,
-      s2Id,
+      s2Cid,
       attester2.account
     );
     assert.strictEqual(
@@ -241,9 +230,6 @@ describe('Multiple Attesters Tests (F2)', () => {
 
     const specificCid = await uploadToIPFS(specificStatement);
     const generalCid = await uploadToIPFS(generalStatement);
-    const specificId = cidToBytes32(specificCid);
-    const generalId = cidToBytes32(generalCid);
-
     testLog('  Creating implications from two different attesters...');
 
     // Attester 1 attests specific -> general
@@ -252,7 +238,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     // Verify implications can be queried by specific attester
     const attester1Implications = await getImplicationsTo(
       machinery,
-      generalId,
+      generalCid,
       attester1.account
     );
     assert.strictEqual(
@@ -263,7 +249,7 @@ describe('Multiple Attesters Tests (F2)', () => {
 
     const attester2Implications = await getImplicationsTo(
       machinery,
-      generalId,
+      generalCid,
       attester2.account
     );
     assert.strictEqual(

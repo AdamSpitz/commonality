@@ -18,6 +18,7 @@
  */
 
 import { type ActionTestingMachinery } from './action-machinery.js';
+import { type IpfsCidV1 } from '@commonality/sdk';
 export { type ActionTestingMachinery };
 
 /**
@@ -43,13 +44,13 @@ export interface ActionContext {
 
   /** Entity identifiers affected by the action */
   entities: {
-    statementCid?: string;
+    statementCid?: IpfsCidV1;
     projectAddress?: string;
     subjectAddress?: string;
     userAddress?: string;
     delegationNoteId?: string;
-    fromStatementCid?: string;
-    toStatementCid?: string;
+    fromStatementCid?: IpfsCidV1;
+    toStatementCid?: IpfsCidV1;
     attesterAddress?: string;
     marketplaceAddress?: string;
     // ... other entity IDs as needed

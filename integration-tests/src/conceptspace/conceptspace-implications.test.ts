@@ -179,8 +179,6 @@ describe('Conceptspace Implications', () => {
     const s1 = await publishDocument(createStatement({ content: 'Statement 1' }));
     const s2 = await publishDocument(createStatement({ content: 'Statement 2' }));
     const s3 = await publishDocument(createStatement({ content: 'Statement 3' }));
-    const s1Id = cidToBytes32(s1);
-    const s3Id = cidToBytes32(s3);
 
     testLog('  Creating chain: S1 -> S2 -> S3...');
 
@@ -192,9 +190,9 @@ describe('Conceptspace Implications', () => {
 
     // Verify S1 -> S3 does NOT exist (no transitivity)
     // This is the key business logic check for non-transitivity
-    const s3ImplicationsTo = await getImplicationsTo(machinery, s3Id);
+    const s3ImplicationsTo = await getImplicationsTo(machinery, s3);
     const s1ToS3 = s3ImplicationsTo.find(
-      imp => imp.fromStatementCid.toLowerCase() === s1Id.toLowerCase()
+      imp => imp.fromStatementCid.toLowerCase() === s1.toLowerCase()
     );
     assert.strictEqual(s1ToS3, undefined, 'S1 -> S3 should NOT exist (implications are not transitive)');
 

@@ -13,8 +13,8 @@ import {
   uploadToIPFS,
   createStatement,
   publishDocument,
-  cidToBytes32,
   type AlignmentAttestationsContract,
+  type IpfsCidV1,
   type PubstarterContract,
   AlignmentAttestationsAbi,
   PubstarterAbi,
@@ -87,7 +87,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 1000n * 10n**18n, // 1000 ETH
       deadline: BigInt(currentTime + 86400 * 30), // 30 days from now
-      projectMetadataCid: 'QmTestProjectCid',
+      projectMetadataCid: 'QmTestProjectCid' as unknown as IpfsCidV1,
       tokenIds: [1n, 2n],
       tokenCounts: [100n, 50n],
       tokenPrices: [10n * 10n**18n, 20n * 10n**18n], // 10 ETH, 20 ETH
@@ -104,8 +104,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       projectDetails.tokenAddress,
       statementCid,
-      PROJECT_ALIGNMENT_TOPIC,
-      statementId
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     testLog('  ✓ Alignment attested successfully (verified by property checks)');
@@ -135,7 +134,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 500n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmTestProjectCid2',
+      projectMetadataCid: 'QmTestProjectCid2' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [5n * 10n**18n],
@@ -152,8 +151,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       projectDetails.tokenAddress,
       statementCid,
-      PROJECT_ALIGNMENT_TOPIC,
-      statementId
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Attester 2 also attests the same alignment
@@ -164,14 +162,13 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       projectDetails.tokenAddress,
       statementCid,
-      PROJECT_ALIGNMENT_TOPIC,
-      statementId
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     testLog('  ✓ Multiple attesters tracked independently (verified by property checks)');
 
     // Query all aligned subjects (should show 2 attestations for same subject)
-    const alignedSubjects = await getAlignedSubjects(machinery, statementId);
+    const alignedSubjects = await getAlignedSubjects(machinery, statementCid);
     const matchingAlignments = alignedSubjects.filter(
       a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
@@ -202,8 +199,6 @@ describe('Funding Portal - Alignment Attestations', () => {
 
     const statement1Cid = await uploadToIPFS(statement1Content);
     const statement2Cid = await uploadToIPFS(statement2Content);
-    const statement1Id = cidToBytes32(statement1Cid);
-    const statement2Id = cidToBytes32(statement2Cid);
 
     testLog(`  Statement 1: "${statement1Content.text}"`);
     testLog(`  Statement 2: "${statement2Content.text}"`);
@@ -219,7 +214,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 100n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmProject1',
+      projectMetadataCid: 'QmProject1' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [50n],
       tokenPrices: [2n * 10n**18n],
@@ -233,7 +228,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 200n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmProject2',
+      projectMetadataCid: 'QmProject2' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [75n],
       tokenPrices: [3n * 10n**18n],
@@ -251,7 +246,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       [project1.tokenAddress, project2.tokenAddress],
       [statement1Cid, statement2Cid],
-      [PROJECT_ALIGNMENT_TOPIC, PROJECT_ALIGNMENT_TOPIC]
+      [PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1, PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1]
     );
 
     testLog('  ✓ Batch attestations recorded successfully (verified by property checks)');
@@ -282,7 +277,6 @@ describe('Funding Portal - Alignment Attestations', () => {
     const statementCids = await Promise.all(
       statements.map(s => uploadToIPFS(s))
     );
-    const statementIds = statementCids.map(cidToBytes32);
 
     testLog(`  Created ${statements.length} statements`);
 
@@ -296,7 +290,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 300n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmMultiStatement',
+      projectMetadataCid: 'QmMultiStatement' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [3n * 10n**18n],
@@ -314,8 +308,7 @@ describe('Funding Portal - Alignment Attestations', () => {
         machinery,
         projectDetails.tokenAddress,
         statementCids[i],
-        PROJECT_ALIGNMENT_TOPIC,
-        statementIds[i]
+        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
       );
     }
 
@@ -331,12 +324,12 @@ describe('Funding Portal - Alignment Attestations', () => {
       'Subject should be aligned with at least 3 statements'
     );
 
-    // Verify each statement ID is present
-    for (const statementId of statementIds) {
+    // Verify each statement CID is present
+    for (const statementCid of statementCids) {
       const found = subjectStatements.some(
-        a => a.statementId.toLowerCase() === statementId.toLowerCase()
+        a => a.statementCid.toLowerCase() === statementCid.toLowerCase()
       );
-      assert.ok(found, `Statement ${statementId} should be aligned with subject`);
+      assert.ok(found, `Statement ${statementCid} should be aligned with subject`);
     }
 
     testLog('  ✓ Subject aligned with multiple statements');

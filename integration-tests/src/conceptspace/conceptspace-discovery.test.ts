@@ -14,6 +14,7 @@ import {
   publishDocument,
   cidToBytes32,
   type BeliefsContract,
+  type IpfsCidV1,
   BeliefsAbi,
 } from '@commonality/sdk';
 import {
@@ -211,7 +212,7 @@ describe('Statement Discovery & Browsing', () => {
     // Create several statements to test pagination
     testLog('  Creating multiple statements for pagination test...');
 
-    const statements = [];
+    const statements: IpfsCidV1[] = [];
     for (let i = 0; i < 5; i++) {
       const statement = await uploadToIPFS({
         statementType: 'text',

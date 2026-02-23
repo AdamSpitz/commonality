@@ -117,7 +117,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Now general statement should have 2 indirect supporters
-    indirectCount = await getIndirectSupporterCount(machinery, generalId);
+    indirectCount = await getIndirectSupporterCount(machinery, generalCid);
     assert.strictEqual(
       indirectCount,
       2,
@@ -125,7 +125,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency: count should match list length
-    await assertIndirectSupporterCountConsistency(machinery, generalId);
+    await assertIndirectSupporterCountConsistency(machinery, generalCid);
 
     testLog('  ✓ Indirect supporter count computed correctly: 2 supporters');
     testLog('  ✓ Query consistency verified (count matches list)');
@@ -191,7 +191,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Get indirect supporters list
-    const indirectSupporters = await getIndirectSupporters(machinery, generalId);
+    const indirectSupporters = await getIndirectSupporters(machinery, generalCid);
 
     assert.strictEqual(indirectSupporters.length, 2, 'Should have 2 indirect supporters');
 
@@ -217,7 +217,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(machinery, generalId);
+    await assertIndirectSupporterCountConsistency(machinery, generalCid);
 
     testLog('  ✓ Indirect supporters list returned with correct details');
     testLog('  ✓ Query consistency verified');
@@ -270,8 +270,8 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Get indirect supporters - should only include User2, not User1
-    const indirectSupporters = await getIndirectSupporters(machinery, generalId);
-    const indirectCount = await getIndirectSupporterCount(machinery, generalId);
+    const indirectSupporters = await getIndirectSupporters(machinery, generalCid);
+    const indirectCount = await getIndirectSupporterCount(machinery, generalCid);
 
     assert.strictEqual(
       indirectCount,
@@ -288,7 +288,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(machinery, generalId);
+    await assertIndirectSupporterCountConsistency(machinery, generalCid);
 
     testLog('  ✓ User1 correctly excluded from indirect support due to explicit disbelief');
     testLog('  ✓ User2 correctly included in indirect support');
@@ -328,7 +328,6 @@ describe('Conceptspace Indirect Support', () => {
     const s2Cid = await uploadToIPFS(s2);
     const s3Cid = await uploadToIPFS(s3);
     const sGeneralCid = await uploadToIPFS(sGeneral);
-    const sGeneralId = cidToBytes32(sGeneralCid);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);
@@ -348,7 +347,7 @@ describe('Conceptspace Indirect Support', () => {
     await attestImplicationChecked(attesterClients, implicationsContract, machinery, s3Cid, sGeneralCid, undefined, [user3Clients.account]);
 
     // Verify all 3 implications exist
-    const implicationsTo = await getImplicationsTo(machinery, sGeneralId);
+    const implicationsTo = await getImplicationsTo(machinery, sGeneralCid);
     assert.strictEqual(
       implicationsTo.length,
       3,
@@ -356,8 +355,8 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Get indirect supporters
-    const indirectSupporters = await getIndirectSupporters(machinery, sGeneralId);
-    const indirectCount = await getIndirectSupporterCount(machinery, sGeneralId);
+    const indirectSupporters = await getIndirectSupporters(machinery, sGeneralCid);
+    const indirectCount = await getIndirectSupporterCount(machinery, sGeneralCid);
 
     assert.strictEqual(indirectCount, 3, 'Should have 3 indirect supporters');
     assert.strictEqual(indirectSupporters.length, 3, 'Supporters list should have 3 entries');
@@ -373,7 +372,7 @@ describe('Conceptspace Indirect Support', () => {
     assert.ok(userAddresses.includes(user3Address), 'User3 should be in supporters');
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(machinery, sGeneralId);
+    await assertIndirectSupporterCountConsistency(machinery, sGeneralCid);
 
     testLog('  ✓ All 3 users correctly identified as indirect supporters');
     testLog('  ✓ Multiple convergent implication chains handled correctly');
@@ -403,7 +402,6 @@ describe('Conceptspace Indirect Support', () => {
     const s1Cid = await uploadToIPFS(s1);
     const s2Cid = await uploadToIPFS(s2);
     const sTargetCid = await uploadToIPFS(sTarget);
-    const sTargetId = cidToBytes32(sTargetCid);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);
@@ -420,8 +418,8 @@ describe('Conceptspace Indirect Support', () => {
     await attestImplicationChecked(attesterClients, implicationsContract, machinery, s2Cid, sTargetCid, undefined, [user1Clients.account]);
 
     // Get indirect supporters - User1 should appear only once despite believing 2 implying statements
-    const indirectSupporters = await getIndirectSupporters(machinery, sTargetId);
-    const indirectCount = await getIndirectSupporterCount(machinery, sTargetId);
+    const indirectSupporters = await getIndirectSupporters(machinery, sTargetCid);
+    const indirectCount = await getIndirectSupporterCount(machinery, sTargetCid);
 
     assert.strictEqual(
       indirectCount,
@@ -438,7 +436,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify query consistency
-    await assertIndirectSupporterCountConsistency(machinery, sTargetId);
+    await assertIndirectSupporterCountConsistency(machinery, sTargetCid);
 
     testLog('  ✓ User correctly counted once despite multiple implication paths');
     testLog('  ✓ Query consistency verified');
@@ -680,7 +678,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify S1 → S2 worked correctly: believer should support S2 indirectly
-    const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Id, attesterClients.account);
+    const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Cid, attesterClients.account);
     const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
     const believerAddress = believerClients.account.toLowerCase();
 
@@ -692,7 +690,7 @@ describe('Conceptspace Indirect Support', () => {
     testLog('  ✓ Believer correctly appears as indirect supporter of S2 (one hop)');
 
     // Verify S1 → S2 → S3 does NOT make believer an indirect supporter of S3 (two hops)
-    const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Id, attesterClients.account);
+    const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Cid, attesterClients.account);
     const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
 
     assert.ok(
@@ -707,9 +705,9 @@ describe('Conceptspace Indirect Support', () => {
     const { assertImplicationNonTransitivity } = await import('../utils/invariants.js');
     await assertImplicationNonTransitivity(
       machinery,
-      s1Id,
-      s2Id,
-      s3Id,
+      s1Cid,
+      s2Cid,
+      s3Cid,
       attesterClients.account,
       believerClients.account
     );

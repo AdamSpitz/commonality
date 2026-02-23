@@ -1,61 +1,107 @@
-# Integration Tests - CIDv1 Format Fix
+# Integration Tests - TypeScript Type Error Fix (statementId → statementCid refactor)
 
-## Problem
-After a schema change to the indexer's database and API (using CIDv1 format instead of hex "0x..."), the SDK and integration tests were still using hex format for statement IDs, causing queries to fail.
+## Task
+Run `npm run build --workspace=integration-tests` and fix type errors. The codebase is
+mid-refactor: `statementId` (string/bytes32) is being renamed to `statementCid` (IpfsCidV1).
 
-## Changes Made
+Key types:
+- `IpfsCidV1 = \`b${string}\`` — IPFS CIDv1, starts with "b"
+- `IpfsCidBytes32 = \`0x${string}\`` — bytes32 hex, for on-chain storage
+- `cidToBytes32(cid: IpfsCidV1): IpfsCidBytes32` — converts CID → bytes32 (for on-chain use)
+- GraphQL/indexer helpers now expect `IpfsCidV1`, not bytes32
 
-### SDK Changes
+## Core Pattern Being Fixed
+Old code created both:
+  `const someCid = await uploadToIPFS(...)   // IpfsCidV1`
+  `const someId = cidToBytes32(someCid)      // IpfsCidBytes32`
+...then passed `someId` to graphql helpers. New code: pass `someCid` directly.
 
-1. **sdk/src/actions/index.ts:81** - Added `bytes32ToCid` export
+## COMPLETED FILES (already fixed)
 
-2. **sdk/src/graphql-queries/conceptspace.ts** - Added normalization helper and applied to:
-   - `getStatement()` - internal
-   - `getImplicationsFrom()` - internal  
-   - `getUserBelief()` - exported
-   - `getIndirectSupporterCount()` - exported
-   - `getStatementSuggestions()` - exported
+### Infrastructure files:
+- `integration-tests/src/utils/graphql-helpers.ts` — removed `norm` import, renamed all
+  `statementId` vars → `statementCid`, fixed `directStatementId`→`directStatementCid`,
+  `indirectStatementId`→`indirectStatementCid`
+- `integration-tests/src/actions/action-framework.ts` — added `IpfsCidV1` import, changed
+  entity CID fields from `string` to `IpfsCidV1`
+- `integration-tests/src/actions/alignment-action-properties.ts` — `statementId`→`statementCid`
+- `integration-tests/src/actions/belief-action-properties.ts` — `statementId`→`statementCid`
+- `integration-tests/src/actions/implication-actions-checked.ts` — removed `cidToBytes32`
+  import, removed duplicate `const fromStatementCid = cidToBytes32(fromStatementCid)` lines
+  (they shadowed the IpfsCidV1 parameters)
+- `integration-tests/src/utils/invariants.ts` — `belief.statementId`→`belief.statementCid`
+- `integration-tests/src/mutable-refs/mutable-ref-actions-checked.ts` — added `IpfsCidV1`
+  import, changed `itemToAppend: string` → `IpfsCidV1`
 
-3. **sdk/src/indexer-queries/conceptspace-queries.ts** - Same normalization added to:
-   - `getStatement()` 
-   - `getUserBelief()`
-   - `getImplicationsFrom()`
-   - `getImplicationsTo()`
-   - `getImplication()`
+### Test files:
+- `integration-tests/src/conceptspace/conceptspace-beliefs.test.ts` — `statementId`→`statementCid`,
+  fake non-existent CID changed from `'0xffff...'` to `'bafybeiaaa...' as IpfsCidV1`
+- `integration-tests/src/conceptspace/conceptspace-discovery.test.ts` — typed `statements` array
+  as `IpfsCidV1[]`
+- `integration-tests/src/conceptspace/conceptspace-implications.test.ts` — `s3Id`→`s3`,
+  `s1Id`→`s1` in `getImplicationsTo` call
+- `integration-tests/src/conceptspace/conceptspace-indirect-support.test.ts` — `generalId`→`generalCid`,
+  `sGeneralId`→`sGeneralCid`, `sTargetId`→`sTargetCid`, `s2Id`/`s3Id`→Cid forms; removed
+  duplicate `const sGeneralCid = cidToBytes32(sGeneralCid)` and `sTargetCid` lines
+- `integration-tests/src/conceptspace/conceptspace-multiple-attesters.test.ts` — removed all
+  `*Id = cidToBytes32(*Cid)` declarations, replaced with direct Cid vars in helper calls;
+  removed `cidToBytes32` from import
+- `integration-tests/src/pubstarter/pubstarter-negative-tests.test.ts` — removed `cidToBytes32`
+  wrapping of `uploadToIPFS(...)` for `projectMetadataCid`; removed `cidToBytes32` import
+- `integration-tests/src/fundingportal/fundingportal-leaderboards.test.ts` — removed `causeId`
+  declarations, replaced with `causeCid` in helper calls; removed extra `causeId` arg from
+  `attestAlignmentChecked`; added `IpfsCidV1` import; cast `PROJECT_ALIGNMENT_TOPIC as unknown
+  as IpfsCidV1`; removed `cidToBytes32` import
+- `integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts` — removed extra
+  `s1Id`/`s2Id` extra args from `attestAlignmentChecked`; replaced `s2Id`/`causeId` with Cid
+  forms in graphql helper calls; added `PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1` casts;
+  added `IpfsCidV1` import
+- `integration-tests/src/fundingportal/fundingportal-alignment.test.ts` — removed `cidToBytes32`
+  import; removed `statementIds` declaration; removed extra `statementId`/`statementIds[i]` args
+  from `attestAlignmentChecked`; fixed `getAlignedSubjects(machinery, statementId)` →
+  `statementCid`; fixed loop to use `statementCids`/`a.statementCid`; added `IpfsCidV1` import;
+  cast `PROJECT_ALIGNMENT_TOPIC` and `'QmXxx'` strings as `unknown as IpfsCidV1`
+- `integration-tests/src/fundingportal/fundingportal-indirect-alignment.test.ts` — removed all
+  `s1Id`/`s2Id`/`s3Id = cidToBytes32(...)` declarations; replaced with Cid vars in all helper
+  calls (`getAlignedProjects`, `getIndirectlyAlignedProjects`, `attestAlignmentChecked`); fixed
+  `directStatementId`→`directStatementCid`, `indirectStatementId`→`indirectStatementCid`;
+  added `IpfsCidV1` import; cast `PROJECT_ALIGNMENT_TOPIC` and `'QmXxx'` as `unknown as IpfsCidV1`;
+  removed `cidToBytes32` import
 
-### Integration Tests Changes
+## REMAINING FILES (not yet fixed)
 
-4. **integration-tests/src/utils/invariants.ts:12,81-85** - Import bytes32ToCid, convert in `assertBeliefCountsMatch()`
+### Still need work:
+- `integration-tests/src/workflows/end-to-end-workflows.test.ts`
+  - Lines ~135, ~281: extra `statementId` arg (undefined var) in `attestAlignmentChecked` calls
+    → just remove the extra arg
+  - Lines ~339,341,465,467: `statement1Id`/`statement2Id = cidToBytes32(...)` declarations;
+    after removing extra args these become unused → remove declarations
+  - Lines ~412: `getIndirectlyAlignedProjects(machinery, statement2Id, ...)` → `statement2Cid`
+  - Lines ~425,429: `indirectAlignments[0].directStatementId` → `directStatementCid`;
+    `statement1Id` → `statement1Cid` in comparison
+  - Lines ~430,432: `indirectAlignments[0].indirectStatementId` → `indirectStatementCid`;
+    `statement2Id` → `statement2Cid`
+  - Lines ~511: `belief.id` → `belief.statementCid` in `getImplicationsFrom(machinery, belief.id, ...)`
+  - Lines ~529: `statement2Id` → `statement2Cid` in `suggestions.some(...)` comparison
+  - `PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1` needed in `attestAlignmentChecked` calls
 
-5. **integration-tests/src/utils/graphql-helpers.ts:5,15-24** - Import bytes32ToCid, add `normalizeStatementId()` helper
+- `integration-tests/src/delegation/delegation-spending.test.ts` (CHECK IF EXISTS)
+  - `'QmProjectMetadata'` and similar string literals passed as `projectMetadataCid` need
+    `as unknown as IpfsCidV1` cast
 
-6. **integration-tests/src/utils/graphql-helpers.ts** - Applied normalization to:
-   - `getStatement()` (line 134)
-   - `getUserBelief()` (line 151)
-   - `getImplicationsFrom()` (line 170)
-   - `getImplicationsTo()` (line 188)
-   - `getIndirectSupporters()` (line 203)
+## KNOWN ISSUE (needs design decision, don't try to "fix" deeply)
 
-## Issue
-After all changes, tests still fail with "believerCount did not return a number" - query returns undefined.
+`PROJECT_ALIGNMENT_TOPIC` is exported from the SDK as `0x${string}` (a keccak256 hash),
+but `attestAlignmentChecked` expects `topicStatementCid: IpfsCidV1` as its 6th argument.
+These are fundamentally different things — a keccak hash is NOT an IPFS CID.
 
-## Likely Root Cause
-The **indexer Docker container is not being rebuilt**. The script runs `docker-compose up -d --build` which rebuilds the indexer from the indexer/ directory, but:
-- The indexer's code hasn't been modified to match the new CIDv1 schema
-- The old indexer code may still store/query in hex format
+The workaround applied throughout is: `PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1`
 
-## Next Steps for Successor
+This suppresses the TypeScript error but the runtime behavior should be reviewed. Either:
+a) `PROJECT_ALIGNMENT_TOPIC` should be redefined as a proper `IpfsCidV1` in the SDK, or
+b) `attestAlignmentChecked` / the alignment contract should accept a separate `topicId` type
 
-1. **Verify indexer schema**: Check indexer/src/conceptspace/schema.ts or similar to see how statements are stored. The indexer should store statements keyed by CIDv1 format.
-
-2. **Check GraphQL schema**: Look at indexer's GraphQL API to see what the query fields expect (cidV1 vs id vs other).
-
-3. **Rebuild indexer if needed**: If indexer code was changed to use CIDv1, ensure the Docker build is happening correctly.
-
-4. **Debug query directly**: Add console.log in test to see what CID the normalization produces, then manually query the indexer to verify data exists.
-
-5. **Alternative - check if beliefs exist**: The error could mean either:
-   - Statement doesn't exist (wrong ID format used to create it)
-   - Belief record doesn't exist (different ID format stored)
-
-The core fix (normalization) is correct in theory - the issue is likely that the indexer or its data isn't in the expected state.
+## HOW TO VERIFY
+After fixing `end-to-end-workflows.test.ts` (and delegation-spending if needed), run:
+  `npm run build --workspace=integration-tests`
+The build should pass with no errors.

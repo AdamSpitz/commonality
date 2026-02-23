@@ -20,6 +20,7 @@ import {
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type MutableRefUpdaterContract,
+  type IpfsCidV1,
 } from '@commonality/sdk';
 import {
   ActionTestingMachinery,
@@ -127,7 +128,7 @@ export async function appendToUserListChecked(
   clients: TestClients,
   mutableRefContract: MutableRefUpdaterContract,
   refName: string,
-  itemToAppend: string,
+  itemToAppend: IpfsCidV1,
   options?: ActionRunOptions
 ): Promise<Hash> {
   const userAddress = clients.account;

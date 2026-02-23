@@ -569,7 +569,7 @@ async function checkOrphanedBeliefs(
   const checkedUsers = new Set<string>();
 
   for (const belief of beliefs) {
-    const statementId = belief.statementId.toLowerCase();
+    const statementId = belief.statementCid.toLowerCase();
     const userId = belief.user.id.toLowerCase();
 
     // Check statement exists (cache checks to avoid redundant queries)

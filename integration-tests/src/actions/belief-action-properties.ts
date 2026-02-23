@@ -34,10 +34,10 @@ interface BeliefState {
  */
 async function captureBeliefState(context: ActionContext): Promise<BeliefState> {
   const { machinery, entities } = context;
-  const { statementId, userAddress } = entities;
+  const { statementCid, userAddress } = entities;
 
-  if (!statementId) {
-    throw new Error('statementId is required in context.entities');
+  if (!statementCid) {
+    throw new Error('statementCid is required in context.entities');
   }
   if (!userAddress) {
     throw new Error('userAddress is required in context.entities');
@@ -45,8 +45,8 @@ async function captureBeliefState(context: ActionContext): Promise<BeliefState> 
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   // In practice, tests always pass GraphQLExecutor (from createGraphQLClient)
-  const statement = await getStatement(machinery, statementId);
-  const userBelief = await getUserBelief(machinery, userAddress, statementId);
+  const statement = await getStatement(machinery, statementCid);
+  const userBelief = await getUserBelief(machinery, userAddress, statementCid);
 
   return {
     believerCount: statement?.believerCount ?? 0,
@@ -135,13 +135,13 @@ export const beliefCountsInvariant: InvariantCheck = {
   name: 'beliefCountsMatch',
   check: async (context: ActionContext) => {
     const { machinery, entities } = context;
-    const { statementId } = entities;
+    const { statementCid } = entities;
 
-    if (!statementId) {
-      throw new Error('statementId is required in context.entities');
+    if (!statementCid) {
+      throw new Error('statementCid is required in context.entities');
     }
 
-    await assertBeliefCountsMatch(machinery, statementId);
+    await assertBeliefCountsMatch(machinery, statementCid);
   },
 };
 

@@ -2,7 +2,7 @@
  * GraphQL query helpers for integration tests
  */
 
-import { executeSDKQuery, bytes32ToCid, IpfsCidV1, isValidCidV1, norm, normalizeCidV1 } from '@commonality/sdk';
+import { executeSDKQuery, bytes32ToCid, IpfsCidV1, isValidCidV1, normalizeCidV1 } from '@commonality/sdk';
 import { ActionTestingMachinery } from '../actions/action-machinery';
 
 
@@ -216,7 +216,7 @@ export async function getStatementWithContent(
   } = options;
 
   // Fetch statement metadata
-  const statement = await getStatement(machinery, statementId);
+  const statement = await getStatement(machinery, statementCid);
   if (!statement) {
     return null;
   }
@@ -234,7 +234,7 @@ export async function getStatementWithContent(
   if (includeMetrics) {
     const indirectSupportersResult = await getIndirectSupporters(
       machinery,
-      statementId,
+      statementCid,
       attesterAddress
     );
 
@@ -1429,7 +1429,7 @@ export async function getAlignedSubjects(
         }
       }
     `,
-    { statementId, attesterAddress }
+    { statementId: statementCid, attesterAddress }
   );
 
   return result.alignedSubjects || [];
@@ -1530,7 +1530,7 @@ export async function getAlignmentAttestation(
         }
       }
     `,
-    { attesterAddress, subjectAddress, statementId }
+    { attesterAddress, subjectAddress, statementId: statementCid }
   );
 
   return result.alignmentAttestation;
@@ -1545,12 +1545,12 @@ export async function getProjectAlignment(
   projectAddress: string,
   statementCid: IpfsCidV1
 ): Promise<ProjectAlignment | null> {
-  const alignment = await getAlignmentAttestation(machinery, attesterAddress, projectAddress, statementId);
+  const alignment = await getAlignmentAttestation(machinery, attesterAddress, projectAddress, statementCid);
   if (!alignment) return null;
   return {
     attester: alignment.attester,
     projectAddress: alignment.subjectAddress,
-    statementId: alignment.statementId,
+    statementCid: alignment.statementCid,
     createdAt: alignment.createdAt,
     blockNumber: alignment.blockNumber,
   };
@@ -1611,14 +1611,14 @@ export async function getIndirectlyAlignedProjects(
         }
       }
     `,
-    { statementId, trustedImplicationAttester, trustedAlignmentAttester }
+    { statementId: statementCid, trustedImplicationAttester, trustedAlignmentAttester }
   );
 
   // Map subjectAddress to projectAddress for backward compatibility
   return (result.indirectlyAlignedSubjects || []).map(a => ({
     projectAddress: a.subjectAddress,
-    directStatementId: a.directStatementId,
-    indirectStatementId: a.indirectStatementId,
+    directStatementCid: a.directStatementCid,
+    indirectStatementCid: a.indirectStatementCid,
     attester: a.attester,
   }));
 }
@@ -1735,7 +1735,7 @@ export async function getTopContributorsForCause(
         }
       }
     `,
-    { statementId, limit, trustedImplicationAttester, trustedAlignmentAttester }
+    { statementId: statementCid, limit, trustedImplicationAttester, trustedAlignmentAttester }
   );
 
   return result.topContributorsForCause || [];

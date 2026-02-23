@@ -16,7 +16,6 @@
 import type { Hash } from 'viem';
 import {
   attestImplication,
-  cidToBytes32,
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type ImplicationsContract,
@@ -94,8 +93,6 @@ export async function attestImplicationChecked(
   expectedIndirectSupporters?: string[],
   options?: ActionRunOptions
 ): Promise<Hash> {
-  const fromStatementCid = cidToBytes32(fromStatementCid);
-  const toStatementCid = cidToBytes32(toStatementCid);
   const attesterAddress = clients.account;
 
   const context: ActionContext = {

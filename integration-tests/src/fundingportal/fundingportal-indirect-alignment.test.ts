@@ -12,8 +12,8 @@ import {
   uploadToIPFS,
   createStatement,
   publishDocument,
-  cidToBytes32,
   PROJECT_ALIGNMENT_TOPIC,
+  type IpfsCidV1,
   type AlignmentAttestationsContract,
   type PubstarterContract,
   type ImplicationsContract,
@@ -88,8 +88,6 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     const s1Cid = await publishDocument(createStatement({ content: s1Text }));
     const s2Cid = await publishDocument(createStatement({ content: s2Text }));
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
 
     testLog(`  S1 (specific): "${s1Text}"`);
     testLog(`  S2 (broader): "${s2Text}"`);
@@ -114,7 +112,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 1000n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmRenewableEnergy',
+      projectMetadataCid: 'QmRenewableEnergy' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [10n * 10n**18n],
@@ -131,12 +129,11 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery ,
       projectDetails.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s1Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Verify direct alignment with S1
-    const directAlignments = await getAlignedProjects(machinery, s1Id);
+    const directAlignments = await getAlignedProjects(machinery, s1Cid);
     assert(directAlignments.length >= 1, 'Should have at least 1 direct alignment with S1');
     const ourDirectAlignment = directAlignments.find(
       a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
@@ -146,7 +143,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  ✓ Project directly aligned with S1');
 
     // Verify our project has NO direct alignment with S2
-    const s2DirectAlignments = await getAlignedProjects(machinery, s2Id);
+    const s2DirectAlignments = await getAlignedProjects(machinery, s2Cid);
     const ourS2DirectAlignment = s2DirectAlignments.find(
       a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
@@ -162,7 +159,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  Querying for projects indirectly aligned with S2...');
     const indirectAlignments = await getIndirectlyAlignedProjects(
       machinery,
-      s2Id,
+      s2Cid,
       implicationAttester.account,
       alignmentAttester.account
     );
@@ -180,13 +177,13 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       'Project should be indirectly aligned with S2'
     );
     assert.strictEqual(
-      indirectAlignment.directStatementId.toLowerCase(),
-      s1Id.toLowerCase(),
+      indirectAlignment.directStatementCid.toLowerCase(),
+      s1Cid.toLowerCase(),
       'Direct statement should be S1'
     );
     assert.strictEqual(
-      indirectAlignment.indirectStatementId.toLowerCase(),
-      s2Id.toLowerCase(),
+      indirectAlignment.indirectStatementCid.toLowerCase(),
+      s2Cid.toLowerCase(),
       'Indirect statement should be S2'
     );
 
@@ -213,8 +210,6 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     const s1Cid = await uploadToIPFS(s1Content);
     const s2Cid = await uploadToIPFS(s2Content);
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
 
     testLog(`  S1: "${s1Content.text}"`);
     testLog(`  S2: "${s2Content.text}"`);
@@ -240,7 +235,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 500n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmHousingProject',
+      projectMetadataCid: 'QmHousingProject' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [5n * 10n**18n],
@@ -255,7 +250,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 300n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmPovertyProject',
+      projectMetadataCid: 'QmPovertyProject' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [50n],
       tokenPrices: [6n * 10n**18n],
@@ -270,8 +265,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectA.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s1Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Align Project B directly with S2
@@ -282,12 +276,11 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectB.tokenAddress,
       s2Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s2Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Query S2 for direct alignments only
-    const directAlignments = await getAlignedProjects(machinery, s2Id);
+    const directAlignments = await getAlignedProjects(machinery, s2Cid);
     assert.strictEqual(
       directAlignments.length,
       1,
@@ -304,7 +297,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Query S2 for indirect alignments
     const indirectAlignments = await getIndirectlyAlignedProjects(
       machinery,
-      s2Id,
+      s2Cid,
       implicationAttester.account,
       alignmentAttester.account
     );
@@ -348,9 +341,6 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     const s1Cid = await uploadToIPFS(s1Content);
     const s2Cid = await uploadToIPFS(s2Content);
     const s3Cid = await uploadToIPFS(s3Content);
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
-    const s3Id = cidToBytes32(s3Cid);
 
     testLog(`  S1 (most specific): "${s1Content.text}"`);
     testLog(`  S2 (broader): "${s2Content.text}"`);
@@ -385,7 +375,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 800n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmSolarPanels',
+      projectMetadataCid: 'QmSolarPanels' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [8n * 10n**18n],
@@ -399,15 +389,14 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectDetails.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s1Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Query for indirect alignment with S2 (one level up)
     testLog('  Querying S2 for indirect alignments...');
     const s2IndirectAlignments = await getIndirectlyAlignedProjects(
       machinery,
-      s2Id,
+      s2Cid,
       implicationAttester.account,
       alignmentAttester.account
     );
@@ -430,7 +419,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  Querying S3 for indirect alignments...');
     const s3IndirectAlignments = await getIndirectlyAlignedProjects(
       machinery,
-      s3Id,
+      s3Cid,
       implicationAttester.account,
       alignmentAttester.account
     );
@@ -467,8 +456,6 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     const s1Cid = await uploadToIPFS(s1Content);
     const s2Cid = await uploadToIPFS(s2Content);
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
 
     // Two different attesters create the same implication S1 → S2
     testLog('  Attester 1 creating implication S1 → S2...');
@@ -499,7 +486,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 400n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmTransportProject',
+      projectMetadataCid: 'QmTransportProject' as unknown as IpfsCidV1,
       tokenIds: [1n],
       tokenCounts: [80n],
       tokenPrices: [5n * 10n**18n],
@@ -512,15 +499,14 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectDetails.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s1Id
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Query S2 trusting only attester 1
     testLog('  Querying with trusted attester 1...');
     const results1 = await getIndirectlyAlignedProjects(
       machinery,
-      s2Id,
+      s2Cid,
       implicationAttester1.account,
       alignmentAttester.account
     );
@@ -531,7 +517,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  Querying with trusted attester 2...');
     const results2 = await getIndirectlyAlignedProjects(
       machinery,
-      s2Id,
+      s2Cid,
       implicationAttester2.account,
       alignmentAttester.account
     );
@@ -542,7 +528,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  Querying without trusted attester filter...');
     const resultsAll = await getIndirectlyAlignedProjects(
       machinery,
-      s2Id,
+      s2Cid,
       undefined,
       alignmentAttester.account
     );

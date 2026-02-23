@@ -17,6 +17,7 @@ import {
   publishDocument,
   cidToBytes32,
   type BeliefsContract,
+  type IpfsCidV1,
   assertNotNull,
   BeliefsAbi,
 } from '@commonality/sdk';
@@ -177,7 +178,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Test with metrics included
     testLog('  Fetching statement with metrics...');
-    const resultWithMetrics = await getStatementWithContent(machinery, statementId, {
+    const resultWithMetrics = await getStatementWithContent(machinery, statementCid, {
       includeMetrics: true
     });
 
@@ -188,14 +189,14 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(resultWithMetrics!.metrics!.indirectSupporters, 0, 'Should have 0 indirect supporters');
 
     // Verify invariants: belief counts match individual records and no orphaned data
-    await assertBeliefCountsMatch(machinery, statementId);
+    await assertBeliefCountsMatch(machinery, statementCid);
     await assertNoOrphanedData(machinery);
 
     testLog('  ✓ Fetch with metrics successful');
 
     // Test that it returns null for non-existent statement
     testLog('  Testing non-existent statement...');
-    const nonExistentId = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+    const nonExistentId = 'bafybeiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as IpfsCidV1;
     const nonExistentResult = await getStatementWithContent(machinery, nonExistentId);
     assert.strictEqual(nonExistentResult, null, 'Should return null for non-existent statement');
 

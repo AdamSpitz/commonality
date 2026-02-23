@@ -10,7 +10,6 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  cidToBytes32,
   type PubstarterContract,
   type AssuranceContract,
   type AlignmentAttestationsContract,
@@ -18,6 +17,7 @@ import {
   AssuranceContractAbi,
   AlignmentAttestationsAbi,
   PROJECT_ALIGNMENT_TOPIC,
+  type IpfsCidV1,
 } from '@commonality/sdk';
 import {
   getTopContributorsForCause,
@@ -63,9 +63,8 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     // Create statement for the cause
     const causeContent = { text: 'Support renewable energy projects' };
     const causeCid = await uploadToIPFS(causeContent);
-    const causeId = cidToBytes32(causeCid);
 
-    testLog(`  Cause: ${causeId}`);
+    testLog(`  Cause: ${causeCid}`);
 
     // Create two projects aligned with the cause
     const pubstarterContract: PubstarterContract = {
@@ -126,8 +125,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       machinery,
       p1Details.assuranceContractAddress,
       causeCid,
-      PROJECT_ALIGNMENT_TOPIC,
-      causeId
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
     await attestAlignmentChecked(
       attesterClients,
@@ -135,8 +133,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       machinery,
       p2Details.assuranceContractAddress,
       causeCid,
-      PROJECT_ALIGNMENT_TOPIC,
-      causeId
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Contributors make contributions
@@ -208,7 +205,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     testLog('  Querying top contributors...');
     const topContributors = await getTopContributorsForCause(
       machinery,
-      causeId,
+      causeCid,
       10, // Get top 10
       attesterClients.account, // Trust this attester for implications
       attesterClients.account  // Trust this attester for alignments
@@ -269,7 +266,6 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     // Create cause
     const causeContent = { text: 'Support education initiatives' };
     const causeCid = await uploadToIPFS(causeContent);
-    const causeId = cidToBytes32(causeCid);
 
     // Create project
     const pubstarterContract: PubstarterContract = {
@@ -310,8 +306,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       machinery,
       pDetails.assuranceContractAddress,
       causeCid,
-      PROJECT_ALIGNMENT_TOPIC,
-      causeId
+      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
     );
 
     // Make contributions
@@ -349,7 +344,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     testLog('  Querying rank for Contributor 2...');
     const rankResult = await getUserContributionRankForCause(
       machinery,
-      causeId,
+      causeCid,
       contributor2Clients.account,
       attesterClients.account, // Trust this attester for implications
       attesterClients.account  // Trust this attester for alignments
@@ -368,7 +363,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     testLog('  Querying rank for non-contributor...');
     const nonContributorRank = await getUserContributionRankForCause(
       machinery,
-      causeId,
+      causeCid,
       attesterClients.account, // Attester didn't contribute
       attesterClients.account, // Trust this attester for implications
       attesterClients.account  // Trust this attester for alignments

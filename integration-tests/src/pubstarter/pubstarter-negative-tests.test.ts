@@ -15,7 +15,6 @@
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  cidToBytes32,
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
@@ -54,10 +53,10 @@ describe('Pubstarter Negative Tests', () => {
         abi: PubstarterAbi,
       };
 
-      const projectMetadataCid = cidToBytes32(await uploadToIPFS({
+      const projectMetadataCid = await uploadToIPFS({
         name: 'Insufficient Payment Test',
         description: 'Testing payment validation',
-      }));
+      });
 
       testLog('  Creating project...');
       const { projectDetails } = await createProjectChecked(
@@ -120,10 +119,10 @@ describe('Pubstarter Negative Tests', () => {
         abi: PubstarterAbi,
       };
 
-      const projectMetadataCid = cidToBytes32(await uploadToIPFS({
+      const projectMetadataCid = await uploadToIPFS({
         name: 'Invalid Token ID Test',
         description: 'Testing token ID validation',
-      }));
+      });
 
       testLog('  Creating project with only token ID 0...');
       const { projectDetails } = await createProjectChecked(
