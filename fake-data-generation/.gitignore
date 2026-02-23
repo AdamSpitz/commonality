@@ -7,4 +7,5 @@ metrics.json
 # Node modules (if any local packages are added)
 node_modules/
 
-dist
+dist/
+
