@@ -24,8 +24,14 @@ import {
   reclaimFunds as sdkReclaimFunds,
   purchaseFromPrimaryMarketWithNotes,
 } from '@commonality/sdk';
+import type { User, Statement, SimulationContracts } from './types.js';
 
 loadEnv();
+
+// suppress unused import warnings
+void BeliefsAbi;
+void ImplicationsAbi;
+void AlignmentAttestationsAbi;
 
 const hardhat = {
   id: 31337,
@@ -40,18 +46,62 @@ const hardhat = {
     default: { http: ['http://localhost:8545'] },
     public: { http: ['http://localhost:8545'] },
   },
-};
+} as const;
 
 /**
  * Funding and Delegation Actions for Generative Testing
- * 
+ *
  * This module provides actions for:
  * - Funding: Create projects, purchase tokens, trade on secondary market
  * - Delegation: Create notes, delegate, revoke, spend
  */
 
+interface CreatedProject {
+  owner: `0x${string}`;
+  erc1155: `0x${string}`;
+  marketplace: `0x${string}`;
+  assuranceContract: `0x${string}`;
+  threshold: string;
+  deadline: number;
+  tokenIds: number[];
+  prices: string[];
+}
+
+interface TokenRecord {
+  erc1155: `0x${string}`;
+  tokenId: number;
+  count: number;
+  listedCount: number;
+}
+
+interface NoteRecord {
+  noteId: string;
+  owner: `0x${string}`;
+  amount: string;
+  token: `0x${string}`;
+  tokenType: number;
+  tokenId: number;
+  delegated: boolean;
+  revoked: boolean;
+  originalOwner: `0x${string}`;
+}
+
+type TxReceipt = { gasUsed: bigint; blockNumber: bigint };
+
+type ActionResult<T = Record<string, unknown>> =
+  | { success: true; receipt: TxReceipt } & T
+  | { success: false; error: string };
+
 class FundingAndDelegationActions {
-  constructor(contracts, users, statements) {
+  contracts: SimulationContracts;
+  users: User[];
+  statements: Statement[];
+  createdProjects: CreatedProject[];
+  createdNotes: NoteRecord[];
+  userTokens: Map<`0x${string}`, TokenRecord[]>;
+  rpcUrl: string;
+
+  constructor(contracts: SimulationContracts, users: User[], statements: Statement[]) {
     this.contracts = contracts;
     this.users = users;
     this.statements = statements;
@@ -61,7 +111,7 @@ class FundingAndDelegationActions {
     this.rpcUrl = RPC_URL || 'http://localhost:8545';
   }
 
-  createClientsForUser(user) {
+  createClientsForUser(user: User) {
     const account = privateKeyToAccount(user.privateKey);
 
     const walletClient = createWalletClient({
@@ -82,25 +132,25 @@ class FundingAndDelegationActions {
     };
   }
 
-  getWalletForUser(user) {
+  getWalletForUser(user: User) {
     return this.createClientsForUser(user);
   }
 
-  getRandomUser() {
+  getRandomUser(): User {
     return this.users[Math.floor(Math.random() * this.users.length)];
   }
 
-  getRandomStatement() {
+  getRandomStatement(): Statement {
     return this.statements[Math.floor(Math.random() * this.statements.length)];
   }
 
-  getUserNotes(user) {
+  getUserNotes(user: User): NoteRecord[] {
     return this.createdNotes.filter(note => note.owner === user.address && !note.delegated && !note.revoked);
   }
 
-  getDelegatableNotes(user) {
-    return this.createdNotes.filter(note => 
-      note.owner === user.address && 
+  getDelegatableNotes(user: User): NoteRecord[] {
+    return this.createdNotes.filter(note =>
+      note.owner === user.address &&
       note.token === zeroAddress &&
       note.tokenType === 0 &&
       !note.delegated &&
@@ -108,9 +158,9 @@ class FundingAndDelegationActions {
     );
   }
 
-  getDelegatableNotesExcluding(user, excludeAddresses) {
-    return this.createdNotes.filter(note => 
-      note.owner === user.address && 
+  getDelegatableNotesExcluding(user: User, excludeAddresses: `0x${string}`[]): NoteRecord[] {
+    return this.createdNotes.filter(note =>
+      note.owner === user.address &&
       note.token === zeroAddress &&
       note.tokenType === 0 &&
       !note.delegated &&
@@ -120,19 +170,19 @@ class FundingAndDelegationActions {
     );
   }
 
-  getRevocableNotes(user) {
-    return this.createdNotes.filter(note => 
-      note.owner === user.address && 
+  getRevocableNotes(user: User): NoteRecord[] {
+    return this.createdNotes.filter(note =>
+      note.owner === user.address &&
       note.delegated === true &&
       !note.revoked
     );
   }
 
-  getUserTokens(user) {
+  getUserTokens(user: User): TokenRecord[] {
     return this.userTokens.get(user.address) || [];
   }
 
-  getAvailableTokens(user) {
+  getAvailableTokens(user: User): TokenRecord[] {
     const tokens = this.userTokens.get(user.address) || [];
     return tokens.filter(t => (t.listedCount || 0) < t.count);
   }
@@ -140,7 +190,7 @@ class FundingAndDelegationActions {
   /**
    * Funding Action: Create a new project using Pubstarter
    */
-  async createProject(user) {
+  async createProject(user: User): Promise<ActionResult<{ project: CreatedProject }>> {
     if (!this.contracts.pubstarter) {
       throw new Error('Pubstarter contract not deployed');
     }
@@ -150,7 +200,7 @@ class FundingAndDelegationActions {
     const threshold = parseEther((Math.random() * 5 + 1).toFixed(2));
     const deadline = BigInt(Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60));
     const projectMetadataCid = `ipfs://QmProject${Math.floor(Math.random() * 10000)}`;
-    
+
     const tokenIds = [1n, 2n, 3n];
     const maxSupplies = [100n, 500n, 1000n];
     const prices = [
@@ -162,7 +212,7 @@ class FundingAndDelegationActions {
     try {
       const { hash, projectDetails } = await sdkCreateProject(
         clients,
-        { address: this.contracts.pubstarter.address, abi: this.contracts.pubstarter.abi },
+        { address: this.contracts.pubstarter.address!, abi: this.contracts.pubstarter.abi },
         {
           metadataURI: 'https://example.com/metadata/',
           contractURI: 'https://example.com/contract.json',
@@ -179,7 +229,7 @@ class FundingAndDelegationActions {
 
       const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      const project = {
+      const project: CreatedProject = {
         owner: user.address,
         erc1155: projectDetails.tokenAddress,
         marketplace: projectDetails.marketplaceAddress,
@@ -193,22 +243,28 @@ class FundingAndDelegationActions {
       this.createdProjects.push(project);
       return { success: true, project, receipt };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Funding Action: Purchase tokens from primary market
    */
-  async purchaseFromPrimaryMarket(user, project, tokenId, count) {
+  async purchaseFromPrimaryMarket(
+    user: User,
+    project: CreatedProject,
+    tokenId: number,
+    count: number
+  ): Promise<ActionResult<{ totalCost: string }>> {
     const clients = this.getWalletForUser(user);
-    
+
     try {
       const tokenIndex = project.tokenIds.indexOf(tokenId);
       if (tokenIndex === -1) {
         throw new Error('Invalid token ID');
       }
-      
+
       const price = BigInt(project.prices[tokenIndex]);
       const totalCost = price * BigInt(count);
 
@@ -229,7 +285,7 @@ class FundingAndDelegationActions {
       if (!this.userTokens.has(user.address)) {
         this.userTokens.set(user.address, []);
       }
-      const userTokenList = this.userTokens.get(user.address);
+      const userTokenList = this.userTokens.get(user.address)!;
       const existingToken = userTokenList.find(t => t.erc1155 === project.erc1155 && t.tokenId === tokenId);
       if (existingToken) {
         existingToken.count += count;
@@ -239,29 +295,36 @@ class FundingAndDelegationActions {
 
       return { success: true, receipt, totalCost: totalCost.toString() };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Funding Action: Create a sale listing on secondary market
    */
-  async createSecondaryMarketListing(user, project, tokenId, count, pricePerToken) {
+  async createSecondaryMarketListing(
+    user: User,
+    project: CreatedProject,
+    tokenId: number,
+    count: number,
+    pricePerToken: bigint
+  ): Promise<ActionResult<{ listingId: string }>> {
     const clients = this.getWalletForUser(user);
-    
+
     try {
       if (!project || !project.erc1155 || !project.marketplace) {
         throw new Error(`Invalid project: missing erc1155 or marketplace`);
       }
 
-      if (!tokenId || tokenId === undefined) {
+      if (tokenId === undefined) {
         throw new Error(`Invalid tokenId: ${tokenId}`);
       }
 
       if (!pricePerToken || typeof pricePerToken !== 'bigint') {
         throw new Error(`Invalid pricePerToken: ${pricePerToken}`);
       }
-      
+
       await approveERC1155ForMarketplace(
         clients,
         project.erc1155,
@@ -282,20 +345,20 @@ class FundingAndDelegationActions {
 
       let listingId = 'unknown';
       try {
-        const logs = receipt.logs;
+        const logs = receipt.logs as Array<{ topics?: string[] }>;
         for (const log of logs) {
           try {
-            const parsed = log;
-            if (parsed.topics && parsed.topics.length > 0) {
-              const topic = parsed.topics[0];
-              if (topic.includes('SaleListingCreated') || topic.length === 66) {
-                listingId = parsed.topics[1] ? BigInt(parsed.topics[1]).toString() : 'unknown';
+            if (log.topics && log.topics.length > 0) {
+              const topic = log.topics[0];
+              if (topic?.includes('SaleListingCreated') || topic?.length === 66) {
+                listingId = log.topics[1] ? BigInt(log.topics[1]).toString() : 'unknown';
               }
             }
-          } catch {}
+          } catch { /* ignore parse errors */ }
         }
       } catch (eventError) {
-        console.log('Event parsing warning:', eventError.message);
+        const err = eventError as Error;
+        console.log('Event parsing warning:', err.message);
       }
 
       const userTokenList = this.userTokens.get(user.address);
@@ -308,16 +371,23 @@ class FundingAndDelegationActions {
 
       return { success: true, receipt, listingId };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Funding Action: Purchase from secondary market
    */
-  async purchaseFromSecondaryMarket(user, project, listingId, count, pricePerToken) {
+  async purchaseFromSecondaryMarket(
+    user: User,
+    project: CreatedProject,
+    listingId: string,
+    count: number,
+    pricePerToken: bigint
+  ): Promise<ActionResult<{ totalCost: string }>> {
     const clients = this.getWalletForUser(user);
-    
+
     try {
       if (!pricePerToken) {
         throw new Error('pricePerToken is required');
@@ -340,7 +410,7 @@ class FundingAndDelegationActions {
       if (!this.userTokens.has(user.address)) {
         this.userTokens.set(user.address, []);
       }
-      const userTokenList = this.userTokens.get(user.address);
+      const userTokenList = this.userTokens.get(user.address)!;
       const existingToken = userTokenList.find(t => t.erc1155 === project.erc1155);
       if (existingToken) {
         existingToken.count += count;
@@ -350,16 +420,17 @@ class FundingAndDelegationActions {
 
       return { success: true, receipt, totalCost: totalCost.toString() };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Funding Action: Withdraw funds from successful project
    */
-  async withdrawProjectFunds(user, project) {
+  async withdrawProjectFunds(user: User, project: CreatedProject): Promise<ActionResult> {
     const clients = this.getWalletForUser(user);
-    
+
     try {
       if (user.address.toLowerCase() !== project.owner.toLowerCase()) {
         throw new Error('Only project recipient can withdraw');
@@ -374,14 +445,15 @@ class FundingAndDelegationActions {
 
       return { success: true, receipt };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Delegation Action: Deposit ETH to create a note
    */
-  async depositToNote(user, amount) {
+  async depositToNote(user: User, amount: bigint): Promise<ActionResult<{ note: NoteRecord }>> {
     if (!this.contracts.delegatableNotes) {
       throw new Error('DelegatableNotes contract not deployed');
     }
@@ -391,13 +463,13 @@ class FundingAndDelegationActions {
     try {
       const { hash, noteId } = await sdkDepositETH(
         clients,
-        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        { address: this.contracts.delegatableNotes.address!, abi: this.contracts.delegatableNotes.abi },
         { amount }
       );
 
       const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-      const note = {
+      const note: NoteRecord = {
         noteId: noteId.toString(),
         owner: user.address,
         amount: amount.toString(),
@@ -411,14 +483,20 @@ class FundingAndDelegationActions {
       this.createdNotes.push(note);
       return { success: true, note, receipt };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Delegation Action: Delegate a note to another user
    */
-  async delegateNote(user, noteId, delegateTo, amountToDelegate) {
+  async delegateNote(
+    user: User,
+    noteId: string,
+    delegateTo: `0x${string}`,
+    amountToDelegate: bigint
+  ): Promise<ActionResult<{ delegatedNoteId: string; remainderNoteId?: string }>> {
     if (!this.contracts.delegatableNotes) {
       throw new Error('DelegatableNotes contract not deployed');
     }
@@ -435,11 +513,11 @@ class FundingAndDelegationActions {
         throw new Error('Not note owner');
       }
 
-      const owners = [user.address];
+      const owners: `0x${string}`[] = [user.address];
 
       const { hash, delegatedNoteId, remainderNoteId } = await sdkDelegateNote(
         clients,
-        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        { address: this.contracts.delegatableNotes.address!, abi: this.contracts.delegatableNotes.abi },
         {
           noteId: BigInt(noteId),
           owners,
@@ -466,11 +544,11 @@ class FundingAndDelegationActions {
           originalOwner: note.originalOwner || user.address
         });
 
-        return { 
-          success: true, 
-          delegatedNoteId: delegatedNoteId.toString(), 
+        return {
+          success: true,
+          delegatedNoteId: delegatedNoteId.toString(),
           remainderNoteId: remainderNoteId.toString(),
-          receipt 
+          receipt
         };
       } else {
         note.owner = delegateTo;
@@ -478,14 +556,15 @@ class FundingAndDelegationActions {
         return { success: true, delegatedNoteId: delegatedNoteId.toString(), receipt };
       }
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Delegation Action: Revoke a delegation
    */
-  async revokeDelegation(user, noteId) {
+  async revokeDelegation(user: User, noteId: string): Promise<ActionResult> {
     if (!this.contracts.delegatableNotes) {
       throw new Error('DelegatableNotes contract not deployed');
     }
@@ -498,11 +577,11 @@ class FundingAndDelegationActions {
         throw new Error('Note not found');
       }
 
-      const owners = [note.owner, user.address];
+      const owners: `0x${string}`[] = [note.owner, user.address];
 
       const hash = await sdkRevokeNote(
         clients,
-        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        { address: this.contracts.delegatableNotes.address!, abi: this.contracts.delegatableNotes.abi },
         {
           noteId: BigInt(noteId),
           owners
@@ -516,14 +595,21 @@ class FundingAndDelegationActions {
 
       return { success: true, receipt };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Delegation Action: Spend notes to purchase tokens from primary market
    */
-  async spendNotesOnPrimaryMarket(user, noteIds, project, tokenIds, counts) {
+  async spendNotesOnPrimaryMarket(
+    user: User,
+    noteIds: string[],
+    project: CreatedProject,
+    tokenIds: number[],
+    counts: number[]
+  ): Promise<ActionResult<{ totalCost: string }>> {
     if (!this.contracts.delegatableNotes) {
       throw new Error('DelegatableNotes contract not deployed');
     }
@@ -539,11 +625,11 @@ class FundingAndDelegationActions {
         }
       }
 
-      const chains = noteIds.map(() => [user.address]);
+      const chains = noteIds.map((): `0x${string}`[] => [user.address]);
 
       const hash = await purchaseFromPrimaryMarketWithNotes(
         clients,
-        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        { address: this.contracts.delegatableNotes.address!, abi: this.contracts.delegatableNotes.abi },
         {
           noteIds: noteIds.map(n => BigInt(n)),
           chains,
@@ -567,14 +653,15 @@ class FundingAndDelegationActions {
 
       return { success: true, receipt, totalCost: totalCost.toString() };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 
   /**
    * Delegation Action: Reclaim funds from a root note
    */
-  async reclaimNoteFunds(user, noteId) {
+  async reclaimNoteFunds(user: User, noteId: string): Promise<ActionResult> {
     if (!this.contracts.delegatableNotes) {
       throw new Error('DelegatableNotes contract not deployed');
     }
@@ -593,7 +680,7 @@ class FundingAndDelegationActions {
 
       const hash = await sdkReclaimFunds(
         clients,
-        { address: this.contracts.delegatableNotes.address, abi: this.contracts.delegatableNotes.abi },
+        { address: this.contracts.delegatableNotes.address!, abi: this.contracts.delegatableNotes.abi },
         BigInt(noteId)
       );
 
@@ -603,9 +690,16 @@ class FundingAndDelegationActions {
 
       return { success: true, receipt };
     } catch (error) {
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 }
 
+// suppress unused import
+void generateStatements;
+void DelegatableNotesAbi;
+void PubstarterAbi;
+
 export { FundingAndDelegationActions };
+export type { CreatedProject, NoteRecord, TokenRecord };

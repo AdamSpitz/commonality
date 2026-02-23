@@ -2,6 +2,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import type { Attester } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,8 +12,15 @@ const __dirname = dirname(__filename);
  * Attesters are specialized accounts that evaluate whether S1 implies S2
  */
 
+interface AttesterTypeConfig {
+  threshold: number;
+  weight: number;
+  description: string;
+  bias: string | null;
+}
+
 // Attester types with their characteristics
-const ATTESTER_TYPES = {
+const ATTESTER_TYPES: Record<string, AttesterTypeConfig> = {
   NEUTRAL: {
     threshold: 0.8,
     weight: 0.3,
@@ -51,7 +59,7 @@ const ATTESTER_TYPES = {
   }
 };
 
-function selectAttesterType() {
+function selectAttesterType(): string {
   const rand = Math.random();
   let cumulative = 0;
 
@@ -65,7 +73,7 @@ function selectAttesterType() {
   return 'NEUTRAL';
 }
 
-function generateAttester(id) {
+function generateAttester(id: number): Attester {
   const privateKey = generatePrivateKey();
   const wallet = privateKeyToAccount(privateKey);
   const type = selectAttesterType();
@@ -74,12 +82,11 @@ function generateAttester(id) {
   return {
     id,
     address: wallet.address,
-    privateKey: wallet.privateKey,
+    privateKey: privateKey, // use the key we generated, not wallet.privateKey
     type,
     threshold: config.threshold,
     description: config.description,
     bias: config.bias,
-    // Track attestation statistics
     stats: {
       totalAttestations: 0,
       acceptedRequests: 0,
@@ -91,11 +98,9 @@ function generateAttester(id) {
 
 /**
  * Generate a set of implication attesters
- * @param {number} count - Number of attesters to generate (default: 10)
- * @returns {Promise<Array>} Array of attester objects
  */
-async function generateAttesters(count = 10) {
-  const attesters = [];
+async function generateAttesters(count = 10): Promise<Attester[]> {
+  const attesters: Attester[] = [];
 
   for (let i = 0; i < count; i++) {
     attesters.push(generateAttester(i));
@@ -120,28 +125,39 @@ async function generateAttesters(count = 10) {
 
 /**
  * Load existing attesters from file
- * @returns {Promise<Array>} Array of attester objects
  */
-async function loadAttesters() {
+async function loadAttesters(): Promise<Attester[]> {
   try {
     const attestersPath = join(__dirname, 'attesters.json');
     const data = await fs.readFile(attestersPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (err) {
+    return JSON.parse(data) as Attester[];
+  } catch {
     console.log('No existing attesters found, generating new ones...');
     return generateAttesters(10);
   }
 }
 
+interface Statement {
+  id: number;
+  domain: string;
+  position: string;
+  statementId: string;
+}
+
+interface EvaluationResult {
+  implies: boolean;
+  confidence: number;
+  reasoning: string;
+  attesterId: number;
+  attesterType: string;
+  threshold: number;
+}
+
 /**
  * Evaluate whether statement1 implies statement2
  * This is a simplified simulation - in production, this would use LLM evaluation
- * @param {Object} attester - The attester making the evaluation
- * @param {Object} statement1 - First statement (S1)
- * @param {Object} statement2 - Second statement (S2)
- * @returns {Object} Evaluation result with confidence score
  */
-function evaluateImplication(attester, statement1, statement2) {
+function evaluateImplication(attester: Attester, statement1: Statement, statement2: Statement): EvaluationResult {
   let confidence = 0;
   let reasoning = '';
 
@@ -231,14 +247,13 @@ function evaluateImplication(attester, statement1, statement2) {
 }
 
 // Helper functions for position evaluation
-function isCompatiblePosition(pos1, pos2) {
+function isCompatiblePosition(pos1: unknown, pos2: unknown): boolean {
   if (typeof pos1 === 'string' && typeof pos2 === 'string') {
     return pos1 === pos2;
   }
-  if (typeof pos1 === 'object' && typeof pos2 === 'object') {
-    // Check if any axis matches
-    for (const [axis, value] of Object.entries(pos1)) {
-      if (pos2[axis] === value) {
+  if (typeof pos1 === 'object' && pos1 !== null && typeof pos2 === 'object' && pos2 !== null) {
+    for (const [axis, value] of Object.entries(pos1 as Record<string, unknown>)) {
+      if ((pos2 as Record<string, unknown>)[axis] === value) {
         return true;
       }
     }
@@ -246,36 +261,38 @@ function isCompatiblePosition(pos1, pos2) {
   return false;
 }
 
-function areRelatedDomains(domain1, domain2) {
+function areRelatedDomains(domain1: string, domain2: string): boolean {
   const relatedPairs = [
     ['politics', 'technology'],
     ['politics', 'climate'],
     ['crypto', 'technology'],
     ['climate', 'technology']
   ];
-  
+
   return relatedPairs.some(
-    pair => (pair[0] === domain1 && pair[1] === domain2) || 
+    pair => (pair[0] === domain1 && pair[1] === domain2) ||
             (pair[0] === domain2 && pair[1] === domain1)
   );
 }
 
-function isLeftLeaning(position) {
+function isLeftLeaning(position: unknown): boolean {
   if (typeof position === 'string') {
     return ['left', 'progressive'].includes(position);
   }
-  if (typeof position === 'object') {
-    return position.economic === 'left' || position.social === 'progressive';
+  if (typeof position === 'object' && position !== null) {
+    const p = position as Record<string, string>;
+    return p.economic === 'left' || p.social === 'progressive';
   }
   return false;
 }
 
-function isRightLeaning(position) {
+function isRightLeaning(position: unknown): boolean {
   if (typeof position === 'string') {
     return ['right', 'conservative'].includes(position);
   }
-  if (typeof position === 'object') {
-    return position.economic === 'right' || position.social === 'conservative';
+  if (typeof position === 'object' && position !== null) {
+    const p = position as Record<string, string>;
+    return p.economic === 'right' || p.social === 'conservative';
   }
   return false;
 }

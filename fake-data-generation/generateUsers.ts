@@ -2,6 +2,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import type { User } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,8 +12,13 @@ const __dirname = dirname(__filename);
  * Each user has interests, positions on various domains, engagement level, and wealth
  */
 
+interface EngagementConfig {
+  weight: number;
+  actions: number;
+}
+
 // Engagement levels affect action probabilities
-const ENGAGEMENT_LEVELS = {
+const ENGAGEMENT_LEVELS: Record<string, EngagementConfig> = {
   LURKER: { weight: 0.4, actions: 1 },      // 40% of users
   CASUAL: { weight: 0.35, actions: 3 },     // 35% of users
   ACTIVE: { weight: 0.20, actions: 8 },     // 20% of users
@@ -20,7 +26,7 @@ const ENGAGEMENT_LEVELS = {
 };
 
 // Wealth follows power law distribution
-function generateWealth() {
+function generateWealth(): number {
   // Power law: few whales, many small holders
   const rand = Math.random();
   if (rand < 0.01) return 100; // 1% are whales
@@ -28,7 +34,7 @@ function generateWealth() {
   return 1 + Math.random() * 2; // 90% are small holders
 }
 
-function selectEngagementLevel() {
+function selectEngagementLevel(): { level: string; actionsPerRound: number } {
   const rand = Math.random();
   let cumulative = 0;
 
@@ -42,15 +48,19 @@ function selectEngagementLevel() {
   return { level: 'CASUAL', actionsPerRound: 3 };
 }
 
-function pickRandomPosition(domain, domainConfig) {
+interface DomainConfig {
+  type: 'categorical' | 'spectrum';
+  positions?: string[];
+  axes?: Array<{ name: string; labels: string[] }>;
+}
+
+function pickRandomPosition(domainConfig: DomainConfig): unknown {
   if (domainConfig.type === 'categorical') {
-    // Pick one category randomly
-    const positions = domainConfig.positions;
+    const positions = domainConfig.positions ?? [];
     return positions[Math.floor(Math.random() * positions.length)];
   } else if (domainConfig.type === 'spectrum') {
-    // Pick position on each axis
-    const positions = {};
-    for (const axis of domainConfig.axes) {
+    const positions: Record<string, string> = {};
+    for (const axis of domainConfig.axes ?? []) {
       positions[axis.name] = axis.labels[Math.floor(Math.random() * axis.labels.length)];
     }
     return positions;
@@ -58,25 +68,27 @@ function pickRandomPosition(domain, domainConfig) {
 }
 
 // Generate realistic correlations (simplified for now)
-function addCorrelations(interests) {
+function addCorrelations(interests: Record<string, unknown>): Record<string, unknown> {
+  const politics = interests.politics as Record<string, string> | undefined;
+
   // If strongly left economically, more likely to be progressive socially
-  if (interests.politics?.economic === 'left') {
+  if (politics?.economic === 'left') {
     if (Math.random() > 0.3) {
-      interests.politics.social = 'progressive';
+      (interests.politics as Record<string, string>).social = 'progressive';
     }
   }
 
   // If strongly right economically, more likely to be conservative socially
-  if (interests.politics?.economic === 'right') {
+  if (politics?.economic === 'right') {
     if (Math.random() > 0.3) {
-      interests.politics.social = 'conservative';
+      (interests.politics as Record<string, string>).social = 'conservative';
     }
   }
 
   // Crypto enthusiasts more likely to favor decentralization
   if (interests.crypto && interests.crypto !== 'skeptic') {
     if (Math.random() > 0.4 && interests.technology) {
-      interests.technology.centralization = 'decentralized';
+      (interests.technology as Record<string, string>).centralization = 'decentralized';
     }
   }
 
@@ -85,7 +97,7 @@ function addCorrelations(interests) {
 
 const DEFAULT_ACCOUNT_COUNT = 20;
 
-const HARDHAT_PRIVATE_KEYS = [
+const HARDHAT_PRIVATE_KEYS: `0x${string}`[] = [
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
   '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d',
   '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a',
@@ -94,11 +106,16 @@ const HARDHAT_PRIVATE_KEYS = [
   '0x8b3a350cf5c34c9194ca8580a83d1183d3e932cb5bf0cb997b24fe9b4e8fd74c',
 ];
 
-function getHardhatAccountsFromMnemonic(count) {
-  const accounts = [];
-  
+interface HardhatAccount {
+  address: `0x${string}`;
+  privateKey: `0x${string}`;
+}
+
+function getHardhatAccountsFromMnemonic(count: number): HardhatAccount[] {
+  const accounts: HardhatAccount[] = [];
+
   for (let i = 0; i < count; i++) {
-    let privateKey;
+    let privateKey: `0x${string}`;
     if (i < HARDHAT_PRIVATE_KEYS.length) {
       privateKey = HARDHAT_PRIVATE_KEYS[i];
     } else {
@@ -113,20 +130,23 @@ function getHardhatAccountsFromMnemonic(count) {
   return accounts;
 }
 
-async function getHardhatAccounts(count) {
+async function getHardhatAccounts(count: number): Promise<HardhatAccount[]> {
   return getHardhatAccountsFromMnemonic(count);
 }
 
-function generateUser(id, universe, hardhatAccount = null) {
-  let account;
-  let privateKey;
+interface Universe {
+  domains: Record<string, DomainConfig>;
+  statementTemplates: Record<string, Record<string, string[]>>;
+}
+
+function generateUser(id: number, universe: Universe, hardhatAccount: HardhatAccount | null = null): User {
+  let privateKey: `0x${string}`;
   if (hardhatAccount) {
     privateKey = hardhatAccount.privateKey;
-    account = privateKeyToAccount(privateKey);
   } else {
     privateKey = generatePrivateKey();
-    account = privateKeyToAccount(privateKey);
   }
+  const account = privateKeyToAccount(privateKey);
   const engagement = selectEngagementLevel();
 
   // Each user cares about 1-4 domains
@@ -136,9 +156,9 @@ function generateUser(id, universe, hardhatAccount = null) {
     .sort(() => Math.random() - 0.5)
     .slice(0, numInterests);
 
-  const interests = {};
+  const interests: Record<string, unknown> = {};
   for (const domain of selectedDomains) {
-    interests[domain] = pickRandomPosition(domain, universe.domains[domain]);
+    interests[domain] = pickRandomPosition(universe.domains[domain]);
   }
 
   // Add correlations between positions
@@ -155,24 +175,29 @@ function generateUser(id, universe, hardhatAccount = null) {
     actionsPerRound: engagement.actionsPerRound,
     wealth: generateWealth(),
     interests,
-    trustNetworkSize, // Will be filled with actual addresses later
+    trustNetworkSize,
     trustNetwork: []
   };
 }
 
-async function generateUsers(count, options = {}) {
-  const { useHardhatAccounts = false, hardhatAccountCount = DEFAULT_ACCOUNT_COUNT } = options;
-  
-  const universePath = join(__dirname, 'universe.json');
-  const universe = JSON.parse(await fs.readFile(universePath, 'utf-8'));
+interface GenerateUsersOptions {
+  useHardhatAccounts?: boolean;
+  hardhatAccountCount?: number;
+}
 
-  let hardhatAccounts = [];
+async function generateUsers(count: number, options: GenerateUsersOptions = {}): Promise<User[]> {
+  const { useHardhatAccounts = false, hardhatAccountCount = DEFAULT_ACCOUNT_COUNT } = options;
+
+  const universePath = join(__dirname, 'universe.json');
+  const universe = JSON.parse(await fs.readFile(universePath, 'utf-8')) as Universe;
+
+  let hardhatAccounts: HardhatAccount[] = [];
   if (useHardhatAccounts) {
     hardhatAccounts = await getHardhatAccounts(hardhatAccountCount);
     console.log(`Using ${hardhatAccounts.length} hardhat accounts`);
   }
 
-  const users = [];
+  const users: User[] = [];
 
   // Generate users
   for (let i = 0; i < count; i++) {
@@ -189,7 +214,7 @@ async function generateUsers(count, options = {}) {
     const scored = candidates.map(candidate => {
       let overlap = 0;
       for (const domain of Object.keys(user.interests)) {
-        if (candidate.interests[domain]) {
+        if ((candidate.interests as Record<string, unknown>)[domain]) {
           overlap++;
         }
       }
@@ -209,7 +234,7 @@ async function generateUsers(count, options = {}) {
 
   console.log(`Generated ${count} users`);
   console.log(`Engagement distribution:`);
-  for (const [level, config] of Object.entries(ENGAGEMENT_LEVELS)) {
+  for (const [level] of Object.entries(ENGAGEMENT_LEVELS)) {
     const levelCount = users.filter(u => u.engagement === level).length;
     console.log(`  ${level}: ${levelCount} (${(levelCount/count*100).toFixed(1)}%)`);
   }
@@ -223,10 +248,12 @@ async function generateUsers(count, options = {}) {
 // Run if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  const count = parseInt(args.find(a => !a.startsWith('--')) || 50);
+  const count = parseInt(args.find(a => !a.startsWith('--')) ?? '50');
   const useHardhatAccounts = args.includes('--use-hardhat-accounts');
-  const hardhatAccountCount = parseInt(args.find(a => a.startsWith('--hardhat-count='))?.split('=')[1]) || DEFAULT_ACCOUNT_COUNT;
-  
+  const hardhatAccountCount = parseInt(
+    args.find(a => a.startsWith('--hardhat-count='))?.split('=')[1] ?? String(DEFAULT_ACCOUNT_COUNT)
+  );
+
   generateUsers(count, { useHardhatAccounts, hardhatAccountCount }).catch(console.error);
 }
 

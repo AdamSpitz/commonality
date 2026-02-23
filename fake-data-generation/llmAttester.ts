@@ -1,19 +1,44 @@
 /**
  * LLM-based implication evaluation for attesters
- * Integrates generateAttesters.js with OpenRouter for intelligent evaluation
+ * Integrates generateAttesters.ts with OpenRouter for intelligent evaluation
  */
 
-import { evaluateImplicationWithLLM, batchEvaluateImplications } from './openrouter.js';
+import { evaluateImplicationWithLLM } from './openrouter.js';
+import type { Attester } from './types.js';
+import type { LLMEvaluationResult } from './openrouter.js';
+
+interface StatementLike {
+  id?: number;
+  statementId?: string;
+  domain?: string;
+  position?: string;
+  content?: {
+    text?: string;
+    position?: string;
+  };
+}
+
+interface AttesterEvaluationResult {
+  implies: boolean;
+  confidence: number;
+  llmConfidence: string;
+  reasoning: string;
+  attesterId: number;
+  attesterType: string;
+  threshold: number;
+  rawLlmResult: LLMEvaluationResult;
+  adjustedForBias: boolean;
+}
 
 /**
  * Evaluate an implication using LLM with attester-specific threshold
- * @param {Object} attester - The attester making the evaluation
- * @param {Object} statement1 - First statement (S1)
- * @param {Object} statement2 - Second statement (S2)
- * @param {string} apiKey - OpenRouter API key
- * @returns {Promise<Object>} Evaluation result
  */
-async function evaluateImplicationWithAttester(attester, statement1, statement2, apiKey) {
+async function evaluateImplicationWithAttester(
+  attester: Attester,
+  statement1: StatementLike,
+  statement2: StatementLike,
+  apiKey: string
+): Promise<AttesterEvaluationResult> {
   // First, get LLM evaluation
   const llmResult = await evaluateImplicationWithLLM(
     statement1,
@@ -23,7 +48,9 @@ async function evaluateImplicationWithAttester(attester, statement1, statement2,
   );
 
   // Apply attester-specific adjustments
-  let { implies, confidence, reasoning } = llmResult;
+  let implies = llmResult.implies;
+  const confidence = llmResult.confidence;
+  let reasoning = llmResult.reasoning;
   let adjustedConfidence = calculateConfidenceScore(confidence);
 
   // Apply attester bias if applicable
@@ -60,10 +87,8 @@ async function evaluateImplicationWithAttester(attester, statement1, statement2,
 
 /**
  * Convert confidence string to numeric score (0-1)
- * @param {string} confidence - Confidence level (high/medium/low)
- * @returns {number} Numeric confidence score
  */
-function calculateConfidenceScore(confidence) {
+function calculateConfidenceScore(confidence: string | undefined): number {
   switch (confidence?.toLowerCase()) {
     case 'high':
       return 0.9;
@@ -75,19 +100,25 @@ function calculateConfidenceScore(confidence) {
   }
 }
 
+interface BiasResult {
+  implies: boolean;
+  confidence: number;
+  reasoning: string | null;
+}
+
 /**
  * Apply attester-specific bias to evaluation
- * @param {Object} attester - The attester
- * @param {Object} statement1 - S1
- * @param {Object} statement2 - S2
- * @param {boolean} originalImplies - Original LLM decision
- * @param {number} originalConfidence - Original confidence score
- * @returns {Object} Adjusted result
  */
-function applyAttesterBias(attester, statement1, statement2, originalImplies, originalConfidence) {
+function applyAttesterBias(
+  attester: Attester,
+  statement1: StatementLike,
+  statement2: StatementLike,
+  originalImplies: boolean,
+  originalConfidence: number
+): BiasResult {
   const domain = statement1.domain;
-  const s1Position = statement1.position || statement1.content?.position;
-  const s2Position = statement2.position || statement2.content?.position;
+  const s1Position = statement1.position ?? statement1.content?.position;
+  const s2Position = statement2.position ?? statement2.content?.position;
 
   switch (attester.bias) {
     case 'left':
@@ -123,10 +154,6 @@ function applyAttesterBias(attester, statement1, statement2, originalImplies, or
         confidence: Math.random(),
         reasoning: 'Random evaluation (malicious attester)'
       };
-
-    default:
-      // No bias
-      break;
   }
 
   return { implies: originalImplies, confidence: originalConfidence, reasoning: null };
@@ -134,10 +161,8 @@ function applyAttesterBias(attester, statement1, statement2, originalImplies, or
 
 /**
  * Check if a position is left-leaning
- * @param {string} position - Position identifier
- * @returns {boolean}
  */
-function isLeftPosition(position) {
+function isLeftPosition(position: string | undefined): boolean {
   if (!position) return false;
   const leftMarkers = ['left', 'progressive', 'economic-left', 'social-progressive'];
   return leftMarkers.some(marker => position.toLowerCase().includes(marker));
@@ -145,32 +170,45 @@ function isLeftPosition(position) {
 
 /**
  * Check if a position is right-leaning
- * @param {string} position - Position identifier
- * @returns {boolean}
  */
-function isRightPosition(position) {
+function isRightPosition(position: string | undefined): boolean {
   if (!position) return false;
   const rightMarkers = ['right', 'conservative', 'economic-right', 'social-conservative'];
   return rightMarkers.some(marker => position.toLowerCase().includes(marker));
 }
 
+interface BatchAttesterOptions {
+  maxPairsPerAttester?: number;
+  delayBetweenCalls?: number;
+  onProgress?: (completed: number, total: number, evaluation: AttesterEvaluationResult) => void;
+}
+
+interface BatchAttesterResults {
+  evaluations: AttesterEvaluationResult[];
+  summary: {
+    total: number;
+    byAttester: Record<number, { total: number; accepted: number }>;
+    byType: Record<string, { total: number; accepted: number }>;
+    errors: Array<{ attesterId: number; error: string }>;
+  };
+}
+
 /**
  * Batch evaluate implications for multiple attesters and statement pairs
- * This is useful for simulation runs with many evaluations
- * @param {Array} attesters - Array of attesters
- * @param {Array} pairs - Array of {statement1, statement2} pairs to evaluate
- * @param {string} apiKey - OpenRouter API key
- * @param {Object} options - Options for batch processing
- * @returns {Promise<Object>} Results organized by attester and pair
  */
-async function batchAttesterEvaluations(attesters, pairs, apiKey, options = {}) {
-  const { 
-    maxPairsPerAttester = 10,  // Limit evaluations per attester to control costs
-    delayBetweenCalls = 1000,   // Rate limiting
-    onProgress 
+async function batchAttesterEvaluations(
+  attesters: Attester[],
+  pairs: Array<{ statement1: StatementLike; statement2: StatementLike }>,
+  apiKey: string,
+  options: BatchAttesterOptions = {}
+): Promise<BatchAttesterResults> {
+  const {
+    maxPairsPerAttester = 10,
+    delayBetweenCalls = 1000,
+    onProgress
   } = options;
 
-  const results = {
+  const results: BatchAttesterResults = {
     evaluations: [],
     summary: {
       total: 0,
@@ -182,7 +220,6 @@ async function batchAttesterEvaluations(attesters, pairs, apiKey, options = {}) 
 
   // For each attester, select random pairs to evaluate
   for (const attester of attesters) {
-    const attesterResults = [];
     const selectedPairs = selectRandomPairs(pairs, maxPairsPerAttester);
 
     for (const { statement1, statement2 } of selectedPairs) {
@@ -194,7 +231,6 @@ async function batchAttesterEvaluations(attesters, pairs, apiKey, options = {}) 
           apiKey
         );
 
-        attesterResults.push(evaluation);
         results.evaluations.push(evaluation);
         results.summary.total++;
 
@@ -225,9 +261,10 @@ async function batchAttesterEvaluations(attesters, pairs, apiKey, options = {}) 
         }
 
       } catch (error) {
+        const err = error as Error;
         results.summary.errors.push({
           attesterId: attester.id,
-          error: error.message
+          error: err.message
         });
       }
     }
@@ -238,35 +275,38 @@ async function batchAttesterEvaluations(attesters, pairs, apiKey, options = {}) 
 
 /**
  * Select random pairs from the available pairs
- * @param {Array} pairs - All available pairs
- * @param {number} count - Number to select
- * @returns {Array} Selected pairs
  */
-function selectRandomPairs(pairs, count) {
+function selectRandomPairs<T>(pairs: T[], count: number): T[] {
   if (pairs.length <= count) return pairs;
-  
+
   const shuffled = [...pairs].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 }
 
 /**
  * Sleep utility
- * @param {number} ms - Milliseconds
- * @returns {Promise<void>}
  */
-function sleep(ms) {
+function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+interface CostEstimate {
+  numEvaluations: number;
+  costPerEvaluation: number;
+  totalCostUsd: number;
+  breakdown: {
+    llmCalls: number;
+    estimatedTokensPerCall: number;
+    model: string;
+  };
 }
 
 /**
  * Cost estimation for batch evaluation
- * @param {number} numEvaluations - Number of evaluations to perform
- * @param {number} costPerEvaluation - Estimated cost per evaluation in USD
- * @returns {Object} Cost estimate
  */
-function estimateEvaluationCost(numEvaluations, costPerEvaluation = 0.002) {
+function estimateEvaluationCost(numEvaluations: number, costPerEvaluation = 0.002): CostEstimate {
   const totalCost = numEvaluations * costPerEvaluation;
-  
+
   return {
     numEvaluations,
     costPerEvaluation,
@@ -279,12 +319,17 @@ function estimateEvaluationCost(numEvaluations, costPerEvaluation = 0.002) {
   };
 }
 
+interface ValidationResult {
+  valid: boolean;
+  error?: string;
+  testResult?: LLMEvaluationResult;
+  message?: string;
+}
+
 /**
  * Validate that OpenRouter is configured and working
- * @param {string} apiKey - OpenRouter API key
- * @returns {Promise<Object>} Validation result
  */
-async function validateOpenRouterSetup(apiKey) {
+async function validateOpenRouterSetup(apiKey: string | undefined): Promise<ValidationResult> {
   if (!apiKey) {
     return {
       valid: false,
@@ -306,9 +351,10 @@ async function validateOpenRouterSetup(apiKey) {
       message: 'OpenRouter is configured and responding'
     };
   } catch (error) {
+    const err = error as Error;
     return {
       valid: false,
-      error: error.message,
+      error: err.message,
       message: 'Failed to validate OpenRouter setup'
     };
   }

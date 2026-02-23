@@ -8,15 +8,42 @@ const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 // Default model - using haiku for cost-effectiveness in testing
 const DEFAULT_MODEL = 'anthropic/claude-3.5-haiku';
 
+interface StatementLike {
+  content?: { text?: string } | string;
+  text?: string;
+}
+
+type ConfidenceLevel = 'high' | 'medium' | 'low';
+
+export interface LLMEvaluationResult {
+  implies: boolean;
+  confidence: ConfidenceLevel;
+  reasoning: string;
+  model: string;
+  usage: Record<string, number> | null;
+  error?: string;
+}
+
+interface BatchEvaluationResult extends LLMEvaluationResult {
+  pairIndex: number;
+  statement1Id: unknown;
+  statement2Id: unknown;
+}
+
+interface BatchOptions {
+  delayMs?: number;
+  onProgress?: (completed: number, total: number, result: LLMEvaluationResult) => void;
+}
+
 /**
  * Evaluate whether statement1 implies statement2 using an LLM
- * @param {Object} statement1 - First statement (S1)
- * @param {Object} statement2 - Second statement (S2)
- * @param {string} apiKey - OpenRouter API key
- * @param {string} model - Model to use (optional, defaults to claude-3.5-haiku)
- * @returns {Promise<Object>} Evaluation result with decision, confidence, and reasoning
  */
-async function evaluateImplicationWithLLM(statement1, statement2, apiKey, model = DEFAULT_MODEL) {
+async function evaluateImplicationWithLLM(
+  statement1: StatementLike,
+  statement2: StatementLike,
+  apiKey: string,
+  model = DEFAULT_MODEL
+): Promise<LLMEvaluationResult> {
   if (!apiKey) {
     throw new Error('OpenRouter API key is required. Set OPENROUTER_API_KEY environment variable.');
   }
@@ -51,11 +78,15 @@ async function evaluateImplicationWithLLM(statement1, statement2, apiKey, model 
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({})) as { error?: { message?: string } };
       throw new Error(`OpenRouter API error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as {
+      choices?: Array<{ message?: { content?: string } }>;
+      model?: string;
+      usage?: Record<string, number>;
+    };
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
@@ -63,10 +94,10 @@ async function evaluateImplicationWithLLM(statement1, statement2, apiKey, model 
     }
 
     // Parse the JSON response
-    let result;
+    let result: { implies?: boolean | string; confidence?: string | number; reasoning?: string; explanation?: string };
     try {
-      result = JSON.parse(content);
-    } catch (parseError) {
+      result = JSON.parse(content) as typeof result;
+    } catch {
       // If JSON parsing fails, try to extract structured data from text
       result = extractResultFromText(content);
     }
@@ -81,29 +112,28 @@ async function evaluateImplicationWithLLM(statement1, statement2, apiKey, model 
     };
 
   } catch (error) {
-    if (error.message.includes('API key')) {
+    const err = error as Error;
+    if (err.message.includes('API key')) {
       throw error;
     }
     console.error('Error calling OpenRouter:', error);
-    
+
     // Return a conservative fallback result
     return {
       implies: false,
       confidence: 'low',
-      reasoning: `Error during evaluation: ${error.message}. Defaulting to conservative "no implication" result.`,
+      reasoning: `Error during evaluation: ${err.message}. Defaulting to conservative "no implication" result.`,
       model: model,
-      error: error.message
+      usage: null,
+      error: err.message
     };
   }
 }
 
 /**
  * Build the prompt for implication evaluation
- * @param {Object} statement1 - First statement
- * @param {Object} statement2 - Second statement
- * @returns {string} The formatted prompt
  */
-function buildImplicationPrompt(statement1, statement2) {
+function buildImplicationPrompt(statement1: StatementLike, statement2: StatementLike): string {
   const s1Text = getStatementText(statement1);
   const s2Text = getStatementText(statement2);
 
@@ -135,11 +165,9 @@ Be conservative - when in doubt, say "implies": false.`;
 
 /**
  * Extract statement text from statement object
- * @param {Object} statement - Statement object
- * @returns {string} The text content
  */
-function getStatementText(statement) {
-  if (statement.content?.text) {
+function getStatementText(statement: StatementLike): string {
+  if (statement.content && typeof statement.content === 'object' && statement.content.text) {
     return statement.content.text;
   }
   if (statement.text) {
@@ -153,17 +181,15 @@ function getStatementText(statement) {
 
 /**
  * Normalize confidence value to standard format
- * @param {string|number} confidence - Raw confidence value
- * @returns {string} Normalized confidence (high/medium/low)
  */
-function normalizeConfidence(confidence) {
+function normalizeConfidence(confidence: string | number | undefined): ConfidenceLevel {
   if (typeof confidence === 'number') {
     if (confidence >= 0.8) return 'high';
     if (confidence >= 0.5) return 'medium';
     return 'low';
   }
-  
-  const normalized = String(confidence).toLowerCase().trim();
+
+  const normalized = String(confidence ?? '').toLowerCase().trim();
   if (['high', 'strong', 'certain', 'definite'].includes(normalized)) {
     return 'high';
   }
@@ -175,48 +201,40 @@ function normalizeConfidence(confidence) {
 
 /**
  * Attempt to extract structured result from non-JSON text
- * @param {string} text - Raw text response
- * @returns {Object} Extracted result
  */
-function extractResultFromText(text) {
+function extractResultFromText(text: string): {
+  implies: boolean;
+  confidence: ConfidenceLevel;
+  reasoning: string;
+} {
   const lowerText = text.toLowerCase();
-  
-  // Try to detect implication decision
-  let implies = null;
-  if (lowerText.includes('"implies": true') || 
+
+  let implies = false;
+  if (lowerText.includes('"implies": true') ||
       lowerText.includes('implies: true') ||
       lowerText.includes('"implies": "true"') ||
       (lowerText.includes('yes') && lowerText.includes('implies'))) {
     implies = true;
-  } else if (lowerText.includes('"implies": false') || 
-             lowerText.includes('implies: false') ||
-             lowerText.includes('"implies": "false"') ||
-             lowerText.includes('does not imply') ||
-             lowerText.includes('no implication')) {
-    implies = false;
   }
-  
-  // Try to detect confidence
-  let confidence = 'low';
+
+  let confidence: ConfidenceLevel = 'low';
   if (lowerText.includes('high confidence') || lowerText.includes('"confidence": "high"')) {
     confidence = 'high';
   } else if (lowerText.includes('medium confidence') || lowerText.includes('"confidence": "medium"')) {
     confidence = 'medium';
   }
-  
+
   return {
-    implies: implies !== null ? implies : false,
+    implies,
     confidence,
-    reasoning: text.slice(0, 500) // Use first 500 chars as reasoning fallback
+    reasoning: text.slice(0, 500)
   };
 }
 
 /**
  * Get available models from OpenRouter (for reference)
- * @param {string} apiKey - OpenRouter API key
- * @returns {Promise<Array>} List of available models
  */
-async function getAvailableModels(apiKey) {
+async function getAvailableModels(apiKey: string): Promise<unknown[]> {
   if (!apiKey) {
     throw new Error('OpenRouter API key is required');
   }
@@ -232,7 +250,7 @@ async function getAvailableModels(apiKey) {
       throw new Error(`Failed to fetch models: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { data?: unknown[] };
     return data.data || [];
   } catch (error) {
     console.error('Error fetching models:', error);
@@ -242,41 +260,43 @@ async function getAvailableModels(apiKey) {
 
 /**
  * Batch evaluate multiple implication pairs
- * Useful for simulation runs
- * @param {Array} pairs - Array of {statement1, statement2} objects
- * @param {string} apiKey - OpenRouter API key
- * @param {string} model - Model to use
- * @param {Object} options - Options including delay between calls
- * @returns {Promise<Array>} Array of evaluation results
  */
-async function batchEvaluateImplications(pairs, apiKey, model = DEFAULT_MODEL, options = {}) {
+async function batchEvaluateImplications(
+  pairs: Array<{ statement1: StatementLike; statement2: StatementLike }>,
+  apiKey: string,
+  model = DEFAULT_MODEL,
+  options: BatchOptions = {}
+): Promise<BatchEvaluationResult[]> {
   const { delayMs = 1000, onProgress } = options;
-  const results = [];
+  const results: BatchEvaluationResult[] = [];
 
   for (let i = 0; i < pairs.length; i++) {
     const { statement1, statement2 } = pairs[i];
-    
+
     try {
       const result = await evaluateImplicationWithLLM(statement1, statement2, apiKey, model);
       results.push({
         pairIndex: i,
-        statement1Id: statement1.id || statement1.statementId,
-        statement2Id: statement2.id || statement2.statementId,
+        statement1Id: (statement1 as Record<string, unknown>).id ?? (statement1 as Record<string, unknown>).statementId,
+        statement2Id: (statement2 as Record<string, unknown>).id ?? (statement2 as Record<string, unknown>).statementId,
         ...result
       });
-      
+
       if (onProgress) {
         onProgress(i + 1, pairs.length, result);
       }
     } catch (error) {
+      const err = error as Error;
       results.push({
         pairIndex: i,
-        statement1Id: statement1.id || statement1.statementId,
-        statement2Id: statement2.id || statement2.statementId,
-        error: error.message,
+        statement1Id: (statement1 as Record<string, unknown>).id ?? (statement1 as Record<string, unknown>).statementId,
+        statement2Id: (statement2 as Record<string, unknown>).id ?? (statement2 as Record<string, unknown>).statementId,
+        error: err.message,
         implies: false,
         confidence: 'low',
-        reasoning: `Error: ${error.message}`
+        reasoning: `Error: ${err.message}`,
+        model,
+        usage: null
       });
     }
 
@@ -291,10 +311,8 @@ async function batchEvaluateImplications(pairs, apiKey, model = DEFAULT_MODEL, o
 
 /**
  * Sleep utility for rate limiting
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise<void>}
  */
-function sleep(ms) {
+function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 

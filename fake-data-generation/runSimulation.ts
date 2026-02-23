@@ -20,8 +20,9 @@ import {
   DelegatableNotesAbi,
   createStatement,
   publishDocument,
-  cidToBytes32,
 } from '@commonality/sdk';
+import type { User, Statement, SimulationContracts } from './types.js';
+import type { Attestation } from './generateAttestations.js';
 
 const hardhat = {
   id: 31337,
@@ -36,16 +37,16 @@ const hardhat = {
     default: { http: ['http://localhost:8545'] },
     public: { http: ['http://localhost:8545'] },
   },
-};
+} as const;
 
 const BELIEVES = 1;
 const DISBELIEVES = 2;
 
-function cidToBytes32(cid) {
+function cidToBytes32(cid: string): `0x${string}` {
   return keccak256(toBytes(cid));
 }
 
-function createTestClients(privateKey, rpcUrl = 'http://localhost:8545') {
+function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost:8545') {
   const account = privateKeyToAccount(privateKey);
 
   const walletClient = createWalletClient({
@@ -66,10 +67,16 @@ function createTestClients(privateKey, rpcUrl = 'http://localhost:8545') {
   };
 }
 
-async function believeStatement(clients, contract, statementCid) {
+type TestClients = ReturnType<typeof createTestClients>;
+
+async function believeStatement(
+  clients: TestClients,
+  contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
+  statementCid: string
+): Promise<`0x${string}`> {
   const statementId = cidToBytes32(statementCid);
   const hash = await clients.walletClient.writeContract({
-    address: contract.address,
+    address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'setBelief',
     args: [statementId, BELIEVES],
@@ -80,10 +87,14 @@ async function believeStatement(clients, contract, statementCid) {
   return hash;
 }
 
-async function disbelieveStatement(clients, contract, statementCid) {
+async function disbelieveStatement(
+  clients: TestClients,
+  contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
+  statementCid: string
+): Promise<`0x${string}`> {
   const statementId = cidToBytes32(statementCid);
   const hash = await clients.walletClient.writeContract({
-    address: contract.address,
+    address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'setBelief',
     args: [statementId, DISBELIEVES],
@@ -96,16 +107,21 @@ async function disbelieveStatement(clients, contract, statementCid) {
 
 const PROJECT_ALIGNMENT_TOPIC = keccak256(toBytes("project-alignment-attestations"));
 
-async function attestImplication(clients, contract, fromStatementCid, toStatementCid, explanationCid = '0x0000000000000000000000000000000000000000000000000000000000000000') {
+async function attestImplication(
+  clients: TestClients,
+  contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
+  fromStatementCid: string,
+  toStatementCid: string,
+  explanationCid = '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`
+): Promise<`0x${string}`> {
   const fromStatementId = cidToBytes32(fromStatementCid);
   const toStatementId = cidToBytes32(toStatementCid);
-  const explanationId = explanationCid;
 
   const hash = await clients.walletClient.writeContract({
-    address: contract.address,
+    address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'attestImplication',
-    args: [fromStatementId, toStatementId, explanationId],
+    args: [fromStatementId, toStatementId, explanationCid],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });
@@ -113,11 +129,17 @@ async function attestImplication(clients, contract, fromStatementCid, toStatemen
   return hash;
 }
 
-async function attestAlignment(clients, contract, subjectAddress, statementCid, topicStatementId) {
+async function attestAlignment(
+  clients: TestClients,
+  contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
+  subjectAddress: `0x${string}`,
+  statementCid: string,
+  topicStatementId: `0x${string}`
+): Promise<`0x${string}`> {
   const statementId = cidToBytes32(statementCid);
 
   const hash = await clients.walletClient.writeContract({
-    address: contract.address,
+    address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'attestAlignment',
     args: [subjectAddress, statementId, topicStatementId],
@@ -132,19 +154,29 @@ loadEnv();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-function toBytes32(cidOrBytes32) {
-  if (cidOrBytes32.startsWith('0x') && cidOrBytes32.length === 66) {
-    return cidOrBytes32;
-  }
-  return cidOrBytes32;
-}
-
 /**
  * Main simulation runner
  * Deploys contracts, generates data, executes random user actions
  */
 
 class SimulationRunner {
+  clients: Record<string, TestClients>;
+  contracts: SimulationContracts;
+  users: User[];
+  statements: Statement[];
+  attestations: Attestation[];
+  actions: Array<Record<string, unknown>>;
+  metrics: {
+    gasUsed: Record<string, number[]>;
+    actionCounts: Record<string, number>;
+    errors: Array<Record<string, unknown>>;
+  };
+  fundingDelegation: FundingAndDelegationActions | null;
+  attackScenarios: AttackScenarios | null;
+  invariantChecker: InvariantChecker | null;
+  usePreGeneratedAttestations: boolean;
+  useHardhatAccounts: boolean;
+
   constructor() {
     this.clients = {};
     this.contracts = {};
@@ -164,7 +196,7 @@ class SimulationRunner {
     this.useHardhatAccounts = false;
   }
 
-  async initialize(numUsers = 50) {
+  async initialize(numUsers = 50): Promise<void> {
     console.log('=== Initializing Simulation ===\n');
 
     console.log('Loading contract addresses from .env...');
@@ -175,9 +207,9 @@ class SimulationRunner {
     try {
       const usersPath = join(__dirname, 'users.json');
       const data = await fs.readFile(usersPath, 'utf-8');
-      this.users = JSON.parse(data);
+      this.users = JSON.parse(data) as User[];
       console.log(`Loaded ${this.users.length} existing users`);
-    } catch (err) {
+    } catch {
       this.users = await generateUsers(numUsers, { useHardhatAccounts: this.useHardhatAccounts });
     }
 
@@ -186,9 +218,9 @@ class SimulationRunner {
     try {
       const stmtsPath = join(__dirname, 'statements.json');
       const data = await fs.readFile(stmtsPath, 'utf-8');
-      this.statements = JSON.parse(data);
+      this.statements = JSON.parse(data) as Statement[];
       console.log(`Loaded ${this.statements.length} existing statements`);
-    } catch (err) {
+    } catch {
       this.statements = await generateStatements();
     }
 
@@ -204,7 +236,7 @@ class SimulationRunner {
       console.log(`Loaded ${this.attestations.length} pre-generated attestations`);
     } else if (this.usePreGeneratedAttestations) {
       console.log('No pre-generated attestations found. Set OPENROUTER_API_KEY and run:');
-      console.log('  node ../fake-data-generation/generateAttestations.js');
+      console.log('  npx tsx generateAttestations.ts');
       console.log('Or disable with --no-pregenerated flag');
     } else {
       console.log('Using random attestation decisions (no LLM)');
@@ -241,50 +273,50 @@ class SimulationRunner {
     console.log('\n=== Initialization Complete ===\n');
   }
 
-  loadContracts() {
+  loadContracts(): void {
     this.contracts = {
       beliefs: {
-        address: CONTRACT_ADDRESSES.beliefs,
+        address: CONTRACT_ADDRESSES.beliefs as `0x${string}` | undefined,
         abi: BeliefsAbi
       },
       implications: {
-        address: CONTRACT_ADDRESSES.implications,
+        address: CONTRACT_ADDRESSES.implications as `0x${string}` | undefined,
         abi: ImplicationsAbi
       },
       alignmentAttestations: {
-        address: CONTRACT_ADDRESSES.alignmentAttestations,
+        address: CONTRACT_ADDRESSES.alignmentAttestations as `0x${string}` | undefined,
         abi: AlignmentAttestationsAbi
       },
       delegatableNotes: {
-        address: CONTRACT_ADDRESSES.delegatableNotes,
+        address: CONTRACT_ADDRESSES.delegatableNotes as `0x${string}` | undefined,
         abi: DelegatableNotesAbi
       },
       pubstarter: {
-        address: CONTRACT_ADDRESSES.pubstarter,
+        address: CONTRACT_ADDRESSES.pubstarter as `0x${string}` | undefined,
         abi: PubstarterAbi
       },
       assuranceContract: {
-        address: null,
+        address: undefined,
         abi: AssuranceContractAbi
       },
       erc1155SecondaryMarket: {
-        address: null,
+        address: undefined,
         abi: ERC1155SecondaryMarketAbi
       }
     };
 
-    console.log(`  Beliefs: ${this.contracts.beliefs.address}`);
-    console.log(`  Implications: ${this.contracts.implications.address}`);
-    console.log(`  AlignmentAttestations: ${this.contracts.alignmentAttestations.address}`);
-    console.log(`  DelegatableNotes: ${this.contracts.delegatableNotes.address}`);
-    console.log(`  Pubstarter: ${this.contracts.pubstarter.address}`);
+    console.log(`  Beliefs: ${this.contracts.beliefs?.address}`);
+    console.log(`  Implications: ${this.contracts.implications?.address}`);
+    console.log(`  AlignmentAttestations: ${this.contracts.alignmentAttestations?.address}`);
+    console.log(`  DelegatableNotes: ${this.contracts.delegatableNotes?.address}`);
+    console.log(`  Pubstarter: ${this.contracts.pubstarter?.address}`);
   }
 
-  getClientsForUser(user) {
+  getClientsForUser(user: User): TestClients {
     return createTestClients(user.privateKey, RPC_URL);
   }
 
-  async uploadStatementsToIPFS() {
+  async uploadStatementsToIPFS(): Promise<void> {
     const statementsWithCid = this.statements.filter(s => s.cid);
     if (statementsWithCid.length === this.statements.length) {
       console.log(`  All ${this.statements.length} statements already have CIDs, skipping upload`);
@@ -317,8 +349,9 @@ class SimulationRunner {
           console.log(`  Uploaded ${uploaded}/${this.statements.length} statements...`);
         }
       } catch (err) {
+        const error = err as Error;
         failed++;
-        console.error(`  Failed to upload statement ${stmt.id}: ${err.message}`);
+        console.error(`  Failed to upload statement ${stmt.id}: ${error.message}`);
       }
     }
 
@@ -331,7 +364,7 @@ class SimulationRunner {
     }
   }
 
-  async fundUsers() {
+  async fundUsers(): Promise<void> {
     const publicClient = createPublicClient({
       chain: hardhat,
       transport: http(RPC_URL)
@@ -339,19 +372,19 @@ class SimulationRunner {
 
     const funders = this.users.slice(0, 5);
     const funderClients = funders.map(u => this.getClientsForUser(u));
-    
+
     let fundedCount = 0;
     let failedCount = 0;
-    
+
     for (let i = 0; i < this.users.length; i++) {
       const user = this.users[i];
       const funderClient = funderClients[i % funderClients.length];
-      
+
       const baseAmount = parseEther('1');
       const wealthAmount = parseEther(user.wealth.toString());
       const gasBuffer = parseEther('0.5');
       const totalAmount = baseAmount + wealthAmount + gasBuffer;
-      
+
       try {
         const hash = await funderClient.walletClient.sendTransaction({
           to: user.address,
@@ -360,9 +393,10 @@ class SimulationRunner {
         await publicClient.waitForTransactionReceipt({ hash });
         fundedCount++;
       } catch (err) {
+        const error = err as Error;
         failedCount++;
         if (failedCount <= 3) {
-          console.log(`  Failed to fund user ${user.id}: ${err.message}`);
+          console.log(`  Failed to fund user ${user.id}: ${error.message}`);
         }
       }
     }
@@ -370,33 +404,30 @@ class SimulationRunner {
     console.log(`  Funded ${fundedCount} users (${failedCount} failed)`);
   }
 
-  getClientsForUser(user) {
-    return createTestClients(user.privateKey, RPC_URL);
-  }
-
-  getRandomUser() {
+  getRandomUser(): User {
     return this.users[Math.floor(Math.random() * this.users.length)];
   }
 
-  getRandomStatement() {
+  getRandomStatement(): Statement {
     return this.statements[Math.floor(Math.random() * this.statements.length)];
   }
 
-  getPreGeneratedAttestation(fromStatementId, toStatementId) {
+  getPreGeneratedAttestation(fromStatementId: string, toStatementId: string): Attestation | undefined {
     if (!this.usePreGeneratedAttestations || this.attestations.length === 0) {
-      return null;
+      return undefined;
     }
-    return this.attestations.find(a => 
+    return this.attestations.find(a =>
       a.fromStatementId === fromStatementId && a.toStatementId === toStatementId
     );
   }
 
-  getRelevantStatements(user) {
+  getRelevantStatements(user: User): Statement[] {
     // Get statements matching user's interests
     const relevant = this.statements.filter(stmt => {
-      if (!user.interests[stmt.domain]) return false;
+      const interests = user.interests as Record<string, unknown>;
+      if (!interests[stmt.domain]) return false;
 
-      const userPosition = user.interests[stmt.domain];
+      const userPosition = interests[stmt.domain];
       const stmtPosition = stmt.position;
 
       // For categorical domains, exact match
@@ -405,8 +436,8 @@ class SimulationRunner {
       }
 
       // For spectrum domains, check if any axis matches
-      if (typeof userPosition === 'object') {
-        for (const [axis, value] of Object.entries(userPosition)) {
+      if (typeof userPosition === 'object' && userPosition !== null) {
+        for (const [axis, value] of Object.entries(userPosition as Record<string, string>)) {
           if (stmtPosition.includes(`${axis}-${value}`)) {
             return true;
           }
@@ -419,12 +450,13 @@ class SimulationRunner {
     return relevant.length > 0 ? relevant : this.statements;
   }
 
-  async performAction(actionType, user) {
+  async performAction(actionType: string, user: User): Promise<void> {
     const clients = this.getClientsForUser(user);
     const publicClient = clients.publicClient;
 
     try {
-      let hash, receipt;
+      let hash: `0x${string}` | undefined;
+      let receipt: Awaited<ReturnType<typeof publicClient.getTransactionReceipt>> | undefined;
 
       switch (actionType) {
         case 'setBelief': {
@@ -438,9 +470,9 @@ class SimulationRunner {
           }
 
           if (beliefState === 1) {
-            hash = await believeStatement(clients, this.contracts.beliefs, stmt.cid);
+            hash = await believeStatement(clients, this.contracts.beliefs!, stmt.cid);
           } else {
-            hash = await disbelieveStatement(clients, this.contracts.beliefs, stmt.cid);
+            hash = await disbelieveStatement(clients, this.contracts.beliefs!, stmt.cid);
           }
           receipt = await publicClient.getTransactionReceipt({ hash });
 
@@ -451,8 +483,8 @@ class SimulationRunner {
         case 'setBeliefsInBatch': {
           const statements = this.getRelevantStatements(user);
           const numStatements = Math.min(3, statements.length);
-          const selected = [];
-          const beliefs = [];
+          const selected: string[] = [];
+          const beliefs: number[] = [];
 
           for (let i = 0; i < numStatements; i++) {
             const stmt = statements[Math.floor(Math.random() * statements.length)];
@@ -472,14 +504,15 @@ class SimulationRunner {
           // Use SDK's believeStatement for each - batch not in SDK yet, call individually
           for (let i = 0; i < selected.length; i++) {
             if (beliefs[i] === 1) {
-              hash = await believeStatement(clients, this.contracts.beliefs, selected[i]);
+              hash = await believeStatement(clients, this.contracts.beliefs!, selected[i]);
             } else {
-              hash = await disbelieveStatement(clients, this.contracts.beliefs, selected[i]);
+              hash = await disbelieveStatement(clients, this.contracts.beliefs!, selected[i]);
             }
           }
-          receipt = await publicClient.getTransactionReceipt({ hash });
-
-          this.recordAction('setBeliefsInBatch', user, { count: selected.length }, receipt);
+          if (hash) {
+            receipt = await publicClient.getTransactionReceipt({ hash });
+            this.recordAction('setBeliefsInBatch', user, { count: selected.length }, receipt);
+          }
           break;
         }
 
@@ -513,7 +546,7 @@ class SimulationRunner {
             if (implies) {
               hash = await attestImplication(
                 clients,
-                this.contracts.implications,
+                this.contracts.implications!,
                 stmt1.statementId,
                 stmt2.statementId,
                 '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -528,13 +561,14 @@ class SimulationRunner {
 
         case 'attestProjectAlignment': {
           // Mock project address - generate from private key
-          const mockWallet = privateKeyToAccount('0x' + Math.random().toString(16).slice(2).padStart(64, '0'));
+          const randKey = ('0x' + Math.random().toString(16).slice(2).padStart(64, '0')) as `0x${string}`;
+          const mockWallet = privateKeyToAccount(randKey);
           const projectAddress = mockWallet.address;
           const stmt = this.getRandomStatement();
 
           hash = await attestAlignment(
             clients,
-            this.contracts.alignmentAttestations,
+            this.contracts.alignmentAttestations!,
             projectAddress,
             stmt.statementId,
             PROJECT_ALIGNMENT_TOPIC
@@ -547,7 +581,7 @@ class SimulationRunner {
 
         // Funding actions
         case 'createProject': {
-          const result = await this.fundingDelegation.createProject(user);
+          const result = await this.fundingDelegation!.createProject(user);
           if (result.success) {
             this.recordAction('createProject', user, { project: result.project }, result.receipt);
           } else {
@@ -559,65 +593,67 @@ class SimulationRunner {
         case 'purchaseFromPrimaryMarket': {
           const balance = await publicClient.getBalance({ address: user.address });
           const estimatedCost = parseEther('2');
-          
-          if (this.fundingDelegation.createdProjects.length > 0 && balance > estimatedCost) {
+
+          if (this.fundingDelegation!.createdProjects.length > 0 && balance > estimatedCost) {
             try {
-              const project = this.fundingDelegation.createdProjects[
-                Math.floor(Math.random() * this.fundingDelegation.createdProjects.length)
+              const project = this.fundingDelegation!.createdProjects[
+                Math.floor(Math.random() * this.fundingDelegation!.createdProjects.length)
               ];
               if (!project || !project.tokenIds || !project.tokenIds.length) break;
               const tokenId = project.tokenIds[Math.floor(Math.random() * project.tokenIds.length)];
               const count = Math.floor(Math.random() * 2) + 1; // 1-2 tokens only
-              
-              const result = await this.fundingDelegation.purchaseFromPrimaryMarket(user, project, tokenId, count);
+
+              const result = await this.fundingDelegation!.purchaseFromPrimaryMarket(user, project, tokenId, count);
               if (result.success) {
                 this.recordAction('purchaseFromPrimaryMarket', user, { project: project.erc1155, tokenId, count }, result.receipt);
               } else {
                 this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
               }
             } catch (err) {
-              this.metrics.errors.push({ action: actionType, user: user.id, error: err.message });
+              const error = err as Error;
+              this.metrics.errors.push({ action: actionType, user: user.id, error: error.message });
             }
           }
           break;
         }
 
         case 'createSecondaryMarketListing': {
-          const userTokens = this.fundingDelegation.getAvailableTokens(user);
+          const userTokens = this.fundingDelegation!.getAvailableTokens(user);
           const balance = await publicClient.getBalance({ address: user.address });
-          
-          if (userTokens.length > 0 && this.fundingDelegation.createdProjects.length > 0 && balance > parseEther('0.1')) {
+
+          if (userTokens.length > 0 && this.fundingDelegation!.createdProjects.length > 0 && balance > parseEther('0.1')) {
             try {
               const userToken = userTokens[Math.floor(Math.random() * userTokens.length)];
               if (!userToken || !userToken.tokenId || !userToken.count || userToken.count <= 0) break;
-              
-              const project = this.fundingDelegation.createdProjects.find(p => p.erc1155 === userToken.erc1155);
+
+              const project = this.fundingDelegation!.createdProjects.find(p => p.erc1155 === userToken.erc1155);
               if (!project || !project.marketplace) break;
-              
+
               const available = userToken.count - (userToken.listedCount || 0);
               if (available <= 0) break;
-              
+
               const count = Math.floor(Math.random() * available) + 1;
               if (count <= 0) break;
-              
+
               const pricePerToken = parseEther((Math.random() * 0.05 + 0.01).toFixed(4));
               if (!pricePerToken || pricePerToken <= 0n) break;
-              
-              const result = await this.fundingDelegation.createSecondaryMarketListing(
+
+              const result = await this.fundingDelegation!.createSecondaryMarketListing(
                 user, project, userToken.tokenId, count, pricePerToken
               );
               if (result.success) {
-                this.recordAction('createSecondaryMarketListing', user, { 
-                  project: userToken.erc1155, 
-                  tokenId: userToken.tokenId, 
-                  count, 
-                  listingId: result.listingId 
+                this.recordAction('createSecondaryMarketListing', user, {
+                  project: userToken.erc1155,
+                  tokenId: userToken.tokenId,
+                  count,
+                  listingId: result.listingId
                 }, result.receipt);
               } else {
                 this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
               }
             } catch (err) {
-              this.metrics.errors.push({ action: actionType, user: user.id, error: err.message });
+              const error = err as Error;
+              this.metrics.errors.push({ action: actionType, user: user.id, error: error.message });
             }
           }
           break;
@@ -628,35 +664,36 @@ class SimulationRunner {
           const balance = await publicClient.getBalance({ address: user.address });
           const amount = parseEther((Math.random() * 0.3 + 0.05).toFixed(2)); // 0.05-0.35 ETH
           const needed = amount + parseEther('1'); // amount + larger gas buffer
-          
+
           if (balance > needed) {
             try {
-              const result = await this.fundingDelegation.depositToNote(user, amount);
+              const result = await this.fundingDelegation!.depositToNote(user, amount);
               if (result.success) {
                 this.recordAction('depositToNote', user, { noteId: result.note?.noteId, amount: amount.toString() }, result.receipt);
               } else {
                 this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
               }
             } catch (err) {
-              this.metrics.errors.push({ action: actionType, user: user.id, error: err.message });
+              const error = err as Error;
+              this.metrics.errors.push({ action: actionType, user: user.id, error: error.message });
             }
           }
           break;
         }
 
         case 'delegateNote': {
-          const userNotes = this.fundingDelegation.getDelegatableNotesExcluding(user, [user.address]);
+          const userNotes = this.fundingDelegation!.getDelegatableNotesExcluding(user, [user.address]);
           if (userNotes.length > 0) {
             const note = userNotes[Math.floor(Math.random() * userNotes.length)];
             const delegateTo = this.getRandomUser().address;
             const amountToDelegate = BigInt(note.amount) / BigInt(2); // Delegate half
-            
-            const result = await this.fundingDelegation.delegateNote(user, note.noteId, delegateTo, amountToDelegate);
+
+            const result = await this.fundingDelegation!.delegateNote(user, note.noteId, delegateTo, amountToDelegate);
             if (result.success) {
-              this.recordAction('delegateNote', user, { 
-                noteId: note.noteId, 
-                delegateTo, 
-                amount: amountToDelegate.toString() 
+              this.recordAction('delegateNote', user, {
+                noteId: note.noteId,
+                delegateTo,
+                amount: amountToDelegate.toString()
               }, result.receipt);
             } else {
               this.metrics.errors.push({ action: actionType, user: user.id, error: result.error, noteId: note.noteId });
@@ -666,11 +703,10 @@ class SimulationRunner {
         }
 
         case 'revokeDelegation': {
-          const userNotes = this.fundingDelegation.getRevocableNotes(user);
-          // Find delegated notes (notes owned by user but with different original owner - simplified check)
+          const userNotes = this.fundingDelegation!.getRevocableNotes(user);
           if (userNotes.length > 0) {
             const note = userNotes[Math.floor(Math.random() * userNotes.length)];
-            const result = await this.fundingDelegation.revokeDelegation(user, note.noteId);
+            const result = await this.fundingDelegation!.revokeDelegation(user, note.noteId);
             if (result.success) {
               this.recordAction('revokeDelegation', user, { noteId: note.noteId }, result.receipt);
             } else {
@@ -684,38 +720,46 @@ class SimulationRunner {
           console.log(`Unknown action type: ${actionType}`);
       }
     } catch (error) {
+      const err = error as Error;
       this.metrics.errors.push({
         action: actionType,
         user: user.id,
-        error: error.message
+        error: err.message
       });
-      console.log(`  Error in ${actionType} for user ${user.id}: ${error.message}`);
+      console.log(`  Error in ${actionType} for user ${user.id}: ${err.message}`);
     }
   }
 
-  recordAction(actionType, user, data, receipt) {
+  recordAction(
+    actionType: string,
+    user: User,
+    data: Record<string, unknown>,
+    receipt: { gasUsed: bigint; blockNumber: bigint } | undefined
+  ): void {
     this.actions.push({
       timestamp: Date.now(),
       actionType,
       userId: user.id,
       data,
-      gasUsed: receipt.gasUsed.toString(),
-      blockNumber: receipt.blockNumber
+      gasUsed: receipt?.gasUsed?.toString(),
+      blockNumber: receipt?.blockNumber
     });
 
-    // Update metrics
-    if (!this.metrics.gasUsed[actionType]) {
-      this.metrics.gasUsed[actionType] = [];
-    }
-    this.metrics.gasUsed[actionType].push(Number(receipt.gasUsed));
+    if (receipt) {
+      // Update metrics
+      if (!this.metrics.gasUsed[actionType]) {
+        this.metrics.gasUsed[actionType] = [];
+      }
+      this.metrics.gasUsed[actionType].push(Number(receipt.gasUsed));
 
-    if (!this.metrics.actionCounts[actionType]) {
-      this.metrics.actionCounts[actionType] = 0;
+      if (!this.metrics.actionCounts[actionType]) {
+        this.metrics.actionCounts[actionType] = 0;
+      }
+      this.metrics.actionCounts[actionType]++;
     }
-    this.metrics.actionCounts[actionType]++;
   }
 
-  async runSimulation(rounds = 5) {
+  async runSimulation(rounds = 5): Promise<void> {
     console.log('=== Running Simulation ===\n');
 
     const actionTypes = [
@@ -762,8 +806,8 @@ class SimulationRunner {
     console.log('\n=== Simulation Complete ===\n');
   }
 
-  async saveResults() {
-    const bigIntReplacer = (key, value) => {
+  async saveResults(): Promise<void> {
+    const bigIntReplacer = (_key: string, value: unknown) => {
       if (typeof value === 'bigint') {
         return value.toString();
       }
@@ -792,9 +836,10 @@ class SimulationRunner {
     }
     if (metricsReport.errors.length > 0) {
       console.log(`\n  Errors: ${metricsReport.errors.length}`);
-      const errorsByType = {};
+      const errorsByType: Record<string, number> = {};
       for (const err of metricsReport.errors) {
-        errorsByType[err.action] = (errorsByType[err.action] || 0) + 1;
+        const action = err.action as string;
+        errorsByType[action] = (errorsByType[action] || 0) + 1;
       }
       console.log(`  Errors by type:`, errorsByType);
       console.log(`  Error details:`);
@@ -815,16 +860,20 @@ class SimulationRunner {
       const hardhat0Actions = this.actions.filter(a => a.userId === this.users[0].id);
       console.log(`\n  Hardhat account[0] (${hardhatAccount0Address.slice(0, 10)}...) actions: ${hardhat0Actions.length}`);
       if (hardhat0Actions.length > 0) {
-        const actionsByType = {};
+        const actionsByType: Record<string, number> = {};
         for (const action of hardhat0Actions) {
-          actionsByType[action.actionType] = (actionsByType[action.actionType] || 0) + 1;
+          const type = action.actionType as string;
+          actionsByType[type] = (actionsByType[type] || 0) + 1;
         }
         console.log(`    Breakdown:`, actionsByType);
       }
     }
   }
 
-  async runAttackScenarios() {
+  async runAttackScenarios(): Promise<{
+    attackResults: ReturnType<AttackScenarios['getResults']>;
+    detectionResults: Awaited<ReturnType<AttackScenarios['detectAttacks']>>;
+  } | undefined> {
     console.log('\n=== Running Attack Scenarios ===\n');
 
     if (!this.attackScenarios) {
@@ -833,7 +882,7 @@ class SimulationRunner {
     }
 
     // Take snapshot before attacks
-    await this.invariantChecker.takeSnapshot('before_attacks');
+    await this.invariantChecker!.takeSnapshot('before_attacks');
 
     // Run Sybil attack
     console.log('\n--- Sybil Attack ---');
@@ -855,7 +904,7 @@ class SimulationRunner {
     const detectionResults = await this.attackScenarios.detectAttacks();
 
     // Take snapshot after attacks
-    await this.invariantChecker.takeSnapshot('after_attacks');
+    await this.invariantChecker!.takeSnapshot('after_attacks');
 
     return {
       attackResults: this.attackScenarios.getResults(),
@@ -863,7 +912,7 @@ class SimulationRunner {
     };
   }
 
-  async runInvariantChecks() {
+  async runInvariantChecks(): Promise<Awaited<ReturnType<InvariantChecker['runAllChecks']>> | undefined> {
     console.log('\n=== Running Invariant Checks ===\n');
 
     if (!this.invariantChecker) {
@@ -882,10 +931,10 @@ class SimulationRunner {
 }
 
 // Main execution
-async function main() {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const numUsers = parseInt(args.find(a => !a.startsWith('--')) || 50);
-  const numRounds = parseInt(args.find((a, i) => i > 0 && !args[i-1].startsWith('--') && !a.startsWith('--')) || 5);
+  const numUsers = parseInt(args.find(a => !a.startsWith('--')) ?? '50');
+  const numRounds = parseInt(args.find((a, i) => i > 0 && !args[i-1].startsWith('--') && !a.startsWith('--')) ?? '5');
   const runAttacks = args.includes('--attacks');
   const runInvariants = args.includes('--invariants');
   const usePreGenerated = !args.includes('--no-pregenerated');
@@ -894,7 +943,7 @@ async function main() {
   const simulation = new SimulationRunner();
   simulation.usePreGeneratedAttestations = usePreGenerated;
   simulation.useHardhatAccounts = useHardhatAccounts;
-  
+
   await simulation.initialize(numUsers);
   await simulation.runSimulation(numRounds);
 
@@ -923,5 +972,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       process.exit(1);
     });
 }
+
+// suppress unused imports warning for generateAttestations
+void generateAttestations;
 
 export { SimulationRunner };

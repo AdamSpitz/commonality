@@ -13,7 +13,7 @@ if (fs.existsSync(envPath)) {
   console.warn('No .env file found at', envPath);
 }
 
-export function loadEnv() {
+export function loadEnv(): void {
   // Environment is already loaded at module import time
   // This function exists for explicit re-loading if needed
 }
@@ -29,11 +29,13 @@ export const CONTRACT_ADDRESSES = {
   pubstarter: process.env.PUBSTARTER_ADDRESS,
   mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || process.env.MUTABLE_REF_UPDATER_ADDRESS,
   alignmentAttestations: process.env.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || process.env.ALIGNMENT_ATTESTATIONS_ADDRESS,
-};
+} as const satisfies Record<string, string | undefined>;
 
-export const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
+export type ContractName = keyof typeof CONTRACT_ADDRESSES;
 
-export function getContractAddress(name) {
+export const RPC_URL: string = process.env.RPC_URL || 'http://localhost:8545';
+
+export function getContractAddress(name: ContractName): string {
   const address = CONTRACT_ADDRESSES[name];
   if (!address) {
     throw new Error(`Contract address not found for: ${name}`);

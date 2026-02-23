@@ -3,10 +3,10 @@ import { padHex } from 'viem/utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import {
   BeliefsAbi,
-  ImplicationsAbi,
   cidToBytes32,
 } from '@commonality/sdk';
-import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
+import { loadEnv, RPC_URL } from './loadEnv.js';
+import type { User, Statement, SimulationContracts } from './types.js';
 
 loadEnv();
 
@@ -23,14 +23,14 @@ const hardhat = {
     default: { http: ['http://localhost:8545'] },
     public: { http: ['http://localhost:8545'] },
   },
-};
+} as const;
 
 const publicClient = createPublicClient({
   chain: hardhat,
   transport: http(RPC_URL),
 });
 
-function createTestClients(privateKey) {
+function createTestClients(privateKey: `0x${string}`) {
   const account = privateKeyToAccount(privateKey);
 
   const walletClient = createWalletClient({
@@ -46,8 +46,35 @@ function createTestClients(privateKey) {
   };
 }
 
+interface CheckResult {
+  passed: boolean;
+  errors: Array<Record<string, unknown>>;
+}
+
+interface Snapshot {
+  label: string;
+  timestamp: number;
+  beliefs: Record<number, unknown>;
+  implications: Record<string, unknown>;
+  notes: Record<string, unknown>;
+  balances: Record<string, bigint>;
+  beliefsError?: string;
+}
+
 class InvariantChecker {
-  constructor(contracts, users, statements) {
+  contracts: SimulationContracts;
+  users: User[];
+  statements: Statement[];
+  snapshots: Snapshot[];
+  results: {
+    contractState: CheckResult;
+    economicConservation: CheckResult;
+    graphAlgorithm: CheckResult;
+    indexerConsistency: CheckResult;
+  };
+  believersByStatement?: Record<string, number>;
+
+  constructor(contracts: SimulationContracts, users: User[], statements: Statement[]) {
     this.contracts = contracts;
     this.users = users;
     this.statements = statements;
@@ -60,8 +87,8 @@ class InvariantChecker {
     };
   }
 
-  async takeSnapshot(label) {
-    const snapshot = {
+  async takeSnapshot(label: string): Promise<Snapshot> {
+    const snapshot: Snapshot = {
       label,
       timestamp: Date.now(),
       beliefs: {},
@@ -74,7 +101,7 @@ class InvariantChecker {
       try {
         for (const stmt of this.statements.slice(0, 50)) {
           const belief = await publicClient.readContract({
-            address: this.contracts.beliefs.address,
+            address: this.contracts.beliefs.address as `0x${string}`,
             abi: BeliefsAbi,
             functionName: 'beliefs',
             args: [this.users[0]?.address || zeroAddress, cidToBytes32(stmt.statementId)]
@@ -82,19 +109,20 @@ class InvariantChecker {
           snapshot.beliefs[stmt.id] = belief;
         }
       } catch (err) {
-        snapshot.beliefsError = err.message;
+        const error = err as Error;
+        snapshot.beliefsError = error.message;
       }
     }
 
     for (const [name, contract] of Object.entries(this.contracts)) {
       try {
-        if (!contract.address) {
+        if (!contract?.address) {
           continue;
         }
         snapshot.balances[name] = await publicClient.getBalance({
-          address: contract.address
+          address: contract.address as `0x${string}`
         });
-      } catch (err) {
+      } catch {
         // Contract may not have getAddress
       }
     }
@@ -103,9 +131,9 @@ class InvariantChecker {
     return snapshot;
   }
 
-  async checkContractStateConsistency() {
+  async checkContractStateConsistency(): Promise<CheckResult> {
     console.log('\n  Checking contract state consistency...');
-    const errors = [];
+    const errors: Array<Record<string, unknown>> = [];
 
     if (this.contracts.beliefs) {
       try {
@@ -113,38 +141,39 @@ class InvariantChecker {
           for (const stmt of this.statements.slice(0, 10)) {
             const statementId = cidToBytes32(stmt.statementId);
             const belief = await publicClient.readContract({
-              address: this.contracts.beliefs.address,
+              address: this.contracts.beliefs.address as `0x${string}`,
               abi: BeliefsAbi,
               functionName: 'beliefs',
               args: [user.address, statementId]
             });
-            
+
             const beliefNum = Number(belief);
             if (beliefNum !== 0 && beliefNum !== 1 && beliefNum !== 2) {
               errors.push({
                 type: 'INVALID_BELIEF_STATE',
                 user: user.address,
                 statement: stmt.id,
-                value: belief.toString()
+                value: String(belief)
               });
             }
           }
         }
       } catch (err) {
-        if (err.message.includes('resolveName')) {
+        const error = err as Error;
+        if (error.message.includes('resolveName')) {
           console.log('    (Warning: Provider issue - skipping belief query)');
         } else {
-          errors.push({ type: 'BELIEF_QUERY_FAILED', error: err.message });
+          errors.push({ type: 'BELIEF_QUERY_FAILED', error: error.message });
         }
       }
     }
 
     for (const [name, contract] of Object.entries(this.contracts)) {
       try {
-        if (!contract.address) {
+        if (!contract?.address) {
           continue;
         }
-        const address = getAddress(contract.address);
+        const address = getAddress(contract.address as `0x${string}`);
         if (!isAddress(address) || address === zeroAddress) {
           errors.push({
             type: 'INVALID_CONTRACT_ADDRESS',
@@ -152,7 +181,7 @@ class InvariantChecker {
             address
           });
         }
-      } catch (err) {
+      } catch {
         errors.push({ type: 'CONTRACT_ADDRESS_QUERY_FAILED', contract: name });
       }
     }
@@ -160,7 +189,7 @@ class InvariantChecker {
     if (this.contracts.implications) {
       try {
         const logs = await publicClient.getLogs({
-          address: this.contracts.implications.address,
+          address: this.contracts.implications.address as `0x${string}`,
           event: {
             type: 'event',
             name: 'ImplicationAttestation',
@@ -175,18 +204,19 @@ class InvariantChecker {
           fromBlock: 0n,
           toBlock: 'latest'
         });
-        
+
         for (const log of logs.slice(0, 20)) {
-          const fromId = log.args.fromStatementId ? padHex(log.args.fromStatementId, 32) : null;
-          const toId = log.args.toStatementId ? padHex(log.args.toStatementId, 32) : null;
-          
+          const args = log.args as Record<string, `0x${string}` | undefined>;
+          const fromId = args.fromStatementId ? padHex(args.fromStatementId, { size: 32 }) : null;
+          const toId = args.toStatementId ? padHex(args.toStatementId, { size: 32 }) : null;
+
           if (!fromId || !toId) continue;
-          
+
           const fromIdStr = fromId.toString();
           const toIdStr = toId.toString();
           const fromExists = this.statements.some(s => s.statementId === fromIdStr);
           const toExists = this.statements.some(s => s.statementId === toIdStr);
-          
+
           if (!fromExists || !toExists) {
             errors.push({
               type: 'ORPHAN_IMPLICATION',
@@ -198,7 +228,8 @@ class InvariantChecker {
           }
         }
       } catch (err) {
-        errors.push({ type: 'IMPLICATION_QUERY_FAILED', error: err.message });
+        const error = err as Error;
+        errors.push({ type: 'IMPLICATION_QUERY_FAILED', error: error.message });
       }
     }
 
@@ -215,20 +246,9 @@ class InvariantChecker {
     return this.results.contractState;
   }
 
-  async checkEconomicConservation() {
+  async checkEconomicConservation(): Promise<CheckResult> {
     console.log('\n  Checking economic conservation...');
-    const errors = [];
-
-    const initialBalances = {};
-    for (const user of this.users) {
-      try {
-        initialBalances[user.address] = await publicClient.getBalance({
-          address: user.address
-        });
-      } catch (err) {
-        // Skip
-      }
-    }
+    const errors: Array<Record<string, unknown>> = [];
 
     if (this.users.length >= 2) {
       const sender = this.users[0];
@@ -248,10 +268,10 @@ class InvariantChecker {
 
         const senderAfter = await publicClient.getBalance({ address: sender.address });
         const receiverAfter = await publicClient.getBalance({ address: receiver.address });
-        
+
         let gasUsed = 0n;
-        if (receipt.gasUsed && receipt.gasPrice) {
-          gasUsed = receipt.gasUsed * receipt.gasPrice;
+        if (receipt.gasUsed && receipt.effectiveGasPrice) {
+          gasUsed = receipt.gasUsed * receipt.effectiveGasPrice;
         }
 
         const senderExpected = senderBefore - amount - gasUsed;
@@ -284,7 +304,8 @@ class InvariantChecker {
         await publicClient.waitForTransactionReceipt({ hash: revertHash });
 
       } catch (err) {
-        errors.push({ type: 'TRANSFER_FAILED', error: err.message });
+        const error = err as Error;
+        errors.push({ type: 'TRANSFER_FAILED', error: error.message });
       }
     }
 
@@ -320,9 +341,9 @@ class InvariantChecker {
     return this.results.economicConservation;
   }
 
-  async checkGraphAlgorithmCorrectness() {
+  async checkGraphAlgorithmCorrectness(): Promise<CheckResult> {
     console.log('\n  Checking graph algorithm correctness...');
-    const errors = [];
+    const errors: Array<Record<string, unknown>> = [];
 
     if (!this.contracts.implications) {
       console.log('    Implications contract not available, skipping');
@@ -331,7 +352,7 @@ class InvariantChecker {
 
     try {
       const logs = await publicClient.getLogs({
-        address: this.contracts.implications.address,
+        address: this.contracts.implications.address as `0x${string}`,
         event: {
           type: 'event',
           name: 'ImplicationAttestation',
@@ -347,14 +368,15 @@ class InvariantChecker {
         toBlock: 'latest'
       });
 
-      const graph = {};
-      const inDegree = {};
-      const outDegree = {};
+      const graph: Record<string, string[]> = {};
+      const outDegree: Record<string, number> = {};
+      const inDegree: Record<string, number> = {};
 
       for (const log of logs) {
-        const from = log.args.fromStatementId ? padHex(log.args.fromStatementId, 32).toString() : null;
-        const to = log.args.toStatementId ? padHex(log.args.toStatementId, 32).toString() : null;
-        
+        const args = log.args as Record<string, `0x${string}` | undefined>;
+        const from = args.fromStatementId ? padHex(args.fromStatementId, { size: 32 }).toString() : null;
+        const to = args.toStatementId ? padHex(args.toStatementId, { size: 32 }).toString() : null;
+
         if (!from || !to) continue;
 
         if (!graph[from]) graph[from] = [];
@@ -364,11 +386,15 @@ class InvariantChecker {
         inDegree[to] = (inDegree[to] || 0) + 1;
       }
 
-      const visited = new Set();
-      const recursionStack = new Set();
-      let cycleNode = null;
+      // suppress unused warnings
+      void outDegree;
+      void inDegree;
 
-      const hasCycle = (node, visitedSet, stack) => {
+      const visited = new Set<string>();
+      const recursionStack = new Set<string>();
+      let cycleNode: string | null = null;
+
+      const hasCycle = (node: string, visitedSet: Set<string>, stack: Set<string>): boolean => {
         visitedSet.add(node);
         stack.add(node);
 
@@ -409,13 +435,13 @@ class InvariantChecker {
         }
       }
 
-      const bfsReachable = (start, graph) => {
+      const bfsReachable = (start: string, g: Record<string, string[]>): Set<string> => {
         const queue = [start];
         const reachable = new Set([start]);
 
         while (queue.length > 0) {
-          const node = queue.shift();
-          for (const neighbor of (graph[node] || [])) {
+          const node = queue.shift()!;
+          for (const neighbor of (g[node] || [])) {
             if (!reachable.has(neighbor)) {
               reachable.add(neighbor);
               queue.push(neighbor);
@@ -438,7 +464,8 @@ class InvariantChecker {
       }
 
     } catch (err) {
-      errors.push({ type: 'GRAPH_CHECK_FAILED', error: err.message });
+      const error = err as Error;
+      errors.push({ type: 'GRAPH_CHECK_FAILED', error: error.message });
     }
 
     this.results.graphAlgorithm.passed = errors.length === 0;
@@ -454,14 +481,14 @@ class InvariantChecker {
     return this.results.graphAlgorithm;
   }
 
-  async checkIndexerConsistency() {
+  async checkIndexerConsistency(): Promise<CheckResult> {
     console.log('\n  Checking indexer consistency...');
-    const errors = [];
+    const errors: Array<Record<string, unknown>> = [];
 
     if (this.contracts.beliefs) {
       try {
         const beliefLogs = await publicClient.getLogs({
-          address: this.contracts.beliefs.address,
+          address: this.contracts.beliefs.address as `0x${string}`,
           event: {
             type: 'event',
             name: 'DirectSupport',
@@ -484,11 +511,12 @@ class InvariantChecker {
           }
         }
 
-        const believersByStatement = {};
+        const believersByStatement: Record<string, number> = {};
         for (const log of beliefLogs) {
-          const stmt = log.args.statementId;
-          const belief = log.args.belief;
-          if (belief === 1n) {
+          const args = log.args as { statementId?: `0x${string}`; belief?: bigint } | undefined;
+          const stmt = args?.statementId;
+          const belief = args?.belief;
+          if (stmt && belief === 1n) {
             believersByStatement[stmt] = (believersByStatement[stmt] || 0) + 1;
           }
         }
@@ -496,14 +524,15 @@ class InvariantChecker {
         this.believersByStatement = believersByStatement;
 
       } catch (err) {
-        errors.push({ type: 'BELIEF_INDEX_CHECK_FAILED', error: err.message });
+        const error = err as Error;
+        errors.push({ type: 'BELIEF_INDEX_CHECK_FAILED', error: error.message });
       }
     }
 
     if (this.contracts.implications) {
       try {
         const implLogs = await publicClient.getLogs({
-          address: this.contracts.implications.address,
+          address: this.contracts.implications.address as `0x${string}`,
           event: {
             type: 'event',
             name: 'ImplicationAttestation',
@@ -519,13 +548,14 @@ class InvariantChecker {
           toBlock: 'latest'
         });
 
-        const statementsWithImplications = new Set();
+        const statementsWithImplications = new Set<string>();
         for (const log of implLogs) {
-          if (log.args.fromStatementId) {
-            statementsWithImplications.add(padHex(log.args.fromStatementId, 32).toString());
+          const args = log.args as { fromStatementId?: `0x${string}`; toStatementId?: `0x${string}` } | undefined;
+          if (args?.fromStatementId) {
+            statementsWithImplications.add(padHex(args.fromStatementId, { size: 32 }).toString());
           }
-          if (log.args.toStatementId) {
-            statementsWithImplications.add(padHex(log.args.toStatementId, 32).toString());
+          if (args?.toStatementId) {
+            statementsWithImplications.add(padHex(args.toStatementId, { size: 32 }).toString());
           }
         }
 
@@ -540,7 +570,8 @@ class InvariantChecker {
         }
 
       } catch (err) {
-        errors.push({ type: 'IMPLICATION_INDEX_CHECK_FAILED', error: err.message });
+        const error = err as Error;
+        errors.push({ type: 'IMPLICATION_INDEX_CHECK_FAILED', error: error.message });
       }
     }
 
@@ -557,16 +588,16 @@ class InvariantChecker {
     return this.results.indexerConsistency;
   }
 
-  async runAllChecks() {
+  async runAllChecks(): Promise<{ passed: boolean; results: { contractState: CheckResult; economicConservation: CheckResult; graphAlgorithm: CheckResult; indexerConsistency: CheckResult } }> {
     console.log('\n=== Running Invariant Checks ===');
-    
+
     await this.checkContractStateConsistency();
     await this.checkEconomicConservation();
     await this.checkGraphAlgorithmCorrectness();
     await this.checkIndexerConsistency();
 
     const allPassed = Object.values(this.results).every(r => r.passed);
-    
+
     console.log('\n=== Invariant Check Summary ===');
     console.log(`  Contract State: ${this.results.contractState.passed ? 'PASSED' : 'FAILED'}`);
     console.log(`  Economic Conservation: ${this.results.economicConservation.passed ? 'PASSED' : 'FAILED'}`);

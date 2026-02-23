@@ -8,18 +8,30 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { evaluateImplicationWithLLM } from './openrouter.js';
+import type { Statement, Attester } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+interface Attestation {
+  id: string;
+  fromStatementId: string;
+  toStatementId: string;
+  fromDomain: string;
+  toDomain: string;
+  implies: boolean;
+  confidence: string;
+  reasoning: string;
+  model: string;
+  timestamp: number;
+}
+
 /**
  * Generate implication attestations for all statement pairs within the same domain
- * @param {number} maxPairsPerDomain - Maximum pairs to generate per domain (for cost control)
- * @returns {Promise<Array>} Array of pre-computed attestations
  */
-async function generateAttestations(maxPairsPerDomain = 50) {
+async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation[]> {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  
+
   if (!apiKey) {
     console.error('Error: OPENROUTER_API_KEY environment variable not set');
     console.log('Please set your API key: export OPENROUTER_API_KEY=sk-or-your-key-here');
@@ -30,31 +42,34 @@ async function generateAttestations(maxPairsPerDomain = 50) {
 
   // Load statements
   const statementsPath = join(__dirname, 'statements.json');
-  let statements;
+  let statements: Statement[];
   try {
     const data = await fs.readFile(statementsPath, 'utf-8');
-    statements = JSON.parse(data);
+    statements = JSON.parse(data) as Statement[];
     console.log(`Loaded ${statements.length} statements`);
-  } catch (err) {
-    console.error('Error: statements.json not found. Run generateStatements.js first.');
+  } catch {
+    console.error('Error: statements.json not found. Run generateStatements.ts first.');
     process.exit(1);
   }
 
   // Load attesters
-  let attesters = [];
+  let attesters: Attester[] = [];
   const attestersPath = join(__dirname, 'attesters.json');
   try {
     const data = await fs.readFile(attestersPath, 'utf-8');
-    attesters = JSON.parse(data);
+    attesters = JSON.parse(data) as Attester[];
     console.log(`Loaded ${attesters.length} attesters`);
-  } catch (err) {
+  } catch {
     console.log('No attesters.json found, using generated attesters');
     const { generateAttesters } = await import('./generateAttesters.js');
     attesters = await generateAttesters(10);
   }
 
+  // suppress unused variable warning
+  void attesters;
+
   // Group statements by domain
-  const statementsByDomain = {};
+  const statementsByDomain: Record<string, Statement[]> = {};
   for (const stmt of statements) {
     const domain = stmt.domain;
     if (!statementsByDomain[domain]) {
@@ -66,14 +81,14 @@ async function generateAttestations(maxPairsPerDomain = 50) {
   console.log(`\nDomains: ${Object.keys(statementsByDomain).join(', ')}`);
 
   // Generate attestations for each domain
-  const attestations = [];
+  const attestations: Attestation[] = [];
   let totalCost = 0;
 
   for (const [domain, domainStatements] of Object.entries(statementsByDomain)) {
     console.log(`\n--- Processing domain: ${domain} (${domainStatements.length} statements) ---`);
 
     // Generate all possible pairs within the domain
-    const pairs = [];
+    const pairs: Array<{ statement1: Statement; statement2: Statement }> = [];
     for (let i = 0; i < domainStatements.length; i++) {
       for (let j = 0; j < domainStatements.length; j++) {
         if (i !== j) {
@@ -86,7 +101,7 @@ async function generateAttestations(maxPairsPerDomain = 50) {
     }
 
     // Limit pairs per domain for cost control
-    const selectedPairs = pairs.length > maxPairsPerDomain 
+    const selectedPairs = pairs.length > maxPairsPerDomain
       ? pairs.sort(() => 0.5 - Math.random()).slice(0, maxPairsPerDomain)
       : pairs;
 
@@ -103,7 +118,7 @@ async function generateAttestations(maxPairsPerDomain = 50) {
 
         // Only save positive implications (where S1 implies S2)
         if (result.implies) {
-          const attestation = {
+          const attestation: Attestation = {
             id: `attestation-${attestations.length}`,
             fromStatementId: pair.statement1.statementId,
             toStatementId: pair.statement2.statementId,
@@ -130,7 +145,8 @@ async function generateAttestations(maxPairsPerDomain = 50) {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
       } catch (err) {
-        console.error(`  Error evaluating pair: ${err.message}`);
+        const error = err as Error;
+        console.error(`  Error evaluating pair: ${error.message}`);
       }
     }
   }
@@ -152,7 +168,7 @@ async function generateAttestations(maxPairsPerDomain = 50) {
     estimatedCost: totalCost,
     model: 'anthropic/claude-3.5-haiku'
   };
-  
+
   const metadataPath = join(__dirname, 'attestations.metadata.json');
   await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
   console.log(`Metadata saved to: ${metadataPath}`);
@@ -162,39 +178,36 @@ async function generateAttestations(maxPairsPerDomain = 50) {
 
 /**
  * Load pre-computed attestations
- * @returns {Promise<Array>} Array of attestations or empty array if not found
  */
-async function loadAttestations() {
+async function loadAttestations(): Promise<Attestation[]> {
   const path = join(__dirname, 'attestations.json');
   try {
     const data = await fs.readFile(path, 'utf-8');
-    return JSON.parse(data);
-  } catch (err) {
+    return JSON.parse(data) as Attestation[];
+  } catch {
     return [];
   }
 }
 
 /**
  * Get attestation for a specific statement pair
- * @param {string} fromStatementId - Source statement ID
- * @param {string} toStatementId - Target statement ID
- * @returns {Object|null} Attestation or null if not found
  */
-async function getAttestation(fromStatementId, toStatementId) {
+async function getAttestation(fromStatementId: string, toStatementId: string): Promise<Attestation | null> {
   const attestations = await loadAttestations();
-  return attestations.find(a => 
+  return attestations.find(a =>
     a.fromStatementId === fromStatementId && a.toStatementId === toStatementId
-  ) || null;
+  ) ?? null;
 }
 
 /**
  * Get all attestations for a given statement
- * @param {string} statementId - Statement ID
- * @returns {Object} Object with inbound and outbound attestations
  */
-async function getAttestationsForStatement(statementId) {
+async function getAttestationsForStatement(statementId: string): Promise<{
+  inbound: Attestation[];
+  outbound: Attestation[];
+}> {
   const attestations = await loadAttestations();
-  
+
   return {
     inbound: attestations.filter(a => a.toStatementId === statementId),
     outbound: attestations.filter(a => a.fromStatementId === statementId)
@@ -203,9 +216,8 @@ async function getAttestationsForStatement(statementId) {
 
 /**
  * Check if pre-generated attestations exist
- * @returns {Promise<boolean>}
  */
-async function hasAttestations() {
+async function hasAttestations(): Promise<boolean> {
   const path = join(__dirname, 'attestations.json');
   try {
     await fs.access(path);
@@ -218,21 +230,21 @@ async function hasAttestations() {
 /**
  * Clear cached attestations (for regeneration)
  */
-async function clearAttestations() {
+async function clearAttestations(): Promise<void> {
   const path = join(__dirname, 'attestations.json');
   const metadataPath = join(__dirname, 'attestations.metadata.json');
-  
+
   try {
     await fs.unlink(path);
     console.log('Deleted attestations.json');
-  } catch (err) {
+  } catch {
     // File may not exist
   }
-  
+
   try {
     await fs.unlink(metadataPath);
     console.log('Deleted attestations.metadata.json');
-  } catch (err) {
+  } catch {
     // File may not exist
   }
 }
@@ -259,3 +271,4 @@ export {
   hasAttestations,
   clearAttestations
 };
+export type { Attestation };
