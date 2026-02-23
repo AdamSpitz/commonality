@@ -22,7 +22,7 @@ import {
 import {
   getTopContributorsForCause,
   getUserContributionRankForCause,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';

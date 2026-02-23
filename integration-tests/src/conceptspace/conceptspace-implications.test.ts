@@ -20,7 +20,7 @@ import {
 } from '@commonality/sdk';
 import {
   getImplicationsTo,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';

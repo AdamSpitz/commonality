@@ -1,7 +1,6 @@
 export * from './actions/index.js';
 export * from './shared/types/index.js';
 export * from './indexer-queries/index.js';
-export * from './graphql-server/index.js';
 export * from './machinery.js';
 export * from './indexer-sync.js';
 export { assertNotNull } from './utils/index.js';

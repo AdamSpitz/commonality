@@ -24,7 +24,7 @@ import {
   getImplicationsTo,
   getIndirectSupporters,
   getUserIndirectSupport,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

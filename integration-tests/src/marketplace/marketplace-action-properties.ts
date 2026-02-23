@@ -12,7 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
-import { getSaleListing } from '../utils/graphql-helpers.js';
+import { getSaleListing } from '@commonality/sdk';
 
 /**
  * State captured before/after a marketplace action

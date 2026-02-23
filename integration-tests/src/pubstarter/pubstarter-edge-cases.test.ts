@@ -22,7 +22,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
-import { getProject } from '../utils/graphql-helpers.js';
+import { getProject } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   createProjectChecked,

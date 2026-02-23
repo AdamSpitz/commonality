@@ -16,7 +16,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import NewReleasesIcon from '@mui/icons-material/NewReleases'
-import { createGraphQLExecutor, executeQuery } from '@commonality/sdk'
+import { createSDKMachinery } from '@commonality/sdk'
 
 interface StatementListItem {
   id: string
@@ -44,14 +44,14 @@ export function BrowseStatementsPage() {
       setLoading(true)
       setError(null)
 
-      const executor = createGraphQLExecutor(GRAPHQL_URL)
+      const machinery = createSDKMachinery(GRAPHQL_URL)
 
       const queryName = sort === 'mostSupporters'
         ? 'browseStatementsByMostSupporters'
         : 'browseStatementsByNewest'
 
       const result = await executeQuery<{ [key: string]: StatementListItem[] }>(
-        executor,
+        machinery,
         `
           query BrowseStatements($options: BrowseStatementsOptions) {
             ${queryName}(options: $options) {

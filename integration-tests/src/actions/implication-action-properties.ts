@@ -23,7 +23,7 @@ import {
   getIndirectSupporters,
   getStatement,
   getUserBelief,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 
 /**
  * State captured before/after an implication action

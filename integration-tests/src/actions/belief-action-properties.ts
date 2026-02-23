@@ -17,7 +17,7 @@ import {
   BELIEVES,
   DISBELIEVES,
 } from '@commonality/sdk';
-import { getStatement, getUserBelief } from '../utils/graphql-helpers.js';
+import { getStatement, getUserBelief } from '@commonality/sdk';
 import { assertBeliefCountsMatch } from '../utils/invariants.js';
 
 /**

@@ -135,6 +135,8 @@ Now that `indexer-queries/` is backed by proper typed queries, start routing con
 - Functions use `fetchFromIPFS` from `actions/common.js` for IPFS fetching
 - The old graphql-queries functions still exist (will be removed in Phase 4)
 
+### Phase 3.5: Delete the `graphql-server/` layer
+
 ### Phase 4: Delete the `graphql-server/` layer
 
 Once nothing goes through the old executor:

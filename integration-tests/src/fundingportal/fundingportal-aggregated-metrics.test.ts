@@ -31,7 +31,7 @@ import {
 import {
   getTotalFundingForCause,
   getAllAlignedProjectsForCause,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

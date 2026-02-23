@@ -19,7 +19,7 @@ import {
 import {
   getImplicationsFrom,
   getImplicationsTo,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { TEST_TIMEOUTS } from '../utils/test-timeouts.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
@@ -79,7 +79,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should have exactly 1 implication from S1, but found ${implicationsFromS1.length}`
     );
     assert.strictEqual(
-      implicationsFromS1[0].attester.id.toLowerCase(),
+      implicationsFromS1[0].attester.toLowerCase(),
       attester1.account.toLowerCase(),
       `S1->S2 should be from Attester 1 (${attester1.account}), but was from ${implicationsFromS1[0].attester}`
     );
@@ -92,7 +92,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should have exactly 1 implication to S3, but found ${implicationsToS3.length}`
     );
     assert.strictEqual(
-      implicationsToS3[0].attester.id.toLowerCase(),
+      implicationsToS3[0].attester.toLowerCase(),
       attester2.account.toLowerCase(),
       `S2->S3 should be from Attester 2 (${attester2.account}), but was from ${implicationsToS3[0].attester}`
     );
@@ -130,7 +130,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     );
 
     // Verify all three attesters are present
-    const attesterAddresses = allImplications.map(imp => imp.attester.id.toLowerCase());
+    const attesterAddresses = allImplications.map(imp => imp.attester.toLowerCase());
     assert.ok(
       attesterAddresses.includes(attester1.account.toLowerCase()),
       `Should include attestation from Attester 1 (${attester1.account}), but found attesters: ${attesterAddresses.join(', ')}`
@@ -188,7 +188,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should have 1 implication to S2 from Attester 1, but found ${attester1Implications.length}`
     );
     assert.strictEqual(
-      attester1Implications[0].attester.id.toLowerCase(),
+      attester1Implications[0].attester.toLowerCase(),
       attester1.account.toLowerCase(),
       `Filtered result should be from Attester 1 (${attester1.account}), but was from ${attester1Implications[0].attester}`
     );
@@ -206,7 +206,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       `Should have 1 implication to S2 from Attester 2, but found ${attester2Implications.length}`
     );
     assert.strictEqual(
-      attester2Implications[0].attester.id.toLowerCase(),
+      attester2Implications[0].attester.toLowerCase(),
       attester2.account.toLowerCase(),
       `Filtered result should be from Attester 2 (${attester2.account}), but was from ${attester2Implications[0].attester}`
     );

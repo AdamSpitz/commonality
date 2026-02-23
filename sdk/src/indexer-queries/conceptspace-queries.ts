@@ -31,7 +31,6 @@ import { SDKMachinery } from '../machinery.js';
 // Type Definitions
 // ============================================================================
 
-// TODO: what's the reason for the almost-duplication between this and the one in shared/types?
 export interface Implication {
   attester: string;
   fromStatementCid: IpfsCidV1;

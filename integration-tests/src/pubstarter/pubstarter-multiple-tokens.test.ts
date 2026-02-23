@@ -16,7 +16,7 @@ import { parseEther, type Address } from 'viem';
 import {
   getProjectTokens,
   getProjectContributions,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';

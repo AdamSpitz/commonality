@@ -21,7 +21,7 @@ import {
   getUserRefs,
   getUserRefHistory,
   getRefsByName,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { updateRefChecked, appendToUserListChecked } from './mutable-ref-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';

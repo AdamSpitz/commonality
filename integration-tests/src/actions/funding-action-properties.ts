@@ -12,7 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from './action-framework.js';
-import { getProject, getProjectContributions } from '../utils/graphql-helpers.js';
+import { getProject, getProjectContributions } from '@commonality/sdk';
 import { assertMoneyConservation } from '../utils/invariants.js';
 
 /**

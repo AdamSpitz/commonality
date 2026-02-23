@@ -15,7 +15,7 @@ import {
 import {
   getNote,
   getDelegationChain,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { assertDelegationChainIntegrity } from '../utils/invariants.js';
 
 /**

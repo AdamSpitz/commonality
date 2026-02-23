@@ -23,7 +23,7 @@ import {
   getDelegationChain,
   getProject,
   getProjectContributions,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
   depositETHChecked,

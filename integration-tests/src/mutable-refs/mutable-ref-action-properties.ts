@@ -16,7 +16,7 @@ import { getRef } from '@commonality/sdk';
 import {
   getUserRef,
   getUserRefHistory,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import {
   assertRefContractIndexerConsistency,
   assertRefHistoryOrdering,

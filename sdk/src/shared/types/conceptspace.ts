@@ -12,7 +12,7 @@ export interface Statement {
 }
 
 export interface Implication {
-  attester: { id: string };
+  attester: string;
   fromStatementCid: IpfsCidV1;
   toStatementCid: IpfsCidV1;
   explanationCid: IpfsCidV1;

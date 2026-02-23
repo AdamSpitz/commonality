@@ -16,7 +16,7 @@ import {
   getAlignedSubjects,
   getSubjectStatements,
   getAlignmentAttestation,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { assertNoOrphanedData } from '../utils/invariants.js';
 
 /**

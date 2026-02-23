@@ -24,7 +24,7 @@ import {
 import {
   getAlignedProjects,
   getIndirectlyAlignedProjects,
-} from '../utils/graphql-helpers.js';
+} from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
@@ -136,7 +136,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     const directAlignments = await getAlignedProjects(machinery, s1Cid);
     assert(directAlignments.length >= 1, 'Should have at least 1 direct alignment with S1');
     const ourDirectAlignment = directAlignments.find(
-      a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
+      a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
     assert.ok(ourDirectAlignment, 'Our project should be directly aligned with S1');
 
@@ -145,7 +145,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     // Verify our project has NO direct alignment with S2
     const s2DirectAlignments = await getAlignedProjects(machinery, s2Cid);
     const ourS2DirectAlignment = s2DirectAlignments.find(
-      a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
+      a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
     assert.strictEqual(
       ourS2DirectAlignment,
@@ -168,11 +168,11 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Find our project's indirect alignment
     const indirectAlignment = indirectAlignments.find(
-      a => a.projectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
+      a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
     assert.ok(indirectAlignment, 'Our project should have indirect alignment with S2');
     assert.strictEqual(
-      indirectAlignment.projectAddress.toLowerCase(),
+      indirectAlignment.subjectAddress.toLowerCase(),
       projectDetails.tokenAddress.toLowerCase(),
       'Project should be indirectly aligned with S2'
     );
@@ -287,7 +287,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       'Should have 1 direct alignment with S2'
     );
     assert.strictEqual(
-      directAlignments[0].projectAddress.toLowerCase(),
+      directAlignments[0].subjectAddress.toLowerCase(),
       projectB.tokenAddress.toLowerCase(),
       'Only Project B should be directly aligned'
     );
@@ -308,7 +308,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       'Should have 1 indirect alignment with S2'
     );
     assert.strictEqual(
-      indirectAlignments[0].projectAddress.toLowerCase(),
+      indirectAlignments[0].subjectAddress.toLowerCase(),
       projectA.tokenAddress.toLowerCase(),
       'Project A should be indirectly aligned'
     );
@@ -407,7 +407,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       'Should find project indirectly aligned with S2'
     );
     assert.strictEqual(
-      s2IndirectAlignments[0].projectAddress.toLowerCase(),
+      s2IndirectAlignments[0].subjectAddress.toLowerCase(),
       projectDetails.tokenAddress.toLowerCase()
     );
 
