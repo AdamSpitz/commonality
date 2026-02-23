@@ -3,7 +3,6 @@
  */
 
 import { request } from 'graphql-request';
-import { type GraphQLClient } from '../utils/graphqlClient.js';
 import {
   GetStatementDocument,
   GetUserBeliefDocument,
@@ -20,7 +19,6 @@ import {
 import {
   type Statement,
   type UserBelief,
-  type Implication,
   type IndirectSupporter,
   type StatementListItem,
   type BrowseStatementsOptions,
@@ -28,6 +26,56 @@ import {
 import { type DisplayableDocument } from '../displayable-document.js';
 import { IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
 import { SDKMachinery } from '../machinery.js';
+
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+// TODO: what's the reason for the almost-duplication between this and the one in shared/types?
+export interface Implication {
+  attester: string;
+  fromStatementCid: IpfsCidV1;
+  toStatementCid: IpfsCidV1;
+  explanationCid: IpfsCidV1;
+  createdAt: string;
+  blockNumber: string;
+}
+
+export interface StatementWithContent {
+  statement: Statement;
+  content: DisplayableDocument | null;
+  metrics?: {
+    directBelievers: number;
+    directDisbelievers: number;
+    indirectSupporters: number;
+  };
+}
+
+export interface GetStatementWithContentOptions {
+  includeMetrics?: boolean;
+  timeout?: number;
+  attesterAddress?: string;
+}
+
+export interface IndirectSupportInfo {
+  statement: StatementListItem;
+  supportedVia: Array<{
+    directlyBelievedStatement: StatementListItem;
+    viaStatementCid: IpfsCidV1;
+  }>;
+}
+
+export interface GetUserIndirectSupportOptions {
+  trustedAttesters?: string[];
+  limit?: number;
+  offset?: number;
+}
+
+export interface StatementSuggestion {
+  statement: StatementListItem;
+  reason: string;
+  relationshipType: string;
+}
 
 
 // ============================================================================

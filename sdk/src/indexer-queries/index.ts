@@ -2,7 +2,6 @@
  * Queries index - exports all query functions
  */
 
-// Conceptspace types
 export {
   type Statement,
   type UserBelief,
@@ -12,29 +11,7 @@ export {
   type BrowseStatementsOptions,
 } from '../shared/types/conceptspace.js';
 
-// Conceptspace queries
-export {
-  getStatement,
-  getUserBelief,
-  getImplicationsFrom,
-  getImplicationsTo,
-  getImplication,
-  getIndirectSupporters,
-  getIndirectSupporterCount,
-  browseStatementsByMostSupporters,
-  browseStatementsByNewest,
-  getAllStatements,
-  getUserBeliefs,
-  getUserDisbeliefs,
-  getStatementSuggestions,
-  // Composite functions
-  getStatementWithContent,
-  getUserIndirectSupport,
-  type StatementWithContent,
-  type GetStatementWithContentOptions,
-  type IndirectSupportInfo,
-  type GetUserIndirectSupportOptions,
-} from './conceptspace-queries.js';
+export * from './conceptspace-queries.js';
 
 export {
   type Project,

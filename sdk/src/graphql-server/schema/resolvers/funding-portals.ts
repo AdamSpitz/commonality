@@ -14,29 +14,30 @@ import {
   getTopContributorsForCause,
   getUserContributionRankForCause,
 } from '../../../indexer-queries/index.js';
+import { SDKMachinery } from '../../../machinery.js';
 import { GraphQLClient } from '../../../utils/graphqlClient.js';
 
 export const fundingPortalsResolvers = {
   Query: {
     // Simple funding portals queries
-    alignedSubjects: (_: any, { statementCid, attesterAddress }: { statementCid: IpfsCidV1; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
-      return getAlignedSubjects(client, statementCid, attesterAddress);
+    alignedSubjects: (_: any, { statementCid, attesterAddress }: { statementCid: IpfsCidV1; attesterAddress?: string }, { machinery }: { machinery: SDKMachinery }) => {
+      return getAlignedSubjects(machinery, statementCid, attesterAddress);
     },
 
-    subjectStatements: (_: any, { subjectAddress, attesterAddress }: { subjectAddress: string; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
-      return getSubjectStatements(client, subjectAddress, attesterAddress);
+    subjectStatements: (_: any, { subjectAddress, attesterAddress }: { subjectAddress: string; attesterAddress?: string }, { machinery }: { machinery: SDKMachinery }) => {
+      return getSubjectStatements(machinery, subjectAddress, attesterAddress);
     },
 
     alignmentAttestation: (_: any, { attesterAddress, subjectAddress, statementCid }: {
       attesterAddress: string;
       subjectAddress: string;
       statementCid: IpfsCidV1;
-    }, { client }: { client: GraphQLClient }) => {
-      return getAlignmentAttestation(client, attesterAddress, subjectAddress, statementCid);
+    }, { machinery }: { machinery: SDKMachinery }) => {
+      return getAlignmentAttestation(machinery, attesterAddress, subjectAddress, statementCid);
     },
 
-    alignmentsByAttester: (_: any, { attesterAddress }: { attesterAddress: string }, { client }: { client: GraphQLClient }) => {
-      return getAlignmentsByAttester(client, attesterAddress);
+    alignmentsByAttester: (_: any, { attesterAddress }: { attesterAddress: string }, { machinery }: { machinery: SDKMachinery }) => {
+      return getAlignmentsByAttester(machinery, attesterAddress);
     },
 
     // Complex funding queries
@@ -48,8 +49,8 @@ export const fundingPortalsResolvers = {
       statementCid: IpfsCidV1;
       trustedImplicationAttester?: string;
       trustedAlignmentAttester?: string;
-    }, { client }: { client: GraphQLClient }) => {
-      return getIndirectlyAlignedSubjects(client, statementCid, trustedImplicationAttester, trustedAlignmentAttester);
+    }, { machinery }: { machinery: SDKMachinery }) => {
+      return getIndirectlyAlignedSubjects(machinery, statementCid, trustedImplicationAttester, trustedAlignmentAttester);
     },
 
     totalFundingForCause: async (_: any, {
@@ -60,8 +61,8 @@ export const fundingPortalsResolvers = {
       statementCid: IpfsCidV1;
       trustedImplicationAttester?: string;
       trustedAlignmentAttester?: string;
-    }, { client }: { client: GraphQLClient }) => {
-      const metrics = await getTotalFundingForCause(client, statementCid, trustedImplicationAttester, trustedAlignmentAttester);
+    }, { machinery }: { machinery: SDKMachinery }) => {
+      const metrics = await getTotalFundingForCause(machinery, statementCid, trustedImplicationAttester, trustedAlignmentAttester);
 
       // Convert BigInt to string for GraphQL serialization
       return {
@@ -79,8 +80,8 @@ export const fundingPortalsResolvers = {
       statementCid: IpfsCidV1;
       trustedImplicationAttester?: string;
       trustedAlignmentAttester?: string;
-    }, { client }: { client: GraphQLClient }) => {
-      return getAllAlignedProjectsForCause(client, statementCid, trustedImplicationAttester, trustedAlignmentAttester);
+    }, { machinery }: { machinery: SDKMachinery }) => {
+      return getAllAlignedProjectsForCause(machinery, statementCid, trustedImplicationAttester, trustedAlignmentAttester);
     },
 
     topContributorsForCause: async (_: any, {
@@ -93,8 +94,8 @@ export const fundingPortalsResolvers = {
       limit?: number;
       trustedImplicationAttester?: string;
       trustedAlignmentAttester?: string;
-    }, { client }: { client: GraphQLClient }) => {
-      const contributors = await getTopContributorsForCause(client, statementCid, limit, trustedImplicationAttester, trustedAlignmentAttester);
+    }, { machinery }: { machinery: SDKMachinery }) => {
+      const contributors = await getTopContributorsForCause(machinery, statementCid, limit, trustedImplicationAttester, trustedAlignmentAttester);
 
       // Convert BigInt values to strings for GraphQL serialization
       return contributors.map(contributor => ({
@@ -115,8 +116,8 @@ export const fundingPortalsResolvers = {
       userAddress: string;
       trustedImplicationAttester?: string;
       trustedAlignmentAttester?: string;
-    }, { client }: { client: GraphQLClient }) => {
-      const result = await getUserContributionRankForCause(client, statementCid, userAddress, trustedImplicationAttester, trustedAlignmentAttester);
+    }, { machinery }: { machinery: SDKMachinery }) => {
+      const result = await getUserContributionRankForCause(machinery, statementCid, userAddress, trustedImplicationAttester, trustedAlignmentAttester);
 
       if (!result) {
         return null;

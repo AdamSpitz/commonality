@@ -164,7 +164,7 @@ export async function appendToUserList(
   const deduplicate = options?.deduplicate ?? true;
 
   // Fetch existing list from indexer
-  const existingRef = await getUserRef(machinery.graphqlClient, clients.account, listName);
+  const existingRef = await getUserRef(machinery, clients.account, listName);
 
   let newList: string[];
 

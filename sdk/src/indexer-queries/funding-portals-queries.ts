@@ -450,7 +450,7 @@ export async function getUserContributionRankForCause(
 } | null> {
   // Get all contributors (we need the full list to calculate rank)
   const allContributors = await getTopContributorsForCause(
-    machinery
+    machinery,
     statementCid,
     1000000, // Large limit to get all contributors
     trustedImplicationAttester,

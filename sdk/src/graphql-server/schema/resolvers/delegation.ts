@@ -2,6 +2,7 @@
  * Delegation GraphQL resolvers
  */
 
+import { SDKMachinery } from '../../../index.js';
 import {
   getNote,
   getNotesByOwner,
@@ -13,20 +14,20 @@ import { GraphQLClient } from '../../../utils/graphqlClient.js';
 export const delegationResolvers = {
   Query: {
     // Simple delegation queries
-    note: (_: any, { id }: { id: string }, { client }: { client: GraphQLClient }) => {
-      return getNote(client, id);
+    note: (_: any, { id }: { id: string }, { machinery }: { machinery: SDKMachinery }) => {
+      return getNote(machinery, id);
     },
 
-    notesByOwner: (_: any, { ownerAddress }: { ownerAddress: string }, { client }: { client: GraphQLClient }) => {
-      return getNotesByOwner(client, ownerAddress);
+    notesByOwner: (_: any, { ownerAddress }: { ownerAddress: string }, { machinery }: { machinery: SDKMachinery }) => {
+      return getNotesByOwner(machinery, ownerAddress);
     },
 
-    notesByRoot: (_: any, { rootAddress }: { rootAddress: string }, { client }: { client: GraphQLClient }) => {
-      return getNotesByRoot(client, rootAddress);
+    notesByRoot: (_: any, { rootAddress }: { rootAddress: string }, { machinery }: { machinery: SDKMachinery }) => {
+      return getNotesByRoot(machinery, rootAddress);
     },
 
-    delegationChain: (_: any, { noteId }: { noteId: string }, { client }: { client: GraphQLClient }) => {
-      return getDelegationChain(client, noteId);
+    delegationChain: (_: any, { noteId }: { noteId: string }, { machinery }: { machinery: SDKMachinery }) => {
+      return getDelegationChain(machinery, noteId);
     },
   },
 };
