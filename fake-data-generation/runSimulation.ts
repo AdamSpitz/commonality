@@ -22,7 +22,7 @@ import {
   publishDocument,
   type IpfsCidV1,
 } from '@commonality/sdk';
-import type { User, Statement, SimulationContracts } from './types.js';
+import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
 
 const hardhat = {
@@ -67,6 +67,20 @@ function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost
     account: account.address,
   };
 }
+
+export async function uploadStatementToIPFS(content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
+  return await publishDocument(createStatement({
+    content: content.text,
+    topic: domain,
+    extras: {
+      domain: domain,
+      position: position,
+      statementType: statementType,
+      references: content.references || [],
+    },
+  }));
+}
+
 
 type TestClients = ReturnType<typeof createTestClients>;
 
@@ -114,16 +128,16 @@ async function attestImplication(
   contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1,
-  explanationCid: IpfsCidV1
+  explanationCid: `0x${string}`
 ): Promise<`0x${string}`> {
-  const fromStatementCid = cidToBytes32(fromStatementCid);
-  const toStatementCid = cidToBytes32(toStatementCid);
+  const fromBytes32 = cidToBytes32(fromStatementCid);
+  const toBytes32 = cidToBytes32(toStatementCid);
 
   const hash = await clients.walletClient.writeContract({
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'attestImplication',
-    args: [fromStatementCid, toStatementCid, explanationCid],
+    args: [fromBytes32, toBytes32, explanationCid],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });
@@ -331,18 +345,12 @@ class SimulationRunner {
       if (stmt.cid) continue;
 
       try {
-        const doc = createStatement({
-          content: stmt.content.text,
-          topic: stmt.domain,
-          extras: {
-            domain: stmt.domain,
-            position: stmt.position,
-            statementType: stmt.statementType,
-            references: stmt.content.references,
-          },
-        });
-
-        const cid = await publishDocument(doc);
+        const cid: IpfsCidV1 = await uploadStatementToIPFS(
+          stmt.content,
+          stmt.domain,
+          stmt.position,
+          stmt.statementType,
+        );
         stmt.cid = cid;
         uploaded++;
 
@@ -352,7 +360,7 @@ class SimulationRunner {
       } catch (err) {
         const error = err as Error;
         failed++;
-        console.error(`  Failed to upload statement ${stmt.id}: ${error.message}`);
+        console.error(`  Failed to upload statement: ${error.message}`);
       }
     }
 
@@ -466,7 +474,7 @@ class SimulationRunner {
           const beliefState = Math.random() > 0.1 ? 1 : 2; // 90% believe, 10% disbelieve
 
           if (!stmt.cid) {
-            console.warn(`  Statement ${stmt.id} has no CID, skipping`);
+            console.warn(`  Statement has no CID, skipping`);
             break;
           }
 
@@ -477,20 +485,20 @@ class SimulationRunner {
           }
           receipt = await publicClient.getTransactionReceipt({ hash });
 
-          this.recordAction('setBelief', user, { statementId: stmt.id, beliefState }, receipt);
+          this.recordAction('setBelief', user, { statementId: stmt.cid, beliefState }, receipt);
           break;
         }
 
         case 'setBeliefsInBatch': {
           const statements = this.getRelevantStatements(user);
           const numStatements = Math.min(3, statements.length);
-          const selected: string[] = [];
+          const selected: IpfsCidV1[] = [];
           const beliefs: number[] = [];
 
           for (let i = 0; i < numStatements; i++) {
             const stmt = statements[Math.floor(Math.random() * statements.length)];
             if (!stmt.cid) {
-              console.warn(`  Statement ${stmt.id} has no CID, skipping`);
+              console.warn(`  Statement has no CID, skipping`);
               continue;
             }
             selected.push(stmt.cid);
@@ -522,20 +530,20 @@ class SimulationRunner {
           const stmt1 = this.getRandomStatement();
           const stmt2 = this.getRandomStatement();
 
-          if (stmt1.id !== stmt2.id && stmt1.domain === stmt2.domain) {
+          if (stmt1 !== stmt2 && stmt1.domain === stmt2.domain) {
             let implies = false;
 
             // Check pre-generated attestations first
-            const preGen = this.getPreGeneratedAttestation(stmt1.statementId, stmt2.statementId);
+            const preGen = this.getPreGeneratedAttestation(stmt1.cid!, stmt2.cid!);
             if (preGen) {
               implies = true;
               console.log(`  Using pre-generated attestation: ${preGen.id} (confidence: ${preGen.confidence})`);
             } else if (this.attestations.length > 0) {
               // Find any attestation where S1 appears as source
-              const outbound = this.attestations.filter(a => a.fromStatementCid === stmt1.statementId);
+              const outbound = this.attestations.filter(a => a.fromStatementCid === stmt1.cid!);
               if (outbound.length > 0) {
                 const randomAtt = outbound[Math.floor(Math.random() * outbound.length)];
-                if (randomAtt.toStatementCid === stmt2.statementId) {
+                if (randomAtt.toStatementCid === stmt2.cid!) {
                   implies = true;
                 }
               }
@@ -548,13 +556,13 @@ class SimulationRunner {
               hash = await attestImplication(
                 clients,
                 this.contracts.implications!,
-                stmt1.statementId,
-                stmt2.statementId,
+                stmt1.cid!,
+                stmt2.cid!,
                 '0x0000000000000000000000000000000000000000000000000000000000000000'
               );
               receipt = await publicClient.getTransactionReceipt({ hash });
 
-              this.recordAction('attestImplication', user, { from: stmt1.id, to: stmt2.id }, receipt);
+              this.recordAction('attestImplication', user, { from: stmt1.cid, to: stmt2.cid }, receipt);
             }
           }
           break;
@@ -571,12 +579,12 @@ class SimulationRunner {
             clients,
             this.contracts.alignmentAttestations!,
             projectAddress,
-            stmt.statementId,
-            PROJECT_ALIGNMENT_TOPIC
+            stmt.cid!,
+            PROJECT_ALIGNMENT_TOPIC as IpfsCidV1
           );
           receipt = await publicClient.getTransactionReceipt({ hash });
 
-          this.recordAction('attestProjectAlignment', user, { project: projectAddress, statement: stmt.id }, receipt);
+          this.recordAction('attestProjectAlignment', user, { project: projectAddress, statement: stmt.cid }, receipt);
           break;
         }
 

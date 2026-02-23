@@ -54,7 +54,7 @@ interface CheckResult {
 interface Snapshot {
   label: string;
   timestamp: number;
-  beliefs: Record<number, unknown>;
+  beliefs: Record<string, unknown>;
   implications: Record<string, unknown>;
   notes: Record<string, unknown>;
   balances: Record<string, bigint>;
@@ -104,9 +104,9 @@ class InvariantChecker {
             address: this.contracts.beliefs.address as `0x${string}`,
             abi: BeliefsAbi,
             functionName: 'beliefs',
-            args: [this.users[0]?.address || zeroAddress, cidToBytes32(stmt.statementId)]
+            args: [this.users[0]?.address || zeroAddress, cidToBytes32(stmt.cid!)]
           });
-          snapshot.beliefs[stmt.id] = belief;
+          snapshot.beliefs[stmt.cid ?? String(this.statements.indexOf(stmt))] = belief;
         }
       } catch (err) {
         const error = err as Error;
@@ -143,7 +143,7 @@ class InvariantChecker {
               address: this.contracts.beliefs.address as `0x${string}`,
               abi: BeliefsAbi,
               functionName: 'beliefs',
-              args: [user.address, cidToBytes32(stmt.statementId)]
+              args: [user.address, cidToBytes32(stmt.cid!)]
             });
 
             const beliefNum = Number(belief);
@@ -151,7 +151,7 @@ class InvariantChecker {
               errors.push({
                 type: 'INVALID_BELIEF_STATE',
                 user: user.address,
-                statement: stmt.id,
+                statement: stmt.cid,
                 value: String(belief)
               });
             }
@@ -213,8 +213,8 @@ class InvariantChecker {
 
           const fromIdStr = fromId.toString();
           const toIdStr = toId.toString();
-          const fromExists = this.statements.some(s => s.statementId === fromIdStr);
-          const toExists = this.statements.some(s => s.statementId === toIdStr);
+          const fromExists = this.statements.some(s => s.cid && cidToBytes32(s.cid) === fromIdStr);
+          const toExists = this.statements.some(s => s.cid && cidToBytes32(s.cid) === toIdStr);
 
           if (!fromExists || !toExists) {
             errors.push({
@@ -559,7 +559,7 @@ class InvariantChecker {
         }
 
         for (const stmtId of statementsWithImplications) {
-          const exists = this.statements.some(s => s.statementId === stmtId);
+          const exists = this.statements.some(s => s.cid && cidToBytes32(s.cid) === stmtId);
           if (!exists) {
             errors.push({
               type: 'ORPHAN_IMPLICATION_INDEX',

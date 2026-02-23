@@ -169,7 +169,7 @@ test.describe('User Profile Workflow', () => {
     console.log('\n=== CREATING STATEMENTS FOR TAB TEST ===')
 
     // Create a statement and express disbelief from another account
-    const { cid, statementId } = await createTestStatement(
+    const { cid } = await createTestStatement(
       'ACCOUNT_1',
       beliefsContract,
       mutableRefContract,
@@ -185,7 +185,7 @@ test.describe('User Profile Workflow', () => {
     // Wait for indexer and sync
     await waitForIndexer(graphqlUrl)
     await triggerSyncWithRetry(graphqlUrl)
-    await waitForStatement(graphqlUrl, statementId)
+    await waitForStatement(graphqlUrl, cid)
 
     // Navigate to profile via nav link (in AppBar header)
     await page.locator('header').getByRole('link', { name: 'My Profile' }).click()

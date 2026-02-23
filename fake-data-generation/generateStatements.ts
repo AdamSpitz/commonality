@@ -2,7 +2,8 @@ import { keccak256, toBytes } from 'viem';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import type { Statement } from './types.js';
+import type { Statement, StatementContent } from './types.js';
+import { createStatement, IpfsCidV1, publishDocument } from '@commonality/sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,11 +12,6 @@ const __dirname = dirname(__filename);
  * Generate statements from the universe configuration
  * Statements represent positions on various domains
  */
-
-function createStatementId(content: Record<string, unknown>): `0x${string}` {
-  const hash = keccak256(toBytes(JSON.stringify(content)));
-  return hash;
-}
 
 function generatePositionKey(position: unknown): string {
   if (typeof position === 'string') {
@@ -28,6 +24,19 @@ function generatePositionKey(position: unknown): string {
       .join('_');
   }
   return '';
+}
+
+export async function uploadStatementToIPFS(content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
+  return await publishDocument(createStatement({
+    content: content.text,
+    topic: domain,
+    extras: {
+      domain: domain,
+      position: position,
+      statementType: statementType,
+      references: content.references || [],
+    },
+  }));
 }
 
 async function generateStatements(): Promise<Statement[]> {
@@ -52,13 +61,14 @@ async function generateStatements(): Promise<Statement[]> {
           position: positionKey
         };
 
+        idCounter++;
+        const cid = await uploadStatementToIPFS(content, domain, positionKey, 'simple');
         const statement: Statement = {
-          id: idCounter++,
           domain,
           position: positionKey,
           statementType: 'simple',
           content,
-          statementId: createStatementId(content),
+          cid,
         };
 
         statements.push(statement);
@@ -72,21 +82,21 @@ async function generateStatements(): Promise<Statement[]> {
     const stmt1 = statements[Math.floor(Math.random() * statements.length)];
     const stmt2 = statements[Math.floor(Math.random() * statements.length)];
 
-    if (stmt1.id !== stmt2.id && stmt1.domain === stmt2.domain) {
+    if (stmt1 !== stmt2 && stmt1.domain === stmt2.domain) {
+      idCounter++;
       const content = {
         text: `I support either "${stmt1.content.text}" or "${stmt2.content.text}"`,
         domain: stmt1.domain,
-        references: [stmt1.statementId, stmt2.statementId],
         type: 'or'
       };
 
+      const cid = await uploadStatementToIPFS(content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction');
       const coalition: Statement = {
-        id: idCounter++,
         domain: stmt1.domain,
         position: 'coalition',
         statementType: 'disjunction',
         content,
-        statementId: createStatementId(content),
+        cid,
       };
 
       statements.push(coalition);
@@ -99,21 +109,21 @@ async function generateStatements(): Promise<Statement[]> {
     const stmt1 = statements[Math.floor(Math.random() * statements.length)];
     const stmt2 = statements[Math.floor(Math.random() * statements.length)];
 
-    if (stmt1.id !== stmt2.id && stmt1.domain === stmt2.domain) {
+    if (stmt1 !== stmt2 && stmt1.domain === stmt2.domain) {
+      idCounter++;
       const content = {
         text: `Both "${stmt1.content.text}" and "${stmt2.content.text}" are important`,
         domain: stmt1.domain,
-        references: [stmt1.statementId, stmt2.statementId],
         type: 'and'
       };
 
+      const cid = await uploadStatementToIPFS(content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction');
       const commonality: Statement = {
-        id: idCounter++,
         domain: stmt1.domain,
         position: 'commonality',
         statementType: 'conjunction',
         content,
-        statementId: createStatementId(content),
+        cid,
       };
 
       statements.push(commonality);

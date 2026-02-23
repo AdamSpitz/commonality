@@ -121,8 +121,8 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
         if (result.implies) {
           const attestation: Attestation = {
             id: `attestation-${attestations.length}`,
-            fromStatementCid: pair.statement1.statementId,
-            toStatementCid: pair.statement2.statementId,
+            fromStatementCid: pair.statement1.cid!,
+            toStatementCid: pair.statement2.cid!,
             fromDomain: pair.statement1.domain,
             toDomain: pair.statement2.domain,
             implies: result.implies,

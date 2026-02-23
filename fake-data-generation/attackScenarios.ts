@@ -109,7 +109,7 @@ class AttackScenarios {
   statements: Statement[];
   sybilWallets: SybilWallet[];
   spamStatements: Array<{ id: `0x${string}`; content: Record<string, unknown>; creator: `0x${string}` }>;
-  maliciousAttestations: Array<{ from: number; to: number; attacker: `0x${string}` }>;
+  maliciousAttestations: Array<{ from: string; to: string; attacker: `0x${string}` }>;
   results: {
     sybil: AttackResult;
     spam: AttackResult;
@@ -250,7 +250,7 @@ class AttackScenarios {
         // Generate a random statement ID for spam
         const spamId = keccak256(toBytes(`spam_${i}_${Date.now()}`));
 
-        await believeStatement(clients, this.contracts.beliefs!, spamId);
+        await believeStatement(clients, this.contracts.beliefs!, spamId as unknown as IpfsCidV1);
 
         successfulSpam++;
         this.spamStatements.push({
@@ -302,24 +302,24 @@ class AttackScenarios {
         const stmt1 = this.getRandomStatement();
         const stmt2 = this.getRandomStatement();
 
-        if (stmt1.id === stmt2.id) continue;
+        if (stmt1 === stmt2) continue;
 
-        const stmt1Id = cidToBytes32(stmt1.statementId);
-        const stmt2Id = cidToBytes32(stmt2.statementId);
+        const stmt1Id = cidToBytes32(stmt1.cid!);
+        const stmt2Id = cidToBytes32(stmt2.cid!);
 
         await attestImplication(clients, this.contracts.implications!, stmt1Id, stmt2Id);
 
         successfulAttestations++;
         this.maliciousAttestations.push({
-          from: stmt1.id,
-          to: stmt2.id,
+          from: stmt1.cid ?? '',
+          to: stmt2.cid ?? '',
           attacker: attacker.address
         });
 
         this.results.maliciousAttester.actions.push({
           type: 'false_implication',
-          from: stmt1.id,
-          to: stmt2.id
+          from: stmt1.cid,
+          to: stmt2.cid
         });
       } catch {
         // Attestation may fail

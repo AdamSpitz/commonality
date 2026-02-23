@@ -102,7 +102,7 @@ test.describe('Belief Expression Workflow', () => {
     console.log('\n=== CREATING STATEMENT FOR BELIEF TEST ===')
 
     // Create a statement via SDK
-    const { cid, statementId } = await createTestStatement(
+    const { cid } = await createTestStatement(
       'ACCOUNT_0',
       beliefsContract,
       mutableRefContract,
@@ -110,10 +110,9 @@ test.describe('Belief Expression Workflow', () => {
     )
 
     console.log('Statement CID:', cid)
-    console.log('Statement ID:', statementId)
 
     // Navigate to statement detail page
-    await page.goto(`/statement/${statementId}`)
+    await page.goto(`/statement/${cid}`)
 
     // Verify the page loaded by checking support metrics
     // createAndSignStatement calls believeStatement internally, so creator = 1 believer
@@ -174,7 +173,7 @@ test.describe('Belief Expression Workflow', () => {
     console.log('\n=== CREATING STATEMENT FOR DISBELIEF TEST ===')
 
     // Create a statement via SDK
-    const { cid, statementId } = await createTestStatement(
+    const { cid } = await createTestStatement(
       'ACCOUNT_0',
       beliefsContract,
       mutableRefContract,
@@ -182,7 +181,6 @@ test.describe('Belief Expression Workflow', () => {
     )
 
     console.log('Statement CID:', cid)
-    console.log('Statement ID:', statementId)
 
     // Express disbelief from a different account via SDK
     console.log('\n=== EXPRESSING DISBELIEF FROM ACCOUNT_2 ===')
@@ -198,7 +196,7 @@ test.describe('Belief Expression Workflow', () => {
     await new Promise((r) => setTimeout(r, 1000))
 
     // Navigate to statement page
-    await page.goto(`/statement/${statementId}`)
+    await page.goto(`/statement/${cid}`)
 
     // Verify creator's belief shows
     await expect(page.getByText(/1 direct believer\b/)).toBeVisible({

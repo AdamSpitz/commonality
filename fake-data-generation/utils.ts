@@ -5,16 +5,6 @@ import { keccak256, toBytes, fromBytes, formatEther, parseEther } from 'viem';
  */
 
 /**
- * Convert a statement content object to a bytes32 statement ID
- * In production, this would be an IPFS CID
- * For testing, we use a keccak256 hash
- */
-export function createStatementId(content: Record<string, unknown>): `0x${string}` {
-  const json = JSON.stringify(content, Object.keys(content).sort());
-  return keccak256(toBytes(json));
-}
-
-/**
  * Create a mock bytes32 from a string
  * Useful for creating consistent statement IDs in tests
  */
