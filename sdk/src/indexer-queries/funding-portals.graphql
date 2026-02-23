@@ -59,12 +59,12 @@ query GetAlignmentsByAttester($attester: String!) {
   }
 }
 
-query GetImplicationsToForFP($toStatementId: String!, $attester: String) {
+query GetImplicationsToForFP($toStatementCid: String!, $attester: String) {
   implicationss(
-    where: { toStatementId: $toStatementId, attester: $attester }
+    where: { toStatementCid: $toStatementCid, attester: $attester }
   ) {
     items {
-      fromStatementId
+      fromStatementCid
       attester {
         id
       }

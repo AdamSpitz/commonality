@@ -60,5 +60,9 @@ export function bytes32ToCid(bytes32: IpfsCidBytes32): IpfsCidV1 {
   // Create CID - using dag-pb codec (0x70) for JSON content
   const cid = CID.createV1(0x70, { code: 0x12, size: 32, digest: multihash.slice(2), bytes: multihash });
 
+  if (!isValidCidV1(cid.toString())) {
+    throw new Error(`Invalid CID generated from bytes32: ${cid.toString()}`);
+  }
+  
   return cid.toString() as IpfsCidV1;
 }

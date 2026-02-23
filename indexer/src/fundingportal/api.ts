@@ -27,7 +27,7 @@ import {
   parsePositiveInt,
   invalidInputError,
 } from "../utils/validation";
-import { isValidCidV1 } from "../utils/cid-types";
+import { IpfsCidV1, isValidCidV1 } from "../utils/cid-types";
 
 export function createFundingportalApi(db: any, schema: any) {
 const app = new Hono();
@@ -108,16 +108,16 @@ app.get("/api/aligned-schema.projects/:statementId", async (c) => {
 
   // Step 2: Find schema.statements that imply this statement (from trusted attesters)
   const implyingStatements = await db
-    .select({ fromStatementId: schema.implications.fromStatementId })
+    .select({ fromStatementCid: schema.implications.fromStatementCid })
     .from(schema.implications)
     .where(
       and(
-        eq(schema.implications.toStatementId, statementId),
+        eq(schema.implications.toStatementCid, statementId),
         inArray(schema.implications.attester, trustedAttesters)
       )
     );
 
-  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId))];
+  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid))];
 
   // Step 3: Find schema.projects aligned with those implying schema.statements
   let indirectAlignments: any[] = [];
@@ -250,16 +250,16 @@ app.get("/api/available-funding/:statementId", async (c) => {
 
   // Step 2: Find schema.statements that imply this statement
   const implyingStatements = await db
-    .select({ fromStatementId: schema.implications.fromStatementId })
+    .select({ fromStatementCid: schema.implications.fromStatementCid })
     .from(schema.implications)
     .where(
       and(
-        eq(schema.implications.toStatementId, statementId),
+        eq(schema.implications.toStatementCid, statementId),
         inArray(schema.implications.attester, trustedAttesters)
       )
     );
 
-  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId))];
+  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid))];
 
   // Step 3: Get indirect funding (notes intended for implying schema.statements)
   // TODO: Re-implement using NoteIntent attestations
@@ -368,16 +368,16 @@ app.get("/api/contributor-leaderboard/:statementId", async (c) => {
 
   // Find implying schema.statements
   const implyingStatements = await db
-    .select({ fromStatementId: schema.implications.fromStatementId })
+    .select({ fromStatementCid: schema.implications.fromStatementCid })
     .from(schema.implications)
     .where(
       and(
-        eq(schema.implications.toStatementId, statementId),
+        eq(schema.implications.toStatementCid, statementId),
         inArray(schema.implications.attester, trustedAttesters)
       )
     );
 
-  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId))];
+  const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid))];
 
   let indirectProjectAddresses: string[] = [];
   if (implyingIds.length > 0) {

@@ -4,15 +4,16 @@ import { useNavigate } from 'react-router-dom'
 import {
   createSDKMachinery,
   getStatementSuggestions,
+  type IpfsCidV1,
   type StatementSuggestion,
 } from '@commonality/sdk'
 
 interface StatementSuggestionsProps {
-  statementId: string
-  userAddress?: string
+  statementCid: IpfsCidV1;
+  userAddress?: string;
 }
 
-export function StatementSuggestions({ statementId, userAddress }: StatementSuggestionsProps) {
+export function StatementSuggestions({ statementCid, userAddress }: StatementSuggestionsProps) {
   const navigate = useNavigate()
   const [suggestions, setSuggestions] = useState<StatementSuggestion[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,7 +28,7 @@ export function StatementSuggestions({ statementId, userAddress }: StatementSugg
         setError(null)
 
         const machinery = createSDKMachinery(GRAPHQL_URL)
-        const data = await getStatementSuggestions(machinery, statementId, userAddress)
+        const data = await getStatementSuggestions(machinery, statementCid, userAddress)
         setSuggestions(data)
       } catch (err) {
         console.error('Error loading statement suggestions:', err)
@@ -38,7 +39,7 @@ export function StatementSuggestions({ statementId, userAddress }: StatementSugg
     }
 
     loadSuggestions()
-  }, [statementId, userAddress])
+  }, [statementCid, userAddress])
 
   if (loading) {
     return (

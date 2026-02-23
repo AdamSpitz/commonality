@@ -29,7 +29,7 @@ import {
   parsePositiveInt,
   invalidInputError,
 } from "../utils/validation";
-import { isValidCidV1 } from "../utils/cid-types";
+import { IpfsCidV1, isValidCidV1 } from "../utils/cid-types";
 import { runConceptspaceIpfsSyncIteration } from "./utils/ipfsSyncJob";
 
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
@@ -129,11 +129,11 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
 
     // Step 1: Find all schema.statements that imply this statement (from trusted schema.attesters)
     const implyingStatements = await db
-      .select({ fromStatementId: schema.implications.fromStatementId })
+      .select({ fromStatementCid: schema.implications.fromStatementCid })
       .from(schema.implications)
       .where(
         and(
-          eq(schema.implications.toStatementId, statementId),
+          eq(schema.implications.toStatementCid, statementId),
           inArray(schema.implications.attester, trustedAttesters)
         )
       );
@@ -142,7 +142,7 @@ app.get("/api/indirect-supporters/:statementId", async (c) => {
       return c.json({ indirectSupporters: [], totalCount: 0, limit, offset });
     }
 
-    const implyingIds = implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId);
+    const implyingIds = implyingStatements.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid);
 
     // Step 2: Find all schema.users who believe those implying schema.statements
     const supporters = await db
@@ -220,17 +220,17 @@ app.get("/api/statement-support/:statementId", async (c) => {
     if (trustedAttesters && trustedAttesters.length > 0) {
       // Find implying schema.statements
       const implyingStatements = await db
-        .select({ fromStatementId: schema.implications.fromStatementId })
+        .select({ fromStatementCid: schema.implications.fromStatementCid })
         .from(schema.implications)
         .where(
           and(
-            eq(schema.implications.toStatementId, statementId),
+            eq(schema.implications.toStatementCid, statementId),
             inArray(schema.implications.attester, trustedAttesters)
           )
         );
 
       if (implyingStatements.length > 0) {
-        const implyingIds = implyingStatements.map((s: { fromStatementId: string }) => s.fromStatementId);
+        const implyingIds = implyingStatements.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid);
 
         // Count unique believers of implying schema.statements
         const supporters = await db
@@ -314,31 +314,31 @@ app.get("/api/suggestions/:userAddress", async (c) => {
       return c.json({ suggestions: [] });
     }
 
-    const believedIds = userBeliefs.map((b: { statementId: string }) => b.statementId);
+    const believedIds = userBeliefs.map((b: { statementCid: IpfsCidV1 }) => b.statementCid);
 
     // Find schema.statements implied by user's schema.beliefs (that user hasn't already signed)
     const impliedStatements = await db
       .select({
-        toStatementId: schema.implications.toStatementId,
-        fromStatementId: schema.implications.fromStatementId,
+        toStatementCid: schema.implications.toStatementCid,
+        fromStatementCid: schema.implications.fromStatementCid,
       })
       .from(schema.implications)
       .where(
         and(
-          inArray(schema.implications.fromStatementId, believedIds),
+          inArray(schema.implications.fromStatementCid, believedIds),
           inArray(schema.implications.attester, trustedAttesters)
         )
       );
 
     // Filter out already-believed schema.statements and get their info
     const notYetBelieved = impliedStatements
-      .filter((s: { toStatementId: string }) => !believedIds.includes(s.toStatementId));
+      .filter((s: { toStatementCid: IpfsCidV1 }) => !believedIds.includes(s.toStatementCid));
 
     if (notYetBelieved.length === 0) {
       return c.json({ suggestions: [] });
     }
 
-    const targetIds = [...new Set(notYetBelieved.map((s: { toStatementId: string }) => s.toStatementId))];
+    const targetIds = [...new Set(notYetBelieved.map((s: { toStatementCid: IpfsCidV1 }) => s.toStatementCid))];
 
     const targetStatements = await db
       .select()
@@ -346,7 +346,7 @@ app.get("/api/suggestions/:userAddress", async (c) => {
       .where(inArray(schema.statements.cidV1, targetIds));
 
     // Get source statement believer counts for comparison
-    const sourceIds = [...new Set(notYetBelieved.map((s: { fromStatementId: string }) => s.fromStatementId))];
+    const sourceIds = [...new Set(notYetBelieved.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid))];
     const sourceStatements = await db
       .select()
       .from(schema.statements)
@@ -357,8 +357,8 @@ app.get("/api/suggestions/:userAddress", async (c) => {
     // Build suggestions: target schema.statements more popular than source
     const suggestions = targetStatements
       .map((target: { cidV1: string; believerCount: number }) => {
-        const implication = notYetBelieved.find((i: { toStatementId: string; fromStatementId: string }) => i.toStatementId === target.cidV1);
-        const source: { cidV1: string; believerCount: number } | undefined = sourceMap.get(implication!.fromStatementId) as { cidV1: string; believerCount: number } | undefined;
+        const implication = notYetBelieved.find((i: { toStatementCid: IpfsCidV1; fromStatementCid: IpfsCidV1 }) => i.toStatementCid === target.cidV1);
+        const source: { cidV1: string; believerCount: number } | undefined = sourceMap.get(implication!.fromStatementCid) as { cidV1: string; believerCount: number } | undefined;
 
         if (!source || target.believerCount <= source.believerCount) {
           return null;

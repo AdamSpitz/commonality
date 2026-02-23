@@ -138,8 +138,8 @@ export async function attestAlignmentsBatchChecked(
   alignmentAttestationsContract: AlignmentAttestationsContract,
   machinery: ActionTestingMachinery,
   subjectAddresses: Address[],
-  statementCids: string[],
-  topicStatementCids: string[],
+  statementCids: IpfsCidV1[],
+  topicStatementCids: IpfsCidV1[],
   options?: ActionRunOptions
 ): Promise<Hash> {
   // For batch operations, we don't track specific entities since there are many

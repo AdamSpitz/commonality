@@ -39,26 +39,26 @@ interface ImplicationState {
  */
 async function captureImplicationState(context: ActionContext): Promise<ImplicationState> {
   const { machinery, entities, extra } = context;
-  const { fromStatementId, toStatementId, attesterAddress } = entities;
+  const { fromStatementCid, toStatementCid, attesterAddress } = entities;
 
-  if (!fromStatementId) {
-    throw new Error('fromStatementId is required in context.entities');
+  if (!fromStatementCid) {
+    throw new Error('fromStatementCid is required in context.entities');
   }
-  if (!toStatementId) {
-    throw new Error('toStatementId is required in context.entities');
+  if (!toStatementCid) {
+    throw new Error('toStatementCid is required in context.entities');
   }
   if (!attesterAddress) {
     throw new Error('attesterAddress is required in context.entities');
   }
 
   // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  const implicationsFrom = await getImplicationsFrom(machinery, fromStatementId);
-  const implicationsTo = await getImplicationsTo(machinery, toStatementId);
+  const implicationsFrom = await getImplicationsFrom(machinery, fromStatementCid);
+  const implicationsTo = await getImplicationsTo(machinery, toStatementCid);
 
   // Check if this specific implication already exists
   const specificImplicationExists = implicationsFrom.some(
     (imp) =>
-      imp.toStatementId.toLowerCase() === toStatementId.toLowerCase() &&
+      imp.toStatementCid.toLowerCase() === toStatementCid.toLowerCase() &&
       ((imp.attester as any).id || imp.attester).toLowerCase() === attesterAddress.toLowerCase()
   );
 
@@ -89,10 +89,10 @@ export const implicationBidirectionalityProperty: StateTransitionProperty = {
   captureState: captureImplicationState,
   check: async (context: ActionContext, before: ImplicationState, after: ImplicationState) => {
     const { machinery, entities } = context;
-    const { fromStatementId, toStatementId, attesterAddress } = entities;
+    const { fromStatementCid, toStatementCid, attesterAddress } = entities;
 
-    if (!fromStatementId || !toStatementId || !attesterAddress) {
-      throw new Error('fromStatementId, toStatementId, and attesterAddress are required');
+    if (!fromStatementCid || !toStatementCid || !attesterAddress) {
+      throw new Error('fromStatementCid, toStatementCid, and attesterAddress are required');
     }
 
     // If the implication already existed, counts shouldn't change
@@ -137,23 +137,23 @@ export const implicationBidirectionalityProperty: StateTransitionProperty = {
     );
 
     // Query the implication to verify details
-    const implicationsFrom = await getImplicationsFrom(machinery, fromStatementId);
+    const implicationsFrom = await getImplicationsFrom(machinery, fromStatementCid);
     const newImplication = implicationsFrom.find(
       (imp) =>
-        imp.toStatementId.toLowerCase() === toStatementId.toLowerCase() &&
+        imp.toStatementCid.toLowerCase() === toStatementCid.toLowerCase() &&
         ((imp.attester as any).id || imp.attester).toLowerCase() === attesterAddress.toLowerCase()
     );
 
     assert.ok(newImplication, 'Should be able to find the newly created implication');
     assert.strictEqual(
-      newImplication.fromStatementId.toLowerCase(),
-      fromStatementId.toLowerCase(),
-      'Implication fromStatementId should match'
+      newImplication.fromStatementCid.toLowerCase(),
+      fromStatementCid.toLowerCase(),
+      'Implication fromStatementCid should match'
     );
     assert.strictEqual(
-      newImplication.toStatementId.toLowerCase(),
-      toStatementId.toLowerCase(),
-      'Implication toStatementId should match'
+      newImplication.toStatementCid.toLowerCase(),
+      toStatementCid.toLowerCase(),
+      'Implication toStatementCid should match'
     );
     assert.strictEqual(
       ((newImplication.attester as any).id || newImplication.attester).toLowerCase(),
@@ -177,55 +177,55 @@ export const implicationBidirectionalityInvariant: InvariantCheck = {
   expensive: true,
   check: async (context: ActionContext) => {
     const { machinery, entities } = context;
-    const { fromStatementId, toStatementId, attesterAddress } = entities;
+    const { fromStatementCid, toStatementCid, attesterAddress } = entities;
 
-    if (!fromStatementId || !toStatementId || !attesterAddress) {
-      throw new Error('fromStatementId, toStatementId, and attesterAddress are required');
+    if (!fromStatementCid || !toStatementCid || !attesterAddress) {
+      throw new Error('fromStatementCid, toStatementCid, and attesterAddress are required');
     }
 
     // Get implications from both directions
-    const implicationsFrom = await getImplicationsFrom(machinery, fromStatementId);
-    const implicationsTo = await getImplicationsTo(machinery, toStatementId);
+    const implicationsFrom = await getImplicationsFrom(machinery, fromStatementCid);
+    const implicationsTo = await getImplicationsTo(machinery, toStatementCid);
 
     // Find this specific implication in both queries
     const foundInFrom = implicationsFrom.find(
       (imp) =>
-        imp.toStatementId.toLowerCase() === toStatementId.toLowerCase() &&
+        imp.toStatementCid.toLowerCase() === toStatementCid.toLowerCase() &&
         ((imp.attester as any).id || imp.attester).toLowerCase() === attesterAddress.toLowerCase()
     );
 
     const foundInTo = implicationsTo.find(
       (imp) =>
-        imp.fromStatementId.toLowerCase() === fromStatementId.toLowerCase() &&
+        imp.fromStatementCid.toLowerCase() === fromStatementCid.toLowerCase() &&
         ((imp.attester as any).id || imp.attester).toLowerCase() === attesterAddress.toLowerCase()
     );
 
     // Both should exist or both should not exist
     if (foundInFrom && !foundInTo) {
       throw new Error(
-        `Implication found in getImplicationsFrom(${fromStatementId}) ` +
-        `but NOT in getImplicationsTo(${toStatementId})`
+        `Implication found in getImplicationsFrom(${fromStatementCid}) ` +
+        `but NOT in getImplicationsTo(${toStatementCid})`
       );
     }
 
     if (!foundInFrom && foundInTo) {
       throw new Error(
-        `Implication found in getImplicationsTo(${toStatementId}) ` +
-        `but NOT in getImplicationsFrom(${fromStatementId})`
+        `Implication found in getImplicationsTo(${toStatementCid}) ` +
+        `but NOT in getImplicationsFrom(${fromStatementCid})`
       );
     }
 
     // If both exist, verify they have the same data
     if (foundInFrom && foundInTo) {
       assert.strictEqual(
-        foundInFrom.fromStatementId.toLowerCase(),
-        foundInTo.fromStatementId.toLowerCase(),
-        'fromStatementId should match in both query directions'
+        foundInFrom.fromStatementCid.toLowerCase(),
+        foundInTo.fromStatementCid.toLowerCase(),
+        'fromStatementCid should match in both query directions'
       );
       assert.strictEqual(
-        foundInFrom.toStatementId.toLowerCase(),
-        foundInTo.toStatementId.toLowerCase(),
-        'toStatementId should match in both query directions'
+        foundInFrom.toStatementCid.toLowerCase(),
+        foundInTo.toStatementCid.toLowerCase(),
+        'toStatementCid should match in both query directions'
       );
       assert.strictEqual(
         ((foundInFrom.attester as any).id || foundInFrom.attester).toLowerCase(),
@@ -249,14 +249,14 @@ interface IndirectSupportState {
  */
 async function captureIndirectSupportState(context: ActionContext): Promise<IndirectSupportState> {
   const { machinery, entities } = context;
-  const { toStatementId } = entities;
+  const { toStatementCid } = entities;
 
-  if (!toStatementId) {
-    throw new Error('toStatementId is required in context.entities');
+  if (!toStatementCid) {
+    throw new Error('toStatementCid is required in context.entities');
   }
 
-  const indirectSupporterCount = await getIndirectSupporterCount(machinery, toStatementId);
-  const indirectSupporters = await getIndirectSupporters(machinery, toStatementId);
+  const indirectSupporterCount = await getIndirectSupporterCount(machinery, toStatementCid);
+  const indirectSupporters = await getIndirectSupporters(machinery, toStatementCid);
   const indirectSupporterAddresses = indirectSupporters.map(s => s.user.toLowerCase());
 
   return {
@@ -282,14 +282,14 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
   captureState: captureIndirectSupportState,
   check: async (context: ActionContext, before: IndirectSupportState, after: IndirectSupportState) => {
     const { machinery, entities } = context;
-    const { fromStatementId, toStatementId } = entities;
+    const { fromStatementCid, toStatementCid } = entities;
 
-    if (!fromStatementId || !toStatementId) {
-      throw new Error('fromStatementId and toStatementId are required');
+    if (!fromStatementCid || !toStatementCid) {
+      throw new Error('fromStatementCid and toStatementCid are required');
     }
 
     // Get believers of the "from" statement
-    const fromStatement = await getStatement(machinery, fromStatementId);
+    const fromStatement = await getStatement(machinery, fromStatementCid);
     if (!fromStatement) {
       // If the from statement doesn't exist, there are no believers to propagate
       return;
@@ -327,7 +327,7 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
         const supporterLower = supporter.toLowerCase();
 
         // Check if this user explicitly disbelieves the target statement
-        const userBelief = await getUserBelief(machinery, supporterLower, toStatementId);
+        const userBelief = await getUserBelief(machinery, supporterLower, toStatementCid);
         const explicitlyDisbelieves = userBelief?.beliefState === DISBELIEVES;
 
         if (explicitlyDisbelieves) {
@@ -372,10 +372,10 @@ export const implicationDataIntegrityInvariant: InvariantCheck = {
   name: 'implicationDataIntegrity',
   check: async (context: ActionContext) => {
     const { machinery, entities } = context;
-    const { fromStatementId, toStatementId, attesterAddress } = entities;
+    const { fromStatementCid, toStatementCid, attesterAddress } = entities;
 
-    if (!fromStatementId || !toStatementId || !attesterAddress) {
-      throw new Error('fromStatementId, toStatementId, and attesterAddress are required');
+    if (!fromStatementCid || !toStatementCid || !attesterAddress) {
+      throw new Error('fromStatementCid, toStatementCid, and attesterAddress are required');
     }
 
     // Import the standalone invariant function
@@ -384,8 +384,8 @@ export const implicationDataIntegrityInvariant: InvariantCheck = {
     // Verify this specific implication is well-formed
     await assertImplicationBidirectionality(
       machinery,
-      fromStatementId,
-      toStatementId,
+      fromStatementCid,
+      toStatementCid,
       attesterAddress
     );
   },

@@ -25,6 +25,7 @@ import {
   type CauseFundingMetrics,
   type ContributorStats,
 } from '../shared/types/funding-portals.js';
+import { IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
 
 // ============================================================================
 // AlignmentAttestation Queries (Funding Portals)
@@ -35,19 +36,19 @@ import {
  */
 export async function getAlignedSubjects(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
   const result = await request(client.url, GetAlignedSubjectsDocument, {
-    statementId: statementId.toLowerCase(),
+    statementId: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
   // Map projectAddress → subjectAddress; topicStatementId not in schema
   return (result.projectAlignmentss?.items ?? []).map(item => ({
     attester: item.attester,
     subjectAddress: item.projectAddress,
-    statementId: item.statementId,
-    topicStatementId: '',
+    statementCid: normalizeCidV1(item.statementId),
+    topicStatementCid: 'bafywhatever', // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));
@@ -72,8 +73,8 @@ export async function getSubjectStatements(
   return (result.projectAlignmentss?.items ?? []).map(item => ({
     attester: item.attester,
     subjectAddress: item.projectAddress,
-    statementId: item.statementId,
-    topicStatementId: '',
+    statementCid: normalizeCidV1(item.statementId),
+    topicStatementCid: 'bafywhatever', // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));
@@ -89,20 +90,20 @@ export async function getAlignmentAttestation(
   client: GraphQLClient,
   attesterAddress: string,
   subjectAddress: string,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
   const result = await request(client.url, GetAlignmentAttestationDocument, {
     attester: attesterAddress.toLowerCase(),
     projectAddress: subjectAddress.toLowerCase(),
-    statementId: statementId.toLowerCase(),
+    statementId: statementCid,
   });
   if (!result.projectAlignments) return null;
   const item = result.projectAlignments;
   return {
     attester: item.attester,
     subjectAddress: item.projectAddress,
-    statementId: item.statementId,
-    topicStatementId: '',
+    statementCid: normalizeCidV1(item.statementId),
+    topicStatementCid: 'bafywhatever', // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   };
@@ -125,8 +126,8 @@ export async function getAlignmentsByAttester(
   return (result.projectAlignmentss?.items ?? []).map(item => ({
     attester: item.attester,
     subjectAddress: item.projectAddress,
-    statementId: item.statementId,
-    topicStatementId: '',
+    statementCid: normalizeCidV1(item.statementId),
+    topicStatementCid: 'bafywhatever', // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));
@@ -150,13 +151,13 @@ export async function getAlignmentsByAttester(
  */
 export async function getIndirectlyAlignedSubjects(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<IndirectSubjectAlignment[]> {
   // Step 1: Find all statements that imply the target statement
   const implicationsResult = await request(client.url, GetImplicationsToForFpDocument, {
-    toStatementId: statementId.toLowerCase(),
+    toStatementId: statementCid,
     attester: trustedImplicationAttester?.toLowerCase() ?? null,
   });
 
@@ -172,15 +173,15 @@ export async function getIndirectlyAlignedSubjects(
   for (const implication of implications) {
     const alignments = await getAlignedSubjects(
       client,
-      implication.fromStatementId,
+      normalizeCidV1(implication.fromStatementId),
       trustedAlignmentAttester
     );
 
     for (const alignment of alignments) {
       indirectAlignments.push({
         subjectAddress: alignment.subjectAddress,
-        directStatementId: implication.fromStatementId,
-        indirectStatementId: statementId,
+        directStatementCid: normalizeCidV1(implication.fromStatementId),
+        indirectStatementCid: statementCid,
         attester: alignment.attester,
       });
     }
@@ -207,21 +208,21 @@ export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
  */
 export async function getTotalFundingForCause(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<CauseFundingMetrics> {
   // Get all directly aligned projects
   const directAlignments = await getAlignedSubjects(
     client,
-    statementId,
+    statementCid,
     trustedAlignmentAttester
   );
 
   // Get all indirectly aligned projects
   const indirectAlignments = await getIndirectlyAlignedSubjects(
     client,
-    statementId,
+    statementCid,
     trustedImplicationAttester,
     trustedAlignmentAttester
   );
@@ -267,7 +268,7 @@ export async function getTotalFundingForCause(
  */
 export async function getAllAlignedProjectsForCause(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<Array<{
@@ -280,14 +281,14 @@ export async function getAllAlignedProjectsForCause(
   // Get all directly aligned projects
   const directAlignments = await getAlignedSubjects(
     client,
-    statementId,
+    statementCid,
     trustedAlignmentAttester
   );
 
   // Get all indirectly aligned projects
   const indirectAlignments = await getIndirectlyAlignedSubjects(
     client,
-    statementId,
+    statementCid,
     trustedImplicationAttester,
     trustedAlignmentAttester
   );
@@ -342,7 +343,7 @@ export async function getAllAlignedProjectsForCause(
  */
 export async function getTopContributorsForCause(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   limit: number = 10,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
@@ -350,7 +351,7 @@ export async function getTopContributorsForCause(
   // Get all aligned projects
   const alignedProjects = await getAllAlignedProjectsForCause(
     client,
-    statementId,
+    statementCid,
     trustedImplicationAttester,
     trustedAlignmentAttester
   );
@@ -437,7 +438,7 @@ export async function getTopContributorsForCause(
  */
 export async function getUserContributionRankForCause(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   userAddress: string,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
@@ -449,7 +450,7 @@ export async function getUserContributionRankForCause(
   // Get all contributors (we need the full list to calculate rank)
   const allContributors = await getTopContributorsForCause(
     client,
-    statementId,
+    statementCid,
     1000000, // Large limit to get all contributors
     trustedImplicationAttester,
     trustedAlignmentAttester

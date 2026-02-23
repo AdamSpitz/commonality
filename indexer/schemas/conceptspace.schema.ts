@@ -71,8 +71,8 @@ export const implications = onchainTable(
   (t) => ({
     // Composite key: attester + from + to
     attester: t.hex().notNull(),
-    fromStatementId: t.text().notNull(),
-    toStatementId: t.text().notNull(),
+    fromStatementCid: t.text().notNull(),
+    toStatementCid: t.text().notNull(),
     // IPFS CIDv1 of the explanation (can be zero)
     explanationCid: t.text().notNull(),
     // When attested
@@ -81,13 +81,13 @@ export const implications = onchainTable(
   }),
   (table) => ({
     pk: primaryKey({
-      columns: [table.attester, table.fromStatementId, table.toStatementId],
+      columns: [table.attester, table.fromStatementCid, table.toStatementCid],
     }),
     // Reverse lookup: find all statements that imply a given statement (by attester)
     // This is the key index for computing indirect support
-    reverseIdx: index().on(table.toStatementId, table.attester),
+    reverseIdx: index().on(table.toStatementCid, table.attester),
     // Forward lookup: find all statements implied by a given statement
-    forwardIdx: index().on(table.fromStatementId, table.attester),
+    forwardIdx: index().on(table.fromStatementCid, table.attester),
     // Find all attestations by an attester
     attesterIdx: index().on(table.attester),
   })
@@ -139,12 +139,12 @@ export const beliefsRelations = relations(beliefs, ({ one }) => ({
 
 export const implicationsRelations = relations(implications, ({ one }) => ({
   fromStatement: one(statements, {
-    fields: [implications.fromStatementId],
+    fields: [implications.fromStatementCid],
     references: [statements.cidV1],
     relationName: "fromStatement",
   }),
   toStatement: one(statements, {
-    fields: [implications.toStatementId],
+    fields: [implications.toStatementCid],
     references: [statements.cidV1],
     relationName: "toStatement",
   }),

@@ -94,16 +94,16 @@ export async function attestImplicationChecked(
   expectedIndirectSupporters?: string[],
   options?: ActionRunOptions
 ): Promise<Hash> {
-  const fromStatementId = cidToBytes32(fromStatementCid);
-  const toStatementId = cidToBytes32(toStatementCid);
+  const fromStatementCid = cidToBytes32(fromStatementCid);
+  const toStatementCid = cidToBytes32(toStatementCid);
   const attesterAddress = clients.account;
 
   const context: ActionContext = {
     machinery,
     contracts: {},
     entities: {
-      fromStatementId,
-      toStatementId,
+      fromStatementCid,
+      toStatementCid,
       attesterAddress,
     },
     extra: expectedIndirectSupporters ? { expectedIndirectSupporters } : undefined,

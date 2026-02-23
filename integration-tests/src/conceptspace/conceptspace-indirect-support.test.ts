@@ -84,8 +84,6 @@ describe('Conceptspace Indirect Support', () => {
 
     const specificCid = await uploadToIPFS(specificStatement);
     const generalCid = await uploadToIPFS(generalStatement);
-    const specificId = cidToBytes32(specificCid);
-    const generalId = cidToBytes32(generalCid);
 
     testLog(`  Specific: "${specificStatement.text}"`);
     testLog(`  General: "${generalStatement.text}"`);
@@ -96,12 +94,12 @@ describe('Conceptspace Indirect Support', () => {
     await believeStatementChecked(user2Clients, beliefsContract, machinery, specificCid);
 
     // Verify direct support
-    const specificStmt = await getStatement(machinery, specificId);
+    const specificStmt = await getStatement(machinery, specificCid);
     assertNotNull(specificStmt, 'Specific statement');
     assert.strictEqual(specificStmt.believerCount, 2, 'Specific statement should have 2 direct believers');
 
     // General statement should have 0 indirect supporters initially (no implication yet)
-    let indirectCount = await getIndirectSupporterCount(machinery, generalId);
+    let indirectCount = await getIndirectSupporterCount(machinery, generalCid);
     assert.strictEqual(indirectCount, 0, 'General statement should have 0 indirect supporters initially');
 
     testLog('  ✓ Direct support verified, no indirect support yet');
@@ -208,12 +206,12 @@ describe('Conceptspace Indirect Support', () => {
     assert.ok(user2Supporter, 'User2 should be in indirect supporters');
 
     assert.strictEqual(
-      user1Supporter!.viaStatementId.toLowerCase(),
+      user1Supporter!.viaStatementCid.toLowerCase(),
       specific1Id.toLowerCase(),
       'User1 supports via specific1'
     );
     assert.strictEqual(
-      user2Supporter!.viaStatementId.toLowerCase(),
+      user2Supporter!.viaStatementCid.toLowerCase(),
       specific2Id.toLowerCase(),
       'User2 supports via specific2'
     );
@@ -546,7 +544,7 @@ describe('Conceptspace Indirect Support', () => {
 
       info.supportedVia.forEach(via => {
         assert.ok(via.directlyBelievedStatement, 'Should have directly believed statement info');
-        assert.ok(via.viaStatementId, 'Should have viaStatementId');
+        assert.ok(via.viaStatementCid, 'Should have viaStatementCid');
       });
     });
 

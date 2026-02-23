@@ -4,7 +4,7 @@ export interface Statement {
   id: string;
   believerCount: number;
   disbelieverCount: number;
-  cid?: string;
+  cid: IpfsCidV1;
   statementType?: string;
   title?: string;
   excerpt?: string;
@@ -21,19 +21,19 @@ export interface Implication {
 }
 
 export interface UserBelief {
-  statementId: string;
+  statementCid: IpfsCidV1;
   beliefState: number; // 0=noOpinion, 1=believes, 2=disbelieves
 }
 
 export interface IndirectSupporter {
   user: string;
-  viaStatementId: string;
+  viaStatementCid: IpfsCidV1;
   viaStatement?: Statement;
 }
 
 export interface StatementListItem {
   id: string;
-  cid: string;
+  cid: IpfsCidV1;
   statementType: string;
   title: string;
   excerpt: string;

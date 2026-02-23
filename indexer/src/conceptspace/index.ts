@@ -188,33 +188,33 @@ ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
  * Creates implication records and ensures statements exist
  */
 ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
-  const { attester, fromStatementId, toStatementId, explanationCid } = event.args;
+  const { attester, fromStatementCid, toStatementCid, explanationCid } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
   // Convert bytes32 to CIDv1 for storage
-  const fromStatementIdCidV1 = bytes32ToCid(fromStatementId as IpfsCidBytes32);
-  const toStatementIdCidV1 = bytes32ToCid(toStatementId as IpfsCidBytes32);
+  const fromStatementCidCidV1 = bytes32ToCid(fromStatementCid as IpfsCidBytes32);
+  const toStatementCidCidV1 = bytes32ToCid(toStatementCid as IpfsCidBytes32);
   const explanationCidV1 = bytes32ToCid(explanationCid as IpfsCidBytes32);
 
   // Ensure both statements and attester exist
-  await ensureStatement(context, fromStatementId as IpfsCidBytes32, timestamp);
-  await ensureStatement(context, toStatementId as IpfsCidBytes32, timestamp);
+  await ensureStatement(context, fromStatementCid as IpfsCidBytes32, timestamp);
+  await ensureStatement(context, toStatementCid as IpfsCidBytes32, timestamp);
   await ensureAttester(context, attester, timestamp);
 
   // Check if this implication already exists (contract allows re-attestation)
   const existing = await context.db.find(implications, {
     attester,
-    fromStatementId: fromStatementIdCidV1,
-    toStatementId: toStatementIdCidV1,
+    fromStatementCid: fromStatementCidCidV1,
+    toStatementCid: toStatementCidCidV1,
   });
 
   if (!existing) {
     // Create new implication record
     await context.db.insert(implications).values({
       attester,
-      fromStatementId: fromStatementIdCidV1,
-      toStatementId: toStatementIdCidV1,
+      fromStatementCid: fromStatementCidCidV1,
+      toStatementCid: toStatementCidCidV1,
       explanationCid: explanationCidV1,
       createdAt: timestamp,
       blockNumber,
@@ -234,8 +234,8 @@ ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
     await context.db
       .update(implications, {
         attester,
-        fromStatementId: fromStatementIdCidV1,
-        toStatementId: toStatementIdCidV1,
+        fromStatementCid: fromStatementCidCidV1,
+        toStatementCid: toStatementCidCidV1,
       })
       .set({
         explanationCid: explanationCidV1,

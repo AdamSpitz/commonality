@@ -2,26 +2,12 @@
  * GraphQL query helpers for integration tests
  */
 
-import { executeSDKQuery, bytes32ToCid } from '@commonality/sdk';
+import { executeSDKQuery, bytes32ToCid, IpfsCidV1, isValidCidV1, norm, normalizeCidV1 } from '@commonality/sdk';
 import { ActionTestingMachinery } from '../actions/action-machinery';
 
 
 
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
- * for indexer queries. If already in CIDv1 format, returns as-is.
- */
-function normalizeStatementId(statementId: string): string {
-  if (statementId.startsWith('0x') && statementId.length === 66) {
-    return bytes32ToCid(statementId as `0x${string}`);
-  }
-  return statementId;
-}
 // ============================================================================
 // Types (matching the GraphQL schema)
 // ============================================================================
@@ -79,8 +65,8 @@ export const QUERY_GET_IMPLICATIONS_FROM = `
   query GetImplicationsFrom($statementId: ID!, $attesterAddress: Address) {
     implicationsFrom(statementId: $statementId, attesterAddress: $attesterAddress) {
       attester
-      fromStatementId
-      toStatementId
+      fromStatementCid
+      toStatementCid
       explanationCid
       createdAt
       blockNumber
@@ -92,8 +78,8 @@ export const QUERY_GET_IMPLICATIONS_TO = `
   query GetImplicationsTo($statementId: ID!, $attesterAddress: Address) {
     implicationsTo(statementId: $statementId, attesterAddress: $attesterAddress) {
       attester
-      fromStatementId
-      toStatementId
+      fromStatementCid
+      toStatementCid
       explanationCid
       createdAt
       blockNumber
@@ -129,13 +115,12 @@ export const QUERY_GET_INDIRECT_SUPPORTERS = `
  */
 export async function getStatement(
   machinery: ActionTestingMachinery,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<Statement | null> {
-  const cidV1 = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ statements: Statement | null }>(
     machinery,
     QUERY_GET_STATEMENT,
-    { id: cidV1 }
+    { id: statementCid }
   );
   return result.statements;
 }
@@ -146,9 +131,9 @@ export async function getStatement(
 export async function getUserBelief(
   machinery: ActionTestingMachinery,
   userAddress: string,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
-  const normalizedStatementId = normalizeStatementId(statementId);
+  const normalizedStatementId = normalizeCidV1(statementCid);
   const result = await executeSDKQuery<{ userBelief: UserBelief | null }>(
     machinery,
     QUERY_GET_USER_BELIEF,
@@ -162,10 +147,10 @@ export async function getUserBelief(
  */
 export async function getImplicationsFrom(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const normalizedStatementId = normalizeStatementId(statementId);
+  const normalizedStatementId = normalizeCidV1(statementCid);
   const result = await executeSDKQuery<{ implicationsFrom: Implication[] }>(
     machinery,
     QUERY_GET_IMPLICATIONS_FROM,
@@ -179,10 +164,10 @@ export async function getImplicationsFrom(
  */
 export async function getImplicationsTo(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const normalizedStatementId = normalizeStatementId(statementId);
+  const normalizedStatementId = normalizeCidV1(statementCid);
   const result = await executeSDKQuery<{ implicationsTo: Implication[] }>(
     machinery,
     QUERY_GET_IMPLICATIONS_TO,
@@ -196,10 +181,10 @@ export async function getImplicationsTo(
  */
 export async function getIndirectSupporters(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<IndirectSupporter[]> {
-  const normalizedStatementId = normalizeStatementId(statementId);
+  const normalizedStatementId = normalizeCidV1(statementCid);
   const result = await executeSDKQuery<{ indirectSupporters: IndirectSupporter[] }>(
     machinery,
     QUERY_GET_INDIRECT_SUPPORTERS,
@@ -217,7 +202,7 @@ export async function getIndirectSupporters(
  */
 export async function getStatementWithContent(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   options: {
     includeMetrics?: boolean;
     timeout?: number;
@@ -1368,8 +1353,8 @@ export async function getDelegationChain(
 export interface AlignmentAttestation {
   attester: string;
   subjectAddress: string;
-  statementId: string;
-  topicStatementId: string;
+  statementCid: IpfsCidV1;
+  topicStatementCid: IpfsCidV1;
   createdAt: string;
   blockNumber: string;
 }
@@ -1378,15 +1363,15 @@ export interface AlignmentAttestation {
 export interface ProjectAlignment {
   attester: string;
   projectAddress: string;
-  statementId: string;
+  statementCid: IpfsCidV1;
   createdAt: string;
   blockNumber: string;
 }
 
 export interface IndirectProjectAlignment {
   projectAddress: string;
-  directStatementId: string;
-  indirectStatementId: string;
+  directStatementCid: IpfsCidV1;
+  indirectStatementCid: IpfsCidV1;
   attester: string;
 }
 
@@ -1427,7 +1412,7 @@ export interface AlignedProjectWithDetails {
  */
 export async function getAlignedSubjects(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
   const result = await executeSDKQuery<{ alignedSubjects: AlignmentAttestation[] }>(
@@ -1455,14 +1440,14 @@ export async function getAlignedSubjects(
  */
 export async function getAlignedProjects(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<ProjectAlignment[]> {
-  const alignments = await getAlignedSubjects(machinery, statementId, attesterAddress);
+  const alignments = await getAlignedSubjects(machinery, statementCid, attesterAddress);
   return alignments.map(a => ({
     attester: a.attester,
     projectAddress: a.subjectAddress,
-    statementId: a.statementId,
+    statementCid: a.statementCid,
     createdAt: a.createdAt,
     blockNumber: a.blockNumber,
   }));
@@ -1483,8 +1468,8 @@ export async function getSubjectStatements(
         subjectStatements(subjectAddress: $subjectAddress, attesterAddress: $attesterAddress) {
           attester
           subjectAddress
-          statementId
-          topicStatementId
+          statementCid
+          topicStatementCid
           createdAt
           blockNumber
         }
@@ -1508,7 +1493,7 @@ export async function getProjectStatements(
   return alignments.map(a => ({
     attester: a.attester,
     projectAddress: a.subjectAddress,
-    statementId: a.statementId,
+    statementCid: a.statementCid,
     createdAt: a.createdAt,
     blockNumber: a.blockNumber,
   }));
@@ -1521,7 +1506,7 @@ export async function getAlignmentAttestation(
   machinery: ActionTestingMachinery,
   attesterAddress: string,
   subjectAddress: string,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
   const result = await executeSDKQuery<{ alignmentAttestation: AlignmentAttestation | null }>(
     machinery,
@@ -1558,7 +1543,7 @@ export async function getProjectAlignment(
   machinery: ActionTestingMachinery,
   attesterAddress: string,
   projectAddress: string,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<ProjectAlignment | null> {
   const alignment = await getAlignmentAttestation(machinery, attesterAddress, projectAddress, statementId);
   if (!alignment) return null;
@@ -1602,11 +1587,11 @@ export async function getAlignmentsByAttester(
  */
 export async function getIndirectlyAlignedProjects(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<IndirectProjectAlignment[]> {
-  const result = await executeSDKQuery<{ indirectlyAlignedSubjects: { subjectAddress: string; directStatementId: string; indirectStatementId: string; attester: string }[] }>(
+  const result = await executeSDKQuery<{ indirectlyAlignedSubjects: { subjectAddress: string; directStatementCid: IpfsCidV1; indirectStatementCid: IpfsCidV1; attester: string }[] }>(
     machinery,
     `
       query GetIndirectlyAlignedSubjects(
@@ -1643,7 +1628,7 @@ export async function getIndirectlyAlignedProjects(
  */
 export async function getTotalFundingForCause(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<CauseFundingMetrics> {
@@ -1667,7 +1652,7 @@ export async function getTotalFundingForCause(
         }
       }
     `,
-    { statementId, trustedImplicationAttester, trustedAlignmentAttester }
+    { statementCid, trustedImplicationAttester, trustedAlignmentAttester }
   );
 
   return result.totalFundingForCause || {
@@ -1683,7 +1668,7 @@ export async function getTotalFundingForCause(
  */
 export async function getAllAlignedProjectsForCause(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<AlignedProjectWithDetails[]> {
@@ -1708,7 +1693,7 @@ export async function getAllAlignedProjectsForCause(
         }
       }
     `,
-    { statementId, trustedImplicationAttester, trustedAlignmentAttester }
+    { statementCid, trustedImplicationAttester, trustedAlignmentAttester }
   );
 
   return result.allAlignedProjectsForCause || [];
@@ -1719,7 +1704,7 @@ export async function getAllAlignedProjectsForCause(
  */
 export async function getTopContributorsForCause(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   limit: number = 10,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
@@ -1728,13 +1713,13 @@ export async function getTopContributorsForCause(
     machinery,
     `
       query GetTopContributorsForCause(
-        $statementId: ID!
+        $statementCid: ID!
         $limit: Int!
         $trustedImplicationAttester: Address
         $trustedAlignmentAttester: Address
       ) {
         topContributorsForCause(
-          statementId: $statementId
+          statementCid: $statementCid
           limit: $limit
           trustedImplicationAttester: $trustedImplicationAttester
           trustedAlignmentAttester: $trustedAlignmentAttester
@@ -1761,7 +1746,7 @@ export async function getTopContributorsForCause(
  */
 export async function getUserContributionRankForCause(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   userAddress: string,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
@@ -1770,7 +1755,7 @@ export async function getUserContributionRankForCause(
     machinery,
     `
       query GetUserContributionRankForCause(
-        $statementId: ID!
+        $statementCid: String!
         $userAddress: Address!
         $trustedImplicationAttester: Address
         $trustedAlignmentAttester: Address
@@ -1796,7 +1781,7 @@ export async function getUserContributionRankForCause(
         }
       }
     `,
-    { statementId, userAddress, trustedImplicationAttester, trustedAlignmentAttester }
+    { statementCid, userAddress, trustedImplicationAttester, trustedAlignmentAttester }
   );
 
   return result.userContributionRankForCause;

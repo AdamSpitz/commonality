@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { Attester } from './types.js';
+import { IpfsCidV1 } from '@commonality/sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -138,10 +139,9 @@ async function loadAttesters(): Promise<Attester[]> {
 }
 
 interface Statement {
-  id: number;
   domain: string;
   position: string;
-  statementId: string;
+  cid: IpfsCidV1;
 }
 
 interface EvaluationResult {

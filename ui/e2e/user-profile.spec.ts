@@ -11,6 +11,7 @@ import {
   MutableRefUpdaterAbi,
   type BeliefsContract,
   type MutableRefUpdaterContract,
+  createSDKMachinery,
 } from '@commonality/sdk'
 
 /**
@@ -35,7 +36,7 @@ async function createTestStatement(
   graphqlUrl: string
 ) {
   const clients = createE2ETestClients(accountName)
-  const graphqlClient = createGraphQLClient(graphqlUrl)
+  const machinery = createSDKMachinery(graphqlUrl)
 
   const statementContent = `Profile test statement ${Date.now()}`
   const statementData = createStatement({ content: statementContent })
@@ -48,7 +49,7 @@ async function createTestStatement(
     },
     statementData,
     {
-      graphqlClient,
+      machinery,
       addToCreatedList: true,
       onIPFSUpload: (cid) => console.log('IPFS upload:', cid),
       onSigned: (txHash) => console.log('Statement signed:', txHash),

@@ -16,22 +16,7 @@ import {
   IndirectSupporter,
 } from '../shared/types/conceptspace.js';
 import { SDKMachinery, executeSDKQuery } from '../machinery.js';
-import { bytes32ToCid, IpfsCidV1 } from '../cid-types.js';
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
- * for indexer queries. If already in CIDv1 format, returns as-is.
- */
-function normalizeStatementId(statementId: string): string {
-  if (statementId.startsWith('0x') && statementId.length === 66) {
-    return bytes32ToCid(statementId as `0x${string}`);
-  }
-  return statementId;
-}
+import { bytes32ToCid, IpfsCidV1, isValidCidV1, normalizeCidV1 } from '../cid-types.js';
 
 // ============================================================================
 // Type Definitions
@@ -67,7 +52,7 @@ export interface IndirectSupportInfo {
   statement: StatementListItem;
   supportedVia: Array<{
     directlyBelievedStatement: StatementListItem;
-    viaStatementId: string;
+    viaStatementCid: IpfsCidV1;
   }>;
 }
 
@@ -89,9 +74,8 @@ export interface StatementSuggestion {
 
 async function getStatement(
   machinery: SDKMachinery,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<Statement | null> {
-  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ statement: Statement | null }>(
     machinery,
     `
@@ -108,7 +92,7 @@ async function getStatement(
         }
       }
     `,
-    { id: normalizedStatementId }
+    { id: statementCid }
   );
 
   return result.statement;
@@ -116,18 +100,18 @@ async function getStatement(
 
 async function getImplicationsFrom(
   machinery: SDKMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const normalizedStatementId = normalizeStatementId(statementId);
+  const normalizedStatementId = normalizeCidV1(statementCid);
   const result = await executeSDKQuery<{ implicationsFrom: Implication[] }>(
     machinery,
     `
       query GetImplicationsFrom($statementId: ID!, $attesterAddress: Address) {
         implicationsFrom(statementId: $statementId, attesterAddress: $attesterAddress) {
           attester
-          fromStatementId
-          toStatementId
+          fromStatementCid
+          toStatementCid
           explanationCid
           createdAt
           blockNumber
@@ -150,20 +134,19 @@ async function getImplicationsFrom(
 export async function getUserBelief(
   machinery: SDKMachinery,
   userAddress: string,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
-  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ userBelief: UserBelief | null }>(
     machinery,
     `
-      query GetUserBelief($userAddress: Address!, $statementId: ID!) {
-        userBelief(userAddress: $userAddress, statementId: $statementId) {
-          statementId
+      query GetUserBelief($userAddress: Address!, $statementCid: ID!) {
+        userBelief(userAddress: $userAddress, statementCid: $statementCid) {
+          statementCid
           beliefState
         }
       }
     `,
-    { userAddress, statementId: normalizedStatementId }
+    { userAddress, statementCid }
   );
 
   return result.userBelief;
@@ -237,10 +220,9 @@ export async function getUserDisbeliefs(
  */
 export async function getIndirectSupporterCount(
   machinery: SDKMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<number> {
-  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ indirectSupporterCount: number }>(
     machinery,
     `
@@ -248,7 +230,7 @@ export async function getIndirectSupporterCount(
         indirectSupporterCount(statementId: $statementId, attesterAddress: $attesterAddress)
       }
     `,
-    { statementId: normalizedStatementId, attesterAddress }
+    { statementId: statementCid, attesterAddress }
   );
 
   return result.indirectSupporterCount || 0;
@@ -260,7 +242,7 @@ export async function getIndirectSupporterCount(
  */
 export async function getStatementWithContent(
   machinery: SDKMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   options: GetStatementWithContentOptions = {}
 ): Promise<StatementWithContent | null> {
   const {
@@ -270,7 +252,7 @@ export async function getStatementWithContent(
   } = options;
 
   // Fetch statement metadata
-  const statement = await getStatement(machinery, statementId);
+  const statement = await getStatement(machinery, statementCid);
   if (!statement) {
     return null;
   }
@@ -288,7 +270,7 @@ export async function getStatementWithContent(
   if (includeMetrics) {
     const indirectSupporters = await getIndirectSupporterCount(
       machinery,
-      statementId,
+      statementCid,
       attesterAddress
     );
 
@@ -336,76 +318,76 @@ export async function getUserIndirectSupport(
   // Step 2: For each belief, get implications FROM that statement
   // This tells us what statements are implied by the user's beliefs
   const implicationsQueries = userBeliefs.map(belief =>
-    getImplicationsFrom(machinery, belief.id, options.trustedAttesters?.[0])
+    getImplicationsFrom(machinery, belief.cid, options.trustedAttesters?.[0])
   );
 
   const implicationsResults = await Promise.all(implicationsQueries);
 
   // Step 3: Build a map of target statements to the source statements that imply them
-  // Map<targetStatementId, Set<sourceStatementId>>
-  const targetToSources = new Map<string, Set<string>>();
-  const allTargetIds = new Set<string>();
+  // Map<targetStatementCid, Set<sourceStatementCid>>
+  const targetToSources = new Map<IpfsCidV1, Set<IpfsCidV1>>();
+  const allTargetStatementCids = new Set<IpfsCidV1>();
 
   userBeliefs.forEach((belief, idx) => {
     const implications = implicationsResults[idx];
     implications.forEach(implication => {
-      const targetId = implication.toStatementId;
-      allTargetIds.add(targetId);
+      const targetCid = implication.toStatementCid;
+      allTargetStatementCids.add(targetCid);
 
-      if (!targetToSources.has(targetId)) {
-        targetToSources.set(targetId, new Set());
+      if (!targetToSources.has(targetCid)) {
+        targetToSources.set(targetCid, new Set());
       }
-      targetToSources.get(targetId)!.add(belief.id);
+      targetToSources.get(targetCid)!.add(belief.cid);
     });
   });
 
-  if (allTargetIds.size === 0) {
+  if (allTargetStatementCids.size === 0) {
     return [];
   }
 
   // Step 4: Check the user's belief state for all target statements
   // We need to exclude statements the user explicitly believes or disbelieves
   // (indirect support only applies to statements with no direct opinion)
-  const targetIds = Array.from(allTargetIds);
-  const beliefChecks = targetIds.map(targetId =>
-    getUserBelief(machinery, userAddress, targetId)
+  const targetCids = Array.from(allTargetStatementCids);
+  const beliefChecks = targetCids.map(targetCid =>
+    getUserBelief(machinery, userAddress, targetCid)
   );
 
   const beliefStates = await Promise.all(beliefChecks);
 
   // Step 5: Filter to only include statements with NO direct belief (beliefState === 0 or null)
   // Exclude both direct beliefs (beliefState === 1) and disbeliefs (beliefState === 2)
-  const indirectlySupportedIds = targetIds.filter((_, idx) => {
+  const indirectlySupportedCids = targetCids.filter((_, idx) => {
     const beliefState = beliefStates[idx];
     // Include only if they have no explicit opinion (no belief state, or beliefState === 0)
     return !beliefState || beliefState.beliefState === 0;
   });
 
-  if (indirectlySupportedIds.length === 0) {
+  if (indirectlySupportedCids.length === 0) {
     return [];
   }
 
   // Step 6: Fetch full statement data for indirectly supported statements
-  const statementQueries = indirectlySupportedIds.map(id => getStatement(machinery, id));
+  const statementQueries = indirectlySupportedCids.map(cid => getStatement(machinery, cid));
   const statements = await Promise.all(statementQueries);
 
   // Step 7: Build the result with information about how each statement is supported
   const results: IndirectSupportInfo[] = [];
 
-  for (let i = 0; i < indirectlySupportedIds.length; i++) {
-    const targetId = indirectlySupportedIds[i];
+  for (let i = 0; i < indirectlySupportedCids.length; i++) {
+    const targetCid = indirectlySupportedCids[i];
     const statement = statements[i];
 
     if (!statement) continue;
 
-    const sourceIds = Array.from(targetToSources.get(targetId) || []);
-    const sourceStatements = userBeliefs.filter(b => sourceIds.includes(b.id));
+    const sourceIds = Array.from(targetToSources.get(targetCid) || []);
+    const sourceStatements = userBeliefs.filter(b => sourceIds.includes(b.cid));
 
     results.push({
       statement: statement as StatementListItem,
       supportedVia: sourceStatements.map(source => ({
         directlyBelievedStatement: source,
-        viaStatementId: source.id,
+        viaStatementCid: source.cid,
       })),
     });
   }
@@ -423,15 +405,14 @@ export async function getUserIndirectSupport(
  */
 export async function getStatementSuggestions(
   machinery: SDKMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<StatementSuggestion[]> {
-  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ statementSuggestions: StatementSuggestion[] }>(
     machinery,
     `
-      query GetStatementSuggestions($statementId: ID!, $attesterAddress: Address) {
-        statementSuggestions(statementId: $statementId, attesterAddress: $attesterAddress) {
+      query GetStatementSuggestions($statementCid: ID!, $attesterAddress: Address) {
+        statementSuggestions(statementCid: $statementCid, attesterAddress: $attesterAddress) {
           statement {
             id
             cid
@@ -447,7 +428,7 @@ export async function getStatementSuggestions(
         }
       }
     `,
-    { statementId: normalizedStatementId, attesterAddress }
+    { statementCid, attesterAddress }
   );
 
   return result.statementSuggestions || [];

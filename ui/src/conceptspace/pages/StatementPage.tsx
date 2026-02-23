@@ -8,6 +8,7 @@ import {
   getUserBelief,
   type Statement,
   type DisplayableDocument,
+  type IpfsCidV1,
 } from '@commonality/sdk'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
@@ -15,7 +16,7 @@ import { SupportMetrics } from '../components/SupportMetrics'
 import { StatementSuggestions } from '../components/StatementSuggestions'
 
 export function StatementPage() {
-  const { statementId } = useParams<{ statementId: string }>()
+  const { statementCid } = useParams<{ statementCid: IpfsCidV1 }>()
   const { address } = useAccount()
 
   const [statement, setStatement] = useState<Statement | null>(null)
@@ -29,8 +30,8 @@ export function StatementPage() {
   const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
 
   const loadStatementData = async () => {
-    if (!statementId) {
-      setError('No statement ID provided')
+    if (!statementCid) {
+      setError('No statement CID provided')
       setLoading(false)
       return
     }
@@ -44,7 +45,7 @@ export function StatementPage() {
 
       // Load statement with content and metrics using the new SDK function
       // IPFS gateway is configured via VITE_IPFS_GATEWAY env var
-      const result = await getStatementWithContent(machinery, statementId, {
+      const result = await getStatementWithContent(machinery, statementCid, {
         includeMetrics: true,
       })
 
@@ -69,7 +70,7 @@ export function StatementPage() {
 
       // Load user belief if connected
       if (address) {
-        const belief = await getUserBelief(machinery, address, statementId)
+        const belief = await getUserBelief(machinery, address, statementCid)
         setUserBeliefState(belief?.beliefState ?? 0)
       }
 
@@ -83,7 +84,7 @@ export function StatementPage() {
 
   useEffect(() => {
     loadStatementData()
-  }, [statementId, address])
+  }, [statementCid, address])
 
   const handleBeliefChanged = () => {
     // Reload statement data after belief change
@@ -128,7 +129,7 @@ export function StatementPage() {
 
       {/* Statement Content */}
       <StatementRenderer
-        statementId={statementId || ''}
+        statementCid={statementCid || ''}
         content={statementContent}
         error={contentError}
       />
@@ -146,7 +147,7 @@ export function StatementPage() {
           Your Opinion
         </Typography>
         <BeliefControls
-          statementCid={statement.cid || statementId || ''}
+          statementCid={statement.cid || statementCid || 'bafywhatever'}
           currentBeliefState={userBeliefState}
           onBeliefChanged={handleBeliefChanged}
         />
@@ -154,7 +155,7 @@ export function StatementPage() {
 
       {/* Statement Suggestions */}
       <StatementSuggestions
-        statementId={statementId || ''}
+        statementCid={statementCid || 'bafywhatever'}
         userAddress={address}
       />
     </Box>

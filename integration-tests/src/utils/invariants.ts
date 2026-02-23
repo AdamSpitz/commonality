@@ -9,7 +9,7 @@
 
 import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
-import { getIndirectSupporterCount, SDKMachinery, bytes32ToCid } from '@commonality/sdk';
+import { getIndirectSupporterCount, SDKMachinery, bytes32ToCid, IpfsCidV1 } from '@commonality/sdk';
 import { getIndirectSupporters } from './graphql-helpers.js';
 
 
@@ -76,14 +76,8 @@ async function query<T = any>(
  */
 export async function assertBeliefCountsMatch(
   machinery: ActionTestingMachinery,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<void> {
-  // Convert hex format to CIDv1 for indexer queries
-  const cidV1 = statementId.startsWith('0x') && statementId.length === 66
-    ? bytes32ToCid(statementId as `0x${string}`)
-    : statementId;
-  const normalizedId = cidV1.toLowerCase();
-
   // Check believerCount using generic helper
   await assertAggregatedCountConsistency(
     machinery,
@@ -96,12 +90,12 @@ export async function assertBeliefCountsMatch(
         }
       }
     `,
-    { id: normalizedId },
+    { id: statementCid },
     'statements.believerCount',
     // Records query: get all Belief records with beliefState=1 (BELIEVES)
     `
-      query GetBelievers($statementId: String!) {
-        beliefss(where: { statementId: $statementId, beliefState: 1 }) {
+      query GetBelievers($statementCid: String!) {
+        beliefss(where: { statementCid: $statementCid, beliefState: 1 }) {
           items {
             user {
               id
@@ -111,9 +105,9 @@ export async function assertBeliefCountsMatch(
         }
       }
     `,
-    { statementId: normalizedId },
+    { statementCid },
     'beliefss.items',
-    `Statement ${statementId}'s believerCount`
+    `Statement ${statementCid}'s believerCount`
   );
 
   // Check disbelieverCount using generic helper
@@ -128,12 +122,12 @@ export async function assertBeliefCountsMatch(
         }
       }
     `,
-    { id: normalizedId },
+    { id: statementCid },
     'statements.disbelieverCount',
     // Records query: get all Belief records with beliefState=2 (DISBELIEVES)
     `
-      query GetDisbelievers($statementId: String!) {
-        beliefss(where: { statementId: $statementId, beliefState: 2 }) {
+      query GetDisbelievers($statementCid: String!) {
+        beliefss(where: { statementCid: $statementCid, beliefState: 2 }) {
           items {
             user {
               id
@@ -143,9 +137,9 @@ export async function assertBeliefCountsMatch(
         }
       }
     `,
-    { statementId: normalizedId },
+    { statementCid },
     'beliefss.items',
-    `Statement ${statementId}'s disbelieverCount`
+    `Statement ${statementCid}'s disbelieverCount`
   );
 }
 
@@ -483,14 +477,13 @@ export async function assertTradeDataConsistency(
  */
 export async function assertIndirectSupporterCountConsistency(
   machinery: ActionTestingMachinery,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<void> {
   // Method 1: Get the count using the dedicated count query
-  const count = await getIndirectSupporterCount(machinery, statementId, attesterAddress);
-
+  const count = await getIndirectSupporterCount(machinery, statementCid, attesterAddress);
   // Method 2: Get the full list of supporters and count them
-  const supporters = await getIndirectSupporters(machinery, statementId, attesterAddress);
+  const supporters = await getIndirectSupporters(machinery, statementCid, attesterAddress);
   const actualCount = supporters.length;
 
   // Verify the count matches
@@ -498,7 +491,7 @@ export async function assertIndirectSupporterCountConsistency(
   assert.strictEqual(
     count,
     actualCount,
-    `Statement ${statementId}${attesterInfo}: Indirect supporter count mismatch. ` +
+    `Statement ${statementCid}${attesterInfo}: Indirect supporter count mismatch. ` +
     `Count query returned ${count}, but list query returned ${actualCount} supporters. ` +
     `This indicates a query consistency issue in the indexer.`
   );
@@ -548,7 +541,7 @@ async function checkOrphanedBeliefs(
     beliefss: {
       items: Array<{
         user: { id: string };
-        statementId: string;
+        statementCid: IpfsCidV1;
         beliefState: number;
       }>
     }
@@ -646,8 +639,8 @@ async function checkOrphanedImplications(
     implicationss: {
       items: Array<{
         attester: { id: string };
-        fromStatementId: string;
-        toStatementId: string;
+        fromStatementCid: IpfsCidV1;
+        toStatementCid: IpfsCidV1;
       }>
     }
   }>(
@@ -659,8 +652,8 @@ async function checkOrphanedImplications(
             attester {
               id
             }
-            fromStatementId
-            toStatementId
+            fromStatementCid
+            toStatementCid
           }
         }
       }
@@ -674,8 +667,8 @@ async function checkOrphanedImplications(
   const checkedAttesters = new Set<string>();
 
   for (const implication of implications) {
-    const fromId = implication.fromStatementId.toLowerCase();
-    const toId = implication.toStatementId.toLowerCase();
+    const fromId = implication.fromStatementCid.toLowerCase();
+    const toId = implication.toStatementCid.toLowerCase();
     const attesterId = implication.attester.id.toLowerCase();
 
     // Check fromStatement exists
@@ -1084,35 +1077,33 @@ function extractFieldByPath(obj: any, path: string): any {
  * rather than querying the blockchain directly (which would be more expensive).
  *
  * @param graphqlClient GraphQL client or executor
- * @param fromStatementId The source statement ID
- * @param toStatementId The target statement ID
+ * @param fromStatementCid The source statement ID
+ * @param toStatementCid The target statement ID
  * @param attesterAddress The attester's address
  */
 export async function assertImplicationBidirectionality(
   machinery: ActionTestingMachinery,
-  fromStatementId: string,
-  toStatementId: string,
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1,
   attesterAddress: string
 ): Promise<void> {
   // Import query functions dynamically to avoid circular dependencies
   const { getImplicationsFrom } = await import('./graphql-helpers.js');
 
-  const normalizedFrom = fromStatementId.toLowerCase();
-  const normalizedTo = toStatementId.toLowerCase();
   const normalizedAttester = attesterAddress.toLowerCase();
 
   // Query the indexer for implications from this statement
-  const implications = await getImplicationsFrom(machinery, normalizedFrom);
+  const implications = await getImplicationsFrom(machinery, fromStatementCid);
 
   const implication = implications.find(
     (imp) =>
-      imp.toStatementId.toLowerCase() === normalizedTo &&
+      imp.toStatementCid === toStatementCid &&
       ((imp.attester as any).id || imp.attester).toLowerCase() === normalizedAttester
   );
 
   if (!implication) {
     throw new Error(
-      `Implication ${fromStatementId}→${toStatementId} by ${attesterAddress} not found in indexer. ` +
+      `Implication ${fromStatementCid}→${toStatementCid} by ${attesterAddress} not found in indexer. ` +
       `Cannot verify bidirectionality. This function should only be called for implications ` +
       `that are expected to exist.`
     );
@@ -1120,33 +1111,33 @@ export async function assertImplicationBidirectionality(
 
   // Verify the implication data is well-formed
   assert.ok(
-    implication.fromStatementId,
-    `Implication ${fromStatementId}→${toStatementId}: fromStatementId should not be null/empty`
+    implication.fromStatementCid,
+    `Implication ${fromStatementCid}→${toStatementCid}: fromStatementCid should not be null/empty`
   );
 
   assert.ok(
-    implication.toStatementId,
-    `Implication ${fromStatementId}→${toStatementId}: toStatementId should not be null/empty`
+    implication.toStatementCid,
+    `Implication ${fromStatementCid}→${toStatementCid}: toStatementCid should not be null/empty`
   );
 
   assert.ok(
     implication.attester,
-    `Implication ${fromStatementId}→${toStatementId}: attester should not be null/empty`
+    `Implication ${fromStatementCid}→${toStatementCid}: attester should not be null/empty`
   );
 
   // Verify the IDs match what we queried for (data integrity check)
   assert.strictEqual(
-    implication.fromStatementId.toLowerCase(),
-    normalizedFrom,
-    `Implication fromStatementId mismatch. Expected ${fromStatementId}, ` +
-    `got ${implication.fromStatementId}`
+    implication.fromStatementCid,
+    fromStatementCid,
+    `Implication fromStatementCid mismatch. Expected ${fromStatementCid}, ` +
+    `got ${implication.fromStatementCid}`
   );
 
   assert.strictEqual(
-    implication.toStatementId.toLowerCase(),
-    normalizedTo,
-    `Implication toStatementId mismatch. Expected ${toStatementId}, ` +
-    `got ${implication.toStatementId}`
+    implication.toStatementCid,
+    toStatementCid,
+    `Implication toStatementCid mismatch. Expected ${toStatementCid}, ` +
+    `got ${implication.toStatementCid}`
   );
 
   const attesterIdFromResponse = (implication.attester as any).id || implication.attester;
@@ -1192,9 +1183,9 @@ export async function assertImplicationBidirectionality(
  */
 export async function assertImplicationNonTransitivity(
   machinery: ActionTestingMachinery,
-  s1Id: string,
-  s2Id: string,
-  s3Id: string,
+  s1Cid: IpfsCidV1,
+  s2Cid: IpfsCidV1,
+  s3Cid: IpfsCidV1,
   attesterAddress: string,
   believerAddress: string
 ): Promise<void> {
@@ -1208,101 +1199,98 @@ export async function assertImplicationNonTransitivity(
 
   const normalizedAttester = attesterAddress.toLowerCase();
   const normalizedBeliever = believerAddress.toLowerCase();
-  const normalizedS1 = s1Id.toLowerCase();
-  const normalizedS2 = s2Id.toLowerCase();
-  const normalizedS3 = s3Id.toLowerCase();
 
   // Step 1: Verify S1→S2 implication exists
-  const implicationsFromS1 = await getImplicationsFrom(machinery, normalizedS1);
+  const implicationsFromS1 = await getImplicationsFrom(machinery, s1Cid);
   const s1ToS2 = implicationsFromS1.find(
     (imp) =>
-      imp.toStatementId.toLowerCase() === normalizedS2 &&
+      imp.toStatementCid === s2Cid &&
       ((imp.attester as any).id || imp.attester).toLowerCase() === normalizedAttester
   );
 
   assert.ok(
     s1ToS2,
     `Non-transitivity test setup error: S1→S2 implication should exist. ` +
-    `Attester ${attesterAddress} has not attested ${s1Id}→${s2Id}`
+    `Attester ${attesterAddress} has not attested ${s1Cid}→${s2Cid}`
   );
 
   // Step 2: Verify S2→S3 implication exists
-  const implicationsFromS2 = await getImplicationsFrom(machinery, normalizedS2);
+  const implicationsFromS2 = await getImplicationsFrom(machinery, s2Cid);
   const s2ToS3 = implicationsFromS2.find(
     (imp) =>
-      imp.toStatementId.toLowerCase() === normalizedS3 &&
+      imp.toStatementCid === s3Cid &&
       ((imp.attester as any).id || imp.attester).toLowerCase() === normalizedAttester
   );
 
   assert.ok(
     s2ToS3,
     `Non-transitivity test setup error: S2→S3 implication should exist. ` +
-    `Attester ${attesterAddress} has not attested ${s2Id}→${s3Id}`
+    `Attester ${attesterAddress} has not attested ${s2Cid}→${s3Cid}`
   );
 
   // Step 3: Verify NO S1→S3 implication exists (critical for this test)
   const s1ToS3 = implicationsFromS1.find(
     (imp) =>
-      imp.toStatementId.toLowerCase() === normalizedS3 &&
+      imp.toStatementCid === s3Cid &&
       ((imp.attester as any).id || imp.attester).toLowerCase() === normalizedAttester
   );
 
   assert.ok(
     !s1ToS3,
     `Non-transitivity test setup error: S1→S3 implication should NOT exist. ` +
-    `Found unexpected direct attestation ${s1Id}→${s3Id} by ${attesterAddress}. ` +
+    `Found unexpected direct attestation ${s1Cid}→${s3Cid} by ${attesterAddress}. ` +
     `This test requires S1→S2 and S2→S3 to exist WITHOUT a direct S1→S3.`
   );
 
   // Step 4: Verify the believer believes S1
-  const believerS1Belief = await getUserBelief(machinery, normalizedBeliever, normalizedS1);
+  const believerS1Belief = await getUserBelief(machinery, normalizedBeliever, s1Cid);
   assert.strictEqual(
     believerS1Belief?.beliefState,
     BELIEVES,
-    `Non-transitivity test setup error: User ${believerAddress} should believe S1 (${s1Id}). ` +
+    `Non-transitivity test setup error: User ${believerAddress} should believe S1 (${s1Cid}). ` +
     `Got beliefState: ${believerS1Belief?.beliefState}`
   );
 
   // Step 5: Verify the believer does NOT explicitly disbelieve S2 or S3
   // (If they disbelieve, they won't appear as indirect supporters regardless)
-  const believerS2Belief = await getUserBelief(machinery, normalizedBeliever, normalizedS2);
+  const believerS2Belief = await getUserBelief(machinery, normalizedBeliever, s2Cid);
   assert.notStrictEqual(
     believerS2Belief?.beliefState,
     DISBELIEVES,
-    `Non-transitivity test setup error: User ${believerAddress} should NOT disbelieve S2 (${s2Id}). ` +
+    `Non-transitivity test setup error: User ${believerAddress} should NOT disbelieve S2 (${s2Cid}). ` +
     `This would prevent them from appearing as indirect supporter.`
   );
 
-  const believerS3Belief = await getUserBelief(machinery, normalizedBeliever, normalizedS3);
+  const believerS3Belief = await getUserBelief(machinery, normalizedBeliever, s3Cid);
   assert.notStrictEqual(
     believerS3Belief?.beliefState,
     DISBELIEVES,
-    `Non-transitivity test setup error: User ${believerAddress} should NOT disbelieve S3 (${s3Id}). ` +
+    `Non-transitivity test setup error: User ${believerAddress} should NOT disbelieve S3 (${s3Cid}). ` +
     `This would prevent them from appearing as indirect supporter.`
   );
 
   // Step 6: Verify believer appears as indirect supporter of S2 (one hop: S1→S2)
-  const s2IndirectSupporters = await getIndirectSupporters(machinery, normalizedS2, normalizedAttester);
+  const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Cid, normalizedAttester);
   const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
 
   assert.ok(
     s2SupporterAddresses.includes(normalizedBeliever),
-    `Implication transitivity violation: User ${believerAddress} believes S1 (${s1Id}), ` +
-    `and S1→S2 exists, so they should appear as indirect supporter of S2 (${s2Id}). ` +
+    `Implication transitivity violation: User ${believerAddress} believes S1 (${s1Cid}), ` +
+    `and S1→S2 exists, so they should appear as indirect supporter of S2 (${s2Cid}). ` +
     `Found ${s2IndirectSupporters.length} indirect supporters, ` +
     `but ${believerAddress} is not among them: [${s2SupporterAddresses.join(', ')}]`
   );
 
   // Step 7: Verify believer does NOT appear as indirect supporter of S3 (two hops: S1→S2→S3)
   // This is the CORE non-transitivity check
-  const s3IndirectSupporters = await getIndirectSupporters(machinery, normalizedS3, normalizedAttester);
+  const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Cid, normalizedAttester);
   const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
 
   assert.ok(
     !s3SupporterAddresses.includes(normalizedBeliever),
-    `Implication NON-transitivity violation: User ${believerAddress} believes S1 (${s1Id}), ` +
+    `Implication NON-transitivity violation: User ${believerAddress} believes S1 (${s1Cid}), ` +
     `and we have S1→S2 and S2→S3 (but NO direct S1→S3), so they should NOT appear ` +
-    `as indirect supporter of S3 (${s3Id}). The system incorrectly propagated support ` +
+    `as indirect supporter of S3 (${s3Cid}). The system incorrectly propagated support ` +
     `through TWO hops. This violates the business rule that implications are non-transitive. ` +
     `Found ${s3IndirectSupporters.length} indirect supporters of S3: [${s3SupporterAddresses.join(', ')}], ` +
     `and ${believerAddress} should NOT be in this list.`

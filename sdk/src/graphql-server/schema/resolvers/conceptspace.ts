@@ -2,6 +2,7 @@
  * Conceptspace GraphQL resolvers
  */
 
+import { IpfsCidV1 } from '../../../cid-types.js';
 import {
   getStatement,
   getUserBelief,
@@ -22,37 +23,37 @@ import { GraphQLClient } from '../../../utils/graphqlClient.js';
 export const conceptspaceResolvers = {
   Query: {
     // Simple conceptspace queries
-    statement: (_: any, { id }: { id: string }, { client }: { client: GraphQLClient }) => {
+    statement: (_: any, { id }: { id: IpfsCidV1 }, { client }: { client: GraphQLClient }) => {
       return getStatement(client, id);
     },
 
-    userBelief: (_: any, { userAddress, statementId }: { userAddress: string; statementId: string }, { client }: { client: GraphQLClient }) => {
-      return getUserBelief(client, userAddress, statementId);
+    userBelief: (_: any, { userAddress, statementCid }: { userAddress: string; statementCid: IpfsCidV1 }, { client }: { client: GraphQLClient }) => {
+      return getUserBelief(client, userAddress, statementCid);
     },
 
-    implicationsFrom: (_: any, { statementId, attesterAddress }: { statementId: string; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
-      return getImplicationsFrom(client, statementId, attesterAddress);
+    implicationsFrom: (_: any, { statementCid, attesterAddress }: { statementCid: IpfsCidV1; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
+      return getImplicationsFrom(client, statementCid, attesterAddress);
     },
 
-    implicationsTo: (_: any, { statementId, attesterAddress }: { statementId: string; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
-      return getImplicationsTo(client, statementId, attesterAddress);
+    implicationsTo: (_: any, { statementCid, attesterAddress }: { statementCid: IpfsCidV1; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
+      return getImplicationsTo(client, statementCid, attesterAddress);
     },
 
-    implication: (_: any, { attesterAddress, fromStatementId, toStatementId }: { 
+    implication: (_: any, { attesterAddress, fromStatementCid, toStatementCid }: { 
       attesterAddress: string; 
-      fromStatementId: string; 
-      toStatementId: string; 
+      fromStatementCid: IpfsCidV1; 
+      toStatementCid: IpfsCidV1; 
     }, { client }: { client: GraphQLClient }) => {
-      return getImplication(client, attesterAddress, fromStatementId, toStatementId);
+      return getImplication(client, attesterAddress, fromStatementCid, toStatementCid);
     },
 
     // Complex conceptspace queries
-    indirectSupporters: (_: any, { statementId, attesterAddress }: { statementId: string; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
-      return getIndirectSupporters(client, statementId, attesterAddress);
+    indirectSupporters: (_: any, { statementCid, attesterAddress }: { statementCid: IpfsCidV1; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
+      return getIndirectSupporters(client, statementCid, attesterAddress);
     },
 
-    indirectSupporterCount: async (_: any, { statementId, attesterAddress }: { statementId: string; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
-      const count = await getIndirectSupporterCount(client, statementId, attesterAddress);
+    indirectSupporterCount: async (_: any, { statementCid, attesterAddress }: { statementCid: IpfsCidV1; attesterAddress?: string }, { client }: { client: GraphQLClient }) => {
+      const count = await getIndirectSupporterCount(client, statementCid, attesterAddress);
       return count;
     },
 
@@ -77,11 +78,11 @@ export const conceptspaceResolvers = {
       return getUserDisbeliefs(client, userAddress);
     },
 
-    statementSuggestions: (_: any, { statementId, attesterAddress }: {
-      statementId: string;
+    statementSuggestions: (_: any, { statementCid, attesterAddress }: {
+      statementCid: IpfsCidV1;
       attesterAddress?: string;
     }, { client }: { client: GraphQLClient }) => {
-      return getStatementSuggestions(client, statementId, attesterAddress);
+      return getStatementSuggestions(client, statementCid, attesterAddress);
     },
   },
 };

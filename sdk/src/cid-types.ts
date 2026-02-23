@@ -29,7 +29,7 @@ export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
 }
 
 export function isValidCidV1(cid: string): boolean {
-  return /^Qm[a-zA-Z0-9]{44}$/.test(cid) || /^baf[a-zA-Z0-9]{59}$/.test(cid);
+  return /^baf[a-zA-Z0-9]{59}$/.test(cid);
 }
 
 /**
@@ -49,7 +49,7 @@ export function cidToBytes32(cid: string): `0x${string}` {
 /**
  * Convert bytes32 to IPFS CID
  */
-export function bytes32ToCid(bytes32: `0x${string}`): string {
+export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
   const digestBytes = Buffer.from(bytes32.slice(2), 'hex');
   // Create a MultihashDigest directly from the bytes
   const hash = {
@@ -59,5 +59,26 @@ export function bytes32ToCid(bytes32: `0x${string}`): string {
     bytes: new Uint8Array([0x12, 0x20, ...digestBytes]) // 0x12 = sha256 code, 0x20 = 32 bytes
   };
   const cid = CID.create(1, DAG_PB_CODE, hash);
-  return cid.toString();
+  if (!isValidCidV1(cid.toString())) {
+    throw new Error(`Invalid CID generated from bytes32: ${cid.toString()}`);
+  }
+  return cid.toString() as IpfsCidV1;
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
+ * for indexer queries. If already in CIDv1 format, returns as-is.
+ */
+export function normalizeCidV1(statementId: string): IpfsCidV1 {
+  if (statementId.startsWith('0x') && statementId.length === 66) {
+    return bytes32ToCid(statementId as `0x${string}`);
+  } else if (isValidCidV1(statementId)) {
+    return statementId as IpfsCidV1;
+  } else {
+    throw new Error(`Invalid statement ID format: ${statementId}`);
+  }
 }

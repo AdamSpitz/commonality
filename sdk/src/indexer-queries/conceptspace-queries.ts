@@ -25,22 +25,8 @@ import {
   type StatementListItem,
   type BrowseStatementsOptions,
 } from '../shared/types/conceptspace.js';
-import { bytes32ToCid } from '../cid-types.js';
+import { bytes32ToCid, IpfsCidV1, isValidCidV1 } from '../cid-types.js';
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
- * for indexer queries. If already in CIDv1 format, returns as-is.
- */
-function normalizeStatementId(statementId: string): string {
-  if (statementId.startsWith('0x') && statementId.length === 66) {
-    return bytes32ToCid(statementId as `0x${string}`);
-  }
-  return statementId;
-}
 
 // ============================================================================
 // Conceptspace Queries
@@ -51,11 +37,10 @@ function normalizeStatementId(statementId: string): string {
  */
 export async function getStatement(
   client: GraphQLClient,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<Statement | null> {
-  const normalizedId = normalizeStatementId(statementId);
   const result = await request(client.url, GetStatementDocument, {
-    id: normalizedId.toLowerCase(),
+    id: statementCid,
   });
   // BigInt fields (createdAt) come as strings at runtime
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
@@ -70,12 +55,11 @@ export async function getStatement(
 export async function getUserBelief(
   client: GraphQLClient,
   userAddress: string,
-  statementId: string
+  statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
-  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await request(client.url, GetUserBeliefDocument, {
     user: userAddress.toLowerCase(),
-    statementId: normalizedStatementId.toLowerCase(),
+    statementId: statementCid,
   });
   return result.beliefs as unknown as UserBelief | null;
 }
@@ -89,12 +73,11 @@ export async function getUserBelief(
  */
 export async function getImplicationsFrom(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await request(client.url, GetImplicationsFromDocument, {
-    fromStatementId: normalizedStatementId.toLowerCase(),
+    fromStatementId: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
@@ -106,12 +89,11 @@ export async function getImplicationsFrom(
  */
 export async function getImplicationsTo(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await request(client.url, GetImplicationsToDocument, {
-    toStatementId: normalizedStatementId.toLowerCase(),
+    toStatementId: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
@@ -124,15 +106,13 @@ export async function getImplicationsTo(
 export async function getImplication(
   client: GraphQLClient,
   attesterAddress: string,
-  fromStatementId: string,
-  toStatementId: string
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
-  const normalizedFromStatementId = normalizeStatementId(fromStatementId);
-  const normalizedToStatementId = normalizeStatementId(toStatementId);
   const result = await request(client.url, GetImplicationDocument, {
     attester: attesterAddress.toLowerCase(),
-    fromStatementId: normalizedFromStatementId.toLowerCase(),
-    toStatementId: normalizedToStatementId.toLowerCase(),
+    fromStatementId: fromStatementCid,
+    toStatementId: toStatementCid,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
   return result.implications as unknown as Implication | null;
@@ -153,12 +133,11 @@ export async function getImplication(
  */
 export async function getIndirectSupporters(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<IndirectSupporter[]> {
   // Step 1: Get all implications pointing to this statement
-  const implications = await getImplicationsTo(client, statementId, attesterAddress);
-
+  const implications = await getImplicationsTo(client, statementCid, attesterAddress);
   if (implications.length === 0) {
     return [];
   }
@@ -166,14 +145,14 @@ export async function getIndirectSupporters(
   // Step 2: Fetch believers for all implications in parallel
   const believersQueries = implications.map(implication =>
     request(client.url, GetBelieversForStatementDocument, {
-      statementId: implication.fromStatementId.toLowerCase(),
+      statementId: implication.fromStatementCid.toLowerCase(),
     })
   );
 
   const believersResults = await Promise.all(believersQueries);
 
   // Step 3: Collect all unique user addresses and their source statements
-  const userToViaStatement = new Map<string, string>();
+  const userToViaStatement = new Map<string, IpfsCidV1>();
 
   implications.forEach((implication, idx) => {
     const believers = (believersResults[idx].beliefss?.items ?? []) as Array<{ user: { id: string }; beliefState: number }>;
@@ -181,7 +160,7 @@ export async function getIndirectSupporters(
       const userAddress = believer.user.id;
       // Store the first statement that led to this indirect support
       if (!userToViaStatement.has(userAddress)) {
-        userToViaStatement.set(userAddress, implication.fromStatementId);
+        userToViaStatement.set(userAddress, implication.fromStatementCid);
       }
     });
   });
@@ -189,7 +168,7 @@ export async function getIndirectSupporters(
   // Step 4: Check all users' beliefs on target statement in parallel
   const uniqueUsers = Array.from(userToViaStatement.keys());
   const targetBeliefQueries = uniqueUsers.map(userAddress =>
-    getUserBelief(client, userAddress, statementId)
+    getUserBelief(client, userAddress, statementCid)
   );
 
   const targetBeliefs = await Promise.all(targetBeliefQueries);
@@ -203,7 +182,7 @@ export async function getIndirectSupporters(
     if (!targetBelief || targetBelief.beliefState !== 2) {
       supporters.push({
         user: userAddress,
-        viaStatementId: userToViaStatement.get(userAddress)!,
+        viaStatementCid: userToViaStatement.get(userAddress)!,
       });
     }
   });
@@ -217,10 +196,10 @@ export async function getIndirectSupporters(
  */
 export async function getIndirectSupporterCount(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<number> {
-  const supporters = await getIndirectSupporters(client, statementId, attesterAddress);
+  const supporters = await getIndirectSupporters(client, statementCid, attesterAddress);
   return supporters.length;
 }
 
@@ -330,7 +309,7 @@ export async function getUserDisbeliefs(
  */
 export async function getStatementSuggestions(
   client: GraphQLClient,
-  statementId: string,
+  statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Array<{
   statement: StatementListItem;
@@ -344,21 +323,21 @@ export async function getStatementSuggestions(
   }> = [];
 
   // Get the source statement to compare popularity
-  const sourceStatement = await getStatement(client, statementId);
+  const sourceStatement = await getStatement(client, statementCid);
   if (!sourceStatement) {
     return [];
   }
 
   // Get implications from this statement (S1 -> S2)
-  const implicationsFrom = await getImplicationsFrom(client, statementId, attesterAddress);
+  const implicationsFrom = await getImplicationsFrom(client, statementCid, attesterAddress);
 
   for (const implication of implicationsFrom) {
-    const targetStatement = await getStatement(client, implication.toStatementId);
+    const targetStatement = await getStatement(client, implication.toStatementCid);
     if (targetStatement && targetStatement.believerCount > sourceStatement.believerCount) {
       suggestions.push({
         statement: {
           id: targetStatement.id,
-          cid: targetStatement.cid ?? targetStatement.id,
+          cid: targetStatement.cid,
           statementType: targetStatement.statementType || '',
           title: targetStatement.title || '',
           excerpt: targetStatement.excerpt || '',
@@ -373,15 +352,15 @@ export async function getStatementSuggestions(
   }
 
   // Get implications to this statement (S2 -> S1)
-  const implicationsTo = await getImplicationsTo(client, statementId, attesterAddress);
+  const implicationsTo = await getImplicationsTo(client, statementCid, attesterAddress);
 
   for (const implication of implicationsTo) {
-    const sourceOfImplication = await getStatement(client, implication.fromStatementId);
+    const sourceOfImplication = await getStatement(client, implication.fromStatementCid);
     if (sourceOfImplication && sourceOfImplication.believerCount > sourceStatement.believerCount) {
       suggestions.push({
         statement: {
           id: sourceOfImplication.id,
-          cid: sourceOfImplication.cid ?? sourceOfImplication.id,
+          cid: sourceOfImplication.cid,
           statementType: sourceOfImplication.statementType || '',
           title: sourceOfImplication.title || '',
           excerpt: sourceOfImplication.excerpt || '',

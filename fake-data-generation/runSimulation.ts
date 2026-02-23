@@ -116,14 +116,14 @@ async function attestImplication(
   toStatementCid: IpfsCidV1,
   explanationCid: IpfsCidV1
 ): Promise<`0x${string}`> {
-  const fromStatementId = cidToBytes32(fromStatementCid);
-  const toStatementId = cidToBytes32(toStatementCid);
+  const fromStatementCid = cidToBytes32(fromStatementCid);
+  const toStatementCid = cidToBytes32(toStatementCid);
 
   const hash = await clients.walletClient.writeContract({
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'attestImplication',
-    args: [fromStatementId, toStatementId, explanationCid],
+    args: [fromStatementCid, toStatementCid, explanationCid],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });
@@ -413,12 +413,12 @@ class SimulationRunner {
     return this.statements[Math.floor(Math.random() * this.statements.length)];
   }
 
-  getPreGeneratedAttestation(fromStatementId: string, toStatementId: string): Attestation | undefined {
+  getPreGeneratedAttestation(fromStatementCid: IpfsCidV1, toStatementCid: IpfsCidV1): Attestation | undefined {
     if (!this.usePreGeneratedAttestations || this.attestations.length === 0) {
       return undefined;
     }
     return this.attestations.find(a =>
-      a.fromStatementId === fromStatementId && a.toStatementId === toStatementId
+      a.fromStatementCid === fromStatementCid && a.toStatementCid === toStatementCid
     );
   }
 
@@ -532,10 +532,10 @@ class SimulationRunner {
               console.log(`  Using pre-generated attestation: ${preGen.id} (confidence: ${preGen.confidence})`);
             } else if (this.attestations.length > 0) {
               // Find any attestation where S1 appears as source
-              const outbound = this.attestations.filter(a => a.fromStatementId === stmt1.statementId);
+              const outbound = this.attestations.filter(a => a.fromStatementCid === stmt1.statementId);
               if (outbound.length > 0) {
                 const randomAtt = outbound[Math.floor(Math.random() * outbound.length)];
-                if (randomAtt.toStatementId === stmt2.statementId) {
+                if (randomAtt.toStatementCid === stmt2.statementId) {
                   implies = true;
                 }
               }

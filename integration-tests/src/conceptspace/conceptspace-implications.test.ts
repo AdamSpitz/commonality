@@ -194,7 +194,7 @@ describe('Conceptspace Implications', () => {
     // This is the key business logic check for non-transitivity
     const s3ImplicationsTo = await getImplicationsTo(machinery, s3Id);
     const s1ToS3 = s3ImplicationsTo.find(
-      imp => imp.fromStatementId.toLowerCase() === s1Id.toLowerCase()
+      imp => imp.fromStatementCid.toLowerCase() === s1Id.toLowerCase()
     );
     assert.strictEqual(s1ToS3, undefined, 'S1 -> S3 should NOT exist (implications are not transitive)');
 

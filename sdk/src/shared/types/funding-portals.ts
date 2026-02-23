@@ -1,9 +1,10 @@
+import { IpfsCidV1 } from "../../cid-types";
 
 export interface AlignmentAttestation {
   attester: string;
   subjectAddress: string;
-  statementId: string;
-  topicStatementId: string;
+  statementCid: IpfsCidV1;
+  topicStatementCid: IpfsCidV1;
   createdAt: string;
   blockNumber: string;
 }
@@ -13,8 +14,8 @@ export type ProjectAlignment = AlignmentAttestation;
 
 export interface IndirectSubjectAlignment {
   subjectAddress: string;
-  directStatementId: string; // Statement the subject is directly aligned with
-  indirectStatementId: string; // Statement we queried for (implied by directStatementId)
+  directStatementCid: IpfsCidV1; // Statement the subject is directly aligned with
+  indirectStatementCid: IpfsCidV1; // Statement we queried for (implied by directStatementCid)
   attester: string;
 }
 

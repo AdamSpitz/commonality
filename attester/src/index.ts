@@ -55,8 +55,8 @@ async function requirePayment(req: Request, res: Response, next: NextFunction) {
 }
 
 interface EvaluateImplicationRequest {
-  fromStatementId: string;
-  toStatementId: string;
+  fromStatementCid: IpfsCidV1;
+  toStatementCid: IpfsCidV1;
 }
 
 interface EvaluateImplicationResponse {
@@ -71,8 +71,8 @@ interface EvaluateImplicationResponse {
 }
 
 interface BatchEvaluationItem {
-  fromStatementId: string;
-  toStatementId: string;
+  fromStatementCid: IpfsCidV1;
+  toStatementCid: IpfsCidV1;
 }
 
 interface BatchEvaluationRequest {
@@ -80,8 +80,8 @@ interface BatchEvaluationRequest {
 }
 
 interface BatchEvaluationResult {
-  fromStatementId: string;
-  toStatementId: string;
+  fromStatementCid: IpfsCidV1;
+  toStatementCid: IpfsCidV1;
   success: boolean;
   decision?: boolean;
   confidence?: 'high' | 'medium' | 'low';
@@ -101,8 +101,8 @@ interface BatchEvaluationResponse {
 }
 
 async function processSingleEvaluation(
-  fromStatementId: string,
-  toStatementId: string,
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1,
   config: ReturnType<typeof loadConfig>
 ): Promise<BatchEvaluationResult> {
   const startTime = Date.now();
@@ -112,25 +112,25 @@ async function processSingleEvaluation(
     let statement2Content: string;
 
     try {
-      statement1Content = await fetchFromIpfs(fromStatementId);
+      statement1Content = await fetchFromIpfs(fromStatementCid);
     } catch {
       return {
-        fromStatementId,
-        toStatementId,
+        fromStatementCid,
+        toStatementCid,
         success: false,
-        error: `Could not fetch fromStatementId content from IPFS: ${fromStatementId}`,
+        error: `Could not fetch fromStatementCid content from IPFS: ${fromStatementCid}`,
         processingTime: Date.now() - startTime,
       };
     }
 
     try {
-      statement2Content = await fetchFromIpfs(toStatementId);
+      statement2Content = await fetchFromIpfs(toStatementCid);
     } catch {
       return {
-        fromStatementId,
-        toStatementId,
+        fromStatementCid,
+        toStatementCid,
         success: false,
-        error: `Could not fetch toStatementId content from IPFS: ${toStatementId}`,
+        error: `Could not fetch toStatementCid content from IPFS: ${toStatementCid}`,
         processingTime: Date.now() - startTime,
       };
     }
@@ -150,8 +150,8 @@ async function processSingleEvaluation(
 
     if (!evaluation.implies || evaluation.confidence === 'low') {
       return {
-        fromStatementId,
-        toStatementId,
+        fromStatementCid,
+        toStatementCid,
         success: true,
         decision: evaluation.implies,
         confidence: evaluation.confidence,
@@ -163,8 +163,8 @@ async function processSingleEvaluation(
     }
 
     const explanationData = {
-      fromStatementId,
-      toStatementId,
+      fromStatementCid,
+      toStatementCid,
       decision: evaluation.implies,
       confidence: evaluation.confidence,
       reasoning: evaluation.reasoning,
@@ -176,14 +176,14 @@ async function processSingleEvaluation(
     // Publish attestation with blockchain error handling
     let txHash: string;
     try {
-      txHash = await publishAttestation(fromStatementId, toStatementId, explanationCid);
+      txHash = await publishAttestation(fromStatementCid, toStatementCid, explanationCid);
     } catch (error) {
       const blockchainError = classifyBlockchainError(error);
       const formattedError = formatBlockchainError(blockchainError);
       
       return {
-        fromStatementId,
-        toStatementId,
+        fromStatementCid,
+        toStatementCid,
         success: false,
         decision: evaluation.implies,
         confidence: evaluation.confidence,
@@ -196,8 +196,8 @@ async function processSingleEvaluation(
     }
 
     return {
-      fromStatementId,
-      toStatementId,
+      fromStatementCid,
+      toStatementCid,
       success: true,
       decision: evaluation.implies,
       confidence: evaluation.confidence,
@@ -208,8 +208,8 @@ async function processSingleEvaluation(
     };
   } catch (error) {
     return {
-      fromStatementId,
-      toStatementId,
+      fromStatementCid,
+      toStatementCid,
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
       processingTime: Date.now() - startTime,
@@ -221,12 +221,12 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
   const startTime = Date.now();
   
   try {
-    const { fromStatementId, toStatementId } = req.body as EvaluateImplicationRequest;
+    const { fromStatementCid, toStatementCid } = req.body as EvaluateImplicationRequest;
 
-    if (!fromStatementId || !toStatementId) {
+    if (!fromStatementCid || !toStatementCid) {
       res.status(400).json({
         error: 'invalid_request',
-        message: 'Missing required fields: fromStatementId, toStatementId',
+        message: 'Missing required fields: fromStatementCid, toStatementCid',
       });
       return;
     }
@@ -237,23 +237,23 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
     let statement2Content: string;
 
     try {
-      statement1Content = await fetchFromIpfs(fromStatementId);
+      statement1Content = await fetchFromIpfs(fromStatementCid);
     } catch {
       res.status(404).json({
         error: 'statement_not_found',
-        message: 'Could not fetch fromStatementId content from IPFS',
-        details: { statementId: fromStatementId },
+        message: 'Could not fetch fromStatementCid content from IPFS',
+        details: { statementId: fromStatementCid },
       });
       return;
     }
 
     try {
-      statement2Content = await fetchFromIpfs(toStatementId);
+      statement2Content = await fetchFromIpfs(toStatementCid);
     } catch {
       res.status(404).json({
         error: 'statement_not_found',
-        message: 'Could not fetch toStatementId content from IPFS',
-        details: { statementId: toStatementId },
+        message: 'Could not fetch toStatementCid content from IPFS',
+        details: { statementId: toStatementCid },
       });
       return;
     }
@@ -286,8 +286,8 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
     }
 
     const explanationData = {
-      fromStatementId,
-      toStatementId,
+      fromStatementCid,
+      toStatementCid,
       decision: evaluation.implies,
       confidence: evaluation.confidence,
       reasoning: evaluation.reasoning,
@@ -299,7 +299,7 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
     // Publish attestation with blockchain error handling
     let txHash: string;
     try {
-      txHash = await publishAttestation(fromStatementId, toStatementId, explanationCid);
+      txHash = await publishAttestation(fromStatementCid, toStatementCid, explanationCid);
     } catch (error) {
       const blockchainError = classifyBlockchainError(error);
       const formattedError = formatBlockchainError(blockchainError);
@@ -386,10 +386,10 @@ app.post('/evaluate-implications-batch', evaluationRateLimiter, requirePayment, 
     }
 
     for (const item of evaluations) {
-      if (!item.fromStatementId || !item.toStatementId) {
+      if (!item.fromStatementCid || !item.toStatementCid) {
         res.status(400).json({
           error: 'invalid_request',
-          message: 'Each evaluation must have fromStatementId and toStatementId',
+          message: 'Each evaluation must have fromStatementCid and toStatementCid',
         });
         return;
       }
@@ -400,8 +400,8 @@ app.post('/evaluate-implications-batch', evaluationRateLimiter, requirePayment, 
 
     for (const item of evaluations) {
       const result = await processSingleEvaluation(
-        item.fromStatementId,
-        item.toStatementId,
+        item.fromStatementCid,
+        item.toStatementCid,
         config
       );
       results.push(result);
@@ -498,13 +498,13 @@ app.get('/health', async (_req: Request, res: Response) => {
   }
 });
 
-app.get('/status/:fromStatementId/:toStatementId', async (req: Request, res: Response) => {
-  const { fromStatementId, toStatementId } = req.params;
+app.get('/status/:fromStatementCid/:toStatementCid', async (req: Request, res: Response) => {
+  const { fromStatementCid, toStatementCid } = req.params;
 
-  if (!fromStatementId || !toStatementId) {
+  if (!fromStatementCid || !toStatementCid) {
     res.status(400).json({
       error: 'invalid_request',
-      message: 'Missing required parameters: fromStatementId, toStatementId',
+      message: 'Missing required parameters: fromStatementCid, toStatementCid',
     });
     return;
   }

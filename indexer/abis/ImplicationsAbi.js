@@ -13,13 +13,13 @@ export const ImplicationsAbi = [
             {
                 "indexed": true,
                 "internalType": "bytes32",
-                "name": "fromStatementId",
+                "name": "fromStatementCid",
                 "type": "bytes32"
             },
             {
                 "indexed": true,
                 "internalType": "bytes32",
-                "name": "toStatementId",
+                "name": "toStatementCid",
                 "type": "bytes32"
             },
             {
@@ -36,12 +36,12 @@ export const ImplicationsAbi = [
         "inputs": [
             {
                 "internalType": "bytes32",
-                "name": "fromStatementId",
+                "name": "fromStatementCid",
                 "type": "bytes32"
             },
             {
                 "internalType": "bytes32",
-                "name": "toStatementId",
+                "name": "toStatementCid",
                 "type": "bytes32"
             },
             {
@@ -59,12 +59,12 @@ export const ImplicationsAbi = [
         "inputs": [
             {
                 "internalType": "bytes32[]",
-                "name": "fromStatementIds",
+                "name": "fromStatementCids",
                 "type": "bytes32[]"
             },
             {
                 "internalType": "bytes32[]",
-                "name": "toStatementIds",
+                "name": "toStatementCids",
                 "type": "bytes32[]"
             },
             {
@@ -145,12 +145,12 @@ export const ImplicationsAbi = [
             },
             {
                 "internalType": "bytes32",
-                "name": "fromStatementId",
+                "name": "fromStatementCid",
                 "type": "bytes32"
             },
             {
                 "internalType": "bytes32",
-                "name": "toStatementId",
+                "name": "toStatementCid",
                 "type": "bytes32"
             }
         ],
@@ -174,12 +174,12 @@ export const ImplicationsAbi = [
             },
             {
                 "internalType": "bytes32",
-                "name": "fromStatementId",
+                "name": "fromStatementCid",
                 "type": "bytes32"
             },
             {
                 "internalType": "bytes32",
-                "name": "toStatementId",
+                "name": "toStatementCid",
                 "type": "bytes32"
             }
         ],

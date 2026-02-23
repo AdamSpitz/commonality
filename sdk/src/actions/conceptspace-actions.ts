@@ -137,15 +137,11 @@ export async function attestImplication(
   toStatementCid: IpfsCidV1,
   explanationCid?: IpfsCidV1
 ): Promise<Hash> {
-  const fromStatementId = cidToBytes32(fromStatementCid);
-  const toStatementId = cidToBytes32(toStatementCid);
-  const explanationId = explanationCid ? cidToBytes32(explanationCid) : '0x0000000000000000000000000000000000000000000000000000000000000000';
-
   const hash = await clients.walletClient.writeContract({
     address: implicationsContract.address,
     abi: implicationsContract.abi,
     functionName: 'attestImplication',
-    args: [fromStatementId, toStatementId, explanationId],
+    args: [cidToBytes32(fromStatementCid), cidToBytes32(toStatementCid), explanationCid ? cidToBytes32(explanationCid) : '0x0000000000000000000000000000000000000000000000000000000000000000'],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -167,21 +163,15 @@ export async function attestImplication(
 export async function attestImplicationsBatch(
   clients: TestClients,
   implicationsContract: ImplicationsContract,
-  fromStatementCids: string[],
-  toStatementCids: string[],
-  explanationCids?: string[]
+  fromStatementCids: IpfsCidV1[],
+  toStatementCids: IpfsCidV1[],
+  explanationCids?: IpfsCidV1[]
 ): Promise<Hash> {
-  const fromStatementIds = fromStatementCids.map(cidToBytes32);
-  const toStatementIds = toStatementCids.map(cidToBytes32);
-  const explanationIds = explanationCids
-    ? explanationCids.map(cidToBytes32)
-    : fromStatementCids.map(() => '0x0000000000000000000000000000000000000000000000000000000000000000');
-
   const hash = await clients.walletClient.writeContract({
     address: implicationsContract.address,
     abi: implicationsContract.abi,
     functionName: 'attestImplicationsInBatch',
-    args: [fromStatementIds, toStatementIds, explanationIds],
+    args: [fromStatementCids.map(cidToBytes32), toStatementCids.map(cidToBytes32), explanationCids ? explanationCids.map(cidToBytes32) : fromStatementCids.map(() => '0x0000000000000000000000000000000000000000000000000000000000000000')],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

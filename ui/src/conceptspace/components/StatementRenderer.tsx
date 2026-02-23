@@ -9,14 +9,14 @@ import {
 } from '@commonality/sdk'
 
 interface StatementRendererProps {
-  statementId: string
+  statementCid: string
   content: DisplayableDocument | null
   loading?: boolean
   error?: string | null
 }
 
 export function StatementRenderer({
-  statementId,
+  statementCid,
   content,
   loading = false,
   error = null,
@@ -38,7 +38,7 @@ export function StatementRenderer({
           {error}
         </Alert>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Statement ID: {statementId}
+          Statement CID: {statementCid}
         </Typography>
       </Paper>
     )
@@ -51,13 +51,13 @@ export function StatementRenderer({
           Statement content not found or could not be loaded from IPFS.
         </Alert>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Statement ID: {statementId}
+          Statement CID: {statementCid}
         </Typography>
       </Paper>
     )
   }
 
-  return <DisplayableDocumentRenderer statementId={statementId} doc={content} />
+  return <DisplayableDocumentRenderer statementCid={statementCid} doc={content} />
 }
 
 // ============================================================================
@@ -65,10 +65,10 @@ export function StatementRenderer({
 // ============================================================================
 
 function DisplayableDocumentRenderer({
-  statementId,
+  statementCid,
   doc,
 }: {
-  statementId: string
+  statementCid: string
   doc: DisplayableDocument
 }) {
   const knownFields = new Set(['format', 'content', 'assets', 'references', 'extras'])
@@ -143,7 +143,7 @@ function DisplayableDocumentRenderer({
       {/* Footer */}
       <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
         <Typography variant="caption" color="text.secondary">
-          Statement ID: {statementId}
+          Statement CID: {statementCid}
         </Typography>
       </Box>
     </Paper>

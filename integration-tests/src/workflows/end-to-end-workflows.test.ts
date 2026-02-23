@@ -516,10 +516,10 @@ describe('End-to-End Workflow Integration Tests', () => {
           const existingBelief = await getUserBelief(
             machinery,
             userClients.account,
-            implication.toStatementId
+            implication.toStatementCid
           );
           if (!existingBelief || existingBelief.beliefState === 0) {
-            suggestions.add(implication.toStatementId);
+            suggestions.add(implication.toStatementCid);
           }
         }
       }

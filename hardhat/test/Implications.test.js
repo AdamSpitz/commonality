@@ -49,7 +49,7 @@ describe("Implications", function () {
       ).to.be.revertedWith("Statement cannot imply itself");
     });
 
-    it("Should reject zero fromStatementId", async function () {
+    it("Should reject zero fromStatementCid", async function () {
       const toStmt = ethers.encodeBytes32String("statement-B");
       const explanationCid = ethers.encodeBytes32String("explanation-1");
 
@@ -58,7 +58,7 @@ describe("Implications", function () {
       ).to.be.revertedWith("Invalid statement ID");
     });
 
-    it("Should reject zero toStatementId", async function () {
+    it("Should reject zero toStatementCid", async function () {
       const fromStmt = ethers.encodeBytes32String("statement-A");
       const explanationCid = ethers.encodeBytes32String("explanation-1");
 

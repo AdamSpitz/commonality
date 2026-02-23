@@ -17,45 +17,45 @@ query GetUserBelief($user: String!, $statementId: String!) {
   }
 }
 
-query GetImplicationsFrom($fromStatementId: String!, $attester: String) {
-  implicationss(where: { fromStatementId: $fromStatementId, attester: $attester }) {
+query GetImplicationsFrom($fromStatementCid: String!, $attester: String) {
+  implicationss(where: { fromStatementCid: $fromStatementCid, attester: $attester }) {
     items {
       attester {
         id
       }
-      fromStatementId
-      toStatementId
+      fromStatementCid
+      toStatementCid
       createdAt
       blockNumber
     }
   }
 }
 
-query GetImplicationsTo($toStatementId: String!, $attester: String) {
-  implicationss(where: { toStatementId: $toStatementId, attester: $attester }) {
+query GetImplicationsTo($toStatementCid: String!, $attester: String) {
+  implicationss(where: { toStatementCid: $toStatementCid, attester: $attester }) {
     items {
       attester {
         id
       }
-      fromStatementId
-      toStatementId
+      fromStatementCid
+      toStatementCid
       createdAt
       blockNumber
     }
   }
 }
 
-query GetImplication($attester: String!, $fromStatementId: String!, $toStatementId: String!) {
+query GetImplication($attester: String!, $fromStatementCid: String!, $toStatementCid: String!) {
   implications(
     attester: $attester
-    fromStatementId: $fromStatementId
-    toStatementId: $toStatementId
+    fromStatementCid: $fromStatementCid
+    toStatementCid: $toStatementCid
   ) {
     attester {
       id
     }
-    fromStatementId
-    toStatementId
+    fromStatementCid
+    toStatementCid
     createdAt
     blockNumber
   }

@@ -88,8 +88,8 @@ Where:
 **Request Body:**
 ```typescript
 {
-  "fromStatementId": string,  // IPFS CID (e.g., "bafybeigdyrzt...")
-  "toStatementId": string     // IPFS CID
+  "fromStatementCid": string,  // IPFS CID (e.g., "bafybeigdyrzt...")
+  "toStatementCid": string     // IPFS CID
 }
 ```
 
@@ -145,7 +145,7 @@ Where:
   "error": "invalid_request",
   "message": "Invalid statement ID format",
   "details": {
-    "field": "fromStatementId",
+    "field": "fromStatementCid",
     "issue": "Not a valid IPFS CID"
   }
 }
@@ -205,15 +205,15 @@ Where:
 }
 ```
 
-**GET /status/:attester/:fromStatementId/:toStatementId**
+**GET /status/:attester/:fromStatementCid/:toStatementCid**
 Check if an attestation already exists (useful for clients to check before paying):
 ```typescript
 {
   "exists": boolean,
   "attestation": {
     "attester": "0x...",
-    "fromStatementId": "bafybei...",
-    "toStatementId": "bafybei...",
+    "fromStatementCid": "bafybei...",
+    "toStatementCid": "bafybei...",
     "decision": boolean,              // Retrieved from indexer if available
     "explanationCid": "bafybei...",   // Retrieved from indexer if available
     "transactionHash": "0x...",

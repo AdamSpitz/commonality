@@ -9,14 +9,15 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { evaluateImplicationWithLLM } from './openrouter.js';
 import type { Statement, Attester } from './types.js';
+import { IpfsCidV1 } from '@commonality/sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 interface Attestation {
   id: string;
-  fromStatementId: string;
-  toStatementId: string;
+  fromStatementCid: IpfsCidV1;
+  toStatementCid: IpfsCidV1;
   fromDomain: string;
   toDomain: string;
   implies: boolean;
@@ -120,8 +121,8 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
         if (result.implies) {
           const attestation: Attestation = {
             id: `attestation-${attestations.length}`,
-            fromStatementId: pair.statement1.statementId,
-            toStatementId: pair.statement2.statementId,
+            fromStatementCid: pair.statement1.statementId,
+            toStatementCid: pair.statement2.statementId,
             fromDomain: pair.statement1.domain,
             toDomain: pair.statement2.domain,
             implies: result.implies,
@@ -192,25 +193,25 @@ async function loadAttestations(): Promise<Attestation[]> {
 /**
  * Get attestation for a specific statement pair
  */
-async function getAttestation(fromStatementId: string, toStatementId: string): Promise<Attestation | null> {
+async function getAttestation(fromStatementCid: IpfsCidV1, toStatementCid: IpfsCidV1): Promise<Attestation | null> {
   const attestations = await loadAttestations();
   return attestations.find(a =>
-    a.fromStatementId === fromStatementId && a.toStatementId === toStatementId
+    a.fromStatementCid === fromStatementCid && a.toStatementCid === toStatementCid
   ) ?? null;
 }
 
 /**
  * Get all attestations for a given statement
  */
-async function getAttestationsForStatement(statementId: string): Promise<{
+async function getAttestationsForStatement(statementCid: IpfsCidV1): Promise<{
   inbound: Attestation[];
   outbound: Attestation[];
 }> {
   const attestations = await loadAttestations();
 
   return {
-    inbound: attestations.filter(a => a.toStatementId === statementId),
-    outbound: attestations.filter(a => a.fromStatementId === statementId)
+    inbound: attestations.filter(a => a.toStatementCid === statementCid),
+    outbound: attestations.filter(a => a.fromStatementCid === statementCid)
   };
 }
 

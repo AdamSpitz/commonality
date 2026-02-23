@@ -29,8 +29,8 @@ export const typeDefs = `#graphql
 
   type Implication {
     attester: Address!
-    fromStatementId: ID!
-    toStatementId: ID!
+    fromStatementCid: ID!
+    toStatementCid: ID!
     explanationCid: ID!
     createdAt: String!
     blockNumber: String!
@@ -304,7 +304,7 @@ export const typeDefs = `#graphql
     userBelief(userAddress: Address!, statementId: ID!): UserBelief
     implicationsFrom(statementId: ID!, attesterAddress: Address): [Implication!]!
     implicationsTo(statementId: ID!, attesterAddress: Address): [Implication!]!
-    implication(attesterAddress: Address!, fromStatementId: ID!, toStatementId: ID!): Implication
+    implication(attesterAddress: Address!, fromStatementCid: ID!, toStatementCid: ID!): Implication
     
     # Complex conceptspace queries
     indirectSupporters(statementId: ID!, attesterAddress: Address): [IndirectSupporter!]!

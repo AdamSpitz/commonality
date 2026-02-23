@@ -65,8 +65,8 @@ Evaluate whether statement S1 implies statement S2. Requires x402 payment.
 **Request:**
 ```json
 {
-  "fromStatementId": "bafybeigram...",
-  "toStatementId": "bafybei..."
+  "fromStatementCid": "bafybeigram...",
+  "toStatementCid": "bafybei..."
 }
 ```
 
@@ -128,7 +128,7 @@ Get current price estimate for evaluation.
 }
 ```
 
-### GET /status/:fromStatementId/:toStatementId
+### GET /status/:fromStatementCid/:toStatementCid
 
 Check if an attestation exists for a statement pair.
 
@@ -141,12 +141,12 @@ Evaluate multiple statement implication pairs in a single request. Requires x402
 {
   "evaluations": [
     {
-      "fromStatementId": "bafybeigram...",
-      "toStatementId": "bafybei..."
+      "fromStatementCid": "bafybeigram...",
+      "toStatementCid": "bafybei..."
     },
     {
-      "fromStatementId": "bafybeiabc...",
-      "toStatementId": "bafybeixyz..."
+      "fromStatementCid": "bafybeiabc...",
+      "toStatementCid": "bafybeixyz..."
     }
   ]
 }
@@ -160,8 +160,8 @@ Evaluate multiple statement implication pairs in a single request. Requires x402
   "failed": 0,
   "results": [
     {
-      "fromStatementId": "bafybeigram...",
-      "toStatementId": "bafybei...",
+      "fromStatementCid": "bafybeigram...",
+      "toStatementCid": "bafybei...",
       "success": true,
       "decision": true,
       "confidence": "high",
@@ -171,8 +171,8 @@ Evaluate multiple statement implication pairs in a single request. Requires x402
       "processingTime": 3421
     },
     {
-      "fromStatementId": "bafybeiabc...",
-      "toStatementId": "bafybeixyz...",
+      "fromStatementCid": "bafybeiabc...",
+      "toStatementCid": "bafybeixyz...",
       "success": true,
       "decision": false,
       "confidence": "low",

@@ -6,6 +6,8 @@ import {
   PubstarterAbi,
   AssuranceContractAbi,
   cidToBytes32,
+  IpfsCidBytes32,
+  IpfsCidV1,
 } from '@commonality/sdk';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import type { User, Statement, SimulationContracts } from './types.js';
@@ -56,13 +58,13 @@ function createTestClients(privateKey: `0x${string}`, rpcUrl = RPC_URL) {
 async function believeStatement(
   clients: ReturnType<typeof createTestClients>,
   contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
-  statementId: `0x${string}`
+  statementCid: IpfsCidV1
 ): Promise<`0x${string}`> {
   const hash = await clients.walletClient.writeContract({
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'setBelief',
-    args: [statementId, BELIEVES],
+    args: [cidToBytes32(statementCid), BELIEVES],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });
@@ -73,15 +75,15 @@ async function believeStatement(
 async function attestImplication(
   clients: ReturnType<typeof createTestClients>,
   contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
-  fromStatementId: `0x${string}`,
-  toStatementId: `0x${string}`,
-  explanationId = '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`
+  fromStatementCid: `0x${string}`,
+  toStatementCid: `0x${string}`,
+  explanationCid = '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`
 ): Promise<`0x${string}`> {
   const hash = await clients.walletClient.writeContract({
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'attestImplication',
-    args: [fromStatementId, toStatementId, explanationId],
+    args: [fromStatementCid, toStatementCid, explanationCid],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });
@@ -199,15 +201,14 @@ class AttackScenarios {
     for (const sybil of attackWallets) {
       try {
         const clients = createTestClients(sybil.privateKey, RPC_URL);
-        const targetStatementId = cidToBytes32(targetStatement.statementId);
 
-        await believeStatement(clients, this.contracts.beliefs!, targetStatementId);
+        await believeStatement(clients, this.contracts.beliefs!, targetStatement.cid);
 
         successfulAttacks++;
         this.results.sybil.actions.push({
           type: 'belief_inflation',
           sybil: sybil.address,
-          target: targetStatement.id
+          target: targetStatement.cid
         });
       } catch {
         // Attack may fail due to various reasons

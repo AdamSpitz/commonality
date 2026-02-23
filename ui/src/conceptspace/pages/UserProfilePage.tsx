@@ -101,8 +101,8 @@ export function UserProfilePage() {
     setTabValue(newValue)
   }
 
-  const handleStatementClick = (statementId: string) => {
-    navigate(`/statement/${statementId}`)
+  const handleStatementClick = (statementCid: string) => {
+    navigate(`/statement/${statementCid}`)
   }
 
   const renderStatementList = (statements: StatementListItem[]) => {
@@ -180,9 +180,9 @@ export function UserProfilePage() {
                   <Typography variant="caption" color="text.secondary" paragraph>
                     Supported indirectly via {supportedVia.length} statement{supportedVia.length !== 1 ? 's' : ''}:
                     {supportedVia.slice(0, 3).map((via, idx) => (
-                      <span key={via.viaStatementId}>
+                      <span key={via.viaStatementCid}>
                         {idx > 0 && ', '}
-                        {' '}{via.directlyBelievedStatement?.title || via.viaStatementId.slice(0, 8)}
+                        {' '}{via.directlyBelievedStatement?.title || via.viaStatementCid.slice(0, 8)}
                       </span>
                     ))}
                     {supportedVia.length > 3 && '...'}

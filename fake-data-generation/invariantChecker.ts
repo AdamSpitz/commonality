@@ -194,8 +194,8 @@ class InvariantChecker {
             name: 'ImplicationAttestation',
             inputs: [
               { name: 'attester', type: 'address', indexed: true },
-              { name: 'fromStatementId', type: 'bytes32', indexed: true },
-              { name: 'toStatementId', type: 'bytes32', indexed: true },
+              { name: 'fromStatementCid', type: 'bytes32', indexed: true },
+              { name: 'toStatementCid', type: 'bytes32', indexed: true },
               { name: 'explanationId', type: 'bytes32', indexed: false },
               { name: 'belief', type: 'uint8', indexed: false }
             ]
@@ -206,8 +206,8 @@ class InvariantChecker {
 
         for (const log of logs.slice(0, 20)) {
           const args = log.args as Record<string, `0x${string}` | undefined>;
-          const fromId = args.fromStatementId ? padHex(args.fromStatementId, { size: 32 }) : null;
-          const toId = args.toStatementId ? padHex(args.toStatementId, { size: 32 }) : null;
+          const fromId = args.fromStatementCid ? padHex(args.fromStatementCid, { size: 32 }) : null;
+          const toId = args.toStatementCid ? padHex(args.toStatementCid, { size: 32 }) : null;
 
           if (!fromId || !toId) continue;
 
@@ -357,8 +357,8 @@ class InvariantChecker {
           name: 'ImplicationAttestation',
           inputs: [
             { name: 'attester', type: 'address', indexed: true },
-            { name: 'fromStatementId', type: 'bytes32', indexed: true },
-            { name: 'toStatementId', type: 'bytes32', indexed: true },
+            { name: 'fromStatementCid', type: 'bytes32', indexed: true },
+            { name: 'toStatementCid', type: 'bytes32', indexed: true },
             { name: 'explanationId', type: 'bytes32', indexed: false },
             { name: 'belief', type: 'uint8', indexed: false }
           ]
@@ -373,8 +373,8 @@ class InvariantChecker {
 
       for (const log of logs) {
         const args = log.args as Record<string, `0x${string}` | undefined>;
-        const from = args.fromStatementId ? padHex(args.fromStatementId, { size: 32 }).toString() : null;
-        const to = args.toStatementId ? padHex(args.toStatementId, { size: 32 }).toString() : null;
+        const from = args.fromStatementCid ? padHex(args.fromStatementCid, { size: 32 }).toString() : null;
+        const to = args.toStatementCid ? padHex(args.toStatementCid, { size: 32 }).toString() : null;
 
         if (!from || !to) continue;
 
@@ -537,8 +537,8 @@ class InvariantChecker {
             name: 'ImplicationAttestation',
             inputs: [
               { name: 'attester', type: 'address', indexed: true },
-              { name: 'fromStatementId', type: 'bytes32', indexed: true },
-              { name: 'toStatementId', type: 'bytes32', indexed: true },
+              { name: 'fromStatementCid', type: 'bytes32', indexed: true },
+              { name: 'toStatementCid', type: 'bytes32', indexed: true },
               { name: 'explanationId', type: 'bytes32', indexed: false },
               { name: 'belief', type: 'uint8', indexed: false }
             ]
@@ -549,12 +549,12 @@ class InvariantChecker {
 
         const statementsWithImplications = new Set<string>();
         for (const log of implLogs) {
-          const args = log.args as { fromStatementId?: `0x${string}`; toStatementId?: `0x${string}` } | undefined;
-          if (args?.fromStatementId) {
-            statementsWithImplications.add(padHex(args.fromStatementId, { size: 32 }).toString());
+          const args = log.args as { fromStatementCid?: `0x${string}`; toStatementCid?: `0x${string}` } | undefined;
+          if (args?.fromStatementCid) {
+            statementsWithImplications.add(padHex(args.fromStatementCid, { size: 32 }).toString());
           }
-          if (args?.toStatementId) {
-            statementsWithImplications.add(padHex(args.toStatementId, { size: 32 }).toString());
+          if (args?.toStatementCid) {
+            statementsWithImplications.add(padHex(args.toStatementCid, { size: 32 }).toString());
           }
         }
 

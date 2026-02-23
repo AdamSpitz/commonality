@@ -26,7 +26,7 @@ type Query {
   statementss(where: statementsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): statementsPage!
   beliefs(user: String!, statementId: String!): beliefs
   beliefss(where: beliefsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): beliefsPage!
-  implications(attester: String!, fromStatementId: String!, toStatementId: String!): implications
+  implications(attester: String!, fromStatementCid: String!, toStatementCid: String!): implications
   implicationss(where: implicationsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): implicationsPage!
   users(id: String!): users
   userss(where: usersFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): usersPage!
@@ -160,8 +160,8 @@ type implicationsPage {
 
 type implications {
   attester: attesters
-  fromStatementId: String!
-  toStatementId: String!
+  fromStatementCid: String!
+  toStatementCid: String!
   createdAt: BigInt!
   blockNumber: BigInt!
   fromStatement: statements
@@ -188,26 +188,26 @@ input implicationsFilter {
   attester_ends_with: String
   attester_not_starts_with: String
   attester_not_ends_with: String
-  fromStatementId: String
-  fromStatementId_not: String
-  fromStatementId_in: [String]
-  fromStatementId_not_in: [String]
-  fromStatementId_contains: String
-  fromStatementId_not_contains: String
-  fromStatementId_starts_with: String
-  fromStatementId_ends_with: String
-  fromStatementId_not_starts_with: String
-  fromStatementId_not_ends_with: String
-  toStatementId: String
-  toStatementId_not: String
-  toStatementId_in: [String]
-  toStatementId_not_in: [String]
-  toStatementId_contains: String
-  toStatementId_not_contains: String
-  toStatementId_starts_with: String
-  toStatementId_ends_with: String
-  toStatementId_not_starts_with: String
-  toStatementId_not_ends_with: String
+  fromStatementCid: String
+  fromStatementCid_not: String
+  fromStatementCid_in: [String]
+  fromStatementCid_not_in: [String]
+  fromStatementCid_contains: String
+  fromStatementCid_not_contains: String
+  fromStatementCid_starts_with: String
+  fromStatementCid_ends_with: String
+  fromStatementCid_not_starts_with: String
+  fromStatementCid_not_ends_with: String
+  toStatementCid: String
+  toStatementCid_not: String
+  toStatementCid_in: [String]
+  toStatementCid_not_in: [String]
+  toStatementCid_contains: String
+  toStatementCid_not_contains: String
+  toStatementCid_starts_with: String
+  toStatementCid_ends_with: String
+  toStatementCid_not_starts_with: String
+  toStatementCid_not_ends_with: String
   createdAt: BigInt
   createdAt_not: BigInt
   createdAt_in: [BigInt]
