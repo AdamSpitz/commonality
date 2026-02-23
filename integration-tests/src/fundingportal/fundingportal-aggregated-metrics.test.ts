@@ -159,7 +159,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p1Details.assuranceContractAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
     await attestAlignmentChecked(
       attesterClients,
@@ -167,7 +167,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p2Details.assuranceContractAddress,
       s2Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     testLog(`  Alignments attested`);
@@ -391,7 +391,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p1Details.assuranceContractAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
     await attestAlignmentChecked(
       attesterClients,
@@ -399,7 +399,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p2Details.assuranceContractAddress,
       s2Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Query all aligned projects for S2

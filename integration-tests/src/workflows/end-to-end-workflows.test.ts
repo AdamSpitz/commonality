@@ -132,7 +132,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
-        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+        PROJECT_ALIGNMENT_TOPIC
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
       testLog('  ✓ Alignment properties verified');
@@ -277,7 +277,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
-        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+        PROJECT_ALIGNMENT_TOPIC
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
       testLog('  ✓ Alignment properties verified');
@@ -396,7 +396,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statement1Cid,
-        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+        PROJECT_ALIGNMENT_TOPIC
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
       testLog('  ✓ Alignment properties verified');

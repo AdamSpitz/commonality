@@ -19,6 +19,7 @@ import {
   AlignmentAttestationsAbi,
   PubstarterAbi,
   PROJECT_ALIGNMENT_TOPIC,
+  fakeIpfsCidV1,
 } from '@commonality/sdk';
 import {
   getAlignedSubjects,
@@ -87,7 +88,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 1000n * 10n**18n, // 1000 ETH
       deadline: BigInt(currentTime + 86400 * 30), // 30 days from now
-      projectMetadataCid: 'QmTestProjectCid' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('TestProjectCid'),
       tokenIds: [1n, 2n],
       tokenCounts: [100n, 50n],
       tokenPrices: [10n * 10n**18n, 20n * 10n**18n], // 10 ETH, 20 ETH
@@ -104,7 +105,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       projectDetails.tokenAddress,
       statementCid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     testLog('  ✓ Alignment attested successfully (verified by property checks)');
@@ -134,7 +135,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 500n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmTestProjectCid2' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('TestProjectCid2'),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [5n * 10n**18n],
@@ -151,7 +152,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       projectDetails.tokenAddress,
       statementCid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Attester 2 also attests the same alignment
@@ -162,7 +163,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       projectDetails.tokenAddress,
       statementCid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     testLog('  ✓ Multiple attesters tracked independently (verified by property checks)');
@@ -214,7 +215,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 100n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmProject1' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('TestProjectCid1'),
       tokenIds: [1n],
       tokenCounts: [50n],
       tokenPrices: [2n * 10n**18n],
@@ -228,7 +229,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 200n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmProject2' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('TestProjectCid2'),
       tokenIds: [1n],
       tokenCounts: [75n],
       tokenPrices: [3n * 10n**18n],
@@ -246,7 +247,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       machinery,
       [project1.tokenAddress, project2.tokenAddress],
       [statement1Cid, statement2Cid],
-      [PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1, PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1]
+      [PROJECT_ALIGNMENT_TOPIC, PROJECT_ALIGNMENT_TOPIC]
     );
 
     testLog('  ✓ Batch attestations recorded successfully (verified by property checks)');
@@ -290,7 +291,7 @@ describe('Funding Portal - Alignment Attestations', () => {
       recipient: projectOwnerClients.account,
       threshold: 300n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmMultiStatement' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('TestProjectCidMulti'),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [3n * 10n**18n],
@@ -308,7 +309,7 @@ describe('Funding Portal - Alignment Attestations', () => {
         machinery,
         projectDetails.tokenAddress,
         statementCids[i],
-        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+        PROJECT_ALIGNMENT_TOPIC
       );
     }
 

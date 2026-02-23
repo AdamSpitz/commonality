@@ -125,7 +125,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       machinery,
       p1Details.assuranceContractAddress,
       causeCid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
     await attestAlignmentChecked(
       attesterClients,
@@ -133,7 +133,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       machinery,
       p2Details.assuranceContractAddress,
       causeCid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Contributors make contributions
@@ -306,7 +306,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       machinery,
       pDetails.assuranceContractAddress,
       causeCid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Make contributions

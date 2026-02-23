@@ -1,4 +1,4 @@
-import { IpfsCidV1, isIpfsCidV1 } from '@commonality/sdk';
+import { ensureIpfsCidV1, IpfsCidV1 } from '@commonality/sdk';
 import { loadConfig } from './config.js';
 
 export interface IpfsResult {
@@ -19,11 +19,8 @@ export async function uploadToIpfs(content: string): Promise<IpfsResult> {
   }
 
   const data = await response.json() as { Hash: string; Size: number };
-  if (!isIpfsCidV1(data.Hash)) {
-    throw new Error(`Invalid IPFS CID: ${data.Hash}`);
-  }
   return {
-    cid: data.Hash,
+    cid: ensureIpfsCidV1(data.Hash),
     size: data.Size,
   };
 }

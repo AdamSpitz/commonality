@@ -6,7 +6,7 @@ import {
   PubstarterAbi,
   AssuranceContractAbi,
   cidToBytes32,
-  IpfsCidBytes32,
+  fakeIpfsCidV1,
   IpfsCidV1,
 } from '@commonality/sdk';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
@@ -108,7 +108,7 @@ class AttackScenarios {
   users: User[];
   statements: Statement[];
   sybilWallets: SybilWallet[];
-  spamStatements: Array<{ id: `0x${string}`; content: Record<string, unknown>; creator: `0x${string}` }>;
+  spamStatements: Array<{ cid: IpfsCidV1; content: Record<string, unknown>; creator: `0x${string}` }>;
   maliciousAttestations: Array<{ from: string; to: string; attacker: `0x${string}` }>;
   results: {
     sybil: AttackResult;
@@ -248,13 +248,13 @@ class AttackScenarios {
         };
 
         // Generate a random statement ID for spam
-        const spamId = keccak256(toBytes(`spam_${i}_${Date.now()}`));
+        const spamId = fakeIpfsCidV1(`spam_${i}_${Date.now()}`);
 
-        await believeStatement(clients, this.contracts.beliefs!, spamId as unknown as IpfsCidV1);
+        await believeStatement(clients, this.contracts.beliefs!, spamId);
 
         successfulSpam++;
         this.spamStatements.push({
-          id: spamId,
+          cid: spamId,
           content: statementContent,
           creator: spammer.address
         });

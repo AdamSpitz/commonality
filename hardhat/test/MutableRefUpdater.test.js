@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import hre from "hardhat";
+import { fakeIpfsCidV1 } from "../../sdk/src/cid-types";
 const { ethers } = hre;
 
 describe("MutableRefUpdater", function () {
@@ -132,7 +133,7 @@ describe("MutableRefUpdater", function () {
 
     it("Should handle long ref values", async function () {
       // IPFS CIDv1 can be quite long, plus we might store JSON with multiple CIDs
-      const longValue = "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi,bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi,bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi";
+      const longValue = [fakeIpfsCidV1("meaningless-value1"), fakeIpfsCidV1("meaningless-value2"), fakeIpfsCidV1("meaningless-value3")].join(",");
 
       await mutableRefUpdater.connect(alice).updateRef("long-ref", longValue);
       const retrieved = await mutableRefUpdater.getRef(alice.address, "long-ref");

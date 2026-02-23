@@ -54,7 +54,7 @@ Old code created both:
   as IpfsCidV1`; removed `cidToBytes32` import
 - `integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts` — removed extra
   `s1Id`/`s2Id` extra args from `attestAlignmentChecked`; replaced `s2Id`/`causeId` with Cid
-  forms in graphql helper calls; added `PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1` casts;
+  forms in graphql helper calls; added `PROJECT_ALIGNMENT_TOPIC` casts;
   added `IpfsCidV1` import
 - `integration-tests/src/fundingportal/fundingportal-alignment.test.ts` — removed `cidToBytes32`
   import; removed `statementIds` declaration; removed extra `statementId`/`statementIds[i]` args
@@ -83,7 +83,7 @@ Old code created both:
     `statement2Id` → `statement2Cid`
   - Lines ~511: `belief.id` → `belief.statementCid` in `getImplicationsFrom(machinery, belief.id, ...)`
   - Lines ~529: `statement2Id` → `statement2Cid` in `suggestions.some(...)` comparison
-  - `PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1` needed in `attestAlignmentChecked` calls
+  - `PROJECT_ALIGNMENT_TOPIC` needed in `attestAlignmentChecked` calls
 
 - `integration-tests/src/delegation/delegation-spending.test.ts` (CHECK IF EXISTS)
   - `'QmProjectMetadata'` and similar string literals passed as `projectMetadataCid` need
@@ -95,7 +95,7 @@ Old code created both:
 but `attestAlignmentChecked` expects `topicStatementCid: IpfsCidV1` as its 6th argument.
 These are fundamentally different things — a keccak hash is NOT an IPFS CID.
 
-The workaround applied throughout is: `PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1`
+The workaround applied throughout is: `PROJECT_ALIGNMENT_TOPIC`
 
 This suppresses the TypeScript error but the runtime behavior should be reviewed. Either:
 a) `PROJECT_ALIGNMENT_TOPIC` should be redefined as a proper `IpfsCidV1` in the SDK, or

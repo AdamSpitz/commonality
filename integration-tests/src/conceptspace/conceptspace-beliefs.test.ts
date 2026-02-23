@@ -20,6 +20,7 @@ import {
   type IpfsCidV1,
   assertNotNull,
   BeliefsAbi,
+  fakeIpfsCidV1,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { assertBeliefCountsMatch, assertNoOrphanedData } from '../utils/invariants.js';
@@ -196,7 +197,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Test that it returns null for non-existent statement
     testLog('  Testing non-existent statement...');
-    const nonExistentId = 'bafybeiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as IpfsCidV1;
+    const nonExistentId = fakeIpfsCidV1('non-existent');
     const nonExistentResult = await getStatementWithContent(machinery, nonExistentId);
     assert.strictEqual(nonExistentResult, null, 'Should return null for non-existent statement');
 

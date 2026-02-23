@@ -11,6 +11,7 @@ import {
   ERC1155SecondaryMarketAbi,
   DelegatableNotesAbi,
   type IpfsCidV1,
+  fakeIpfsCidV1,
 } from '@commonality/sdk';
 import {
   createProject as sdkCreateProject,
@@ -200,7 +201,7 @@ class FundingAndDelegationActions {
 
     const threshold = parseEther((Math.random() * 5 + 1).toFixed(2));
     const deadline = BigInt(Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60));
-    const projectMetadataCid: IpfsCidV1 = `bafy${Math.floor(Math.random() * 10000)}`; // TODO fix this
+    const projectMetadataCid: IpfsCidV1 = fakeIpfsCidV1(`project-metadata-${Math.floor(Math.random() * 10000)}`);
 
     const tokenIds = [1n, 2n, 3n];
     const maxSupplies = [100n, 500n, 1000n];

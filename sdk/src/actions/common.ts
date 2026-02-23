@@ -18,7 +18,7 @@ import { CID } from 'multiformats/cid';
 import * as raw from 'multiformats/codecs/raw';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { Buffer } from 'buffer';
-import { IpfsCidV1, isIpfsCidV1 } from '../cid-types';
+import { ensureIpfsCidV1, fakeIpfsCidV1, IpfsCidV1 } from '../cid-types';
 
 // Safe environment variable access that works in both Node.js and browser
 function getEnvVar(name: string): string | undefined {
@@ -83,9 +83,7 @@ export function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://lo
  * "This is the topic for project alignment attestations". This would allow
  * the topic itself to be fetched and displayed in UIs.
  */
-export const PROJECT_ALIGNMENT_TOPIC: `0x${string}` = keccak256(
-  toBytes("project-alignment-attestations")
-);
+export const PROJECT_ALIGNMENT_TOPIC: IpfsCidV1 = fakeIpfsCidV1('ProjectAlignmentTopic');
 
 // ============================================================================
 // IPFS Helpers
@@ -215,10 +213,7 @@ export async function uploadToIPFS(content: object): Promise<IpfsCidV1> {
       }
 
       const result = await response.json() as { Hash: string };
-      if (!isIpfsCidV1(result.Hash)) {
-        throw new Error(`Invalid CID returned from IPFS upload: ${result.Hash}`);
-      }
-      return result.Hash as IpfsCidV1;
+      return ensureIpfsCidV1(result.Hash);
     } catch (error) {
       console.warn('IPFS upload failed, falling back to mock mode:', error);
       // Fall through to mock mode
@@ -237,13 +232,8 @@ export async function uploadToMockIPFS(content: object): Promise<IpfsCidV1> {
   const bytes = Buffer.from(JSON.stringify(content));
   const hash = await sha256.digest(bytes);
   const cid = CID.create(1, raw.code, hash);
-  const cidString = cid.toString();
-  if (!isIpfsCidV1(cidString)) {
-    throw new Error(`Generated CID is not valid CIDv1: ${cidString}`);
-  }
-
+  const cidString = ensureIpfsCidV1(cid.toString());
   // Store in mock IPFS so it can be fetched later
   mockIPFSStore.set(cidString, content);
-
   return cidString;
 }

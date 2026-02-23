@@ -10,16 +10,19 @@ import { CID } from "multiformats";
 export type IpfsCidV1 = `b${string}`;
 export type IpfsCidBytes32 = `0x${string}`;
 
-export function isIpfsCidV1(value: string): value is IpfsCidV1 {
-  return value.startsWith("bafy") || value.startsWith("Qm");
+export function ensureIpfsCidV1(value: string): IpfsCidV1 {
+  if (!isValidCidV1(value)) {
+    throw new Error(`Invalid IPFS CIDv1: ${value}`);
+  }
+  return value;
 }
 
 export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
   return value.startsWith("0x") && value.length === 66;
 }
 
-export function isValidCidV1(cid: string): boolean {
-  return /^Qm[a-zA-Z0-9]{44}$/.test(cid) || /^baf[a-zA-Z0-9]{59}$/.test(cid);
+export function isValidCidV1(cid: string): cid is IpfsCidV1 {
+  return /^baf[a-zA-Z0-9]{59}$/.test(cid);
 }
 /**
  * Convert IPFS CID to bytes32 for onchain storage
@@ -59,10 +62,5 @@ export function bytes32ToCid(bytes32: IpfsCidBytes32): IpfsCidV1 {
 
   // Create CID - using dag-pb codec (0x70) for JSON content
   const cid = CID.createV1(0x70, { code: 0x12, size: 32, digest: multihash.slice(2), bytes: multihash });
-
-  if (!isValidCidV1(cid.toString())) {
-    throw new Error(`Invalid CID generated from bytes32: ${cid.toString()}`);
-  }
-  
-  return cid.toString() as IpfsCidV1;
+  return ensureIpfsCidV1(cid.toString());
 }

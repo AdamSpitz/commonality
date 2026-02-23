@@ -25,7 +25,7 @@ import {
   type CauseFundingMetrics,
   type ContributorStats,
 } from '../shared/types/funding-portals.js';
-import { IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
+import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
 import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================
@@ -49,7 +49,7 @@ export async function getAlignedSubjects(
     attester: item.attester,
     subjectAddress: item.projectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: 'bafywhatever', // TODO: what should go here?
+    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));
@@ -75,7 +75,7 @@ export async function getSubjectStatements(
     attester: item.attester,
     subjectAddress: item.projectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: 'bafywhatever', // TODO: what should go here?
+    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));
@@ -104,7 +104,7 @@ export async function getAlignmentAttestation(
     attester: item.attester,
     subjectAddress: item.projectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: 'bafywhatever', // TODO: what should go here?
+    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   };
@@ -128,7 +128,7 @@ export async function getAlignmentsByAttester(
     attester: item.attester,
     subjectAddress: item.projectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: 'bafywhatever', // TODO: what should go here?
+    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));

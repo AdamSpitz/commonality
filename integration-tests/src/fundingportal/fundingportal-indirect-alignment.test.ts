@@ -20,6 +20,7 @@ import {
   AlignmentAttestationsAbi,
   PubstarterAbi,
   ImplicationsAbi,
+  fakeIpfsCidV1,
 } from '@commonality/sdk';
 import {
   getAlignedProjects,
@@ -112,7 +113,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 1000n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmRenewableEnergy' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('RenewableEnergyProjectMetadata'),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [10n * 10n**18n],
@@ -129,7 +130,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery ,
       projectDetails.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Verify direct alignment with S1
@@ -235,7 +236,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 500n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmHousingProject' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('HousingProjectMetadata'),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [5n * 10n**18n],
@@ -250,7 +251,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 300n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmPovertyProject' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('PovertyProjectMetadata'),
       tokenIds: [1n],
       tokenCounts: [50n],
       tokenPrices: [6n * 10n**18n],
@@ -265,7 +266,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectA.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Align Project B directly with S2
@@ -276,7 +277,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectB.tokenAddress,
       s2Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Query S2 for direct alignments only
@@ -375,7 +376,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 800n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmSolarPanels' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('SolarPanelsProjectMetadata'),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [8n * 10n**18n],
@@ -389,7 +390,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectDetails.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Query for indirect alignment with S2 (one level up)
@@ -486,7 +487,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       recipient: projectOwner.account,
       threshold: 400n * 10n**18n,
       deadline: BigInt(currentTime + 86400 * 30),
-      projectMetadataCid: 'QmTransportProject' as unknown as IpfsCidV1,
+      projectMetadataCid: fakeIpfsCidV1('TransportProjectMetadata'),
       tokenIds: [1n],
       tokenCounts: [80n],
       tokenPrices: [5n * 10n**18n],
@@ -499,7 +500,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       machinery,
       projectDetails.tokenAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     // Query S2 trusting only attester 1

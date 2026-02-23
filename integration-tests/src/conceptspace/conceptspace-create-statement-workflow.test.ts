@@ -16,6 +16,7 @@ import {
   type BeliefsContract,
   type MutableRefUpdaterContract,
   cidToBytes32,
+  fakeIpfsCidV1,
 } from '@commonality/sdk';
 import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
@@ -180,8 +181,8 @@ describe('Conceptspace Create Statement Workflow', () => {
     const statementData = createStatement({
       content: 'I support [renewable energy](ref:0) and [healthcare reform](ref:1) because they lead to better outcomes.',
       references: [
-        { cid: 'bafyreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', label: 'renewable energy' },
-        { cid: 'bafyreibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', label: 'healthcare reform' },
+        { cid: fakeIpfsCidV1('renewable-energy'), label: 'renewable energy' },
+        { cid: fakeIpfsCidV1('healthcare-reform'), label: 'healthcare reform' },
       ],
     });
 

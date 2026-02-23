@@ -10,6 +10,7 @@ import {
 } from './displayable-document.js';
 import type { DisplayableDocument } from './displayable-document.js';
 import { clearMockIPFS } from './actions/common.js';
+import { fakeIpfsCidV1 } from './cid-types.js';
 
 // ============================================================================
 // toCanonicalJson
@@ -230,7 +231,7 @@ describe('validateDisplayableDocument', () => {
         format: 'text/plain',
         content: 'hello',
         assets: {
-          diagram: { mimeType: 'image/svg+xml', cid: 'bafyrei123' },
+          diagram: { mimeType: 'image/svg+xml', cid: fakeIpfsCidV1('diagram') },
         },
       });
       assert.strictEqual(result.valid, true);
@@ -241,7 +242,7 @@ describe('validateDisplayableDocument', () => {
         format: 'text/plain',
         content: 'hello',
         assets: {
-          bad: { mimeType: 'image/png', data: 'base64', cid: 'bafyrei' },
+          bad: { mimeType: 'image/png', data: 'base64', cid: fakeIpfsCidV1('bad') },
         },
       });
       assert.strictEqual(result.valid, false);
@@ -297,7 +298,7 @@ describe('validateDisplayableDocument', () => {
       const result = validateDisplayableDocument({
         format: 'text/plain',
         content: 'hello',
-        references: [{ cid: 'bafyrei123' }],
+        references: [{ cid: fakeIpfsCidV1('reference-cid') }],
       });
       assert.strictEqual(result.valid, true);
     });
@@ -306,7 +307,7 @@ describe('validateDisplayableDocument', () => {
       const result = validateDisplayableDocument({
         format: 'text/plain',
         content: 'hello',
-        references: [{ cid: 'bafyrei123', label: 'Related doc' }],
+        references: [{ cid: fakeIpfsCidV1('reference-cid'), label: 'Related doc' }],
       });
       assert.strictEqual(result.valid, true);
     });
@@ -325,7 +326,7 @@ describe('validateDisplayableDocument', () => {
       const result = validateDisplayableDocument({
         format: 'text/plain',
         content: 'hello',
-        references: [{ cid: 'bafyrei123', label: 42 }],
+        references: [{ cid: fakeIpfsCidV1('reference-cid'), label: 42 }],
       });
       assert.strictEqual(result.valid, false);
       assert.ok(result.errors.some(e => e.includes('label')));
@@ -411,7 +412,7 @@ describe('createDisplayableDocument', () => {
       assets: {
         logo: { mimeType: 'image/png', data: 'base64data' },
       },
-      references: [{ cid: 'bafyrei123', label: 'Related' }],
+      references: [{ cid: fakeIpfsCidV1('reference-cid'), label: 'Related' }],
       extras: { topic: 'test' },
     });
     assert.strictEqual(doc.format, 'markdown-restricted');
@@ -532,7 +533,7 @@ describe('createStatement', () => {
   it('includes references when provided', () => {
     const doc = createStatement({
       content: 'See [related](ref:0)',
-      references: [{ cid: 'bafyrei123' }],
+      references: [{ cid: fakeIpfsCidV1('reference-cid') }],
     });
     assert.ok(doc.references);
     assert.strictEqual(doc.references!.length, 1);
@@ -662,7 +663,7 @@ describe('fetchDocument', () => {
       assets: {
         logo: { mimeType: 'image/png', data: 'base64data' },
       },
-      references: [{ cid: 'bafyrei123', label: 'Related doc' }],
+      references: [{ cid: fakeIpfsCidV1('reference-cid'), label: 'Related doc' }],
       extras: { topic: 'test', nested: { a: 1 } },
     });
     const cid = await publishDocument(doc);
@@ -677,7 +678,7 @@ describe('fetchDocument', () => {
   });
 
   it('returns null for a non-existent CID', async () => {
-    const result = await fetchDocument('bafyreifake123nonexistent');
+    const result = await fetchDocument(fakeIpfsCidV1('nonexistent'));
     assert.strictEqual(result, null);
   });
 

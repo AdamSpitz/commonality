@@ -13,22 +13,23 @@ const DAG_PB_CODE = 0x70;
 export type IpfsCidV1 = `b${string}`;
 export type IpfsCidBytes32 = `0x${string}`;
 
-export function isIpfsCidV1(value: string): value is IpfsCidV1 {
-  return value.startsWith("bafy") || value.startsWith("Qm");
-}
-
 export function ensureIpfsCidV1(value: string): IpfsCidV1 {
-  if (!isIpfsCidV1(value)) {
+  if (!isValidCidV1(value)) {
     throw new Error(`Invalid IPFS CIDv1: ${value}`);
   }
   return value;
+}
+
+export function fakeIpfsCidV1(meaninglessValue: string): IpfsCidV1 {
+  // TODO: remove all callers of this function.
+  return `bafy${sha256.digest(new TextEncoder().encode(meaninglessValue)).toString()}` as IpfsCidV1;
 }
 
 export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
   return value.startsWith("0x") && value.length === 66;
 }
 
-export function isValidCidV1(cid: string): boolean {
+export function isValidCidV1(cid: string): cid is IpfsCidV1 {
   return /^baf[a-zA-Z0-9]{59}$/.test(cid);
 }
 
@@ -59,10 +60,7 @@ export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
     bytes: new Uint8Array([0x12, 0x20, ...digestBytes]) // 0x12 = sha256 code, 0x20 = 32 bytes
   };
   const cid = CID.create(1, DAG_PB_CODE, hash);
-  if (!isValidCidV1(cid.toString())) {
-    throw new Error(`Invalid CID generated from bytes32: ${cid.toString()}`);
-  }
-  return cid.toString() as IpfsCidV1;
+  return ensureIpfsCidV1(cid.toString());
 }
 
 // ============================================================================

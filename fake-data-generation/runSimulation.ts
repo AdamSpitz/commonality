@@ -21,6 +21,7 @@ import {
   createStatement,
   publishDocument,
   type IpfsCidV1,
+  fakeIpfsCidV1,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
@@ -118,10 +119,7 @@ async function disbelieveStatement(
   return hash;
 }
 
-// I got this by running:
-// echo -n "project-alignment-attestations" | ipfs add --cid-version=1 --raw-leaves --only-hash -Q
-// TODO: This is not actually right. Replace this with the CID of a real statement.
-const PROJECT_ALIGNMENT_TOPIC = "bafkreifgwnffoo523mfqv6v6w5f4qhja2ugcgjxpobjbqd7azef7jbgsdm";
+const PROJECT_ALIGNMENT_TOPIC: IpfsCidV1 = fakeIpfsCidV1('ProjectAlignmentTopic');
 
 async function attestImplication(
   clients: TestClients,
@@ -580,7 +578,7 @@ class SimulationRunner {
             this.contracts.alignmentAttestations!,
             projectAddress,
             stmt.cid!,
-            PROJECT_ALIGNMENT_TOPIC as IpfsCidV1
+            PROJECT_ALIGNMENT_TOPIC
           );
           receipt = await publicClient.getTransactionReceipt({ hash });
 
