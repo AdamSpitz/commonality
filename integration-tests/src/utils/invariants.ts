@@ -9,8 +9,17 @@
 
 import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
-import { getIndirectSupporterCount, SDKMachinery, bytes32ToCid, IpfsCidV1 } from '@commonality/sdk';
-import { getIndirectSupporters } from './graphql-helpers.js';
+import {
+  getIndirectSupporterCount, getIndirectSupporters, SDKMachinery, IpfsCidV1,
+  getProject, getProjectContributions, getProjectRefunds,
+  getTokenBurns, getNote, getDelegationChain,
+  getUserRef, getRef, getUserRefHistory,
+  getImplicationsFrom,
+  getUserBelief,
+  getMarketplaceTrades,
+} from '@commonality/sdk';
+import { createIsolatedTestClients } from './test-utils.js';
+
 
 
 /**
@@ -161,9 +170,6 @@ export async function assertMoneyConservation(
   machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getProject, getProjectContributions, getProjectRefunds } = await import('./graphql-helpers.js');
-
   // Get the project with its cached totalReceived
   const project = await getProject(machinery, projectAddress.toLowerCase());
 
@@ -228,9 +234,6 @@ export async function assertTokenConservation(
   machinery: ActionTestingMachinery,
   projectAddress: string
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getProjectContributions, getTokenBurns } = await import('./graphql-helpers.js');
-
   // Get all contributions for this project (tokens purchased)
   const contributions = await getProjectContributions(machinery, projectAddress.toLowerCase());
   // Get the ERC1155 address from the first contribution
@@ -320,9 +323,6 @@ export async function assertDelegationChainIntegrity(
   machinery: ActionTestingMachinery,
   noteId: string
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getNote, getDelegationChain } = await import('./graphql-helpers.js');
-
   // Get the note
   const note = await getNote(machinery, noteId);
   if (!note) {
@@ -409,9 +409,6 @@ export async function assertTradeDataConsistency(
   marketplaceAddress: string,
   transactionHash: string
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getMarketplaceTrades } = await import('./graphql-helpers.js');
-
   // Get all trades for this marketplace
   const allTrades = await getMarketplaceTrades(machinery, marketplaceAddress);
 
@@ -821,9 +818,6 @@ export async function assertMonotonicProjectFunding(
   expectedBefore: bigint,
   allowRefunds: boolean = false
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getProject } = await import('./graphql-helpers.js');
-
   // Get the current project state
   const project = await getProject(machinery, projectAddress.toLowerCase());
 
@@ -884,9 +878,6 @@ export async function assertAssuranceContractRefundLogic(
   currentBlockTimestamp: bigint,
   shouldAllowRefunds?: boolean
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getProject } = await import('./graphql-helpers.js');
-
   // Get the project state
   const project = await getProject(machinery, projectAddress.toLowerCase());
 
@@ -1087,9 +1078,6 @@ export async function assertImplicationBidirectionality(
   toStatementCid: IpfsCidV1,
   attesterAddress: string
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getImplicationsFrom } = await import('./graphql-helpers.js');
-
   const normalizedAttester = attesterAddress.toLowerCase();
 
   // Query the indexer for implications from this statement
@@ -1191,12 +1179,6 @@ export async function assertImplicationNonTransitivity(
 ): Promise<void> {
   // Import SDK constants and query functions dynamically to avoid circular dependencies
   const { BELIEVES, DISBELIEVES } = await import('@commonality/sdk');
-  const {
-    getImplicationsFrom,
-    getIndirectSupporters,
-    getUserBelief,
-  } = await import('./graphql-helpers.js');
-
   const normalizedAttester = attesterAddress.toLowerCase();
   const normalizedBeliever = believerAddress.toLowerCase();
 
@@ -1320,11 +1302,6 @@ export async function assertRefContractIndexerConsistency(
   userAddress: string,
   refName: string
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getUserRef } = await import('./graphql-helpers.js');
-  const { getRef } = await import('@commonality/sdk');
-  const { createIsolatedTestClients } = await import('./test-utils.js');
-
   // Get value from indexer
   const indexerRef = await getUserRef(machinery, userAddress, refName);
   const indexerValue = indexerRef?.value ?? '';
@@ -1364,9 +1341,6 @@ export async function assertRefHistoryOrdering(
   userAddress: string,
   refName: string
 ): Promise<void> {
-  // Import query functions dynamically to avoid circular dependencies
-  const { getUserRefHistory } = await import('./graphql-helpers.js');
-
   // Get history
   const history = await getUserRefHistory(machinery, userAddress, refName);
 

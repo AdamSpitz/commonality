@@ -451,7 +451,7 @@ export async function getStatementSuggestions(
 }
 
 // ============================================================================
-// Composite Functions (formerly in graphql-queries/conceptspace.ts)
+// Composite Functions
 // ============================================================================
 
 export interface StatementWithContent {
