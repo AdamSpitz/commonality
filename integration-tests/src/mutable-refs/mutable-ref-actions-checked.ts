@@ -7,7 +7,7 @@
  * Usage:
  *   // Instead of:
  *   await updateRef(clients, contract, refName, value);
- *   await waitForIndexerToSyncToTxHash(machinery.graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(machinery, publicClient);
  *
  *   // Write:
  *   await updateRefChecked(clients, contract, machinery, refName, value);
@@ -86,7 +86,7 @@ export async function updateRefChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await updateRef(clients, mutableRefContract, refName, value);
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     updateRefMetadata,
@@ -148,7 +148,7 @@ export async function appendToUserListChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await appendToUserList(machinery, clients, mutableRefContract, refName, itemToAppend);
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     appendToUserListMetadata,

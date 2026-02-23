@@ -27,6 +27,13 @@ export {
   getUserBeliefs,
   getUserDisbeliefs,
   getStatementSuggestions,
+  // Composite functions
+  getStatementWithContent,
+  getUserIndirectSupport,
+  type StatementWithContent,
+  type GetStatementWithContentOptions,
+  type IndirectSupportInfo,
+  type GetUserIndirectSupportOptions,
 } from './conceptspace-queries.js';
 
 export {

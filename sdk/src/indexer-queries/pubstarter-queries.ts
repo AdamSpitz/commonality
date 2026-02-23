@@ -3,7 +3,6 @@
  */
 
 import { request } from 'graphql-request';
-import { type GraphQLClient } from '../utils/graphqlClient.js';
 import {
   GetProjectDocument,
   GetAllProjectsDocument,
@@ -36,6 +35,7 @@ import {
   type SortDirection,
   type ProjectWithMetrics,
 } from '../shared/types/pubstarter.js';
+import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================
 // Pubstarter Queries
@@ -45,10 +45,10 @@ import {
  * Get project by assurance contract address (which is the project id)
  */
 export async function getProject(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Project | null> {
-  const result = await request(client.url, GetProjectDocument, {
+  const result = await request(machinery.graphqlClient.url, GetProjectDocument, {
     id: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields (threshold, deadline, totalReceived) come as strings at runtime
@@ -59,9 +59,9 @@ export async function getProject(
  * Get all projects
  */
 export async function getAllProjects(
-  client: GraphQLClient
+  machinery: SDKMachinery
 ): Promise<Project[]> {
-  const result = await request(client.url, GetAllProjectsDocument);
+  const result = await request(machinery.graphqlClient.url, GetAllProjectsDocument);
   // BigInt fields come as strings at runtime
   return (result.projectss?.items ?? []) as unknown as Project[];
 }
@@ -74,13 +74,13 @@ export async function getAllProjects(
  * Get all projects with optional filtering and sorting.
  * Note: Some sorting (like fundingProgress) requires client-side computation.
  *
- * @param client GraphQL client
+ * @param machinery SDK machinery instance
  * @param filters Optional filters to apply
  * @param sortBy Field to sort by
  * @param sortDirection Sort direction (asc or desc)
  */
 export async function getProjectsFiltered(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   filters?: ProjectFilterOptions,
   sortBy?: ProjectSortField,
   sortDirection: SortDirection = 'desc'
@@ -88,7 +88,7 @@ export async function getProjectsFiltered(
   // For fundingProgress sort, omit orderBy (sort client-side after fetching)
   const serverOrderBy = sortBy && sortBy !== 'fundingProgress' ? sortBy : undefined;
 
-  const result = await request(client.url, GetProjectsFilteredDocument, {
+  const result = await request(machinery.graphqlClient.url, GetProjectsFilteredDocument, {
     minDeadline: (filters?.minDeadline ?? null) as unknown as bigint | null,
     maxDeadline: (filters?.maxDeadline ?? null) as unknown as bigint | null,
     minThreshold: (filters?.minThreshold ?? null) as unknown as bigint | null,
@@ -131,60 +131,60 @@ export async function getProjectsFiltered(
  * Get projects sorted by date created (newest first by default).
  */
 export async function getProjectsByDate(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   sortDirection: SortDirection = 'desc'
 ): Promise<ProjectWithMetrics[]> {
-  return getProjectsFiltered(client, undefined, 'createdAt', sortDirection);
+  return getProjectsFiltered(machinery, undefined, 'createdAt', sortDirection);
 }
 
 /**
  * Get projects sorted by deadline (soonest first by default).
  */
 export async function getProjectsByDeadline(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   sortDirection: SortDirection = 'asc'
 ): Promise<ProjectWithMetrics[]> {
-  return getProjectsFiltered(client, undefined, 'deadline', sortDirection);
+  return getProjectsFiltered(machinery, undefined, 'deadline', sortDirection);
 }
 
 /**
  * Get projects sorted by funding goal/threshold (highest first by default).
  */
 export async function getProjectsByFundingGoal(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   sortDirection: SortDirection = 'desc'
 ): Promise<ProjectWithMetrics[]> {
-  return getProjectsFiltered(client, undefined, 'threshold', sortDirection);
+  return getProjectsFiltered(machinery, undefined, 'threshold', sortDirection);
 }
 
 /**
  * Get projects sorted by funding progress (most funded first by default).
  */
 export async function getProjectsByFundingProgress(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   sortDirection: SortDirection = 'desc'
 ): Promise<ProjectWithMetrics[]> {
-  return getProjectsFiltered(client, undefined, 'fundingProgress', sortDirection);
+  return getProjectsFiltered(machinery, undefined, 'fundingProgress', sortDirection);
 }
 
 /**
  * Get projects sorted by amount raised (highest first by default).
  */
 export async function getProjectsByAmountRaised(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   sortDirection: SortDirection = 'desc'
 ): Promise<ProjectWithMetrics[]> {
-  return getProjectsFiltered(client, undefined, 'totalReceived', sortDirection);
+  return getProjectsFiltered(machinery, undefined, 'totalReceived', sortDirection);
 }
 
 /**
  * Get project tokens for a project
  */
 export async function getProjectTokens(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<ProjectToken[]> {
-  const result = await request(client.url, GetProjectTokensDocument, {
+  const result = await request(machinery.graphqlClient.url, GetProjectTokensDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields (tokenId, price, createdAt) come as strings at runtime
@@ -195,10 +195,10 @@ export async function getProjectTokens(
  * Get contributions for a project
  */
 export async function getProjectContributions(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Contribution[]> {
-  const result = await request(client.url, GetProjectContributionsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetProjectContributionsDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -209,10 +209,10 @@ export async function getProjectContributions(
  * Get contributions by a specific user
  */
 export async function getUserContributions(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   userAddress: string
 ): Promise<Contribution[]> {
-  const result = await request(client.url, GetUserContributionsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserContributionsDocument, {
     participant: userAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -223,10 +223,10 @@ export async function getUserContributions(
  * Get refunds for a specific project
  */
 export async function getProjectRefunds(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Refund[]> {
-  const result = await request(client.url, GetProjectRefundsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetProjectRefundsDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -241,11 +241,11 @@ export async function getProjectRefunds(
  * Get a specific sale listing by marketplace and listing ID
  */
 export async function getSaleListing(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   marketplaceAddress: string,
   listingId: bigint
 ): Promise<SaleListing | null> {
-  const result = await request(client.url, GetSaleListingDocument, {
+  const result = await request(machinery.graphqlClient.url, GetSaleListingDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     listingId,
   });
@@ -257,10 +257,10 @@ export async function getSaleListing(
  * Get all active sale listings for a marketplace
  */
 export async function getActiveSaleListings(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<SaleListing[]> {
-  const result = await request(client.url, GetActiveSaleListingsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetActiveSaleListingsDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -271,11 +271,11 @@ export async function getActiveSaleListings(
  * Get a specific buy order by marketplace and order ID
  */
 export async function getBuyOrder(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   marketplaceAddress: string,
   orderId: bigint
 ): Promise<BuyOrder | null> {
-  const result = await request(client.url, GetBuyOrderDocument, {
+  const result = await request(machinery.graphqlClient.url, GetBuyOrderDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     orderId,
   });
@@ -287,10 +287,10 @@ export async function getBuyOrder(
  * Get all active buy orders for a marketplace
  */
 export async function getActiveBuyOrders(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<BuyOrder[]> {
-  const result = await request(client.url, GetActiveBuyOrdersDocument, {
+  const result = await request(machinery.graphqlClient.url, GetActiveBuyOrdersDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -301,10 +301,10 @@ export async function getActiveBuyOrders(
  * Get all trades for a marketplace
  */
 export async function getMarketplaceTrades(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<Trade[]> {
-  const result = await request(client.url, GetMarketplaceTradesDocument, {
+  const result = await request(machinery.graphqlClient.url, GetMarketplaceTradesDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -315,11 +315,11 @@ export async function getMarketplaceTrades(
  * Get trades for a specific token
  */
 export async function getTokenTrades(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   marketplaceAddress: string,
   tokenId: bigint
 ): Promise<Trade[]> {
-  const result = await request(client.url, GetTokenTradesDocument, {
+  const result = await request(machinery.graphqlClient.url, GetTokenTradesDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     tokenId,
   });
@@ -335,10 +335,10 @@ export async function getTokenTrades(
  * Get all token burns for a specific ERC1155 contract
  */
 export async function getTokenBurns(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   erc1155Address: string
 ): Promise<TokenBurn[]> {
-  const result = await request(client.url, GetTokenBurnsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetTokenBurnsDocument, {
     erc1155Address: erc1155Address.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -349,10 +349,10 @@ export async function getTokenBurns(
  * Get token burns by a specific user
  */
 export async function getUserTokenBurns(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await request(client.url, GetUserTokenBurnsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserTokenBurnsDocument, {
     burner: userAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -363,11 +363,11 @@ export async function getUserTokenBurns(
  * Get token burns for a specific ERC1155 contract by a specific user
  */
 export async function getTokenBurnsByUser(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   erc1155Address: string,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await request(client.url, GetTokenBurnsByUserDocument, {
+  const result = await request(machinery.graphqlClient.url, GetTokenBurnsByUserDocument, {
     erc1155Address: erc1155Address.toLowerCase(),
     burner: userAddress.toLowerCase(),
   });

@@ -7,7 +7,7 @@
  * Usage:
  *   // Instead of:
  *   await attestAlignment(clients, contract, subjectAddress, statementCid, topicStatementCid);
- *   await waitForIndexerToSyncToTxHash(machinery.graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(machinery, publicClient);
  *   // ... manual assertions ...
  *
  *   // Write:
@@ -93,7 +93,7 @@ export async function attestAlignmentChecked(
         statementCid,
         topicStatementCid
       );
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     attestAlignmentMetadata,
@@ -159,7 +159,7 @@ export async function attestAlignmentsBatchChecked(
         statementCids,
         topicStatementCids
       );
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     attestAlignmentsBatchMetadata,

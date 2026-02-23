@@ -43,7 +43,7 @@ const clients = createTestClients(privateKey, rpcUrl);
 const txHash = await believeStatement(clients, beliefsContract, statementCid);
 
 // Wait for indexer to process this transaction
-await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, txHash);
+await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash);
 
 // Query data (now includes the latest changes)
 const statement = await getStatement(machinery, statementId);
@@ -58,11 +58,11 @@ import { waitForIndexerToSyncToTxHash, waitForIndexerToSyncToBlockNumber } from 
 
 // Option 1: Wait for indexer to process a specific transaction (just a convenience wrapper around waitForIndexerToSyncToBlockNumber)
 const txHash = await someContractWrite();
-await waitForIndexerToSyncToTxHash(graphqlClient, publicClient, txHash);
+await waitForIndexerToSyncToTxHash(machinery, publicClient, txHash);
 
 // Option 2: Wait for a specific block number
 const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
-await waitForIndexerToSyncToBlockNumber(graphqlClient, receipt.blockNumber);
+await waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber);
 ```
 
 ## Structure

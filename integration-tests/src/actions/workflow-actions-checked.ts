@@ -8,7 +8,7 @@
  * Usage:
  *   // Instead of:
  *   await createAndSignStatement(clients, contracts, data, options);
- *   await waitForIndexerToSyncToTxHash(machinery.graphqlClient, publicClient);
+ *   await waitForIndexerToSyncToTxHash(machinery, publicClient);
  *
  *   // Write:
  *   await createAndSignStatementChecked(clients, contracts, machinery, data, options);
@@ -107,7 +107,7 @@ export async function createAndSignStatementChecked(
   // Wait for sync on the sign transaction (the belief transaction)
   // Only if we have a valid graphqlClient
   try {
-    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, result.signTxHash);
+    await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, result.signTxHash);
   } catch (error) {
     // If waitForIndexerToSyncToTxHash fails (e.g., invalid graphqlClient in test scenarios),
     // skip the invariant checks and just return the result

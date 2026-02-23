@@ -90,7 +90,7 @@ export async function depositETHChecked(
       const actionResult = await depositETH(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, actionResult.hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, actionResult.hash);
 
       // Update context with the note ID for invariant checking
       context.entities.delegationNoteId = actionResult.noteId.toString();
@@ -169,7 +169,7 @@ export async function delegateNoteChecked(
       const actionResult = await delegateNote(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, actionResult.hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, actionResult.hash);
 
       // Update context with the delegated note ID for invariant checking
       context.entities.delegationNoteId = actionResult.delegatedNoteId.toString();
@@ -238,7 +238,7 @@ export async function revokeNoteChecked(
       const hash = await revokeNote(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
 
       return hash;
     },
@@ -313,7 +313,7 @@ export async function spendDelegatedNoteChecked(
       const hash = await purchaseFromPrimaryMarketWithNotes(clients, delegatableNotesContract, params);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
 
       return hash;
     },
@@ -384,7 +384,7 @@ export async function reclaimFundsChecked(
       const hash = await reclaimFunds(clients, delegatableNotesContract, noteId);
 
       // Wait for indexer to sync
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
 
       return hash;
     },

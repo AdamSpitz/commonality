@@ -170,7 +170,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 14. Wait for indexer to sync purchase
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, userClients.publicClient, purchaseTxHash);
+      await waitForIndexerToSyncToTxHash(machinery, userClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ End-to-end workflow completed successfully!');
@@ -302,7 +302,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog(`  Purchase transaction: ${purchaseTxHash} (block ${purchaseReceipt.blockNumber})`);
 
       // 16. Wait for indexer to sync purchase
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, delegateUserClients.publicClient, purchaseTxHash);
+      await waitForIndexerToSyncToTxHash(machinery, delegateUserClients.publicClient, purchaseTxHash);
       testLog('  ✓ Purchase completed successfully');
 
       testLog('  ✓ Delegation chain workflow completed successfully!');

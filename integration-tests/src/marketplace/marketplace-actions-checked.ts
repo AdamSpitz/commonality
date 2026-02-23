@@ -95,7 +95,7 @@ export async function createSaleListingChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await createSaleListing(clients, marketplaceContract, params);
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     createSaleListingMetadata,
@@ -168,7 +168,7 @@ export async function fulfillSaleListingChecked(
   hash = await runActionAndCheckProperties(
     async () => {
       const h = await fulfillSaleListing(clients, marketplaceContract, params);
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, h);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, h);
 
       // Store hash in context for invariant checking
       context.extra!.transactionHash = h;

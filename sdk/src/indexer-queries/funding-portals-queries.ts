@@ -26,6 +26,7 @@ import {
   type ContributorStats,
 } from '../shared/types/funding-portals.js';
 import { IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
+import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================
 // AlignmentAttestation Queries (Funding Portals)
@@ -35,11 +36,11 @@ import { IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
  * Get all alignment attestations for a specific statement (by attester if provided)
  */
 export async function getAlignedSubjects(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await request(client.url, GetAlignedSubjectsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetAlignedSubjectsDocument, {
     statementId: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
@@ -61,11 +62,11 @@ export const getAlignedProjects = getAlignedSubjects;
  * Get all statement alignments for a specific subject (by attester if provided)
  */
 export async function getSubjectStatements(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   subjectAddress: string,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await request(client.url, GetSubjectStatementsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetSubjectStatementsDocument, {
     projectAddress: subjectAddress.toLowerCase(),
     attester: attesterAddress?.toLowerCase() ?? null,
   });
@@ -87,12 +88,12 @@ export const getProjectStatements = getSubjectStatements;
  * Get a specific alignment attestation
  */
 export async function getAlignmentAttestation(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   attesterAddress: string,
   subjectAddress: string,
   statementCid: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
-  const result = await request(client.url, GetAlignmentAttestationDocument, {
+  const result = await request(machinery.graphqlClient.url, GetAlignmentAttestationDocument, {
     attester: attesterAddress.toLowerCase(),
     projectAddress: subjectAddress.toLowerCase(),
     statementId: statementCid,
@@ -116,10 +117,10 @@ export const getProjectAlignment = getAlignmentAttestation;
  * Get all alignments by a specific attester
  */
 export async function getAlignmentsByAttester(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   attesterAddress: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await request(client.url, GetAlignmentsByAttesterDocument, {
+  const result = await request(machinery.graphqlClient.url, GetAlignmentsByAttesterDocument, {
     attester: attesterAddress.toLowerCase(),
   });
   // Map projectAddress → subjectAddress; topicStatementId not in schema
@@ -150,13 +151,13 @@ export async function getAlignmentsByAttester(
  * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getIndirectlyAlignedSubjects(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<IndirectSubjectAlignment[]> {
   // Step 1: Find all statements that imply the target statement
-  const implicationsResult = await request(client.url, GetImplicationsToForFpDocument, {
+  const implicationsResult = await request(machinery.graphqlClient.url, GetImplicationsToForFpDocument, {
     toStatementId: statementCid,
     attester: trustedImplicationAttester?.toLowerCase() ?? null,
   });
@@ -172,7 +173,7 @@ export async function getIndirectlyAlignedSubjects(
 
   for (const implication of implications) {
     const alignments = await getAlignedSubjects(
-      client,
+      machinery,
       normalizeCidV1(implication.fromStatementId),
       trustedAlignmentAttester
     );
@@ -207,21 +208,21 @@ export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
  * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getTotalFundingForCause(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<CauseFundingMetrics> {
   // Get all directly aligned projects
   const directAlignments = await getAlignedSubjects(
-    client,
+    machinery,
     statementCid,
     trustedAlignmentAttester
   );
 
   // Get all indirectly aligned projects
   const indirectAlignments = await getIndirectlyAlignedSubjects(
-    client,
+    machinery,
     statementCid,
     trustedImplicationAttester,
     trustedAlignmentAttester
@@ -235,7 +236,7 @@ export async function getTotalFundingForCause(
   // Fetch project details for all aligned projects
   let totalRaised = 0n;
   for (const projectAddress of allProjectAddresses) {
-    const projectResult = await request(client.url, GetProjectTotalReceivedDocument, {
+    const projectResult = await request(machinery.graphqlClient.url, GetProjectTotalReceivedDocument, {
       id: projectAddress.toLowerCase(),
     });
 
@@ -267,7 +268,7 @@ export async function getTotalFundingForCause(
  * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getAllAlignedProjectsForCause(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
@@ -280,14 +281,14 @@ export async function getAllAlignedProjectsForCause(
 }>> {
   // Get all directly aligned projects
   const directAlignments = await getAlignedSubjects(
-    client,
+    machinery,
     statementCid,
     trustedAlignmentAttester
   );
 
   // Get all indirectly aligned projects
   const indirectAlignments = await getIndirectlyAlignedSubjects(
-    client,
+    machinery,
     statementCid,
     trustedImplicationAttester,
     trustedAlignmentAttester
@@ -309,7 +310,7 @@ export async function getAllAlignedProjectsForCause(
   // Fetch project details
   const results = [];
   for (const [projectAddress, alignmentType] of projectMap.entries()) {
-    const projectResult = await request(client.url, GetProjectDetailsDocument, {
+    const projectResult = await request(machinery.graphqlClient.url, GetProjectDetailsDocument, {
       id: projectAddress.toLowerCase(),
     });
 
@@ -342,7 +343,7 @@ export async function getAllAlignedProjectsForCause(
  * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getTopContributorsForCause(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   limit: number = 10,
   trustedImplicationAttester?: string,
@@ -350,7 +351,7 @@ export async function getTopContributorsForCause(
 ): Promise<ContributorStats[]> {
   // Get all aligned projects
   const alignedProjects = await getAllAlignedProjectsForCause(
-    client,
+    machinery,
     statementCid,
     trustedImplicationAttester,
     trustedAlignmentAttester
@@ -364,7 +365,7 @@ export async function getTopContributorsForCause(
   const participantMap = new Map<string, ContributorStats>();
 
   for (const project of alignedProjects) {
-    const summariesResult = await request(client.url, GetParticipantSummariesDocument, {
+    const summariesResult = await request(machinery.graphqlClient.url, GetParticipantSummariesDocument, {
       projectAddress: project.projectAddress.toLowerCase(),
     });
 
@@ -430,14 +431,14 @@ export async function getTopContributorsForCause(
  * Get a user's contribution rank for a specific cause.
  * Returns the user's stats and their rank among all contributors.
  *
- * @param client GraphQL client
+ * @param machinery SDK machinery instance
  * @param statementId The statement/cause to query
  * @param userAddress The user to find the rank for
  * @param trustedImplicationAttester Optional: filter implications by this attester
  * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getUserContributionRankForCause(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   userAddress: string,
   trustedImplicationAttester?: string,
@@ -449,7 +450,7 @@ export async function getUserContributionRankForCause(
 } | null> {
   // Get all contributors (we need the full list to calculate rank)
   const allContributors = await getTopContributorsForCause(
-    client,
+    machinery
     statementCid,
     1000000, // Large limit to get all contributors
     trustedImplicationAttester,

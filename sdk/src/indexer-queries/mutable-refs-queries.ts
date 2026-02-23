@@ -15,6 +15,7 @@ import {
   type MutableRef,
   type RefUpdate,
 } from '../shared/types/mutable-refs.js';
+import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================
 // Mutable Refs Queries
@@ -23,14 +24,14 @@ import {
 /**
  * Get the current value of a user's ref
  *
- * @param client - GraphQL client
+ * @param machinery - SDK machinery instance
  * @param owner - Address of the ref owner
  * @param name - Name of the ref
  * @returns The current ref state, or null if not found
  *
  * @example
  * ```typescript
- * const ref = await getUserRef(client, userAddress, "created-statements");
+ * const ref = await getUserRef(machinery, userAddress, "created-statements");
  * if (ref) {
  *   console.log("Current value:", ref.value);
  *   console.log("Last updated:", ref.updatedAt);
@@ -38,11 +39,11 @@ import {
  * ```
  */
 export async function getUserRef(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   owner: string,
   name: string
 ): Promise<MutableRef | null> {
-  const result = await request(client.url, GetUserRefDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserRefDocument, {
     owner: owner.toLowerCase(),
     name,
   });
@@ -53,23 +54,23 @@ export async function getUserRef(
 /**
  * Get all refs for a user
  *
- * @param client - GraphQL client
+ * @param machinery - SDK machinery instance
  * @param owner - Address of the ref owner
  * @returns List of all refs for this user
  *
  * @example
  * ```typescript
- * const refs = await getUserRefs(client, userAddress);
+ * const refs = await getUserRefs(machinery, userAddress);
  * refs.forEach(ref => {
  *   console.log(`${ref.name}: ${ref.value}`);
  * });
  * ```
  */
 export async function getUserRefs(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   owner: string
 ): Promise<MutableRef[]> {
-  const result = await request(client.url, GetUserRefsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserRefsDocument, {
     owner: owner.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -81,7 +82,7 @@ export async function getUserRefs(
  *
  * Returns all historical updates to a ref, ordered by most recent first.
  *
- * @param client - GraphQL client
+ * @param machinery - SDK machinery instance
  * @param owner - Address of the ref owner
  * @param name - Name of the ref
  * @param limit - Maximum number of updates to return (default: 100)
@@ -89,7 +90,7 @@ export async function getUserRefs(
  *
  * @example
  * ```typescript
- * const history = await getUserRefHistory(client, userAddress, "created-statements");
+ * const history = await getUserRefHistory(machinery, userAddress, "created-statements");
  * console.log("Update history:");
  * history.forEach((update, i) => {
  *   console.log(`${i + 1}. Block ${update.blockNumber}: ${update.value}`);
@@ -97,12 +98,12 @@ export async function getUserRefs(
  * ```
  */
 export async function getUserRefHistory(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   owner: string,
   name: string,
   limit: number = 100
 ): Promise<RefUpdate[]> {
-  const result = await request(client.url, GetUserRefHistoryDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserRefHistoryDocument, {
     owner: owner.toLowerCase(),
     name,
     limit,
@@ -116,7 +117,7 @@ export async function getUserRefHistory(
  *
  * Useful for discovering who else is using a particular ref name.
  *
- * @param client - GraphQL client
+ * @param machinery - SDK machinery instance
  * @param name - Name of the ref
  * @param limit - Maximum number of refs to return (default: 100)
  * @returns List of refs with this name from different users
@@ -124,16 +125,16 @@ export async function getUserRefHistory(
  * @example
  * ```typescript
  * // See who else has a "created-statements" ref
- * const refs = await getRefsByName(client, "created-statements");
+ * const refs = await getRefsByName(machinery, "created-statements");
  * console.log(`${refs.length} users have created-statements refs`);
  * ```
  */
 export async function getRefsByName(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   name: string,
   limit: number = 100
 ): Promise<MutableRef[]> {
-  const result = await request(client.url, GetRefsByNameDocument, {
+  const result = await request(machinery.graphqlClient.url, GetRefsByNameDocument, {
     name,
     limit,
   });

@@ -25,7 +25,9 @@ import {
   type StatementListItem,
   type BrowseStatementsOptions,
 } from '../shared/types/conceptspace.js';
-import { bytes32ToCid, IpfsCidV1, isValidCidV1 } from '../cid-types.js';
+import { type DisplayableDocument } from '../displayable-document.js';
+import { IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
+import { SDKMachinery } from '../machinery.js';
 
 
 // ============================================================================
@@ -36,10 +38,10 @@ import { bytes32ToCid, IpfsCidV1, isValidCidV1 } from '../cid-types.js';
  * Get statement by ID
  */
 export async function getStatement(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1
 ): Promise<Statement | null> {
-  const result = await request(client.url, GetStatementDocument, {
+  const result = await request(machinery.graphqlClient.url, GetStatementDocument, {
     id: statementCid,
   });
   // BigInt fields (createdAt) come as strings at runtime
@@ -53,11 +55,11 @@ export async function getStatement(
  * Get user's belief about a statement
  */
 export async function getUserBelief(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   userAddress: string,
   statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
-  const result = await request(client.url, GetUserBeliefDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserBeliefDocument, {
     user: userAddress.toLowerCase(),
     statementId: statementCid,
   });
@@ -72,11 +74,11 @@ export async function getUserBelief(
  * Get implications from a statement (what it implies)
  */
 export async function getImplicationsFrom(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const result = await request(client.url, GetImplicationsFromDocument, {
+  const result = await request(machinery.graphqlClient.url, GetImplicationsFromDocument, {
     fromStatementId: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
@@ -88,11 +90,11 @@ export async function getImplicationsFrom(
  * Get implications to a statement (what implies it)
  */
 export async function getImplicationsTo(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const result = await request(client.url, GetImplicationsToDocument, {
+  const result = await request(machinery.graphqlClient.url, GetImplicationsToDocument, {
     toStatementId: statementCid,
     attester: attesterAddress?.toLowerCase() ?? null,
   });
@@ -104,12 +106,12 @@ export async function getImplicationsTo(
  * Get a specific implication attestation
  */
 export async function getImplication(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   attesterAddress: string,
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
-  const result = await request(client.url, GetImplicationDocument, {
+  const result = await request(machinery.graphqlClient.url, GetImplicationDocument, {
     attester: attesterAddress.toLowerCase(),
     fromStatementId: fromStatementCid,
     toStatementId: toStatementCid,
@@ -132,19 +134,19 @@ export async function getImplication(
  * @param attesterAddress Optional: filter implications by specific attester
  */
 export async function getIndirectSupporters(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<IndirectSupporter[]> {
   // Step 1: Get all implications pointing to this statement
-  const implications = await getImplicationsTo(client, statementCid, attesterAddress);
+  const implications = await getImplicationsTo(machinery, statementCid, attesterAddress);
   if (implications.length === 0) {
     return [];
   }
 
   // Step 2: Fetch believers for all implications in parallel
   const believersQueries = implications.map(implication =>
-    request(client.url, GetBelieversForStatementDocument, {
+    request(machinery.graphqlClient.url, GetBelieversForStatementDocument, {
       statementId: implication.fromStatementCid.toLowerCase(),
     })
   );
@@ -168,7 +170,7 @@ export async function getIndirectSupporters(
   // Step 4: Check all users' beliefs on target statement in parallel
   const uniqueUsers = Array.from(userToViaStatement.keys());
   const targetBeliefQueries = uniqueUsers.map(userAddress =>
-    getUserBelief(client, userAddress, statementCid)
+    getUserBelief(machinery, userAddress, statementCid)
   );
 
   const targetBeliefs = await Promise.all(targetBeliefQueries);
@@ -195,11 +197,11 @@ export async function getIndirectSupporters(
  * More efficient than getIndirectSupporters when you only need the count.
  */
 export async function getIndirectSupporterCount(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<number> {
-  const supporters = await getIndirectSupporters(client, statementCid, attesterAddress);
+  const supporters = await getIndirectSupporters(machinery, statementCid, attesterAddress);
   return supporters.length;
 }
 
@@ -211,12 +213,12 @@ export async function getIndirectSupporterCount(
  * Browse statements by most supporters (direct believers)
  */
 export async function browseStatementsByMostSupporters(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await request(client.url, BrowseByMostSupportersDocument, {
+  const result = await request(machinery.graphqlClient.url, BrowseByMostSupportersDocument, {
     limit,
     offset,
     orderDirection,
@@ -230,12 +232,12 @@ export async function browseStatementsByMostSupporters(
  * Browse newest statements
  */
 export async function browseStatementsByNewest(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await request(client.url, BrowseByNewestDocument, {
+  const result = await request(machinery.graphqlClient.url, BrowseByNewestDocument, {
     limit,
     offset,
     orderDirection,
@@ -249,12 +251,12 @@ export async function browseStatementsByNewest(
  * Get all statements (for basic listing)
  */
 export async function getAllStatements(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
   const { limit = 100, offset = 0 } = options;
 
-  const result = await request(client.url, GetAllStatementsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetAllStatementsDocument, {
     limit,
     offset,
   });
@@ -267,10 +269,10 @@ export async function getAllStatements(
  * Get statements a user directly believes
  */
 export async function getUserBeliefs(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await request(client.url, GetUserBeliefsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserBeliefsDocument, {
     user: userAddress.toLowerCase(),
   });
 
@@ -286,10 +288,10 @@ export async function getUserBeliefs(
  * Get statements a user directly disbelieves
  */
 export async function getUserDisbeliefs(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await request(client.url, GetUserDisbeliefsDocument, {
+  const result = await request(machinery.graphqlClient.url, GetUserDisbeliefsDocument, {
     user: userAddress.toLowerCase(),
   });
 
@@ -308,7 +310,7 @@ export async function getUserDisbeliefs(
  * 2. Imply this statement (S2 -> S1) and S2 is more popular
  */
 export async function getStatementSuggestions(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Array<{
@@ -323,16 +325,16 @@ export async function getStatementSuggestions(
   }> = [];
 
   // Get the source statement to compare popularity
-  const sourceStatement = await getStatement(client, statementCid);
+  const sourceStatement = await getStatement(machinery, statementCid);
   if (!sourceStatement) {
     return [];
   }
 
   // Get implications from this statement (S1 -> S2)
-  const implicationsFrom = await getImplicationsFrom(client, statementCid, attesterAddress);
+  const implicationsFrom = await getImplicationsFrom(machinery, statementCid, attesterAddress);
 
   for (const implication of implicationsFrom) {
-    const targetStatement = await getStatement(client, implication.toStatementCid);
+    const targetStatement = await getStatement(machinery, implication.toStatementCid);
     if (targetStatement && targetStatement.believerCount > sourceStatement.believerCount) {
       suggestions.push({
         statement: {
@@ -352,10 +354,10 @@ export async function getStatementSuggestions(
   }
 
   // Get implications to this statement (S2 -> S1)
-  const implicationsTo = await getImplicationsTo(client, statementCid, attesterAddress);
+  const implicationsTo = await getImplicationsTo(machinery, statementCid, attesterAddress);
 
   for (const implication of implicationsTo) {
-    const sourceOfImplication = await getStatement(client, implication.fromStatementCid);
+    const sourceOfImplication = await getStatement(machinery, implication.fromStatementCid);
     if (sourceOfImplication && sourceOfImplication.believerCount > sourceStatement.believerCount) {
       suggestions.push({
         statement: {
@@ -378,4 +380,183 @@ export async function getStatementSuggestions(
   suggestions.sort((a, b) => b.statement.believerCount - a.statement.believerCount);
 
   return suggestions;
+}
+
+// ============================================================================
+// Composite Functions (formerly in graphql-queries/conceptspace.ts)
+// ============================================================================
+
+export interface StatementWithContent {
+  statement: Statement;
+  content: DisplayableDocument | null;
+  metrics?: {
+    directBelievers: number;
+    directDisbelievers: number;
+    indirectSupporters: number;
+  };
+}
+
+export interface GetStatementWithContentOptions {
+  includeMetrics?: boolean;
+  timeout?: number;
+  attesterAddress?: string;
+}
+
+export interface IndirectSupportInfo {
+  statement: StatementListItem;
+  supportedVia: Array<{
+    directlyBelievedStatement: StatementListItem;
+    viaStatementCid: IpfsCidV1;
+  }>;
+}
+
+export interface GetUserIndirectSupportOptions {
+  trustedAttesters?: string[];
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Get statement with IPFS content and optional metrics.
+ * This is a complex function that combines GraphQL queries with IPFS fetching.
+ */
+export async function getStatementWithContent(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  options: GetStatementWithContentOptions = {}
+): Promise<StatementWithContent | null> {
+  const {
+    includeMetrics = false,
+    timeout = 10000,
+    attesterAddress,
+  } = options;
+
+  const statement = await getStatement(machinery, statementCid);
+  if (!statement) {
+    return null;
+  }
+
+  let content: DisplayableDocument | null = null;
+  if (statement.cid) {
+    const { fetchFromIPFS } = await import('../actions/common.js');
+    content = await fetchFromIPFS(statement.cid, timeout) as DisplayableDocument | null;
+  }
+
+  let metrics: StatementWithContent['metrics'] | undefined;
+  if (includeMetrics) {
+    const indirectSupporters = await getIndirectSupporterCount(
+      machinery,
+      statementCid,
+      attesterAddress
+    );
+
+    metrics = {
+      directBelievers: statement.believerCount,
+      directDisbelievers: statement.disbelieverCount,
+      indirectSupporters,
+    };
+  }
+
+  return {
+    statement,
+    content,
+    metrics,
+  };
+}
+
+/**
+ * Get all statements a user indirectly supports through their beliefs and implications.
+ *
+ * This function solves the N+1 query pattern by efficiently computing all of a user's
+ * indirect support in a single operation, rather than querying each believed statement
+ * separately.
+ *
+ * A user indirectly supports a statement if:
+ * 1. They believe some statement A
+ * 2. There exists an implication A -> B (attested by a trusted attester)
+ * 3. They have NO explicit opinion on statement B (not belief, not disbelief)
+ *
+ * Note: Indirect support only applies to statements the user hasn't directly opined on.
+ * If they directly believe or disbelieve a statement, it's not considered indirect support.
+ */
+export async function getUserIndirectSupport(
+  machinery: SDKMachinery,
+  userAddress: string,
+  options: GetUserIndirectSupportOptions = {}
+): Promise<IndirectSupportInfo[]> {
+  const userBeliefs = await getUserBeliefs(machinery, userAddress);
+
+  if (userBeliefs.length === 0) {
+    return [];
+  }
+
+  const implicationsQueries = userBeliefs.map(belief =>
+    getImplicationsFrom(machinery, belief.cid, options.trustedAttesters?.[0])
+  );
+
+  const implicationsResults = await Promise.all(implicationsQueries);
+
+  const targetToSources = new Map<IpfsCidV1, Set<IpfsCidV1>>();
+  const allTargetStatementCids = new Set<IpfsCidV1>();
+
+  userBeliefs.forEach((belief, idx) => {
+    const implications = implicationsResults[idx];
+    implications.forEach(implication => {
+      const targetCid = normalizeCidV1(implication.toStatementCid);
+      allTargetStatementCids.add(targetCid);
+
+      if (!targetToSources.has(targetCid)) {
+        targetToSources.set(targetCid, new Set());
+      }
+      targetToSources.get(targetCid)!.add(belief.cid);
+    });
+  });
+
+  if (allTargetStatementCids.size === 0) {
+    return [];
+  }
+
+  const targetCids = Array.from(allTargetStatementCids);
+  const beliefChecks = targetCids.map(targetCid =>
+    getUserBelief(machinery, userAddress, targetCid)
+  );
+
+  const beliefStates = await Promise.all(beliefChecks);
+
+  const indirectlySupportedCids = targetCids.filter((_, idx) => {
+    const beliefState = beliefStates[idx];
+    return !beliefState || beliefState.beliefState === 0;
+  });
+
+  if (indirectlySupportedCids.length === 0) {
+    return [];
+  }
+
+  const statementQueries = indirectlySupportedCids.map(cid => getStatement(machinery, cid));
+  const statements = await Promise.all(statementQueries);
+
+  const results: IndirectSupportInfo[] = [];
+
+  for (let i = 0; i < indirectlySupportedCids.length; i++) {
+    const targetCid = indirectlySupportedCids[i];
+    const statement = statements[i];
+
+    if (!statement) continue;
+
+    const sourceIds = Array.from(targetToSources.get(targetCid) || []);
+    const sourceStatements = userBeliefs.filter(b => sourceIds.includes(b.cid));
+
+    results.push({
+      statement: statement as StatementListItem,
+      supportedVia: sourceStatements.map(source => ({
+        directlyBelievedStatement: source,
+        viaStatementCid: source.cid,
+      })),
+    });
+  }
+
+  const start = options.offset || 0;
+  const end = options.limit ? start + options.limit : undefined;
+
+  return results.slice(start, end);
 }

@@ -3,6 +3,7 @@
  */
 
 import { INDEXER_SYNC } from './constants.js';
+import { SDKMachinery } from './machinery.js';
 import { GraphQLClient, query } from './utils/graphqlClient.js';
 import { getEnvVar } from './utils/index.js';
 
@@ -22,7 +23,7 @@ import { getEnvVar } from './utils/index.js';
  * @throws Error if timeout is reached or sync appears stuck
  */
 export async function waitForIndexerToSyncToBlockNumber(
-  client: GraphQLClient | { indexerClient: GraphQLClient },
+  machinery: SDKMachinery,
   targetBlock: bigint,
   timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
@@ -30,7 +31,7 @@ export async function waitForIndexerToSyncToBlockNumber(
   const targetBlockNum = Number(targetBlock);
 
   // Support both old GraphQLClient and new GraphQLExecutor
-  const actualClient = 'indexerClient' in client ? client.indexerClient : client;
+  const actualClient = machinery.graphqlClient;
 
   let lastSeenBlock = 0;
   let stuckCount = 0;
@@ -142,25 +143,25 @@ export async function waitForIndexerToSyncToBlockNumber(
  * @example
  * ```typescript
  * import { createPublicClient, http } from 'viem';
- * import { waitForIndexerToSyncToTxHash, createGraphQLClient } from '@commonality/sdk';
+ * import { waitForIndexerToSyncToTxHash, createSDKMachinery } from '@commonality/sdk';
  *
  * const publicClient = createPublicClient({
  *   transport: http('http://localhost:8545')
  * });
- * const graphqlClient = createGraphQLClient();
+ * const machinery = createSDKMachinery();
  *
  * // Perform a blockchain action
  * const txHash = await someContractWrite();
  *
  * // Wait for indexer to process this specific transaction
- * await waitForIndexerToSyncToTxHash(graphqlClient, publicClient, txHash);
+ * await waitForIndexerToSyncToTxHash(machinery, publicClient, txHash);
  *
  * // Now query the indexer knowing it has indexed this transaction
  * const data = await queryIndexer();
  * ```
  */
 export async function waitForIndexerToSyncToTxHash(
-  client: GraphQLClient,
+  machinery: SDKMachinery,
   publicClient: {
     getBlockNumber: () => Promise<bigint>;
     getTransactionReceipt: (args: { hash: `0x${string}` }) => Promise<{ blockNumber: bigint }>;
@@ -169,5 +170,5 @@ export async function waitForIndexerToSyncToTxHash(
   timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
   const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
-  return waitForIndexerToSyncToBlockNumber(client, receipt.blockNumber, timeoutMs);
+  return waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber, timeoutMs);
 }

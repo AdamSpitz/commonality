@@ -83,7 +83,7 @@ export async function believeStatementChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await believeStatement(clients, beliefsContract, statementCid);
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     believeStatementMetadata,
@@ -138,7 +138,7 @@ export async function disbelieveStatementChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await disbelieveStatement(clients, beliefsContract, statementCid);
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     disbelieveStatementMetadata,
@@ -193,7 +193,7 @@ export async function clearOpinionChecked(
   return await runActionAndCheckProperties(
     async () => {
       const hash = await clearOpinion(clients, beliefsContract, statementCid);
-      await waitForIndexerToSyncToTxHash(machinery.graphqlClient, clients.publicClient, hash);
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
       return hash;
     },
     clearOpinionMetadata,

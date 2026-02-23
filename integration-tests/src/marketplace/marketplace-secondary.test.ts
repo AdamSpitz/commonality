@@ -292,7 +292,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       { saleListingId: 0n }
     );
 
-    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, sellerClients.publicClient, cancelHash);
+    await waitForIndexerToSyncToTxHash(machinery, sellerClients.publicClient, cancelHash);
 
     // Verify listing is cancelled
     const cancelledListing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
@@ -382,7 +382,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, buyerClients.publicClient, orderHash);
+    await waitForIndexerToSyncToTxHash(machinery, buyerClients.publicClient, orderHash);
 
     // Query the buy order
     const buyOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
@@ -403,7 +403,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, sellerClients.publicClient, fulfillHash);
+    await waitForIndexerToSyncToTxHash(machinery, sellerClients.publicClient, fulfillHash);
 
     // Query updated buy order
     const updatedOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
@@ -480,7 +480,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       }
     );
 
-    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, buyerClients.publicClient, orderHash);
+    await waitForIndexerToSyncToTxHash(machinery, buyerClients.publicClient, orderHash);
 
     // Verify order exists
     const order = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
@@ -495,7 +495,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       { buyOrderId: 0n }
     );
 
-    await waitForIndexerToSyncToTxHash(machinery.graphqlClient, buyerClients.publicClient, cancelHash);
+    await waitForIndexerToSyncToTxHash(machinery, buyerClients.publicClient, cancelHash);
 
     // Verify order is cancelled
     const cancelledOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);

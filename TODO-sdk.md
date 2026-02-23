@@ -119,6 +119,22 @@ Now that `indexer-queries/` is backed by proper typed queries, start routing con
 - For simple queries (get-by-id, list-with-filters), consumers can call these directly
 - Move composite functions (`getStatementWithContent`, `getUserIndirectSupport`, `getIndirectSupporters`, `getTotalFundingForCause`, etc.) out of `graphql-queries/conceptspace.ts` to use `indexer-queries/` directly instead of going through `SDKMachinery`/`executeSDKQuery`
 
+**Phase 3 progress:**
+
+- ✅ Updated `sdk/src/index.ts` to export from `indexer-queries/index.js` instead of `graphql-queries/index.js`
+- ✅ Added composite functions to `indexer-queries/conceptspace-queries.ts`:
+  - `getStatementWithContent()` - fetches statement metadata, IPFS content, and optional metrics
+  - `getUserIndirectSupport()` - computes indirect support through belief → implication chain
+- ✅ Added new types to `indexer-queries/index.ts` exports:
+  - `StatementWithContent`, `GetStatementWithContentOptions`
+  - `IndirectSupportInfo`, `GetUserIndirectSupportOptions`
+- ✅ Build passes
+
+**Key implementation notes:**
+- Composite functions now take `GraphQLClient` instead of `SDKMachinery`
+- Functions use `fetchFromIPFS` from `actions/common.js` for IPFS fetching
+- The old graphql-queries functions still exist (will be removed in Phase 4)
+
 ### Phase 4: Delete the `graphql-server/` layer
 
 Once nothing goes through the old executor:
