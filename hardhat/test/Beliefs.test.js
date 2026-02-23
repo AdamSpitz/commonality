@@ -42,7 +42,7 @@ describe("Beliefs", function () {
 
     await expect(
       beliefs.connect(alice).setBelief(statementId, 3)
-    ).to.be.revertedWith("Invalid belief state");
+    ).to.be.revertedWithCustomError(beliefs, "InvalidBeliefState");
   });
 
   it("Should emit DirectSupport event", async function () {

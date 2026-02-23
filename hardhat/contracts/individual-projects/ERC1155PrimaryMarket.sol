@@ -5,9 +5,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-error IncorrectAmountOfETHSent();
-error ETHTransferFailed();
-
 /**
  * @title ERC1155PrimaryMarket
  * @notice Primary market mechanism for ERC1155 tokens - buy from contract at fixed prices
@@ -16,6 +13,10 @@ error ETHTransferFailed();
  *      This is an abstract contract that must be implemented by a concrete contract.
  */
 abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
+    
+    error IncorrectAmountOfETHSent();
+    error ETHRefundFailed();
+
     /**
      * @notice Emitted when ERC1155 tokens are offered for sale at a specific price
      * @param erc1155Addr The address of the ERC1155 token contract
@@ -171,7 +172,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         uint256 refundValue = erc1155TotalCost(erc1155Addr, ids, counts);
         setTotalReceivedValue(getTotalReceivedValue() - refundValue);
         (bool success, ) = payable(holder).call{value: refundValue}("");
-        if (!success) revert ETHTransferFailed();
+        if (!success) revert ETHRefundFailed();
         IERC1155(erc1155Addr).safeBatchTransferFrom(
             holder,
             address(this),

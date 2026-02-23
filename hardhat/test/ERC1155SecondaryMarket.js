@@ -77,13 +77,13 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should reject listing with zero count", async function () {
       await expect(
         marketplace.connect(alice).createSaleListing(1, 0, ethers.parseEther("0.1"))
-      ).to.be.revertedWith("Count must be greater than 0");
+      ).to.be.revertedWithCustomError(marketplace, "CountMustBeGreaterThanZero");
     });
 
     it("Should reject listing with zero price", async function () {
       await expect(
         marketplace.connect(alice).createSaleListing(1, 10, 0)
-      ).to.be.revertedWith("Price must be greater than 0");
+      ).to.be.revertedWithCustomError(marketplace, "PriceMustBeGreaterThanZero");
     });
 
     it("Should increment listing IDs", async function () {
@@ -158,13 +158,13 @@ describe("ERC1155SecondaryMarket", function () {
 
       await expect(
         marketplace.connect(bob).fulfillSaleListing(0, 10, { value: incorrectCost })
-      ).to.be.revertedWith("Incorrect payment");
+      ).to.be.revertedWithCustomError(marketplace, "IncorrectPayment");
     });
 
     it("Should reject zero count", async function () {
       await expect(
         marketplace.connect(bob).fulfillSaleListing(0, 0, { value: 0 })
-      ).to.be.revertedWith("Invalid count");
+      ).to.be.revertedWithCustomError(marketplace, "InvalidCount");
     });
 
     it("Should reject count exceeding listing", async function () {
@@ -172,7 +172,7 @@ describe("ERC1155SecondaryMarket", function () {
         marketplace.connect(bob).fulfillSaleListing(0, 11, {
           value: ethers.parseEther("1.1"),
         })
-      ).to.be.revertedWith("Invalid count");
+      ).to.be.revertedWithCustomError(marketplace, "InvalidCount");
     });
 
     it("Should reject fulfilling non-existent listing", async function () {
@@ -180,7 +180,7 @@ describe("ERC1155SecondaryMarket", function () {
         marketplace.connect(bob).fulfillSaleListing(999, 10, {
           value: ethers.parseEther("1.0"),
         })
-      ).to.be.revertedWith("Listing does not exist");
+      ).to.be.revertedWithCustomError(marketplace, "ListingDoesNotExist");
     });
   });
 
@@ -208,7 +208,7 @@ describe("ERC1155SecondaryMarket", function () {
         marketplace
           .connect(bob)
           .fulfillSaleListingTo(0, 10, ethers.ZeroAddress, { value: cost })
-      ).to.be.revertedWith("Invalid recipient");
+      ).to.be.revertedWithCustomError(marketplace, "InvalidRecipient");
     });
 
     it("Should emit SaleListingFulfilled with buyer not recipient", async function () {
@@ -253,13 +253,13 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should reject non-seller cancelling", async function () {
       await expect(
         marketplace.connect(bob).cancelSaleListing(0)
-      ).to.be.revertedWith("Not the seller");
+      ).to.be.revertedWithCustomError(marketplace, "NotTheSeller");
     });
 
     it("Should reject cancelling non-existent listing", async function () {
       await expect(
         marketplace.connect(alice).cancelSaleListing(999)
-      ).to.be.revertedWith("Listing does not exist");
+      ).to.be.revertedWithCustomError(marketplace, "ListingDoesNotExist");
     });
   });
 
@@ -306,13 +306,13 @@ describe("ERC1155SecondaryMarket", function () {
         marketplace.connect(bob).createBuyOrder(1, 0, ethers.parseEther("0.1"), {
           value: 0,
         })
-      ).to.be.revertedWith("Amount must be greater than 0");
+      ).to.be.revertedWithCustomError(marketplace, "AmountMustBeGreaterThanZero2");
     });
 
     it("Should reject zero price", async function () {
       await expect(
         marketplace.connect(bob).createBuyOrder(1, 10, 0, { value: 0 })
-      ).to.be.revertedWith("Must send ETH");
+      ).to.be.revertedWithCustomError(marketplace, "MustSendETH");
     });
 
     it("Should reject incorrect ETH amount", async function () {
@@ -324,7 +324,7 @@ describe("ERC1155SecondaryMarket", function () {
           .createBuyOrder(1, 10, ethers.parseEther("0.1"), {
             value: incorrectAmount,
           })
-      ).to.be.revertedWith("Incorrect amount of ETH sent");
+      ).to.be.revertedWithCustomError(marketplace, "IncorrectAmountOfETHSent");
     });
 
     it("Should increment buy order IDs", async function () {
@@ -399,19 +399,19 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should reject zero count", async function () {
       await expect(
         marketplace.connect(alice).fulfillBuyOrder(0, 0)
-      ).to.be.revertedWith("Invalid count");
+      ).to.be.revertedWithCustomError(marketplace, "InvalidCount");
     });
 
     it("Should reject count exceeding order", async function () {
       await expect(
         marketplace.connect(alice).fulfillBuyOrder(0, 11)
-      ).to.be.revertedWith("Invalid count");
+      ).to.be.revertedWithCustomError(marketplace, "InvalidCount");
     });
 
     it("Should reject fulfilling non-existent order", async function () {
       await expect(
         marketplace.connect(alice).fulfillBuyOrder(999, 10)
-      ).to.be.revertedWith("Order does not exist");
+      ).to.be.revertedWithCustomError(marketplace, "OrderDoesNotExist");
     });
   });
 
@@ -452,7 +452,7 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should reject non-buyer cancelling", async function () {
       await expect(
         marketplace.connect(alice).cancelBuyOrder(0)
-      ).to.be.revertedWith("Not the buyer");
+      ).to.be.revertedWithCustomError(marketplace, "NotTheBuyer");
     });
   });
 
@@ -580,7 +580,7 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should reject cancelling non-existent buy order", async function () {
       await expect(
         marketplace.connect(bob).cancelBuyOrder(999)
-      ).to.be.revertedWith("Not the buyer");
+      ).to.be.revertedWithCustomError(marketplace, "NotTheBuyer");
     });
 
     it("Should allow seller to fulfill their own buy order", async function () {
@@ -739,7 +739,7 @@ describe("ERC1155SecondaryMarket", function () {
 
       await expect(
         marketplace.connect(bob).fulfillSaleListing(listingId, 10, { value: overpayment })
-      ).to.be.revertedWith("Incorrect payment");
+      ).to.be.revertedWithCustomError(marketplace, "IncorrectPayment");
     });
 
     it("Should reject underpayment by 1 wei on sale listing", async function () {
@@ -755,7 +755,7 @@ describe("ERC1155SecondaryMarket", function () {
 
       await expect(
         marketplace.connect(bob).fulfillSaleListing(listingId, 10, { value: underpayment })
-      ).to.be.revertedWith("Incorrect payment");
+      ).to.be.revertedWithCustomError(marketplace, "IncorrectPayment");
     });
 
     it("Should handle maximum uint256 price calculations without overflow", async function () {

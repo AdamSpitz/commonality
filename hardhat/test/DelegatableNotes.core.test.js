@@ -46,7 +46,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       // After delegation, the note is now owned by bob, so alice can't reclaim it
       await expect(
         notes.connect(alice).reclaimFunds(1)
-      ).to.be.revertedWith("Not a root note or not the owner");
+      ).to.be.revertedWithCustomError(notes, "NotRootNoteOrNotOwner");
     });
   });
 
@@ -88,7 +88,7 @@ describe("DelegatableNotes - Core Functionality", function () {
 
       await expect(
         notes.connect(alice).delegate(1, [alice.address], ethers.ZeroAddress, amount)
-      ).to.be.revertedWith("Cannot delegate to zero address");
+      ).to.be.revertedWithCustomError(notes, "CannotDelegateToZeroAddress");
     });
 
     it("Should not allow non-owner to delegate", async function () {
@@ -97,7 +97,7 @@ describe("DelegatableNotes - Core Functionality", function () {
 
       await expect(
         notes.connect(bob).delegate(1, [alice.address], charlie.address, amount)
-      ).to.be.revertedWith("Not the note owner");
+      ).to.be.revertedWithCustomError(notes, "NotNoteOwner");
     });
   });
 
@@ -141,7 +141,7 @@ describe("DelegatableNotes - Core Functionality", function () {
 
       await expect(
         notes.connect(alice).delegate(1, [alice.address], alice.address, amount)
-      ).to.be.revertedWith("Circular delegation detected");
+      ).to.be.revertedWithCustomError(notes, "CircularDelegationDetected");
     });
   });
 

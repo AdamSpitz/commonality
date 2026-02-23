@@ -6,20 +6,6 @@ import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
-error CountMustBeGreaterThanZero();
-error PriceMustBeGreaterThanZero();
-error InvalidRecipient();
-error ListingDoesNotExist();
-error InvalidCount();
-error IncorrectPayment();
-error ETHTransferFailed();
-error NotTheSeller();
-error NotTheBuyer();
-error AmountMustBeGreaterThanZero2();
-error MustSendETH();
-error IncorrectAmountOfETHSent();
-error OrderDoesNotExist();
-
 /**
  * @title ERC1155SecondaryMarket
  * @notice A simple orderbook marketplace for ERC1155 tokens
@@ -28,6 +14,21 @@ error OrderDoesNotExist();
  *      Each marketplace instance is tied to a specific ERC1155 contract.
  */
 contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
+
+    error CountMustBeGreaterThanZero();
+    error PriceMustBeGreaterThanZero();
+    error InvalidRecipient();
+    error ListingDoesNotExist();
+    error InvalidCount();
+    error IncorrectPayment();
+    error ETHTransferFailed();
+    error NotTheSeller();
+    error NotTheBuyer();
+    error AmountMustBeGreaterThanZero2();
+    error MustSendETH();
+    error IncorrectAmountOfETHSent();
+    error OrderDoesNotExist();
+
     /**
      * @dev Structure representing a sale listing (ask order)
      */

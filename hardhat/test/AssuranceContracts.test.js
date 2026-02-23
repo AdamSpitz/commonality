@@ -126,7 +126,7 @@ describe("MultiERC1155AssuranceContract", function () {
 
       await expect(
         assuranceContract.connect(owner).setPricesERC1155(tokenAddr, ids, prices)
-      ).to.be.revertedWith("Arrays must be the same length");
+      ).to.be.revertedWithCustomError(assuranceContract, "ArrayLengthMismatch");
     });
 
     it("Should reject setting same price again (not idempotent)", async function () {
@@ -142,7 +142,7 @@ describe("MultiERC1155AssuranceContract", function () {
         assuranceContract
           .connect(owner)
           .setPricesERC1155(tokenAddr, ids, [price])
-      ).to.be.revertedWith("Price already set");
+      ).to.be.revertedWithCustomError(assuranceContract, "PriceAlreadySet");
     });
 
     it("Should reject changing existing price", async function () {
@@ -159,7 +159,7 @@ describe("MultiERC1155AssuranceContract", function () {
         assuranceContract
           .connect(owner)
           .setPricesERC1155(tokenAddr, ids, [price2])
-      ).to.be.revertedWith("Price already set");
+      ).to.be.revertedWithCustomError(assuranceContract, "PriceAlreadySet");
     });
   });
 
@@ -236,7 +236,7 @@ describe("MultiERC1155AssuranceContract", function () {
           .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
             value: incorrectAmount,
           })
-      ).to.be.revertedWith("Incorrect amount of ETH sent");
+      ).to.be.revertedWithCustomError(assuranceContract, "IncorrectAmountOfETHSent");
     });
 
     it("Should handle buying multiple token types", async function () {
@@ -362,7 +362,7 @@ describe("MultiERC1155AssuranceContract", function () {
         assuranceContract
           .connect(alice)
           .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
-      ).to.be.revertedWith("Project fate still undecided");
+      ).to.be.revertedWithCustomError(assuranceContract, "ProjectFateStillUndecided");
     });
 
     it("Should reject refund if threshold met", async function () {
@@ -386,7 +386,7 @@ describe("MultiERC1155AssuranceContract", function () {
         assuranceContract
           .connect(alice)
           .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
-      ).to.be.revertedWith("Project reached funding goal");
+      ).to.be.revertedWithCustomError(assuranceContract, "ProjectReachedFundingGoal");
     });
 
     it("Should decrease total received value on refund", async function () {
@@ -480,7 +480,7 @@ describe("MultiERC1155AssuranceContract", function () {
 
       await expect(
         assuranceContract.connect(recipient).withdraw()
-      ).to.be.revertedWith("Not enough funding received");
+      ).to.be.revertedWithCustomError(assuranceContract, "NotEnoughFundingReceived");
     });
 
     it("Should only allow recipient to trigger withdrawal when successful", async function () {
@@ -495,7 +495,7 @@ describe("MultiERC1155AssuranceContract", function () {
       // Alice tries to trigger withdrawal (not recipient) - should fail
       await expect(
         assuranceContract.connect(alice).withdraw()
-      ).to.be.revertedWith("Only recipient can withdraw");
+      ).to.be.revertedWithCustomError(assuranceContract, "OnlyRecipientCanWithdraw");
 
       // Recipient can withdraw
       await expect(assuranceContract.connect(recipient).withdraw()).to.not.be

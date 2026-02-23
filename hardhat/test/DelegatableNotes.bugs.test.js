@@ -40,7 +40,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       await expect(
         notes.connect(alice).delegate(1, [alice.address], bob.address, 0)
-      ).to.be.revertedWith("Invalid delegation amount");
+      ).to.be.revertedWithCustomError(notes, "InvalidDelegationAmount");
     });
 
     it("Should reject delegation amount greater than note amount", async function () {
@@ -48,7 +48,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       await expect(
         notes.connect(alice).delegate(1, [alice.address], bob.address, ethers.parseEther("2"))
-      ).to.be.revertedWith("Invalid delegation amount");
+      ).to.be.revertedWithCustomError(notes, "InvalidDelegationAmount");
     });
   });
 
@@ -58,7 +58,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
       await expect(
         notes.connect(alice).delegate(1, [alice.address], alice.address, ethers.parseEther("1"))
-      ).to.be.revertedWith("Circular delegation detected");
+      ).to.be.revertedWithCustomError(notes, "CircularDelegationDetected");
     });
   });
 
@@ -66,11 +66,11 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should revert when delegating nonexistent note", async function () {
       await expect(
         notes.connect(alice).delegate(999, [alice.address], bob.address, ethers.parseEther("1"))
-      ).to.be.revertedWith("Note does not exist");
+      ).to.be.revertedWithCustomError(notes, "NoteDoesNotExist");
     });
 
     it("Should revert when revoking nonexistent note", async function () {
-      await expect(notes.connect(alice).revoke(999, [alice.address])).to.be.revertedWith("Note does not exist");
+      await expect(notes.connect(alice).revoke(999, [alice.address])).to.be.revertedWithCustomError(notes, "NoteDoesNotExist");
     });
   });
 
@@ -117,14 +117,14 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should reject depositing zero amount", async function () {
       await expect(
         notes.connect(alice).deposit(await testToken.getAddress(), 0, 0, 0)
-      ).to.be.revertedWith("Amount must be greater than 0");
+      ).to.be.revertedWithCustomError(notes, "AmountMustBeGreaterThanZero");
     });
 
     it("Should reject using zero address with non-zero amount parameter", async function () {
       // When depositing ETH (address 0), the amount parameter should be 0 and msg.value should have the ETH
       await expect(
         notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, ethers.parseEther("1"))
-      ).to.be.revertedWith("Must send ETH");
+      ).to.be.revertedWithCustomError(notes, "MustSendETH");
     });
 
     it("Should reject sending ETH with ERC20 deposit", async function () {
@@ -135,7 +135,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
         notes.connect(alice).deposit(await testToken.getAddress(), 0, 0, amount, {
           value: ethers.parseEther("1")
         })
-      ).to.be.revertedWith("Do not send ETH for ERC20 deposits");
+      ).to.be.revertedWithCustomError(notes, "NoETHForERC20");
     });
   });
 
@@ -194,7 +194,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should reject depositing zero amount ERC1155", async function () {
       await expect(
         notes.connect(alice).deposit(await testERC1155.getAddress(), 1, 1, 0)
-      ).to.be.revertedWith("Amount must be greater than 0");
+      ).to.be.revertedWithCustomError(notes, "AmountMustBeGreaterThanZero");
     });
 
     it("Should reject sending ETH with ERC1155 deposit", async function () {
@@ -204,7 +204,7 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
         notes.connect(alice).deposit(await testERC1155.getAddress(), 1, 1, 50, {
           value: ethers.parseEther("1")
         })
-      ).to.be.revertedWith("Do not send ETH for ERC1155 deposits");
+      ).to.be.revertedWithCustomError(notes, "NoETHForERC1155");
     });
   });
 
@@ -212,13 +212,13 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
     it("Should reject deposit ETH with zero value", async function () {
       await expect(
         notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: 0 })
-      ).to.be.revertedWith("Must send ETH");
+      ).to.be.revertedWithCustomError(notes, "MustSendETH");
     });
 
     it("Should reject deposit with wrong token type for ETH", async function () {
       await expect(
         notes.connect(alice).deposit(ethers.ZeroAddress, 1, 0, 0, { value: ethers.parseEther("1") })
-      ).to.be.revertedWith("ETH must use ERC20 type");
+      ).to.be.revertedWithCustomError(notes, "ETHMustUseERC20Type");
     });
   });
 

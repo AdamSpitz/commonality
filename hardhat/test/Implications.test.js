@@ -46,7 +46,7 @@ describe("Implications", function () {
 
       await expect(
         implications.connect(alice).attestImplication(stmt, stmt, explanationCid)
-      ).to.be.revertedWith("Statement cannot imply itself");
+      ).to.be.revertedWithCustomError(implications, "StatementCannotImplyItself");
     });
 
     it("Should reject zero fromStatementCid", async function () {
@@ -55,7 +55,7 @@ describe("Implications", function () {
 
       await expect(
         implications.connect(alice).attestImplication(ethers.ZeroHash, toStmt, explanationCid)
-      ).to.be.revertedWith("Invalid statement ID");
+      ).to.be.revertedWithCustomError(implications, "InvalidStatementID");
     });
 
     it("Should reject zero toStatementCid", async function () {
@@ -64,7 +64,7 @@ describe("Implications", function () {
 
       await expect(
         implications.connect(alice).attestImplication(fromStmt, ethers.ZeroHash, explanationCid)
-      ).to.be.revertedWith("Invalid statement ID");
+      ).to.be.revertedWithCustomError(implications, "InvalidStatementID");
     });
 
     it("Should be idempotent (allow re-attesting same implication)", async function () {
@@ -306,7 +306,7 @@ describe("Implications", function () {
 
       await expect(
         implications.connect(alice).attestImplicationsInBatch(fromStmts, toStmts, explanationCids)
-      ).to.be.revertedWith("Arrays must have same length");
+      ).to.be.revertedWithCustomError(implications, "ArrayLengthMismatch");
     });
 
     it("Should reject batch with mismatched explanation array length", async function () {
@@ -322,7 +322,7 @@ describe("Implications", function () {
 
       await expect(
         implications.connect(alice).attestImplicationsInBatch(fromStmts, toStmts, explanationCids)
-      ).to.be.revertedWith("Arrays must have same length");
+      ).to.be.revertedWithCustomError(implications, "ArrayLengthMismatch");
     });
 
     it("Should reject batch with self-implication", async function () {
@@ -333,7 +333,7 @@ describe("Implications", function () {
 
       await expect(
         implications.connect(alice).attestImplicationsInBatch(fromStmts, toStmts, explanationCids)
-      ).to.be.revertedWith("Statement cannot imply itself");
+      ).to.be.revertedWithCustomError(implications, "StatementCannotImplyItself");
     });
 
     it("Should reject batch with zero statement ID", async function () {
@@ -343,7 +343,7 @@ describe("Implications", function () {
 
       await expect(
         implications.connect(alice).attestImplicationsInBatch(fromStmts, toStmts, explanationCids)
-      ).to.be.revertedWith("Invalid statement ID");
+      ).to.be.revertedWithCustomError(implications, "InvalidStatementID");
     });
 
     it("Should handle empty batch", async function () {

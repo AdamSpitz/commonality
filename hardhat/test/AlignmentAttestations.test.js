@@ -57,7 +57,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignment(subjectAddress1, statementId, ethers.ZeroHash)
-      ).to.be.revertedWith("Invalid topic statement ID");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidTopicStatementId");
     });
 
     it("Should reject zero subject address", async function () {
@@ -67,7 +67,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignment(ethers.ZeroAddress, statementId, topicId)
-      ).to.be.revertedWith("Invalid subject address");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidSubjectAddress");
     });
 
     it("Should reject zero statement ID", async function () {
@@ -75,7 +75,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignment(subjectAddress1, ethers.ZeroHash, topicId)
-      ).to.be.revertedWith("Invalid statement ID");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidStatementId");
     });
 
     it("Should be idempotent (allow re-attesting same alignment)", async function () {
@@ -346,7 +346,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignmentsInBatch(subjects, statements, topics)
-      ).to.be.revertedWith("Arrays must have same length");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "ArrayLengthMismatch");
     });
 
     it("Should reject batch with mismatched topics array length", async function () {
@@ -361,7 +361,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignmentsInBatch(subjects, statements, topics)
-      ).to.be.revertedWith("Arrays must have same length");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "ArrayLengthMismatch");
     });
 
     it("Should reject batch with zero subject address", async function () {
@@ -373,7 +373,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignmentsInBatch(subjects, statements, topics)
-      ).to.be.revertedWith("Invalid subject address");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidSubjectAddress");
     });
 
     it("Should reject batch with zero statement ID", async function () {
@@ -385,7 +385,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignmentsInBatch(subjects, statements, topics)
-      ).to.be.revertedWith("Invalid statement ID");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidStatementId");
     });
 
     it("Should reject batch with zero topic statement ID", async function () {
@@ -397,7 +397,7 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignmentsInBatch(subjects, statements, topics)
-      ).to.be.revertedWith("Invalid topic statement ID");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidTopicStatementId");
     });
 
     it("Should handle empty batch", async function () {
