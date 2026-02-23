@@ -12,6 +12,7 @@ import {
   GetBelieversForStatementDocument,
   BrowseByMostSupportersDocument,
   BrowseByNewestDocument,
+  BrowseStatementsDocument,
   GetAllStatementsDocument,
   GetUserBeliefsDocument,
   GetUserDisbeliefsDocument,
@@ -301,11 +302,12 @@ export async function browseStatements(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
-  const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
+  const { limit = 10, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
 
-  const result = await request(machinery.graphqlClient.url, BrowseByNewestDocument, {
+  const result = await request(machinery.graphqlClient.url, BrowseStatementsDocument, {
     limit,
     offset,
+    orderBy,
     orderDirection,
   });
   // BigInt fields (createdAt) come as strings at runtime

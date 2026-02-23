@@ -16,18 +16,11 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import NewReleasesIcon from '@mui/icons-material/NewReleases'
-import { createSDKMachinery } from '@commonality/sdk'
-
-interface StatementListItem {
-  id: string
-  cid: string | null
-  statementType: string | null
-  title: string | null
-  excerpt: string | null
-  believerCount: number
-  disbelieverCount: number
-  createdAt: string | null
-}
+import {
+  createSDKMachinery,
+  browseStatements,
+  type StatementListItem,
+} from '@commonality/sdk'
 
 type SortOption = 'mostSupporters' | 'newest'
 
@@ -46,30 +39,10 @@ export function BrowseStatementsPage() {
 
       const machinery = createSDKMachinery(GRAPHQL_URL)
 
-      const queryName = sort === 'mostSupporters'
-        ? 'browseStatementsByMostSupporters'
-        : 'browseStatementsByNewest'
+      const orderBy = sort === 'mostSupporters' ? 'believerCount' : 'createdAt'
+      const statements = await browseStatements(machinery, { limit: 50, orderBy })
 
-      const result = await executeQuery<{ [key: string]: StatementListItem[] }>(
-        machinery,
-        `
-          query BrowseStatements($options: BrowseStatementsOptions) {
-            ${queryName}(options: $options) {
-              id
-              cid
-              statementType
-              title
-              excerpt
-              believerCount
-              disbelieverCount
-              createdAt
-            }
-          }
-        `,
-        { options: { limit: 50 } }
-      )
-
-      setStatements(result[queryName] || [])
+      setStatements(statements)
       setLoading(false)
     } catch (err) {
       console.error('Error loading statements:', err)

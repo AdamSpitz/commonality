@@ -46,4 +46,5 @@ export interface BrowseStatementsOptions {
   limit?: number;
   offset?: number;
   orderDirection?: 'asc' | 'desc';
+  orderBy?: 'createdAt' | 'believerCount' | 'disbelieverCount';
 }
