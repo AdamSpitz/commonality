@@ -22,7 +22,11 @@ export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
 }
 
 export function isValidCidV1(cid: string): cid is IpfsCidV1 {
-  return /^baf[a-zA-Z0-9]{59}$/.test(cid);
+  try {
+    return CID.parse(cid).version === 1;
+  } catch {
+    return false;
+  }
 }
 /**
  * Convert IPFS CID to bytes32 for onchain storage
