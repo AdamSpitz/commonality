@@ -1,5 +1,5 @@
+import { createHash } from 'crypto';
 import { CID } from "multiformats";
-import { sha256 } from 'multiformats/hashes/sha2';
 
 const DAG_PB_CODE = 0x70;
 
@@ -22,7 +22,8 @@ export function ensureIpfsCidV1(value: string): IpfsCidV1 {
 
 export function fakeIpfsCidV1(meaninglessValue: string): IpfsCidV1 {
   // TODO: remove all callers of this function.
-  return `bafy${sha256.digest(new TextEncoder().encode(meaninglessValue)).toString()}` as IpfsCidV1;
+  const digestHex = createHash('sha256').update(meaninglessValue).digest('hex');
+  return bytes32ToCid(`0x${digestHex}`);
 }
 
 export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
@@ -54,7 +55,7 @@ export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
   const digestBytes = Buffer.from(bytes32.slice(2), 'hex');
   // Create a MultihashDigest directly from the bytes
   const hash = {
-    code: sha256.code,
+    code: 0x12, // sha2-256
     digest: digestBytes,
     size: digestBytes.length,
     bytes: new Uint8Array([0x12, 0x20, ...digestBytes]) // 0x12 = sha256 code, 0x20 = 32 bytes
