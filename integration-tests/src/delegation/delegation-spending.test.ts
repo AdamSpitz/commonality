@@ -12,7 +12,7 @@ import assert from 'assert';
 import {
   createStatement,
   publishDocument,
-  cidToBytes32,
+  uploadToIPFS,
   type DelegatableNotesContract,
   type PubstarterContract,
   assertNotNull,
@@ -99,7 +99,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold,
       deadline,
-      projectMetadataCid: 'QmProjectMetadata',
+      projectMetadataCid: await uploadToIPFS({ name: 'Fund a Project', description: 'Spend a delegatable note to fund a project' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
@@ -192,7 +192,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold: 2000000000000000000n, // 2 ETH
       deadline: nowInSeconds + 86400n,
-      projectMetadataCid: 'QmProjectMetadata2',
+      projectMetadataCid: await uploadToIPFS({ name: 'Education Initiative', description: 'Support education initiatives via delegated funding' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
@@ -303,7 +303,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold: 2000000000000000000n,
       deadline: nowInSeconds + 86400n,
-      projectMetadataCid: 'QmProjectMetadata3',
+      projectMetadataCid: await uploadToIPFS({ name: 'Multi-Level Delegation Project', description: 'Multi-level delegation chain spending test' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n],
@@ -377,7 +377,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold: 1000000000000000000n,
       deadline: nowInSeconds + 86400n,
-      projectMetadataCid: 'QmProjectMetadata4',
+      projectMetadataCid: await uploadToIPFS({ name: 'Partial Spend Project', description: 'Partial amounts spending test' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n],

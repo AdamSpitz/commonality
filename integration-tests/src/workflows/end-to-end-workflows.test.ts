@@ -24,6 +24,7 @@ import {
   AlignmentAttestationsAbi,
   DelegatableNotesAbi,
   PROJECT_ALIGNMENT_TOPIC,
+  type IpfsCidV1,
 } from '@commonality/sdk';
 import {
   getUserBelief,
@@ -131,8 +132,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
-        PROJECT_ALIGNMENT_TOPIC,
-        statementId
+        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
       testLog('  ✓ Alignment properties verified');
@@ -277,8 +277,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statementCid,
-        PROJECT_ALIGNMENT_TOPIC,
-        statementId
+        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
       testLog('  ✓ Alignment properties verified');
@@ -336,9 +335,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       });
 
       const statement1Cid = await publishDocument(statement1Doc);
-      const statement1Id = cidToBytes32(statement1Cid);
       const statement2Cid = await publishDocument(statement2Doc);
-      const statement2Id = cidToBytes32(statement2Cid);
 
       testLog(`  Statement 1 (specific): ${statement1Cid}`);
       testLog(`  Statement 2 (general): ${statement2Cid}`);
@@ -399,8 +396,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         machinery,
         projectResult.projectDetails.assuranceContractAddress,
         statement1Cid,
-        PROJECT_ALIGNMENT_TOPIC,
-        statement1Id
+        PROJECT_ALIGNMENT_TOPIC as unknown as IpfsCidV1
       );
       testLog(`  Alignment attestation: ${alignmentTxHash}`);
       testLog('  ✓ Alignment properties verified');
@@ -409,7 +405,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog('  Querying for projects indirectly aligned with S2...');
       const indirectAlignments = await getIndirectlyAlignedProjects(
         machinery,
-        statement2Id,
+        statement2Cid,
         attesterClients.account, // Trust this attester's implications
         attesterClients.account  // Trust this attester's alignments
       );
@@ -422,13 +418,13 @@ describe('End-to-End Workflow Integration Tests', () => {
         'Project should be indirectly aligned with S2'
       );
       assert.strictEqual(
-        indirectAlignments[0].directStatementId.toLowerCase(),
-        statement1Id.toLowerCase(),
+        indirectAlignments[0].directStatementCid.toLowerCase(),
+        statement1Cid.toLowerCase(),
         'Direct alignment should be with S1'
       );
       assert.strictEqual(
-        indirectAlignments[0].indirectStatementId.toLowerCase(),
-        statement2Id.toLowerCase(),
+        indirectAlignments[0].indirectStatementCid.toLowerCase(),
+        statement2Cid.toLowerCase(),
         'Indirect alignment should be with S2'
       );
       testLog('  ✓ Project discovered via indirect alignment through implication graph!');
