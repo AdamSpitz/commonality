@@ -9,7 +9,7 @@
 
 import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
-import { getIndirectSupporterCount, SDKMachinery } from '@commonality/sdk';
+import { getIndirectSupporterCount, SDKMachinery, bytes32ToCid } from '@commonality/sdk';
 import { getIndirectSupporters } from './graphql-helpers.js';
 
 
@@ -78,7 +78,11 @@ export async function assertBeliefCountsMatch(
   machinery: ActionTestingMachinery,
   statementId: string
 ): Promise<void> {
-  const normalizedId = statementId.toLowerCase();
+  // Convert hex format to CIDv1 for indexer queries
+  const cidV1 = statementId.startsWith('0x') && statementId.length === 66
+    ? bytes32ToCid(statementId as `0x${string}`)
+    : statementId;
+  const normalizedId = cidV1.toLowerCase();
 
   // Check believerCount using generic helper
   await assertAggregatedCountConsistency(

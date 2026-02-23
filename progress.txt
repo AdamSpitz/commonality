@@ -1,2 +1,61 @@
-AI: use this file to write notes to yourself.
+# Integration Tests - CIDv1 Format Fix
 
+## Problem
+After a schema change to the indexer's database and API (using CIDv1 format instead of hex "0x..."), the SDK and integration tests were still using hex format for statement IDs, causing queries to fail.
+
+## Changes Made
+
+### SDK Changes
+
+1. **sdk/src/actions/index.ts:81** - Added `bytes32ToCid` export
+
+2. **sdk/src/graphql-queries/conceptspace.ts** - Added normalization helper and applied to:
+   - `getStatement()` - internal
+   - `getImplicationsFrom()` - internal  
+   - `getUserBelief()` - exported
+   - `getIndirectSupporterCount()` - exported
+   - `getStatementSuggestions()` - exported
+
+3. **sdk/src/indexer-queries/conceptspace-queries.ts** - Same normalization added to:
+   - `getStatement()` 
+   - `getUserBelief()`
+   - `getImplicationsFrom()`
+   - `getImplicationsTo()`
+   - `getImplication()`
+
+### Integration Tests Changes
+
+4. **integration-tests/src/utils/invariants.ts:12,81-85** - Import bytes32ToCid, convert in `assertBeliefCountsMatch()`
+
+5. **integration-tests/src/utils/graphql-helpers.ts:5,15-24** - Import bytes32ToCid, add `normalizeStatementId()` helper
+
+6. **integration-tests/src/utils/graphql-helpers.ts** - Applied normalization to:
+   - `getStatement()` (line 134)
+   - `getUserBelief()` (line 151)
+   - `getImplicationsFrom()` (line 170)
+   - `getImplicationsTo()` (line 188)
+   - `getIndirectSupporters()` (line 203)
+
+## Issue
+After all changes, tests still fail with "believerCount did not return a number" - query returns undefined.
+
+## Likely Root Cause
+The **indexer Docker container is not being rebuilt**. The script runs `docker-compose up -d --build` which rebuilds the indexer from the indexer/ directory, but:
+- The indexer's code hasn't been modified to match the new CIDv1 schema
+- The old indexer code may still store/query in hex format
+
+## Next Steps for Successor
+
+1. **Verify indexer schema**: Check indexer/src/conceptspace/schema.ts or similar to see how statements are stored. The indexer should store statements keyed by CIDv1 format.
+
+2. **Check GraphQL schema**: Look at indexer's GraphQL API to see what the query fields expect (cidV1 vs id vs other).
+
+3. **Rebuild indexer if needed**: If indexer code was changed to use CIDv1, ensure the Docker build is happening correctly.
+
+4. **Debug query directly**: Add console.log in test to see what CID the normalization produces, then manually query the indexer to verify data exists.
+
+5. **Alternative - check if beliefs exist**: The error could mean either:
+   - Statement doesn't exist (wrong ID format used to create it)
+   - Belief record doesn't exist (different ID format stored)
+
+The core fix (normalization) is correct in theory - the issue is likely that the indexer or its data isn't in the expected state.

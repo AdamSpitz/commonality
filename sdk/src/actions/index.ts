@@ -78,4 +78,4 @@ export {
 } from './mutable-refs-actions.js';
 
 // CID utilities
-export { cidToBytes32 } from '../cid-types.js';
+export { cidToBytes32, bytes32ToCid } from '../cid-types.js';

@@ -2,13 +2,26 @@
  * GraphQL query helpers for integration tests
  */
 
-import { executeSDKQuery } from '@commonality/sdk';
+import { executeSDKQuery, bytes32ToCid } from '@commonality/sdk';
 import { ActionTestingMachinery } from '../actions/action-machinery';
 
 
 
 
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
+/**
+ * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
+ * for indexer queries. If already in CIDv1 format, returns as-is.
+ */
+function normalizeStatementId(statementId: string): string {
+  if (statementId.startsWith('0x') && statementId.length === 66) {
+    return bytes32ToCid(statementId as `0x${string}`);
+  }
+  return statementId;
+}
 // ============================================================================
 // Types (matching the GraphQL schema)
 // ============================================================================
@@ -116,8 +129,9 @@ export const QUERY_GET_INDIRECT_SUPPORTERS = `
  */
 export async function getStatement(
   machinery: ActionTestingMachinery,
-  cidV1: string
+  statementId: string
 ): Promise<Statement | null> {
+  const cidV1 = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ statements: Statement | null }>(
     machinery,
     QUERY_GET_STATEMENT,
@@ -134,10 +148,11 @@ export async function getUserBelief(
   userAddress: string,
   statementId: string
 ): Promise<UserBelief | null> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ userBelief: UserBelief | null }>(
     machinery,
     QUERY_GET_USER_BELIEF,
-    { userAddress, statementId }
+    { userAddress, statementId: normalizedStatementId }
   );
   return result.userBelief;
 }
@@ -150,10 +165,11 @@ export async function getImplicationsFrom(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ implicationsFrom: Implication[] }>(
     machinery,
     QUERY_GET_IMPLICATIONS_FROM,
-    { statementId, attesterAddress }
+    { statementId: normalizedStatementId, attesterAddress }
   );
   return result.implicationsFrom || [];
 }
@@ -166,10 +182,11 @@ export async function getImplicationsTo(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ implicationsTo: Implication[] }>(
     machinery,
     QUERY_GET_IMPLICATIONS_TO,
-    { statementId, attesterAddress }
+    { statementId: normalizedStatementId, attesterAddress }
   );
   return result.implicationsTo || [];
 }
@@ -182,10 +199,11 @@ export async function getIndirectSupporters(
   statementId: string,
   attesterAddress?: string
 ): Promise<IndirectSupporter[]> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ indirectSupporters: IndirectSupporter[] }>(
     machinery,
     QUERY_GET_INDIRECT_SUPPORTERS,
-    { statementId, attesterAddress }
+    { statementId: normalizedStatementId, attesterAddress }
   );
   return result.indirectSupporters || [];
 }

@@ -16,6 +16,22 @@ import {
   IndirectSupporter,
 } from '../shared/types/conceptspace.js';
 import { SDKMachinery, executeSDKQuery } from '../machinery.js';
+import { bytes32ToCid } from '../cid-types.js';
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
+ * for indexer queries. If already in CIDv1 format, returns as-is.
+ */
+function normalizeStatementId(statementId: string): string {
+  if (statementId.startsWith('0x') && statementId.length === 66) {
+    return bytes32ToCid(statementId as `0x${string}`);
+  }
+  return statementId;
+}
 
 // ============================================================================
 // Type Definitions
@@ -75,6 +91,7 @@ async function getStatement(
   machinery: SDKMachinery,
   statementId: string
 ): Promise<Statement | null> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ statement: Statement | null }>(
     machinery,
     `
@@ -91,7 +108,7 @@ async function getStatement(
         }
       }
     `,
-    { id: statementId }
+    { id: normalizedStatementId }
   );
 
   return result.statement;
@@ -102,6 +119,7 @@ async function getImplicationsFrom(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ implicationsFrom: Implication[] }>(
     machinery,
     `
@@ -116,7 +134,7 @@ async function getImplicationsFrom(
         }
       }
     `,
-    { statementId, attesterAddress }
+    { statementId: normalizedStatementId, attesterAddress }
   );
 
   return result.implicationsFrom || [];
@@ -134,6 +152,7 @@ export async function getUserBelief(
   userAddress: string,
   statementId: string
 ): Promise<UserBelief | null> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ userBelief: UserBelief | null }>(
     machinery,
     `
@@ -144,7 +163,7 @@ export async function getUserBelief(
         }
       }
     `,
-    { userAddress, statementId }
+    { userAddress, statementId: normalizedStatementId }
   );
 
   return result.userBelief;
@@ -221,6 +240,7 @@ export async function getIndirectSupporterCount(
   statementId: string,
   attesterAddress?: string
 ): Promise<number> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ indirectSupporterCount: number }>(
     machinery,
     `
@@ -228,7 +248,7 @@ export async function getIndirectSupporterCount(
         indirectSupporterCount(statementId: $statementId, attesterAddress: $attesterAddress)
       }
     `,
-    { statementId, attesterAddress }
+    { statementId: normalizedStatementId, attesterAddress }
   );
 
   return result.indirectSupporterCount || 0;
@@ -406,6 +426,7 @@ export async function getStatementSuggestions(
   statementId: string,
   attesterAddress?: string
 ): Promise<StatementSuggestion[]> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await executeSDKQuery<{ statementSuggestions: StatementSuggestion[] }>(
     machinery,
     `
@@ -426,7 +447,7 @@ export async function getStatementSuggestions(
         }
       }
     `,
-    { statementId, attesterAddress }
+    { statementId: normalizedStatementId, attesterAddress }
   );
 
   return result.statementSuggestions || [];

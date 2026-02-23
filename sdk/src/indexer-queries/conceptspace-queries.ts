@@ -25,6 +25,22 @@ import {
   type StatementListItem,
   type BrowseStatementsOptions,
 } from '../shared/types/conceptspace.js';
+import { bytes32ToCid } from '../cid-types.js';
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
+ * for indexer queries. If already in CIDv1 format, returns as-is.
+ */
+function normalizeStatementId(statementId: string): string {
+  if (statementId.startsWith('0x') && statementId.length === 66) {
+    return bytes32ToCid(statementId as `0x${string}`);
+  }
+  return statementId;
+}
 
 // ============================================================================
 // Conceptspace Queries
@@ -37,8 +53,9 @@ export async function getStatement(
   client: GraphQLClient,
   statementId: string
 ): Promise<Statement | null> {
+  const normalizedId = normalizeStatementId(statementId);
   const result = await request(client.url, GetStatementDocument, {
-    id: statementId.toLowerCase(),
+    id: normalizedId.toLowerCase(),
   });
   // BigInt fields (createdAt) come as strings at runtime
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
@@ -55,9 +72,10 @@ export async function getUserBelief(
   userAddress: string,
   statementId: string
 ): Promise<UserBelief | null> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await request(client.url, GetUserBeliefDocument, {
     user: userAddress.toLowerCase(),
-    statementId: statementId.toLowerCase(),
+    statementId: normalizedStatementId.toLowerCase(),
   });
   return result.beliefs as unknown as UserBelief | null;
 }
@@ -74,8 +92,9 @@ export async function getImplicationsFrom(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await request(client.url, GetImplicationsFromDocument, {
-    fromStatementId: statementId.toLowerCase(),
+    fromStatementId: normalizedStatementId.toLowerCase(),
     attester: attesterAddress?.toLowerCase() ?? null,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
@@ -90,8 +109,9 @@ export async function getImplicationsTo(
   statementId: string,
   attesterAddress?: string
 ): Promise<Implication[]> {
+  const normalizedStatementId = normalizeStatementId(statementId);
   const result = await request(client.url, GetImplicationsToDocument, {
-    toStatementId: statementId.toLowerCase(),
+    toStatementId: normalizedStatementId.toLowerCase(),
     attester: attesterAddress?.toLowerCase() ?? null,
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
@@ -107,10 +127,12 @@ export async function getImplication(
   fromStatementId: string,
   toStatementId: string
 ): Promise<Implication | null> {
+  const normalizedFromStatementId = normalizeStatementId(fromStatementId);
+  const normalizedToStatementId = normalizeStatementId(toStatementId);
   const result = await request(client.url, GetImplicationDocument, {
     attester: attesterAddress.toLowerCase(),
-    fromStatementId: fromStatementId.toLowerCase(),
-    toStatementId: toStatementId.toLowerCase(),
+    fromStatementId: normalizedFromStatementId.toLowerCase(),
+    toStatementId: normalizedToStatementId.toLowerCase(),
   });
   // explanationCid is not in schema; BigInt fields come as strings at runtime
   return result.implications as unknown as Implication | null;
