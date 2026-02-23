@@ -62,10 +62,9 @@ describe('Conceptspace Beliefs', () => {
     // Create a statement
     const statementData = createStatement({ content: 'We should lower taxes' });
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     testLog(`  Statement: "${statementData.content}"`);
-    testLog(`  Statement ID: ${statementId}`);
+    testLog(`  Statement CID: ${statementCid}`);
 
     // Express belief - properties checked automatically (includes wait for sync)
     testLog('  User believes the statement...');
@@ -95,7 +94,6 @@ describe('Conceptspace Beliefs', () => {
     // Create a statement
     const statementData = createStatement({ content: 'We should fund space exploration' });
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     testLog(`  Statement: "${statementData.content}"`);
 
@@ -150,7 +148,6 @@ describe('Conceptspace Beliefs', () => {
       content: 'We should invest heavily in renewable energy infrastructure to combat climate change.',
     });
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     testLog(`  Statement CID: ${statementCid}`);
 
@@ -160,10 +157,10 @@ describe('Conceptspace Beliefs', () => {
 
     // Test basic usage: fetch statement metadata
     testLog('  Fetching statement with getStatementWithContent (basic)...');
-    const result = await getStatementWithContent(machinery, statementId);
+    const result = await getStatementWithContent(machinery, statementCid);
 
     assertNotNull(result, 'Statement result');
-    assert.strictEqual(result!.statement.id, statementId, 'Statement ID should match');
+    assert.strictEqual(result!.statement.cid, statementCid, 'Statement CID should match');
     // Note: CID format may differ (bafybe vs bafkre) but both represent the same content hash
     assert.ok(result!.statement.cid, 'Statement should have a CID');
     assert.strictEqual(result!.statement.believerCount, 1, 'Should have 1 believer');

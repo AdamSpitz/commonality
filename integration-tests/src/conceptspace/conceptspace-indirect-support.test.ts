@@ -490,9 +490,6 @@ describe('Conceptspace Indirect Support', () => {
     const target1Cid = await uploadToIPFS(target1);
     const target2Cid = await uploadToIPFS(target2);
     const target3Cid = await uploadToIPFS(target3);
-    const target1Id = cidToBytes32(target1Cid);
-    const target2Id = cidToBytes32(target2Cid);
-    const target3Id = cidToBytes32(target3Cid);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);
@@ -525,18 +522,18 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Extract the IDs of indirectly supported statements
-    const supportedIds = indirectSupport.map(info => info.statement.id.toLowerCase());
+    const supportedCids = indirectSupport.map(info => info.statement.cid.toLowerCase());
 
     assert.ok(
-      supportedIds.includes(target1Id.toLowerCase()),
+      supportedCids.includes(target1Cid.toLowerCase()),
       'Should include Target1'
     );
     assert.ok(
-      supportedIds.includes(target2Id.toLowerCase()),
+      supportedCids.includes(target2Cid.toLowerCase()),
       'Should include Target2'
     );
     assert.ok(
-      supportedIds.includes(target3Id.toLowerCase()),
+      supportedCids.includes(target3Cid.toLowerCase()),
       'Should include Target3'
     );
 
@@ -587,8 +584,6 @@ describe('Conceptspace Indirect Support', () => {
     const source2Cid = await uploadToIPFS(source2);
     const target1Cid = await uploadToIPFS(target1);
     const target2Cid = await uploadToIPFS(target2);
-    const target1Id = cidToBytes32(target1Cid);
-    const target2Id = cidToBytes32(target2Cid);
 
     testLog(`  Source1: "${source1.text}"`);
     testLog(`  Source2: "${source2.text}"`);
@@ -620,8 +615,8 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     assert.strictEqual(
-      indirectSupport[0].statement.id.toLowerCase(),
-      target2Id.toLowerCase(),
+      indirectSupport[0].statement.cid.toLowerCase(),
+      target2Cid.toLowerCase(),
       'The indirectly supported statement should be target2'
     );
 

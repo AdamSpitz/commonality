@@ -117,8 +117,8 @@ export function UserProfilePage() {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {statements.map((statement) => (
-          <Card key={statement.id} variant="outlined">
-            <CardActionArea onClick={() => handleStatementClick(statement.id)}>
+          <Card key={statement.cid} variant="outlined">
+            <CardActionArea onClick={() => handleStatementClick(statement.cid)}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   {statement.title || 'Untitled Statement'}
@@ -168,8 +168,8 @@ export function UserProfilePage() {
           const statement = supportInfo.statement
           const supportedVia = supportInfo.supportedVia
           return (
-            <Card key={statement.id} variant="outlined">
-              <CardActionArea onClick={() => handleStatementClick(statement.id)}>
+            <Card key={statement.cid} variant="outlined">
+              <CardActionArea onClick={() => handleStatementClick(statement.cid)}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     {statement.title || 'Untitled Statement'}

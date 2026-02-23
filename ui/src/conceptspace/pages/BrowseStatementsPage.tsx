@@ -149,10 +149,10 @@ export function BrowseStatementsPage() {
       {!loading && !error && statements.length > 0 && (
         <Stack spacing={2}>
           {statements.map((statement) => (
-            <Card key={statement.id}>
+            <Card key={statement.cid}>
               <CardActionArea
                 component={RouterLink}
-                to={`/statement/${statement.id}`}
+                to={`/statement/${statement.cid}`}
               >
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>

@@ -43,13 +43,13 @@ export interface ActionContext {
 
   /** Entity identifiers affected by the action */
   entities: {
-    statementId?: string;
+    statementCid?: string;
     projectAddress?: string;
     subjectAddress?: string;
     userAddress?: string;
     delegationNoteId?: string;
-    fromStatementId?: string;
-    toStatementId?: string;
+    fromStatementCid?: string;
+    toStatementCid?: string;
     attesterAddress?: string;
     marketplaceAddress?: string;
     // ... other entity IDs as needed

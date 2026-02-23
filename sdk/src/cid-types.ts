@@ -1,6 +1,7 @@
 import { CID } from "multiformats";
 import { sha256 } from 'multiformats/hashes/sha2';
-import * as raw from 'multiformats/codecs/raw';
+
+const DAG_PB_CODE = 0x70;
 
 /**
  * Different types for IPFS CIDs to prevent mixing up formats.
@@ -57,6 +58,6 @@ export function bytes32ToCid(bytes32: `0x${string}`): string {
     size: digestBytes.length,
     bytes: new Uint8Array([0x12, 0x20, ...digestBytes]) // 0x12 = sha256 code, 0x20 = 32 bytes
   };
-  const cid = CID.create(1, raw.code, hash);
+  const cid = CID.create(1, DAG_PB_CODE, hash);
   return cid.toString();
 }

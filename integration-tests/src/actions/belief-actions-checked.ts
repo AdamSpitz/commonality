@@ -68,14 +68,13 @@ export async function believeStatementChecked(
   statementCid: string,
   options?: ActionRunOptions
 ): Promise<Hash> {
-  const statementId = cidToBytes32(statementCid);
   const userAddress = clients.account;
 
   const context: ActionContext = {
     machinery,
     contracts: { beliefs: beliefsContract },
     entities: {
-      statementId,
+      statementCid,
       userAddress,
     },
   };

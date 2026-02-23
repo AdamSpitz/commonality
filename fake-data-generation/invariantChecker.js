@@ -73,12 +73,11 @@ class InvariantChecker {
     if (this.contracts.beliefs) {
       try {
         for (const stmt of this.statements.slice(0, 50)) {
-          const statementId = cidToBytes32(stmt.statementId);
           const belief = await publicClient.readContract({
             address: this.contracts.beliefs.address,
             abi: BeliefsAbi,
             functionName: 'beliefs',
-            args: [this.users[0]?.address || zeroAddress, statementId]
+            args: [this.users[0]?.address || zeroAddress, cidToBytes32(stmt.statementId)]
           });
           snapshot.beliefs[stmt.id] = belief;
         }
