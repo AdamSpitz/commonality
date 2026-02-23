@@ -1,3 +1,4 @@
+import { IpfsCidV1 } from "../../cid-types";
 
 export interface Statement {
   id: string;
@@ -12,9 +13,9 @@ export interface Statement {
 
 export interface Implication {
   attester: { id: string };
-  fromStatementId: string;
-  toStatementId: string;
-  explanationCid: string;
+  fromStatementCid: IpfsCidV1;
+  toStatementCid: IpfsCidV1;
+  explanationCid: IpfsCidV1;
   createdAt: string;
   blockNumber: string;
 }

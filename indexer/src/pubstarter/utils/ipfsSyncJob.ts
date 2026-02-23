@@ -8,6 +8,7 @@
  * by providing a retry mechanism for failed fetches.
  */
 
+import { IpfsCidV1 } from "../../utils/cid-types.js";
 import { SyncJobContext } from "../../utils/ipfsSyncJob.js";
 import { fetchProjectMetadata } from "./ipfs.js";
 
@@ -28,7 +29,7 @@ async function syncProjectMetadata(
   ctx: SyncJobContext,
   project: {
     id: string;
-    metadataCid: string | null;
+    metadataCid: IpfsCidV1 | null;
     createdAt: bigint;
   }
 ): Promise<boolean> {

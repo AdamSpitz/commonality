@@ -20,6 +20,7 @@ import {
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type ImplicationsContract,
+  IpfsCidV1,
 } from '@commonality/sdk';
 import {
   runActionAndCheckProperties,
@@ -87,9 +88,9 @@ export async function attestImplicationChecked(
   clients: TestClients,
   implicationsContract: ImplicationsContract,
   machinery: ActionTestingMachinery,
-  fromStatementCid: string,
-  toStatementCid: string,
-  explanationCid?: string,
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1,
+  explanationCid?: IpfsCidV1,
   expectedIndirectSupporters?: string[],
   options?: ActionRunOptions
 ): Promise<Hash> {

@@ -25,6 +25,7 @@ import {
   type AssuranceContract,
   type PubstarterContract,
   type ProjectDetails,
+  IpfsCidV1,
 } from '@commonality/sdk';
 import {
   runActionAndCheckProperties,
@@ -98,7 +99,7 @@ export async function createProjectChecked(
     recipient: Address;
     threshold: bigint;
     deadline: bigint;
-    projectMetadataCid: string;
+    projectMetadataCid: IpfsCidV1;
     tokenIds: bigint[];
     tokenCounts: bigint[];
     tokenPrices: bigint[];

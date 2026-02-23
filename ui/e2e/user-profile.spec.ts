@@ -65,12 +65,12 @@ async function createTestStatement(
   // Additional wait for indexer to process events
   await new Promise((r) => setTimeout(r, 2000))
 
-  const statementId = cidToBytes32(result.cid)
+  const statementCid = result.cid
 
   // Wait for statement to be indexed
-  await waitForStatement(graphqlUrl, statementId)
+  await waitForStatement(graphqlUrl, statementCid)
 
-  return { cid: result.cid, statementId, statementContent }
+  return { cid: statementCid, statementContent }
 }
 
 test.describe('User Profile Workflow', () => {

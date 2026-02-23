@@ -16,7 +16,7 @@ import {
   IndirectSupporter,
 } from '../shared/types/conceptspace.js';
 import { SDKMachinery, executeSDKQuery } from '../machinery.js';
-import { bytes32ToCid } from '../cid-types.js';
+import { bytes32ToCid, IpfsCidV1 } from '../cid-types.js';
 
 // ============================================================================
 // Helper Functions
@@ -40,9 +40,9 @@ function normalizeStatementId(statementId: string): string {
 // TODO: what's the reason for the almost-duplication between this and the one in shared/types?
 export interface Implication {
   attester: string;
-  fromStatementId: string;
-  toStatementId: string;
-  explanationCid: string;
+  fromStatementCid: IpfsCidV1;
+  toStatementCid: IpfsCidV1;
+  explanationCid: IpfsCidV1;
   createdAt: string;
   blockNumber: string;
 }

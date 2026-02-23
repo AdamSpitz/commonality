@@ -18,10 +18,11 @@ import {
   type MutableRefUpdaterContract,
   type TestClients,
   createSDKMachinery,
+  type IpfsCidV1,
 } from '@commonality/sdk'
 
 interface CreateStatementFormProps {
-  onStatementCreated?: (statementCid: string) => void
+  onStatementCreated?: (statementCid: IpfsCidV1) => void
 }
 
 export function CreateStatementForm({ onStatementCreated }: CreateStatementFormProps) {

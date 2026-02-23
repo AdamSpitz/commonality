@@ -16,6 +16,7 @@ import {
   formatBlockchainError,
   getHttpStatusForError,
 } from './errors.js';
+import { IpfsCidV1 } from '@commonality/sdk';
 
 const app = express();
 app.use(express.json());
@@ -63,7 +64,7 @@ interface EvaluateImplicationResponse {
   decision: boolean;
   confidence: 'high' | 'medium' | 'low';
   explanation: string;
-  explanationCid: string | null;
+  explanationCid: IpfsCidV1 | null;
   transactionHash: string | null;
   gasUsed: number | null;
   processingTime: number;

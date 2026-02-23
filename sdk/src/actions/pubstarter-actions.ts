@@ -9,6 +9,7 @@ import {
   MarketplaceFactoryAbi,
   AssuranceContractFactoryAbi
 } from '../abis.js';
+import { IpfsCidV1 } from '../cid-types.js';
 
 // ============================================================================
 // Pubstarter Actions
@@ -77,7 +78,7 @@ export async function createProject(
     recipient: Address;
     threshold: bigint;
     deadline: bigint;
-    projectMetadataCid: string;
+    projectMetadataCid: IpfsCidV1;
     tokenIds: bigint[];
     tokenCounts: bigint[];
     tokenPrices: bigint[];

@@ -18,6 +18,7 @@ import { CID } from 'multiformats/cid';
 import * as raw from 'multiformats/codecs/raw';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { Buffer } from 'buffer';
+import { IpfsCidV1 } from '../cid-types';
 
 // Safe environment variable access that works in both Node.js and browser
 function getEnvVar(name: string): string | undefined {
@@ -192,7 +193,7 @@ export function clearMockIPFS(): void {
  * Mock mode is useful for unit tests that don't want external dependencies.
  * The mock store allows fetching content back via fetchFromMockIPFS().
  */
-export async function uploadToIPFS(content: object): Promise<string> {
+export async function uploadToIPFS(content: object): Promise<IpfsCidV1> {
   const ipfsApi = getEnvVar('IPFS_API') || getEnvVar('VITE_IPFS_API');
 
   if (ipfsApi) {
@@ -229,7 +230,7 @@ export async function uploadToIPFS(content: object): Promise<string> {
  * Upload content to mock IPFS store in memory
  * Generates deterministic CID based on content
  */
-export async function uploadToMockIPFS(content: object): Promise<string> {
+export async function uploadToMockIPFS(content: object): Promise<IpfsCidV1> {
   const bytes = Buffer.from(JSON.stringify(content));
   const hash = await sha256.digest(bytes);
   const cid = CID.create(1, raw.code, hash);

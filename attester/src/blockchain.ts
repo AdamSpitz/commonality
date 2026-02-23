@@ -6,6 +6,7 @@ import {
   type TestClients,
   type ImplicationsContract,
   ImplicationsAbi,
+  IpfsCidV1,
 } from '@commonality/sdk';
 import { loadConfig } from './config.js';
 import { classifyBlockchainError, BlockchainError } from './errors.js';
@@ -38,9 +39,9 @@ export function getBlockchainClients() {
 }
 
 export async function publishAttestation(
-  fromStatementCid: string,
-  toStatementCid: string,
-  explanationCid: string
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1,
+  explanationCid: IpfsCidV1
 ): Promise<string> {
   const { testClients, implicationsContract } = getBlockchainClients();
   
@@ -61,8 +62,8 @@ export async function publishAttestation(
 }
 
 export async function checkExistingAttestation(
-  fromStatementCid: string,
-  toStatementCid: string
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1
 ): Promise<boolean> {
   return false;
 }

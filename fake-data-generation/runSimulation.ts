@@ -20,6 +20,7 @@ import {
   DelegatableNotesAbi,
   createStatement,
   publishDocument,
+  type IpfsCidV1,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts } from './types.js';
 import type { Attestation } from './generateAttestations.js';
@@ -72,14 +73,13 @@ type TestClients = ReturnType<typeof createTestClients>;
 async function believeStatement(
   clients: TestClients,
   contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
-  statementCid: string
+  statementCid: IpfsCidV1
 ): Promise<`0x${string}`> {
-  const statementId = cidToBytes32(statementCid);
   const hash = await clients.walletClient.writeContract({
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'setBelief',
-    args: [statementId, BELIEVES],
+    args: [cidToBytes32(statementCid), BELIEVES],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });
@@ -90,14 +90,13 @@ async function believeStatement(
 async function disbelieveStatement(
   clients: TestClients,
   contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
-  statementCid: string
+  statementCid: IpfsCidV1
 ): Promise<`0x${string}`> {
-  const statementId = cidToBytes32(statementCid);
   const hash = await clients.walletClient.writeContract({
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'setBelief',
-    args: [statementId, DISBELIEVES],
+    args: [cidToBytes32(statementCid), DISBELIEVES],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });
@@ -105,14 +104,17 @@ async function disbelieveStatement(
   return hash;
 }
 
-const PROJECT_ALIGNMENT_TOPIC = keccak256(toBytes("project-alignment-attestations"));
+// I got this by running:
+// echo -n "project-alignment-attestations" | ipfs add --cid-version=1 --raw-leaves --only-hash -Q
+// TODO: This is not actually right. Replace this with the CID of a real statement.
+const PROJECT_ALIGNMENT_TOPIC = "bafkreifgwnffoo523mfqv6v6w5f4qhja2ugcgjxpobjbqd7azef7jbgsdm";
 
 async function attestImplication(
   clients: TestClients,
   contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
-  fromStatementCid: string,
-  toStatementCid: string,
-  explanationCid = '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1,
+  explanationCid: IpfsCidV1
 ): Promise<`0x${string}`> {
   const fromStatementId = cidToBytes32(fromStatementCid);
   const toStatementId = cidToBytes32(toStatementCid);
@@ -133,16 +135,15 @@ async function attestAlignment(
   clients: TestClients,
   contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
   subjectAddress: `0x${string}`,
-  statementCid: string,
-  topicStatementId: `0x${string}`
+  statementCid: IpfsCidV1,
+  topicStatementCid: IpfsCidV1
 ): Promise<`0x${string}`> {
-  const statementId = cidToBytes32(statementCid);
 
   const hash = await clients.walletClient.writeContract({
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'attestAlignment',
-    args: [subjectAddress, statementId, topicStatementId],
+    args: [subjectAddress, cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });

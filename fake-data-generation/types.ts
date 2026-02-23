@@ -2,6 +2,8 @@
  * Shared types for the fake-data-generation scripts.
  */
 
+import { IpfsCidV1 } from '@commonality/sdk';
+
 export interface StatementContent {
   text: string;
   domain: string;
@@ -11,13 +13,11 @@ export interface StatementContent {
 }
 
 export interface Statement {
-  id: number;
   domain: string;
   position: string;
   statementType: 'simple' | 'disjunction' | 'conjunction';
   content: StatementContent;
-  statementId: string;
-  cid?: string;
+  cid?: IpfsCidV1;
 }
 
 export interface User {

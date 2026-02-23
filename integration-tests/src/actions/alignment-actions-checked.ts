@@ -11,7 +11,7 @@
  *   // ... manual assertions ...
  *
  *   // Write:
- *   await attestAlignmentChecked(clients, contract, graphqlClient, subjectAddress, statementCid, topicStatementCid, statementId);
+ *   await attestAlignmentChecked(clients, contract, graphqlClient, subjectAddress, statementCid, topicStatementCid);
  */
 
 import type { Hash, Address } from 'viem';
@@ -21,6 +21,7 @@ import {
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type AlignmentAttestationsContract,
+  type IpfsCidV1,
 } from '@commonality/sdk';
 import {
   runActionAndCheckProperties,
@@ -60,8 +61,7 @@ import {
  *   machinery,
  *   projectDetails.tokenAddress,
  *   statementCid,
- *   topicStatementCid,
- *   cidToBytes32(statementCid)
+ *   topicStatementCid
  * );
  * // State transition properties and invariants are automatically verified
  * ```
@@ -71,16 +71,15 @@ export async function attestAlignmentChecked(
   alignmentAttestationsContract: AlignmentAttestationsContract,
   machinery: ActionTestingMachinery,
   subjectAddress: Address,
-  statementCid: string,
-  topicStatementCid: string,
-  statementId: string,
+  statementCid: IpfsCidV1,
+  topicStatementCid: IpfsCidV1,
   options?: ActionRunOptions
 ): Promise<Hash> {
   const context: ActionContext = {
     machinery,
     entities: {
       subjectAddress,
-      statementId,
+      statementCid,
       attesterAddress: clients.account,
     },
   };

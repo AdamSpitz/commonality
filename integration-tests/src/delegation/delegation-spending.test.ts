@@ -80,7 +80,6 @@ describe('Delegation Spending', () => {
       content: 'Fund open source development',
     });
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     // User 1 deposits 5 ETH into a note (automatically verifies delegation chain integrity)
     const depositAmount = 5000000000000000000n; // 5 ETH
@@ -165,7 +164,6 @@ describe('Delegation Spending', () => {
       content: 'Support education initiatives',
     });
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
     const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
@@ -260,7 +258,6 @@ describe('Delegation Spending', () => {
       content: 'Fund climate research',
     });
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 8000000000000000000n; // 8 ETH
     const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
@@ -365,7 +362,6 @@ describe('Delegation Spending', () => {
       content: 'Support arts and culture',
     });
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
     const { noteId } = await depositETHChecked(user1, delegatableNotesContract, machinery, {

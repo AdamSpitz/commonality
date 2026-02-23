@@ -22,6 +22,7 @@ import {
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type BeliefsContract,
+  type IpfsCidV1,
 } from '@commonality/sdk';
 import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
@@ -65,7 +66,7 @@ export async function believeStatementChecked(
   clients: TestClients,
   beliefsContract: BeliefsContract,
   machinery: ActionTestingMachinery,
-  statementCid: string,
+  statementCid: IpfsCidV1,
   options?: ActionRunOptions
 ): Promise<Hash> {
   const userAddress = clients.account;
@@ -120,17 +121,16 @@ export async function disbelieveStatementChecked(
   clients: TestClients,
   beliefsContract: BeliefsContract,
   machinery: ActionTestingMachinery,
-  statementCid: string,
+  statementCid: IpfsCidV1,
   options?: ActionRunOptions
 ): Promise<Hash> {
-  const statementId = cidToBytes32(statementCid);
   const userAddress = clients.account;
 
   const context: ActionContext = {
     machinery,
     contracts: { beliefs: beliefsContract },
     entities: {
-      statementId,
+      statementCid,
       userAddress,
     },
   };
@@ -176,17 +176,16 @@ export async function clearOpinionChecked(
   clients: TestClients,
   beliefsContract: BeliefsContract,
   machinery: ActionTestingMachinery,
-  statementCid: string,
+  statementCid: IpfsCidV1,
   options?: ActionRunOptions
 ): Promise<Hash> {
-  const statementId = cidToBytes32(statementCid);
   const userAddress = clients.account;
 
   const context: ActionContext = {
     machinery,
     contracts: { beliefs: beliefsContract },
     entities: {
-      statementId,
+      statementCid,
       userAddress,
     },
   };

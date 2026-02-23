@@ -7,4 +7,5 @@ export * from './indexer-sync.js';
 export { assertNotNull } from './utils/index.js';
 export { TEST_TIMEOUTS, INDEXER_SYNC, TEST_PRIVATE_KEYS } from './constants.js';
 export * from './abis.js';
+export * from './cid-types.js';
 export * from './displayable-document.js';

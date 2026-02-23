@@ -139,12 +139,11 @@ class InvariantChecker {
       try {
         for (const user of this.users.slice(0, 10)) {
           for (const stmt of this.statements.slice(0, 10)) {
-            const statementId = cidToBytes32(stmt.statementId);
             const belief = await publicClient.readContract({
               address: this.contracts.beliefs.address as `0x${string}`,
               abi: BeliefsAbi,
               functionName: 'beliefs',
-              args: [user.address, statementId]
+              args: [user.address, cidToBytes32(stmt.statementId)]
             });
 
             const beliefNum = Number(belief);

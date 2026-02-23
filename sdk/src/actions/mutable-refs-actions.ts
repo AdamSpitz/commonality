@@ -7,6 +7,7 @@ import { type TestClients, uploadToIPFS } from './common.js';
 import { getUserRef } from '../indexer-queries/mutable-refs-queries.js';
 import { type GraphQLClient } from '../utils/graphqlClient.js';
 import { SDKMachinery } from '../machinery.js';
+import { IpfsCidV1 } from '../cid-types.js';
 
 // ============================================================================
 // Mutable Refs Actions
@@ -157,7 +158,7 @@ export async function appendToUserList(
   clients: TestClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
   listName: string,
-  itemCid: string,
+  itemCid: IpfsCidV1,
   options?: { deduplicate?: boolean }
 ): Promise<Hash> {
   const deduplicate = options?.deduplicate ?? true;
@@ -238,7 +239,7 @@ export async function addToCreatedStatements(
   machinery: SDKMachinery,
   clients: TestClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
-  statementCid: string
+  statementCid: IpfsCidV1
 ): Promise<Hash> {
   return await appendToUserList(
     machinery,

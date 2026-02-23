@@ -73,10 +73,9 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create a statement
     const statementText = 'We support open source software development';
     const statementCid = await publishDocument(createStatement({ content: statementText }));
-    const statementId = cidToBytes32(statementCid);
 
     testLog(`  Statement: "${statementText}"`);
-    testLog(`  Statement ID: ${statementId}`);
+    testLog(`  Statement CID: ${statementCid}`);
 
     // Create a project
     testLog('  Creating a crowdfunding project...');
@@ -122,9 +121,9 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create a statement
     const statementText = 'Climate change is a critical issue';
     const statementCid = await publishDocument(createStatement({ content: statementText }));
-    const statementId = cidToBytes32(statementCid);
 
     testLog(`  Statement: "${statementText}"`);
+    testLog(`  Statement CID: ${statementCid}`);
 
     // Create a project
     testLog('  Creating a project...');

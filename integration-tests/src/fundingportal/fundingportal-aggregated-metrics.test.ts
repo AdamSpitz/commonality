@@ -158,8 +158,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       machinery,
       p1Details.assuranceContractAddress,
       s1Cid,
-      PROJECT_ALIGNMENT_TOPIC,
-      s1Id
+      PROJECT_ALIGNMENT_TOPIC
     );
     await attestAlignmentChecked(
       attesterClients,

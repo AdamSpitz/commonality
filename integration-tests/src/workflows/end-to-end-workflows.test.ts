@@ -77,10 +77,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       });
 
       const statementCid = await publishDocument(statementDoc);
-      const statementId = cidToBytes32(statementCid);
 
       testLog(`  Statement CID: ${statementCid}`);
-      testLog(`  Statement ID: ${statementId}`);
 
       // 3. User expresses belief in the statement
       const beliefsContract: BeliefsContract = {
@@ -201,11 +199,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       });
 
       const statementCid = await publishDocument(statementDoc);
-      const statementId = cidToBytes32(statementCid);
 
       testLog(`  Statement CID: ${statementCid}`);
-      testLog(`  Statement ID: ${statementId}`);
-
       // 3. Root user expresses belief in the statement
       const beliefsContract: BeliefsContract = {
         address: BELIEFS_CONTRACT_ADDRESS,

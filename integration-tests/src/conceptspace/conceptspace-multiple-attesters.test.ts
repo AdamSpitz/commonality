@@ -284,12 +284,11 @@ describe('Multiple Attesters Tests (F2)', () => {
     // Create a statement
     const statementContent = { statementType: 'text', text: 'Random statement for filter test' };
     const statementCid = await uploadToIPFS(statementContent);
-    const statementId = cidToBytes32(statementCid);
 
     testLog(`  Querying implications from unused attester: ${unusedAttester.account}`);
 
     // Query implications filtering by an attester who hasn't attested anything
-    const implications = await getImplicationsTo(machinery, statementId, unusedAttester.account);
+    const implications = await getImplicationsTo(machinery, statementCid, unusedAttester.account);
 
     assert.strictEqual(
       implications.length,

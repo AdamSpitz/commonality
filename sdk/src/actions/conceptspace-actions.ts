@@ -5,7 +5,7 @@
 import { type Address, type Hash } from 'viem';
 import { type TestClients } from './common.js';
 import { type DisplayableDocument, publishDocument } from '../displayable-document.js';
-import { cidToBytes32 } from '../cid-types.js';
+import { cidToBytes32, IpfsCidV1 } from '../cid-types.js';
 import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================
@@ -41,15 +41,13 @@ export const DISBELIEVES = 2;
 export async function believeStatement(
   clients: TestClients,
   beliefsContract: BeliefsContract,
-  statementCid: string
+  statementCid: IpfsCidV1
 ): Promise<Hash> {
-  const statementId = cidToBytes32(statementCid);
-
   const hash = await clients.walletClient.writeContract({
     address: beliefsContract.address,
     abi: beliefsContract.abi,
     functionName: 'setBelief',
-    args: [statementId, BELIEVES],
+    args: [cidToBytes32(statementCid), BELIEVES],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -77,15 +75,13 @@ export async function believeStatement(
 export async function disbelieveStatement(
   clients: TestClients,
   beliefsContract: BeliefsContract,
-  statementCid: string
+  statementCid: IpfsCidV1
 ): Promise<Hash> {
-  const statementId = cidToBytes32(statementCid);
-
   const hash = await clients.walletClient.writeContract({
     address: beliefsContract.address,
     abi: beliefsContract.abi,
     functionName: 'setBelief',
-    args: [statementId, DISBELIEVES],
+    args: [cidToBytes32(statementCid), DISBELIEVES],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -100,15 +96,13 @@ export async function disbelieveStatement(
 export async function clearOpinion(
   clients: TestClients,
   beliefsContract: BeliefsContract,
-  statementCid: string
+  statementCid: IpfsCidV1
 ): Promise<Hash> {
-  const statementId = cidToBytes32(statementCid);
-
   const hash = await clients.walletClient.writeContract({
     address: beliefsContract.address,
     abi: beliefsContract.abi,
     functionName: 'setBelief',
-    args: [statementId, NO_OPINION],
+    args: [cidToBytes32(statementCid), NO_OPINION],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -139,9 +133,9 @@ export interface ImplicationsContract {
 export async function attestImplication(
   clients: TestClients,
   implicationsContract: ImplicationsContract,
-  fromStatementCid: string,
-  toStatementCid: string,
-  explanationCid?: string
+  fromStatementCid: IpfsCidV1,
+  toStatementCid: IpfsCidV1,
+  explanationCid?: IpfsCidV1
 ): Promise<Hash> {
   const fromStatementId = cidToBytes32(fromStatementCid);
   const toStatementId = cidToBytes32(toStatementCid);
@@ -215,7 +209,7 @@ export interface CreateAndSignStatementOptions {
 
 export interface CreateAndSignStatementResult {
   /** IPFS CID of the statement content */
-  cid: string;
+  cid: IpfsCidV1;
   /** Transaction hash of the belief attestation */
   signTxHash: Hash;
   /** Transaction hash of the created-statements list update (if addToCreatedList is true) */
@@ -303,7 +297,7 @@ export async function createAndSignStatement(
     throw new Error('machinery is required when addToCreatedList is true');
   }
 
-  let cid: string;
+  let cid: IpfsCidV1;
   let signTxHash: Hash;
   let updateListTxHash: Hash | undefined;
 

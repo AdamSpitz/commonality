@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
-import { cidToBytes32 } from '@commonality/sdk'
+import { cidToBytes32, createSDKMachinery } from '@commonality/sdk'
 import {
   createAndSignStatement,
   createStatement,
@@ -69,7 +69,7 @@ test.describe('Statement Creation Workflow', () => {
       abi: MutableRefUpdaterAbi,
     }
 
-    const graphqlClient = createGraphQLClient(graphqlUrl)
+    const machinery = createSDKMachinery(graphqlUrl)
 
     // Execute the statement creation workflow directly (bypassing UI)
     const result = await createAndSignStatement(
@@ -80,7 +80,7 @@ test.describe('Statement Creation Workflow', () => {
       },
       statementData,
       {
-        graphqlClient,
+        machinery,
         addToCreatedList: true,
         onIPFSUpload: (cid) => {
           console.log('Statement uploaded to IPFS:', cid)
@@ -108,8 +108,8 @@ test.describe('Statement Creation Workflow', () => {
     await triggerSyncWithRetry(graphqlUrl)
 
     // Wait for statement to be indexed
-    const statementId = cidToBytes32(result.cid)
-    await waitForStatement(graphqlUrl, statementId)
+    const statementCid = result.cid
+    await waitForStatement(graphqlUrl, statementCid)
 
     // Navigate to browse page
     await page.goto('/statements')

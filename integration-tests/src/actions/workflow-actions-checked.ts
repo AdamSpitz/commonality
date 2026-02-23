@@ -24,6 +24,7 @@ import {
   type MutableRefUpdaterContract,
   type DisplayableDocument,
   type CreateAndSignStatementOptions,
+  IpfsCidV1,
 } from '@commonality/sdk';
 import {
   ActionTestingMachinery,
@@ -88,7 +89,7 @@ export async function createAndSignStatementChecked(
   // We'll set up the context using a placeholder statementId
   // The actual statementId will be derived from the CID after IPFS upload
   // But we capture the state after the action completes
-  let resultCid: string;
+  let resultCid: IpfsCidV1;
 
   const result = await createAndSignStatement(
     clients,
@@ -101,7 +102,6 @@ export async function createAndSignStatementChecked(
   );
 
   resultCid = result.cid;
-  const statementId = cidToBytes32(resultCid);
   const userAddress = clients.account;
 
   // Wait for sync on the sign transaction (the belief transaction)
@@ -120,7 +120,7 @@ export async function createAndSignStatementChecked(
     machinery,
     contracts: { beliefs: contracts.beliefs },
     entities: {
-      statementId,
+      statementCid: resultCid,
       userAddress,
     },
   };

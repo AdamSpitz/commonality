@@ -9,6 +9,7 @@
  */
 
 import { uploadToIPFS, fetchFromIPFS } from './actions/common.js';
+import { IpfsCidV1 } from './cid-types.js';
 
 // ============================================================================
 // Types
@@ -374,7 +375,7 @@ export function createStatement(options: CreateStatementOptions): DisplayableDoc
  * @returns The IPFS CID of the published document
  * @throws Error if the document fails validation
  */
-export async function publishDocument(doc: DisplayableDocument): Promise<string> {
+export async function publishDocument(doc: DisplayableDocument): Promise<IpfsCidV1> {
   const validation = validateDisplayableDocument(doc);
   if (!validation.valid) {
     throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);

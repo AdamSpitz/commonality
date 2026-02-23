@@ -12,6 +12,7 @@ import {
   MutableRefUpdaterAbi,
   type BeliefsContract,
   type MutableRefUpdaterContract,
+  createSDKMachinery,
 } from '@commonality/sdk'
 
 /**
@@ -38,7 +39,7 @@ async function createTestStatement(
   graphqlUrl: string
 ) {
   const clients = createE2ETestClients(accountName)
-  const graphqlClient = createGraphQLClient(graphqlUrl)
+  const machinery = createSDKMachinery(graphqlUrl)
 
   const statementContent = `Belief test statement ${Date.now()}`
   const statementData = createStatement({ content: statementContent })
@@ -51,7 +52,7 @@ async function createTestStatement(
     },
     statementData,
     {
-      graphqlClient,
+      machinery,
       addToCreatedList: true,
       onIPFSUpload: (cid) => console.log('IPFS upload:', cid),
       onSigned: (txHash) => console.log('Statement signed:', txHash),
@@ -68,12 +69,12 @@ async function createTestStatement(
   // Additional wait for indexer to process events
   await new Promise((r) => setTimeout(r, 2000))
 
-  const statementId = cidToBytes32(result.cid)
+  const statementCid = result.cid
 
   // Wait for statement to be indexed
-  await waitForStatement(graphqlUrl, statementId)
+  await waitForStatement(graphqlUrl, statementCid)
 
-  return { cid: result.cid, statementId, statementContent }
+  return { cid: statementCid, statementContent }
 }
 
 test.describe('Belief Expression Workflow', () => {

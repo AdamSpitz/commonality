@@ -3,13 +3,14 @@ import { Box, Typography, Paper, Button, Alert } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { Link, useNavigate } from 'react-router-dom'
 import { CreateStatementForm } from '../components'
+import type { IpfsCidV1 } from '@commonality/sdk'
 
 export function HomePage() {
   const { address, isConnected } = useAccount()
   const navigate = useNavigate()
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const handleStatementCreated = (statementCid: string) => {
+  const handleStatementCreated = (statementCid: IpfsCidV1) => {
     // Hide the form and redirect to the statement page
     setShowCreateForm(false)
     // Navigate to the statement page

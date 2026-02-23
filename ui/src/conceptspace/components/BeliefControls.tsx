@@ -20,12 +20,13 @@ import {
   BELIEVES,
   DISBELIEVES,
   BeliefsAbi,
+  type IpfsCidV1,
   type BeliefsContract,
   type TestClients,
 } from '@commonality/sdk'
 
 interface BeliefControlsProps {
-  statementCid: string
+  statementCid: IpfsCidV1;
   currentBeliefState: number // 0=noOpinion, 1=believes, 2=disbelieves
   onBeliefChanged?: () => void
 }

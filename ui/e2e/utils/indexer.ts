@@ -5,6 +5,8 @@
  * including retry logic for robustness.
  */
 
+import { IpfsCidV1 } from "@commonality/sdk";
+
 /**
  * Wait for the indexer to be ready by polling the GraphQL endpoint
  */
@@ -86,7 +88,7 @@ export async function triggerSyncWithRetry(
  */
 export async function waitForStatement(
   graphqlUrl: string,
-  statementId: string,
+  statementCid: IpfsCidV1,
   maxAttempts = 20,
   intervalMs = 2000
 ): Promise<boolean> {
@@ -102,7 +104,7 @@ export async function waitForStatement(
               believerCount
             }
           }`,
-          variables: { id: statementId.toLowerCase() },
+          variables: { id: statementCid },
         }),
       })
 
@@ -122,6 +124,6 @@ export async function waitForStatement(
     }
   }
 
-  console.warn(`Statement ${statementId} not found after ${maxAttempts} attempts`)
+  console.warn(`Statement ${statementCid} not found after ${maxAttempts} attempts`)
   return false
 }

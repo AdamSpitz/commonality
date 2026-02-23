@@ -4,7 +4,7 @@
 
 import { type Address, type Hash } from 'viem';
 import { type TestClients } from './common.js';
-import { cidToBytes32 } from '../cid-types.js';
+import { cidToBytes32, IpfsCidV1 } from '../cid-types.js';
 
 // ============================================================================
 // AlignmentAttestations Actions (Funding Portals)
@@ -13,18 +13,6 @@ import { cidToBytes32 } from '../cid-types.js';
 export interface AlignmentAttestationsContract {
   address: Address;
   abi: any;
-}
-
-/**
- * Convert a CID string or bytes32 to bytes32
- * If the input is already a 0x-prefixed 66-character hex string, return it as-is.
- * Otherwise, parse it as a CID and convert to bytes32.
- */
-function toBytes32(cidOrBytes32: string): `0x${string}` {
-  if (cidOrBytes32.startsWith('0x') && cidOrBytes32.length === 66) {
-    return cidOrBytes32 as `0x${string}`;
-  }
-  return cidToBytes32(cidOrBytes32);
 }
 
 /**
@@ -38,17 +26,14 @@ export async function attestAlignment(
   clients: TestClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
   subjectAddress: Address,
-  statementCid: string,
-  topicStatementCidOrId: string
+  statementCid: IpfsCidV1,
+  topicStatementCid: IpfsCidV1
 ): Promise<Hash> {
-  const statementId = cidToBytes32(statementCid);
-  const topicStatementId = toBytes32(topicStatementCidOrId);
-
   const hash = await clients.walletClient.writeContract({
     address: alignmentAttestationsContract.address,
     abi: alignmentAttestationsContract.abi,
     functionName: 'attestAlignment',
-    args: [subjectAddress, statementId, topicStatementId],
+    args: [subjectAddress, cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -68,17 +53,14 @@ export async function attestAlignmentsBatch(
   clients: TestClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
   subjectAddresses: Address[],
-  statementCids: string[],
-  topicStatementCidsOrIds: string[]
+  statementCids: IpfsCidV1[],
+  topicStatementCids: IpfsCidV1[]
 ): Promise<Hash> {
-  const statementIds = statementCids.map(cidToBytes32);
-  const topicStatementIds = topicStatementCidsOrIds.map(toBytes32);
-
   const hash = await clients.walletClient.writeContract({
     address: alignmentAttestationsContract.address,
     abi: alignmentAttestationsContract.abi,
     functionName: 'attestAlignmentsInBatch',
-    args: [subjectAddresses, statementIds, topicStatementIds],
+    args: [subjectAddresses, statementCids.map(cidToBytes32), topicStatementCids.map(cidToBytes32)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

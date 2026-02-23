@@ -46,10 +46,8 @@ describe('Hello World Integration Test', () => {
     });
 
     const statementCid = await publishDocument(statementData);
-    const statementId = cidToBytes32(statementCid);
 
     testLog(`  Statement CID: ${statementCid}`);
-    testLog(`  Statement ID (bytes32): ${statementId}`);
 
     // 3. Express belief in the statement
     const beliefsContract: BeliefsContract = {
