@@ -41,6 +41,11 @@ docker-compose down 2>/dev/null || true
 # The sh -c wrapper is needed because glob expansion happens on host before docker runs
 docker run --rm -v "$COMMONALITY_DATA_DIR:/data" alpine sh -c "rm -rf /data/*" 2>/dev/null || true
 
+# Build the SDK to ensure integration tests use latest code
+# The SDK is a workspace dependency used by integration-tests, so it must be built
+# before tests run (tests run on host, not in Docker)
+npm run build --workspace=@commonality/sdk
+
 # Start all services with forced rebuild to ensure we test against latest code
 # Docker's layer caching makes this fast when nothing has changed
 # Pass PONDER_EPHEMERAL=true to ensure fresh in-memory database for each run
