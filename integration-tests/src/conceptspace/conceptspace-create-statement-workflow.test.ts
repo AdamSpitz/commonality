@@ -331,14 +331,8 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     testLog('  Creating statement with invalid GraphQL client...');
 
-    // Create a mock GraphQL client that will fail
-    const invalidGraphqlClient = {
-      indexerClient: {
-        request: async () => {
-          throw new Error('Simulated GraphQL failure');
-        },
-      },
-    };
+    // Create machinery with an invalid URL that will cause GraphQL requests to fail
+    const invalidMachinery = createActionTestingMachinery('http://invalid:9999');
 
     // This should succeed for steps 1 & 2, but log an error for step 3
     // We use the checked wrapper which will verify the belief was created correctly
@@ -348,7 +342,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefUpdaterContract,
       },
-      machinery,
+      invalidMachinery,
       statementData,
       {
         addToCreatedList: true,

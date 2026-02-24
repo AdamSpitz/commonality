@@ -12,7 +12,6 @@ import {
   uploadToIPFS,
   createStatement,
   publishDocument,
-  cidToBytes32,
   type BeliefsContract,
   type IpfsCidV1,
   BeliefsAbi,
@@ -87,15 +86,10 @@ describe('Statement Discovery & Browsing', () => {
       orderDirection: 'desc',
     });
 
-    // Convert CIDs to IDs for comparison
-    const popularStatementId = cidToBytes32(popularStatement).toLowerCase();
-    const moderateStatementId = cidToBytes32(moderateStatement).toLowerCase();
-    const unpopularStatementId = cidToBytes32(unpopularStatement).toLowerCase();
-
     // Find our statements in the results by ID
-    const popularResult = statementsBySupport.find(s => s.id.toLowerCase() === popularStatementId);
-    const moderateResult = statementsBySupport.find(s => s.id.toLowerCase() === moderateStatementId);
-    const unpopularResult = statementsBySupport.find(s => s.id.toLowerCase() === unpopularStatementId);
+    const popularResult = statementsBySupport.find(s => s.id === popularStatement);
+    const moderateResult = statementsBySupport.find(s => s.id === moderateStatement);
+    const unpopularResult = statementsBySupport.find(s => s.id === unpopularStatement);
 
     // Verify they exist
     assert.ok(popularResult, 'Popular statement should be in results');
@@ -164,15 +158,10 @@ describe('Statement Discovery & Browsing', () => {
       orderDirection: 'desc',
     });
 
-    // Convert CIDs to IDs for comparison
-    const oldStatementId = cidToBytes32(oldStatement).toLowerCase();
-    const middleStatementId = cidToBytes32(middleStatement).toLowerCase();
-    const newStatementId = cidToBytes32(newStatement).toLowerCase();
-
     // Find our statements by ID
-    const oldResult = newestStatements.find(s => s.id.toLowerCase() === oldStatementId);
-    const middleResult = newestStatements.find(s => s.id.toLowerCase() === middleStatementId);
-    const newResult = newestStatements.find(s => s.id.toLowerCase() === newStatementId);
+    const oldResult = newestStatements.find(s => s.id === oldStatement);
+    const middleResult = newestStatements.find(s => s.id === middleStatement);
+    const newResult = newestStatements.find(s => s.id === newStatement);
 
     // Verify they exist
     assert.ok(oldResult, 'Old statement should be in results');
