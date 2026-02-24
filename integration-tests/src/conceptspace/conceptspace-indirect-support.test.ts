@@ -12,6 +12,7 @@ import assert from 'assert';
 import {
   uploadToIPFS,
   cidToBytes32,
+  bytes32ToCid,
   type BeliefsContract,
   type ImplicationsContract,
   getIndirectSupporterCount,
@@ -207,12 +208,12 @@ describe('Conceptspace Indirect Support', () => {
 
     assert.strictEqual(
       user1Supporter!.viaStatementCid.toLowerCase(),
-      specific1Id.toLowerCase(),
+      bytes32ToCid(specific1Id).toLowerCase(),
       'User1 supports via specific1'
     );
     assert.strictEqual(
       user2Supporter!.viaStatementCid.toLowerCase(),
-      specific2Id.toLowerCase(),
+      bytes32ToCid(specific2Id).toLowerCase(),
       'User2 supports via specific2'
     );
 
