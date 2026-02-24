@@ -2,3 +2,4 @@
 test-logs
 *.tmp
 dist
+generated/
