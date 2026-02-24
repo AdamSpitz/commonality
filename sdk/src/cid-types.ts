@@ -73,15 +73,24 @@ export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
 // ============================================================================
 
 /**
- * Convert a statement ID from hex format (0x...) to CIDv1 format (bafy...)
+ * Convert a statement ID from hex format (0x...) or CIDv0 format (Qm...) to CIDv1 format (bafy...)
  * for indexer queries. If already in CIDv1 format, returns as-is.
  */
-export function normalizeCidV1(statementId: string): IpfsCidV1 {
-  if (statementId.startsWith('0x') && statementId.length === 66) {
-    return bytes32ToCid(statementId as `0x${string}`);
-  } else if (isValidCidV1(statementId)) {
-    return statementId as IpfsCidV1;
+export function normalizeCidV1(s: string): IpfsCidV1 {
+  if (s.startsWith('0x') && s.length === 66) {
+    return bytes32ToCid(s as `0x${string}`);
   } else {
-    throw new Error(`Invalid statement ID format: ${statementId}`);
+    try {
+      const cid = CID.parse(s);
+      if (cid.version === 1) {
+        return s as IpfsCidV1;
+      } else if (cid.version === 0) {
+        // Convert CIDv0 to CIDv1
+        const cidV1 = CID.createV1(cid.code, cid.multihash);
+        return cidV1.toString() as IpfsCidV1;
+      }
+    } catch {
+      throw new Error(`Invalid statement ID format: ${s}`);
+    }
   }
 }

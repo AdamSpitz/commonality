@@ -1,5 +1,6 @@
-import { ensureIpfsCidV1, IpfsCidV1 } from '@commonality/sdk';
+import { IpfsCidV1, normalizeCidV1 } from '@commonality/sdk';
 import { loadConfig } from './config.js';
+import { normalize } from 'path';
 
 export interface IpfsResult {
   cid: IpfsCidV1;
@@ -20,7 +21,7 @@ export async function uploadToIpfs(content: string): Promise<IpfsResult> {
 
   const data = await response.json() as { Hash: string; Size: number };
   return {
-    cid: ensureIpfsCidV1(data.Hash),
+    cid: normalizeCidV1(data.Hash),
     size: data.Size,
   };
 }

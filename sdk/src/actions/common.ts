@@ -18,7 +18,7 @@ import { CID } from 'multiformats/cid';
 import * as raw from 'multiformats/codecs/raw';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { Buffer } from 'buffer';
-import { ensureIpfsCidV1, fakeIpfsCidV1, IpfsCidV1 } from '../cid-types';
+import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../cid-types';
 
 // Safe environment variable access that works in both Node.js and browser
 function getEnvVar(name: string): string | undefined {
@@ -213,7 +213,7 @@ export async function uploadToIPFS(content: object): Promise<IpfsCidV1> {
       }
 
       const result = await response.json() as { Hash: string };
-      return ensureIpfsCidV1(result.Hash);
+      return normalizeCidV1(result.Hash);
     } catch (error) {
       console.warn('IPFS upload failed, falling back to mock mode:', error);
       // Fall through to mock mode
@@ -232,7 +232,7 @@ export async function uploadToMockIPFS(content: object): Promise<IpfsCidV1> {
   const bytes = Buffer.from(JSON.stringify(content));
   const hash = await sha256.digest(bytes);
   const cid = CID.create(1, raw.code, hash);
-  const cidString = ensureIpfsCidV1(cid.toString());
+  const cidString = normalizeCidV1(cid.toString());
   // Store in mock IPFS so it can be fetched later
   mockIPFSStore.set(cidString, content);
   return cidString;

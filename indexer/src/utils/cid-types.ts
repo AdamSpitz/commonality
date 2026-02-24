@@ -10,13 +10,6 @@ import { CID } from "multiformats";
 export type IpfsCidV1 = `b${string}`;
 export type IpfsCidBytes32 = `0x${string}`;
 
-export function ensureIpfsCidV1(value: string): IpfsCidV1 {
-  if (!isValidCidV1(value)) {
-    throw new Error(`Invalid IPFS CIDv1: ${value}`);
-  }
-  return value;
-}
-
 export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
   return value.startsWith("0x") && value.length === 66;
 }
@@ -28,6 +21,14 @@ export function isValidCidV1(cid: string): cid is IpfsCidV1 {
     return false;
   }
 }
+
+export function ensureIpfsCidV1(value: string): IpfsCidV1 {
+  if (!isValidCidV1(value)) {
+    throw new Error(`Invalid IPFS CIDv1: ${value}`);
+  }
+  return value;
+}
+
 /**
  * Convert IPFS CID to bytes32 for onchain storage
  */
