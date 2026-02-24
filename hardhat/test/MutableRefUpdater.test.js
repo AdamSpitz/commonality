@@ -2,22 +2,6 @@ import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
 
-function fakeIpfsCidV1(meaninglessValue) {
-  // TODO: remove all callers of this function.
-  // Uses a simple FNV-1a-inspired hash (browser-compatible, no Node crypto needed).
-  const encoded = new TextEncoder().encode(meaninglessValue);
-  const out = new Uint8Array(32);
-  for (let j = 0; j < 32; j++) {
-    let h = (0x811c9dc5 ^ (j * 0x01000193)) >>> 0;
-    for (const byte of encoded) {
-      h = (Math.imul(h ^ byte, 0x01000193)) >>> 0;
-    }
-    out[j] = h & 0xff;
-  }
-  const digestHex = Array.from(out).map(b => b.toString(16).padStart(2, '0')).join('');
-  return bytes32ToCid(`0x${digestHex}`);
-}
-
 describe("MutableRefUpdater", function () {
   let mutableRefUpdater;
   let alice, bob, charlie;
@@ -148,7 +132,8 @@ describe("MutableRefUpdater", function () {
 
     it("Should handle long ref values", async function () {
       // IPFS CIDv1 can be quite long, plus we might store JSON with multiple CIDs
-      const longValue = [fakeIpfsCidV1("meaningless-value1"), fakeIpfsCidV1("meaningless-value2"), fakeIpfsCidV1("meaningless-value3")].join(",");
+      // please use actual long CID values
+      const longValue = ["bafybeigdyrzt5sfp7edupa6g6csmvofsnquhcsstrmfe737k63zgla52gq", "bafybeihdwdcefgh4dqkjv67uuc9sywrbrmdn23ai8momj7ci7bouq6mjq", "bafybeigvgzoolc6oj6wstg6xv4nahyomkptlzfp35ghnik4jefe5gzlwe", "bafybeihyrpefgqwz3vvsnwvm7v7ajaajfd3ombkeyivziit52ujanuqd4"].join(",");
 
       await mutableRefUpdater.connect(alice).updateRef("long-ref", longValue);
       const retrieved = await mutableRefUpdater.getRef(alice.address, "long-ref");
