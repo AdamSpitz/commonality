@@ -18,7 +18,7 @@ vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
     ...actual,
-    createGraphQLExecutor: vi.fn(),
+    createSDKMachinery: vi.fn(),
     getStatementWithContent: vi.fn(),
     getUserBelief: vi.fn(),
   }
@@ -26,9 +26,9 @@ vi.mock('@commonality/sdk', async () => {
 
 // Mock child components
 vi.mock('../components/StatementRenderer', () => ({
-  StatementRenderer: vi.fn(({ statementId, content, error }) => (
+  StatementRenderer: vi.fn(({ statementCid, content, error }) => (
     <div data-testid="statement-renderer">
-      StatementRenderer: {statementId}
+      StatementRenderer: {statementCid}
       {content && <div>Content present</div>}
       {error && <div>Error: {error}</div>}
     </div>
@@ -53,9 +53,9 @@ vi.mock('../components/SupportMetrics', () => ({
 }))
 
 vi.mock('../components/StatementSuggestions', () => ({
-  StatementSuggestions: vi.fn(({ statementId, userAddress }) => (
+  StatementSuggestions: vi.fn(({ statementCid, userAddress }) => (
     <div data-testid="statement-suggestions">
-      Suggestions for: {statementId} (user: {userAddress || 'none'})
+      Suggestions for: {statementCid} (user: {userAddress || 'none'})
     </div>
   )),
 }))
@@ -63,7 +63,7 @@ vi.mock('../components/StatementSuggestions', () => ({
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  createGraphQLExecutor,
+  createSDKMachinery,
   getStatementWithContent,
   getUserBelief,
 } from '@commonality/sdk'
@@ -72,7 +72,7 @@ describe('StatementPage', () => {
   const mockExecutor = {} as any
   const mockStatement: Statement = {
     id: 'stmt123',
-    cid: 'QmTest123',
+    cid: 'bafyTest123',
     believerCount: 42,
     disbelieverCount: 5,
     statementType: 'conceptspace',
@@ -86,7 +86,7 @@ describe('StatementPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(createGraphQLExecutor).mockReturnValue(mockExecutor)
+    vi.mocked(createSDKMachinery).mockReturnValue(mockExecutor)
     // Default: wallet not connected
     vi.mocked(useAccount).mockReturnValue({
       address: undefined,
@@ -436,7 +436,7 @@ describe('StatementPage', () => {
   })
 
   describe('API integration', () => {
-    it('calls createGraphQLExecutor with correct URL from environment', async () => {
+    it('calls createSDKMachinery with correct URL from environment', async () => {
       vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
@@ -448,7 +448,7 @@ describe('StatementPage', () => {
 
 
       await waitFor(() => {
-        expect(createGraphQLExecutor).toHaveBeenCalledWith(
+        expect(createSDKMachinery).toHaveBeenCalledWith(
           expect.stringContaining('graphql')
         )
       })

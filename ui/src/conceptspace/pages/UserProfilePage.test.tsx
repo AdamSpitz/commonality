@@ -20,7 +20,7 @@ vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
     ...actual,
-    createGraphQLExecutor: vi.fn(),
+    createSDKMachinery: vi.fn(),
     getUserBeliefs: vi.fn(),
     getUserDisbeliefs: vi.fn(),
     getUserIndirectSupport: vi.fn(),
@@ -30,7 +30,7 @@ vi.mock('@commonality/sdk', async () => {
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  createGraphQLExecutor,
+  createSDKMachinery,
   getUserBeliefs,
   getUserDisbeliefs,
   getUserIndirectSupport,
@@ -42,7 +42,7 @@ const mockNavigate = vi.fn()
 function makeStatement(overrides: Partial<StatementListItem> = {}): StatementListItem {
   return {
     id: 'stmt1',
-    cid: 'QmTest1',
+    cid: 'bafyTest1',
     statementType: 'conceptspace',
     title: 'Test Statement',
     excerpt: 'This is a test excerpt',
@@ -58,8 +58,8 @@ function makeIndirectSupport(overrides: Partial<IndirectSupportInfo> = {}): Indi
     statement: makeStatement({ id: 'indirect1', title: 'Indirectly Supported Statement' }),
     supportedVia: [
       {
-        directlyBelievedStatement: makeStatement({ id: 'via1', title: 'Via Statement 1' }),
-        viaStatementId: 'via1',
+        directlyBelievedStatement: makeStatement({ id: 'via1', cid: 'bafyVia1', title: 'Via Statement 1' }),
+        viaStatementCid: 'bafyVia1',
       },
     ],
     ...overrides,
@@ -69,7 +69,7 @@ function makeIndirectSupport(overrides: Partial<IndirectSupportInfo> = {}): Indi
 describe('UserProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(createGraphQLExecutor).mockReturnValue(mockExecutor)
+    vi.mocked(createSDKMachinery).mockReturnValue(mockExecutor)
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
     // Default: no params, wallet not connected
     vi.mocked(useParams).mockReturnValue({})
@@ -551,7 +551,7 @@ describe('UserProfilePage', () => {
       const cardButton = screen.getByText('Test Statement').closest('.MuiCardActionArea-root')
       await user.click(cardButton!)
 
-      expect(mockNavigate).toHaveBeenCalledWith('/statement/stmt123')
+      expect(mockNavigate).toHaveBeenCalledWith('/statement/bafyTest1')
     })
 
     it('displays multiple belief statements', async () => {
@@ -648,7 +648,7 @@ describe('UserProfilePage', () => {
           supportedVia: [
             {
               directlyBelievedStatement: makeStatement({ id: 'via1', title: 'Via Statement 1' }),
-              viaStatementId: 'via1',
+              viaStatementCid: 'bafyVia1',
             },
           ],
         }),
@@ -711,11 +711,11 @@ describe('UserProfilePage', () => {
           supportedVia: [
             {
               directlyBelievedStatement: makeStatement({ id: 'via1', title: 'Via Statement 1' }),
-              viaStatementId: 'via1',
+              viaStatementCid: 'bafyVia1',
             },
             {
               directlyBelievedStatement: makeStatement({ id: 'via2', title: 'Via Statement 2' }),
-              viaStatementId: 'via2',
+              viaStatementCid: 'bafyVia2',
             },
           ],
         }),
@@ -749,19 +749,19 @@ describe('UserProfilePage', () => {
           supportedVia: [
             {
               directlyBelievedStatement: makeStatement({ id: 'via1', title: 'Via Statement 1' }),
-              viaStatementId: 'via1',
+              viaStatementCid: 'bafyVia1',
             },
             {
               directlyBelievedStatement: makeStatement({ id: 'via2', title: 'Via Statement 2' }),
-              viaStatementId: 'via2',
+              viaStatementCid: 'bafyVia2',
             },
             {
               directlyBelievedStatement: makeStatement({ id: 'via3', title: 'Via Statement 3' }),
-              viaStatementId: 'via3',
+              viaStatementCid: 'bafyVia3',
             },
             {
               directlyBelievedStatement: makeStatement({ id: 'via4', title: 'Via Statement 4' }),
-              viaStatementId: 'via4',
+              viaStatementCid: 'bafyVia4',
             },
           ],
         }),
@@ -799,7 +799,7 @@ describe('UserProfilePage', () => {
           supportedVia: [
             {
               directlyBelievedStatement: undefined as any,
-              viaStatementId: 'via123456789',
+              viaStatementCid: 'bafyVia123456789',
             },
           ],
         }),
@@ -821,7 +821,7 @@ describe('UserProfilePage', () => {
       await user.click(screen.getByRole('tab', { name: /indirect support/i }))
 
       await waitFor(() => {
-        expect(screen.getByText(/via12345/)).toBeInTheDocument()
+        expect(screen.getByText(/bafyVia/)).toBeInTheDocument()
       })
     })
 
@@ -833,7 +833,7 @@ describe('UserProfilePage', () => {
           supportedVia: [
             {
               directlyBelievedStatement: makeStatement({ id: 'via1', title: 'Via Statement 1' }),
-              viaStatementId: 'via1',
+              viaStatementCid: 'bafyVia1',
             },
           ],
         }),
@@ -862,7 +862,7 @@ describe('UserProfilePage', () => {
       const cardButton = screen.getByText('Indirectly Supported').closest('.MuiCardActionArea-root')
       await user.click(cardButton!)
 
-      expect(mockNavigate).toHaveBeenCalledWith('/statement/indirect123')
+      expect(mockNavigate).toHaveBeenCalledWith('/statement/bafyTest1')
     })
   })
 
@@ -880,7 +880,7 @@ describe('UserProfilePage', () => {
       render(<UserProfilePage />)
 
       await waitFor(() => {
-        expect(createGraphQLExecutor).toHaveBeenCalled()
+        expect(createSDKMachinery).toHaveBeenCalled()
         expect(getUserBeliefs).toHaveBeenCalledWith(mockExecutor, address)
         expect(getUserDisbeliefs).toHaveBeenCalledWith(mockExecutor, address)
         expect(getUserIndirectSupport).toHaveBeenCalledWith(mockExecutor, address)
@@ -919,7 +919,7 @@ describe('UserProfilePage', () => {
       render(<UserProfilePage />)
 
       await waitFor(() => {
-        expect(createGraphQLExecutor).toHaveBeenCalled()
+        expect(createSDKMachinery).toHaveBeenCalled()
       })
     })
   })

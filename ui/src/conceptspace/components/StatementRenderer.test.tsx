@@ -40,7 +40,7 @@ describe('StatementRenderer', () => {
     it('displays the loading message in a Paper component', () => {
       const { container } = renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
           loading={true}
         />
@@ -56,7 +56,7 @@ describe('StatementRenderer', () => {
       const errorMessage = 'Failed to fetch statement from IPFS'
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
           error={errorMessage}
         />
@@ -68,19 +68,20 @@ describe('StatementRenderer', () => {
     it('displays statement ID when there is an error', () => {
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
           error="Some error"
         />
       )
 
-      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+      expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
+      expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
     })
 
     it('shows error severity alert', () => {
       const { container } = renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
           error="Some error"
         />
@@ -95,7 +96,7 @@ describe('StatementRenderer', () => {
     it('displays warning when content is null and no error', () => {
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
         />
       )
@@ -108,18 +109,19 @@ describe('StatementRenderer', () => {
     it('displays statement ID when content is not found', () => {
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
         />
       )
 
-      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+      expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
+      expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
     })
 
     it('shows warning severity alert', () => {
       const { container } = renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
         />
       )
@@ -138,7 +140,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -154,7 +156,7 @@ describe('StatementRenderer', () => {
 
       const { container } = renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -173,12 +175,13 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
 
-      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+      expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
+      expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
     })
   })
 
@@ -191,7 +194,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -208,7 +211,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -226,7 +229,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -250,7 +253,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -269,13 +272,13 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
 
       const link = screen.getByRole('link', { name: /reference/i })
-      expect(link).toHaveAttribute('href', '/document/QmRef1')
+      expect(link).toHaveAttribute('href', '/document/bafyRef1')
     })
 
     it('uses CID as label when label is not provided', () => {
@@ -287,7 +290,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -304,7 +307,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -323,7 +326,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -345,7 +348,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -363,7 +366,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -388,7 +391,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -411,7 +414,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -429,7 +432,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -446,7 +449,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -469,7 +472,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -492,7 +495,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -511,7 +514,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -530,7 +533,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -549,7 +552,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -574,7 +577,7 @@ describe('StatementRenderer', () => {
 
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={content}
         />
       )
@@ -584,7 +587,8 @@ describe('StatementRenderer', () => {
       expect(screen.getByText(/references:/i)).toBeInTheDocument()
       expect(screen.getByText(/metadata:/i)).toBeInTheDocument()
       expect(screen.getByText(/additional fields:/i)).toBeInTheDocument()
-      expect(screen.getByText(`Statement ID: ${mockStatementId}`)).toBeInTheDocument()
+      expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
+      expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
     })
   })
 })

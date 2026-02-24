@@ -10,7 +10,7 @@ vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
     ...actual,
-    createGraphQLExecutor: vi.fn(),
+    createSDKMachinery: vi.fn(),
     getStatementSuggestions: vi.fn(),
   }
 })
@@ -305,7 +305,7 @@ describe('StatementSuggestions', () => {
 
       await userEvent.click(firstCard!)
 
-      expect(mockNavigate).toHaveBeenCalledWith('/statement/stmt456')
+      expect(mockNavigate).toHaveBeenCalledWith('/statement/bafyTest1')
     })
   })
 

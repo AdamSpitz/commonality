@@ -26,6 +26,25 @@ query to return no results, so tests failed before reaching the `.toLowerCase()`
 
 ---
 
+## UI Test Fixes (In Progress)
+
+### Fixed (working tests)
+- `StatementSuggestions.test.tsx` - Changed mock from `createGraphQLExecutor` to `createSDKMachinery`
+- `StatementRenderer.test.tsx` - Fixed prop `statementId` → `statementCid`, fixed text assertions
+- `UserProfilePage.test.tsx` - Fixed SDK mocks, CID types, navigation assertions
+
+### Still Failing
+- `BrowseStatementsPage.test.tsx` - Uses old `executeQuery` API instead of `browseStatements`
+- `StatementPage.test.tsx` - Type mismatches with SDK types (DisplayableDocument, SupportMetrics, etc.)
+
+### Key SDK Changes for Tests
+- `createGraphQLExecutor` → `createSDKMachinery`
+- Navigation uses `cid` not `id` (e.g., `/statement/bafyTest1`)
+- CID values must use `b${string}` format (base32-encoded)
+- `viaStatementId` → `viaStatementCid`
+
+---
+
 ## Miscellaneous TODO.md files
 
 - [ui/TODO.md](ui/TODO.md)

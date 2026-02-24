@@ -15,14 +15,14 @@ vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
     ...actual,
-    createGraphQLExecutor: vi.fn(),
-    executeQuery: vi.fn(),
+    createSDKMachinery: vi.fn(),
+    browseStatements: vi.fn(),
   }
 })
 
 import {
-  createGraphQLExecutor,
-  executeQuery,
+  createSDKMachinery,
+  browseStatements,
 } from '@commonality/sdk'
 
 const mockExecutor = {} as any
@@ -30,7 +30,7 @@ const mockExecutor = {} as any
 function makeStatement(overrides: Record<string, any> = {}) {
   return {
     id: 'stmt1',
-    cid: 'QmTest1',
+    cid: 'bafyTest1',
     statementType: 'conceptspace',
     title: 'Test Statement',
     excerpt: 'This is a test excerpt',
@@ -44,12 +44,12 @@ function makeStatement(overrides: Record<string, any> = {}) {
 describe('BrowseStatementsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(createGraphQLExecutor).mockReturnValue(mockExecutor)
+    vi.mocked(createSDKMachinery).mockReturnValue(mockExecutor)
   })
 
   describe('Loading state', () => {
     it('displays loading spinner while fetching statements', () => {
-      vi.mocked(executeQuery).mockReturnValue(new Promise(() => {}))
+      vi.mocked(browseStatements).mockReturnValue(new Promise(() => {}))
 
       render(<BrowseStatementsPage />)
 
@@ -57,7 +57,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('does not display error or empty state while loading', () => {
-      vi.mocked(executeQuery).mockReturnValue(new Promise(() => {}))
+      vi.mocked(browseStatements).mockReturnValue(new Promise(() => {}))
 
       render(<BrowseStatementsPage />)
 
@@ -68,7 +68,7 @@ describe('BrowseStatementsPage', () => {
 
   describe('Error states', () => {
     it('displays error message when API call fails with Error', async () => {
-      vi.mocked(executeQuery).mockRejectedValue(new Error('Network error'))
+      vi.mocked(browseStatements).mockRejectedValue(new Error('Network error'))
 
       render(<BrowseStatementsPage />)
 
@@ -79,7 +79,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('displays generic error message for non-Error exceptions', async () => {
-      vi.mocked(executeQuery).mockRejectedValue('string error')
+      vi.mocked(browseStatements).mockRejectedValue('string error')
 
       render(<BrowseStatementsPage />)
 
@@ -92,7 +92,7 @@ describe('BrowseStatementsPage', () => {
     it('logs errors to console when API call fails', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const error = new Error('Test error')
-      vi.mocked(executeQuery).mockRejectedValue(error)
+      vi.mocked(browseStatements).mockRejectedValue(error)
 
       render(<BrowseStatementsPage />)
 
@@ -104,7 +104,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('hides loading spinner after error', async () => {
-      vi.mocked(executeQuery).mockRejectedValue(new Error('fail'))
+      vi.mocked(browseStatements).mockRejectedValue(new Error('fail'))
 
       render(<BrowseStatementsPage />)
 
@@ -114,7 +114,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('does not display statement cards when there is an error', async () => {
-      vi.mocked(executeQuery).mockRejectedValue(new Error('fail'))
+      vi.mocked(browseStatements).mockRejectedValue(new Error('fail'))
 
       render(<BrowseStatementsPage />)
 
@@ -128,7 +128,7 @@ describe('BrowseStatementsPage', () => {
 
   describe('Empty state', () => {
     it('displays empty message when no statements are returned', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
@@ -140,7 +140,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('displays empty message when query key is missing from result', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({})
+      vi.mocked(browseStatements).mockResolvedValue({})
 
       render(<BrowseStatementsPage />)
 
@@ -150,7 +150,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('does not show loading spinner in empty state', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
@@ -169,7 +169,7 @@ describe('BrowseStatementsPage', () => {
     ]
 
     beforeEach(() => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: statements,
       })
     })
@@ -223,7 +223,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('uses singular "supporter" when count is 1', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ believerCount: 1 })],
       })
 
@@ -243,7 +243,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('does not render excerpt element when excerpt is null', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ excerpt: null })],
       })
 
@@ -265,7 +265,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('does not render type chip when statementType is null', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ statementType: null })],
       })
 
@@ -287,7 +287,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('uses singular "disbeliever" when count is 1', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ disbelieverCount: 1 })],
       })
 
@@ -299,7 +299,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('does not display disbeliever count when zero', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ disbelieverCount: 0 })],
       })
 
@@ -313,7 +313,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('displays "Untitled Statement" when title is null', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ title: null })],
       })
 
@@ -327,7 +327,7 @@ describe('BrowseStatementsPage', () => {
 
   describe('Date formatting', () => {
     it('displays formatted date for valid date strings', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ createdAt: '2025-06-15T00:00:00Z' })],
       })
 
@@ -340,7 +340,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('displays "Unknown date" when createdAt is null', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement({ createdAt: null })],
       })
 
@@ -354,14 +354,14 @@ describe('BrowseStatementsPage', () => {
 
   describe('Sort toggle', () => {
     it('defaults to "mostSupporters" sort', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        expect(executeQuery).toHaveBeenCalledWith(
+        expect(browseStatements).toHaveBeenCalledWith(
           mockExecutor,
           expect.stringContaining('browseStatementsByMostSupporters'),
           { options: { limit: 50 } }
@@ -370,17 +370,17 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('switches to "newest" sort when Newest button is clicked', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        expect(executeQuery).toHaveBeenCalledTimes(1)
+        expect(browseStatements).toHaveBeenCalledTimes(1)
       })
 
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByNewest: [makeStatement()],
       })
 
@@ -388,7 +388,7 @@ describe('BrowseStatementsPage', () => {
       await user.click(screen.getByText('Newest'))
 
       await waitFor(() => {
-        expect(executeQuery).toHaveBeenCalledWith(
+        expect(browseStatements).toHaveBeenCalledWith(
           mockExecutor,
           expect.stringContaining('browseStatementsByNewest'),
           { options: { limit: 50 } }
@@ -397,18 +397,18 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('switches back to "mostSupporters" sort when Most Supporters button is clicked', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        expect(executeQuery).toHaveBeenCalledTimes(1)
+        expect(browseStatements).toHaveBeenCalledTimes(1)
       })
 
       // Switch to newest first
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByNewest: [],
       })
 
@@ -416,19 +416,19 @@ describe('BrowseStatementsPage', () => {
       await user.click(screen.getByText('Newest'))
 
       await waitFor(() => {
-        expect(executeQuery).toHaveBeenCalledTimes(2)
+        expect(browseStatements).toHaveBeenCalledTimes(2)
       })
 
       // Switch back to most supporters
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
       await user.click(screen.getByText('Most Supporters'))
 
       await waitFor(() => {
-        expect(executeQuery).toHaveBeenCalledTimes(3)
-        expect(executeQuery).toHaveBeenLastCalledWith(
+        expect(browseStatements).toHaveBeenCalledTimes(3)
+        expect(browseStatements).toHaveBeenLastCalledWith(
           mockExecutor,
           expect.stringContaining('browseStatementsByMostSupporters'),
           { options: { limit: 50 } }
@@ -437,7 +437,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('clears previous error when sort changes', async () => {
-      vi.mocked(executeQuery).mockRejectedValueOnce(new Error('Initial error'))
+      vi.mocked(browseStatements).mockRejectedValueOnce(new Error('Initial error'))
 
       render(<BrowseStatementsPage />)
 
@@ -445,7 +445,7 @@ describe('BrowseStatementsPage', () => {
         expect(screen.getByText('Initial error')).toBeInTheDocument()
       })
 
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByNewest: [makeStatement()],
       })
 
@@ -460,28 +460,28 @@ describe('BrowseStatementsPage', () => {
 
   describe('API integration', () => {
     it('calls createGraphQLExecutor with correct URL', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        expect(createGraphQLExecutor).toHaveBeenCalledWith(
+        expect(createSDKMachinery).toHaveBeenCalledWith(
           expect.stringContaining('graphql')
         )
       })
     })
 
     it('passes limit of 50 as query variable', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        expect(executeQuery).toHaveBeenCalledWith(
+        expect(browseStatements).toHaveBeenCalledWith(
           mockExecutor,
           expect.any(String),
           { options: { limit: 50 } }
@@ -490,14 +490,14 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('queries for the correct fields', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        const queryArg = vi.mocked(executeQuery).mock.calls[0][1]
+        const queryArg = vi.mocked(browseStatements).mock.calls[0][1]
         expect(queryArg).toContain('id')
         expect(queryArg).toContain('cid')
         expect(queryArg).toContain('statementType')
@@ -512,7 +512,7 @@ describe('BrowseStatementsPage', () => {
 
   describe('State transitions', () => {
     it('transitions from loading to success state', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement()],
       })
 
@@ -529,7 +529,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('transitions from loading to error state', async () => {
-      vi.mocked(executeQuery).mockRejectedValue(new Error('API Error'))
+      vi.mocked(browseStatements).mockRejectedValue(new Error('API Error'))
 
       render(<BrowseStatementsPage />)
 
@@ -545,7 +545,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('transitions from loading to empty state', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [],
       })
 
@@ -560,7 +560,7 @@ describe('BrowseStatementsPage', () => {
     })
 
     it('shows loading spinner when switching sort options', async () => {
-      vi.mocked(executeQuery).mockResolvedValue({
+      vi.mocked(browseStatements).mockResolvedValue({
         browseStatementsByMostSupporters: [makeStatement()],
       })
 
@@ -571,7 +571,7 @@ describe('BrowseStatementsPage', () => {
       })
 
       // Make the next query hang to observe loading state
-      vi.mocked(executeQuery).mockReturnValue(new Promise(() => {}))
+      vi.mocked(browseStatements).mockReturnValue(new Promise(() => {}))
 
       const user = userEvent.setup()
       await user.click(screen.getByText('Newest'))
