@@ -126,10 +126,13 @@ export async function getImplicationsFrom(
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const result = await request(machinery.graphqlClient.url, GetImplicationsFromDocument, {
+  const variables: { fromStatementCid: string; attester?: string } = {
     fromStatementCid: statementCid,
-    attester: attesterAddress?.toLowerCase() ?? null,
-  });
+  };
+  if (attesterAddress) {
+    variables.attester = attesterAddress.toLowerCase();
+  }
+  const result = await request(machinery.graphqlClient.url, GetImplicationsFromDocument, variables);
   // explanationCid is not in schema; BigInt fields come as strings at runtime
   return (result.implicationss?.items ?? []) as unknown as Implication[];
 }
@@ -142,10 +145,13 @@ export async function getImplicationsTo(
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
-  const result = await request(machinery.graphqlClient.url, GetImplicationsToDocument, {
+  const variables: { toStatementCid: string; attester?: string } = {
     toStatementCid: statementCid,
-    attester: attesterAddress?.toLowerCase() ?? null,
-  });
+  };
+  if (attesterAddress) {
+    variables.attester = attesterAddress.toLowerCase();
+  }
+  const result = await request(machinery.graphqlClient.url, GetImplicationsToDocument, variables);
   // explanationCid is not in schema; BigInt fields come as strings at runtime
   return (result.implicationss?.items ?? []) as unknown as Implication[];
 }

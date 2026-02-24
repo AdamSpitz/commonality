@@ -1,8 +1,6 @@
 # What we've been working on lately
 
 Main thing I want to work on next:
-  - ~~Type-safe GraphQL queries in integration tests.~~ **Done.** Created `integration-tests/codegen.ts` (parallel to `sdk/codegen.ts`) pointing at `../sdk/schema.graphql`. Moved all raw query strings from `invariants.ts` into `integration-tests/src/queries/invariant-queries.graphql`. Generated types live in `integration-tests/src/generated/`. Updated `invariants.ts` to import and use the generated `TypedDocumentNode` objects. Fixed two latent bugs caught immediately by codegen: `beliefss(where: { statementCid: ... })` → `statementId` in filter, and `belief.statementCid` → `belief.statementId`.
-  - Make sure the codegen output stays fresh. Right now `sdk/schema.graphql` is a manually-copied snapshot of the Ponder-generated schema, and `indexer/generated/schema.graphql` is also stale. Add a build/CI step that regenerates the schema from Ponder and re-runs codegen, so we never end up with stale generated types again.
   - Fix the problems in TODO-smart-contracts.md.
 
 Other big things to do soon:
@@ -11,6 +9,30 @@ Other big things to do soon:
     - Stuff I'm suspicious about:
       - Statement IDs. Are we using the correct CID format? Are we using the CID at all?
   - ?
+
+---
+
+## Integration Test Issues
+
+### SDK needs rebuild before integration tests
+The SDK (`packages/sdk`) must be rebuilt with `npm run build --workspace=@commonality/sdk` before running
+integration tests, otherwise the tests use stale code from `sdk/dist/`. The integration tests run on the
+host machine (not in Docker), while the SDK is a host workspace dependency.
+
+To fix this properly, the `scripts/run-integration-tests.sh` script should be updated to:
+1. Build the SDK before starting Docker services, OR
+2. Build the SDK in the integration-tests container, OR
+3. Use a volumes mount to share the built SDK from host to container
+
+### GraphQL `attester` field not normalized in SDK
+The SDK's `getImplicationsFrom` and `getImplicationsTo` functions return `Implication` objects where
+`attester` is typed as `string`, but the GraphQL query returns `{ attester: { id: "0x..." } }` (an object).
+The SDK should transform this to extract the string value, similar to how it's done in
+`integration-tests/src/actions/implication-action-properties.ts` line 62:
+  `((imp.attester as any).id || imp.attester).toLowerCase()`
+
+This bug was previously hidden because another issue (passing `attester: null` to GraphQL) caused the
+query to return no results, so tests failed before reaching the `.toLowerCase()` call.
 
 ---
 

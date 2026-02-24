@@ -40,10 +40,13 @@ export async function getAlignedSubjects(
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await request(machinery.graphqlClient.url, GetAlignedSubjectsDocument, {
+  const variables: { statementId: string; attester?: string } = {
     statementId: statementCid,
-    attester: attesterAddress?.toLowerCase() ?? null,
-  });
+  };
+  if (attesterAddress) {
+    variables.attester = attesterAddress.toLowerCase();
+  }
+  const result = await request(machinery.graphqlClient.url, GetAlignedSubjectsDocument, variables);
   // Map projectAddress → subjectAddress; topicStatementId not in schema
   return (result.projectAlignmentss?.items ?? []).map(item => ({
     attester: item.attester,
@@ -66,10 +69,13 @@ export async function getSubjectStatements(
   subjectAddress: string,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  const result = await request(machinery.graphqlClient.url, GetSubjectStatementsDocument, {
+  const variables: { projectAddress: string; attester?: string } = {
     projectAddress: subjectAddress.toLowerCase(),
-    attester: attesterAddress?.toLowerCase() ?? null,
-  });
+  };
+  if (attesterAddress) {
+    variables.attester = attesterAddress.toLowerCase();
+  }
+  const result = await request(machinery.graphqlClient.url, GetSubjectStatementsDocument, variables);
   // Map projectAddress → subjectAddress; topicStatementId not in schema
   return (result.projectAlignmentss?.items ?? []).map(item => ({
     attester: item.attester,
@@ -157,10 +163,13 @@ export async function getIndirectlyAlignedSubjects(
   trustedAlignmentAttester?: string
 ): Promise<IndirectSubjectAlignment[]> {
   // Step 1: Find all statements that imply the target statement
-  const implicationsResult = await request(machinery.graphqlClient.url, GetImplicationsToForFpDocument, {
+  const implicationsVariables: { toStatementCid: string; attester?: string } = {
     toStatementCid: statementCid,
-    attester: trustedImplicationAttester?.toLowerCase() ?? null,
-  });
+  };
+  if (trustedImplicationAttester) {
+    implicationsVariables.attester = trustedImplicationAttester.toLowerCase();
+  }
+  const implicationsResult = await request(machinery.graphqlClient.url, GetImplicationsToForFpDocument, implicationsVariables);
 
   const implications = implicationsResult.implicationss?.items ?? [];
 
