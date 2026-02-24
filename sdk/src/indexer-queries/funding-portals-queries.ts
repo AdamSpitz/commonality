@@ -1,9 +1,8 @@
 /**
  * GraphQL queries for Funding Portals subsystem (AlignmentAttestations)
  *
- * Note: The current schema uses projectAlignments/projectAddress naming.
- * The TypeScript API uses the more generic subjectAddress/AlignmentAttestation naming.
- * Field mapping (projectAddress → subjectAddress) is done in this layer.
+ * The schema uses alignmentAttestations/alignmentAttestationss with subjectAddress.
+ * The TypeScript API uses subjectAddress for consistency.
  * topicStatementId is not present in the current schema and is returned as ''.
  */
 
@@ -47,10 +46,9 @@ export async function getAlignedSubjects(
     variables.attester = attesterAddress.toLowerCase();
   }
   const result = await request(machinery.graphqlClient.url, GetAlignedSubjectsDocument, variables);
-  // Map projectAddress → subjectAddress; topicStatementId not in schema
-  return (result.projectAlignmentss?.items ?? []).map(item => ({
+  return (result.alignmentAttestationss?.items ?? []).map(item => ({
     attester: item.attester,
-    subjectAddress: item.projectAddress,
+    subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
     topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),
@@ -69,17 +67,16 @@ export async function getSubjectStatements(
   subjectAddress: string,
   attesterAddress?: string
 ): Promise<AlignmentAttestation[]> {
-  const variables: { projectAddress: string; attester?: string } = {
-    projectAddress: subjectAddress.toLowerCase(),
+  const variables: { subjectAddress: string; attester?: string } = {
+    subjectAddress: subjectAddress.toLowerCase(),
   };
   if (attesterAddress) {
     variables.attester = attesterAddress.toLowerCase();
   }
   const result = await request(machinery.graphqlClient.url, GetSubjectStatementsDocument, variables);
-  // Map projectAddress → subjectAddress; topicStatementId not in schema
-  return (result.projectAlignmentss?.items ?? []).map(item => ({
+  return (result.alignmentAttestationss?.items ?? []).map(item => ({
     attester: item.attester,
-    subjectAddress: item.projectAddress,
+    subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
     topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),
@@ -101,14 +98,14 @@ export async function getAlignmentAttestation(
 ): Promise<AlignmentAttestation | null> {
   const result = await request(machinery.graphqlClient.url, GetAlignmentAttestationDocument, {
     attester: attesterAddress.toLowerCase(),
-    projectAddress: subjectAddress.toLowerCase(),
+    subjectAddress: subjectAddress.toLowerCase(),
     statementId: statementCid,
   });
-  if (!result.projectAlignments) return null;
-  const item = result.projectAlignments;
+  if (!result.alignmentAttestations) return null;
+  const item = result.alignmentAttestations;
   return {
     attester: item.attester,
-    subjectAddress: item.projectAddress,
+    subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
     topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),
@@ -129,10 +126,9 @@ export async function getAlignmentsByAttester(
   const result = await request(machinery.graphqlClient.url, GetAlignmentsByAttesterDocument, {
     attester: attesterAddress.toLowerCase(),
   });
-  // Map projectAddress → subjectAddress; topicStatementId not in schema
-  return (result.projectAlignmentss?.items ?? []).map(item => ({
+  return (result.alignmentAttestationss?.items ?? []).map(item => ({
     attester: item.attester,
-    subjectAddress: item.projectAddress,
+    subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
     topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
     createdAt: String(item.createdAt),

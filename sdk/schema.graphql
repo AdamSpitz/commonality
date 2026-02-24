@@ -56,8 +56,8 @@ type Query {
   delegationChainss(where: delegationChainsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): delegationChainsPage!
   noteEvents(id: String!): noteEvents
   noteEventss(where: noteEventsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): noteEventsPage!
-  projectAlignments(attester: String!, projectAddress: String!, statementId: String!): projectAlignments
-  projectAlignmentss(where: projectAlignmentsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): projectAlignmentsPage!
+  alignmentAttestations(attester: String!, subjectAddress: String!, statementId: String!): alignmentAttestations
+  alignmentAttestationss(where: alignmentAttestationsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): alignmentAttestationsPage!
   mutableRefs(owner: String!, name: String!): mutableRefs
   mutableRefss(where: mutableRefsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): mutableRefsPage!
   refUpdates(id: String!): refUpdates
@@ -1725,23 +1725,23 @@ input delegatableNotesFilter {
   updatedAt_lte: BigInt
 }
 
-type projectAlignments {
+type alignmentAttestations {
   attester: String!
-  projectAddress: String!
+  subjectAddress: String!
   statementId: String!
   createdAt: BigInt!
   blockNumber: BigInt!
 }
 
-type projectAlignmentsPage {
-  items: [projectAlignments!]!
+type alignmentAttestationsPage {
+  items: [alignmentAttestations!]!
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-input projectAlignmentsFilter {
-  AND: [projectAlignmentsFilter]
-  OR: [projectAlignmentsFilter]
+input alignmentAttestationsFilter {
+  AND: [alignmentAttestationsFilter]
+  OR: [alignmentAttestationsFilter]
   attester: String
   attester_not: String
   attester_in: [String]
@@ -1752,16 +1752,16 @@ input projectAlignmentsFilter {
   attester_ends_with: String
   attester_not_starts_with: String
   attester_not_ends_with: String
-  projectAddress: String
-  projectAddress_not: String
-  projectAddress_in: [String]
-  projectAddress_not_in: [String]
-  projectAddress_contains: String
-  projectAddress_not_contains: String
-  projectAddress_starts_with: String
-  projectAddress_ends_with: String
-  projectAddress_not_starts_with: String
-  projectAddress_not_ends_with: String
+  subjectAddress: String
+  subjectAddress_not: String
+  subjectAddress_in: [String]
+  subjectAddress_not_in: [String]
+  subjectAddress_contains: String
+  subjectAddress_not_contains: String
+  subjectAddress_starts_with: String
+  subjectAddress_ends_with: String
+  subjectAddress_not_starts_with: String
+  subjectAddress_not_ends_with: String
   statementId: String
   statementId_not: String
   statementId_in: [String]

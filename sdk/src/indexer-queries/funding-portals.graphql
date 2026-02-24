@@ -1,13 +1,10 @@
-# Note: The schema currently uses projectAlignments/projectAlignmentss with projectAddress.
-# The TypeScript layer maps projectAddress <-> subjectAddress for API compatibility.
-
 query GetAlignedSubjects($statementId: String!, $attester: String) {
-  projectAlignmentss(
+  alignmentAttestationss(
     where: { statementId: $statementId, attester: $attester }
   ) {
     items {
       attester
-      projectAddress
+      subjectAddress
       statementId
       createdAt
       blockNumber
@@ -15,13 +12,13 @@ query GetAlignedSubjects($statementId: String!, $attester: String) {
   }
 }
 
-query GetSubjectStatements($projectAddress: String!, $attester: String) {
-  projectAlignmentss(
-    where: { projectAddress: $projectAddress, attester: $attester }
+query GetSubjectStatements($subjectAddress: String!, $attester: String) {
+  alignmentAttestationss(
+    where: { subjectAddress: $subjectAddress, attester: $attester }
   ) {
     items {
       attester
-      projectAddress
+      subjectAddress
       statementId
       createdAt
       blockNumber
@@ -31,16 +28,16 @@ query GetSubjectStatements($projectAddress: String!, $attester: String) {
 
 query GetAlignmentAttestation(
   $attester: String!
-  $projectAddress: String!
+  $subjectAddress: String!
   $statementId: String!
 ) {
-  projectAlignments(
+  alignmentAttestations(
     attester: $attester
-    projectAddress: $projectAddress
+    subjectAddress: $subjectAddress
     statementId: $statementId
   ) {
     attester
-    projectAddress
+    subjectAddress
     statementId
     createdAt
     blockNumber
@@ -48,10 +45,10 @@ query GetAlignmentAttestation(
 }
 
 query GetAlignmentsByAttester($attester: String!) {
-  projectAlignmentss(where: { attester: $attester }) {
+  alignmentAttestationss(where: { attester: $attester }) {
     items {
       attester
-      projectAddress
+      subjectAddress
       statementId
       createdAt
       blockNumber
