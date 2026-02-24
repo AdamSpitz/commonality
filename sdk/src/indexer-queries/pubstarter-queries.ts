@@ -247,7 +247,7 @@ export async function getSaleListing(
 ): Promise<SaleListing | null> {
   const result = await request(machinery.graphqlClient.url, GetSaleListingDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
-    listingId,
+    listingId: listingId.toString() as any,
   });
   // BigInt fields come as strings at runtime
   return ((result.saleListingss?.items ?? [])[0] ?? null) as unknown as SaleListing | null;
@@ -277,7 +277,7 @@ export async function getBuyOrder(
 ): Promise<BuyOrder | null> {
   const result = await request(machinery.graphqlClient.url, GetBuyOrderDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
-    orderId,
+    orderId: orderId.toString() as any,
   });
   // BigInt fields come as strings at runtime
   return ((result.buyOrderss?.items ?? [])[0] ?? null) as unknown as BuyOrder | null;
@@ -321,7 +321,7 @@ export async function getTokenTrades(
 ): Promise<Trade[]> {
   const result = await request(machinery.graphqlClient.url, GetTokenTradesDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
-    tokenId,
+    tokenId: tokenId.toString() as any,
   });
   // BigInt fields come as strings at runtime
   return (result.tradess?.items ?? []) as unknown as Trade[];
