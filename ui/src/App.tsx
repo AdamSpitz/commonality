@@ -13,7 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/statements" element={<BrowseStatementsPage />} />
-          <Route path="/statement/:statementId" element={<StatementPage />} />
+          <Route path="/statement/:statementCid" element={<StatementPage />} />
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/user/:address" element={<UserProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />

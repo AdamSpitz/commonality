@@ -58,14 +58,19 @@ export function cidToBytes32(cid: string): `0x${string}` {
     throw new Error('CID digest must be 32 bytes for bytes32 conversion');
   }
 
-  return `0x${Buffer.from(digest).toString('hex')}` as `0x${string}`;
+  const hex = Array.from(digest).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `0x${hex}` as `0x${string}`;
 }
 
 /**
  * Convert bytes32 to IPFS CID
  */
 export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
-  const digestBytes = Buffer.from(bytes32.slice(2), 'hex');
+  const hexString = bytes32.slice(2);
+  const digestBytes = new Uint8Array(hexString.length / 2);
+  for (let i = 0; i < hexString.length; i += 2) {
+    digestBytes[i / 2] = parseInt(hexString.slice(i, i + 2), 16);
+  }
   // Create a MultihashDigest directly from the bytes
   const hash = {
     code: 0x12, // sha2-256
