@@ -79,7 +79,7 @@ import {
  *     recipient: alice.address,
  *     threshold: parseEther('10'),
  *     deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
- *     projectMetadataCid: 'Qm...',
+ *     projectMetadataCid: 'bafy...',
  *     tokenIds: [0n],
  *     tokenCounts: [100n],
  *     tokenPrices: [parseEther('0.1')]

@@ -198,7 +198,7 @@ describe('CreateStatementForm', () => {
       it('calls createStatement with trimmed content', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
-        const mockResult = { cid: 'QmTest123', txHash: '0xabc' }
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
 
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
         vi.mocked(createAndSignStatement).mockResolvedValue(mockResult as any)
@@ -221,7 +221,7 @@ describe('CreateStatementForm', () => {
       it('calls createAndSignStatement with correct parameters', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
-        const mockResult = { cid: 'QmTest123', txHash: '0xabc' }
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
 
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
         vi.mocked(createAndSignStatement).mockResolvedValue(mockResult as any)
@@ -290,13 +290,13 @@ describe('CreateStatementForm', () => {
         expect(input).toBeDisabled()
 
         // Resolve the promise to complete the test
-        resolveCreation!({ cid: 'QmTest123', txHash: '0xabc' })
+        resolveCreation!({ cid: 'bafyTest123', txHash: '0xabc' })
       })
 
       it('shows success message after successful creation', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
-        const mockResult = { cid: 'QmTest123', txHash: '0xabc' }
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
 
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
         vi.mocked(createAndSignStatement).mockResolvedValue(mockResult as any)
@@ -317,7 +317,7 @@ describe('CreateStatementForm', () => {
       it('clears the content field after successful creation', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
-        const mockResult = { cid: 'QmTest123', txHash: '0xabc' }
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
 
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
         vi.mocked(createAndSignStatement).mockResolvedValue(mockResult as any)
@@ -338,7 +338,7 @@ describe('CreateStatementForm', () => {
       it('calls onStatementCreated callback with CID when provided', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
-        const mockResult = { cid: 'QmTest123', txHash: '0xabc' }
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
         const onStatementCreated = vi.fn()
 
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
@@ -353,14 +353,14 @@ describe('CreateStatementForm', () => {
         await user.click(button)
 
         await waitFor(() => {
-          expect(onStatementCreated).toHaveBeenCalledWith('QmTest123')
+          expect(onStatementCreated).toHaveBeenCalledWith('bafyTest123')
         })
       })
 
       it('does not call onStatementCreated callback when not provided', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
-        const mockResult = { cid: 'QmTest123', txHash: '0xabc' }
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
 
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
         vi.mocked(createAndSignStatement).mockResolvedValue(mockResult as any)
@@ -463,7 +463,7 @@ describe('CreateStatementForm', () => {
         })
 
         // Second submission succeeds
-        vi.mocked(createAndSignStatement).mockResolvedValueOnce({ cid: 'QmTest123', txHash: '0xabc' } as any)
+        vi.mocked(createAndSignStatement).mockResolvedValueOnce({ cid: 'bafyTest123', txHash: '0xabc' } as any)
 
         await user.type(input, 'Another statement')
         await user.click(button)
@@ -476,7 +476,7 @@ describe('CreateStatementForm', () => {
       it('clears previous success when submitting again', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
-        const mockResult = { cid: 'QmTest123', txHash: '0xabc' }
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
 
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
         vi.mocked(createAndSignStatement).mockResolvedValue(mockResult as any)
@@ -537,8 +537,8 @@ describe('CreateStatementForm', () => {
         vi.mocked(createStatement).mockReturnValue(mockStatementData as any)
         vi.mocked(createAndSignStatement).mockImplementation(async (clients, contracts, data, options) => {
           // Simulate the callback being called
-          options?.onIPFSUpload?.('QmTest123')
-          return { cid: 'QmTest123', txHash: '0xabc' } as any
+          options?.onIPFSUpload?.('bafyTest123')
+          return { cid: 'bafyTest123', txHash: '0xabc' } as any
         })
 
         render(<CreateStatementForm />)
@@ -550,7 +550,7 @@ describe('CreateStatementForm', () => {
         await user.click(button)
 
         await waitFor(() => {
-          expect(consoleSpy).toHaveBeenCalledWith('Statement uploaded to IPFS:', 'QmTest123')
+          expect(consoleSpy).toHaveBeenCalledWith('Statement uploaded to IPFS:', 'bafyTest123')
         })
 
         consoleSpy.mockRestore()
@@ -565,7 +565,7 @@ describe('CreateStatementForm', () => {
         vi.mocked(createAndSignStatement).mockImplementation(async (clients, contracts, data, options) => {
           // Simulate the callback being called
           options?.onSigned?.('0xtxhash')
-          return { cid: 'QmTest123', txHash: '0xtxhash' } as any
+          return { cid: 'bafyTest123', txHash: '0xtxhash' } as any
         })
 
         render(<CreateStatementForm />)
@@ -592,7 +592,7 @@ describe('CreateStatementForm', () => {
         vi.mocked(createAndSignStatement).mockImplementation(async (clients, contracts, data, options) => {
           // Simulate the callback being called
           options?.onListUpdated?.('0xlisttxhash')
-          return { cid: 'QmTest123', txHash: '0xabc' } as any
+          return { cid: 'bafyTest123', txHash: '0xabc' } as any
         })
 
         render(<CreateStatementForm />)

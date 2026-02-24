@@ -56,8 +56,8 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  *   clients,
  *   implicationsContract,
  *   graphqlClient,
- *   'QmSpecificStatement',
- *   'QmGeneralStatement'
+ *   'bafySpecificStatement',
+ *   'bafyGeneralStatement'
  * );
  *
  * // With explanation
@@ -65,9 +65,9 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  *   clients,
  *   implicationsContract,
  *   graphqlClient,
- *   'QmSpecificStatement',
- *   'QmGeneralStatement',
- *   'QmExplanation123'
+ *   'bafySpecificStatement',
+ *   'bafyGeneralStatement',
+ *   'bafyExplanation123'
  * );
  *
  * // With expected indirect supporters verification
@@ -75,8 +75,8 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  *   clients,
  *   implicationsContract,
  *   graphqlClient,
- *   'QmSpecificStatement',
- *   'QmGeneralStatement',
+ *   'bafySpecificStatement',
+ *   'bafyGeneralStatement',
  *   undefined,
  *   [user1.account, user2.account] // These users believe the specific statement
  * );

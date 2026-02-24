@@ -15,6 +15,8 @@ import {
   getRef,
   assertNotNull,
   MutableRefUpdaterAbi,
+  fakeIpfsCidV1,
+  isValidCidV1,
 } from '@commonality/sdk';
 import {
   getUserRef,
@@ -55,7 +57,7 @@ describe('Mutable Refs', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-ref-create-' + Date.now();
-    const refValue = 'QmTestValue123';
+    const refValue = fakeIpfsCidV1('TestValue123');
 
     testLog(`  Creating ref "${refName}" with value "${refValue}"...`);
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, refValue);
@@ -81,9 +83,9 @@ describe('Mutable Refs', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-ref-update';
-    const value1 = 'QmValue1';
-    const value2 = 'QmValue2';
-    const value3 = 'QmValue3';
+    const value1 = fakeIpfsCidV1('Value1');
+    const value2 = fakeIpfsCidV1('Value2');
+    const value3 = fakeIpfsCidV1('Value3');
 
     testLog(`  Creating ref "${refName}"...`);
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, value1);
@@ -119,9 +121,9 @@ describe('Mutable Refs', () => {
     const clients3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     const refName = 'created-statements';
-    const value1 = 'QmUser1Statements';
-    const value2 = 'QmUser2Statements';
-    const value3 = 'QmUser3Statements';
+    const value1 = fakeIpfsCidV1('User1Statements');
+    const value2 = fakeIpfsCidV1('User2Statements');
+    const value3 = fakeIpfsCidV1('User3Statements');
 
     testLog('  Three users creating refs with same name...');
 
@@ -161,9 +163,9 @@ describe('Mutable Refs', () => {
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const refs = [
-      { name: 'created-statements', value: 'QmCreatedList' },
-      { name: 'bookmarked-statements', value: 'QmBookmarkedList' },
-      { name: 'draft-statements', value: 'QmDraftList' },
+      { name: 'created-statements', value: fakeIpfsCidV1('CreatedList') },
+      { name: 'bookmarked-statements', value: fakeIpfsCidV1('BookmarkedList') },
+      { name: 'draft-statements', value: fakeIpfsCidV1('DraftList') },
     ];
 
     testLog('  User creating multiple refs...');
@@ -192,11 +194,11 @@ describe('Mutable Refs', () => {
     const refName = 'test-empty-ref';
 
     testLog('  Setting ref to non-empty value...');
-    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, 'QmSomeValue');
+    await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, fakeIpfsCidV1('SomeValue'));
 
     let ref = await getUserRef(machinery, clients.account, refName);
     assertNotNull(ref, 'Non-empty ref');
-    assert.strictEqual(ref.value, 'QmSomeValue', 'Should have non-empty value');
+    assert.strictEqual(ref.value, fakeIpfsCidV1('SomeValue'), 'Should have non-empty value');
 
     testLog('  Clearing ref (empty string)...');
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, '');
@@ -297,8 +299,7 @@ describe('Mutable Refs', () => {
     let ref = await getUserRef(machinery, clients.account, refName);
     assertNotNull(ref, 'First ref');
     const firstListCid = ref.value;
-    // Accept both CIDv0 (Qm...) and CIDv1 (baf...) formats
-    assert.ok(firstListCid.startsWith('Qm') || firstListCid.startsWith('baf'), 'Should have valid CID after first statement');
+    assert.ok(isValidCidV1(firstListCid), 'Should have valid CID after first statement');
 
     testLog('  Adding second statement...');
     await appendToUserListChecked(machinery, clients, mutableRefUpdaterContract, refName, cid2);
@@ -307,7 +308,7 @@ describe('Mutable Refs', () => {
     ref = await getUserRef(machinery, clients.account, refName);
     assertNotNull(ref, 'Second ref');
     const secondListCid = ref.value;
-    assert.ok(secondListCid.startsWith('Qm') || secondListCid.startsWith('baf'), 'Should have valid CID after second statement');
+    assert.ok(isValidCidV1(secondListCid), 'Should have valid CID after second statement');
     assert.notStrictEqual(secondListCid, firstListCid, 'CID should change when adding second statement');
 
     testLog('  Adding third statement...');
@@ -317,7 +318,7 @@ describe('Mutable Refs', () => {
     ref = await getUserRef(machinery, clients.account, refName);
     assertNotNull(ref, 'Third ref');
     const thirdListCid = ref.value;
-    assert.ok(thirdListCid.startsWith('Qm') || thirdListCid.startsWith('baf'), 'Should have valid CID after third statement');
+    assert.ok(isValidCidV1(thirdListCid), 'Should have valid CID after third statement');
     assert.notStrictEqual(thirdListCid, secondListCid, 'CID should change when adding third statement');
 
     testLog('  ✓ appendToUserList() works correctly (verified by property checks)');
@@ -349,7 +350,7 @@ describe('Mutable Refs', () => {
     const ref = await getUserRef(machinery, clients.account, refName);
     assertNotNull(ref, 'Migrated ref');
     const migratedListCid = ref.value;
-    assert.ok(migratedListCid.startsWith('Qm') || migratedListCid.startsWith('baf'), 'Should have valid CID after migration');
+    assert.ok(isValidCidV1(migratedListCid), 'Should have valid CID after migration');
     assert.notStrictEqual(migratedListCid, oldFormatCid, 'CID should change after migration to list format');
 
     testLog('  ✓ Format migration works correctly (verified by property checks)');

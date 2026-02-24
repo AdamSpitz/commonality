@@ -61,7 +61,7 @@ export interface ProjectDetails {
  *   recipient: alice.address,
  *   threshold: parseEther('10'),
  *   deadline: BigInt(Date.now() / 1000 + 86400 * 30),
- *   projectMetadataCid: 'Qm...',
+ *   projectMetadataCid: 'bafy...',
  *   tokenIds: [0n],
  *   tokenCounts: [100n],
  *   tokenPrices: [parseEther('0.1')]

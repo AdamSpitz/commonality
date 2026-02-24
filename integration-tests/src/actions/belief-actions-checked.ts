@@ -57,7 +57,7 @@ import { ActionTestingMachinery } from './action-machinery.js';
  *   clients,
  *   beliefsContract,
  *   graphqlClient,
- *   'QmStatementCid123'
+ *   'bafyStatementCid123'
  * );
  * // State transition properties and invariants are automatically verified
  * ```
@@ -112,7 +112,7 @@ export async function believeStatementChecked(
  *   clients,
  *   beliefsContract,
  *   graphqlClient,
- *   'QmStatementCid123'
+ *   'bafyStatementCid123'
  * );
  * // State transition properties and invariants are automatically verified
  * ```
@@ -167,7 +167,7 @@ export async function disbelieveStatementChecked(
  *   clients,
  *   beliefsContract,
  *   graphqlClient,
- *   'QmStatementCid123'
+ *   'bafyStatementCid123'
  * );
  * // State transition properties and invariants are automatically verified
  * ```

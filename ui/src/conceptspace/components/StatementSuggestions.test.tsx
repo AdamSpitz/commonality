@@ -24,7 +24,7 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-import { createGraphQLExecutor, getStatementSuggestions } from '@commonality/sdk'
+import { createSDKMachinery, getStatementSuggestions } from '@commonality/sdk'
 import { useNavigate } from 'react-router-dom'
 
 // Helper to wrap components with BrowserRouter
@@ -33,12 +33,12 @@ const renderWithRouter = (ui: React.ReactElement) => {
 }
 
 describe('StatementSuggestions', () => {
-  const mockExecutor = {} as any
+  const mockMachinery = {} as any
   const mockNavigate = vi.fn()
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(createGraphQLExecutor).mockReturnValue(mockExecutor)
+    vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
   })
 
@@ -48,7 +48,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockReturnValue(new Promise(() => {}))
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument()
@@ -61,7 +61,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockRejectedValue(new Error(errorMessage))
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -74,7 +74,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockRejectedValue('string error')
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -88,7 +88,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockRejectedValue(error)
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -107,7 +107,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       const { container } = renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -125,7 +125,7 @@ describe('StatementSuggestions', () => {
           excerpt: 'This is an excerpt',
           believerCount: 42,
           disbelieverCount: 5,
-          cid: 'QmTest1',
+          cid: 'bafyTest1',
           statementType: 'conceptspace',
           createdAt: '2024-01-01T00:00:00Z',
         },
@@ -139,7 +139,7 @@ describe('StatementSuggestions', () => {
           excerpt: '',
           believerCount: 15,
           disbelieverCount: 2,
-          cid: 'QmTest2',
+          cid: 'bafyTest2',
           statementType: 'conceptspace',
           createdAt: '2024-01-01T00:00:00Z',
         },
@@ -154,7 +154,7 @@ describe('StatementSuggestions', () => {
 
     it('displays the suggestions section header', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -164,7 +164,7 @@ describe('StatementSuggestions', () => {
 
     it('displays the suggestions description', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -174,7 +174,7 @@ describe('StatementSuggestions', () => {
 
     it('renders all suggestion cards', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -185,7 +185,7 @@ describe('StatementSuggestions', () => {
 
     it('displays statement titles correctly', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -203,7 +203,7 @@ describe('StatementSuggestions', () => {
             excerpt: 'An excerpt',
             believerCount: 10,
             disbelieverCount: 1,
-            cid: 'QmTest3',
+            cid: 'bafyTest3',
             statementType: 'conceptspace',
             createdAt: '2024-01-01T00:00:00Z',
           },
@@ -214,7 +214,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue(suggestionsWithoutTitle)
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -224,7 +224,7 @@ describe('StatementSuggestions', () => {
 
     it('displays excerpt when present', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -234,7 +234,7 @@ describe('StatementSuggestions', () => {
 
     it('does not display excerpt section when excerpt is null', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -249,7 +249,7 @@ describe('StatementSuggestions', () => {
 
     it('displays reason for each suggestion', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -260,7 +260,7 @@ describe('StatementSuggestions', () => {
 
     it('displays believer count for each suggestion', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -271,7 +271,7 @@ describe('StatementSuggestions', () => {
 
     it('displays correct relationship chip for "implies" type', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -281,7 +281,7 @@ describe('StatementSuggestions', () => {
 
     it('displays correct relationship chip for "implied-by" type', async () => {
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -293,7 +293,7 @@ describe('StatementSuggestions', () => {
       const userEvent = (await import('@testing-library/user-event')).default
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -314,46 +314,46 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
-        expect(createGraphQLExecutor).toHaveBeenCalledWith(
+        expect(createSDKMachinery).toHaveBeenCalledWith(
           expect.stringContaining('graphql')
         )
       })
     })
 
-    it('calls getStatementSuggestions with statementId and no userAddress', async () => {
+    it('calls getStatementSuggestions with statementCid and no userAddress', async () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
         expect(getStatementSuggestions).toHaveBeenCalledWith(
-          mockExecutor,
-          'stmt123',
+          mockMachinery,
+          'bafyTest123',
           undefined
         )
       })
     })
 
-    it('calls getStatementSuggestions with statementId and userAddress when provided', async () => {
+    it('calls getStatementSuggestions with statementCid and userAddress when provided', async () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(
         <StatementSuggestions
-          statementId="stmt123"
+          statementCid="bafyTest123"
           userAddress="0x1234567890123456789012345678901234567890"
         />
       )
 
       await waitFor(() => {
         expect(getStatementSuggestions).toHaveBeenCalledWith(
-          mockExecutor,
-          'stmt123',
+          mockMachinery,
+          'bafyTest123',
           '0x1234567890123456789012345678901234567890'
         )
       })
@@ -363,7 +363,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       const { rerender } = renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
@@ -372,15 +372,15 @@ describe('StatementSuggestions', () => {
 
       rerender(
         <BrowserRouter>
-          <StatementSuggestions statementId="stmt456" />
+          <StatementSuggestions statementCid="bafyTest456" />
         </BrowserRouter>
       )
 
       await waitFor(() => {
         expect(getStatementSuggestions).toHaveBeenCalledTimes(2)
         expect(getStatementSuggestions).toHaveBeenLastCalledWith(
-          mockExecutor,
-          'stmt456',
+          mockMachinery,
+          'bafyTest456',
           undefined
         )
       })
@@ -390,7 +390,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       const { rerender } = renderWithRouter(
-        <StatementSuggestions statementId="stmt123" userAddress="0xAAA" />
+        <StatementSuggestions statementCid="bafyTest123" userAddress="0xAAA" />
       )
 
       await waitFor(() => {
@@ -399,15 +399,15 @@ describe('StatementSuggestions', () => {
 
       rerender(
         <BrowserRouter>
-          <StatementSuggestions statementId="stmt123" userAddress="0xBBB" />
+          <StatementSuggestions statementCid="bafyTest123" userAddress="0xBBB" />
         </BrowserRouter>
       )
 
       await waitFor(() => {
         expect(getStatementSuggestions).toHaveBeenCalledTimes(2)
         expect(getStatementSuggestions).toHaveBeenLastCalledWith(
-          mockExecutor,
-          'stmt123',
+          mockMachinery,
+          'bafyTest123',
           '0xBBB'
         )
       })
@@ -424,7 +424,7 @@ describe('StatementSuggestions', () => {
             excerpt: '',
             believerCount: 10,
             disbelieverCount: 1,
-            cid: 'QmTest',
+            cid: 'bafyTest456',
             statementType: 'conceptspace',
             createdAt: '2024-01-01T00:00:00Z',          },
           relationshipType: 'implies',
@@ -434,7 +434,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue(mockSuggestions)
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       // Should show loading initially
@@ -451,7 +451,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockRejectedValue(new Error('API Error'))
 
       renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       // Should show loading initially
@@ -468,7 +468,7 @@ describe('StatementSuggestions', () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       const { container } = renderWithRouter(
-        <StatementSuggestions statementId="stmt123" />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       // Should show loading initially

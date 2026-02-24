@@ -56,7 +56,7 @@ import {
  *   mutableRefContract,
  *   graphqlClient,
  *   'created-statements',
- *   'QmNewListCid123'
+ *   'bafyNewListCid123'
  * );
  * // State transition properties and invariants are automatically verified
  * ```
@@ -118,7 +118,7 @@ export async function updateRefChecked(
  *   clients,
  *   mutableRefContract,
  *   'created-statements',
- *   'QmNewStatementCid123'
+ *   'bafyNewStatementCid123'
  * );
  * // State transition properties and invariants are automatically verified
  * ```

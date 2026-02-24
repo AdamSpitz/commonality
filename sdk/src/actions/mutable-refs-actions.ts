@@ -139,7 +139,7 @@ export async function getRef(
  *   clients,
  *   mutableRefContract,
  *   'created-statements',
- *   'QmNewStatement123'
+ *   'bafyNewStatement123'
  * );
  *
  * // Add a favorite without deduplication
@@ -148,7 +148,7 @@ export async function getRef(
  *   clients,
  *   mutableRefContract,
  *   'favorites',
- *   'QmFavorite456',
+ *   'bafyFavorite456',
  *   { deduplicate: false }
  * );
  * ```

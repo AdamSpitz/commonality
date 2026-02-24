@@ -12,7 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
-import { getRef } from '@commonality/sdk';
+import { getRef, isValidCidV1 } from '@commonality/sdk';
 import {
   getUserRef,
   getUserRefHistory,
@@ -137,9 +137,9 @@ export const listAppendProperty: StateTransitionProperty = {
       'Ref should have a value after appending to list'
     );
 
-    // Check that it's a valid CID (starts with Qm for CIDv0 or baf for CIDv1)
+    // Check that it's a valid CID
     assert.ok(
-      after.currentValue!.startsWith('Qm') || after.currentValue!.startsWith('baf'),
+      isValidCidV1(after.currentValue!),
       `Ref value should be a valid CID, got: ${after.currentValue}`
     );
 

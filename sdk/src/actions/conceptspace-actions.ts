@@ -35,7 +35,7 @@ export const DISBELIEVES = 2;
  *
  * @example
  * ```typescript
- * await believeStatement(clients, beliefsContract, 'QmStatementCid123');
+ * await believeStatement(clients, beliefsContract, 'bafyStatementCid123');
  * ```
  */
 export async function believeStatement(
@@ -69,7 +69,7 @@ export async function believeStatement(
  *
  * @example
  * ```typescript
- * await disbelieveStatement(clients, beliefsContract, 'QmStatementCid123');
+ * await disbelieveStatement(clients, beliefsContract, 'bafyStatementCid123');
  * ```
  */
 export async function disbelieveStatement(

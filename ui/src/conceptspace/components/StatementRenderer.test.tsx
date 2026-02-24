@@ -22,13 +22,13 @@ function renderWithRouter(ui: React.ReactElement) {
 }
 
 describe('StatementRenderer', () => {
-  const mockStatementId = 'QmTest123'
+  const mockStatementId = 'bafyTest123'
 
   describe('loading state', () => {
     it('displays loading message when loading is true', () => {
       renderWithRouter(
         <StatementRenderer
-          statementId={mockStatementId}
+          statementCid={mockStatementId}
           content={null}
           loading={true}
         />
@@ -243,8 +243,8 @@ describe('StatementRenderer', () => {
         format: 'text/plain',
         content: 'Main content',
         references: [
-          { cid: 'QmRef1', label: 'First Reference' },
-          { cid: 'QmRef2', label: 'Second Reference' },
+          { cid: 'bafyRef1', label: 'First Reference' },
+          { cid: 'bafyRef2', label: 'Second Reference' },
         ],
       }
 
@@ -264,7 +264,7 @@ describe('StatementRenderer', () => {
       const content: DisplayableDocument = {
         format: 'text/plain',
         content: 'Main content',
-        references: [{ cid: 'QmRef1', label: 'Reference' }],
+        references: [{ cid: 'bafyRef1', label: 'Reference' }],
       }
 
       renderWithRouter(
@@ -282,7 +282,7 @@ describe('StatementRenderer', () => {
       const content: DisplayableDocument = {
         format: 'text/plain',
         content: 'Main content',
-        references: [{ cid: 'QmRef123456' }],
+        references: [{ cid: 'bafyRef123456' }],
       }
 
       renderWithRouter(
@@ -292,7 +292,7 @@ describe('StatementRenderer', () => {
         />
       )
 
-      expect(screen.getByText('QmRef123456')).toBeInTheDocument()
+      expect(screen.getByText('bafyRef123456')).toBeInTheDocument()
     })
 
     it('does not render references section when references array is empty', () => {
@@ -318,7 +318,7 @@ describe('StatementRenderer', () => {
       const content: DisplayableDocument = {
         format: 'markdown-restricted',
         content: 'See [this document](ref:0)',
-        references: [{ cid: 'QmRef1', label: 'Referenced Doc' }],
+        references: [{ cid: 'bafyRef1', label: 'Referenced Doc' }],
       }
 
       renderWithRouter(
@@ -338,8 +338,8 @@ describe('StatementRenderer', () => {
         format: 'markdown-restricted',
         content: 'See [second](ref:1)',
         references: [
-          { cid: 'QmRef1' },
-          { cid: 'QmRef2' },
+          { cid: 'bafyRef1' },
+          { cid: 'bafyRef2' },
         ],
       }
 
@@ -358,7 +358,7 @@ describe('StatementRenderer', () => {
       const content: DisplayableDocument = {
         format: 'markdown-restricted',
         content: 'See [missing](ref:5)',
-        references: [{ cid: 'QmRef1' }],
+        references: [{ cid: 'bafyRef1' }],
       }
 
       renderWithRouter(
@@ -404,7 +404,7 @@ describe('StatementRenderer', () => {
         assets: {
           photo: {
             mimeType: 'image/jpeg',
-            cid: 'QmPhotoHash',
+            cid: 'bafyPhotoHash',
           },
         },
       }
@@ -567,7 +567,7 @@ describe('StatementRenderer', () => {
         format: 'markdown-restricted',
         content: '# Main Content\n\nThis is the primary content.',
         assets: { logo: { mimeType: 'image/png', data: 'base64data' } },
-        references: [{ cid: 'QmRef1', label: 'Reference' }],
+        references: [{ cid: 'bafyRef1', label: 'Reference' }],
         extras: { topic: 'Testing' },
         customField: 'unknown',
       } as DisplayableDocument & { customField: string }
