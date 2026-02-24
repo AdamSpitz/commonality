@@ -118,6 +118,19 @@ export async function getUserBelief(
 // Implications Queries
 // ============================================================================
 
+function normalizeAttester(attester: string | { id: string } | undefined): string {
+  if (!attester) return '';
+  if (typeof attester === 'string') return attester;
+  return attester.id;
+}
+
+function normalizeImplication(imp: any): Implication {
+  return {
+    ...imp,
+    attester: normalizeAttester(imp.attester),
+  };
+}
+
 /**
  * Get implications from a statement (what it implies)
  */
@@ -133,8 +146,8 @@ export async function getImplicationsFrom(
     variables.attester = attesterAddress.toLowerCase();
   }
   const result = await request(machinery.graphqlClient.url, GetImplicationsFromDocument, variables);
-  // explanationCid is not in schema; BigInt fields come as strings at runtime
-  return (result.implicationss?.items ?? []) as unknown as Implication[];
+  // GraphQL returns attester as { id: "0x..." }, normalize to string
+  return (result.implicationss?.items ?? []).map(normalizeImplication) as Implication[];
 }
 
 /**
@@ -152,8 +165,8 @@ export async function getImplicationsTo(
     variables.attester = attesterAddress.toLowerCase();
   }
   const result = await request(machinery.graphqlClient.url, GetImplicationsToDocument, variables);
-  // explanationCid is not in schema; BigInt fields come as strings at runtime
-  return (result.implicationss?.items ?? []) as unknown as Implication[];
+  // GraphQL returns attester as { id: "0x..." }, normalize to string
+  return (result.implicationss?.items ?? []).map(normalizeImplication) as Implication[];
 }
 
 /**
@@ -170,8 +183,8 @@ export async function getImplication(
     fromStatementCid: fromStatementCid,
     toStatementCid: toStatementCid,
   });
-  // explanationCid is not in schema; BigInt fields come as strings at runtime
-  return result.implications as unknown as Implication | null;
+  // GraphQL returns attester as { id: "0x..." }, normalize to string
+  return result.implications ? normalizeImplication(result.implications) : null;
 }
 
 // ============================================================================

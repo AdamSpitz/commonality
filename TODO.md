@@ -14,17 +14,7 @@ Other big things to do soon:
 
 ## Integration Test Issues
 
-### SDK needs rebuild before integration tests
-The SDK (`packages/sdk`) must be rebuilt with `npm run build --workspace=@commonality/sdk` before running
-integration tests, otherwise the tests use stale code from `sdk/dist/`. The integration tests run on the
-host machine (not in Docker), while the SDK is a host workspace dependency.
-
-To fix this properly, the `scripts/run-integration-tests.sh` script should be updated to:
-1. Build the SDK before starting Docker services, OR
-2. Build the SDK in the integration-tests container, OR
-3. Use a volumes mount to share the built SDK from host to container
-
-### GraphQL `attester` field not normalized in SDK
+### GraphQL `attester` field not normalized in SDK (DONE)
 The SDK's `getImplicationsFrom` and `getImplicationsTo` functions return `Implication` objects where
 `attester` is typed as `string`, but the GraphQL query returns `{ attester: { id: "0x..." } }` (an object).
 The SDK should transform this to extract the string value, similar to how it's done in
