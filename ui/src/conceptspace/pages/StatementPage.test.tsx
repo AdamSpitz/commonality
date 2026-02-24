@@ -70,7 +70,7 @@ import {
 
 describe('StatementPage', () => {
   const mockExecutor = {} as any
-  const mockStatement: Statement = {
+  const mockStatement = {
     id: 'stmt123',
     cid: 'bafyTest123',
     believerCount: 42,
@@ -79,7 +79,7 @@ describe('StatementPage', () => {
     title: 'Test Statement',
     excerpt: 'Test excerpt',
   }
-  const mockContent: DisplayableDocument = {
+  const mockContent = {
     title: 'Test Statement',
     content: 'Test content',
   }
@@ -98,7 +98,7 @@ describe('StatementPage', () => {
     it('displays loading spinner while fetching statement data', () => {
       // Mock a never-resolving promise to keep loading state
       vi.mocked(getStatementWithContent).mockReturnValue(new Promise(() => {}))
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
 
       render(<StatementPage />)
 
@@ -107,19 +107,19 @@ describe('StatementPage', () => {
   })
 
   describe('Error states', () => {
-    it('displays error message when no statement ID is provided', async () => {
+    it('displays error message when no statement CID is provided', async () => {
       vi.mocked(useParams).mockReturnValue({})
 
       render(<StatementPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('No statement ID provided')).toBeInTheDocument()
+        expect(screen.getByText('No statement CID provided')).toBeInTheDocument()
         expect(screen.getByRole('alert')).toBeInTheDocument()
       })
     })
 
     it('displays error message when statement is not found', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'nonexistent' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'nonexistent' })
       vi.mocked(getStatementWithContent).mockResolvedValue(null)
 
       render(<StatementPage />)
@@ -132,7 +132,7 @@ describe('StatementPage', () => {
 
     it('displays error message when API call fails', async () => {
       const errorMessage = 'Network error'
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockRejectedValue(new Error(errorMessage))
 
       render(<StatementPage />)
@@ -144,7 +144,7 @@ describe('StatementPage', () => {
     })
 
     it('displays generic error message for non-Error exceptions', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockRejectedValue('string error')
 
       render(<StatementPage />)
@@ -157,7 +157,7 @@ describe('StatementPage', () => {
     it('logs errors to console when API call fails', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const error = new Error('Test error')
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockRejectedValue(error)
 
       render(<StatementPage />)
@@ -170,7 +170,7 @@ describe('StatementPage', () => {
     })
 
     it('displays error when getStatementWithContent returns null result', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue(null)
 
       render(<StatementPage />)
@@ -184,7 +184,7 @@ describe('StatementPage', () => {
 
   describe('Content error handling', () => {
     it('passes content error to StatementRenderer when IPFS load fails', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: null,
@@ -201,7 +201,7 @@ describe('StatementPage', () => {
 
     it('does not set content error when statement has no CID', async () => {
       const statementNoCid = { ...mockStatement, cid: null }
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: statementNoCid,
         content: null,
@@ -219,7 +219,7 @@ describe('StatementPage', () => {
 
   describe('Successful rendering', () => {
     beforeEach(() => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -282,7 +282,7 @@ describe('StatementPage', () => {
 
       await waitFor(() => {
         const controls = screen.getByTestId('belief-controls')
-        expect(controls.textContent).toContain('BeliefControls: QmTest123')
+        expect(controls.textContent).toContain('BeliefControls: bafyTest123')
         expect(controls.textContent).toContain('state: 0')
       })
     })
@@ -327,7 +327,7 @@ describe('StatementPage', () => {
 
   describe('Wallet connection states', () => {
     beforeEach(() => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -406,7 +406,7 @@ describe('StatementPage', () => {
 
   describe('Data refetching', () => {
     beforeEach(() => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -437,7 +437,7 @@ describe('StatementPage', () => {
 
   describe('API integration', () => {
     it('calls createSDKMachinery with correct URL from environment', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -455,7 +455,7 @@ describe('StatementPage', () => {
     })
 
     it('calls getStatementWithContent with correct parameters', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -475,7 +475,7 @@ describe('StatementPage', () => {
     })
 
     it('refetches data when statementId changes', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -489,7 +489,7 @@ describe('StatementPage', () => {
       })
 
       // Change statement ID
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt456' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt456' })
       rerender(<StatementPage />)
 
       await waitFor(() => {
@@ -498,7 +498,7 @@ describe('StatementPage', () => {
     })
 
     it('refetches data when wallet address changes', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -527,7 +527,7 @@ describe('StatementPage', () => {
 
   describe('State transitions', () => {
     it('transitions from loading to success state', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
@@ -551,7 +551,7 @@ describe('StatementPage', () => {
     })
 
     it('transitions from loading to error state', async () => {
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockRejectedValue(new Error('API Error'))
 
       render(<StatementPage />)
@@ -570,7 +570,7 @@ describe('StatementPage', () => {
 
     it('clears previous errors when refetching data', async () => {
       // First call fails
-      vi.mocked(useParams).mockReturnValue({ statementId: 'stmt123' })
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockRejectedValueOnce(new Error('First error'))
 
       const { rerender } = render(<StatementPage />)
