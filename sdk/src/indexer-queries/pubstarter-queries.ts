@@ -89,14 +89,14 @@ export async function getProjectsFiltered(
   const serverOrderBy = sortBy && sortBy !== 'fundingProgress' ? sortBy : undefined;
 
   const result = await request(machinery.graphqlClient.url, GetProjectsFilteredDocument, {
-    minDeadline: (filters?.minDeadline?.toString() ?? null) as unknown as bigint | null,
-    maxDeadline: (filters?.maxDeadline?.toString() ?? null) as unknown as bigint | null,
-    minThreshold: (filters?.minThreshold?.toString() ?? null) as unknown as bigint | null,
-    maxThreshold: (filters?.maxThreshold?.toString() ?? null) as unknown as bigint | null,
-    minTotalReceived: (filters?.minTotalReceived?.toString() ?? null) as unknown as bigint | null,
-    maxTotalReceived: (filters?.maxTotalReceived?.toString() ?? null) as unknown as bigint | null,
-    orderBy: serverOrderBy ?? null,
-    orderDirection: serverOrderBy ? sortDirection : null,
+    minDeadline: filters?.minDeadline?.toString() as unknown as bigint | undefined,
+    maxDeadline: filters?.maxDeadline?.toString() as unknown as bigint | undefined,
+    minThreshold: filters?.minThreshold?.toString() as unknown as bigint | undefined,
+    maxThreshold: filters?.maxThreshold?.toString() as unknown as bigint | undefined,
+    minTotalReceived: filters?.minTotalReceived?.toString() as unknown as bigint | undefined,
+    maxTotalReceived: filters?.maxTotalReceived?.toString() as unknown as bigint | undefined,
+    orderBy: serverOrderBy,
+    orderDirection: serverOrderBy ? sortDirection : undefined,
   });
 
   // BigInt fields come as strings at runtime

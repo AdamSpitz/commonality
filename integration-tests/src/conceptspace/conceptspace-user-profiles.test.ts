@@ -11,7 +11,6 @@ import assert from 'assert';
 import {
   createStatement,
   publishDocument,
-  cidToBytes32,
   type BeliefsContract,
   BeliefsAbi,
 } from '@commonality/sdk';
@@ -58,10 +57,6 @@ describe('User Profile Queries', () => {
       content: 'Carbon taxes are an effective policy tool',
     }));
 
-    const statementId1 = cidToBytes32(statement1);
-    const statementId2 = cidToBytes32(statement2);
-    const statementId3 = cidToBytes32(statement3);
-
     testLog('  Alice signing statements 1 and 2...');
 
     // Alice believes statements 1 and 2 (Checked actions verify belief counts automatically)
@@ -72,11 +67,11 @@ describe('User Profile Queries', () => {
     testLog('  Querying Alice\'s beliefs...');
     const aliceBeliefs = await getUserBeliefs(machinery, aliceClients.account);
     // Verify Alice believes the 2 statements created in this test
-    const beliefIds = aliceBeliefs.map(b => b.id.toLowerCase());
-    const expectedIds = [statementId1.toLowerCase(), statementId2.toLowerCase()];
+    const beliefCids = aliceBeliefs.map(b => b.cid.toLowerCase());
+    const expectedCids = [statement1.toLowerCase(), statement2.toLowerCase()];
 
     assert.ok(
-      expectedIds.every(id => beliefIds.includes(id)),
+      expectedCids.every(cid => beliefCids.includes(cid)),
       'Alice\'s beliefs should include both statements she signed in this test'
     );
 
@@ -104,9 +99,6 @@ describe('User Profile Queries', () => {
       content: 'Vaccines cause autism',
     }));
 
-    const statementId1 = cidToBytes32(statement1);
-    const statementId2 = cidToBytes32(statement2);
-
     testLog('  Alice disbelieving statements...');
 
     // Alice disbelieves both statements (Checked actions verify disbelief counts automatically)
@@ -118,11 +110,11 @@ describe('User Profile Queries', () => {
     const aliceDisbeliefs = await getUserDisbeliefs(machinery, aliceClients.account);
 
     // Verify Alice disbelieves the 2 statements created in this test
-    const disbeliefIds = aliceDisbeliefs.map(b => b.id.toLowerCase());
-    const expectedIds = [statementId1.toLowerCase(), statementId2.toLowerCase()];
+    const disbeliefCids = aliceDisbeliefs.map(b => b.cid.toLowerCase());
+    const expectedCids = [statement1.toLowerCase(), statement2.toLowerCase()];
 
     assert.ok(
-      expectedIds.every(id => disbeliefIds.includes(id)),
+      expectedCids.every(cid => disbeliefCids.includes(cid)),
       'Alice\'s disbeliefs should include both statements she disbelieved in this test'
     );
 
@@ -173,21 +165,18 @@ describe('User Profile Queries', () => {
     const bobDisbeliefs = await getUserDisbeliefs(machinery, bobClients.account);
 
     // Verify Bob believes statements 1 and 3 (created in this test)
-    const bobBeliefIds = bobBeliefs.map(b => b.id.toLowerCase());
-    const statement1Id = cidToBytes32(statement1).toLowerCase();
-    const statement3Id = cidToBytes32(statement3).toLowerCase();
+    const bobBeliefCids = bobBeliefs.map(b => b.cid.toLowerCase());
 
     assert.ok(
-      bobBeliefIds.includes(statement1Id) && bobBeliefIds.includes(statement3Id),
+      bobBeliefCids.includes(statement1.toLowerCase()) && bobBeliefCids.includes(statement3.toLowerCase()),
       'Bob should believe statements 1 and 3 from this test'
     );
 
     // Verify Bob disbelieves statement 2 (created in this test)
-    const bobDisbeliefIds = bobDisbeliefs.map(b => b.id.toLowerCase());
-    const statement2Id = cidToBytes32(statement2).toLowerCase();
+    const bobDisbeliefCids = bobDisbeliefs.map(b => b.cid.toLowerCase());
 
     assert.ok(
-      bobDisbeliefIds.includes(statement2Id),
+      bobDisbeliefCids.includes(statement2.toLowerCase()),
       'Bob should disbelieve statement 2 from this test'
     );
 

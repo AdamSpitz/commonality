@@ -408,8 +408,8 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     );
 
     // P1 should not be in results, P2 should be
-    const hasP1 = largeProjects.some(p => p.erc1155Address.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
-    const hasP2 = largeProjects.some(p => p.erc1155Address.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
+    const hasP1 = largeProjects.some(p => p.id.toLowerCase() === p1Details.assuranceContractAddress.toLowerCase());
+    const hasP2 = largeProjects.some(p => p.id.toLowerCase() === p2Details.assuranceContractAddress.toLowerCase());
 
     assert.strictEqual(hasP1, false, 'Small project should not be in filtered results');
     assert.strictEqual(hasP2, true, 'Large project should be in filtered results');

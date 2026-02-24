@@ -11,7 +11,6 @@ import {
   uploadToIPFS,
   createStatement,
   publishDocument,
-  cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
   type PubstarterContract,
@@ -458,9 +457,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       });
 
       const statement1Cid = await publishDocument(statement1Doc);
-      const statement1Id = cidToBytes32(statement1Cid);
       const statement2Cid = await publishDocument(statement2Doc);
-      const statement2Id = cidToBytes32(statement2Cid);
 
       testLog(`  Statement 1: ${statement1Cid}`);
       testLog(`  Statement 2: ${statement2Cid}`);
@@ -522,7 +519,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       // 10. Verify S2 is in the suggestions
       assert.ok(
-        Array.from(suggestions).some(id => id.toLowerCase() === statement2Id.toLowerCase()),
+        Array.from(suggestions).some(id => id.toLowerCase() === statement2Cid.toLowerCase()),
         'S2 should be suggested to the user'
       );
       testLog('  ✓ S2 correctly suggested based on user believing S1 and S1 implying S2');
