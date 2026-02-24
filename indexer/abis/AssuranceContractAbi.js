@@ -3,6 +3,56 @@
  * Combines events and functions from AssuranceContract, ERC1155PrimaryMarket, and ContractMetadata
  */
 export const AssuranceContractAbi = [
+    // Custom Errors
+    // From ERC1155PrimaryMarket.sol
+    {
+        type: "error",
+        name: "IncorrectAmountOfETHSent",
+        inputs: [],
+    },
+    {
+        type: "error",
+        name: "ETHRefundFailed",
+        inputs: [],
+    },
+    // From AssuranceContract.sol
+    {
+        type: "error",
+        name: "OnlyRecipientCanWithdraw",
+        inputs: [],
+    },
+    {
+        type: "error",
+        name: "ETHTransferFailed",
+        inputs: [],
+    },
+    {
+        type: "error",
+        name: "NotEnoughFundingReceived",
+        inputs: [],
+    },
+    {
+        type: "error",
+        name: "ProjectReachedFundingGoal",
+        inputs: [],
+    },
+    {
+        type: "error",
+        name: "ProjectFateStillUndecided",
+        inputs: [],
+    },
+    // From AssuranceContracts.sol
+    {
+        type: "error",
+        name: "ArrayLengthMismatch",
+        inputs: [],
+    },
+    {
+        type: "error",
+        name: "PriceAlreadySet",
+        inputs: [],
+    },
+
     // Events
     // From AssuranceContract.sol
     {
