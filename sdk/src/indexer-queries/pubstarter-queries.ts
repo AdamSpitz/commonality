@@ -89,12 +89,12 @@ export async function getProjectsFiltered(
   const serverOrderBy = sortBy && sortBy !== 'fundingProgress' ? sortBy : undefined;
 
   const result = await request(machinery.graphqlClient.url, GetProjectsFilteredDocument, {
-    minDeadline: (filters?.minDeadline ?? null) as unknown as bigint | null,
-    maxDeadline: (filters?.maxDeadline ?? null) as unknown as bigint | null,
-    minThreshold: (filters?.minThreshold ?? null) as unknown as bigint | null,
-    maxThreshold: (filters?.maxThreshold ?? null) as unknown as bigint | null,
-    minTotalReceived: (filters?.minTotalReceived ?? null) as unknown as bigint | null,
-    maxTotalReceived: (filters?.maxTotalReceived ?? null) as unknown as bigint | null,
+    minDeadline: (filters?.minDeadline?.toString() ?? null) as unknown as bigint | null,
+    maxDeadline: (filters?.maxDeadline?.toString() ?? null) as unknown as bigint | null,
+    minThreshold: (filters?.minThreshold?.toString() ?? null) as unknown as bigint | null,
+    maxThreshold: (filters?.maxThreshold?.toString() ?? null) as unknown as bigint | null,
+    minTotalReceived: (filters?.minTotalReceived?.toString() ?? null) as unknown as bigint | null,
+    maxTotalReceived: (filters?.maxTotalReceived?.toString() ?? null) as unknown as bigint | null,
     orderBy: serverOrderBy ?? null,
     orderDirection: serverOrderBy ? sortDirection : null,
   });
