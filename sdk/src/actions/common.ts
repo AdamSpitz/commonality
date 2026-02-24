@@ -197,6 +197,7 @@ export async function uploadToIPFS(content: object): Promise<IpfsCidV1> {
   if (ipfsApi) {
     // Upload to actual IPFS node
     const jsonContent = JSON.stringify(content);
+    const debugIpfs = getEnvVar('DEBUG_IPFS');
 
     try {
       const formData = new FormData();
@@ -213,7 +214,14 @@ export async function uploadToIPFS(content: object): Promise<IpfsCidV1> {
       }
 
       const result = await response.json() as { Hash: string };
-      return normalizeCidV1(result.Hash);
+      const cid = normalizeCidV1(result.Hash);
+
+      if (debugIpfs) {
+        console.log(`[IPFS] Uploaded CID: ${cid}`);
+        console.log(`[IPFS] Content: ${jsonContent}`);
+      }
+
+      return cid;
     } catch (error) {
       console.warn('IPFS upload failed, falling back to mock mode:', error);
       // Fall through to mock mode

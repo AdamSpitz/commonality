@@ -202,6 +202,10 @@ class AttackScenarios {
       try {
         const clients = createTestClients(sybil.privateKey, RPC_URL);
 
+        if (!targetStatement.cid) {
+          console.warn('  Target statement has no CID, skipping attack for this statement');
+          continue;
+        }
         await believeStatement(clients, this.contracts.beliefs!, targetStatement.cid);
 
         successfulAttacks++;

@@ -61,6 +61,7 @@ export function StatementPage() {
 
       // Set content error if content failed to load but statement exists
       if (!result.content && result.statement.cid) {
+        console.log('Statement content failed to load from IPFS:', result)
         setContentError('Failed to load statement content from IPFS')
       }
 

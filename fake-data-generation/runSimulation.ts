@@ -330,18 +330,10 @@ class SimulationRunner {
   }
 
   async uploadStatementsToIPFS(): Promise<void> {
-    const statementsWithCid = this.statements.filter(s => s.cid);
-    if (statementsWithCid.length === this.statements.length) {
-      console.log(`  All ${this.statements.length} statements already have CIDs, skipping upload`);
-      return;
-    }
-
     let uploaded = 0;
     let failed = 0;
 
     for (const stmt of this.statements) {
-      if (stmt.cid) continue;
-
       try {
         const cid: IpfsCidV1 = await uploadStatementToIPFS(
           stmt.content,
@@ -363,12 +355,6 @@ class SimulationRunner {
     }
 
     console.log(`  Uploaded ${uploaded} statements to IPFS (${failed} failed)`);
-
-    if (uploaded > 0) {
-      const stmtsPath = join(__dirname, 'statements.json');
-      await fs.writeFile(stmtsPath, JSON.stringify(this.statements, null, 2));
-      console.log(`  Saved statements with CIDs to ${stmtsPath}`);
-    }
   }
 
   async fundUsers(): Promise<void> {

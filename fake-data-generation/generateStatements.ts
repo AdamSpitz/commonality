@@ -130,9 +130,10 @@ async function generateStatements(): Promise<Statement[]> {
     }
   }
 
-  // Save to file
+  // Save to file (without CIDs — those are set at runtime via IPFS upload)
   const outputPath = join(__dirname, 'statements.json');
-  await fs.writeFile(outputPath, JSON.stringify(statements, null, 2));
+  const statementsForFile = statements.map(({ cid, ...rest }) => rest);
+  await fs.writeFile(outputPath, JSON.stringify(statementsForFile, null, 2));
 
   console.log(`Generated ${statements.length} statements`);
   console.log(`  Simple: ${statements.filter(s => s.statementType === 'simple').length}`);

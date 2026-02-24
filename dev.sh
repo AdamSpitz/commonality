@@ -12,6 +12,7 @@
 #   ./dev.sh --seed=small # Start services with small dataset (10 users, 3 rounds)
 #   ./dev.sh --seed=medium # Start services with medium dataset (50 users, 5 rounds)
 #   ./dev.sh --seed --use-hardhat-accounts  # Use hardhat accounts for first 20 users
+#   ./dev.sh --seed --debug-ipfs            # Show CIDs and content uploaded to IPFS
 #
 # Data is stored in ./data/ by default:
 #   ./data/
@@ -45,6 +46,7 @@ show_usage() {
     echo "  --seed=small Start services with small dataset (10 users, 3 rounds)"
     echo "  --seed=medium Start services with medium dataset (50 users, 5 rounds)"
     echo "  --use-hardhat-accounts  Use hardhat accounts instead of random wallets (for first 20 users)"
+    echo "  --debug-ipfs  Show CIDs and content being uploaded to IPFS"
     echo "  --help        Show this help message"
     echo ""
     echo "Environment variables:"
@@ -203,7 +205,11 @@ case "${1:-}" in
         
         # Collect any remaining arguments that start with --
         while [[ "$1" == --* ]]; do
-            extra_args="$extra_args $1"
+            if [[ "$1" == "--debug-ipfs" ]]; then
+                export DEBUG_IPFS=1
+            else
+                extra_args="$extra_args $1"
+            fi
             shift
         done
         

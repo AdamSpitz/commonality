@@ -17,7 +17,7 @@ export interface Statement {
   position: string;
   statementType: 'simple' | 'disjunction' | 'conjunction';
   content: StatementContent;
-  cid: IpfsCidV1;
+  cid?: IpfsCidV1;
 }
 
 export interface User {
