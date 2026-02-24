@@ -9,7 +9,8 @@
     "test:verbose": "VERBOSE_TESTS=true mocha --reporter spec",
     "test:watch": "mocha --watch 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "npm run codegen && tsc",
+    "clean": "rm -rf dist src/generated",
     "lint": "eslint .",
     "codegen": "graphql-codegen --config codegen.ts"
   },

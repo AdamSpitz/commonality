@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
+    "clean": "rm -rf .ponder",
     "sync-abis": "tsx scripts/sync-abis.ts"
   },
   "dependencies": {

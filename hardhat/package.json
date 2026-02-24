@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx hardhat compile",
+    "clean": "npx hardhat clean",
     "test": "npx hardhat test",
     "deploy-local": "npx hardhat run scripts/deploy-local.js --network localhost",
     "lint": "npm run lint:sol && npm run lint:slither",
