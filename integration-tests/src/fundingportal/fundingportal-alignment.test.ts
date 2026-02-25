@@ -14,7 +14,6 @@ import {
   createStatement,
   publishDocument,
   type AlignmentAttestationsContract,
-  type IpfsCidV1,
   type PubstarterContract,
   AlignmentAttestationsAbi,
   PubstarterAbi,

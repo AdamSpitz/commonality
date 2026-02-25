@@ -14,7 +14,6 @@ import {
   uploadToIPFS,
   cidToBytes32,
   PROJECT_ALIGNMENT_TOPIC,
-  type IpfsCidV1,
   type ImplicationsContract,
   type PubstarterContract,
   type AssuranceContract,

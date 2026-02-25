@@ -13,7 +13,6 @@ import {
   createStatement,
   publishDocument,
   PROJECT_ALIGNMENT_TOPIC,
-  type IpfsCidV1,
   type AlignmentAttestationsContract,
   type PubstarterContract,
   type ImplicationsContract,
@@ -124,7 +123,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align the project with S1 (specific statement)
     testLog('  Aligning project with S1 (renewable energy)...');
-    let txHash = await attestAlignmentChecked(
+    await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
       machinery ,
@@ -217,7 +216,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Create implication: S1 → S2
     testLog('  Creating implication S1 → S2...');
-    let txHash = await attestImplicationChecked(
+    await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
       machinery,
@@ -260,7 +259,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align Project A with S1 (indirect to S2)
     testLog('  Aligning Project A with S1...');
-    txHash = await attestAlignmentChecked(
+    await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
       machinery,
@@ -271,7 +270,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Align Project B directly with S2
     testLog('  Aligning Project B directly with S2...');
-    txHash = await attestAlignmentChecked(
+    await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
       machinery,
@@ -349,7 +348,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Create implications: S1 → S2 and S2 → S3
     testLog('  Creating implication S1 → S2...');
-    let txHash = await attestImplicationChecked(
+    await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
       machinery,
@@ -358,7 +357,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     );
 
     testLog('  Creating implication S2 → S3...');
-    txHash = await attestImplicationChecked(
+    await attestImplicationChecked(
       implicationAttester,
       implicationsContract,
       machinery,
@@ -384,7 +383,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  ✓ Project creation properties verified');
 
     testLog('  Aligning project with S1...');
-    txHash = await attestAlignmentChecked(
+    await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
       machinery,
@@ -460,7 +459,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
 
     // Two different attesters create the same implication S1 → S2
     testLog('  Attester 1 creating implication S1 → S2...');
-    let txHash = await attestImplicationChecked(
+    await attestImplicationChecked(
       implicationAttester1,
       implicationsContract,
       machinery,
@@ -469,7 +468,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     );
 
     testLog('  Attester 2 creating same implication S1 → S2...');
-    txHash = await attestImplicationChecked(
+    await attestImplicationChecked(
       implicationAttester2,
       implicationsContract,
       machinery,
@@ -494,7 +493,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     });
     testLog('  ✓ Project creation properties verified');
 
-    txHash = await attestAlignmentChecked(
+    await attestAlignmentChecked(
       alignmentAttester,
       alignmentAttestationsContract,
       machinery,

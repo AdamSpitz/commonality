@@ -13,7 +13,6 @@ import {
   type ActionMetadata,
 } from './action-framework.js';
 import {
-  NO_OPINION,
   DISBELIEVES,
   getIndirectSupporterCount,
 } from '@commonality/sdk';
@@ -38,7 +37,7 @@ interface ImplicationState {
  * Capture the current state of implications for the statements involved
  */
 async function captureImplicationState(context: ActionContext): Promise<ImplicationState> {
-  const { machinery, entities, extra } = context;
+  const { machinery, entities } = context;
   const { fromStatementCid, toStatementCid, attesterAddress } = entities;
 
   if (!fromStatementCid) {
@@ -301,8 +300,6 @@ export const indirectSupportPropagationProperty: StateTransitionProperty = {
 
     // The indirect supporter count should increase by the number of believers of fromStatement
     // who don't explicitly disbelieve toStatement
-    const expectedMinimumIncrease = 0; // We can't easily predict this without querying all believers
-
     // Instead, let's verify that:
     // 1. Indirect supporter count increased (or stayed same if no believers)
     // 2. If there are believers of fromStatement, at least some should appear in indirect supporters

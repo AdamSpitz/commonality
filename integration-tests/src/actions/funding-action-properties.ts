@@ -299,11 +299,11 @@ export const burnTokensMetadata: ActionMetadata = {
  */
 export const projectCreationProperty: StateTransitionProperty = {
   name: 'projectCreation',
-  captureState: async (context: ActionContext) => {
+  captureState: async () => {
     // No before state needed for creation
     return {};
   },
-  check: async (context: ActionContext, before: any, after: any) => {
+  check: async (context: ActionContext) => {
     const { machinery, entities } = context;
     const { projectAddress } = entities;
 

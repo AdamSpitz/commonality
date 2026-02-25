@@ -128,7 +128,7 @@ export const alignmentAttestationProperty: StateTransitionProperty = {
 export const alignmentBidirectionalityProperty: StateTransitionProperty = {
   name: 'alignmentBidirectionality',
   captureState: async () => ({}), // No state to capture, we just verify after
-  check: async (context: ActionContext, before: any, after: any) => {
+  check: async (context: ActionContext) => {
     const { machinery, entities } = context;
     const { statementCid, subjectAddress, attesterAddress } = entities;
 

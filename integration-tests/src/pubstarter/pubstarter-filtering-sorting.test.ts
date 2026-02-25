@@ -22,9 +22,7 @@ import { parseEther, type Address } from 'viem';
 import {
   getProjectsByDate,
   getProjectsByDeadline,
-  getProjectsByFundingGoal,
   getProjectsByFundingProgress,
-  getProjectsByAmountRaised,
   getProjectsFiltered,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
@@ -60,7 +58,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Create 3 projects at different times
     const p1Metadata = await uploadToIPFS({ title: 'Project 1 - Oldest' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
+    const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
       machinery,
@@ -79,7 +77,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     );
 
     const p2Metadata = await uploadToIPFS({ title: 'Project 2 - Middle' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
+    const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
       machinery,
@@ -98,7 +96,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     );
 
     const p3Metadata = await uploadToIPFS({ title: 'Project 3 - Newest' });
-    const { hash: p3Hash, projectDetails: p3Details } = await createProjectChecked(
+    const { projectDetails: p3Details } = await createProjectChecked(
       creator3Clients,
       pubstarterContract,
       machinery,
@@ -160,7 +158,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Project with soon deadline
     const p1Metadata = await uploadToIPFS({ title: 'Soon Deadline' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
+    const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
       machinery,
@@ -180,7 +178,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Project with far deadline
     const p2Metadata = await uploadToIPFS({ title: 'Far Deadline' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
+    const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
       machinery,
@@ -237,7 +235,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Create two projects with same threshold
     const p1Metadata = await uploadToIPFS({ title: 'High Progress Project' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
+    const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
       machinery,
@@ -256,7 +254,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     );
 
     const p2Metadata = await uploadToIPFS({ title: 'Low Progress Project' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
+    const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
       machinery,
@@ -360,7 +358,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Small project (1 ETH threshold)
     const p1Metadata = await uploadToIPFS({ title: 'Small Project' });
-    const { hash: p1Hash, projectDetails: p1Details } = await createProjectChecked(
+    const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
       machinery,
@@ -380,7 +378,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
 
     // Large project (100 ETH threshold)
     const p2Metadata = await uploadToIPFS({ title: 'Large Project' });
-    const { hash: p2Hash, projectDetails: p2Details } = await createProjectChecked(
+    const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
       machinery,

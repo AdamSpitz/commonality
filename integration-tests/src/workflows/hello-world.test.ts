@@ -10,7 +10,6 @@
 import {
   createStatement,
   publishDocument,
-  cidToBytes32,
   type BeliefsContract,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';

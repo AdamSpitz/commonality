@@ -232,8 +232,6 @@ export async function runActionAndCheckProperties<TResult>(
 
   if (expectFailure) {
     // Action should fail - verify it throws and state remains unchanged
-    let caughtError: Error | undefined;
-
     try {
       result = await action();
       // If we get here, the action didn't fail as expected
@@ -242,7 +240,6 @@ export async function runActionAndCheckProperties<TResult>(
         `Entities: ${JSON.stringify(context.entities, null, 2)}`
       );
     } catch (error: any) {
-      caughtError = error;
 
       // Check if this is the "action didn't fail" error we just threw
       if (error.message?.includes('Expected action') && error.message?.includes('to fail, but it succeeded')) {

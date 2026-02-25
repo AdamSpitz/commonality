@@ -12,7 +12,6 @@ import assert from 'assert';
 import {
   createStatement,
   publishDocument,
-  cidToBytes32,
   type BeliefsContract,
   type ImplicationsContract,
   BeliefsAbi,
@@ -72,8 +71,6 @@ describe('Conceptspace Implications', () => {
 
     const statement1Cid = await publishDocument(createStatement({ content: statement1Text }));
     const statement2Cid = await publishDocument(createStatement({ content: statement2Text }));
-    const statement1Id = cidToBytes32(statement1Cid);
-    const statement2Id = cidToBytes32(statement2Cid);
 
     testLog(`  Statement 1 (specific): "${statement1Text}"`);
     testLog(`  Statement 2 (general): "${statement2Text}"`);
@@ -132,7 +129,6 @@ describe('Conceptspace Implications', () => {
   it('should handle multiple implications to the same statement', async function() {
     this.timeout(30000);
 
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create three specific statements that all imply a general one
@@ -143,8 +139,6 @@ describe('Conceptspace Implications', () => {
     const generalCid = await publishDocument(createStatement({ content: generalText }));
     const specific1Cid = await publishDocument(createStatement({ content: specific1Text }));
     const specific2Cid = await publishDocument(createStatement({ content: specific2Text }));
-    const generalId = cidToBytes32(generalCid);
-
     testLog(`  General: "${generalText}"`);
     testLog(`  Specific 1: "${specific1Text}"`);
     testLog(`  Specific 2: "${specific2Text}"`);

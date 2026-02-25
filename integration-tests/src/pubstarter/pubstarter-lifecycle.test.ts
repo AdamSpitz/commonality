@@ -70,7 +70,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProjectChecked(
+    const { projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
       machinery,
@@ -98,7 +98,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buyHash = await buyProjectTokensChecked(
+    await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
       machinery,
@@ -172,7 +172,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProjectChecked(
+    const { projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
       machinery,
@@ -200,7 +200,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buyHash = await buyProjectTokensChecked(
+    await buyProjectTokensChecked(
       contributorClients,
       assuranceContract,
       machinery,
@@ -324,7 +324,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProjectChecked(
+    const { projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
       machinery,
@@ -352,7 +352,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Contributor 1 buys 20 tokens of type 1 (0.2 ETH)
     testLog('  Contributor 1 buying 20 tokens of type 1...');
-    const buy1Hash = await buyProjectTokensChecked(
+    await buyProjectTokensChecked(
       contributor1Clients,
       assuranceContract,
       machinery,
@@ -367,7 +367,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Contributor 2 buys 15 tokens of type 2 (0.3 ETH)
     testLog('  Contributor 2 buying 15 tokens of type 2...');
-    const buy2Hash = await buyProjectTokensChecked(
+    await buyProjectTokensChecked(
       contributor2Clients,
       assuranceContract,
       machinery,

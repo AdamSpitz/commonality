@@ -342,7 +342,7 @@ describe('Delegation System', () => {
     const balanceBefore = await user1.publicClient.getBalance({ address: user1.account });
 
     // Reclaim the funds (with property checking)
-    const reclaimHash = await reclaimFundsChecked(user1, delegatableNotesContract, machinery, noteId);
+    await reclaimFundsChecked(user1, delegatableNotesContract, machinery, noteId);
 
     // Get balance after reclaim
     const balanceAfter = await user1.publicClient.getBalance({ address: user1.account });

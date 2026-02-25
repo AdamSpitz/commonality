@@ -98,7 +98,7 @@ describe('Pubstarter Edge Cases', () => {
         tokenCounts: [10n],
         totalCost: tokenPrice * 5n, // Only half the required amount
       });
-    } catch (error) {
+    } catch {
       purchaseFailed = true;
       testLog('  ✓ Purchase failed as expected due to insufficient funds');
     }
@@ -298,7 +298,7 @@ describe('Pubstarter Edge Cases', () => {
     let withdrawalFailed = false;
     try {
       await withdrawProjectFunds(bobClients, assuranceContract);
-    } catch (error) {
+    } catch {
       withdrawalFailed = true;
       testLog('  ✓ Withdrawal failed as expected');
     }

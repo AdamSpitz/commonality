@@ -150,8 +150,6 @@ export async function fulfillSaleListingChecked(
   },
   options?: ActionRunOptions
 ): Promise<Hash> {
-  let hash: Hash;
-
   const context: ActionContext = {
     machinery,
     entities: {
@@ -165,7 +163,7 @@ export async function fulfillSaleListingChecked(
     },
   };
 
-  hash = await runActionAndCheckProperties(
+  const hash = await runActionAndCheckProperties(
     async () => {
       const h = await fulfillSaleListing(clients, marketplaceContract, params);
       await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, h);

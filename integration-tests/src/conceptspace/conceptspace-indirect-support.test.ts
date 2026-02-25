@@ -158,7 +158,6 @@ describe('Conceptspace Indirect Support', () => {
     const generalCid = await uploadToIPFS(general);
     const specific1Id = cidToBytes32(specific1Cid);
     const specific2Id = cidToBytes32(specific2Cid);
-    const generalId = cidToBytes32(generalCid);
 
     testLog(`  Specific 1: "${specific1.text}"`);
     testLog(`  Specific 2: "${specific2.text}"`);
@@ -243,8 +242,6 @@ describe('Conceptspace Indirect Support', () => {
 
     const specificCid = await uploadToIPFS(specific);
     const generalCid = await uploadToIPFS(general);
-    const specificId = cidToBytes32(specificCid);
-    const generalId = cidToBytes32(generalCid);
 
     testLog(`  Specific: "${specific.text}"`);
     testLog(`  General: "${general.text}"`);
@@ -644,9 +641,6 @@ describe('Conceptspace Indirect Support', () => {
     const s1Cid = await uploadToIPFS(s1);
     const s2Cid = await uploadToIPFS(s2);
     const s3Cid = await uploadToIPFS(s3);
-    const s1Id = cidToBytes32(s1Cid);
-    const s2Id = cidToBytes32(s2Cid);
-    const s3Id = cidToBytes32(s3Cid);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);

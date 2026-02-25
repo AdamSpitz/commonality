@@ -23,7 +23,6 @@ import {
   AlignmentAttestationsAbi,
   DelegatableNotesAbi,
   PROJECT_ALIGNMENT_TOPIC,
-  type IpfsCidV1,
 } from '@commonality/sdk';
 import {
   getUserBelief,

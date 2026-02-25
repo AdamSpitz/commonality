@@ -17,14 +17,13 @@
 import type { Hash } from 'viem';
 import {
   createAndSignStatement,
-  cidToBytes32,
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type BeliefsContract,
   type MutableRefUpdaterContract,
   type DisplayableDocument,
   type CreateAndSignStatementOptions,
-  IpfsCidV1,
+  type IpfsCidV1,
 } from '@commonality/sdk';
 import {
   ActionTestingMachinery,
@@ -86,11 +85,6 @@ export async function createAndSignStatementChecked(
   workflowOptions?: Omit<CreateAndSignStatementOptions, 'graphqlClient'>,
   checkOptions?: ActionRunOptions
 ): Promise<CreateAndSignStatementResult> {
-  // We'll set up the context using a placeholder statementId
-  // The actual statementId will be derived from the CID after IPFS upload
-  // But we capture the state after the action completes
-  let resultCid: IpfsCidV1;
-
   const result = await createAndSignStatement(
     clients,
     contracts,
@@ -101,14 +95,14 @@ export async function createAndSignStatementChecked(
     }
   );
 
-  resultCid = result.cid;
+  const resultCid: IpfsCidV1 = result.cid;
   const userAddress = clients.account;
 
   // Wait for sync on the sign transaction (the belief transaction)
   // Only if we have a valid graphqlClient
   try {
     await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, result.signTxHash);
-  } catch (error) {
+  } catch {
     // If waitForIndexerToSyncToTxHash fails (e.g., invalid graphqlClient in test scenarios),
     // skip the invariant checks and just return the result
     return result;

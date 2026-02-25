@@ -30,7 +30,7 @@ import {
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
-import { getProject, getSaleListing, getActiveSaleListings, getBuyOrder, getActiveBuyOrders, getMarketplaceTrades, getTokenTrades } from '@commonality/sdk';
+import { getSaleListing, getActiveSaleListings, getBuyOrder, getActiveBuyOrders, getMarketplaceTrades, getTokenTrades } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { createSaleListingChecked, fulfillSaleListingChecked } from './marketplace-actions-checked.js';
@@ -121,7 +121,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Seller approves marketplace to transfer their tokens
     testLog('  Seller approving marketplace...');
-    const approveHash = await approveERC1155ForMarketplace(
+    await approveERC1155ForMarketplace(
       sellerClients,
       projectDetails.tokenAddress,
       projectDetails.marketplaceAddress

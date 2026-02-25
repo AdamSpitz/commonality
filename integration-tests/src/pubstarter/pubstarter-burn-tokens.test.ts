@@ -69,7 +69,7 @@ describe('Pubstarter Token Burning Tests', () => {
       abi: PubstarterAbi,
     };
 
-    const { hash, projectDetails } = await createProjectChecked(
+    const { projectDetails } = await createProjectChecked(
       creatorClients,
       pubstarterContract,
       machinery,

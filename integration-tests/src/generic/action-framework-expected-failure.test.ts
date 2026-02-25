@@ -9,8 +9,6 @@
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  delegateNote,
-  cidToBytes32,
   createStatement,
   publishDocument,
   type DelegatableNotesContract,
@@ -51,9 +49,9 @@ describe('Action Framework Expected Failure', () => {
     };
 
     // Create a statement CID
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Test statement for expectFailure test',
-    })));
+    }));
 
     // Alice creates a note
     testLog('  Alice creating a note...');
@@ -105,9 +103,9 @@ describe('Action Framework Expected Failure', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Test statement for error message check',
-    })));
+    }));
 
     // Alice creates a note
     testLog('  Alice creating a note...');
@@ -153,9 +151,9 @@ describe('Action Framework Expected Failure', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Test statement for success/failure mismatch',
-    })));
+    }));
 
     // Alice creates a note
     testLog('  Alice creating a note...');

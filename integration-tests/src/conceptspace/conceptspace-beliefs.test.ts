@@ -15,9 +15,7 @@ import assert from 'assert';
 import {
   createStatement,
   publishDocument,
-  cidToBytes32,
   type BeliefsContract,
-  type IpfsCidV1,
   assertNotNull,
   BeliefsAbi,
   fakeIpfsCidV1,
@@ -155,7 +153,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Express belief to create the statement onchain
     testLog('  User believes the statement...');
-    const txHash = await believeStatementChecked(clients, beliefsContract, machinery, statementCid);
+    await believeStatementChecked(clients, beliefsContract, machinery, statementCid);
 
     // Test basic usage: fetch statement metadata
     testLog('  Fetching statement with getStatementWithContent (basic)...');

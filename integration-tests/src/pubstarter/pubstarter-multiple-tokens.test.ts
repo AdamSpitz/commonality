@@ -122,7 +122,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       abi: AssuranceContractAbi,
     };
 
-    const buy1Hash = await buyProjectTokensChecked(
+    await buyProjectTokensChecked(
       buyer1Clients,
       assuranceContract,
       machinery,
@@ -137,7 +137,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
 
     // Buyer2 purchases Silver tokens (token 1)
     testLog('  Buyer2 purchasing 3 Silver tokens...');
-    const buy2Hash = await buyProjectTokensChecked(
+    await buyProjectTokensChecked(
       buyer2Clients,
       assuranceContract,
       machinery,
@@ -152,7 +152,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
 
     // Buyer1 purchases Gold tokens (token 2) and more Bronze in same transaction
     testLog('  Buyer1 purchasing 1 Gold + 10 Bronze tokens...');
-    const buy3Hash = await buyProjectTokensChecked(
+    await buyProjectTokensChecked(
       buyer1Clients,
       assuranceContract,
       machinery,

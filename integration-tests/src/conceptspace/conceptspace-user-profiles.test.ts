@@ -53,7 +53,7 @@ describe('User Profile Queries', () => {
     const statement2 = await publishDocument(createStatement({
       content: 'Renewable energy should be prioritized',
     }));
-    const statement3 = await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Carbon taxes are an effective policy tool',
     }));
 

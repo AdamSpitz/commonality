@@ -9,7 +9,6 @@
  * 5. Test failed project refunds
  */
 
-import assert from 'assert';
 import {
   uploadToIPFS,
   type PubstarterContract,

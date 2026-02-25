@@ -18,13 +18,11 @@ import {
   believeStatement,
   disbelieveStatement,
   clearOpinion,
-  cidToBytes32,
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type BeliefsContract,
   type IpfsCidV1,
 } from '@commonality/sdk';
-import type { GraphQLClient, GraphQLExecutor } from '../utils/invariants.js';
 import {
   runActionAndCheckProperties,
   type ActionContext,

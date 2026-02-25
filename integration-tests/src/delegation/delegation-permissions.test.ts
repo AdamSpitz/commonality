@@ -17,7 +17,6 @@
 import assert from 'assert';
 import { parseEther } from 'viem';
 import {
-  cidToBytes32,
   createStatement,
   publishDocument,
   type DelegatableNotesContract,
@@ -59,10 +58,10 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    // Create a statement CID
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    // Create a statement
+    await publishDocument(createStatement({
       content: 'Test statement for permission test',
-    })));
+    }));
 
     // Alice creates a note
     testLog('  Alice creating a note...');
@@ -119,9 +118,9 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Test statement for revocation permission test',
-    })));
+    }));
 
     // Alice creates a note
     testLog('  Alice creating note...');
@@ -186,9 +185,9 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Test statement for revoked note test',
-    })));
+    }));
 
     // Alice creates a note
     testLog('  Alice creating note...');
@@ -260,9 +259,9 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Test statement for reclaim permission test',
-    })));
+    }));
 
     // Alice creates a note
     testLog('  Alice creating a note...');
@@ -308,9 +307,9 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    const statementCid = cidToBytes32(await publishDocument(createStatement({
+    await publishDocument(createStatement({
       content: 'Test statement for valid revocation test',
-    })));
+    }));
 
     // Alice creates a note (with checked wrapper)
     testLog('  Alice creating note...');

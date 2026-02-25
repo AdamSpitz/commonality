@@ -12,7 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
-import { getRef, isValidCidV1 } from '@commonality/sdk';
+import { isValidCidV1 } from '@commonality/sdk';
 import {
   getUserRef,
   getUserRefHistory,
