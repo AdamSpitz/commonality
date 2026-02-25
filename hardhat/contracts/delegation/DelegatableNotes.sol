@@ -461,7 +461,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     // Get the token details from the marketplace to create notes
     address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
-    (, uint256 tokenId,,) = ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId);
+    uint256 tokenId = ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId).tokenId;
 
     // Create arrays for single token type
     uint256[] memory tokenIds = new uint256[](1);

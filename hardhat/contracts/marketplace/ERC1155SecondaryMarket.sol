@@ -326,24 +326,10 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     /**
      * @notice Returns the details of a sale listing
      * @param saleListingId The ID of the sale listing to query
-     * @return seller The address of the seller
-     * @return tokenId The ERC1155 token ID
-     * @return count The number of tokens available
-     * @return pricePerToken The price per token in wei
+     * @return The SaleListing struct
      */
-    function getSaleListing(uint256 saleListingId) external view returns (
-        address seller,
-        uint256 tokenId,
-        uint256 count,
-        uint256 pricePerToken
-    ) {
-        SaleListing storage listing = _saleListings[saleListingId];
-        return (
-            listing.seller,
-            listing.tokenId,
-            listing.count,
-            listing.pricePerToken
-        );
+    function getSaleListing(uint256 saleListingId) external view returns (SaleListing memory) {
+        return _saleListings[saleListingId];
     }
 
     /**

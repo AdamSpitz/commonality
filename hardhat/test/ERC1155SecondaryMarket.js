@@ -52,7 +52,7 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should allow creating a sale listing", async function () {
       await marketplace.connect(alice).createSaleListing(1, 10, ethers.parseEther("0.1"));
 
-      const [seller, tokenId, count, price] = await marketplace.getSaleListing(0);
+      const { seller, tokenId, count, pricePerToken: price } = await marketplace.getSaleListing(0);
       expect(seller).to.equal(alice.address);
       expect(tokenId).to.equal(1);
       expect(count).to.equal(10);
@@ -90,8 +90,8 @@ describe("ERC1155SecondaryMarket", function () {
       await marketplace.connect(alice).createSaleListing(1, 10, ethers.parseEther("0.1"));
       await marketplace.connect(alice).createSaleListing(2, 20, ethers.parseEther("0.2"));
 
-      const [seller1] = await marketplace.getSaleListing(0);
-      const [seller2] = await marketplace.getSaleListing(1);
+      const { seller: seller1 } = await marketplace.getSaleListing(0);
+      const { seller: seller2 } = await marketplace.getSaleListing(1);
 
       expect(seller1).to.equal(alice.address);
       expect(seller2).to.equal(alice.address);
@@ -140,7 +140,7 @@ describe("ERC1155SecondaryMarket", function () {
 
       expect(await token.balanceOf(bob.address, 1)).to.equal(105);
 
-      const [, , count] = await marketplace.getSaleListing(0);
+      const { count } = await marketplace.getSaleListing(0);
       expect(count).to.equal(5);
     });
 
@@ -149,7 +149,7 @@ describe("ERC1155SecondaryMarket", function () {
 
       await marketplace.connect(bob).fulfillSaleListing(0, 10, { value: cost });
 
-      const [seller] = await marketplace.getSaleListing(0);
+      const { seller } = await marketplace.getSaleListing(0);
       expect(seller).to.equal(ethers.ZeroAddress);
     });
 
@@ -233,7 +233,7 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should allow seller to cancel listing", async function () {
       await marketplace.connect(alice).cancelSaleListing(0);
 
-      const [seller] = await marketplace.getSaleListing(0);
+      const { seller } = await marketplace.getSaleListing(0);
       expect(seller).to.equal(ethers.ZeroAddress);
     });
 
@@ -465,8 +465,8 @@ describe("ERC1155SecondaryMarket", function () {
       await marketplace.connect(alice).createSaleListing(1, 10, ethers.parseEther("0.1"));
       await marketplace.connect(alice).createSaleListing(2, 20, ethers.parseEther("0.2"));
 
-      const [, tokenId1] = await marketplace.getSaleListing(0);
-      const [, tokenId2] = await marketplace.getSaleListing(1);
+      const { tokenId: tokenId1 } = await marketplace.getSaleListing(0);
+      const { tokenId: tokenId2 } = await marketplace.getSaleListing(1);
 
       expect(tokenId1).to.equal(1);
       expect(tokenId2).to.equal(2);
@@ -478,8 +478,8 @@ describe("ERC1155SecondaryMarket", function () {
       await marketplace.connect(alice).createSaleListing(1, 10, ethers.parseEther("0.1"));
       await marketplace.connect(bob).createSaleListing(1, 20, ethers.parseEther("0.2"));
 
-      const [seller1] = await marketplace.getSaleListing(0);
-      const [seller2] = await marketplace.getSaleListing(1);
+      const { seller: seller1 } = await marketplace.getSaleListing(0);
+      const { seller: seller2 } = await marketplace.getSaleListing(1);
 
       expect(seller1).to.equal(alice.address);
       expect(seller2).to.equal(bob.address);
@@ -532,7 +532,7 @@ describe("ERC1155SecondaryMarket", function () {
       expect(await token.balanceOf(charlie.address, 1)).to.equal(4);
 
       // Check remaining listing
-      const [, , count] = await marketplace.getSaleListing(0);
+      const { count } = await marketplace.getSaleListing(0);
       expect(count).to.equal(3);
 
       // Bob buys remaining 3
@@ -542,7 +542,7 @@ describe("ERC1155SecondaryMarket", function () {
       expect(await token.balanceOf(bob.address, 1)).to.equal(106);
 
       // Listing should be deleted
-      const [seller] = await marketplace.getSaleListing(0);
+      const { seller } = await marketplace.getSaleListing(0);
       expect(seller).to.equal(ethers.ZeroAddress);
     });
 
@@ -626,7 +626,7 @@ describe("ERC1155SecondaryMarket", function () {
       );
       const listingId = event.args[0];
 
-      const [, , count] = await marketplace.getSaleListing(listingId);
+      const { count } = await marketplace.getSaleListing(listingId);
       expect(count).to.equal(largeAmount);
     });
 
@@ -654,7 +654,7 @@ describe("ERC1155SecondaryMarket", function () {
       });
 
       // Second listing should still exist with full count
-      const [, , count] = await marketplace.getSaleListing(listingId2);
+      const { count } = await marketplace.getSaleListing(listingId2);
       expect(count).to.equal(20);
     });
 
@@ -697,7 +697,7 @@ describe("ERC1155SecondaryMarket", function () {
         value: ethers.parseEther("1.0"),
       });
 
-      const [seller] = await marketplace.getSaleListing(listingId);
+      const { seller } = await marketplace.getSaleListing(listingId);
       expect(seller).to.equal(ethers.ZeroAddress);
     });
   });
@@ -770,7 +770,7 @@ describe("ERC1155SecondaryMarket", function () {
       );
       const listingId = event.args[0];
 
-      const [, , , price] = await marketplace.getSaleListing(listingId);
+      const { pricePerToken: price } = await marketplace.getSaleListing(listingId);
       expect(price).to.equal(maxSafePrice);
     });
   });
