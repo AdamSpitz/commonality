@@ -882,8 +882,7 @@ export async function assertAggregatedCountConsistency(
   recordsFieldPath: string,
   entityDescription: string
 ): Promise<void> {
-  // Execute the count query
-  const countResult = await query<any>(
+  const countResult = await query(
     machinery,
     countQuery,
     countQueryVariables
@@ -899,7 +898,7 @@ export async function assertAggregatedCountConsistency(
   }
 
   // Execute the records query
-  const recordsResult = await query<any>(
+  const recordsResult = await query(
     machinery,
     recordsQuery,
     recordsQueryVariables
