@@ -2,41 +2,36 @@
 
 ## Where to find various files
 
-  - The main spec is in [specs/README.md](specs/README.md).
-  - To maintain continuity between ephemeral AI instances, use [progress.txt](progress.txt) for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
-  - Reviews go in [REVIEWS.md](REVIEWS.md).
-  - See [DEPLOYMENT.md](DEPLOYMENT.md) for comprehensive deployment instructions for various  environments: local, testnet, mainnet.
+  - Specs: [specs/README.md](specs/README.md)
+  - AI continuity notes: [CONTINUITY.md](CONTINUITY.md)
+  - Reviews: [REVIEWS.md](REVIEWS.md)
+  - Deployment instructions (including how to run locally): [DEPLOYMENT.md]
+  - To-do list: [TODO.md](TODO.md)
 
 ## Feedback loops
 
+- `npm run lint` to run various linters
 - `npm run build` to make sure everything builds and type-checks
 - `npm run test` to run the tests
 
-Note that these are both run by the Git pre-commit hook, and the whole thing takes a few minutes to run, so if you're ready to commit and the only thing left to do is run the build and the tests, it's okay to just attempt to commit and make sure it goes through; no need to run the whole test suite only to have it run again when you commit immediately afterward.
+Note that the build and tests are run by the Git pre-commit hook, and the whole thing takes a few minutes to run, so if you're ready to commit and the only thing left to do is run the build and the tests, it's okay to just attempt to commit and make sure it goes through; no need to run the whole test suite only to have it run again when you commit immediately afterward.
 
 ## Artifacts
 
-Main artifacts:
-  - Smart contracts
-  - Indexer
-  - SDK: used by both the integration-tests and the UI code
-  - Integration tests
-  - Fake data generation system is in [fake-data-generation/](fake-data-generation/README.md)
-  - UI
-  - AI attester
+  - Smart contracts: `hardhat/README.md`
+  - Fake-data generation: `fake-data-generation/README.md`
+  - Indexer: `indexer/README.md`
+  - SDK (used by both integration-tests and ui): `sdk/README.md`
+  - Integration tests: `integration-tests/README.md`
+  - UI: `ui/README.md`
+  - Attester AI: `attester/README.md`
 
-See [ARTIFACTS.md](ARTIFACTS.md) for more detail.
+## Other things worth noting
 
-## To-do list
+### Local dev done using Docker
 
-See [TODO.md](TODO.md) for a high-level list of what we've been working on lately and intend to work on soon.
-
-When completing a task, please make sure to keep TODO.md (or whichever subsystem's TODO.md is appropriate) up to date.
-
-If there's a vague high-level to-do item, it may make sense for the project-lead to spend one "task" on simply expanding it out into a list of medium or small to-do items.
+We have a Docker Compose setup for running Hardhat and the Ponder indexer. This provides a clean, isolated environment for development and testing.
 
 ## High-level overview of current status
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
-
-Current focus: Deployment infrastructure is set up for testnet and mainnet. Next priorities are generative testing (attack scenarios and invariant checking) or deploying the contracts. 
