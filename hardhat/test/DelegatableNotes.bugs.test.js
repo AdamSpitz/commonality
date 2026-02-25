@@ -10,8 +10,17 @@ describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
 
   beforeEach(async function () {
     [alice, bob, charlie] = await ethers.getSigners();
+
+    const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
+    const assuranceFactory = await AssuranceContractFactory.deploy();
+    const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
+    const marketplaceFactory = await MarketplaceFactory.deploy();
+
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
-    notes = await DelegatableNotes.deploy();
+    notes = await DelegatableNotes.deploy(
+      await assuranceFactory.getAddress(),
+      await marketplaceFactory.getAddress()
+    );
 
     // Deploy a test ERC20 token
     const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");

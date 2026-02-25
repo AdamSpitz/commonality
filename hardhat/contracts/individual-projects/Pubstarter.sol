@@ -70,6 +70,8 @@ contract PremintingERC1155Factory {
  * @notice Factory contract for creating ERC1155SecondaryMarket contracts
  */
 contract MarketplaceFactory {
+  mapping(address => bool) public isDeployedMarket;
+
   /**
    * @notice Emitted when a new ERC1155SecondaryMarket contract is created
    * @param marketplace The address of the created ERC1155SecondaryMarket contract
@@ -83,6 +85,7 @@ contract MarketplaceFactory {
    */
   function createMarketplace(address erc1155Addr) public returns (ERC1155SecondaryMarket) {
     ERC1155SecondaryMarket m = new ERC1155SecondaryMarket(erc1155Addr);
+    isDeployedMarket[address(m)] = true;
     emit PubstarterERC1155SecondaryMarketCreated(address(m));
     return m;
   }
@@ -93,6 +96,8 @@ contract MarketplaceFactory {
  * @notice Factory contract for creating MultiERC1155AssuranceContract contracts
  */
 contract AssuranceContractFactory {
+  mapping(address => bool) public isDeployedMarket;
+
    /**
     * @notice Emitted when a new MultiERC1155AssuranceContract is created
    * @param assuranceContract The address of the created assurance contract
@@ -122,6 +127,7 @@ contract AssuranceContractFactory {
       deadline,
       projectMetadataCid
     );
+    isDeployedMarket[address(ac)] = true;
     emit PubstarterAssuranceContractCreated(address(ac));
     return ac;
   }

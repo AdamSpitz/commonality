@@ -9,6 +9,7 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
 import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
+import {AssuranceContractFactory, MarketplaceFactory} from "../individual-projects/Pubstarter.sol";
 
 /**
  * @title DelegatableNotes
@@ -43,6 +44,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   error ArrayLengthMismatch();
   error InsufficientBalance();
   error ZeroAddress();
+  error UnauthorizedMarket();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -57,8 +59,19 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   // Depth limit to prevent gas exhaustion from extremely long chains
   uint256 public constant MAX_DELEGATION_DEPTH = 200;
 
+  AssuranceContractFactory public immutable primaryMarketFactory;
+  MarketplaceFactory public immutable secondaryMarketFactory;
+
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
+
+  constructor(
+    address _primaryMarketFactory,
+    address _secondaryMarketFactory
+  ) {
+    primaryMarketFactory = AssuranceContractFactory(_primaryMarketFactory);
+    secondaryMarketFactory = MarketplaceFactory(_secondaryMarketFactory);
+  }
 
   // Events
   event NoteCreated(
@@ -371,6 +384,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] calldata counts
   ) external nonReentrant {
     if (tokenIds.length != counts.length) revert ArrayLengthMismatch();
+    if (!primaryMarketFactory.isDeployedMarket(primaryMarket)) revert UnauthorizedMarket();
 
     address caller = _msgSender();
 
@@ -428,6 +442,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256 tokenCount
   ) external nonReentrant {
     if (tokenCount == 0) revert AmountMustBeGreaterThanZero();
+    if (!secondaryMarketFactory.isDeployedMarket(secondaryMarket)) revert UnauthorizedMarket();
 
     address caller = _msgSender();
 

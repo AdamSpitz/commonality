@@ -8,13 +8,24 @@ describe("DelegatableNotes - Purchase Functionality", function () {
   let erc1155Token;
   let assuranceContract;
   let marketplace;
+  let assuranceFactory;
+  let marketplaceFactory;
 
   beforeEach(async function () {
     [alice, bob, charlie, seller] = await ethers.getSigners();
 
-    // Deploy DelegatableNotes
+    // Deploy factories
+    const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
+    assuranceFactory = await AssuranceContractFactory.deploy();
+    const MarketplaceFactoryContract = await ethers.getContractFactory("MarketplaceFactory");
+    marketplaceFactory = await MarketplaceFactoryContract.deploy();
+
+    // Deploy DelegatableNotes with factory references
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
-    notes = await DelegatableNotes.deploy();
+    notes = await DelegatableNotes.deploy(
+      await assuranceFactory.getAddress(),
+      await marketplaceFactory.getAddress()
+    );
 
     // Deploy PremintingERC1155 for testing
     const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
@@ -24,16 +35,21 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       "https://example.com/contract.json"
     );
 
-    // Deploy AssuranceContract (acts as ERC1155PrimaryMarket)
-    const MultiERC1155AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
+    // Create AssuranceContract through factory (so it's whitelisted)
     const deadline = Math.floor(Date.now() / 1000) + 86400; // 1 day from now
-    assuranceContract = await MultiERC1155AssuranceContract.deploy(
+    const tx = await assuranceFactory.createAssuranceContract(
       seller.address,
       seller.address,
       ethers.parseEther("10"), // threshold
       deadline,
       "QmTest123"
     );
+    const receipt = await tx.wait();
+    const acEvent = receipt.logs.find(
+      log => log.fragment && log.fragment.name === "PubstarterAssuranceContractCreated"
+    );
+    const MultiERC1155AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
+    assuranceContract = MultiERC1155AssuranceContract.attach(acEvent.args[0]);
 
     // Mint tokens to the assurance contract
     await erc1155Token.connect(seller).mintBatch(
@@ -49,9 +65,14 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       [ethers.parseEther("0.1"), ethers.parseEther("0.2"), ethers.parseEther("0.5")]
     );
 
-    // Deploy Marketplace
+    // Create Marketplace through factory (so it's whitelisted)
+    const mktTx = await marketplaceFactory.createMarketplace(await erc1155Token.getAddress());
+    const mktReceipt = await mktTx.wait();
+    const mktEvent = mktReceipt.logs.find(
+      log => log.fragment && log.fragment.name === "PubstarterERC1155SecondaryMarketCreated"
+    );
     const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
-    marketplace = await ERC1155SecondaryMarket.deploy(await erc1155Token.getAddress());
+    marketplace = ERC1155SecondaryMarket.attach(mktEvent.args[0]);
   });
 
   describe("purchaseERC1155", function () {

@@ -47,14 +47,6 @@ async function main() {
   const alignmentAttestationsAddress = await alignmentAttestations.getAddress();
   console.log(`✓ AlignmentAttestations: ${alignmentAttestationsAddress}`);
 
-  // Deploy DelegatableNotes contract
-  console.log('Deploying DelegatableNotes...');
-  const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
-  const delegatableNotes = await DelegatableNotes.deploy();
-  await delegatableNotes.waitForDeployment();
-  const delegatableNotesAddress = await delegatableNotes.getAddress();
-  console.log(`✓ DelegatableNotes: ${delegatableNotesAddress}`);
-
   // Deploy MutableRefUpdater contract
   console.log('Deploying MutableRefUpdater...');
   const MutableRefUpdater = await ethers.getContractFactory('MutableRefUpdater');
@@ -65,7 +57,7 @@ async function main() {
 
   // Deploy Pubstarter factory contracts
   console.log('\nDeploying Pubstarter factories...');
-  
+
   const AssuranceContractFactory = await ethers.getContractFactory('AssuranceContractFactory');
   const assuranceFactory = await AssuranceContractFactory.deploy();
   await assuranceFactory.waitForDeployment();
@@ -83,6 +75,16 @@ async function main() {
   await marketplaceFactory.waitForDeployment();
   const marketplaceFactoryAddress = await marketplaceFactory.getAddress();
   console.log(`✓ MarketplaceFactory: ${marketplaceFactoryAddress}`);
+
+  console.log('Deploying DelegatableNotes...');
+  const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
+  const delegatableNotes = await DelegatableNotes.deploy(
+    assuranceFactoryAddress,
+    marketplaceFactoryAddress
+  );
+  await delegatableNotes.waitForDeployment();
+  const delegatableNotesAddress = await delegatableNotes.getAddress();
+  console.log(`✓ DelegatableNotes: ${delegatableNotesAddress}`);
 
   // Deploy Pubstarter main contract
   console.log('Deploying Pubstarter...');

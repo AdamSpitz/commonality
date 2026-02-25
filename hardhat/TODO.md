@@ -6,56 +6,12 @@ Issues identified by running `npm run lint:slither` in `hardhat/`. Ordered by se
 
 ## HIGH
 
-### 1. Whitelist external market addresses (arbitrary-send-eth)
+### ~~1. Whitelist external market addresses (arbitrary-send-eth)~~ DONE
 
-**Files:** `contracts/delegation/DelegatableNotes.sol` lines 384, 441
-
-`purchaseFromPrimaryMarket` and `purchaseFromSecondaryMarket` accept `primaryMarket` and
-`secondaryMarket` as caller-supplied parameters and forward ETH to them without validation.
-A user could pass a malicious contract that steals or redirects the ETH.
-
-**Fix:** Whitelist the *factories* rather than individual market addresses. Each market is
-deployed via a factory (`MarketplaceFactory`, `AssuranceContractFactory`) using `new`, so the
-bytecode is guaranteed to be legitimate. Add a registry to each factory so DelegatableNotes
-can verify a market was factory-deployed:
-
-1. Add `mapping(address => bool) public isDeployedMarket` to `MarketplaceFactory` (and the
-   equivalent for primary markets / assurance contracts). Set it to `true` in each
-   `create*` function.
-
-2. Add `Ownable` to `DelegatableNotes` and store approved factory addresses:
-
-```solidity
-mapping(address => bool) public approvedPrimaryMarketFactories;
-mapping(address => bool) public approvedSecondaryMarketFactories;
-
-function setApprovedPrimaryMarketFactory(address factory, bool approved) external onlyOwner {
-    approvedPrimaryMarketFactories[factory] = approved;
-}
-
-function setApprovedSecondaryMarketFactory(address factory, bool approved) external onlyOwner {
-    approvedSecondaryMarketFactories[factory] = approved;
-}
-```
-
-3. Validate in each purchase function by checking the factory registry:
-
-```solidity
-error UnauthorizedMarket();
-
-// In purchaseFromPrimaryMarket (caller passes factory address, or it's stored once):
-if (!approvedPrimaryMarketFactories[factory]) revert UnauthorizedMarket();
-if (!AssuranceContractFactory(factory).isDeployedMarket(primaryMarket)) revert UnauthorizedMarket();
-
-// In purchaseFromSecondaryMarket:
-if (!approvedSecondaryMarketFactories[factory]) revert UnauthorizedMarket();
-if (!MarketplaceFactory(factory).isDeployedMarket(secondaryMarket)) revert UnauthorizedMarket();
-```
-
-This avoids needing to update DelegatableNotes every time a new project is created — the
-factory is whitelisted once, and any market it deploys is automatically trusted. On-chain
-type-checking (ERC-165, bytecode hashing) doesn't help here because a malicious contract can
-trivially fake interface support.
+Factory registry implemented: `isDeployedMarket` mapping added to both `MarketplaceFactory`
+and `AssuranceContractFactory`. `DelegatableNotes` stores immutable references to both
+factories (set via constructor) and checks `factory.isDeployedMarket(market)` in both
+`purchaseFromPrimaryMarket` and `purchaseFromSecondaryMarket`.
 
 ---
 

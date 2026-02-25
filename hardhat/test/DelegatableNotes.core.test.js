@@ -8,8 +8,17 @@ describe("DelegatableNotes - Core Functionality", function () {
 
   beforeEach(async function () {
     [alice, bob, charlie, dave] = await ethers.getSigners();
+
+    const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
+    const assuranceFactory = await AssuranceContractFactory.deploy();
+    const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
+    const marketplaceFactory = await MarketplaceFactory.deploy();
+
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
-    notes = await DelegatableNotes.deploy();
+    notes = await DelegatableNotes.deploy(
+      await assuranceFactory.getAddress(),
+      await marketplaceFactory.getAddress()
+    );
   });
 
   describe("ETH Deposits and Withdrawals", function () {
