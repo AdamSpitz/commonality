@@ -1,4 +1,4 @@
 {
   "filter_paths": "node_modules|@openzeppelin",
-  "exclude": "naming-convention"
+  "detectors_to_exclude": "naming-convention"
 }

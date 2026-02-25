@@ -162,6 +162,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
      * @param counts Array of token counts to refund
      * @param data Additional data for the transfer
      */
+    // slither-disable-next-line arbitrary-send-eth
     function refundERC1155(
         address holder,
         address erc1155Addr,

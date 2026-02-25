@@ -264,6 +264,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         emit BuyOrderCreated(buyOrderId, buyer, tokenId, count, pricePerToken);
     }
 
+    // slither-disable-next-line arbitrary-send-eth
     function fulfillBuyOrder(uint256 buyOrderId, uint256 count) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
         address buyer = order.buyer;

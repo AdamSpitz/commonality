@@ -194,6 +194,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * Only root notes (non-delegated) can be reclaimed.
    * @param noteId The note to reclaim
    */
+  // slither-disable-next-line arbitrary-send-eth
   function reclaimFunds(uint256 noteId) external nonReentrant {
     Note storage note = notes[noteId];
     if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
@@ -375,6 +376,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param tokenIds Array of token IDs to purchase
    * @param counts Array of token counts to purchase
    */
+  // slither-disable-next-line arbitrary-send-eth
   function purchaseFromPrimaryMarket(
     uint256[] calldata noteIds,
     address[][] calldata chains,
@@ -434,6 +436,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param saleListingId Sale listing ID in the secondary market
    * @param tokenCount Number of tokens to purchase
    */
+  // slither-disable-next-line arbitrary-send-eth
   function purchaseFromSecondaryMarket(
     uint256[] calldata noteIds,
     address[][] calldata chains,
