@@ -1,8 +1,6 @@
 # Commonality smart contracts
 
-This hardhat project should be considered "source code" (i.e. part of the spec); don't blow it away.
-
-(I was previously storing the contracts themselves in the specs/ folder, but honestly there's just no point - putting the hardhat project configuration stuff around it is very simple and very useful.)
+This is a single hardhat project containing smart contracts for several logical subsystems: `statements/` (Beliefs, Implications), `individual-projects/` (assurance contracts and primary market), `marketplace/` (secondary market), `delegation/` (DelegatableNotes, NoteIntent), `alignment-attestations/`, and `utils/`. Someday it might make sense to split these into separate projects, but for now one project is simpler.
 
 ## Dev stuff you can do:
 

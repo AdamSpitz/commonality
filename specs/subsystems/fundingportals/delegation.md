@@ -6,6 +6,10 @@ e.g. Alice is happy to put $20/month towards this cause, but she doesn't have ti
 
 (So you can think of Bob as a "nano-trustee", entrusted to make some decisions on Alice's behalf.)
 
+## Implementation: hash-commitment chains
+
+The contract tracks delegation chains via a hash commitment rather than explicit linked-list structures: `chainHash = keccak256(owner, parentChainHash)` recursively from root to leaf. Operations that need to verify chains (delegation, revocation, spending) require callers to pass the full owner array, and the contract recomputes & verifies. This avoids storing chain structures in storage.
+
 ## Composition
 
 Delegation decisions are composable (i.e. Bob can then further delegate to Charlie).
@@ -20,10 +24,13 @@ The funding website is transparent about this for the purpose of social recogiti
 
 ## Spending
 
-For now, the only real action that a note's owner can take (besides the delegation/revocation stuff) is trading the note's tokens (which were contributed by the original note creator and are now being held by the DelegatableNotes smart contract) for some other token. There are some design decisions to make here:
-  - Does this result in a *new* note being created (containing the purchased tokens) with an identical delegation chain (e.g. the original chain was Alice -> Bob -> Charlie, and now it's a new note chain that is also Alice -> Bob -> Charlie, so that Charlie has delegated-control of the newly-purchased tokens)? So Charlie can do multi-step trades or whatever, without bothering Alice or Bob with the details (although of course Alice and/or Bob can be notified if they want to be, and they can cancel the delegation if they want to).
-  - Or do the purchased tokens go directly into Alice's wallet? (I suspect that this is probably a more common use case.)
-  - Or does the contract allow either option, and Charlie can choose when he decides to make the trade? (i.e. "I'd like to keep delegated-control because I plan to take further actions using the newly-purchased tokens" or "I have no intention of taking further actions with these newly-purchased tokens; I relinquish my delegated-control".)
+For now, the only real action that a note's owner can take (besides the delegation/revocation stuff) is trading the note's tokens (which were contributed by the original note creator and are now being held by the DelegatableNotes smart contract) for some other token.
+
+**Decision:** Purchased tokens go into a new note with the same delegation chain. So if the chain was Alice → Bob → Charlie, the new note (holding the purchased ERC1155 tokens) also has chain Alice → Bob → Charlie. This lets delegates do multi-step trades without bothering upstream delegators. (We could add an option to relinquish control later if needed.)
+
+**Multi-note payments:** When a purchase uses multiple notes, each note is consumed proportionally to its balance (not FIFO). The last note absorbs rounding remainders so the total consumed exactly matches the payment amount.
+
+**DelegatableNotes factory whitelisting:** Purchases are only allowed from markets deployed through the AssuranceContractFactory or MarketplaceFactory (`isDeployedMarket` checks), preventing use of malicious market contracts to drain funds. (I feel like there should be a way to design things to avoid this problem, but whatever.)
 
 ## Splitting/merging
 

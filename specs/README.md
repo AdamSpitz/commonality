@@ -258,6 +258,9 @@ I don't think that old code includes anything related to doing a whole funding p
 
 In the long run I'd like the DelegatableNotes smart contract to support various DEXes or DEX aggregators for spending the notes; for now it's fine to just use the primary and secondary market capabilities of our own (Kickstarter-like) contracts. (This is also already done.)
 
+Design decisions worth noting:
+  - **Assurance contracts: buying is always allowed**, even after the deadline. A "failed" project can still succeed later if more people buy. Refunds are only allowed when the deadline has passed *and* the threshold hasn't been reached.
+
 #### Funding Portal indexer
 
 Keep track of details for all the individual Pubstarter projects.
