@@ -238,7 +238,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     address[] calldata owners,
     address delegateTo,
     uint256 amountToDelegate
-  ) external returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
+  ) external nonReentrant returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
     Note storage note = notes[noteId];
     if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
@@ -291,7 +291,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @param noteId The note to revoke
    * @param owners The delegation chain (leaf first, root last)
    */
-  function revoke(uint256 noteId, address[] calldata owners) external {
+  function revoke(uint256 noteId, address[] calldata owners) external nonReentrant {
     address caller = _msgSender();
 
     Note storage note = notes[noteId];

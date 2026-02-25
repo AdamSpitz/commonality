@@ -15,22 +15,11 @@ factories (set via constructor) and checks `factory.isDeployedMarket(market)` in
 
 ---
 
-### 2. Add `nonReentrant` to `delegate()` and `revoke()` (reentrancy-eth)
+### ~~2. Add `nonReentrant` to `delegate()` and `revoke()` (reentrancy-eth)~~ DONE
 
-**File:** `contracts/delegation/DelegatableNotes.sol` lines 223, 281
-
-`purchaseFromPrimaryMarket` and `purchaseFromSecondaryMarket` are protected by `nonReentrant`,
-but they make external calls to market contracts before writing the output notes. During that
-window, a malicious market contract could call back into `delegate()` or `revoke()`, which are
-**not** guarded by `nonReentrant`. This allows cross-function reentrancy while the `notes`
-mapping is in an intermediate state (input notes consumed, output notes not yet created).
-
-**Fix:** Add `nonReentrant` to both functions:
-
-```solidity
-function delegate(...) external nonReentrant returns (...) {
-function revoke(...) external nonReentrant {
-```
+Added `nonReentrant` modifier to both `delegate()` and `revoke()` in `DelegatableNotes.sol`.
+Since all functions share the same `ReentrancyGuard` lock, a malicious market contract
+can no longer call back into these functions during a purchase transaction.
 
 ---
 
