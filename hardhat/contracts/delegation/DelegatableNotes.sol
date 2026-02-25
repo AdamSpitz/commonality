@@ -391,22 +391,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     address caller = _msgSender();
 
-    // Execute common purchase logic
+    // Execute common purchase logic (consumes payment notes)
     (
       address[][] memory paymentChains,
       uint256[] memory spentAmounts
     ) = _executePurchase(noteIds, chains, paymentAmount);
 
-    // Execute primary market purchase
-    ERC1155PrimaryMarket(primaryMarket).buyERC1155{value: paymentAmount}(
-      address(this),
-      erc1155Contract,
-      tokenIds,
-      counts,
-      ""
-    );
-
-    // Create new notes with purchased tokens
+    // Create new notes with purchased tokens (state writes before external call - CEI pattern)
     uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
       erc1155Contract,
       tokenIds,
@@ -414,6 +405,15 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       paymentChains,
       spentAmounts,
       paymentAmount
+    );
+
+    // Execute primary market purchase (external call last)
+    ERC1155PrimaryMarket(primaryMarket).buyERC1155{value: paymentAmount}(
+      address(this),
+      erc1155Contract,
+      tokenIds,
+      counts,
+      ""
     );
 
     emit ERC1155Purchased(
@@ -450,22 +450,15 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     address caller = _msgSender();
 
-    // Execute common purchase logic
+    // Get the token details from the marketplace (view calls) before any state changes
+    address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
+    uint256 tokenId = ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId).tokenId;
+
+    // Execute common purchase logic (consumes payment notes)
     (
       address[][] memory paymentChains,
       uint256[] memory spentAmounts
     ) = _executePurchase(noteIds, chains, paymentAmount);
-
-    // Execute secondary market purchase
-    ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo{value: paymentAmount}(
-      saleListingId,
-      tokenCount,
-      address(this)
-    );
-
-    // Get the token details from the marketplace to create notes
-    address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
-    uint256 tokenId = ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId).tokenId;
 
     // Create arrays for single token type
     uint256[] memory tokenIds = new uint256[](1);
@@ -473,7 +466,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     tokenIds[0] = tokenId;
     counts[0] = tokenCount;
 
-    // Create new notes with purchased tokens
+    // Create new notes with purchased tokens (state writes before external call - CEI pattern)
     uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
       erc1155Contract,
       tokenIds,
@@ -481,6 +474,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       paymentChains,
       spentAmounts,
       paymentAmount
+    );
+
+    // Execute secondary market purchase (external call last)
+    ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo{value: paymentAmount}(
+      saleListingId,
+      tokenCount,
+      address(this)
     );
 
     emit ERC1155Purchased(
