@@ -164,12 +164,10 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       if (msg.value != 0) revert NoETHForERC20();
       actualAmount = amount;
       tokenId = 0;
-      IERC20(token).safeTransferFrom(owner, address(this), amount);
     } else {
       if (amount == 0) revert AmountMustBeGreaterThanZero();
       if (msg.value != 0) revert NoETHForERC1155();
       actualAmount = amount;
-      IERC1155(token).safeTransferFrom(owner, address(this), tokenId, amount, "");
     }
 
     uint256 noteId = nextNoteId++;
@@ -184,6 +182,15 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     });
 
     emit NoteCreated(noteId, owner, actualAmount, token, tokenType, tokenId);
+
+    if (token != address(0)) {
+      if (tokenType == TokenType.ERC20) {
+        IERC20(token).safeTransferFrom(owner, address(this), amount);
+      } else {
+        IERC1155(token).safeTransferFrom(owner, address(this), tokenId, amount, "");
+      }
+    }
+
     return noteId;
   }
 
@@ -213,6 +220,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
     if (tokenType == TokenType.ERC20) {
       if (token == address(0)) {
+        // slither-disable-next-line low-level-calls
         (bool success, ) = payable(caller).call{value: amount}("");
         if (!success) revert ETHTransferFailed();
       } else {

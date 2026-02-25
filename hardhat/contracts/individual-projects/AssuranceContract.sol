@@ -74,6 +74,7 @@ abstract contract AssuranceContract {
         requireAssuranceContractHasSucceeded();
         uint256 value = address(this).balance;
         emit AssuranceContractWithdrawal(_recipient, value);
+        // slither-disable-next-line low-level-calls
         (bool success, ) = payable(_recipient).call{value: value}("");
         if (!success) revert ETHTransferFailed();
     }

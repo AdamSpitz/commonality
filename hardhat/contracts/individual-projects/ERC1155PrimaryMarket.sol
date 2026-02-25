@@ -174,6 +174,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         if (holder == address(0)) revert ZeroAddress();
         uint256 refundValue = erc1155TotalCost(erc1155Addr, ids, counts);
         setTotalReceivedValue(getTotalReceivedValue() - refundValue);
+        // slither-disable-next-line low-level-calls
         (bool success, ) = payable(holder).call{value: refundValue}("");
         if (!success) revert ETHRefundFailed();
         IERC1155(erc1155Addr).safeBatchTransferFrom(

@@ -206,6 +206,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             listing.count = remaining;
         }
 
+        // slither-disable-next-line low-level-calls
         (bool success, ) = payable(seller).call{value: totalCost}("");
         if (!success) revert ETHTransferFailed();
 
@@ -293,6 +294,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             "0x"
         );
 
+        // slither-disable-next-line low-level-calls
         (bool success, ) = payable(seller).call{value: totalCost}("");
         if (!success) revert ETHTransferFailed();
 
@@ -309,6 +311,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
 
         delete _buyOrders[buyOrderId];
 
+        // slither-disable-next-line low-level-calls
         (bool success, ) = payable(buyer).call{value: refund}("");
         if (!success) revert ETHTransferFailed();
 
