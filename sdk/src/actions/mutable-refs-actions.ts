@@ -86,6 +86,7 @@ export async function getRef(
   owner: Address,
   name: string
 ): Promise<string> {
+  // @ts-expect-error - viem type inference issue with generic Abi and readContract
   const value = await clients.publicClient.readContract({
     address: mutableRefUpdaterContract.address,
     abi: mutableRefUpdaterContract.abi,
