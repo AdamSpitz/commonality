@@ -9,7 +9,6 @@
  */
 
 import { SyncJobContext } from "../../utils/ipfsSyncJob.js";
-import { Logger } from "../../utils/logger.js";
 import { fetchStatementContent, extractExcerpt } from "./ipfs.js";
 
 // Configuration

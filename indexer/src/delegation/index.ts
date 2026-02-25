@@ -13,11 +13,6 @@ import {
   delegationChains,
   noteEvents,
 } from "ponder:schema";
-import { TokenType } from "../constants";
-
-// Token type constants (matching Solidity enum)
-const TOKEN_TYPE_ERC20 = TokenType.ERC20;
-const TOKEN_TYPE_ERC1155 = TokenType.ERC1155;
 
 /**
  * Helper to compute chain hash (matching Solidity logic)
@@ -31,44 +26,6 @@ function computeChainHash(owner: `0x${string}`, parentHash: `0x${string}`): `0x$
   return keccak256(encodePacked(['address', 'bytes32'], [owner, parentHash]));
 }
 
-/**
- * Helper to store delegation chain entries
- * Parses the owners array and creates chain entries
- */
-async function storeDelegationChain(
-  ctx: { db: any },
-  noteId: bigint,
-  owners: readonly `0x${string}`[],
-  timestamp: bigint
-) {
-  // Delete existing chain entries for this note
-  // Since delegationChains has a composite primary key (noteId, position),
-  // we need to delete each position individually
-  // Use db.sql for querying (Store API doesn't support complex queries)
-  const existing = await ctx.db.sql.query.delegationChains.findMany({
-    where: (table: any, { eq }: any) => eq(table.noteId, noteId),
-    columns: { noteId: true, position: true },
-  });
-
-  for (const row of existing) {
-    await ctx.db.delete(delegationChains, {
-      noteId: row.noteId,
-      position: row.position, // Delete each specific position
-    });
-  }
-
-  // Create new chain entries
-  // owners array: [leaf, ..., root], so we reverse it for storage
-  for (let i = 0; i < owners.length; i++) {
-    const position = owners.length - 1 - i; // Reverse: root at position 0
-    await ctx.db.insert(delegationChains).values({
-      noteId,
-      position,
-      address: owners[i],
-      createdAt: timestamp,
-    });
-  }
-}
 
 /**
  * Helper to create a note event record
@@ -278,7 +235,7 @@ ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
  * with temporary values, and NoteDelegated updates the owner and chainHash.
  */
 ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
-  const { originalLeafId, splitLeafId, remainderLeafId, splitAmount } = event.args;
+  const { originalLeafId, splitLeafId, remainderLeafId: _remainderLeafId, splitAmount } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
   const transactionHash = event.transaction.hash;
@@ -460,7 +417,7 @@ ponder.on("DelegatableNotes:FundsReclaimed", async ({ event, context }) => {
  * Updates note amounts and marks fully spent notes as inactive
  */
 ponder.on("DelegatableNotes:NoteConsumed", async ({ event, context }) => {
-  const { noteId, amountConsumed, remainingAmount, deleted } = event.args;
+  const { noteId, amountConsumed: _amountConsumed, remainingAmount, deleted } = event.args;
   const timestamp = BigInt(event.block.timestamp);
 
   const note = await context.db.find(delegatableNotes, { id: noteId });

@@ -12,7 +12,6 @@ import { ConsoleLogger, Logger, wrapLoggerWithPrefix } from "./logger";
 // Configuration
 const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_RETRIES = 10;
-const RETRY_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface SyncJobContext {
   ipfsGateway: string;

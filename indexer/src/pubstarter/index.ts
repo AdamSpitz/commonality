@@ -66,7 +66,7 @@ ponder.on(
  */
 ponder.on(
   "ERC1155Factory:PubstarterERC1155ContractCreated",
-  async ({ event, context }) => {
+  async ({ event: _event, context: _context }) => {
     // The ERC1155 contract address is emitted
     // We'll correlate it with the assurance contract via the ERC1155Offered events
     // Note: The correlation happens when prices are set via ERC1155Offered events
@@ -79,7 +79,7 @@ ponder.on(
  */
 ponder.on(
   "MarketplaceFactory:PubstarterERC1155SecondaryMarketCreated",
-  async ({ event, context }) => {
+  async ({ event: _event, context: _context }) => {
     // Similar to ERC1155 - we'll track marketplaces via their events
     // Logging removed - no action needed for this event
   }

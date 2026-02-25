@@ -1,3 +1,7 @@
 {
-  "extends": "ponder"
+  "extends": "ponder",
+  "ignorePatterns": ["abis/"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
+  }
 }

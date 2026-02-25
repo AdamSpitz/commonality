@@ -1,5 +1,3 @@
-import { CID } from "multiformats/cid";
-import { IpfsCidV1, IpfsCidBytes32 } from "../../utils/cid-types";
 
 /**
  * Parsed statement content from IPFS.

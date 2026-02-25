@@ -50,7 +50,7 @@ export const alignmentAttestations = onchainTable(
 
 // Funding Portal Relations
 
-export const alignmentAttestationsRelations = relations(alignmentAttestations, ({ one }) => ({
+export const alignmentAttestationsRelations = relations(alignmentAttestations, ({}) => ({
   // Note: We don't create foreign key relations to other subsystems
   // because they're logically separate. The Funding Portal federates
   // queries to other subsystems' GraphQL APIs instead.
