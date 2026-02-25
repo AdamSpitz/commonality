@@ -30,6 +30,18 @@ contract Implications {
         bytes32 explanationCid
     );
 
+    /**
+     * @notice Emitted when an attester retracts an implication attestation
+     * @param attester The address retracting the attestation
+     * @param fromStatementCid The IPFS CID of the source statement
+     * @param toStatementCid The IPFS CID of the implied statement
+     */
+    event ImplicationRevoked(
+        address indexed attester,
+        bytes32 indexed fromStatementCid,
+        bytes32 indexed toStatementCid
+    );
+
     // Mapping to track if an implication has been attested by a specific attester
     // attester => fromStatementCid => toStatementCid => exists
     mapping(address => mapping(bytes32 => mapping(bytes32 => bool)))
@@ -108,6 +120,21 @@ contract Implications {
         bytes32 toStatementCid
     ) external view returns (bool) {
         return attestations[attester][fromStatementCid][toStatementCid];
+    }
+
+    /**
+     * @notice Retract a previously made implication attestation
+     * @param fromStatementCid The IPFS CID of the source statement
+     * @param toStatementCid The IPFS CID of the implied statement
+     */
+    function removeAttestation(
+        bytes32 fromStatementCid,
+        bytes32 toStatementCid
+    ) external {
+        attestations[msg.sender][fromStatementCid][toStatementCid] = false;
+        explanations[msg.sender][fromStatementCid][toStatementCid] = bytes32(0);
+
+        emit ImplicationRevoked(msg.sender, fromStatementCid, toStatementCid);
     }
 
     /**

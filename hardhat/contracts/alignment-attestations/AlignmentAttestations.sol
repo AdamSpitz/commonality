@@ -33,6 +33,18 @@ contract AlignmentAttestations {
         bytes32 topicStatementId
     );
 
+    /**
+     * @notice Emitted when an attester retracts an alignment attestation
+     * @param attester The address retracting the attestation
+     * @param subjectAddress The address of the subject
+     * @param statementId The IPFS CID of the statement
+     */
+    event AlignmentRevoked(
+        address indexed attester,
+        address indexed subjectAddress,
+        bytes32 indexed statementId
+    );
+
     // Mapping to track if an alignment has been attested by a specific attester
     // attester => subjectAddress => statementId => exists
     mapping(address => mapping(address => mapping(bytes32 => bool)))
@@ -84,6 +96,20 @@ contract AlignmentAttestations {
 
             emit AlignmentAttestation(msg.sender, subjectAddress, statementId, topicStatementId);
         }
+    }
+
+    /**
+     * @notice Retract a previously made alignment attestation
+     * @param subjectAddress The address of the subject
+     * @param statementId The IPFS CID of the statement
+     */
+    function removeAttestation(
+        address subjectAddress,
+        bytes32 statementId
+    ) external {
+        attestations[msg.sender][subjectAddress][statementId] = false;
+
+        emit AlignmentRevoked(msg.sender, subjectAddress, statementId);
     }
 
     /**

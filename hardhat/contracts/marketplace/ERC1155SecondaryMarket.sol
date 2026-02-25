@@ -24,8 +24,6 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     error ETHTransferFailed();
     error NotTheSeller();
     error NotTheBuyer();
-    error AmountMustBeGreaterThanZero2();
-    error MustSendETH();
     error IncorrectAmountOfETHSent();
     error OrderDoesNotExist();
 
@@ -49,7 +47,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 pricePerToken; // Price per token in wei
     }
 
-    IERC1155 public immutable _erc1155;
+    IERC1155 private immutable _erc1155;
     mapping(uint256 => SaleListing) private _saleListings;
     mapping(uint256 => BuyOrder) private _buyOrders;
     uint256 private _nextSaleListingId;
@@ -247,8 +245,8 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 count,
         uint256 pricePerToken
     ) external payable nonReentrant {
-        if (count == 0) revert AmountMustBeGreaterThanZero2();
-        if (pricePerToken == 0) revert MustSendETH();
+        if (count == 0) revert CountMustBeGreaterThanZero();
+        if (pricePerToken == 0) revert PriceMustBeGreaterThanZero();
         if (msg.value != count * pricePerToken) revert IncorrectAmountOfETHSent();
 
         address buyer = _msgSender();

@@ -306,13 +306,13 @@ describe("ERC1155SecondaryMarket", function () {
         marketplace.connect(bob).createBuyOrder(1, 0, ethers.parseEther("0.1"), {
           value: 0,
         })
-      ).to.be.revertedWithCustomError(marketplace, "AmountMustBeGreaterThanZero2");
+      ).to.be.revertedWithCustomError(marketplace, "CountMustBeGreaterThanZero");
     });
 
     it("Should reject zero price", async function () {
       await expect(
         marketplace.connect(bob).createBuyOrder(1, 10, 0, { value: 0 })
-      ).to.be.revertedWithCustomError(marketplace, "MustSendETH");
+      ).to.be.revertedWithCustomError(marketplace, "PriceMustBeGreaterThanZero");
     });
 
     it("Should reject incorrect ETH amount", async function () {

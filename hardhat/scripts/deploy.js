@@ -16,6 +16,7 @@ const { ethers } = hre;
 
 async function main() {
   const network = hre.network.name;
+  const isLocal = network === 'localhost';
   console.log(`\n=== Deploying Contracts to ${network} ===\n`);
 
   // Get deployer account
@@ -58,6 +59,12 @@ async function main() {
   // Deploy Pubstarter factory contracts
   console.log('\nDeploying Pubstarter factories...');
 
+  const FreeERC1155Factory = await ethers.getContractFactory('FreeERC1155Factory');
+  const freeERC1155Factory = await FreeERC1155Factory.deploy();
+  await freeERC1155Factory.waitForDeployment();
+  const freeERC1155FactoryAddress = await freeERC1155Factory.getAddress();
+  console.log(`✓ FreeERC1155Factory: ${freeERC1155FactoryAddress}`);
+
   const AssuranceContractFactory = await ethers.getContractFactory('AssuranceContractFactory');
   const assuranceFactory = await AssuranceContractFactory.deploy();
   await assuranceFactory.waitForDeployment();
@@ -98,34 +105,40 @@ async function main() {
   const pubstarterAddress = await pubstarter.getAddress();
   console.log(`✓ Pubstarter: ${pubstarterAddress}`);
 
-  // Save deployment info (JSON record with metadata)
-  const deploymentInfo = {
-    network,
-    deployer: deployer.address,
-    timestamp: new Date().toISOString(),
-    contracts: {
-      Beliefs: beliefsAddress,
-      Implications: implicationsAddress,
-      AlignmentAttestations: alignmentAttestationsAddress,
-      DelegatableNotes: delegatableNotesAddress,
-      MutableRefUpdater: mutableRefUpdaterAddress,
-      AssuranceContractFactory: assuranceFactoryAddress,
-      PremintingERC1155Factory: erc1155FactoryAddress,
-      MarketplaceFactory: marketplaceFactoryAddress,
-      Pubstarter: pubstarterAddress
-    }
-  };
+  // Save timestamped deployment JSON record (non-localhost only; local node resets every restart)
+  if (!isLocal) {
+    const deploymentsDir = join(process.cwd(), 'deployments');
+    await fs.mkdir(deploymentsDir, { recursive: true });
 
-  const deploymentsDir = join(process.cwd(), 'deployments');
-  await fs.mkdir(deploymentsDir, { recursive: true });
+    const deploymentInfo = {
+      network,
+      deployer: deployer.address,
+      timestamp: new Date().toISOString(),
+      contracts: {
+        Beliefs: beliefsAddress,
+        Implications: implicationsAddress,
+        AlignmentAttestations: alignmentAttestationsAddress,
+        DelegatableNotes: delegatableNotesAddress,
+        MutableRefUpdater: mutableRefUpdaterAddress,
+        FreeERC1155Factory: freeERC1155FactoryAddress,
+        AssuranceContractFactory: assuranceFactoryAddress,
+        PremintingERC1155Factory: erc1155FactoryAddress,
+        MarketplaceFactory: marketplaceFactoryAddress,
+        Pubstarter: pubstarterAddress
+      }
+    };
 
-  const deploymentFile = join(deploymentsDir, `${network}-${Date.now()}.json`);
-  await fs.writeFile(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
-  console.log(`\n✓ Deployment JSON saved to: ${deploymentFile}`);
+    const deploymentFile = join(process.cwd(), 'deployments', `${network}-${Date.now()}.json`);
+    await fs.writeFile(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
+    console.log(`\n✓ Deployment JSON saved to: ${deploymentFile}`);
+  }
 
   // Write deployments/<network>.env (committable contract addresses)
   const rootDir = join(process.cwd(), '..');
-  const networkEnvPath = join(rootDir, 'deployments', `${network}.env`);
+  const deploymentsDir = join(rootDir, 'deployments');
+  await fs.mkdir(deploymentsDir, { recursive: true });
+
+  const networkEnvPath = join(deploymentsDir, `${network}.env`);
   const addressEntries = {
     'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
@@ -135,6 +148,7 @@ async function main() {
     'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
     'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
     'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,
+    'FREE_ERC1155_FACTORY_ADDRESS': freeERC1155FactoryAddress,
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
@@ -150,7 +164,9 @@ async function main() {
   }
   await fs.writeFile(networkEnvPath, networkEnvContent);
   console.log(`✓ Contract addresses saved to: ${networkEnvPath}`);
-  console.log('  (commit this file to share addresses with other services)');
+  if (!isLocal) {
+    console.log('  (commit this file to share addresses with other services)');
+  }
 
   // Propagate addresses to service .env files
   console.log(`\n=== Propagating to service .env files ===\n`);
@@ -169,11 +185,15 @@ async function main() {
   let rootEnvContent = '';
   try {
     rootEnvContent = await fs.readFile(rootEnvPath, 'utf-8');
-  } catch (err) {
+  } catch {
     console.log('  No existing .env file, creating new one');
   }
   for (const [key, value] of Object.entries(addressEntries)) {
     rootEnvContent = updateEnv(rootEnvContent, key, value);
+  }
+  if (isLocal) {
+    rootEnvContent = updateEnv(rootEnvContent, 'IPFS_API', 'http://localhost:5001');
+    rootEnvContent = updateEnv(rootEnvContent, 'IPFS_GATEWAY', 'http://localhost:8080/ipfs');
   }
   await fs.writeFile(rootEnvPath, rootEnvContent);
   console.log('  ✓ Updated .env');
@@ -188,11 +208,14 @@ async function main() {
   let uiEnvContent = '';
   try {
     uiEnvContent = await fs.readFile(uiEnvPath, 'utf-8');
-  } catch (err) {
+  } catch {
     console.log('  No existing ui/.env, creating new one');
   }
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_BELIEFS_CONTRACT_ADDRESS', beliefsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
+  if (isLocal) {
+    uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
+  }
   await fs.writeFile(uiEnvPath, uiEnvContent);
   console.log('  ✓ Updated ui/.env');
 
@@ -201,7 +224,7 @@ async function main() {
   let attesterEnvContent = '';
   try {
     attesterEnvContent = await fs.readFile(attesterEnvPath, 'utf-8');
-  } catch (err) {
+  } catch {
     console.log('  No existing attester/.env, creating new one');
   }
   attesterEnvContent = updateEnv(attesterEnvContent, 'IMPLICATIONS_CONTRACT_ADDRESS', implicationsAddress);
@@ -216,17 +239,18 @@ async function main() {
   console.log(`  AlignmentAttestations:   ${alignmentAttestationsAddress}`);
   console.log(`  DelegatableNotes:        ${delegatableNotesAddress}`);
   console.log(`  MutableRefUpdater:       ${mutableRefUpdaterAddress}`);
+  console.log(`  FreeERC1155Factory:      ${freeERC1155FactoryAddress}`);
   console.log(`  AssuranceFactory:        ${assuranceFactoryAddress}`);
   console.log(`  ERC1155Factory:          ${erc1155FactoryAddress}`);
   console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);
   console.log(`  Pubstarter:              ${pubstarterAddress}`);
 
   console.log('\nNext steps:');
-  console.log(`  - Commit deployments/${network}.env to share addresses`);
-  if (network === 'localhost') {
+  if (isLocal) {
     console.log('  - Start the indexer: cd indexer && npm run dev');
     console.log('  - Run integration tests: cd integration-tests && npm test');
   } else {
+    console.log(`  - Commit deployments/${network}.env to share addresses`);
     console.log('  - Run: ./scripts/setup-env.sh ' + network);
     console.log('    (to regenerate all service .env files from secrets + addresses)');
   }
