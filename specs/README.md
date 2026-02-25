@@ -69,7 +69,7 @@ See REVIEWS.md.
 
 The overall system is made of two big components: Concept Space and Funding Portals.
 
-See [conceptspace.md](conceptspace.md) (statements, beliefs, and AI-generated implication relationships) and [fundingportals.md](fundingportals.md) (crowdfunding projects with retroactive funding and delegation) for more detail, but here are the main ideas:
+See [subsystems/conceptspace/README.md](subsystems/conceptspace/README.md) (statements, beliefs, and AI-generated implication relationships) and [subsystems/fundingportals/README.md](subsystems/fundingportals/README.md) (crowdfunding projects with retroactive funding and delegation) for more detail, but here are the main ideas:
 
 ### Concept Space
 
@@ -204,7 +204,7 @@ In specs/graphql, there should be some graphql schema files (or at least a half-
 
 #### Modelling Statements
 
-A Statement should be represented as a displayable-document (see [displayable-documents.md](displayable-documents.md)), which is a JSON document that we upload to IPFS. A statement's ID is the IPFS CID of this JSON document. See [statements.md](statements.md) for more info.
+A Statement should be represented as a displayable-document (see [subsystems/conceptspace/displayable-documents.md](subsystems/conceptspace/displayable-documents.md)), which is a JSON document that we upload to IPFS. A statement's ID is the IPFS CID of this JSON document. See [subsystems/conceptspace/statements.md](subsystems/conceptspace/statements.md) for more info.
 
 There's also a smart contract called MutableRefUpdater that we use to store a list of "here's the statements this user has created/saved", kept in a mutable ref onchain.
 
@@ -248,7 +248,7 @@ There's a settings page where users can configure which implication attesters th
 
 #### Implication Attester AI
 
-See [implication-attester-ai.md](implication-attester-ai.md) for more detail. The main idea is that this is an independent service (probably run by an AI, but could be a human, doesn't matter, and there can be many of these out there) that has an Ethereum address and publishes implication attestations ("if someone believes S1 he probably also believes S2"). It'll have an API so that anyone can ask it "could you please look at S1 and S2 and publish an attestation if you think S1 -> S2?"
+See [subsystems/conceptspace/implication-attester-ai.md](subsystems/conceptspace/implication-attester-ai.md) for more detail. The main idea is that this is an independent service (probably run by an AI, but could be a human, doesn't matter, and there can be many of these out there) that has an Ethereum address and publishes implication attestations ("if someone believes S1 he probably also believes S2"). It'll have an API so that anyone can ask it "could you please look at S1 and S2 and publish an attestation if you think S1 -> S2?"
 
 #### Funding Portal smart contracts
 
@@ -306,7 +306,7 @@ See [testing/ui-tests.md](testing/ui-tests.md).
 
 ## A bit more philosophizing
 
-In [philosophizing.md](philosophizing.md) there are some not-exactly-relevant thoughts about this system and how it fits into the world (contrast with VC/Kickstarter/centralized funds, "nano" versions of VC/crowdsourcing/trustees enabled by crypto, philosophical stance on neutrality/moderation). If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're an AI whose job is to think more broadly about what we need.
+In [shared/philosophizing.md](shared/philosophizing.md) there are some not-exactly-relevant thoughts about this system and how it fits into the world (contrast with VC/Kickstarter/centralized funds, "nano" versions of VC/crowdsourcing/trustees enabled by crypto, philosophical stance on neutrality/moderation). If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're an AI whose job is to think more broadly about what we need.
 
 ## Additional documentation
 

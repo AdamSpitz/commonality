@@ -3,7 +3,7 @@ import { IpfsCidV1, IpfsCidBytes32 } from "../../utils/cid-types";
 
 /**
  * Parsed statement content from IPFS.
- * Expects DisplayableDocument format per specs/statements.md.
+ * Expects DisplayableDocument format.
  */
 export interface FetchedStatementContent {
   /** The raw parsed JSON object (stored as JSON string in the database) */
@@ -18,7 +18,7 @@ export interface FetchedStatementContent {
 
 /**
  * Fetch statement content from IPFS.
- * Expects DisplayableDocument format per specs/statements.md.
+ * Expects DisplayableDocument format.
  * Returns null if fetch fails or content is not a valid DisplayableDocument.
  */
 export async function fetchStatementContent(
@@ -38,7 +38,7 @@ export async function fetchStatementContent(
 
     const raw = (await response.json()) as Record<string, unknown>;
 
-    // Validate DisplayableDocument format per specs/statements.md
+    // Validate DisplayableDocument format.
     if (typeof raw.format === "string" && typeof raw.content === "string") {
       const extras =
         typeof raw.extras === "object" && raw.extras !== null && !Array.isArray(raw.extras)

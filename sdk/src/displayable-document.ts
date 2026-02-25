@@ -5,7 +5,7 @@
  * where users sign or attest to documents and need confidence that what they see is
  * exactly what they're signing.
  *
- * See specs/displayable-documents.md for the full specification.
+ * See specs/subsystems/conceptspace/displayable-documents.md for the full specification.
  */
 
 import { uploadToIPFS, fetchFromIPFS } from './actions/common.js';

@@ -154,7 +154,7 @@ After deployment, commit `deployments/mainnet.env` and run `./scripts/setup-env.
 
 The UI is deployed as a static site to IPFS via [Pinata](https://www.pinata.cloud/), with an ENS name pointing to the IPFS content hash. Users access the UI at `https://<name>.eth.limo`.
 
-Per [specs/legal.md](specs/legal.md), the UI must be deployed to IPFS (not centralized hosting) to maintain the project's decentralized nature and reduce legal exposure.
+Per [specs/shared/legal.md](specs/shared/legal.md), the UI must be deployed to IPFS (not centralized hosting) to maintain the project's decentralized nature and reduce legal exposure.
 
 ### Overview
 
