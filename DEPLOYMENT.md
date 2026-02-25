@@ -299,7 +299,7 @@ All networks use 120-second timeout.
 
 ### Alternative: Base L2 Deployment
 
-The project documentation mentions considering Base/Base Sepolia (see [specs/tech.md](specs/tech.md)). To deploy to Base:
+The project documentation mentions considering Base/Base Sepolia (see [specs/shared/tech.md](specs/shared/tech.md)). To deploy to Base:
 
 1. Update `hardhat.config.cjs` with Base network:
    ```javascript

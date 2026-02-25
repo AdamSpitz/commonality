@@ -94,7 +94,7 @@ See [subsystems/conceptspace/README.md](subsystems/conceptspace/README.md) (stat
   - Indexer uses Ponder, exposes GraphQL APIs
   - UI stack: TypeScript, Vite, Material UI, viem/wagmi/connectkit for blockchain interaction.
 
-See [tech.md](tech.md) for details on tech choices and rationale (why blockchain, which L2, indexer infrastructure, deployment considerations).
+See [shared/tech.md](shared/tech.md) for details on tech choices and rationale (why blockchain, which L2, indexer infrastructure, deployment considerations).
 
 
 ## Terminology / concepts
