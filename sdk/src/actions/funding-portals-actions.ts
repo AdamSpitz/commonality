@@ -2,7 +2,7 @@
  * User actions for Funding Portals subsystem (AlignmentAttestations)
  */
 
-import { type Address, type Hash } from 'viem';
+import { type Address, type Hash, type Abi } from 'viem';
 import { type TestClients } from './common.js';
 import { cidToBytes32, IpfsCidV1 } from '../cid-types.js';
 
@@ -12,7 +12,7 @@ import { cidToBytes32, IpfsCidV1 } from '../cid-types.js';
 
 export interface AlignmentAttestationsContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 /**

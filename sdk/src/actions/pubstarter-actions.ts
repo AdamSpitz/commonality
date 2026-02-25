@@ -2,7 +2,7 @@
  * User actions for Pubstarter subsystem
  */
 
-import { type Address, type Hash, parseEventLogs } from 'viem';
+import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type TestClients } from './common.js';
 import {
   PremintingERC1155FactoryAbi,
@@ -17,12 +17,12 @@ import { IpfsCidV1 } from '../cid-types.js';
 
 export interface PubstarterContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 export interface AssuranceContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 export interface ProjectDetails {
@@ -259,7 +259,7 @@ export async function withdrawProjectFunds(
 
 export interface SecondaryMarketContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 /**

@@ -2,7 +2,7 @@
  * User actions for Delegation subsystem
  */
 
-import { type Address, type Hash, parseEventLogs } from 'viem';
+import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type TestClients } from './common.js';
 import { DelegatableNotesAbi } from '../abis.js';
 
@@ -12,7 +12,7 @@ import { DelegatableNotesAbi } from '../abis.js';
 
 export interface DelegatableNotesContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 export const TokenType = {

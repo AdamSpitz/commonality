@@ -94,7 +94,7 @@ export async function getStatement(
   });
   // BigInt fields (createdAt) come as strings at runtime
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
-  const raw = result.statements as any;
+  const raw = result.statements as unknown as { cidV1: string } | null | undefined;
   if (!raw) return null;
   return { ...raw, id: raw.cidV1, cid: raw.cidV1 } as unknown as Statement;
 }
@@ -124,11 +124,20 @@ function normalizeAttester(attester: string | { id: string } | undefined): strin
   return attester.id;
 }
 
-function normalizeImplication(imp: any): Implication {
+type RawImplication = {
+  fromStatementCid: string;
+  toStatementCid: string;
+  createdAt: bigint | string;
+  blockNumber: bigint | string;
+  explanationCid?: string;
+  attester?: string | { id: string };
+};
+
+function normalizeImplication(imp: RawImplication): Implication {
   return {
     ...imp,
     attester: normalizeAttester(imp.attester),
-  };
+  } as unknown as Implication;
 }
 
 /**
@@ -292,7 +301,7 @@ export async function browseStatementsByMostSupporters(
   });
   // BigInt fields (createdAt) come as strings at runtime
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
-  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
 }
 
 /**
@@ -311,7 +320,7 @@ export async function browseStatementsByNewest(
   });
   // BigInt fields (createdAt) come as strings at runtime
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
-  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
 }
 
 /**
@@ -331,7 +340,7 @@ export async function browseStatements(
   });
   // BigInt fields (createdAt) come as strings at runtime
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
-  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
 }
 
 /**
@@ -349,7 +358,7 @@ export async function getAllStatements(
   });
   // BigInt fields (createdAt) come as strings at runtime
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
-  return (result.statementss?.items ?? []).map((item: any) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
 }
 
 /**
@@ -365,7 +374,7 @@ export async function getUserBeliefs(
 
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
   return (result.users?.beliefs?.items.map(item => {
-    const s = item.statement as any;
+    const s = item.statement as unknown as { cidV1: string } | null | undefined;
     if (!s) return s;
     return { ...s, id: s.cidV1, cid: s.cidV1 };
   }) ?? []) as unknown as StatementListItem[];
@@ -384,7 +393,7 @@ export async function getUserDisbeliefs(
 
   // Map cidV1 (ponder primary key) back to id and cid (SDK convention)
   return (result.users?.beliefs?.items.map(item => {
-    const s = item.statement as any;
+    const s = item.statement as unknown as { cidV1: string } | null | undefined;
     if (!s) return s;
     return { ...s, id: s.cidV1, cid: s.cidV1 };
   }) ?? []) as unknown as StatementListItem[];

@@ -4,7 +4,7 @@
 
 import { INDEXER_SYNC } from './constants.js';
 import { SDKMachinery } from './machinery.js';
-import { GraphQLClient, query } from './utils/graphqlClient.js';
+import { query } from './utils/graphqlClient.js';
 import { getEnvVar } from './utils/index.js';
 
 /**
@@ -105,7 +105,7 @@ export async function waitForIndexerToSyncToBlockNumber(
 
       // Wait before checking again using adaptive interval
       await new Promise(resolve => setTimeout(resolve, getPollingInterval(attemptCount)));
-    } catch (error) {
+    } catch {
       // Indexer might not be ready yet, wait and retry
       // Use longer interval for errors to avoid hammering the indexer
       await new Promise(resolve => setTimeout(resolve, INDEXER_SYNC.POLL_INTERVAL_MS));

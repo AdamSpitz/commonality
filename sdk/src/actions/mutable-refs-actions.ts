@@ -2,10 +2,9 @@
  * User actions for Mutable Refs subsystem
  */
 
-import { type Address, type Hash } from 'viem';
+import { type Address, type Hash, type Abi } from 'viem';
 import { type TestClients, uploadToIPFS } from './common.js';
 import { getUserRef } from '../indexer-queries/mutable-refs-queries.js';
-import { type GraphQLClient } from '../utils/graphqlClient.js';
 import { SDKMachinery } from '../machinery.js';
 import { IpfsCidV1 } from '../cid-types.js';
 
@@ -15,7 +14,7 @@ import { IpfsCidV1 } from '../cid-types.js';
 
 export interface MutableRefUpdaterContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 /**
@@ -92,7 +91,7 @@ export async function getRef(
     abi: mutableRefUpdaterContract.abi,
     functionName: 'getRef',
     args: [owner, name],
-  } as any);
+  });
 
   return value as string;
 }

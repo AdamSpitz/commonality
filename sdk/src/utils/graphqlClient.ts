@@ -13,10 +13,10 @@ export function createGraphQLClient(url = 'http://localhost:42069/graphql'): Gra
 /**
  * Execute a GraphQL query
  */
-export async function query<T = any>(
+export async function query<T = unknown>(
   client: GraphQLClient,
   queryString: string,
-  variables?: Record<string, any>
+  variables?: Record<string, unknown>
 ): Promise<T> {
   const response = await fetch(client.url, {
     method: 'POST',
@@ -33,7 +33,7 @@ export async function query<T = any>(
     throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
   }
 
-  const result = await response.json() as { data?: T; errors?: any[] };
+  const result = await response.json() as { data?: T; errors?: unknown[] };
 
   if (result.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);

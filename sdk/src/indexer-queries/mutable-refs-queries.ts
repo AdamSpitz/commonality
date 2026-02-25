@@ -3,7 +3,6 @@
  */
 
 import { request } from 'graphql-request';
-import { type GraphQLClient } from '../utils/graphqlClient.js';
 import {
   GetUserRefDocument,
   GetUserRefsDocument,

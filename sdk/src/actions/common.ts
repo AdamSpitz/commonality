@@ -6,8 +6,6 @@ import {
   createWalletClient,
   createPublicClient,
   http,
-  keccak256,
-  toBytes,
   type WalletClient,
   type PublicClient,
   type Address,
@@ -23,13 +21,13 @@ import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../cid-types';
 // Safe environment variable access that works in both Node.js and browser
 function getEnvVar(name: string): string | undefined {
   // Try Node.js process.env
-  const proc = (globalThis as any).process;
+  const proc = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
   if (proc?.env?.[name]) {
     return proc.env[name];
   }
   // Try Vite's import.meta.env (available in browser builds)
   // In Node.js ESM, import.meta exists but import.meta.env is undefined
-  const metaEnv = (import.meta as any).env;
+  const metaEnv = (import.meta as { env?: Record<string, string | undefined> }).env;
   if (metaEnv?.[name]) {
     return metaEnv[name];
   }
@@ -58,7 +56,7 @@ export function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://lo
     transport: http(rpcUrl),
   });
 
-  // @ts-ignore - viem type inference issue with publicClient
+  // @ts-expect-error - viem type inference issue with publicClient
   const publicClient: PublicClient = createPublicClient({
     chain: hardhat,
     transport: http(rpcUrl),

@@ -2,7 +2,7 @@
  * User actions for Conceptspace subsystem
  */
 
-import { type Address, type Hash } from 'viem';
+import { type Address, type Hash, type Abi } from 'viem';
 import { type TestClients } from './common.js';
 import { type DisplayableDocument, publishDocument } from '../displayable-document.js';
 import { cidToBytes32, IpfsCidV1 } from '../cid-types.js';
@@ -14,7 +14,7 @@ import { SDKMachinery } from '../machinery.js';
 
 export interface BeliefsContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 // Belief state constants
@@ -117,7 +117,7 @@ export async function clearOpinion(
 
 export interface ImplicationsContract {
   address: Address;
-  abi: any;
+  abi: Abi;
 }
 
 /**
@@ -266,7 +266,7 @@ export async function createAndSignStatement(
   clients: TestClients,
   contracts: {
     beliefs: BeliefsContract;
-    mutableRefUpdater?: { address: Address; abi: any };
+    mutableRefUpdater?: { address: Address; abi: Abi };
   },
   statementData: DisplayableDocument,
   options: CreateAndSignStatementOptions = {}
@@ -329,7 +329,7 @@ export async function createAndSignStatement(
       if (onListUpdated) {
         onListUpdated(updateListTxHash);
       }
-    } catch (error) {
+    } catch {
       // Note: We don't throw here - statement is already created and signed
       // Just silently continue without updateListTxHash
       // This is expected behavior when the mutable refs system is unavailable
