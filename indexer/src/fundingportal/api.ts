@@ -259,6 +259,7 @@ app.get("/api/available-funding/:statementId", async (c) => {
       )
     );
 
+  // TODO: Why is this unused?
   const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid))];
 
   // Step 3: Get indirect funding (notes intended for implying schema.statements)

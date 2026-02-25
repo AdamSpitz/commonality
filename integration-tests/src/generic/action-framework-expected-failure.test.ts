@@ -181,12 +181,12 @@ describe('Action Framework Expected Failure', () => {
           expectFailure: true, // This is wrong - the action will succeed
         }
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       // The framework should throw an error because the action succeeded
       // when we expected it to fail
       frameworkErrored = true;
       assert.ok(
-        error.message.includes('Expected action') && error.message.includes('to fail, but it succeeded'),
+        error instanceof Error && error.message.includes('Expected action') && error.message.includes('to fail, but it succeeded'),
         'Framework should report that action succeeded when failure was expected'
       );
       testLog('  ✓ Framework correctly detected unexpected success');

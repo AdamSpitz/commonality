@@ -66,7 +66,7 @@ validateEnvironment();
  *   import { testLog } from './setup.js';
  *   testLog('Transaction hash:', txHash);
  */
-export const testLog = (...args: any[]): void => {
+export const testLog = (...args: unknown[]): void => {
   if (process.env.VERBOSE_TESTS === 'true') {
     console.log(...args);
   }

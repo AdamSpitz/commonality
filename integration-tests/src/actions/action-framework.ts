@@ -218,10 +218,10 @@ export async function runActionAndCheckProperties<TResult>(
       try {
         const state = await prop.captureState(context);
         beforeStates.push({ name: prop.name, state });
-      } catch (error: any) {
+      } catch (error: unknown) {
         throw new Error(
           `Failed to capture 'before' state for property '${prop.name}' ` +
-          `in action '${metadata.name}':\n${error.message}`
+          `in action '${metadata.name}':\n${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
@@ -239,16 +239,16 @@ export async function runActionAndCheckProperties<TResult>(
         `Expected action '${metadata.name}' to fail, but it succeeded.\n` +
         `Entities: ${JSON.stringify(context.entities, null, 2)}`
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
 
       // Check if this is the "action didn't fail" error we just threw
-      if (error.message?.includes('Expected action') && error.message?.includes('to fail, but it succeeded')) {
+      if (error instanceof Error && error.message.includes('Expected action') && error.message.includes('to fail, but it succeeded')) {
         throw error;
       }
 
       // Verify the error message if an expected error was specified
       if (expectedError !== undefined) {
-        const errorMessage = error.message || String(error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         const matches = typeof expectedError === 'string'
           ? errorMessage.includes(expectedError)
           : expectedError.test(errorMessage);
@@ -293,15 +293,15 @@ export async function runActionAndCheckProperties<TResult>(
               `Entities: ${JSON.stringify(context.entities, null, 2)}`
             );
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           // If this is the error we just threw about state changing, re-throw it
-          if (error.message?.includes('State changed after failed action')) {
+          if (error instanceof Error && error.message.includes('State changed after failed action')) {
             throw error;
           }
           // Otherwise, it's an error in capturing state - report it
           throw new Error(
             `Failed to verify state unchanged for property '${prop.name}' ` +
-            `after expected failure of action '${metadata.name}':\n${error.message}`
+            `after expected failure of action '${metadata.name}':\n${error instanceof Error ? error.message : String(error)}`
           );
         }
       }
@@ -314,9 +314,9 @@ export async function runActionAndCheckProperties<TResult>(
   // Normal flow: action should succeed
   try {
     result = await action();
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw new Error(
-      `Action '${metadata.name}' failed during execution:\n${error.message}`
+      `Action '${metadata.name}' failed during execution:\n${error instanceof Error ? error.message : String(error)}`
     );
   }
 
@@ -331,9 +331,9 @@ export async function runActionAndCheckProperties<TResult>(
         const after = await prop.captureState(context);
         const before = beforeStates[i].state;
         await prop.check(context, before, after);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Format the error with context for debugging
-        const errorMessage = error.message || String(error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         throw new Error(
           `State transition property '${prop.name}' failed for action '${metadata.name}'\n` +
           `Entities: ${JSON.stringify(context.entities, null, 2)}\n` +
@@ -358,8 +358,8 @@ export async function runActionAndCheckProperties<TResult>(
 
       try {
         await inv.check(context);
-      } catch (error: any) {
-        const errorMessage = error.message || String(error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         throw new Error(
           `Invariant '${inv.name}' failed after action '${metadata.name}'\n` +
           `Entities: ${JSON.stringify(context.entities, null, 2)}\n` +

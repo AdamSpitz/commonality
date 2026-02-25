@@ -134,8 +134,8 @@ export async function createAndSignStatementChecked(
 
       try {
         await inv.check(context);
-      } catch (error: any) {
-        const errorMessage = error.message || String(error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         throw new Error(
           `Invariant '${inv.name}' failed after createAndSignStatement\n` +
           `Entities: ${JSON.stringify(context.entities, null, 2)}\n` +
