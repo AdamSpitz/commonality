@@ -97,35 +97,9 @@ purchase call and cache them for use afterwards.
 
 ---
 
-## LOW
-
-### 4. Emit event before external call in `AssuranceContract.withdraw()` (reentrancy-events)
-
-**File:** `contracts/individual-projects/AssuranceContract.sol` lines 72–79
-
-The `AssuranceContractWithdrawal` event is emitted after the ETH transfer. If the recipient is
-a contract, it could reenter and the event log would be out of order relative to actual state
-changes.
-
-**Fix:** Move the emit before the `.call{value: ...}`.
-
----
-
-### 5. Remove `this.` from `PremintingERC1155.mintBatch` (var-read-using-this)
-
-**File:** `contracts/utils/PremintingERC1155.sol` line 40
-
-```solidity
-URI(this.uri(ids[i]), ids[i])  // triggers an unnecessary STATICCALL
-```
-
-**Fix:** Change to `uri(ids[i])` (internal call, no extra STATICCALL, cheaper gas).
-
----
-
 ## INFORMATIONAL
 
-### 6. Naming convention warnings (naming-convention)
+### 4. Naming convention warnings (naming-convention)
 
 Slither flags these private state variables as not mixedCase:
 

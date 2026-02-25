@@ -73,9 +73,9 @@ abstract contract AssuranceContract {
         if (msg.sender != _recipient) revert OnlyRecipientCanWithdraw();
         requireAssuranceContractHasSucceeded();
         uint256 value = address(this).balance;
+        emit AssuranceContractWithdrawal(_recipient, value);
         (bool success, ) = payable(_recipient).call{value: value}("");
         if (!success) revert ETHTransferFailed();
-        emit AssuranceContractWithdrawal(_recipient, value);
     }
 
     /**
