@@ -42,7 +42,7 @@ const mockNavigate = vi.fn()
 function makeStatement(overrides: Partial<StatementListItem> = {}): StatementListItem {
   return {
     id: 'stmt1',
-    cid: 'bafyTest1',
+    cid: `bafyTest${overrides.id}`,
     statementType: 'conceptspace',
     title: 'Test Statement',
     excerpt: 'This is a test excerpt',
@@ -551,7 +551,7 @@ describe('UserProfilePage', () => {
       const cardButton = screen.getByText('Test Statement').closest('.MuiCardActionArea-root')
       await user.click(cardButton!)
 
-      expect(mockNavigate).toHaveBeenCalledWith('/statement/bafyTest1')
+      expect(mockNavigate).toHaveBeenCalledWith('/statement/bafyTeststmt123')
     })
 
     it('displays multiple belief statements', async () => {
@@ -862,7 +862,7 @@ describe('UserProfilePage', () => {
       const cardButton = screen.getByText('Indirectly Supported').closest('.MuiCardActionArea-root')
       await user.click(cardButton!)
 
-      expect(mockNavigate).toHaveBeenCalledWith('/statement/bafyTest1')
+      expect(mockNavigate).toHaveBeenCalledWith('/statement/bafyTestindirect123')
     })
   })
 
