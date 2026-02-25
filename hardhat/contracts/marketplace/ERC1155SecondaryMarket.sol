@@ -275,6 +275,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         if (count == 0 || count > orderCount) revert InvalidCount();
 
         address seller = _msgSender();
+        if (seller == address(0)) revert InvalidRecipient();
 
         uint256 remaining = orderCount - count;
         if (remaining == 0) {

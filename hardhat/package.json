@@ -11,7 +11,7 @@
     "lint": "npm run lint:sol && npm run lint:slither",
     "lint:js": "eslint .",
     "lint:sol": "npx hardhat check",
-    "lint:slither": "slither . --filter-paths 'node_modules|@openzeppelin'"
+    "lint:slither": "slither ."
   },
   "keywords": [],
   "author": "",

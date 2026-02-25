@@ -92,6 +92,7 @@ abstract contract AssuranceContract {
      */
     function requireAssuranceContractHasFailed() internal view {
         if (getAssuranceContractProgress() >= _threshold) revert ProjectReachedFundingGoal();
+        // slither-disable-next-line timestamp
         if (block.timestamp < _deadline) revert ProjectFateStillUndecided();
     }
 }

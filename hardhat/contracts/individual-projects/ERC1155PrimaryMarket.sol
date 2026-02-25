@@ -16,6 +16,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
     
     error IncorrectAmountOfETHSent();
     error ETHRefundFailed();
+    error ZeroAddress();
 
     /**
      * @notice Emitted when ERC1155 tokens are offered for sale at a specific price
@@ -169,6 +170,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         bytes calldata data
     ) external nonReentrant {
         requireRefundsAllowed();
+        if (holder == address(0)) revert ZeroAddress();
         uint256 refundValue = erc1155TotalCost(erc1155Addr, ids, counts);
         setTotalReceivedValue(getTotalReceivedValue() - refundValue);
         (bool success, ) = payable(holder).call{value: refundValue}("");

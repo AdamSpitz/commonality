@@ -199,6 +199,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
     address caller = _msgSender();
+    if (caller == address(0)) revert ZeroAddress();
     bytes32 expectedHash = _computeChainHash(caller, bytes32(0));
     if (note.chainHash != expectedHash) revert NotRootNoteOrNotOwner();
 
