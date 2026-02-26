@@ -329,11 +329,9 @@ export async function createAndSignStatement(
       if (onListUpdated) {
         onListUpdated(updateListTxHash);
       }
-    } catch {
-      // Note: We don't throw here - statement is already created and signed
-      // Just silently continue without updateListTxHash
-      // This is expected behavior when the mutable refs system is unavailable
-      // or when testing error conditions
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`Failed to update created-statements list (statement still created): ${message}`);
     }
   }
 

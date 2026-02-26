@@ -55,10 +55,10 @@ export function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://lo
 
 /**
  * Well-known topic ID for project alignment attestations.
- * This is a deterministic bytes32 value: keccak256("project-alignment-attestations")
  *
  * TODO: Replace this with an actual IPFS CID of a statement that says
- * "This is the topic for project alignment attestations". This would allow
- * the topic itself to be fetched and displayed in UIs.
+ * "This is the topic for project alignment attestations". (Not just that
+ * raw text, but a Statement in the sense that we use the term in this
+ * project.)
  */
 export const PROJECT_ALIGNMENT_TOPIC: IpfsCidV1 = fakeIpfsCidV1('ProjectAlignmentTopic');

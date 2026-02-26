@@ -16,5 +16,5 @@
 
 - [ ] `getIndirectSupporterCount` claims to be "more efficient" but just calls `getIndirectSupporters` and returns `.length` -- either make it actually more efficient or drop the misleading doc
 - [x] `normalizeCidV1` in `src/utils/cid-types.ts` has a missing return path if a CID parses but isn't version 0 or 1
-- [ ] `createAndSignStatement` silently swallows errors when updating the created-statements list (step 3) -- consider at least logging a warning
+- [x] `createAndSignStatement` silently swallows errors when updating the created-statements list (step 3) -- consider at least logging a warning
 - [ ] Real IPFS upload in `src/utils/ipfs.ts` silently falls back to mock mode on failure (line ~129) -- could mask real failures in production
