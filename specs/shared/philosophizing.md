@@ -60,7 +60,20 @@ Having this system around just kinda enables public goods to *happen*.
   - "What if the money is spent on people who don't actually get the project done?" No, you can delegate the money with the intention of funding projects *retroactively* after they've *already* produced value.
   - "What if the money is spent corruptly on projects that don't deserve it?" All the decisions will be transparent. You don't have to choose the projects, you can just review the decisions retroactively. You can't claw back the money, but you can cancel any future funding.
   - "What do I get out of this?" Your name will show up on the project and on the contribution boards (if you don't want to be anonymous).
-  - 
+  - blah blah
+
+
+Right, so the big things we should be doing differently than the way things are currently done in the mainstream world:
+  - Incept the cultural idea of *decoupling* the old "here's my money into the pot for this project that I hope will produce something useful in the future":
+    - You're supposed to delegate some monthly money towards a cause, to someone you trust who wants to put in more time looking at specific projects.
+    - You are *not* supposed to accept that the project itself is something you donate to unconditionally; a project's donation bin should come with a threshold and a deadline.
+    - You are *not* supposed to just hope that it produces something useful in the future; you're supposed to donate *retroactively*.
+  - Plus you can get social recognition (if you want it).
+  - Plus the decision-makers (delegates) can have a portal to look at. (And you don't even need to coordinate on that one portal; the implication attestations mean that the portal will find stuff that people have tagged under a different-but-similar statement.)
+  - Plus the project-creators don't need to get their project listed by some official committee or whatever; they just need *someone* within the trust network (which is much wider and more decentralized and more *personalized* than some tiny centralized committee) to attest that the project is aligned.
+
+
+
 
 
 ## "Nano" stuff
