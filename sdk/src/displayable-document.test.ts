@@ -8,7 +8,7 @@ import {
   publishDocument,
   fetchDocument,
 } from './displayable-document.js';
-import type { DisplayableDocument } from './displayable-document.js';
+import type { DisplayableDocument, DisplayFormat } from './displayable-document.js';
 import { clearMockIPFS } from './utils/mock-ipfs.js';
 import { fakeIpfsCidV1 } from './utils/cid-types.js';
 import { uploadToIPFS } from './utils/ipfs.js';
@@ -441,7 +441,7 @@ describe('createDisplayableDocument', () => {
   it('throws on invalid document', () => {
     assert.throws(
       () => createDisplayableDocument({
-        format: 'bad-format' as any,
+        format: 'bad-format' as DisplayFormat, // type system wouldn't allow this but that's exactly what we're testing - do we get an error at runtime?
         content: 'hello',
       }),
       /Invalid displayable document/

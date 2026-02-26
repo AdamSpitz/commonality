@@ -31,8 +31,7 @@ export async function getNote(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<Note | null> {
-  // Cast string to bigint for the variable type — server accepts string representations of BigInt
-  const result = await request(machinery.graphqlClient.url, GetNoteDocument, { id: noteId as unknown as bigint });
+  const result = await request(machinery.graphqlClient.url, GetNoteDocument, { id: noteId });
   // BigInt fields (id, tokenId, amount, createdAt, etc.) come as strings at runtime
   return result.delegatableNotes as unknown as Note | null;
 }
@@ -72,9 +71,8 @@ export async function getDelegationChain(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<DelegationChainLink[]> {
-  // Cast string to bigint for the variable type — server accepts string representations of BigInt
   const result = await request(machinery.graphqlClient.url, GetDelegationChainDocument, {
-    noteId: noteId as unknown as bigint,
+    noteId: noteId,
   });
   // BigInt fields (createdAt) come as strings at runtime
   return (result.delegationChainss?.items ?? []) as unknown as DelegationChainLink[];
@@ -96,7 +94,7 @@ export async function getNoteIntentAttestation(
   const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationDocument, {
     attester: attester.toLowerCase(),
     noteContract: noteContract.toLowerCase(),
-    noteId: noteId as unknown as bigint,
+    noteId: noteId,
   });
   return result.noteIntentAttestations as unknown as NoteIntentAttestation | null;
 }
@@ -111,7 +109,7 @@ export async function getNoteIntentAttestationsByNote(
 ): Promise<NoteIntentAttestation[]> {
   const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationsByNoteDocument, {
     noteContract: noteContract.toLowerCase(),
-    noteId: noteId as unknown as bigint,
+    noteId: noteId,
   });
   return (result.noteIntentAttestationss?.items ?? []) as unknown as NoteIntentAttestation[];
 }

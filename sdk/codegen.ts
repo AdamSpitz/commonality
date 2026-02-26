@@ -18,9 +18,10 @@ const config: CodegenConfig = {
         fragmentMasking: false,
       },
       config: {
-        // Use BigInt for the GraphQL BigInt scalar
+        // BigInt values are serialized as strings over JSON (both request and response),
+        // so we type them as strings to match the actual wire format.
         scalars: {
-          BigInt: 'bigint',
+          BigInt: 'string',
         },
         // Use more idiomatic TypeScript (no __typename by default)
         skipTypename: true,

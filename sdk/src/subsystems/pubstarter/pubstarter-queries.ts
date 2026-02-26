@@ -89,12 +89,12 @@ export async function getProjectsFiltered(
   const serverOrderBy = sortBy && sortBy !== 'fundingProgress' ? sortBy : undefined;
 
   const result = await request(machinery.graphqlClient.url, GetProjectsFilteredDocument, {
-    minDeadline: filters?.minDeadline?.toString() as unknown as bigint | undefined,
-    maxDeadline: filters?.maxDeadline?.toString() as unknown as bigint | undefined,
-    minThreshold: filters?.minThreshold?.toString() as unknown as bigint | undefined,
-    maxThreshold: filters?.maxThreshold?.toString() as unknown as bigint | undefined,
-    minTotalReceived: filters?.minTotalReceived?.toString() as unknown as bigint | undefined,
-    maxTotalReceived: filters?.maxTotalReceived?.toString() as unknown as bigint | undefined,
+    minDeadline: filters?.minDeadline?.toString(),
+    maxDeadline: filters?.maxDeadline?.toString(),
+    minThreshold: filters?.minThreshold?.toString(),
+    maxThreshold: filters?.maxThreshold?.toString(),
+    minTotalReceived: filters?.minTotalReceived?.toString(),
+    maxTotalReceived: filters?.maxTotalReceived?.toString(),
     orderBy: serverOrderBy,
     orderDirection: serverOrderBy ? sortDirection : undefined,
   });
@@ -247,7 +247,7 @@ export async function getSaleListing(
 ): Promise<SaleListing | null> {
   const result = await request(machinery.graphqlClient.url, GetSaleListingDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
-    listingId: listingId.toString() as any,
+    listingId: listingId.toString(),
   });
   // BigInt fields come as strings at runtime
   return ((result.saleListingss?.items ?? [])[0] ?? null) as unknown as SaleListing | null;
@@ -277,7 +277,7 @@ export async function getBuyOrder(
 ): Promise<BuyOrder | null> {
   const result = await request(machinery.graphqlClient.url, GetBuyOrderDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
-    orderId: orderId.toString() as any,
+    orderId: orderId.toString(),
   });
   // BigInt fields come as strings at runtime
   return ((result.buyOrderss?.items ?? [])[0] ?? null) as unknown as BuyOrder | null;
@@ -321,7 +321,7 @@ export async function getTokenTrades(
 ): Promise<Trade[]> {
   const result = await request(machinery.graphqlClient.url, GetTokenTradesDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
-    tokenId: tokenId.toString() as any,
+    tokenId: tokenId.toString(),
   });
   // BigInt fields come as strings at runtime
   return (result.tradess?.items ?? []) as unknown as Trade[];
