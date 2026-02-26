@@ -11,14 +11,16 @@ export function createGraphQLClient(url = 'http://localhost:42069/graphql'): Gra
 export type SDKMachinery = {
   graphqlClient: GraphQLClient;
   ipfsConfig: IPFSConfig;
+  verboseTests?: boolean; // Optional flag to enable verbose logging in tests
 };
 
-export function createSDKMachinery(indexerUrl?: string): SDKMachinery {
+export function createSDKMachinery(indexerUrl?: string, verboseTests?: boolean): SDKMachinery {
   const graphqlClient = createGraphQLClient(indexerUrl);
   const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
 
   return {
     graphqlClient,
     ipfsConfig,
+    verboseTests,
   };
 }

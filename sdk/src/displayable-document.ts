@@ -9,7 +9,7 @@
  */
 
 import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from './utils/ipfs.js';
-import { IpfsCidV1 } from './cid-types.js';
+import { IpfsCidV1 } from './utils/cid-types.js';
 
 // ============================================================================
 // Types

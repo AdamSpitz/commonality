@@ -1,4 +1,4 @@
-import { IpfsCidV1 } from "../../cid-types";
+import { IpfsCidV1 } from "../../utils/cid-types";
 
 export interface AlignmentAttestation {
   attester: string;

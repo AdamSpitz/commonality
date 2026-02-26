@@ -2,7 +2,7 @@ import { CID } from 'multiformats/cid';
 import * as raw from 'multiformats/codecs/raw';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { Buffer } from 'buffer';
-import { IpfsCidV1, normalizeCidV1 } from '../cid-types';
+import { IpfsCidV1, normalizeCidV1 } from './cid-types';
 
 
 /**

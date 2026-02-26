@@ -9,7 +9,7 @@ import {
   MarketplaceFactoryAbi,
   AssuranceContractFactoryAbi
 } from '../abis.js';
-import { IpfsCidV1 } from '../cid-types.js';
+import { IpfsCidV1 } from '../utils/cid-types.js';
 
 // ============================================================================
 // Pubstarter Actions

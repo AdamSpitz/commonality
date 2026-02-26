@@ -1,10 +1,5 @@
-/**
- * Common GraphQL query utilities
- */
-
 import { INDEXER_SYNC } from './constants.js';
 import { SDKMachinery } from './machinery.js';
-import { getEnvVar } from './utils/environment.js';
 import { executeUntypedGraphQLQuery } from './utils/graphqlClient.js';
 
 /**
@@ -79,7 +74,7 @@ export async function waitForIndexerToSyncToBlockNumber(
         stuckCount++;
         if (stuckCount >= MAX_STUCK_ATTEMPTS) {
           // Log warning but don't fail - indexer might just be caught up
-          if (getEnvVar('VERBOSE_TESTS') === 'true') {
+          if (machinery.verboseTests) {
             console.warn(
               `⚠️  Indexer appears stuck at block ${currentBlock} ` +
               `(target: ${targetBlockNum}, attempts: ${stuckCount})`
@@ -93,7 +88,7 @@ export async function waitForIndexerToSyncToBlockNumber(
 
       if (currentBlock >= targetBlockNum) {
         // Success! Log timing info if verbose mode enabled
-        if (getEnvVar('VERBOSE_TESTS') === 'true') {
+        if (machinery.verboseTests) {
           const elapsed = Date.now() - startTime;
           console.log(
             `✓ Indexer synced to block ${targetBlockNum} ` +

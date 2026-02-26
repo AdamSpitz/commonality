@@ -1,4 +1,4 @@
-import { IpfsCidV1, normalizeCidV1 } from "../cid-types";
+import { IpfsCidV1, normalizeCidV1 } from "./cid-types";
 import { fetchFromMockIPFS, uploadToMockIPFS } from "./mock-ipfs";
 
 export type IPFSConfig = {

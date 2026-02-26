@@ -26,7 +26,7 @@ import {
   type BrowseStatementsOptions,
 } from './types.js';
 import { type DisplayableDocument } from '../../displayable-document.js';
-import { IpfsCidV1, normalizeCidV1 } from '../../cid-types.js';
+import { IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================

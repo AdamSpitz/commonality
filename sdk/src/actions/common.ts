@@ -12,7 +12,7 @@ import {
 } from 'viem';
 import { hardhat } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
-import { fakeIpfsCidV1, IpfsCidV1 } from '../cid-types';
+import { fakeIpfsCidV1, IpfsCidV1 } from '../utils/cid-types';
 
 // ============================================================================
 // Client Setup

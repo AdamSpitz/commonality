@@ -23,7 +23,7 @@ import {
   type CauseFundingMetrics,
   type ContributorStats,
 } from './types.js';
-import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../../cid-types.js';
+import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================

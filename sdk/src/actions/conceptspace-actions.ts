@@ -5,7 +5,7 @@
 import { type Address, type Hash, type Abi } from 'viem';
 import { type TestClients } from './common.js';
 import { type DisplayableDocument, publishDocument } from '../displayable-document.js';
-import { cidToBytes32, IpfsCidV1 } from '../cid-types.js';
+import { cidToBytes32, IpfsCidV1 } from '../utils/cid-types.js';
 import { SDKMachinery } from '../machinery.js';
 
 // ============================================================================

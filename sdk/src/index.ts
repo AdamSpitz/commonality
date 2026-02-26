@@ -5,7 +5,7 @@ export * from './machinery.js';
 export * from './indexer-sync.js';
 export { TEST_TIMEOUTS, INDEXER_SYNC, TEST_PRIVATE_KEYS } from './constants.js';
 export * from './abis.js';
-export * from './cid-types.js';
+export * from './utils/cid-types.js';
 export * from './displayable-document.js';
 export * from './utils/ipfs.js';
 export { type IPFSConfig, createIPFSConfigFromTheUsualEnvVars } from './utils/ipfs.js';

@@ -1,15 +1,3 @@
-
-export interface GraphQLClient {
-  url: string;
-}
-
-/**
- * Create a GraphQL client
- */
-export function createGraphQLClient(url = 'http://localhost:42069/graphql'): GraphQLClient {
-  return { url };
-}
-
 export async function executeUntypedGraphQLQuery<T = unknown>(
   url: string,
   queryString: string,
