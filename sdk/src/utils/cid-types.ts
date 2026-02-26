@@ -102,6 +102,8 @@ export function normalizeCidV1(s: string): IpfsCidV1 {
         // Convert CIDv0 to CIDv1
         const cidV1 = CID.createV1(cid.code, cid.multihash);
         return cidV1.toString() as IpfsCidV1;
+      } else {
+        throw new Error(`Unsupported CID version: ${cid.version}`);
       }
     } catch {
       throw new Error(`Invalid statement ID format: ${s}`);
