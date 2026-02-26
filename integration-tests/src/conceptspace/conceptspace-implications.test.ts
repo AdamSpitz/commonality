@@ -16,6 +16,7 @@ import {
   type ImplicationsContract,
   BeliefsAbi,
   ImplicationsAbi,
+  type IPFSConfig,
 } from '@commonality/sdk';
 import {
   getImplicationsTo,
@@ -25,6 +26,7 @@ import { attestImplicationChecked } from '../actions/implication-actions-checked
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { assertNoOrphanedData } from '../utils/invariants.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
+
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -69,8 +71,8 @@ describe('Conceptspace Implications', () => {
     const statement1Text = 'We should reduce carbon emissions by 50% by 2030';
     const statement2Text = 'We should take action on climate change';
 
-    const statement1Cid = await publishDocument(createStatement({ content: statement1Text }));
-    const statement2Cid = await publishDocument(createStatement({ content: statement2Text }));
+    const statement1Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: statement1Text }));
+    const statement2Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: statement2Text }));
 
     testLog(`  Statement 1 (specific): "${statement1Text}"`);
     testLog(`  Statement 2 (general): "${statement2Text}"`);
@@ -98,8 +100,8 @@ describe('Conceptspace Implications', () => {
     const specificText = 'We should adopt universal healthcare with a single-payer system';
     const generalText = 'Everyone should have access to healthcare';
 
-    const specificCid = await publishDocument(createStatement({ content: specificText }));
-    const generalCid = await publishDocument(createStatement({ content: generalText }));
+    const specificCid = await publishDocument(machinery.ipfsConfig, createStatement({ content: specificText }));
+    const generalCid = await publishDocument(machinery.ipfsConfig, createStatement({ content: generalText }));
 
     testLog(`  Specific: "${specificText}"`);
     testLog(`  General: "${generalText}"`);
@@ -136,9 +138,9 @@ describe('Conceptspace Implications', () => {
     const specific1Text = 'We should increase teacher salaries';
     const specific2Text = 'We should reduce class sizes';
 
-    const generalCid = await publishDocument(createStatement({ content: generalText }));
-    const specific1Cid = await publishDocument(createStatement({ content: specific1Text }));
-    const specific2Cid = await publishDocument(createStatement({ content: specific2Text }));
+    const generalCid = await publishDocument(machinery.ipfsConfig, createStatement({ content: generalText }));
+    const specific1Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: specific1Text }));
+    const specific2Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: specific2Text }));
     testLog(`  General: "${generalText}"`);
     testLog(`  Specific 1: "${specific1Text}"`);
     testLog(`  Specific 2: "${specific2Text}"`);
@@ -170,9 +172,9 @@ describe('Conceptspace Implications', () => {
     const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create chain: S1 -> S2 -> S3
-    const s1 = await publishDocument(createStatement({ content: 'Statement 1' }));
-    const s2 = await publishDocument(createStatement({ content: 'Statement 2' }));
-    const s3 = await publishDocument(createStatement({ content: 'Statement 3' }));
+    const s1 = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'Statement 1' }));
+    const s2 = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'Statement 2' }));
+    const s3 = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'Statement 3' }));
 
     testLog('  Creating chain: S1 -> S2 -> S3...');
 

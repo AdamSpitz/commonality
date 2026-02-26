@@ -13,6 +13,7 @@ import {
   createStatement,
   publishDocument,
   uploadToIPFS,
+  type IPFSConfig,
   type DelegatableNotesContract,
   type PubstarterContract,
   DelegatableNotesAbi,
@@ -31,6 +32,7 @@ import {
 } from './delegation-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
+
 
 // Note: The AssuranceContract IS the primary market
 // It implements ERC1155PrimaryMarket interface
@@ -78,7 +80,7 @@ describe('Delegation Spending', () => {
     const statementData = createStatement({
       content: 'Fund open source development',
     });
-    await publishDocument(statementData);
+    await publishDocument(machinery.ipfsConfig, statementData);
 
     // User 1 deposits 5 ETH into a note (automatically verifies delegation chain integrity)
     const depositAmount = 5000000000000000000n; // 5 ETH
@@ -98,7 +100,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold,
       deadline,
-      projectMetadataCid: await uploadToIPFS({ name: 'Fund a Project', description: 'Spend a delegatable note to fund a project' }),
+      projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Fund a Project', description: 'Spend a delegatable note to fund a project' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
@@ -162,7 +164,7 @@ describe('Delegation Spending', () => {
     const statementData = createStatement({
       content: 'Support education initiatives',
     });
-    await publishDocument(statementData);
+    await publishDocument(machinery.ipfsConfig, statementData);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
     const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
@@ -191,7 +193,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold: 2000000000000000000n, // 2 ETH
       deadline: nowInSeconds + 86400n,
-      projectMetadataCid: await uploadToIPFS({ name: 'Education Initiative', description: 'Support education initiatives via delegated funding' }),
+      projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Education Initiative', description: 'Support education initiatives via delegated funding' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n], // 0.05 ETH per token
@@ -256,7 +258,7 @@ describe('Delegation Spending', () => {
     const statementData = createStatement({
       content: 'Fund climate research',
     });
-    await publishDocument(statementData);
+    await publishDocument(machinery.ipfsConfig, statementData);
 
     const depositAmount = 8000000000000000000n; // 8 ETH
     const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
@@ -302,7 +304,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold: 2000000000000000000n,
       deadline: nowInSeconds + 86400n,
-      projectMetadataCid: await uploadToIPFS({ name: 'Multi-Level Delegation Project', description: 'Multi-level delegation chain spending test' }),
+      projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Multi-Level Delegation Project', description: 'Multi-level delegation chain spending test' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n],
@@ -360,7 +362,7 @@ describe('Delegation Spending', () => {
     const statementData = createStatement({
       content: 'Support arts and culture',
     });
-    await publishDocument(statementData);
+    await publishDocument(machinery.ipfsConfig, statementData);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
     const { noteId } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
@@ -376,7 +378,7 @@ describe('Delegation Spending', () => {
       recipient: user1.account,
       threshold: 1000000000000000000n,
       deadline: nowInSeconds + 86400n,
-      projectMetadataCid: await uploadToIPFS({ name: 'Partial Spend Project', description: 'Partial amounts spending test' }),
+      projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Partial Spend Project', description: 'Partial amounts spending test' }),
       tokenIds: [1n],
       tokenCounts: [100n],
       tokenPrices: [50000000000000000n],

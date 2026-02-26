@@ -60,7 +60,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Create a statement
     const statementData = createStatement({ content: 'We should lower taxes' });
-    const statementCid = await publishDocument(statementData);
+    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
 
     testLog(`  Statement: "${statementData.content}"`);
     testLog(`  Statement CID: ${statementCid}`);
@@ -92,7 +92,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Create a statement
     const statementData = createStatement({ content: 'We should fund space exploration' });
-    const statementCid = await publishDocument(statementData);
+    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
 
     testLog(`  Statement: "${statementData.content}"`);
 
@@ -121,8 +121,8 @@ describe('Conceptspace Beliefs', () => {
     const statement1Data = createStatement({ content: 'Democracy is the best form of government' });
     const statement2Data = createStatement({ content: 'Free markets lead to prosperity' });
 
-    const statement1Cid = await publishDocument(statement1Data);
-    const statement2Cid = await publishDocument(statement2Data);
+    const statement1Cid = await publishDocument(machinery.ipfsConfig, statement1Data);
+    const statement2Cid = await publishDocument(machinery.ipfsConfig, statement2Data);
 
     testLog(`  Statement 1: "${statement1Data.content}"`);
     testLog(`  Statement 2: "${statement2Data.content}"`);
@@ -146,7 +146,7 @@ describe('Conceptspace Beliefs', () => {
     const statementData = createStatement({
       content: 'We should invest heavily in renewable energy infrastructure to combat climate change.',
     });
-    const statementCid = await publishDocument(statementData);
+    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
 
     testLog(`  Statement CID: ${statementCid}`);
 

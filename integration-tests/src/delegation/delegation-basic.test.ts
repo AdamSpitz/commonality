@@ -15,12 +15,11 @@ import {
   publishDocument,
   type DelegatableNotesContract,
   DelegatableNotesAbi,
-} from '@commonality/sdk';
-import {
   getNote,
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
+  type IPFSConfig,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
@@ -30,6 +29,7 @@ import {
   reclaimFundsChecked,
 } from './delegation-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
+
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -61,7 +61,7 @@ describe('Delegation System', () => {
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement for the intended purpose
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Fund education initiatives',
     }));
 
@@ -95,7 +95,7 @@ describe('Delegation System', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Support renewable energy',
     }));
 
@@ -148,7 +148,7 @@ describe('Delegation System', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits 10 ETH
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Fund healthcare research',
     }));
 
@@ -198,7 +198,7 @@ describe('Delegation System', () => {
     const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Support scientific research',
     }));
 
@@ -257,7 +257,7 @@ describe('Delegation System', () => {
     const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Support climate action',
     }));
 
@@ -323,7 +323,7 @@ describe('Delegation System', () => {
     const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
     // User 1 deposits
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Support local communities',
     }));
 
@@ -362,8 +362,8 @@ describe('Delegation System', () => {
     const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits two notes
-    await publishDocument(createStatement({ content: 'Cause A' }));
-    await publishDocument(createStatement({ content: 'Cause B' }));
+    await publishDocument(machinery.ipfsConfig, createStatement({ content: 'Cause A' }));
+    await publishDocument(machinery.ipfsConfig, createStatement({ content: 'Cause B' }));
 
     const { noteId: noteId1 } = await depositETHChecked(
       user1,

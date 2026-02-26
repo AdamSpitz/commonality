@@ -53,7 +53,7 @@ describe('Pubstarter Negative Tests', () => {
         abi: PubstarterAbi,
       };
 
-      const projectMetadataCid = await uploadToIPFS({
+      const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
         name: 'Insufficient Payment Test',
         description: 'Testing payment validation',
       });
@@ -119,7 +119,7 @@ describe('Pubstarter Negative Tests', () => {
         abi: PubstarterAbi,
       };
 
-      const projectMetadataCid = await uploadToIPFS({
+      const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
         name: 'Invalid Token ID Test',
         description: 'Testing token ID validation',
       });

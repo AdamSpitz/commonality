@@ -36,6 +36,7 @@ describe('Pubstarter Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
+  const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'pubstarter-edge-cases';
@@ -57,14 +58,13 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Create a project
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Insufficient Funds Test Project',
       description: 'Testing insufficient funds scenario',
     });
 
     const tokenPrice = parseEther('0.1');
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog('  Creating project...');
     const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
@@ -124,7 +124,7 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Create a project with a very short deadline (1 second from now)
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Refund Test Project',
       description: 'Testing refund after project failure',
     });
@@ -249,7 +249,7 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Create a project where Alice is the recipient
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Withdrawal Permission Test Project',
       description: 'Testing withdrawal permissions',
     });
@@ -338,7 +338,7 @@ describe('Pubstarter Edge Cases', () => {
     };
 
     // Create a project with a deadline 3 seconds from now
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Deadline Timing Test Project',
       description: 'Testing exact deadline timing',
     });

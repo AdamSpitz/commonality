@@ -21,6 +21,7 @@ import {
   publishDocument,
   type DelegatableNotesContract,
   DelegatableNotesAbi,
+  type IPFSConfig,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
@@ -30,6 +31,7 @@ import {
   reclaimFundsChecked,
 } from './delegation-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
+
 
 describe('Delegation Permissions Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -59,7 +61,7 @@ describe('Delegation Permissions Edge Cases', () => {
     };
 
     // Create a statement
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for permission test',
     }));
 
@@ -118,7 +120,7 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for revocation permission test',
     }));
 
@@ -185,7 +187,7 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for revoked note test',
     }));
 
@@ -259,7 +261,7 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for reclaim permission test',
     }));
 
@@ -307,7 +309,7 @@ describe('Delegation Permissions Edge Cases', () => {
       abi: DelegatableNotesAbi,
     };
 
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for valid revocation test',
     }));
 

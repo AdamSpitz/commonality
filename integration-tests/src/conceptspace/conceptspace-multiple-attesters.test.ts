@@ -15,8 +15,7 @@ import {
   publishDocument,
   type ImplicationsContract,
   ImplicationsAbi,
-} from '@commonality/sdk';
-import {
+  type IPFSConfig,
   getImplicationsFrom,
   getImplicationsTo,
 } from '@commonality/sdk';
@@ -24,6 +23,7 @@ import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { TEST_TIMEOUTS } from '../utils/test-timeouts.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
+
 
 describe('Multiple Attesters Tests (F2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -59,9 +59,9 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Attester 2: ${attester2.account}`);
 
     // Create statements
-    const s1Cid = await publishDocument(createStatement({ content: 'We should ban fossil fuels by 2030' }));
-    const s2Cid = await publishDocument(createStatement({ content: 'We should take climate action' }));
-    const s3Cid = await publishDocument(createStatement({ content: 'We should protect the environment' }));
+    const s1Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should ban fossil fuels by 2030' }));
+    const s2Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should take climate action' }));
+    const s3Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should protect the environment' }));
     testLog('  S1 -> S2 (Attester 1)');
     testLog('  S2 -> S3 (Attester 2)');
 
@@ -112,8 +112,8 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Attester 3: ${attester3.account}`);
 
     // Create two statements
-    const sACid = await publishDocument(createStatement({ content: 'We should implement a universal basic income program' }));
-    const sBCid = await publishDocument(createStatement({ content: 'We should work to reduce poverty levels' }));
+    const sACid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should implement a universal basic income program' }));
+    const sBCid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should work to reduce poverty levels' }));
     testLog('  Three different attesters will attest SA -> SB');
 
     // All three attesters attest SA -> SB
@@ -154,9 +154,9 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
-    const s1Cid = await publishDocument(createStatement({ content: 'We should invest in renewable energy' }));
-    const s2Cid = await publishDocument(createStatement({ content: 'We should combat climate change' }));
-    const s3Cid = await publishDocument(createStatement({ content: 'We should invest in solar panels' }));
+    const s1Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should invest in renewable energy' }));
+    const s2Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should combat climate change' }));
+    const s3Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should invest in solar panels' }));
     testLog('  Attester 1 attests: S1 -> S2');
     testLog('  Attester 2 attests: S3 -> S2');
 
@@ -228,8 +228,8 @@ describe('Multiple Attesters Tests (F2)', () => {
     const specificStatement = { statementType: 'text', text: 'Support open source education' };
     const generalStatement = { statementType: 'text', text: 'Support education' };
 
-    const specificCid = await uploadToIPFS(specificStatement);
-    const generalCid = await uploadToIPFS(generalStatement);
+    const specificCid = await uploadToIPFS(machinery.ipfsConfig, specificStatement);
+    const generalCid = await uploadToIPFS(machinery.ipfsConfig, generalStatement);
     testLog('  Creating implications from two different attesters...');
 
     // Attester 1 attests specific -> general
@@ -269,7 +269,7 @@ describe('Multiple Attesters Tests (F2)', () => {
 
     // Create a statement
     const statementContent = { statementType: 'text', text: 'Random statement for filter test' };
-    const statementCid = await uploadToIPFS(statementContent);
+    const statementCid = await uploadToIPFS(machinery.ipfsConfig, statementContent);
 
     testLog(`  Querying implications from unused attester: ${unusedAttester.account}`);
 

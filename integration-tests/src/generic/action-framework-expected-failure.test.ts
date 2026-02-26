@@ -49,7 +49,7 @@ describe('Action Framework Expected Failure', () => {
     };
 
     // Create a statement CID
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for expectFailure test',
     }));
 
@@ -103,7 +103,7 @@ describe('Action Framework Expected Failure', () => {
       abi: DelegatableNotesAbi,
     };
 
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for error message check',
     }));
 
@@ -151,7 +151,7 @@ describe('Action Framework Expected Failure', () => {
       abi: DelegatableNotesAbi,
     };
 
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Test statement for success/failure mismatch',
     }));
 

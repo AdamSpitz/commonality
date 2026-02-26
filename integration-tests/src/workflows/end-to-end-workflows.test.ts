@@ -8,6 +8,7 @@
 import assert from 'assert';
 import {
   purchaseFromPrimaryMarketWithNotes,
+  type IPFSConfig,
   uploadToIPFS,
   createStatement,
   publishDocument,
@@ -23,8 +24,6 @@ import {
   AlignmentAttestationsAbi,
   DelegatableNotesAbi,
   PROJECT_ALIGNMENT_TOPIC,
-} from '@commonality/sdk';
-import {
   getUserBelief,
   getUserBeliefs,
   getImplicationsFrom,
@@ -75,7 +74,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         content: 'We should fund open source infrastructure projects',
       });
 
-      const statementCid = await publishDocument(statementDoc);
+      const statementCid = await publishDocument(machinery.ipfsConfig, statementDoc);
 
       testLog(`  Statement CID: ${statementCid}`);
 
@@ -102,7 +101,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         recipient: userClients.account,
         threshold: BigInt('1000000000000000000'), // 1 ETH
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
-        projectMetadataCid: await uploadToIPFS({
+        projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, {
           name: 'Open Source Infrastructure Fund',
           description: 'Funding critical open source infrastructure',
         }),
@@ -196,7 +195,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         content: 'We should support renewable energy research',
       });
 
-      const statementCid = await publishDocument(statementDoc);
+      const statementCid = await publishDocument(machinery.ipfsConfig, statementDoc);
 
       testLog(`  Statement CID: ${statementCid}`);
       // 3. Root user expresses belief in the statement
@@ -248,7 +247,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         recipient: rootUserClients.account,
         threshold: BigInt('1000000000000000000'), // 1 ETH
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
-        projectMetadataCid: await uploadToIPFS({
+        projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, {
           name: 'Renewable Energy Research Fund',
           description: 'Funding renewable energy research projects',
         }),
@@ -332,8 +331,8 @@ describe('End-to-End Workflow Integration Tests', () => {
         content: 'Renewable energy research is important',
       });
 
-      const statement1Cid = await publishDocument(statement1Doc);
-      const statement2Cid = await publishDocument(statement2Doc);
+      const statement1Cid = await publishDocument(machinery.ipfsConfig, statement1Doc);
+      const statement2Cid = await publishDocument(machinery.ipfsConfig, statement2Doc);
 
       testLog(`  Statement 1 (specific): ${statement1Cid}`);
       testLog(`  Statement 2 (general): ${statement2Cid}`);
@@ -367,7 +366,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         recipient: userClients.account,
         threshold: BigInt('1000000000000000000'), // 1 ETH
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
-        projectMetadataCid: await uploadToIPFS({
+        projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, {
           name: 'Solar Panel Efficiency Research',
           description: 'Improving solar panel efficiency',
         }),
@@ -455,8 +454,8 @@ describe('End-to-End Workflow Integration Tests', () => {
         content: 'Climate change is a serious threat',
       });
 
-      const statement1Cid = await publishDocument(statement1Doc);
-      const statement2Cid = await publishDocument(statement2Doc);
+      const statement1Cid = await publishDocument(machinery.ipfsConfig, statement1Doc);
+      const statement2Cid = await publishDocument(machinery.ipfsConfig, statement2Doc);
 
       testLog(`  Statement 1: ${statement1Cid}`);
       testLog(`  Statement 2: ${statement2Cid}`);

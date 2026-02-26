@@ -30,6 +30,7 @@ import { attestAlignmentChecked, attestAlignmentsBatchChecked } from '../actions
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
+
 describe('Funding Portal - Alignment Attestations', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
@@ -72,7 +73,7 @@ describe('Funding Portal - Alignment Attestations', () => {
 
     // Create a statement
     const statementText = 'We support open source software development';
-    const statementCid = await publishDocument(createStatement({ content: statementText }));
+    const statementCid = await publishDocument(machinery.ipfsConfig, createStatement({ content: statementText }));
 
     testLog(`  Statement: "${statementText}"`);
     testLog(`  Statement CID: ${statementCid}`);
@@ -119,7 +120,7 @@ describe('Funding Portal - Alignment Attestations', () => {
 
     // Create a statement
     const statementText = 'Climate change is a critical issue';
-    const statementCid = await publishDocument(createStatement({ content: statementText }));
+    const statementCid = await publishDocument(machinery.ipfsConfig, createStatement({ content: statementText }));
 
     testLog(`  Statement: "${statementText}"`);
     testLog(`  Statement CID: ${statementCid}`);
@@ -197,8 +198,8 @@ describe('Funding Portal - Alignment Attestations', () => {
       text: 'Promote education access',
     };
 
-    const statement1Cid = await uploadToIPFS(statement1Content);
-    const statement2Cid = await uploadToIPFS(statement2Content);
+    const statement1Cid = await uploadToIPFS(machinery.ipfsConfig, statement1Content);
+    const statement2Cid = await uploadToIPFS(machinery.ipfsConfig, statement2Content);
 
     testLog(`  Statement 1: "${statement1Content.text}"`);
     testLog(`  Statement 2: "${statement2Content.text}"`);
@@ -275,7 +276,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     ];
 
     const statementCids = await Promise.all(
-      statements.map(s => uploadToIPFS(s))
+      statements.map(s => uploadToIPFS(machinery.ipfsConfig, s))
     );
 
     testLog(`  Created ${statements.length} statements`);

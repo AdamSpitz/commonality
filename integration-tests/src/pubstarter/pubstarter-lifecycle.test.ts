@@ -55,7 +55,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     testLog(`  Contributor: ${contributorClients.account}`);
 
     // Create project with low threshold so we can easily reach it
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Successful Project',
       description: 'This project will succeed',
     });
@@ -157,7 +157,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
     // Create project with high threshold and very short deadline
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Failed Project',
       description: 'This project will fail',
     });
@@ -309,7 +309,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     testLog(`  Contributor 2: ${contributor2Clients.account}`);
 
     // Create project
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Multi-Contributor Project',
       description: 'A project with multiple contributors',
     });

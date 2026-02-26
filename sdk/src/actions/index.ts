@@ -5,10 +5,6 @@
 // Common utilities
 export {
   createTestClients,
-  uploadToIPFS,
-  fetchFromIPFS,
-  fetchFromMockIPFS,
-  clearMockIPFS,
   PROJECT_ALIGNMENT_TOPIC,
   type TestClients,
 } from './common.js';

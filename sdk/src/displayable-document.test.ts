@@ -9,8 +9,12 @@ import {
   fetchDocument,
 } from './displayable-document.js';
 import type { DisplayableDocument } from './displayable-document.js';
-import { clearMockIPFS } from './actions/common.js';
+import { clearMockIPFS } from './utils/mock-ipfs.js';
 import { fakeIpfsCidV1 } from './cid-types.js';
+import { uploadToIPFS } from './utils/ipfs.js';
+import { createSDKMachinery } from './machinery.js';
+
+const machinery = createSDKMachinery();
 
 // ============================================================================
 // toCanonicalJson
@@ -597,7 +601,7 @@ describe('publishDocument', () => {
       format: 'text/plain',
       content: 'Hello world',
     });
-    const cid = await publishDocument(doc);
+    const cid = await publishDocument(machinery.ipfsConfig, doc);
     assert.ok(typeof cid === 'string');
     assert.ok(cid.length > 0);
   });
@@ -611,8 +615,8 @@ describe('publishDocument', () => {
       format: 'text/plain',
       content: 'Deterministic test',
     });
-    const cid1 = await publishDocument(doc1);
-    const cid2 = await publishDocument(doc2);
+    const cid1 = await publishDocument(machinery.ipfsConfig, doc1);
+    const cid2 = await publishDocument(machinery.ipfsConfig, doc2);
     assert.strictEqual(cid1, cid2);
   });
 
@@ -620,22 +624,22 @@ describe('publishDocument', () => {
     // Manually construct objects with different key orders
     const doc1 = { content: 'hello', format: 'text/plain' } as DisplayableDocument;
     const doc2 = { format: 'text/plain', content: 'hello' } as DisplayableDocument;
-    const cid1 = await publishDocument(doc1);
-    const cid2 = await publishDocument(doc2);
+    const cid1 = await publishDocument(machinery.ipfsConfig, doc1);
+    const cid2 = await publishDocument(machinery.ipfsConfig, doc2);
     assert.strictEqual(cid1, cid2);
   });
 
   it('returns different CIDs for different documents', async () => {
     const doc1 = createDisplayableDocument({ format: 'text/plain', content: 'hello' });
     const doc2 = createDisplayableDocument({ format: 'text/plain', content: 'world' });
-    const cid1 = await publishDocument(doc1);
-    const cid2 = await publishDocument(doc2);
+    const cid1 = await publishDocument(machinery.ipfsConfig, doc1);
+    const cid2 = await publishDocument(machinery.ipfsConfig, doc2);
     assert.notStrictEqual(cid1, cid2);
   });
 
   it('throws on invalid document', async () => {
     const bad = { format: 'bad-format', content: 'hello' } as unknown as DisplayableDocument;
-    await assert.rejects(() => publishDocument(bad), /Invalid displayable document/);
+    await assert.rejects(() => publishDocument(machinery.ipfsConfig, bad), /Invalid displayable document/);
   });
 });
 
@@ -649,8 +653,8 @@ describe('fetchDocument', () => {
       format: 'text/plain',
       content: 'Round trip test',
     });
-    const cid = await publishDocument(doc);
-    const fetched = await fetchDocument(cid);
+    const cid = await publishDocument(machinery.ipfsConfig, doc);
+    const fetched = await fetchDocument(machinery.ipfsConfig, cid);
     assert.ok(fetched !== null);
     assert.strictEqual(fetched!.format, 'text/plain');
     assert.strictEqual(fetched!.content, 'Round trip test');
@@ -666,8 +670,8 @@ describe('fetchDocument', () => {
       references: [{ cid: fakeIpfsCidV1('reference-cid'), label: 'Related doc' }],
       extras: { topic: 'test', nested: { a: 1 } },
     });
-    const cid = await publishDocument(doc);
-    const fetched = await fetchDocument(cid);
+    const cid = await publishDocument(machinery.ipfsConfig, doc);
+    const fetched = await fetchDocument(machinery.ipfsConfig, cid);
     assert.ok(fetched !== null);
     assert.strictEqual(fetched!.format, 'markdown-restricted');
     assert.ok(fetched!.assets);
@@ -678,15 +682,14 @@ describe('fetchDocument', () => {
   });
 
   it('returns null for a non-existent CID', async () => {
-    const result = await fetchDocument(fakeIpfsCidV1('nonexistent'));
+    const result = await fetchDocument(machinery.ipfsConfig, fakeIpfsCidV1('nonexistent'));
     assert.strictEqual(result, null);
   });
 
   it('returns null if fetched content is not a valid displayable document', async () => {
     // Publish raw non-document content via the underlying IPFS mock
-    const { uploadToIPFS: upload } = await import('./actions/common.js');
-    const cid = await upload({ notADocument: true });
-    const result = await fetchDocument(cid);
+    const cid = await uploadToIPFS(machinery.ipfsConfig, { notADocument: true });
+    const result = await fetchDocument(machinery.ipfsConfig, cid);
     assert.strictEqual(result, null);
   });
 });

@@ -25,6 +25,7 @@ import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
+
 describe('Statement Discovery & Browsing', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
@@ -53,15 +54,15 @@ describe('Statement Discovery & Browsing', () => {
     };
 
     // Create three statements with different levels of support
-    const popularStatement = await publishDocument(createStatement({
+    const popularStatement = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Very popular statement - everyone signs this',
     }));
 
-    const moderateStatement = await publishDocument(createStatement({
+    const moderateStatement = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Moderately popular statement - two people sign',
     }));
 
-    const unpopularStatement = await publishDocument(createStatement({
+    const unpopularStatement = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Unpopular statement - only one person signs',
     }));
 
@@ -132,15 +133,15 @@ describe('Statement Discovery & Browsing', () => {
     };
 
     // Create statements in sequence
-    const oldStatement = await publishDocument(createStatement({
+    const oldStatement = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Old statement created first',
     }));
 
-    const middleStatement = await publishDocument(createStatement({
+    const middleStatement = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Middle statement created second',
     }));
 
-    const newStatement = await publishDocument(createStatement({
+    const newStatement = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'New statement created third',
     }));
 
@@ -203,7 +204,7 @@ describe('Statement Discovery & Browsing', () => {
 
     const statements: IpfsCidV1[] = [];
     for (let i = 0; i < 5; i++) {
-      const statement = await uploadToIPFS({
+      const statement = await uploadToIPFS(machinery.ipfsConfig, {
         statementType: 'text',
         text: `Pagination test statement ${i}`,
       });

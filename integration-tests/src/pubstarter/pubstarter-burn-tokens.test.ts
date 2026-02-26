@@ -55,7 +55,7 @@ describe('Pubstarter Token Burning Tests', () => {
     testLog(`  Donor: ${donorClients.account}`);
 
     // Create project
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Token Burn Test Project',
       description: 'A project to test token burning',
     });

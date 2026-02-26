@@ -293,7 +293,7 @@ export async function createAndSignStatement(
 
   try {
     // Step 1: Upload content to IPFS
-    cid = await publishDocument(statementData);
+    cid = await publishDocument(machinery.ipfsConfig, statementData);
 
     if (onIPFSUpload) {
       onIPFSUpload(cid);

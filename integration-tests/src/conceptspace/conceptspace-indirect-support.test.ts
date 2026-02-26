@@ -82,8 +82,8 @@ describe('Conceptspace Indirect Support', () => {
       text: 'We should address climate change',
     };
 
-    const specificCid = await uploadToIPFS(specificStatement);
-    const generalCid = await uploadToIPFS(generalStatement);
+    const specificCid = await uploadToIPFS(machinery.ipfsConfig, specificStatement);
+    const generalCid = await uploadToIPFS(machinery.ipfsConfig, generalStatement);
 
     testLog(`  Specific: "${specificStatement.text}"`);
     testLog(`  General: "${generalStatement.text}"`);
@@ -152,9 +152,9 @@ describe('Conceptspace Indirect Support', () => {
       text: 'We should reduce plastic waste',
     };
 
-    const specific1Cid = await uploadToIPFS(specific1);
-    const specific2Cid = await uploadToIPFS(specific2);
-    const generalCid = await uploadToIPFS(general);
+    const specific1Cid = await uploadToIPFS(machinery.ipfsConfig, specific1);
+    const specific2Cid = await uploadToIPFS(machinery.ipfsConfig, specific2);
+    const generalCid = await uploadToIPFS(machinery.ipfsConfig, general);
     const specific1Id = cidToBytes32(specific1Cid);
     const specific2Id = cidToBytes32(specific2Cid);
 
@@ -239,8 +239,8 @@ describe('Conceptspace Indirect Support', () => {
       text: 'We should reduce greenhouse gas emissions',
     };
 
-    const specificCid = await uploadToIPFS(specific);
-    const generalCid = await uploadToIPFS(general);
+    const specificCid = await uploadToIPFS(machinery.ipfsConfig, specific);
+    const generalCid = await uploadToIPFS(machinery.ipfsConfig, general);
 
     testLog(`  Specific: "${specific.text}"`);
     testLog(`  General: "${general.text}"`);
@@ -321,10 +321,10 @@ describe('Conceptspace Indirect Support', () => {
       text: 'We should transition away from fossil fuels',
     };
 
-    const s1Cid = await uploadToIPFS(s1);
-    const s2Cid = await uploadToIPFS(s2);
-    const s3Cid = await uploadToIPFS(s3);
-    const sGeneralCid = await uploadToIPFS(sGeneral);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2);
+    const s3Cid = await uploadToIPFS(machinery.ipfsConfig, s3);
+    const sGeneralCid = await uploadToIPFS(machinery.ipfsConfig, sGeneral);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);
@@ -396,9 +396,9 @@ describe('Conceptspace Indirect Support', () => {
       text: 'We should reduce car dependency',
     };
 
-    const s1Cid = await uploadToIPFS(s1);
-    const s2Cid = await uploadToIPFS(s2);
-    const sTargetCid = await uploadToIPFS(sTarget);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2);
+    const sTargetCid = await uploadToIPFS(machinery.ipfsConfig, sTarget);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);
@@ -477,12 +477,12 @@ describe('Conceptspace Indirect Support', () => {
       text: 'We should empower workers',
     };
 
-    const s1Cid = await uploadToIPFS(s1);
-    const s2Cid = await uploadToIPFS(s2);
-    const s3Cid = await uploadToIPFS(s3);
-    const target1Cid = await uploadToIPFS(target1);
-    const target2Cid = await uploadToIPFS(target2);
-    const target3Cid = await uploadToIPFS(target3);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2);
+    const s3Cid = await uploadToIPFS(machinery.ipfsConfig, s3);
+    const target1Cid = await uploadToIPFS(machinery.ipfsConfig, target1);
+    const target2Cid = await uploadToIPFS(machinery.ipfsConfig, target2);
+    const target3Cid = await uploadToIPFS(machinery.ipfsConfig, target3);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);
@@ -573,10 +573,10 @@ describe('Conceptspace Indirect Support', () => {
       text: 'We should reduce air pollution from vehicles',
     };
 
-    const source1Cid = await uploadToIPFS(source1);
-    const source2Cid = await uploadToIPFS(source2);
-    const target1Cid = await uploadToIPFS(target1);
-    const target2Cid = await uploadToIPFS(target2);
+    const source1Cid = await uploadToIPFS(machinery.ipfsConfig, source1);
+    const source2Cid = await uploadToIPFS(machinery.ipfsConfig, source2);
+    const target1Cid = await uploadToIPFS(machinery.ipfsConfig, target1);
+    const target2Cid = await uploadToIPFS(machinery.ipfsConfig, target2);
 
     testLog(`  Source1: "${source1.text}"`);
     testLog(`  Source2: "${source2.text}"`);
@@ -637,9 +637,9 @@ describe('Conceptspace Indirect Support', () => {
       text: 'I support a $500/ton carbon tax',
     };
 
-    const s1Cid = await uploadToIPFS(s1);
-    const s2Cid = await uploadToIPFS(s2);
-    const s3Cid = await uploadToIPFS(s3);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2);
+    const s3Cid = await uploadToIPFS(machinery.ipfsConfig, s3);
 
     testLog(`  S1: "${s1.text}"`);
     testLog(`  S2: "${s2.text}"`);

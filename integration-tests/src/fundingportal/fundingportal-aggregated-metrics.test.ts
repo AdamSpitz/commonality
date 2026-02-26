@@ -71,8 +71,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Create statements: S1 (specific cause) and S2 (broader cause)
     const s1Content = { text: 'We should fund open source AI safety research' };
     const s2Content = { text: 'We should fund AI safety research' };
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1Content);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2Content);
     const s1Id = cidToBytes32(s1Cid);
     const s2Id = cidToBytes32(s2Cid);
 
@@ -102,7 +102,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
     // Project 1 aligned with S1 (specific cause)
     testLog('  Creating Project 1...');
-    const project1Metadata = await uploadToIPFS({ title: 'Open Source AI Safety Project' });
+    const project1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Open Source AI Safety Project' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
@@ -125,7 +125,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
     // Project 2 aligned with S2 (broader cause)
     testLog('  Creating Project 2...');
-    const project2Metadata = await uploadToIPFS({ title: 'General AI Safety Research' });
+    const project2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'General AI Safety Research' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
@@ -250,7 +250,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
     // Create a statement for the cause
     const causeContent = { text: 'We should fund climate change research' };
-    const causeCid = await uploadToIPFS(causeContent);
+    const causeCid = await uploadToIPFS(machinery.ipfsConfig, causeContent);
     const causeId = cidToBytes32(causeCid);
 
     testLog(`  Cause: ${causeId}`);
@@ -316,8 +316,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Create statements
     const s1Content = { text: 'Fund cancer research' };
     const s2Content = { text: 'Fund medical research' };
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1Content);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2Content);
 
     // Attest implication
     const implicationsContract: ImplicationsContract = {
@@ -338,7 +338,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       abi: PubstarterAbi,
     };
 
-    const p1Metadata = await uploadToIPFS({ title: 'Cancer Research Lab' });
+    const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancer Research Lab' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
@@ -358,7 +358,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     );
     testLog('  ✓ Project creation properties verified');
 
-    const p2Metadata = await uploadToIPFS({ title: 'General Medical Research' });
+    const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'General Medical Research' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,

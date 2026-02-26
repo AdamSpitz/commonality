@@ -61,7 +61,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
 
     // Create statement for the cause
     const causeContent = { text: 'Support renewable energy projects' };
-    const causeCid = await uploadToIPFS(causeContent);
+    const causeCid = await uploadToIPFS(machinery.ipfsConfig, causeContent);
 
     testLog(`  Cause: ${causeCid}`);
 
@@ -72,7 +72,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     };
 
     testLog('  Creating projects...');
-    const p1Metadata = await uploadToIPFS({ title: 'Solar Panel Initiative' });
+    const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Solar Panel Initiative' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
@@ -92,7 +92,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     );
     testLog('  ✓ Project creation properties verified');
 
-    const p2Metadata = await uploadToIPFS({ title: 'Wind Farm Project' });
+    const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Wind Farm Project' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
@@ -264,7 +264,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
 
     // Create cause
     const causeContent = { text: 'Support education initiatives' };
-    const causeCid = await uploadToIPFS(causeContent);
+    const causeCid = await uploadToIPFS(machinery.ipfsConfig, causeContent);
 
     // Create project
     const pubstarterContract: PubstarterContract = {
@@ -273,7 +273,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     };
 
     testLog('  Creating project...');
-    const pMetadata = await uploadToIPFS({ title: 'Education Fund' });
+    const pMetadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Education Fund' });
     const { projectDetails: pDetails } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,

@@ -22,6 +22,8 @@ import {
   publishDocument,
   type IpfsCidV1,
   fakeIpfsCidV1,
+  type IPFSConfig,
+  createIPFSConfigFromTheUsualEnvVars,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
@@ -69,8 +71,8 @@ function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost
   };
 }
 
-export async function uploadStatementToIPFS(content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
-  return await publishDocument(createStatement({
+export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
+  return await publishDocument(ipfsConfig, createStatement({
     content: content.text,
     topic: domain,
     extras: {
@@ -212,6 +214,8 @@ class SimulationRunner {
   async initialize(numUsers = 50): Promise<void> {
     console.log('=== Initializing Simulation ===\n');
 
+    const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
+    
     console.log('Loading contract addresses from .env...');
     this.loadContracts();
 
@@ -234,12 +238,12 @@ class SimulationRunner {
       this.statements = JSON.parse(data) as Statement[];
       console.log(`Loaded ${this.statements.length} existing statements`);
     } catch {
-      this.statements = await generateStatements();
+      this.statements = await generateStatements(ipfsConfig);
     }
 
     // Upload statements to IPFS
     console.log('\nUploading statements to IPFS...');
-    await this.uploadStatementsToIPFS();
+    await this.uploadStatementsToIPFS(ipfsConfig);
 
     // Load pre-generated attestations
     console.log('\nLoading pre-generated attestations...');
@@ -329,13 +333,14 @@ class SimulationRunner {
     return createTestClients(user.privateKey, RPC_URL);
   }
 
-  async uploadStatementsToIPFS(): Promise<void> {
+  async uploadStatementsToIPFS(ipfsConfig: IPFSConfig): Promise<void> {
     let uploaded = 0;
     let failed = 0;
 
     for (const stmt of this.statements) {
       try {
         const cid: IpfsCidV1 = await uploadStatementToIPFS(
+          ipfsConfig,
           stmt.content,
           stmt.domain,
           stmt.position,

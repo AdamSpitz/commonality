@@ -2,7 +2,7 @@
  * GraphQL queries for Conceptspace subsystem
  */
 
-import { fetchFromIPFS } from '../../actions/common.js';
+import { fetchFromIPFS } from '../../utils/ipfs.js';
 import { request } from 'graphql-request';
 import {
   GetStatementDocument,
@@ -535,7 +535,7 @@ export async function getStatementWithContent(
 
   let content: DisplayableDocument | null = null;
   if (statement.cid) {
-    content = await fetchFromIPFS(statement.cid, timeout) as DisplayableDocument | null;
+    content = await fetchFromIPFS(machinery.ipfsConfig, statement.cid, timeout) as DisplayableDocument | null;
   }
 
   let metrics: StatementWithContent['metrics'] | undefined;

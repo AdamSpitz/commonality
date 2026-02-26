@@ -70,7 +70,7 @@ describe('Pubstarter Basic Integration Tests', () => {
       description: 'A test project for integration tests',
       category: 'technology',
     };
-    const projectMetadataCid = await uploadToIPFS(projectMetadata);
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, projectMetadata);
     testLog(`  Project metadata CID: ${projectMetadataCid}`);
 
     // Project parameters
@@ -157,7 +157,7 @@ describe('Pubstarter Basic Integration Tests', () => {
     testLog('  Creating a minimal test project (with property checking)...');
     const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
 
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Minimal Test Project',
     });
 

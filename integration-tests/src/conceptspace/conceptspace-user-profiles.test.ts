@@ -13,14 +13,14 @@ import {
   publishDocument,
   type BeliefsContract,
   BeliefsAbi,
-} from '@commonality/sdk';
-import {
+  type IPFSConfig,
   getUserBeliefs,
   getUserDisbeliefs,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
+
 
 describe('User Profile Queries', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -47,13 +47,13 @@ describe('User Profile Queries', () => {
     };
 
     // Create three statements
-    const statement1 = await publishDocument(createStatement({
+    const statement1 = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Climate change is real and caused by humans',
     }));
-    const statement2 = await publishDocument(createStatement({
+    const statement2 = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Renewable energy should be prioritized',
     }));
-    await publishDocument(createStatement({
+    await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Carbon taxes are an effective policy tool',
     }));
 
@@ -92,10 +92,10 @@ describe('User Profile Queries', () => {
     };
 
     // Create statements to disbelieve
-    const statement1 = await publishDocument(createStatement({
+    const statement1 = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'The earth is flat',
     }));
-    const statement2 = await publishDocument(createStatement({
+    const statement2 = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Vaccines cause autism',
     }));
 
@@ -140,13 +140,13 @@ describe('User Profile Queries', () => {
     };
 
     // Create statements
-    const statement1 = await publishDocument(createStatement({
+    const statement1 = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Universal healthcare should be a human right',
     }));
-    const statement2 = await publishDocument(createStatement({
+    const statement2 = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Education should be free for all',
     }));
-    const statement3 = await publishDocument(createStatement({
+    const statement3 = await publishDocument(machinery.ipfsConfig, createStatement({
       content: 'Housing is a fundamental human need',
     }));
 

@@ -57,7 +57,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     };
 
     // Create 3 projects at different times
-    const p1Metadata = await uploadToIPFS({ title: 'Project 1 - Oldest' });
+    const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Project 1 - Oldest' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
@@ -76,7 +76,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
       }
     );
 
-    const p2Metadata = await uploadToIPFS({ title: 'Project 2 - Middle' });
+    const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Project 2 - Middle' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
@@ -95,7 +95,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
       }
     );
 
-    const p3Metadata = await uploadToIPFS({ title: 'Project 3 - Newest' });
+    const p3Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Project 3 - Newest' });
     const { projectDetails: p3Details } = await createProjectChecked(
       creator3Clients,
       pubstarterContract,
@@ -157,7 +157,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const now = Math.floor(Date.now() / 1000);
 
     // Project with soon deadline
-    const p1Metadata = await uploadToIPFS({ title: 'Soon Deadline' });
+    const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Soon Deadline' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
@@ -177,7 +177,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     );
 
     // Project with far deadline
-    const p2Metadata = await uploadToIPFS({ title: 'Far Deadline' });
+    const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Far Deadline' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
@@ -234,7 +234,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     };
 
     // Create two projects with same threshold
-    const p1Metadata = await uploadToIPFS({ title: 'High Progress Project' });
+    const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'High Progress Project' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
@@ -253,7 +253,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
       }
     );
 
-    const p2Metadata = await uploadToIPFS({ title: 'Low Progress Project' });
+    const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Low Progress Project' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,
@@ -357,7 +357,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     };
 
     // Small project (1 ETH threshold)
-    const p1Metadata = await uploadToIPFS({ title: 'Small Project' });
+    const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Small Project' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
       pubstarterContract,
@@ -377,7 +377,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     );
 
     // Large project (100 ETH threshold)
-    const p2Metadata = await uploadToIPFS({ title: 'Large Project' });
+    const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Large Project' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
       pubstarterContract,

@@ -68,7 +68,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Create a project
     testLog('  Creating project...');
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Secondary Market Test Project',
     });
 
@@ -212,7 +212,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const sellerClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a project
-    const projectMetadataCid = await uploadToIPFS({ title: 'Cancel Test Project' });
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancel Test Project' });
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -318,7 +318,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
 
     // Create a project
-    const projectMetadataCid = await uploadToIPFS({ title: 'Buy Order Test Project' });
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Buy Order Test Project' });
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,
@@ -436,7 +436,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     const sellerClients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
 
     // Create a project
-    const projectMetadataCid = await uploadToIPFS({ title: 'Cancel Buy Order Test' });
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancel Buy Order Test' });
     const pubstarterContract: PubstarterContract = {
       address: PUBSTARTER_ADDRESS,
       abi: PubstarterAbi,

@@ -86,8 +86,8 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     const s1Text = 'We should fund renewable energy research';
     const s2Text = 'We should combat climate change';
 
-    const s1Cid = await publishDocument(createStatement({ content: s1Text }));
-    const s2Cid = await publishDocument(createStatement({ content: s2Text }));
+    const s1Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: s1Text }));
+    const s2Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: s2Text }));
 
     testLog(`  S1 (specific): "${s1Text}"`);
     testLog(`  S2 (broader): "${s2Text}"`);
@@ -208,8 +208,8 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       text: 'Reduce poverty and inequality',
     };
 
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1Content);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2Content);
 
     testLog(`  S1: "${s1Content.text}"`);
     testLog(`  S2: "${s2Content.text}"`);
@@ -338,9 +338,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       text: 'Address climate change',
     };
 
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
-    const s3Cid = await uploadToIPFS(s3Content);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1Content);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2Content);
+    const s3Cid = await uploadToIPFS(machinery.ipfsConfig, s3Content);
 
     testLog(`  S1 (most specific): "${s1Content.text}"`);
     testLog(`  S2 (broader): "${s2Content.text}"`);
@@ -454,8 +454,8 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       text: 'Reduce carbon emissions',
     };
 
-    const s1Cid = await uploadToIPFS(s1Content);
-    const s2Cid = await uploadToIPFS(s2Content);
+    const s1Cid = await uploadToIPFS(machinery.ipfsConfig, s1Content);
+    const s2Cid = await uploadToIPFS(machinery.ipfsConfig, s2Content);
 
     // Two different attesters create the same implication S1 → S2
     testLog('  Attester 1 creating implication S1 → S2...');

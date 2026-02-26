@@ -44,7 +44,7 @@ describe('Hello World Integration Test', () => {
       content: 'Hello World! This is a test statement.',
     });
 
-    const statementCid = await publishDocument(statementData);
+    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
 
     testLog(`  Statement CID: ${statementCid}`);
 

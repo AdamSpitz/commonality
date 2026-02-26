@@ -3,7 +3,8 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients, uploadToIPFS } from './common.js';
+import { type TestClients } from './common.js';
+import { uploadToIPFS } from '../utils/ipfs.js';
 import { getUserRef } from '../subsystems/mutable-refs/mutable-refs-queries.js';
 import { SDKMachinery } from '../machinery.js';
 import { IpfsCidV1 } from '../cid-types.js';
@@ -208,7 +209,7 @@ export async function appendToUserList(
   };
 
   // Upload to IPFS
-  const listCid = await uploadToIPFS(listData);
+  const listCid = await uploadToIPFS(machinery.ipfsConfig, listData);
 
   // Update ref
   return await updateRef(clients, mutableRefUpdaterContract, listName, listCid);
@@ -230,7 +231,7 @@ export async function appendToUserList(
  * @example
  * ```typescript
  * // After creating and signing a statement
- * const statementCid = await uploadToIPFS(statementData);
+ * const statementCid = await uploadToIPFS(machinery.ipfsConfig, statementData);
  * await believeStatement(clients, beliefsContract, statementCid);
  * await addToCreatedStatements(graphqlClient, clients, mutableRefContract, statementCid);
  * ```

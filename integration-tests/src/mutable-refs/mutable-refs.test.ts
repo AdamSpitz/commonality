@@ -218,7 +218,7 @@ describe('Mutable Refs', () => {
 
     // User creates first statement - store just the CID
     const statement1 = { statementType: 'text', text: 'First statement' };
-    const cid1 = await uploadToIPFS(statement1);
+    const cid1 = await uploadToIPFS(machinery.ipfsConfig, statement1);
 
     testLog('  Creating ref with first statement...');
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, cid1);
@@ -229,16 +229,16 @@ describe('Mutable Refs', () => {
 
     // User creates more statements - update ref to point to a list
     const statement2 = { statementType: 'text', text: 'Second statement' };
-    const cid2 = await uploadToIPFS(statement2);
+    const cid2 = await uploadToIPFS(machinery.ipfsConfig, statement2);
     const statement3 = { statementType: 'text', text: 'Third statement' };
-    const cid3 = await uploadToIPFS(statement3);
+    const cid3 = await uploadToIPFS(machinery.ipfsConfig, statement3);
 
     // Create a list and upload to IPFS
     const statementList = {
       statements: [cid1, cid2, cid3],
       version: 1,
     };
-    const listCid = await uploadToIPFS(statementList);
+    const listCid = await uploadToIPFS(machinery.ipfsConfig, statementList);
 
     testLog('  Updating ref to point to statement list...');
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, listCid);
@@ -285,11 +285,11 @@ describe('Mutable Refs', () => {
 
     // Create three test statements
     const statement1 = { statementType: 'text', text: 'Test statement 1' };
-    const cid1 = await uploadToIPFS(statement1);
+    const cid1 = await uploadToIPFS(machinery.ipfsConfig, statement1);
     const statement2 = { statementType: 'text', text: 'Test statement 2' };
-    const cid2 = await uploadToIPFS(statement2);
+    const cid2 = await uploadToIPFS(machinery.ipfsConfig, statement2);
     const statement3 = { statementType: 'text', text: 'Test statement 3' };
-    const cid3 = await uploadToIPFS(statement3);
+    const cid3 = await uploadToIPFS(machinery.ipfsConfig, statement3);
 
     testLog('  Adding first statement using appendToUserList...');
     await appendToUserListChecked(machinery, clients, mutableRefUpdaterContract, refName, cid1);
@@ -335,12 +335,12 @@ describe('Mutable Refs', () => {
     testLog('  Testing format migration from old single-CID format...');
 
     // Simulate old format: just a single CID string
-    const oldFormatCid = await uploadToIPFS({ text: 'Old format statement' });
+    const oldFormatCid = await uploadToIPFS(machinery.ipfsConfig, { text: 'Old format statement' });
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, oldFormatCid);
 
     // Now add a new statement using the helper - it should migrate the format
     const newStatement = { text: 'New statement after migration' };
-    const newCid = await uploadToIPFS(newStatement);
+    const newCid = await uploadToIPFS(machinery.ipfsConfig, newStatement);
 
     testLog('  Adding new statement to old-format ref...');
     await appendToUserListChecked(machinery, clients, mutableRefUpdaterContract, refName, newCid);

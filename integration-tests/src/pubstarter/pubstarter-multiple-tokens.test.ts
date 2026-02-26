@@ -53,7 +53,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     testLog(`  Buyer2: ${buyer2Clients.account}`);
 
     // Create project metadata
-    const projectMetadataCid = await uploadToIPFS({
+    const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Multi-Token Project',
       description: 'A project with multiple token tiers',
       category: 'technology',

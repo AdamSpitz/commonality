@@ -8,7 +8,7 @@
  * See specs/subsystems/conceptspace/displayable-documents.md for the full specification.
  */
 
-import { uploadToIPFS, fetchFromIPFS } from './actions/common.js';
+import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from './utils/ipfs.js';
 import { IpfsCidV1 } from './cid-types.js';
 
 // ============================================================================
@@ -375,7 +375,7 @@ export function createStatement(options: CreateStatementOptions): DisplayableDoc
  * @returns The IPFS CID of the published document
  * @throws Error if the document fails validation
  */
-export async function publishDocument(doc: DisplayableDocument): Promise<IpfsCidV1> {
+export async function publishDocument(ipfsConfig: IPFSConfig, doc: DisplayableDocument): Promise<IpfsCidV1> {
   const validation = validateDisplayableDocument(doc);
   if (!validation.valid) {
     throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);
@@ -385,7 +385,7 @@ export async function publishDocument(doc: DisplayableDocument): Promise<IpfsCid
   const canonical = toCanonicalJson(doc);
   const normalized = JSON.parse(canonical) as object;
 
-  return uploadToIPFS(normalized);
+  return uploadToIPFS(ipfsConfig, normalized);
 }
 
 /**
@@ -394,8 +394,8 @@ export async function publishDocument(doc: DisplayableDocument): Promise<IpfsCid
  * @param cid - The IPFS CID to fetch
  * @returns The validated DisplayableDocument, or null if not found or invalid
  */
-export async function fetchDocument(cid: string): Promise<DisplayableDocument | null> {
-  const raw = await fetchFromIPFS(cid);
+export async function fetchDocument(ipfsConfig: IPFSConfig, cid: string): Promise<DisplayableDocument | null> {
+  const raw = await fetchFromIPFS(ipfsConfig, cid);
   if (raw === null) {
     return null;
   }

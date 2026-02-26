@@ -1,9 +1,8 @@
-import { keccak256, toBytes } from 'viem';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { Statement, StatementContent } from './types.js';
-import { createStatement, IpfsCidV1, publishDocument } from '@commonality/sdk';
+import { createIPFSConfigFromTheUsualEnvVars, createStatement, IpfsCidV1, publishDocument, type IPFSConfig } from '@commonality/sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,8 +25,8 @@ function generatePositionKey(position: unknown): string {
   return '';
 }
 
-export async function uploadStatementToIPFS(content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
-  return await publishDocument(createStatement({
+export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
+  return await publishDocument(ipfsConfig, createStatement({
     content: content.text,
     topic: domain,
     extras: {
@@ -39,7 +38,7 @@ export async function uploadStatementToIPFS(content: StatementContent, domain: s
   }));
 }
 
-async function generateStatements(): Promise<Statement[]> {
+async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> {
   const universePath = join(__dirname, 'universe.json');
   const universe = JSON.parse(await fs.readFile(universePath, 'utf-8')) as {
     domains: Record<string, unknown>;
@@ -62,7 +61,7 @@ async function generateStatements(): Promise<Statement[]> {
         };
 
         idCounter++;
-        const cid = await uploadStatementToIPFS(content, domain, positionKey, 'simple');
+        const cid = await uploadStatementToIPFS(ipfsConfig, content, domain, positionKey, 'simple');
         const statement: Statement = {
           domain,
           position: positionKey,
@@ -90,7 +89,7 @@ async function generateStatements(): Promise<Statement[]> {
         type: 'or'
       };
 
-      const cid = await uploadStatementToIPFS(content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction');
+      const cid = await uploadStatementToIPFS(ipfsConfig, content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction');
       const coalition: Statement = {
         domain: stmt1.domain,
         position: 'coalition',
@@ -117,7 +116,7 @@ async function generateStatements(): Promise<Statement[]> {
         type: 'and'
       };
 
-      const cid = await uploadStatementToIPFS(content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction');
+      const cid = await uploadStatementToIPFS(ipfsConfig, content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction');
       const commonality: Statement = {
         domain: stmt1.domain,
         position: 'commonality',
@@ -154,7 +153,8 @@ void generatePositionKey;
 
 // Run if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  generateStatements().catch(console.error);
+  const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
+  generateStatements(ipfsConfig).catch(console.error);
 }
 
 export { generateStatements, loadStatements };
