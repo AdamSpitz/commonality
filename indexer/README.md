@@ -1,6 +1,20 @@
 # Indexer
 
-Here's an indexer to index blockchain events and provide a GraphQL API (which is then used by the sdk code).
+Indexes blockchain events and provides GraphQL APIs (consumed by the SDK).
+
+## Architecture
+
+Five logically independent subsystems, each with its own schema, event handlers, and API:
+
+- **Concept Space**
+- **Pubstarter**
+- **Delegation**
+- **Funding Portal**
+- **Mutable Refs**
+
+In the future these might be worth splitting off into separate indexers.
+
+See [specs/indexers.md](../specs/indexers.md) for the full architectural spec.
 
 ## Dev stuff you can do
 

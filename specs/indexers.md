@@ -8,7 +8,7 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 
 **Important:** This describes the *logical* architecture - the conceptual separation, database schemas, and GraphQL APIs. The *physical* deployment (separate processes vs single executable) is a separate decision that can change without affecting the code.
 
-## The Four Indexers
+## The Five Indexers
 
 ```
 ┌──────────────────┐
@@ -22,9 +22,13 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 │ Indexer          │  Exports: GraphQL API for projects, contributions, market orders
 │                  │  Dependencies: None
 └──────────────────┘
+Note: The top-level spec lists Marketplace as a separate subsystem, but in the
+current implementation secondary-market indexing is folded into Pubstarter
+(since it shares the same project context). If it's ever extracted into its own
+subsystem, update this list.
 
 ┌──────────────────┐
-│ Delegation       │  Watches: DelegatableNotes
+│ Delegation       │  Watches: DelegatableNotes, NoteIntent
 │ Indexer          │  Exports: GraphQL API for notes, delegation chains
 │                  │  Dependencies: None
 └──────────────────┘
@@ -34,13 +38,21 @@ Instead of one large indexer, we use multiple specialized indexers that each foc
 │ Indexer          │  Exports: GraphQL API for cross-cutting queries
 │                  │  Dependencies: Queries Concept Space, Pubstarter, Delegation APIs
 └──────────────────┘
+
+┌──────────────────┐
+│ Mutable Refs     │  Watches: MutableRefUpdater
+│ Indexer          │  Exports: GraphQL API for named mutable references to IPFS content
+│                  │  Dependencies: None
+└──────────────────┘
 ```
 
 ## Specs for each subsystem's indexer
 
 See:
   - subsystems/conceptspace/indexer.md
-  - subsystems/fundingportals/indexer.md
+  - subsystems/fundingportals/indexer.md (covers Pubstarter, Delegation, and Funding Portal)
+
+Mutable Refs is a small utility subsystem (tracks named owner+name → IPFS CID references with update history) and doesn't have a dedicated spec.
 
 ## Cross-Cutting Concerns
 

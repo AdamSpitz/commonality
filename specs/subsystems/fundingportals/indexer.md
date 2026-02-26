@@ -51,6 +51,6 @@
 - **Indirect project alignment:** Federates to Concept Space API for direct implication attestations (no transitive traversal), joins with local alignment data
 - **Aggregated funding by cause:** Federates to Delegation API for notes, Concept Space API for implications, sums across relevant statements
 - **Contributor leaderboards:** Federates to Pubstarter API for contributions, Delegation API for chains, aggregates by cause
-- Heavy caching with invalidation on: new implications, new alignments, delegation changes
+- Heavy caching with invalidation on: new implications, new alignments, delegation changes — deferred; currently queries are live
 
 **Example query:** "Show me all projects aligned with statement S (directly or indirectly via implications), sorted by funding progress, with top contributors and their full delegation chains"
