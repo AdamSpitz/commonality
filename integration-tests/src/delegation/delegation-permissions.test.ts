@@ -21,7 +21,6 @@ import {
   publishDocument,
   type DelegatableNotesContract,
   DelegatableNotesAbi,
-  type IPFSConfig,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {

@@ -15,7 +15,6 @@ import {
   publishDocument,
   type ImplicationsContract,
   ImplicationsAbi,
-  type IPFSConfig,
   getImplicationsFrom,
   getImplicationsTo,
 } from '@commonality/sdk';

@@ -16,9 +16,6 @@ import {
   type ImplicationsContract,
   BeliefsAbi,
   ImplicationsAbi,
-  type IPFSConfig,
-} from '@commonality/sdk';
-import {
   getImplicationsTo,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';

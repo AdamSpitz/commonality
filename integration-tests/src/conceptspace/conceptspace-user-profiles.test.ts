@@ -13,7 +13,6 @@ import {
   publishDocument,
   type BeliefsContract,
   BeliefsAbi,
-  type IPFSConfig,
   getUserBeliefs,
   getUserDisbeliefs,
 } from '@commonality/sdk';

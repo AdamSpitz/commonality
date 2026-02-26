@@ -510,7 +510,6 @@ app.get('/status/:fromStatementCid/:toStatementCid', async (req: Request, res: R
   }
 
   try {
-    const config = loadConfig();
     const gasPrice = await getCurrentGasPrice();
     const paymentDetails = calculatePaymentRequired(gasPrice);
 

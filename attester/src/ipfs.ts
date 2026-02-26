@@ -1,6 +1,5 @@
 import { IpfsCidV1, normalizeCidV1 } from '@commonality/sdk';
 import { loadConfig } from './config.js';
-import { normalize } from 'path';
 
 export interface IpfsResult {
   cid: IpfsCidV1;

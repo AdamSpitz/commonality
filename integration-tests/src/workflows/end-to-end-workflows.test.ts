@@ -8,7 +8,6 @@
 import assert from 'assert';
 import {
   purchaseFromPrimaryMarketWithNotes,
-  type IPFSConfig,
   uploadToIPFS,
   createStatement,
   publishDocument,

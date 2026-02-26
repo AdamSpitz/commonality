@@ -19,7 +19,6 @@ import {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-  type IPFSConfig,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {

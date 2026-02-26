@@ -13,7 +13,6 @@ import {
   createStatement,
   publishDocument,
   uploadToIPFS,
-  type IPFSConfig,
   type DelegatableNotesContract,
   type PubstarterContract,
   DelegatableNotesAbi,
