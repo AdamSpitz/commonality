@@ -16,6 +16,9 @@ export default defineConfig([
         node: true,
         mocha: true,
       },
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
 ])

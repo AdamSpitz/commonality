@@ -17,22 +17,7 @@ import * as raw from 'multiformats/codecs/raw';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { Buffer } from 'buffer';
 import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../cid-types';
-
-// Safe environment variable access that works in both Node.js and browser
-function getEnvVar(name: string): string | undefined {
-  // Try Node.js process.env
-  const proc = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
-  if (proc?.env?.[name]) {
-    return proc.env[name];
-  }
-  // Try Vite's import.meta.env (available in browser builds)
-  // In Node.js ESM, import.meta exists but import.meta.env is undefined
-  const metaEnv = (import.meta as { env?: Record<string, string | undefined> }).env;
-  if (metaEnv?.[name]) {
-    return metaEnv[name];
-  }
-  return undefined;
-}
+import { getEnvVar } from '../utils/environment.js';
 
 // ============================================================================
 // Client Setup

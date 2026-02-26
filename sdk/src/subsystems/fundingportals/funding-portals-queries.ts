@@ -16,15 +16,15 @@ import {
   GetProjectTotalReceivedDocument,
   GetProjectDetailsDocument,
   GetParticipantSummariesDocument,
-} from '../generated/graphql.js';
+} from '../../generated/graphql.js';
 import {
   type AlignmentAttestation,
   type IndirectSubjectAlignment,
   type CauseFundingMetrics,
   type ContributorStats,
-} from '../shared/types/funding-portals.js';
-import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
-import { SDKMachinery } from '../machinery.js';
+} from './types.js';
+import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../../cid-types.js';
+import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
 // AlignmentAttestation Queries (Funding Portals)

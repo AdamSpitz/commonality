@@ -2,6 +2,7 @@
  * GraphQL queries for Conceptspace subsystem
  */
 
+import { fetchFromIPFS } from '../../actions/common.js';
 import { request } from 'graphql-request';
 import {
   GetStatementDocument,
@@ -16,17 +17,17 @@ import {
   GetAllStatementsDocument,
   GetUserBeliefsDocument,
   GetUserDisbeliefsDocument,
-} from '../generated/graphql.js';
+} from '../../generated/graphql.js';
 import {
   type Statement,
   type UserBelief,
   type IndirectSupporter,
   type StatementListItem,
   type BrowseStatementsOptions,
-} from '../shared/types/conceptspace.js';
-import { type DisplayableDocument } from '../displayable-document.js';
-import { IpfsCidV1, normalizeCidV1 } from '../cid-types.js';
-import { SDKMachinery } from '../machinery.js';
+} from './types.js';
+import { type DisplayableDocument } from '../../displayable-document.js';
+import { IpfsCidV1, normalizeCidV1 } from '../../cid-types.js';
+import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
 // Type Definitions
@@ -534,7 +535,6 @@ export async function getStatementWithContent(
 
   let content: DisplayableDocument | null = null;
   if (statement.cid) {
-    const { fetchFromIPFS } = await import('../actions/common.js');
     content = await fetchFromIPFS(statement.cid, timeout) as DisplayableDocument | null;
   }
 

@@ -5,12 +5,12 @@ export {
   type IndirectSupporter,
   type StatementListItem,
   type BrowseStatementsOptions,
-} from './conceptspace.js';
+} from '../../subsystems/conceptspace/types.js';
 
 export {
   type Note,
   type DelegationChainLink,
-} from './delegation.js';
+} from '../../subsystems/delegation/types.js';
 
 export {
   type Project,
@@ -25,7 +25,7 @@ export {
   type ProjectSortField,
   type SortDirection,
   type ProjectWithMetrics,
-} from './pubstarter.js';
+} from '../../subsystems/pubstarter/types.js';
 
 export {
   type AlignmentAttestation,
@@ -34,9 +34,9 @@ export {
   type IndirectProjectAlignment,
   type CauseFundingMetrics,
   type ContributorStats,
-} from './funding-portals.js';
+} from '../../subsystems/fundingportals/types.js';
 
 export {
   type MutableRef,
   type RefUpdate,
-} from './mutable-refs.js';
+} from '../../subsystems/mutable-refs/types.js';

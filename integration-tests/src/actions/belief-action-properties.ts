@@ -43,8 +43,6 @@ async function captureBeliefState(context: ActionContext): Promise<BeliefState> 
     throw new Error('userAddress is required in context.entities');
   }
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
-  // In practice, tests always pass GraphQLExecutor (from createGraphQLClient)
   const statement = await getStatement(machinery, statementCid);
   const userBelief = await getUserBelief(machinery, userAddress, statementCid);
 

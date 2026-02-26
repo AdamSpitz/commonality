@@ -8,13 +8,13 @@ import {
   GetNotesByOwnerDocument,
   GetNotesByRootDocument,
   GetDelegationChainDocument,
-} from '../generated/graphql.js';
+} from '../../generated/graphql.js';
 
 import {
   type Note,
   type DelegationChainLink,
-} from '../shared/types/delegation.js';
-import { SDKMachinery } from '../machinery.js';
+} from './types.js';
+import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
 // Delegation Queries

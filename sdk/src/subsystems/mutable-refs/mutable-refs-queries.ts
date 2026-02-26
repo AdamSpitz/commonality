@@ -8,13 +8,13 @@ import {
   GetUserRefsDocument,
   GetUserRefHistoryDocument,
   GetRefsByNameDocument,
-} from '../generated/graphql.js';
+} from '../../generated/graphql.js';
 
 import {
   type MutableRef,
   type RefUpdate,
-} from '../shared/types/mutable-refs.js';
-import { SDKMachinery } from '../machinery.js';
+} from './types.js';
+import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
 // Mutable Refs Queries

@@ -4,8 +4,8 @@
 
 import { INDEXER_SYNC } from './constants.js';
 import { SDKMachinery } from './machinery.js';
-import { query } from './utils/graphqlClient.js';
-import { getEnvVar } from './utils/index.js';
+import { getEnvVar } from './utils/environment.js';
+import { executeUntypedGraphQLQuery } from './utils/graphqlClient.js';
 
 /**
  * Wait for the indexer to sync to a specific block
@@ -31,7 +31,7 @@ export async function waitForIndexerToSyncToBlockNumber(
   const targetBlockNum = Number(targetBlock);
 
   // Support both old GraphQLClient and new GraphQLExecutor
-  const actualClient = machinery.graphqlClient;
+  const url = machinery.graphqlClient.url;
 
   let lastSeenBlock = 0;
   let stuckCount = 0;
@@ -51,12 +51,12 @@ export async function waitForIndexerToSyncToBlockNumber(
 
       // Ponder exposes indexing status via a meta query
       // The status is a JSON object with chain-specific block info
-      const result = await query<{
+      const result = await executeUntypedGraphQLQuery<{
         _meta: {
           status: Record<string, { block: { number: number } }>
         }
       }>(
-        actualClient,
+        url,
         `
           query {
             _meta {

@@ -9,9 +9,9 @@ export {
   type IndirectSupporter,
   type StatementListItem,
   type BrowseStatementsOptions,
-} from '../shared/types/conceptspace.js';
+} from '../subsystems/conceptspace/types.js';
 
-export * from './conceptspace-queries.js';
+export * from '../subsystems/conceptspace/conceptspace-queries.js';
 
 export {
   type Project,
@@ -26,7 +26,7 @@ export {
   type ProjectSortField,
   type SortDirection,
   type ProjectWithMetrics,
-} from '../shared/types/pubstarter.js';
+} from '../subsystems/pubstarter/types.js';
 
 // Pubstarter queries
 export {
@@ -51,12 +51,12 @@ export {
   getProjectsByFundingGoal,
   getProjectsByFundingProgress,
   getProjectsByAmountRaised,
-} from './pubstarter-queries.js';
+} from '../subsystems/pubstarter/pubstarter-queries.js';
 
 export {
   type Note,
   type DelegationChainLink,
-} from '../shared/types/delegation.js';
+} from '../subsystems/delegation/types.js';
 
 // Delegation queries
 export {
@@ -64,7 +64,7 @@ export {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
-} from './delegation-queries.js';
+} from '../subsystems/delegation/delegation-queries.js';
 
 export {
   type AlignmentAttestation,
@@ -73,7 +73,7 @@ export {
   type IndirectProjectAlignment,
   type CauseFundingMetrics,
   type ContributorStats,
-} from '../shared/types/funding-portals.js';
+} from '../subsystems/fundingportals/types.js';
 
 // Funding portals queries
 export {
@@ -92,12 +92,12 @@ export {
   getProjectStatements,
   getProjectAlignment,
   getIndirectlyAlignedProjects,
-} from './funding-portals-queries.js';
+} from '../subsystems/fundingportals/funding-portals-queries.js';
 
 export {
   type MutableRef,
   type RefUpdate,
-} from '../shared/types/mutable-refs.js';
+} from '../subsystems/mutable-refs/types.js';
 
 // Mutable refs queries
 export {
@@ -105,4 +105,4 @@ export {
   getUserRefs,
   getUserRefHistory,
   getRefsByName,
-} from './mutable-refs-queries.js';
+} from '../subsystems/mutable-refs/mutable-refs-queries.js';

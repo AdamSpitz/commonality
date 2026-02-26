@@ -4,7 +4,7 @@
 
 import { type Address, type Hash, type Abi } from 'viem';
 import { type TestClients, uploadToIPFS } from './common.js';
-import { getUserRef } from '../indexer-queries/mutable-refs-queries.js';
+import { getUserRef } from '../subsystems/mutable-refs/mutable-refs-queries.js';
 import { SDKMachinery } from '../machinery.js';
 import { IpfsCidV1 } from '../cid-types.js';
 

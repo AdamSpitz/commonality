@@ -10,15 +10,12 @@ export function createGraphQLClient(url = 'http://localhost:42069/graphql'): Gra
   return { url };
 }
 
-/**
- * Execute a GraphQL query
- */
-export async function query<T = unknown>(
-  client: GraphQLClient,
+export async function executeUntypedGraphQLQuery<T = unknown>(
+  url: string,
   queryString: string,
   variables?: Record<string, unknown>
 ): Promise<T> {
-  const response = await fetch(client.url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

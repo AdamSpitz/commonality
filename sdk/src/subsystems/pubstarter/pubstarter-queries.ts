@@ -20,7 +20,7 @@ import {
   GetTokenBurnsDocument,
   GetUserTokenBurnsDocument,
   GetTokenBurnsByUserDocument,
-} from '../generated/graphql.js';
+} from '../../generated/graphql.js';
 import {
   type Project,
   type ProjectToken,
@@ -34,8 +34,8 @@ import {
   type ProjectSortField,
   type SortDirection,
   type ProjectWithMetrics,
-} from '../shared/types/pubstarter.js';
-import { SDKMachinery } from '../machinery.js';
+} from './types.js';
+import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
 // Pubstarter Queries
