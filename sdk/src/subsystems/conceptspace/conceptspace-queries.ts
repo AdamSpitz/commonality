@@ -271,7 +271,6 @@ export async function getIndirectSupporters(
 
 /**
  * Get count of indirect supporters for a statement.
- * More efficient than getIndirectSupporters when you only need the count.
  */
 export async function getIndirectSupporterCount(
   machinery: SDKMachinery,
