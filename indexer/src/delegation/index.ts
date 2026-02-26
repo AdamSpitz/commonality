@@ -12,7 +12,9 @@ import {
   delegatableNotes,
   delegationChains,
   noteEvents,
+  noteIntentAttestations,
 } from "ponder:schema";
+import { IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
 
 /**
  * Helper to compute chain hash (matching Solidity logic)
@@ -477,4 +479,52 @@ ponder.on("DelegatableNotes:ERC1155Purchased", async ({ event, context }) => {
       },
     }
   );
+});
+
+// ============================================================================
+// NOTE INTENT EVENT HANDLERS
+// ============================================================================
+
+/**
+ * Handle NoteIntentAttested event
+ * Creates or updates a note intent attestation record.
+ * Re-attestation with a different statementId updates the existing record.
+ */
+ponder.on("NoteIntent:NoteIntentAttested", async ({ event, context }) => {
+  const { attester, noteContract, noteId, intendedStatementId } = event.args;
+  const timestamp = BigInt(event.block.timestamp);
+  const blockNumber = BigInt(event.block.number);
+
+  // Convert bytes32 to CIDv1 for storage
+  const intendedStatementIdCidV1 = bytes32ToCid(intendedStatementId as IpfsCidBytes32);
+
+  // Check if this attestation already exists (contract allows re-attestation)
+  const existing = await context.db.find(noteIntentAttestations, {
+    attester,
+    noteContract,
+    noteId,
+  });
+
+  if (!existing) {
+    await context.db.insert(noteIntentAttestations).values({
+      attester,
+      noteContract,
+      noteId,
+      intendedStatementId: intendedStatementIdCidV1,
+      createdAt: timestamp,
+      blockNumber,
+    });
+  } else {
+    // Update the intended statement if it changed
+    if (existing.intendedStatementId !== intendedStatementIdCidV1) {
+      await context.db.update(noteIntentAttestations, {
+        attester,
+        noteContract,
+        noteId,
+      }).set({
+        intendedStatementId: intendedStatementIdCidV1,
+        blockNumber,
+      });
+    }
+  }
 });

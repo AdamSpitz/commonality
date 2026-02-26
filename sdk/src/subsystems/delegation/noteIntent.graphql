@@ -1,0 +1,36 @@
+query GetNoteIntentAttestation($attester: String!, $noteContract: String!, $noteId: BigInt!) {
+  noteIntentAttestations(attester: $attester, noteContract: $noteContract, noteId: $noteId) {
+    attester
+    noteContract
+    noteId
+    intendedStatementId
+    createdAt
+    blockNumber
+  }
+}
+
+query GetNoteIntentAttestationsByNote($noteContract: String!, $noteId: BigInt!) {
+  noteIntentAttestationss(where: { noteContract: $noteContract, noteId: $noteId }) {
+    items {
+      attester
+      noteContract
+      noteId
+      intendedStatementId
+      createdAt
+      blockNumber
+    }
+  }
+}
+
+query GetNoteIntentAttestationsByStatement($intendedStatementId: String!) {
+  noteIntentAttestationss(where: { intendedStatementId: $intendedStatementId }) {
+    items {
+      attester
+      noteContract
+      noteId
+      intendedStatementId
+      createdAt
+      blockNumber
+    }
+  }
+}

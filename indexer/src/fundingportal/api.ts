@@ -244,11 +244,26 @@ app.get("/api/available-funding/:statementId", async (c) => {
     }
 
   // Step 1: Get direct funding (notes intended for this statement)
-  // TODO: Re-implement using NoteIntent attestations
-  // intendedStatementId has been removed from DelegatableNotes and moved to NoteIntent contract
-  const directNotes: any[] = [];
+  const directIntentAttestations = await db
+    .select({ noteId: schema.noteIntentAttestations.noteId })
+    .from(schema.noteIntentAttestations)
+    .where(eq(schema.noteIntentAttestations.intendedStatementId, statementId));
 
-  // Step 2: Find schema.statements that imply this statement
+  const directNoteIds = directIntentAttestations.map((a: { noteId: bigint }) => a.noteId);
+  let directNotes: any[] = [];
+  if (directNoteIds.length > 0) {
+    directNotes = await db
+      .select()
+      .from(schema.delegatableNotes)
+      .where(
+        and(
+          inArray(schema.delegatableNotes.id, directNoteIds),
+          eq(schema.delegatableNotes.active, true)
+        )
+      );
+  }
+
+  // Step 2: Find statements that imply this statement
   const implyingStatements = await db
     .select({ fromStatementCid: schema.implications.fromStatementCid })
     .from(schema.implications)
@@ -259,12 +274,32 @@ app.get("/api/available-funding/:statementId", async (c) => {
       )
     );
 
-  // TODO: Why is this unused?
   const implyingIds = [...new Set(implyingStatements.map((s: { fromStatementCid: IpfsCidV1 }) => s.fromStatementCid))];
 
-  // Step 3: Get indirect funding (notes intended for implying schema.statements)
-  // TODO: Re-implement using NoteIntent attestations
-  const indirectNotes: any[] = [];
+  // Step 3: Get indirect funding (notes intended for implying statements)
+  let indirectNotes: any[] = [];
+  if (implyingIds.length > 0) {
+    const indirectIntentAttestations = await db
+      .select({ noteId: schema.noteIntentAttestations.noteId })
+      .from(schema.noteIntentAttestations)
+      .where(inArray(schema.noteIntentAttestations.intendedStatementId, implyingIds));
+
+    const indirectNoteIds = indirectIntentAttestations
+      .map((a: { noteId: bigint }) => a.noteId)
+      .filter((id: bigint) => !directNoteIds.includes(id)); // Avoid double-counting
+
+    if (indirectNoteIds.length > 0) {
+      indirectNotes = await db
+        .select()
+        .from(schema.delegatableNotes)
+        .where(
+          and(
+            inArray(schema.delegatableNotes.id, indirectNoteIds),
+            eq(schema.delegatableNotes.active, true)
+          )
+        );
+    }
+  }
 
   // Step 4: Calculate totals
   let directFunding = 0n;

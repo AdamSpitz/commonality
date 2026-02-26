@@ -3,6 +3,21 @@
 
 export const ImplicationsAbi = [
   {
+    "inputs": [],
+    "name": "ArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidStatementID",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "StatementCannotImplyItself",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -31,6 +46,31 @@ export const ImplicationsAbi = [
       }
     ],
     "name": "ImplicationAttestation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ImplicationRevoked",
     "type": "event"
   },
   {
@@ -193,6 +233,24 @@ export const ImplicationsAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "removeAttestation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ] as const;

@@ -3,6 +3,26 @@
 
 export const AlignmentAttestationsAbi = [
   {
+    "inputs": [],
+    "name": "ArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidStatementId",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidSubjectAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidTopicStatementId",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -31,6 +51,31 @@ export const AlignmentAttestationsAbi = [
       }
     ],
     "name": "AlignmentAttestation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "subjectAddress",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "statementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "AlignmentRevoked",
     "type": "event"
   },
   {
@@ -145,6 +190,29 @@ export const AlignmentAttestationsAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "subjectAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "statementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "removeAttestation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ] as const;

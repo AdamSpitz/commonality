@@ -8,10 +8,14 @@ import {
   GetNotesByOwnerDocument,
   GetNotesByRootDocument,
   GetDelegationChainDocument,
+  GetNoteIntentAttestationDocument,
+  GetNoteIntentAttestationsByNoteDocument,
+  GetNoteIntentAttestationsByStatementDocument,
 } from '../../generated/graphql.js';
 
 import {
   type Note,
+  type NoteIntentAttestation,
   type DelegationChainLink,
 } from './types.js';
 import { SDKMachinery } from '../../machinery.js';
@@ -74,4 +78,53 @@ export async function getDelegationChain(
   });
   // BigInt fields (createdAt) come as strings at runtime
   return (result.delegationChainss?.items ?? []) as unknown as DelegationChainLink[];
+}
+
+// ============================================================================
+// Note Intent Queries
+// ============================================================================
+
+/**
+ * Get a specific note intent attestation by attester + noteContract + noteId
+ */
+export async function getNoteIntentAttestation(
+  machinery: SDKMachinery,
+  attester: string,
+  noteContract: string,
+  noteId: string
+): Promise<NoteIntentAttestation | null> {
+  const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationDocument, {
+    attester: attester.toLowerCase(),
+    noteContract: noteContract.toLowerCase(),
+    noteId: noteId as unknown as bigint,
+  });
+  return result.noteIntentAttestations as unknown as NoteIntentAttestation | null;
+}
+
+/**
+ * Get all note intent attestations for a specific note (across all attesters)
+ */
+export async function getNoteIntentAttestationsByNote(
+  machinery: SDKMachinery,
+  noteContract: string,
+  noteId: string
+): Promise<NoteIntentAttestation[]> {
+  const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationsByNoteDocument, {
+    noteContract: noteContract.toLowerCase(),
+    noteId: noteId as unknown as bigint,
+  });
+  return (result.noteIntentAttestationss?.items ?? []) as unknown as NoteIntentAttestation[];
+}
+
+/**
+ * Get all note intent attestations for a specific statement
+ */
+export async function getNoteIntentAttestationsByStatement(
+  machinery: SDKMachinery,
+  intendedStatementId: string
+): Promise<NoteIntentAttestation[]> {
+  const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationsByStatementDocument, {
+    intendedStatementId,
+  });
+  return (result.noteIntentAttestationss?.items ?? []) as unknown as NoteIntentAttestation[];
 }

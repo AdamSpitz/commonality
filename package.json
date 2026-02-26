@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint-precommit": "npm run lint --workspace hardhat",
     "lint": "npm run lint --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
     "build": "npm run build --workspaces --if-present && npm run ui:build",

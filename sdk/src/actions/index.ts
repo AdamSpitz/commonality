@@ -57,6 +57,13 @@ export {
   type DelegatableNotesContract,
 } from './delegation-actions.js';
 
+// Note intent actions
+export {
+  attestNoteIntent,
+  attestNoteIntentsBatch,
+  type NoteIntentContract,
+} from './note-intent-actions.js';
+
 // Funding portals actions
 export {
   attestAlignment,

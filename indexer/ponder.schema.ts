@@ -50,9 +50,11 @@ export {
   delegatableNotes,
   delegationChains,
   noteEvents,
+  noteIntentAttestations,
   delegatableNotesRelations,
   delegationChainsRelations,
   noteEventsRelations,
+  noteIntentAttestationsRelations,
 } from "./schemas/delegation.schema";
 
 // Import and re-export Funding Portal schema

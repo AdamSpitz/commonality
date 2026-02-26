@@ -115,6 +115,35 @@ export const noteEvents = onchainTable(
   })
 );
 
+/**
+ * Note intent attestations - tracks which statement a note is intended for
+ * Created when NoteIntentAttested event is emitted from the NoteIntent contract.
+ * Re-attestation updates the intendedStatementId (upsert behavior).
+ */
+export const noteIntentAttestations = onchainTable(
+  "delegation_note_intent_attestations",
+  (t) => ({
+    // Composite key: attester + noteContract + noteId
+    attester: t.hex().notNull(),
+    noteContract: t.hex().notNull(),
+    noteId: t.bigint().notNull(),
+    // IPFS CIDv1 of the intended statement
+    intendedStatementId: t.text().notNull(),
+    // Timestamps
+    createdAt: t.bigint().notNull(),
+    blockNumber: t.bigint().notNull(),
+  }),
+  (table) => ({
+    pk: primaryKey({ columns: [table.attester, table.noteContract, table.noteId] }),
+    // Index for finding all intents for a specific note
+    noteIdx: index().on(table.noteContract, table.noteId),
+    // Index for finding all notes intended for a specific statement
+    statementIdx: index().on(table.intendedStatementId),
+    // Index for finding all attestations by an attester
+    attesterIdx: index().on(table.attester),
+  })
+);
+
 // Delegation Relations
 
 export const delegatableNotesRelations = relations(delegatableNotes, ({ many, one }) => ({
@@ -139,3 +168,5 @@ export const noteEventsRelations = relations(noteEvents, ({ one }) => ({
     references: [delegatableNotes.id],
   }),
 }));
+
+export const noteIntentAttestationsRelations = relations(noteIntentAttestations, ({}) => ({}));

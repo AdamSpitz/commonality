@@ -25,6 +25,7 @@ const CONTRACTS_TO_SYNC = {
   Beliefs: "statements/Beliefs.sol/Beliefs.json",
   Implications: "statements/Implications.sol/Implications.json",
   AlignmentAttestations: "alignment-attestations/AlignmentAttestations.sol/AlignmentAttestations.json",
+  NoteIntent: "delegation/NoteIntent.sol/NoteIntent.json",
   // Add more contracts as needed:
   // AssuranceContract: "individual-projects/AssuranceContract.sol/AssuranceContract.json",
   // DelegatableNotes: "delegation/DelegatableNotes.sol/DelegatableNotes.json",

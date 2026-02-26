@@ -55,6 +55,7 @@ export {
 
 export {
   type Note,
+  type NoteIntentAttestation,
   type DelegationChainLink,
 } from '../subsystems/delegation/types.js';
 
@@ -64,6 +65,9 @@ export {
   getNotesByOwner,
   getNotesByRoot,
   getDelegationChain,
+  getNoteIntentAttestation,
+  getNoteIntentAttestationsByNote,
+  getNoteIntentAttestationsByStatement,
 } from '../subsystems/delegation/delegation-queries.js';
 
 export {

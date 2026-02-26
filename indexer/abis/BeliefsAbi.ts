@@ -3,6 +3,16 @@
 
 export const BeliefsAbi = [
   {
+    "inputs": [],
+    "name": "ArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidBeliefState",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {

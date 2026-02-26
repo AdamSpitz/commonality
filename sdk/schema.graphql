@@ -56,6 +56,8 @@ type Query {
   delegationChainss(where: delegationChainsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): delegationChainsPage!
   noteEvents(id: String!): noteEvents
   noteEventss(where: noteEventsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): noteEventsPage!
+  noteIntentAttestations(attester: String!, noteContract: String!, noteId: BigInt!): noteIntentAttestations
+  noteIntentAttestationss(where: noteIntentAttestationsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): noteIntentAttestationsPage!
   alignmentAttestations(attester: String!, subjectAddress: String!, statementId: String!): alignmentAttestations
   alignmentAttestationss(where: alignmentAttestationsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): alignmentAttestationsPage!
   mutableRefs(owner: String!, name: String!): mutableRefs
@@ -1772,6 +1774,80 @@ input alignmentAttestationsFilter {
   statementId_ends_with: String
   statementId_not_starts_with: String
   statementId_not_ends_with: String
+  createdAt: BigInt
+  createdAt_not: BigInt
+  createdAt_in: [BigInt]
+  createdAt_not_in: [BigInt]
+  createdAt_gt: BigInt
+  createdAt_lt: BigInt
+  createdAt_gte: BigInt
+  createdAt_lte: BigInt
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_in: [BigInt]
+  blockNumber_not_in: [BigInt]
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+}
+
+type noteIntentAttestations {
+  attester: String!
+  noteContract: String!
+  noteId: BigInt!
+  intendedStatementId: String!
+  createdAt: BigInt!
+  blockNumber: BigInt!
+}
+
+type noteIntentAttestationsPage {
+  items: [noteIntentAttestations!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input noteIntentAttestationsFilter {
+  AND: [noteIntentAttestationsFilter]
+  OR: [noteIntentAttestationsFilter]
+  attester: String
+  attester_not: String
+  attester_in: [String]
+  attester_not_in: [String]
+  attester_contains: String
+  attester_not_contains: String
+  attester_starts_with: String
+  attester_ends_with: String
+  attester_not_starts_with: String
+  attester_not_ends_with: String
+  noteContract: String
+  noteContract_not: String
+  noteContract_in: [String]
+  noteContract_not_in: [String]
+  noteContract_contains: String
+  noteContract_not_contains: String
+  noteContract_starts_with: String
+  noteContract_ends_with: String
+  noteContract_not_starts_with: String
+  noteContract_not_ends_with: String
+  noteId: BigInt
+  noteId_not: BigInt
+  noteId_in: [BigInt]
+  noteId_not_in: [BigInt]
+  noteId_gt: BigInt
+  noteId_lt: BigInt
+  noteId_gte: BigInt
+  noteId_lte: BigInt
+  intendedStatementId: String
+  intendedStatementId_not: String
+  intendedStatementId_in: [String]
+  intendedStatementId_not_in: [String]
+  intendedStatementId_contains: String
+  intendedStatementId_not_contains: String
+  intendedStatementId_starts_with: String
+  intendedStatementId_ends_with: String
+  intendedStatementId_not_starts_with: String
+  intendedStatementId_not_ends_with: String
   createdAt: BigInt
   createdAt_not: BigInt
   createdAt_in: [BigInt]

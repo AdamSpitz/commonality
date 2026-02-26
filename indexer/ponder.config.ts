@@ -17,6 +17,7 @@ import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
 // Delegation ABIs
 import { DelegatableNotesAbi } from "./abis/DelegatableNotesAbi";
+import { NoteIntentAbi } from "./abis/NoteIntentAbi";
 
 // Funding Portal ABIs
 import { AlignmentAttestationsAbi } from "./abis/AlignmentAttestationsAbi";
@@ -42,6 +43,7 @@ const MARKETPLACE_FACTORY_ADDRESS = (process.env.MARKETPLACE_FACTORY_ADDRESS && 
 // DELEGATION CONTRACT ADDRESSES
 // ============================================================================
 const DELEGATABLE_NOTES_ADDRESS = (process.env.DELEGATABLE_NOTES_ADDRESS && process.env.DELEGATABLE_NOTES_ADDRESS !== '') ? process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}` : undefined;
+const NOTE_INTENT_ADDRESS = (process.env.NOTE_INTENT_ADDRESS && process.env.NOTE_INTENT_ADDRESS !== '') ? process.env.NOTE_INTENT_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
 // FUNDING PORTAL CONTRACT ADDRESSES
@@ -178,6 +180,13 @@ export default createConfig({
       abi: DelegatableNotesAbi,
       chain: "hardhat",
       address: DELEGATABLE_NOTES_ADDRESS,
+      startBlock: DELEGATION_START_BLOCK,
+    },
+
+    NoteIntent: {
+      abi: NoteIntentAbi,
+      chain: "hardhat",
+      address: NOTE_INTENT_ADDRESS,
       startBlock: DELEGATION_START_BLOCK,
     },
 

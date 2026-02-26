@@ -15,6 +15,15 @@ export interface Note {
   updatedAt: string;
 }
 
+export interface NoteIntentAttestation {
+  attester: string;
+  noteContract: string;
+  noteId: string;
+  intendedStatementId: string;
+  createdAt: string;
+  blockNumber: string;
+}
+
 export interface DelegationChainLink {
   address: string;
   position: number; // 0 = root, higher numbers = closer to leaf

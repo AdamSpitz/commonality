@@ -20,7 +20,7 @@
 
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
-import { eq, and, asc } from "ponder";
+import { eq, and, asc, inArray } from "ponder";
 import {
   parseBigIntSafe,
   isValidAddress,
@@ -240,10 +240,29 @@ app.get("/api/available-funding/:statementId", async (c) => {
       return c.json(invalidInputError("token", "Must be a valid Ethereum address"), 400);
     }
 
-    // TODO: Re-implement using NoteIntent attestations
-    // intendedStatementId has been removed from DelegatableNotes and moved to NoteIntent contract
-    // For now, we return empty results until NoteIntent indexing is implemented
-    const notes: any[] = [];
+    // Find all note intent attestations for this statement
+    const intentAttestations = await db
+      .select({
+        noteId: schema.noteIntentAttestations.noteId,
+        noteContract: schema.noteIntentAttestations.noteContract,
+      })
+      .from(schema.noteIntentAttestations)
+      .where(eq(schema.noteIntentAttestations.intendedStatementId, statementId));
+
+    // Get the actual notes for those attestations (only active notes)
+    const noteIds = intentAttestations.map((a: { noteId: bigint }) => a.noteId);
+    let notes: any[] = [];
+    if (noteIds.length > 0) {
+      notes = await db
+        .select()
+        .from(schema.delegatableNotes)
+        .where(
+          and(
+            inArray(schema.delegatableNotes.id, noteIds),
+            eq(schema.delegatableNotes.active, true)
+          )
+        );
+    }
 
     // Filter by token type if specified
     let filteredNotes = notes;

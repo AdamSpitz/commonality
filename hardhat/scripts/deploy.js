@@ -48,6 +48,14 @@ async function main() {
   const alignmentAttestationsAddress = await alignmentAttestations.getAddress();
   console.log(`✓ AlignmentAttestations: ${alignmentAttestationsAddress}`);
 
+  // Deploy NoteIntent contract
+  console.log('Deploying NoteIntent...');
+  const NoteIntent = await ethers.getContractFactory('NoteIntent');
+  const noteIntent = await NoteIntent.deploy();
+  await noteIntent.waitForDeployment();
+  const noteIntentAddress = await noteIntent.getAddress();
+  console.log(`✓ NoteIntent: ${noteIntentAddress}`);
+
   // Deploy MutableRefUpdater contract
   console.log('Deploying MutableRefUpdater...');
   const MutableRefUpdater = await ethers.getContractFactory('MutableRefUpdater');
@@ -118,6 +126,7 @@ async function main() {
         Beliefs: beliefsAddress,
         Implications: implicationsAddress,
         AlignmentAttestations: alignmentAttestationsAddress,
+        NoteIntent: noteIntentAddress,
         DelegatableNotes: delegatableNotesAddress,
         MutableRefUpdater: mutableRefUpdaterAddress,
         FreeERC1155Factory: freeERC1155FactoryAddress,
@@ -144,6 +153,7 @@ async function main() {
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
     'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS': alignmentAttestationsAddress,
     'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,
+    'NOTE_INTENT_ADDRESS': noteIntentAddress,
     'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
     'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
     'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
@@ -237,6 +247,7 @@ async function main() {
   console.log(`  Beliefs:                 ${beliefsAddress}`);
   console.log(`  Implications:            ${implicationsAddress}`);
   console.log(`  AlignmentAttestations:   ${alignmentAttestationsAddress}`);
+  console.log(`  NoteIntent:              ${noteIntentAddress}`);
   console.log(`  DelegatableNotes:        ${delegatableNotesAddress}`);
   console.log(`  MutableRefUpdater:       ${mutableRefUpdaterAddress}`);
   console.log(`  FreeERC1155Factory:      ${freeERC1155FactoryAddress}`);
