@@ -87,6 +87,11 @@ export const AlignmentAttestationsAbi = [
         "type": "address"
       },
       {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -114,6 +119,11 @@ export const AlignmentAttestationsAbi = [
         "internalType": "address",
         "name": "attester",
         "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
       },
       {
         "internalType": "address",

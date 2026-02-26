@@ -46,8 +46,8 @@ contract AlignmentAttestations {
     );
 
     // Mapping to track if an alignment has been attested by a specific attester
-    // attester => subjectAddress => statementId => exists
-    mapping(address => mapping(address => mapping(bytes32 => bool)))
+    // attester => topicStatementId => subjectAddress => statementId => exists
+    mapping(address => mapping(bytes32 => mapping(address => mapping(bytes32 => bool))))
         public attestations;
 
     /**
@@ -64,7 +64,7 @@ contract AlignmentAttestations {
         if (statementId == bytes32(0)) revert InvalidStatementId();
         if (topicStatementId == bytes32(0)) revert InvalidTopicStatementId();
 
-        attestations[msg.sender][subjectAddress][statementId] = true;
+        attestations[msg.sender][topicStatementId][subjectAddress][statementId] = true;
 
         emit AlignmentAttestation(msg.sender, subjectAddress, statementId, topicStatementId);
     }
@@ -92,7 +92,7 @@ contract AlignmentAttestations {
             if (statementId == bytes32(0)) revert InvalidStatementId();
             if (topicStatementId == bytes32(0)) revert InvalidTopicStatementId();
 
-            attestations[msg.sender][subjectAddress][statementId] = true;
+            attestations[msg.sender][topicStatementId][subjectAddress][statementId] = true;
 
             emit AlignmentAttestation(msg.sender, subjectAddress, statementId, topicStatementId);
         }
@@ -102,12 +102,14 @@ contract AlignmentAttestations {
      * @notice Retract a previously made alignment attestation
      * @param subjectAddress The address of the subject
      * @param statementId The IPFS CID of the statement
+     * @param topicStatementId The IPFS CID of the topic used when attesting
      */
     function removeAttestation(
         address subjectAddress,
-        bytes32 statementId
+        bytes32 statementId,
+        bytes32 topicStatementId
     ) external {
-        attestations[msg.sender][subjectAddress][statementId] = false;
+        attestations[msg.sender][topicStatementId][subjectAddress][statementId] = false;
 
         emit AlignmentRevoked(msg.sender, subjectAddress, statementId);
     }
@@ -115,15 +117,17 @@ contract AlignmentAttestations {
     /**
      * @notice Check if an attester has attested an alignment
      * @param attester The address of the attester
+     * @param topicStatementId The IPFS CID of the topic
      * @param subjectAddress The subject address
      * @param statementId The statement IPFS CID
      * @return Whether the attestation exists
      */
     function hasAttestation(
         address attester,
+        bytes32 topicStatementId,
         address subjectAddress,
         bytes32 statementId
     ) external view returns (bool) {
-        return attestations[attester][subjectAddress][statementId];
+        return attestations[attester][topicStatementId][subjectAddress][statementId];
     }
 }

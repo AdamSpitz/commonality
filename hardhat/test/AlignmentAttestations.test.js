@@ -32,6 +32,7 @@ describe("AlignmentAttestations", function () {
 
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
+        topicId,
         subjectAddress1,
         statementId
       );
@@ -90,6 +91,7 @@ describe("AlignmentAttestations", function () {
 
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
+        topicId,
         subjectAddress1,
         statementId
       );
@@ -107,11 +109,13 @@ describe("AlignmentAttestations", function () {
 
       const aliceHas = await alignmentAttestations.hasAttestation(
         alice.address,
+        topicId,
         subjectAddress1,
         statementId
       );
       const bobHas = await alignmentAttestations.hasAttestation(
         bob.address,
+        topicId,
         subjectAddress1,
         statementId
       );
@@ -132,11 +136,13 @@ describe("AlignmentAttestations", function () {
 
       const aliceHas = await alignmentAttestations.hasAttestation(
         alice.address,
+        topicId,
         subjectAddress1,
         statementId
       );
       const bobHas = await alignmentAttestations.hasAttestation(
         bob.address,
+        topicId,
         subjectAddress1,
         statementId
       );
@@ -165,6 +171,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           climate
         )
@@ -172,6 +179,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           poverty
         )
@@ -179,6 +187,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           education
         )
@@ -201,6 +210,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           climate
         )
@@ -208,6 +218,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress2,
           climate
         )
@@ -215,6 +226,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress3,
           climate
         )
@@ -239,6 +251,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           climate
         )
@@ -246,6 +259,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress2,
           poverty
         )
@@ -255,6 +269,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           poverty
         )
@@ -262,6 +277,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress2,
           climate
         )
@@ -286,6 +302,7 @@ describe("AlignmentAttestations", function () {
       for (let i = 0; i < subjects.length; i++) {
         const hasAttestation = await alignmentAttestations.hasAttestation(
           alice.address,
+          topics[i],
           subjects[i],
           statements[i]
         );
@@ -412,6 +429,7 @@ describe("AlignmentAttestations", function () {
 
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
+        topicId,
         subjectAddress1,
         statementId
       );
@@ -428,6 +446,7 @@ describe("AlignmentAttestations", function () {
 
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
+        topicId,
         await alignmentAttestations.getAddress(),
         statementId
       );
@@ -445,6 +464,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           stmt1
         )
@@ -452,6 +472,7 @@ describe("AlignmentAttestations", function () {
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
+          topicId,
           subjectAddress1,
           stmt2
         )
@@ -482,13 +503,21 @@ describe("AlignmentAttestations", function () {
         .to.emit(alignmentAttestations, "AlignmentAttestation")
         .withArgs(alice.address, subjectAddress1, statementId, topic2);
 
-      // The attestation mapping only tracks subject-statement pair, not topic
-      const hasAttestation = await alignmentAttestations.hasAttestation(
+      // The attestation mapping tracks per topic; both topic1 and topic2 have the attestation
+      const hasAttestation1 = await alignmentAttestations.hasAttestation(
         alice.address,
+        topic1,
         subjectAddress1,
         statementId
       );
-      expect(hasAttestation).to.equal(true);
+      const hasAttestation2 = await alignmentAttestations.hasAttestation(
+        alice.address,
+        topic2,
+        subjectAddress1,
+        statementId
+      );
+      expect(hasAttestation1).to.equal(true);
+      expect(hasAttestation2).to.equal(true);
     });
   });
 });
