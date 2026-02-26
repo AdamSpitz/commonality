@@ -3,7 +3,6 @@ export * from './shared/types/index.js';
 export * from './indexer-queries/index.js';
 export * from './machinery.js';
 export * from './indexer-sync.js';
-export { assertNotNull } from './utils/index.js';
 export { TEST_TIMEOUTS, INDEXER_SYNC, TEST_PRIVATE_KEYS } from './constants.js';
 export * from './abis.js';
 export * from './cid-types.js';

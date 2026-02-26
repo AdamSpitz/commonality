@@ -16,7 +16,6 @@ import {
   createStatement,
   publishDocument,
   type BeliefsContract,
-  assertNotNull,
   BeliefsAbi,
   fakeIpfsCidV1,
 } from '@commonality/sdk';
@@ -159,7 +158,7 @@ describe('Conceptspace Beliefs', () => {
     testLog('  Fetching statement with getStatementWithContent (basic)...');
     const result = await getStatementWithContent(machinery, statementCid);
 
-    assertNotNull(result, 'Statement result');
+    assert.ok(result, 'Statement result');
     assert.strictEqual(result!.statement.cid, statementCid, 'Statement CID should match');
     // Note: CID format may differ (bafybe vs bafkre) but both represent the same content hash
     assert.ok(result!.statement.cid, 'Statement should have a CID');
@@ -181,8 +180,8 @@ describe('Conceptspace Beliefs', () => {
       includeMetrics: true
     });
 
-    assertNotNull(resultWithMetrics, 'Statement result with metrics');
-    assertNotNull(resultWithMetrics!.metrics, 'Metrics');
+    assert.ok(resultWithMetrics, 'Statement result with metrics');
+    assert.ok(resultWithMetrics!.metrics, 'Metrics');
     assert.strictEqual(resultWithMetrics!.metrics!.directBelievers, 1, 'Should have 1 direct believer');
     assert.strictEqual(resultWithMetrics!.metrics!.directDisbelievers, 0, 'Should have 0 disbelievers');
     assert.strictEqual(resultWithMetrics!.metrics!.indirectSupporters, 0, 'Should have 0 indirect supporters');

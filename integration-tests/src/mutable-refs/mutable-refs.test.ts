@@ -13,7 +13,6 @@ import {
   uploadToIPFS,
   type MutableRefUpdaterContract,
   getRef,
-  assertNotNull,
   MutableRefUpdaterAbi,
   fakeIpfsCidV1,
   isValidCidV1,
@@ -66,7 +65,7 @@ describe('Mutable Refs', () => {
 
     // Additional verification: Query from indexer
     const ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Ref from indexer');
+    assert.ok(ref, 'Ref from indexer');
     assert.strictEqual(ref.value, refValue, 'Ref value should match');
     assert.strictEqual(ref.name, refName, 'Ref name should match');
     assert.strictEqual(ref.owner.toLowerCase(), clients.account.toLowerCase(), 'Ref owner should match');
@@ -98,7 +97,7 @@ describe('Mutable Refs', () => {
 
     // Current value should be the latest
     const ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Current ref');
+    assert.ok(ref, 'Current ref');
     assert.strictEqual(ref.value, value3, 'Current value should be value3');
 
     // History should show all three updates
@@ -140,9 +139,9 @@ describe('Mutable Refs', () => {
     const ref1 = await getUserRef(machinery, clients1.account, refName);
     const ref2 = await getUserRef(machinery, clients2.account, refName);
     const ref3 = await getUserRef(machinery, clients3.account, refName);
-    assertNotNull(ref1, 'User 1 ref');
-    assertNotNull(ref2, 'User 2 ref');
-    assertNotNull(ref3, 'User 3 ref');
+    assert.ok(ref1, 'User 1 ref');
+    assert.ok(ref2, 'User 2 ref');
+    assert.ok(ref3, 'User 3 ref');
 
     assert.strictEqual(ref1.value, value1, 'User 1 should have value1');
     assert.strictEqual(ref2.value, value2, 'User 2 should have value2');
@@ -197,13 +196,13 @@ describe('Mutable Refs', () => {
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, fakeIpfsCidV1('SomeValue'));
 
     let ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Non-empty ref');
+    assert.ok(ref, 'Non-empty ref');
     assert.strictEqual(ref.value, fakeIpfsCidV1('SomeValue'), 'Should have non-empty value');
 
     testLog('  Clearing ref (empty string)...');
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, '');
     ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Empty ref');
+    assert.ok(ref, 'Empty ref');
     assert.strictEqual(ref.value, '', 'Should have empty value');
 
     testLog('  ✓ Empty string values handled correctly (verified by property checks)');
@@ -225,7 +224,7 @@ describe('Mutable Refs', () => {
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, cid1);
 
     let ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'First ref');
+    assert.ok(ref, 'First ref');
     assert.strictEqual(ref.value, cid1, 'Should point to first statement');
 
     // User creates more statements - update ref to point to a list
@@ -245,7 +244,7 @@ describe('Mutable Refs', () => {
     await updateRefChecked(clients, mutableRefUpdaterContract, machinery, refName, listCid);
 
     ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Updated ref');
+    assert.ok(ref, 'Updated ref');
     assert.strictEqual(ref.value, listCid, 'Should point to statement list');
 
     // History should show the evolution
@@ -297,7 +296,7 @@ describe('Mutable Refs', () => {
 
     // Verify first statement was added (ref value is now a CID pointing to the list)
     let ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'First ref');
+    assert.ok(ref, 'First ref');
     const firstListCid = ref.value;
     assert.ok(isValidCidV1(firstListCid), 'Should have valid CID after first statement');
 
@@ -306,7 +305,7 @@ describe('Mutable Refs', () => {
 
     // Verify second statement was added (CID should change)
     ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Second ref');
+    assert.ok(ref, 'Second ref');
     const secondListCid = ref.value;
     assert.ok(isValidCidV1(secondListCid), 'Should have valid CID after second statement');
     assert.notStrictEqual(secondListCid, firstListCid, 'CID should change when adding second statement');
@@ -316,7 +315,7 @@ describe('Mutable Refs', () => {
 
     // Verify third statement was added (CID should change again)
     ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Third ref');
+    assert.ok(ref, 'Third ref');
     const thirdListCid = ref.value;
     assert.ok(isValidCidV1(thirdListCid), 'Should have valid CID after third statement');
     assert.notStrictEqual(thirdListCid, secondListCid, 'CID should change when adding third statement');
@@ -348,7 +347,7 @@ describe('Mutable Refs', () => {
 
     // Verify the format was migrated (CID should change from old single-CID format to new list format)
     const ref = await getUserRef(machinery, clients.account, refName);
-    assertNotNull(ref, 'Migrated ref');
+    assert.ok(ref, 'Migrated ref');
     const migratedListCid = ref.value;
     assert.ok(isValidCidV1(migratedListCid), 'Should have valid CID after migration');
     assert.notStrictEqual(migratedListCid, oldFormatCid, 'CID should change after migration to list format');

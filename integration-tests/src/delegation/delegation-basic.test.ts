@@ -14,7 +14,6 @@ import {
   createStatement,
   publishDocument,
   type DelegatableNotesContract,
-  assertNotNull,
   DelegatableNotesAbi,
 } from '@commonality/sdk';
 import {
@@ -78,7 +77,7 @@ describe('Delegation System', () => {
     );
 
     const noteOrNull = await getNote(machinery, noteId.toString());
-    assertNotNull(noteOrNull, 'Note');
+    assert.ok(noteOrNull, 'Note');
     const note = noteOrNull!;
 
     assert.strictEqual(note.amount, depositAmount.toString(), 'Note amount should match deposit');
@@ -125,7 +124,7 @@ describe('Delegation System', () => {
 
     // Query the delegated note
     const delegatedNote = await getNote(machinery, delegatedNoteId.toString());
-    assertNotNull(delegatedNote, 'Delegated note');
+    assert.ok(delegatedNote, 'Delegated note');
 
     assert.strictEqual(delegatedNote!.amount, depositAmount.toString(), 'Delegated note should have full amount');
     assert.strictEqual(delegatedNote!.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be user2');
@@ -179,13 +178,13 @@ describe('Delegation System', () => {
 
     // Check delegated note (should have 3 ETH, owned by user2)
     const delegatedNote = await getNote(machinery, delegatedNoteId.toString());
-    assertNotNull(delegatedNote, 'Delegated note');
+    assert.ok(delegatedNote, 'Delegated note');
     assert.strictEqual(delegatedNote!.amount, delegateAmount.toString(), 'Delegated note should have 3 ETH');
     assert.strictEqual(delegatedNote!.owner.toLowerCase(), user2.account.toLowerCase(), 'Delegated note owner should be user2');
 
     // Check remainder note (should have 7 ETH, still owned by user1)
     const remainderNote = await getNote(machinery, remainderNoteId.toString());
-    assertNotNull(remainderNote, 'Remainder note');
+    assert.ok(remainderNote, 'Remainder note');
     const expectedRemainder = depositAmount - delegateAmount;
     assert.strictEqual(remainderNote!.amount, expectedRemainder.toString(), 'Remainder note should have 7 ETH');
     assert.strictEqual(remainderNote!.owner.toLowerCase(), user1.account.toLowerCase(), 'Remainder note owner should still be user1');
@@ -241,7 +240,7 @@ describe('Delegation System', () => {
 
     // Check final note
     const finalNote = await getNote(machinery, note3.toString());
-    assertNotNull(finalNote, 'Final note');
+    assert.ok(finalNote, 'Final note');
     assert.strictEqual(finalNote!.owner.toLowerCase(), user3.account.toLowerCase(), 'Final owner should be user3');
     assert.strictEqual(finalNote!.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should still be user1');
 
@@ -310,7 +309,7 @@ describe('Delegation System', () => {
 
     // Check that the note is now owned by user2 again
     const revokedNote = await getNote(machinery, note3.toString());
-    assertNotNull(revokedNote, 'Revoked note');
+    assert.ok(revokedNote, 'Revoked note');
     assert.strictEqual(revokedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be user2 after revocation');
 
     // Check delegation chain (should be 2 deep after revocation: user1 -> user2)

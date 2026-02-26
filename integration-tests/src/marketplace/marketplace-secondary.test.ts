@@ -20,7 +20,6 @@ import {
   fulfillBuyOrder,
   cancelBuyOrder,
   approveERC1155ForMarketplace,
-  assertNotNull,
   waitForIndexerToSyncToTxHash,
   type PubstarterContract,
   type AssuranceContract,
@@ -150,7 +149,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     // Query the listing from indexer
     testLog('  Querying sale listing from indexer...');
     const listing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(listing, 'Sale listing');
+    assert.ok(listing, 'Sale listing');
 
     testLog(`  Listing found! Price: ${listing.pricePerToken}, Count: ${listing.remainingCount}`);
     assert.strictEqual(listing.status, 'active', 'Listing should be active');
@@ -180,7 +179,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Query updated listing
     const updatedListing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(updatedListing, 'Updated listing');
+    assert.ok(updatedListing, 'Updated listing');
 
     testLog(`  Updated listing remaining count: ${updatedListing.remainingCount}`);
     assert.strictEqual(updatedListing.remainingCount, '2', 'Should have 2 tokens remaining');
@@ -281,7 +280,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Verify listing exists
     const listing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(listing, 'Listing before cancel');
+    assert.ok(listing, 'Listing before cancel');
     assert.strictEqual(listing.status, 'active', 'Listing should be active');
 
     // Cancel the listing
@@ -296,7 +295,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Verify listing is cancelled
     const cancelledListing = await getSaleListing(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(cancelledListing, 'Listing after cancel');
+    assert.ok(cancelledListing, 'Listing after cancel');
     assert.strictEqual(cancelledListing.status, 'cancelled', 'Listing should be cancelled');
 
     // Verify our listing is not in active listings
@@ -386,7 +385,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Query the buy order
     const buyOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(buyOrder, 'Buy order');
+    assert.ok(buyOrder, 'Buy order');
 
     assert.strictEqual(buyOrder.status, 'active', 'Buy order should be active');
     assert.strictEqual(buyOrder.buyer.toLowerCase(), buyerClients.account.toLowerCase(), 'Buyer should match');
@@ -407,7 +406,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Query updated buy order
     const updatedOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(updatedOrder, 'Updated buy order');
+    assert.ok(updatedOrder, 'Updated buy order');
 
     assert.strictEqual(updatedOrder.remainingCount, '2', 'Should have 2 tokens remaining');
     assert.strictEqual(updatedOrder.status, 'active', 'Order should still be active');
@@ -484,7 +483,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Verify order exists
     const order = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(order, 'Buy order before cancel');
+    assert.ok(order, 'Buy order before cancel');
     assert.strictEqual(order.status, 'active', 'Order should be active');
 
     // Cancel the order
@@ -499,7 +498,7 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Verify order is cancelled
     const cancelledOrder = await getBuyOrder(machinery, projectDetails.marketplaceAddress, 0n);
-    assertNotNull(cancelledOrder, 'Buy order after cancel');
+    assert.ok(cancelledOrder, 'Buy order after cancel');
     assert.strictEqual(cancelledOrder.status, 'cancelled', 'Order should be cancelled');
 
     // Verify our order is not in active orders

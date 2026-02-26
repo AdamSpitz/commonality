@@ -16,7 +16,6 @@ import {
   type BeliefsContract,
   type ImplicationsContract,
   getIndirectSupporterCount,
-  assertNotNull,
   BeliefsAbi,
   ImplicationsAbi,
 } from '@commonality/sdk';
@@ -96,7 +95,7 @@ describe('Conceptspace Indirect Support', () => {
 
     // Verify direct support
     const specificStmt = await getStatement(machinery, specificCid);
-    assertNotNull(specificStmt, 'Specific statement');
+    assert.ok(specificStmt, 'Specific statement');
     assert.strictEqual(specificStmt.believerCount, 2, 'Specific statement should have 2 direct believers');
 
     // General statement should have 0 indirect supporters initially (no implication yet)

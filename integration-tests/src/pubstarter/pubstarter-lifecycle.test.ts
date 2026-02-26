@@ -12,7 +12,6 @@ import {
   uploadToIPFS,
   type PubstarterContract,
   type AssuranceContract,
-  assertNotNull,
   PubstarterAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
@@ -382,7 +381,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Verify project received total of 0.5 ETH from both contributors
     const fundedProject = await getProject(machinery, projectDetails.assuranceContractAddress);
-    assertNotNull(fundedProject, 'Multi-contributor project');
+    assert.ok(fundedProject, 'Multi-contributor project');
 
     testLog(`  Project total received: ${fundedProject.totalReceived}`);
     const expectedTotal = parseEther('0.5'); // 0.2 + 0.3

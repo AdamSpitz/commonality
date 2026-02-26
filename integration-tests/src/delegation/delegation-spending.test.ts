@@ -15,7 +15,6 @@ import {
   uploadToIPFS,
   type DelegatableNotesContract,
   type PubstarterContract,
-  assertNotNull,
   DelegatableNotesAbi,
   PubstarterAbi,
 } from '@commonality/sdk';
@@ -131,7 +130,7 @@ describe('Delegation Spending', () => {
 
     // Verify the project received the funds
     const project = await getProject(machinery, projectDetails.assuranceContractAddress);
-    assertNotNull(project, 'Project');
+    assert.ok(project, 'Project');
 
     assert.strictEqual(
       project.totalReceived,
@@ -224,7 +223,7 @@ describe('Delegation Spending', () => {
 
     // Verify the project received funds
     const project = await getProject(machinery, projectDetails.assuranceContractAddress);
-    assertNotNull(project, 'Project');
+    assert.ok(project, 'Project');
     assert.strictEqual(
       project.totalReceived,
       purchaseAmount.toString(),
@@ -335,7 +334,7 @@ describe('Delegation Spending', () => {
 
     // Verify project received funds
     const project = await getProject(machinery, projectDetails.assuranceContractAddress);
-    assertNotNull(project, 'Project');
+    assert.ok(project, 'Project');
     assert.strictEqual(
       project.totalReceived,
       purchaseAmount.toString(),
@@ -409,7 +408,7 @@ describe('Delegation Spending', () => {
 
     // Verify project received only 2 ETH
     const project = await getProject(machinery, projectDetails.assuranceContractAddress);
-    assertNotNull(project, 'Project');
+    assert.ok(project, 'Project');
     assert.strictEqual(
       project.totalReceived,
       purchaseAmount.toString(),
