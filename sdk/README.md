@@ -18,17 +18,6 @@ The SDK provides two main interfaces:
    - `getStatement()`, `getUserBelief()`, `getProject()`, etc.
    - Uses a local GraphQL executor that wraps the Ponder indexer
 
-## Local GraphQL Approach
-
-NOTE: This is a little bit unusual, so pay attention.
-
-Rather than querying the Ponder indexer directly, we run a local GraphQL executor that:
-- Provides a clean, stable API schema (hides Ponder's auto-generated quirks)
-- Executes queries in-process (no separate server needed)
-- Forwards underlying data requests to the Ponder indexer
-
-This gives us a typed, maintainable API surface that's decoupled from indexer implementation details.
-
 ## Usage
 
 ```typescript

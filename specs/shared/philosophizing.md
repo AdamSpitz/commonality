@@ -30,11 +30,37 @@ In the mainstream world, here are some ways that we fund stuff:
   - VC (effective at early funding, but doesn't work if no profit)
   - each project has a Kickstarter, people can spread the link to it via social media and then donate if they want to: (flexible and transparent, but most people won't put in the work to evaluate each project)
   - there's a centralized cause-specific fund, people donate to it, then the fund forwards that money to various specific projects (efficient centralized decision-making, but inflexible and opaque)
+    - also note that government itself is the biggest example of this
 
 We can get a best-of-all-three:
   - Retroactive funding gives us VC, even for public goods.
   - Delegation system gives us the efficiency of centralized decision-making.
   - Revocability and onchainness of the delegation system gives us the flexibility and transparency of just donating to stuff directly.
+
+### Special note about government
+
+This is obviously much more of a pie-in-the-sky kind of thing, but I'm kinda thinking of this as a potential (far-off future) replacement for "government collects taxes and then supposedly makes efficient centralized decisions and spends the money on public goods".
+
+  - The delegation system is a much-improved version of "vote for your representative in the legislature."
+  - The donations are voluntary rather than coerced, but the assurance-contract aspect gives you some of the same feeling of "I'm pitching in but only as long as many others do the same."
+  - Transparency is much *better*.
+  - The retroactive-funding aspect is a new angle on it. The "government's" job is now no longer to predict winners but just to identify them in retrospect.
+
+I'm not saying I expect this system to replace government anytime soon. But in the spirit of Balaji's "network state" idea, having this system available means that any potential network state is hopefully not going to get stuck at the point of "yikes, we need to collectively fund stuff but that introduces a gigantic can of worms." Hopefully this system reduces the size of the can of worms: better representation, less coercion, better transparency, less need to predict winners in advance.
+
+Also, more decentralized. Like, I'm speaking in terms of a "network state" as a coherent organized thing that can crowdfund whatever public-goods it needs, but the funding decisions aren't being made by any specific "leadership" group or "legislature" that could be attacked or captured or coerced; at the end of the day it's just people donating to these kickstarters.
+
+
+## What the new world looks like
+
+Having this system around just kinda enables public goods to *happen*.
+
+  - See a project that you think ought to be done? Start the assurance contract.
+  - Having trouble getting people to donate to the project? Just get them to pledge money to the cause, delegate the decisions to you or someone else they trust.
+  - "What if the money is spent on people who don't actually get the project done?" No, you can delegate the money with the intention of funding projects *retroactively* after they've *already* produced value.
+  - "What if the money is spent corruptly on projects that don't deserve it?" All the decisions will be transparent. You don't have to choose the projects, you can just review the decisions retroactively. You can't claw back the money, but you can cancel any future funding.
+  - "What do I get out of this?" Your name will show up on the project and on the contribution boards (if you don't want to be anonymous).
+  - 
 
 
 ## "Nano" stuff
