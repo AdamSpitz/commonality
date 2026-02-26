@@ -18,4 +18,5 @@ Other big things to do soon:
 ## Miscellaneous TODO.md files
 
 - [hardhat/TODO.md](hardhat/TODO.md)
+- [sdk/TODO.md](sdk/TODO.md)
 - [ui/TODO.md](ui/TODO.md)
