@@ -7,12 +7,13 @@ import {
   isDisplayableDocument,
   publishDocument,
   fetchDocument,
+  type DisplayableDocument,
+  type DisplayFormat
 } from './displayable-document.js';
-import type { DisplayableDocument, DisplayFormat } from './displayable-document.js';
-import { clearMockIPFS } from './utils/mock-ipfs.js';
-import { fakeIpfsCidV1 } from './utils/cid-types.js';
-import { uploadToIPFS } from './utils/ipfs.js';
-import { createSDKMachinery } from './machinery.js';
+import { clearMockIPFS } from '../../utils/mock-ipfs.js';
+import { fakeIpfsCidV1 } from '../../utils/cid-types.js';
+import { uploadToIPFS } from '../../utils/ipfs.js';
+import { createSDKMachinery } from '../../machinery.js';
 
 const machinery = createSDKMachinery();
 

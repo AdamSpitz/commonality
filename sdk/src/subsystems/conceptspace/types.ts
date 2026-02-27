@@ -1,4 +1,5 @@
 import { IpfsCidV1 } from "../../utils/cid-types";
+import { type DisplayableDocument } from "../displayable-documents/displayable-document.js";
 
 export interface Statement {
   id: string;
@@ -47,4 +48,34 @@ export interface BrowseStatementsOptions {
   offset?: number;
   orderDirection?: 'asc' | 'desc';
   orderBy?: 'createdAt' | 'believerCount' | 'disbelieverCount';
+}
+
+export interface StatementWithContent {
+  statement: Statement;
+  content: DisplayableDocument | null;
+  metrics?: {
+    directBelievers: number;
+    directDisbelievers: number;
+    indirectSupporters: number;
+  };
+}
+
+export interface GetStatementWithContentOptions {
+  includeMetrics?: boolean;
+  timeout?: number;
+  attesterAddress?: string;
+}
+
+export interface IndirectSupportInfo {
+  statement: StatementListItem;
+  supportedVia: Array<{
+    directlyBelievedStatement: StatementListItem;
+    viaStatementCid: IpfsCidV1;
+  }>;
+}
+
+export interface GetUserIndirectSupportOptions {
+  trustedAttesters?: string[];
+  limit?: number;
+  offset?: number;
 }

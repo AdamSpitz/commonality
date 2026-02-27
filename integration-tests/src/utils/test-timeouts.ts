@@ -15,6 +15,9 @@ export const TEST_TIMEOUTS = {
   /** Short tests: simple queries, basic operations (20 seconds) */
   SHORT: 20000,
 
+  /** Extended timeout for complex tests with multiple transactions (25 seconds) */
+  EXTENDED: 25000,
+
   /** Medium tests: single project/statement operations (30 seconds) */
   MEDIUM: 30000,
 

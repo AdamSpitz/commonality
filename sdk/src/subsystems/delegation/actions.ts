@@ -3,8 +3,8 @@
  */
 
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
-import { type TestClients } from './common.js';
-import { DelegatableNotesAbi } from '../abis.js';
+import { type TestClients } from '../../utils/ethereum.js';
+import { DelegatableNotesAbi } from '../../abis.js';
 
 // ============================================================================
 // Delegation Actions

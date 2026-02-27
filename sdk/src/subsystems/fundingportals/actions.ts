@@ -3,8 +3,8 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from './common.js';
-import { cidToBytes32, IpfsCidV1 } from '../utils/cid-types.js';
+import { type TestClients } from '../../utils/ethereum.js';
+import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 
 // ============================================================================
 // AlignmentAttestations Actions (Funding Portals)

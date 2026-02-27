@@ -3,10 +3,10 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from './common.js';
-import { type DisplayableDocument, publishDocument } from '../displayable-document.js';
-import { cidToBytes32, IpfsCidV1 } from '../utils/cid-types.js';
-import { SDKMachinery } from '../machinery.js';
+import { type TestClients } from '../../utils/ethereum.js';
+import { type DisplayableDocument, publishDocument } from '../displayable-documents/displayable-document.js';
+import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
+import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -318,7 +318,7 @@ export async function createAndSignStatement(
   // Step 3: Optionally update the created-statements list
   if (addToCreatedList && contracts.mutableRefUpdater) {
     try {
-      const { addToCreatedStatements } = await import('../actions/mutable-refs-actions.js');
+      const { addToCreatedStatements } = await import('../mutable-refs/actions.js');
       updateListTxHash = await addToCreatedStatements(
         machinery,
         clients,

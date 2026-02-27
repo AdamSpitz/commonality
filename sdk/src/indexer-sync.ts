@@ -1,6 +1,13 @@
-import { INDEXER_SYNC } from './constants.js';
 import { SDKMachinery } from './machinery.js';
 import { executeUntypedGraphQLQuery } from './utils/graphqlClient.js';
+
+const INDEXER_SYNC = {
+  /** Maximum time to wait for indexer to sync (10 seconds) */
+  MAX_WAIT_MS: 10000,
+
+  /** Delay between sync check attempts (100 milliseconds) */
+  POLL_INTERVAL_MS: 100,
+} as const;
 
 /**
  * Wait for the indexer to sync to a specific block

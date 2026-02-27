@@ -8,8 +8,8 @@
  * See specs/subsystems/conceptspace/displayable-documents.md for the full specification.
  */
 
-import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from './utils/ipfs.js';
-import { IpfsCidV1 } from './utils/cid-types.js';
+import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from '../../utils/ipfs.js';
+import { IpfsCidV1 } from '../../utils/cid-types.js';
 
 // ============================================================================
 // Types

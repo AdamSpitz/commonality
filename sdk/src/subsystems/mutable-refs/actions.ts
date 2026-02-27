@@ -3,11 +3,11 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from './common.js';
-import { uploadToIPFS } from '../utils/ipfs.js';
-import { getUserRef } from '../subsystems/mutable-refs/mutable-refs-queries.js';
-import { SDKMachinery } from '../machinery.js';
-import { IpfsCidV1 } from '../utils/cid-types.js';
+import { type TestClients } from '../../utils/ethereum.js';
+import { uploadToIPFS } from '../../utils/ipfs.js';
+import { getUserRef } from './queries.js';
+import { SDKMachinery } from '../../machinery.js';
+import { IpfsCidV1 } from '../../utils/cid-types.js';
 
 // ============================================================================
 // Mutable Refs Actions

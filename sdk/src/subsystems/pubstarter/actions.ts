@@ -3,13 +3,13 @@
  */
 
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
-import { type TestClients } from './common.js';
+import { type TestClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155FactoryAbi,
   MarketplaceFactoryAbi,
   AssuranceContractFactoryAbi
-} from '../abis.js';
-import { IpfsCidV1 } from '../utils/cid-types.js';
+} from '../../abis.js';
+import { IpfsCidV1 } from '../../utils/cid-types.js';
 
 // ============================================================================
 // Pubstarter Actions

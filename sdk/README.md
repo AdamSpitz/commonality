@@ -56,5 +56,5 @@ await waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber);
 
 ## Structure
 
-  - The `indexer-queries/` directory is the main public API for reading data.
+  - The `subsystems/` directory is the main public API for reading data.
   - The `actions/` directory contains actions that "write" to the system (blockchain writes, IPFS uploads).
