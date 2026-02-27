@@ -1,5 +1,19 @@
 import { SDKMachinery } from './machinery.js';
-import { executeUntypedGraphQLQuery } from './utils/graphqlClient.js';
+import { executeTypedGraphQLQuery } from './utils/graphqlClient.js';
+
+type MetaStatusResult = {
+  _meta: {
+    status: Record<string, { block: { number: number } }>
+  }
+};
+
+const META_STATUS_QUERY = `
+  query {
+    _meta {
+      status
+    }
+  }
+`;
 
 const INDEXER_SYNC = {
   /** Maximum time to wait for indexer to sync (10 seconds) */
@@ -32,9 +46,6 @@ export async function waitForIndexerToSyncToBlockNumber(
   const startTime = Date.now();
   const targetBlockNum = Number(targetBlock);
 
-  // Support both old GraphQLClient and new GraphQLExecutor
-  const url = machinery.graphqlClient.url;
-
   let lastSeenBlock = 0;
   let stuckCount = 0;
   let attemptCount = 0;
@@ -53,19 +64,9 @@ export async function waitForIndexerToSyncToBlockNumber(
 
       // Ponder exposes indexing status via a meta query
       // The status is a JSON object with chain-specific block info
-      const result = await executeUntypedGraphQLQuery<{
-        _meta: {
-          status: Record<string, { block: { number: number } }>
-        }
-      }>(
-        url,
-        `
-          query {
-            _meta {
-              status
-            }
-          }
-        `
+      const result = await executeTypedGraphQLQuery<MetaStatusResult>(
+        machinery,
+        META_STATUS_QUERY
       );
 
       // Get the block number from the hardhat chain status
