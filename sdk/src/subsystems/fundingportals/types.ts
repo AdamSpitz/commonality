@@ -4,7 +4,7 @@ export interface AlignmentAttestation {
   attester: string;
   subjectAddress: string;
   statementCid: IpfsCidV1;
-  topicStatementCid: IpfsCidV1;
+  topicStatementCid?: IpfsCidV1;
   createdAt: string;
   blockNumber: string;
 }

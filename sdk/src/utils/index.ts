@@ -3,3 +3,4 @@ export * from './ethereum.js';
 export * from './graphqlClient.js';
 export * from './ipfs.js';
 export * from './mock-ipfs.js';
+export * from './test-helpers.js';

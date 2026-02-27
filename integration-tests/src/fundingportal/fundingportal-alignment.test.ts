@@ -169,7 +169,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     testLog('  ✓ Multiple attesters tracked independently (verified by property checks)');
 
     // Query all aligned subjects (should show 2 attestations for same subject)
-    const alignedSubjects = await getAlignedSubjects(machinery, statementCid);
+    const alignedSubjects = await getAlignedSubjects(machinery, statementCid, undefined, PROJECT_ALIGNMENT_TOPIC);
     const matchingAlignments = alignedSubjects.filter(
       a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
@@ -253,7 +253,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     testLog('  ✓ Batch attestations recorded successfully (verified by property checks)');
 
     // Verify query by attester returns both
-    const attesterAlignments = await getAlignmentsByAttester(machinery, attesterClients.account);
+    const attesterAlignments = await getAlignmentsByAttester(machinery, attesterClients.account, PROJECT_ALIGNMENT_TOPIC);
     assert.ok(
       attesterAlignments.length >= 2,
       'Attester should have at least 2 alignments'
@@ -317,7 +317,8 @@ describe('Funding Portal - Alignment Attestations', () => {
     const subjectStatements = await getSubjectStatements(
       machinery,
       projectDetails.tokenAddress,
-      attesterClients.account
+      attesterClients.account,
+      PROJECT_ALIGNMENT_TOPIC
     );
 
     assert.ok(

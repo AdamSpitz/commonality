@@ -133,7 +133,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     );
 
     // Verify direct alignment with S1
-    const directAlignments = await getAlignedProjects(machinery, s1Cid);
+    const directAlignments = await getAlignedProjects(machinery, s1Cid, undefined, PROJECT_ALIGNMENT_TOPIC);
     assert(directAlignments.length >= 1, 'Should have at least 1 direct alignment with S1');
     const ourDirectAlignment = directAlignments.find(
       a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
@@ -143,7 +143,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     testLog('  ✓ Project directly aligned with S1');
 
     // Verify our project has NO direct alignment with S2
-    const s2DirectAlignments = await getAlignedProjects(machinery, s2Cid);
+    const s2DirectAlignments = await getAlignedProjects(machinery, s2Cid, undefined, PROJECT_ALIGNMENT_TOPIC);
     const ourS2DirectAlignment = s2DirectAlignments.find(
       a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
     );
@@ -280,7 +280,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
     );
 
     // Query S2 for direct alignments only
-    const directAlignments = await getAlignedProjects(machinery, s2Cid);
+    const directAlignments = await getAlignedProjects(machinery, s2Cid, undefined, PROJECT_ALIGNMENT_TOPIC);
     assert.strictEqual(
       directAlignments.length,
       1,

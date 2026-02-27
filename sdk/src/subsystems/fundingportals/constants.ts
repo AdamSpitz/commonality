@@ -1,4 +1,5 @@
-import { fakeIpfsCidV1, IpfsCidV1 } from '../../utils/cid-types';
+import { IpfsCidV1 } from '../../utils/cid-types';
+import { fakeIpfsCidV1 } from '../../utils/test-helpers';
 
 // ============================================================================
 // Well-Known Topic Constants

@@ -23,7 +23,7 @@ import {
   type CauseFundingMetrics,
   type ContributorStats,
 } from './types.js';
-import { fakeIpfsCidV1, IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
+import { IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
@@ -36,7 +36,8 @@ import { SDKMachinery } from '../../machinery.js';
 export async function getAlignedSubjects(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string
+  attesterAddress?: string,
+  topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
   const variables: { statementId: string; attester?: string } = {
     statementId: statementCid,
@@ -49,7 +50,7 @@ export async function getAlignedSubjects(
     attester: item.attester,
     subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
+    topicStatementCid,
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));
@@ -64,7 +65,8 @@ export const getAlignedProjects = getAlignedSubjects;
 export async function getSubjectStatements(
   machinery: SDKMachinery,
   subjectAddress: string,
-  attesterAddress?: string
+  attesterAddress?: string,
+  topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
   const variables: { subjectAddress: string; attester?: string } = {
     subjectAddress: subjectAddress.toLowerCase(),
@@ -77,7 +79,7 @@ export async function getSubjectStatements(
     attester: item.attester,
     subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
+    topicStatementCid,
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));
@@ -93,7 +95,8 @@ export async function getAlignmentAttestation(
   machinery: SDKMachinery,
   attesterAddress: string,
   subjectAddress: string,
-  statementCid: IpfsCidV1
+  statementCid: IpfsCidV1,
+  topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
   const result = await request(machinery.graphqlClient.url, GetAlignmentAttestationDocument, {
     attester: attesterAddress.toLowerCase(),
@@ -106,7 +109,7 @@ export async function getAlignmentAttestation(
     attester: item.attester,
     subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
+    topicStatementCid,
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   };
@@ -120,7 +123,8 @@ export const getProjectAlignment = getAlignmentAttestation;
  */
 export async function getAlignmentsByAttester(
   machinery: SDKMachinery,
-  attesterAddress: string
+  attesterAddress: string,
+  topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
   const result = await request(machinery.graphqlClient.url, GetAlignmentsByAttesterDocument, {
     attester: attesterAddress.toLowerCase(),
@@ -129,7 +133,7 @@ export async function getAlignmentsByAttester(
     attester: item.attester,
     subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
-    topicStatementCid: fakeIpfsCidV1('whatever'), // TODO: what should go here?
+    topicStatementCid,
     createdAt: String(item.createdAt),
     blockNumber: String(item.blockNumber),
   }));

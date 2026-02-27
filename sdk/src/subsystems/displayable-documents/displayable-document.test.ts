@@ -11,7 +11,7 @@ import {
   type DisplayFormat
 } from './displayable-document.js';
 import { clearMockIPFS } from '../../utils/mock-ipfs.js';
-import { fakeIpfsCidV1 } from '../../utils/cid-types.js';
+import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import { uploadToIPFS } from '../../utils/ipfs.js';
 import { createSDKMachinery } from '../../machinery.js';
 

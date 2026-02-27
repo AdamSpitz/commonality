@@ -9,7 +9,6 @@ import {
   type Statement,
   type DisplayableDocument,
   type IpfsCidV1,
-  fakeIpfsCidV1,
 } from '@commonality/sdk'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
@@ -149,7 +148,7 @@ export function StatementPage() {
           Your Opinion
         </Typography>
         <BeliefControls
-          statementCid={statement.cid || statementCid || fakeIpfsCidV1('whatever')}
+          statementCid={(statement.cid ?? statementCid) as IpfsCidV1}
           currentBeliefState={userBeliefState}
           onBeliefChanged={handleBeliefChanged}
         />
@@ -157,7 +156,7 @@ export function StatementPage() {
 
       {/* Statement Suggestions */}
       <StatementSuggestions
-        statementCid={statementCid || fakeIpfsCidV1('whatever')}
+        statementCid={statementCid as IpfsCidV1}
         userAddress={address}
       />
     </Box>
