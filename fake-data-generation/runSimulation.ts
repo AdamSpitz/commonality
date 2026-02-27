@@ -21,9 +21,9 @@ import {
   createStatement,
   publishDocument,
   type IpfsCidV1,
-  fakeIpfsCidV1,
   type IPFSConfig,
   createIPFSConfigFromTheUsualEnvVars,
+  PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
@@ -120,8 +120,6 @@ async function disbelieveStatement(
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }
-
-const PROJECT_ALIGNMENT_TOPIC: IpfsCidV1 = fakeIpfsCidV1('ProjectAlignmentTopic');
 
 async function attestImplication(
   clients: TestClients,
