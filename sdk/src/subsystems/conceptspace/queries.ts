@@ -3,7 +3,7 @@
  */
 
 import { fetchFromIPFS } from '../../utils/ipfs.js';
-import { request } from 'graphql-request';
+import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
 import {
   GetStatementDocument,
   GetUserBeliefDocument,
@@ -56,7 +56,7 @@ export async function getStatement(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1
 ): Promise<Statement | null> {
-  const result = await request(machinery.graphqlClient.url, GetStatementDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetStatementDocument, {
     id: statementCid,
   });
   // BigInt fields (createdAt) come as strings at runtime
@@ -74,7 +74,7 @@ export async function getUserBelief(
   userAddress: string,
   statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
-  const result = await request(machinery.graphqlClient.url, GetUserBeliefDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserBeliefDocument, {
     user: userAddress.toLowerCase(),
     statementId: statementCid,
   });
@@ -121,7 +121,7 @@ export async function getImplicationsFrom(
   if (attesterAddress) {
     variables.attester = attesterAddress.toLowerCase();
   }
-  const result = await request(machinery.graphqlClient.url, GetImplicationsFromDocument, variables);
+  const result = await executeTypedGraphQLQuery(machinery, GetImplicationsFromDocument, variables);
   // GraphQL returns attester as { id: "0x..." }, normalize to string
   return (result.implicationss?.items ?? []).map(normalizeImplication) as Implication[];
 }
@@ -140,7 +140,7 @@ export async function getImplicationsTo(
   if (attesterAddress) {
     variables.attester = attesterAddress.toLowerCase();
   }
-  const result = await request(machinery.graphqlClient.url, GetImplicationsToDocument, variables);
+  const result = await executeTypedGraphQLQuery(machinery, GetImplicationsToDocument, variables);
   // GraphQL returns attester as { id: "0x..." }, normalize to string
   return (result.implicationss?.items ?? []).map(normalizeImplication) as Implication[];
 }
@@ -154,7 +154,7 @@ export async function getImplication(
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
-  const result = await request(machinery.graphqlClient.url, GetImplicationDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetImplicationDocument, {
     attester: attesterAddress.toLowerCase(),
     fromStatementCid: fromStatementCid,
     toStatementCid: toStatementCid,
@@ -189,7 +189,7 @@ export async function getIndirectSupporters(
 
   // Step 2: Fetch believers for all implications in parallel
   const believersQueries = implications.map(implication =>
-    request(machinery.graphqlClient.url, GetBelieversForStatementDocument, {
+    executeTypedGraphQLQuery(machinery, GetBelieversForStatementDocument, {
       statementId: implication.fromStatementCid.toLowerCase(),
     })
   );
@@ -260,7 +260,7 @@ export async function browseStatementsByMostSupporters(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await request(machinery.graphqlClient.url, BrowseByMostSupportersDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, BrowseByMostSupportersDocument, {
     limit,
     offset,
     orderDirection,
@@ -279,7 +279,7 @@ export async function browseStatementsByNewest(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await request(machinery.graphqlClient.url, BrowseByNewestDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, BrowseByNewestDocument, {
     limit,
     offset,
     orderDirection,
@@ -298,7 +298,7 @@ export async function browseStatements(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
 
-  const result = await request(machinery.graphqlClient.url, BrowseStatementsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, BrowseStatementsDocument, {
     limit,
     offset,
     orderBy,
@@ -318,7 +318,7 @@ export async function getAllStatements(
 ): Promise<StatementListItem[]> {
   const { limit = 100, offset = 0 } = options;
 
-  const result = await request(machinery.graphqlClient.url, GetAllStatementsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetAllStatementsDocument, {
     limit,
     offset,
   });
@@ -334,7 +334,7 @@ export async function getUserBeliefs(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await request(machinery.graphqlClient.url, GetUserBeliefsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserBeliefsDocument, {
     user: userAddress.toLowerCase(),
   });
 
@@ -353,7 +353,7 @@ export async function getUserDisbeliefs(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await request(machinery.graphqlClient.url, GetUserDisbeliefsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserDisbeliefsDocument, {
     user: userAddress.toLowerCase(),
   });
 

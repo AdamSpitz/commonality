@@ -2,7 +2,7 @@
  * GraphQL queries for Delegation subsystem
  */
 
-import { request } from 'graphql-request';
+import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
 import {
   GetNoteDocument,
   GetNotesByOwnerDocument,
@@ -31,7 +31,7 @@ export async function getNote(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<Note | null> {
-  const result = await request(machinery.graphqlClient.url, GetNoteDocument, { id: noteId });
+  const result = await executeTypedGraphQLQuery(machinery, GetNoteDocument, { id: noteId });
   // BigInt fields (id, tokenId, amount, createdAt, etc.) come as strings at runtime
   return result.delegatableNotes as unknown as Note | null;
 }
@@ -43,7 +43,7 @@ export async function getNotesByOwner(
   machinery: SDKMachinery,
   ownerAddress: string
 ): Promise<Note[]> {
-  const result = await request(machinery.graphqlClient.url, GetNotesByOwnerDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetNotesByOwnerDocument, {
     owner: ownerAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -57,7 +57,7 @@ export async function getNotesByRoot(
   machinery: SDKMachinery,
   rootAddress: string
 ): Promise<Note[]> {
-  const result = await request(machinery.graphqlClient.url, GetNotesByRootDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetNotesByRootDocument, {
     rootOwner: rootAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -71,7 +71,7 @@ export async function getDelegationChain(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<DelegationChainLink[]> {
-  const result = await request(machinery.graphqlClient.url, GetDelegationChainDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetDelegationChainDocument, {
     noteId: noteId,
   });
   // BigInt fields (createdAt) come as strings at runtime
@@ -91,7 +91,7 @@ export async function getNoteIntentAttestation(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation | null> {
-  const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetNoteIntentAttestationDocument, {
     attester: attester.toLowerCase(),
     noteContract: noteContract.toLowerCase(),
     noteId: noteId,
@@ -107,7 +107,7 @@ export async function getNoteIntentAttestationsByNote(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation[]> {
-  const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationsByNoteDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetNoteIntentAttestationsByNoteDocument, {
     noteContract: noteContract.toLowerCase(),
     noteId: noteId,
   });
@@ -121,7 +121,7 @@ export async function getNoteIntentAttestationsByStatement(
   machinery: SDKMachinery,
   intendedStatementId: string
 ): Promise<NoteIntentAttestation[]> {
-  const result = await request(machinery.graphqlClient.url, GetNoteIntentAttestationsByStatementDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetNoteIntentAttestationsByStatementDocument, {
     intendedStatementId,
   });
   return (result.noteIntentAttestationss?.items ?? []) as unknown as NoteIntentAttestation[];

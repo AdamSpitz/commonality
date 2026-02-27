@@ -2,7 +2,7 @@
  * GraphQL queries for Pubstarter subsystem
  */
 
-import { request } from 'graphql-request';
+import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
 import {
   GetProjectDocument,
   GetAllProjectsDocument,
@@ -48,7 +48,7 @@ export async function getProject(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Project | null> {
-  const result = await request(machinery.graphqlClient.url, GetProjectDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetProjectDocument, {
     id: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields (threshold, deadline, totalReceived) come as strings at runtime
@@ -61,7 +61,7 @@ export async function getProject(
 export async function getAllProjects(
   machinery: SDKMachinery
 ): Promise<Project[]> {
-  const result = await request(machinery.graphqlClient.url, GetAllProjectsDocument);
+  const result = await executeTypedGraphQLQuery(machinery, GetAllProjectsDocument);
   // BigInt fields come as strings at runtime
   return (result.projectss?.items ?? []) as unknown as Project[];
 }
@@ -88,7 +88,7 @@ export async function getProjectsFiltered(
   // For fundingProgress sort, omit orderBy (sort client-side after fetching)
   const serverOrderBy = sortBy && sortBy !== 'fundingProgress' ? sortBy : undefined;
 
-  const result = await request(machinery.graphqlClient.url, GetProjectsFilteredDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetProjectsFilteredDocument, {
     minDeadline: filters?.minDeadline?.toString(),
     maxDeadline: filters?.maxDeadline?.toString(),
     minThreshold: filters?.minThreshold?.toString(),
@@ -184,7 +184,7 @@ export async function getProjectTokens(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<ProjectToken[]> {
-  const result = await request(machinery.graphqlClient.url, GetProjectTokensDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetProjectTokensDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields (tokenId, price, createdAt) come as strings at runtime
@@ -198,7 +198,7 @@ export async function getProjectContributions(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Contribution[]> {
-  const result = await request(machinery.graphqlClient.url, GetProjectContributionsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetProjectContributionsDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -212,7 +212,7 @@ export async function getUserContributions(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<Contribution[]> {
-  const result = await request(machinery.graphqlClient.url, GetUserContributionsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserContributionsDocument, {
     participant: userAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -226,7 +226,7 @@ export async function getProjectRefunds(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Refund[]> {
-  const result = await request(machinery.graphqlClient.url, GetProjectRefundsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetProjectRefundsDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -245,7 +245,7 @@ export async function getSaleListing(
   marketplaceAddress: string,
   listingId: bigint
 ): Promise<SaleListing | null> {
-  const result = await request(machinery.graphqlClient.url, GetSaleListingDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetSaleListingDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     listingId: listingId.toString(),
   });
@@ -260,7 +260,7 @@ export async function getActiveSaleListings(
   machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<SaleListing[]> {
-  const result = await request(machinery.graphqlClient.url, GetActiveSaleListingsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetActiveSaleListingsDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -275,7 +275,7 @@ export async function getBuyOrder(
   marketplaceAddress: string,
   orderId: bigint
 ): Promise<BuyOrder | null> {
-  const result = await request(machinery.graphqlClient.url, GetBuyOrderDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetBuyOrderDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     orderId: orderId.toString(),
   });
@@ -290,7 +290,7 @@ export async function getActiveBuyOrders(
   machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<BuyOrder[]> {
-  const result = await request(machinery.graphqlClient.url, GetActiveBuyOrdersDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetActiveBuyOrdersDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -304,7 +304,7 @@ export async function getMarketplaceTrades(
   machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<Trade[]> {
-  const result = await request(machinery.graphqlClient.url, GetMarketplaceTradesDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetMarketplaceTradesDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -319,7 +319,7 @@ export async function getTokenTrades(
   marketplaceAddress: string,
   tokenId: bigint
 ): Promise<Trade[]> {
-  const result = await request(machinery.graphqlClient.url, GetTokenTradesDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetTokenTradesDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     tokenId: tokenId.toString(),
   });
@@ -338,7 +338,7 @@ export async function getTokenBurns(
   machinery: SDKMachinery,
   erc1155Address: string
 ): Promise<TokenBurn[]> {
-  const result = await request(machinery.graphqlClient.url, GetTokenBurnsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetTokenBurnsDocument, {
     erc1155Address: erc1155Address.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -352,7 +352,7 @@ export async function getUserTokenBurns(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await request(machinery.graphqlClient.url, GetUserTokenBurnsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserTokenBurnsDocument, {
     burner: userAddress.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -367,7 +367,7 @@ export async function getTokenBurnsByUser(
   erc1155Address: string,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await request(machinery.graphqlClient.url, GetTokenBurnsByUserDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetTokenBurnsByUserDocument, {
     erc1155Address: erc1155Address.toLowerCase(),
     burner: userAddress.toLowerCase(),
   });

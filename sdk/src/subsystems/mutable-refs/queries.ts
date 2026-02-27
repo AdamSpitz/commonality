@@ -2,7 +2,7 @@
  * GraphQL queries for Mutable Refs subsystem
  */
 
-import { request } from 'graphql-request';
+import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
 import {
   GetUserRefDocument,
   GetUserRefsDocument,
@@ -42,7 +42,7 @@ export async function getUserRef(
   owner: string,
   name: string
 ): Promise<MutableRef | null> {
-  const result = await request(machinery.graphqlClient.url, GetUserRefDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserRefDocument, {
     owner: owner.toLowerCase(),
     name,
   });
@@ -69,7 +69,7 @@ export async function getUserRefs(
   machinery: SDKMachinery,
   owner: string
 ): Promise<MutableRef[]> {
-  const result = await request(machinery.graphqlClient.url, GetUserRefsDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserRefsDocument, {
     owner: owner.toLowerCase(),
   });
   // BigInt fields come as strings at runtime
@@ -102,7 +102,7 @@ export async function getUserRefHistory(
   name: string,
   limit: number = 100
 ): Promise<RefUpdate[]> {
-  const result = await request(machinery.graphqlClient.url, GetUserRefHistoryDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserRefHistoryDocument, {
     owner: owner.toLowerCase(),
     name,
     limit,
@@ -133,7 +133,7 @@ export async function getRefsByName(
   name: string,
   limit: number = 100
 ): Promise<MutableRef[]> {
-  const result = await request(machinery.graphqlClient.url, GetRefsByNameDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetRefsByNameDocument, {
     name,
     limit,
   });

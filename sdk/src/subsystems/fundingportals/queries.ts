@@ -6,7 +6,7 @@
  * topicStatementId is not present in the current schema and is returned as ''.
  */
 
-import { request } from 'graphql-request';
+import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
 import {
   GetAlignedSubjectsDocument,
   GetSubjectStatementsDocument,
@@ -45,7 +45,7 @@ export async function getAlignedSubjects(
   if (attesterAddress) {
     variables.attester = attesterAddress.toLowerCase();
   }
-  const result = await request(machinery.graphqlClient.url, GetAlignedSubjectsDocument, variables);
+  const result = await executeTypedGraphQLQuery(machinery, GetAlignedSubjectsDocument, variables);
   return (result.alignmentAttestationss?.items ?? []).map(item => ({
     attester: item.attester,
     subjectAddress: item.subjectAddress,
@@ -74,7 +74,7 @@ export async function getSubjectStatements(
   if (attesterAddress) {
     variables.attester = attesterAddress.toLowerCase();
   }
-  const result = await request(machinery.graphqlClient.url, GetSubjectStatementsDocument, variables);
+  const result = await executeTypedGraphQLQuery(machinery, GetSubjectStatementsDocument, variables);
   return (result.alignmentAttestationss?.items ?? []).map(item => ({
     attester: item.attester,
     subjectAddress: item.subjectAddress,
@@ -98,7 +98,7 @@ export async function getAlignmentAttestation(
   statementCid: IpfsCidV1,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
-  const result = await request(machinery.graphqlClient.url, GetAlignmentAttestationDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetAlignmentAttestationDocument, {
     attester: attesterAddress.toLowerCase(),
     subjectAddress: subjectAddress.toLowerCase(),
     statementId: statementCid,
@@ -126,7 +126,7 @@ export async function getAlignmentsByAttester(
   attesterAddress: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const result = await request(machinery.graphqlClient.url, GetAlignmentsByAttesterDocument, {
+  const result = await executeTypedGraphQLQuery(machinery, GetAlignmentsByAttesterDocument, {
     attester: attesterAddress.toLowerCase(),
   });
   return (result.alignmentAttestationss?.items ?? []).map(item => ({
@@ -168,7 +168,7 @@ export async function getIndirectlyAlignedSubjects(
   if (trustedImplicationAttester) {
     implicationsVariables.attester = trustedImplicationAttester.toLowerCase();
   }
-  const implicationsResult = await request(machinery.graphqlClient.url, GetImplicationsToForFpDocument, implicationsVariables);
+  const implicationsResult = await executeTypedGraphQLQuery(machinery, GetImplicationsToForFpDocument, implicationsVariables);
 
   const implications = implicationsResult.implicationss?.items ?? [];
 
@@ -244,7 +244,7 @@ export async function getTotalFundingForCause(
   // Fetch project details for all aligned projects
   let totalRaised = 0n;
   for (const projectAddress of allProjectAddresses) {
-    const projectResult = await request(machinery.graphqlClient.url, GetProjectTotalReceivedDocument, {
+    const projectResult = await executeTypedGraphQLQuery(machinery, GetProjectTotalReceivedDocument, {
       id: projectAddress.toLowerCase(),
     });
 
@@ -318,7 +318,7 @@ export async function getAllAlignedProjectsForCause(
   // Fetch project details
   const results = [];
   for (const [projectAddress, alignmentType] of projectMap.entries()) {
-    const projectResult = await request(machinery.graphqlClient.url, GetProjectDetailsDocument, {
+    const projectResult = await executeTypedGraphQLQuery(machinery, GetProjectDetailsDocument, {
       id: projectAddress.toLowerCase(),
     });
 
@@ -373,7 +373,7 @@ export async function getTopContributorsForCause(
   const participantMap = new Map<string, ContributorStats>();
 
   for (const project of alignedProjects) {
-    const summariesResult = await request(machinery.graphqlClient.url, GetParticipantSummariesDocument, {
+    const summariesResult = await executeTypedGraphQLQuery(machinery, GetParticipantSummariesDocument, {
       projectAddress: project.projectAddress.toLowerCase(),
     });
 
