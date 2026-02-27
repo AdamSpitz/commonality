@@ -82,7 +82,7 @@ export async function waitForIndexerToSyncToBlockNumber(
         stuckCount++;
         if (stuckCount >= MAX_STUCK_ATTEMPTS) {
           // Log warning but don't fail - indexer might just be caught up
-          if (machinery.verboseTests) {
+          if (!machinery.testConfig.areWeJustRunningTests || machinery.testConfig.shouldTestsBeVerbose) {
             console.warn(
               `⚠️  Indexer appears stuck at block ${currentBlock} ` +
               `(target: ${targetBlockNum}, attempts: ${stuckCount})`
@@ -96,7 +96,7 @@ export async function waitForIndexerToSyncToBlockNumber(
 
       if (currentBlock >= targetBlockNum) {
         // Success! Log timing info if verbose mode enabled
-        if (machinery.verboseTests) {
+        if (!machinery.testConfig.areWeJustRunningTests || machinery.testConfig.shouldTestsBeVerbose) {
           const elapsed = Date.now() - startTime;
           console.log(
             `✓ Indexer synced to block ${targetBlockNum} ` +

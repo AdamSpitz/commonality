@@ -310,7 +310,7 @@ describe('StatementSuggestions', () => {
   })
 
   describe('API integration', () => {
-    it('calls createGraphQLExecutor with correct URL from environment', async () => {
+    it('calls createSDKMachinery with correct URL from environment', async () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(

@@ -6,8 +6,6 @@ import {
   createStatement,
   believeStatement,
   disbelieveStatement,
-  cidToBytes32,
-  createGraphQLClient,
   BeliefsAbi,
   MutableRefUpdaterAbi,
   type BeliefsContract,

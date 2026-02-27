@@ -7,9 +7,9 @@
 
 I have trouble describing this idea coherently to people, because in my head it's a collection of a bunch of ideas that I think ought to work together well and make a whole that's better than what we've got today.
 
-  - Assurance contracts (i.e. Kickstarters) are important and underused as a mechanism for funding public goods. "I'll contribute a bit as long as enough other people do too" is very powerful.
+  - Assurance contracts (i.e. Kickstarters) are important and underused as a mechanism for funding public goods. "I'll contribute a bit as long as enough other people do too" is very powerful. (It's an improvement on many things in the mainstream world that just say "please contribute unconditionally" - lots of charity things. It's also potentially a substitute for tax-funded stuff.)
   - Social recognition is a good motivator for funding public goods. (Like seeing the list of donors on a public building or some other big thing, except this can be for small things.) Can attach a "brought to you by" list to anything, via QR codes on real-world objects and so on.
-  - Like Kickstarter but you can sell your shares: adding the secondary market enables retroactive funding, i.e. VC for public goods.
+  - Like Kickstarter but you can sell your shares: adding the secondary market enables retroactive funding, i.e. VC for public goods. We should be trying to incept the idea in our culture that it's normal and good to buy-and-burn the tokens of public-good projects that have already proven their value. (Individuals should do this, possibly for social recognition if they want that. And there should be orgs that do it, specifically for the purpose of incentivizing aligned projects.)
   - People are so lazy that the hassle of having to choose projects-to-donate-to explicitly is too much to expect of most. But delegation might help reduce this problem down to a single decision (to delegate those decisions to someone he trusts). And this can be done with great transparency and flexibility.
   - For these people who are actually making project-funding decisions themselves, it'd be good to have a single portal for viewing many potential projects that are aligned with this cause.
   - We can use AI to smooth over the concept space, so that we don't need to all coordinate on a particular statement.

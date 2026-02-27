@@ -50,7 +50,6 @@ async function captureImplicationState(context: ActionContext): Promise<Implicat
     throw new Error('attesterAddress is required in context.entities');
   }
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const implicationsFrom = await getImplicationsFrom(machinery, fromStatementCid);
   const implicationsTo = await getImplicationsTo(machinery, toStatementCid);
 

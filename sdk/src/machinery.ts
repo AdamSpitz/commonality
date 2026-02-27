@@ -1,26 +1,20 @@
 import { createIPFSConfigFromTheUsualEnvVars, IPFSConfig } from "./utils/ipfs";
 
-export interface GraphQLClient {
-  url: string;
-}
-
-export function createGraphQLClient(url = 'http://localhost:42069/graphql'): GraphQLClient {
-  return { url };
+export interface TestConfig {
+  areWeJustRunningTests?: boolean;
+  shouldTestsBeVerbose?: boolean;
 }
 
 export type SDKMachinery = {
-  graphqlClient: GraphQLClient;
+  indexerUrl: string;
   ipfsConfig: IPFSConfig;
-  verboseTests?: boolean; // Optional flag to enable verbose logging in tests
+  testConfig: TestConfig;
 };
 
-export function createSDKMachinery(indexerUrl?: string, verboseTests?: boolean): SDKMachinery {
-  const graphqlClient = createGraphQLClient(indexerUrl);
-  const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
-
+export function createSDKMachinery(indexerUrl: string, ipfsConfig?: IPFSConfig, testConfig?: TestConfig): SDKMachinery {
   return {
-    graphqlClient,
-    ipfsConfig,
-    verboseTests,
+    indexerUrl,
+    ipfsConfig: ipfsConfig || createIPFSConfigFromTheUsualEnvVars(),
+    testConfig,
   };
 }

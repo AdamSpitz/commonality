@@ -420,7 +420,7 @@ describe('BrowseStatementsPage', () => {
   })
 
   describe('API integration', () => {
-    it('calls createGraphQLExecutor with correct URL', async () => {
+    it('calls createSDKMachinery with correct URL', async () => {
       vi.mocked(browseStatements).mockResolvedValue([])
 
       render(<BrowseStatementsPage />)

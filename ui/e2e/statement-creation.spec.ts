@@ -1,11 +1,10 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
-import { cidToBytes32, createSDKMachinery } from '@commonality/sdk'
+import { createSDKMachinery } from '@commonality/sdk'
 import {
   createAndSignStatement,
   createStatement,
-  createGraphQLClient,
   BeliefsAbi,
   MutableRefUpdaterAbi,
   type BeliefsContract,

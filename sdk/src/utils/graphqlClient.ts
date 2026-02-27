@@ -8,5 +8,5 @@ export async function executeTypedGraphQLQuery<T = any, V extends Record<string,
   variables?: V
 ): Promise<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return request(machinery.graphqlClient.url, document, variables as any) as Promise<T>;
+  return request(machinery.indexerUrl, document, variables as any) as Promise<T>;
 }

@@ -4,9 +4,6 @@ import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/
 import {
   createAndSignStatement,
   createStatement,
-  believeStatement,
-  cidToBytes32,
-  createGraphQLClient,
   BeliefsAbi,
   MutableRefUpdaterAbi,
   type BeliefsContract,

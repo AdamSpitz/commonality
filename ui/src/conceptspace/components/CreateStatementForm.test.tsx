@@ -17,13 +17,12 @@ vi.mock('@commonality/sdk', async () => {
     ...actual,
     createStatement: vi.fn(),
     createAndSignStatement: vi.fn(),
-    createGraphQLClient: vi.fn(),
   }
 })
 
 // Import the mocked modules to configure them
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createStatement, createAndSignStatement, createGraphQLClient } from '@commonality/sdk'
+import { createStatement, createAndSignStatement } from '@commonality/sdk'
 
 describe('CreateStatementForm', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as `0x${string}`
@@ -38,9 +37,6 @@ describe('CreateStatementForm', () => {
     vi.stubEnv('VITE_BELIEFS_CONTRACT_ADDRESS', '0xBeliefs1234567890123456789012345678901234')
     vi.stubEnv('VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', '0xMutable1234567890123456789012345678901234')
     vi.stubEnv('VITE_GRAPHQL_URL', 'http://localhost:42069/graphql')
-
-    // Mock createGraphQLClient to return a mock client
-    vi.mocked(createGraphQLClient).mockReturnValue({} as any)
   })
 
   describe('when wallet is not connected', () => {

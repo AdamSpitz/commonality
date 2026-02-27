@@ -34,7 +34,6 @@ async function captureFundingState(context: ActionContext): Promise<FundingState
     throw new Error('projectAddress is required in context.entities');
   }
 
-  // Cast to any to handle GraphQLClient | GraphQLExecutor union type
   const project = await getProject(machinery, projectAddress);
   const contributions = await getProjectContributions(machinery, projectAddress);
 
@@ -311,7 +310,6 @@ export const projectCreationProperty: StateTransitionProperty = {
       throw new Error('projectAddress is required in context.entities');
     }
 
-    // Cast to any to handle GraphQLClient | GraphQLExecutor union type
     const project = await getProject(machinery, projectAddress);
 
     assert.ok(project, 'Project should exist after creation');
