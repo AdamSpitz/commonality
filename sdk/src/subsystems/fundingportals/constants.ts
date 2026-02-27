@@ -1,24 +1,44 @@
-import { IpfsCidV1 } from '../../utils/cid-types';
-import { fakeIpfsCidV1 } from '../../utils/test-helpers';
+import { IpfsCidV1 } from '../../utils/cid-types.js';
+import { IPFSConfig } from '../../utils/ipfs.js';
+import {
+  createDisplayableDocument,
+  DisplayableDocument,
+  publishDocument,
+} from '../displayable-documents/displayable-document.js';
 
 // ============================================================================
 // Well-Known Topic Constants
 // ============================================================================
 
 /**
- * Well-known topic ID for project alignment attestations.
+ * The canonical DisplayableDocument that defines the project alignment topic.
  *
- * TODO: Replace this with an actual IPFS CID of a PROJECT_ALIGNMENT_TOPIC_STATEMENT that says
- * "This is the topic for project alignment attestations". (Not just that
- * raw text, but a Statement in the sense that we use the term in this
- * project.)
- * 
- * It's probably a good idea to make this be a whole thing
- * that knows how to actually upload that statement to IPFS
- * and get the CID, rather than hardcoding a CID. See whether
- * it's possible to update all the places that use this
- * constant to get the CID from that function instead.
- * But if we need a hard-coded CID for some purposes, fine,
- * as long as it's the CID of the right content.
+ * This is the content whose CID is PROJECT_ALIGNMENT_TOPIC. It's exported
+ * so that callers can publish it to IPFS when needed.
  */
-export const PROJECT_ALIGNMENT_TOPIC: IpfsCidV1 = fakeIpfsCidV1('ProjectAlignmentTopic');
+export const PROJECT_ALIGNMENT_TOPIC_DOCUMENT: DisplayableDocument = createDisplayableDocument({
+  format: 'text/plain',
+  content: 'This is the well-known topic for project alignment attestations in Commonality.',
+  extras: {
+    statementType: 'topic',
+  },
+});
+
+/**
+ * Well-known topic CID for project alignment attestations.
+ *
+ * This is the CID of PROJECT_ALIGNMENT_TOPIC_DOCUMENT, computed as:
+ *   sha256(JSON.stringify(canonicalJson(document))) with CIDv1 + dag-pb codec.
+ *
+ * To make this document fetchable from IPFS, call ensureProjectAlignmentTopicPublished().
+ */
+export const PROJECT_ALIGNMENT_TOPIC: IpfsCidV1 = 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy';
+
+/**
+ * Publish the project alignment topic document to IPFS so it can be fetched
+ * by anyone who has the CID. Returns the CID (which should match
+ * PROJECT_ALIGNMENT_TOPIC).
+ */
+export async function ensureProjectAlignmentTopicPublished(ipfsConfig: IPFSConfig): Promise<IpfsCidV1> {
+  return publishDocument(ipfsConfig, PROJECT_ALIGNMENT_TOPIC_DOCUMENT);
+}
