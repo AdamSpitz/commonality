@@ -95,6 +95,34 @@ What we mean is:
   - nano-influencers: There'll be influencers trying to get this money to go to various projects.
   - etc.
 
+## Resilience without coordination
+
+(AI-written. It's late.)
+
+If you're used to thinking of public goods as the natural domain of government, then the prospect of a hostile or corrupt government is a big problem - not just because it might do bad things, but because it means the machinery for doing *good* things is now in hostile hands. And the conventional responses are daunting:
+  - Fix the government? That requires winning elections, which requires massive coordination and majority support.
+  - Build an alternative institution? That requires getting everyone on your side to agree on a charter, a leadership structure, funding mechanisms, etc. - a horrible coordination problem in its own right. And the hostile government can attack or delegitimize the alternative.
+
+The key insight is that Commonality sidesteps both of these, because **you don't need to replace the government to replace the government's function of funding public goods.** You just need people to start using the system, one at a time, and every individual's onramp is a small, low-risk, unilateral action:
+  - Signing a statement costs you nothing and doesn't require anyone else to have signed it. You don't even need to compromise on the exact wording and choose the most-popular statement that sorta vaguely says what you want - just say exactly what you want to say.
+  - Pledging to an assurance contract risks nothing if others don't join.
+  - Delegating to someone you trust is a single personal decision.
+  - Attesting that a project is aligned is something any individual can do.
+
+None of these require upfront coordination. There's no threshold you have to clear before the system becomes useful. There's no leadership to agree on. There's no charter to ratify. A new political party needs majority support before it can do *anything*; this system produces value with its first two participants.
+
+And because the system runs on smart contracts and IPFS rather than through any centralized organization, it has no chokepoints for a hostile government to attack:
+  - No bank accounts to freeze (funds live in smart contracts, not custodial accounts).
+  - No platform to ban (statements are on IPFS, beliefs are onchain transactions).
+  - No organization to target (there's no "Commonality Inc." to sue, sanction, or raid).
+  - No treasury to seize (funding is per-project, not pooled in one place).
+  - No leadership to arrest or coerce (delegation is person-to-person across many individuals).
+
+So the response to "the government is hostile, how do we fund public goods?" isn't "organize a massive political movement" - it's "just start using this." Each additional participant makes it work a little better, and there's no single point of failure that can shut the whole thing down.
+
+This also connects to why neutrality matters (see below): any moderation mechanism would be a chokepoint, and any chokepoint can be captured. The system's censorship resistance depends on there being no lever that *anyone* can pull to decide what causes are allowed.
+
+
 ## Won't this be used for evil?
 
 Ugh, probably.
