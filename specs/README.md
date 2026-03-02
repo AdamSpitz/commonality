@@ -75,6 +75,7 @@ See [subsystems/conceptspace/README.md](subsystems/conceptspace/README.md) (stat
 
   - Users create immutable statements (representing ideas/causes) stored on IPFS and sign them onchain to express belief/disbelief.
   - AI attesters publish "S1 implies S2" relationships, enabling indirect support tracking — people can create improved versions of statements while inheriting support via direct implication attestations. This drastically reduces the need for coordination: no need to rally around a single canonical statement, yet the system gently nudges toward coordination by suggesting more-popular equivalent statements. (Note: implications are *not* transitive - if you want to know whether S1 supporters indirectly support S3, you need a direct attestation from S1 to S3, not a chain through S2. This avoids the problem where S1→S2 and S2→S3 each seem reasonable but S1→S3 is a stretch.)
+  - Later (don't bother with this for the MVP) we can make it easy for a user (or an AI that the user trusts) to click a button that says "that implication attestation is bogus" and "stop trusting whoever attested to that". Point is, it's not like it's some horrible problem if we have a rogue attester that starts producing bad implication attestations - it's not actually hard for the system to self-correct.
 
 ### Funding Portals
 
