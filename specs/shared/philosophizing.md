@@ -31,6 +31,27 @@ You DO NOT NEED to somehow drum up widespread support for some New Political Par
 
 The point of the "hey, look, we have the tech to do public-goods-funding at least as well as government" section above isn't that we're going to persuade the incumbent system to dismantle itself, it's that if you're *already* feeling like "we HAVE to win the next election" or "omg we need to fix/replace the government"... relax, you don't have to. Your goal can instead be to just start using Commonality instead.
 
+To be precise about what "easier" means here: Commonality doesn't replace the government's rule-making power. If what you need is a law changed, you still need politics for that. But a surprising amount of what people think requires political change can actually be solved by just building the thing directly and funding it. And for the stuff that genuinely does require political change (legal defense, advocacy), you can fund *that* through Commonality too — through infrastructure that can't be shut down the way a normal advocacy org can.
+
+#### Both sides end up wanting this
+
+There's actually a game-theoretic reason to expect adoption across the political spectrum, not just from whichever side is currently out of power.
+
+Both sides are intermittently out of power. When you're out of power, your funding is vulnerable — your causes get defunded, your charities get audited, your bank accounts get scrutinized. When you're in power, the other side faces the same. So for each side independently, putting your controversial-cause funding on censorship-resistant infrastructure is a dominant strategy: you're better off doing it regardless of what the other side does, because you *will* be out of power eventually.
+
+The realistic adoption path isn't a grand bargain where both sides agree simultaneously. It's a sequential cascade:
+
+  1. The side currently most under threat adopts first, out of necessity.
+  2. The other side sees that it works and can't be suppressed.
+  3. They realize they'll be out of power eventually too.
+  4. They adopt it — maybe framing it differently ("community mutual aid" vs "freedom funding"), but using the same infrastructure.
+
+The side currently in power might try to suppress the infrastructure itself rather than just the causes. But banning voluntary crowdfunding infrastructure is both technically hard (censorship resistance is the whole point) and electorally costly — you're now the side trying to stop people from funding things voluntarily.
+
+This dynamic has a real-world analogue: once one side has unstoppable funding infrastructure and the other doesn't, the side without it is strictly worse off. They're vulnerable when out of power, while the other side isn't. That asymmetry is what drives eventual convergence.
+
+This pressure extends beyond obviously controversial causes. Even mundane local public goods become politically vulnerable when they're funded through hierarchical systems — higher-level governments routinely attach policy conditions to funding, turning your town's sidewalk budget into leverage for compliance on unrelated issues. (Example: federal funding withheld from states/cities over immigration enforcement, or provincial funding contingent on institutional DEI policies.) Commonality can't replace that federal money, but it can provide a funding channel with no political strings — because there's no political entity in the chain. So even communities that just want to fund boring local stuff have a reason to build independent funding capacity, as insurance against their mundane projects getting caught up in political disputes they didn't ask to be part of.
+
 ## At least as good as private charity, too
 
 The above section compares Commonality with government. But a lot of public-goods funding already happens through private charity - and Commonality improves on that too.
