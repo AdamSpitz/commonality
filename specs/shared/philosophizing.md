@@ -68,20 +68,12 @@ In short: existing charities can adopt Commonality to reduce their overhead and 
 
 ## Better than the "network state" approach, too
 
-Balaji Srinivasan's "network state" idea is actually what originally got me thinking about this. The core insight is great: large numbers of aligned people coordinating online to fund and build things, without needing geographic proximity or government permission. Yes, absolutely, let's do that.
+Balaji Srinivasan's "network state" idea is actually what originally got me thinking about this. I love the core insight: large numbers of aligned people coordinating online to fund and build things, and maybe also to leverage their numbers and collective-wealth in negotiations with mainstream nation-states.
 
-But when you look at what Balaji actually seems to envision, it's... a big monolithic group. A million-member online community with a shared treasury, shared governance, shared identity. Basically a country, but on the internet. And big monolithic groups - whether they're countries, corporations, political parties, or million-member Discord servers - have well-known problems:
-
-  - **Governance is hard.** Who controls the treasury? How do you make decisions? You end up reinventing representative democracy or corporate governance, with all the same problems: capture by insiders, lowest-common-denominator decisions, interminable debates about process.
-  - **Identity and loyalty demands.** A network state wants you to *be a member*. That's a big ask. People are reluctant to join a big new thing, especially one that sounds vaguely like a cult or a secessionist movement. And once you're in, there's social pressure to stay aligned with the group even when you disagree.
-  - **Coordination costs scale terribly.** Getting ten people to agree on something is manageable. Getting a million people to agree on something is basically impossible, which is why large groups always end up with some kind of top-down governance, which is what we were trying to avoid in the first place.
-  - **Single point of failure.** If the network state's leadership goes bad, or its treasury gets hacked, or its reputation gets poisoned by association with something unsavory, the whole thing collapses. One big group means one big target.
-
-Commonality takes the good part of Balaji's idea - aligned people coordinating online to fund public goods - and throws away the bad part, which is the "big monolithic group" structure. There's no Commonality Nation to join. There's no shared treasury. There's no leadership. There's just a protocol that individuals use to express what they believe, find others who believe similar things, and fund projects they care about.
-
-The difference is something like the difference between Wikipedia and Encyclopaedia Britannica. Britannica's approach: hire a big organization, have editors coordinate, produce one authoritative product. Wikipedia's approach: let anyone contribute, let the structure emerge from individual actions. Commonality is the Wikipedia approach to public-goods funding. Balaji's network state is more like trying to build a better Britannica.
-
-And crucially, Commonality doesn't need you to pick a side. You can care about cause A and cause B and cause C, delegate to different people for each, and none of those causes need to be part of the same "network state." The implication graph connects related efforts automatically. You get the coordination benefits of a large aligned group without actually needing to form one.
+But I kinda get the sense that what Balaji is envisioning is a monolithic million-member Discord chat with a treasury, which sounds awful... and unnecessary.
+  - No need for a giant discussion forum; X does that job better. (No need for a centralized moderation group to decide who's allowed into the Discord. Just follow whoever you want.)
+  - No need for a group treasury; Commonality fixes that, by allowing public-goods-funding to happen even if the funds come from many separate groups/individuals.
+  - No need for a giant group just to take a census; Commonality fixes that too, by allowing us to count up the number of (possibly anonymized) unique humans who've signed a particular statement.
 
 ## And we can do this *without* much need for coordination
 
