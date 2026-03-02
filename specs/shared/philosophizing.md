@@ -97,19 +97,48 @@ What we mean is:
 
 ## Resilience without coordination
 
-(AI-written. It's late.)
+I think what I'm trying to get at is more like:
 
 If you're used to thinking of public goods as the natural domain of government, then the prospect of a hostile or corrupt government is a big problem - not just because it might do bad things, but because it means the machinery for doing *good* things is now in hostile hands. And the conventional responses are daunting:
-  - Fix the government? That requires winning elections, which requires massive coordination and majority support.
+  - Fix the government? That requires winning elections, which requires massive coordination and majority support. (Even worse if none of the existing major political parties is what you want.)
   - Build an alternative institution? That requires getting everyone on your side to agree on a charter, a leadership structure, funding mechanisms, etc. - a horrible coordination problem in its own right. And the hostile government can attack or delegitimize the alternative.
 
-The key insight is that Commonality sidesteps both of these, because **you don't need to replace the government to replace the government's function of funding public goods.** You just need people to start using the system, one at a time, and every individual's onramp is a small, low-risk, unilateral action:
-  - Signing a statement costs you nothing and doesn't require anyone else to have signed it. You don't even need to compromise on the exact wording and choose the most-popular statement that sorta vaguely says what you want - just say exactly what you want to say.
-  - Pledging to an assurance contract risks nothing if others don't join.
-  - Delegating to someone you trust is a single personal decision.
-  - Attesting that a project is aligned is something any individual can do.
+The point of Commonality is twofold:
+  - We have the tech to build a public-goods-funding system that's just as good or better than traditional government.
+  - We can build it *without* a major coordination hassle.
 
-None of these require upfront coordination. There's no threshold you have to clear before the system becomes useful. There's no leadership to agree on. There's no charter to ratify. A new political party needs majority support before it can do *anything*; this system produces value with its first two participants.
+At least as good as traditional government:
+  - Free-rider solution: assurance contracts. Not quite the same as "tax everyone" but probably still sufficient.
+  - Laziness solution: delegation system. Basically representative democracy but more fine-grained (and without the coordination problem of "who should we all delegate to" - see below).
+  - Effectiveness: retroactive funding. Not always applicable, but where it *is* applicable it should be an improvement on the system's ability to successfully get stuff done.
+  - ???: Declared-intents so the people who might do the work can see that there's money available if they do the work.
+  - ???: Funding portals with a trust network feeding the delegates a stream of aligned projects to potentially direct money to
+
+This isn't an ideological libertarian argument for the abolition of government. We simply don't need government for this, because we have better tech now.
+
+And we can do this *without* much need for coordination:
+  - Signing a statement costs you nothing and doesn't require anyone else to have signed it. You don't even need to compromise on the exact wording and choose the most-popular statement that sorta vaguely says what you want - just say exactly what you want to say, implication attestations will connect you with others who are saying similar things.
+  - Pledging to an assurance contract risks nothing if others don't join.
+  - Successfully crowdfunding one project is useful even if this system doesn't take over the entire world.
+  - Delegating to someone you trust is a single personal decision. We don't need to agree on who should be our delegate to the legislature in this district; delegate to whoever you individually want.
+  - Also, delegation is revocable at any time - you're not committed to this delegate for the next four years. If you hand him a bit of money and he uses it for something you don't like, just turn off the spigot.
+  - Also, delegate $X to Alice for cause C and $Y to Bob for cause D. No need to find one delegate to represent you on all issues.
+  - Attesting that a project is aligned is something any individual can do. We don't need to agree on who should be the gatekeepers for determining project alignment.
+  - We don't need to coordinate to pool our funds in one particular centralized treasury, and we don't need to agree on who should control that treasury. Many separate groups/individuals is fine, we can all contribute to an assurance contract we all like.
+  - What else?
+
+Patterns in the above:
+  - Individualization. No need for collective agreement. No leadership to agree on, no charter to ratify.
+  - Scales down. (Assurance contract system is useful even for a single project. Delegation system is useful to you if you use it, even if no one else uses it.) There's no need to win everything, no threshold you have to clear before the system becomes useful.
+  - It's nearly costless to try-and-fail, even for each individual little decision. (Assurance contract refunds if threshold not met, delegation revocation.) No need to be certain that even this one small thing will succeed, let alone that the entire system will succeed. There's no need to be confident that this is all a great idea before trying it out.
+
+We DO NOT NEED to somehow drum up widespread support for some New Political Party or New Alternative Government (which is a near-impossible task).
+
+Of course a cause still does need to actually gather users - get donors to pledge money, get doers to start projects. But it's not a horrible coordination problem either. The pitch can be:
+  - "Here's this one small project we're trying to get funded." (NOT "here's our plan to persuade half the country to vote for our new political party.")
+  - "Pledge some money per month, delegate to whoever you want, watch the decisions with complete transparency if you want, revoke at any time. This allows you to contribute-while-being-lazy *right now*; it doesn't depend on what anybody else does."
+  - "Want to help aligned projects gain visibility? Just vouch for a few people you trust - not even in any major way, just 'if he says project P is aligned, it's probably aligned.'"
+  - "Have an idea for a project aligned with cause C? There's $X available, in the hands of Y delegates who are actively looking to direct that money towards C. You probably even know some people whose alignment attestation would bring significant visibility to your project."
 
 And because the system runs on smart contracts and IPFS rather than through any centralized organization, it has no chokepoints for a hostile government to attack:
   - No bank accounts to freeze (funds live in smart contracts, not custodial accounts).
@@ -120,8 +149,6 @@ And because the system runs on smart contracts and IPFS rather than through any 
 
 So the response to "the government is hostile, how do we fund public goods?" isn't "organize a massive political movement" - it's "just start using this." Each additional participant makes it work a little better, and there's no single point of failure that can shut the whole thing down.
 
-This also connects to why neutrality matters (see below): any moderation mechanism would be a chokepoint, and any chokepoint can be captured. The system's censorship resistance depends on there being no lever that *anyone* can pull to decide what causes are allowed.
-
 
 ## Won't this be used for evil?
 
@@ -129,6 +156,8 @@ Ugh, probably.
 
 This system is meant as a neutral tool, usable for helping people coordinate. It's certainly going to end up being used for purposes that we would consider wrong.
 
-I'm not really inclined to try to prevent that (e.g. by moderation/censorship).
+I'm not really inclined to try to prevent that (e.g. by moderation/censorship). For one thing, any moderation mechanism would be a chokepoint that a hostile government could capture.
 
-I guess I'm kinda just expressing some optimism regarding humanity: I think people are more sane/good than our current systems might suggest, and if we had decent coordination tools (as opposed to our current systems of government and bureaucracy and so on) the result would be overall more good than not.
+Still, does the use of this system for evil mean that I shouldn't build it?
+
+I dunno. I guess I'm kinda just expressing some optimism regarding humanity: I think people are more sane/good than our current systems might suggest, and if people in general had the ability to make public-goods happen, the result would be overall more good than not.
