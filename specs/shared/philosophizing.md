@@ -1,55 +1,10 @@
 # A bit more philosophizing
 
-(Just trying to clarify the vision - how we think this system has the potential to end up reshaping the way some stuff is done.)
-
-
-## Contrast with big groups
-
-Stop trying to do big groups. Big groups are awful. And we don't need them: we can get all the benefits of big groups in a much more individualist kind of way.
-
-  - You don't need a single big group in order to count the number of members; as long as the individuals have unique (but possibly anonymized) IDs, it's fine to just count the number of unique members in the set-union of many groups. (e.g. How many people have bought any of these 17 NFTs?)
-  - You don't need a single big discussion group or Discord; Twitter does the job just fine, and that way everyone can follow and not-follow whoever they want, with no need to argue over who's allowed to join or who's so annoying that they need to be kicked and so on.
-  - You don't need a single big group treasury in order to do crowdfunding. Reify each potential project as its own separate thing (like a Kickstarter), and then there can be many individuals or groups who contribute to the same project.
-  - You don't even need a single big group treasury in order to get relatively-efficient centralized-decision-making regarding funding; having a delegation system ought to get us somewhat close to that.
-
-
-## Contrast with various ways of funding stuff
-
-In the mainstream world, here are some ways that we fund stuff:
-  - VC (effective at early funding, but doesn't work if no profit)
-  - each project has a Kickstarter, people can spread the link to it via social media and then donate if they want to: (flexible and transparent, but most people won't put in the work to evaluate each project)
-  - there's a centralized cause-specific fund, people donate to it, then the fund forwards that money to various specific projects (efficient centralized decision-making, but inflexible and opaque)
-    - also note that government itself is the biggest example of this
-
-We can get a best-of-all-three:
-  - Retroactive funding gives us VC, even for public goods.
-  - Delegation system gives us the efficiency of centralized decision-making.
-  - Revocability and onchainness of the delegation system gives us the flexibility and transparency of just donating to stuff directly.
-
-
-## "Nano" stuff
-
-One of the neat things enabled by crypto is that it gives is democratized "nano" versions of a whole bunch of different concepts from the mainstream world.
-
-Why?
-  - negligible transaction fees, so doing smaller-scale things doesn't get bogged down by overhead from fees
-  - can handle money without needing big bulky legal/financial bureaucracy
-
-What we mean is:
-  - nano-VC: A "venture capitalist" is just anyone who buys a token in an early-stage project, intending to resell it later after the project has proven its value. This can be small-scale stuff.
-  - nano-crowdsourcing: Crowdsourced projects can be small.
-  - nano-currency / cause-coins: A project's tokens are like a little currency showing support for the cause that that project is aimed at.
-  - nano-trustee: Anyone can be given a delegated note saying "I trust you to put this money toward cause C."
-  - nano-influencers: There'll be influencers trying to get this money to go to various projects.
-  - etc.
-
-## Resilience without coordination
-
 The point of Commonality is twofold:
   - We have the tech to build a public-goods-funding system that's just as good or better than traditional government.
   - We can build it *without* a major coordination hassle.
 
-### At least as good as traditional government
+## At least as good as traditional government
 
 Various aspects:
   - Free-rider solution: assurance contracts. Not quite the same as "tax everyone" but probably still sufficient.
@@ -61,7 +16,7 @@ Various aspects:
 
 This isn't an ideological libertarian argument for the abolition of government. We simply don't need government for public-goods-funding, because we have better tech now.
 
-#### This is much easier than politics
+### This is much easier than politics
 
 I'm not suggesting going to the government (or to normal people who are basically satisfied with the way the system works) and saying "hey, we've got a better way of doing this, we can dismantle the government's public-goods-funding apparatus now." Obviously that's not going to happen.
 
@@ -75,7 +30,7 @@ You DO NOT NEED to somehow drum up widespread support for some New Political Par
 
 The point of the "hey, look, we have the tech to do public-goods-funding at least as well as government" section above isn't that we're going to persuade the incumbent system to dismantle itself, it's that if you're *already* feeling like "we HAVE to win the next election" or "omg we need to fix/replace the government"... relax, you don't have to. Your goal can instead be to just start using Commonality instead.
 
-### Comparison with private charity
+## Comparison with private charity
 
 The above section compares Commonality with government. But a lot of public-goods funding already happens through private charity - and Commonality improves on that too.
 
@@ -90,7 +45,7 @@ Private charity has problems:
 
 Commonality keeps the good part of charity - it's voluntary, not coerced - while fixing most of the bad parts. And the pitch is actually similar to the pitch for charity: "contribute a bit to something you believe in." It's just that the mechanism is much better.
 
-### And we can do this *without* much need for coordination
+## And we can do this *without* much need for coordination
 
   - Signing a statement costs you nothing and doesn't require anyone else to have signed it. You don't even need to compromise on the exact wording and choose the most-popular statement that sorta vaguely says what you want - just say exactly what you want to say, implication attestations will connect you with others who are saying similar things.
   - Trusting attesters is an individual choice. No need to collectively agree on who the "official" implication attester is. You trust whoever you trust, your neighbour trusts whoever he trusts. If an attester starts producing bad attestations, each person can individually stop trusting that attester - no need to coordinate a collective "vote of no confidence."
@@ -116,7 +71,7 @@ Of course a cause still does need to actually gather users - get donors to pledg
   - "Have an idea for a project aligned with cause C? There's $X available, in the hands of Y delegates who are actively looking to direct that money towards C. You probably even know some people whose alignment attestation would bring significant visibility to your project. Also, feel free to write up your project's mission statement using language that satisfies you; the implication system will take care of connecting it to the causes that others have said they're interested in funding."
   - "Donors and delegates, don't even worry about trying to predict which projects *will be* successful. If you don't feel confident that you can do that, it is perfectly fine and actually extremely valuable to buy-and-burn the tokens of public-good projects that have already proven their value. Even if there's a project that *still needs* funding in the here and now, it's perfectly fine for you to decline to fund them in-advance but to publically proclaim that you'll retroactively buy their tokens if they succeed. And you'll still receive social recognition (if you want it) for your financial contribution, even if that contribution is retroactive."
 
-### Censorship resistance
+## Censorship resistance
 
 And because the system runs on smart contracts and IPFS rather than through any centralized organization, it has no chokepoints for a hostile government to attack:
   - No bank accounts to freeze (funds live in smart contracts, not custodial accounts).
@@ -125,10 +80,9 @@ And because the system runs on smart contracts and IPFS rather than through any 
   - No treasury to seize (funding is per-project, not pooled in one place).
   - No leadership to arrest or coerce (delegation is person-to-person across many individuals).
 
-### Bottom line
+## Bottom line
 
 So the response to "the government is hostile, how do we fund public goods?" isn't "organize a massive political movement" - it's "just start using this." Each additional participant makes it work a little better, and there's no single point of failure that can shut the whole thing down.
-
 
 ## Won't this be used for evil?
 
