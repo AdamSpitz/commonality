@@ -1,8 +1,10 @@
 # A bit more philosophizing
 
-The point of Commonality is twofold:
+The argument for Commonality is:
   - We have the tech to build a public-goods-funding system that's just as good or better than traditional government OR traditional private charity.
-  - We can build it *without* a major coordination hassle.
+  - It can be designed so that it can grow *without* a major coordination hassle.
+  - We can build it in a way that's not particularly vulnerable to being squashed or coerced or censored.
+  - This makes it useful both as a mundane incremental improvement (i.e. there's no great reason *not* to build it and use it) and also as a MUCH-easier-to-achieve alternative goal for people who would otherwise be stressing about how to fix the government.
 
 ## At least as good as traditional government
 
@@ -116,18 +118,8 @@ And because the system runs on smart contracts and IPFS rather than through any 
   - No treasury to seize (funding is per-project, not pooled in one place).
   - No leadership to arrest or coerce (delegation is person-to-person across many individuals).
 
+("Won't this also be used for evil?" Yes, probably. See ethics.md.)
+
 ## Bottom line
 
 So the response to "the government is hostile, how do we fund public goods?" isn't "organize a massive political movement" - it's "just start using this." Each additional participant makes it work a little better, and there's no single point of failure that can shut the whole thing down.
-
-## Won't this be used for evil?
-
-Ugh, probably.
-
-This system is meant as a neutral tool, usable for helping people coordinate. It's certainly going to end up being used for purposes that we would consider wrong.
-
-I'm not really inclined to try to prevent that (e.g. by moderation/censorship). For one thing, any moderation mechanism would be a chokepoint that a hostile government could capture.
-
-Still, does the use of this system for evil mean that I shouldn't build it?
-
-I dunno. I guess I'm kinda just expressing some optimism regarding humanity: I think people are more sane/good than our current systems might suggest, and if people in general had the ability to make public-goods happen, the result would be overall more good than not.
