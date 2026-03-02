@@ -1,20 +1,34 @@
 # Top-level spec
 
-This is the top-level spec for a software project called Commonality.
+This is the top-level spec for a software project called Commonality. It's meant to be built using technology like blockchains and IPFS.
 
-It's meant to be built using technology like blockchains and IPFS.
+## What is this?
 
-The original motivating thought was something like: Balaji Srinivasan's "network state" sounds great, except that it sorta seems like he's envisioning something like a big monolithic million-member Discord chat with a treasury, which sounds awful - big groups (governments or corporations or whatever) don't really work all that well.
+Right now, if you want to fund public goods, your options are basically: hope the government does it, donate to a charity, or try to organize something yourself. All of these have serious problems - government is slow and captured, charities are opaque and overhead-heavy, and organizing people is a massive coordination headache.
 
-So the overall goal is something like:
-  - Make it possible for large numbers of aligned people to coordinate online: keep track of their numbers, and crowdfund projects that are aligned with their cause.
-  - But do this in a way that's not a big monolithic group, but rather a big network of individuals (with a really great coordination system to make it all hang together).
+Commonality is a system for crowdfunding public goods without needing a central organization. The key insight is that we can build something that does what government and charities do (fund public goods) but with much better transparency, much less overhead, and - crucially - almost no need for people to coordinate with each other upfront.
 
-Key ideas:
-  - Implication attestations reduce coordination friction: Use AI-generated "S1 implies S2" attestations to eliminate the need for everyone to rally around a single canonical statement. People can create improved/alternative versions while inheriting indirect support.
-  - Retroactive funding via resellable NFTs: separate the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) by making contribution NFTs tradeable on secondary markets, creating a VC-like system for public goods.
-  - Composable delegation enables nano-trustees: Allow people to contribute funds but delegate spending decisions to trusted individuals (who can further delegate), creating chains of specialized judgment without requiring everyone to evaluate every project.
-  - AI skills make this system easy to use.
+The original motivating thought came from Balaji Srinivasan's "network state" idea: large numbers of aligned people coordinating online to get things done sounds great, except that Balaji seems to envision something like a big monolithic million-member Discord chat with a treasury, which sounds awful. Big groups (governments or corporations or whatever) don't really work all that well. So the goal is: make it possible for large numbers of aligned people to coordinate online and crowdfund projects aligned with their cause, but do it as a network of individuals rather than a big monolithic group.
+
+## Why this might actually work
+
+Every action in the system is individually useful and nearly costless to try:
+  - Signing a statement costs nothing and doesn't require anyone else to have signed it.
+  - Pledging to an assurance contract risks nothing if others don't join (you get refunded).
+  - Delegation is revocable at any time - not a four-year commitment.
+  - Starting a project requires no permission. Just click the button.
+  - Successfully crowdfunding even one project is useful, even if the system never takes over the world.
+
+There's no threshold of adoption you have to clear before the system becomes useful, no leadership to agree on, no charter to ratify. Each additional participant just makes it work a little better.
+
+See [shared/philosophizing.md](shared/philosophizing.md) for more on why this is easier than politics, how it compares to government and private charity, and why it doesn't require much coordination.
+
+## Key ideas
+
+  - **Implication attestations reduce coordination friction:** AI-generated "S1 implies S2" attestations eliminate the need for everyone to rally around a single canonical statement. Say exactly what you want to say; the system automatically connects you with others saying similar things.
+  - **Retroactive funding via resellable NFTs:** Contribution NFTs are tradeable on secondary markets, separating the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) - creating a nano-VC system for public goods.
+  - **Composable delegation enables nano-trustees:** Contribute funds but delegate spending decisions to trusted individuals (who can further delegate), creating chains of specialized judgment without requiring everyone to evaluate every project.
+  - **AI skills make this system easy to use.**
 
 
 ## What to do with this spec
@@ -308,9 +322,9 @@ See [testing/generative-testing.md](testing/generative-testing.md) for the overa
 See [testing/ui-tests.md](testing/ui-tests.md).
 
 
-## A bit more philosophizing
+## More on the "why"
 
-In [shared/philosophizing.md](shared/philosophizing.md) there are some not-exactly-relevant thoughts about this system and how it fits into the world (contrast with VC/Kickstarter/centralized funds, "nano" versions of VC/crowdsourcing/trustees enabled by crypto, philosophical stance on neutrality/moderation). If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're an AI whose job is to think more broadly about what we need.
+[shared/philosophizing.md](shared/philosophizing.md) goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
 
 ## Additional documentation
 
