@@ -1,7 +1,7 @@
 # A bit more philosophizing
 
 The point of Commonality is twofold:
-  - We have the tech to build a public-goods-funding system that's just as good or better than traditional government.
+  - We have the tech to build a public-goods-funding system that's just as good or better than traditional government OR traditional private charity.
   - We can build it *without* a major coordination hassle.
 
 ## At least as good as traditional government
@@ -29,7 +29,7 @@ You DO NOT NEED to somehow drum up widespread support for some New Political Par
 
 The point of the "hey, look, we have the tech to do public-goods-funding at least as well as government" section above isn't that we're going to persuade the incumbent system to dismantle itself, it's that if you're *already* feeling like "we HAVE to win the next election" or "omg we need to fix/replace the government"... relax, you don't have to. Your goal can instead be to just start using Commonality instead.
 
-## Comparison with private charity
+## At least as good as private charity, too
 
 The above section compares Commonality with government. But a lot of public-goods funding already happens through private charity - and Commonality improves on that too.
 
@@ -42,7 +42,29 @@ Private charity has problems:
   - **Centralized chokepoints.** A charity has bank accounts that can be frozen, a legal entity that can be sued, leadership that can be pressured. (This is the same censorship-resistance argument as with government, but it applies to charities too - especially charities working on anything politically contentious.)
   - **No retroactive funding.** Charities fund stuff prospectively - they pick projects and hope they work out. Commonality enables retroactive funding, where you can reward projects that have *already* demonstrated value.
 
-Commonality keeps the good part of charity - it's voluntary, not coerced - while fixing most of the bad parts. And the pitch is actually similar to the pitch for charity: "contribute a bit to something you believe in." It's just that the mechanism is much better.
+Commonality keeps the good part of charity - it's voluntary, not coerced - while fixing many of the bad parts. And the pitch is actually similar to the pitch for charity: "contribute a bit to something you believe in." It's just that the mechanism is much better.
+
+### Commonality is a tool that private charities can use
+
+The section above compares Commonality with private charity and points out ways that Commonality improves on the charity model. But the point here isn't "charities are bad and we should replace them." It's that charities themselves can use Commonality as infrastructure.
+
+Think about it from a charity's perspective. A charity already has:
+  - A cause it cares about.
+  - Donors who trust it.
+  - Some expertise in evaluating which projects are worth funding.
+
+What a charity *doesn't* love dealing with:
+  - The overhead of running an organization (staff, offices, compliance, fundraising operations).
+  - Donors who are skeptical about where their money goes.
+  - The difficulty of convincing new donors that this charity, specifically, is worth trusting.
+
+Commonality can help with all three. A charity (or even just a well-known individual associated with a charity) can act as a delegate: donors send funds via delegatable notes, the charity directs those funds toward aligned projects, and the entire chain is transparently visible onchain. The charity keeps doing what it's good at - evaluating projects and making funding decisions - but without needing to run a whole organization around it. No bank accounts to maintain, no annual reports to produce (the blockchain *is* the report), no overhead to justify.
+
+And this is a much easier sell than getting government to adopt any of this. A charity director doesn't need to win an election or pass a law. They just need to say "hey donors, here's a new way to give to our cause - you get full transparency, your money is refunded if we don't hit our target, and you can revoke your delegation at any time." That's a pitch that makes the charity *more* attractive to donors, not less.
+
+It also helps with the trust problem. A new charity faces a brutal chicken-and-egg: you need donors to trust you, but donors want to see a track record before they trust you. With Commonality, a new delegate can start small - direct a few small delegatable notes toward good projects - and their track record is right there onchain for anyone to verify. No need to incorporate a nonprofit, hire an accountant, and produce glossy annual reports just to demonstrate that you're trustworthy.
+
+In short: existing charities can adopt Commonality to reduce their overhead and increase their transparency, and new charitable efforts can skip the "form an organization" step entirely. Either way, the donors win.
 
 ## And we can do this *without* much need for coordination
 
