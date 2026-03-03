@@ -35,22 +35,53 @@ To be precise about what "easier" means here: Commonality doesn't replace the go
 
 #### Both sides end up wanting this
 
-There's actually a game-theoretic reason to expect adoption across the political spectrum, not just from whichever side is currently out of power.
+There's actually a game-theoretic reason to expect adoption across the political spectrum, not just from whichever side is currently out of power. The argument has several layers that stack on each other:
 
-Both sides are intermittently out of power. When you're out of power, your funding is vulnerable — your causes get defunded, your charities get audited, your bank accounts get scrutinized. When you're in power, the other side faces the same. So for each side independently, putting your controversial-cause funding on censorship-resistant infrastructure is a dominant strategy: you're better off doing it regardless of what the other side does, because you *will* be out of power eventually.
+**Layer 1: Insurance.** Both sides are intermittently out of power. When you're out of power, your funding is vulnerable — your causes get defunded, your charities get audited, your bank accounts get scrutinized. When you're in power, the other side faces the same. So for each side independently, putting funding on censorship-resistant infrastructure is a dominant strategy: you're better off doing it regardless of what the other side does, because you *will* be out of power eventually.
+
+**Layer 2: Better mechanisms.** Independently of censorship resistance, Commonality's mechanisms are just better infrastructure for voluntary funding. Assurance contracts raise more money than "please donate unconditionally" because they solve the free-rider problem. Delegation gets lazy-but-wealthy people to participate who otherwise wouldn't bother. Retroactive funding improves project quality because builders know success will be rewarded. Transparency builds donor trust. Your side raises more money and gets better projects out of it, regardless of who's in power or what the other side does.
+
+**Layer 3: Competitive pressure.** If the other side adopts better funding infrastructure and your side doesn't, they're raising more money, funding more effective projects, and building a track record — all while being immune to suppression when you're in power. You're falling behind on *both* effectiveness and resilience.
+
+**Layer 4: Total public goods increase.** Both sides going onchain isn't zero-sum. The total pool of voluntary public goods funding increases because the infrastructure is less lossy — better mechanisms, less overhead, fewer middlemen. Both sides win in absolute terms.
+
+#### What this looks like concretely
+
+Suppose you're a conservative-leaning community in a province with a progressive government.
+
+**The out-of-power pitch (Layer 1):** "The provincial government just pulled funding from your community's youth mentorship program because your school board won't adopt their preferred curriculum policies. You can spend the next election cycle trying to vote them out — or you can crowdfund the mentorship program on Commonality right now. Set up an assurance contract: if 200 families each pledge $50/month, the program is fully funded. If you don't hit the threshold, everyone gets refunded. Nobody risks anything, and no provincial minister can pull the plug."
+
+**The in-power pitch (Layers 2-3):** Now suppose conservatives win the next provincial election. They don't *need* censorship resistance right now. But the pitch is still compelling:
+
+  - "Your community wants to fund a new trade school. Through government grants, that's 18 months of applications, conditions about what programs you must offer, compliance reporting, and a bureaucrat who can change the terms. Through Commonality, a respected local business owner acts as delegate — people contribute via delegatable notes, she evaluates proposals from contractors, the whole decision chain is transparent. The trade school gets built faster, with less overhead, and you owe nobody any policy compliance for the privilege."
+  - "Meanwhile, the progressive communities in the cities are already using Commonality to fund their stuff — mutual aid networks, legal clinics, environmental monitoring. They're building funding capacity that you won't be able to touch when you're out of power again. If you don't build the same capacity now, while things are easy, you'll be scrambling to set it up under hostile conditions when the pendulum swings back."
+
+**The boring-local-stuff pitch (extending to mundane projects):** This pressure extends beyond obviously controversial causes. Even mundane local public goods become politically vulnerable when funded through hierarchical systems — higher-level governments routinely attach policy conditions to funding, turning your town's sidewalk budget into leverage for compliance on unrelated issues. (Example: federal funding withheld from states/cities over immigration enforcement, or provincial funding contingent on institutional DEI policies.) Commonality can't replace that federal money, but it can provide a funding channel with no political strings — because there's no political entity in the chain. So even communities that just want to fund boring local stuff have a reason to build independent funding capacity, as insurance against their mundane projects getting caught up in political disputes they didn't ask to be part of.
+
+#### Adoption dynamics
 
 The realistic adoption path isn't a grand bargain where both sides agree simultaneously. It's a sequential cascade:
 
   1. The side currently most under threat adopts first, out of necessity.
-  2. The other side sees that it works and can't be suppressed.
-  3. They realize they'll be out of power eventually too.
-  4. They adopt it — maybe framing it differently ("community mutual aid" vs "freedom funding"), but using the same infrastructure.
+  2. They discover the mechanisms are also just *better* (Layer 2), so they keep using it even when the political pressure eases.
+  3. The other side sees a rival political community raising more money, funding more effective projects, and doing it all through infrastructure they can't shut down.
+  4. They adopt it too — maybe framing it differently ("community mutual aid" vs "freedom funding"), but using the same infrastructure.
 
 The side currently in power might try to suppress the infrastructure itself rather than just the causes. But banning voluntary crowdfunding infrastructure is both technically hard (censorship resistance is the whole point) and electorally costly — you're now the side trying to stop people from funding things voluntarily.
 
-This dynamic has a real-world analogue: once one side has unstoppable funding infrastructure and the other doesn't, the side without it is strictly worse off. They're vulnerable when out of power, while the other side isn't. That asymmetry is what drives eventual convergence.
+#### "But you're paying with after-tax dollars"
 
-This pressure extends beyond obviously controversial causes. Even mundane local public goods become politically vulnerable when they're funded through hierarchical systems — higher-level governments routinely attach policy conditions to funding, turning your town's sidewalk budget into leverage for compliance on unrelated issues. (Example: federal funding withheld from states/cities over immigration enforcement, or provincial funding contingent on institutional DEI policies.) Commonality can't replace that federal money, but it can provide a funding channel with no political strings — because there's no political entity in the chain. So even communities that just want to fund boring local stuff have a reason to build independent funding capacity, as insurance against their mundane projects getting caught up in political disputes they didn't ask to be part of.
+The obvious objection: why would anyone voluntarily fund something through Commonality when the government could fund it with tax revenue? You're eating a ~30-40% tax hit compared to getting the government to pay for it.
+
+Several responses:
+
+  - **The realistic alternative usually isn't "government funds it well."** Most of the things people would fund through Commonality are either (a) not being funded at all, (b) being funded with onerous conditions attached, or (c) being funded through private charity (which is also after-tax). The comparison "Commonality vs. perfectly-directed tax revenue" rarely applies in practice.
+  - **Government procurement overhead narrows the gap dramatically.** Government-funded projects carry enormous overhead: procurement processes, compliance reporting, administrative layers, political conditions. If a government-funded project costs $1M but $350K is overhead and friction, then a Commonality-funded equivalent at $650K in after-tax dollars is roughly break-even. Government procurement inefficiency is famously bad — estimates of 30-50% overhead for certain categories are common.
+  - **Charities can act as Commonality delegates.** A registered charity can accept tax-deductible donations and direct funds through Commonality as a delegate. Donors get their deduction, the charity keeps doing what it's good at (evaluating projects), and the system gets Commonality's mechanism benefits. You lose some censorship resistance (the charity is a legal entity that can be pressured), but for uncontroversial projects that's fine. Communities can maintain both channels — tax-deductible contributions through a charity-delegate for the mundane stuff, direct onchain contributions for things that need to be unstoppable.
+  - **Resilience has compounding value.** A project funded through government can be defunded next election cycle. A project funded through Commonality stays funded as long as its supporters keep pledging. Over multiple election cycles, the "tax-efficient but periodically destroyed" approach may actually cost more than "after-tax but stable."
+  - **For the stuff that government won't fund regardless, the comparison is irrelevant.** Legal defense for politically targeted individuals, advocacy against the current government's policies, infrastructure for communities the government is hostile to — you're never getting tax-funded support for these. The after-tax cost is the cost of doing it at all.
+
+But honestly: for normal government functions like road maintenance and sewage treatment, Commonality probably isn't going to replace tax funding, and shouldn't need to. The argument isn't "fund everything through Commonality." It's "build independent funding capacity for the things that matter to your community, so that when government funding comes with strings attached — or gets cut entirely — you have a fallback that nobody can take away from you." The after-tax cost is the price of independence, and for many communities dealing with political hostility from higher-level governments, that price is worth paying on the margin — supplement government funding with an independent channel, rather than replacing it entirely.
 
 ## At least as good as private charity, too
 
