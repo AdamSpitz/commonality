@@ -32,4 +32,4 @@ The common thread in most of these: don't pitch it as replacing government, pitc
 
 See:
   - [as-good-as-charity.md](./as-good-as-charity.md)
-  - [benefits-existing-orgs.md](./benefits-established-orgs.md).
+  - [benefits-established-orgs.md](./benefits-established-orgs.md).

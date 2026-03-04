@@ -1,5 +1,7 @@
 # Game Theory reasons for people to use Commonality
 
+**TL;DR:** You don't need to be ideologically excited about Commonality for it to be rational to adopt it. Four layers: (1) insurance against being out of power, (2) the mechanisms are just better infrastructure regardless of politics, (3) competitive pressure if the other side adopts and you don't, (4) positive-sum — total public goods funding increases. Beyond that, structural forces like inter-city competition, shorter principal-agent chains, better project selection, and fiscal-crisis hedging all push rational actors toward adoption independently.
+
 ## Initial thoughts
 
 In addition to [enthusiastic adoption](./enthusiastic-adoption.md) from people who actually *want* to use a more open system like Commonality, there may be game-theoretic reasons to expect adoption across the political spectrum, not just from whichever side is currently out of power. The argument has several layers that stack on each other:
