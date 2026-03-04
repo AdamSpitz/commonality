@@ -14,4 +14,6 @@ The key property that makes this work as infrastructure: Commonality is permissi
 
 This also means Commonality is useful even if it never "takes over." A single church using it for its charitable operations is a win. A single neighborhood using it to fund a playground is a win. The system doesn't need critical mass to be valuable — it just gets more valuable as more people use it.
 
+Even informal funding mechanisms like tip jars can migrate onto Commonality rails with essentially zero friction — see [tip-jar-upgrade-path.md](./tip-jar-upgrade-path.md) for the argument that any form of unconditional donation should convert to token-minting, since the floor case is identical to a tip jar but preserves optionality for both sides.
+
 See also [enthusiastic-adoption.md](./enthusiastic-adoption.md) for concrete adoption pathways.
