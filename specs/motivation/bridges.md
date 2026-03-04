@@ -5,6 +5,7 @@ The goal is to make it so that:
   - there's a unified onchain record of all contributions
   - onchain activity is legible to the traditional world (tax receipts, compliance reports, grant applications)
 
+(See also [rails.md](./rails.md).)
 
 Some things worth noting:
   - Making your project a Commonality project doesn't mean you're cutting off normal funding sources. Normies (including orgs) who just want to contribute via tradfi can do that, via bridge operators (see below). This includes supporting the normal stuff tradfi expects: tax receipts, etc.

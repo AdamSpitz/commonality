@@ -2,6 +2,9 @@
 
 TODO: this file is obviously not finished yet.
 
+Maybe pitches.md is a partial replacement?
+
+
 
 
 "What the heck is this project?"

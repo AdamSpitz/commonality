@@ -21,7 +21,7 @@ Every action in the system is individually useful and nearly costless to try:
 
 There's no threshold of adoption you have to clear before the system becomes useful, no leadership to agree on, no charter to ratify. Each additional participant just makes it work a little better.
 
-See [shared/philosophizing.md](shared/philosophizing.md) for more on why this is easier than politics, how it compares to government and private charity, and why it doesn't require much coordination.
+See [motivation/README.md](motivation/README.md) for more on why this is easier than politics, how it compares to government and private charity, and why it doesn't require much coordination.
 
 ## Key ideas
 
@@ -324,7 +324,7 @@ See [testing/ui-tests.md](testing/ui-tests.md).
 
 ## More on the "why"
 
-[shared/philosophizing.md](shared/philosophizing.md) goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
+[motivation/README.md](motivation/README.md) goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
 
 ## Additional documentation
 

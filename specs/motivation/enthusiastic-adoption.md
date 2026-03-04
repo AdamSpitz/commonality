@@ -1,5 +1,7 @@
 # Other ideas for use cases
 
+This is more about voluntary/enthusiastic adoption, rather than the [game theory](./game-theory.md) stuff.
+
 ## Government-related stuff
 
 Some additional transition pathways:
@@ -25,3 +27,9 @@ Some additional transition pathways:
 10. Insurance/mutual-aid escalation. Start with something that looks like mutual aid or community insurance (pooled funds for unexpected costs — medical emergencies, home repairs after storms). These are clearly individually beneficial and don't feel like "replacing government." But mutual-aid pools are structurally identical to public-goods funding through assurance contracts. Once communities are comfortable with the mechanism for insurance-like use cases, extending it to infrastructure and services is a small conceptual step.
 
 The common thread in most of these: don't pitch it as replacing government, pitch it as supplementing or improving a specific pain point, and let the system's inherent advantages cause gradual migration over time. The ones I find most compelling are the government-as-delegate path (#1), the disaster response entry point (#4), and the failed-state/vacuum path (#7), because they each avoid the "but we already have government for this" objection entirely.
+
+## Charity stuff
+
+See:
+  - [as-good-as-charity.md](./as-good-as-charity.md)
+  - [benefits-existing-orgs.md](./benefits-established-orgs.md).
