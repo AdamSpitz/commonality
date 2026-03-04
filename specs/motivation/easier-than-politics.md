@@ -16,4 +16,4 @@ To be precise about what "easier" means here: Commonality doesn't replace the go
 
 ## Both sides end up wanting this
 
-There may be game-theoretic reasons to expect adoption, even for services currently provided by government. (This is a bit shaky; we're still trying to think it through. See [game theory](./game-theory.md) for more detail.)
+There may be game-theoretic reasons to expect adoption, even for services currently provided by government. See [game theory](./game-theory.md) for more detail.
