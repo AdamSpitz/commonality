@@ -18,6 +18,8 @@ And this is a much easier sell than getting government to adopt any of this. A c
 
 It also helps with the trust problem. A new charity faces a brutal chicken-and-egg: you need donors to trust you, but donors want to see a track record before they trust you. With Commonality, a new delegate can start small - direct a few small delegatable notes toward good projects - and their track record is right there onchain for anyone to verify. No need to incorporate a nonprofit, hire an accountant, and produce glossy annual reports just to demonstrate that you're trustworthy.
 
+The alignment-attestation system provides an especially smooth adoption path: an org can start by hardcoding itself as the sole trusted attester (equivalent to its current "we decide what fits our mission" process), then gradually open up to external attesters to tap into the wider community for project discovery. This is a dial, not a switch — and it can even surface common ground with ideologically-distant orgs who happen to care about the same concrete outcomes. See [alignment-attestation-for-orgs.md](./alignment-attestation-for-orgs.md) for more.
+
 In short: existing charities can adopt Commonality to reduce their overhead and increase their transparency, and new charitable efforts can skip the "form an organization" step entirely. Either way, the donors win.
 
 

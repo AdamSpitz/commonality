@@ -48,6 +48,10 @@ A few more structural pressures that reinforce the cascade:
   - **Credible commitment for long-horizon projects.** Governments can't bind future governments to continue funding. A four-year election cycle means long-horizon projects (reforestation, infrastructure maintenance, research) face constant defunding risk. Commonality's ongoing pledge model is more stable — not because individual pledges are irrevocable, but because the aggregate is less volatile than election outcomes. Project creators rationally prefer the more predictable funding source, and where the projects go, donors follow.
   - **Better selection for project quality.** Government procurement selects for grant-writing skill and political connections, not project quality. Commonality's retroactive funding reverses this — it rewards demonstrated results, not proposal quality. Over time the best project creators migrate to the system that rewards what they're actually good at, pulling donors with them.
 
+## Sole-donor to distributed funding
+
+Even sole donors (foundations, government agencies, wealthy individuals) benefit from using Commonality's rails — standardized infrastructure, verifiable track records, ecosystem visibility — and the system gently makes opening up to co-funders attractive over time. This is another "dial, not switch" upgrade path, like [tip jars](./tip-jar-upgrade-path.md) and [alignment attestation](./alignment-attestation-for-orgs.md): start wherever you are, get real benefits immediately, and the next step is always easy. See [donor-project-tension.md](./donor-project-tension.md) for the full argument.
+
 ## "But you're paying with after-tax dollars"
 
 The obvious objection: why would anyone voluntarily fund something through Commonality when the government could fund it with tax revenue? You're eating a ~30-40% tax hit compared to getting the government to pay for it.
