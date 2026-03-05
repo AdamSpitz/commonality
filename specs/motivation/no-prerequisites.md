@@ -1,11 +1,11 @@
 # Doesn't require coordination
 
-TODO: What's a better name/title for this file and this line of argument? What's the general idea here? It feels like a couple of things:
-  - Minimizing "ugh" feelings and other sources of resistance. Even trivial obstacles will deter people from taking an action; we need to remove as many as possible.
-  - In particular, "collective action" generally involves a LOT of those: "ugh, I have to compromise", "ugh, this effort is all going to be wasted if we don't reach critical mass", "what if I regret my choice?", etc.
+The general principle: traditional collective action carries a huge tax in the form of coordination costs — compromising, agreeing on leadership, reaching critical mass, regretting irreversible commitments. Each of these is an "ugh" that deters participation. Commonality is designed to minimize or eliminate all of them.
 
-
-
+Three specific aspects of this are explored in more detail in their own files:
+  - [Individualization](./individualization.md) — every action is a personal decision that doesn't require anyone else's buy-in.
+  - [Costless to try](./costless-to-try.md) — nearly zero risk for each individual decision.
+  - [Scales down](./scales-down.md) — useful even with a handful of participants; no critical mass required.
 
 ## Traditional = aggregate early; Commonality = aggregate later
 

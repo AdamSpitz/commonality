@@ -13,6 +13,9 @@ Other big things to do soon:
       - Statement IDs. Are we using the correct CID format? Are we using the CID at all?
   - ?
 
+Ideas from the specs/motivation stuff:
+  - Assurance contracts whose condition is something other than "reaches N ETH by timestamp T". e.g. One use case: "if this oracle says go, we go." (Can we build it to be open-ended, so the creator of the contract can plug in any function? The smart-contract code will of course all be visible. OTOH, it would be good to have known patterns so that the contract's meaning can be be known safely and the UI can display it without people needing to read the code.)
+
 ---
 
 ## Miscellaneous TODO.md files
