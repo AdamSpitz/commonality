@@ -1,46 +1,47 @@
-# A bit more philosophizing
+# Why Commonality?
 
-This whole "motivation" directory is about trying to make a case for why this system (a) would be useful for the world, and (b) can actually succeed in gaining adoption.
+The argument for Commonality goes roughly like a conversation:
 
-TODO: I'm still having trouble grokking the well-written stuff way down below, so I'm rewriting the overall argument here in a way that makes sense in my head.
+---
 
-  - New tech has made possible a viable way of funding public goods without needing large charity orgs or government.
-  - That's *great* because the big orgs are lousy in a bunch of ways. (Both mundane ways and also "maybe we want to change things on a deep level" kinds of ways.)
-    - Benefits offered by the system: see benefits/README.md, but:
-      - Individualization offers fixes to a bunch of the really aggravating things about the legacy system.
-      - Organic coalition-building
-      - Retroactive funding
-      - Transparency/trustlessness/censorship-resistance
-      - Openness/crowdsourcing
-  - Adoption ought to be smooth. (That is, this isn't some sort of "let's embark on this gigantic idealistic quest that probably won't pay off because we'll never reach critical mass".)
-    - For one thing, like I mentioned a second ago, this more-individualized system *fixes* many of the frustrating things about traditional collective-action.
-    - Also, this system can mimic the old way of doing things (while still yielding some benefits), so the transition to the underlying rails makes sense even if the org doesn't yet want to change the core of its structure.
-    - Also we can have bridges to tradfi, so it's not like you lose the ability to contribute via tradfi rails, get tax receipts, etc.
-  - The legacy orgs (particularly government) might not be happy about this, but it won't be easy for them to stop us from using money we do actually control to fund whatever we want. (Struggling for control over tax dollars is a different story, though this system might help with that a bit too.)
+**"Hey, look — new tech (blockchains, AI, assurance contracts) makes it possible to fund public goods without needing a big centralized organization."**
 
+**"Would that even do the job? Government and charities exist for a reason."**
 
+Yes. Commonality can do everything that [government](./credible-replacement/vs-government.md) and [private charity](./credible-replacement/vs-charity.md) do for public goods funding — handle the free-rider problem, match supply and demand, vet projects, etc. — without needing the centralized org. (It's also [better than network states](./credible-replacement/vs-network-states.md), for what that's worth.)
 
+**"Okay, but why bother? We already have those systems."**
 
-## It works
+Because [it's better](./why-its-better/README.md). Concretely:
+  - [Individualization](./why-its-better/individualization.md): say exactly what you want, delegate to exactly who you want, fund exactly what you want. No compromise at the aggregation step.
+  - [Organic coalition-building](./why-its-better/organic-coalitions.md): the system discovers commonality across individual statements instead of forcing everyone into a monolithic position. (This is why the system is named Commonality.)
+  - [Retroactive funding](./why-its-better/retroactive-funding.md): donation tokens create a nano-VC market for public goods.
+  - [Openness](./why-its-better/openness.md): anyone can publish; filtering happens through social signals, not gatekeepers.
+  - Transparency and trustlessness: everything is onchain and auditable.
+  - Censorship resistance: no chokepoints to attack.
 
-We have the tech to build a public-goods-funding system that's just as good or better [than traditional government](./as-good-as/government.md) OR [than traditional private charity](./as-good-as/charity.md). (Better [than network states](./as-good-as/network-states.md), too, in case you care about that.)
+**"Getting people to switch is hard."**
 
-## [It's easy to adopt](./ease-of-adoption/README.md)
+Yes, but notice two things:
 
-No coordination hassle, no big upfront change. Each user's [pitch](./pitches.md) stands on its own; adoption is a [dial, not a switch](./ease-of-adoption/dial-not-switch.md); it provides free [infrastructure rails](./ease-of-adoption/rails.md) to anyone; and it [bridges to traditional finance](./ease-of-adoption/bridges.md) so nobody has to go full crypto. See [ease-of-adoption/](./ease-of-adoption/README.md) for the full argument.
+First, [traditional collective action is frustrating](./ease-of-adoption/legacy-frustrations.md) in ways that Commonality specifically fixes — the need to compromise, agree on leadership, reach critical mass, and make irreversible commitments. These aren't incidental annoyances; they're the core reasons why it's hard to get people to participate in the legacy systems too.
 
-TODO: also, in particular, traditional forms of collective action often have a bunch of "ugh" aspects that Commonality fixes.
+Second, the adoption path is [remarkably smooth](./ease-of-adoption/README.md):
+  - Each action is [costless to try](./ease-of-adoption/costless-to-try.md) and useful on its own.
+  - It [scales down](./ease-of-adoption/scales-down.md) to a single project with a handful of funders.
+  - Adoption is a [dial, not a switch](./ease-of-adoption/dial-not-switch.md) — start with a [tip jar](./ease-of-adoption/tip-jar-upgrade-path.md), scale up when ready.
+  - It works as [neutral infrastructure](./ease-of-adoption/rails.md) that orgs can adopt without changing their structure.
+  - It [bridges to traditional finance](./ease-of-adoption/bridges.md) so nobody has to go full crypto.
+  - [Established orgs](./ease-of-adoption/for-established-orgs.md) can use it as a backend; [new orgs](./ease-of-adoption/for-new-orgs.md) can skip the "form an organization" step entirely.
 
-## It's hard to stop
+**"What if the government tries to stop it?"**
 
-  - It's [not particularly vulnerable to being squashed or coerced or censored](./hard-to-stop/censorship-resistance.md), so this is especially useful for politically-disfavoured movements (or movements that fear *later* becoming politically-disfavoured).
-  - Merely *preparing* to use it — visibly locking pledges in standby assurance contracts — serves as a [credible threat](./hard-to-stop/credible-threat.md) that shifts negotiating power, even if the alternative funding is never activated.
-  - There are [game-theoretic reasons](./hard-to-stop/game-theory.md) to expect adoption across the political spectrum: insurance against being out of power, better mechanisms regardless of politics, competitive pressure, and positive-sum outcomes.
+It's [hard to stop](./hard-to-stop/censorship-resistance.md). No bank accounts to freeze, no platform to deplatform, no org to shut down. The system operates with [after-tax money you already control](./hard-to-stop/after-tax.md). Visibly locking pledges in standby assurance contracts serves as a [credible threat](./hard-to-stop/credible-threat.md) that shifts negotiating power. And there are [game-theoretic reasons](./hard-to-stop/game-theory.md) to expect adoption across the political spectrum.
 
-## So what?
+---
 
-This makes it useful both as:
-  - a mundane incremental improvement (i.e. there's no great reason *not* to use it, and some orgs may even be [enthusiastic](./so-what/enthusiastic-adoption.md) about it)
-  - and also as a [MUCH-easier-than-politics](./so-what/easier-than-politics.md) alternative goal for people who would otherwise be stressing about how to fix the government. The response to "the government is hostile, how do we fund public goods?" isn't "organize a massive political movement" — it's "just start using this." Each additional participant makes it work a little better, and there's no single point of failure that can shut the whole thing down.
+**So what does this add up to?**
 
-For a concrete example of how this plays out, see the [walkthrough](./walkthrough.md).
+It's useful both as a [mundane incremental improvement](./so-what/enthusiastic-adoption.md) (existing orgs can adopt it for better transparency and lower overhead) and as something [much easier than politics](./so-what/easier-than-politics.md) for people who want to fund public goods but are tired of fighting over government. The response to "the government is hostile, how do we fund our priorities?" isn't "organize a massive political movement" — it's "just start using this."
+
+For a concrete walkthrough of how this plays out, see the [walkthrough](./walkthrough.md). For tailored pitches to different types of users, see [pitches](./pitches.md). For the "won't this be used for evil?" question, see [ethics](./ethics.md).

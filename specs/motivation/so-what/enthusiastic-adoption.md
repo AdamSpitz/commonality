@@ -18,8 +18,8 @@ The common thread: these people aren't adopting because they believe in the visi
 
 Other people and orgs aren't in crisis — they'd adopt because the mechanisms are genuinely better for what they're already doing.
 
-  - **Charities reducing overhead.** A charity (or even just a well-known individual) can act as a delegate: donors send funds via delegatable notes, the charity directs them toward projects, and the entire chain is transparent onchain. The charity keeps doing what it's good at — evaluating projects — but sheds the organizational overhead. See [benefits-established-orgs.md](../ease-of-adoption/benefits-established-orgs.md).
-  - **New charitable efforts skipping the org phase.** A new delegate can start small, build a track record onchain, and never need to incorporate a nonprofit just to demonstrate trustworthiness. See [benefits-new-orgs.md](../ease-of-adoption/benefits-new-orgs.md).
+  - **Charities reducing overhead.** A charity (or even just a well-known individual) can act as a delegate: donors send funds via delegatable notes, the charity directs them toward projects, and the entire chain is transparent onchain. The charity keeps doing what it's good at — evaluating projects — but sheds the organizational overhead. See [for-established-orgs.md](../ease-of-adoption/for-established-orgs.md).
+  - **New charitable efforts skipping the org phase.** A new delegate can start small, build a track record onchain, and never need to incorporate a nonprofit just to demonstrate trustworthiness. See [for-new-orgs.md](../ease-of-adoption/for-new-orgs.md).
   - **Government voluntarily using better tools.** A city council could act as a Commonality delegate: "we're allocating $200K/year to parks maintenance through Commonality, and residents can contribute too." The government reduces its administrative burden, residents get transparency, and the funding channel survives even if the government later pulls out. Similarly, governments could run participatory-budgeting experiments on Commonality — if it works better than traditional participatory budgeting (which is clunky), the scope expands.
   - **Professional associations.** Groups like doctors, engineers, or teachers already self-organize and sometimes fund shared goods (research, training, professional development). They could adopt Commonality as infrastructure for profession-specific public goods — a high-trust, high-income user base that's already comfortable with voluntary collective funding through dues.
   - **Government matching funds.** Governments already do matching-fund programs. A natural bridge: government matches Commonality pledges for approved categories. This gives people a reason to start using the system, and once they're habituated, the matching ratio can decrease without killing the projects — because the infrastructure and donor base already exist.
@@ -36,5 +36,5 @@ Some adoption paths work by easing people into the mechanisms through something 
 ## Charity stuff
 
 See:
-  - [as-good-as/charity.md](../as-good-as/charity.md)
-  - [benefits-established-orgs.md](../ease-of-adoption/benefits-established-orgs.md).
+  - [vs-charity.md](../credible-replacement/vs-charity.md)
+  - [for-established-orgs.md](../ease-of-adoption/for-established-orgs.md).

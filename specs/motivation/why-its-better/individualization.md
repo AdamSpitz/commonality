@@ -12,4 +12,4 @@ Every action in the system is a personal decision that doesn't require anyone el
 
 ## Individualization -> organic coalitions
 
-See [organic-coalitions.md](../benefits/organic-coalitions.md).
+See [organic-coalitions.md](./organic-coalitions.md).

@@ -50,7 +50,7 @@ A few more structural pressures that reinforce the cascade:
 
 ## Sole-donor to distributed funding
 
-Even sole donors (foundations, government agencies, wealthy individuals) benefit from using Commonality's rails — standardized infrastructure, verifiable track records, ecosystem visibility — and the system gently makes opening up to co-funders attractive over time. This is another "dial, not switch" upgrade path, like [tip jars](../ease-of-adoption/tip-jar-upgrade-path.md) and [alignment attestation](../ease-of-adoption/alignment-attestation-for-orgs.md): start wherever you are, get real benefits immediately, and the next step is always easy. See [donor-project-tension.md](../ease-of-adoption/donor-project-tension.md) for the full argument.
+Even sole donors (foundations, government agencies, wealthy individuals) benefit from using Commonality's rails — standardized infrastructure, verifiable track records, ecosystem visibility — and the system gently makes opening up to co-funders attractive over time. This is another "dial, not switch" upgrade path, like [tip jars](../ease-of-adoption/tip-jar-upgrade-path.md) and [alignment attestation](../ease-of-adoption/for-established-orgs.md): start wherever you are, get real benefits immediately, and the next step is always easy. See [donor-project-tension.md](../ease-of-adoption/donor-project-tension.md) for the full argument.
 
 ## "But you're paying with after-tax dollars"
 

@@ -1,6 +1,6 @@
 # Sole-donor to distributed funding: another upgrade path
 
-Like the [tip-jar-to-token upgrade path](./tip-jar-upgrade-path.md) and the [alignment-attestation dial](./alignment-attestation-for-orgs.md), the move from sole-donor funding to distributed funding is a smooth spectrum, not a binary choice. And the argument for "might as well use our rails" applies even at the sole-donor end.
+Like the [tip-jar-to-token upgrade path](./tip-jar-upgrade-path.md) and the [alignment-attestation dial](./for-established-orgs.md), the move from sole-donor funding to distributed funding is a smooth spectrum, not a binary choice. And the argument for "might as well use our rails" applies even at the sole-donor end.
 
 ## The spectrum
 

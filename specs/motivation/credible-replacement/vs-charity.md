@@ -1,6 +1,6 @@
 # At least as good as private charity, too
 
-[as-good-as/government.md](./government.md) compares Commonality with government. But a lot of public-goods funding already happens through private charity - and Commonality improves on that too.
+[vs-government.md](./vs-government.md) compares Commonality with government. But a lot of public-goods funding already happens through private charity - and Commonality improves on that too.
 
 Private charity has problems:
 

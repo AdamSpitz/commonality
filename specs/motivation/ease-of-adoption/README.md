@@ -1,8 +1,27 @@
-# Commonality is designed to be easy to adopt
+# Adoption is easy
 
-TODO: add a summary at the top, and some headings?
+Two things make adoption realistic:
 
-  - It can grow [*without* a major coordination hassle](./no-prerequisites.md). Of course a cause still does need to actually gather users (donors, delegates, project-doers, alignment attesters), but the [pitches](../pitches.md) to each user are straightforward and don't require them to agree on a delegate/leader/charter/manifesto or trust that they won't be the only one donating or have an "in" with any centralized gatekeeper or have faith that this movement will take over the world.
-  - Adoption is a [dial, not a switch](./dial-not-switch.md). Every path onto Commonality starts at a level that's functionally identical to what you're already doing — just on better infrastructure — and smoothly upgrades from there. [Tip jars](./tip-jar-upgrade-path.md) become tokens (same UX, but with receipts and optionality). [Sole donors](./donor-project-tension.md) use the rails at full control and gradually open up to co-funders. [Orgs](./alignment-attestation-for-orgs.md) start as sole attester and gradually accept external suggestions, potentially discovering common ground with unlikely allies. The floor case costs nothing extra, gives small immediate improvements (transparency, verifiable receipts, leaderboard credit), and puts you one easy step away from much more powerful modes that retroactively benefit everyone who got in at the floor.
-  - It provides free and trustworthy [infrastructure rails](./rails.md) to anyone, including both [existing orgs](./benefits-established-orgs.md) that don't want to deal with that hassle and [new orgs](./benefits-new-orgs.md) that not only don't want to deal with that hassle but also benefit from the users being able to say "I don't know who that charity is but at least they're using the standard known infrastructure so I don't need to worry about that part."
-  - It [bridges to traditional finance](./bridges.md), so adoption doesn't require anyone to go full crypto — tradfi donors contribute via bridge operators, charities act as tax-deductible on-ramps, and the onchain record coexists with normal tax receipts and compliance reports.
+## The old way is frustrating
+
+Traditional collective action carries a huge coordination tax — compromising, agreeing on leadership, reaching critical mass, making irreversible commitments. Commonality [specifically fixes these frustrations](./legacy-frustrations.md). This isn't just a benefit of the new system; it's a reason people are motivated to switch.
+
+## The new way is smooth
+
+Every aspect of the system is designed so that getting started is trivial and scaling up is gradual:
+
+  - **[Costless to try](./costless-to-try.md):** Pledges refund if the threshold isn't met. Delegation is revocable. Signing a statement is free. Starting a project costs nothing.
+
+  - **[Scales down](./scales-down.md):** Useful even for a single project with a handful of funders. No critical mass required.
+
+  - **[Dial, not a switch](./dial-not-switch.md):** Every path onto Commonality starts at a level functionally identical to what you're already doing — just on better infrastructure — and smoothly upgrades from there.
+
+  - **[Tip jar upgrade path](./tip-jar-upgrade-path.md):** Unconditional donations become tokens with the same UX but with receipts and optionality. One easy step to secondary markets and retroactive funding.
+
+  - **[Infrastructure rails](./rails.md):** Commonality is neutral infrastructure — more like a protocol than a platform. Permissionless and ownerless.
+
+  - **[Bridges to traditional finance](./bridges.md):** Tradfi donors contribute via bridge operators, charities act as tax-deductible on-ramps, onchain records coexist with normal tax receipts and compliance reports.
+
+  - **[For established orgs](./for-established-orgs.md):** Charities can use Commonality as an operational backend, starting as sole attester and gradually opening up. See also the [donor-project tension](./donor-project-tension.md) for how sole donors can gradually open to co-funders.
+
+  - **[For new orgs](./for-new-orgs.md):** Skip the "form an organization" step entirely. Users trust the infrastructure even if they don't know who you are.
