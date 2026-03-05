@@ -1,5 +1,9 @@
 # Doesn't require coordination
 
+TODO: so now I feel like the idea is:
+  - Make participation easier (less need to make tradeoffs), primarily via more individualization.
+
+
 ## Traditional = aggregate early; Commonality = aggregate later
 
 The standard technique for collective action is: aggregate individual contributions (money, votes, preferences) into a centralized entity (government, treasury, charity board, political party), and then that entity carries out the rest of the pipeline — deciding which projects to fund, evaluating alignment, making tradeoffs. The problem is that individuality is lost at the aggregation step. After that, the entity acts as a monolith, and you're along for the ride.
@@ -11,14 +15,14 @@ Technology (especially blockchain and AI) makes it possible to propagate [indivi
   - **Fine-grained delegation** replaces "elect one legislature for your district." Pick your own delegate(s), per-cause, revocable anytime. Your funding flows through your chosen chain, not through a collective decision.
   - **Individualized filtering** replaces "a central committee decides which projects fit our cause." Each user chooses which attesters to trust, so "which projects align with my values?" is answered per-user, not collectively.
 
-## Some of this makes participation easier
+## Individualization makes participation easier
 
 Some aspects of pushing individualization further make the choice to participate in this system much easier and less stressful than participating in the traditional system:
 
   - **Delegation:** You get exactly the delegate you want, specialized per-topic, revocable at any time. You're not stuck with one representative for all issues for four years. There's no need to stress over the choice in the way you do over a normal election — if it doesn't work out, just revoke.
   - **Statements:** You sign exactly the statement you want to sign. No need to compromise on wording, no need to figure out which of the three popular statements is closest to your position. Implication attestations connect you with others saying similar things, without you having to do anything.
 
-## Some of this creates new concerns (with mitigations)
+## Also creates some new concerns, but they can be mitigated
 
 Other aspects do create objections that the traditional aggregate-early approach doesn't have:
 
@@ -30,6 +34,14 @@ Other aspects do create objections that the traditional aggregate-early approach
 
 Using tokens as donation receipts is honestly an orthogonal improvement — a good idea for any public-goods-funding system, not specifically tied to the individualization theme. But it's worth noting that it has the same [dial-not-switch](./dial-not-switch.md) property: moving from "make a donation" to "make a donation and receive a token" costs nothing extra, and the token unlocks powerful optionality (secondary markets, investor/donor distinction, retroactive value) without requiring any commitment upfront.
 
-## Gathering users
+## Benefits to any action are straightforward; system gains value like a sloped line, not a huge step function (TODO: needs better phrasing)
 
-Of course a cause still does need to actually gather users — get donors to pledge money, get doers to start projects. But the [pitches](./pitches.md) to each user are straightforward precisely because each action stands on its own: you don't need to agree on a leader, trust that others will show up, get past a gatekeeper, or have faith that this movement will take over the world.
+The point of the above arguments isn't that Commonality magically jumps to infinite value instantaneously; of course a cause still does need to actually gather users (get donors to pledge money, get doers to start projects, etc.).
+
+But the [pitches](./pitches.md) to each user are straightforward precisely because each action stands on its own. This isn't like "let's start a new political party" where at N=10 you've accomplished nothing and at N=1000 you've accomplished nothing and at N=100000 you've accomplished nothing but then suddenly at N=10000000 you've got a political party that can actually change the country. (Each individual assurance contract is a little step function like that, but presumably those are fairly small.) Every action taken by every user is what it is; its value isn't dependent on the entire system taking over the world.
+  - If the system funds 10 projects, the people participating in those projects haven't wasted their time; if the system funds 20 projects, great, that's twice as much value.
+  - If you sign exactly the statement that you believe in, the implication-attestation system will help you find exactly the coalitions that you'll naturally want to be part of.
+  - If you delegate to someone, you get exactly the delegate that you want.
+  - If you attest to a project's alignment, whoever trusts you will see that; the value of your attestations can increase linearly with followers, rather than it being an all-or-nothing "are you on the board or not?".
+
+That was all very hand-wavy but maybe you get the idea. TODO: clean this all up.
