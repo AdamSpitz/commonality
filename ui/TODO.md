@@ -6,7 +6,8 @@ Implementation is mostly done and well-tested.
 
 ## Pubstarter UI - MVP
 
-  - See specs/subsystems/pubstarter/ui.md for details.
+  - Spec: specs/subsystems/pubstarter/ui.md
+  - Chunked implementation plan: [ui/src/pubstarter/TODO.md](src/pubstarter/TODO.md) — 6 chunks, starting from Chunk 1.
 
 ## Other subsystem UIs
 
