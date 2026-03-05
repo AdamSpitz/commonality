@@ -10,4 +10,4 @@ The pattern: the floor case costs nothing extra and already gives you small imme
 
 There's no reason *not* to start, which means adoption doesn't depend on anyone being convinced of the grand vision.
 
-This connects to the other [no-prerequisites](./no-prerequisites.md) principles: it's individually useful (scales down), nearly costless to try, and doesn't require collective agreement (individualization). The difference is that this principle operates at the level of "should I adopt the system at all?" rather than "what should I do within the system?"
+This connects to the other [no-coordination](./no-prerequisites.md) principles: it's individually useful (scales down), nearly costless to try, and doesn't require collective agreement (individualization). The difference is that this principle operates at the level of "should I adopt the system at all?" rather than "what should I do within the system?"
