@@ -13,12 +13,12 @@ Follow the same patterns as the conceptspace UI (`ui/src/conceptspace/`):
 
 Each chunk should build, pass lint, and get committed.
 
-### Chunk 1: Scaffold + Browse Projects Page
-- [ ] Create `ui/src/pubstarter/` directory structure (pages/, components/)
-- [ ] Create `ui/src/pubstarter/pages/index.ts` barrel export
-- [ ] Implement `BrowseProjectsPage.tsx`: list all projects as cards with name (from IPFS metadata via `metadataCid`), funding progress bar, deadline (relative time), status badge (Funding/Succeeded/Refunding). Sort controls (newest, deadline, most funded, closest to goal) and filter by status (all/active/succeeded/refunding). Uses `getProjectsFiltered` / `getAllProjects` from SDK. Clicking a card navigates to `/projects/:projectAddress`.
-- [ ] Add routes to `App.tsx`: `/projects` → BrowseProjectsPage, `/projects/new` → CreateProjectPage (placeholder), `/projects/:projectAddress` → ProjectDetailPage (placeholder)
-- [ ] Write tests for BrowseProjectsPage
+### Chunk 1: Scaffold + Browse Projects Page ✅
+- [x] Create `ui/src/pubstarter/` directory structure (pages/, components/)
+- [x] Create `ui/src/pubstarter/pages/index.ts` barrel export
+- [x] Implement `BrowseProjectsPage.tsx`: list all projects as cards with name (from IPFS metadata via `metadataCid`), funding progress bar, deadline (relative time), status badge (Funding/Succeeded/Refunding). Sort controls (newest, deadline, most funded, closest to goal) and filter by status (all/active/succeeded/refunding). Uses `getProjectsFiltered` / `getAllProjects` from SDK. Clicking a card navigates to `/projects/:projectAddress`.
+- [x] Add routes to `App.tsx`: `/projects` → BrowseProjectsPage, `/projects/new` → CreateProjectPage (placeholder), `/projects/:projectAddress` → ProjectDetailPage (placeholder)
+- [x] Write tests for BrowseProjectsPage
 
 ### Chunk 2: Project Detail Page — Header + Buy Tokens
 - [ ] Implement `ProjectDetailPage.tsx` with header section: project name/description (fetched from IPFS via `metadataCid` using `fetchDocument`), recipient address, status badge, funding progress bar, "X of Y ETH raised", deadline countdown. Uses `getProject` from SDK.

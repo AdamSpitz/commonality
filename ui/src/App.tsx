@@ -5,6 +5,9 @@ import { BrowseStatementsPage } from './conceptspace/pages/BrowseStatementsPage'
 import { StatementPage } from './conceptspace/pages/StatementPage'
 import { UserProfilePage } from './conceptspace/pages/UserProfilePage'
 import { SettingsPage } from './conceptspace/pages/SettingsPage'
+import { BrowseProjectsPage } from './pubstarter/pages/BrowseProjectsPage'
+import { ProjectDetailPage } from './pubstarter/pages/ProjectDetailPage'
+import { CreateProjectPage } from './pubstarter/pages/CreateProjectPage'
 
 function App() {
   return (
@@ -17,6 +20,9 @@ function App() {
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/user/:address" element={<UserProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/projects" element={<BrowseProjectsPage />} />
+          <Route path="/projects/new" element={<CreateProjectPage />} />
+          <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>
