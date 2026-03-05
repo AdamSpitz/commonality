@@ -1,12 +1,35 @@
-# Pitches to various types of users, and why they're viable
+# Pitches to various types of users
 
-TODO: organize this better, make the case clearly for each kind of user.
+Of course a cause still does need to actually gather users — get donors to pledge money, get doers to start projects. But it's not a horrible coordination problem. Each pitch stands on its own and doesn't require the person to believe in the grand vision.
 
+## Donors (people with money)
 
+**The lazy donor:** "Want to contribute financially to a particular cause? Pledge some money per month, delegate to whoever you trust, watch the decisions with complete transparency if you want, revoke at any time. This lets you contribute-while-being-lazy *right now*; it doesn't depend on what anybody else does."
 
-Of course a cause still does need to actually gather users - get donors to pledge money, get doers to start projects. But it's not a horrible coordination problem either. The pitch can be:
-  - "Here's this one small project we're trying to get funded." (NOT "here's our plan to persuade half the country to vote for our new political party.")
-  - "Want to contribute financially to a particular cause? Pledge some money per month, delegate to whoever you want, watch the decisions with complete transparency if you want, revoke at any time. This allows you to contribute-while-being-lazy *right now*; it doesn't depend on what anybody else does."
-  - "Want to help aligned projects gain visibility? Just vouch for a few people you trust - not even in any major way, just 'if he says project P is aligned, it's probably aligned.'"
-  - "Have an idea for a project aligned with cause C? There's $X available, in the hands of Y delegates who are actively looking to direct that money towards C. You probably even know some people whose alignment attestation would bring significant visibility to your project. Also, feel free to write up your project's mission statement using language that satisfies you; the implication system will take care of connecting it to the causes that others have said they're interested in funding."
-  - "Donors and delegates, don't even worry about trying to predict which projects *will be* successful. If you don't feel confident that you can do that, it is perfectly fine and actually extremely valuable to buy-and-burn the tokens of public-good projects that have already proven their value. Even if there's a project that *still needs* funding in the here and now, it's perfectly fine for you to decline to fund them in-advance but to publically proclaim that you'll retroactively buy their tokens if they succeed. And you'll still receive social recognition (if you want it) for your financial contribution, even if that contribution is retroactive."
+**The cautious donor:** "Pledge to an assurance contract — your money is only spent if enough others also pledge. If the threshold isn't met, you get refunded. You risk nothing."
+
+**The retroactive donor:** "Don't worry about trying to predict which projects *will be* successful. It is perfectly fine and actually extremely valuable to buy-and-burn the tokens of projects that have already proven their value. You still receive social recognition for your contribution, even if it's retroactive." TODO: polish the following a bit?: The downside of doing this is that you'll pay more than you would have paid if you had predicted the success of the project in advance - but that's a feature, not a bug? We *want* to reward the nano-VCs (see below) for being early; if you're a person who wants to further the cause but you don't want to take the risk of investing early in projects that may not create much value, it's a perfectly legitimate role to use your donations to buy the tokens from the people who took the risk of being early.
+
+## Project creators (people with ideas)
+
+"Have an idea for a project aligned with cause C? There's $X available, in the hands of Y delegates who are actively looking to direct that money towards C. You probably even know some people whose alignment attestation would bring significant visibility to your project. Write up your project's mission statement using whatever language satisfies you — the implication system will connect it to the causes that others have said they're interested in funding. No grant applications, no permission needed. Just click the button."
+
+## Delegates (people with judgment)
+
+"Know your field well enough to spot good projects? Become a delegate. People who trust your judgment route funds through you, you direct them toward the best projects, your track record is transparent onchain. Start small — direct a few small delegatable notes — and let your track record speak for itself. No need to incorporate a nonprofit."
+
+## Alignment attesters (people with opinions)
+
+"Want to help aligned projects gain visibility? Just vouch for a few people you trust — not even in any major way, just 'if he says project P is aligned, it's probably aligned.' Or attest directly that a project aligns with a cause. Whoever trusts you sees it. Your influence grows linearly with followers."
+
+## Existing orgs (charities, community groups)
+
+"Use Commonality as your operational backend. Keep doing what you're good at — evaluating projects — but shed the overhead. Accept donations via delegatable notes, direct funds toward aligned projects, and let the blockchain handle the transparency and accounting. Start as the sole trusted attester (identical to your current process), then gradually open up to external suggestions if you want." See [benefits-established-orgs.md](./benefits-established-orgs.md).
+
+## Investors/speculators (people with foresight)
+
+"Good at spotting promising projects early? Buy tokens in projects you think will succeed. If the project delivers, altruistic donors will later want to buy and burn those tokens for social recognition — and you can sell to them at a profit. You're a nano-VC for public goods."
+
+## The common thread
+
+Every pitch is about something individually useful. Nobody needs to be told "join our movement" or "here's our plan to persuade half the country." It's "here's this one small thing you can do, it's useful to you right now, and it doesn't depend on what anybody else does."
