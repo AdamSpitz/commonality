@@ -36,5 +36,5 @@ Some adoption paths work by easing people into the mechanisms through something 
 ## Charity stuff
 
 See:
-  - [as-good-as-charity.md](./as-good-as-charity.md)
+  - [as-good-as/charity.md](./as-good-as/charity.md)
   - [benefits-established-orgs.md](./benefits-established-orgs.md).

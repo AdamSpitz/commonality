@@ -54,14 +54,8 @@ Even sole donors (foundations, government agencies, wealthy individuals) benefit
 
 ## "But you're paying with after-tax dollars"
 
-The obvious objection: why would anyone voluntarily fund something through Commonality when the government could fund it with tax revenue? You're eating a ~30-40% tax hit compared to getting the government to pay for it.
-
-Several responses:
-
-  - **The realistic alternative usually isn't "government funds it well."** Most of the things people would fund through Commonality are either (a) not being funded at all, (b) being funded with onerous conditions attached, or (c) being funded through private charity (which is also after-tax). The comparison "Commonality vs. perfectly-directed tax revenue" rarely applies in practice.
-  - **Government procurement overhead narrows the gap dramatically.** Government-funded projects carry enormous overhead: procurement processes, compliance reporting, administrative layers, political conditions. If a government-funded project costs $1M but $350K is overhead and friction, then a Commonality-funded equivalent at $650K in after-tax dollars is roughly break-even. Government procurement inefficiency is famously bad — estimates of 30-50% overhead for certain categories are common.
-  - **Charities can act as Commonality delegates.** A registered charity can accept tax-deductible donations and direct funds through Commonality as a delegate. Donors get their deduction, the charity keeps doing what it's good at (evaluating projects), and the system gets Commonality's mechanism benefits. You lose some censorship resistance (the charity is a legal entity that can be pressured), but for uncontroversial projects that's fine. Communities can maintain both channels — tax-deductible contributions through a charity-delegate for the mundane stuff, direct onchain contributions for things that need to be unstoppable.
-  - **Resilience has compounding value.** A project funded through government can be defunded next election cycle. A project funded through Commonality stays funded as long as its supporters keep pledging. Over multiple election cycles, the "tax-efficient but periodically destroyed" approach may actually cost more than "after-tax but stable."
-  - **For the stuff that government won't fund regardless, the comparison is irrelevant.** Legal defense for politically targeted individuals, advocacy against the current government's policies, infrastructure for communities the government is hostile to — you're never getting tax-funded support for these. The after-tax cost is the cost of doing it at all.
-
-But honestly: for normal government functions like road maintenance and sewage treatment, Commonality probably isn't going to replace tax funding, and shouldn't need to. The argument isn't "fund everything through Commonality." It's "build independent funding capacity for the things that matter to your community, so that when government funding comes with strings attached — or gets cut entirely — you have a fallback that nobody can take away from you."
+Yes, that's a big disadvantage. See [after-tax.md](./after-tax.md). But:
+  - Government is notoriously inefficient, so the gap may not be as big as it sounds.
+  - Some things would never be funded by the government anyway, so the comparison is irrelevant.
+  - Some things might be fundable through Commonality but using a real charity to make the donations tax-deductible.
+  - This may be at least partially mitigated by using Commonality as a [credible threat](./credible-threat.md) of switching to alternative funding.

@@ -1,5 +1,9 @@
 # Pitches to various types of users, and why they're viable
 
+TODO: organize this better, make the case clearly for each kind of user.
+
+
+
 Of course a cause still does need to actually gather users - get donors to pledge money, get doers to start projects. But it's not a horrible coordination problem either. The pitch can be:
   - "Here's this one small project we're trying to get funded." (NOT "here's our plan to persuade half the country to vote for our new political party.")
   - "Want to contribute financially to a particular cause? Pledge some money per month, delegate to whoever you want, watch the decisions with complete transparency if you want, revoke at any time. This allows you to contribute-while-being-lazy *right now*; it doesn't depend on what anybody else does."
