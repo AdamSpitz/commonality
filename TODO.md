@@ -3,9 +3,10 @@
 ---
 
 Main thing I want to work on next:
-  - Get the e2e tests (npm run ui:test:e2e) working.
+  - Implementing the pubstarter UI. (See ui/TODO.md.)
 
 Other big things to do soon:
+  - Get the e2e tests (npm run ui:test:e2e) working.
   - Fix the problems in the different workspaces' TODO.md files.
   - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
   - (Not a task for AI.) I need to do a big code review myself, of the whole thing. I don't trust it.

@@ -4,6 +4,10 @@
 
 Implementation is mostly done and well-tested.
 
+## Pubstarter UI - MVP
+
+  - See specs/subsystems/pubstarter/ui.md for details.
+
 ## Other subsystem UIs
 
 Not even started yet, I think.
