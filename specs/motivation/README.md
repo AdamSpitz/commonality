@@ -2,6 +2,23 @@
 
 This whole "motivation" directory is about trying to make a case for why this system (a) would be useful for the world, and (b) can actually succeed in gaining adoption.
 
+TODO: I want an even-shorter summary to help me hold this in my head.
+
+  - New tech has made possible a viable way of funding public goods without needing large charity orgs or government.
+  - That's *great* because the big orgs are lousy in a bunch of ways. (Both mundane ways and also "maybe we want to change the rules on a deep level" kinds of ways.)
+  - Adoption ought to be smooth. For one thing, this more-individualized system *fixes* many of the frustrating things about traditional collective-action. Also, this system can mimic the old way of doing things (while still yielding some benefits), so the transition to the underlying rails makes sense even if the org doesn't yet want to change the core of its structure. Also we can have bridges to tradfi, so it's not like you lose the ability to contribute via tradfi, get tax receipts, etc.
+  - The legacy orgs (particularly government) might not be happy about this, but it won't be easy for them to stop us from using money we do actually control to fund whatever we want. (Struggling for control over already-taxed dollars is a different story.)
+  - Benefits offered by the system:
+    - Donations give the donor tokens as a receipt; these can be sold, opening up the possibility of retroactive funding.
+    - More individualized decisions. Say exactly what you want, delegate to exactly who you want, put your money towards exactly what you want.
+    - Much better transparency, trustlessness, censorship-resistance.
+    - Rails are built once, available to everyone, can be audited by anyone. This is a benefit for established orgs who'd rather not be spending so much of their energy on the infrastructure, and an even bigger benefit for new orgs/individuals who instantaneously get world-class known-good infrastructure without needing to establish their brand name first.
+    - Organic coalition-building. Centralized legacy systems polarize; we predict that individualized systems like this (letting commonality be discovered organically by analyzing the individual statements to find common ground) will lead to much more agreement/overlap.
+    - Openness, crowdsourcing. If you care more about the cause than about control, you'll be glad to have a more open-ended system that can aggregate the efforts of more donors, more alignment-attesters, more delegates.
+    
+
+
+
 ## It works
 
 We have the tech to build a public-goods-funding system that's just as good or better [than traditional government](./as-good-as/government.md) OR [than traditional private charity](./as-good-as/charity.md). (Better [than network states](./as-good-as/network-states.md), too, in case you care about that.)

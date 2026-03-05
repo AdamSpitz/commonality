@@ -10,6 +10,6 @@ Every action in the system is a personal decision that doesn't require anyone el
   - **Attesting that a project is aligned** is something any individual can do, and choosing whose alignment-attestations to respect is something each individual gets to do. We don't need to agree on who should be the gatekeepers for determining project alignment.
   - **No centralized treasury.** We don't need to coordinate to pool our funds in one particular centralized treasury, and we don't need to agree on who should control that treasury. Many separate groups/individuals is fine; we can all contribute to an assurance contract we all like.
 
-## THIS IS WHY THE SYSTEM IS NAMED COMMONALITY
+## Individualization -> organic coalitions
 
-Individualization enables organic alliances: implication attestations let two disparate groups discover shared ground and fund overlapping projects, without either group needing to compromise on their specific wording or even be aware of each other upfront.
+See [organic-coalitions.md](../benefits/organic-coalitions.md).
