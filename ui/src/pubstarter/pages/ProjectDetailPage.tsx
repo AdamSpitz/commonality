@@ -10,6 +10,12 @@ import {
   LinearProgress,
   TextField,
   Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
@@ -17,11 +23,17 @@ import {
   createSDKMachinery,
   getProject,
   getProjectTokens,
+  getProjectContributions,
+  getProjectRefunds,
   buyProjectTokens,
+  refundProjectTokens,
+  withdrawProjectFunds,
   fetchFromIPFS,
   AssuranceContractAbi,
   type Project,
   type ProjectToken,
+  type Contribution,
+  type Refund,
   type AssuranceContract,
   type TestClients,
 } from '@commonality/sdk'
@@ -79,11 +91,24 @@ export function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [contributions, setContributions] = useState<Contribution[]>([])
+  const [refunds, setRefunds] = useState<Refund[]>([])
+
   // Buy tokens state: map of tokenId -> quantity string
   const [quantities, setQuantities] = useState<Record<string, string>>({})
   const [buying, setBuying] = useState(false)
   const [buyError, setBuyError] = useState<string | null>(null)
   const [buySuccess, setBuySuccess] = useState<string | null>(null)
+
+  // Refund state
+  const [refunding, setRefunding] = useState(false)
+  const [refundError, setRefundError] = useState<string | null>(null)
+  const [refundSuccess, setRefundSuccess] = useState<string | null>(null)
+
+  // Withdraw state
+  const [withdrawing, setWithdrawing] = useState(false)
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
+  const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null)
 
   const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
 
@@ -97,9 +122,11 @@ export function ProjectDetailPage() {
 
         const machinery = createSDKMachinery(GRAPHQL_URL)
 
-        const [proj, projTokens] = await Promise.all([
+        const [proj, projTokens, projContributions, projRefunds] = await Promise.all([
           getProject(machinery, projectAddress),
           getProjectTokens(machinery, projectAddress),
+          getProjectContributions(machinery, projectAddress),
+          getProjectRefunds(machinery, projectAddress),
         ])
 
         if (!proj) {
@@ -109,6 +136,8 @@ export function ProjectDetailPage() {
 
         setProject(proj)
         setTokens(projTokens)
+        setContributions(projContributions)
+        setRefunds(projRefunds)
 
         // Fetch IPFS metadata
         if (proj.metadataCid) {
@@ -190,6 +219,150 @@ export function ProjectDetailPage() {
       setBuying(false)
     }
   }
+
+  // Compute the connected user's refundable tokens: contributed minus already refunded
+  const userRefundableTokens = (() => {
+    if (!address) return []
+    const userAddr = address.toLowerCase()
+
+    // Sum up tokens contributed by this user to this project
+    const contributed = new Map<string, bigint>()
+    for (const c of contributions) {
+      if (c.participant.toLowerCase() !== userAddr) continue
+      const ids: string[] = JSON.parse(c.tokenIds)
+      const counts: string[] = JSON.parse(c.tokenCounts)
+      for (let i = 0; i < ids.length; i++) {
+        const prev = contributed.get(ids[i]) ?? 0n
+        contributed.set(ids[i], prev + BigInt(counts[i]))
+      }
+    }
+
+    // Subtract tokens already refunded by this user
+    for (const r of refunds) {
+      if (r.participant.toLowerCase() !== userAddr) continue
+      const ids: string[] = JSON.parse(r.tokenIds)
+      const counts: string[] = JSON.parse(r.tokenCounts)
+      for (let i = 0; i < ids.length; i++) {
+        const prev = contributed.get(ids[i]) ?? 0n
+        contributed.set(ids[i], prev - BigInt(counts[i]))
+      }
+    }
+
+    return Array.from(contributed.entries())
+      .filter(([, count]) => count > 0n)
+      .map(([tokenId, count]) => ({ tokenId, count }))
+  })()
+
+  const handleRefund = async () => {
+    if (!project || !walletClient || !publicClient || !address) return
+    if (userRefundableTokens.length === 0) return
+
+    try {
+      setRefunding(true)
+      setRefundError(null)
+      setRefundSuccess(null)
+
+      const assuranceContract: AssuranceContract = {
+        address: project.id as `0x${string}`,
+        abi: AssuranceContractAbi,
+      }
+
+      const clients: TestClients = {
+        walletClient: walletClient as any,
+        publicClient: publicClient as any,
+        account: address,
+      }
+
+      await refundProjectTokens(clients, assuranceContract, {
+        holder: address,
+        tokenAddress: project.erc1155Address as `0x${string}`,
+        tokenIds: userRefundableTokens.map(t => BigInt(t.tokenId)),
+        tokenCounts: userRefundableTokens.map(t => t.count),
+      })
+
+      setRefundSuccess('Tokens refunded successfully!')
+
+      // Refresh data
+      const machinery = createSDKMachinery(GRAPHQL_URL)
+      const [updated, updatedContributions, updatedRefunds] = await Promise.all([
+        getProject(machinery, projectAddress!),
+        getProjectContributions(machinery, projectAddress!),
+        getProjectRefunds(machinery, projectAddress!),
+      ])
+      if (updated) setProject(updated)
+      setContributions(updatedContributions)
+      setRefunds(updatedRefunds)
+    } catch (err) {
+      console.error('Error refunding tokens:', err)
+      setRefundError(err instanceof Error ? err.message : 'Failed to refund tokens')
+    } finally {
+      setRefunding(false)
+    }
+  }
+
+  const handleWithdraw = async () => {
+    if (!project || !walletClient || !publicClient || !address) return
+
+    try {
+      setWithdrawing(true)
+      setWithdrawError(null)
+      setWithdrawSuccess(null)
+
+      const assuranceContract: AssuranceContract = {
+        address: project.id as `0x${string}`,
+        abi: AssuranceContractAbi,
+      }
+
+      const clients: TestClients = {
+        walletClient: walletClient as any,
+        publicClient: publicClient as any,
+        account: address,
+      }
+
+      await withdrawProjectFunds(clients, assuranceContract)
+
+      setWithdrawSuccess('Funds withdrawn successfully!')
+
+      // Refresh project data
+      const machinery = createSDKMachinery(GRAPHQL_URL)
+      const updated = await getProject(machinery, projectAddress!)
+      if (updated) setProject(updated)
+    } catch (err) {
+      console.error('Error withdrawing funds:', err)
+      setWithdrawError(err instanceof Error ? err.message : 'Failed to withdraw funds')
+    } finally {
+      setWithdrawing(false)
+    }
+  }
+
+  // Build contributor leaderboard: net contribution per address
+  const leaderboard = (() => {
+    const stats = new Map<string, { contributed: bigint; refunded: bigint }>()
+
+    for (const c of contributions) {
+      const addr = c.participant.toLowerCase()
+      const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n }
+      entry.contributed += BigInt(c.totalCost)
+      stats.set(addr, entry)
+    }
+
+    for (const r of refunds) {
+      const addr = r.participant.toLowerCase()
+      const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n }
+      entry.refunded += BigInt(r.totalRefund)
+      stats.set(addr, entry)
+    }
+
+    return Array.from(stats.entries())
+      .map(([address, { contributed, refunded }]) => ({
+        address,
+        contributed,
+        refunded,
+        net: contributed - refunded,
+      }))
+      .filter(e => e.net > 0n)
+      .sort((a, b) => (b.net > a.net ? 1 : b.net < a.net ? -1 : 0))
+  })()
 
   if (loading) {
     return (
@@ -308,6 +481,101 @@ export function ProjectDetailPage() {
           <Typography variant="body1" color="text.secondary">
             Connect your wallet to buy tokens.
           </Typography>
+        </Paper>
+      )}
+
+      {/* Refund Section */}
+      {isConnected && status === 'refunding' && userRefundableTokens.length > 0 && (
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" component="h2" gutterBottom>
+            Refund Tokens
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            The funding deadline has passed and the threshold was not met. You can refund your tokens.
+          </Typography>
+
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            {userRefundableTokens.map(({ tokenId, count }) => (
+              <Typography key={tokenId} variant="body1">
+                Token #{tokenId}: {count.toString()} refundable
+              </Typography>
+            ))}
+          </Stack>
+
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={handleRefund}
+            disabled={refunding}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            {refunding ? 'Refunding...' : 'Refund All'}
+          </Button>
+
+          {refundError && <Alert severity="error" sx={{ mt: 2 }}>{refundError}</Alert>}
+          {refundSuccess && <Alert severity="success" sx={{ mt: 2 }}>{refundSuccess}</Alert>}
+        </Paper>
+      )}
+
+      {/* Withdraw Section (recipient only) */}
+      {isConnected && status === 'succeeded' && address?.toLowerCase() === project.recipient.toLowerCase() && (
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" component="h2" gutterBottom>
+            Withdraw Funds
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            The funding threshold has been met. You can withdraw the raised funds.
+          </Typography>
+
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleWithdraw}
+            disabled={withdrawing}
+          >
+            {withdrawing ? 'Withdrawing...' : 'Withdraw Funds'}
+          </Button>
+
+          {withdrawError && <Alert severity="error" sx={{ mt: 2 }}>{withdrawError}</Alert>}
+          {withdrawSuccess && <Alert severity="success" sx={{ mt: 2 }}>{withdrawSuccess}</Alert>}
+        </Paper>
+      )}
+
+      {/* Contributor Leaderboard */}
+      {leaderboard.length > 0 && (
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" component="h2" gutterBottom>
+            Contributor Leaderboard
+          </Typography>
+
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>#</TableCell>
+                  <TableCell>Address</TableCell>
+                  <TableCell align="right">Contributed</TableCell>
+                  <TableCell align="right">Refunded</TableCell>
+                  <TableCell align="right">Net</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {leaderboard.map((entry, i) => (
+                  <TableRow key={entry.address}>
+                    <TableCell>{i + 1}</TableCell>
+                    <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                      {entry.address.slice(0, 6)}...{entry.address.slice(-4)}
+                    </TableCell>
+                    <TableCell align="right">{formatEther(entry.contributed)} ETH</TableCell>
+                    <TableCell align="right">{formatEther(entry.refunded)} ETH</TableCell>
+                    <TableCell align="right">{formatEther(entry.net)} ETH</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Paper>
       )}
     </Box>

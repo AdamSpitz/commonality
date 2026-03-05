@@ -31,7 +31,11 @@ vi.mock('@commonality/sdk', async () => {
     createSDKMachinery: vi.fn(),
     getProject: vi.fn(),
     getProjectTokens: vi.fn(),
+    getProjectContributions: vi.fn(),
+    getProjectRefunds: vi.fn(),
     buyProjectTokens: vi.fn(),
+    refundProjectTokens: vi.fn(),
+    withdrawProjectFunds: vi.fn(),
     fetchFromIPFS: vi.fn(),
   }
 })
@@ -40,7 +44,11 @@ import {
   createSDKMachinery,
   getProject,
   getProjectTokens,
+  getProjectContributions,
+  getProjectRefunds,
   buyProjectTokens,
+  refundProjectTokens,
+  withdrawProjectFunds,
   fetchFromIPFS,
 } from '@commonality/sdk'
 
@@ -72,12 +80,46 @@ function makeToken(overrides: Record<string, any> = {}) {
   }
 }
 
+function makeContribution(overrides: Record<string, any> = {}) {
+  return {
+    id: 'contrib-1',
+    participant: '0x1111111111111111111111111111111111111111',
+    projectAddress: mockProjectAddress,
+    erc1155Address: '0xaaaa',
+    tokenIds: '["1"]',
+    tokenCounts: '["5"]',
+    totalCost: '500000000000000000', // 0.5 ETH
+    createdAt: '1700000000',
+    blockNumber: '100',
+    transactionHash: '0xhash1',
+    ...overrides,
+  }
+}
+
+function makeRefund(overrides: Record<string, any> = {}) {
+  return {
+    id: 'refund-1',
+    participant: '0x1111111111111111111111111111111111111111',
+    projectAddress: mockProjectAddress,
+    erc1155Address: '0xaaaa',
+    tokenIds: '["1"]',
+    tokenCounts: '["2"]',
+    totalRefund: '200000000000000000', // 0.2 ETH
+    createdAt: '1700000100',
+    blockNumber: '110',
+    transactionHash: '0xhash2',
+    ...overrides,
+  }
+}
+
 describe('ProjectDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(fetchFromIPFS).mockResolvedValue(null)
     vi.mocked(getProjectTokens).mockResolvedValue([])
+    vi.mocked(getProjectContributions).mockResolvedValue([])
+    vi.mocked(getProjectRefunds).mockResolvedValue([])
     mockAccount.address = undefined
     mockAccount.isConnected = false
     mockWalletClient.data = undefined
@@ -87,6 +129,8 @@ describe('ProjectDetailPage', () => {
     it('displays loading spinner while fetching project', () => {
       vi.mocked(getProject).mockReturnValue(new Promise(() => {}))
       vi.mocked(getProjectTokens).mockReturnValue(new Promise(() => {}))
+      vi.mocked(getProjectContributions).mockReturnValue(new Promise(() => {}))
+      vi.mocked(getProjectRefunds).mockReturnValue(new Promise(() => {}))
 
       render(<ProjectDetailPage />)
 
@@ -440,6 +484,391 @@ describe('ProjectDetailPage', () => {
       })
 
       expect(fetchFromIPFS).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Refund section', () => {
+    const refundingProject = () => makeProject({
+      deadline: String(NOW_SECONDS - 86400), // past deadline
+      totalReceived: '500000000000000000', // below threshold
+    })
+
+    it('shows Refund section when project is refunding and user has contributed', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Refund Tokens')).toBeInTheDocument()
+        expect(screen.getByText(/Token #1: 5 refundable/)).toBeInTheDocument()
+      })
+    })
+
+    it('does not show Refund section for active projects', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Funding')).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Refund Tokens')).not.toBeInTheDocument()
+    })
+
+    it('does not show Refund section when user has no contributions', async () => {
+      mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Refunding')).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Refund Tokens')).not.toBeInTheDocument()
+    })
+
+    it('subtracts already-refunded tokens from refundable count', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+      vi.mocked(getProjectRefunds).mockResolvedValue([
+        makeRefund({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["3"]' }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Token #1: 2 refundable/)).toBeInTheDocument()
+      })
+    })
+
+    it('hides Refund section when all tokens already refunded', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+      vi.mocked(getProjectRefunds).mockResolvedValue([
+        makeRefund({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Refunding')).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Refund Tokens')).not.toBeInTheDocument()
+    })
+
+    it('calls refundProjectTokens when Refund All clicked', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(refundProjectTokens).mockResolvedValue('0xhash' as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Refund Tokens')).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Refund All' }))
+
+      await waitFor(() => {
+        expect(refundProjectTokens).toHaveBeenCalledWith(
+          expect.objectContaining({ account: userAddr }),
+          expect.objectContaining({ address: mockProjectAddress }),
+          expect.objectContaining({
+            holder: userAddr,
+            tokenAddress: '0xaaaa',
+            tokenIds: [1n],
+            tokenCounts: [5n],
+          })
+        )
+      })
+    })
+
+    it('shows success message after refund', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(refundProjectTokens).mockResolvedValue('0xhash' as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Refund Tokens')).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Refund All' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Tokens refunded successfully!')).toBeInTheDocument()
+      })
+    })
+
+    it('shows error message when refund fails', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(refundProjectTokens).mockRejectedValue(new Error('Transaction reverted'))
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Refund Tokens')).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Refund All' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Withdraw section', () => {
+    const recipientAddr = '0xbbbbccccddddeeee1111222233334444aaaabbbb' as `0x${string}`
+    const succeededProject = () => makeProject({
+      totalReceived: '2000000000000000000', // above threshold
+      recipient: recipientAddr,
+    })
+
+    it('shows Withdraw section for recipient when threshold met', async () => {
+      mockAccount.address = recipientAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Withdraw Funds' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+      })
+    })
+
+    it('does not show Withdraw section for non-recipient', async () => {
+      mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Succeeded')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('heading', { name: 'Withdraw Funds' })).not.toBeInTheDocument()
+    })
+
+    it('does not show Withdraw section for active projects', async () => {
+      mockAccount.address = recipientAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(makeProject({ recipient: recipientAddr }) as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Funding')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('heading', { name: 'Withdraw Funds' })).not.toBeInTheDocument()
+    })
+
+    it('calls withdrawProjectFunds when Withdraw button clicked', async () => {
+      mockAccount.address = recipientAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(withdrawProjectFunds).mockResolvedValue('0xhash' as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Withdraw Funds' }))
+
+      await waitFor(() => {
+        expect(withdrawProjectFunds).toHaveBeenCalledWith(
+          expect.objectContaining({ account: recipientAddr }),
+          expect.objectContaining({ address: mockProjectAddress })
+        )
+      })
+    })
+
+    it('shows success message after withdrawal', async () => {
+      mockAccount.address = recipientAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(withdrawProjectFunds).mockResolvedValue('0xhash' as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Withdraw Funds' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Funds withdrawn successfully!')).toBeInTheDocument()
+      })
+    })
+
+    it('shows error message when withdrawal fails', async () => {
+      mockAccount.address = recipientAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(withdrawProjectFunds).mockRejectedValue(new Error('Already withdrawn'))
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Withdraw Funds' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Already withdrawn')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Contributor Leaderboard', () => {
+    it('shows leaderboard when there are contributions', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({
+          participant: '0xaaaa111111111111111111111111111111111111',
+          totalCost: '1000000000000000000',
+        }),
+        makeContribution({
+          participant: '0xbbbb111111111111111111111111111111111111',
+          totalCost: '500000000000000000',
+        }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Contributor Leaderboard')).toBeInTheDocument()
+        expect(screen.getByText('0xaaaa...1111')).toBeInTheDocument()
+        expect(screen.getByText('0xbbbb...1111')).toBeInTheDocument()
+      })
+    })
+
+    it('does not show leaderboard when no contributions', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Contributor Leaderboard')).not.toBeInTheDocument()
+    })
+
+    it('sorts contributors by net contribution descending', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({
+          participant: '0xaaaa111111111111111111111111111111111111',
+          totalCost: '500000000000000000', // 0.5 ETH
+        }),
+        makeContribution({
+          participant: '0xbbbb111111111111111111111111111111111111',
+          totalCost: '1000000000000000000', // 1 ETH
+        }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        const rows = screen.getAllByRole('row')
+        // rows[0] is header, rows[1] should be the higher contributor
+        expect(rows[1]).toHaveTextContent('0xbbbb...1111')
+        expect(rows[2]).toHaveTextContent('0xaaaa...1111')
+      })
+    })
+
+    it('accounts for refunds in net contribution', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({
+          participant: '0xaaaa111111111111111111111111111111111111',
+          totalCost: '1000000000000000000', // 1 ETH
+        }),
+      ] as any)
+      vi.mocked(getProjectRefunds).mockResolvedValue([
+        makeRefund({
+          participant: '0xaaaa111111111111111111111111111111111111',
+          totalRefund: '300000000000000000', // 0.3 ETH
+        }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Contributor Leaderboard')).toBeInTheDocument()
+        // Net should be 0.7 ETH
+        expect(screen.getByText('0.7 ETH')).toBeInTheDocument()
+      })
+    })
+
+    it('excludes contributors with zero net contribution', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({
+          participant: '0xaaaa111111111111111111111111111111111111',
+          totalCost: '500000000000000000',
+        }),
+      ] as any)
+      vi.mocked(getProjectRefunds).mockResolvedValue([
+        makeRefund({
+          participant: '0xaaaa111111111111111111111111111111111111',
+          totalRefund: '500000000000000000',
+        }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Contributor Leaderboard')).not.toBeInTheDocument()
     })
   })
 })

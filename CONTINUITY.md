@@ -4,9 +4,9 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Start on **Chunk 3** of the pubstarter UI plan: implement Refund, Withdraw, and Contributor Leaderboard sections on the Project Detail Page. See [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md) for the full plan.
+Start on **Chunk 4** of the pubstarter UI plan: implement the Secondary Market section on the Project Detail Page (Sale Listings, Buy Orders, Create Order form). See [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md) for the full plan.
 
-Key patterns established in Chunks 1-2:
+Key patterns established in Chunks 1-3:
 - Pages are in `ui/src/pubstarter/pages/`, components in `ui/src/pubstarter/components/`
 - `createSDKMachinery(GRAPHQL_URL)` for SDK queries, `fetchFromIPFS` for IPFS metadata
 - Project status logic: `getProjectStatus()` helper — compare `deadline` to `Date.now()/1000` and `totalReceived` to `threshold`
@@ -14,3 +14,5 @@ Key patterns established in Chunks 1-2:
 - Tests mock `@commonality/sdk`, `react-router-dom`, and `wagmi`; use vitest + @testing-library/react
 - Tests must be run from `ui/` directory (root vitest config lacks JSX setup)
 - `formatEther` from `viem` for ETH display
+- Contribution/Refund data: `getProjectContributions` + `getProjectRefunds`, tokenIds/tokenCounts stored as JSON string arrays
+- Leaderboard: aggregate contributions minus refunds per address, sort by net descending

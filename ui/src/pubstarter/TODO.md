@@ -25,11 +25,11 @@ Each chunk should build, pass lint, and get committed.
 - [x] Implement Buy Tokens section: list token types from `getProjectTokens`, quantity inputs, Buy button that calls `buyProjectTokens` via wagmi. Only shown when wallet connected.
 - [x] Write tests
 
-### Chunk 3: Project Detail Page — Refund + Withdraw + Leaderboard
-- [ ] Refund section: shown when deadline passed AND threshold not met. Shows user's refundable tokens, Refund button calling `refundERC1155`.
-- [ ] Withdraw section: shown only to project recipient when threshold met. "Withdraw Funds" button calling `withdraw`.
-- [ ] Contributor Leaderboard: table of contributors sorted by net contribution (totalContributed - totalRefunded). Uses `getProjectContributions` + `getProjectRefunds`. Columns: address, total contributed, tokens held vs burned.
-- [ ] Write tests
+### Chunk 3: Project Detail Page — Refund + Withdraw + Leaderboard ✅
+- [x] Refund section: shown when deadline passed AND threshold not met. Shows user's refundable tokens, Refund button calling `refundERC1155`.
+- [x] Withdraw section: shown only to project recipient when threshold met. "Withdraw Funds" button calling `withdraw`.
+- [x] Contributor Leaderboard: table of contributors sorted by net contribution (totalContributed - totalRefunded). Uses `getProjectContributions` + `getProjectRefunds`. Columns: address, total contributed, tokens held vs burned.
+- [x] Write tests
 
 ### Chunk 4: Project Detail Page — Secondary Market
 - [ ] Sale Listings table: active listings from `getActiveSaleListings` — seller, token ID, quantity, price per token, Buy button (calls `fulfillSaleListing`).
