@@ -20,10 +20,10 @@ Each chunk should build, pass lint, and get committed.
 - [x] Add routes to `App.tsx`: `/projects` → BrowseProjectsPage, `/projects/new` → CreateProjectPage (placeholder), `/projects/:projectAddress` → ProjectDetailPage (placeholder)
 - [x] Write tests for BrowseProjectsPage
 
-### Chunk 2: Project Detail Page — Header + Buy Tokens
-- [ ] Implement `ProjectDetailPage.tsx` with header section: project name/description (fetched from IPFS via `metadataCid` using `fetchDocument`), recipient address, status badge, funding progress bar, "X of Y ETH raised", deadline countdown. Uses `getProject` from SDK.
-- [ ] Implement Buy Tokens section: list token types from `getProjectTokens`, quantity inputs, Buy button that calls `buyERC1155` via wagmi `useWriteContract`. Only shown when wallet connected.
-- [ ] Write tests
+### Chunk 2: Project Detail Page — Header + Buy Tokens ✅
+- [x] Implement `ProjectDetailPage.tsx` with header section: project name/description (fetched from IPFS via `metadataCid` using `fetchFromIPFS`), recipient address, status badge, funding progress bar, "X of Y ETH raised", deadline countdown. Uses `getProject` from SDK.
+- [x] Implement Buy Tokens section: list token types from `getProjectTokens`, quantity inputs, Buy button that calls `buyProjectTokens` via wagmi. Only shown when wallet connected.
+- [x] Write tests
 
 ### Chunk 3: Project Detail Page — Refund + Withdraw + Leaderboard
 - [ ] Refund section: shown when deadline passed AND threshold not met. Shows user's refundable tokens, Refund button calling `refundERC1155`.
