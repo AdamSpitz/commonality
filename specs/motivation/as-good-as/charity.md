@@ -1,6 +1,6 @@
 # At least as good as private charity, too
 
-[as-good-as/government.md](./as-good-as/government.md) compares Commonality with government. But a lot of public-goods funding already happens through private charity - and Commonality improves on that too.
+[as-good-as/government.md](./government.md) compares Commonality with government. But a lot of public-goods funding already happens through private charity - and Commonality improves on that too.
 
 Private charity has problems:
 
@@ -15,4 +15,4 @@ Commonality keeps the good part of charity - it's voluntary, not coerced - while
 
 ## Commonality is a tool that private charities can use
 
-See [rails.md](./rails.md), [enthusiastic-adoption.md](./enthusiastic-adoption.md).
+See [rails.md](../ease-of-adoption/rails.md), [enthusiastic-adoption.md](../so-what/enthusiastic-adoption.md).

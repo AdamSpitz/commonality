@@ -48,4 +48,4 @@ But value scales smoothly rather than requiring a critical mass. This isn't like
   - Delegate to someone, and you get exactly the delegate you want — regardless of what anyone else does.
   - Attest to a project's alignment, and whoever trusts you sees it. Your influence grows linearly with followers, not as an all-or-nothing "are you on the board or not?"
 
-The [pitches](./pitches.md) to each user are straightforward precisely because each action stands on its own. No one needs to have faith that the entire system will take over the world.
+The [pitches](../pitches.md) to each user are straightforward precisely because each action stands on its own. No one needs to have faith that the entire system will take over the world.

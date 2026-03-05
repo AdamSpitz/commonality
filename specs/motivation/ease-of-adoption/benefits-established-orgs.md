@@ -1,6 +1,6 @@
 # Commonality is a tool that private charities can use
 
-Commonality is [at least as good as private charity](./as-good-as/charity.md), and in some ways better. But the point isn't "charities are bad and we should replace them." It's that charities themselves ought to be [enthusiastic](./enthusiastic-adoption.md) about using Commonality as [infrastructure](./rails.md).
+Commonality is [at least as good as private charity](../as-good-as/charity.md), and in some ways better. But the point isn't "charities are bad and we should replace them." It's that charities themselves ought to be [enthusiastic](../so-what/enthusiastic-adoption.md) about using Commonality as [infrastructure](./rails.md).
 
 Think about it from a charity's perspective. A charity already has:
   - A cause it cares about.

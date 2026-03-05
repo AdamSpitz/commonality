@@ -34,4 +34,4 @@ Commonality's solution: funding portals with a trust network feeding delegates a
 
 ## The point
 
-This isn't an ideological libertarian argument for the abolition of government. The point is narrower: for the specific function of funding public goods, we now have technology that can do it at least as well as government — with better transparency, less overhead, more granularity, and no coercion. That matters not because we're going to dismantle government tomorrow, but because it means [you don't need to win an election](../easier-than-politics.md) to fund the things your community cares about.
+This isn't an ideological libertarian argument for the abolition of government. The point is narrower: for the specific function of funding public goods, we now have technology that can do it at least as well as government — with better transparency, less overhead, more granularity, and no coercion. That matters not because we're going to dismantle government tomorrow, but because it means [you don't need to win an election](../so-what/easier-than-politics.md) to fund the things your community cares about.

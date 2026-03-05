@@ -16,4 +16,4 @@ This also means Commonality is useful even if it never "takes over." A single ch
 
 Even informal funding mechanisms like tip jars can migrate onto Commonality rails with essentially zero friction — see [tip-jar-upgrade-path.md](./tip-jar-upgrade-path.md) for the argument that any form of unconditional donation should convert to token-minting, since the floor case is identical to a tip jar but preserves optionality for both sides.
 
-See also [enthusiastic-adoption.md](./enthusiastic-adoption.md) for concrete adoption pathways.
+See also [enthusiastic-adoption.md](../so-what/enthusiastic-adoption.md) for concrete adoption pathways.

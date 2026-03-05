@@ -4,7 +4,7 @@
 
 ## The core argument
 
-In addition to [enthusiastic adoption](./enthusiastic-adoption.md) from people who actually *want* to use a more open system like Commonality, there are game-theoretic reasons to expect adoption across the political spectrum, not just from whichever side is currently out of power. The argument has four layers that stack on each other:
+In addition to [enthusiastic adoption](../so-what/enthusiastic-adoption.md) from people who actually *want* to use a more open system like Commonality, there are game-theoretic reasons to expect adoption across the political spectrum, not just from whichever side is currently out of power. The argument has four layers that stack on each other:
 
 **Layer 1: Insurance.** Both sides are intermittently out of power. When you're out of power, your funding is vulnerable — your causes get defunded, your charities get audited, your bank accounts get scrutinized. When you're in power, the other side faces the same. So for each side independently, putting funding on censorship-resistant infrastructure is a dominant strategy: you're better off doing it regardless of what the other side does, because you *will* be out of power eventually.
 
@@ -50,7 +50,7 @@ A few more structural pressures that reinforce the cascade:
 
 ## Sole-donor to distributed funding
 
-Even sole donors (foundations, government agencies, wealthy individuals) benefit from using Commonality's rails — standardized infrastructure, verifiable track records, ecosystem visibility — and the system gently makes opening up to co-funders attractive over time. This is another "dial, not switch" upgrade path, like [tip jars](./tip-jar-upgrade-path.md) and [alignment attestation](./alignment-attestation-for-orgs.md): start wherever you are, get real benefits immediately, and the next step is always easy. See [donor-project-tension.md](./donor-project-tension.md) for the full argument.
+Even sole donors (foundations, government agencies, wealthy individuals) benefit from using Commonality's rails — standardized infrastructure, verifiable track records, ecosystem visibility — and the system gently makes opening up to co-funders attractive over time. This is another "dial, not switch" upgrade path, like [tip jars](../ease-of-adoption/tip-jar-upgrade-path.md) and [alignment attestation](../ease-of-adoption/alignment-attestation-for-orgs.md): start wherever you are, get real benefits immediately, and the next step is always easy. See [donor-project-tension.md](../ease-of-adoption/donor-project-tension.md) for the full argument.
 
 ## "But you're paying with after-tax dollars"
 

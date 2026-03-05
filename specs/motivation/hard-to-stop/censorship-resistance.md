@@ -7,4 +7,4 @@ Because the system runs on smart contracts and IPFS rather than through any cent
   - No treasury to seize (funding is per-project, not pooled in one place).
   - No leadership to arrest or coerce (delegation is person-to-person across many individuals).
 
-("Doesn't this mean it'll also be used for evil?" Yes, probably. See [ethics.md](./ethics.md).)
+("Doesn't this mean it'll also be used for evil?" Yes, probably. See [ethics.md](../ethics.md).)

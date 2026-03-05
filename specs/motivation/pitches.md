@@ -24,7 +24,7 @@ Of course a cause still does need to actually gather users — get donors to ple
 
 ## Existing orgs (charities, community groups)
 
-"Use Commonality as your operational backend. Keep doing what you're good at — evaluating projects — but shed the overhead. Accept donations via delegatable notes, direct funds toward aligned projects, and let the blockchain handle the transparency and accounting. Start as the sole trusted attester (identical to your current process), then gradually open up to external suggestions if you want." See [benefits-established-orgs.md](./benefits-established-orgs.md).
+"Use Commonality as your operational backend. Keep doing what you're good at — evaluating projects — but shed the overhead. Accept donations via delegatable notes, direct funds toward aligned projects, and let the blockchain handle the transparency and accounting. Start as the sole trusted attester (identical to your current process), then gradually open up to external suggestions if you want." See [benefits-established-orgs.md](./ease-of-adoption/benefits-established-orgs.md).
 
 ## Investors/speculators (people with foresight)
 

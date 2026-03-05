@@ -1,6 +1,6 @@
 # Switching to Commonality is much easier than politics
 
-The point of noticing that this system is [as good or better than government](./as-good-as/government.md) is *not* that I'm suggesting going to the government (or to normal people who are basically satisfied with the way the system works) and saying "hey, we've got a better way of doing this, we can dismantle the government's public-goods-funding apparatus now." Obviously that's not going to happen.
+The point of noticing that this system is [as good or better than government](../as-good-as/government.md) is *not* that I'm suggesting going to the government (or to normal people who are basically satisfied with the way the system works) and saying "hey, we've got a better way of doing this, we can dismantle the government's public-goods-funding apparatus now." Obviously that's not going to happen.
 
 What I *am* saying, though, is:
   - If you're looking at various problems in your country and thinking that fixing those problems would require winning the next election or forming a better political party or having a revolution...
@@ -16,4 +16,4 @@ To be precise about what "easier" means here: Commonality doesn't replace the go
 
 ## Both sides end up wanting this
 
-There may be game-theoretic reasons to expect adoption, even for services currently provided by government. See [game theory](./game-theory.md) for more detail.
+There may be game-theoretic reasons to expect adoption, even for services currently provided by government. See [game theory](../hard-to-stop/game-theory.md) for more detail.
