@@ -6,12 +6,11 @@ This whole "motivation" directory is about trying to make a case for why this sy
 
 We have the tech to build a public-goods-funding system that's just as good or better [than traditional government](./as-good-as/government.md) OR [than traditional private charity](./as-good-as/charity.md). (Better [than network states](./as-good-as/network-states.md), too, in case you care about that.)
 
-## It's easy to adopt
+## [It's easy to adopt](./ease-of-adoption/README.md)
 
-  - It can grow [*without* a major coordination hassle](./ease-of-adoption/no-prerequisites.md). Of course a cause still does need to actually gather users (donors, delegates, project-doers, alignment attesters), but the [pitches](./pitches.md) to each user are straightforward and don't require them to agree on a delegate/leader/charter/manifesto or trust that they won't be the only one donating or have an "in" with any centralized gatekeeper or have faith that this movement will take over the world.
-  - Adoption is a [dial, not a switch](./ease-of-adoption/dial-not-switch.md). Every path onto Commonality starts at a level that's functionally identical to what you're already doing — just on better infrastructure — and smoothly upgrades from there. [Tip jars](./ease-of-adoption/tip-jar-upgrade-path.md) become tokens (same UX, but with receipts and optionality). [Sole donors](./ease-of-adoption/donor-project-tension.md) use the rails at full control and gradually open up to co-funders. [Orgs](./ease-of-adoption/alignment-attestation-for-orgs.md) start as sole attester and gradually accept external suggestions, potentially discovering common ground with unlikely allies. The floor case costs nothing extra, gives small immediate improvements (transparency, verifiable receipts, leaderboard credit), and puts you one easy step away from much more powerful modes that retroactively benefit everyone who got in at the floor.
-  - It provides free and trustworthy [infrastructure rails](./ease-of-adoption/rails.md) to anyone, including both [existing orgs](./ease-of-adoption/benefits-established-orgs.md) that don't want to deal with that hassle and [new orgs](./ease-of-adoption/benefits-new-orgs.md) that not only don't want to deal with that hassle but also benefit from the users being able to say "I don't know who that charity is but at least they're using the standard known infrastructure so I don't need to worry about that part."
-  - It [bridges to traditional finance](./ease-of-adoption/bridges.md), so adoption doesn't require anyone to go full crypto — tradfi donors contribute via bridge operators, charities act as tax-deductible on-ramps, and the onchain record coexists with normal tax receipts and compliance reports.
+No coordination hassle, no big upfront change. Each user's [pitch](./pitches.md) stands on its own; adoption is a [dial, not a switch](./ease-of-adoption/dial-not-switch.md); it provides free [infrastructure rails](./ease-of-adoption/rails.md) to anyone; and it [bridges to traditional finance](./ease-of-adoption/bridges.md) so nobody has to go full crypto. See [ease-of-adoption/](./ease-of-adoption/README.md) for the full argument.
+
+TODO: also, in particular, traditional forms of collective action often have a bunch of "ugh" aspects that Commonality fixes.
 
 ## It's hard to stop
 
