@@ -103,14 +103,15 @@ test.describe('Statement Creation Workflow', () => {
     // Wait for indexer to be ready
     await waitForIndexer(graphqlUrl)
 
-    // Trigger IPFS content sync with retry
-    // The background sync job runs every 5 minutes, but E2E tests need immediate results
-    console.log('Triggering manual IPFS sync...')
-    await triggerSyncWithRetry(graphqlUrl)
-
-    // Wait for statement to be indexed
+    // Wait for statement to be indexed (must happen BEFORE IPFS sync)
+    // The IPFS sync only processes statements that already exist in the DB
     const statementCid = result.cid
     await waitForStatement(graphqlUrl, statementCid)
+
+    // Trigger IPFS content sync with retry
+    // This must happen AFTER the statement exists in the DB
+    console.log('Triggering manual IPFS sync...')
+    await triggerSyncWithRetry(graphqlUrl)
 
     // Navigate to browse page
     await page.goto('/statements')

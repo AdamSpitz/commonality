@@ -116,6 +116,18 @@ export default async function globalSetup() {
       // Ignore errors if containers don't exist
     }
 
+    // Also clean Ponder sync state (bind mount persists across docker-compose down -v)
+    // This is critical because even with PONDER_EPHEMERAL=true, Ponder stores sync state
+    // in .ponder which causes it to try fetching blocks that don't exist on the fresh chain
+    const ponderDataDir = resolve(projectRoot, 'data/ponder');
+    try {
+      // Use docker run to clean up the directory (handles permission issues)
+      execSync(`docker run --rm -v "${projectRoot}":/workspace alpine rm -rf /workspace/data/ponder`, { stdio: 'inherit' });
+      console.log('   ✓ Cleared Ponder sync state');
+    } catch {
+      // Ignore if directory doesn't exist or can't be removed
+    }
+
     // Start all services with build flag
     // Docker Compose will wait for healthchecks to pass due to depends_on configuration
     // PONDER_EPHEMERAL=true: use in-memory DB to avoid stale-state issues when the
