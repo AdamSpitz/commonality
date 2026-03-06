@@ -128,24 +128,32 @@ function makeRefund(overrides: Record<string, any> = {}) {
 
 function makeSaleListing(overrides: Record<string, any> = {}) {
   return {
+    marketplaceAddress: '0xmarketplace1234567890123456789012345678',
     listingId: '1',
     seller: '0x2222222222222222222222222222222222222222',
     tokenId: '1',
+    originalCount: '10',
     remainingCount: '10',
     pricePerToken: '50000000000000000',
+    status: 'active',
     createdAt: '1700000000',
+    updatedAt: '1700000000',
     ...overrides,
   }
 }
 
 function makeBuyOrder(overrides: Record<string, any> = {}) {
   return {
+    marketplaceAddress: '0xmarketplace1234567890123456789012345678',
     orderId: '1',
     buyer: '0x3333333333333333333333333333333333333333',
     tokenId: '1',
+    originalCount: '5',
     remainingCount: '5',
     pricePerToken: '75000000000000000',
+    status: 'active',
     createdAt: '1700000000',
+    updatedAt: '1700000000',
     ...overrides,
   }
 }
@@ -1191,6 +1199,52 @@ describe('ProjectDetailPage', () => {
           expect(screen.getByText('Tokens sold to buy order!')).toBeInTheDocument()
         })
       })
+
+      it('shows error message when fulfillBuyOrder fails', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([makeBuyOrder()] as any)
+        vi.mocked(approveERC1155ForMarketplace).mockResolvedValue('0xapprove' as any)
+        vi.mocked(fulfillBuyOrder).mockRejectedValue(new Error('Insufficient token balance'))
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Sell' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Insufficient token balance')).toBeInTheDocument()
+        })
+      })
+
+      it('shows error message when approval fails before fulfillBuyOrder', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([makeBuyOrder()] as any)
+        vi.mocked(approveERC1155ForMarketplace).mockRejectedValue(new Error('User rejected approval'))
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Sell' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('User rejected approval')).toBeInTheDocument()
+          expect(fulfillBuyOrder).not.toHaveBeenCalled()
+        })
+      })
     })
 
     describe('Create Order form', () => {
@@ -1255,7 +1309,7 @@ describe('ProjectDetailPage', () => {
         const user = userEvent.setup()
         await user.type(screen.getByLabelText('Token ID'), '1')
         await user.type(screen.getByLabelText('Quantity'), '5')
-        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.type(screen.getByLabelText('Price per Token (ETH)'), '0.1')
         await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
 
         await waitFor(() => {
@@ -1294,7 +1348,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Buy Order' }))
         await user.type(screen.getByLabelText('Token ID'), '2')
         await user.type(screen.getByLabelText('Quantity'), '3')
-        await user.type(screen.getByLabelText('Price per Token (wei)'), '50000000000000000')
+        await user.type(screen.getByLabelText('Price per Token (ETH)'), '0.05')
         await user.click(screen.getByRole('button', { name: 'Create Buy Order' }))
 
         await waitFor(() => {
@@ -1328,7 +1382,7 @@ describe('ProjectDetailPage', () => {
         const user = userEvent.setup()
         await user.type(screen.getByLabelText('Token ID'), '1')
         await user.type(screen.getByLabelText('Quantity'), '5')
-        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.type(screen.getByLabelText('Price per Token (ETH)'), '0.1')
         await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
 
         await waitFor(() => {
@@ -1353,7 +1407,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Buy Order' }))
         await user.type(screen.getByLabelText('Token ID'), '1')
         await user.type(screen.getByLabelText('Quantity'), '5')
-        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.type(screen.getByLabelText('Price per Token (ETH)'), '0.1')
         await user.click(screen.getByRole('button', { name: 'Create Buy Order' }))
 
         await waitFor(() => {
@@ -1397,11 +1451,36 @@ describe('ProjectDetailPage', () => {
         const user = userEvent.setup()
         await user.type(screen.getByLabelText('Token ID'), '1')
         await user.type(screen.getByLabelText('Quantity'), '5')
-        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.type(screen.getByLabelText('Price per Token (ETH)'), '0.1')
         await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
 
         await waitFor(() => {
           expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
+        })
+      })
+
+      it('shows error message when approval fails before creating sale listing', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(approveERC1155ForMarketplace).mockRejectedValue(new Error('User denied approval'))
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.type(screen.getByLabelText('Token ID'), '1')
+        await user.type(screen.getByLabelText('Quantity'), '5')
+        await user.type(screen.getByLabelText('Price per Token (ETH)'), '0.1')
+        await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('User denied approval')).toBeInTheDocument()
+          expect(createSaleListing).not.toHaveBeenCalled()
         })
       })
     })

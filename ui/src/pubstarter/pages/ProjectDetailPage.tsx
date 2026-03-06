@@ -50,7 +50,7 @@ import {
   type SecondaryMarketContract,
   type TestClients,
 } from '@commonality/sdk'
-import { formatEther } from 'viem'
+import { formatEther, parseEther } from 'viem'
 
 type ProjectMetadata = { name?: string; description?: string }
 
@@ -130,6 +130,10 @@ export function ProjectDetailPage() {
   const [fulfillingOrder, setFulfillingOrder] = useState<string | null>(null)
   const [marketError, setMarketError] = useState<string | null>(null)
   const [marketSuccess, setMarketSuccess] = useState<string | null>(null)
+
+  // Partial fill quantities for sale listings and buy orders
+  const [saleQuantities, setSaleQuantities] = useState<Record<string, string>>({})
+  const [orderQuantities, setOrderQuantities] = useState<Record<string, string>>({})
 
   // Create order form state
   const [orderType, setOrderType] = useState<'sale' | 'buy'>('sale')
@@ -413,7 +417,8 @@ export function ProjectDetailPage() {
       setMarketError(null)
       setMarketSuccess(null)
 
-      const count = BigInt(listing.remainingCount)
+      const qtyStr = saleQuantities[listing.listingId]
+      const count = qtyStr ? BigInt(qtyStr) : BigInt(listing.remainingCount)
       const totalCost = count * BigInt(listing.pricePerToken)
 
       await fulfillSaleListing(clients, marketplace, {
@@ -449,9 +454,12 @@ export function ProjectDetailPage() {
         project.marketplaceAddress as `0x${string}`,
       )
 
+      const qtyStr = orderQuantities[order.orderId]
+      const count = qtyStr ? BigInt(qtyStr) : BigInt(order.remainingCount)
+
       await fulfillBuyOrder(clients, marketplace, {
         buyOrderId: BigInt(order.orderId),
-        count: BigInt(order.remainingCount),
+        count,
       })
 
       setMarketSuccess('Tokens sold to buy order!')
@@ -482,7 +490,7 @@ export function ProjectDetailPage() {
       const params = {
         tokenId: BigInt(orderTokenId),
         count: BigInt(orderQuantity),
-        pricePerToken: BigInt(orderPrice),
+        pricePerToken: parseEther(orderPrice),
       }
 
       if (orderType === 'sale') {
@@ -758,14 +766,26 @@ export function ProjectDetailPage() {
                       <TableCell align="right">{formatEther(BigInt(listing.pricePerToken))} ETH</TableCell>
                       {isConnected && (
                         <TableCell align="right">
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleFulfillSale(listing)}
-                            disabled={fulfillingSale === listing.listingId}
-                          >
-                            {fulfillingSale === listing.listingId ? 'Buying...' : 'Buy'}
-                          </Button>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                            <TextField
+                              type="number"
+                              size="small"
+                              label="Qty"
+                              value={saleQuantities[listing.listingId] || ''}
+                              onChange={(e) => setSaleQuantities(prev => ({ ...prev, [listing.listingId]: e.target.value }))}
+                              placeholder={listing.remainingCount}
+                              inputProps={{ min: 1, max: Number(listing.remainingCount) }}
+                              sx={{ width: 80 }}
+                            />
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleFulfillSale(listing)}
+                              disabled={fulfillingSale === listing.listingId}
+                            >
+                              {fulfillingSale === listing.listingId ? 'Buying...' : 'Buy'}
+                            </Button>
+                          </Box>
                         </TableCell>
                       )}
                     </TableRow>
@@ -804,14 +824,26 @@ export function ProjectDetailPage() {
                       <TableCell align="right">{formatEther(BigInt(order.pricePerToken))} ETH</TableCell>
                       {isConnected && (
                         <TableCell align="right">
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleFulfillBuyOrder(order)}
-                            disabled={fulfillingOrder === order.orderId}
-                          >
-                            {fulfillingOrder === order.orderId ? 'Selling...' : 'Sell'}
-                          </Button>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                            <TextField
+                              type="number"
+                              size="small"
+                              label="Qty"
+                              value={orderQuantities[order.orderId] || ''}
+                              onChange={(e) => setOrderQuantities(prev => ({ ...prev, [order.orderId]: e.target.value }))}
+                              placeholder={order.remainingCount}
+                              inputProps={{ min: 1, max: Number(order.remainingCount) }}
+                              sx={{ width: 80 }}
+                            />
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleFulfillBuyOrder(order)}
+                              disabled={fulfillingOrder === order.orderId}
+                            >
+                              {fulfillingOrder === order.orderId ? 'Selling...' : 'Sell'}
+                            </Button>
+                          </Box>
                         </TableCell>
                       )}
                     </TableRow>
@@ -859,7 +891,7 @@ export function ProjectDetailPage() {
                 <TextField
                   type="number"
                   size="small"
-                  label="Price per Token (wei)"
+                  label="Price per Token (ETH)"
                   value={orderPrice}
                   onChange={(e) => setOrderPrice(e.target.value)}
                   sx={{ width: 200 }}
