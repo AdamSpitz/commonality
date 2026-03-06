@@ -4,37 +4,41 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Post-implementation cleanup for pubstarter UI is complete:
-- ✅ Decomposed ProjectDetailPage into 9 sub-components (ProjectHeader, BuyTokensSection, ConnectWalletPrompt, RefundSection, WithdrawSection, BurnTokensSection, SecondaryMarketSection, TradeHistory, Leaderboard)
-- ✅ Deduplicated token-counting logic into shared `computeUserTokenBalance` and `computeContributorStats` utilities in utils.ts
+Continue implementing the delegation UI. Chunk 1 is done; next is Chunk 2.
 
-Remaining tasks from TODO.md:
-- Remove or populate empty `components/index.ts` (done - now exports all components)
-- Get e2e tests working
-- VITE_PUBSTARTER_CONTRACT_ADDRESS env var for e2e tests
+Delegation UI chunks (from ui/TODO.md):
+- [x] Chunk 1: Scaffold + routes + nav + My Notes page
+- [ ] Chunk 2: Note Detail page (route: /notes/:noteId — header, delegation chain visualization, actions, note history)
+- [ ] Chunk 3: Deposit page (route: /notes/new — form: amount, optional delegate-to, optional intended statement)
+- [ ] Chunk 4: Spending section on Note Detail page (purchase from primary market with notes)
+- [ ] Chunk 5: Pubstarter integration (delegation chains on leaderboard, "Fund with Delegated Note")
+- [ ] Chunk 6: Funding Portal integration (available delegatable funding on statement pages)
 
 ## Key notes from this session
 
-- Created 9 new components in ui/src/pubstarter/components/
-- Refactored ProjectDetailPage from ~ lines to ~210 lines
-- Added `computeUserTokenBalance1130` and `computeContributorStats` to utils.ts for deduplicated token counting logic
-- All 85 tests pass
+- Created delegation UI directory structure: ui/src/delegation/{pages,components}/
+- Added /notes route in App.tsx and "My Notes" nav link in AppShell
+- MyNotesPage has: summary cards, "Notes I Control" section, "Notes I Deposited" section, delegate dialog, revoke/reclaim actions, wallet-not-connected state
+- 17 tests for MyNotesPage, all passing
+- Fixed 3 pre-existing test failures (createSDKMachinery mock expectations needed 2nd arg)
+- All 412 tests now pass
+- SDK pattern for UI actions: construct TestClients from wagmi's walletClient/publicClient (as any), create DelegatableNotesContract with address + DelegatableNotesAbi
+- SDK delegation chain is returned root-first (position 0 = root), but actions expect owners leaf-first (highest position first)
+- Environment variable: VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
 
 ## Files changed
 
 New files:
-- ui/src/pubstarter/components/ProjectHeader.tsx
-- ui/src/pubstarter/components/BuyTokensSection.tsx
-- ui/src/pubstarter/components/ConnectWalletPrompt.tsx
-- ui/src/pubstarter/components/RefundSection.tsx
-- ui/src/pubstarter/components/WithdrawSection.tsx
-- ui/src/pubstarter/components/BurnTokensSection.tsx
-- ui/src/pubstarter/components/SecondaryMarketSection.tsx
-- ui/src/pubstarter/components/TradeHistory.tsx
-- ui/src/pubstarter/components/Leaderboard.tsx
+- ui/src/delegation/utils.ts
+- ui/src/delegation/pages/MyNotesPage.tsx
+- ui/src/delegation/pages/MyNotesPage.test.tsx
+- ui/src/delegation/pages/index.ts
+- ui/src/delegation/components/index.ts
 
 Modified files:
-- ui/src/pubstarter/utils.ts (added computeUserTokenBalance, computeContributorStats)
-- ui/src/pubstarter/pages/ProjectDetailPage.tsx (refactored to use sub-components)
-- ui/src/pubstarter/components/index.ts (now exports all new components)
-- ui/TODO.md (marked tasks as complete)
+- ui/src/App.tsx (added /notes route)
+- ui/src/shared/components/AppShell.tsx (added "My Notes" nav link)
+- ui/TODO.md (added delegation UI chunk breakdown, marked chunk 1 done)
+- ui/src/conceptspace/pages/StatementPage.test.tsx (fixed createSDKMachinery mock)
+- ui/src/conceptspace/pages/BrowseStatementsPage.test.tsx (fixed createSDKMachinery mock)
+- ui/src/conceptspace/components/StatementSuggestions.test.tsx (fixed createSDKMachinery mock)
