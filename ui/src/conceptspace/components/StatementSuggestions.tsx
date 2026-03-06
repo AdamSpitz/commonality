@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { Box, Typography, Card, CardContent, CardActionArea, Chip, Alert, CircularProgress } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import {
-  createSDKMachinery,
   getStatementSuggestions,
   type IpfsCidV1,
   type StatementSuggestion,
 } from '@commonality/sdk'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 
 interface StatementSuggestionsProps {
   statementCid: IpfsCidV1;
@@ -19,7 +19,7 @@ export function StatementSuggestions({ statementCid, userAddress }: StatementSug
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+  const machinery = useMachinery()
 
   useEffect(() => {
     const loadSuggestions = async () => {
@@ -27,7 +27,6 @@ export function StatementSuggestions({ statementCid, userAddress }: StatementSug
         setLoading(true)
         setError(null)
 
-        const machinery = createSDKMachinery(GRAPHQL_URL)
         const data = await getStatementSuggestions(machinery, statementCid, userAddress)
         setSuggestions(data)
       } catch (err) {

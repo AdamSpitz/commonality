@@ -3,13 +3,13 @@ import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  createSDKMachinery,
   getStatementWithContent,
   getUserBelief,
   type Statement,
   type DisplayableDocument,
   type IpfsCidV1,
 } from '@commonality/sdk'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
@@ -27,7 +27,7 @@ export function StatementPage() {
   const [error, setError] = useState<string | null>(null)
   const [contentError, setContentError] = useState<string | null>(null)
 
-  const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+  const machinery = useMachinery()
 
   const loadStatementData = async () => {
     if (!statementCid) {
@@ -40,8 +40,6 @@ export function StatementPage() {
       setLoading(true)
       setError(null)
       setContentError(null)
-
-      const machinery = createSDKMachinery(GRAPHQL_URL)
 
       // Load statement with content and metrics using the new SDK function
       // IPFS gateway is configured via VITE_IPFS_GATEWAY env var

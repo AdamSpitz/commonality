@@ -17,10 +17,10 @@ import { Link as RouterLink } from 'react-router-dom'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import NewReleasesIcon from '@mui/icons-material/NewReleases'
 import {
-  createSDKMachinery,
   browseStatements,
   type StatementListItem,
 } from '@commonality/sdk'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 
 type SortOption = 'mostSupporters' | 'newest'
 
@@ -30,14 +30,12 @@ export function BrowseStatementsPage() {
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('mostSupporters')
 
-  const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+  const machinery = useMachinery()
 
   const loadStatements = async (sort: SortOption) => {
     try {
       setLoading(true)
       setError(null)
-
-      const machinery = createSDKMachinery(GRAPHQL_URL)
 
       const orderBy = sort === 'mostSupporters' ? 'believerCount' : 'createdAt'
       const statements = await browseStatements(machinery, { limit: 50, orderBy })

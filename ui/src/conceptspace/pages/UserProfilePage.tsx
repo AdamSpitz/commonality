@@ -16,13 +16,13 @@ import {
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  createSDKMachinery,
   getUserBeliefs,
   getUserDisbeliefs,
   getUserIndirectSupport,
   type StatementListItem,
   type IndirectSupportInfo,
 } from '@commonality/sdk'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 import AddIcon from '@mui/icons-material/Add'
 
 interface TabPanelProps {
@@ -61,7 +61,7 @@ export function UserProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+  const machinery = useMachinery()
 
   useEffect(() => {
     loadUserData()
@@ -76,8 +76,6 @@ export function UserProfilePage() {
     try {
       setLoading(true)
       setError(null)
-
-      const machinery = createSDKMachinery(GRAPHQL_URL)
 
       // Load user's beliefs, disbeliefs, and indirect support in parallel
       const [userBeliefs, userDisbeliefs, userIndirectSupport] = await Promise.all([

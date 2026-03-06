@@ -3,7 +3,6 @@ import { Box, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  createSDKMachinery,
   getProject,
   getProjectTokens,
   getProjectContributions,
@@ -34,6 +33,7 @@ import {
   Leaderboard,
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 
 type ProjectMetadata = { name?: string; description?: string }
 
@@ -54,12 +54,10 @@ export function ProjectDetailPage() {
   const [trades, setTrades] = useState<Trade[]>([])
   const [userBurns, setUserBurns] = useState<TokenBurn[]>([])
 
-  const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+  const machinery = useMachinery()
 
   const loadProjectData = useCallback(async () => {
     if (!projectAddress) return
-
-    const machinery = createSDKMachinery(GRAPHQL_URL)
 
     const [proj, projTokens, projContributions, projRefunds] = await Promise.all([
       getProject(machinery, projectAddress),
@@ -101,7 +99,7 @@ export function ProjectDetailPage() {
     }
 
     return proj
-  }, [projectAddress, address, GRAPHQL_URL])
+  }, [projectAddress, address, machinery])
 
   useEffect(() => {
     if (!projectAddress) return

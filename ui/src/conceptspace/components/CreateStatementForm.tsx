@@ -17,9 +17,9 @@ import {
   type BeliefsContract,
   type MutableRefUpdaterContract,
   type TestClients,
-  createSDKMachinery,
   type IpfsCidV1,
 } from '@commonality/sdk'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 
 interface CreateStatementFormProps {
   onStatementCreated?: (statementCid: IpfsCidV1) => void
@@ -37,7 +37,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
 
   const BELIEFS_CONTRACT_ADDRESS = import.meta.env.VITE_BELIEFS_CONTRACT_ADDRESS as `0x${string}` | undefined
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = import.meta.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}` | undefined
-  const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+  const machinery = useMachinery()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -83,8 +83,6 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
         publicClient: publicClient as any,
         account: address,
       }
-
-      const machinery = createSDKMachinery(GRAPHQL_URL);
 
       // Use the new high-level workflow function
       const result = await createAndSignStatement(

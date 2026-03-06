@@ -7,6 +7,14 @@ Work in progress. Previous fixes applied but statement-indexing issue remains un
 - **PASSING (10/16)**: wallet-connection, browse-statements, statement-creation-form tests
 - **FAILING (6/16)**: belief-expression, statement-creation, user-profile tests
 
+## USER'S NOTES
+
+I'm confused about a lot of this.
+
+
+
+
+
 ## Fixes Applied So Far
 
 ### 1. Vite proxy for CORS (`ui/vite.config.ts`)

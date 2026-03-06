@@ -11,10 +11,10 @@ export type SDKMachinery = {
   testConfig: TestConfig;
 };
 
-export function createSDKMachinery(indexerUrl: string, ipfsConfig?: IPFSConfig, testConfig?: TestConfig): SDKMachinery {
+export function createSDKMachinery(indexerUrl: string, ipfsConfig: IPFSConfig, testConfig?: TestConfig): SDKMachinery {
   return {
     indexerUrl,
-    ipfsConfig: ipfsConfig || createIPFSConfigFromTheUsualEnvVars(),
+    ipfsConfig: ipfsConfig,
     testConfig,
   };
 }

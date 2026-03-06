@@ -1,3 +1,4 @@
+import { createIPFSConfigFromTheUsualEnvVars } from '@commonality/sdk'
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
@@ -68,7 +69,8 @@ test.describe('Statement Creation Workflow', () => {
       abi: MutableRefUpdaterAbi,
     }
 
-    const machinery = createSDKMachinery(graphqlUrl)
+    const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
+    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
 
     // Execute the statement creation workflow directly (bypassing UI)
     const result = await createAndSignStatement(

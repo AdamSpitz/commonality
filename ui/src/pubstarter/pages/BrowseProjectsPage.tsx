@@ -17,12 +17,12 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import SortIcon from '@mui/icons-material/Sort'
 import {
-  createSDKMachinery,
   getProjectsFiltered,
   fetchFromIPFS,
   type ProjectWithMetrics,
   type ProjectSortField,
 } from '@commonality/sdk'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 import { formatEther } from 'viem'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 
@@ -47,14 +47,12 @@ export function BrowseProjectsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
-  const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+  const machinery = useMachinery()
 
   const loadProjects = async (sort: SortOption) => {
     try {
       setLoading(true)
       setError(null)
-
-      const machinery = createSDKMachinery(GRAPHQL_URL)
       const { field, direction } = SORT_MAP[sort]
       const results = await getProjectsFiltered(machinery, undefined, field, direction)
 
