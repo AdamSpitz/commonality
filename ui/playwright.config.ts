@@ -16,6 +16,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Run tests serially to avoid blockchain state conflicts */
   workers: 1,
+  /* Increase timeout: blockchain indexing can take 30-60 seconds per statement */
+  timeout: 120000,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

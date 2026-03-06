@@ -8,10 +8,12 @@ export type IPFSConfig = {
 };
 
 export function createIPFSConfigFromTheUsualEnvVars() {
+  // Use optional chaining so this is safe in browser environments where `process` is not defined.
+  const env = typeof process !== 'undefined' ? process.env : {}
   return {
-    gatewayUrl: process.env.IPFS_GATEWAY || process.env.VITE_IPFS_GATEWAY,
-    apiUrl: process.env.IPFS_API || process.env.VITE_IPFS_API,
-    debugIpfs: process.env.DEBUG_IPFS === 'true',
+    gatewayUrl: env.IPFS_GATEWAY || env.VITE_IPFS_GATEWAY,
+    apiUrl: env.IPFS_API || env.VITE_IPFS_API,
+    debugIpfs: env.DEBUG_IPFS === 'true',
   }
 }
 

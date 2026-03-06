@@ -16,4 +16,12 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    proxy: {
+      // Proxy GraphQL and Ponder API requests to avoid CORS issues in the browser.
+      // The indexer runs at localhost:42069; the dev server runs at localhost:5173.
+      '/graphql': 'http://localhost:42069',
+      '/conceptspace': 'http://localhost:42069',
+    },
+  },
 })

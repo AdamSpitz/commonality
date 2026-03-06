@@ -89,8 +89,8 @@ export async function triggerSyncWithRetry(
 export async function waitForStatement(
   graphqlUrl: string,
   statementCid: IpfsCidV1,
-  maxAttempts = 20,
-  intervalMs = 2000
+  maxAttempts = 60,
+  intervalMs = 500
 ): Promise<boolean> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {

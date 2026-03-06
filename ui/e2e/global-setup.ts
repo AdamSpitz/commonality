@@ -81,7 +81,9 @@ function copyContractAddresses(projectRoot: string): void {
       '# Contract addresses (auto-populated by E2E test setup)',
       `VITE_BELIEFS_CONTRACT_ADDRESS=${addresses.BELIEFS_CONTRACT_ADDRESS || ''}`,
       `VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS=${addresses.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || ''}`,
-      `VITE_GRAPHQL_URL=http://localhost:42069/graphql`,
+      // Use the Vite dev-server proxy URL so the browser avoids CORS issues.
+      // Both the browser (via Vite proxy) and the Node.js test-runner reach the indexer this way.
+      `VITE_GRAPHQL_URL=http://localhost:5173/graphql`,
     ];
 
     // Write back to ui/.env
@@ -116,10 +118,13 @@ export default async function globalSetup() {
 
     // Start all services with build flag
     // Docker Compose will wait for healthchecks to pass due to depends_on configuration
+    // PONDER_EPHEMERAL=true: use in-memory DB to avoid stale-state issues when the
+    // Hardhat chain restarts fresh but the Ponder bind-mount has old block data.
     console.log('🔨 Building and starting services...');
     execSync('docker-compose up -d --build', {
       cwd: projectRoot,
       stdio: 'inherit',
+      env: { ...process.env, PONDER_EPHEMERAL: 'true' },
     });
 
     console.log('⏳ Waiting for services to become healthy...');
