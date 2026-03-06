@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Implementing the pubstarter UI. Broken into 6 chunks — see [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md). Chunks 1-4 done. Next up: Chunk 5 (Token Burns + Trade History).
+  - Implementing the pubstarter UI. Broken into 6 chunks — see [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md). Chunks 1-5 done. Next up: Chunk 6 (Create Project Page).
 
 Other big things to do soon:
   - Get the e2e tests (npm run ui:test:e2e) working.

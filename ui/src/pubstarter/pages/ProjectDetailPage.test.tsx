@@ -43,6 +43,9 @@ vi.mock('@commonality/sdk', async () => {
     createSaleListing: vi.fn(),
     createBuyOrder: vi.fn(),
     approveERC1155ForMarketplace: vi.fn(),
+    burnTokens: vi.fn(),
+    getMarketplaceTrades: vi.fn(),
+    getTokenBurnsByUser: vi.fn(),
     fetchFromIPFS: vi.fn(),
   }
 })
@@ -63,6 +66,9 @@ import {
   createSaleListing,
   createBuyOrder,
   approveERC1155ForMarketplace,
+  burnTokens,
+  getMarketplaceTrades,
+  getTokenBurnsByUser,
   fetchFromIPFS,
 } from '@commonality/sdk'
 
@@ -158,6 +164,39 @@ function makeBuyOrder(overrides: Record<string, any> = {}) {
   }
 }
 
+function makeTrade(overrides: Record<string, any> = {}) {
+  return {
+    id: 'trade-1',
+    marketplaceAddress: '0xmarketplace1234567890123456789012345678',
+    orderType: 'sale',
+    orderId: '1',
+    buyer: '0x4444444444444444444444444444444444444444',
+    seller: '0x5555555555555555555555555555555555555555',
+    tokenId: '1',
+    count: '3',
+    pricePerToken: '50000000000000000',
+    totalPrice: '150000000000000000',
+    createdAt: '1700000000',
+    blockNumber: '200',
+    transactionHash: '0xhash3',
+    ...overrides,
+  }
+}
+
+function makeTokenBurn(overrides: Record<string, any> = {}) {
+  return {
+    id: 'burn-1',
+    erc1155Address: '0xaaaa',
+    burner: '0x1111111111111111111111111111111111111111',
+    tokenIds: '["1"]',
+    tokenCounts: '["2"]',
+    createdAt: '1700000200',
+    blockNumber: '120',
+    transactionHash: '0xhash4',
+    ...overrides,
+  }
+}
+
 describe('ProjectDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -168,6 +207,8 @@ describe('ProjectDetailPage', () => {
     vi.mocked(getProjectRefunds).mockResolvedValue([])
     vi.mocked(getActiveSaleListings).mockResolvedValue([])
     vi.mocked(getActiveBuyOrders).mockResolvedValue([])
+    vi.mocked(getMarketplaceTrades).mockResolvedValue([])
+    vi.mocked(getTokenBurnsByUser).mockResolvedValue([])
     mockAccount.address = undefined
     mockAccount.isConnected = false
     mockWalletClient.data = undefined
@@ -1247,6 +1288,75 @@ describe('ProjectDetailPage', () => {
       })
     })
 
+    describe('Trade History', () => {
+      it('shows Trade History accordion when trades exist', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getMarketplaceTrades).mockResolvedValue([makeTrade()] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText(/Trade History/)).toBeInTheDocument()
+        })
+      })
+
+      it('does not show Trade History when no trades', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getMarketplaceTrades).mockResolvedValue([])
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Secondary Market')).toBeInTheDocument()
+        })
+        expect(screen.queryByText(/Trade History/)).not.toBeInTheDocument()
+      })
+
+      it('displays trade details in table when expanded', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getMarketplaceTrades).mockResolvedValue([
+          makeTrade({
+            buyer: '0x4444444444444444444444444444444444444444',
+            seller: '0x5555555555555555555555555555555555555555',
+            tokenId: '1',
+            count: '3',
+            totalPrice: '150000000000000000',
+          }),
+        ] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText(/Trade History/)).toBeInTheDocument()
+        })
+
+        // Expand the accordion
+        const user = userEvent.setup()
+        await user.click(screen.getByText(/Trade History/))
+
+        await waitFor(() => {
+          expect(screen.getByText('0x4444...4444')).toBeInTheDocument()
+          expect(screen.getByText('0x5555...5555')).toBeInTheDocument()
+          expect(screen.getByText('3')).toBeInTheDocument()
+          expect(screen.getByText('0.15 ETH')).toBeInTheDocument()
+        })
+      })
+
+      it('shows trade count in header', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getMarketplaceTrades).mockResolvedValue([
+          makeTrade(),
+          makeTrade({ id: 'trade-2', orderId: '2' }),
+        ] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Trade History (2)')).toBeInTheDocument()
+        })
+      })
+    })
+
     describe('Create Order form', () => {
       it('does not show Create Order form when wallet not connected', async () => {
         vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
@@ -1482,6 +1592,230 @@ describe('ProjectDetailPage', () => {
           expect(screen.getByText('User denied approval')).toBeInTheDocument()
           expect(createSaleListing).not.toHaveBeenCalled()
         })
+      })
+    })
+  })
+
+  describe('Token Burns section', () => {
+    const succeededProject = () => makeProject({
+      totalReceived: '2000000000000000000', // above threshold
+    })
+
+    it('shows Burn Tokens section when wallet connected, project succeeded, and user has tokens', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Burn Tokens' })).toBeInTheDocument()
+        expect(screen.getByText(/5 available/)).toBeInTheDocument()
+      })
+    })
+
+    it('does not show Burn Tokens for active projects', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Funding')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('heading', { name: 'Burn Tokens' })).not.toBeInTheDocument()
+    })
+
+    it('does not show Burn Tokens when wallet not connected', async () => {
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution(),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Succeeded')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('heading', { name: 'Burn Tokens' })).not.toBeInTheDocument()
+    })
+
+    it('subtracts already-burned tokens from burnable count', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+      vi.mocked(getTokenBurnsByUser).mockResolvedValue([
+        makeTokenBurn({ burner: userAddr, tokenIds: '["1"]', tokenCounts: '["2"]' }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Burn Tokens' })).toBeInTheDocument()
+        expect(screen.getByText(/3 available/)).toBeInTheDocument()
+      })
+    })
+
+    it('subtracts refunded tokens from burnable count', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+      vi.mocked(getProjectRefunds).mockResolvedValue([
+        makeRefund({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["3"]' }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Burn Tokens' })).toBeInTheDocument()
+        expect(screen.getByText(/2 available/)).toBeInTheDocument()
+      })
+    })
+
+    it('hides Burn Tokens when all tokens already burned', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+      vi.mocked(getTokenBurnsByUser).mockResolvedValue([
+        makeTokenBurn({ burner: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Succeeded')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('heading', { name: 'Burn Tokens' })).not.toBeInTheDocument()
+    })
+
+    it('shows error when trying to burn with no quantity', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr }),
+      ] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Burn Tokens' })).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Burn Tokens' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Please enter a quantity for at least one token')).toBeInTheDocument()
+      })
+    })
+
+    it('calls burnTokens with correct params', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+      ] as any)
+      vi.mocked(burnTokens).mockResolvedValue('0xhash' as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Burn Tokens' })).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      const quantityInput = screen.getByLabelText('Quantity')
+      await user.type(quantityInput, '3')
+      await user.click(screen.getByRole('button', { name: 'Burn Tokens' }))
+
+      await waitFor(() => {
+        expect(burnTokens).toHaveBeenCalledWith(
+          expect.objectContaining({ account: userAddr }),
+          '0xaaaa',
+          {
+            tokenIds: [1n],
+            tokenCounts: [3n],
+          }
+        )
+      })
+    })
+
+    it('shows success message after burning', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr }),
+      ] as any)
+      vi.mocked(burnTokens).mockResolvedValue('0xhash' as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Burn Tokens' })).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.type(screen.getByLabelText('Quantity'), '2')
+      await user.click(screen.getByRole('button', { name: 'Burn Tokens' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Tokens burned successfully!')).toBeInTheDocument()
+      })
+    })
+
+    it('shows error message when burn fails', async () => {
+      const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.address = userAddr
+      mockAccount.isConnected = true
+      mockWalletClient.data = {} as any
+      vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([
+        makeContribution({ participant: userAddr }),
+      ] as any)
+      vi.mocked(burnTokens).mockRejectedValue(new Error('Burn failed'))
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Burn Tokens' })).toBeInTheDocument()
+      })
+
+      const user = userEvent.setup()
+      await user.type(screen.getByLabelText('Quantity'), '2')
+      await user.click(screen.getByRole('button', { name: 'Burn Tokens' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Burn failed')).toBeInTheDocument()
       })
     })
   })

@@ -37,10 +37,10 @@ Each chunk should build, pass lint, and get committed.
 - [x] Create Order form: toggle between sale listing and buy order. Fields: token ID, quantity, price per token. Sale listing requires ERC-1155 approval step.
 - [x] Write tests
 
-### Chunk 5: Project Detail Page — Token Burns + Trade History
-- [ ] Token Burns section: "Burn Tokens" button for token holders. Shows burnable tokens with quantity inputs. Calls `burnBatch`.
-- [ ] Trade History: collapsible section with recent secondary market trades from `getMarketplaceTrades`. Table: date, buyer, seller, token ID, quantity, price.
-- [ ] Write tests
+### Chunk 5: Project Detail Page — Token Burns + Trade History ✅
+- [x] Token Burns section: "Burn Tokens" button for token holders. Shows burnable tokens with quantity inputs. Calls `burnBatch`.
+- [x] Trade History: collapsible section with recent secondary market trades from `getMarketplaceTrades`. Table: date, buyer, seller, token ID, quantity, price.
+- [x] Write tests
 
 ### Chunk 6: Create Project Page
 - [ ] Implement `CreateProjectPage.tsx`: form with project name, description (textarea/markdown), recipient address (defaults to connected wallet), funding threshold (ETH), deadline (date picker), token types (dynamic list with add/remove — token ID, supply, price). On submit: upload metadata to IPFS via `publishDocument`, call `createERC1155AndMarketplaceAndAssuranceContract` via wagmi, show success with link to new project page.

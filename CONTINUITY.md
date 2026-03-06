@@ -4,9 +4,9 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Start on **Chunk 5** of the pubstarter UI plan: implement the Token Burns + Trade History section on the Project Detail Page. See [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md) for the full plan.
+Start on **Chunk 6** of the pubstarter UI plan: implement the Create Project Page. See [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md) for the full plan.
 
-Key patterns established in Chunks 1-4:
+Key patterns established in Chunks 1-5:
 - Pages are in `ui/src/pubstarter/pages/`, components in `ui/src/pubstarter/components/`
 - `createSDKMachinery(GRAPHQL_URL)` for SDK queries, `fetchFromIPFS` for IPFS metadata
 - Project status logic: `getProjectStatus()` helper — compare `deadline` to `Date.now()/1000` and `totalReceived` to `threshold`

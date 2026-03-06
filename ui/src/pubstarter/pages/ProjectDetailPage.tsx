@@ -18,7 +18,11 @@ import {
   TableRow,
   ToggleButton,
   ToggleButtonGroup,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useParams } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
@@ -29,6 +33,8 @@ import {
   getProjectRefunds,
   getActiveSaleListings,
   getActiveBuyOrders,
+  getMarketplaceTrades,
+  getTokenBurnsByUser,
   buyProjectTokens,
   refundProjectTokens,
   withdrawProjectFunds,
@@ -37,6 +43,7 @@ import {
   createSaleListing,
   createBuyOrder,
   approveERC1155ForMarketplace,
+  burnTokens,
   fetchFromIPFS,
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi,
@@ -46,6 +53,8 @@ import {
   type Refund,
   type SaleListing,
   type BuyOrder,
+  type Trade,
+  type TokenBurn,
   type AssuranceContract,
   type SecondaryMarketContract,
   type TestClients,
@@ -135,6 +144,16 @@ export function ProjectDetailPage() {
   const [saleQuantities, setSaleQuantities] = useState<Record<string, string>>({})
   const [orderQuantities, setOrderQuantities] = useState<Record<string, string>>({})
 
+  // Token burns state
+  const [userBurns, setUserBurns] = useState<TokenBurn[]>([])
+  const [burnQuantities, setBurnQuantities] = useState<Record<string, string>>({})
+  const [burning, setBurning] = useState(false)
+  const [burnError, setBurnError] = useState<string | null>(null)
+  const [burnSuccess, setBurnSuccess] = useState<string | null>(null)
+
+  // Trade history state
+  const [trades, setTrades] = useState<Trade[]>([])
+
   // Create order form state
   const [orderType, setOrderType] = useState<'sale' | 'buy'>('sale')
   const [orderTokenId, setOrderTokenId] = useState('')
@@ -173,14 +192,22 @@ export function ProjectDetailPage() {
         setContributions(projContributions)
         setRefunds(projRefunds)
 
-        // Fetch secondary market data if marketplace exists
+        // Fetch secondary market data + trade history if marketplace exists
         if (proj.marketplaceAddress) {
-          const [listings, orders] = await Promise.all([
+          const [listings, orders, marketTrades] = await Promise.all([
             getActiveSaleListings(machinery, proj.marketplaceAddress),
             getActiveBuyOrders(machinery, proj.marketplaceAddress),
+            getMarketplaceTrades(machinery, proj.marketplaceAddress),
           ])
           setSaleListings(listings)
           setBuyOrders(orders)
+          setTrades(marketTrades)
+        }
+
+        // Fetch user's burn history for computing burnable tokens
+        if (address && proj.erc1155Address) {
+          const burns = await getTokenBurnsByUser(machinery, proj.erc1155Address, address)
+          setUserBurns(burns)
         }
 
         // Fetch IPFS metadata
@@ -296,6 +323,100 @@ export function ProjectDetailPage() {
       .filter(([, count]) => count > 0n)
       .map(([tokenId, count]) => ({ tokenId, count }))
   })()
+
+  // Compute user's burnable tokens: contributed minus refunded minus already burned
+  const userBurnableTokens = (() => {
+    if (!address) return []
+    const userAddr = address.toLowerCase()
+
+    // Start with contributed tokens
+    const held = new Map<string, bigint>()
+    for (const c of contributions) {
+      if (c.participant.toLowerCase() !== userAddr) continue
+      const ids: string[] = JSON.parse(c.tokenIds)
+      const counts: string[] = JSON.parse(c.tokenCounts)
+      for (let i = 0; i < ids.length; i++) {
+        const prev = held.get(ids[i]) ?? 0n
+        held.set(ids[i], prev + BigInt(counts[i]))
+      }
+    }
+
+    // Subtract refunded tokens
+    for (const r of refunds) {
+      if (r.participant.toLowerCase() !== userAddr) continue
+      const ids: string[] = JSON.parse(r.tokenIds)
+      const counts: string[] = JSON.parse(r.tokenCounts)
+      for (let i = 0; i < ids.length; i++) {
+        const prev = held.get(ids[i]) ?? 0n
+        held.set(ids[i], prev - BigInt(counts[i]))
+      }
+    }
+
+    // Subtract already burned tokens
+    for (const b of userBurns) {
+      const ids: string[] = JSON.parse(b.tokenIds)
+      const counts: string[] = JSON.parse(b.tokenCounts)
+      for (let i = 0; i < ids.length; i++) {
+        const prev = held.get(ids[i]) ?? 0n
+        held.set(ids[i], prev - BigInt(counts[i]))
+      }
+    }
+
+    return Array.from(held.entries())
+      .filter(([, count]) => count > 0n)
+      .map(([tokenId, count]) => ({ tokenId, count }))
+  })()
+
+  const handleBurn = async () => {
+    if (!project || !walletClient || !publicClient || !address) return
+    if (userBurnableTokens.length === 0) return
+
+    const tokenIds: bigint[] = []
+    const tokenCounts: bigint[] = []
+
+    for (const token of userBurnableTokens) {
+      const qty = parseInt(burnQuantities[token.tokenId] || '0', 10)
+      if (qty > 0) {
+        tokenIds.push(BigInt(token.tokenId))
+        tokenCounts.push(BigInt(qty))
+      }
+    }
+
+    if (tokenIds.length === 0) {
+      setBurnError('Please enter a quantity for at least one token')
+      return
+    }
+
+    try {
+      setBurning(true)
+      setBurnError(null)
+      setBurnSuccess(null)
+
+      const clients: TestClients = {
+        walletClient: walletClient as any,
+        publicClient: publicClient as any,
+        account: address,
+      }
+
+      await burnTokens(clients, project.erc1155Address as `0x${string}`, {
+        tokenIds,
+        tokenCounts,
+      })
+
+      setBurnSuccess('Tokens burned successfully!')
+      setBurnQuantities({})
+
+      // Refresh burn data
+      const machinery = createSDKMachinery(GRAPHQL_URL)
+      const burns = await getTokenBurnsByUser(machinery, project.erc1155Address, address)
+      setUserBurns(burns)
+    } catch (err) {
+      console.error('Error burning tokens:', err)
+      setBurnError(err instanceof Error ? err.message : 'Failed to burn tokens')
+    } finally {
+      setBurning(false)
+    }
+  }
 
   const handleRefund = async () => {
     if (!project || !walletClient || !publicClient || !address) return
@@ -727,6 +848,54 @@ export function ProjectDetailPage() {
         </Paper>
       )}
 
+      {/* Token Burns Section */}
+      {isConnected && status === 'succeeded' && userBurnableTokens.length > 0 && (
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" component="h2" gutterBottom>
+            Burn Tokens
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Burn your tokens to convert from investor to donor. This action is irreversible.
+          </Typography>
+
+          <Stack spacing={2}>
+            {userBurnableTokens.map(({ tokenId, count }) => (
+              <Box key={tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="body1" sx={{ minWidth: 120 }}>
+                  Token #{tokenId}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
+                  {count.toString()} available
+                </Typography>
+                <TextField
+                  type="number"
+                  size="small"
+                  label="Quantity"
+                  value={burnQuantities[tokenId] || ''}
+                  onChange={(e) => setBurnQuantities(prev => ({ ...prev, [tokenId]: e.target.value }))}
+                  inputProps={{ min: 1, max: Number(count) }}
+                  sx={{ width: 120 }}
+                />
+              </Box>
+            ))}
+
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleBurn}
+              disabled={burning}
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              {burning ? 'Burning...' : 'Burn Tokens'}
+            </Button>
+
+            {burnError && <Alert severity="error">{burnError}</Alert>}
+            {burnSuccess && <Alert severity="success">{burnSuccess}</Alert>}
+          </Stack>
+        </Paper>
+      )}
+
       {/* Secondary Market */}
       {project.marketplaceAddress && (
         <Paper sx={{ p: 3, mb: 3 }}>
@@ -912,6 +1081,51 @@ export function ProjectDetailPage() {
             </Box>
           )}
         </Paper>
+      )}
+
+      {/* Trade History */}
+      {project.marketplaceAddress && trades.length > 0 && (
+        <Accordion sx={{ mb: 3 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h5" component="h2">
+              Trade History ({trades.length})
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Buyer</TableCell>
+                    <TableCell>Seller</TableCell>
+                    <TableCell>Token ID</TableCell>
+                    <TableCell align="right">Quantity</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {trades.map((trade) => (
+                    <TableRow key={trade.id}>
+                      <TableCell>
+                        {new Date(Number(trade.createdAt) * 1000).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                        {trade.buyer.slice(0, 6)}...{trade.buyer.slice(-4)}
+                      </TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                        {trade.seller.slice(0, 6)}...{trade.seller.slice(-4)}
+                      </TableCell>
+                      <TableCell>{trade.tokenId}</TableCell>
+                      <TableCell align="right">{trade.count}</TableCell>
+                      <TableCell align="right">{formatEther(BigInt(trade.totalPrice))} ETH</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </AccordionDetails>
+        </Accordion>
       )}
 
       {/* Contributor Leaderboard */}
