@@ -14,9 +14,15 @@ I'd like to enhance the project-creation and project-viewing pages to allow toke
 
 ## Delegation UI
 
-Not even started yet, but I'd like to.
-
   - Spec: specs/subsystems/delegation/ui.md
+
+Chunks:
+  - [x] Chunk 1: Scaffold delegation directory, add routes + nav link, implement My Notes page (summary cards, "Notes I Control", "Notes I Deposited", wallet-not-connected state)
+  - [ ] Chunk 2: Note Detail page (header, delegation chain visualization, actions: delegate/revoke/reclaim, note history)
+  - [ ] Chunk 3: Deposit page (form: amount, optional delegate-to, optional intended statement, multi-step submit)
+  - [ ] Chunk 4: Spending section on Note Detail page (purchase from primary market with notes, project selector)
+  - [ ] Chunk 5: Pubstarter integration (delegation chains on contributor leaderboard, "Fund with Delegated Note" option on project page)
+  - [ ] Chunk 6: Funding Portal integration (available delegatable funding section on statement pages)
 
 ## Funding Portals UI
 

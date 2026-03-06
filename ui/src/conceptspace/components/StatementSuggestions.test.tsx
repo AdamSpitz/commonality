@@ -319,7 +319,8 @@ describe('StatementSuggestions', () => {
 
       await waitFor(() => {
         expect(createSDKMachinery).toHaveBeenCalledWith(
-          expect.stringContaining('graphql')
+          expect.stringContaining('graphql'),
+          expect.any(Object)
         )
       })
     })

@@ -29,6 +29,7 @@ const drawerWidth = 240
 const navigationItems = [
   { label: 'Home', path: '/' },
   { label: 'Browse Statements', path: '/statements' },
+  { label: 'My Notes', path: '/notes' },
   { label: 'My Profile', path: '/profile' },
   { label: 'Settings', path: '/settings' },
 ]
