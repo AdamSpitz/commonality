@@ -12,11 +12,11 @@ import {
 } from './displayable-document.js';
 import { clearMockIPFS } from '../../utils/mock-ipfs.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
-import { createIPFSConfigFromTheUsualEnvVars, uploadToIPFS } from '../../utils/ipfs.js';
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars, uploadToIPFS } from '../../utils/ipfs.js';
 import { createSDKMachinery } from '../../machinery.js';
 
 const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-const machinery = createSDKMachinery(GRAPHQL_URL, createIPFSConfigFromTheUsualEnvVars(), { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
+const machinery = createSDKMachinery(GRAPHQL_URL, createIPFSConfigInNodeJSFromTheUsualEnvVars(), { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
 
 // ============================================================================
 // toCanonicalJson

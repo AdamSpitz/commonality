@@ -22,7 +22,7 @@ import {
   publishDocument,
   type IpfsCidV1,
   type IPFSConfig,
-  createIPFSConfigFromTheUsualEnvVars,
+  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
@@ -212,7 +212,7 @@ class SimulationRunner {
   async initialize(numUsers = 50): Promise<void> {
     console.log('=== Initializing Simulation ===\n');
 
-    const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
+    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
     
     console.log('Loading contract addresses from .env...');
     this.loadContracts();

@@ -11,7 +11,7 @@ import {
   type BeliefsContract,
   type MutableRefUpdaterContract,
   createSDKMachinery,
-  createIPFSConfigFromTheUsualEnvVars,
+  createIPFSConfigInNodeJSFromTheUsualEnvVars,
 } from '@commonality/sdk'
 
 /**
@@ -38,7 +38,7 @@ async function createTestStatement(
   graphqlUrl: string
 ) {
   const clients = createE2ETestClients(accountName)
-  const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
   const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
 
   const statementContent = `Belief test statement ${Date.now()}`

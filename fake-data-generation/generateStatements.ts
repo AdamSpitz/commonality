@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { Statement, StatementContent } from './types.js';
-import { createIPFSConfigFromTheUsualEnvVars, createStatement, IpfsCidV1, publishDocument, type IPFSConfig } from '@commonality/sdk';
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createStatement, IpfsCidV1, publishDocument, type IPFSConfig } from '@commonality/sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -153,7 +153,7 @@ void generatePositionKey;
 
 // Run if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const ipfsConfig = createIPFSConfigFromTheUsualEnvVars();
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
   generateStatements(ipfsConfig).catch(console.error);
 }
 

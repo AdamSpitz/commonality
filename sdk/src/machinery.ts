@@ -1,4 +1,4 @@
-import { createIPFSConfigFromTheUsualEnvVars, IPFSConfig } from "./utils/ipfs";
+import { IPFSConfig } from "./utils/ipfs";
 
 export interface TestConfig {
   areWeJustRunningTests?: boolean;
