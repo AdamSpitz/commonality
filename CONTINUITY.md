@@ -4,16 +4,16 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Start on **Chunk 6** of the pubstarter UI plan: implement the Create Project Page. See [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md) for the full plan.
+All 6 chunks of the pubstarter UI are now complete. Possible next tasks:
 
-Key patterns established in Chunks 1-5:
-- Pages are in `ui/src/pubstarter/pages/`, components in `ui/src/pubstarter/components/`
-- `createSDKMachinery(GRAPHQL_URL)` for SDK queries, `fetchFromIPFS` for IPFS metadata
-- Project status logic: `getProjectStatus()` helper — compare `deadline` to `Date.now()/1000` and `totalReceived` to `threshold`
-- Contract writes use SDK action functions (`buyProjectTokens`, `refundProjectTokens`, `withdrawProjectFunds`) with `AssuranceContract` = `{ address, abi: AssuranceContractAbi }` and `TestClients` from wagmi hooks
-- Tests mock `@commonality/sdk`, `react-router-dom`, and `wagmi`; use vitest + @testing-library/react
-- Tests must be run from `ui/` directory (root vitest config lacks JSX setup)
-- `formatEther` from `viem` for ETH display
-- Contribution/Refund data: `getProjectContributions` + `getProjectRefunds`, tokenIds/tokenCounts stored as JSON string arrays
-- Leaderboard: aggregate contributions minus refunds per address, sort by net descending
-- Secondary Market: `getActiveSaleListings` + `getActiveBuyOrders` from SDK, `fulfillSaleListing`/`fulfillBuyOrder`/`createSaleListing`/`createBuyOrder` for contract writes, `approveERC1155ForMarketplace` before selling/creating sale listings
+- **Post-implementation checklist** for the pubstarter UI — all 6 chunks are done, this would be a good time.
+- **Token image upload** — the user's note on Chunk 6 asked about letting creators upload a picture per token type to IPFS. This is not yet implemented.
+- **`VITE_PUBSTARTER_CONTRACT_ADDRESS` env var** — the CreateProjectPage requires this. It needs to be added to the e2e test global setup (currently only `BELIEFS_CONTRACT_ADDRESS` and `MUTABLE_REF_UPDATER_CONTRACT_ADDRESS` are copied). Also needs to be documented for local development.
+- Other tasks from TODO.md: get e2e tests working, fix workspace TODO.md issues.
+
+## Key notes from Chunk 6
+
+- `CreateProjectPage` uses `uploadToIPFS` (not `publishDocument`) for project metadata as `{ name, description }` — matching what BrowseProjectsPage/ProjectDetailPage read back.
+- `createProject` from SDK wraps the factory's `createERC1155AndMarketplaceAndAssuranceContract` call.
+- After success, navigates to `/projects/${assuranceContractAddress}` since that's the project's `id` in the indexer.
+- Tests set `import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS` in beforeEach.

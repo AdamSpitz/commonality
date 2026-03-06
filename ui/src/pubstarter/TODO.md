@@ -42,6 +42,6 @@ Each chunk should build, pass lint, and get committed.
 - [x] Trade History: collapsible section with recent secondary market trades from `getMarketplaceTrades`. Table: date, buyer, seller, token ID, quantity, price.
 - [x] Write tests
 
-### Chunk 6: Create Project Page
-- [ ] Implement `CreateProjectPage.tsx`: form with project name, description (textarea/markdown), recipient address (defaults to connected wallet), funding threshold (ETH), deadline (date picker), token types (dynamic list with add/remove — token ID, supply, price). On submit: upload metadata to IPFS via `publishDocument`, call `createERC1155AndMarketplaceAndAssuranceContract` via wagmi, show success with link to new project page.
-- [ ] Write tests
+### Chunk 6: Create Project Page ✅
+- [x] Implement `CreateProjectPage.tsx`: form with project name, description (textarea/markdown), recipient address (defaults to connected wallet), funding threshold (ETH), deadline (date picker), token types (dynamic list with add/remove — token ID, supply, price). On submit: upload metadata to IPFS via `uploadToIPFS`, call `createProject` (which calls `createERC1155AndMarketplaceAndAssuranceContract`) via wagmi, show success with link to new project page. Requires `VITE_PUBSTARTER_CONTRACT_ADDRESS` env var.
+- [x] Write tests (19 tests covering form rendering, validation, token type management, submission, error handling)

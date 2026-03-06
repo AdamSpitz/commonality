@@ -1,0 +1,333 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { CreateProjectPage } from './CreateProjectPage'
+
+const mockNavigate = vi.fn()
+
+// Mock react-router-dom
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+}))
+
+// Mock wagmi
+const mockAccount = {
+  address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' as const,
+  isConnected: true,
+}
+const mockWalletClient = { data: { writeContract: vi.fn() } }
+const mockPublicClient = { waitForTransactionReceipt: vi.fn() }
+
+vi.mock('wagmi', () => ({
+  useAccount: () => mockAccount,
+  useWalletClient: () => mockWalletClient,
+  usePublicClient: () => mockPublicClient,
+}))
+
+// Mock SDK
+vi.mock('@commonality/sdk', async () => {
+  const actual = await vi.importActual('@commonality/sdk')
+  return {
+    ...actual,
+    createProject: vi.fn(),
+    uploadToIPFS: vi.fn(),
+  }
+})
+
+import { createProject, uploadToIPFS } from '@commonality/sdk'
+
+describe('CreateProjectPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockAccount.isConnected = true
+    mockAccount.address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+    // Set required env var for contract address
+    import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
+  })
+
+  describe('Wallet not connected', () => {
+    it('shows connect wallet message when not connected', () => {
+      mockAccount.isConnected = false
+      mockAccount.address = undefined as any
+
+      render(<CreateProjectPage />)
+
+      expect(screen.getByText(/connect your wallet/i)).toBeInTheDocument()
+    })
+
+    it('does not show the form when not connected', () => {
+      mockAccount.isConnected = false
+      mockAccount.address = undefined as any
+
+      render(<CreateProjectPage />)
+
+      expect(screen.queryByLabelText(/project name/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Form rendering', () => {
+    it('displays the page heading', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.getByRole('heading', { name: 'Create Project' })).toBeInTheDocument()
+    })
+
+    it('displays all form fields', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.getByLabelText(/project name/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/recipient address/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/funding threshold/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/deadline/i)).toBeInTheDocument()
+    })
+
+    it('displays initial token type row', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.getByLabelText(/token id/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/supply/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/price/i)).toBeInTheDocument()
+    })
+
+    it('displays Add Token Type button', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.getByRole('button', { name: /add token type/i })).toBeInTheDocument()
+    })
+
+    it('displays Create Project submit button', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.getByRole('button', { name: /create project/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('Token type management', () => {
+    it('adds a new token type row when Add Token Type is clicked', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.click(screen.getByRole('button', { name: /add token type/i }))
+
+      const tokenIdFields = screen.getAllByLabelText(/token id/i)
+      expect(tokenIdFields).toHaveLength(2)
+    })
+
+    it('removes a token type row when delete is clicked', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      // Add a second row first
+      await user.click(screen.getByRole('button', { name: /add token type/i }))
+      expect(screen.getAllByLabelText(/token id/i)).toHaveLength(2)
+
+      // Remove one
+      const deleteButtons = screen.getAllByLabelText(/remove token type/i)
+      await user.click(deleteButtons[0])
+
+      expect(screen.getAllByLabelText(/token id/i)).toHaveLength(1)
+    })
+
+    it('does not show delete button when only one token type exists', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.queryByLabelText(/remove token type/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Form validation', () => {
+    it('shows error when project name is empty', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      expect(screen.getByText(/project name is required/i)).toBeInTheDocument()
+      expect(uploadToIPFS).not.toHaveBeenCalled()
+    })
+
+    it('shows error when threshold is missing', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      expect(screen.getByText(/funding threshold must be positive/i)).toBeInTheDocument()
+    })
+
+    it('shows error when deadline is missing', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+
+      // Set threshold
+      const thresholdInput = screen.getByLabelText(/funding threshold/i)
+      await user.type(thresholdInput, '10')
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      expect(screen.getByText(/deadline is required/i)).toBeInTheDocument()
+    })
+
+    it('shows error when token supply is missing', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+
+      // Set a future deadline
+      const deadlineInput = screen.getByLabelText(/deadline/i)
+      const futureDate = new Date(Date.now() + 86400000 * 30)
+      const dateStr = futureDate.toISOString().slice(0, 16)
+      await user.type(deadlineInput, dateStr)
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      expect(screen.getByText(/token type 1: supply must be positive/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('Successful submission', () => {
+    async function fillForm(user: ReturnType<typeof userEvent.setup>) {
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.type(screen.getByLabelText(/description/i), 'A test description')
+      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+
+      const deadlineInput = screen.getByLabelText(/deadline/i)
+      const futureDate = new Date(Date.now() + 86400000 * 30)
+      const dateStr = futureDate.toISOString().slice(0, 16)
+      await user.type(deadlineInput, dateStr)
+
+      await user.type(screen.getByLabelText(/supply/i), '100')
+      await user.type(screen.getByLabelText(/price/i), '0.1')
+    }
+
+    it('uploads metadata to IPFS and creates project on submit', async () => {
+      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      await fillForm(user)
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => {
+        expect(uploadToIPFS).toHaveBeenCalledWith(
+          expect.objectContaining({}),
+          { name: 'Test Project', description: 'A test description' }
+        )
+        expect(createProject).toHaveBeenCalled()
+      })
+    })
+
+    it('shows success message and View Project button after creation', async () => {
+      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      await fillForm(user)
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/project created successfully/i)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /view project/i })).toBeInTheDocument()
+      })
+    })
+
+    it('navigates to project page when View Project is clicked', async () => {
+      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      await fillForm(user)
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /view project/i })).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('button', { name: /view project/i }))
+
+      expect(mockNavigate).toHaveBeenCalledWith('/projects/0xassurance')
+    })
+  })
+
+  describe('Error handling', () => {
+    it('shows error when IPFS upload fails', async () => {
+      vi.mocked(uploadToIPFS).mockRejectedValue(new Error('IPFS upload failed'))
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.type(screen.getByLabelText(/project name/i), 'Test')
+      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+
+      const deadlineInput = screen.getByLabelText(/deadline/i)
+      const futureDate = new Date(Date.now() + 86400000 * 30)
+      await user.type(deadlineInput, futureDate.toISOString().slice(0, 16))
+
+      await user.type(screen.getByLabelText(/supply/i), '100')
+      await user.type(screen.getByLabelText(/price/i), '0.1')
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText('IPFS upload failed')).toBeInTheDocument()
+      })
+    })
+
+    it('shows error when contract call fails', async () => {
+      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(createProject).mockRejectedValue(new Error('Transaction reverted'))
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.type(screen.getByLabelText(/project name/i), 'Test')
+      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+
+      const deadlineInput = screen.getByLabelText(/deadline/i)
+      const futureDate = new Date(Date.now() + 86400000 * 30)
+      await user.type(deadlineInput, futureDate.toISOString().slice(0, 16))
+
+      await user.type(screen.getByLabelText(/supply/i), '100')
+      await user.type(screen.getByLabelText(/price/i), '0.1')
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
+      })
+    })
+  })
+})
