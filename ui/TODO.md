@@ -7,11 +7,16 @@ Implementation is mostly done and well-tested.
 ## Pubstarter UI - MVP
 
   - Spec: specs/subsystems/pubstarter/ui.md
-  - Chunked implementation plan: [ui/src/pubstarter/TODO.md](src/pubstarter/TODO.md) — all 6 chunks done.
-  - Post-implementation cleanup:
-    - [x] Decompose ProjectDetailPage (~1130 lines, ~30 useState) into sub-components (BuyTokensSection, RefundSection, SecondaryMarketSection, etc.)
-    - [x] Deduplicate token-counting logic between `userRefundableTokens` and `userBurnableTokens` in ProjectDetailPage
-    - [ ] Remove or populate empty `components/index.ts`
+
+Done now, I think?
+
+I'd like to enhance the project-creation and project-viewing pages to allow token types to have an image. (For project creation, if the user uploads an image, add it to IPFS.)
+
+## Delegation UI
+
+Not even started yet, I think. But I'd like to.
+
+  - Spec: specs/subsystems/delegation/ui.md
 
 ## Other subsystem UIs
 
