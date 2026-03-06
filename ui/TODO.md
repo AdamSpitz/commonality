@@ -14,9 +14,15 @@ I'd like to enhance the project-creation and project-viewing pages to allow toke
 
 ## Delegation UI
 
-Not even started yet, I think. But I'd like to.
+Not even started yet, but I'd like to.
 
   - Spec: specs/subsystems/delegation/ui.md
+
+## Funding Portals UI
+
+Not even started yet, but I'd like to.
+
+  - Spec: specs/subsystems/fundingportals/ui.md
 
 ## Other subsystem UIs
 

@@ -3,7 +3,8 @@
 ---
 
 Main thing I want to work on next:
-  - Implementing the pubstarter UI. Broken into 6 chunks — see [ui/src/pubstarter/TODO.md](ui/src/pubstarter/TODO.md). All 6 chunks done! (Note: token image upload per the user's note in Chunk 6 is not yet implemented — could be a future enhancement.)
+  - Implementing the delegation UI.
+  - Implementing the fundingportals UI.
 
 Other big things to do soon:
   - Get the e2e tests (npm run ui:test:e2e) working.
