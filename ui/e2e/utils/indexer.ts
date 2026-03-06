@@ -127,3 +127,62 @@ export async function waitForStatement(
   console.warn(`Statement ${statementCid} not found after ${maxAttempts} attempts`)
   return false
 }
+
+/**
+ * Create a statement and wait for it to be indexed with IPFS content.
+ * 
+ * IMPORTANT: This function enforces the correct ordering to ensure IPFS content
+ * is fetched successfully. The correct order is:
+ *   1. waitForIndexer - ensure indexer is ready
+ *   2. waitForStatement - wait for statement row to exist in DB
+ *   3. triggerSyncWithRetry - sync IPFS content (finds the statement)
+ *   4. wait for IPFS content to be processed
+ * 
+ * If you trigger IPFS sync BEFORE the statement exists in the database,
+ * syncedCount will be 0 because there's nothing to sync.
+ */
+export async function waitForStatementWithIPFS(
+  graphqlUrl: string,
+  statementCid: IpfsCidV1,
+  options?: {
+    waitForIndexerMaxAttempts?: number
+    waitForStatementMaxAttempts?: number
+    syncMaxAttempts?: number
+    ipfsProcessingDelayMs?: number
+  }
+): Promise<boolean> {
+  const {
+    waitForIndexerMaxAttempts = 30,
+    waitForStatementMaxAttempts = 60,
+    syncMaxAttempts = 3,
+    ipfsProcessingDelayMs = 2000,
+  } = options ?? {}
+
+  // Step 1: Wait for indexer to be ready
+  const indexerReady = await waitForIndexer(graphqlUrl, waitForIndexerMaxAttempts)
+  if (!indexerReady) {
+    console.error('Indexer not ready, cannot process statement')
+    return false
+  }
+
+  // Step 2: Wait for statement to exist in DB FIRST (critical!)
+  // This must happen before IPFS sync, otherwise there's nothing to sync
+  const statementFound = await waitForStatement(graphqlUrl, statementCid, waitForStatementMaxAttempts)
+  if (!statementFound) {
+    console.error(`Statement ${statementCid} not found in indexer`)
+    return false
+  }
+
+  // Step 3: Trigger IPFS sync (will find the statement and fetch content)
+  const syncResult = await triggerSyncWithRetry(graphqlUrl, syncMaxAttempts)
+  if (!syncResult.success) {
+    console.error('IPFS sync failed:', syncResult.message)
+    return false
+  }
+
+  // Step 4: Wait for IPFS content to be processed
+  await new Promise((r) => setTimeout(r, ipfsProcessingDelayMs))
+
+  console.log(`Statement ${statementCid} indexed with IPFS content`)
+  return true
+}

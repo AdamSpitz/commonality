@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
-import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
+import { waitForStatementWithIPFS } from './utils/indexer'
 import {
   createAndSignStatement,
   createStatement,
@@ -56,21 +56,10 @@ async function createTestStatement(
     }
   )
 
-  // Wait for indexer to be ready
-  await waitForIndexer(graphqlUrl)
+  // Use the combined helper that enforces correct ordering
+  await waitForStatementWithIPFS(graphqlUrl, result.cid)
 
-  // Trigger IPFS sync with retry
-  await triggerSyncWithRetry(graphqlUrl)
-
-  // Additional wait for indexer to process events
-  await new Promise((r) => setTimeout(r, 2000))
-
-  const statementCid = result.cid
-
-  // Wait for statement to be indexed
-  await waitForStatement(graphqlUrl, statementCid)
-
-  return { cid: statementCid, statementContent }
+  return { cid: result.cid, statementContent }
 }
 
 test.describe('User Profile Workflow', () => {
@@ -181,10 +170,8 @@ test.describe('User Profile Workflow', () => {
     const { disbelieveStatement } = await import('@commonality/sdk')
     await disbelieveStatement(clients, beliefsContract, cid)
 
-    // Wait for indexer and sync
-    await waitForIndexer(graphqlUrl)
-    await triggerSyncWithRetry(graphqlUrl)
-    await waitForStatement(graphqlUrl, cid)
+    // Wait for disbelief to be indexed
+    await waitForStatementWithIPFS(graphqlUrl, cid)
 
     // Navigate to profile via nav link (in AppBar header)
     await page.locator('header').getByRole('link', { name: 'My Profile' }).click()
@@ -247,7 +234,7 @@ test.describe('User Profile Workflow', () => {
     const clients = createE2ETestClients('ACCOUNT_1')
     const account1Address = clients.account
 
-    const { cid } = await createTestStatement(
+    await createTestStatement(
       'ACCOUNT_1',
       beliefsContract,
       mutableRefContract,
