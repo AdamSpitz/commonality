@@ -24,6 +24,7 @@ import {
   type ProjectSortField,
 } from '@commonality/sdk'
 import { formatEther } from 'viem'
+import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 
@@ -34,44 +35,6 @@ const SORT_MAP: Record<SortOption, { field: ProjectSortField; direction: 'asc' |
   deadline: { field: 'deadline', direction: 'asc' },
   mostFunded: { field: 'totalReceived', direction: 'desc' },
   closestToGoal: { field: 'fundingProgress', direction: 'desc' },
-}
-
-function getProjectStatus(project: ProjectWithMetrics): 'active' | 'succeeded' | 'refunding' {
-  const now = Math.floor(Date.now() / 1000)
-  const deadline = Number(project.deadline)
-  const thresholdMet = BigInt(project.totalReceived) >= BigInt(project.threshold)
-
-  if (thresholdMet) return 'succeeded'
-  if (deadline < now) return 'refunding'
-  return 'active'
-}
-
-const STATUS_COLORS: Record<string, 'success' | 'warning' | 'info'> = {
-  active: 'info',
-  succeeded: 'success',
-  refunding: 'warning',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  active: 'Funding',
-  succeeded: 'Succeeded',
-  refunding: 'Refunding',
-}
-
-function formatRelativeDeadline(deadlineStr: string): string {
-  const deadline = Number(deadlineStr)
-  const now = Math.floor(Date.now() / 1000)
-  const diff = deadline - now
-
-  if (diff <= 0) return 'Ended'
-
-  const days = Math.floor(diff / 86400)
-  const hours = Math.floor((diff % 86400) / 3600)
-
-  if (days > 0) return `${days}d ${hours}h left`
-  if (hours > 0) return `${hours}h left`
-  const minutes = Math.floor(diff / 60)
-  return `${minutes}m left`
 }
 
 type ProjectMetadata = { name?: string; description?: string }

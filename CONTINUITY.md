@@ -4,9 +4,9 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-All 6 chunks of the pubstarter UI are now complete. Possible next tasks:
+Post-implementation checklist for the pubstarter UI is done. Shared utils extracted, "note for later" items recorded in ui/TODO.md. Possible next tasks:
 
-- **Post-implementation checklist** for the pubstarter UI — all 6 chunks are done, this would be a good time.
+- **Pubstarter UI cleanup** — decompose ProjectDetailPage into sub-components, deduplicate token-counting logic. See ui/TODO.md for details.
 - **Token image upload** — the user's note on Chunk 6 asked about letting creators upload a picture per token type to IPFS. This is not yet implemented.
 - **`VITE_PUBSTARTER_CONTRACT_ADDRESS` env var** — the CreateProjectPage requires this. It needs to be added to the e2e test global setup (currently only `BELIEFS_CONTRACT_ADDRESS` and `MUTABLE_REF_UPDATER_CONTRACT_ADDRESS` are copied). Also needs to be documented for local development.
 - Other tasks from TODO.md: get e2e tests working, fix workspace TODO.md issues.
