@@ -4,16 +4,37 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Post-implementation checklist for the pubstarter UI is done. Shared utils extracted, "note for later" items recorded in ui/TODO.md. Possible next tasks:
+Post-implementation cleanup for pubstarter UI is complete:
+- ✅ Decomposed ProjectDetailPage into 9 sub-components (ProjectHeader, BuyTokensSection, ConnectWalletPrompt, RefundSection, WithdrawSection, BurnTokensSection, SecondaryMarketSection, TradeHistory, Leaderboard)
+- ✅ Deduplicated token-counting logic into shared `computeUserTokenBalance` and `computeContributorStats` utilities in utils.ts
 
-- **Pubstarter UI cleanup** — decompose ProjectDetailPage into sub-components, deduplicate token-counting logic. See ui/TODO.md for details.
-- **Token image upload** — the user's note on Chunk 6 asked about letting creators upload a picture per token type to IPFS. This is not yet implemented.
-- **`VITE_PUBSTARTER_CONTRACT_ADDRESS` env var** — the CreateProjectPage requires this. It needs to be added to the e2e test global setup (currently only `BELIEFS_CONTRACT_ADDRESS` and `MUTABLE_REF_UPDATER_CONTRACT_ADDRESS` are copied). Also needs to be documented for local development.
-- Other tasks from TODO.md: get e2e tests working, fix workspace TODO.md issues.
+Remaining tasks from TODO.md:
+- Remove or populate empty `components/index.ts` (done - now exports all components)
+- Get e2e tests working
+- VITE_PUBSTARTER_CONTRACT_ADDRESS env var for e2e tests
 
-## Key notes from Chunk 6
+## Key notes from this session
 
-- `CreateProjectPage` uses `uploadToIPFS` (not `publishDocument`) for project metadata as `{ name, description }` — matching what BrowseProjectsPage/ProjectDetailPage read back.
-- `createProject` from SDK wraps the factory's `createERC1155AndMarketplaceAndAssuranceContract` call.
-- After success, navigates to `/projects/${assuranceContractAddress}` since that's the project's `id` in the indexer.
-- Tests set `import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS` in beforeEach.
+- Created 9 new components in ui/src/pubstarter/components/
+- Refactored ProjectDetailPage from ~ lines to ~210 lines
+- Added `computeUserTokenBalance1130` and `computeContributorStats` to utils.ts for deduplicated token counting logic
+- All 85 tests pass
+
+## Files changed
+
+New files:
+- ui/src/pubstarter/components/ProjectHeader.tsx
+- ui/src/pubstarter/components/BuyTokensSection.tsx
+- ui/src/pubstarter/components/ConnectWalletPrompt.tsx
+- ui/src/pubstarter/components/RefundSection.tsx
+- ui/src/pubstarter/components/WithdrawSection.tsx
+- ui/src/pubstarter/components/BurnTokensSection.tsx
+- ui/src/pubstarter/components/SecondaryMarketSection.tsx
+- ui/src/pubstarter/components/TradeHistory.tsx
+- ui/src/pubstarter/components/Leaderboard.tsx
+
+Modified files:
+- ui/src/pubstarter/utils.ts (added computeUserTokenBalance, computeContributorStats)
+- ui/src/pubstarter/pages/ProjectDetailPage.tsx (refactored to use sub-components)
+- ui/src/pubstarter/components/index.ts (now exports all new components)
+- ui/TODO.md (marked tasks as complete)

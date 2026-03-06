@@ -1,30 +1,7 @@
-import { useState, useEffect } from 'react'
-import {
-  Box,
-  Typography,
-  Paper,
-  CircularProgress,
-  Alert,
-  Chip,
-  Stack,
-  LinearProgress,
-  TextField,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  ToggleButton,
-  ToggleButtonGroup,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { useState, useEffect, useCallback } from 'react'
+import { Box, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import {
   createSDKMachinery,
   getProject,
@@ -35,18 +12,7 @@ import {
   getActiveBuyOrders,
   getMarketplaceTrades,
   getTokenBurnsByUser,
-  buyProjectTokens,
-  refundProjectTokens,
-  withdrawProjectFunds,
-  fulfillSaleListing,
-  fulfillBuyOrder,
-  createSaleListing,
-  createBuyOrder,
-  approveERC1155ForMarketplace,
-  burnTokens,
   fetchFromIPFS,
-  AssuranceContractAbi,
-  ERC1155SecondaryMarketAbi,
   type Project,
   type ProjectToken,
   type Contribution,
@@ -55,20 +21,25 @@ import {
   type BuyOrder,
   type Trade,
   type TokenBurn,
-  type AssuranceContract,
-  type SecondaryMarketContract,
-  type TestClients,
 } from '@commonality/sdk'
-import { formatEther, parseEther } from 'viem'
-import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
+import {
+  ProjectHeader,
+  BuyTokensSection,
+  ConnectWalletPrompt,
+  RefundSection,
+  WithdrawSection,
+  BurnTokensSection,
+  SecondaryMarketSection,
+  TradeHistory,
+  Leaderboard,
+} from '../components'
+import { getProjectStatus, computeUserTokenBalance } from '../utils'
 
 type ProjectMetadata = { name?: string; description?: string }
 
 export function ProjectDetailPage() {
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
 
   const [project, setProject] = useState<Project | null>(null)
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null)
@@ -78,55 +49,59 @@ export function ProjectDetailPage() {
 
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [refunds, setRefunds] = useState<Refund[]>([])
-
-  // Buy tokens state: map of tokenId -> quantity string
-  const [quantities, setQuantities] = useState<Record<string, string>>({})
-  const [buying, setBuying] = useState(false)
-  const [buyError, setBuyError] = useState<string | null>(null)
-  const [buySuccess, setBuySuccess] = useState<string | null>(null)
-
-  // Refund state
-  const [refunding, setRefunding] = useState(false)
-  const [refundError, setRefundError] = useState<string | null>(null)
-  const [refundSuccess, setRefundSuccess] = useState<string | null>(null)
-
-  // Withdraw state
-  const [withdrawing, setWithdrawing] = useState(false)
-  const [withdrawError, setWithdrawError] = useState<string | null>(null)
-  const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null)
-
-  // Secondary market state
   const [saleListings, setSaleListings] = useState<SaleListing[]>([])
   const [buyOrders, setBuyOrders] = useState<BuyOrder[]>([])
-  const [fulfillingSale, setFulfillingSale] = useState<string | null>(null)
-  const [fulfillingOrder, setFulfillingOrder] = useState<string | null>(null)
-  const [marketError, setMarketError] = useState<string | null>(null)
-  const [marketSuccess, setMarketSuccess] = useState<string | null>(null)
-
-  // Partial fill quantities for sale listings and buy orders
-  const [saleQuantities, setSaleQuantities] = useState<Record<string, string>>({})
-  const [orderQuantities, setOrderQuantities] = useState<Record<string, string>>({})
-
-  // Token burns state
-  const [userBurns, setUserBurns] = useState<TokenBurn[]>([])
-  const [burnQuantities, setBurnQuantities] = useState<Record<string, string>>({})
-  const [burning, setBurning] = useState(false)
-  const [burnError, setBurnError] = useState<string | null>(null)
-  const [burnSuccess, setBurnSuccess] = useState<string | null>(null)
-
-  // Trade history state
   const [trades, setTrades] = useState<Trade[]>([])
-
-  // Create order form state
-  const [orderType, setOrderType] = useState<'sale' | 'buy'>('sale')
-  const [orderTokenId, setOrderTokenId] = useState('')
-  const [orderQuantity, setOrderQuantity] = useState('')
-  const [orderPrice, setOrderPrice] = useState('')
-  const [creatingOrder, setCreatingOrder] = useState(false)
-  const [createOrderError, setCreateOrderError] = useState<string | null>(null)
-  const [createOrderSuccess, setCreateOrderSuccess] = useState<string | null>(null)
+  const [userBurns, setUserBurns] = useState<TokenBurn[]>([])
 
   const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql'
+
+  const loadProjectData = useCallback(async () => {
+    if (!projectAddress) return
+
+    const machinery = createSDKMachinery(GRAPHQL_URL)
+
+    const [proj, projTokens, projContributions, projRefunds] = await Promise.all([
+      getProject(machinery, projectAddress),
+      getProjectTokens(machinery, projectAddress),
+      getProjectContributions(machinery, projectAddress),
+      getProjectRefunds(machinery, projectAddress),
+    ])
+
+    if (!proj) {
+      setError('Project not found')
+      return null
+    }
+
+    setProject(proj)
+    setTokens(projTokens)
+    setContributions(projContributions)
+    setRefunds(projRefunds)
+
+    if (proj.marketplaceAddress) {
+      const [listings, orders, marketTrades] = await Promise.all([
+        getActiveSaleListings(machinery, proj.marketplaceAddress),
+        getActiveBuyOrders(machinery, proj.marketplaceAddress),
+        getMarketplaceTrades(machinery, proj.marketplaceAddress),
+      ])
+      setSaleListings(listings)
+      setBuyOrders(orders)
+      setTrades(marketTrades)
+    }
+
+    if (address && proj.erc1155Address) {
+      const burns = await getTokenBurnsByUser(machinery, proj.erc1155Address, address)
+      setUserBurns(burns)
+    }
+
+    if (proj.metadataCid) {
+      const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
+      const data = await fetchFromIPFS(ipfsConfig, proj.metadataCid)
+      if (data) setMetadata(data as ProjectMetadata)
+    }
+
+    return proj
+  }, [projectAddress, address, GRAPHQL_URL])
 
   useEffect(() => {
     if (!projectAddress) return
@@ -135,50 +110,7 @@ export function ProjectDetailPage() {
       try {
         setLoading(true)
         setError(null)
-
-        const machinery = createSDKMachinery(GRAPHQL_URL)
-
-        const [proj, projTokens, projContributions, projRefunds] = await Promise.all([
-          getProject(machinery, projectAddress),
-          getProjectTokens(machinery, projectAddress),
-          getProjectContributions(machinery, projectAddress),
-          getProjectRefunds(machinery, projectAddress),
-        ])
-
-        if (!proj) {
-          setError('Project not found')
-          return
-        }
-
-        setProject(proj)
-        setTokens(projTokens)
-        setContributions(projContributions)
-        setRefunds(projRefunds)
-
-        // Fetch secondary market data + trade history if marketplace exists
-        if (proj.marketplaceAddress) {
-          const [listings, orders, marketTrades] = await Promise.all([
-            getActiveSaleListings(machinery, proj.marketplaceAddress),
-            getActiveBuyOrders(machinery, proj.marketplaceAddress),
-            getMarketplaceTrades(machinery, proj.marketplaceAddress),
-          ])
-          setSaleListings(listings)
-          setBuyOrders(orders)
-          setTrades(marketTrades)
-        }
-
-        // Fetch user's burn history for computing burnable tokens
-        if (address && proj.erc1155Address) {
-          const burns = await getTokenBurnsByUser(machinery, proj.erc1155Address, address)
-          setUserBurns(burns)
-        }
-
-        // Fetch IPFS metadata
-        if (proj.metadataCid) {
-          const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
-          const data = await fetchFromIPFS(ipfsConfig, proj.metadataCid)
-          if (data) setMetadata(data as ProjectMetadata)
-        }
+        await loadProjectData()
       } catch (err) {
         console.error('Error loading project:', err)
         setError(err instanceof Error ? err.message : 'Failed to load project')
@@ -190,447 +122,9 @@ export function ProjectDetailPage() {
     load()
   }, [projectAddress])
 
-  const handleQuantityChange = (tokenId: string, value: string) => {
-    setQuantities(prev => ({ ...prev, [tokenId]: value }))
-  }
-
-  const handleBuy = async () => {
-    if (!project || !walletClient || !publicClient || !address) return
-
-    const tokenIds: bigint[] = []
-    const tokenCounts: bigint[] = []
-    let totalCost = 0n
-
-    for (const token of tokens) {
-      const qty = parseInt(quantities[token.tokenId] || '0', 10)
-      if (qty > 0) {
-        tokenIds.push(BigInt(token.tokenId))
-        tokenCounts.push(BigInt(qty))
-        totalCost += BigInt(qty) * BigInt(token.price)
-      }
-    }
-
-    if (tokenIds.length === 0) {
-      setBuyError('Please enter a quantity for at least one token')
-      return
-    }
-
-    try {
-      setBuying(true)
-      setBuyError(null)
-      setBuySuccess(null)
-
-      const assuranceContract: AssuranceContract = {
-        address: project.id as `0x${string}`,
-        abi: AssuranceContractAbi,
-      }
-
-      const clients: TestClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
-
-      await buyProjectTokens(clients, assuranceContract, {
-        buyer: address,
-        tokenAddress: project.erc1155Address as `0x${string}`,
-        tokenIds,
-        tokenCounts,
-        totalCost,
-      })
-
-      setBuySuccess('Tokens purchased successfully!')
-      setQuantities({})
-
-      // Refresh project data
-      const machinery = createSDKMachinery(GRAPHQL_URL)
-      const updated = await getProject(machinery, projectAddress!)
-      if (updated) setProject(updated)
-    } catch (err) {
-      console.error('Error buying tokens:', err)
-      setBuyError(err instanceof Error ? err.message : 'Failed to buy tokens')
-    } finally {
-      setBuying(false)
-    }
-  }
-
-  // Compute the connected user's refundable tokens: contributed minus already refunded
-  const userRefundableTokens = (() => {
-    if (!address) return []
-    const userAddr = address.toLowerCase()
-
-    // Sum up tokens contributed by this user to this project
-    const contributed = new Map<string, bigint>()
-    for (const c of contributions) {
-      if (c.participant.toLowerCase() !== userAddr) continue
-      const ids: string[] = JSON.parse(c.tokenIds)
-      const counts: string[] = JSON.parse(c.tokenCounts)
-      for (let i = 0; i < ids.length; i++) {
-        const prev = contributed.get(ids[i]) ?? 0n
-        contributed.set(ids[i], prev + BigInt(counts[i]))
-      }
-    }
-
-    // Subtract tokens already refunded by this user
-    for (const r of refunds) {
-      if (r.participant.toLowerCase() !== userAddr) continue
-      const ids: string[] = JSON.parse(r.tokenIds)
-      const counts: string[] = JSON.parse(r.tokenCounts)
-      for (let i = 0; i < ids.length; i++) {
-        const prev = contributed.get(ids[i]) ?? 0n
-        contributed.set(ids[i], prev - BigInt(counts[i]))
-      }
-    }
-
-    return Array.from(contributed.entries())
-      .filter(([, count]) => count > 0n)
-      .map(([tokenId, count]) => ({ tokenId, count }))
-  })()
-
-  // Compute user's burnable tokens: contributed minus refunded minus already burned
-  const userBurnableTokens = (() => {
-    if (!address) return []
-    const userAddr = address.toLowerCase()
-
-    // Start with contributed tokens
-    const held = new Map<string, bigint>()
-    for (const c of contributions) {
-      if (c.participant.toLowerCase() !== userAddr) continue
-      const ids: string[] = JSON.parse(c.tokenIds)
-      const counts: string[] = JSON.parse(c.tokenCounts)
-      for (let i = 0; i < ids.length; i++) {
-        const prev = held.get(ids[i]) ?? 0n
-        held.set(ids[i], prev + BigInt(counts[i]))
-      }
-    }
-
-    // Subtract refunded tokens
-    for (const r of refunds) {
-      if (r.participant.toLowerCase() !== userAddr) continue
-      const ids: string[] = JSON.parse(r.tokenIds)
-      const counts: string[] = JSON.parse(r.tokenCounts)
-      for (let i = 0; i < ids.length; i++) {
-        const prev = held.get(ids[i]) ?? 0n
-        held.set(ids[i], prev - BigInt(counts[i]))
-      }
-    }
-
-    // Subtract already burned tokens
-    for (const b of userBurns) {
-      const ids: string[] = JSON.parse(b.tokenIds)
-      const counts: string[] = JSON.parse(b.tokenCounts)
-      for (let i = 0; i < ids.length; i++) {
-        const prev = held.get(ids[i]) ?? 0n
-        held.set(ids[i], prev - BigInt(counts[i]))
-      }
-    }
-
-    return Array.from(held.entries())
-      .filter(([, count]) => count > 0n)
-      .map(([tokenId, count]) => ({ tokenId, count }))
-  })()
-
-  const handleBurn = async () => {
-    if (!project || !walletClient || !publicClient || !address) return
-    if (userBurnableTokens.length === 0) return
-
-    const tokenIds: bigint[] = []
-    const tokenCounts: bigint[] = []
-
-    for (const token of userBurnableTokens) {
-      const qty = parseInt(burnQuantities[token.tokenId] || '0', 10)
-      if (qty > 0) {
-        tokenIds.push(BigInt(token.tokenId))
-        tokenCounts.push(BigInt(qty))
-      }
-    }
-
-    if (tokenIds.length === 0) {
-      setBurnError('Please enter a quantity for at least one token')
-      return
-    }
-
-    try {
-      setBurning(true)
-      setBurnError(null)
-      setBurnSuccess(null)
-
-      const clients: TestClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
-
-      await burnTokens(clients, project.erc1155Address as `0x${string}`, {
-        tokenIds,
-        tokenCounts,
-      })
-
-      setBurnSuccess('Tokens burned successfully!')
-      setBurnQuantities({})
-
-      // Refresh burn data
-      const machinery = createSDKMachinery(GRAPHQL_URL)
-      const burns = await getTokenBurnsByUser(machinery, project.erc1155Address, address)
-      setUserBurns(burns)
-    } catch (err) {
-      console.error('Error burning tokens:', err)
-      setBurnError(err instanceof Error ? err.message : 'Failed to burn tokens')
-    } finally {
-      setBurning(false)
-    }
-  }
-
-  const handleRefund = async () => {
-    if (!project || !walletClient || !publicClient || !address) return
-    if (userRefundableTokens.length === 0) return
-
-    try {
-      setRefunding(true)
-      setRefundError(null)
-      setRefundSuccess(null)
-
-      const assuranceContract: AssuranceContract = {
-        address: project.id as `0x${string}`,
-        abi: AssuranceContractAbi,
-      }
-
-      const clients: TestClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
-
-      await refundProjectTokens(clients, assuranceContract, {
-        holder: address,
-        tokenAddress: project.erc1155Address as `0x${string}`,
-        tokenIds: userRefundableTokens.map(t => BigInt(t.tokenId)),
-        tokenCounts: userRefundableTokens.map(t => t.count),
-      })
-
-      setRefundSuccess('Tokens refunded successfully!')
-
-      // Refresh data
-      const machinery = createSDKMachinery(GRAPHQL_URL)
-      const [updated, updatedContributions, updatedRefunds] = await Promise.all([
-        getProject(machinery, projectAddress!),
-        getProjectContributions(machinery, projectAddress!),
-        getProjectRefunds(machinery, projectAddress!),
-      ])
-      if (updated) setProject(updated)
-      setContributions(updatedContributions)
-      setRefunds(updatedRefunds)
-    } catch (err) {
-      console.error('Error refunding tokens:', err)
-      setRefundError(err instanceof Error ? err.message : 'Failed to refund tokens')
-    } finally {
-      setRefunding(false)
-    }
-  }
-
-  const handleWithdraw = async () => {
-    if (!project || !walletClient || !publicClient || !address) return
-
-    try {
-      setWithdrawing(true)
-      setWithdrawError(null)
-      setWithdrawSuccess(null)
-
-      const assuranceContract: AssuranceContract = {
-        address: project.id as `0x${string}`,
-        abi: AssuranceContractAbi,
-      }
-
-      const clients: TestClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
-
-      await withdrawProjectFunds(clients, assuranceContract)
-
-      setWithdrawSuccess('Funds withdrawn successfully!')
-
-      // Refresh project data
-      const machinery = createSDKMachinery(GRAPHQL_URL)
-      const updated = await getProject(machinery, projectAddress!)
-      if (updated) setProject(updated)
-    } catch (err) {
-      console.error('Error withdrawing funds:', err)
-      setWithdrawError(err instanceof Error ? err.message : 'Failed to withdraw funds')
-    } finally {
-      setWithdrawing(false)
-    }
-  }
-
-  const makeMarketplaceContract = (): SecondaryMarketContract | null => {
-    if (!project?.marketplaceAddress) return null
-    return {
-      address: project.marketplaceAddress as `0x${string}`,
-      abi: ERC1155SecondaryMarketAbi,
-    }
-  }
-
-  const makeClients = (): TestClients | null => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address,
-    }
-  }
-
-  const refreshMarketData = async () => {
-    if (!project?.marketplaceAddress) return
-    const machinery = createSDKMachinery(GRAPHQL_URL)
-    const [listings, orders] = await Promise.all([
-      getActiveSaleListings(machinery, project.marketplaceAddress),
-      getActiveBuyOrders(machinery, project.marketplaceAddress),
-    ])
-    setSaleListings(listings)
-    setBuyOrders(orders)
-  }
-
-  const handleFulfillSale = async (listing: SaleListing) => {
-    const clients = makeClients()
-    const marketplace = makeMarketplaceContract()
-    if (!clients || !marketplace) return
-
-    try {
-      setFulfillingSale(listing.listingId)
-      setMarketError(null)
-      setMarketSuccess(null)
-
-      const qtyStr = saleQuantities[listing.listingId]
-      const count = qtyStr ? BigInt(qtyStr) : BigInt(listing.remainingCount)
-      const totalCost = count * BigInt(listing.pricePerToken)
-
-      await fulfillSaleListing(clients, marketplace, {
-        saleListingId: BigInt(listing.listingId),
-        count,
-        totalCost,
-      })
-
-      setMarketSuccess('Tokens purchased from listing!')
-      await refreshMarketData()
-    } catch (err) {
-      console.error('Error fulfilling sale listing:', err)
-      setMarketError(err instanceof Error ? err.message : 'Failed to buy from listing')
-    } finally {
-      setFulfillingSale(null)
-    }
-  }
-
-  const handleFulfillBuyOrder = async (order: BuyOrder) => {
-    const clients = makeClients()
-    const marketplace = makeMarketplaceContract()
-    if (!clients || !marketplace || !project) return
-
-    try {
-      setFulfillingOrder(order.orderId)
-      setMarketError(null)
-      setMarketSuccess(null)
-
-      // Approve marketplace to transfer tokens first
-      await approveERC1155ForMarketplace(
-        clients,
-        project.erc1155Address as `0x${string}`,
-        project.marketplaceAddress as `0x${string}`,
-      )
-
-      const qtyStr = orderQuantities[order.orderId]
-      const count = qtyStr ? BigInt(qtyStr) : BigInt(order.remainingCount)
-
-      await fulfillBuyOrder(clients, marketplace, {
-        buyOrderId: BigInt(order.orderId),
-        count,
-      })
-
-      setMarketSuccess('Tokens sold to buy order!')
-      await refreshMarketData()
-    } catch (err) {
-      console.error('Error fulfilling buy order:', err)
-      setMarketError(err instanceof Error ? err.message : 'Failed to sell to buy order')
-    } finally {
-      setFulfillingOrder(null)
-    }
-  }
-
-  const handleCreateOrder = async () => {
-    const clients = makeClients()
-    const marketplace = makeMarketplaceContract()
-    if (!clients || !marketplace || !project) return
-
-    if (!orderTokenId || !orderQuantity || !orderPrice) {
-      setCreateOrderError('Please fill in all fields')
-      return
-    }
-
-    try {
-      setCreatingOrder(true)
-      setCreateOrderError(null)
-      setCreateOrderSuccess(null)
-
-      const params = {
-        tokenId: BigInt(orderTokenId),
-        count: BigInt(orderQuantity),
-        pricePerToken: parseEther(orderPrice),
-      }
-
-      if (orderType === 'sale') {
-        // Approve marketplace to transfer tokens first
-        await approveERC1155ForMarketplace(
-          clients,
-          project.erc1155Address as `0x${string}`,
-          project.marketplaceAddress as `0x${string}`,
-        )
-        await createSaleListing(clients, marketplace, params)
-        setCreateOrderSuccess('Sale listing created!')
-      } else {
-        await createBuyOrder(clients, marketplace, params)
-        setCreateOrderSuccess('Buy order created!')
-      }
-
-      setOrderTokenId('')
-      setOrderQuantity('')
-      setOrderPrice('')
-      await refreshMarketData()
-    } catch (err) {
-      console.error('Error creating order:', err)
-      setCreateOrderError(err instanceof Error ? err.message : 'Failed to create order')
-    } finally {
-      setCreatingOrder(false)
-    }
-  }
-
-  // Build contributor leaderboard: net contribution per address
-  const leaderboard = (() => {
-    const stats = new Map<string, { contributed: bigint; refunded: bigint }>()
-
-    for (const c of contributions) {
-      const addr = c.participant.toLowerCase()
-      const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n }
-      entry.contributed += BigInt(c.totalCost)
-      stats.set(addr, entry)
-    }
-
-    for (const r of refunds) {
-      const addr = r.participant.toLowerCase()
-      const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n }
-      entry.refunded += BigInt(r.totalRefund)
-      stats.set(addr, entry)
-    }
-
-    return Array.from(stats.entries())
-      .map(([address, { contributed, refunded }]) => ({
-        address,
-        contributed,
-        refunded,
-        net: contributed - refunded,
-      }))
-      .filter(e => e.net > 0n)
-      .sort((a, b) => (b.net > a.net ? 1 : b.net < a.net ? -1 : 0))
-  })()
+  const handleRefresh = useCallback(async () => {
+    await loadProjectData()
+  }, [loadProjectData])
 
   if (loading) {
     return (
@@ -649,483 +143,72 @@ export function ProjectDetailPage() {
   }
 
   const status = getProjectStatus(project)
-  const progressPercent = BigInt(project.threshold) > 0n
-    ? Math.min(Number(BigInt(project.totalReceived) * 100n / BigInt(project.threshold)), 100)
-    : 0
+
+  const userRefundableTokens = computeUserTokenBalance(address, contributions, refunds)
+  const userBurnableTokens = computeUserTokenBalance(address, contributions, refunds, userBurns)
 
   return (
     <Box>
-      {/* Header Section */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box>
-            <Typography variant="h4" component="h1" gutterBottom>
-              {metadata?.name || `Project ${project.id.slice(0, 10)}...`}
-            </Typography>
-            {metadata?.description && (
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-                {metadata.description}
-              </Typography>
-            )}
-            <Typography variant="body2" color="text.secondary">
-              Recipient: {project.recipient}
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1}>
-            <Chip
-              label={STATUS_LABELS[status]}
-              color={STATUS_COLORS[status]}
-            />
-            <Chip
-              label={formatRelativeDeadline(project.deadline)}
-              variant="outlined"
-            />
-          </Stack>
-        </Box>
+      <ProjectHeader project={project} metadata={metadata} />
 
-        <Box sx={{ mt: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <Typography variant="body1">
-              {formatEther(BigInt(project.totalReceived))} of {formatEther(BigInt(project.threshold))} ETH raised
-            </Typography>
-            <Typography variant="body1">
-              {progressPercent}%
-            </Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={progressPercent}
-            sx={{ height: 10, borderRadius: 5 }}
-          />
-        </Box>
-      </Paper>
-
-      {/* Buy Tokens Section */}
       {isConnected && status === 'active' && tokens.length > 0 && (
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Buy Tokens
-          </Typography>
-
-          <Stack spacing={2}>
-            {tokens.map((token) => (
-              <Box key={token.tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="body1" sx={{ minWidth: 120 }}>
-                  Token #{token.tokenId}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
-                  {formatEther(BigInt(token.price))} ETH each
-                </Typography>
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Quantity"
-                  value={quantities[token.tokenId] || ''}
-                  onChange={(e) => handleQuantityChange(token.tokenId, e.target.value)}
-                  inputProps={{ min: 0 }}
-                  sx={{ width: 120 }}
-                />
-              </Box>
-            ))}
-
-            <Button
-              variant="contained"
-              onClick={handleBuy}
-              disabled={buying}
-              sx={{ alignSelf: 'flex-start' }}
-            >
-              {buying ? 'Buying...' : 'Buy'}
-            </Button>
-
-            {buyError && <Alert severity="error">{buyError}</Alert>}
-            {buySuccess && <Alert severity="success">{buySuccess}</Alert>}
-          </Stack>
-        </Paper>
+        <BuyTokensSection
+          project={project}
+          tokens={tokens}
+          address={address}
+          onProjectRefresh={handleRefresh}
+        />
       )}
 
-      {/* Show message when wallet not connected */}
       {!isConnected && status === 'active' && (
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="body1" color="text.secondary">
-            Connect your wallet to buy tokens.
-          </Typography>
-        </Paper>
+        <ConnectWalletPrompt />
       )}
 
-      {/* Refund Section */}
       {isConnected && status === 'refunding' && userRefundableTokens.length > 0 && (
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Refund Tokens
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            The funding deadline has passed and the threshold was not met. You can refund your tokens.
-          </Typography>
-
-          <Stack spacing={1} sx={{ mb: 2 }}>
-            {userRefundableTokens.map(({ tokenId, count }) => (
-              <Typography key={tokenId} variant="body1">
-                Token #{tokenId}: {count.toString()} refundable
-              </Typography>
-            ))}
-          </Stack>
-
-          <Button
-            variant="contained"
-            color="warning"
-            onClick={handleRefund}
-            disabled={refunding}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            {refunding ? 'Refunding...' : 'Refund All'}
-          </Button>
-
-          {refundError && <Alert severity="error" sx={{ mt: 2 }}>{refundError}</Alert>}
-          {refundSuccess && <Alert severity="success" sx={{ mt: 2 }}>{refundSuccess}</Alert>}
-        </Paper>
+        <RefundSection
+          project={project}
+          contributions={contributions}
+          refunds={refunds}
+          address={address}
+          onRefresh={handleRefresh}
+        />
       )}
 
-      {/* Withdraw Section (recipient only) */}
       {isConnected && status === 'succeeded' && address?.toLowerCase() === project.recipient.toLowerCase() && (
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Withdraw Funds
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            The funding threshold has been met. You can withdraw the raised funds.
-          </Typography>
-
-          <Button
-            variant="contained"
-            color="success"
-            onClick={handleWithdraw}
-            disabled={withdrawing}
-          >
-            {withdrawing ? 'Withdrawing...' : 'Withdraw Funds'}
-          </Button>
-
-          {withdrawError && <Alert severity="error" sx={{ mt: 2 }}>{withdrawError}</Alert>}
-          {withdrawSuccess && <Alert severity="success" sx={{ mt: 2 }}>{withdrawSuccess}</Alert>}
-        </Paper>
+        <WithdrawSection
+          project={project}
+          address={address}
+          onRefresh={handleRefresh}
+        />
       )}
 
-      {/* Token Burns Section */}
       {isConnected && status === 'succeeded' && userBurnableTokens.length > 0 && (
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Burn Tokens
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Burn your tokens to convert from investor to donor. This action is irreversible.
-          </Typography>
-
-          <Stack spacing={2}>
-            {userBurnableTokens.map(({ tokenId, count }) => (
-              <Box key={tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="body1" sx={{ minWidth: 120 }}>
-                  Token #{tokenId}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
-                  {count.toString()} available
-                </Typography>
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Quantity"
-                  value={burnQuantities[tokenId] || ''}
-                  onChange={(e) => setBurnQuantities(prev => ({ ...prev, [tokenId]: e.target.value }))}
-                  inputProps={{ min: 1, max: Number(count) }}
-                  sx={{ width: 120 }}
-                />
-              </Box>
-            ))}
-
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleBurn}
-              disabled={burning}
-              sx={{ alignSelf: 'flex-start' }}
-            >
-              {burning ? 'Burning...' : 'Burn Tokens'}
-            </Button>
-
-            {burnError && <Alert severity="error">{burnError}</Alert>}
-            {burnSuccess && <Alert severity="success">{burnSuccess}</Alert>}
-          </Stack>
-        </Paper>
+        <BurnTokensSection
+          project={project}
+          contributions={contributions}
+          refunds={refunds}
+          userBurns={userBurns}
+          address={address}
+          onRefresh={handleRefresh}
+        />
       )}
 
-      {/* Secondary Market */}
       {project.marketplaceAddress && (
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Secondary Market
-          </Typography>
-
-          {marketError && <Alert severity="error" sx={{ mb: 2 }}>{marketError}</Alert>}
-          {marketSuccess && <Alert severity="success" sx={{ mb: 2 }}>{marketSuccess}</Alert>}
-
-          {/* Sale Listings */}
-          <Typography variant="h6" component="h3" sx={{ mt: 2, mb: 1 }}>
-            Sale Listings
-          </Typography>
-          {saleListings.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">No active sale listings.</Typography>
-          ) : (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Seller</TableCell>
-                    <TableCell>Token ID</TableCell>
-                    <TableCell align="right">Quantity</TableCell>
-                    <TableCell align="right">Price per Token</TableCell>
-                    {isConnected && <TableCell align="right">Action</TableCell>}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {saleListings.map((listing) => (
-                    <TableRow key={listing.listingId}>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
-                      </TableCell>
-                      <TableCell>{listing.tokenId}</TableCell>
-                      <TableCell align="right">{listing.remainingCount}</TableCell>
-                      <TableCell align="right">{formatEther(BigInt(listing.pricePerToken))} ETH</TableCell>
-                      {isConnected && (
-                        <TableCell align="right">
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                            <TextField
-                              type="number"
-                              size="small"
-                              label="Qty"
-                              value={saleQuantities[listing.listingId] || ''}
-                              onChange={(e) => setSaleQuantities(prev => ({ ...prev, [listing.listingId]: e.target.value }))}
-                              placeholder={listing.remainingCount}
-                              inputProps={{ min: 1, max: Number(listing.remainingCount) }}
-                              sx={{ width: 80 }}
-                            />
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => handleFulfillSale(listing)}
-                              disabled={fulfillingSale === listing.listingId}
-                            >
-                              {fulfillingSale === listing.listingId ? 'Buying...' : 'Buy'}
-                            </Button>
-                          </Box>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-
-          {/* Buy Orders */}
-          <Typography variant="h6" component="h3" sx={{ mt: 3, mb: 1 }}>
-            Buy Orders
-          </Typography>
-          {buyOrders.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">No active buy orders.</Typography>
-          ) : (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Buyer</TableCell>
-                    <TableCell>Token ID</TableCell>
-                    <TableCell align="right">Quantity</TableCell>
-                    <TableCell align="right">Price per Token</TableCell>
-                    {isConnected && <TableCell align="right">Action</TableCell>}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {buyOrders.map((order) => (
-                    <TableRow key={order.orderId}>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {order.buyer.slice(0, 6)}...{order.buyer.slice(-4)}
-                      </TableCell>
-                      <TableCell>{order.tokenId}</TableCell>
-                      <TableCell align="right">{order.remainingCount}</TableCell>
-                      <TableCell align="right">{formatEther(BigInt(order.pricePerToken))} ETH</TableCell>
-                      {isConnected && (
-                        <TableCell align="right">
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                            <TextField
-                              type="number"
-                              size="small"
-                              label="Qty"
-                              value={orderQuantities[order.orderId] || ''}
-                              onChange={(e) => setOrderQuantities(prev => ({ ...prev, [order.orderId]: e.target.value }))}
-                              placeholder={order.remainingCount}
-                              inputProps={{ min: 1, max: Number(order.remainingCount) }}
-                              sx={{ width: 80 }}
-                            />
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => handleFulfillBuyOrder(order)}
-                              disabled={fulfillingOrder === order.orderId}
-                            >
-                              {fulfillingOrder === order.orderId ? 'Selling...' : 'Sell'}
-                            </Button>
-                          </Box>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-
-          {/* Create Order Form */}
-          {isConnected && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" component="h3" gutterBottom>
-                Create Order
-              </Typography>
-
-              <ToggleButtonGroup
-                value={orderType}
-                exclusive
-                onChange={(_, val) => { if (val) setOrderType(val) }}
-                size="small"
-                sx={{ mb: 2 }}
-              >
-                <ToggleButton value="sale">Sale Listing</ToggleButton>
-                <ToggleButton value="buy">Buy Order</ToggleButton>
-              </ToggleButtonGroup>
-
-              <Stack spacing={2}>
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Token ID"
-                  value={orderTokenId}
-                  onChange={(e) => setOrderTokenId(e.target.value)}
-                  sx={{ width: 200 }}
-                />
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Quantity"
-                  value={orderQuantity}
-                  onChange={(e) => setOrderQuantity(e.target.value)}
-                  sx={{ width: 200 }}
-                />
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Price per Token (ETH)"
-                  value={orderPrice}
-                  onChange={(e) => setOrderPrice(e.target.value)}
-                  sx={{ width: 200 }}
-                />
-
-                <Button
-                  variant="contained"
-                  onClick={handleCreateOrder}
-                  disabled={creatingOrder}
-                  sx={{ alignSelf: 'flex-start' }}
-                >
-                  {creatingOrder ? 'Creating...' : orderType === 'sale' ? 'Create Sale Listing' : 'Create Buy Order'}
-                </Button>
-
-                {createOrderError && <Alert severity="error">{createOrderError}</Alert>}
-                {createOrderSuccess && <Alert severity="success">{createOrderSuccess}</Alert>}
-              </Stack>
-            </Box>
-          )}
-        </Paper>
+        <SecondaryMarketSection
+          project={project}
+          saleListings={saleListings}
+          buyOrders={buyOrders}
+          isConnected={isConnected}
+          address={address}
+          onRefresh={handleRefresh}
+        />
       )}
 
-      {/* Trade History */}
       {project.marketplaceAddress && trades.length > 0 && (
-        <Accordion sx={{ mb: 3 }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h5" component="h2">
-              Trade History ({trades.length})
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Buyer</TableCell>
-                    <TableCell>Seller</TableCell>
-                    <TableCell>Token ID</TableCell>
-                    <TableCell align="right">Quantity</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {trades.map((trade) => (
-                    <TableRow key={trade.id}>
-                      <TableCell>
-                        {new Date(Number(trade.createdAt) * 1000).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {trade.buyer.slice(0, 6)}...{trade.buyer.slice(-4)}
-                      </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {trade.seller.slice(0, 6)}...{trade.seller.slice(-4)}
-                      </TableCell>
-                      <TableCell>{trade.tokenId}</TableCell>
-                      <TableCell align="right">{trade.count}</TableCell>
-                      <TableCell align="right">{formatEther(BigInt(trade.totalPrice))} ETH</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </AccordionDetails>
-        </Accordion>
+        <TradeHistory trades={trades} />
       )}
 
-      {/* Contributor Leaderboard */}
-      {leaderboard.length > 0 && (
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Contributor Leaderboard
-          </Typography>
-
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>#</TableCell>
-                  <TableCell>Address</TableCell>
-                  <TableCell align="right">Contributed</TableCell>
-                  <TableCell align="right">Refunded</TableCell>
-                  <TableCell align="right">Net</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {leaderboard.map((entry, i) => (
-                  <TableRow key={entry.address}>
-                    <TableCell>{i + 1}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                      {entry.address.slice(0, 6)}...{entry.address.slice(-4)}
-                    </TableCell>
-                    <TableCell align="right">{formatEther(entry.contributed)} ETH</TableCell>
-                    <TableCell align="right">{formatEther(entry.refunded)} ETH</TableCell>
-                    <TableCell align="right">{formatEther(entry.net)} ETH</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
+      <Leaderboard contributions={contributions} refunds={refunds} />
     </Box>
   )
 }

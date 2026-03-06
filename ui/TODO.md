@@ -9,8 +9,8 @@ Implementation is mostly done and well-tested.
   - Spec: specs/subsystems/pubstarter/ui.md
   - Chunked implementation plan: [ui/src/pubstarter/TODO.md](src/pubstarter/TODO.md) — all 6 chunks done.
   - Post-implementation cleanup:
-    - [ ] Decompose ProjectDetailPage (~1130 lines, ~30 useState) into sub-components (BuyTokensSection, RefundSection, SecondaryMarketSection, etc.)
-    - [ ] Deduplicate token-counting logic between `userRefundableTokens` and `userBurnableTokens` in ProjectDetailPage
+    - [x] Decompose ProjectDetailPage (~1130 lines, ~30 useState) into sub-components (BuyTokensSection, RefundSection, SecondaryMarketSection, etc.)
+    - [x] Deduplicate token-counting logic between `userRefundableTokens` and `userBurnableTokens` in ProjectDetailPage
     - [ ] Remove or populate empty `components/index.ts`
 
 ## Other subsystem UIs
