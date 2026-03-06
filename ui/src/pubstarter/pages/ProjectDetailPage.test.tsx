@@ -33,9 +33,16 @@ vi.mock('@commonality/sdk', async () => {
     getProjectTokens: vi.fn(),
     getProjectContributions: vi.fn(),
     getProjectRefunds: vi.fn(),
+    getActiveSaleListings: vi.fn(),
+    getActiveBuyOrders: vi.fn(),
     buyProjectTokens: vi.fn(),
     refundProjectTokens: vi.fn(),
     withdrawProjectFunds: vi.fn(),
+    fulfillSaleListing: vi.fn(),
+    fulfillBuyOrder: vi.fn(),
+    createSaleListing: vi.fn(),
+    createBuyOrder: vi.fn(),
+    approveERC1155ForMarketplace: vi.fn(),
     fetchFromIPFS: vi.fn(),
   }
 })
@@ -46,9 +53,16 @@ import {
   getProjectTokens,
   getProjectContributions,
   getProjectRefunds,
+  getActiveSaleListings,
+  getActiveBuyOrders,
   buyProjectTokens,
   refundProjectTokens,
   withdrawProjectFunds,
+  fulfillSaleListing,
+  fulfillBuyOrder,
+  createSaleListing,
+  createBuyOrder,
+  approveERC1155ForMarketplace,
   fetchFromIPFS,
 } from '@commonality/sdk'
 
@@ -112,6 +126,30 @@ function makeRefund(overrides: Record<string, any> = {}) {
   }
 }
 
+function makeSaleListing(overrides: Record<string, any> = {}) {
+  return {
+    listingId: '1',
+    seller: '0x2222222222222222222222222222222222222222',
+    tokenId: '1',
+    remainingCount: '10',
+    pricePerToken: '50000000000000000',
+    createdAt: '1700000000',
+    ...overrides,
+  }
+}
+
+function makeBuyOrder(overrides: Record<string, any> = {}) {
+  return {
+    orderId: '1',
+    buyer: '0x3333333333333333333333333333333333333333',
+    tokenId: '1',
+    remainingCount: '5',
+    pricePerToken: '75000000000000000',
+    createdAt: '1700000000',
+    ...overrides,
+  }
+}
+
 describe('ProjectDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -120,6 +158,8 @@ describe('ProjectDetailPage', () => {
     vi.mocked(getProjectTokens).mockResolvedValue([])
     vi.mocked(getProjectContributions).mockResolvedValue([])
     vi.mocked(getProjectRefunds).mockResolvedValue([])
+    vi.mocked(getActiveSaleListings).mockResolvedValue([])
+    vi.mocked(getActiveBuyOrders).mockResolvedValue([])
     mockAccount.address = undefined
     mockAccount.isConnected = false
     mockWalletClient.data = undefined
@@ -869,6 +909,501 @@ describe('ProjectDetailPage', () => {
         expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
       })
       expect(screen.queryByText('Contributor Leaderboard')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Secondary Market section', () => {
+    const projectWithMarketplace = () => makeProject({
+      marketplaceAddress: '0xmarketplace1234567890123456789012345678',
+    })
+
+    beforeEach(() => {
+      vi.mocked(getActiveSaleListings).mockResolvedValue([])
+      vi.mocked(getActiveBuyOrders).mockResolvedValue([])
+    })
+
+    it('shows Secondary Market when project has a marketplace', async () => {
+      vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Secondary Market')).toBeInTheDocument()
+      })
+    })
+
+    it('does not show Secondary Market when project has no marketplace', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject({ marketplaceAddress: undefined }) as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Secondary Market')).not.toBeInTheDocument()
+    })
+
+    describe('Sale Listings table', () => {
+      it('displays active sale listings', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveSaleListings).mockResolvedValue([
+          makeSaleListing({ tokenId: '1', remainingCount: '10', pricePerToken: '50000000000000000' }),
+          makeSaleListing({ listingId: '2', tokenId: '2', remainingCount: '5', pricePerToken: '100000000000000000' }),
+        ] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Sale Listings')).toBeInTheDocument()
+          expect(screen.getByText('1')).toBeInTheDocument()
+          expect(screen.getByText('2')).toBeInTheDocument()
+          expect(screen.getByText('10')).toBeInTheDocument()
+          expect(screen.getByText('5')).toBeInTheDocument()
+          expect(screen.getByText('0.05 ETH')).toBeInTheDocument()
+          expect(screen.getByText('0.1 ETH')).toBeInTheDocument()
+        })
+      })
+
+      it('shows "No active sale listings" when empty', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveSaleListings).mockResolvedValue([])
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('No active sale listings.')).toBeInTheDocument()
+        })
+      })
+
+      it('does not show Buy button when wallet not connected', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveSaleListings).mockResolvedValue([makeSaleListing()] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Sale Listings')).toBeInTheDocument()
+        })
+        expect(screen.queryByRole('button', { name: 'Buy' })).not.toBeInTheDocument()
+      })
+
+      it('shows Buy button when wallet connected', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveSaleListings).mockResolvedValue([makeSaleListing()] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument()
+        })
+      })
+
+      it('calls fulfillSaleListing when Buy button clicked', async () => {
+        const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.address = userAddr
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveSaleListings).mockResolvedValue([makeSaleListing()] as any)
+        vi.mocked(fulfillSaleListing).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Buy' }))
+
+        await waitFor(() => {
+          expect(fulfillSaleListing).toHaveBeenCalledWith(
+            expect.objectContaining({ account: userAddr }),
+            expect.objectContaining({ address: '0xmarketplace1234567890123456789012345678' }),
+            expect.objectContaining({
+              saleListingId: 1n,
+              count: 10n,
+              totalCost: 500000000000000000n,
+            })
+          )
+        })
+      })
+
+      it('shows success message after buying from listing', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveSaleListings).mockResolvedValue([makeSaleListing()] as any)
+        vi.mocked(fulfillSaleListing).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Buy' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Tokens purchased from listing!')).toBeInTheDocument()
+        })
+      })
+
+      it('shows error message when buying fails', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveSaleListings).mockResolvedValue([makeSaleListing()] as any)
+        vi.mocked(fulfillSaleListing).mockRejectedValue(new Error('Insufficient funds'))
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Buy' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
+        })
+      })
+    })
+
+    describe('Buy Orders table', () => {
+      it('displays active buy orders', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([
+          makeBuyOrder({ tokenId: '1', remainingCount: '5', pricePerToken: '75000000000000000' }),
+          makeBuyOrder({ orderId: '2', tokenId: '2', remainingCount: '3', pricePerToken: '150000000000000000' }),
+        ] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Buy Orders')).toBeInTheDocument()
+          expect(screen.getByText('1')).toBeInTheDocument()
+          expect(screen.getByText('2')).toBeInTheDocument()
+          expect(screen.getByText('5')).toBeInTheDocument()
+          expect(screen.getByText('3')).toBeInTheDocument()
+          expect(screen.getByText('0.075 ETH')).toBeInTheDocument()
+          expect(screen.getByText('0.15 ETH')).toBeInTheDocument()
+        })
+      })
+
+      it('shows "No active buy orders" when empty', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([])
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('No active buy orders.')).toBeInTheDocument()
+        })
+      })
+
+      it('does not show Sell button when wallet not connected', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([makeBuyOrder()] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Buy Orders')).toBeInTheDocument()
+        })
+        expect(screen.queryByRole('button', { name: 'Sell' })).not.toBeInTheDocument()
+      })
+
+      it('shows Sell button when wallet connected', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([makeBuyOrder()] as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument()
+        })
+      })
+
+      it('calls approveERC1155ForMarketplace then fulfillBuyOrder when Sell clicked', async () => {
+        const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.address = userAddr
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([makeBuyOrder()] as any)
+        vi.mocked(approveERC1155ForMarketplace).mockResolvedValue('0xapprove' as any)
+        vi.mocked(fulfillBuyOrder).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Sell' }))
+
+        await waitFor(() => {
+          expect(approveERC1155ForMarketplace).toHaveBeenCalledWith(
+            expect.objectContaining({ account: userAddr }),
+            '0xaaaa',
+            '0xmarketplace1234567890123456789012345678'
+          )
+          expect(fulfillBuyOrder).toHaveBeenCalledWith(
+            expect.objectContaining({ account: userAddr }),
+            expect.objectContaining({ address: '0xmarketplace1234567890123456789012345678' }),
+            expect.objectContaining({
+              buyOrderId: 1n,
+              count: 5n,
+            })
+          )
+        })
+      })
+
+      it('shows success message after selling to buy order', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(getActiveBuyOrders).mockResolvedValue([makeBuyOrder()] as any)
+        vi.mocked(approveERC1155ForMarketplace).mockResolvedValue('0xapprove' as any)
+        vi.mocked(fulfillBuyOrder).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Sell' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Tokens sold to buy order!')).toBeInTheDocument()
+        })
+      })
+    })
+
+    describe('Create Order form', () => {
+      it('does not show Create Order form when wallet not connected', async () => {
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Secondary Market')).toBeInTheDocument()
+        })
+        expect(screen.queryByText('Create Order')).not.toBeInTheDocument()
+      })
+
+      it('shows Create Order form when wallet connected', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+          expect(screen.getByRole('button', { name: 'Create Sale Listing' })).toBeInTheDocument()
+        })
+      })
+
+      it('toggles between Sale Listing and Buy Order', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+
+        expect(screen.getByRole('button', { name: 'Create Sale Listing' })).toBeInTheDocument()
+
+        await user.click(screen.getByRole('button', { name: 'Buy Order' }))
+        expect(screen.getByRole('button', { name: 'Create Buy Order' })).toBeInTheDocument()
+      })
+
+      it('creates sale listing with approval', async () => {
+        const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.address = userAddr
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(approveERC1155ForMarketplace).mockResolvedValue('0xapprove' as any)
+        vi.mocked(createSaleListing).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.type(screen.getByLabelText('Token ID'), '1')
+        await user.type(screen.getByLabelText('Quantity'), '5')
+        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
+
+        await waitFor(() => {
+          expect(approveERC1155ForMarketplace).toHaveBeenCalledWith(
+            expect.objectContaining({ account: userAddr }),
+            '0xaaaa',
+            '0xmarketplace1234567890123456789012345678'
+          )
+          expect(createSaleListing).toHaveBeenCalledWith(
+            expect.objectContaining({ account: userAddr }),
+            expect.objectContaining({ address: '0xmarketplace1234567890123456789012345678' }),
+            {
+              tokenId: 1n,
+              count: 5n,
+              pricePerToken: 100000000000000000n,
+            }
+          )
+        })
+      })
+
+      it('creates buy order without approval', async () => {
+        const userAddr = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.address = userAddr
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(createBuyOrder).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Buy Order' }))
+        await user.type(screen.getByLabelText('Token ID'), '2')
+        await user.type(screen.getByLabelText('Quantity'), '3')
+        await user.type(screen.getByLabelText('Price per Token (wei)'), '50000000000000000')
+        await user.click(screen.getByRole('button', { name: 'Create Buy Order' }))
+
+        await waitFor(() => {
+          expect(approveERC1155ForMarketplace).not.toHaveBeenCalled()
+          expect(createBuyOrder).toHaveBeenCalledWith(
+            expect.objectContaining({ account: userAddr }),
+            expect.objectContaining({ address: '0xmarketplace1234567890123456789012345678' }),
+            {
+              tokenId: 2n,
+              count: 3n,
+              pricePerToken: 50000000000000000n,
+            }
+          )
+        })
+      })
+
+      it('shows success message after creating sale listing', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(approveERC1155ForMarketplace).mockResolvedValue('0xapprove' as any)
+        vi.mocked(createSaleListing).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.type(screen.getByLabelText('Token ID'), '1')
+        await user.type(screen.getByLabelText('Quantity'), '5')
+        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Sale listing created!')).toBeInTheDocument()
+        })
+      })
+
+      it('shows success message after creating buy order', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(createBuyOrder).mockResolvedValue('0xhash' as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Buy Order' }))
+        await user.type(screen.getByLabelText('Token ID'), '1')
+        await user.type(screen.getByLabelText('Quantity'), '5')
+        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.click(screen.getByRole('button', { name: 'Create Buy Order' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Buy order created!')).toBeInTheDocument()
+        })
+      })
+
+      it('shows error when fields are empty', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Please fill in all fields')).toBeInTheDocument()
+        })
+      })
+
+      it('shows error message when create order fails', async () => {
+        mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+        mockAccount.isConnected = true
+        mockWalletClient.data = {} as any
+        vi.mocked(getProject).mockResolvedValue(projectWithMarketplace() as any)
+        vi.mocked(createSaleListing).mockRejectedValue(new Error('Transaction reverted'))
+
+        render(<ProjectDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getByText('Create Order')).toBeInTheDocument()
+        })
+
+        const user = userEvent.setup()
+        await user.type(screen.getByLabelText('Token ID'), '1')
+        await user.type(screen.getByLabelText('Quantity'), '5')
+        await user.type(screen.getByLabelText('Price per Token (wei)'), '100000000000000000')
+        await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
+
+        await waitFor(() => {
+          expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
+        })
+      })
     })
   })
 })

@@ -2,6 +2,7 @@ query GetProject($id: String!) {
   projects(id: $id) {
     id
     erc1155Address
+    marketplaceAddress
     recipient
     threshold
     deadline
@@ -15,6 +16,7 @@ query GetAllProjects {
     items {
       id
       erc1155Address
+      marketplaceAddress
       recipient
       threshold
       deadline
@@ -50,6 +52,7 @@ query GetProjectsFiltered(
     items {
       id
       erc1155Address
+      marketplaceAddress
       recipient
       threshold
       deadline

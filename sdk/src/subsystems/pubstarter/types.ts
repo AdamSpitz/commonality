@@ -2,6 +2,7 @@
 export interface Project {
   id: string;
   erc1155Address: string;
+  marketplaceAddress: string | null;
   recipient: string;
   threshold: string;
   deadline: string;

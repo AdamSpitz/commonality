@@ -31,11 +31,11 @@ Each chunk should build, pass lint, and get committed.
 - [x] Contributor Leaderboard: table of contributors sorted by net contribution (totalContributed - totalRefunded). Uses `getProjectContributions` + `getProjectRefunds`. Columns: address, total contributed, tokens held vs burned.
 - [x] Write tests
 
-### Chunk 4: Project Detail Page — Secondary Market
-- [ ] Sale Listings table: active listings from `getActiveSaleListings` — seller, token ID, quantity, price per token, Buy button (calls `fulfillSaleListing`).
-- [ ] Buy Orders table: active buy orders from `getActiveBuyOrders` — buyer, token ID, quantity, price per token, Sell button (calls `fulfillBuyOrder`, needs `setApprovalForAll` first).
-- [ ] Create Order form: toggle between sale listing and buy order. Fields: token ID, quantity, price per token. Sale listing requires ERC-1155 approval step.
-- [ ] Write tests
+### Chunk 4: Project Detail Page — Secondary Market ✅
+- [x] Sale Listings table: active listings from `getActiveSaleListings` — seller, token ID, quantity, price per token, Buy button (calls `fulfillSaleListing`).
+- [x] Buy Orders table: active buy orders from `getActiveBuyOrders` — buyer, token ID, quantity, price per token, Sell button (calls `fulfillBuyOrder`, needs `setApprovalForAll` first).
+- [x] Create Order form: toggle between sale listing and buy order. Fields: token ID, quantity, price per token. Sale listing requires ERC-1155 approval step.
+- [x] Write tests
 
 ### Chunk 5: Project Detail Page — Token Burns + Trade History
 - [ ] Token Burns section: "Burn Tokens" button for token holders. Shows burnable tokens with quantity inputs. Calls `burnBatch`.
