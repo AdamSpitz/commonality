@@ -34,4 +34,5 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 
 ## High-level overview of current status
 
-For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
+- Delegation UI complete. Funding Portals UI chunked into 6 pieces ([ui/src/fundingportal/CHUNKS.md](ui/src/fundingportal/CHUNKS.md)), not yet started.
+- For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.

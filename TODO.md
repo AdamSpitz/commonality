@@ -4,8 +4,8 @@
 
 Main thing I want to work on next:
   - Enhancement: Add per-token images to pubstarter (uses ERC-1155's `{id}` URI substitution - no contract changes needed)
-  - Implementing the delegation UI.
-  - Implementing the fundingportals UI.
+  - ~~Implementing the delegation UI.~~ (Done — all 6 chunks completed)
+  - Implementing the funding portals UI. **Chunked into 6 pieces:** [ui/src/fundingportal/CHUNKS.md](ui/src/fundingportal/CHUNKS.md)
 
 Other big things to do soon:
   - Get the e2e tests (npm run ui:test:e2e) working.
