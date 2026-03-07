@@ -3,6 +3,7 @@
 ---
 
 Main thing I want to work on next:
+  - Enhancement: Add per-token images to pubstarter (uses ERC-1155's `{id}` URI substitution - no contract changes needed)
   - Implementing the delegation UI.
   - Implementing the fundingportals UI.
 
