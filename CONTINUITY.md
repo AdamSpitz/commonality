@@ -4,7 +4,7 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding Portals UI Chunk 1 complete. Do Chunk 2 next.
+Funding Portals UI Chunk 2 complete. Do Chunk 3 next.
 
   - Chunk plan: ui/src/fundingportal/CHUNKS.md
   - Spec: specs/subsystems/fundingportals/ui.md
@@ -12,12 +12,13 @@ Funding Portals UI Chunk 1 complete. Do Chunk 2 next.
 
 ## Key notes from this session
 
-- Chunk 1 (Scaffold + Portal Page Header) complete
-- Files created: `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`, `CauseLeaderboardPage.tsx` (placeholder), `pages/index.ts`, `components/index.ts`
-- Routes added to `App.tsx`: `/portal/:statementCid` and `/portal/:statementCid/leaderboard`
-- Header shows: title/summary, total funding raised, available delegatable funding, aligned project count
-- Note: `getTotalFundingForCause` returns `totalAvailableFromNotes: 0n` (there's a TODO in the SDK). The header computes available delegatable funding separately via `getNoteIntentAttestationsByStatement` + `getNote`, same pattern as `AvailableDelegatableFunding` component.
-- `Statement.title` and `Statement.excerpt` are optional fields. The page falls back to parsing the first line of `content.content` as a title.
-- `CauseLeaderboardPage` is a placeholder (Chunk 4 will implement it fully)
-- Follow patterns from `ui/src/delegation/` and `ui/src/pubstarter/` (React + MUI + wagmi + SDK)
-- For Chunk 2: use `getAllAlignedProjectsForCause` from SDK; also need to fetch project metadata from IPFS (look at how pubstarter pages do it)
+- Chunk 2 (Aligned Projects List) complete
+- Files created: `ui/src/fundingportal/components/AlignedProjectCard.tsx`, `AlignedProjectsList.tsx`
+- Updated `StatementFundingPortalPage.tsx` to include `AlignedProjectsList`
+- Updated `components/index.ts` to export new components
+- `AlignedProjectCard` shows: project name (from IPFS), funding progress bar, deadline, status badge, alignment type chip (Direct/Indirect)
+- `AlignedProjectsList` has sorting (newest/deadline/most funded/closest to goal) and filtering (status + alignment type)
+- Data flow: `getAllAlignedProjectsForCause` → `getProject` (for metadataCid) → `fetchFromIPFS` (for name/description)
+- Reuses `getProjectStatus`, `STATUS_COLORS`, `STATUS_LABELS`, `formatRelativeDeadline` from `ui/src/pubstarter/utils.ts`
+- Exported types `AlignedProject` and `ProjectMetadata` from `AlignedProjectCard` for reuse by later chunks
+- For Chunk 3: Two sub-sections — `AttestAlignmentForm` (collapsible form, uses `attestAlignment` from SDK) and `DelegatableNotesSection` (shows individual notes, uses `getNoteIntentAttestationsByStatement` + `getNote`)

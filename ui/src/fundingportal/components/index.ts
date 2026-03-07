@@ -1,1 +1,2 @@
-// Components will be added in subsequent chunks
+export { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
+export { AlignedProjectsList } from './AlignedProjectsList'

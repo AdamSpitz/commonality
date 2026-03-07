@@ -37,7 +37,7 @@ Implement the main body of the portal page — the list of aligned projects with
 - Add sorting controls: newest, deadline, most funded, closest to goal
 - Add filtering: by status (all/active/succeeded/refunding), by alignment (all/direct/indirect)
 
-- [ ] Done
+- [x] Done
 
 ## Chunk 3: Attest Project Alignment Form + Available Delegatable Notes Section
 

@@ -21,6 +21,7 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { isEthNote } from '../../delegation/utils'
+import { AlignedProjectsList } from '../components/AlignedProjectsList'
 
 export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
@@ -167,6 +168,9 @@ export function StatementFundingPortalPage() {
           </Box>
         </Stack>
       </Paper>
+
+      {/* Aligned Projects */}
+      <AlignedProjectsList statementCid={statementCid!} />
     </Box>
   )
 }
