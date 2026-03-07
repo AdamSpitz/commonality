@@ -54,7 +54,7 @@ Two smaller sections on the portal page.
   - Each note: Note ID (links to `/notes/:noteId`), amount, root owner, current leaf owner, delegation depth
   - Uses `getNoteIntentAttestationsByStatement` + `getNote` from SDK (same data as header, but detailed view)
 
-- [ ] Done
+- [x] Done
 
 ## Chunk 4: Cause Leaderboard Page
 

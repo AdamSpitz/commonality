@@ -4,7 +4,7 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding Portals UI Chunk 2 complete. Do Chunk 3 next.
+Funding Portals UI Chunk 3 complete. Do Chunk 4 next.
 
   - Chunk plan: ui/src/fundingportal/CHUNKS.md
   - Spec: specs/subsystems/fundingportals/ui.md
@@ -12,13 +12,11 @@ Funding Portals UI Chunk 2 complete. Do Chunk 3 next.
 
 ## Key notes from this session
 
-- Chunk 2 (Aligned Projects List) complete
-- Files created: `ui/src/fundingportal/components/AlignedProjectCard.tsx`, `AlignedProjectsList.tsx`
-- Updated `StatementFundingPortalPage.tsx` to include `AlignedProjectsList`
+- Chunk 3 (Attest Project Alignment Form + Available Delegatable Notes Section) complete
+- Files created: `ui/src/fundingportal/components/AttestAlignmentForm.tsx`, `DelegatableNotesSection.tsx`
+- Updated `StatementFundingPortalPage.tsx` to include both new components (after `AlignedProjectsList`)
 - Updated `components/index.ts` to export new components
-- `AlignedProjectCard` shows: project name (from IPFS), funding progress bar, deadline, status badge, alignment type chip (Direct/Indirect)
-- `AlignedProjectsList` has sorting (newest/deadline/most funded/closest to goal) and filtering (status + alignment type)
-- Data flow: `getAllAlignedProjectsForCause` → `getProject` (for metadataCid) → `fetchFromIPFS` (for name/description)
-- Reuses `getProjectStatus`, `STATUS_COLORS`, `STATUS_LABELS`, `formatRelativeDeadline` from `ui/src/pubstarter/utils.ts`
-- Exported types `AlignedProject` and `ProjectMetadata` from `AlignedProjectCard` for reuse by later chunks
-- For Chunk 3: Two sub-sections — `AttestAlignmentForm` (collapsible form, uses `attestAlignment` from SDK) and `DelegatableNotesSection` (shows individual notes, uses `getNoteIntentAttestationsByStatement` + `getNote`)
+- `AttestAlignmentForm`: only renders when wallet connected, collapsible, uses `getAllProjects` for autocomplete (freeSolo to allow manual address entry), calls `attestAlignment` with `PROJECT_ALIGNMENT_TOPIC` as the topic
+- `DelegatableNotesSection`: collapsible, lazy-loads notes (only fetches when opened), shows Note ID, amount, root owner, leaf owner, and delegation status (Delegated/Direct chip via `isDelegate` utility)
+- Both use existing patterns from `DepositPage.tsx` and `AvailableDelegatableFunding.tsx`
+- For Chunk 4: Implement `CauseLeaderboardPage.tsx` at `/portal/:statementCid/leaderboard` using `getTopContributorsForCause` and `getUserContributionRankForCause` from SDK

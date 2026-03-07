@@ -22,6 +22,8 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { isEthNote } from '../../delegation/utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
+import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
+import { DelegatableNotesSection } from '../components/DelegatableNotesSection'
 
 export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
@@ -171,6 +173,12 @@ export function StatementFundingPortalPage() {
 
       {/* Aligned Projects */}
       <AlignedProjectsList statementCid={statementCid!} />
+
+      {/* Attest Project Alignment */}
+      <AttestAlignmentForm statementCid={statementCid!} />
+
+      {/* Available Delegatable Notes */}
+      <DelegatableNotesSection statementCid={statementCid!} />
     </Box>
   )
 }
