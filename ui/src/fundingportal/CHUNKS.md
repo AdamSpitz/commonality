@@ -99,4 +99,4 @@ Add alignment attestation info to the existing pubstarter Project Detail page.
   - Uses `attestAlignment` from SDK
   - Only shown when wallet connected
 
-- [ ] Done
+- [x] Done

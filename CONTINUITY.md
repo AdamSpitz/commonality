@@ -4,17 +4,16 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding Portals UI Chunk 5 complete. Do Chunk 6 next.
+Funding Portals UI Chunk 6 complete. All 6 chunks done.
 
-  - Chunk plan: ui/src/fundingportal/CHUNKS.md
-  - Spec: specs/subsystems/fundingportals/ui.md
-  - SDK queries/actions: sdk/src/subsystems/fundingportals/ (already implemented)
+Consider running the `post-implementation-checklist` skill to review the Funding Portals UI implementation, or look at the overall TODO.md for the next major task.
 
 ## Key notes from this session
 
-- Chunk 5 (Statement Page Integration) complete
-- Created `ui/src/fundingportal/components/FundingPortalSummary.tsx`
-- Added to `ui/src/conceptspace/pages/StatementPage.tsx` after AvailableDelegatableFunding
-- Shows: total funding raised, available delegatable funding, aligned project count, "View Funding Portal" button, top 3 projects by funding progress (reuses AlignedProjectCard)
+- Chunk 6 (Project Detail Page Integration) complete
+- Created `ui/src/fundingportal/components/AlignmentAttestationsSection.tsx`
+- Added to `ui/src/pubstarter/pages/ProjectDetailPage.tsx` after Leaderboard
+- Shows: direct alignment attestations (statement title linked to portal, attester address, "Direct" chip)
+- "Attest Alignment" dialog (wallet-gated): statement autocomplete via `getAllStatements`, calls `attestAlignment` from SDK
 - Exported from `ui/src/fundingportal/components/index.ts`
-- For Chunk 6: Add `AlignmentAttestationsSection.tsx` to `ui/src/pubstarter/pages/ProjectDetailPage.tsx`, showing statement alignments for this project + "Attest Alignment" button/dialog (uses `getSubjectStatements` and `attestAlignment` from SDK)
+- All 6 Funding Portal UI chunks now complete
