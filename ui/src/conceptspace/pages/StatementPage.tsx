@@ -14,6 +14,7 @@ import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
 import { StatementSuggestions } from '../components/StatementSuggestions'
+import { AvailableDelegatableFunding } from '../../delegation/components'
 
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: IpfsCidV1 }>()
@@ -157,6 +158,9 @@ export function StatementPage() {
         statementCid={statementCid as IpfsCidV1}
         userAddress={address}
       />
+
+      {/* Available Delegatable Funding */}
+      <AvailableDelegatableFunding statementCid={statementCid || ''} />
     </Box>
   )
 }
