@@ -17,6 +17,8 @@ import {
   type Note,
   type NoteIntentAttestation,
   type DelegationChainLink,
+  type DelegationChainLinkWithNote,
+  type NoteEvent,
 } from './types.js';
 import { SDKMachinery } from '../../machinery.js';
 
@@ -125,4 +127,73 @@ export async function getNoteIntentAttestationsByStatement(
     intendedStatementId,
   });
   return (result.noteIntentAttestationss?.items ?? []) as unknown as NoteIntentAttestation[];
+}
+
+// ============================================================================
+// Cross-subsystem: Purchased Note Events (for leaderboard delegation chains)
+// ============================================================================
+
+const GET_PURCHASED_NOTE_EVENTS_BY_TX_HASHES = `
+  query GetPurchasedNoteEventsByTxHashes($transactionHashes: [String!]!) {
+    noteEventss(where: { eventType: "purchased", transactionHash_in: $transactionHashes }) {
+      items {
+        noteId
+        transactionHash
+        data
+      }
+    }
+  }
+`;
+
+/**
+ * Get "purchased" note events for a given set of transaction hashes.
+ * Used to identify which contributions were made via delegatable notes.
+ */
+export async function getPurchasedNoteEventsByTxHashes(
+  machinery: SDKMachinery,
+  transactionHashes: string[]
+): Promise<NoteEvent[]> {
+  if (transactionHashes.length === 0) return [];
+  type Result = { noteEventss?: { items: NoteEvent[] } };
+  const result = await executeTypedGraphQLQuery<Result>(
+    machinery,
+    GET_PURCHASED_NOTE_EVENTS_BY_TX_HASHES,
+    { transactionHashes }
+  );
+  return result.noteEventss?.items ?? [];
+}
+
+const GET_DELEGATION_CHAINS_FOR_NOTES = `
+  query GetDelegationChainsForNotes($noteIds: [BigInt!]!) {
+    delegationChainss(
+      where: { noteId_in: $noteIds }
+      orderBy: "position"
+      orderDirection: "asc"
+    ) {
+      items {
+        noteId
+        address
+        position
+        createdAt
+      }
+    }
+  }
+`;
+
+/**
+ * Batch-fetch delegation chains for multiple note IDs.
+ * Returns chain links with noteId included for grouping.
+ */
+export async function getDelegationChainsForNotes(
+  machinery: SDKMachinery,
+  noteIds: string[]
+): Promise<DelegationChainLinkWithNote[]> {
+  if (noteIds.length === 0) return [];
+  type Result = { delegationChainss?: { items: DelegationChainLinkWithNote[] } };
+  const result = await executeTypedGraphQLQuery<Result>(
+    machinery,
+    GET_DELEGATION_CHAINS_FOR_NOTES,
+    { noteIds }
+  );
+  return result.delegationChainss?.items ?? [];
 }

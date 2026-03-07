@@ -11,6 +11,8 @@ import {
   getActiveBuyOrders,
   getMarketplaceTrades,
   getTokenBurnsByUser,
+  getPurchasedNoteEventsByTxHashes,
+  getDelegationChainsForNotes,
   fetchFromIPFS,
   type Project,
   type ProjectToken,
@@ -53,6 +55,8 @@ export function ProjectDetailPage() {
   const [buyOrders, setBuyOrders] = useState<BuyOrder[]>([])
   const [trades, setTrades] = useState<Trade[]>([])
   const [userBurns, setUserBurns] = useState<TokenBurn[]>([])
+  // txHash → sorted delegation chain (root → leaf addresses) for note-based contributions
+  const [contributionChains, setContributionChains] = useState<Record<string, string[]>>({})
 
   const machinery = useMachinery()
 
@@ -75,6 +79,44 @@ export function ProjectDetailPage() {
     setTokens(projTokens)
     setContributions(projContributions)
     setRefunds(projRefunds)
+
+    // Fetch delegation chains for note-based contributions (best-effort, don't block on failure)
+    try {
+      const txHashes = projContributions.map(c => c.transactionHash)
+      if (txHashes.length > 0) {
+        const noteEvents = await getPurchasedNoteEventsByTxHashes(machinery, txHashes)
+        if (noteEvents.length > 0) {
+          // Collect all input note IDs from the purchased events
+          const noteIds = noteEvents.flatMap(evt => {
+            const data = evt.data ? JSON.parse(evt.data) : null
+            return (data?.inputNoteIds ?? []) as string[]
+          })
+          const chainLinks = await getDelegationChainsForNotes(machinery, noteIds)
+
+          // Group chain links by noteId, sorted by position (root first)
+          const noteChainMap: Record<string, string[]> = {}
+          for (const link of chainLinks) {
+            if (!noteChainMap[link.noteId]) noteChainMap[link.noteId] = []
+            noteChainMap[link.noteId].push(link.address)
+          }
+          // Links already come sorted asc by position from the query
+
+          // Build txHash → chain using the first input note of each purchased event
+          const txChainMap: Record<string, string[]> = {}
+          for (const evt of noteEvents) {
+            const data = evt.data ? JSON.parse(evt.data) : null
+            const firstNoteId = data?.inputNoteIds?.[0] as string | undefined
+            if (firstNoteId && noteChainMap[firstNoteId]) {
+              txChainMap[evt.transactionHash] = noteChainMap[firstNoteId]
+            }
+          }
+          setContributionChains(txChainMap)
+        }
+      }
+    } catch (err) {
+      // Non-critical: delegation chain enrichment failed, leaderboard still works without it
+      console.warn('Failed to fetch delegation chains for contributions:', err)
+    }
 
     if (proj.marketplaceAddress) {
       const [listings, orders, marketTrades] = await Promise.all([
@@ -206,7 +248,7 @@ export function ProjectDetailPage() {
         <TradeHistory trades={trades} />
       )}
 
-      <Leaderboard contributions={contributions} refunds={refunds} />
+      <Leaderboard contributions={contributions} refunds={refunds} contributionChains={contributionChains} />
     </Box>
   )
 }

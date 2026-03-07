@@ -29,3 +29,15 @@ export interface DelegationChainLink {
   position: number; // 0 = root, higher numbers = closer to leaf
   createdAt: string;
 }
+
+/** DelegationChainLink with noteId included — returned by batch chain queries */
+export interface DelegationChainLinkWithNote extends DelegationChainLink {
+  noteId: string;
+}
+
+/** A "purchased" note event — records a note being spent on a primary market purchase */
+export interface NoteEvent {
+  noteId: string;
+  transactionHash: string;
+  data: string | null; // JSON with { inputNoteIds, outputNoteIds, erc1155Contract, ... }
+}
