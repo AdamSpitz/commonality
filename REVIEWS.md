@@ -8,6 +8,12 @@ Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned i
 
 ## Most recent reviews
 
+### Review — 2026-03-07: Delegation UI
+
+See [delegation-ui-review.md](delegation-ui-review.md) for full details.
+
+**Verdict**: Functionally complete. All delegation flows (deposit, delegate, revoke, reclaim, spend) are implemented and integrated across 4 UI modules. One bug found (null dereference in NoteDetailPage). Test coverage is sparse — only MyNotesPage has unit tests (13 cases); NoteDetailPage, DepositPage, and the pubstarter note-funding integration have none.
+
 ### Review — 2026-02-16
 
 **Project context**: Blockchain application with smart contracts, Ponder indexer, SDK, integration tests, UI, and AI Attester service.
