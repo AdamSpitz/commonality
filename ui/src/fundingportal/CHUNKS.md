@@ -23,7 +23,7 @@ Set up the fundingportal directory structure and implement the portal page heade
   - Display **Available Delegatable Funding** using the delegation SDK's `getNoteIntentAttestationsByStatement` (same pattern as `AvailableDelegatableFunding` component)
   - Display aligned project count
 
-- [ ] Done
+- [x] Done
 
 ## Chunk 2: Aligned Projects List
 

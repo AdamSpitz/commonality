@@ -4,7 +4,7 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding Portals UI has been chunked into 6 pieces. Start with Chunk 1.
+Funding Portals UI Chunk 1 complete. Do Chunk 2 next.
 
   - Chunk plan: ui/src/fundingportal/CHUNKS.md
   - Spec: specs/subsystems/fundingportals/ui.md
@@ -12,8 +12,12 @@ Funding Portals UI has been chunked into 6 pieces. Start with Chunk 1.
 
 ## Key notes from this session
 
-- Chunked the Funding Portals UI into 6 implementation chunks (see CHUNKS.md above)
-- Delegation UI is fully complete (all 6 chunks done previously)
-- The `ui/src/fundingportal/` directory exists but was empty; now contains CHUNKS.md
-- SDK already has: `getAlignedSubjects`, `getAllAlignedProjectsForCause`, `getTotalFundingForCause`, `getTopContributorsForCause`, `getUserContributionRankForCause`, `attestAlignment`, etc.
+- Chunk 1 (Scaffold + Portal Page Header) complete
+- Files created: `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`, `CauseLeaderboardPage.tsx` (placeholder), `pages/index.ts`, `components/index.ts`
+- Routes added to `App.tsx`: `/portal/:statementCid` and `/portal/:statementCid/leaderboard`
+- Header shows: title/summary, total funding raised, available delegatable funding, aligned project count
+- Note: `getTotalFundingForCause` returns `totalAvailableFromNotes: 0n` (there's a TODO in the SDK). The header computes available delegatable funding separately via `getNoteIntentAttestationsByStatement` + `getNote`, same pattern as `AvailableDelegatableFunding` component.
+- `Statement.title` and `Statement.excerpt` are optional fields. The page falls back to parsing the first line of `content.content` as a title.
+- `CauseLeaderboardPage` is a placeholder (Chunk 4 will implement it fully)
 - Follow patterns from `ui/src/delegation/` and `ui/src/pubstarter/` (React + MUI + wagmi + SDK)
+- For Chunk 2: use `getAllAlignedProjectsForCause` from SDK; also need to fetch project metadata from IPFS (look at how pubstarter pages do it)

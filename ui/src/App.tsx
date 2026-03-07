@@ -9,6 +9,7 @@ import { BrowseProjectsPage } from './pubstarter/pages/BrowseProjectsPage'
 import { ProjectDetailPage } from './pubstarter/pages/ProjectDetailPage'
 import { CreateProjectPage } from './pubstarter/pages/CreateProjectPage'
 import { MyNotesPage, NoteDetailPage, DepositPage } from './delegation/pages'
+import { StatementFundingPortalPage, CauseLeaderboardPage } from './fundingportal/pages'
 
 function App() {
   return (
@@ -27,6 +28,8 @@ function App() {
           <Route path="/notes" element={<MyNotesPage />} />
           <Route path="/notes/new" element={<DepositPage />} />
           <Route path="/notes/:noteId" element={<NoteDetailPage />} />
+          <Route path="/portal/:statementCid" element={<StatementFundingPortalPage />} />
+          <Route path="/portal/:statementCid/leaderboard" element={<CauseLeaderboardPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>
