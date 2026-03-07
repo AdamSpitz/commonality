@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Autocomplete,
 } from '@mui/material'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
@@ -25,11 +26,13 @@ import {
   delegateNote,
   revokeNote,
   reclaimFunds,
+  purchaseFromPrimaryMarketWithNotes,
   DelegatableNotesAbi,
   type Note,
   type DelegationChainLink,
   type NoteIntentAttestation,
 } from '@commonality/sdk'
+import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote } from '../utils'
 
@@ -218,6 +221,138 @@ function DelegateDialog({ open, note, onClose, onSubmit }: DelegateDialogProps) 
   )
 }
 
+interface SpendDialogProps {
+  open: boolean
+  note: Note | null
+  projects: ProjectWithMetrics[]
+  projectTokens: ProjectToken[]
+  projectsLoading: boolean
+  tokensLoading: boolean
+  selectedProject: ProjectWithMetrics | null
+  onClose: () => void
+  onProjectChange: (project: ProjectWithMetrics | null) => void
+  onSubmit: (project: ProjectWithMetrics, tokenId: bigint, quantity: number) => void
+}
+
+function SpendDialog({
+  open,
+  note,
+  projects,
+  projectTokens,
+  projectsLoading,
+  tokensLoading,
+  selectedProject,
+  onClose,
+  onProjectChange,
+  onSubmit,
+}: SpendDialogProps) {
+  const [selectedTokenId, setSelectedTokenId] = useState<bigint | null>(null)
+  const [quantity, setQuantity] = useState('1')
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedTokenId(null)
+      setQuantity('1')
+    }
+  }, [open])
+
+  const selectedToken = selectedTokenId 
+    ? projectTokens.find(t => BigInt(t.tokenId) === selectedTokenId)
+    : null
+
+  const totalCost = selectedToken 
+    ? BigInt(selectedToken.price) * BigInt(quantity || 0)
+    : 0n
+
+  const canSubmit = selectedProject && selectedTokenId && quantity && 
+    totalCost > 0n && note && totalCost <= BigInt(note.amount)
+
+  const handleSubmit = () => {
+    if (selectedProject && selectedTokenId && canSubmit) {
+      onSubmit(selectedProject, selectedTokenId, parseInt(quantity, 10))
+    }
+  }
+
+  const projectOptions = projects.map(p => ({
+    label: p.metadataCid ? `Project ${p.id.slice(0, 10)}...` : `Project ${p.id.slice(0, 10)}...`,
+    value: p,
+  }))
+
+  const tokenOptions = projectTokens.map(t => ({
+    label: `Token #${t.tokenId} - ${formatEther(BigInt(t.price))} ETH`,
+    value: t,
+  }))
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Spend Note on Project</DialogTitle>
+      <DialogContent>
+        {note && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Available balance: {formatNoteAmount(note)}
+          </Typography>
+        )}
+        <Autocomplete
+          options={projectOptions}
+          loading={projectsLoading}
+          getOptionLabel={(option) => option.label}
+          value={selectedProject ? { label: selectedProject.id.slice(0, 10), value: selectedProject } : null}
+          onChange={(_, newValue) => {
+            onProjectChange(newValue?.value || null)
+            setSelectedTokenId(null)
+          }}
+          renderInput={(params) => (
+            <TextField {...params} label="Select Project" margin="normal" />
+          )}
+          isOptionEqualToValue={(option, value) => option.value.id === value.value.id}
+        />
+        {selectedProject && (
+          <Autocomplete
+            options={tokenOptions}
+            loading={tokensLoading}
+            getOptionLabel={(option) => option.label}
+            value={selectedTokenId ? { label: `Token #${selectedTokenId}`, value: projectTokens.find(t => BigInt(t.tokenId) === selectedTokenId)! } : null}
+            onChange={(_, newValue) => {
+              setSelectedTokenId(newValue ? BigInt(newValue.value.tokenId) : null)
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label="Select Token" margin="normal" />
+            )}
+            isOptionEqualToValue={(option, value) => option.value.tokenId === value.value.tokenId}
+          />
+        )}
+        {selectedToken && (
+          <TextField
+            label="Quantity"
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            fullWidth
+            margin="normal"
+            inputProps={{ min: 1 }}
+          />
+        )}
+        {selectedToken && (
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Total cost: {formatEther(totalCost)} ETH
+            {note && totalCost > BigInt(note.amount) && (
+              <Typography variant="caption" color="error" display="block">
+                Exceeds note balance
+              </Typography>
+            )}
+          </Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={!canSubmit}>
+          Purchase
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
 export function NoteDetailPage() {
   const { noteId } = useParams<{ noteId: string }>()
   const { address } = useAccount()
@@ -233,6 +368,12 @@ export function NoteDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
+  const [spendDialogOpen, setSpendDialogOpen] = useState(false)
+  const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
+  const [projectsLoading, setProjectsLoading] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<ProjectWithMetrics | null>(null)
+  const [projectTokens, setProjectTokens] = useState<ProjectToken[]>([])
+  const [tokensLoading, setTokensLoading] = useState(false)
 
   const getClients = () => {
     if (!walletClient || !publicClient || !address) return null
@@ -266,7 +407,22 @@ export function NoteDetailPage() {
 
   useEffect(() => {
     loadNoteData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId])
+
+  useEffect(() => {
+    if (spendDialogOpen && projects.length === 0) {
+      loadProjects()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spendDialogOpen])
+
+  useEffect(() => {
+    if (selectedProject) {
+      loadProjectTokens(selectedProject.id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProject])
 
   const handleDelegateSubmit = async (noteId: string, toAddress: string, amount: string) => {
     const clients = getClients()
@@ -335,6 +491,79 @@ export function NoteDetailPage() {
     }
   }
 
+  const loadProjects = async () => {
+    try {
+      setProjectsLoading(true)
+      const allProjects = await getProjectsFiltered(machinery)
+      const activeProjects = allProjects.filter(p => {
+        const deadline = BigInt(p.deadline)
+        const now = BigInt(Math.floor(Date.now() / 1000))
+        return deadline > now && BigInt(p.totalReceived) < BigInt(p.threshold)
+      })
+      setProjects(activeProjects)
+    } catch (err) {
+      console.error('Error loading projects:', err)
+    } finally {
+      setProjectsLoading(false)
+    }
+  }
+
+  const loadProjectTokens = async (projectAddress: string) => {
+    try {
+      setTokensLoading(true)
+      const tokens = await getProjectTokens(machinery, projectAddress)
+      setProjectTokens(tokens)
+    } catch (err) {
+      console.error('Error loading project tokens:', err)
+    } finally {
+      setTokensLoading(false)
+    }
+  }
+
+  const handleSpendSubmit = async (
+    project: ProjectWithMetrics,
+    tokenId: bigint,
+    quantity: number
+  ) => {
+    if (!note) return
+    const clients = getClients()
+    const contract = getContract()
+    if (!clients || !contract) return
+
+    const token = projectTokens.find(t => BigInt(t.tokenId) === tokenId)
+    if (!token) return
+
+    const totalCost = BigInt(token.price) * BigInt(quantity)
+    if (totalCost > BigInt(note.amount)) {
+      setActionError('Insufficient note balance')
+      return
+    }
+
+    try {
+      setActionLoading(true)
+      setActionError(null)
+      const owners = chain
+        .sort((a, b) => b.position - a.position)
+        .map(link => link.address as `0x${string}`)
+      await purchaseFromPrimaryMarketWithNotes(clients, contract, {
+        noteIds: [BigInt(note.id)],
+        chains: [owners],
+        paymentAmount: totalCost,
+        primaryMarket: project.id as `0x${string}`,
+        erc1155Contract: project.erc1155Address as `0x${string}`,
+        tokenIds: [tokenId],
+        counts: [BigInt(quantity)],
+      })
+      setSpendDialogOpen(false)
+      await loadNoteData()
+    } catch (err) {
+      console.error('Spend failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Purchase failed')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const isCurrentLeafOwner = note?.owner.toLowerCase() === address?.toLowerCase()
   const isRootOwner = note?.rootOwner.toLowerCase() === address?.toLowerCase()
   const isChainMember = chain.some(link => link.address.toLowerCase() === address?.toLowerCase())
@@ -342,6 +571,7 @@ export function NoteDetailPage() {
   const canDelegate = isCurrentLeafOwner
   const canRevoke = isChainMember && !isCurrentLeafOwner
   const canReclaim = isRootOwner && isUndelegated
+  const canSpend = isCurrentLeafOwner && isEthNote(note!)
 
   if (loading) {
     return (
@@ -456,6 +686,11 @@ export function NoteDetailPage() {
               Reclaim Funds
             </Button>
           )}
+          {canSpend && (
+            <Button variant="contained" color="secondary" onClick={() => setSpendDialogOpen(true)}>
+              Spend on Project
+            </Button>
+          )}
           {!canDelegate && !canRevoke && !canReclaim && (
             <Typography variant="body2" color="text.secondary">
               You don't have any actions available for this note.
@@ -469,6 +704,23 @@ export function NoteDetailPage() {
         note={note}
         onClose={() => setDelegateDialogOpen(false)}
         onSubmit={handleDelegateSubmit}
+      />
+
+      <SpendDialog
+        open={spendDialogOpen}
+        note={note}
+        projects={projects}
+        projectTokens={projectTokens}
+        projectsLoading={projectsLoading}
+        tokensLoading={tokensLoading}
+        selectedProject={selectedProject}
+        onClose={() => {
+          setSpendDialogOpen(false)
+          setSelectedProject(null)
+          setProjectTokens([])
+        }}
+        onProjectChange={setSelectedProject}
+        onSubmit={handleSpendSubmit}
       />
     </Box>
   )
