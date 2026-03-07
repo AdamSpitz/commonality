@@ -4,7 +4,7 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding Portals UI Chunk 3 complete. Do Chunk 4 next.
+Funding Portals UI Chunk 4 complete. Do Chunk 5 next.
 
   - Chunk plan: ui/src/fundingportal/CHUNKS.md
   - Spec: specs/subsystems/fundingportals/ui.md
@@ -12,11 +12,11 @@ Funding Portals UI Chunk 3 complete. Do Chunk 4 next.
 
 ## Key notes from this session
 
-- Chunk 3 (Attest Project Alignment Form + Available Delegatable Notes Section) complete
-- Files created: `ui/src/fundingportal/components/AttestAlignmentForm.tsx`, `DelegatableNotesSection.tsx`
-- Updated `StatementFundingPortalPage.tsx` to include both new components (after `AlignedProjectsList`)
-- Updated `components/index.ts` to export new components
-- `AttestAlignmentForm`: only renders when wallet connected, collapsible, uses `getAllProjects` for autocomplete (freeSolo to allow manual address entry), calls `attestAlignment` with `PROJECT_ALIGNMENT_TOPIC` as the topic
-- `DelegatableNotesSection`: collapsible, lazy-loads notes (only fetches when opened), shows Note ID, amount, root owner, leaf owner, and delegation status (Delegated/Direct chip via `isDelegate` utility)
-- Both use existing patterns from `DepositPage.tsx` and `AvailableDelegatableFunding.tsx`
-- For Chunk 4: Implement `CauseLeaderboardPage.tsx` at `/portal/:statementCid/leaderboard` using `getTopContributorsForCause` and `getUserContributionRankForCause` from SDK
+- Chunk 4 (Cause Leaderboard Page) complete
+- Replaced placeholder in `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx`
+- Uses `getTopContributorsForCause` (top 50) and `getUserContributionRankForCause` from SDK
+- Leaderboard table columns: Rank, Address (truncated with tooltip), Total Contributed, Projects, Net Contribution
+- "My Rank" summary card shown at top when wallet connected and user has contributions (highlighted row in table too)
+- Route `/portal/:statementCid/leaderboard` and "View Leaderboard" link from portal header were already set up in Chunk 1
+- Follows same patterns as StatementFundingPortalPage: useEffect with cancellation, loading/error states, useMachinery hook
+- For Chunk 5: Add `FundingPortalSummary.tsx` component to the concept space Statement page (`StatementPage.tsx`), showing total funding, delegatable funding, aligned project count, top 3 projects preview, and "View Funding Portal" link

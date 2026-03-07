@@ -70,7 +70,7 @@ Implement the full leaderboard page at `/portal/:statementCid/leaderboard`.
   - If wallet connected, highlight user's row and show summary card at top
 - Link from portal page header to leaderboard
 
-- [ ] Done
+- [x] Done
 
 ## Chunk 5: Statement Page Integration (Concept Space)
 
