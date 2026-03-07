@@ -564,15 +564,6 @@ export function NoteDetailPage() {
     }
   }
 
-  const isCurrentLeafOwner = note?.owner.toLowerCase() === address?.toLowerCase()
-  const isRootOwner = note?.rootOwner.toLowerCase() === address?.toLowerCase()
-  const isChainMember = chain.some(link => link.address.toLowerCase() === address?.toLowerCase())
-  const isUndelegated = !isDelegate(note!)
-  const canDelegate = isCurrentLeafOwner
-  const canRevoke = isChainMember && !isCurrentLeafOwner
-  const canReclaim = isRootOwner && isUndelegated
-  const canSpend = isCurrentLeafOwner && isEthNote(note!)
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -590,6 +581,15 @@ export function NoteDetailPage() {
       </Box>
     )
   }
+
+  const isCurrentLeafOwner = note.owner.toLowerCase() === address?.toLowerCase()
+  const isRootOwner = note.rootOwner.toLowerCase() === address?.toLowerCase()
+  const isChainMember = chain.some(link => link.address.toLowerCase() === address?.toLowerCase())
+  const isUndelegated = !isDelegate(note)
+  const canDelegate = isCurrentLeafOwner
+  const canRevoke = isChainMember && !isCurrentLeafOwner
+  const canReclaim = isRootOwner && isUndelegated
+  const canSpend = isCurrentLeafOwner && isEthNote(note)
 
   return (
     <Box>

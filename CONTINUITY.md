@@ -4,16 +4,18 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding Portals UI Chunk 6 complete. All 6 chunks done.
+Fixed delegation UI null-dereference bug (issue 1 from delegation-ui-review.md). Remaining delegation UI issues from the review:
+- Add unit tests for NoteDetailPage (high priority)
+- Add unit tests for DepositPage (high priority)
+- Add tests for BuyTokensSection note flow (high priority)
+- Add tests for delegation/utils.ts (quick win)
+- Consider E2E test for deposit → delegate → spend flow
 
-Consider running the `post-implementation-checklist` skill to review the Funding Portals UI implementation, or look at the overall TODO.md for the next major task.
+Or move on to: Review the funding portals UI code (TODO.md item).
 
 ## Key notes from this session
 
-- Chunk 6 (Project Detail Page Integration) complete
-- Created `ui/src/fundingportal/components/AlignmentAttestationsSection.tsx`
-- Added to `ui/src/pubstarter/pages/ProjectDetailPage.tsx` after Leaderboard
-- Shows: direct alignment attestations (statement title linked to portal, attester address, "Direct" chip)
-- "Attest Alignment" dialog (wallet-gated): statement autocomplete via `getAllStatements`, calls `attestAlignment` from SDK
-- Exported from `ui/src/fundingportal/components/index.ts`
-- All 6 Funding Portal UI chunks now complete
+- Fixed NoteDetailPage null dereference bug in `ui/src/delegation/pages/NoteDetailPage.tsx`
+- Permission flags (`isCurrentLeafOwner`, `isRootOwner`, `isUndelegated`, `canDelegate`, `canRevoke`, `canReclaim`, `canSpend`) were computed before the `if (error || !note)` guard
+- Moved those computations to after the guard; removed `!` non-null assertions since note is guaranteed non-null there
+- TypeScript check passes; 17 delegation unit tests pass
