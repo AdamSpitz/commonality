@@ -8,7 +8,7 @@ import { SettingsPage } from './conceptspace/pages/SettingsPage'
 import { BrowseProjectsPage } from './pubstarter/pages/BrowseProjectsPage'
 import { ProjectDetailPage } from './pubstarter/pages/ProjectDetailPage'
 import { CreateProjectPage } from './pubstarter/pages/CreateProjectPage'
-import { MyNotesPage, NoteDetailPage } from './delegation/pages'
+import { MyNotesPage, NoteDetailPage, DepositPage } from './delegation/pages'
 
 function App() {
   return (
@@ -25,6 +25,7 @@ function App() {
           <Route path="/projects/new" element={<CreateProjectPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
           <Route path="/notes" element={<MyNotesPage />} />
+          <Route path="/notes/new" element={<DepositPage />} />
           <Route path="/notes/:noteId" element={<NoteDetailPage />} />
         </Routes>
       </AppShell>
