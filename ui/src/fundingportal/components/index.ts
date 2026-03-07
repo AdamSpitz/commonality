@@ -2,3 +2,4 @@ export { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from '.
 export { AlignedProjectsList } from './AlignedProjectsList'
 export { AttestAlignmentForm } from './AttestAlignmentForm'
 export { DelegatableNotesSection } from './DelegatableNotesSection'
+export { FundingPortalSummary } from './FundingPortalSummary'

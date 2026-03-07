@@ -15,6 +15,7 @@ import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
 import { StatementSuggestions } from '../components/StatementSuggestions'
 import { AvailableDelegatableFunding } from '../../delegation/components'
+import { FundingPortalSummary } from '../../fundingportal/components'
 
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: IpfsCidV1 }>()
@@ -161,6 +162,9 @@ export function StatementPage() {
 
       {/* Available Delegatable Funding */}
       <AvailableDelegatableFunding statementCid={statementCid || ''} />
+
+      {/* Funding Portal Summary */}
+      <FundingPortalSummary statementCid={statementCid || ''} />
     </Box>
   )
 }
