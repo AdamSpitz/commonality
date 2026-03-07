@@ -9,7 +9,7 @@ Main thing I want to work on next:
     - [ ] Tests: NoteDetailPage unit tests
     - [ ] Tests: DepositPage unit tests
     - [ ] Tests: BuyTokensSection note flow tests
-    - [ ] Tests: delegation/utils.ts unit tests
+    - [x] Tests: delegation/utils.ts unit tests (done)
   - Review the funding portals UI code, then fix whatever issues come up.
 
 Other big things to do soon:

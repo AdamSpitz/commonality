@@ -4,11 +4,10 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Fixed delegation UI null-dereference bug (issue 1 from delegation-ui-review.md). Remaining delegation UI issues from the review:
+Remaining delegation UI issues from delegation-ui-review.md:
 - Add unit tests for NoteDetailPage (high priority)
 - Add unit tests for DepositPage (high priority)
 - Add tests for BuyTokensSection note flow (high priority)
-- Add tests for delegation/utils.ts (quick win)
 - Consider E2E test for deposit → delegate → spend flow
 
 Or move on to: Review the funding portals UI code (TODO.md item).
@@ -16,6 +15,7 @@ Or move on to: Review the funding portals UI code (TODO.md item).
 ## Key notes from this session
 
 - Fixed NoteDetailPage null dereference bug in `ui/src/delegation/pages/NoteDetailPage.tsx`
-- Permission flags (`isCurrentLeafOwner`, `isRootOwner`, `isUndelegated`, `canDelegate`, `canRevoke`, `canReclaim`, `canSpend`) were computed before the `if (error || !note)` guard
-- Moved those computations to after the guard; removed `!` non-null assertions since note is guaranteed non-null there
-- TypeScript check passes; 17 delegation unit tests pass
+- Added unit tests for `delegation/utils.ts` (17 tests: isEthNote, formatNoteAmount, truncateAddress, isDelegate)
+  - Test file: `ui/src/delegation/utils.test.ts`
+  - No mocks needed — all four functions are pure
+  - All 17 tests pass
