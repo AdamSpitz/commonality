@@ -22,7 +22,7 @@ Chunks:
   - [x] Chunk 3: Deposit page (form: amount, optional delegate-to, optional intended statement, multi-step submit)
   - [x] Chunk 4: Spending section on Note Detail page (purchase from primary market with notes, project selector)
   - [x] Chunk 5: Pubstarter integration (delegation chains on contributor leaderboard, "Fund with Delegated Note" option on project page)
-  - [ ] Chunk 6: Funding Portal integration (available delegatable funding section on statement pages)
+  - [x] Chunk 6: Funding Portal integration (available delegatable funding section on statement pages)
 
 ## Funding Portals UI
 
