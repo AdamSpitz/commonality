@@ -6,7 +6,7 @@ Main thing I want to work on next:
   - Enhancement: Add per-token images to pubstarter (uses ERC-1155's `{id}` URI substitution - no contract changes needed)
   - Fix the issues in the delegation UI code, mentioned in delegation-ui-review.md.
     - [x] Bug: NoteDetailPage null dereference before null guard (fixed)
-    - [ ] Tests: NoteDetailPage unit tests
+    - [x] Tests: NoteDetailPage unit tests (23 tests)
     - [ ] Tests: DepositPage unit tests
     - [ ] Tests: BuyTokensSection note flow tests
     - [x] Tests: delegation/utils.ts unit tests (done)
