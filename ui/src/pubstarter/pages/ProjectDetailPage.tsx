@@ -36,6 +36,7 @@ import {
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { AlignmentAttestationsSection } from '../../fundingportal/components'
 
 type ProjectMetadata = { name?: string; description?: string }
 
@@ -249,6 +250,8 @@ export function ProjectDetailPage() {
       )}
 
       <Leaderboard contributions={contributions} refunds={refunds} contributionChains={contributionChains} />
+
+      {projectAddress && <AlignmentAttestationsSection projectAddress={projectAddress} />}
     </Box>
   )
 }
