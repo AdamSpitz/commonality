@@ -4,7 +4,7 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding Portals UI Chunk 4 complete. Do Chunk 5 next.
+Funding Portals UI Chunk 5 complete. Do Chunk 6 next.
 
   - Chunk plan: ui/src/fundingportal/CHUNKS.md
   - Spec: specs/subsystems/fundingportals/ui.md
@@ -12,11 +12,9 @@ Funding Portals UI Chunk 4 complete. Do Chunk 5 next.
 
 ## Key notes from this session
 
-- Chunk 4 (Cause Leaderboard Page) complete
-- Replaced placeholder in `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx`
-- Uses `getTopContributorsForCause` (top 50) and `getUserContributionRankForCause` from SDK
-- Leaderboard table columns: Rank, Address (truncated with tooltip), Total Contributed, Projects, Net Contribution
-- "My Rank" summary card shown at top when wallet connected and user has contributions (highlighted row in table too)
-- Route `/portal/:statementCid/leaderboard` and "View Leaderboard" link from portal header were already set up in Chunk 1
-- Follows same patterns as StatementFundingPortalPage: useEffect with cancellation, loading/error states, useMachinery hook
-- For Chunk 5: Add `FundingPortalSummary.tsx` component to the concept space Statement page (`StatementPage.tsx`), showing total funding, delegatable funding, aligned project count, top 3 projects preview, and "View Funding Portal" link
+- Chunk 5 (Statement Page Integration) complete
+- Created `ui/src/fundingportal/components/FundingPortalSummary.tsx`
+- Added to `ui/src/conceptspace/pages/StatementPage.tsx` after AvailableDelegatableFunding
+- Shows: total funding raised, available delegatable funding, aligned project count, "View Funding Portal" button, top 3 projects by funding progress (reuses AlignedProjectCard)
+- Exported from `ui/src/fundingportal/components/index.ts`
+- For Chunk 6: Add `AlignmentAttestationsSection.tsx` to `ui/src/pubstarter/pages/ProjectDetailPage.tsx`, showing statement alignments for this project + "Attest Alignment" button/dialog (uses `getSubjectStatements` and `attestAlignment` from SDK)

@@ -84,7 +84,7 @@ Add a "Funding Portal" section to the existing concept space Statement page.
   - "View Funding Portal" link/button → `/portal/:statementCid`
   - Top 3 projects by funding progress (preview cards, reuse AlignedProjectCard from Chunk 2)
 
-- [ ] Done
+- [x] Done
 
 ## Chunk 6: Project Detail Page Integration (Pubstarter)
 
