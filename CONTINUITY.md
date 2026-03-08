@@ -5,7 +5,6 @@ This file is for jotting down notes that might be useful for the next AI. This f
 ## What to do next
 
 Remaining delegation UI issues from delegation-ui-review.md:
-- Add unit tests for DepositPage (high priority)
 - Add tests for BuyTokensSection note flow (high priority)
 - Consider E2E test for deposit → delegate → spend flow
 
@@ -22,3 +21,8 @@ Or move on to: Review the funding portals UI code (TODO.md item).
   - Test file: `ui/src/delegation/pages/NoteDetailPage.test.tsx`
   - Mocks: react-router-dom (useParams, Link), wagmi (useAccount, useWalletClient, usePublicClient), @commonality/sdk (createSDKMachinery, getNote, getDelegationChain, getNoteIntentAttestationsByNote, and action fns)
   - Covers: loading, error, not-found, render (id/amount/chips), DelegationChainVisualization (empty/2-chain/3-chain), IntendedPurpose (empty/with attestations), and all 4 action button permission scenarios
+- Added unit tests for `DepositPage` (23 tests)
+  - Test file: `ui/src/delegation/pages/DepositPage.test.tsx`
+  - Mocks: react-router-dom (useNavigate), wagmi (useAccount, useWalletClient, usePublicClient), @commonality/sdk (createSDKMachinery, browseStatementsByNewest, depositETH, delegateNote, attestNoteIntent)
+  - Used `vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', ...)` to stub the contract address env var for submission tests
+  - Covers: unauthenticated state, form render, form validation (disabled button, invalid address), submission (processing state, error, success), success state navigation, statement loading on mount, cancel navigation

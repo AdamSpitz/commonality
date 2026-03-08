@@ -7,7 +7,7 @@ Main thing I want to work on next:
   - Fix the issues in the delegation UI code, mentioned in delegation-ui-review.md.
     - [x] Bug: NoteDetailPage null dereference before null guard (fixed)
     - [x] Tests: NoteDetailPage unit tests (23 tests)
-    - [ ] Tests: DepositPage unit tests
+    - [x] Tests: DepositPage unit tests (23 tests)
     - [ ] Tests: BuyTokensSection note flow tests
     - [x] Tests: delegation/utils.ts unit tests (done)
   - Review the funding portals UI code, then fix whatever issues come up.
