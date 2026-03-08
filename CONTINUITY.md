@@ -4,12 +4,21 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-AlignedProjectsList unit tests done (20 tests). Good stopping point — could now do:
+Funding portal DRY refactor + rename done. Good stopping point. Could now do:
 - Add unit tests for other funding portal components (DelegatableNotesSection, AlignmentAttestationsSection, FundingPortalSummary)
-- Extract computeAvailableDelegatableFunding helper (DRY refactor, medium complexity)
 - E2E test for deposit → delegate → spend flow
 
 ## Key notes from this session
+
+- DRY: extracted `computeAvailableDelegatableFunding` into `ui/src/fundingportal/utils.ts`
+  - Was duplicated in `FundingPortalSummary.tsx` and `StatementFundingPortalPage.tsx`
+  - Helper takes `(machinery: SDKMachinery, statementCid: string): Promise<bigint>`
+  - Callers do a single `cancelled` check after the await, then call setState
+- Renamed 'newest' sort → 'latest' in `AlignedProjectsList.tsx` (type, state, case, label) + test
+
+---
+
+## Previous session notes
 
 - Added 20 unit tests for `AlignedProjectsList` component (`ui/src/fundingportal/components/AlignedProjectsList.test.tsx`)
   - Coverage: loading, error, empty states, status filter (all/active/succeeded/refunding), alignment filter (all/direct/indirect), all 4 sort options (newest/deadline/mostFunded/closestToGoal)

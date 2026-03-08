@@ -16,8 +16,8 @@ Main thing I want to work on next:
     - [x] Bug: AlignmentAttestationsSection list didn't refresh after attestation
     - [x] DRY: getAlignmentContract extracted to alignmentContract.ts
     - [x] Tests: AlignedProjectsList unit tests (20 tests: loading/error/filter/sort)
-    - [ ] DRY: extract computeAvailableDelegatableFunding helper (used in 2 places)
-    - [ ] Naming: consider renaming 'newest' sort to 'latest' in AlignedProjectsList
+    - [x] DRY: extract computeAvailableDelegatableFunding helper (used in 2 places)
+    - [x] Naming: consider renaming 'newest' sort to 'latest' in AlignedProjectsList
 
 Other big things to do soon:
   - Get the e2e tests (npm run ui:test:e2e) working.
