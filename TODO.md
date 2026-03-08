@@ -8,7 +8,7 @@ Main thing I want to work on next:
     - [x] Bug: NoteDetailPage null dereference before null guard (fixed)
     - [x] Tests: NoteDetailPage unit tests (23 tests)
     - [x] Tests: DepositPage unit tests (23 tests)
-    - [ ] Tests: BuyTokensSection note flow tests
+    - [x] Tests: BuyTokensSection note flow tests (28 tests)
     - [x] Tests: delegation/utils.ts unit tests (done)
   - Review the funding portals UI code, then fix whatever issues come up.
 

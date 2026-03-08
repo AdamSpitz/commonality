@@ -4,25 +4,25 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Remaining delegation UI issues from delegation-ui-review.md:
-- Add tests for BuyTokensSection note flow (high priority)
-- Consider E2E test for deposit → delegate → spend flow
+All delegation UI test tasks from delegation-ui-review.md are now complete.
 
-Or move on to: Review the funding portals UI code (TODO.md item).
+Next priorities:
+- Consider E2E test for deposit → delegate → spend flow
+- Review the funding portals UI code (TODO.md item)
 
 ## Key notes from this session
 
+- Added unit tests for BuyTokensSection (28 tests)
+  - Test file: `ui/src/pubstarter/components/BuyTokensSection.test.tsx`
+  - Mocks: wagmi (useWalletClient, usePublicClient), @commonality/sdk (createSDKMachinery, buyProjectTokens, getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes)
+  - Used `vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', ...)` to toggle delegatable notes feature
+  - MUI Select testing: use `getByRole('combobox')` (not `getByLabelText`), `findByRole('listbox')` to get dropdown, `within(listbox).getAllByRole('option')` to select
+  - MUI Switch testing: use `getByRole('switch')` (not `getByRole('checkbox')`)
+  - Covers: direct ETH purchase (heading, inputs, prices, buy button, error/success/refresh/clear), delegatable note toggle visibility, note purchase mode (loading, empty notes, filtering non-ETH/inactive notes, dropdown, total cost display, insufficient balance, purchaseFromPrimaryMarketWithNotes call with correct delegation chain sorting, success/error/refresh)
+
+## Previous session notes
+
 - Fixed NoteDetailPage null dereference bug in `ui/src/delegation/pages/NoteDetailPage.tsx`
-- Added unit tests for `delegation/utils.ts` (17 tests: isEthNote, formatNoteAmount, truncateAddress, isDelegate)
-  - Test file: `ui/src/delegation/utils.test.ts`
-  - No mocks needed — all four functions are pure
-  - All 17 tests pass
+- Added unit tests for `delegation/utils.ts` (17 tests)
 - Added unit tests for `NoteDetailPage` (23 tests)
-  - Test file: `ui/src/delegation/pages/NoteDetailPage.test.tsx`
-  - Mocks: react-router-dom (useParams, Link), wagmi (useAccount, useWalletClient, usePublicClient), @commonality/sdk (createSDKMachinery, getNote, getDelegationChain, getNoteIntentAttestationsByNote, and action fns)
-  - Covers: loading, error, not-found, render (id/amount/chips), DelegationChainVisualization (empty/2-chain/3-chain), IntendedPurpose (empty/with attestations), and all 4 action button permission scenarios
 - Added unit tests for `DepositPage` (23 tests)
-  - Test file: `ui/src/delegation/pages/DepositPage.test.tsx`
-  - Mocks: react-router-dom (useNavigate), wagmi (useAccount, useWalletClient, usePublicClient), @commonality/sdk (createSDKMachinery, browseStatementsByNewest, depositETH, delegateNote, attestNoteIntent)
-  - Used `vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', ...)` to stub the contract address env var for submission tests
-  - Covers: unauthenticated state, form render, form validation (disabled button, invalid address), submission (processing state, error, success), success state navigation, statement loading on mount, cancel navigation
