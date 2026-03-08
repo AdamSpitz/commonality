@@ -8,6 +8,12 @@ Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned i
 
 ## Most recent reviews
 
+### Review — 2026-03-08: Funding Portals UI
+
+See [funding-portals-review.md](funding-portals-review.md) for full details.
+
+**Verdict**: Functionally complete. All funding portal flows are implemented (portal page, leaderboard, aligned projects list with sort/filter, alignment attestation, delegatable notes). Four bugs fixed: DelegatableNotesSection silently swallowed errors, it showed non-ETH notes inconsistently with the metrics, AlignmentAttestationsSection list didn't refresh after successful attestation, and getAlignmentContract was duplicated. Test coverage is zero — no tests for any funding portal component.
+
 ### Review — 2026-03-07: Delegation UI
 
 See [delegation-ui-review.md](delegation-ui-review.md) for full details.

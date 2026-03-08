@@ -23,7 +23,6 @@ import {
   getStatement,
   getAllStatements,
   attestAlignment,
-  AlignmentAttestationsAbi,
   PROJECT_ALIGNMENT_TOPIC,
   type AlignmentAttestation,
   type StatementListItem,
@@ -32,14 +31,9 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { truncateAddress } from '../../delegation/utils'
+import { getAlignmentContract } from './alignmentContract'
 
 type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }
-
-function getAlignmentContract(): { address: `0x${string}`; abi: typeof AlignmentAttestationsAbi } | null {
-  const addr = import.meta.env.VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS
-  if (!addr) return null
-  return { address: addr as `0x${string}`, abi: AlignmentAttestationsAbi }
-}
 
 interface Props {
   projectAddress: string
@@ -54,6 +48,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [alignments, setAlignments] = useState<AlignmentWithTitle[]>([])
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [statements, setStatements] = useState<StatementListItem[]>([])
@@ -90,7 +85,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
 
     load()
     return () => { cancelled = true }
-  }, [projectAddress])
+  }, [projectAddress, refreshKey])
 
   const handleOpenDialog = () => {
     setDialogOpen(true)
@@ -145,6 +140,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
       )
       setSubmitSuccess(true)
       setSelectedStatement(null)
+      setRefreshKey(k => k + 1)
     } catch (err) {
       console.error('Attestation failed:', err)
       setSubmitError(err instanceof Error ? err.message : 'Failed to attest alignment')

@@ -10,7 +10,14 @@ Main thing I want to work on next:
     - [x] Tests: DepositPage unit tests (23 tests)
     - [x] Tests: BuyTokensSection note flow tests (28 tests)
     - [x] Tests: delegation/utils.ts unit tests (done)
-  - Review the funding portals UI code, then fix whatever issues come up.
+  - [x] Review the funding portals UI code, then fix whatever issues come up.
+    - [x] Bug: DelegatableNotesSection silently swallowed errors (now shows Alert)
+    - [x] Bug: DelegatableNotesSection showed non-ETH notes (now filtered by isEthNote)
+    - [x] Bug: AlignmentAttestationsSection list didn't refresh after attestation
+    - [x] DRY: getAlignmentContract extracted to alignmentContract.ts
+    - [ ] Tests: funding portal component unit tests (no tests exist yet)
+    - [ ] DRY: extract computeAvailableDelegatableFunding helper (used in 2 places)
+    - [ ] Naming: consider renaming 'newest' sort to 'latest' in AlignedProjectsList
 
 Other big things to do soon:
   - Get the e2e tests (npm run ui:test:e2e) working.

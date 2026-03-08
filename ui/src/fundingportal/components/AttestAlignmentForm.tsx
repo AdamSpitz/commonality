@@ -16,7 +16,6 @@ import { isAddress } from 'viem'
 import {
   getAllProjects,
   attestAlignment,
-  AlignmentAttestationsAbi,
   PROJECT_ALIGNMENT_TOPIC,
   type IpfsCidV1,
   type Project,
@@ -24,17 +23,7 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { truncateAddress } from '../../delegation/utils'
-
-interface AlignmentAttestationsContractRef {
-  address: `0x${string}`
-  abi: typeof AlignmentAttestationsAbi
-}
-
-function getAlignmentContract(): AlignmentAttestationsContractRef | null {
-  const addr = import.meta.env.VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS
-  if (!addr) return null
-  return { address: addr as `0x${string}`, abi: AlignmentAttestationsAbi }
-}
+import { getAlignmentContract } from './alignmentContract'
 
 interface Props {
   statementCid: string

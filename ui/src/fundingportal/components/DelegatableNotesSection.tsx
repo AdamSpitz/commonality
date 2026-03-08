@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -20,7 +21,7 @@ import {
   type Note,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatNoteAmount, isDelegate, truncateAddress } from '../../delegation/utils'
+import { formatNoteAmount, isDelegate, isEthNote, truncateAddress } from '../../delegation/utils'
 
 interface Props {
   statementCid: string
@@ -30,12 +31,14 @@ export function DelegatableNotesSection({ statementCid }: Props) {
   const machinery = useMachinery()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
 
   useEffect(() => {
     if (!open) return
     let cancelled = false
     setLoading(true)
+    setError(null)
 
     async function load() {
       try {
@@ -47,9 +50,12 @@ export function DelegatableNotesSection({ statementCid }: Props) {
         )
         if (cancelled) return
 
-        setNotes(noteResults.filter((n): n is Note => n !== null && n.active))
+        setNotes(noteResults.filter((n): n is Note => n !== null && n.active && isEthNote(n)))
       } catch (err) {
-        console.warn('Failed to load delegatable notes:', err)
+        if (!cancelled) {
+          console.error('Failed to load delegatable notes:', err)
+          setError(err instanceof Error ? err.message : 'Failed to load delegatable notes')
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -81,6 +87,8 @@ export function DelegatableNotesSection({ statementCid }: Props) {
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
               <CircularProgress size={24} />
             </Box>
+          ) : error ? (
+            <Alert severity="error">{error}</Alert>
           ) : notes.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               No delegatable notes intended for this cause.
