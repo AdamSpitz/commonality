@@ -133,7 +133,7 @@ describe('AlignedProjectsList', () => {
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Newest' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Latest' })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Deadline' })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Most Funded' })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Closest to Goal' })).toBeInTheDocument()
@@ -366,7 +366,7 @@ describe('AlignedProjectsList', () => {
       })
     }
 
-    it('sorts by highest deadline first by default ("newest")', async () => {
+    it('sorts by highest deadline first by default ("latest")', async () => {
       setupSortProjects()
       render(<AlignedProjectsList statementCid="QmTest" />)
 

@@ -22,7 +22,7 @@ import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from '.
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type AlignmentFilter = 'all' | 'direct' | 'indirect'
-type SortOption = 'newest' | 'deadline' | 'mostFunded' | 'closestToGoal'
+type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
 
 export function AlignedProjectsList({ statementCid }: { statementCid: string }) {
   const machinery = useMachinery()
@@ -30,7 +30,7 @@ export function AlignedProjectsList({ statementCid }: { statementCid: string }) 
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [sortBy, setSortBy] = useState<SortOption>('newest')
+  const [sortBy, setSortBy] = useState<SortOption>('latest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [alignmentFilter, setAlignmentFilter] = useState<AlignmentFilter>('all')
 
@@ -99,7 +99,7 @@ export function AlignedProjectsList({ statementCid }: { statementCid: string }) 
           : 0
         return progressB - progressA
       }
-      case 'newest':
+      case 'latest':
       default:
         return Number(b.deadline) - Number(a.deadline)
     }
@@ -134,7 +134,7 @@ export function AlignedProjectsList({ statementCid }: { statementCid: string }) 
               onChange={(_, v) => v && setSortBy(v)}
               size="small"
             >
-              <ToggleButton value="newest">Newest</ToggleButton>
+              <ToggleButton value="latest">Latest</ToggleButton>
               <ToggleButton value="deadline">Deadline</ToggleButton>
               <ToggleButton value="mostFunded">Most Funded</ToggleButton>
               <ToggleButton value="closestToGoal">Closest to Goal</ToggleButton>

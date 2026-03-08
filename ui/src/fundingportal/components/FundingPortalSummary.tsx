@@ -13,16 +13,13 @@ import { Link as RouterLink } from 'react-router-dom'
 import { formatEther } from 'viem'
 import {
   getTotalFundingForCause,
-  getNoteIntentAttestationsByStatement,
-  getNote,
   getAllAlignedProjectsForCause,
   getProject,
   fetchFromIPFS,
   type IpfsCidV1,
-  type Note,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { isEthNote } from '../../delegation/utils'
+import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 
 export function FundingPortalSummary({ statementCid }: { statementCid: string }) {
@@ -85,22 +82,9 @@ export function FundingPortalSummary({ statementCid }: { statementCid: string })
         }
         setMetadata(newMetadata)
 
-        // Compute available delegatable funding from NoteIntent attestations
-        const attests = await getNoteIntentAttestationsByStatement(machinery, statementCid)
+        const total = await computeAvailableDelegatableFunding(machinery, statementCid)
         if (cancelled) return
-
-        if (attests.length > 0) {
-          const noteResults = await Promise.all(
-            attests.map((a) => getNote(machinery, a.noteId).catch(() => null))
-          )
-          if (cancelled) return
-
-          const activeEthNotes = noteResults.filter(
-            (n): n is Note => n !== null && n.active && isEthNote(n)
-          )
-          const total = activeEthNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
-          setAvailableDelegatable(total)
-        }
+        setAvailableDelegatable(total)
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading funding portal summary:', err)

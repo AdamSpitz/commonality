@@ -14,13 +14,10 @@ import { formatEther } from 'viem'
 import {
   getStatementWithContent,
   getTotalFundingForCause,
-  getNoteIntentAttestationsByStatement,
-  getNote,
   type IpfsCidV1,
-  type Note,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { isEthNote } from '../../delegation/utils'
+import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
 import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
 import { DelegatableNotesSection } from '../components/DelegatableNotesSection'
@@ -67,22 +64,9 @@ export function StatementFundingPortalPage() {
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
         setProjectCount(fundingMetrics.projectCount)
 
-        // Compute available delegatable funding from NoteIntent attestations
-        const attests = await getNoteIntentAttestationsByStatement(machinery, cid)
+        const total = await computeAvailableDelegatableFunding(machinery, cid)
         if (cancelled) return
-
-        if (attests.length > 0) {
-          const noteResults = await Promise.all(
-            attests.map(a => getNote(machinery, a.noteId).catch(() => null))
-          )
-          if (cancelled) return
-
-          const activeEthNotes = noteResults.filter(
-            (n): n is Note => n !== null && n.active && isEthNote(n)
-          )
-          const total = activeEthNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
-          setAvailableDelegatable(total)
-        }
+        setAvailableDelegatable(total)
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading funding portal:', err)
