@@ -35,5 +35,5 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 ## High-level overview of current status
 
 - Delegation UI complete with unit tests (utils, NoteDetailPage, DepositPage, BuyTokensSection).
-- Funding Portals UI complete. Code review done (4 bugs fixed). Unit tests still pending.
+- Funding Portals UI complete. Code review done (4 bugs fixed). AlignedProjectsList has 20 unit tests. Other portal components have no tests yet.
 - For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.

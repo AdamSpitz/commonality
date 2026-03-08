@@ -4,12 +4,18 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding portals UI review is complete. Four bugs were fixed. Good stopping point — could now do:
-- Add unit tests for funding portal components (AlignedProjectsList filter/sort logic would be easiest first target)
+AlignedProjectsList unit tests done (20 tests). Good stopping point — could now do:
+- Add unit tests for other funding portal components (DelegatableNotesSection, AlignmentAttestationsSection, FundingPortalSummary)
 - Extract computeAvailableDelegatableFunding helper (DRY refactor, medium complexity)
 - E2E test for deposit → delegate → spend flow
 
 ## Key notes from this session
+
+- Added 20 unit tests for `AlignedProjectsList` component (`ui/src/fundingportal/components/AlignedProjectsList.test.tsx`)
+  - Coverage: loading, error, empty states, status filter (all/active/succeeded/refunding), alignment filter (all/direct/indirect), all 4 sort options (newest/deadline/mostFunded/closestToGoal)
+  - Key pattern: use named metadata (via mocked getProject + fetchFromIPFS) to distinguish projects in filter/sort tests
+  - Pitfall: LinearProgress in cards also has role="progressbar", so don't wait for progressbar absence to detect load completion — wait for project name text instead
+  - Pitfall: "Direct"/"Indirect" appear in both filter buttons and alignment chips, use getAllByText not getByText
 
 - Reviewed and fixed funding portals UI (`ui/src/fundingportal/`)
   - Review file: `funding-portals-review.md`
