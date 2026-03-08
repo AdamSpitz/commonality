@@ -118,7 +118,7 @@ The ProjectDetailPage test file (1822 lines, very thorough) does not mock or tes
 
 1. (DONE) **Fix the NoteDetailPage null dereference bug** — move permission flag computation after the null guard
 2. (DONE) **Add unit tests for NoteDetailPage** — highest priority; complex component with many interaction paths
-3. **Add unit tests for DepositPage** — multi-step form with validation and sequential transactions
-4. **Add tests for BuyTokensSection note flow** — the "Fund with delegatable note" toggle has no coverage
+3. (DONE) **Add unit tests for DepositPage** — multi-step form with validation and sequential transactions
+4. (DONE) **Add tests for BuyTokensSection note flow** — the "Fund with delegatable note" toggle has no coverage
 5. (DONE) **Add tests for delegation/utils.ts** — quick win, four pure functions
 6. **Consider an E2E test for the deposit → delegate → spend flow** — would catch integration issues across modules
