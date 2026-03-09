@@ -4,11 +4,19 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Funding portal DRY refactor + rename done. Good stopping point. Could now do:
-- Add unit tests for other funding portal components (DelegatableNotesSection, AlignmentAttestationsSection, FundingPortalSummary)
+Added 20 unit tests for `DelegatableNotesSection`. Still remaining for funding portal components:
+- Add unit tests for `AlignmentAttestationsSection` (needs wagmi mocks: useAccount, useWalletClient, usePublicClient)
+- Add unit tests for `FundingPortalSummary` (needs: getTotalFundingForCause, getAllAlignedProjectsForCause, getProject, fetchFromIPFS, computeAvailableDelegatableFunding)
 - E2E test for deposit → delegate → spend flow
 
 ## Key notes from this session
+
+- Added 20 unit tests for `DelegatableNotesSection` (`ui/src/fundingportal/components/DelegatableNotesSection.test.tsx`)
+  - Coverage: collapsed state (no fetch until opened), loading/error/empty states, note filtering (inactive/non-ETH/failed-load excluded), table display (headers, link, amount format, Direct/Delegated chips, truncated addresses, multiple rows), toggle behavior (reloads on re-open)
+  - Mocks needed: `createSDKMachinery`, `getNoteIntentAttestationsByStatement`, `getNote`, `react-router-dom` (Link)
+  - MUI Collapse: children stay in DOM when closed (no `unmountOnExit`), so test behaviors (fetch not called) rather than DOM absence when collapsed
+
+## Previous session notes (DRY refactor)
 
 - DRY: extracted `computeAvailableDelegatableFunding` into `ui/src/fundingportal/utils.ts`
   - Was duplicated in `FundingPortalSummary.tsx` and `StatementFundingPortalPage.tsx`

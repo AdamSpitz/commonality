@@ -18,6 +18,7 @@ Main thing I want to work on next:
     - [x] Tests: AlignedProjectsList unit tests (20 tests: loading/error/filter/sort)
     - [x] DRY: extract computeAvailableDelegatableFunding helper (used in 2 places)
     - [x] Naming: consider renaming 'newest' sort to 'latest' in AlignedProjectsList
+    - [x] Tests: DelegatableNotesSection unit tests (20 tests: toggle/loading/error/filter/table/delegation)
 
 Other big things to do soon:
   - Get the e2e tests (npm run ui:test:e2e) working.
