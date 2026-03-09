@@ -20,6 +20,7 @@ Main thing I want to work on next:
     - [x] Naming: consider renaming 'newest' sort to 'latest' in AlignedProjectsList
     - [x] Tests: DelegatableNotesSection unit tests (20 tests: toggle/loading/error/filter/table/delegation)
     - [x] Tests: AlignmentAttestationsSection unit tests (20 tests: loading/error/empty/list/button/dialog)
+    - [x] Tests: FundingPortalSummary unit tests (20 tests: loading/error/metrics/empty/top-projects)
 
 Other big things to do soon:
   - Get the e2e tests (npm run ui:test:e2e) working.

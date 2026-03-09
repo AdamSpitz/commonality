@@ -4,11 +4,20 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-Added 20 unit tests for `AlignmentAttestationsSection`. Still remaining for funding portal components:
-- Add unit tests for `FundingPortalSummary` (needs: getTotalFundingForCause, getAllAlignedProjectsForCause, getProject, fetchFromIPFS, computeAvailableDelegatableFunding)
-- E2E test for deposit → delegate → spend flow
+All funding portal components now have unit tests. The funding portals feature is complete.
+- E2E test for deposit → delegate → spend flow (see TODO.md "Other big things to do soon")
+- Or: Fix the problems in the different workspaces' TODO.md files
+
+This is a good interrupt point — the funding portal UI work is fully done (review, bug fixes, DRY refactor, all component tests). Consider a project-wide review or switching to a different area.
 
 ## Key notes from this session
+
+- Added 20 unit tests for `FundingPortalSummary` (`ui/src/fundingportal/components/FundingPortalSummary.test.tsx`)
+  - Coverage: loading/error/error-generic, metrics (heading, "View Funding Portal" link, totalRaised ETH, availableDelegatable ETH, projectCount), empty (no top-projects section), top-projects (heading, metadata name, truncated address fallback, card link, funding amounts, Direct/Indirect chips, top-3-only, sort by progress descending, computeAvailableDelegatableFunding call)
+  - Mocks needed: `createSDKMachinery`, `getTotalFundingForCause`, `getAllAlignedProjectsForCause`, `getProject`, `fetchFromIPFS` (from `@commonality/sdk`), `computeAvailableDelegatableFunding` (from `../utils`), `Link` (from react-router-dom)
+  - `computeAvailableDelegatableFunding` must be mocked via `vi.mock('../utils', () => ({ computeAvailableDelegatableFunding: vi.fn() }))` — path is relative to test file
+
+## Key notes from previous session
 
 - Added 20 unit tests for `AlignmentAttestationsSection` (`ui/src/fundingportal/components/AlignmentAttestationsSection.test.tsx`)
   - Coverage: loading/error/empty, list display (title, CID fallback, truncated attester address, Direct chip, portal link, multiple rows), button visibility (hidden when disconnected, visible when connected), dialog (opens, calls getAllStatements, closes on Cancel, wallet/contract validation errors, success message, error message, list refresh after success)
