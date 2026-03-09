@@ -134,7 +134,7 @@ test.describe('Delegation Flow', () => {
 
     // Verify note appears in "Notes I Control" (ACCOUNT_1 is the leaf owner)
     await expect(page.getByText('Notes I Control')).toBeVisible({ timeout: 20000 })
-    await expect(page.getByText('0.1 ETH')).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('h5').filter({ hasText: '0.1 ETH' })).toBeVisible({ timeout: 20000 })
 
     // =========================================================================
     // Step 5: Navigate to note detail page and verify delegation chain
@@ -145,7 +145,7 @@ test.describe('Delegation Flow', () => {
 
     // Delegation chain visualization should show root and leaf
     await expect(page.getByText('Delegation Chain')).toBeVisible({ timeout: 20000 })
-    await expect(page.getByText('Root')).toBeVisible()
+    await expect(page.getByText('Root', { exact: true })).toBeVisible()
     await expect(page.getByText('Leaf')).toBeVisible()
 
     // Note should be active

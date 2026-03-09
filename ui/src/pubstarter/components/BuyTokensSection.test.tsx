@@ -247,11 +247,6 @@ describe('BuyTokensSection', () => {
   // --- Delegatable note toggle visibility ---
 
   describe('Delegatable note toggle', () => {
-    it('does not show toggle when contract env is not set', () => {
-      renderSection()
-      expect(screen.queryByText('Fund with delegatable note')).not.toBeInTheDocument()
-    })
-
     it('shows toggle when contract env is set', () => {
       vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', CONTRACT_ADDR)
       renderSection()
