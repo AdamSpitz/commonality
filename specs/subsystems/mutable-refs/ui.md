@@ -17,7 +17,7 @@ Columns:
 - **Name** — the ref name (e.g. `created-statements`)
 - **Value** — the current ref value, truncated with ellipsis if long (full value shown on hover/click or in detail view)
 - **Updated** — relative timestamp (e.g. "2 hours ago"), with absolute timestamp on hover
-- **Actions** — Edit and History buttons
+- **Actions** — Edit, Delete, and History buttons
 
 The table is sorted by most-recently-updated first.
 
@@ -60,6 +60,10 @@ This is the "nice extra" — it makes it easy to see what a CID actually points 
 
 An inline edit mode: clicking "Edit" replaces the read-only display with an editable textarea, plus Save and Cancel buttons. Save calls `updateRef`.
 
+### Delete
+
+A "Delete" button that sets the ref's value to the empty string (via `updateRef(name, "")`). This is the only form of deletion the contract supports — there's no way to truly remove a key from the mapping. The UI should present this as "Delete" with a confirmation dialog, since it's the closest thing to deletion that exists. After deletion, the ref will disappear from the table (since the indexer filters out empty-value refs, or the UI filters them client-side).
+
 ### History
 
 A table/list of past values for this ref, from `getUserRefHistory`. Each entry shows:
@@ -95,6 +99,6 @@ Read from environment variables, following the existing pattern:
 ## What's NOT in This UI
 
 - **List-aware editing** — this UI treats ref values as opaque strings. It doesn't understand the `{ statements: [...], version: 1 }` list format or provide list-specific operations (append, remove item, reorder). That belongs in domain-specific UIs (e.g. a statements-list manager).
-- **Ref deletion** — the contract has no delete function; you can only set a ref to an empty string. The UI should not hide this or pretend deletion exists.
+- **True ref deletion** — the contract's mapping can't distinguish "never set" from "set to empty string", so deletion is implemented as setting the value to `""`. The UI presents this as deletion (hides empty-string refs from the table), but there's no way to truly remove the key from the mapping. This is fine.
 - **Batch operations** — updating multiple refs in one action. Not needed for a debug tool.
 - **Access control or sharing** — refs are owned by the caller's address, full stop. No delegation or permissions.
