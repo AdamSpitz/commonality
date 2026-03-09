@@ -34,6 +34,8 @@ function copyContractAddresses(projectRoot: string): void {
     const addressesToCopy = [
       'BELIEFS_CONTRACT_ADDRESS',
       'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
+      'DELEGATABLE_NOTES_ADDRESS',
+      'PUBSTARTER_ADDRESS',
     ];
 
     // Parse the addresses
@@ -62,6 +64,8 @@ function copyContractAddresses(projectRoot: string): void {
     const autoPopulatedPrefixes = [
       ...addressesToCopy.map(key => `VITE_${key}=`),
       'VITE_GRAPHQL_URL=',
+      'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=',
+      'VITE_PUBSTARTER_CONTRACT_ADDRESS=',
       '# Contract addresses (auto-populated',
     ];
     const existingLines = uiEnv.split('\n').filter(line => {
@@ -81,6 +85,9 @@ function copyContractAddresses(projectRoot: string): void {
       '# Contract addresses (auto-populated by E2E test setup)',
       `VITE_BELIEFS_CONTRACT_ADDRESS=${addresses.BELIEFS_CONTRACT_ADDRESS || ''}`,
       `VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS=${addresses.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || ''}`,
+      // Note: DELEGATABLE_NOTES_ADDRESS → VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS (name differs)
+      `VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=${addresses.DELEGATABLE_NOTES_ADDRESS || ''}`,
+      `VITE_PUBSTARTER_CONTRACT_ADDRESS=${addresses.PUBSTARTER_ADDRESS || ''}`,
       // Use the Vite dev-server proxy URL so the browser avoids CORS issues.
       // Both the browser (via Vite proxy) and the Node.js test-runner reach the indexer this way.
       `VITE_GRAPHQL_URL=http://localhost:5173/graphql`,

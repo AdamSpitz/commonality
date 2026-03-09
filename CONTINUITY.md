@@ -4,13 +4,29 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-All funding portal components now have unit tests. The funding portals feature is complete.
-- E2E test for deposit → delegate → spend flow (see TODO.md "Other big things to do soon")
-- Or: Fix the problems in the different workspaces' TODO.md files
+- E2E delegation flow test is implemented; STILL needs verification against Docker stack — run `npm run ui:test:e2e` to verify it passes
+- Write pubstarter E2E tests (see `ui/e2e/TODO.md`)
+- Fix the problems in the different workspaces' TODO.md files
+- Consider project-wide review
 
-This is a good interrupt point — the funding portal UI work is fully done (review, bug fixes, DRY refactor, all component tests). Consider a project-wide review or switching to a different area.
+This is a good interrupt point.
 
-## Key notes from this session
+## Key notes from this session (E2E delegation-flow infrastructure)
+
+Previous session wrote `ui/e2e/delegation-flow.spec.ts` but the infrastructure to provide delegation contract addresses was missing. This session completed it:
+- Extended `global-setup.ts` `copyContractAddresses()` to also copy `DELEGATABLE_NOTES_ADDRESS` → `VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS` and `PUBSTARTER_ADDRESS` → `VITE_PUBSTARTER_CONTRACT_ADDRESS` to ui/.env
+- Extended `getContractAddresses()` in `ui/e2e/utils/blockchain.ts` to expose `delegatableNotesAddress` and `pubstarterAddress` (typed as `0x${string} | undefined`)
+- TypeScript does not cover e2e/ (no tsconfig includes it); code verified manually
+- Test still needs to be run against Docker stack to confirm it works end-to-end
+
+## Key notes from previous session (E2E delegation-flow spec)
+
+- Added E2E test for deposit → delegate → spend flow (`ui/e2e/delegation-flow.spec.ts`)
+  - Test flow: ACCOUNT_0 creates project + deposits 0.1 ETH note + delegates to ACCOUNT_1 → UI verifies note in "Notes I Control" and delegation chain → ACCOUNT_1 spends note via SDK → UI verifies "Inactive" chip
+  - All transactions via SDK (bypasses wagmi); UI verified via Playwright after indexer processes events
+  - Note + spend amounts matched exactly (0.1 ETH = 1 token at 0.1 ETH) so note is fully consumed
+
+## Key notes from previous session
 
 - Added 20 unit tests for `FundingPortalSummary` (`ui/src/fundingportal/components/FundingPortalSummary.test.tsx`)
   - Coverage: loading/error/error-generic, metrics (heading, "View Funding Portal" link, totalRaised ETH, availableDelegatable ETH, projectCount), empty (no top-projects section), top-projects (heading, metadata name, truncated address fallback, card link, funding amounts, Direct/Indirect chips, top-3-only, sort by progress descending, computeAvailableDelegatableFunding call)

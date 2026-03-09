@@ -121,4 +121,4 @@ The ProjectDetailPage test file (1822 lines, very thorough) does not mock or tes
 3. (DONE) **Add unit tests for DepositPage** — multi-step form with validation and sequential transactions
 4. (DONE) **Add tests for BuyTokensSection note flow** — the "Fund with delegatable note" toggle has no coverage
 5. (DONE) **Add tests for delegation/utils.ts** — quick win, four pure functions
-6. **Consider an E2E test for the deposit → delegate → spend flow** — would catch integration issues across modules
+6. (DONE) **Consider an E2E test for the deposit → delegate → spend flow** — would catch integration issues across modules
