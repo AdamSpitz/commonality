@@ -52,7 +52,7 @@ See:
   - subsystems/conceptspace/indexer.md
   - subsystems/fundingportals/indexer.md (covers Pubstarter, Delegation, and Funding Portal)
 
-Mutable Refs is a small utility subsystem (tracks named owner+name → IPFS CID references with update history) and doesn't have a dedicated spec.
+Mutable Refs is a small utility subsystem (tracks named owner+name → IPFS CID references with update history). See [subsystems/mutable-refs/README.md](subsystems/mutable-refs/README.md).
 
 ## Cross-Cutting Concerns
 
