@@ -32,6 +32,7 @@ const navigationItems = [
   { label: 'My Notes', path: '/notes' },
   { label: 'My Profile', path: '/profile' },
   { label: 'Settings', path: '/settings' },
+  { label: 'Refs', path: '/refs' },
 ]
 
 export function AppShell({ children }: AppShellProps) {
