@@ -208,7 +208,7 @@ When asking AI to generate mid-level specs and code, I've found that it sometime
 
 In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
 
-Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI recommendation (which is fine with me, I don't know much about it): use CIDv1 with SHA-256. For onchain storage, convert to bytes32 by extracting the 32-byte digest. Need helper functions cidToBytes32() and bytes32ToCid() using the multiformats library.
+Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI recommendation (which is fine with me, I don't know much about it): use CIDv1 with SHA-256. For onchain storage, convert to bytes32 by extracting the 32-byte digest. Need helper functions cidToBytes32() and bytes32ToCid().
 
 #### Integration points between artifacts
 

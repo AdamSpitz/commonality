@@ -19,8 +19,7 @@
     "ponder": "^0.15.10",
     "abitype": "^0.10.2",
     "hono": "^4.5.0",
-    "viem": "^2.21.3",
-    "multiformats": "^13.0.0"
+    "viem": "^2.21.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

@@ -11,7 +11,7 @@ import { createPublicClient, createWalletClient, http, toHex } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { namehash, normalize } from 'viem/ens';
-import { CID } from 'multiformats/cid';
+import { parseCidToV1Bytes } from './cid-utils.js';
 
 const ensName = process.env.ENS_NAME;
 const ipfsCid = process.env.IPFS_CID;
@@ -42,8 +42,7 @@ const walletClient = createWalletClient({
 
 // Encode IPFS CID as ENS contenthash per EIP-1577:
 // contenthash = 0xe3 (IPFS namespace) + CIDv1 binary bytes
-const cidV1 = CID.parse(ipfsCid).toV1();
-const contenthash = new Uint8Array([0xe3, ...cidV1.bytes]);
+const contenthash = new Uint8Array([0xe3, ...parseCidToV1Bytes(ipfsCid)]);
 const contenthashHex = toHex(contenthash);
 
 console.log(`Encoded contenthash: ${contenthashHex}`);

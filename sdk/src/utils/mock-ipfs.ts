@@ -1,9 +1,7 @@
-import { CID } from 'multiformats/cid';
-import * as raw from 'multiformats/codecs/raw';
-import { sha256 } from 'multiformats/hashes/sha2';
 import { Buffer } from 'buffer';
-import { IpfsCidV1, normalizeCidV1 } from './cid-types';
+import { IpfsCidV1, normalizeCidV1, buildCidV1FromDigest } from './cid-types';
 
+const RAW_CODEC = 0x55;
 
 /**
  * In-memory mock IPFS storage for unit tests
@@ -33,10 +31,10 @@ export function clearMockIPFS(): void {
  */
 export async function uploadToMockIPFS(content: object): Promise<IpfsCidV1> {
   const bytes = Buffer.from(JSON.stringify(content));
-  const hash = await sha256.digest(bytes);
-  const cid = CID.create(1, raw.code, hash);
-  const cidString = normalizeCidV1(cid.toString());
-  // Store in mock IPFS so it can be fetched later
+  const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+  const digest = new Uint8Array(hashBuffer);
+  const cid = buildCidV1FromDigest(RAW_CODEC, digest);
+  const cidString = normalizeCidV1(cid);
   mockIPFSStore.set(cidString, content);
   return cidString;
 }

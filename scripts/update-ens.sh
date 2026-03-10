@@ -77,7 +77,7 @@ case "$NETWORK" in
 esac
 
 # --- Check dependencies ---
-if ! node -e "await import('viem'); await import('multiformats/cid')" 2>/dev/null; then
+if ! node -e "await import('viem')" 2>/dev/null; then
   echo "Error: required Node.js dependencies not installed."
   echo "Run 'npm install' from the project root ($ROOT)"
   exit 1
