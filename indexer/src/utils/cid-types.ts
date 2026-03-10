@@ -1,4 +1,4 @@
-import { CID } from "multiformats";
+import { CID } from 'multiformats';
 
 const DAG_PB_CODE = 0x70;
 
