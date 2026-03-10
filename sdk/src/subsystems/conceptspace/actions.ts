@@ -330,8 +330,11 @@ export async function createAndSignStatement(
         onListUpdated(updateListTxHash);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      console.warn(`Failed to update created-statements list (statement still created): ${message}`);
+      // It's annoying to see this message in the tests' console output.
+      if (!machinery.testConfig.areWeJustRunningTests && !machinery.testConfig.shouldTestsBeVerbose) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.warn(`Failed to update created-statements list (statement still created): ${message}`);
+      }
     }
   }
 
