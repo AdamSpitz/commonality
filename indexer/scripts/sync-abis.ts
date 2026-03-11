@@ -42,7 +42,7 @@ function main() {
       cwd: HARDHAT_ROOT,
       stdio: "inherit",
     });
-  } catch (error) {
+  } catch {
     console.error("Failed to compile contracts. Make sure hardhat dependencies are installed.");
     process.exit(1);
   }
