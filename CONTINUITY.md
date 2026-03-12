@@ -4,9 +4,7 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-- Pluggable-condition downstream refactor is PARTIALLY done (Tasks 1-5 complete). Still remaining:
-  - Task 6: Run integration tests against Docker stack to verify filtering/sorting by threshold/deadline still works
-  - Task 7: `delegation-spending.test.ts` — verify `createAssuranceContract` call isn't broken (likely already fine)
+- Pluggable-condition downstream refactor is **COMPLETE** (all tasks done)
 - E2E delegation flow test is implemented; STILL needs verification against Docker stack — run `npm run ui:test:e2e` to verify it passes
 - Write pubstarter E2E tests (see `ui/e2e/TODO.md`)
 - Fix the problems in the different workspaces' TODO.md files

@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Finish the pluggable-condition downstream refactor (Tasks 1-3, 5 DONE; Tasks 6-7 remain — see section below).
+  - ~~Finish the pluggable-condition downstream refactor~~ ✓ DONE (Tasks 1-3, 5-7 all complete)
 
 Other big things to do soon:
   - The issues in the different workspaces' TODO.md files (see below).
@@ -117,17 +117,15 @@ events, we'd add it here with env var `ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS`.
 invariant silently produces wrong results. Must be updated to match whatever schema change
 is made in Task 3.
 
-### Task 6: Update `integration-tests/src/pubstarter/pubstarter-filtering-sorting.test.ts` (HIGH)
+### ~~Task 6: Update `integration-tests/src/pubstarter/pubstarter-filtering-sorting.test.ts`~~ ✓ DONE (no changes needed)
 
-Tests that sort/filter by `threshold` and `deadline` from indexed data will break if those
-fields are 0 or null. Update to match the new schema.
+Tests pass as-is — projects are created via `createProjectChecked` → SDK → Pubstarter (still accepts threshold/deadline),
+and the indexer correctly populates threshold/deadline via on-chain reads. Verified by pre-commit integration test run.
 
-### Task 7: Update `DelegatableNotes.purchase.test.js` call to `createAssuranceContract` in integration tests
+### ~~Task 7: Update `delegation-spending.test.ts` call to `createAssuranceContract`~~ ✓ DONE (no changes needed)
 
-Check `integration-tests/src/delegation/delegation-spending.test.ts` for calls to
-`createAssuranceContract` with the old 5-arg signature. Update to the new 3-arg signature
-`(owner, recipient, projectMetadataCid)` + deploy condition + call `setCondition`.
-(The hardhat-level `DelegatableNotes.purchase.test.js` has already been updated.)
+`delegation-spending.test.ts` uses `createProjectChecked` (not `createAssuranceContract` directly). No change needed.
+Verified by pre-commit integration test run.
 
 ### Low priority / no change needed
 
