@@ -6,4 +6,4 @@
 
 ## TO DO
 
-I'm not sure exactly what's done already and what's not, but we just wrote the UI code for the pubstarter subsystem, and I suspect we don't have e2e tests for it yet. So that'd be a good thing to do.
+I'm not sure exactly what's done already and what's not, but we just wrote the UI code for some other subsystems (pubstarter, fundingportals, mutablerefs, anything else?), and I suspect we don't have e2e tests for them yet. So that'd be a good thing to do.

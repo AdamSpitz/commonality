@@ -38,7 +38,7 @@ import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { AlignmentAttestationsSection } from '../../fundingportal/components'
 
-type ProjectMetadata = { name?: string; description?: string }
+type ProjectMetadata = { name?: string; description?: string; tokens?: Record<string, string> }
 
 export function ProjectDetailPage() {
   const { projectAddress } = useParams<{ projectAddress: string }>()
@@ -47,6 +47,7 @@ export function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null)
   const [tokens, setTokens] = useState<ProjectToken[]>([])
+  const [tokenImages, setTokenImages] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -138,7 +139,23 @@ export function ProjectDetailPage() {
     if (proj.metadataCid) {
       const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
       const data = await fetchFromIPFS(ipfsConfig, proj.metadataCid)
-      if (data) setMetadata(data as ProjectMetadata)
+      if (data) {
+        const meta = data as ProjectMetadata
+        setMetadata(meta)
+
+        // Fetch per-token metadata (images) if present
+        if (meta.tokens && Object.keys(meta.tokens).length > 0) {
+          const images: Record<string, string> = {}
+          await Promise.all(
+            Object.entries(meta.tokens).map(async ([tokenId, cid]) => {
+              const tokenMeta = await fetchFromIPFS(ipfsConfig, cid)
+              const img = (tokenMeta as Record<string, string> | null)?.image
+              if (img) images[tokenId] = img
+            })
+          )
+          setTokenImages(images)
+        }
+      }
     }
 
     return proj
@@ -198,6 +215,7 @@ export function ProjectDetailPage() {
           tokens={tokens}
           address={address}
           onProjectRefresh={handleRefresh}
+          tokenImages={tokenImages}
         />
       )}
 
@@ -231,6 +249,7 @@ export function ProjectDetailPage() {
           userBurns={userBurns}
           address={address}
           onRefresh={handleRefresh}
+          tokenImages={tokenImages}
         />
       )}
 
@@ -242,6 +261,7 @@ export function ProjectDetailPage() {
           isConnected={isConnected}
           address={address}
           onRefresh={handleRefresh}
+          tokenImages={tokenImages}
         />
       )}
 

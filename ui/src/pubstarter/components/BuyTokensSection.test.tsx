@@ -134,6 +134,51 @@ describe('BuyTokensSection', () => {
     await user.click(options[0])
   }
 
+  // --- Token images ---
+
+  describe('Token images', () => {
+    it('renders token image when tokenImages prop is provided', () => {
+      const tokens = [makeToken({ tokenId: '1' })]
+      const tokenImages = { '1': 'ipfs://bafyimage123' }
+      render(
+        <BuyTokensSection
+          project={makeProject()}
+          tokens={tokens}
+          address={USER_ADDR}
+          onProjectRefresh={onProjectRefresh}
+          tokenImages={tokenImages}
+        />
+      )
+      const img = screen.getByAltText('Token #1')
+      expect(img).toBeInTheDocument()
+      expect(img).toHaveAttribute('src', 'ipfs://bafyimage123')
+    })
+
+    it('does not render image when tokenImages is not provided', () => {
+      renderSection()
+      expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    })
+
+    it('renders images for multiple tokens', () => {
+      const tokens = [makeToken({ tokenId: '1' }), makeToken({ tokenId: '2' })]
+      const tokenImages = {
+        '1': 'ipfs://bafyimage1',
+        '2': 'ipfs://bafyimage2',
+      }
+      render(
+        <BuyTokensSection
+          project={makeProject()}
+          tokens={tokens}
+          address={USER_ADDR}
+          onProjectRefresh={onProjectRefresh}
+          tokenImages={tokenImages}
+        />
+      )
+      expect(screen.getByAltText('Token #1')).toHaveAttribute('src', 'ipfs://bafyimage1')
+      expect(screen.getByAltText('Token #2')).toHaveAttribute('src', 'ipfs://bafyimage2')
+    })
+  })
+
   // --- Direct purchase mode ---
 
   describe('Direct ETH purchase mode', () => {

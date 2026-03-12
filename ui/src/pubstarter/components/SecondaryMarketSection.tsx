@@ -41,6 +41,7 @@ interface SecondaryMarketSectionProps {
   isConnected: boolean
   address: string | undefined
   onRefresh: () => void
+  tokenImages?: Record<string, string>
 }
 
 export function SecondaryMarketSection({
@@ -50,6 +51,7 @@ export function SecondaryMarketSection({
   isConnected,
   address,
   onRefresh,
+  tokenImages = {},
 }: SecondaryMarketSectionProps) {
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
@@ -231,7 +233,19 @@ export function SecondaryMarketSection({
                   <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
                     {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
                   </TableCell>
-                  <TableCell>{listing.tokenId}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {tokenImages[listing.tokenId] && (
+                        <Box
+                          component="img"
+                          src={tokenImages[listing.tokenId]}
+                          alt={`Token #${listing.tokenId}`}
+                          sx={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 0.5 }}
+                        />
+                      )}
+                      {listing.tokenId}
+                    </Box>
+                  </TableCell>
                   <TableCell align="right">{listing.remainingCount}</TableCell>
                   <TableCell align="right">{formatEther(BigInt(listing.pricePerToken))} ETH</TableCell>
                   {isConnected && (
@@ -288,7 +302,19 @@ export function SecondaryMarketSection({
                   <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
                     {order.buyer.slice(0, 6)}...{order.buyer.slice(-4)}
                   </TableCell>
-                  <TableCell>{order.tokenId}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {tokenImages[order.tokenId] && (
+                        <Box
+                          component="img"
+                          src={tokenImages[order.tokenId]}
+                          alt={`Token #${order.tokenId}`}
+                          sx={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 0.5 }}
+                        />
+                      )}
+                      {order.tokenId}
+                    </Box>
+                  </TableCell>
                   <TableCell align="right">{order.remainingCount}</TableCell>
                   <TableCell align="right">{formatEther(BigInt(order.pricePerToken))} ETH</TableCell>
                   {isConnected && (

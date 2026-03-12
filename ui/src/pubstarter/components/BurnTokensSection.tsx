@@ -12,9 +12,10 @@ interface BurnTokensSectionProps {
   userBurns: TokenBurn[]
   address: string | undefined
   onRefresh: () => void
+  tokenImages?: Record<string, string>
 }
 
-export function BurnTokensSection({ project, contributions, refunds, userBurns, address, onRefresh }: BurnTokensSectionProps) {
+export function BurnTokensSection({ project, contributions, refunds, userBurns, address, onRefresh, tokenImages = {} }: BurnTokensSectionProps) {
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
 
@@ -84,6 +85,14 @@ export function BurnTokensSection({ project, contributions, refunds, userBurns, 
       <Stack spacing={2}>
         {userBurnableTokens.map(({ tokenId, count }) => (
           <Box key={tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {tokenImages[tokenId] && (
+              <Box
+                component="img"
+                src={tokenImages[tokenId]}
+                alt={`Token #${tokenId}`}
+                sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+              />
+            )}
             <Typography variant="body1" sx={{ minWidth: 120 }}>
               Token #{tokenId}
             </Typography>

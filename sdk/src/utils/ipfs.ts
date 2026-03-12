@@ -1,5 +1,5 @@
 import { IpfsCidV1, normalizeCidV1 } from "./cid-types";
-import { fetchFromMockIPFS, uploadToMockIPFS } from "./mock-ipfs";
+import { fetchFromMockIPFS, uploadToMockIPFS, uploadBlobToMockIPFS } from "./mock-ipfs";
 
 export type IPFSConfig = {
   gatewayUrl?: string;
@@ -132,4 +132,38 @@ export async function uploadToIPFS(ipfsConfig: IPFSConfig, content: object): Pro
 
   // Mock mode: create deterministic CID and store content in memory
   return uploadToMockIPFS(content);
+}
+
+/**
+ * Upload a binary blob (e.g. an image file) to IPFS
+ *
+ * Modes:
+ * - Real IPFS: When IPFS_API env var is set, uploads to actual IPFS node
+ * - Mock mode: Otherwise, generates a deterministic CID from the blob content
+ */
+export async function uploadBlobToIPFS(ipfsConfig: IPFSConfig, blob: Blob): Promise<IpfsCidV1> {
+  const ipfsApi = ipfsConfig.apiUrl;
+
+  if (ipfsApi) {
+    try {
+      const formData = new FormData();
+      formData.append('file', blob);
+
+      const response = await fetch(`${ipfsApi}/api/v0/add?pin=true`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`IPFS upload failed: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json() as { Hash: string };
+      return normalizeCidV1(result.Hash);
+    } catch (error) {
+      console.warn('IPFS blob upload failed, falling back to mock mode:', error);
+    }
+  }
+
+  return uploadBlobToMockIPFS(blob);
 }

@@ -11,6 +11,7 @@ interface BuyTokensSectionProps {
   tokens: ProjectToken[]
   address: string | undefined
   onProjectRefresh: () => void
+  tokenImages?: Record<string, string>
 }
 
 function getDelegatableNotesContract() {
@@ -19,7 +20,7 @@ function getDelegatableNotesContract() {
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
 
-export function BuyTokensSection({ project, tokens, address, onProjectRefresh }: BuyTokensSectionProps) {
+export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {} }: BuyTokensSectionProps) {
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
   const machinery = useMachinery()
@@ -261,6 +262,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh }:
 
                 {tokens.map((token) => (
                   <Box key={token.tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    {tokenImages[token.tokenId] && (
+                      <Box
+                        component="img"
+                        src={tokenImages[token.tokenId]}
+                        alt={`Token #${token.tokenId}`}
+                        sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+                      />
+                    )}
                     <Typography variant="body1" sx={{ minWidth: 120 }}>
                       Token #{token.tokenId}
                     </Typography>
@@ -307,6 +316,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh }:
           <>
             {tokens.map((token) => (
               <Box key={token.tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {tokenImages[token.tokenId] && (
+                  <Box
+                    component="img"
+                    src={tokenImages[token.tokenId]}
+                    alt={`Token #${token.tokenId}`}
+                    sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+                  />
+                )}
                 <Typography variant="body1" sx={{ minWidth: 120 }}>
                   Token #{token.tokenId}
                 </Typography>

@@ -31,10 +31,11 @@ vi.mock('@commonality/sdk', async () => {
     ...actual,
     createProject: vi.fn(),
     uploadToIPFS: vi.fn(),
+    uploadBlobToIPFS: vi.fn(),
   }
 })
 
-import { createProject, uploadToIPFS } from '@commonality/sdk'
+import { createProject, uploadToIPFS, uploadBlobToIPFS } from '@commonality/sdk'
 
 describe('CreateProjectPage', () => {
   beforeEach(() => {
@@ -43,6 +44,8 @@ describe('CreateProjectPage', () => {
     mockAccount.address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
     // Set required env var for contract address
     import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
+    // Mock URL.createObjectURL for image preview (not available in JSDOM)
+    URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-preview-url')
   })
 
   describe('Wallet not connected', () => {
@@ -279,6 +282,118 @@ describe('CreateProjectPage', () => {
       await user.click(screen.getByRole('button', { name: /view project/i }))
 
       expect(mockNavigate).toHaveBeenCalledWith('/projects/0xassurance')
+    })
+  })
+
+  describe('Per-token images', () => {
+    async function fillFormMinimal(user: ReturnType<typeof userEvent.setup>) {
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+      const futureDate = new Date(Date.now() + 86400000 * 30)
+      await user.type(screen.getByLabelText(/deadline/i), futureDate.toISOString().slice(0, 16))
+      await user.type(screen.getByLabelText(/supply/i), '100')
+      await user.type(screen.getByLabelText(/price/i), '0.1')
+    }
+
+    it('renders Token Name field for each token type', () => {
+      render(<CreateProjectPage />)
+      expect(screen.getByLabelText(/token name/i)).toBeInTheDocument()
+    })
+
+    it('renders image upload button for each token type', () => {
+      render(<CreateProjectPage />)
+      expect(screen.getByRole('button', { name: /upload image/i })).toBeInTheDocument()
+    })
+
+    it('does not call uploadBlobToIPFS when no image is selected', async () => {
+      vi.mocked(uploadToIPFS).mockResolvedValue('bafymeta' as any)
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      await fillFormMinimal(user)
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => expect(screen.getByText(/project created successfully/i)).toBeInTheDocument())
+      expect(uploadBlobToIPFS).not.toHaveBeenCalled()
+    })
+
+    it('uploads image and per-token metadata when an image is selected', async () => {
+      vi.mocked(uploadBlobToIPFS).mockResolvedValue('bafyimage123' as any)
+      vi.mocked(uploadToIPFS)
+        .mockResolvedValueOnce('bafytokenmeta' as any)  // per-token metadata
+        .mockResolvedValueOnce('bafyprojectmeta' as any) // project metadata
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      await fillFormMinimal(user)
+
+      // Upload a fake image file
+      const imageFile = new File(['image data'], 'token.png', { type: 'image/png' })
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      await user.upload(fileInput, imageFile)
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => {
+        expect(uploadBlobToIPFS).toHaveBeenCalledWith(expect.objectContaining({}), imageFile)
+        expect(uploadToIPFS).toHaveBeenCalledWith(
+          expect.objectContaining({}),
+          expect.objectContaining({ image: 'ipfs://bafyimage123' })
+        )
+        expect(uploadToIPFS).toHaveBeenCalledWith(
+          expect.objectContaining({}),
+          expect.objectContaining({ tokens: { '0': 'bafytokenmeta' } })
+        )
+      })
+    })
+
+    it('includes token name in per-token metadata', async () => {
+      vi.mocked(uploadBlobToIPFS).mockResolvedValue('bafyimage123' as any)
+      vi.mocked(uploadToIPFS)
+        .mockResolvedValueOnce('bafytokenmeta' as any)
+        .mockResolvedValueOnce('bafyprojectmeta' as any)
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      await fillFormMinimal(user)
+      await user.type(screen.getByLabelText(/token name/i), 'Gold Tier')
+
+      const imageFile = new File(['image data'], 'token.png', { type: 'image/png' })
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      await user.upload(fileInput, imageFile)
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      await waitFor(() => {
+        expect(uploadToIPFS).toHaveBeenCalledWith(
+          expect.objectContaining({}),
+          expect.objectContaining({ name: 'Gold Tier', image: 'ipfs://bafyimage123' })
+        )
+      })
     })
   })
 

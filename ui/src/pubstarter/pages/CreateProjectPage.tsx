@@ -17,6 +17,7 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   createProject,
   uploadToIPFS,
+  uploadBlobToIPFS,
   PubstarterAbi,
   type PubstarterContract,
   type TestClients,
@@ -27,9 +28,12 @@ interface TokenTypeRow {
   tokenId: string
   supply: string
   price: string
+  name: string
+  imageFile: File | null
+  imagePreviewUrl: string | null
 }
 
-const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '' }
+const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '', name: '', imageFile: null, imagePreviewUrl: null }
 
 export function CreateProjectPage() {
   const navigate = useNavigate()
@@ -55,7 +59,7 @@ export function CreateProjectPage() {
 
   const addTokenType = () => {
     const nextId = Math.max(...tokenTypes.map(t => parseInt(t.tokenId) || 0)) + 1
-    setTokenTypes(prev => [...prev, { tokenId: String(nextId), supply: '', price: '' }])
+    setTokenTypes(prev => [...prev, { tokenId: String(nextId), supply: '', price: '', name: '', imageFile: null, imagePreviewUrl: null }])
   }
 
   const removeTokenType = (index: number) => {
@@ -98,10 +102,31 @@ export function CreateProjectPage() {
         apiUrl: import.meta.env.VITE_IPFS_API,
         gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY,
       }
-      const metadataCid = await uploadToIPFS(ipfsConfig, {
+
+      // Upload per-token metadata (images) if provided
+      const tokenMetadataCids: Record<string, string> = {}
+      for (const token of tokenTypes) {
+        if (!token.imageFile && !token.name) continue
+        const tokenMeta: Record<string, string> = {
+          name: token.name.trim() || `Token #${token.tokenId}`,
+        }
+        if (token.imageFile) {
+          const imageCid = await uploadBlobToIPFS(ipfsConfig, token.imageFile)
+          tokenMeta.image = `ipfs://${imageCid}`
+        }
+        const tokenMetaCid = await uploadToIPFS(ipfsConfig, tokenMeta)
+        tokenMetadataCids[token.tokenId] = tokenMetaCid
+      }
+
+      const projectMeta: Record<string, unknown> = {
         name: name.trim(),
         description: description.trim(),
-      })
+      }
+      if (Object.keys(tokenMetadataCids).length > 0) {
+        projectMeta.tokens = tokenMetadataCids
+      }
+
+      const metadataCid = await uploadToIPFS(ipfsConfig, projectMeta)
 
       const pubstarterAddress = import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS
       if (!pubstarterAddress) {
@@ -217,7 +242,7 @@ export function CreateProjectPage() {
 
             <Stack spacing={2}>
               {tokenTypes.map((token, index) => (
-                <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box key={index} sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2 }}>
                   <TextField
                     type="number"
                     size="small"
@@ -247,6 +272,41 @@ export function CreateProjectPage() {
                     sx={{ width: 160 }}
                     required
                   />
+                  <TextField
+                    size="small"
+                    label="Token Name (optional)"
+                    value={token.name}
+                    onChange={(e) => handleTokenTypeChange(index, 'name', e.target.value)}
+                    sx={{ width: 200 }}
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Button
+                      component="label"
+                      size="small"
+                      variant="outlined"
+                    >
+                      {token.imageFile ? token.imageFile.name : 'Upload Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        aria-label={`Token ${index + 1} image`}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null
+                          const previewUrl = file ? URL.createObjectURL(file) : null
+                          setTokenTypes(prev => prev.map((row, i) => i === index ? { ...row, imageFile: file, imagePreviewUrl: previewUrl } : row))
+                        }}
+                      />
+                    </Button>
+                    {token.imagePreviewUrl && (
+                      <Box
+                        component="img"
+                        src={token.imagePreviewUrl}
+                        alt="Token preview"
+                        sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+                      />
+                    )}
+                  </Box>
                   {tokenTypes.length > 1 && (
                     <IconButton onClick={() => removeTokenType(index)} size="small" aria-label="Remove token type">
                       <DeleteIcon />

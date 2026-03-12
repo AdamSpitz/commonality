@@ -38,3 +38,15 @@ export async function uploadToMockIPFS(content: object): Promise<IpfsCidV1> {
   mockIPFSStore.set(cidString, content);
   return cidString;
 }
+
+/**
+ * Upload a blob to mock IPFS store in memory
+ * Generates deterministic CID based on blob content
+ */
+export async function uploadBlobToMockIPFS(blob: Blob): Promise<IpfsCidV1> {
+  const bytes = await blob.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+  const digest = new Uint8Array(hashBuffer);
+  const cid = buildCidV1FromDigest(RAW_CODEC, digest);
+  return normalizeCidV1(cid);
+}

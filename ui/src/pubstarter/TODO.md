@@ -46,10 +46,10 @@ Each chunk should build, pass lint, and get committed.
 - [x] Implement `CreateProjectPage.tsx`: form with project name, description (textarea/markdown), recipient address (defaults to connected wallet), funding threshold (ETH), deadline (date picker), token types (dynamic list with add/remove — token ID, supply, price). On submit: upload metadata to IPFS via `uploadToIPFS`, call `createProject` (which calls `createERC1155AndMarketplaceAndAssuranceContract`) via wagmi, show success with link to new project page. Requires `VITE_PUBSTARTER_CONTRACT_ADDRESS` env var.
 - [x] Write tests (19 tests covering form rendering, validation, token type management, submission, error handling)
 
-### Chunk 7: Per-Token Images (Optional Enhancement)
-- [ ] Add image upload to token type form (one image per token)
-- [ ] On submit, upload JSON metadata per token: `{ "name": "...", "description": "...", "image": "ipfs://<image-cid>" }` - use ERC-1155's `{id}` substitution pattern where base URI is a directory with `{id}.json` files
-- [ ] Display token images in ProjectDetailPage (Buy Tokens, Burns, Sale Listings sections)
-- [ ] Update tests
+### Chunk 7: Per-Token Images ✅
+- [x] Add image upload to token type form (one image per token)
+- [x] On submit, upload JSON metadata per token: `{ "name": "...", "image": "ipfs://<image-cid>" }` stored in project metadata as `tokens: { tokenId -> metadataCid }`
+- [x] Display token images in ProjectDetailPage (Buy Tokens, Burns, Sale Listings sections)
+- [x] Update tests
 
 Note: The contract already supports per-token metadata via ERC-1155's URI substitution. No contract changes needed.
