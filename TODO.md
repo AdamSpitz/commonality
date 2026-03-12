@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Finish the pluggable-condition downstream refactor (Tasks 1-3 DONE; Tasks 4-7 remain — see section below).
+  - Finish the pluggable-condition downstream refactor (Tasks 1-3, 5 DONE; Tasks 6-7 remain — see section below).
 
 Other big things to do soon:
   - The issues in the different workspaces' TODO.md files (see below).
@@ -110,7 +110,7 @@ decision in Task 2:
 Not needed with Option B (on-chain reads). If we later want to listen to EthThresholdConditionFactory
 events, we'd add it here with env var `ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS`.
 
-### Task 5: Update `integration-tests/src/utils/invariants.ts` (HIGH)
+### ~~Task 5: Update `integration-tests/src/utils/invariants.ts`~~ ✓ DONE
 
 `assertAssuranceContractRefundLogic` (around line 773) reads `project.threshold` and
 `project.deadline` from the indexer's GraphQL. If those fields become 0 or null, this

@@ -773,6 +773,13 @@ export async function assertAssuranceContractRefundLogic(
   const threshold = BigInt(project.threshold);
   const deadline = BigInt(project.deadline);
 
+  // If this project uses a non-EthThreshold condition, threshold and deadline are both 0n
+  // (fallback values from on-chain reads). The threshold/deadline-based refund logic doesn't
+  // apply in that case, so we skip this invariant check.
+  if (threshold === 0n && deadline === 0n) {
+    return;
+  }
+
   // Determine if refunds should be allowed based on the business rules
   const deadlineHasPassed = currentBlockTimestamp >= deadline;
   const thresholdWasMet = totalReceived >= threshold;

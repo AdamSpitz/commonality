@@ -410,6 +410,7 @@ type projects {
   threshold: BigInt!
   deadline: BigInt!
   totalReceived: BigInt!
+  conditionAddress: String
   withdrawn: Boolean!
   withdrawnAmount: BigInt
   createdAt: BigInt!

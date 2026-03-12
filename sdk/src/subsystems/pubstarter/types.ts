@@ -7,6 +7,7 @@ export interface Project {
   threshold: string;
   deadline: string;
   totalReceived: string;
+  conditionAddress: string | null;
   metadataCid?: string;
   createdAt?: string;
 }

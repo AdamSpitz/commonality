@@ -7,6 +7,7 @@ query GetProject($id: String!) {
     threshold
     deadline
     totalReceived
+    conditionAddress
     metadataCid
   }
 }
@@ -21,6 +22,7 @@ query GetAllProjects {
       threshold
       deadline
       totalReceived
+      conditionAddress
       metadataCid
       createdAt
     }
@@ -57,6 +59,7 @@ query GetProjectsFiltered(
       threshold
       deadline
       totalReceived
+      conditionAddress
       metadataCid
       createdAtBlock
     }

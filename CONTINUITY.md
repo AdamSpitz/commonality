@@ -4,8 +4,7 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-- Pluggable-condition downstream refactor is PARTIALLY done (Tasks 1-3 complete). Still remaining:
-  - Task 5: Update `integration-tests/src/utils/invariants.ts` — verify it still works correctly now that threshold/deadline are populated via on-chain reads (likely no change needed since they're still populated)
+- Pluggable-condition downstream refactor is PARTIALLY done (Tasks 1-5 complete). Still remaining:
   - Task 6: Run integration tests against Docker stack to verify filtering/sorting by threshold/deadline still works
   - Task 7: `delegation-spending.test.ts` — verify `createAssuranceContract` call isn't broken (likely already fine)
 - E2E delegation flow test is implemented; STILL needs verification against Docker stack — run `npm run ui:test:e2e` to verify it passes
@@ -15,7 +14,16 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 This is a good interrupt point.
 
-## Key notes from this session (pluggable-condition downstream updates: Tasks 1-3)
+## Key notes from this session (pluggable-condition downstream Task 5)
+
+- **Task 5 done**: Updated `integration-tests/src/utils/invariants.ts` and SDK to handle `conditionAddress`:
+  - Added `conditionAddress: string | null` to `Project` type in `sdk/src/subsystems/pubstarter/types.ts`
+  - Added `conditionAddress` field to `GetProject`, `GetAllProjects`, `GetProjectsFiltered` GraphQL queries
+  - Added `conditionAddress: String` (nullable) to `sdk/schema.graphql` (committed copy of Ponder schema)
+  - Updated `assertAssuranceContractRefundLogic` to skip early when `threshold === 0n && deadline === 0n` (indicates non-EthThreshold condition where on-chain read returned fallback 0n values)
+  - All 616 unit tests pass; build clean
+
+## Key notes from previous session (pluggable-condition downstream updates: Tasks 1-3)
 
 - **Tasks 1-3 of the pluggable-condition downstream updates** are done:
   - Updated ABI files: AssuranceContractAbi (.ts/.js), PubstarterAbi (.ts/.js), PubstarterFactoriesAbi (.ts/.js)
@@ -23,7 +31,6 @@ This is a good interrupt point.
   - Added `conditionAddress` (nullable hex) to projects table in indexer schema
   - Updated `AssuranceContractInitialized` event handler: reads `(recipient, condition)` from new event args; does on-chain reads of `threshold`/`deadline` from condition contract (EthThresholdCondition); falls back to 0n for other condition types
   - Fixed pre-existing slither issues: added zero-address checks to EthThresholdCondition and OracleCondition; extracted IOracle to IOracle.sol; MockOracle now inherits from IOracle
-- **Tasks that should NOT need changes**: Integration tests (Tasks 5/6/7) should still work because threshold/deadline remain in schema and are correctly populated via on-chain reads for EthThresholdCondition projects. Recommend running integration tests against Docker stack to confirm.
 
 ## Key notes from previous session (E2E delegation-flow infrastructure)
 
