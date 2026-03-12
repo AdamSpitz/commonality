@@ -48,6 +48,7 @@ ponder.on(
         metadataCid: null,
         metadataContent: null,
         recipient: "0x0000000000000000000000000000000000000000",
+        conditionAddress: null,
         threshold: 0n,
         deadline: 0n,
         totalReceived: 0n,
@@ -89,9 +90,17 @@ ponder.on(
 // ASSURANCE CONTRACT EVENT HANDLERS
 // ============================================================================
 
+// Minimal ABI for reading EthThresholdCondition parameters on-chain
+const EthThresholdConditionReadAbi = [
+  { type: "function", name: "threshold", inputs: [], outputs: [{ type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "deadline", inputs: [], outputs: [{ type: "uint256" }], stateMutability: "view" },
+] as const;
+
 /**
  * Handle assurance contract initialization
- * This provides the funding parameters (recipient, threshold, deadline)
+ * The event now provides the condition address (not threshold/deadline directly).
+ * We do on-chain reads from the condition contract to populate threshold and deadline
+ * for EthThresholdCondition-type projects.
  */
 ponder.on(
   "AssuranceContract:AssuranceContractInitialized",
@@ -100,7 +109,26 @@ ponder.on(
     const timestamp = BigInt(event.block.timestamp);
     const blockNumber = BigInt(event.block.number);
 
-    const { recipient, threshold, deadline } = event.args;
+    const { recipient, condition } = event.args;
+
+    // Read threshold and deadline from the condition contract (EthThresholdCondition pattern).
+    // Falls back to 0n if the condition doesn't implement these (non-threshold condition types).
+    let threshold = 0n;
+    let deadline = 0n;
+    try {
+      threshold = await context.client.readContract({
+        address: condition,
+        abi: EthThresholdConditionReadAbi,
+        functionName: "threshold",
+      });
+      deadline = await context.client.readContract({
+        address: condition,
+        abi: EthThresholdConditionReadAbi,
+        functionName: "deadline",
+      });
+    } catch {
+      // Non-EthThresholdCondition: threshold/deadline remain 0n
+    }
 
     // Update or create project record
     const existing = await context.db.find(projects, { id: projectAddress });
@@ -108,6 +136,7 @@ ponder.on(
     if (existing) {
       await context.db.update(projects, { id: projectAddress }).set({
         recipient,
+        conditionAddress: condition,
         threshold,
         deadline,
       });
@@ -119,6 +148,7 @@ ponder.on(
         metadataCid: null,
         metadataContent: null,
         recipient,
+        conditionAddress: condition,
         threshold,
         deadline,
         totalReceived: 0n,

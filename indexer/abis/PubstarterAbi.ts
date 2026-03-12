@@ -18,6 +18,11 @@ export const PubstarterAbi =
         "internalType": "address",
         "name": "assuranceFactory",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "conditionFactory",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",

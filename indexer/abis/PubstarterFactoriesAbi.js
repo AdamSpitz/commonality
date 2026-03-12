@@ -41,3 +41,41 @@ export const AssuranceContractFactoryAbi = [
         ],
     },
 ];
+export const EthThresholdConditionFactoryAbi = [
+    {
+        type: "event",
+        name: "EthThresholdConditionCreated",
+        inputs: [
+            {
+                name: "condition",
+                type: "address",
+                indexed: true,
+            },
+        ],
+    },
+    {
+        type: "function",
+        name: "createCondition",
+        stateMutability: "nonpayable",
+        inputs: [
+            {
+                name: "progressSource",
+                type: "address",
+            },
+            {
+                name: "threshold",
+                type: "uint256",
+            },
+            {
+                name: "deadline",
+                type: "uint256",
+            },
+        ],
+        outputs: [
+            {
+                name: "",
+                type: "address",
+            },
+        ],
+    },
+];

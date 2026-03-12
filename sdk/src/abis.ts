@@ -18,5 +18,6 @@ export { PubstarterAbi } from '../../indexer/abis/PubstarterAbi.js';
 export {
   PremintingERC1155FactoryAbi,
   MarketplaceFactoryAbi,
-  AssuranceContractFactoryAbi
+  AssuranceContractFactoryAbi,
+  EthThresholdConditionFactoryAbi,
 } from '../../indexer/abis/PubstarterFactoriesAbi.js';

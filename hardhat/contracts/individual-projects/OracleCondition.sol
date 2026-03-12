@@ -2,15 +2,7 @@
 pragma solidity 0.8.33;
 
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
-
-/**
- * @title IOracle
- * @notice Minimal oracle interface for assurance contract conditions
- * @dev Returns a tri-state: 0 = undecided, 1 = succeeded, 2 = failed
- */
-interface IOracle {
-    function result() external view returns (uint8);
-}
+import {IOracle} from "./IOracle.sol";
 
 /**
  * @title OracleCondition
@@ -18,9 +10,12 @@ interface IOracle {
  * @dev The oracle must implement IOracle and return 0 (undecided), 1 (succeeded), or 2 (failed).
  */
 contract OracleCondition is IAssuranceCondition {
+    error InvalidOracleAddress();
+
     address public immutable oracle;
 
     constructor(address _oracle) {
+        if (_oracle == address(0)) revert InvalidOracleAddress();
         oracle = _oracle;
     }
 

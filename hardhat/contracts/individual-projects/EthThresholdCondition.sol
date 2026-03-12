@@ -9,15 +9,19 @@ interface IProgressSource {
 
 /**
  * @title EthThresholdCondition
- * @notice Assurance condition: succeeds when progress >= threshold, fails when deadline passes without reaching threshold
+ * @notice Assurance condition: succeeds when progress >= threshold,
+ *         fails when deadline passes without reaching threshold
  * @dev Reads progress from an external contract via IProgressSource.
  */
 contract EthThresholdCondition is IAssuranceCondition {
+    error InvalidProgressSourceAddress();
+
     address public immutable progressSource;
     uint256 public immutable threshold;
     uint256 public immutable deadline;
 
     constructor(address _progressSource, uint256 _threshold, uint256 _deadline) {
+        if (_progressSource == address(0)) revert InvalidProgressSourceAddress();
         progressSource = _progressSource;
         threshold = _threshold;
         deadline = _deadline;

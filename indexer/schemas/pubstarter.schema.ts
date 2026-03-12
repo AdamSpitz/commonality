@@ -32,6 +32,7 @@ export const projects = onchainTable("pubstarter_projects", (t) => ({
   metadataFetched: t.boolean().notNull().default(false),
   // Funding parameters
   recipient: t.hex().notNull(),
+  conditionAddress: t.hex(),
   threshold: t.bigint().notNull(),
   deadline: t.bigint().notNull(),
   // Current funding progress (updated on buys/refunds)

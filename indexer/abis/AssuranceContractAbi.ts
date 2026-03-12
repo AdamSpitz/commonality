@@ -29,17 +29,22 @@ export const AssuranceContractAbi = [
   },
   {
     type: "error",
-    name: "NotEnoughFundingReceived",
+    name: "ConditionNotMet",
     inputs: [],
   },
   {
     type: "error",
-    name: "ProjectReachedFundingGoal",
+    name: "ConditionNotFailed",
     inputs: [],
   },
   {
     type: "error",
-    name: "ProjectFateStillUndecided",
+    name: "ConditionAlreadySet",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ConditionNotSet",
     inputs: [],
   },
   // From AssuranceContracts.sol
@@ -66,14 +71,9 @@ export const AssuranceContractAbi = [
         indexed: true,
       },
       {
-        name: "threshold",
-        type: "uint256",
-        indexed: false,
-      },
-      {
-        name: "deadline",
-        type: "uint256",
-        indexed: false,
+        name: "condition",
+        type: "address",
+        indexed: true,
       },
     ],
   },
@@ -271,7 +271,19 @@ export const AssuranceContractAbi = [
     outputs: [],
   },
 
-  // From AssuranceContract.sol
+  // From AssuranceContract.sol (via MultiERC1155AssuranceContract)
+  {
+    type: "function",
+    name: "setCondition",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "condition",
+        type: "address",
+      },
+    ],
+    outputs: [],
+  },
   {
     type: "function",
     name: "withdraw",
