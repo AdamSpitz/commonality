@@ -40,8 +40,6 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     const tx = await assuranceFactory.createAssuranceContract(
       seller.address,
       seller.address,
-      ethers.parseEther("10"), // threshold
-      deadline,
       "QmTest123"
     );
     const receipt = await tx.wait();
@@ -50,6 +48,15 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     );
     const MultiERC1155AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
     assuranceContract = MultiERC1155AssuranceContract.attach(acEvent.args[0]);
+
+    // Deploy and set condition
+    const EthThresholdCondition = await ethers.getContractFactory("EthThresholdCondition");
+    const condition = await EthThresholdCondition.deploy(
+      acEvent.args[0],
+      ethers.parseEther("10"),
+      deadline
+    );
+    await assuranceContract.connect(seller).setCondition(await condition.getAddress());
 
     // Mint tokens to the assurance contract
     await erc1155Token.connect(seller).mintBatch(

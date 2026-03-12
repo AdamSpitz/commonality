@@ -5,6 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ContractMetadata} from "../utils/ContractMetadata.sol";
 import {ERC1155PrimaryMarket} from "./ERC1155PrimaryMarket.sol";
 import {AssuranceContract} from "./AssuranceContract.sol";
+import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 
 error ArrayLengthMismatch();
 error PriceAlreadySet();
@@ -31,19 +32,23 @@ contract MultiERC1155AssuranceContract is
      * @notice Initializes the multi-ERC1155 assurance contract
      * @param owner The owner of the contract who can set prices and manage the contract
      * @param recipient The address that will receive funds if the project succeeds
-     * @param threshold The funding threshold that must be reached for success
-     * @param deadline The timestamp after which the project can fail if threshold not reached
      * @param projectMetadataCid The IPFS CID containing project metadata
      */
     constructor(
         address owner,
         address recipient,
-        uint256 threshold,
-        uint256 deadline,
         string memory projectMetadataCid
-    ) Ownable(owner) AssuranceContract(recipient, threshold, deadline) {
+    ) Ownable(owner) AssuranceContract(recipient) {
         // no reason to validate the CID, plus we can't really anyway
         emit ContractMetadataUpdated(projectMetadataCid);
+    }
+
+    /**
+     * @notice Sets the condition contract for this assurance contract (one-time, owner-only)
+     * @param condition The IAssuranceCondition that determines success/failure
+     */
+    function setCondition(IAssuranceCondition condition) external onlyOwner {
+        _setCondition(condition);
     }
 
     /**
@@ -111,10 +116,6 @@ contract MultiERC1155AssuranceContract is
         _totalReceivedValue = value;
     }
 
-    /**
-     * @notice Checks if buying is allowed
-     * @dev Always returns true - buying is always allowed, even after deadline
-     */
     /**
      * @inheritdoc ERC1155PrimaryMarket
      * @dev Buying is always allowed - no checks needed

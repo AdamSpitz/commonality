@@ -1,10 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
+import {IAssuranceCondition} from "./IAssuranceCondition.sol";
+
 /**
  * @title AssuranceContract
  * @notice Abstract assurance contract that allows people to donate to a project by buying tokens
- * @dev If the funding goal is not reached before the deadline, contributors can get a refund.
+ * @dev Uses a pluggable IAssuranceCondition to determine success/failure.
+ *      The condition is set once after construction (to solve the chicken-and-egg problem
+ *      where the condition may need to reference this contract's address).
  *      This is an abstract contract that must be implemented by a concrete contract.
  * @author AdamSpitz
  */
@@ -13,20 +17,19 @@ abstract contract AssuranceContract {
 
     error OnlyRecipientCanWithdraw();
     error ETHTransferFailed();
-    error NotEnoughFundingReceived();
-    error ProjectReachedFundingGoal();
-    error ProjectFateStillUndecided();
+    error ConditionNotMet();
+    error ConditionNotFailed();
+    error ConditionAlreadySet();
+    error ConditionNotSet();
 
     /**
-     * @notice Emitted when the assurance contract is initialized
+     * @notice Emitted when the assurance contract's condition is set
      * @param recipient The address that will receive funds if the project succeeds
-     * @param threshold The funding threshold that must be reached for success
-     * @param deadline The timestamp after which the project can fail if threshold not reached
+     * @param condition The address of the IAssuranceCondition contract
      */
     event AssuranceContractInitialized(
         address indexed recipient,
-        uint256 threshold,
-        uint256 deadline
+        address indexed condition
     );
 
     /**
@@ -38,20 +41,27 @@ abstract contract AssuranceContract {
 
     address internal immutable _recipient;
 
-    uint256 internal immutable _threshold;
-    uint256 internal immutable _deadline;
+    IAssuranceCondition internal _condition;
+    bool private _conditionSet;
 
     /**
-     * @notice Initializes the assurance contract with funding parameters
+     * @notice Initializes the assurance contract with the recipient
      * @param recipient The address that will receive funds if the project succeeds
-     * @param threshold The funding threshold that must be reached for success
-     * @param deadline The timestamp after which the project can fail if threshold not reached
      */
-    constructor(address recipient, uint256 threshold, uint256 deadline) {
+    constructor(address recipient) {
         _recipient = recipient;
-        _threshold = threshold;
-        _deadline = deadline;
-        emit AssuranceContractInitialized(recipient, threshold, deadline);
+    }
+
+    /**
+     * @notice Sets the condition contract (can only be called once)
+     * @param condition The IAssuranceCondition contract that determines success/failure
+     * @dev Must be access-controlled by the concrete contract (e.g. onlyOwner)
+     */
+    function _setCondition(IAssuranceCondition condition) internal {
+        if (_conditionSet) revert ConditionAlreadySet();
+        _condition = condition;
+        _conditionSet = true;
+        emit AssuranceContractInitialized(_recipient, address(condition));
     }
 
     /**
@@ -81,19 +91,17 @@ abstract contract AssuranceContract {
 
     /**
      * @notice Reverts if the assurance contract has not succeeded
-     * @dev The project succeeds when the total received value meets or exceeds the threshold
      */
     function requireAssuranceContractHasSucceeded() internal view {
-        if (getAssuranceContractProgress() < _threshold) revert NotEnoughFundingReceived();
+        if (!_conditionSet) revert ConditionNotSet();
+        if (!_condition.hasSucceeded()) revert ConditionNotMet();
     }
 
     /**
      * @notice Reverts if the assurance contract has not failed
-     * @dev The project fails when the deadline has passed and the threshold was not reached
      */
     function requireAssuranceContractHasFailed() internal view {
-        if (getAssuranceContractProgress() >= _threshold) revert ProjectReachedFundingGoal();
-        // slither-disable-next-line timestamp
-        if (block.timestamp < _deadline) revert ProjectFateStillUndecided();
+        if (!_conditionSet) revert ConditionNotSet();
+        if (!_condition.hasFailed()) revert ConditionNotFailed();
     }
 }

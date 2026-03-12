@@ -101,13 +101,20 @@ async function main() {
   const delegatableNotesAddress = await delegatableNotes.getAddress();
   console.log(`✓ DelegatableNotes: ${delegatableNotesAddress}`);
 
+  const EthThresholdConditionFactory = await ethers.getContractFactory('EthThresholdConditionFactory');
+  const conditionFactory = await EthThresholdConditionFactory.deploy();
+  await conditionFactory.waitForDeployment();
+  const conditionFactoryAddress = await conditionFactory.getAddress();
+  console.log(`✓ EthThresholdConditionFactory: ${conditionFactoryAddress}`);
+
   // Deploy Pubstarter main contract
   console.log('Deploying Pubstarter...');
   const Pubstarter = await ethers.getContractFactory('Pubstarter');
   const pubstarter = await Pubstarter.deploy(
     erc1155FactoryAddress,
     marketplaceFactoryAddress,
-    assuranceFactoryAddress
+    assuranceFactoryAddress,
+    conditionFactoryAddress
   );
   await pubstarter.waitForDeployment();
   const pubstarterAddress = await pubstarter.getAddress();
@@ -162,6 +169,7 @@ async function main() {
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
+    'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS': conditionFactoryAddress,
     'PUBSTARTER_ADDRESS': pubstarterAddress,
     'START_BLOCK': '1',
   };
@@ -254,6 +262,7 @@ async function main() {
   console.log(`  AssuranceFactory:        ${assuranceFactoryAddress}`);
   console.log(`  ERC1155Factory:          ${erc1155FactoryAddress}`);
   console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);
+  console.log(`  ConditionFactory:        ${conditionFactoryAddress}`);
   console.log(`  Pubstarter:              ${pubstarterAddress}`);
 
   console.log('\nNext steps:');

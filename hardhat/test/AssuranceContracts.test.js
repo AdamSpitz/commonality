@@ -5,8 +5,14 @@ const { ethers } = hre;
 describe("MultiERC1155AssuranceContract", function () {
   let assuranceContract;
   let erc1155Token;
+  let condition;
   let owner, recipient, alice, bob, charlie;
   let threshold, deadline;
+
+  async function deployCondition(progressSource, thresh, dl) {
+    const EthThresholdCondition = await ethers.getContractFactory("EthThresholdCondition");
+    return EthThresholdCondition.deploy(progressSource, thresh, dl);
+  }
 
   beforeEach(async function () {
     [owner, recipient, alice, bob, charlie] = await ethers.getSigners();
@@ -37,10 +43,18 @@ describe("MultiERC1155AssuranceContract", function () {
     assuranceContract = await AssuranceContracts.deploy(
       owner.address,
       recipient.address,
-      threshold,
-      deadline,
       "ipfs://QmProjectMetadata"
     );
+
+    // Deploy condition pointing at assurance contract
+    condition = await deployCondition(
+      await assuranceContract.getAddress(),
+      threshold,
+      deadline
+    );
+
+    // Set condition on assurance contract
+    await assuranceContract.connect(owner).setCondition(await condition.getAddress());
 
     // Transfer tokens to the assurance contract
     await erc1155Token.safeBatchTransferFrom(
@@ -53,7 +67,7 @@ describe("MultiERC1155AssuranceContract", function () {
   });
 
   describe("Deployment", function () {
-    it("Should emit AssuranceContractInitialized event", async function () {
+    it("Should emit AssuranceContractInitialized event when condition is set", async function () {
       const AssuranceContracts = await ethers.getContractFactory(
         "MultiERC1155AssuranceContract"
       );
@@ -61,14 +75,18 @@ describe("MultiERC1155AssuranceContract", function () {
       const contract = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
-        threshold,
-        deadline,
         "ipfs://QmProjectMetadata"
       );
 
-      await expect(contract.deploymentTransaction())
+      const cond = await deployCondition(
+        await contract.getAddress(),
+        threshold,
+        deadline
+      );
+
+      await expect(contract.connect(owner).setCondition(await cond.getAddress()))
         .to.emit(contract, "AssuranceContractInitialized")
-        .withArgs(recipient.address, threshold, deadline);
+        .withArgs(recipient.address, await cond.getAddress());
     });
 
     it("Should emit ContractMetadataUpdated event", async function () {
@@ -80,8 +98,6 @@ describe("MultiERC1155AssuranceContract", function () {
       const contract = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
-        threshold,
-        deadline,
         metadataCid
       );
 
@@ -89,6 +105,41 @@ describe("MultiERC1155AssuranceContract", function () {
         contract,
         "ContractMetadataUpdated"
       );
+    });
+  });
+
+  describe("Condition Setting", function () {
+    it("Should reject setting condition twice", async function () {
+      const cond = await deployCondition(
+        await assuranceContract.getAddress(),
+        threshold,
+        deadline
+      );
+
+      await expect(
+        assuranceContract.connect(owner).setCondition(await cond.getAddress())
+      ).to.be.revertedWithCustomError(assuranceContract, "ConditionAlreadySet");
+    });
+
+    it("Should reject non-owner setting condition", async function () {
+      const AssuranceContracts = await ethers.getContractFactory(
+        "MultiERC1155AssuranceContract"
+      );
+      const contract = await AssuranceContracts.deploy(
+        owner.address,
+        recipient.address,
+        "ipfs://QmProjectMetadata"
+      );
+
+      const cond = await deployCondition(
+        await contract.getAddress(),
+        threshold,
+        deadline
+      );
+
+      await expect(
+        contract.connect(alice).setCondition(await cond.getAddress())
+      ).to.be.revertedWithCustomError(contract, "OwnableUnauthorizedAccount");
     });
   });
 
@@ -362,7 +413,7 @@ describe("MultiERC1155AssuranceContract", function () {
         assuranceContract
           .connect(alice)
           .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
-      ).to.be.revertedWithCustomError(assuranceContract, "ProjectFateStillUndecided");
+      ).to.be.revertedWithCustomError(assuranceContract, "ConditionNotFailed");
     });
 
     it("Should reject refund if threshold met", async function () {
@@ -386,7 +437,7 @@ describe("MultiERC1155AssuranceContract", function () {
         assuranceContract
           .connect(alice)
           .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
-      ).to.be.revertedWithCustomError(assuranceContract, "ProjectReachedFundingGoal");
+      ).to.be.revertedWithCustomError(assuranceContract, "ConditionNotFailed");
     });
 
     it("Should decrease total received value on refund", async function () {
@@ -480,7 +531,7 @@ describe("MultiERC1155AssuranceContract", function () {
 
       await expect(
         assuranceContract.connect(recipient).withdraw()
-      ).to.be.revertedWithCustomError(assuranceContract, "NotEnoughFundingReceived");
+      ).to.be.revertedWithCustomError(assuranceContract, "ConditionNotMet");
     });
 
     it("Should only allow recipient to trigger withdrawal when successful", async function () {
@@ -591,6 +642,120 @@ describe("MultiERC1155AssuranceContract", function () {
       // Should now be successful
       await expect(assuranceContract.connect(recipient).withdraw()).to.not.be
         .reverted;
+    });
+  });
+
+  describe("OracleCondition", function () {
+    let oracleToken;
+
+    beforeEach(async function () {
+      // Deploy a separate token for oracle tests (main beforeEach consumes all tokens)
+      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
+      oracleToken = await PremintingERC1155.deploy(
+        owner.address,
+        "https://example.com/oracle/{id}.json",
+        "ipfs://QmOracleToken"
+      );
+      await oracleToken.mintBatch(owner.address, [1, 2], [100, 100]);
+    });
+
+    it("Should work with an oracle-based condition", async function () {
+      const MockOracle = await ethers.getContractFactory("MockOracle");
+      const mockOracle = await MockOracle.deploy();
+
+      const OracleCondition = await ethers.getContractFactory("OracleCondition");
+      const oracleCondition = await OracleCondition.deploy(await mockOracle.getAddress());
+
+      const AssuranceContracts = await ethers.getContractFactory(
+        "MultiERC1155AssuranceContract"
+      );
+      const ac = await AssuranceContracts.deploy(
+        owner.address,
+        recipient.address,
+        "ipfs://QmOracleProject"
+      );
+      await ac.connect(owner).setCondition(await oracleCondition.getAddress());
+
+      await oracleToken.safeBatchTransferFrom(
+        owner.address,
+        await ac.getAddress(),
+        [1, 2],
+        [10, 10],
+        "0x"
+      );
+      await ac.connect(owner).setPricesERC1155(
+        await oracleToken.getAddress(),
+        [1],
+        [ethers.parseEther("1.0")]
+      );
+
+      await ac.connect(alice).buyERC1155(
+        alice.address,
+        await oracleToken.getAddress(),
+        [1], [1], "0x",
+        { value: ethers.parseEther("1.0") }
+      );
+
+      // Oracle says undecided — can't withdraw or refund
+      await expect(ac.connect(recipient).withdraw())
+        .to.be.revertedWithCustomError(ac, "ConditionNotMet");
+
+      // Oracle says succeeded
+      await mockOracle.setResult(1);
+      await expect(ac.connect(recipient).withdraw()).to.not.be.reverted;
+    });
+
+    it("Should allow refund when oracle says failed", async function () {
+      const MockOracle = await ethers.getContractFactory("MockOracle");
+      const mockOracle = await MockOracle.deploy();
+
+      const OracleCondition = await ethers.getContractFactory("OracleCondition");
+      const oracleCondition = await OracleCondition.deploy(await mockOracle.getAddress());
+
+      const AssuranceContracts = await ethers.getContractFactory(
+        "MultiERC1155AssuranceContract"
+      );
+      const ac = await AssuranceContracts.deploy(
+        owner.address,
+        recipient.address,
+        "ipfs://QmOracleProject"
+      );
+      await ac.connect(owner).setCondition(await oracleCondition.getAddress());
+
+      await oracleToken.safeBatchTransferFrom(
+        owner.address,
+        await ac.getAddress(),
+        [1],
+        [10],
+        "0x"
+      );
+      await ac.connect(owner).setPricesERC1155(
+        await oracleToken.getAddress(),
+        [1],
+        [ethers.parseEther("1.0")]
+      );
+
+      await ac.connect(alice).buyERC1155(
+        alice.address,
+        await oracleToken.getAddress(),
+        [1], [1], "0x",
+        { value: ethers.parseEther("1.0") }
+      );
+
+      // Oracle says failed
+      await mockOracle.setResult(2);
+
+      await oracleToken
+        .connect(alice)
+        .setApprovalForAll(await ac.getAddress(), true);
+
+      await expect(
+        ac.connect(alice).refundERC1155(
+          alice.address,
+          await oracleToken.getAddress(),
+          [1], [1], "0x"
+        )
+      ).to.not.be.reverted;
     });
   });
 });
