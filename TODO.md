@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Propagate the pluggable-condition refactor to the downstream layers (see "Pluggable Assurance Conditions" section below).
+  - Finish the pluggable-condition downstream refactor (Tasks 1-3 DONE; Tasks 4-7 remain — see section below).
 
 Other big things to do soon:
   - The issues in the different workspaces' TODO.md files (see below).
@@ -48,7 +48,26 @@ tests, and related code still reference the old signatures. Here is what needs u
 5. New contracts: `IAssuranceCondition.sol`, `EthThresholdCondition.sol`, `OracleCondition.sol`,
    `EthThresholdConditionFactory` (in Pubstarter.sol).
 
-### Task 1: Regenerate ABI files (CRITICAL)
+### ~~Task 1: Regenerate ABI files~~ ✓ DONE
+
+ABI files updated manually (sync-abis script doesn't cover AssuranceContract/Pubstarter):
+- AssuranceContractAbi: new error names, new event signature, setCondition function
+- PubstarterAbi: 4-arg constructor
+- PubstarterFactoriesAbi: added EthThresholdConditionFactoryAbi
+- sdk/src/abis.ts: exports EthThresholdConditionFactoryAbi
+
+### ~~Task 2: Update the indexer event handler~~ ✓ DONE (used Option B)
+
+`AssuranceContractInitialized` handler updated to read `(recipient, condition)` from new
+event args. Does on-chain reads of `threshold`/`deadline` from condition contract via
+`context.client.readContract()` (falls back to 0n for non-EthThreshold conditions).
+
+### ~~Task 3: Update the indexer schema~~ ✓ DONE
+
+Added `conditionAddress: t.hex()` (nullable) to projects table. Kept `threshold`/`deadline`
+as non-null (populated via on-chain reads from EthThresholdCondition).
+
+### Task 4: Update `ponder.config.ts` (LOW — skipped with Option B)
 
 Run `cd indexer && npm run sync-abis` after recompiling hardhat. This regenerates
 `indexer/abis/*.ts` and `indexer/abis/*.js` from the compiled artifacts. After regenerating,
@@ -86,10 +105,10 @@ decision in Task 2:
 - Either keep `threshold`/`deadline` (populated from the condition contract) or make them
   nullable (for non-threshold condition types).
 
-### Task 4: Update `ponder.config.ts` (MODERATE)
+### Task 4: Update `ponder.config.ts` (LOW — skipped, using Option B instead of Option A)
 
-If using Option A from Task 2, add `EthThresholdConditionFactory` as a new indexed contract
-so the indexer can listen for `EthThresholdConditionCreated` events.
+Not needed with Option B (on-chain reads). If we later want to listen to EthThresholdConditionFactory
+events, we'd add it here with env var `ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS`.
 
 ### Task 5: Update `integration-tests/src/utils/invariants.ts` (HIGH)
 

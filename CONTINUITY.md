@@ -4,6 +4,10 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
+- Pluggable-condition downstream refactor is PARTIALLY done (Tasks 1-3 complete). Still remaining:
+  - Task 5: Update `integration-tests/src/utils/invariants.ts` — verify it still works correctly now that threshold/deadline are populated via on-chain reads (likely no change needed since they're still populated)
+  - Task 6: Run integration tests against Docker stack to verify filtering/sorting by threshold/deadline still works
+  - Task 7: `delegation-spending.test.ts` — verify `createAssuranceContract` call isn't broken (likely already fine)
 - E2E delegation flow test is implemented; STILL needs verification against Docker stack — run `npm run ui:test:e2e` to verify it passes
 - Write pubstarter E2E tests (see `ui/e2e/TODO.md`)
 - Fix the problems in the different workspaces' TODO.md files
@@ -11,7 +15,17 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 This is a good interrupt point.
 
-## Key notes from this session (E2E delegation-flow infrastructure)
+## Key notes from this session (pluggable-condition downstream updates: Tasks 1-3)
+
+- **Tasks 1-3 of the pluggable-condition downstream updates** are done:
+  - Updated ABI files: AssuranceContractAbi (.ts/.js), PubstarterAbi (.ts/.js), PubstarterFactoriesAbi (.ts/.js)
+  - Added EthThresholdConditionFactoryAbi to PubstarterFactoriesAbi and exported from sdk/src/abis.ts
+  - Added `conditionAddress` (nullable hex) to projects table in indexer schema
+  - Updated `AssuranceContractInitialized` event handler: reads `(recipient, condition)` from new event args; does on-chain reads of `threshold`/`deadline` from condition contract (EthThresholdCondition); falls back to 0n for other condition types
+  - Fixed pre-existing slither issues: added zero-address checks to EthThresholdCondition and OracleCondition; extracted IOracle to IOracle.sol; MockOracle now inherits from IOracle
+- **Tasks that should NOT need changes**: Integration tests (Tasks 5/6/7) should still work because threshold/deadline remain in schema and are correctly populated via on-chain reads for EthThresholdCondition projects. Recommend running integration tests against Docker stack to confirm.
+
+## Key notes from previous session (E2E delegation-flow infrastructure)
 
 Previous session wrote `ui/e2e/delegation-flow.spec.ts` but the infrastructure to provide delegation contract addresses was missing. This session completed it:
 - Extended `global-setup.ts` `copyContractAddresses()` to also copy `DELEGATABLE_NOTES_ADDRESS` → `VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS` and `PUBSTARTER_ADDRESS` → `VITE_PUBSTARTER_CONTRACT_ADDRESS` to ui/.env
