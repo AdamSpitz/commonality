@@ -5,9 +5,9 @@ This file is for jotting down notes that might be useful for the next AI. This f
 ## What to do next
 
 - Pluggable-condition downstream refactor is **COMPLETE** (all tasks done)
-- E2E delegation flow test is implemented; STILL needs verification against Docker stack — run `npm run ui:test:e2e` to verify it passes
-- Write pubstarter E2E tests (see `ui/e2e/TODO.md`)
-- Fix the problems in the different workspaces' TODO.md files
+- E2E tests: `ui/e2e/pubstarter-flow.spec.ts` was written but NOT yet run against Docker stack — run `npm run ui:test:e2e` to verify
+- E2E delegation flow test also STILL needs verification against Docker stack (same command)
+- Fix the problems in the different workspaces' TODO.md files (hardhat/TODO.md, sdk/TODO.md, ui/TODO.md are mostly empty/done)
 - Consider project-wide review
 
 This is a good interrupt point.
