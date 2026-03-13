@@ -67,48 +67,11 @@ event args. Does on-chain reads of `threshold`/`deadline` from condition contrac
 Added `conditionAddress: t.hex()` (nullable) to projects table. Kept `threshold`/`deadline`
 as non-null (populated via on-chain reads from EthThresholdCondition).
 
-### Task 4: Update `ponder.config.ts` (LOW — skipped with Option B)
+### Task 4: Update `ponder.config.ts` — skipped (using Option B)
 
-Run `cd indexer && npm run sync-abis` after recompiling hardhat. This regenerates
-`indexer/abis/*.ts` and `indexer/abis/*.js` from the compiled artifacts. After regenerating,
-verify that:
-- `AssuranceContractAbi` has the new `AssuranceContractInitialized(address,address)` event
-  (not the old `(address,uint256,uint256)`), the new error names, and `setCondition`.
-- `PubstarterAbi` constructor has 4 inputs (includes `conditionFactory`).
-- A new ABI for `EthThresholdConditionFactory` is generated (may need to add it to the sync
-  script's contract list if it doesn't pick it up automatically).
-
-Also update `sdk/src/abis.ts` if it re-exports these ABIs (it imports from `indexer/abis/`).
-
-### Task 2: Update the indexer event handler (`indexer/src/pubstarter/index.ts`) (CRITICAL)
-
-The `AssuranceContractInitialized` handler currently destructures `threshold` and `deadline`
-from `event.args` and writes them into the `projects` table. After the ABI change, the event
-args will be `{ recipient, condition }`.
-
-Decision needed: how to populate `threshold` and `deadline` in the indexed data for
-`EthThresholdCondition`-based projects. Options:
-- **Option A (recommended):** Store `conditionAddress` on the project record. Listen to
-  `EthThresholdConditionCreated` events from the new factory (`EthThresholdConditionFactory`)
-  to populate `threshold` and `deadline`. This requires adding the factory to `ponder.config.ts`.
-- **Option B:** On receiving `AssuranceContractInitialized`, do an on-chain read of
-  `EthThresholdCondition(condition).threshold()` and `.deadline()`. This couples the indexer
-  to a specific condition type, but is simpler.
-- **Option C:** Accept that generic conditions won't have threshold/deadline, and make those
-  fields nullable. The UI would display condition-type-specific info based on `conditionAddress`.
-
-### Task 3: Update the indexer schema (`indexer/schemas/pubstarter.schema.ts`) (HIGH)
-
-The `projects` table has `threshold` and `deadline` as `bigint().notNull()`. Depending on the
-decision in Task 2:
-- Add a `conditionAddress` field (`t.hex()`).
-- Either keep `threshold`/`deadline` (populated from the condition contract) or make them
-  nullable (for non-threshold condition types).
-
-### Task 4: Update `ponder.config.ts` (LOW — skipped, using Option B instead of Option A)
-
-Not needed with Option B (on-chain reads). If we later want to listen to EthThresholdConditionFactory
-events, we'd add it here with env var `ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS`.
+Not needed with Option B (on-chain reads). If we later want to listen to
+`EthThresholdConditionFactory` events, add it here with env var
+`ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS`.
 
 ### ~~Task 5: Update `integration-tests/src/utils/invariants.ts`~~ ✓ DONE
 
