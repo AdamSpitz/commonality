@@ -1,6 +1,6 @@
 # Why Commonality?
 
-The argument for Commonality goes roughly like a conversation:
+The argument for Commonality goes roughly like this:
 
 ---
 
@@ -42,6 +42,8 @@ It's [hard to stop](./hard-to-stop/censorship-resistance.md). No bank accounts t
 
 **So what does this add up to?**
 
-It's useful both as a [mundane incremental improvement](./so-what/enthusiastic-adoption.md) (existing orgs can adopt it for better transparency and lower overhead) and as something [much easier than politics](./so-what/easier-than-politics.md) for people who want to fund public goods but are tired of fighting over government. The response to "the government is hostile, how do we fund our priorities?" isn't "organize a massive political movement" — it's "just start using this."
+It's useful both as:
+  - A [mundane incremental improvement](./so-what/enthusiastic-adoption.md) (existing orgs can adopt it to immediately achieve better transparency and lower overhead, and to open the door to the various other benefits mentioned above like coalition-building and retroactive-funding)
+  - And as something [much easier than politics](./so-what/easier-than-politics.md) for people who want to fund public goods but are tired of fighting over government. The response to "the government is hostile, how do we fund our priorities?" isn't "organize a massive political movement" — it's "just start using this."
 
 For a concrete walkthrough of how this plays out, see the [walkthrough](./walkthrough.md). For tailored pitches to different types of users, see [pitches](./pitches.md). For the "won't this be used for evil?" question, see [ethics](./ethics.md).
