@@ -1,30 +1,36 @@
-# Switching to Commonality is much easier than politics
+# Easier than politics
 
-The point of noticing that this system is [as good or better than government](../credible-replacement/vs-government.md) is *not* that I'm suggesting going to the government (or to normal people who are basically satisfied with the way the system works) and saying "hey, we've got a better way of doing this, we can dismantle the government's public-goods-funding apparatus now." Obviously that's not going to happen.
+The point of showing that Commonality is [as good or better than government](../credible-replacement/vs-government.md) at funding public goods is *not* "let's dismantle the government." Obviously that's not going to happen.
 
-What I *am* saying, though, is:
-  - If you're looking at various problems in your country and thinking that fixing those problems would require winning the next election or forming a better political party or having a revolution...
-  - ...or even if you've just got some particular project that you want funded, and it's obviously not going to be funded by the government or at least you're wincing at the prospect of wading through the horrible bureaucratic mess...
+The point is: **if you already feel like fixing your problems requires winning the next election, forming a new political party, or navigating a brutal bureaucracy — you may not have to.** You can just start using Commonality instead.
 
-...Commonality may actually offer a MUCH easier solution.
+## Many "political" problems are actually funding problems
 
-You DO NOT NEED to somehow drum up widespread support for some New Political Party or New Alternative Government.
+A surprising amount of what people frame as political change is really just "we need this thing built and funded." You don't need to change any laws to fund a youth mentorship program, maintain local infrastructure, or support medical research. You just need money and coordination — both of which Commonality provides directly.
 
-The point of "hey, look, we have the tech to do public-goods-funding at least as well as government" isn't that we're going to persuade the incumbent system to dismantle itself, it's that if you're *already* feeling like "we HAVE to win the next election" or "omg we need to fix/replace the government"... relax, you may not have to. Your goal can instead be to just start using Commonality instead.
+What's more, government funding is inherently *unstable*. A huge share of political conflict is about allocation — the left wants to fund X and defund Y, the right wants to defund X and fund Y — and with each side alternating in power, anything funded through government can be defunded as soon as the other side wins. Whatever bipartisan norm once existed against immediately undoing your predecessor's work appears to be eroding as polarization increases. This means that even when your side *is* in power, the things you fund through government are on borrowed time. Commonality offers both sides an exit from this treadmill: fund the things you care about directly, and stop worrying about the next election cycle undoing it. Each side can even set up [standby assurance contracts](../hard-to-stop/credible-threat.md) as defunding insurance — "if it gets cut, we'll fund it ourselves" — which costs nothing unless actually triggered. (See [game theory](../hard-to-stop/game-theory.md) for a fuller treatment of why both sides of the political spectrum end up wanting this.)
 
-To be precise about what "easier" means here: Commonality doesn't replace the government's rule-making power. If what you need is a law changed, you still need politics for that. But:
-  - A surprising amount of what people think requires political change can actually be solved by just building the thing directly and funding it.
-  - And for the stuff that genuinely does require political change (legal defense, advocacy), you can fund *that* through Commonality too — through infrastructure that can't be shut down the way a normal advocacy org can.
+For the things that genuinely do require legal change (advocacy, legal defense, lobbying), you can fund *those* through Commonality too — using infrastructure that [can't be shut down](../hard-to-stop/censorship-resistance.md) the way a normal advocacy org can.
 
-TODO: I feel like there's a point here about growing the movement *first*, rather than needing it to become gigantic before it can do anything at all. That is:
-  - The movement's projects probably include some "just fund it" projects (including the movement's actual base-level projects and also the movement's meta-level projects like tech infrastructure and paying people to be organizers and evangelists and so on).
-  - Remember that this system enables organic coalition building: you're not joining an "organization", you're not trying to *predict* that this particular org is the one that's gonna win; you're just declaring some statement of what you believe, and you'll automatically be counted together with any statements that your statement is in alignment with.
+## The growth curve is the opposite of a political party's
 
-The point is that - along the lines of Balaji's idea of "first grow the network society, *then* use your size as negotiating leverage" - we can *first* "grow" the "network society" (as measured by "how many people have clicked Like on aligned statements?", "how much money in aggregate has been pledged towards this cause?", "what's the total value of all the projects aligned with this cause that have actually been funded?" - it's not a monolithic org, it's the aggregate of a bunch of separate decisions/pledges/projects), so that there's a [smooth growth curve](../ease-of-adoption/README.md) where the participants feel like the movement is creating real value as it's gathering momentum, *as opposed to* "the New Better Political Party accomplishes nothing at all until/unless it eventually reaches the critical mass needed to win elections" (which is extremely demoralizing).
+This is the crucial difference between Commonality and traditional political movements.
 
-Grow first (in ways that don't require winning elections or swaying governments), *then* after you're already massive you can try to win elections and sway governments.
+A political party accomplishes *nothing* until it reaches the critical mass needed to win elections. Years of organizing, fundraising, and coalition-building produce zero concrete results until election day — and even then, only if you win. This is extraordinarily demoralizing, and it's why most political movements die before they get anywhere.
 
+Commonality inverts this. Every step along the growth curve produces real, tangible value:
 
-## Both sides end up wanting this
+  - **One person** can publish a statement, create a project, or pledge to an assurance contract.
+  - **A handful of people** can fund a small project through an assurance contract — a community garden, a local tutoring program, a piece of open-source software.
+  - **A few hundred people** can sustain ongoing programs, build delegation networks, and start [discovering organic coalitions](../why-its-better/organic-coalitions.md) with aligned groups they didn't know about.
+  - **Thousands of people** can generate [credible threats](../hard-to-stop/credible-threat.md) that shift negotiations with governments and large institutions — without spending a dollar.
+  - **At scale**, the system becomes a full parallel infrastructure for public goods, with the political leverage that comes from having already demonstrated you don't need the incumbent system.
 
-There may be game-theoretic reasons to expect adoption, even for services currently provided by government. See [game theory](../hard-to-stop/game-theory.md) for more detail.
+At no point does anyone need to "join" a monolithic organization, predict which faction will win, or wait for a critical mass before anything happens. Each person just declares what they believe and pledges what they're willing to fund. The system [discovers the commonality](../why-its-better/organic-coalitions.md) automatically.
+
+## Grow first, then use leverage
+
+The strategic implication is: don't start by trying to win elections or sway governments. Start by building real projects, funding real things, and growing the network of people and money flowing through the system. Political leverage comes *after* you've already demonstrated that the system works — not as a prerequisite for getting started.
+
+This is similar to Balaji's "network state" idea (grow the network first, then negotiate from a position of strength), but without requiring anyone to sign up for a grand vision. The "network" here isn't a monolithic entity — it's the aggregate of thousands of individual decisions: statements signed, money pledged, projects funded, delegations made. It grows organically because each of those individual actions is [useful on its own](../ease-of-adoption/costless-to-try.md).
+
