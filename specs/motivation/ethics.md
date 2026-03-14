@@ -2,9 +2,9 @@
 
 Ugh, probably.
 
-This system is meant as a neutral tool, usable for helping people coordinate. It's certainly going to end up being used for purposes that we would consider wrong.
+This system is meant as a neutral tool, usable for helping people coordinate. It's certainly going to end up being used for purposes that I (as the creator of the system) would consider wrong.
 
-I'm not really inclined to try to prevent that (e.g. by moderation/censorship). For one thing, any moderation mechanism would be a chokepoint that a hostile government could capture. A system that can censor the causes you dislike can also censor the causes you care about. That's the whole problem we're solving.
+I'm not really inclined to try to prevent that (e.g. by moderation/censorship). For one thing, any moderation mechanism would be a chokepoint that a hostile government could capture. A system that can censor the causes you dislike can also censor the causes you care about. That's a major part of the problem we're solving.
 
 Still, does the use of this system for evil mean that I shouldn't build it?
 

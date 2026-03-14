@@ -4,7 +4,7 @@ Traditional collective action — government, charities, political organizing �
 
 ## The coordination taxes
 
-  - **Compromising:** In a traditional system, you have to rally around a single statement, a single candidate, a single set of priorities. You lose your individuality the moment you aggregate. Commonality lets each person [say exactly what they want](../why-its-better/individualization.md); the system discovers the overlap.
+  - **Compromising:** In a traditional system, you have to rally around a single statement, a single candidate, a single set of priorities. You lose your individuality the moment you aggregate. Commonality lets each person [say exactly what they want](../why-its-better/individualization.md) [without compromise](./no-need-to-compromise.md); the system discovers the overlap.
   - **Agreeing on leadership:** Traditional orgs need leaders, boards, bylaws. Commonality has no leadership to agree on — delegation is per-user, per-cause, revocable anytime.
   - **Reaching critical mass:** A political party that hasn't hit millions of members has accomplished nothing. Commonality is useful even for a single project with a handful of funders. See [scales-down](./scales-down.md).
   - **Irreversible commitments:** Voting for a candidate is a four-year commitment. Donating to a charity is gone. In Commonality, pledges refund if the threshold isn't met, delegation is revocable, signing a statement is free. See [costless-to-try](./costless-to-try.md).
