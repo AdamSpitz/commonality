@@ -1,16 +1,24 @@
 # AI skills
 
+## Two layers
+
 Think of the system as having two layers:
   - Basic primitives: writing statements, making attestations, making and buying and selling tokens, delegating funding decisions, etc.
   - AI skills for helping people do all of the above.
 
-These skills can be loaded into systems like OpenClaw or Claude Code or whatever, to give people's personal AI assistants the ability to navigate our system and explain to the user how the system is meant to be used. e.g. The AI's job might be to find or write up a statement in conceptspace, after an interactive dialogue with the user to figure out what concept the user wants a statement for.
+### The AI skill layer
+
+The AI skill layer isn't anything esoteric; it's basically just the normal documentation for the system (maybe in .md format), but with special effort made to have good tutorials and examples and "what the heck is this system and why might I want to use it and what are the different roles I might want to play within the system" and so on. Plus some "skills" to make it really explicit to the AI what its roles are in helping the user use the system.
+
+These skills can be loaded into systems like OpenClaw, or Claude Code, or some hosted Commonality-specific AI assistant service that we provide for convenience, or whatever, to give people's personal AI assistants the ability to navigate our system and explain to the user how the system is meant to be used. e.g. The AI's job might be to find or write up a statement in conceptspace, after an interactive dialogue with the user to figure out what concept the user wants a statement for.
 
 We'll write the skills ourselves and publish them (on clawdhub or wherever AI skills are published), although of course third parties can write their own and that's fine too.
 
-I'll write up the basics here, and then probably ask AI to generate a more fleshed-out SKILL.md file for each of these.
+The point is that this might be a good/easy answer to "how do we get [content](./content.md) into the system?" AI can help the user understand what this system is for, help generate statements that the user might want to sign, etc.
 
 ## Skills we want to provide
+
+I'll write up the basics here, and then probably ask AI to generate a more fleshed-out SKILL.md file for each of these.
 
 ### Statement finder/writer
 

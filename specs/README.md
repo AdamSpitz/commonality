@@ -121,7 +121,7 @@ We may want to generate a list of terms and concepts, just to pin down what we m
 
 There can be various AI skills to aid in (or partially automate) using various aspects of the system.
 
-See [ai-skills.md](ai-skills.md) for more info.
+See [ai-assistance.md](ai-assistance.md) for more info.
 
 
 ## Artifacts
