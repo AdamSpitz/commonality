@@ -206,7 +206,7 @@ case "${1:-}" in
         # Collect any remaining arguments that start with --
         while [[ "$1" == --* ]]; do
             if [[ "$1" == "--debug-ipfs" ]]; then
-                export DEBUG_IPFS=1
+                export DEBUG_IPFS=true
             else
                 extra_args="$extra_args $1"
             fi
