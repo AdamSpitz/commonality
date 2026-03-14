@@ -40,9 +40,9 @@ e.g.
   - LLM: "Okay, now let's move on to crypto. Are you a fan of Bitcoin? Ethereum? Solana?" More statements appear.
   - etc.
 
+Okay, this is something that the existing conceptspace UI doesn't handle. We're gonna need a new UI page for it. See [conceptspace explorer](/specs/subsystems/conceptspace/explorer.md).
+
 ### No need for a flowchart
 
 This doesn't need a big static diagram with a bunch of if-then flows like "the user just signed S1, now ask about S2 and S3". A general-purpose LLM can probably do a decent job of generating those kinds of things on the fly.
-
-
 
