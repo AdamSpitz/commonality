@@ -34,4 +34,8 @@ Commonality's solution: funding portals with a trust network feeding delegates a
 
 ## The point
 
-This isn't an ideological libertarian argument for the abolition of government. The point is narrower: for the specific function of funding public goods, we now have technology that can do it at least as well as government — with better transparency, less overhead, more granularity, and no coercion. That matters not because we're going to dismantle government tomorrow, but because it means [you don't need to win an election](../so-what/easier-than-politics.md) to fund the things your community cares about.
+This isn't an ideological libertarian argument for the removal of public-goods-funding as a function of government. The point here is narrower: this is at least *viable* as an alternative (in a way that [isn't quite as true of traditional charity organizations](./vs-charity.md)).
+
+Elsewhere I'll make the arguments that:
+  - You might *want* to make the transition from funding-via-government to funding-via-Commonality, even for stuff you care about that is currently being funded via government.
+  - And if there are public goods you want funded that are *not* being currently funded by government, and you're intimidated by the idea of trying to win an election to get them funded, it may be [much easier](../so-what/easier-than-politics.md) to just let go of the urge to do it via government and instead do it via Commonality.
