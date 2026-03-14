@@ -4,7 +4,7 @@ The argument for Commonality goes roughly like this:
 
 ---
 
-**"Hey, look — new tech (blockchains, AI, assurance contracts) makes it possible to fund public goods without needing a big centralized organization."**
+"Hey, look — new tech (blockchains, AI, assurance contracts) makes it possible to fund public goods without needing a big centralized organization."
 
 **"Would that even do the job? Government and charities exist for a reason."**
 
