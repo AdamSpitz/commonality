@@ -59,3 +59,27 @@ Statements are the easiest content to bootstrap because they're free to create a
 - **Delegation chains** (these form naturally as users delegate).
 
 Projects are harder to bootstrap than statements because they represent real commitments. But the AI skills ([project creation assistant](ai-assistance.md)) can lower the barrier, and the retroactive-funding model means that even speculative early projects have a chance of being funded later if they turn out to be good.
+
+
+
+## Exploring conceptspace should feel infinite
+
+The explorer should feel like the user is wandering an infinite terrain where every concept already has a statement — no area looks "empty" in the sense of "nobody has defined what we're talking about here." The AI generates navigation options (e.g., "right" vs "left" within politics) on the fly from its general world knowledge, regardless of whether those specific statements already exist in the system. But overlaid on that infinite terrain are real numbers — signer counts, funding, projects — that might be zero in some areas and high in others. The terrain is always there; the activity is unevenly distributed.
+
+### Finding nearby statements (semantic search)
+
+When the explorer AI is deciding which statement to display for a concept, it needs to check whether a suitable one already exists before creating a new one. This requires querying the indexer for "conceptually nearby" statements.
+
+**MVP approach:** Full-text search via the existing `search_statements` tool (backed by something like PostgreSQL `tsvector`). This is good enough for early use when the statement set is small and seed statements cover the main areas.
+
+**Long-term approach:** Embedding-based similarity search. Store vector embeddings of statement content in the indexer and support a query like `similarStatements(embedding: [Float!]!, limit: Int): [Statement!]!`. The AI generates an embedding for the concept being explored and retrieves nearest neighbors. This scales to a large statement set without requiring the AI to download everything.
+
+The implication graph also helps here: once the AI finds one relevant statement, it can walk outward via `get_implications` to discover related ones.
+
+### Choosing between existing and new statements
+
+When the AI finds candidate existing statements, it weighs two factors:
+  - **Semantic fit:** How closely does the existing statement match the concept the user is exploring?
+  - **Activity:** How much support, funding, and project activity does it have?
+
+A popular statement that's a close-enough match is usually better than creating a new one with zero signers. But if the best existing match is a poor fit, the AI should create a new statement and request an implication attestation to link it to the popular one (as described in "Nudging toward existing statements" above).
