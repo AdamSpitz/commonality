@@ -6,9 +6,16 @@ The argument for Commonality goes roughly like this:
 
 "Hey, look — new tech (blockchains, AI, assurance contracts) makes it possible to fund public goods without needing a big centralized organization."
 
-**"Would that even do the job? Government and charities exist for a reason."**
+**"Would that even do the job?"**
 
-Yes. Commonality can do everything that [government](./credible-replacement/vs-government.md) and [private charity](./credible-replacement/vs-charity.md) do for public goods funding — handle the free-rider problem, match supply and demand, vet projects, etc. — without needing the centralized org. (It's also [better than network states](./credible-replacement/vs-network-states.md), for what that's worth.)
+[Yes](./is-a-credible-solution.md):
+  - Assurance contracts solve the free-rider problem.
+  - The delegation system solves the laziness problem.
+  - And the rest is simple.
+
+In the past we've needed government or big private charity orgs to do this kind of thing. New tech makes this new approach genuinely viable.
+
+TODO: I'm not sure the credible-replacement files ([government](./credible-replacement/vs-government.md) and [private charity](./credible-replacement/vs-charity.md)) are necessary; maybe dismantle them and incorporate their arguments into other pages?
 
 **"Okay, but why bother? We already have those systems."**
 
