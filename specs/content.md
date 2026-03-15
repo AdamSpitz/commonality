@@ -83,3 +83,13 @@ When the AI finds candidate existing statements, it weighs two factors:
   - **Activity:** How much support, funding, and project activity does it have?
 
 A popular statement that's a close-enough match is usually better than creating a new one with zero signers. But if the best existing match is a poor fit, the AI should create a new statement and request an implication attestation to link it to the popular one (as described in "Nudging toward existing statements" above).
+
+
+## Graceful transition from AI-heavy to AI-light
+
+Early on, the explorer AI does heavy lifting: generating navigation options, creating statements on the fly, searching for nearby ones in a sparse graph. As the statement set and implication graph grow, the system naturally becomes less AI-dependent:
+
+- **Embedding-based "related statements" need no LLM.** Each statement page can show related statements via a nearest-neighbor query on embeddings — a pure indexer query, fast and cheap. Browsing related statements stops requiring AI at all.
+- **The implication graph becomes the primary navigation.** Once popular statements have rich implication links, users navigate statement-to-statement through those links. The graph *is* the map of conceptspace, and it gets denser over time.
+
+The explorer AI doesn't disappear — it shifts from "generating the terrain as you walk on it" to "helping you pick from 50 existing statements near what you're describing." It remains useful for onboarding and articulating novel positions, but everyday browsing works fine without it.
