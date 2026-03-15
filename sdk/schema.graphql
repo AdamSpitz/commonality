@@ -64,6 +64,8 @@ type Query {
   mutableRefss(where: mutableRefsFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): mutableRefsPage!
   refUpdates(id: String!): refUpdates
   refUpdatess(where: refUpdatesFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): refUpdatesPage!
+  userSocialData(address: String!): userSocialData
+  userSocialDatas(where: userSocialDataFilter, orderBy: String, orderDirection: String, before: String, after: String, limit: Int, offset: Int): userSocialDataPage!
   _meta: Meta
 }
 
@@ -1958,6 +1960,46 @@ type refUpdatesPage {
   items: [refUpdates!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type userSocialData {
+  address: String!
+  ensName: String
+  twitterHandle: String
+  twitterFollowerCount: Int
+  isTwitterVerified: Boolean!
+  socialDataFetched: Boolean!
+  fetchedAt: BigInt
+  error: String
+  user: users
+}
+
+type userSocialDataPage {
+  items: [userSocialData!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input userSocialDataFilter {
+  AND: [userSocialDataFilter]
+  OR: [userSocialDataFilter]
+  address: String
+  address_not: String
+  address_in: [String]
+  address_not_in: [String]
+  ensName: String
+  ensName_not: String
+  ensName_contains: String
+  twitterHandle: String
+  twitterHandle_not: String
+  twitterHandle_contains: String
+  twitterFollowerCount: Int
+  twitterFollowerCount_gt: Int
+  twitterFollowerCount_lt: Int
+  twitterFollowerCount_gte: Int
+  twitterFollowerCount_lte: Int
+  isTwitterVerified: Boolean
+  socialDataFetched: Boolean
 }
 
 input refUpdatesFilter {

@@ -24,6 +24,7 @@ vi.mock('@commonality/sdk', async () => {
     getUserBeliefs: vi.fn(),
     getUserDisbeliefs: vi.fn(),
     getUserIndirectSupport: vi.fn(),
+    getUserSocialData: vi.fn().mockResolvedValue(null),
   }
 })
 

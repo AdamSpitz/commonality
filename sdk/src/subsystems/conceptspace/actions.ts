@@ -7,6 +7,7 @@ import { type TestClients } from '../../utils/ethereum.js';
 import { type DisplayableDocument, publishDocument } from '../displayable-documents/displayable-document.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
+import { addToCreatedStatements } from '../mutable-refs/actions.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -318,7 +319,6 @@ export async function createAndSignStatement(
   // Step 3: Optionally update the created-statements list
   if (addToCreatedList && contracts.mutableRefUpdater) {
     try {
-      const { addToCreatedStatements } = await import('../mutable-refs/actions.js');
       updateListTxHash = await addToCreatedStatements(
         machinery,
         clients,

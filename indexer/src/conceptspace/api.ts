@@ -22,7 +22,7 @@
 
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
-import { eq, and, inArray } from "ponder";
+import { eq, and, inArray, gte, desc } from "ponder";
 import {
   isValidAddress,
   parseAddressList,
@@ -377,6 +377,72 @@ app.get("/api/suggestions/:userAddress", async (c) => {
     return c.json({ suggestions, limit });
   } catch (error) {
     console.error("Error fetching suggestions:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+
+/**
+ * Custom API endpoint: Get high-profile signers for a statement
+ *
+ * Returns believers of a statement who have high Twitter follower counts,
+ * based on social data resolved from their ENS records.
+ *
+ * Query params:
+ *   - minFollowers: minimum Twitter follower count (default 10000)
+ *   - limit: number (default 10, max 100)
+ */
+app.get("/api/high-profile-signers/:statementId", async (c) => {
+  try {
+    const statementId = c.req.param("statementId");
+
+    if (!isValidCidV1(statementId)) {
+      return c.json(invalidInputError("statementId", "Must be a valid IPFS CIDv1 (bafy...)"), 400);
+    }
+
+    const minFollowers = parsePositiveInt(c.req.query("minFollowers"), 10000);
+    const limit = Math.min(parsePositiveInt(c.req.query("limit"), 10), 100);
+
+    // Get all believers of this statement
+    const believers = await db
+      .select({ user: schema.beliefs.user })
+      .from(schema.beliefs)
+      .where(
+        and(
+          eq(schema.beliefs.statementId, statementId),
+          eq(schema.beliefs.beliefState, 1) // BELIEVES
+        )
+      );
+
+    if (believers.length === 0) {
+      return c.json({ signers: [], totalCount: 0 });
+    }
+
+    const believerAddresses = believers.map((b: { user: string }) => b.user);
+
+    // Find believers with high follower counts
+    const highProfileSigners = await db
+      .select()
+      .from(schema.userSocialData)
+      .where(
+        and(
+          inArray(schema.userSocialData.address, believerAddresses),
+          gte(schema.userSocialData.twitterFollowerCount, minFollowers),
+        )
+      )
+      .orderBy(desc(schema.userSocialData.twitterFollowerCount))
+      .limit(limit);
+
+    return c.json({
+      signers: highProfileSigners.map((s: any) => ({
+        address: s.address,
+        ensName: s.ensName,
+        twitterHandle: s.twitterHandle,
+        followerCount: s.twitterFollowerCount,
+      })),
+      totalCount: highProfileSigners.length,
+    });
+  } catch (error) {
+    console.error("Error fetching high-profile signers:", error);
     return c.json({ error: "Internal server error" }, 500);
   }
 });

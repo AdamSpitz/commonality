@@ -22,6 +22,7 @@ import { createFundingportalApi } from "../fundingportal/api";
 import { startIpfsSyncJobs } from "../utils/ipfsSyncJob.js";
 import { runPubstarterIpfsSyncIteration } from "../pubstarter/utils/ipfsSyncJob";
 import { runConceptspaceIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob.js";
+import { startSocialSyncJob } from "../utils/socialSyncJob.js";
 
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 
@@ -45,5 +46,8 @@ startIpfsSyncJobs(IPFS_GATEWAY, db, [
   { name: "Statements", iterationFn: runConceptspaceIpfsSyncIteration },
   { name: "Projects", iterationFn: runPubstarterIpfsSyncIteration },
 ]);
+
+// Background social data sync job (ENS names + Twitter follower counts)
+startSocialSyncJob(db);
 
 export default app;

@@ -17,6 +17,7 @@ import {
   GetAllStatementsDocument,
   GetUserBeliefsDocument,
   GetUserDisbeliefsDocument,
+  GetUserSocialDataDocument,
 } from '../../generated/graphql.js';
 import {
   type Implication,
@@ -29,6 +30,8 @@ import {
   type GetStatementWithContentOptions,
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
+  type UserSocialData,
+  type HighProfileSigner,
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
@@ -590,4 +593,49 @@ export async function getUserIndirectSupport(
   const end = options.limit ? start + options.limit : undefined;
 
   return results.slice(start, end);
+}
+
+// ============================================================================
+// Social Data Queries
+// ============================================================================
+
+/**
+ * Get social data (ENS name, Twitter info) for a user address.
+ * Uses the GraphQL API auto-generated from the user_social_data table.
+ */
+export async function getUserSocialData(
+  machinery: SDKMachinery,
+  address: string
+): Promise<UserSocialData | null> {
+  const result = await executeTypedGraphQLQuery(machinery, GetUserSocialDataDocument, {
+    address: address.toLowerCase(),
+  });
+  return (result.userSocialData as unknown as UserSocialData) ?? null;
+}
+
+/**
+ * Get high-profile signers for a statement.
+ * Uses the REST endpoint since it involves a join between beliefs and social data.
+ */
+export async function getHighProfileSigners(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  options: { minFollowers?: number; limit?: number } = {}
+): Promise<HighProfileSigner[]> {
+  const { minFollowers = 10000, limit = 10 } = options;
+  const params = new URLSearchParams({
+    minFollowers: String(minFollowers),
+    limit: String(limit),
+  });
+
+  const url = `${machinery.indexerUrl.replace(/\/graphql$/, '')}/conceptspace/api/high-profile-signers/${statementCid}?${params}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    console.warn(`Failed to fetch high-profile signers: ${response.status}`);
+    return [];
+  }
+
+  const data: { signers?: HighProfileSigner[] } = await response.json();
+  return data.signers ?? [];
 }

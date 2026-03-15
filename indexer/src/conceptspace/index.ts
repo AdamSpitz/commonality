@@ -15,6 +15,7 @@ import {
   implications,
   users,
   attesters,
+  userSocialData,
 } from "ponder:schema";
 import { BeliefState } from "../constants";
 import { IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
@@ -73,6 +74,13 @@ async function ensureUser(
       beliefCount: 0,
       disbeliefCount: 0,
       createdAt: timestamp,
+    });
+
+    // Create placeholder for social data sync job to pick up
+    await ctx.db.insert(userSocialData).values({
+      address: userId,
+      socialDataFetched: false,
+      isTwitterVerified: false,
     });
   }
 }

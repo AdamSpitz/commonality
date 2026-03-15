@@ -14,6 +14,7 @@ import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
 import { StatementSuggestions } from '../components/StatementSuggestions'
+import { HighProfileSigners } from '../components/HighProfileSigners'
 import { AvailableDelegatableFunding } from '../../delegation/components'
 import { FundingPortalSummary } from '../../fundingportal/components'
 
@@ -141,6 +142,9 @@ export function StatementPage() {
         directDisbelievers={statement.disbelieverCount}
         indirectSupporters={indirectSupporters}
       />
+
+      {/* High-Profile Supporters */}
+      <HighProfileSigners statementCid={statementCid as IpfsCidV1} />
 
       {/* Belief Controls */}
       <Box sx={{ mb: 3 }}>

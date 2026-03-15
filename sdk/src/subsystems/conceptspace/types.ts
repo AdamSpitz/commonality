@@ -79,3 +79,20 @@ export interface GetUserIndirectSupportOptions {
   limit?: number;
   offset?: number;
 }
+
+export interface UserSocialData {
+  address: string;
+  ensName?: string;
+  twitterHandle?: string;
+  twitterFollowerCount?: number;
+  isTwitterVerified: boolean;
+  socialDataFetched: boolean;
+  fetchedAt?: string;
+}
+
+export interface HighProfileSigner {
+  address: string;
+  ensName?: string;
+  twitterHandle?: string;
+  followerCount?: number;
+}

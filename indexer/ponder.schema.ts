@@ -70,3 +70,9 @@ export {
   mutableRefsRelations,
   refUpdatesRelations,
 } from "./schemas/mutable-refs.schema";
+
+// Import and re-export Social Data schema
+export {
+  userSocialData,
+  userSocialDataRelations,
+} from "./schemas/social.schema";

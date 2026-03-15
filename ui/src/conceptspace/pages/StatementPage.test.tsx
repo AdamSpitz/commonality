@@ -60,6 +60,12 @@ vi.mock('../components/StatementSuggestions', () => ({
   )),
 }))
 
+vi.mock('../components/HighProfileSigners', () => ({
+  HighProfileSigners: vi.fn(() => (
+    <div data-testid="high-profile-signers">HighProfileSigners</div>
+  )),
+}))
+
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {

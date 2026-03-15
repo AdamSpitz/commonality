@@ -23,6 +23,7 @@ import {
   type IndirectSupportInfo,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { AddressDisplay } from '../../shared/components/AddressDisplay'
 import AddIcon from '@mui/icons-material/Add'
 
 interface TabPanelProps {
@@ -255,9 +256,7 @@ export function UserProfilePage() {
       </Box>
 
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-          {displayAddress}
-        </Typography>
+        <AddressDisplay address={displayAddress} showFullAddress variant="h6" />
       </Paper>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
