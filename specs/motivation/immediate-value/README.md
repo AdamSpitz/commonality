@@ -1,0 +1,3 @@
+# Switching creates value right away
+
+TODO: fill this in, but I think I want to dismantle various files from ../ease-of-adoption, like [dial-not-switch.md](../ease-of-adoption/dial-not-switch.md) (but others too). The point is to be clearer about lowering friction versus creating immediate value. (Maybe the distinction isn't that important, but it's helping me make sense of the arguments in my head.)
