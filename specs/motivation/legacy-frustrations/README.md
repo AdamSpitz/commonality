@@ -18,3 +18,5 @@ These aren't incidental annoyances; they're the core reasons why it's hard to ge
 Commonality propagates individuality much further down the pipeline. You sign your own statements (not a party platform), delegate to your own chosen delegates (not a district-wide representative), fund your own chosen projects (not a general treasury). Aggregation still happens — that's the whole point, collective-scale outcomes — but it happens *late*, after individual preferences have been preserved as long as possible.
 
 The result: collective-scale outcomes without the [lossy](../why-its-better/individualization.md) and [frustrating](../ease-of-adoption/no-need-to-compromise.md) early-aggregation step. And as a bonus, the late-aggregation approach means the system can discover [organic coalitions](../why-its-better/organic-coalitions.md) — common ground that the early-aggregation approach would have destroyed by forcing people into opposing camps.
+
+For a concrete example of how this plays out — from tip jar to credible threat to fully-funded community program — see the [walkthrough](../walkthrough.md).

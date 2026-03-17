@@ -17,3 +17,5 @@ Individualization also makes the system less frustrating to use — you no longe
 ## Overall picture
 
 Do you seriously think that our government is doing a good job of funding effective projects that people actually want?
+
+And: the same individualization that produces better signal also produces better *leverage*. When a community's preferences are recorded with full granularity — not flattened into a party platform — the system can demonstrate precisely how much support exists for precisely which outcomes. This is what makes [credible threats](../hard-to-stop/credible-threat.md) so much more powerful than petitions: instead of "1,000 people are upset," it's "1,000 people have collectively locked $2M toward exactly this outcome."

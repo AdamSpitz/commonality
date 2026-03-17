@@ -10,3 +10,5 @@ Private charity is nice because no coercion, but has its own problems that Commo
   - **No retroactive funding.** Charities fund stuff prospectively. Commonality enables retroactive funding where you reward projects that have *already* demonstrated value.
 
 Commonality keeps the good part of charity — it's voluntary — while fixing the bad parts. And charities themselves can [use Commonality as infrastructure](../ease-of-adoption/rails.md) to reduce their own overhead (see also [enthusiastic adoption](../so-what/enthusiastic-adoption.md)).
+
+Charities that adopt Commonality as infrastructure also gain access to the [credible-threat mechanism](../hard-to-stop/credible-threat.md): if their government funding gets threatened, their donor base can visibly coordinate a backup plan at zero cost. See the [walkthrough](../walkthrough.md) for a concrete example.

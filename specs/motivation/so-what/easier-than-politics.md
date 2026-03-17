@@ -1,6 +1,6 @@
 # Easier than politics
 
-The point of showing that Commonality is [a credible potential solution to public goods funding](../is-a-credible-solution.md), and that it has [advantages](../why-its-better/README.md) over doing it via government, is *not* "let's dismantle the government." Obviously that's not going to happen.
+The point of showing that Commonality is [a credible potential solution to public goods funding](../credible-solution/README.md), and that it has [advantages](../why-its-better/README.md) over doing it via government, is *not* "let's dismantle the government." Obviously that's not going to happen.
 
 The point is: **if you already feel like fixing your problems requires winning the next election, forming a new political party, or navigating a brutal bureaucracy — you may not have to.** You can just start using Commonality instead.
 
@@ -26,7 +26,7 @@ Commonality inverts this. Every step along the growth curve [produces value](../
 
 ## Grow first, then use leverage
 
-The strategic implication is: don't start by trying to win elections or sway governments. Start by building real projects, funding real things, and growing the network of people and money flowing through the system. Political leverage comes *after* you've already demonstrated that the system works — not as a prerequisite for getting started.
+The strategic implication is: don't start by trying to win elections or sway governments. Start by building real projects, funding real things, and growing the network of people and money flowing through the system. Political leverage comes *after* you've already demonstrated that the system works — not as a prerequisite for getting started. And the leverage itself can be costless: [credible threats](../hard-to-stop/credible-threat.md) shift negotiating power without spending a dollar. A community that has visibly built independent funding capacity changes the calculus for anyone threatening to cut their funding — see the [walkthrough](../walkthrough.md) for how this plays out.
 
 This is similar to Balaji Srinivasan's "network state" idea — the core insight is genuinely exciting: large numbers of aligned people coordinating online to fund and build things, leveraging their collective wealth to get real outcomes, potentially even negotiating with nation-states from a position of strength. But the network-state vision imagines something like a million-member organization with a shared treasury, shared governance, and membership boundaries. That's essentially just... a government. A new one, maybe a better one, but still a centralized entity with all the coordination costs that come with it.
 

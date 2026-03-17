@@ -12,7 +12,7 @@ Some people don't need to be convinced that Commonality is theoretically better.
   - **Disaster response.** Government response to disasters is notoriously slow and bureaucratic. "Donate to hurricane relief through Commonality, where you can see exactly where money goes and your donation is refunded if the project isn't viable" is a compelling, low-controversy entry point. People who first use the system for disaster relief may stick around for everyday public goods.
   - **Bureaucracy-avoidance.** Even without political hostility, someone with a project idea who's staring down 18 months of grant applications, compliance reporting, and conditions about what programs they must offer might just prefer to click a button and set up an assurance contract.
 
-The common thread: these people aren't adopting because they believe in the vision. They're adopting because their alternative is worse or nonexistent.
+The common thread: these people aren't adopting because they believe in the vision. They're adopting because their alternative is worse or nonexistent. And once they're on the rails, they've also built the infrastructure for [credible threats](../hard-to-stop/credible-threat.md) — the ability to say "we can do this without you" to anyone who threatens their funding. See the [walkthrough](../walkthrough.md) for how a community naturally moves from adoption to leverage.
 
 ## "This is just better infrastructure" — pull from quality
 
@@ -36,5 +36,5 @@ Some adoption paths work by easing people into the mechanisms through something 
 ## Charity stuff
 
 See:
-  - [Why it's better — vs. private charity](../why-its-better/README.md#also-better-than-private-charity)
+  - [Why it's better — vs. private charity](../legacy-frustrations/charity.md)
   - [for-established-orgs.md](../ease-of-adoption/for-established-orgs.md).
