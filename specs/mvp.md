@@ -7,6 +7,14 @@ So lemme try to think this all through and make sure the MVP makes sense to me.
 
 ### Entry points
 
+What are the types of roles/people/activities?
+  - You have a project you want to do.
+  - You have money you want to contribute to a cause you care about.
+    - You're feeling lazy and don't want to direct your money yourself.
+  - You care about the cause, and you're the kind of person who follows the projects in more detail, and you're willing to be responsible for directing other people's money.
+  - You're an investor.
+  - 
+
 What do we tell people (of various types)?
   - (For many kinds of people.) "You'll need a wallet; if you're not sure, try Coinbase's Base app."
   - (Note that I'm not sure what the URLs will be.)
