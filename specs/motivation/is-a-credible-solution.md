@@ -45,4 +45,4 @@ This isn't an ideological libertarian argument for removing public-goods-funding
 
 In the past we've needed government or big private charity orgs to do this kind of thing. New tech (Internet, blockchains, AI, assurance contracts) makes this new approach genuinely viable.
 
-The arguments for why you might *want* to switch (even for things government currently funds well) are in [why it's better](./why-its-better/README.md). The argument for why you might find it [much easier than politics](./so-what/easier-than-politics.md) is there too.
+The arguments for why you might *want* to switch (even for things government currently funds well) are elsewhere in this directory.

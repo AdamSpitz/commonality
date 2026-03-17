@@ -1,6 +1,6 @@
 # "Publish, then filter"
 
-A big insight of the Web 2.0 era was that we can reduce the need for coordination by moving away from "centralized gatekeepers filter the applications and then only publish the best stuff." No need to coordinate on the gatekeepers.
+A big insight of the Web 2.0 era was that we can reduce the need for coordination by moving away from "centralized gatekeepers filter the applications and then only publish the best stuff." Publishing and filtering are both crowdsourced. This makes the system more effective (more projects surface, more evaluation happens) and also avoids the coordination problem of agreeing on who the gatekeepers should be.
 
 In Commonality, this applies throughout:
 

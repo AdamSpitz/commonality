@@ -1,8 +1,9 @@
 # Why Commonality?
 
 The argument for Commonality goes roughly like this:
-  A: "We can fund public goods this way."
-  B: "Really?"
+  B: "What's this for?
+  A: "Funding public goods."
+  B: "Wait, really?"
   A: "Yes, here's why this would work and why it's now becoming viable when it wasn't before."
   B: "Why not just do it the old way?"
   A: "This way is better for these reasons."
@@ -28,27 +29,18 @@ In the past we've needed government or big private charity orgs to do this kind 
 
 **"Okay, but why bother? We already have government and private charities for funding public goods."**
 
-Because [it's better](./why-its-better/README.md). Concretely:
-  - Pushing [individualization](./why-its-better/individualization.md) further through the pipelines preserves the signal instead of washing it out through early compromise.
-  - [Organic coalition-building](./why-its-better/organic-coalitions.md): the system discovers shared ground across individual statements, rather than forcing everyone into a monolithic position. Most people probably agree on a lot more than polarized party politics would suggest — but you'd never know it from a system that forces you to pick a side before you can participate.
-  - [Retroactive funding](./why-its-better/retroactive-funding.md): donation tokens create a nano-VC market for public goods.
-  - [Openness](./why-its-better/openness.md): anyone can publish; filtering happens through social signals, not gatekeepers. This makes the system more effective (more projects surface, more evaluation happens) and avoids the coordination problem of agreeing on who the gatekeepers should be.
-  - Transparency and trustlessness: everything is onchain and auditable.
-  - Censorship resistance: no chokepoints to attack.
+Because [it's better](./why-its-better/README.md) in various important ways: better signal (doing what people actually want), preserves real commonality rather than polarizing, more effective (retroactive funding, crowdsourced project surfacing/evaluation), less need for coordination, plus all the onchain benefits like transparency and trustlessness and censorship-resistance.
 
 **"Even if it's better, getting people to switch is hard."**
 
-Yes. Absolutely. But:
-
-First, [traditional collective action is frustrating](./ease-of-adoption/legacy-frustrations.md) in ways that Commonality specifically fixes. So we might draw in people who are fed up with the legacy system, or abstaining from it.
-
-Second, switching is [remarkably easy](./ease-of-adoption/README.md). We can eliminate a lot of the friction.
-
-And third, switching [generates value right away](./immediate-value/README.md) (or at least *almost* right away, in the case of a pledge to an assurance contract, which is at least costless if it fails).
+Yes. [But](./getting-people-to-switch.md):
+  - The legacy system is frustrating; we might draw in people who are fed up with it, or abstaining from it.
+  - Switching is remarkably easy.
+  - Switching generates value right away.
 
 **"What if the government tries to stop it?"**
 
-It's [hard to stop](./hard-to-stop/censorship-resistance.md). No bank accounts to freeze, no platform to deplatform, no org to shut down. The system operates with [after-tax money you already control](./hard-to-stop/after-tax.md). Visibly locking pledges in standby assurance contracts serves as a [credible threat](./hard-to-stop/credible-threat.md) that shifts negotiating power. And there are [game-theoretic reasons](./hard-to-stop/game-theory.md) to expect adoption across the political spectrum.
+It's [hard to stop](./hard-to-stop/README.md). No bank accounts to freeze, no platform to deplatform, no org to shut down. The system operates with after-tax money you already control. And neither side can stop the other side from using this system, nor can they count on the other side never regaining power, so both sides will want to use this system to prevent the other side from cutting off their funding.
 
 **So what does this add up to?**
 

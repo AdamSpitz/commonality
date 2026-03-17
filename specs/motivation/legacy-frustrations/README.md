@@ -1,6 +1,6 @@
 # Traditional collective action is frustrating
 
-Traditional collective action — government, charities, political organizing — carries a huge coordination tax. Each of these friction points is an "ugh" that deters participation, and Commonality is designed to eliminate all of them.
+Traditional collective action — government, [charities](./charity.md), political organizing — carries a huge coordination tax. Each of these friction points is an "ugh" that deters participation, and Commonality is designed to eliminate all of them.
 
 ## The coordination taxes
 

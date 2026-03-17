@@ -4,7 +4,7 @@ Two things make adoption realistic:
 
 ## The old way is frustrating
 
-Traditional collective action carries a huge coordination tax — compromising, agreeing on leadership, reaching critical mass, making irreversible commitments. Commonality [specifically fixes these frustrations](./legacy-frustrations.md). This isn't just a benefit of the new system; it's a reason people are motivated to switch.
+Traditional collective action carries a huge coordination tax — compromising, agreeing on leadership, reaching critical mass, making irreversible commitments. Commonality [specifically fixes these frustrations](../legacy-frustrations/README.md). This isn't just a benefit of the new system; it's a reason people are motivated to switch.
 
 ## The new way is smooth
 
