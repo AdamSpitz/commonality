@@ -36,5 +36,5 @@ Some adoption paths work by easing people into the mechanisms through something 
 ## Charity stuff
 
 See:
-  - [vs-charity.md](../credible-replacement/vs-charity.md)
+  - [Why it's better — vs. private charity](../why-its-better/README.md#also-better-than-private-charity)
   - [for-established-orgs.md](../ease-of-adoption/for-established-orgs.md).

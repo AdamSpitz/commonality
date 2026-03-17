@@ -12,7 +12,7 @@ Every aspect of the system is designed so that getting started is trivial and sc
 
   - **[Costless to try](./costless-to-try.md):** Pledges refund if the threshold isn't met. Delegation is revocable. Signing a statement is free. Starting a project costs nothing.
 
-  - **[No need to compromise](./no-need-to-compromise.md):** Sign exactly the statement you want. Delegate your funding decisions to exactly who you want (or don't delegate at all, decide yourself).
+  - **[No need to compromise](./no-need-to-compromise.md):** Every step that used to require collective agreement — signing statements, choosing attesters, delegating, filtering, governing a treasury — becomes an individual decision. You participate on exactly the terms you want.
 
   - **[Scales down](./scales-down.md):** Useful even for a single project with a handful of funders. No critical mass required.
 

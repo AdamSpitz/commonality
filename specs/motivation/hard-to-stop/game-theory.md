@@ -1,26 +1,32 @@
 # Game theory reasons for people to use Commonality
 
-**TL;DR:** You don't need to be ideologically excited about Commonality for it to be rational to adopt it. Four layers: (1) insurance against being out of power, (2) the mechanisms are just better infrastructure regardless of politics, (3) competitive pressure if the other side adopts and you don't, (4) positive-sum — total public goods funding increases. These create a sequential cascade that doesn't require a grand bargain or simultaneous adoption.
+**TL;DR:** You don't need to be ideologically excited about Commonality for it to be rational to adopt it. Commonality provides insurance against being out of power, plus the mechanisms are just better infrastructure regardless of politics (which creates competitive pressure if the other side adopts and you don't). These create a sequential cascade that doesn't require a grand bargain or simultaneous adoption.
 
-## The core argument
+## The core argument: government funding is unstable
 
-In addition to [enthusiastic adoption](../so-what/enthusiastic-adoption.md) from people who actually *want* to use a more open system like Commonality, there are game-theoretic reasons to expect adoption across the political spectrum, not just from whichever side is currently out of power. The argument has four layers that stack on each other:
+A huge share of political conflict is about allocation — the left wants to fund X and defund Y, the right wants to defund X and fund Y — and with each side alternating in power, anything funded through government can be defunded as soon as the other side wins.
 
-**Layer 1: Insurance.** Both sides are intermittently out of power. When you're out of power, your funding is vulnerable — your causes get defunded, your charities get audited, your bank accounts get scrutinized. When you're in power, the other side faces the same. So for each side independently, putting funding on censorship-resistant infrastructure is a dominant strategy: you're better off doing it regardless of what the other side does, because you *will* be out of power eventually.
+Whatever bipartisan norm once existed against immediately undoing your predecessor's work, and maybe even attacking them via the legal system (audits, lawfare, etc.), appears to be eroding as polarization increases. When you're out of power, your projects' funding is vulnerable — your causes get defunded, your charities get audited, your bank accounts get scrutinized. This means that even when your side *is* in power, the things you fund through government are on borrowed time.
 
-**Layer 2: Better mechanisms.** Independently of censorship resistance, Commonality's mechanisms are just better infrastructure for voluntary funding. Assurance contracts raise more money than "please donate unconditionally" because they solve the free-rider problem. Delegation gets lazy-but-wealthy people to participate who otherwise wouldn't bother. Retroactive funding improves project quality because builders know success will be rewarded. Transparency builds donor trust. Your side raises more money and gets better projects out of it, regardless of who's in power or what the other side does.
+So in addition to [enthusiastic adoption](../so-what/enthusiastic-adoption.md) from people who actually *want* to use a more open system like Commonality, there are game-theoretic reasons to expect adoption across the political spectrum, not just from whichever side is currently out of power.
 
-**Layer 3: Competitive pressure.** If the other side adopts better funding infrastructure and your side doesn't, they're raising more money, funding more effective projects, and building a track record — all while being immune to suppression when you're in power. You're falling behind on *both* effectiveness and resilience.
+Commonality offers both sides an exit from this treadmill: fund the things you care about directly, and stop worrying about the next election cycle undoing it. Each side can even set up [standby assurance contracts](../hard-to-stop/credible-threat.md) as defunding insurance — "if it gets cut, we'll fund it ourselves" — which costs nothing unless actually triggered.
 
-**Layer 4: Total public goods increase.** Both sides going onchain isn't zero-sum. The total pool of voluntary public goods funding increases because the infrastructure is less lossy — better mechanisms, less overhead, fewer middlemen. Both sides win in absolute terms.
+So for each side independently, putting funding on censorship-resistant infrastructure is a dominant strategy: you're better off doing it regardless of what the other side does, because it costs you little and has a significant chance of saving you (because you *will* be out of power eventually).
+
+## Another argument: competitive pressure
+
+Independently of censorship resistance, Commonality's mechanisms are just [better](../why-its-better/) infrastructure for voluntary funding. Assurance contracts raise more money than "please donate unconditionally" because they solve the free-rider problem. Delegation gets lazy-but-wealthy people to participate who otherwise wouldn't bother. Retroactive funding improves project quality because builders know success will be rewarded. Transparency builds donor trust. Your side raises more money and gets better projects out of it, regardless of who's in power or what the other side does.
+
+If the other side adopts better funding infrastructure and your side doesn't, they're raising more money, funding more effective projects, and building a track record — all while being immune to suppression when you're in power. You're falling behind on *both* effectiveness and resilience.
 
 ## What this looks like concretely
 
 Suppose you're a conservative-leaning community in a province with a progressive government.
 
-**The out-of-power pitch (Layer 1):** "The provincial government just pulled funding from your community's youth mentorship program because your school board won't adopt their preferred curriculum policies. You can spend the next election cycle trying to vote them out — or you can crowdfund the mentorship program on Commonality right now. Set up an assurance contract: if 200 families each pledge $50/month, the program is fully funded. If you don't hit the threshold, everyone gets refunded. Nobody risks anything, and no provincial minister can pull the plug."
+**The out-of-power pitch:** "The provincial government just pulled funding from your community's youth mentorship program because your school board won't adopt their preferred curriculum policies. You can spend the next election cycle trying to vote them out — or you can crowdfund the mentorship program on Commonality right now. Set up an assurance contract: if 200 families each pledge $50/month, the program is fully funded. If you don't hit the threshold, everyone gets refunded. Nobody risks anything, and no provincial minister can pull the plug."
 
-**The in-power pitch (Layers 2-3):** Now suppose conservatives win the next provincial election. They don't *need* censorship resistance right now. But the pitch is still compelling:
+**The in-power pitch:** Now suppose conservatives win the next provincial election. They don't *need* censorship resistance right now. But the pitch is still compelling:
 
   - "Your community wants to fund a new trade school. Through government grants, that's 18 months of applications, conditions about what programs you must offer, compliance reporting, and a bureaucrat who can change the terms. Through Commonality, a respected local business owner acts as delegate — people contribute via delegatable notes, she evaluates proposals from contractors, the whole decision chain is transparent. The trade school gets built faster, with less overhead, and you owe nobody any policy compliance for the privilege."
   - "Meanwhile, the progressive communities in the cities are already using Commonality to fund their stuff — mutual aid networks, legal clinics, environmental monitoring. They're building funding capacity that you won't be able to touch when you're out of power again. If you don't build the same capacity now, while things are easy, you'll be scrambling to set it up under hostile conditions when the pendulum swings back."
@@ -32,7 +38,7 @@ Suppose you're a conservative-leaning community in a province with a progressive
 The realistic adoption path isn't a grand bargain where both sides agree simultaneously. It's a sequential cascade:
 
   1. The side currently most under threat adopts first, out of necessity.
-  2. They discover the mechanisms are also just *better* (Layer 2), so they keep using it even when the political pressure eases.
+  2. They discover the mechanisms are also just *better*, so they keep using it even when the political pressure eases.
   3. The other side sees a rival political community raising more money, funding more effective projects, and doing it all through infrastructure they can't shut down.
   4. They adopt it too — maybe framing it differently ("community mutual aid" vs "freedom funding"), but using the same infrastructure.
 
@@ -50,7 +56,7 @@ A few more structural pressures that reinforce the cascade:
 
 ## Sole-donor to distributed funding
 
-Even sole donors (foundations, government agencies, wealthy individuals) benefit from using Commonality's rails — standardized infrastructure, verifiable track records, ecosystem visibility — and the system gently makes opening up to co-funders attractive over time. This is another "dial, not switch" upgrade path, like [tip jars](../ease-of-adoption/tip-jar-upgrade-path.md) and [alignment attestation](../ease-of-adoption/for-established-orgs.md): start wherever you are, get real benefits immediately, and the next step is always easy. See [donor-project-tension.md](../ease-of-adoption/donor-project-tension.md) for the full argument.
+Even sole donors (foundations, government agencies, wealthy individuals) benefit from using Commonality's rails — standardized infrastructure, verifiable track records, ecosystem visibility — and the system gently makes opening up to co-funders attractive over time. This is another ["dial, not switch"](../ease-of-adoption/dial-not-switch.md) upgrade path, like [tip jars](../ease-of-adoption/tip-jar-upgrade-path.md) and [alignment attestation](../ease-of-adoption/for-established-orgs.md): start wherever you are, get real benefits immediately, and the next step is always easy. See [donor-project-tension.md](../ease-of-adoption/donor-project-tension.md) for the full argument.
 
 ## "But you're paying with after-tax dollars"
 

@@ -26,30 +26,25 @@ It's a system for funding public goods.
 
 In the past we've needed government or big private charity orgs to do this kind of thing. New tech (Internet, blockchains, AI, assurance contracts) makes this new approach genuinely viable.
 
-TODO: I'm not sure the credible-replacement files ([government](./credible-replacement/vs-government.md) and [private charity](./credible-replacement/vs-charity.md)) are necessary; maybe dismantle them and (if necessary) incorporate their arguments into other pages?
-
 **"Okay, but why bother? We already have government and private charities for funding public goods."**
 
 Because [it's better](./why-its-better/README.md). Concretely:
-  - Preserving [individualization](./why-its-better/individualization.md) further down the pipeline (TODO: that's an esoteric metaphor that I made up, not clear) means preserving the "signal" better.
-  - [Organic coalition-building](./why-its-better/organic-coalitions.md): the system discovers commonality across individual statements instead of forcing everyone into a monolithic position. (We probably have a lot more in common, a lot more willingness to put funding towards normal stuff that actually most of us do agree on, than you might believe if you're just watching our stupid polarized political parties squabble over nonsense. TODO rewrite that too, but you get the idea.)
+  - Pushing [individualization](./why-its-better/individualization.md) further through the pipelines preserves the signal instead of washing it out through early compromise.
+  - [Organic coalition-building](./why-its-better/organic-coalitions.md): the system discovers shared ground across individual statements, rather than forcing everyone into a monolithic position. Most people probably agree on a lot more than polarized party politics would suggest — but you'd never know it from a system that forces you to pick a side before you can participate.
   - [Retroactive funding](./why-its-better/retroactive-funding.md): donation tokens create a nano-VC market for public goods.
-  - [Openness](./why-its-better/openness.md): anyone can publish; filtering happens through social signals, not gatekeepers. (TODO: the point isn't exactly "yay openness, we like openness", more like a combination of "the fact that this is open in various ways ought to make it a lot more effective" and "if we have a closed system with a particular single set of gatekeepers doing this job on behalf of everybody, then we have to coordinate/fight about who those gatekeepers are.")
+  - [Openness](./why-its-better/openness.md): anyone can publish; filtering happens through social signals, not gatekeepers. This makes the system more effective (more projects surface, more evaluation happens) and avoids the coordination problem of agreeing on who the gatekeepers should be.
   - Transparency and trustlessness: everything is onchain and auditable.
   - Censorship resistance: no chokepoints to attack.
 
 **"Even if it's better, getting people to switch is hard."**
 
-Yes, but:
+Yes. Absolutely. But:
 
-First, [traditional collective action is frustrating](./ease-of-adoption/legacy-frustrations.md) in ways that Commonality specifically fixes — the need to compromise, agree on leadership, reach critical mass, and make irreversible commitments. These aren't incidental annoyances; they're the core reasons why it's hard to get people to participate in the legacy systems too. Which means that Commonality might attract both people who are attempting to create political change but find it aggravating, and people who aren't even bothering because they find it aggravating.
+First, [traditional collective action is frustrating](./ease-of-adoption/legacy-frustrations.md) in ways that Commonality specifically fixes. So we might draw in people who are fed up with the legacy system, or abstaining from it.
 
 Second, switching is [remarkably easy](./ease-of-adoption/README.md). We can eliminate a lot of the friction.
 
-And third, switching generates value right away (or at least *almost* right away).
-
-
-, in the case of making a conditional contribution to an assurance contract - and at least that action is costless if it fails). (TODO: it's awkward that I had to write that caveat here. Work it into the above list?)
+And third, switching [generates value right away](./immediate-value/README.md) (or at least *almost* right away, in the case of a pledge to an assurance contract, which is at least costless if it fails).
 
 **"What if the government tries to stop it?"**
 
