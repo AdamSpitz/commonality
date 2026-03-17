@@ -16,3 +16,9 @@ This isn't an ideological libertarian argument for removing public-goods-funding
 In the past we've needed government or big private charity orgs to do this kind of thing. New tech (Internet, blockchains, AI, assurance contracts) makes this new approach genuinely viable.
 
 The arguments for why you might *want* to switch (even for things government currently funds well) are in [why-its-better](../why-its-better/README.md). For the argument that switching is realistic, see [getting-people-to-switch](../getting-people-to-switch.md).
+
+
+
+## TODO: here's some criticism to respond to or incorporate:
+
+What you’ve really shown is that Commonality looks credible for public goods with a motivated constituency, visible beneficiaries, and fundable thresholds. That is a strong claim. It is not yet a general answer to low-salience goods, long-horizon maintenance, boring infrastructure, or cases where the beneficiaries are too diffuse to mobilize.

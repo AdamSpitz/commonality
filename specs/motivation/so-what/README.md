@@ -36,6 +36,6 @@ The government is awful. Not in the partisan sense — in the structural sense. 
 
 And a huge number of the things we care about — the things that determine whether civilization is actually *good* — are public goods. Education, infrastructure, research, the environment, public health, community institutions. The fact that we're so bad at funding these things, relative to our extraordinary competence at producing consumer goods, represents an enormous amount of lost potential.
 
-I think a good system for funding public goods would represent one of the biggest improvements in civilizational competence that's currently achievable. Not gradually, over centuries — potentially within a decade, because the technology already exists and the adoption path is incremental. Commonality is my best attempt at building that system.
+I think a good system for funding public goods would represent a huge improvement in civilizational competence. Not gradually, over centuries — potentially within a decade, because the technology already exists and the adoption path is incremental. Commonality is my best attempt at building that system.
 
 For a concrete walkthrough of how this plays out, see the [walkthrough](../walkthrough.md). For tailored pitches to different types of users, see [pitches](../pitches.md). For the "won't this be used for evil?" question, see [ethics](../ethics.md).

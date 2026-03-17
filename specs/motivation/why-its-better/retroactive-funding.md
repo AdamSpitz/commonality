@@ -31,3 +31,11 @@ Retroactive funding is conceptually independent of the rest of Commonality — a
   - **Assurance contracts** provide the prospective funding for projects that need upfront capital. Retroactive funding kicks in once results are visible.
   - **Delegation** lets donors who don't want to evaluate projects themselves route funds through delegates who specialize in retroactive evaluation.
   - **Transparency** (onchain records) makes it easy to verify what a project has actually delivered, which is the foundation retroactive funding needs to work.
+
+
+
+
+
+TODO: Here's some criticism to incorporate:
+
+Retroactive funding is intriguing, but the current writeup assumes a healthier market than many public goods will support. The mechanism depends on meaningful resale, legible impact, and enough donor demand to reward early evaluation. That may work for some categories, but not all. Without acknowledging thin liquidity, noisy impact measurement, and speculative distortion, this section reads more confident than the rest of the argument earns.

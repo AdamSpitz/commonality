@@ -1,7 +1,5 @@
 # Individualization -> organic coalitions
 
-THIS IS WHY THE SYSTEM IS NAMED COMMONALITY.
-
 ## The problem with centralized aggregation
 
 Centralized legacy systems polarize. When everyone must rally around a single party platform, a single candidate, or a single policy bundle, the system forces artificial divisions. You're "pro-X" or "anti-X," even when most people's actual views are nuanced and overlapping. The aggregation step — where individual preferences get compressed into a small number of options — is where commonality gets destroyed.
