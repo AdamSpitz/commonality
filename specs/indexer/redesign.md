@@ -252,7 +252,7 @@ Each phase is independently deployable and testable. Phase 1 is the most valuabl
 
 3. **The "sort by popularity" gap.** Global ranking queries are harder without pre-computed aggregates. The workarounds (fold all events client-side at small scale, or add a counter to the registry) are fine but not as clean as a pre-built database query.
 
-4. **You're building something custom.** Ponder is a maintained open-source project with a community. The thin event cache is your own code. It's much simpler code, but it's *your* code to maintain. (Counter-argument: the event cache is so simple that there's barely anything to maintain.)
+4. **You're building something custom.** Ponder is a maintained open-source project with a community. The thin event cache is your own code. It's much simpler code, but it's *your* code to maintain. (Counter-argument: the event cache is so simple that there's barely anything to maintain.) (Other counter-argument: let's just use Ponder for the event cache. The point of this isn't necessarily to eliminate the dependency on Ponder, just to simplify the architecture.)
 
 5. **Initial latency for cold entities.** When someone visits a project page for the first time after a cache rebuild, the SDK fetches and folds events on the spot. For a project with thousands of events, this might take a noticeable moment. The current system pre-computes so pages load instantly. Mitigations: client-side caching (fold once, cache the result), or a service worker that pre-folds popular entities.
 
