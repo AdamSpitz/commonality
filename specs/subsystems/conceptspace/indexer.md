@@ -20,4 +20,4 @@
 
 **Example query:** "Give me all statements that directly imply statement S, according to attesters A1 and A2" (then union their supporters for indirect support count)
 
-For cross-cutting concerns (multi-attester filtering, event reorg handling, no-graph-traversal rationale) and deployment architecture, see [../../indexers.md](../../indexers.md).
+For cross-cutting concerns (multi-attester filtering, event reorg handling, no-graph-traversal rationale) and deployment architecture, see [../../indexer](../../indexer/README.md).

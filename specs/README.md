@@ -307,7 +307,7 @@ See [queries-and-actions.md](queries-and-actions.md) for a comprehensive list of
 
 #### Indexers
 
-See [indexers.md](indexers.md) for the federated indexer architecture (Concept Space, Pubstarter, Delegation, Funding Portal subsystems), data responsibilities, and implementation review notes.
+See the [indexer](./indexer/README.md) directory for the federated indexer architecture (Concept Space, Pubstarter, Delegation, Funding Portal subsystems), data responsibilities, and implementation review notes.
 
 #### Integration testing (blockchain plus indexer together)
 

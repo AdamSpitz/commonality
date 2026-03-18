@@ -14,7 +14,7 @@ Five logically independent subsystems, each with its own schema, event handlers,
 
 In the future these might be worth splitting off into separate indexers.
 
-See [specs/indexers.md](../specs/indexers.md) for the full architectural spec.
+See [specs/indexer](../specs/indexer/README.md) for the full architectural spec.
 
 ## Dev stuff you can do
 
