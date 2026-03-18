@@ -5,6 +5,9 @@ import type { RefUpdatedEvent } from './events.js';
  * Fold RefUpdated events → current MutableRef state.
  * Last-write-wins: returns the latest event's value.
  * Returns null if the events array is empty.
+ *
+ * Caller is responsible for filtering events to a single (owner, name) pair
+ * before calling this function.
  */
 export function foldMutableRef(events: RefUpdatedEvent[]): MutableRef | null {
   if (events.length === 0) return null;
@@ -23,6 +26,9 @@ export function foldMutableRef(events: RefUpdatedEvent[]): MutableRef | null {
  * Fold RefUpdated events → full update history.
  * Each event becomes a RefUpdate record.
  * ID format: ${owner}:${name}:${blockNumber}:${logIndex}
+ *
+ * Caller is responsible for filtering events to a single (owner, name) pair
+ * before calling this function.
  */
 export function foldRefHistory(events: RefUpdatedEvent[]): RefUpdate[] {
   return events.map(e => ({

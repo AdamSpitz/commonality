@@ -4,16 +4,19 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-- Phase 1 (indexer redesign) Chunk 1 is **COMPLETE**: Mutable Refs + Funding Portal fold functions added to SDK
-- Next: Chunk 2 (Concept Space) — see `specs/indexer/phase1-plan.md`
+- Phase 1 (indexer redesign) **Chunk 2 (Concept Space) is COMPLETE**: foldStatementBeliefs, foldUserBeliefs, foldImplications, foldAllStatements added to SDK
+- Next: Chunk 3 (Pubstarter Primary Market) — see `specs/indexer/phase1-plan.md`
 - Still outstanding from before: E2E tests need verification against Docker stack (`npm run ui:test:e2e`)
 
-### Before starting Chunk 2, fix these from Chunk 1 review:
+## Key notes from Chunk 2
 
-1. **Add `contractAddress` to `RawEvent`** in `sdk/src/subsystems/events-common.ts`. The event cache (Phase 4) needs it to distinguish events from different contract instances. One-line addition — also update the existing Chunk 1 `makeEvent()` helpers and event types to include it.
-2. **Document the caller-filters-events convention** in each fold function's JSDoc. E.g. `foldMutableRef` assumes events are for a single `(owner, name)` pair — this is implied but not stated. Add a brief note to each fold.
+- Created `sdk/src/subsystems/conceptspace/events.ts` — `DirectSupportEvent`, `ImplicationAttestationEvent`
+- Created `sdk/src/subsystems/conceptspace/folds.ts` — `foldStatementBeliefs` (per-user delta tracking), `foldUserBeliefs` (last-write-wins per statement), `foldImplications` (key = attester+from+to, re-attestation updates explanationCid), `foldAllStatements` (global aggregate counts)
+- Created `sdk/src/subsystems/conceptspace/folds.test.ts` — 29 tests, all passing
+- Pre-Chunk 2 fixes also done: added `contractAddress: \`0x${string}\`` to `RawEvent`; updated Chunk 1 `makeEvent()` helpers; added caller-filters-events JSDoc to all Chunk 1 fold functions
+- 117 SDK tests passing (88 before Chunk 2); typecheck clean
 
-### Conventions for Chunk 2+
+### Conventions for Chunk 3+
 
 - Keep using the `makeEvent()` with `Partial<T>` overrides pattern for tests.
 - Fold functions are pure and assume events arrive in block/logIndex order. Document this.

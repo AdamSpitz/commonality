@@ -6,6 +6,7 @@ import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 const ATTESTER = '0x1111111111111111111111111111111111111111' as const;
 const SUBJECT = '0x2222222222222222222222222222222222222222' as const;
 const SUBJECT_2 = '0x3333333333333333333333333333333333333333' as const;
+const CONTRACT_ADDRESS = '0x9999999999999999999999999999999999999999' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const TX_HASH_2 = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
 
@@ -16,6 +17,7 @@ const STATEMENT_CID_2 = fakeIpfsCidV1('statement-2');
 
 function makeEvent(overrides: Partial<AlignmentAttestationEvent> = {}): AlignmentAttestationEvent {
   return {
+    contractAddress: CONTRACT_ADDRESS,
     attester: ATTESTER,
     subjectAddress: SUBJECT,
     statementId: STATEMENT_CID,

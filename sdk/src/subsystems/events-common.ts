@@ -3,6 +3,7 @@
  * All subsystem-specific event types extend this interface.
  */
 export interface RawEvent {
+  contractAddress: `0x${string}`;
   blockNumber: bigint;
   blockTimestamp: bigint;
   transactionHash: `0x${string}`;

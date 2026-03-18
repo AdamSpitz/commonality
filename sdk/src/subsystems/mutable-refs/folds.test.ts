@@ -3,11 +3,13 @@ import { foldMutableRef, foldRefHistory } from './folds.js';
 import type { RefUpdatedEvent } from './events.js';
 
 const OWNER = '0x1111111111111111111111111111111111111111' as const;
+const CONTRACT_ADDRESS = '0x9999999999999999999999999999999999999999' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const TX_HASH_2 = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
 
 function makeEvent(overrides: Partial<RefUpdatedEvent> = {}): RefUpdatedEvent {
   return {
+    contractAddress: CONTRACT_ADDRESS,
     owner: OWNER,
     name: 'my-ref',
     currentRefValue: 'bafy...value1',

@@ -6,6 +6,9 @@ import type { IpfsCidV1 } from '../../utils/cid-types.js';
  * Fold AlignmentAttestation events → attestation records.
  * Key = (attester, subjectAddress, statementId).
  * Re-attestation updates topicStatementCid; createdAt and blockNumber are set from the first event.
+ *
+ * Caller is responsible for filtering events to a single subject address
+ * (funding portal) before calling this function.
  */
 export function foldAlignmentAttestations(events: AlignmentAttestationEvent[]): AlignmentAttestation[] {
   const map = new Map<string, AlignmentAttestation>();
