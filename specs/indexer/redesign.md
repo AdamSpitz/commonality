@@ -260,5 +260,5 @@ The biggest risk is if the Funding Portal's cross-entity aggregations become a p
 ## Implementing
 
   - DONE: [Phase 1](./phase1-plan.md)
-  - time to start phase 2; plan not written yet; is it big enough to need a plan or can we just go ahead and implement it?
+  - we've started Phase 2
   - remaining phases not written up yet

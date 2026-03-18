@@ -4,6 +4,10 @@ import {
   readConditionParams,
   readProjectETHBalance,
   readNoteOnChainInfo,
+  readBelief,
+  BELIEF_NO_OPINION,
+  BELIEF_BELIEVES,
+  BELIEF_DISBELIEVES,
   type NoteOnChainInfo,
 } from './chain-reads.js';
 import { createSDKMachinery } from '../machinery.js';
@@ -139,6 +143,73 @@ describe('readNoteOnChainInfo', () => {
     const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
     await assert.rejects(
       () => readNoteOnChainInfo(machinery, NOTE_CONTRACT, 1n),
+      /publicClient is required/,
+    );
+  });
+});
+
+// ============================================================================
+// readBelief
+// ============================================================================
+
+const BELIEFS_CONTRACT = '0x5555555555555555555555555555555555555555' as const;
+const STATEMENT_ID = '0xabcd'.padEnd(66, '0') as `0x${string}`;
+const USER_ADDRESS = '0x7777777777777777777777777777777777777777' as Address;
+
+describe('readBelief', () => {
+  it('reads belief state as believes (1)', async () => {
+    const machinery = makeMachineryWithClient({
+      readContract: async ({ functionName, args }: ReadContractArgs) => {
+        if (functionName === 'getBelief' && args) {
+          assert.strictEqual(args[0], USER_ADDRESS);
+          assert.strictEqual(args[1], STATEMENT_ID);
+          return 1n;
+        }
+        throw new Error('unexpected');
+      },
+    });
+
+    const result = await readBelief(machinery, BELIEFS_CONTRACT, USER_ADDRESS, STATEMENT_ID);
+    assert.strictEqual(result, BELIEF_BELIEVES);
+  });
+
+  it('reads belief state as disbelieves (2)', async () => {
+    const machinery = makeMachineryWithClient({
+      readContract: async ({ functionName }: ReadContractArgs) => {
+        if (functionName === 'getBelief') return 2n;
+        throw new Error('unexpected');
+      },
+    });
+
+    const result = await readBelief(machinery, BELIEFS_CONTRACT, USER_ADDRESS, STATEMENT_ID);
+    assert.strictEqual(result, BELIEF_DISBELIEVES);
+  });
+
+  it('reads belief state as no opinion (0)', async () => {
+    const machinery = makeMachineryWithClient({
+      readContract: async ({ functionName }: ReadContractArgs) => {
+        if (functionName === 'getBelief') return 0n;
+        throw new Error('unexpected');
+      },
+    });
+
+    const result = await readBelief(machinery, BELIEFS_CONTRACT, USER_ADDRESS, STATEMENT_ID);
+    assert.strictEqual(result, BELIEF_NO_OPINION);
+  });
+
+  it('falls back to no opinion when contract call throws', async () => {
+    const machinery = makeMachineryWithClient({
+      readContract: async () => { throw new Error('execution reverted'); },
+    });
+
+    const result = await readBelief(machinery, BELIEFS_CONTRACT, USER_ADDRESS, STATEMENT_ID);
+    assert.strictEqual(result, BELIEF_NO_OPINION);
+  });
+
+  it('throws when publicClient is not provided', async () => {
+    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    await assert.rejects(
+      () => readBelief(machinery, BELIEFS_CONTRACT, USER_ADDRESS, STATEMENT_ID),
       /publicClient is required/,
     );
   });
