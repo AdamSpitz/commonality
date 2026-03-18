@@ -6,6 +6,18 @@ export interface TestConfig {
   shouldTestsBeVerbose?: boolean;
 }
 
+export interface ContractAddresses {
+  beliefs: `0x${string}`;
+  implications: `0x${string}`;
+  assuranceContractFactory: `0x${string}`;
+  erc1155Factory: `0x${string}`;
+  marketplaceFactory: `0x${string}`;
+  delegatableNotes: `0x${string}`;
+  noteIntent: `0x${string}`;
+  alignmentAttestations: `0x${string}`;
+  mutableRefUpdater: `0x${string}`;
+}
+
 export type SDKMachinery = {
   indexerUrl: string;
   ipfsConfig: IPFSConfig;
@@ -16,6 +28,16 @@ export type SDKMachinery = {
    * Can be omitted if only using indexer-based queries (GraphQL) and IPFS.
    */
   publicClient?: PublicClient;
+  /**
+   * Event cache URL for Phase 4+ - fetches raw events for client-side folding.
+   * If not provided, falls back to GraphQL-based queries.
+   */
+  eventCacheUrl?: string;
+  /**
+   * Contract addresses for the event cache.
+   * Required when using eventCacheUrl for Phase 4+.
+   */
+  contractAddresses?: ContractAddresses;
 };
 
 export function createSDKMachinery(
@@ -23,11 +45,15 @@ export function createSDKMachinery(
   ipfsConfig: IPFSConfig,
   testConfig?: TestConfig,
   publicClient?: PublicClient,
+  eventCacheUrl?: string,
+  contractAddresses?: ContractAddresses,
 ): SDKMachinery {
   return {
     indexerUrl,
     ipfsConfig,
     testConfig,
     publicClient,
+    eventCacheUrl,
+    contractAddresses,
   };
 }

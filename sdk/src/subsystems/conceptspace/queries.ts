@@ -4,6 +4,9 @@
 
 import { fetchFromIPFS } from '../../utils/ipfs.js';
 import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
+import { isEventCacheAvailable, fetchEvents, fetchStatementsRegistry } from '../../utils/eventCacheClient.js';
+import { decodeDirectSupportEvent, decodeImplicationAttestationEvent, type DecodedDirectSupportEvent, type DecodedImplicationAttestationEvent } from '../../utils/eventDecoder.js';
+import { foldStatementBeliefs, foldImplications } from './folds.js';
 import {
   GetStatementDocument,
   GetUserBeliefDocument,
@@ -59,6 +62,42 @@ export async function getStatement(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1
 ): Promise<Statement | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const contracts = machinery.contractAddresses!;
+    
+    const events = await fetchEvents(machinery, {
+      contractAddress: contracts.beliefs,
+      eventName: 'DirectSupport',
+      topic1: statementCid,
+      limit: 10000,
+    });
+    
+    const decodedEvents: DecodedDirectSupportEvent[] = [];
+    for (const event of events) {
+      const decoded = decodeDirectSupportEvent(event);
+      if (decoded) {
+        decodedEvents.push(decoded);
+      }
+    }
+    
+    const folded = foldStatementBeliefs(decodedEvents);
+    
+    const statements = await fetchStatementsRegistry(machinery, { limit: 1 });
+    const statement = statements.find(s => s.cidV1 === statementCid);
+    
+    if (!statement && decodedEvents.length === 0) {
+      return null;
+    }
+    
+    return {
+      id: statementCid,
+      cid: statementCid,
+      believerCount: folded.believerCount,
+      disbelieverCount: folded.disbelieverCount,
+      createdAt: statement?.createdAtTimestamp ? statement.createdAtTimestamp : '',
+    };
+  }
+  
   const result = await executeTypedGraphQLQuery(machinery, GetStatementDocument, {
     id: statementCid,
   });
@@ -77,6 +116,38 @@ export async function getUserBelief(
   userAddress: string,
   statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const contracts = machinery.contractAddresses!;
+    
+    const events = await fetchEvents(machinery, {
+      contractAddress: contracts.beliefs,
+      eventName: 'DirectSupport',
+      topic1: statementCid,
+      limit: 10000,
+    });
+    
+    const decodedEvents: DecodedDirectSupportEvent[] = [];
+    for (const event of events) {
+      const decoded = decodeDirectSupportEvent(event);
+      if (decoded) {
+        decodedEvents.push(decoded);
+      }
+    }
+    
+    const userAddressLower = userAddress.toLowerCase();
+    const userEvents = decodedEvents.filter(e => e.user.toLowerCase() === userAddressLower);
+    
+    if (userEvents.length === 0) {
+      return { statementCid, beliefState: 0 };
+    }
+    
+    const latestEvent = userEvents.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
+    return {
+      statementCid,
+      beliefState: latestEvent.beliefState,
+    };
+  }
+  
   const result = await executeTypedGraphQLQuery(machinery, GetUserBeliefDocument, {
     user: userAddress.toLowerCase(),
     statementId: statementCid,
@@ -118,6 +189,34 @@ export async function getImplicationsFrom(
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const contracts = machinery.contractAddresses!;
+    
+    const events = await fetchEvents(machinery, {
+      contractAddress: contracts.implications,
+      eventName: 'ImplicationAttestation',
+      topic1: statementCid,
+      limit: 10000,
+    });
+    
+    const decodedEvents: DecodedImplicationAttestationEvent[] = [];
+    for (const event of events) {
+      const decoded = decodeImplicationAttestationEvent(event);
+      if (decoded) {
+        decodedEvents.push(decoded);
+      }
+    }
+    
+    let implications = foldImplications(decodedEvents);
+    
+    if (attesterAddress) {
+      const attesterLower = attesterAddress.toLowerCase();
+      implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
+    }
+    
+    return implications;
+  }
+  
   const variables: { fromStatementCid: string; attester?: string } = {
     fromStatementCid: statementCid,
   };
@@ -137,6 +236,34 @@ export async function getImplicationsTo(
   statementCid: IpfsCidV1,
   attesterAddress?: string
 ): Promise<Implication[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const contracts = machinery.contractAddresses!;
+    
+    const events = await fetchEvents(machinery, {
+      contractAddress: contracts.implications,
+      eventName: 'ImplicationAttestation',
+      topic2: statementCid,
+      limit: 10000,
+    });
+    
+    const decodedEvents: DecodedImplicationAttestationEvent[] = [];
+    for (const event of events) {
+      const decoded = decodeImplicationAttestationEvent(event);
+      if (decoded) {
+        decodedEvents.push(decoded);
+      }
+    }
+    
+    let implications = foldImplications(decodedEvents);
+    
+    if (attesterAddress) {
+      const attesterLower = attesterAddress.toLowerCase();
+      implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
+    }
+    
+    return implications;
+  }
+  
   const variables: { toStatementCid: string; attester?: string } = {
     toStatementCid: statementCid,
   };
@@ -157,6 +284,43 @@ export async function getImplication(
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const contracts = machinery.contractAddresses!;
+    
+    const events = await fetchEvents(machinery, {
+      contractAddress: contracts.implications,
+      eventName: 'ImplicationAttestation',
+      topic1: fromStatementCid,
+      topic2: toStatementCid,
+      limit: 1000,
+    });
+    
+    const decodedEvents: DecodedImplicationAttestationEvent[] = [];
+    for (const event of events) {
+      const decoded = decodeImplicationAttestationEvent(event);
+      if (decoded) {
+        decodedEvents.push(decoded);
+      }
+    }
+    
+    const attesterLower = attesterAddress.toLowerCase();
+    const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
+    
+    if (matching.length === 0) {
+      return null;
+    }
+    
+    const latest = matching.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
+    return {
+      attester: latest.attester,
+      fromStatementCid: latest.fromStatementCid as IpfsCidV1,
+      toStatementCid: latest.toStatementCid as IpfsCidV1,
+      explanationCid: latest.explanationCid as IpfsCidV1,
+      createdAt: latest.blockTimestamp.toString(),
+      blockNumber: latest.blockNumber.toString(),
+    };
+  }
+  
   const result = await executeTypedGraphQLQuery(machinery, GetImplicationDocument, {
     attester: attesterAddress.toLowerCase(),
     fromStatementCid: fromStatementCid,

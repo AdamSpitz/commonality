@@ -39,4 +39,5 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 - Indexer redesign Phase 1 **complete**: SDK fold functions for all 5 subsystems (Mutable Refs, Funding Portals, Concept Space, Pubstarter Primary+Secondary Market+Burns, Delegation). 194 SDK tests passing.
 - Indexer redesign Phase 2 **complete**: SDK now has 11 on-chain read functions (readConditionParams, readProjectETHBalance, readNoteOnChainInfo, readBelief, readHasAlignment, readHasImplication, readExplanation, readMutableRef, readTotalReceivedValue, readConditionStatus, readSaleListing, readBuyOrder, readNextNoteId). 239 SDK tests passing.
 - Indexer redesign Phase 3 **complete**: Thin event cache service added to Ponder (events table + registry tables). All contract events captured. Build passes, 239 SDK tests passing.
+- Indexer redesign Phase 4 **in progress**: SDK now has event cache client + decoder. Conceptspace queries updated to use event cache + fold when available (falls back to GraphQL). Build passes, 239 SDK tests passing.
 - For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
