@@ -200,3 +200,111 @@ export function getContractAddresses(machinery: SDKMachinery): ContractAddresses
 export function isEventCacheAvailable(machinery: SDKMachinery): boolean {
   return !!machinery.eventCacheUrl && !!machinery.contractAddresses;
 }
+
+// ============================================================================
+// Topic helpers
+// ============================================================================
+
+/**
+ * Pad an Ethereum address to a 32-byte topic value for event filtering.
+ * e.g. 0xAbCd... → 0x000000000000000000000000abcd...
+ */
+export function padAddressAsTopic(address: string): string {
+  const normalized = address.toLowerCase().replace(/^0x/, '');
+  return `0x${'0'.repeat(24)}${normalized}`;
+}
+
+// ============================================================================
+// Domain-specific event fetch helpers
+// ============================================================================
+
+/**
+ * Fetch all raw events for a pubstarter project.
+ * Returns events from both the factory contract (creation event) and the
+ * assurance contract itself (initialized, metadata, tokens, contributions, etc.).
+ */
+export async function fetchPubstarterProjectEvents(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  const contracts = machinery.contractAddresses!;
+  const paddedAddress = padAddressAsTopic(assuranceContractAddress);
+
+  const [factoryEvents, contractEvents] = await Promise.all([
+    fetchEvents(machinery, {
+      contractAddress: contracts.assuranceContractFactory,
+      eventName: 'PubstarterAssuranceContractCreated',
+      topic1: paddedAddress,
+      limit: 10,
+    }),
+    fetchEvents(machinery, {
+      contractAddress: assuranceContractAddress,
+      limit: options.limit ?? 10000,
+    }),
+  ]);
+
+  return [...factoryEvents, ...contractEvents];
+}
+
+/**
+ * Fetch all raw events for a secondary marketplace contract.
+ */
+export async function fetchSecondaryMarketEvents(
+  machinery: SDKMachinery,
+  marketplaceAddress: string,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  return fetchEvents(machinery, {
+    contractAddress: marketplaceAddress,
+    limit: options.limit ?? 10000,
+  });
+}
+
+/**
+ * Fetch all raw delegation events from the DelegatableNotes contract.
+ */
+export async function fetchAllDelegationEvents(
+  machinery: SDKMachinery,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  return fetchEvents(machinery, {
+    contractAddress: machinery.contractAddresses!.delegatableNotes,
+    limit: options.limit ?? 10000,
+  });
+}
+
+/**
+ * Fetch NoteIntentAttested events, optionally filtered by noteContract address.
+ * noteId filtering is done client-side after fetching.
+ */
+export async function fetchNoteIntentEvents(
+  machinery: SDKMachinery,
+  noteContract: string,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  const paddedNoteContract = padAddressAsTopic(noteContract);
+  return fetchEvents(machinery, {
+    contractAddress: machinery.contractAddresses!.noteIntent,
+    eventName: 'NoteIntentAttested',
+    topic2: paddedNoteContract,
+    limit: options.limit ?? 10000,
+  });
+}
+
+/**
+ * Fetch RefUpdated events for a specific owner address.
+ */
+export async function fetchRefUpdatedEvents(
+  machinery: SDKMachinery,
+  owner: string,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  const paddedOwner = padAddressAsTopic(owner);
+  return fetchEvents(machinery, {
+    contractAddress: machinery.contractAddresses!.mutableRefUpdater,
+    eventName: 'RefUpdated',
+    topic1: paddedOwner,
+    limit: options.limit ?? 1000,
+  });
+}

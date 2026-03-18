@@ -36,6 +36,119 @@ import {
   type ProjectWithMetrics,
 } from './types.js';
 import { SDKMachinery } from '../../machinery.js';
+import { isEventCacheAvailable, fetchPubstarterProjectEvents, fetchSecondaryMarketEvents } from '../../utils/eventCacheClient.js';
+import {
+  decodePubstarterAssuranceContractCreatedEvent,
+  decodeAssuranceContractInitializedEvent,
+  decodeContractMetadataUpdatedEvent,
+  decodeERC1155OfferedEvent,
+  decodeERC1155BoughtEvent,
+  decodeERC1155SoldEvent,
+  decodeAssuranceContractWithdrawalEvent,
+  decodeSaleListingCreatedEvent,
+  decodeSaleListingFulfilledEvent,
+  decodeSaleListingCancelledEvent,
+  decodeBuyOrderCreatedEvent,
+  decodeBuyOrderFulfilledEvent,
+  decodeBuyOrderCancelledEvent,
+} from '../../utils/eventDecoder.js';
+import { foldProject, foldProjectTokens, foldContributionsFromEvents, foldSecondaryMarket, type ProjectEvent, type SecondaryMarketEvent } from './folds.js';
+import { readConditionParams } from '../../utils/chain-reads.js';
+
+async function fetchAndDecodeProjectEvents(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string
+): Promise<ProjectEvent[]> {
+  const rawEvents = await fetchPubstarterProjectEvents(machinery, assuranceContractAddress);
+  const projectEvents: ProjectEvent[] = [];
+  for (const raw of rawEvents) {
+    switch (raw.eventName) {
+      case 'PubstarterAssuranceContractCreated': {
+        const d = decodePubstarterAssuranceContractCreatedEvent(raw);
+        if (d) projectEvents.push({ type: 'created', event: d });
+        break;
+      }
+      case 'AssuranceContractInitialized': {
+        const d = decodeAssuranceContractInitializedEvent(raw);
+        if (d) projectEvents.push({ type: 'initialized', event: d });
+        break;
+      }
+      case 'ContractMetadataUpdated': {
+        const d = decodeContractMetadataUpdatedEvent(raw);
+        if (d) projectEvents.push({ type: 'metadataUpdated', event: d });
+        break;
+      }
+      case 'ERC1155Offered': {
+        const d = decodeERC1155OfferedEvent(raw);
+        if (d) projectEvents.push({ type: 'tokenOffered', event: d });
+        break;
+      }
+      case 'ERC1155Bought': {
+        const d = decodeERC1155BoughtEvent(raw);
+        if (d) projectEvents.push({ type: 'bought', event: d });
+        break;
+      }
+      case 'ERC1155Sold': {
+        const d = decodeERC1155SoldEvent(raw);
+        if (d) projectEvents.push({ type: 'sold', event: d });
+        break;
+      }
+      case 'AssuranceContractWithdrawal': {
+        const d = decodeAssuranceContractWithdrawalEvent(raw);
+        if (d) projectEvents.push({ type: 'withdrawal', event: d });
+        break;
+      }
+    }
+  }
+  return projectEvents.sort((a, b) => {
+    const bn = Number(a.event.blockNumber - b.event.blockNumber);
+    return bn !== 0 ? bn : a.event.logIndex - b.event.logIndex;
+  });
+}
+
+function fetchAndDecodeSecondaryMarketEvents(
+  rawEvents: Awaited<ReturnType<typeof fetchSecondaryMarketEvents>>
+): SecondaryMarketEvent[] {
+  const events: SecondaryMarketEvent[] = [];
+  for (const raw of rawEvents) {
+    switch (raw.eventName) {
+      case 'SaleListingCreated': {
+        const d = decodeSaleListingCreatedEvent(raw);
+        if (d) events.push({ type: 'saleListingCreated', event: d });
+        break;
+      }
+      case 'SaleListingFulfilled': {
+        const d = decodeSaleListingFulfilledEvent(raw);
+        if (d) events.push({ type: 'saleListingFulfilled', event: d });
+        break;
+      }
+      case 'SaleListingCancelled': {
+        const d = decodeSaleListingCancelledEvent(raw);
+        if (d) events.push({ type: 'saleListingCancelled', event: d });
+        break;
+      }
+      case 'BuyOrderCreated': {
+        const d = decodeBuyOrderCreatedEvent(raw);
+        if (d) events.push({ type: 'buyOrderCreated', event: d });
+        break;
+      }
+      case 'BuyOrderFulfilled': {
+        const d = decodeBuyOrderFulfilledEvent(raw);
+        if (d) events.push({ type: 'buyOrderFulfilled', event: d });
+        break;
+      }
+      case 'BuyOrderCancelled': {
+        const d = decodeBuyOrderCancelledEvent(raw);
+        if (d) events.push({ type: 'buyOrderCancelled', event: d });
+        break;
+      }
+    }
+  }
+  return events.sort((a, b) => {
+    const bn = Number(a.event.blockNumber - b.event.blockNumber);
+    return bn !== 0 ? bn : a.event.logIndex - b.event.logIndex;
+  });
+}
 
 // ============================================================================
 // Pubstarter Queries
@@ -48,6 +161,25 @@ export async function getProject(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Project | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+    const partial = foldProject(projectEvents);
+    if (!partial) return null;
+
+    let threshold = '0';
+    let deadline = '0';
+    if (machinery.publicClient && partial.conditionAddress) {
+      try {
+        const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
+        threshold = params.threshold.toString();
+        deadline = params.deadline.toString();
+      } catch {
+        // publicClient not configured or read failed — leave as '0'
+      }
+    }
+
+    return { ...partial, threshold, deadline };
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetProjectDocument, {
     id: assuranceContractAddress.toLowerCase(),
   });
@@ -184,6 +316,13 @@ export async function getProjectTokens(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<ProjectToken[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+    const offeredEvents = projectEvents
+      .filter((e): e is { type: 'tokenOffered'; event: Parameters<typeof foldProjectTokens>[0][0] } => e.type === 'tokenOffered')
+      .map(e => e.event);
+    return foldProjectTokens(offeredEvents);
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetProjectTokensDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
@@ -198,6 +337,13 @@ export async function getProjectContributions(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Contribution[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+    const boughtEvents = projectEvents
+      .filter((e): e is { type: 'bought'; event: Parameters<typeof foldContributionsFromEvents>[0][0] } => e.type === 'bought')
+      .map(e => e.event);
+    return foldContributionsFromEvents(boughtEvents, []).contributions;
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetProjectContributionsDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
@@ -226,6 +372,13 @@ export async function getProjectRefunds(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Refund[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+    const soldEvents = projectEvents
+      .filter((e): e is { type: 'sold'; event: Parameters<typeof foldContributionsFromEvents>[1][0] } => e.type === 'sold')
+      .map(e => e.event);
+    return foldContributionsFromEvents([], soldEvents).refunds;
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetProjectRefundsDocument, {
     projectAddress: assuranceContractAddress.toLowerCase(),
   });
@@ -245,6 +398,12 @@ export async function getSaleListing(
   marketplaceAddress: string,
   listingId: bigint
 ): Promise<SaleListing | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+    const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+    const { saleListings } = foldSecondaryMarket(events);
+    return saleListings.find(l => l.listingId === listingId.toString()) ?? null;
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetSaleListingDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     listingId: listingId.toString(),
@@ -275,6 +434,12 @@ export async function getBuyOrder(
   marketplaceAddress: string,
   orderId: bigint
 ): Promise<BuyOrder | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+    const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+    const { buyOrders } = foldSecondaryMarket(events);
+    return buyOrders.find(o => o.orderId === orderId.toString()) ?? null;
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetBuyOrderDocument, {
     marketplaceAddress: marketplaceAddress.toLowerCase(),
     orderId: orderId.toString(),

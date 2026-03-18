@@ -14,7 +14,34 @@ import {
   type MutableRef,
   type RefUpdate,
 } from './types.js';
+import type { RefUpdatedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
+import { isEventCacheAvailable, fetchRefUpdatedEvents } from '../../utils/eventCacheClient.js';
+import { decodeMutableRefEvent } from '../../utils/eventDecoder.js';
+import { foldMutableRef, foldRefHistory } from './folds.js';
+
+function decodeRefUpdatedEvents(rawEvents: Awaited<ReturnType<typeof fetchRefUpdatedEvents>>): RefUpdatedEvent[] {
+  const events: RefUpdatedEvent[] = [];
+  for (const raw of rawEvents) {
+    const decoded = decodeMutableRefEvent(raw);
+    if (decoded) {
+      events.push({
+        contractAddress: decoded.contractAddress,
+        owner: decoded.owner,
+        name: decoded.refName,
+        currentRefValue: decoded.currentRefValue,
+        blockNumber: decoded.blockNumber,
+        blockTimestamp: decoded.blockTimestamp,
+        transactionHash: decoded.transactionHash,
+        logIndex: decoded.logIndex,
+      });
+    }
+  }
+  return events.sort((a, b) => {
+    const bn = Number(a.blockNumber - b.blockNumber);
+    return bn !== 0 ? bn : a.logIndex - b.logIndex;
+  });
+}
 
 // ============================================================================
 // Mutable Refs Queries
@@ -42,6 +69,11 @@ export async function getUserRef(
   owner: string,
   name: string
 ): Promise<MutableRef | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const rawEvents = await fetchRefUpdatedEvents(machinery, owner);
+    const events = decodeRefUpdatedEvents(rawEvents).filter(e => e.name === name);
+    return foldMutableRef(events);
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetUserRefDocument, {
     owner: owner.toLowerCase(),
     name,
@@ -102,6 +134,11 @@ export async function getUserRefHistory(
   name: string,
   limit: number = 100
 ): Promise<RefUpdate[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const rawEvents = await fetchRefUpdatedEvents(machinery, owner);
+    const events = decodeRefUpdatedEvents(rawEvents).filter(e => e.name === name);
+    return foldRefHistory(events).slice(0, limit);
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetUserRefHistoryDocument, {
     owner: owner.toLowerCase(),
     name,

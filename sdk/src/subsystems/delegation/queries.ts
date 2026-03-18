@@ -20,7 +20,67 @@ import {
   type DelegationChainLinkWithNote,
   type NoteEvent,
 } from './types.js';
+import type { NoteIntentAttestedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
+import { isEventCacheAvailable, fetchAllDelegationEvents, fetchNoteIntentEvents } from '../../utils/eventCacheClient.js';
+import {
+  decodeNoteCreatedEvent,
+  decodeNoteDelegatedEvent,
+  decodeChainSplitEvent,
+  decodeNoteRevokedEvent,
+  decodeFundsReclaimedEvent,
+  decodeNoteConsumedEvent,
+  decodeERC1155PurchasedEvent,
+  decodeNoteIntentAttestedEvent,
+} from '../../utils/eventDecoder.js';
+import { foldNote, foldNoteIntentAttestations, type DelegationEvent } from './folds.js';
+
+function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
+  const events: DelegationEvent[] = [];
+  for (const raw of rawEvents) {
+    switch (raw.eventName) {
+      case 'NoteCreated': {
+        const d = decodeNoteCreatedEvent(raw);
+        if (d) events.push({ type: 'noteCreated', event: d });
+        break;
+      }
+      case 'NoteDelegated': {
+        const d = decodeNoteDelegatedEvent(raw);
+        if (d) events.push({ type: 'noteDelegated', event: d });
+        break;
+      }
+      case 'ChainSplit': {
+        const d = decodeChainSplitEvent(raw);
+        if (d) events.push({ type: 'chainSplit', event: d });
+        break;
+      }
+      case 'NoteRevoked': {
+        const d = decodeNoteRevokedEvent(raw);
+        if (d) events.push({ type: 'noteRevoked', event: d });
+        break;
+      }
+      case 'FundsReclaimed': {
+        const d = decodeFundsReclaimedEvent(raw);
+        if (d) events.push({ type: 'fundsReclaimed', event: d });
+        break;
+      }
+      case 'NoteConsumed': {
+        const d = decodeNoteConsumedEvent(raw);
+        if (d) events.push({ type: 'noteConsumed', event: d });
+        break;
+      }
+      case 'ERC1155Purchased': {
+        const d = decodeERC1155PurchasedEvent(raw);
+        if (d) events.push({ type: 'erc1155Purchased', event: d });
+        break;
+      }
+    }
+  }
+  return events.sort((a, b) => {
+    const bn = Number(a.event.blockNumber - b.event.blockNumber);
+    return bn !== 0 ? bn : a.event.logIndex - b.event.logIndex;
+  });
+}
 
 // ============================================================================
 // Delegation Queries
@@ -33,6 +93,12 @@ export async function getNote(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<Note | null> {
+  if (isEventCacheAvailable(machinery)) {
+    const rawEvents = await fetchAllDelegationEvents(machinery);
+    const events = decodeDelegationEvents(rawEvents);
+    const result = foldNote(noteId, events);
+    return result?.note ?? null;
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetNoteDocument, { id: noteId });
   // BigInt fields (id, tokenId, amount, createdAt, etc.) come as strings at runtime
   return result.delegatableNotes as unknown as Note | null;
@@ -73,6 +139,12 @@ export async function getDelegationChain(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<DelegationChainLink[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const rawEvents = await fetchAllDelegationEvents(machinery);
+    const events = decodeDelegationEvents(rawEvents);
+    const result = foldNote(noteId, events);
+    return result?.chain ?? [];
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetDelegationChainDocument, {
     noteId: noteId,
   });
@@ -109,6 +181,21 @@ export async function getNoteIntentAttestationsByNote(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation[]> {
+  if (isEventCacheAvailable(machinery)) {
+    const rawEvents = await fetchNoteIntentEvents(machinery, noteContract);
+    const events: NoteIntentAttestedEvent[] = [];
+    for (const raw of rawEvents) {
+      const d = decodeNoteIntentAttestedEvent(raw);
+      if (d && d.noteId.toString() === noteId) {
+        events.push(d);
+      }
+    }
+    events.sort((a, b) => {
+      const bn = Number(a.blockNumber - b.blockNumber);
+      return bn !== 0 ? bn : a.logIndex - b.logIndex;
+    });
+    return foldNoteIntentAttestations(events);
+  }
   const result = await executeTypedGraphQLQuery(machinery, GetNoteIntentAttestationsByNoteDocument, {
     noteContract: noteContract.toLowerCase(),
     noteId: noteId,

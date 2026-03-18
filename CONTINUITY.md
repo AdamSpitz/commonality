@@ -2,6 +2,49 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Phase 4 COMPLETE
+
+**Indexer redesign Phase 4 finished this session.**
+
+### What was done this session:
+
+1. **Fixed `sdk/src/subsystems/pubstarter/folds.test.ts`**:
+   - Removed duplicate `makeWithdrawalEvent` function
+   - Fixed `makeOfferedEvent` overrides: `tokenId` → `id`
+   - Fixed `makeMetadataUpdatedEvent` overrides: `metadataCid` → `uri`
+   - Fixed `makeSoldEvent` override: `totalRefund` → `totalCost`
+   - Rewrote `foldContributions` describe block to use `foldContributionsFromEvents(boughtEvents, soldEvents)` (two separate arrays)
+
+2. **Added domain helpers to `sdk/src/utils/eventCacheClient.ts`**:
+   - `padAddressAsTopic(address)` — pads address to 32-byte topic
+   - `fetchPubstarterProjectEvents(machinery, assuranceContractAddress)` — factory + contract events
+   - `fetchSecondaryMarketEvents(machinery, marketplaceAddress)` — marketplace events
+   - `fetchAllDelegationEvents(machinery)` — all DelegatableNotes events
+   - `fetchNoteIntentEvents(machinery, noteContract)` — NoteIntentAttested events filtered by noteContract
+   - `fetchRefUpdatedEvents(machinery, owner)` — RefUpdated events filtered by owner
+
+3. **Migrated queries to event cache + folds** (all with GraphQL fallback):
+   - `sdk/src/subsystems/pubstarter/queries.ts`: `getProject`, `getProjectTokens`, `getProjectContributions`, `getProjectRefunds`, `getSaleListing`, `getBuyOrder`
+   - `sdk/src/subsystems/delegation/queries.ts`: `getNote`, `getDelegationChain`, `getNoteIntentAttestationsByNote`
+   - `sdk/src/subsystems/mutable-refs/queries.ts`: `getUserRef`, `getUserRefHistory`
+
+### Design decisions:
+- Event cache path is used when `isEventCacheAvailable(machinery)` returns true (eventCacheUrl + contractAddresses set)
+- Falls back to existing GraphQL for discovery/aggregation queries (getAllProjects, getNotesByOwner, etc.)
+- `getProject` reads threshold/deadline from on-chain via `readConditionParams` if `publicClient` is available, otherwise returns '0' for those fields
+- `getNote`/`getDelegationChain` fetch ALL delegation events (can be large; optimize later)
+- `fetchNoteIntentEvents` filters by noteContract (topic2), further filters by noteId client-side
+
+### Next steps:
+- Integration test with real running Ponder event cache
+- Verify the topic padding for addresses works correctly with the actual Ponder event cache API
+- Consider optimizing `fetchAllDelegationEvents` to be more targeted for specific note queries
+- Check if `getUserRefs` (all refs for a user) should also be migrated
+
+### Status: 239 SDK tests passing, tsc clean, lint clean.
+
+---
+
 ## What was in progress (interrupted)
 
 **Indexer redesign Phase 4 - ABI sync + decoder fixes + fold migration started**

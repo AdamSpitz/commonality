@@ -144,19 +144,6 @@ function makeWithdrawalEvent(overrides: Partial<AssuranceContractWithdrawalEvent
   };
 }
 
-function makeWithdrawalEvent(overrides: Partial<AssuranceContractWithdrawalEvent> = {}): AssuranceContractWithdrawalEvent {
-  return {
-    contractAddress: PROJECT_ADDR,
-    assuranceContract: PROJECT_ADDR,
-    value: 500000000000000000n, // 0.5 ETH
-    blockNumber: 400n,
-    blockTimestamp: 1700003000n,
-    transactionHash: TX_HASH_3,
-    logIndex: 0,
-    ...overrides,
-  };
-}
-
 // Convenience wrapper to build ProjectEvent array
 function wrap(created?: boolean, initialized?: boolean): ProjectEvent[] {
   const events: ProjectEvent[] = [];
@@ -205,7 +192,7 @@ describe('foldProject', () => {
     const events: ProjectEvent[] = [
       { type: 'created', event: makeCreatedEvent() },
       { type: 'tokenOffered', event: makeOfferedEvent({ erc1155Addr: ERC1155, logIndex: 0 }) },
-      { type: 'tokenOffered', event: makeOfferedEvent({ erc1155Addr: OTHER_ERC1155, tokenId: 1n, logIndex: 1 }) },
+      { type: 'tokenOffered', event: makeOfferedEvent({ erc1155Addr: OTHER_ERC1155, id: 1n, logIndex: 1 }) },
     ];
     const result = foldProject(events);
     assert.ok(result !== null);
@@ -215,8 +202,8 @@ describe('foldProject', () => {
   it('metadataCid uses last-write-wins', () => {
     const events: ProjectEvent[] = [
       { type: 'created', event: makeCreatedEvent() },
-      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ metadataCid: METADATA_CID, blockNumber: 102n }) },
-      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ metadataCid: METADATA_CID_2, blockNumber: 110n, logIndex: 1 }) },
+      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: METADATA_CID, blockNumber: 102n }) },
+      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: METADATA_CID_2, blockNumber: 110n, logIndex: 1 }) },
     ];
     const result = foldProject(events);
     assert.ok(result !== null);
@@ -238,7 +225,7 @@ describe('foldProject', () => {
     const events: ProjectEvent[] = [
       ...wrap(true, true),
       { type: 'bought', event: makeBoughtEvent({ totalCost: 500000000000000000n, blockNumber: 200n }) },
-      { type: 'sold', event: makeSoldEvent({ totalRefund: 100000000000000000n, blockNumber: 300n }) },
+      { type: 'sold', event: makeSoldEvent({ totalCost: 100000000000000000n, blockNumber: 300n }) },
     ];
     const result = foldProject(events);
     assert.ok(result !== null);
@@ -285,19 +272,19 @@ describe('foldProject', () => {
 });
 
 // ============================================================================
-// foldContributions
+// foldContributionsFromEvents
 // ============================================================================
 
-describe('foldContributions', () => {
+describe('foldContributionsFromEvents', () => {
   it('returns empty arrays for empty input', () => {
-    const result = foldContributions([]);
+    const result = foldContributionsFromEvents([], []);
     assert.deepStrictEqual(result.contributions, []);
     assert.deepStrictEqual(result.refunds, []);
   });
 
   it('maps a single bought event to a contribution', () => {
     const event = makeBoughtEvent();
-    const result = foldContributions([event]);
+    const result = foldContributionsFromEvents([event], []);
     assert.strictEqual(result.contributions.length, 1);
     assert.strictEqual(result.refunds.length, 0);
     const c = result.contributions[0]!;
@@ -315,7 +302,7 @@ describe('foldContributions', () => {
 
   it('maps a single sold event to a refund', () => {
     const event = makeSoldEvent();
-    const result = foldContributions([event]);
+    const result = foldContributionsFromEvents([], [event]);
     assert.strictEqual(result.contributions.length, 0);
     assert.strictEqual(result.refunds.length, 1);
     const r = result.refunds[0]!;
@@ -332,25 +319,27 @@ describe('foldContributions', () => {
   });
 
   it('separates multiple bought and sold events correctly', () => {
-    const events = [
+    const boughtEvents = [
       makeBoughtEvent({ participant: PARTICIPANT_A, blockNumber: 200n, transactionHash: TX_HASH_2, logIndex: 0 }),
       makeBoughtEvent({ participant: PARTICIPANT_B, blockNumber: 201n, transactionHash: TX_HASH_2, logIndex: 1 }),
+    ];
+    const soldEvents = [
       makeSoldEvent({ participant: PARTICIPANT_A, blockNumber: 300n, transactionHash: TX_HASH_3, logIndex: 0 }),
     ];
-    const result = foldContributions(events);
+    const result = foldContributionsFromEvents(boughtEvents, soldEvents);
     assert.strictEqual(result.contributions.length, 2);
     assert.strictEqual(result.refunds.length, 1);
   });
 
   it('contribution id is transactionHash-logIndex', () => {
     const event = makeBoughtEvent({ transactionHash: TX_HASH_2, logIndex: 5 });
-    const result = foldContributions([event]);
+    const result = foldContributionsFromEvents([event], []);
     assert.strictEqual(result.contributions[0]!.id, `${TX_HASH_2}-5`);
   });
 
   it('refund id is transactionHash-logIndex', () => {
     const event = makeSoldEvent({ transactionHash: TX_HASH_3, logIndex: 3 });
-    const result = foldContributions([event]);
+    const result = foldContributionsFromEvents([], [event]);
     assert.strictEqual(result.refunds[0]!.id, `${TX_HASH_3}-3`);
   });
 
@@ -359,17 +348,20 @@ describe('foldContributions', () => {
       ids: [0n, 1n, 2n],
       counts: [5n, 3n, 1n],
     });
-    const result = foldContributions([event]);
+    const result = foldContributionsFromEvents([event], []);
     const c = result.contributions[0]!;
     assert.strictEqual(c.tokenIds, JSON.stringify(['0', '1', '2']));
     assert.strictEqual(c.tokenCounts, JSON.stringify(['5', '3', '1']));
   });
 
-  it('does not mutate the input array', () => {
-    const events = [makeBoughtEvent(), makeSoldEvent()];
-    const copy = [...events];
-    foldContributions(events);
-    assert.deepStrictEqual(events, copy);
+  it('does not mutate the input arrays', () => {
+    const boughtEvents = [makeBoughtEvent()];
+    const soldEvents = [makeSoldEvent()];
+    const boughtCopy = [...boughtEvents];
+    const soldCopy = [...soldEvents];
+    foldContributionsFromEvents(boughtEvents, soldEvents);
+    assert.deepStrictEqual(boughtEvents, boughtCopy);
+    assert.deepStrictEqual(soldEvents, soldCopy);
   });
 });
 
@@ -396,9 +388,9 @@ describe('foldProjectTokens', () => {
 
   it('different tokenIds produce separate records', () => {
     const events = [
-      makeOfferedEvent({ tokenId: 0n, logIndex: 0 }),
-      makeOfferedEvent({ tokenId: 1n, logIndex: 1 }),
-      makeOfferedEvent({ tokenId: 2n, logIndex: 2 }),
+      makeOfferedEvent({ id: 0n, logIndex: 0 }),
+      makeOfferedEvent({ id: 1n, logIndex: 1 }),
+      makeOfferedEvent({ id: 2n, logIndex: 2 }),
     ];
     const result = foldProjectTokens(events);
     assert.strictEqual(result.length, 3);
@@ -408,8 +400,8 @@ describe('foldProjectTokens', () => {
 
   it('re-offering same token updates price (last-write-wins)', () => {
     const events = [
-      makeOfferedEvent({ tokenId: 0n, price: 100000000000000000n, blockNumber: 103n, logIndex: 0 }),
-      makeOfferedEvent({ tokenId: 0n, price: 200000000000000000n, blockNumber: 110n, logIndex: 1 }),
+      makeOfferedEvent({ id: 0n, price: 100000000000000000n, blockNumber: 103n, logIndex: 0 }),
+      makeOfferedEvent({ id: 0n, price: 200000000000000000n, blockNumber: 110n, logIndex: 1 }),
     ];
     const result = foldProjectTokens(events);
     assert.strictEqual(result.length, 1);
@@ -420,8 +412,8 @@ describe('foldProjectTokens', () => {
     const lowerAddr = '0x5555555555555555555555555555555555555555' as `0x${string}`;
     const upperAddr = '0x5555555555555555555555555555555555555555'.toUpperCase() as `0x${string}`;
     const events = [
-      makeOfferedEvent({ erc1155Addr: lowerAddr, tokenId: 0n, price: 100000000000000000n, blockNumber: 103n }),
-      makeOfferedEvent({ erc1155Addr: upperAddr, tokenId: 0n, price: 200000000000000000n, blockNumber: 110n, logIndex: 1 }),
+      makeOfferedEvent({ erc1155Addr: lowerAddr, id: 0n, price: 100000000000000000n, blockNumber: 103n }),
+      makeOfferedEvent({ erc1155Addr: upperAddr, id: 0n, price: 200000000000000000n, blockNumber: 110n, logIndex: 1 }),
     ];
     const result = foldProjectTokens(events);
     assert.strictEqual(result.length, 1);
