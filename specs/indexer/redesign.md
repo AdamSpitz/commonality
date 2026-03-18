@@ -323,17 +323,41 @@ The existing Ponder indexer continues to function exactly as before. This is a p
 Build passes, SDK tests pass (239 tests).
 
 
-## Phase 4: Complete
+## Phase 4: Remove GraphQL fallback (in progress)
 
-Phase 4 of the indexer redesign is now complete. Here's what was implemented:
+Phase 4 was partially complete with a hybrid approach. This caused issues with integration tests that had both paths living side-by-side. The decision was made to **delete the GraphQL fallback and use event cache + folds exclusively**.
 
-**SDK Changes:**
-- Added `eventCacheUrl` and `contractAddresses` fields to `SDKMachinery`
-- Created `eventCacheClient.ts` - utility for fetching events and registry data from the event cache REST API
-- Created `eventDecoder.ts` - utility with ABIs and decode functions for all contracts (Beliefs, Implications, AssuranceContract, etc.)
-- Updated conceptspace queries (`getStatement`, `getUserBelief`, `getImplicationsFrom`, `getImplicationsTo`, `getImplication`) to use event cache + fold when available, falling back to GraphQL otherwise
+### What's been done:
 
-**Key Design Decisions:**
-- Hybrid approach: SDK checks if `eventCacheUrl` + `contractAddresses` are configured. If yes, uses event cache + fold. Otherwise falls back to existing GraphQL queries.
-- Registry-first: For "what exists" queries, uses registry tables (small, eagerly maintained). For entity state, fetches events and folds locally.
-- Backward compatible: Existing code continues to work - just add `eventCacheUrl` and `contractAddresses` to enable Phase 4.
+1. **integration-tests/src/actions/action-machinery.ts**: Updated to configure `eventCacheUrl` and `contractAddresses` when creating test machinery.
+
+2. **integration-tests/src/utils/setup.ts**: Updated `REQUIRED_ENV_VARS` to include `EVENT_CACHE_URL` and contract addresses.
+
+3. **sdk/src/subsystems/conceptspace/queries.ts**: Rewritten - entity queries use event cache + folds. Discovery/browsing queries still use GraphQL (they need pre-computed aggregations).
+
+4. **sdk/src/utils/eventDecoder.ts**: Updated `decodeAlignmentAttestationEvent` to include full event metadata.
+
+5. **sdk/src/subsystems/fundingportals/folds.ts**: Updated to work with decoded events.
+
+6. **sdk/src/subsystems/fundingportals/queries.ts**: Partially updated - entity queries use event cache.
+
+### What's left:
+
+1. **sdk/src/subsystems/fundingportals/queries.ts**: `getSubjectStatements`, `getAlignmentAttestation`, `getAlignmentsByAttester` still need cleanup.
+
+2. **indexer REST API for event cache**: Need to verify `/api/events` endpoint is exposed on port 42069.
+
+3. **Environment variable**: Need to set `EVENT_CACHE_URL=http://localhost:42069` in integration tests.
+
+4. **Remaining subsystems**: pubstarter, delegation, mutable-refs queries still GraphQL-only.
+
+5. **Delete old code**: Once migration is complete, remove:
+   - GraphQL codegen artifacts
+   - Ponder indexer business logic handlers
+   - Unused GraphQL client code
+
+### Migration path:
+
+- Discovery/browsing queries keep using GraphQL (need aggregations)
+- All entity-specific queries use event cache + folds
+- Indexer becomes pure event cache (no business logic)

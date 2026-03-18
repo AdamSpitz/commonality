@@ -417,7 +417,7 @@ export function decodeImplicationAttestationEvent(rawEvent: RawEventFromCache): 
   };
 }
 
-export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): { attester: `0x${string}`; subjectAddress: `0x${string}`; statementId: string } | null {
+export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): { attester: `0x${string}`; subjectAddress: `0x${string}`; statementId: string; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
   if (rawEvent.eventName !== 'AlignmentAttestation') return null;
   
   const args = decodeRawEventLog(rawEvent);
@@ -427,6 +427,11 @@ export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): { 
     attester: args.attester,
     subjectAddress: args.subjectAddress,
     statementId: bytes32ToCid(args.statementId),
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
   };
 }
 

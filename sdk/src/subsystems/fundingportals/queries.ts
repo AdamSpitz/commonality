@@ -1,19 +1,15 @@
 /**
  * GraphQL queries for Funding Portals subsystem (AlignmentAttestations)
  *
- * The schema uses alignmentAttestations/alignmentAttestationss with subjectAddress.
- * The TypeScript API uses subjectAddress for consistency.
- * topicStatementId is not present in the current schema and is returned as ''.
+ * Entity-specific queries use event cache + folds.
+ * Aggregated/computed queries use GraphQL.
  */
 
 import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
+import { fetchEvents, fetchAlignmentAttestationsRegistry } from '../../utils/eventCacheClient.js';
+import { decodeAlignmentAttestationEvent } from '../../utils/eventDecoder.js';
+import { foldAlignmentAttestations } from './folds.js';
 import {
-  GetAlignedSubjectsDocument,
-  GetSubjectStatementsDocument,
-  GetAlignmentAttestationDocument,
-  GetAlignmentsByAttesterDocument,
-  GetImplicationsToForFpDocument,
-  GetProjectTotalReceivedDocument,
   GetProjectDetailsDocument,
   GetParticipantSummariesDocument,
 } from '../../generated/graphql.js';
@@ -27,7 +23,7 @@ import { IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
-// AlignmentAttestation Queries (Funding Portals)
+// AlignmentAttestation Queries (Event Cache + Folds)
 // ============================================================================
 
 /**
@@ -39,20 +35,33 @@ export async function getAlignedSubjects(
   attesterAddress?: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const variables: { statementId: string; attester?: string } = {
-    statementId: statementCid,
-  };
+  const contracts = machinery.contractAddresses!;
+  
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.alignmentAttestations,
+    eventName: 'AlignmentAttestation',
+    topic1: statementCid,
+    limit: 10000,
+  });
+  
+  const decodedEvents = events
+    .map(e => decodeAlignmentAttestationEvent(e))
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+  
+  let attestations = foldAlignmentAttestations(decodedEvents);
+  
   if (attesterAddress) {
-    variables.attester = attesterAddress.toLowerCase();
+    const attesterLower = attesterAddress.toLowerCase();
+    attestations = attestations.filter(a => a.attester.toLowerCase() === attesterLower);
   }
-  const result = await executeTypedGraphQLQuery(machinery, GetAlignedSubjectsDocument, variables);
-  return (result.alignmentAttestationss?.items ?? []).map(item => ({
-    attester: item.attester,
-    subjectAddress: item.subjectAddress,
-    statementCid: normalizeCidV1(item.statementId),
+  
+  return attestations.map(a => ({
+    attester: a.attester,
+    subjectAddress: a.subjectAddress,
+    statementCid: a.statementCid,
     topicStatementCid,
-    createdAt: String(item.createdAt),
-    blockNumber: String(item.blockNumber),
+    createdAt: a.createdAt,
+    blockNumber: a.blockNumber,
   }));
 }
 
@@ -68,20 +77,42 @@ export async function getSubjectStatements(
   attesterAddress?: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const variables: { subjectAddress: string; attester?: string } = {
-    subjectAddress: subjectAddress.toLowerCase(),
-  };
+  const contracts = machinery.contractAddresses!;
+  
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.alignmentAttestations,
+    eventName: 'AlignmentAttestation',
+    topic2: subjectAddress.toLowerCase(),
+    limit: 10000,
+  });
+  
+  const decodedEvents = events
+    .map(e => decodeAlignmentAttestationEvent(e))
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+  
+  let attestations = foldAlignmentAttestations(
+    decodedEvents.map(e => ({
+      ...e,
+      topicStatementId: topicStatementCid || '',
+      blockNumber: BigInt(0),
+      blockTimestamp: BigInt(0),
+      transactionHash: '' as `0x${string}`,
+      logIndex: 0,
+    }))
+  );
+  
   if (attesterAddress) {
-    variables.attester = attesterAddress.toLowerCase();
+    const attesterLower = attesterAddress.toLowerCase();
+    attestations = attestations.filter(a => a.attester.toLowerCase() === attesterLower);
   }
-  const result = await executeTypedGraphQLQuery(machinery, GetSubjectStatementsDocument, variables);
-  return (result.alignmentAttestationss?.items ?? []).map(item => ({
-    attester: item.attester,
-    subjectAddress: item.subjectAddress,
-    statementCid: normalizeCidV1(item.statementId),
+  
+  return attestations.map(a => ({
+    attester: a.attester,
+    subjectAddress: a.subjectAddress,
+    statementCid: a.statementCid,
     topicStatementCid,
-    createdAt: String(item.createdAt),
-    blockNumber: String(item.blockNumber),
+    createdAt: '',
+    blockNumber: '',
   }));
 }
 
@@ -98,20 +129,35 @@ export async function getAlignmentAttestation(
   statementCid: IpfsCidV1,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
-  const result = await executeTypedGraphQLQuery(machinery, GetAlignmentAttestationDocument, {
-    attester: attesterAddress.toLowerCase(),
-    subjectAddress: subjectAddress.toLowerCase(),
-    statementId: statementCid,
+  const contracts = machinery.contractAddresses!;
+  
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.alignmentAttestations,
+    eventName: 'AlignmentAttestation',
+    topic1: statementCid,
+    topic2: subjectAddress.toLowerCase(),
+    limit: 1000,
   });
-  if (!result.alignmentAttestations) return null;
-  const item = result.alignmentAttestations;
+  
+  const decodedEvents = events
+    .map(e => decodeAlignmentAttestationEvent(e))
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+  
+  const attesterLower = attesterAddress.toLowerCase();
+  const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
+  
+  if (matching.length === 0) {
+    return null;
+  }
+  
+  const latest = matching[matching.length - 1];
   return {
-    attester: item.attester,
-    subjectAddress: item.subjectAddress,
-    statementCid: normalizeCidV1(item.statementId),
+    attester: latest.attester,
+    subjectAddress: latest.subjectAddress,
+    statementCid: latest.statementId as IpfsCidV1,
     topicStatementCid,
-    createdAt: String(item.createdAt),
-    blockNumber: String(item.blockNumber),
+    createdAt: '',
+    blockNumber: '',
   };
 }
 
@@ -126,21 +172,25 @@ export async function getAlignmentsByAttester(
   attesterAddress: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetAlignmentsByAttesterDocument, {
+  const contracts = machinery.contractAddresses!;
+  
+  const registry = await fetchAlignmentAttestationsRegistry(machinery, {
     attester: attesterAddress.toLowerCase(),
+    limit: 10000,
   });
-  return (result.alignmentAttestationss?.items ?? []).map(item => ({
+  
+  return registry.map(item => ({
     attester: item.attester,
     subjectAddress: item.subjectAddress,
     statementCid: normalizeCidV1(item.statementId),
     topicStatementCid,
-    createdAt: String(item.createdAt),
-    blockNumber: String(item.blockNumber),
+    createdAt: '',
+    blockNumber: '',
   }));
 }
 
 // ============================================================================
-// Indirect Alignment Queries (via Implication Graph)
+// Indirect Alignment Queries (via Implication Graph) - Mixed approach
 // ============================================================================
 
 /**
@@ -149,11 +199,6 @@ export async function getAlignmentsByAttester(
  * A subject is indirectly aligned with statement S2 if:
  * - The subject is directly aligned with statement S1
  * - S1 implies S2 (according to a trusted attester)
- *
- * @param client GraphQL client
- * @param statementId The statement to find indirectly aligned subjects for
- * @param trustedImplicationAttester Optional: filter implications by this attester
- * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getIndirectlyAlignedSubjects(
   machinery: SDKMachinery,
@@ -161,35 +206,50 @@ export async function getIndirectlyAlignedSubjects(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<IndirectSubjectAlignment[]> {
-  // Step 1: Find all statements that imply the target statement
-  const implicationsVariables: { toStatementCid: string; attester?: string } = {
-    toStatementCid: statementCid,
-  };
-  if (trustedImplicationAttester) {
-    implicationsVariables.attester = trustedImplicationAttester.toLowerCase();
-  }
-  const implicationsResult = await executeTypedGraphQLQuery(machinery, GetImplicationsToForFpDocument, implicationsVariables);
+  const contracts = machinery.contractAddresses!;
 
-  const implications = implicationsResult.implicationss?.items ?? [];
+  const toEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.implications,
+    eventName: 'ImplicationAttestation',
+    topic2: statementCid,
+    limit: 10000,
+  });
+
+  const decodedImplicationEvents = toEvents.map(e => {
+    const args = (e as any).args;
+    if (!args) return null;
+    return {
+      attester: args.attester,
+      fromStatementCid: args.fromStatementCid,
+      toStatementCid: args.toStatementCid,
+    };
+  }).filter((e): e is NonNullable<typeof e> => e !== null);
+
+  let implications = decodedImplicationEvents;
+
+  if (trustedImplicationAttester) {
+    const attesterLower = trustedImplicationAttester.toLowerCase();
+    implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
+  }
 
   if (implications.length === 0) {
     return [];
   }
 
-  // Step 2: For each implying statement, find subjects aligned with it
   const indirectAlignments: IndirectSubjectAlignment[] = [];
 
   for (const implication of implications) {
+    const fromStatementCid = normalizeCidV1(implication.fromStatementCid);
     const alignments = await getAlignedSubjects(
       machinery,
-      normalizeCidV1(implication.fromStatementCid),
+      fromStatementCid,
       trustedAlignmentAttester
     );
 
     for (const alignment of alignments) {
       indirectAlignments.push({
         subjectAddress: alignment.subjectAddress,
-        directStatementCid: normalizeCidV1(implication.fromStatementCid),
+        directStatementCid: fromStatementCid,
         indirectStatementCid: statementCid,
         attester: alignment.attester,
       });
@@ -203,17 +263,12 @@ export async function getIndirectlyAlignedSubjects(
 export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
 
 // ============================================================================
-// Aggregated Funding Metrics (E2)
+// Aggregated Funding Metrics (E2) - GraphQL
 // ============================================================================
 
 /**
  * Get total funding raised for a cause (across all aligned projects).
  * Includes both direct and indirect alignments.
- *
- * @param client GraphQL client
- * @param statementId The statement/cause to query
- * @param trustedImplicationAttester Optional: filter implications by this attester
- * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getTotalFundingForCause(
   machinery: SDKMachinery,
@@ -221,47 +276,24 @@ export async function getTotalFundingForCause(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<CauseFundingMetrics> {
-  // Get all directly aligned projects
-  const directAlignments = await getAlignedSubjects(
-    machinery,
-    statementCid,
-    trustedAlignmentAttester
-  );
-
-  // Get all indirectly aligned projects
-  const indirectAlignments = await getIndirectlyAlignedSubjects(
+  const allAlignedProjects = await getAllAlignedProjectsForCause(
     machinery,
     statementCid,
     trustedImplicationAttester,
     trustedAlignmentAttester
   );
 
-  // Combine and deduplicate project addresses
-  const allProjectAddresses = new Set<string>();
-  directAlignments.forEach(a => allProjectAddresses.add(a.subjectAddress.toLowerCase()));
-  indirectAlignments.forEach(a => allProjectAddresses.add(a.subjectAddress.toLowerCase()));
-
-  // Fetch project details for all aligned projects
   let totalRaised = 0n;
-  for (const projectAddress of allProjectAddresses) {
-    const projectResult = await executeTypedGraphQLQuery(machinery, GetProjectTotalReceivedDocument, {
-      id: projectAddress.toLowerCase(),
-    });
-
-    if (projectResult.projects) {
-      totalRaised += BigInt(String(projectResult.projects.totalReceived));
-    }
+  for (const project of allAlignedProjects) {
+    totalRaised += BigInt(project.totalReceived);
   }
 
-  // TODO: Re-implement using NoteIntent attestations
-  // intendedStatementId has been removed from DelegatableNotes and moved to NoteIntent contract
-  // For now, we return 0 for notes until NoteIntent indexing is implemented
   const totalAvailable = 0n;
 
   return {
     totalRaisedAcrossProjects: totalRaised,
     totalAvailableFromNotes: totalAvailable,
-    projectCount: allProjectAddresses.size,
+    projectCount: allAlignedProjects.length,
     noteCount: 0,
   };
 }
@@ -269,11 +301,6 @@ export async function getTotalFundingForCause(
 /**
  * Get all projects aligned with a cause (both direct and indirect).
  * Returns projects with their alignment type and total raised.
- *
- * @param client GraphQL client
- * @param statementId The statement/cause to query
- * @param trustedImplicationAttester Optional: filter implications by this attester
- * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getAllAlignedProjectsForCause(
   machinery: SDKMachinery,
@@ -287,14 +314,12 @@ export async function getAllAlignedProjectsForCause(
   threshold: string;
   deadline: string;
 }>> {
-  // Get all directly aligned projects
   const directAlignments = await getAlignedSubjects(
     machinery,
     statementCid,
     trustedAlignmentAttester
   );
 
-  // Get all indirectly aligned projects
   const indirectAlignments = await getIndirectlyAlignedSubjects(
     machinery,
     statementCid,
@@ -302,20 +327,17 @@ export async function getAllAlignedProjectsForCause(
     trustedAlignmentAttester
   );
 
-  // Track which projects are direct vs indirect
   const projectMap = new Map<string, 'direct' | 'indirect'>();
   directAlignments.forEach(a =>
     projectMap.set(a.subjectAddress.toLowerCase(), 'direct')
   );
   indirectAlignments.forEach(a => {
     const addr = a.subjectAddress.toLowerCase();
-    // Don't override direct with indirect
     if (!projectMap.has(addr)) {
       projectMap.set(addr, 'indirect');
     }
   });
 
-  // Fetch project details
   const results = [];
   for (const [projectAddress, alignmentType] of projectMap.entries()) {
     const projectResult = await executeTypedGraphQLQuery(machinery, GetProjectDetailsDocument, {
@@ -338,17 +360,11 @@ export async function getAllAlignedProjectsForCause(
 }
 
 // ============================================================================
-// Contributor Leaderboards (E3)
+// Contributor Leaderboards (E3) - GraphQL
 // ============================================================================
 
 /**
  * Get top contributors for a specific cause (across all aligned projects).
- *
- * @param client GraphQL client
- * @param statementId The statement/cause to query
- * @param limit Maximum number of contributors to return
- * @param trustedImplicationAttester Optional: filter implications by this attester
- * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getTopContributorsForCause(
   machinery: SDKMachinery,
@@ -357,7 +373,6 @@ export async function getTopContributorsForCause(
   trustedImplicationAttester?: string,
   trustedAlignmentAttester?: string
 ): Promise<ContributorStats[]> {
-  // Get all aligned projects
   const alignedProjects = await getAllAlignedProjectsForCause(
     machinery,
     statementCid,
@@ -369,7 +384,6 @@ export async function getTopContributorsForCause(
     return [];
   }
 
-  // Aggregate participant summaries across all aligned projects
   const participantMap = new Map<string, ContributorStats>();
 
   for (const project of alignedProjects) {
@@ -383,7 +397,6 @@ export async function getTopContributorsForCause(
       const participant = summary.participant.toLowerCase();
       const existing = participantMap.get(participant);
 
-      // BigInt fields come as strings at runtime; convert to bigint for aggregation
       const totalContributed = BigInt(String(summary.totalContributed));
       const totalRefunded = BigInt(String(summary.totalRefunded));
       const netContribution = BigInt(String(summary.netContribution));
@@ -391,14 +404,12 @@ export async function getTopContributorsForCause(
       const lastAt = summary.lastContributionAt != null ? BigInt(String(summary.lastContributionAt)) : undefined;
 
       if (existing) {
-        // Aggregate with existing stats
         existing.totalContributed += totalContributed;
         existing.totalRefunded += totalRefunded;
         existing.netContribution += netContribution;
         existing.contributionCount += summary.contributionCount;
         existing.projectsContributedTo += 1;
 
-        // Update first/last contribution times
         if (firstAt !== undefined) {
           if (!existing.firstContributionAt || firstAt < existing.firstContributionAt) {
             existing.firstContributionAt = firstAt;
@@ -410,7 +421,6 @@ export async function getTopContributorsForCause(
           }
         }
       } else {
-        // Create new entry
         participantMap.set(participant, {
           participant,
           totalContributed,
@@ -425,7 +435,6 @@ export async function getTopContributorsForCause(
     }
   }
 
-  // Sort by net contribution and return top N
   return Array.from(participantMap.values())
     .sort((a, b) => {
       if (a.netContribution > b.netContribution) return -1;
@@ -437,13 +446,6 @@ export async function getTopContributorsForCause(
 
 /**
  * Get a user's contribution rank for a specific cause.
- * Returns the user's stats and their rank among all contributors.
- *
- * @param machinery SDK machinery instance
- * @param statementId The statement/cause to query
- * @param userAddress The user to find the rank for
- * @param trustedImplicationAttester Optional: filter implications by this attester
- * @param trustedAlignmentAttester Optional: filter alignments by this attester
  */
 export async function getUserContributionRankForCause(
   machinery: SDKMachinery,
@@ -456,11 +458,10 @@ export async function getUserContributionRankForCause(
   stats: ContributorStats | null;
   totalContributors: number;
 } | null> {
-  // Get all contributors (we need the full list to calculate rank)
   const allContributors = await getTopContributorsForCause(
     machinery,
     statementCid,
-    1000000, // Large limit to get all contributors
+    1000000,
     trustedImplicationAttester,
     trustedAlignmentAttester
   );
@@ -477,7 +478,7 @@ export async function getUserContributionRankForCause(
   }
 
   return {
-    rank: userIndex + 1, // 1-indexed rank
+    rank: userIndex + 1,
     stats: allContributors[userIndex],
     totalContributors: allContributors.length,
   };

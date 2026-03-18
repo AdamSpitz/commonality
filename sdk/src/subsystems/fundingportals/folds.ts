@@ -1,6 +1,16 @@
 import type { AlignmentAttestation } from './types.js';
-import type { AlignmentAttestationEvent } from './events.js';
 import type { IpfsCidV1 } from '../../utils/cid-types.js';
+
+export interface DecodedAlignmentAttestation {
+  attester: `0x${string}`;
+  subjectAddress: `0x${string}`;
+  statementId: string;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+}
 
 /**
  * Fold AlignmentAttestation events → attestation records.
@@ -10,7 +20,7 @@ import type { IpfsCidV1 } from '../../utils/cid-types.js';
  * Caller is responsible for filtering events to a single subject address
  * (funding portal) before calling this function.
  */
-export function foldAlignmentAttestations(events: AlignmentAttestationEvent[]): AlignmentAttestation[] {
+export function foldAlignmentAttestations(events: DecodedAlignmentAttestation[]): AlignmentAttestation[] {
   const map = new Map<string, AlignmentAttestation>();
 
   for (const e of events) {
@@ -22,12 +32,10 @@ export function foldAlignmentAttestations(events: AlignmentAttestationEvent[]): 
         attester: e.attester,
         subjectAddress: e.subjectAddress,
         statementCid: e.statementId as IpfsCidV1,
-        topicStatementCid: e.topicStatementId as IpfsCidV1,
+        topicStatementCid: '' as IpfsCidV1,
         createdAt: e.blockTimestamp.toString(),
         blockNumber: e.blockNumber.toString(),
       });
-    } else {
-      existing.topicStatementCid = e.topicStatementId as IpfsCidV1;
     }
   }
 
