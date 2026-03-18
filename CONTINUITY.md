@@ -8,18 +8,24 @@ This file is for jotting down notes that might be useful for the next AI. This f
 - Next: Chunk 2 (Concept Space) — see `specs/indexer/phase1-plan.md`
 - Still outstanding from before: E2E tests need verification against Docker stack (`npm run ui:test:e2e`)
 
-## Key notes from this session (Phase 1 Chunk 1)
+### Before starting Chunk 2, fix these from Chunk 1 review:
 
-- Created `sdk/src/subsystems/events-common.ts` — shared `RawEvent` base type (blockNumber, blockTimestamp, transactionHash, logIndex)
-- Created `sdk/src/subsystems/mutable-refs/events.ts` — `RefUpdatedEvent`
-- Created `sdk/src/subsystems/mutable-refs/folds.ts` — `foldMutableRef` (last-write-wins, returns `MutableRef | null`) and `foldRefHistory` (maps each event to `RefUpdate`)
-- Created `sdk/src/subsystems/fundingportals/events.ts` — `AlignmentAttestationEvent`
-- Created `sdk/src/subsystems/fundingportals/folds.ts` — `foldAlignmentAttestations` (key = attester+subject+statement, re-attestation updates topicStatementCid)
+1. **Add `contractAddress` to `RawEvent`** in `sdk/src/subsystems/events-common.ts`. The event cache (Phase 4) needs it to distinguish events from different contract instances. One-line addition — also update the existing Chunk 1 `makeEvent()` helpers and event types to include it.
+2. **Document the caller-filters-events convention** in each fold function's JSDoc. E.g. `foldMutableRef` assumes events are for a single `(owner, name)` pair — this is implied but not stated. Add a brief note to each fold.
+
+### Conventions for Chunk 2+
+
+- Keep using the `makeEvent()` with `Partial<T>` overrides pattern for tests.
+- Fold functions are pure and assume events arrive in block/logIndex order. Document this.
+- Use `.toString()` for bigint→string conversion to match existing SDK types.
+
+## Key notes from Chunk 1
+
+- Created `sdk/src/subsystems/events-common.ts` — shared `RawEvent` base type
+- Created mutable-refs `events.ts`, `folds.ts`, `folds.test.ts` — `foldMutableRef` (last-write-wins), `foldRefHistory`
+- Created fundingportals `events.ts`, `folds.ts`, `folds.test.ts` — `foldAlignmentAttestations` (key = attester+subject+statement, re-attestation updates topicStatementCid)
 - All new files exported from their subsystem `index.ts`; `RawEvent` exported from `subsystems/index.ts`
-- ID format for RefUpdate: `${owner.toLowerCase()}:${name}:${blockNumber}:${logIndex}` (matches indexer convention)
-- bigint fields are `.toString()`'d to match existing SDK string-based types (`MutableRef.updatedAt`, etc.)
 - 88 SDK tests pass, typecheck clean
-- This is a good interrupt point if you want to do a review before tackling Chunk 2
 
 
 

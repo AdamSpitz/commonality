@@ -260,4 +260,9 @@ The redesign trades a moderate amount of client-side complexity for a large redu
 
 The biggest risk is if the Funding Portal's cross-entity aggregations become a performance bottleneck at scale. But that's a bridge to cross when you get there — and the architecture makes it easy to add selective server-side aggregation for specific hot queries without rebuilding the full Ponder indexer.
 
-**Recommendation: do it.** Start with Phase 1 (fold functions in the SDK) — it's valuable even if you never do the rest, and it'll give you concrete data about whether client-side folding feels right in practice.
+**Recommendation: do it.** Start with Phase 1 (fold functions in the SDK)Take a look at specs/indexer/redesign.md, and do the first chunk of phase 1. Make sure the  — it's valuable even if you never do the rest, and it'll give you concrete data about whether client-side folding feels right in practice.
+
+## Implementing
+
+  - [Phase 1](./phase1-plan.md)
+  - remaining phases not written up yet
