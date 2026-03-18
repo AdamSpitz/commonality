@@ -1,0 +1,333 @@
+import { keccak256, encodePacked } from 'viem';
+import type { Note, NoteIntentAttestation, DelegationChainLink } from './types.js';
+import type {
+  NoteCreatedEvent,
+  NoteDelegatedEvent,
+  ChainSplitEvent,
+  NoteRevokedEvent,
+  FundsReclaimedEvent,
+  NoteConsumedEvent,
+  ERC1155PurchasedEvent,
+  NoteIntentAttestedEvent,
+} from './events.js';
+
+// Discriminated union of all delegation events for foldDelegationState.
+// Caller is responsible for passing all events in block/logIndex order.
+export type DelegationEvent =
+  | { type: 'noteCreated'; event: NoteCreatedEvent }
+  | { type: 'noteDelegated'; event: NoteDelegatedEvent }
+  | { type: 'chainSplit'; event: ChainSplitEvent }
+  | { type: 'noteRevoked'; event: NoteRevokedEvent }
+  | { type: 'fundsReclaimed'; event: FundsReclaimedEvent }
+  | { type: 'noteConsumed'; event: NoteConsumedEvent }
+  | { type: 'erc1155Purchased'; event: ERC1155PurchasedEvent };
+
+// Internal mutable state for a note during fold processing.
+// Inactive notes are kept in the map so their chains can be referenced
+// by subsequent ERC1155Purchased events.
+interface NoteState {
+  id: string;
+  amount: bigint;
+  token: `0x${string}`;
+  tokenType: number;
+  tokenId: bigint;
+  active: boolean;
+  parentNoteId?: string;
+  createdAt: string;
+  createdAtBlock: string;
+  updatedAt: string;
+  chain: DelegationChainLink[]; // position 0 = root, highest position = leaf
+}
+
+/**
+ * Compute chainHash from a delegation chain.
+ *
+ * Matches the contract's _computeChainHash / _verifyAndComputeChainHash:
+ *   hash = bytes32(0)
+ *   for each link from chain[0] (root) to chain[n] (leaf):
+ *     hash = keccak256(abi.encodePacked(link.address, hash))
+ */
+function computeChainHash(chain: DelegationChainLink[]): `0x${string}` {
+  let hash: `0x${string}` = `0x${'00'.repeat(32)}`;
+  for (const link of chain) {
+    hash = keccak256(encodePacked(['address', 'bytes32'], [link.address as `0x${string}`, hash]));
+  }
+  return hash;
+}
+
+// Convert internal NoteState to the public Note type.
+function toNote(state: NoteState): Note {
+  const chain = state.chain;
+  const owner = chain.length > 0 ? chain[chain.length - 1].address : '';
+  const rootOwner = chain.length > 0 ? chain[0].address : '';
+  return {
+    id: state.id,
+    chainHash: computeChainHash(chain),
+    amount: state.amount.toString(),
+    token: state.token,
+    tokenType: state.tokenType,
+    tokenId: state.tokenId.toString(),
+    owner,
+    rootOwner,
+    active: state.active,
+    parentNoteId: state.parentNoteId,
+    createdAt: state.createdAt,
+    createdAtBlock: state.createdAtBlock,
+    updatedAt: state.updatedAt,
+  };
+}
+
+/**
+ * Fold all delegation events → complete note state.
+ *
+ * Maintains a Map<noteId, NoteState> internally, processing events in order.
+ * Inactive notes (consumed, reclaimed) are retained in the output map so their
+ * chains remain accessible for ERC1155Purchased output-note reconstruction.
+ *
+ * Events must arrive in block/logIndex order.
+ * Caller is responsible for passing all relevant events.
+ *
+ * Revocation semantics mirror the contract's revoke(): when a chain member
+ * revokes, the note's chain is rebuilt as:
+ *   [chain[len-1-rPos], chain[len-2-rPos], ..., chain[0]]
+ * where rPos is the revoker's position in the original chain (0=root).
+ * This makes the original root the new leaf (spending authority).
+ */
+export function foldDelegationState(events: DelegationEvent[]): {
+  notes: Map<string, Note>;
+  chains: Map<string, DelegationChainLink[]>;
+} {
+  const stateMap = new Map<string, NoteState>();
+
+  for (const ev of events) {
+    switch (ev.type) {
+      case 'noteCreated': {
+        const { noteId, owner, amount, token, tokenType, tokenId, blockTimestamp, blockNumber } =
+          ev.event;
+        const id = noteId.toString();
+        stateMap.set(id, {
+          id,
+          amount,
+          token,
+          tokenType,
+          tokenId,
+          active: true,
+          createdAt: blockTimestamp.toString(),
+          createdAtBlock: blockNumber.toString(),
+          updatedAt: blockTimestamp.toString(),
+          chain: [{ address: owner, position: 0, createdAt: blockTimestamp.toString() }],
+        });
+        break;
+      }
+
+      case 'chainSplit': {
+        // Partial delegation: create splitLeaf as a copy of originalLeaf with splitAmount.
+        // The original (remainderLeaf) keeps its chain but has its amount reduced.
+        // NoteDelegated will extend the splitLeaf's chain afterward.
+        const { originalLeafId, splitLeafId, splitAmount, blockTimestamp } = ev.event;
+        const originalId = originalLeafId.toString();
+        const splitId = splitLeafId.toString();
+        const original = stateMap.get(originalId);
+        if (original) {
+          stateMap.set(splitId, {
+            ...original,
+            id: splitId,
+            amount: splitAmount,
+            updatedAt: blockTimestamp.toString(),
+            chain: original.chain.map((link) => ({ ...link })), // deep copy
+          });
+          original.amount -= splitAmount;
+          original.updatedAt = blockTimestamp.toString();
+        }
+        break;
+      }
+
+      case 'noteDelegated': {
+        const { parentNoteId, childNoteId, delegate, blockTimestamp } = ev.event;
+        const isFull = parentNoteId === childNoteId;
+        const childId = childNoteId.toString();
+        const parentId = parentNoteId.toString();
+
+        if (isFull) {
+          // Full delegation: the note itself gets the delegate appended to its chain.
+          const note = stateMap.get(childId);
+          if (note) {
+            note.chain.push({
+              address: delegate,
+              position: note.chain.length,
+              createdAt: blockTimestamp.toString(),
+            });
+            note.updatedAt = blockTimestamp.toString();
+          }
+        } else {
+          // Partial delegation: ChainSplit already created the split note with the
+          // original chain. Now extend it with the delegate and record the parent.
+          const child = stateMap.get(childId);
+          if (child) {
+            child.chain.push({
+              address: delegate,
+              position: child.chain.length,
+              createdAt: blockTimestamp.toString(),
+            });
+            child.parentNoteId = parentId;
+            child.updatedAt = blockTimestamp.toString();
+          }
+        }
+        break;
+      }
+
+      case 'noteRevoked': {
+        const { noteId, revoker, blockTimestamp } = ev.event;
+        const id = noteId.toString();
+        const note = stateMap.get(id);
+        if (note) {
+          const rPos = note.chain.findIndex(
+            (link) => link.address.toLowerCase() === revoker.toLowerCase(),
+          );
+          if (rPos >= 0) {
+            // Rebuild the chain to match the contract's revoke computation.
+            // The new chain runs from chain[len-1-rPos] (a node toward the leaf)
+            // down through chain[rPos]=revoker to chain[0]=root.
+            // The original root ends up as the new leaf (spending authority).
+            // See foldDelegationState JSDoc for full derivation.
+            const len = note.chain.length;
+            const newChain: DelegationChainLink[] = [];
+            for (let offset = 0; offset <= len - 1 - rPos; offset++) {
+              newChain.push({
+                address: note.chain[len - 1 - rPos - offset].address,
+                position: offset,
+                createdAt: blockTimestamp.toString(),
+              });
+            }
+            note.chain = newChain;
+            note.updatedAt = blockTimestamp.toString();
+          }
+        }
+        break;
+      }
+
+      case 'fundsReclaimed': {
+        const { noteId, blockTimestamp } = ev.event;
+        const id = noteId.toString();
+        const note = stateMap.get(id);
+        if (note) {
+          note.active = false;
+          note.amount = 0n;
+          note.updatedAt = blockTimestamp.toString();
+        }
+        break;
+      }
+
+      case 'noteConsumed': {
+        const { noteId, remainingAmount, deleted, blockTimestamp } = ev.event;
+        const id = noteId.toString();
+        const note = stateMap.get(id);
+        if (note) {
+          note.amount = remainingAmount;
+          if (deleted) note.active = false;
+          note.updatedAt = blockTimestamp.toString();
+        }
+        break;
+      }
+
+      case 'erc1155Purchased': {
+        // Output notes were already created via NoteCreated events with a
+        // single-link chain (leaf owner only). Copy the full delegation chain
+        // from each input note so output notes preserve the chain structure.
+        //
+        // Output note ordering: for each tokenId t and each input note (chain) c,
+        // outputNoteIds[t * numInputNotes + c] corresponds to inputNoteIds[c].
+        const { inputNoteIds, outputNoteIds, tokenIds, blockTimestamp } = ev.event;
+        const numChains = inputNoteIds.length;
+        const numTokens = tokenIds.length;
+
+        for (let t = 0; t < numTokens; t++) {
+          for (let c = 0; c < numChains; c++) {
+            const outputIdx = t * numChains + c;
+            if (outputIdx >= outputNoteIds.length) break;
+
+            const outputId = outputNoteIds[outputIdx].toString();
+            const inputId = inputNoteIds[c].toString();
+            const inputState = stateMap.get(inputId);
+            const outputState = stateMap.get(outputId);
+
+            if (inputState && outputState && inputState.chain.length > 1) {
+              // Replace the single-link chain with the full input chain.
+              outputState.chain = inputState.chain.map((link, i) => ({
+                ...link,
+                position: i,
+                createdAt: blockTimestamp.toString(),
+              }));
+              outputState.updatedAt = blockTimestamp.toString();
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  const notes = new Map<string, Note>();
+  const chains = new Map<string, DelegationChainLink[]>();
+
+  for (const [id, state] of stateMap) {
+    notes.set(id, toNote(state));
+    chains.set(id, state.chain.map((link) => ({ ...link })));
+  }
+
+  return { notes, chains };
+}
+
+/**
+ * Fold all delegation events → state for a single note.
+ *
+ * Convenience wrapper around foldDelegationState. Processes all events to
+ * build global state, then extracts the requested note and its chain.
+ * Returns null if the noteId is not found.
+ *
+ * Events must arrive in block/logIndex order.
+ * Caller must pass all relevant events, including ChainSplit and NoteDelegated
+ * events that reference this noteId as a parent.
+ */
+export function foldNote(
+  noteId: string,
+  events: DelegationEvent[],
+): {
+  note: Note;
+  chain: DelegationChainLink[];
+} | null {
+  const { notes, chains } = foldDelegationState(events);
+  const note = notes.get(noteId);
+  const chain = chains.get(noteId);
+  if (!note || !chain) return null;
+  return { note, chain };
+}
+
+/**
+ * Fold NoteIntentAttested events → attestation records.
+ *
+ * Each event produces one NoteIntentAttestation. Re-attestation (same
+ * attester + noteContract + noteId) updates intendedStatementId (last-write-wins).
+ *
+ * Caller is responsible for filtering events to the relevant scope.
+ * Events must arrive in block/logIndex order.
+ */
+export function foldNoteIntentAttestations(
+  events: NoteIntentAttestedEvent[],
+): NoteIntentAttestation[] {
+  const map = new Map<string, NoteIntentAttestation>();
+
+  for (const event of events) {
+    const key = `${event.attester.toLowerCase()}:${event.noteContract.toLowerCase()}:${event.noteId.toString()}`;
+    map.set(key, {
+      attester: event.attester,
+      noteContract: event.noteContract,
+      noteId: event.noteId.toString(),
+      intendedStatementId: event.intendedStatementId,
+      createdAt: event.blockTimestamp.toString(),
+      blockNumber: event.blockNumber.toString(),
+    });
+  }
+
+  return [...map.values()];
+}
