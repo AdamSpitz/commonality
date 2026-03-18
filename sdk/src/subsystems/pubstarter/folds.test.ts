@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { foldProject, foldContributions, foldProjectTokens, foldSecondaryMarket, foldTokenBurns } from './folds.js';
+import { foldProject, foldContributionsFromEvents, foldProjectTokens, foldSecondaryMarket, foldTokenBurns } from './folds.js';
 import type {
   AssuranceContractCreatedEvent,
   AssuranceContractInitializedEvent,
@@ -63,7 +63,6 @@ function makeCreatedEvent(overrides: Partial<AssuranceContractCreatedEvent> = {}
 function makeInitializedEvent(overrides: Partial<AssuranceContractInitializedEvent> = {}): AssuranceContractInitializedEvent {
   return {
     contractAddress: PROJECT_ADDR,
-    assuranceContract: PROJECT_ADDR,
     recipient: RECIPIENT,
     condition: CONDITION,
     blockNumber: 101n,
@@ -77,8 +76,7 @@ function makeInitializedEvent(overrides: Partial<AssuranceContractInitializedEve
 function makeMetadataUpdatedEvent(overrides: Partial<ContractMetadataUpdatedEvent> = {}): ContractMetadataUpdatedEvent {
   return {
     contractAddress: PROJECT_ADDR,
-    assuranceContract: PROJECT_ADDR,
-    metadataCid: METADATA_CID,
+    uri: METADATA_CID,
     blockNumber: 102n,
     blockTimestamp: 1700000200n,
     transactionHash: TX_HASH,
@@ -90,10 +88,9 @@ function makeMetadataUpdatedEvent(overrides: Partial<ContractMetadataUpdatedEven
 function makeOfferedEvent(overrides: Partial<ERC1155OfferedEvent> = {}): ERC1155OfferedEvent {
   return {
     contractAddress: PROJECT_ADDR,
-    assuranceContract: PROJECT_ADDR,
     erc1155Addr: ERC1155,
-    tokenId: 0n,
-    price: 100000000000000000n, // 0.1 ETH
+    id: 0n,
+    price: 100000000000000000n,
     blockNumber: 103n,
     blockTimestamp: 1700000300n,
     transactionHash: TX_HASH,
@@ -105,10 +102,9 @@ function makeOfferedEvent(overrides: Partial<ERC1155OfferedEvent> = {}): ERC1155
 function makeBoughtEvent(overrides: Partial<ERC1155BoughtEvent> = {}): ERC1155BoughtEvent {
   return {
     contractAddress: PROJECT_ADDR,
-    assuranceContract: PROJECT_ADDR,
     participant: PARTICIPANT_A,
     erc1155Addr: ERC1155,
-    totalCost: 100000000000000000n, // 0.1 ETH
+    totalCost: 100000000000000000n,
     ids: [0n],
     counts: [1n],
     blockNumber: 200n,
@@ -122,15 +118,27 @@ function makeBoughtEvent(overrides: Partial<ERC1155BoughtEvent> = {}): ERC1155Bo
 function makeSoldEvent(overrides: Partial<ERC1155SoldEvent> = {}): ERC1155SoldEvent {
   return {
     contractAddress: PROJECT_ADDR,
-    assuranceContract: PROJECT_ADDR,
     participant: PARTICIPANT_A,
     erc1155Addr: ERC1155,
-    totalRefund: 100000000000000000n, // 0.1 ETH
+    totalCost: 100000000000000000n,
     ids: [0n],
     counts: [1n],
     blockNumber: 300n,
     blockTimestamp: 1700002000n,
     transactionHash: TX_HASH_3,
+    logIndex: 0,
+    ...overrides,
+  };
+}
+
+function makeWithdrawalEvent(overrides: Partial<AssuranceContractWithdrawalEvent> = {}): AssuranceContractWithdrawalEvent {
+  return {
+    contractAddress: PROJECT_ADDR,
+    recipient: RECIPIENT,
+    value: 1000000000000000000n,
+    blockNumber: 400n,
+    blockTimestamp: 1700003000n,
+    transactionHash: TX_HASH_4,
     logIndex: 0,
     ...overrides,
   };

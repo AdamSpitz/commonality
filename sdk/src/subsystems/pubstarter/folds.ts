@@ -58,12 +58,12 @@ export function foldProject(events: ProjectEvent[]): Omit<Project, 'threshold' |
         createdAt = event.blockTimestamp.toString();
         break;
       case 'initialized':
-        if (!id) id = event.assuranceContract;
+        if (!id) id = event.contractAddress;
         recipient = event.recipient;
         conditionAddress = event.condition;
         break;
       case 'metadataUpdated':
-        metadataCid = event.metadataCid;
+        metadataCid = event.uri || event.metadata;
         break;
       case 'tokenOffered':
         if (!erc1155Address) erc1155Address = event.erc1155Addr;
@@ -72,7 +72,7 @@ export function foldProject(events: ProjectEvent[]): Omit<Project, 'threshold' |
         totalReceived += event.totalCost;
         break;
       case 'sold':
-        totalReceived -= event.totalRefund;
+        totalReceived -= event.totalCost;
         break;
       case 'withdrawal':
         // Withdrawals do not change totalReceived — they represent disbursement of funds
@@ -98,52 +98,60 @@ export function foldProject(events: ProjectEvent[]): Omit<Project, 'threshold' |
  *
  * Each bought event becomes one Contribution; each sold event becomes one Refund.
  * IDs are derived from transactionHash + logIndex (matching indexer convention).
- *
- * Caller may pass bought and sold events intermixed; they are distinguished by type.
- * Events must arrive in block/logIndex order.
  */
-export function foldContributions(events: (ERC1155BoughtEvent | ERC1155SoldEvent)[]): {
+export function foldContributionsFromEvents(
+  boughtEvents: ERC1155BoughtEvent[],
+  soldEvents: ERC1155SoldEvent[]
+): {
   contributions: Contribution[];
   refunds: Refund[];
 } {
   const contributions: Contribution[] = [];
   const refunds: Refund[] = [];
 
-  for (const event of events) {
+  for (const event of boughtEvents) {
     const id = `${event.transactionHash}-${event.logIndex}`;
+    contributions.push({
+      id,
+      participant: event.participant,
+      projectAddress: event.contractAddress,
+      erc1155Address: event.erc1155Addr,
+      tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
+      tokenCounts: JSON.stringify(event.counts.map((c) => c.toString())),
+      totalCost: event.totalCost.toString(),
+      createdAt: event.blockTimestamp.toString(),
+      blockNumber: event.blockNumber.toString(),
+      transactionHash: event.transactionHash,
+    });
+  }
 
-    if ('totalCost' in event) {
-      // ERC1155BoughtEvent
-      contributions.push({
-        id,
-        participant: event.participant,
-        projectAddress: event.assuranceContract,
-        erc1155Address: event.erc1155Addr,
-        tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
-        tokenCounts: JSON.stringify(event.counts.map((c) => c.toString())),
-        totalCost: event.totalCost.toString(),
-        createdAt: event.blockTimestamp.toString(),
-        blockNumber: event.blockNumber.toString(),
-        transactionHash: event.transactionHash,
-      });
-    } else {
-      // ERC1155SoldEvent
-      refunds.push({
-        id,
-        participant: event.participant,
-        projectAddress: event.assuranceContract,
-        erc1155Address: event.erc1155Addr,
-        tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
-        tokenCounts: JSON.stringify(event.counts.map((c) => c.toString())),
-        totalRefund: event.totalRefund.toString(),
-        createdAt: event.blockTimestamp.toString(),
-        blockNumber: event.blockNumber.toString(),
-        transactionHash: event.transactionHash,
-      });
-    }
+  for (const event of soldEvents) {
+    const id = `${event.transactionHash}-${event.logIndex}`;
+    refunds.push({
+      id,
+      participant: event.participant,
+      projectAddress: event.contractAddress,
+      erc1155Address: event.erc1155Addr,
+      tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
+      tokenCounts: JSON.stringify(event.counts.map((c) => c.toString())),
+      totalRefund: event.totalCost.toString(),
+      createdAt: event.blockTimestamp.toString(),
+      blockNumber: event.blockNumber.toString(),
+      transactionHash: event.transactionHash,
+    });
   }
 
   return { contributions, refunds };
+}
+
+export function foldContributions(
+  boughtEvents: ERC1155BoughtEvent[],
+  soldEvents: ERC1155SoldEvent[]
+): {
+  contributions: Contribution[];
+  refunds: Refund[];
+} {
+  return foldContributionsFromEvents(boughtEvents, soldEvents);
 }
 
 /**
@@ -156,15 +164,14 @@ export function foldContributions(events: (ERC1155BoughtEvent | ERC1155SoldEvent
  * Events must arrive in block/logIndex order.
  */
 export function foldProjectTokens(events: ERC1155OfferedEvent[]): ProjectToken[] {
-  // Key = projectAddress:erc1155Addr:tokenId — last event wins for price
   const map = new Map<string, ProjectToken>();
 
   for (const event of events) {
-    const key = `${event.assuranceContract.toLowerCase()}:${event.erc1155Addr.toLowerCase()}:${event.tokenId.toString()}`;
+    const key = `${event.contractAddress.toLowerCase()}:${event.erc1155Addr.toLowerCase()}:${event.id.toString()}`;
     map.set(key, {
-      projectAddress: event.assuranceContract,
+      projectAddress: event.contractAddress,
       erc1155Address: event.erc1155Addr,
-      tokenId: event.tokenId.toString(),
+      tokenId: event.id.toString(),
       price: event.price.toString(),
       createdAt: event.blockTimestamp.toString(),
     });

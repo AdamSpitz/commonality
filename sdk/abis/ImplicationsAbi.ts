@@ -1,0 +1,256 @@
+// Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
+// Run `npm run sync-abis` to regenerate
+
+export const ImplicationsAbi = [
+  {
+    "inputs": [],
+    "name": "ArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidStatementID",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "StatementCannotImplyItself",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "explanationCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ImplicationAttestation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ImplicationRevoked",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "explanationCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "attestImplication",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "fromStatementCids",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "toStatementCids",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "explanationCids",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "attestImplicationsInBatch",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "attestations",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "explanations",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getExplanation",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "hasAttestation",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "fromStatementCid",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "toStatementCid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "removeAttestation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const;

@@ -16,6 +16,6 @@
     "noEmit": false,
     "types": ["node", "mocha"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../abis/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "src/**/*.test.ts"]
 }

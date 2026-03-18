@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - [Indexer redesign](/specs/indexer/redesign.md) — Phase 1 complete, Phase 2 complete, Phase 3 complete, Phase 4 in progress (ABI corrections done; next: migrate pubstarter, delegation, mutable-refs queries to event cache + folds)
+  - [Indexer redesign](/specs/indexer/redesign.md) — Phase 1 complete, Phase 2 complete, Phase 3 complete, Phase 4 in progress (ABI sync from artifacts done; SDK eventDecoder now uses generated ABIs; decoder field names fixed; need to fix pubstarter folds tests, add event cache helpers, migrate queries)
 
 Other big things to do soon:
   - The issues in the different workspaces' TODO.md files (see below).
