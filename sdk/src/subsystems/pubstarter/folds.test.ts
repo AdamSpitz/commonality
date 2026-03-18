@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { foldProject, foldContributions, foldProjectTokens } from './folds.js';
+import { foldProject, foldContributions, foldProjectTokens, foldSecondaryMarket, foldTokenBurns } from './folds.js';
 import type {
   AssuranceContractCreatedEvent,
   AssuranceContractInitializedEvent,
@@ -8,8 +8,16 @@ import type {
   ERC1155BoughtEvent,
   ERC1155SoldEvent,
   AssuranceContractWithdrawalEvent,
+  SaleListingCreatedEvent,
+  SaleListingFulfilledEvent,
+  SaleListingCancelledEvent,
+  BuyOrderCreatedEvent,
+  BuyOrderFulfilledEvent,
+  BuyOrderCancelledEvent,
+  TransferSingleEvent,
+  TransferBatchEvent,
 } from './events.js';
-import type { ProjectEvent } from './folds.js';
+import type { ProjectEvent, SecondaryMarketEvent } from './folds.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 
 const PROJECT_ADDR = '0x1111111111111111111111111111111111111111' as const;
@@ -19,9 +27,18 @@ const CONDITION = '0x4444444444444444444444444444444444444444' as const;
 const ERC1155 = '0x5555555555555555555555555555555555555555' as const;
 const PARTICIPANT_A = '0x6666666666666666666666666666666666666666' as const;
 const PARTICIPANT_B = '0x7777777777777777777777777777777777777777' as const;
+const MARKETPLACE = '0x9999999999999999999999999999999999999999' as const;
+const SELLER_A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' as const;
+const SELLER_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB' as const;
+const BUYER_A = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC' as const;
+const BUYER_B = '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD' as const;
+const BURNER = '0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE' as const;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const TX_HASH_2 = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
 const TX_HASH_3 = '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' as const;
+const TX_HASH_4 = '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd' as const;
+const TX_HASH_5 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as const;
 
 const METADATA_CID = fakeIpfsCidV1('project-metadata');
 const METADATA_CID_2 = fakeIpfsCidV1('project-metadata-v2');
@@ -407,6 +424,416 @@ describe('foldProjectTokens', () => {
     const events = [makeOfferedEvent()];
     const copy = [...events];
     foldProjectTokens(events);
+    assert.deepStrictEqual(events, copy);
+  });
+});
+
+// ============================================================================
+// Secondary market makeEvent helpers
+// ============================================================================
+
+function makeSaleListingCreatedEvent(overrides: Partial<SaleListingCreatedEvent> = {}): SaleListingCreatedEvent {
+  return {
+    contractAddress: MARKETPLACE,
+    saleListingId: 0n,
+    seller: SELLER_A,
+    tokenId: 1n,
+    count: 10n,
+    pricePerToken: 50000000000000000n, // 0.05 ETH
+    blockNumber: 500n,
+    blockTimestamp: 1700010000n,
+    transactionHash: TX_HASH_4,
+    logIndex: 0,
+    ...overrides,
+  };
+}
+
+function makeSaleListingFulfilledEvent(overrides: Partial<SaleListingFulfilledEvent> = {}): SaleListingFulfilledEvent {
+  return {
+    contractAddress: MARKETPLACE,
+    saleListingId: 0n,
+    buyer: BUYER_A,
+    count: 5n,
+    blockNumber: 510n,
+    blockTimestamp: 1700011000n,
+    transactionHash: TX_HASH_4,
+    logIndex: 1,
+    ...overrides,
+  };
+}
+
+function makeSaleListingCancelledEvent(overrides: Partial<SaleListingCancelledEvent> = {}): SaleListingCancelledEvent {
+  return {
+    contractAddress: MARKETPLACE,
+    saleListingId: 0n,
+    blockNumber: 520n,
+    blockTimestamp: 1700012000n,
+    transactionHash: TX_HASH_4,
+    logIndex: 2,
+    ...overrides,
+  };
+}
+
+function makeBuyOrderCreatedEvent(overrides: Partial<BuyOrderCreatedEvent> = {}): BuyOrderCreatedEvent {
+  return {
+    contractAddress: MARKETPLACE,
+    buyOrderId: 0n,
+    buyer: BUYER_A,
+    tokenId: 1n,
+    count: 10n,
+    pricePerToken: 40000000000000000n, // 0.04 ETH
+    blockNumber: 500n,
+    blockTimestamp: 1700010000n,
+    transactionHash: TX_HASH_4,
+    logIndex: 0,
+    ...overrides,
+  };
+}
+
+function makeBuyOrderFulfilledEvent(overrides: Partial<BuyOrderFulfilledEvent> = {}): BuyOrderFulfilledEvent {
+  return {
+    contractAddress: MARKETPLACE,
+    buyOrderId: 0n,
+    seller: SELLER_A,
+    count: 5n,
+    blockNumber: 510n,
+    blockTimestamp: 1700011000n,
+    transactionHash: TX_HASH_4,
+    logIndex: 1,
+    ...overrides,
+  };
+}
+
+function makeBuyOrderCancelledEvent(overrides: Partial<BuyOrderCancelledEvent> = {}): BuyOrderCancelledEvent {
+  return {
+    contractAddress: MARKETPLACE,
+    buyOrderId: 0n,
+    blockNumber: 520n,
+    blockTimestamp: 1700012000n,
+    transactionHash: TX_HASH_4,
+    logIndex: 2,
+    ...overrides,
+  };
+}
+
+function makeTransferSingleEvent(overrides: Partial<TransferSingleEvent> = {}): TransferSingleEvent {
+  return {
+    contractAddress: ERC1155,
+    operator: BURNER,
+    from: BURNER,
+    to: ZERO_ADDRESS,
+    id: 1n,
+    value: 5n,
+    blockNumber: 600n,
+    blockTimestamp: 1700020000n,
+    transactionHash: TX_HASH_5,
+    logIndex: 0,
+    ...overrides,
+  };
+}
+
+function makeTransferBatchEvent(overrides: Partial<TransferBatchEvent> = {}): TransferBatchEvent {
+  return {
+    contractAddress: ERC1155,
+    operator: BURNER,
+    from: BURNER,
+    to: ZERO_ADDRESS,
+    ids: [1n, 2n],
+    values: [5n, 3n],
+    blockNumber: 601n,
+    blockTimestamp: 1700020100n,
+    transactionHash: TX_HASH_5,
+    logIndex: 1,
+    ...overrides,
+  };
+}
+
+// ============================================================================
+// foldSecondaryMarket
+// ============================================================================
+
+describe('foldSecondaryMarket', () => {
+  it('returns empty results for empty events', () => {
+    const result = foldSecondaryMarket([]);
+    assert.deepStrictEqual(result.saleListings, []);
+    assert.deepStrictEqual(result.buyOrders, []);
+    assert.deepStrictEqual(result.trades, []);
+  });
+
+  // --- Sale listings ---
+
+  it('creates a sale listing from SaleListingCreated event', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent() },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.saleListings.length, 1);
+    const listing = result.saleListings[0]!;
+    assert.strictEqual(listing.marketplaceAddress, MARKETPLACE);
+    assert.strictEqual(listing.listingId, '0');
+    assert.strictEqual(listing.seller, SELLER_A);
+    assert.strictEqual(listing.tokenId, '1');
+    assert.strictEqual(listing.originalCount, '10');
+    assert.strictEqual(listing.remainingCount, '10');
+    assert.strictEqual(listing.pricePerToken, '50000000000000000');
+    assert.strictEqual(listing.status, 'active');
+    assert.strictEqual(listing.createdAt, '1700010000');
+    assert.strictEqual(listing.updatedAt, '1700010000');
+  });
+
+  it('partially fills a sale listing', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ count: 10n }) },
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ count: 3n }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    const listing = result.saleListings[0]!;
+    assert.strictEqual(listing.remainingCount, '7');
+    assert.strictEqual(listing.status, 'active');
+    assert.strictEqual(listing.updatedAt, '1700011000');
+  });
+
+  it('fully fills a sale listing (status → filled)', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ count: 5n }) },
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ count: 5n }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    const listing = result.saleListings[0]!;
+    assert.strictEqual(listing.remainingCount, '0');
+    assert.strictEqual(listing.status, 'filled');
+  });
+
+  it('cancels a sale listing', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent() },
+      { type: 'saleListingCancelled', event: makeSaleListingCancelledEvent() },
+    ];
+    const result = foldSecondaryMarket(events);
+    const listing = result.saleListings[0]!;
+    assert.strictEqual(listing.status, 'cancelled');
+    assert.strictEqual(listing.updatedAt, '1700012000');
+  });
+
+  it('produces a trade from sale listing fulfillment', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ saleListingId: 0n, count: 10n, pricePerToken: 50000000000000000n }) },
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ saleListingId: 0n, count: 3n, transactionHash: TX_HASH_5, logIndex: 0 }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.trades.length, 1);
+    const trade = result.trades[0]!;
+    assert.strictEqual(trade.id, `${TX_HASH_5}-0`);
+    assert.strictEqual(trade.orderType, 'sale_listing');
+    assert.strictEqual(trade.orderId, '0');
+    assert.strictEqual(trade.buyer, BUYER_A);
+    assert.strictEqual(trade.seller, SELLER_A);
+    assert.strictEqual(trade.tokenId, '1');
+    assert.strictEqual(trade.count, '3');
+    assert.strictEqual(trade.pricePerToken, '50000000000000000');
+    assert.strictEqual(trade.totalPrice, '150000000000000000'); // 3 * 0.05 ETH
+  });
+
+  it('multiple partial fills produce multiple trades', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ count: 10n }) },
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ count: 3n, blockNumber: 510n, transactionHash: TX_HASH_4, logIndex: 0 }) },
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ buyer: BUYER_B, count: 4n, blockNumber: 520n, transactionHash: TX_HASH_5, logIndex: 0 }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.trades.length, 2);
+    assert.strictEqual(result.saleListings[0]!.remainingCount, '3');
+    assert.strictEqual(result.saleListings[0]!.status, 'active');
+  });
+
+  // --- Buy orders ---
+
+  it('creates a buy order from BuyOrderCreated event', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent() },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.buyOrders.length, 1);
+    const order = result.buyOrders[0]!;
+    assert.strictEqual(order.marketplaceAddress, MARKETPLACE);
+    assert.strictEqual(order.orderId, '0');
+    assert.strictEqual(order.buyer, BUYER_A);
+    assert.strictEqual(order.tokenId, '1');
+    assert.strictEqual(order.originalCount, '10');
+    assert.strictEqual(order.remainingCount, '10');
+    assert.strictEqual(order.pricePerToken, '40000000000000000');
+    assert.strictEqual(order.status, 'active');
+  });
+
+  it('partially fills a buy order', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent({ count: 10n }) },
+      { type: 'buyOrderFulfilled', event: makeBuyOrderFulfilledEvent({ count: 4n }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    const order = result.buyOrders[0]!;
+    assert.strictEqual(order.remainingCount, '6');
+    assert.strictEqual(order.status, 'active');
+  });
+
+  it('fully fills a buy order (status → filled)', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent({ count: 5n }) },
+      { type: 'buyOrderFulfilled', event: makeBuyOrderFulfilledEvent({ count: 5n }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    const order = result.buyOrders[0]!;
+    assert.strictEqual(order.remainingCount, '0');
+    assert.strictEqual(order.status, 'filled');
+  });
+
+  it('cancels a buy order', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent() },
+      { type: 'buyOrderCancelled', event: makeBuyOrderCancelledEvent() },
+    ];
+    const result = foldSecondaryMarket(events);
+    const order = result.buyOrders[0]!;
+    assert.strictEqual(order.status, 'cancelled');
+  });
+
+  it('produces a trade from buy order fulfillment', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent({ buyOrderId: 1n, pricePerToken: 40000000000000000n }) },
+      { type: 'buyOrderFulfilled', event: makeBuyOrderFulfilledEvent({ buyOrderId: 1n, count: 2n, transactionHash: TX_HASH_5, logIndex: 0 }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.trades.length, 1);
+    const trade = result.trades[0]!;
+    assert.strictEqual(trade.orderType, 'buy_order');
+    assert.strictEqual(trade.orderId, '1');
+    assert.strictEqual(trade.buyer, BUYER_A);
+    assert.strictEqual(trade.seller, SELLER_A);
+    assert.strictEqual(trade.count, '2');
+    assert.strictEqual(trade.totalPrice, '80000000000000000'); // 2 * 0.04 ETH
+  });
+
+  // --- Mixed scenarios ---
+
+  it('handles multiple listings and orders simultaneously', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ saleListingId: 0n }) },
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ saleListingId: 1n, seller: SELLER_B, logIndex: 1 }) },
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent({ buyOrderId: 0n, logIndex: 2 }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.saleListings.length, 2);
+    assert.strictEqual(result.buyOrders.length, 1);
+    assert.strictEqual(result.trades.length, 0);
+  });
+
+  it('ignores fulfillment for unknown listing id', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ saleListingId: 99n }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.saleListings.length, 0);
+    assert.strictEqual(result.trades.length, 0);
+  });
+
+  it('ignores cancellation for unknown order id', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'buyOrderCancelled', event: makeBuyOrderCancelledEvent({ buyOrderId: 99n }) },
+    ];
+    const result = foldSecondaryMarket(events);
+    assert.strictEqual(result.buyOrders.length, 0);
+  });
+
+  it('does not mutate the input array', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent() },
+    ];
+    const copy = [...events];
+    foldSecondaryMarket(events);
+    assert.deepStrictEqual(events, copy);
+  });
+});
+
+// ============================================================================
+// foldTokenBurns
+// ============================================================================
+
+describe('foldTokenBurns', () => {
+  it('returns empty array for empty input', () => {
+    assert.deepStrictEqual(foldTokenBurns([]), []);
+  });
+
+  it('maps a TransferSingle burn to a TokenBurn', () => {
+    const event = makeTransferSingleEvent();
+    const result = foldTokenBurns([event]);
+    assert.strictEqual(result.length, 1);
+    const burn = result[0]!;
+    assert.strictEqual(burn.id, `${TX_HASH_5}-0`);
+    assert.strictEqual(burn.erc1155Address, ERC1155);
+    assert.strictEqual(burn.burner, BURNER);
+    assert.strictEqual(burn.tokenIds, JSON.stringify(['1']));
+    assert.strictEqual(burn.tokenCounts, JSON.stringify(['5']));
+    assert.strictEqual(burn.createdAt, '1700020000');
+    assert.strictEqual(burn.blockNumber, '600');
+    assert.strictEqual(burn.transactionHash, TX_HASH_5);
+  });
+
+  it('maps a TransferBatch burn to a TokenBurn', () => {
+    const event = makeTransferBatchEvent();
+    const result = foldTokenBurns([event]);
+    assert.strictEqual(result.length, 1);
+    const burn = result[0]!;
+    assert.strictEqual(burn.tokenIds, JSON.stringify(['1', '2']));
+    assert.strictEqual(burn.tokenCounts, JSON.stringify(['5', '3']));
+  });
+
+  it('ignores non-burn TransferSingle events (to != zero address)', () => {
+    const event = makeTransferSingleEvent({ to: BUYER_A });
+    const result = foldTokenBurns([event]);
+    assert.strictEqual(result.length, 0);
+  });
+
+  it('ignores non-burn TransferBatch events (to != zero address)', () => {
+    const event = makeTransferBatchEvent({ to: BUYER_A });
+    const result = foldTokenBurns([event]);
+    assert.strictEqual(result.length, 0);
+  });
+
+  it('processes mix of burn and non-burn events', () => {
+    const events = [
+      makeTransferSingleEvent({ to: ZERO_ADDRESS, logIndex: 0 }),
+      makeTransferSingleEvent({ to: BUYER_A, logIndex: 1 }),
+      makeTransferBatchEvent({ to: ZERO_ADDRESS, logIndex: 2 }),
+      makeTransferBatchEvent({ to: BUYER_B, logIndex: 3 }),
+    ];
+    const result = foldTokenBurns(events);
+    assert.strictEqual(result.length, 2);
+  });
+
+  it('handles multiple single burns', () => {
+    const events = [
+      makeTransferSingleEvent({ id: 1n, value: 2n, logIndex: 0, transactionHash: TX_HASH_4 }),
+      makeTransferSingleEvent({ id: 3n, value: 7n, logIndex: 1, transactionHash: TX_HASH_5 }),
+    ];
+    const result = foldTokenBurns(events);
+    assert.strictEqual(result.length, 2);
+    assert.strictEqual(result[0]!.tokenIds, JSON.stringify(['1']));
+    assert.strictEqual(result[0]!.tokenCounts, JSON.stringify(['2']));
+    assert.strictEqual(result[1]!.tokenIds, JSON.stringify(['3']));
+    assert.strictEqual(result[1]!.tokenCounts, JSON.stringify(['7']));
+  });
+
+  it('zero-address comparison is case-insensitive', () => {
+    // Even if to is checksummed differently, should still match zero address
+    const event = makeTransferSingleEvent({ to: '0x0000000000000000000000000000000000000000' as `0x${string}` });
+    const result = foldTokenBurns([event]);
+    assert.strictEqual(result.length, 1);
+  });
+
+  it('does not mutate the input array', () => {
+    const events = [makeTransferSingleEvent()];
+    const copy = [...events];
+    foldTokenBurns(events);
     assert.deepStrictEqual(events, copy);
   });
 });

@@ -1,4 +1,4 @@
-import type { Project, ProjectToken, Contribution, Refund } from './types.js';
+import type { Project, ProjectToken, Contribution, Refund, SaleListing, BuyOrder, Trade, TokenBurn } from './types.js';
 import type {
   AssuranceContractCreatedEvent,
   AssuranceContractInitializedEvent,
@@ -7,6 +7,14 @@ import type {
   ERC1155BoughtEvent,
   ERC1155SoldEvent,
   AssuranceContractWithdrawalEvent,
+  SaleListingCreatedEvent,
+  SaleListingFulfilledEvent,
+  SaleListingCancelledEvent,
+  BuyOrderCreatedEvent,
+  BuyOrderFulfilledEvent,
+  BuyOrderCancelledEvent,
+  TransferSingleEvent,
+  TransferBatchEvent,
 } from './events.js';
 
 // Discriminated union of all primary-market events for one project.
@@ -163,4 +171,217 @@ export function foldProjectTokens(events: ERC1155OfferedEvent[]): ProjectToken[]
   }
 
   return [...map.values()];
+}
+
+// ============================================================================
+// Secondary market folds
+// ============================================================================
+
+/**
+ * Discriminated union of all secondary-market events for one marketplace.
+ * Caller is responsible for filtering events to a single marketplace address.
+ */
+export type SecondaryMarketEvent =
+  | { type: 'saleListingCreated'; event: SaleListingCreatedEvent }
+  | { type: 'saleListingFulfilled'; event: SaleListingFulfilledEvent }
+  | { type: 'saleListingCancelled'; event: SaleListingCancelledEvent }
+  | { type: 'buyOrderCreated'; event: BuyOrderCreatedEvent }
+  | { type: 'buyOrderFulfilled'; event: BuyOrderFulfilledEvent }
+  | { type: 'buyOrderCancelled'; event: BuyOrderCancelledEvent };
+
+/**
+ * Fold secondary-market events → sale listings, buy orders, and trades.
+ *
+ * Sale listings and buy orders are keyed by their IDs. Fulfilled events
+ * partially or fully fill an existing listing/order (reducing remainingCount)
+ * and produce a Trade record. Cancelled events set status to "cancelled".
+ * Status transitions to "filled" when remainingCount reaches 0.
+ *
+ * Caller is responsible for filtering events to a single marketplace address
+ * before calling this function. Events must arrive in block/logIndex order.
+ */
+export function foldSecondaryMarket(events: SecondaryMarketEvent[]): {
+  saleListings: SaleListing[];
+  buyOrders: BuyOrder[];
+  trades: Trade[];
+} {
+  const saleListingsMap = new Map<string, SaleListing>();
+  const buyOrdersMap = new Map<string, BuyOrder>();
+  const trades: Trade[] = [];
+
+  for (const { type, event } of events) {
+    const marketplaceAddress = event.contractAddress;
+
+    switch (type) {
+      case 'saleListingCreated': {
+        const listingId = event.saleListingId.toString();
+        saleListingsMap.set(listingId, {
+          marketplaceAddress,
+          listingId,
+          seller: event.seller,
+          tokenId: event.tokenId.toString(),
+          originalCount: event.count.toString(),
+          remainingCount: event.count.toString(),
+          pricePerToken: event.pricePerToken.toString(),
+          status: 'active',
+          createdAt: event.blockTimestamp.toString(),
+          updatedAt: event.blockTimestamp.toString(),
+        });
+        break;
+      }
+
+      case 'saleListingFulfilled': {
+        const listingId = event.saleListingId.toString();
+        const listing = saleListingsMap.get(listingId);
+        if (listing) {
+          const newRemaining = BigInt(listing.remainingCount) - event.count;
+          listing.remainingCount = newRemaining.toString();
+          listing.status = newRemaining <= 0n ? 'filled' : 'active';
+          listing.updatedAt = event.blockTimestamp.toString();
+
+          trades.push({
+            id: `${event.transactionHash}-${event.logIndex}`,
+            marketplaceAddress,
+            orderType: 'sale_listing',
+            orderId: listingId,
+            buyer: event.buyer,
+            seller: listing.seller,
+            tokenId: listing.tokenId,
+            count: event.count.toString(),
+            pricePerToken: listing.pricePerToken,
+            totalPrice: (event.count * BigInt(listing.pricePerToken)).toString(),
+            createdAt: event.blockTimestamp.toString(),
+            blockNumber: event.blockNumber.toString(),
+            transactionHash: event.transactionHash,
+          });
+        }
+        break;
+      }
+
+      case 'saleListingCancelled': {
+        const listingId = event.saleListingId.toString();
+        const listing = saleListingsMap.get(listingId);
+        if (listing) {
+          listing.status = 'cancelled';
+          listing.updatedAt = event.blockTimestamp.toString();
+        }
+        break;
+      }
+
+      case 'buyOrderCreated': {
+        const orderId = event.buyOrderId.toString();
+        buyOrdersMap.set(orderId, {
+          marketplaceAddress,
+          orderId,
+          buyer: event.buyer,
+          tokenId: event.tokenId.toString(),
+          originalCount: event.count.toString(),
+          remainingCount: event.count.toString(),
+          pricePerToken: event.pricePerToken.toString(),
+          status: 'active',
+          createdAt: event.blockTimestamp.toString(),
+          updatedAt: event.blockTimestamp.toString(),
+        });
+        break;
+      }
+
+      case 'buyOrderFulfilled': {
+        const orderId = event.buyOrderId.toString();
+        const order = buyOrdersMap.get(orderId);
+        if (order) {
+          const newRemaining = BigInt(order.remainingCount) - event.count;
+          order.remainingCount = newRemaining.toString();
+          order.status = newRemaining <= 0n ? 'filled' : 'active';
+          order.updatedAt = event.blockTimestamp.toString();
+
+          trades.push({
+            id: `${event.transactionHash}-${event.logIndex}`,
+            marketplaceAddress,
+            orderType: 'buy_order',
+            orderId,
+            buyer: order.buyer,
+            seller: event.seller,
+            tokenId: order.tokenId,
+            count: event.count.toString(),
+            pricePerToken: order.pricePerToken,
+            totalPrice: (event.count * BigInt(order.pricePerToken)).toString(),
+            createdAt: event.blockTimestamp.toString(),
+            blockNumber: event.blockNumber.toString(),
+            transactionHash: event.transactionHash,
+          });
+        }
+        break;
+      }
+
+      case 'buyOrderCancelled': {
+        const orderId = event.buyOrderId.toString();
+        const order = buyOrdersMap.get(orderId);
+        if (order) {
+          order.status = 'cancelled';
+          order.updatedAt = event.blockTimestamp.toString();
+        }
+        break;
+      }
+    }
+  }
+
+  return {
+    saleListings: [...saleListingsMap.values()],
+    buyOrders: [...buyOrdersMap.values()],
+    trades,
+  };
+}
+
+// ============================================================================
+// Token burn folds
+// ============================================================================
+
+/**
+ * Fold ERC1155 TransferSingle and TransferBatch events → token burn records.
+ *
+ * Only processes transfers where `to` is the zero address (burns).
+ * Other transfers are ignored.
+ *
+ * Caller may pass all transfer events; non-burn transfers are filtered out.
+ * Events must arrive in block/logIndex order.
+ */
+export function foldTokenBurns(events: (TransferSingleEvent | TransferBatchEvent)[]): TokenBurn[] {
+  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+  const burns: TokenBurn[] = [];
+
+  for (const event of events) {
+    if (event.to.toLowerCase() !== ZERO_ADDRESS) continue;
+
+    const id = `${event.transactionHash}-${event.logIndex}`;
+
+    if ('ids' in event) {
+      // TransferBatchEvent
+      const batch = event as TransferBatchEvent;
+      burns.push({
+        id,
+        erc1155Address: batch.contractAddress,
+        burner: batch.from,
+        tokenIds: JSON.stringify(batch.ids.map((i) => i.toString())),
+        tokenCounts: JSON.stringify(batch.values.map((v) => v.toString())),
+        createdAt: batch.blockTimestamp.toString(),
+        blockNumber: batch.blockNumber.toString(),
+        transactionHash: batch.transactionHash,
+      });
+    } else {
+      // TransferSingleEvent
+      const single = event as TransferSingleEvent;
+      burns.push({
+        id,
+        erc1155Address: single.contractAddress,
+        burner: single.from,
+        tokenIds: JSON.stringify([single.id.toString()]),
+        tokenCounts: JSON.stringify([single.value.toString()]),
+        createdAt: single.blockTimestamp.toString(),
+        blockNumber: single.blockNumber.toString(),
+        transactionHash: single.transactionHash,
+      });
+    }
+  }
+
+  return burns;
 }

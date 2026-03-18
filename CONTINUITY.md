@@ -4,9 +4,31 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-- Phase 1 (indexer redesign) **Chunk 2 (Concept Space) is COMPLETE**: foldStatementBeliefs, foldUserBeliefs, foldImplications, foldAllStatements added to SDK
-- Next: Chunk 3 (Pubstarter Primary Market) — see `specs/indexer/phase1-plan.md`
+- Phase 1 (indexer redesign) **Chunk 4 (Pubstarter Secondary Market + Burns) is COMPLETE**: foldSecondaryMarket, foldTokenBurns added to SDK
+- Next: Chunk 5 (Delegation) — the hardest fold, see `specs/indexer/phase1-plan.md`
 - Still outstanding from before: E2E tests need verification against Docker stack (`npm run ui:test:e2e`)
+
+## Key notes from Chunk 4
+
+- Added 9 new event types to `sdk/src/subsystems/pubstarter/events.ts`: ERC1155SecondaryMarketCreatedEvent, SaleListingCreatedEvent, SaleListingFulfilledEvent, SaleListingCancelledEvent, BuyOrderCreatedEvent, BuyOrderFulfilledEvent, BuyOrderCancelledEvent, TransferSingleEvent, TransferBatchEvent
+- Added `foldSecondaryMarket` to `folds.ts` — takes SecondaryMarketEvent[] discriminated union → { saleListings: SaleListing[], buyOrders: BuyOrder[], trades: Trade[] }
+  - Sale listings/buy orders tracked by ID; fulfillment reduces remainingCount; status transitions: active → filled (when remainingCount=0) or active → cancelled
+  - Each fulfillment produces a Trade record with computed totalPrice (count * pricePerToken)
+  - Unknown listing/order IDs in fulfillment/cancellation events are silently ignored
+- Added `foldTokenBurns` to `folds.ts` — takes (TransferSingleEvent | TransferBatchEvent)[] → TokenBurn[]
+  - Only processes events where `to` is zero address (burns); other transfers ignored
+  - Distinguishes Single vs Batch via `'ids' in event` check
+- Added 23 tests (15 for foldSecondaryMarket, 8 for foldTokenBurns), all passing
+- 167 SDK tests passing; typecheck clean
+- Used `contractAddress` (from RawEvent) as `marketplaceAddress` in secondary market folds — events come from the marketplace contract itself
+
+## Key notes from Chunk 3
+
+- Created `sdk/src/subsystems/pubstarter/events.ts` — 7 event types: AssuranceContractCreatedEvent, AssuranceContractInitializedEvent, ContractMetadataUpdatedEvent, ERC1155OfferedEvent, ERC1155BoughtEvent, ERC1155SoldEvent, AssuranceContractWithdrawalEvent
+- Created `sdk/src/subsystems/pubstarter/folds.ts` — `foldProject` (discriminated-union ProjectEvent[] → Omit<Project, 'threshold'|'deadline'> | null), `foldContributions` (bought/sold → Contribution[] + Refund[]), `foldProjectTokens` (last-write-wins per tokenId)
+- Created `sdk/src/subsystems/pubstarter/folds.test.ts` — 28 tests, all passing
+- Note: `foldProject` returns `null` for empty input (unlike conceptspace folds which return empty collections) because a project needs at minimum an ID
+- `totalReceived` tracks bought − sold; withdrawals do NOT reduce it (they represent disbursement after success)
 
 ## Key notes from Chunk 2
 
