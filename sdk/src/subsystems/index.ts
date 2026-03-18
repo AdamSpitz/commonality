@@ -1,3 +1,4 @@
+export type * from './events-common.js';
 export * from './displayable-documents/index.js';
 export * from './conceptspace/index.js';
 export * from './pubstarter/index.js';

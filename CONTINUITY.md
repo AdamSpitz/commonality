@@ -4,6 +4,25 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
+- Phase 1 (indexer redesign) Chunk 1 is **COMPLETE**: Mutable Refs + Funding Portal fold functions added to SDK
+- Next: Chunk 2 (Concept Space) — see `specs/indexer/phase1-plan.md`
+- Still outstanding from before: E2E tests need verification against Docker stack (`npm run ui:test:e2e`)
+
+## Key notes from this session (Phase 1 Chunk 1)
+
+- Created `sdk/src/subsystems/events-common.ts` — shared `RawEvent` base type (blockNumber, blockTimestamp, transactionHash, logIndex)
+- Created `sdk/src/subsystems/mutable-refs/events.ts` — `RefUpdatedEvent`
+- Created `sdk/src/subsystems/mutable-refs/folds.ts` — `foldMutableRef` (last-write-wins, returns `MutableRef | null`) and `foldRefHistory` (maps each event to `RefUpdate`)
+- Created `sdk/src/subsystems/fundingportals/events.ts` — `AlignmentAttestationEvent`
+- Created `sdk/src/subsystems/fundingportals/folds.ts` — `foldAlignmentAttestations` (key = attester+subject+statement, re-attestation updates topicStatementCid)
+- All new files exported from their subsystem `index.ts`; `RawEvent` exported from `subsystems/index.ts`
+- ID format for RefUpdate: `${owner.toLowerCase()}:${name}:${blockNumber}:${logIndex}` (matches indexer convention)
+- bigint fields are `.toString()`'d to match existing SDK string-based types (`MutableRef.updatedAt`, etc.)
+- 88 SDK tests pass, typecheck clean
+- This is a good interrupt point if you want to do a review before tackling Chunk 2
+
+
+
 - Pluggable-condition downstream refactor is **COMPLETE** (all tasks done; TODO.md duplicate entries cleaned up)
 - E2E tests: `ui/e2e/pubstarter-flow.spec.ts` was written but NOT yet run against Docker stack — run `npm run ui:test:e2e` to verify
 - E2E delegation flow test also STILL needs verification against Docker stack (same command)
