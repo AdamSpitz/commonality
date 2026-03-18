@@ -33,7 +33,6 @@ const ASSURANCE_CONTRACT_FACTORY_ABI = [
     name: 'PubstarterAssuranceContractCreated',
     inputs: [
       { name: 'assuranceContract', type: 'address', indexed: false },
-      { name: 'creator', type: 'address', indexed: false },
     ],
   },
 ] as const;
@@ -43,16 +42,14 @@ const ASSURANCE_CONTRACT_ABI = [
     type: 'event',
     name: 'AssuranceContractInitialized',
     inputs: [
-      { name: 'assuranceContract', type: 'address', indexed: false },
-      { name: 'recipient', type: 'address', indexed: false },
-      { name: 'condition', type: 'address', indexed: false },
+      { name: 'recipient', type: 'address', indexed: true },
+      { name: 'condition', type: 'address', indexed: true },
     ],
   },
   {
     type: 'event',
     name: 'ContractMetadataUpdated',
     inputs: [
-      { name: 'assuranceContract', type: 'address', indexed: false },
       { name: 'metadataCid', type: 'bytes32', indexed: false },
     ],
   },
@@ -60,9 +57,8 @@ const ASSURANCE_CONTRACT_ABI = [
     type: 'event',
     name: 'ERC1155Offered',
     inputs: [
-      { name: 'assuranceContract', type: 'address', indexed: false },
-      { name: 'erc1155Addr', type: 'address', indexed: false },
-      { name: 'tokenId', type: 'uint256', indexed: false },
+      { name: 'erc1155Addr', type: 'address', indexed: true },
+      { name: 'id', type: 'uint256', indexed: false },
       { name: 'price', type: 'uint256', indexed: false },
     ],
   },
@@ -70,9 +66,8 @@ const ASSURANCE_CONTRACT_ABI = [
     type: 'event',
     name: 'ERC1155Bought',
     inputs: [
-      { name: 'assuranceContract', type: 'address', indexed: false },
-      { name: 'participant', type: 'address', indexed: false },
-      { name: 'erc1155Addr', type: 'address', indexed: false },
+      { name: 'participant', type: 'address', indexed: true },
+      { name: 'erc1155Addr', type: 'address', indexed: true },
       { name: 'totalCost', type: 'uint256', indexed: false },
       { name: 'ids', type: 'uint256[]', indexed: false },
       { name: 'counts', type: 'uint256[]', indexed: false },
@@ -82,10 +77,9 @@ const ASSURANCE_CONTRACT_ABI = [
     type: 'event',
     name: 'ERC1155Sold',
     inputs: [
-      { name: 'assuranceContract', type: 'address', indexed: false },
-      { name: 'participant', type: 'address', indexed: false },
-      { name: 'erc1155Addr', type: 'address', indexed: false },
-      { name: 'totalRefund', type: 'uint256', indexed: false },
+      { name: 'participant', type: 'address', indexed: true },
+      { name: 'erc1155Addr', type: 'address', indexed: true },
+      { name: 'totalCost', type: 'uint256', indexed: false },
       { name: 'ids', type: 'uint256[]', indexed: false },
       { name: 'counts', type: 'uint256[]', indexed: false },
     ],
@@ -94,7 +88,7 @@ const ASSURANCE_CONTRACT_ABI = [
     type: 'event',
     name: 'AssuranceContractWithdrawal',
     inputs: [
-      { name: 'assuranceContract', type: 'address', indexed: false },
+      { name: 'recipient', type: 'address', indexed: true },
       { name: 'value', type: 'uint256', indexed: false },
     ],
   },
@@ -105,8 +99,8 @@ const SECONDARY_MARKET_ABI = [
     type: 'event',
     name: 'SaleListingCreated',
     inputs: [
-      { name: 'saleListingId', type: 'uint256', indexed: false },
-      { name: 'seller', type: 'address', indexed: false },
+      { name: 'saleListingId', type: 'uint256', indexed: true },
+      { name: 'seller', type: 'address', indexed: true },
       { name: 'tokenId', type: 'uint256', indexed: false },
       { name: 'count', type: 'uint256', indexed: false },
       { name: 'pricePerToken', type: 'uint256', indexed: false },
@@ -116,8 +110,8 @@ const SECONDARY_MARKET_ABI = [
     type: 'event',
     name: 'SaleListingFulfilled',
     inputs: [
-      { name: 'saleListingId', type: 'uint256', indexed: false },
-      { name: 'buyer', type: 'address', indexed: false },
+      { name: 'saleListingId', type: 'uint256', indexed: true },
+      { name: 'buyer', type: 'address', indexed: true },
       { name: 'count', type: 'uint256', indexed: false },
     ],
   },
@@ -125,15 +119,15 @@ const SECONDARY_MARKET_ABI = [
     type: 'event',
     name: 'SaleListingCancelled',
     inputs: [
-      { name: 'saleListingId', type: 'uint256', indexed: false },
+      { name: 'saleListingId', type: 'uint256', indexed: true },
     ],
   },
   {
     type: 'event',
     name: 'BuyOrderCreated',
     inputs: [
-      { name: 'buyOrderId', type: 'uint256', indexed: false },
-      { name: 'buyer', type: 'address', indexed: false },
+      { name: 'buyOrderId', type: 'uint256', indexed: true },
+      { name: 'buyer', type: 'address', indexed: true },
       { name: 'tokenId', type: 'uint256', indexed: false },
       { name: 'count', type: 'uint256', indexed: false },
       { name: 'pricePerToken', type: 'uint256', indexed: false },
@@ -143,8 +137,8 @@ const SECONDARY_MARKET_ABI = [
     type: 'event',
     name: 'BuyOrderFulfilled',
     inputs: [
-      { name: 'buyOrderId', type: 'uint256', indexed: false },
-      { name: 'seller', type: 'address', indexed: false },
+      { name: 'buyOrderId', type: 'uint256', indexed: true },
+      { name: 'seller', type: 'address', indexed: true },
       { name: 'count', type: 'uint256', indexed: false },
     ],
   },
@@ -152,7 +146,7 @@ const SECONDARY_MARKET_ABI = [
     type: 'event',
     name: 'BuyOrderCancelled',
     inputs: [
-      { name: 'buyOrderId', type: 'uint256', indexed: false },
+      { name: 'buyOrderId', type: 'uint256', indexed: true },
     ],
   },
   {
@@ -194,68 +188,75 @@ const DELEGATABLE_NOTES_ABI = [
     type: 'event',
     name: 'NoteCreated',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'creator', type: 'address', indexed: false },
-      { name: 'chainHash', type: 'bytes32', indexed: false },
-      { name: 'tokenType', type: 'uint8', indexed: false },
-      { name: 'token', type: 'address', indexed: false },
+      { name: 'noteId', type: 'uint256', indexed: true },
+      { name: 'owner', type: 'address', indexed: true },
       { name: 'amount', type: 'uint256', indexed: false },
+      { name: 'token', type: 'address', indexed: false },
+      { name: 'tokenType', type: 'uint8', indexed: false },
+      { name: 'tokenId', type: 'uint256', indexed: false },
     ],
   },
   {
     type: 'event',
     name: 'NoteDelegated',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'from', type: 'address', indexed: false },
-      { name: 'to', type: 'address', indexed: false },
-      { name: 'delegate', type: 'address', indexed: false },
+      { name: 'parentNoteId', type: 'uint256', indexed: true },
+      { name: 'childNoteId', type: 'uint256', indexed: true },
+      { name: 'delegate', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
     ],
   },
   {
     type: 'event',
     name: 'ChainSplit',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'splitNoteIds', type: 'uint256[]', indexed: false },
+      { name: 'originalLeafId', type: 'uint256', indexed: true },
+      { name: 'splitLeafId', type: 'uint256', indexed: true },
+      { name: 'remainderLeafId', type: 'uint256', indexed: true },
+      { name: 'splitAmount', type: 'uint256', indexed: false },
     ],
   },
   {
     type: 'event',
     name: 'NoteRevoked',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'revoker', type: 'address', indexed: false },
+      { name: 'noteId', type: 'uint256', indexed: true },
+      { name: 'revoker', type: 'address', indexed: true },
     ],
   },
   {
     type: 'event',
     name: 'FundsReclaimed',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'recipient', type: 'address', indexed: false },
+      { name: 'noteId', type: 'uint256', indexed: true },
+      { name: 'owner', type: 'address', indexed: true },
       { name: 'amount', type: 'uint256', indexed: false },
+      { name: 'token', type: 'address', indexed: false },
+      { name: 'tokenType', type: 'uint8', indexed: false },
+      { name: 'tokenId', type: 'uint256', indexed: false },
     ],
   },
   {
     type: 'event',
     name: 'NoteConsumed',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'consumer', type: 'address', indexed: false },
-      { name: 'spentAmount', type: 'uint256', indexed: false },
+      { name: 'noteId', type: 'uint256', indexed: true },
+      { name: 'amountConsumed', type: 'uint256', indexed: false },
+      { name: 'remainingAmount', type: 'uint256', indexed: false },
+      { name: 'deleted', type: 'bool', indexed: false },
     ],
   },
   {
     type: 'event',
     name: 'ERC1155Purchased',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'buyer', type: 'address', indexed: false },
-      { name: 'erc1155Addr', type: 'address', indexed: false },
-      { name: 'tokenId', type: 'uint256', indexed: false },
-      { name: 'count', type: 'uint256', indexed: false },
+      { name: 'buyer', type: 'address', indexed: true },
+      { name: 'erc1155Contract', type: 'address', indexed: true },
+      { name: 'tokenIds', type: 'uint256[]', indexed: false },
+      { name: 'counts', type: 'uint256[]', indexed: false },
       { name: 'totalCost', type: 'uint256', indexed: false },
+      { name: 'inputNoteIds', type: 'uint256[]', indexed: false },
+      { name: 'outputNoteIds', type: 'uint256[]', indexed: false },
     ],
   },
 ] as const;
@@ -265,8 +266,9 @@ const NOTE_INTENT_ABI = [
     type: 'event',
     name: 'NoteIntentAttested',
     inputs: [
-      { name: 'noteId', type: 'uint256', indexed: false },
-      { name: 'attester', type: 'address', indexed: false },
+      { name: 'attester', type: 'address', indexed: true },
+      { name: 'noteContract', type: 'address', indexed: true },
+      { name: 'noteId', type: 'uint256', indexed: true },
       { name: 'intentStatementId', type: 'bytes32', indexed: false },
     ],
   },
@@ -290,9 +292,9 @@ const MUTABLE_REF_UPDATER_ABI = [
     type: 'event',
     name: 'RefUpdated',
     inputs: [
+      { name: 'owner', type: 'address', indexed: true },
       { name: 'refName', type: 'string', indexed: false },
-      { name: 'refValue', type: 'string', indexed: false },
-      { name: 'updater', type: 'address', indexed: false },
+      { name: 'currentRefValue', type: 'string', indexed: false },
     ],
   },
 ] as const;
@@ -465,15 +467,457 @@ export function decodeDelegationEvent(rawEvent: RawEventFromCache): DecodedPubst
   };
 }
 
-export function decodeMutableRefEvent(rawEvent: RawEventFromCache): { refName: string; refValue: string; updater: `0x${string}` } | null {
+export function decodeMutableRefEvent(rawEvent: RawEventFromCache): { owner: `0x${string}`; refName: string; currentRefValue: string; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
   if (rawEvent.eventName !== 'RefUpdated') return null;
-  
+
   const args = decodeRawEventLog(rawEvent);
   if (!args) return null;
-  
+
   return {
+    owner: args.owner,
     refName: args.refName,
-    refValue: args.refValue,
-    updater: args.updater,
+    currentRefValue: args.currentRefValue,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+// ============================================================================
+// Typed Pubstarter event decoders (for foldProject, foldProjectTokens, etc.)
+// ============================================================================
+
+export function decodePubstarterAssuranceContractCreatedEvent(
+  rawEvent: RawEventFromCache
+): { assuranceContract: `0x${string}`; creator: `0x${string}`; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'PubstarterAssuranceContractCreated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    assuranceContract: args.assuranceContract,
+    creator: args.creator,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeAssuranceContractInitializedEvent(
+  rawEvent: RawEventFromCache
+): { assuranceContract: `0x${string}`; recipient: `0x${string}`; condition: `0x${string}`; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'AssuranceContractInitialized') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    assuranceContract: args.assuranceContract,
+    recipient: args.recipient,
+    condition: args.condition,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeContractMetadataUpdatedEvent(
+  rawEvent: RawEventFromCache
+): { assuranceContract: `0x${string}`; metadataCid: string; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'ContractMetadataUpdated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    assuranceContract: args.assuranceContract,
+    metadataCid: bytes32ToCid(args.metadataCid),
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeERC1155OfferedEvent(
+  rawEvent: RawEventFromCache
+): { assuranceContract: `0x${string}`; erc1155Addr: `0x${string}`; tokenId: bigint; price: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'ERC1155Offered') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    assuranceContract: args.assuranceContract,
+    erc1155Addr: args.erc1155Addr,
+    tokenId: args.tokenId,
+    price: args.price,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeERC1155BoughtEvent(
+  rawEvent: RawEventFromCache
+): { assuranceContract: `0x${string}`; participant: `0x${string}`; erc1155Addr: `0x${string}`; totalCost: bigint; ids: bigint[]; counts: bigint[]; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'ERC1155Bought') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    assuranceContract: args.assuranceContract,
+    participant: args.participant,
+    erc1155Addr: args.erc1155Addr,
+    totalCost: args.totalCost,
+    ids: args.ids,
+    counts: args.counts,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeERC1155SoldEvent(
+  rawEvent: RawEventFromCache
+): { assuranceContract: `0x${string}`; participant: `0x${string}`; erc1155Addr: `0x${string}`; totalRefund: bigint; ids: bigint[]; counts: bigint[]; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'ERC1155Sold') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    assuranceContract: args.assuranceContract,
+    participant: args.participant,
+    erc1155Addr: args.erc1155Addr,
+    totalRefund: args.totalRefund,
+    ids: args.ids,
+    counts: args.counts,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeAssuranceContractWithdrawalEvent(
+  rawEvent: RawEventFromCache
+): { assuranceContract: `0x${string}`; value: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'AssuranceContractWithdrawal') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    assuranceContract: args.assuranceContract,
+    value: args.value,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeSaleListingCreatedEvent(
+  rawEvent: RawEventFromCache
+): { saleListingId: bigint; seller: `0x${string}`; tokenId: bigint; count: bigint; pricePerToken: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'SaleListingCreated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    saleListingId: args.saleListingId,
+    seller: args.seller,
+    tokenId: args.tokenId,
+    count: args.count,
+    pricePerToken: args.pricePerToken,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeSaleListingFulfilledEvent(
+  rawEvent: RawEventFromCache
+): { saleListingId: bigint; buyer: `0x${string}`; count: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'SaleListingFulfilled') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    saleListingId: args.saleListingId,
+    buyer: args.buyer,
+    count: args.count,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeSaleListingCancelledEvent(
+  rawEvent: RawEventFromCache
+): { saleListingId: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'SaleListingCancelled') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    saleListingId: args.saleListingId,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeBuyOrderCreatedEvent(
+  rawEvent: RawEventFromCache
+): { buyOrderId: bigint; buyer: `0x${string}`; tokenId: bigint; count: bigint; pricePerToken: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'BuyOrderCreated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    buyOrderId: args.buyOrderId,
+    buyer: args.buyer,
+    tokenId: args.tokenId,
+    count: args.count,
+    pricePerToken: args.pricePerToken,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeBuyOrderFulfilledEvent(
+  rawEvent: RawEventFromCache
+): { buyOrderId: bigint; seller: `0x${string}`; count: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'BuyOrderFulfilled') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    buyOrderId: args.buyOrderId,
+    seller: args.seller,
+    count: args.count,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeBuyOrderCancelledEvent(
+  rawEvent: RawEventFromCache
+): { buyOrderId: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'BuyOrderCancelled') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    buyOrderId: args.buyOrderId,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeTransferSingleEvent(
+  rawEvent: RawEventFromCache
+): { operator: `0x${string}`; from: `0x${string}`; to: `0x${string}`; id: bigint; value: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'TransferSingle') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    operator: args.operator,
+    from: args.from,
+    to: args.to,
+    id: args.id,
+    value: args.value,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeTransferBatchEvent(
+  rawEvent: RawEventFromCache
+): { operator: `0x${string}`; from: `0x${string}`; to: `0x${string}`; ids: bigint[]; values: bigint[]; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'TransferBatch') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    operator: args.operator,
+    from: args.from,
+    to: args.to,
+    ids: args.ids,
+    values: args.values,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+// ============================================================================
+// Typed DelegatableNotes event decoders
+// ============================================================================
+
+export function decodeNoteCreatedEvent(
+  rawEvent: RawEventFromCache
+): { noteId: bigint; owner: `0x${string}`; amount: bigint; token: `0x${string}`; tokenType: number; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'NoteCreated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    noteId: args.noteId,
+    owner: args.creator,
+    amount: args.amount,
+    token: args.token,
+    tokenType: Number(args.tokenType),
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeNoteDelegatedEvent(
+  rawEvent: RawEventFromCache
+): { parentNoteId: bigint; childNoteId: bigint; delegate: `0x${string}`; amount: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'NoteDelegated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    parentNoteId: args.noteId,
+    childNoteId: args.noteId,
+    delegate: args.delegate,
+    amount: args.amount,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeChainSplitEvent(
+  rawEvent: RawEventFromCache
+): { originalLeafId: bigint; splitLeafId: bigint; remainderLeafId: bigint; splitAmount: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'ChainSplit') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    originalLeafId: args.noteId,
+    splitLeafId: args.splitNoteIds[0],
+    remainderLeafId: args.splitNoteIds[1],
+    splitAmount: args.splitAmount,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeNoteRevokedEvent(
+  rawEvent: RawEventFromCache
+): { noteId: bigint; revoker: `0x${string}`; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'NoteRevoked') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    noteId: args.noteId,
+    revoker: args.revoker,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeFundsReclaimedEvent(
+  rawEvent: RawEventFromCache
+): { noteId: bigint; owner: `0x${string}`; amount: bigint; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'FundsReclaimed') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    noteId: args.noteId,
+    owner: args.recipient,
+    amount: args.amount,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeNoteConsumedEvent(
+  rawEvent: RawEventFromCache
+): { noteId: bigint; remainingAmount: bigint; deleted: boolean; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'NoteConsumed') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    noteId: args.noteId,
+    remainingAmount: args.spentAmount,
+    deleted: args.deleted ?? false,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeERC1155PurchasedEvent(
+  rawEvent: RawEventFromCache
+): { inputNoteIds: bigint[]; outputNoteIds: bigint[]; tokenIds: bigint[]; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'ERC1155Purchased') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    inputNoteIds: [args.noteId],
+    outputNoteIds: [args.noteId],
+    tokenIds: [args.tokenId],
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+// ============================================================================
+// Typed NoteIntent event decoder
+// ============================================================================
+
+export function decodeNoteIntentAttestedEvent(
+  rawEvent: RawEventFromCache
+): { noteId: bigint; attester: `0x${string}`; intendedStatementId: string; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+  if (rawEvent.eventName !== 'NoteIntentAttested') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    noteId: args.noteId,
+    attester: args.attester,
+    intendedStatementId: bytes32ToCid(args.intentStatementId),
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
   };
 }
