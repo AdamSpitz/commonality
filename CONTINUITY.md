@@ -4,9 +4,25 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-- Phase 1 (indexer redesign) **Chunk 5 (Delegation) is COMPLETE**: foldDelegationState, foldNote, foldNoteIntentAttestations added to SDK
-- Phase 1 is now fully complete (all 5 chunks done). Next: consider starting Phase 2 (on-chain reads) or Phase 3 (event cache service) — see `specs/indexer/redesign.md`
-- Still outstanding from before: E2E tests need verification against Docker stack (`npm run ui:test:e2e`)
+- **Phase 2 (indexer redesign) STARTED**: Added publicClient to SDKMachinery + created chain-reads.ts with 3 functions (readConditionParams, readProjectETHBalance, readNoteOnChainInfo). Next: Phase 3 (event cache service) or Phase 2 continuation — see `specs/indexer/redesign.md`
+- Still outstanding: E2E tests need verification against Docker stack (`npm run ui:test:e2e`)
+
+## Key notes from Phase 2 start
+
+- Updated `sdk/src/machinery.ts`: added `publicClient?: PublicClient` to SDKMachinery; updated createSDKMachinery signature (backward-compatible, optional arg)
+- Created `sdk/src/utils/chain-reads.ts`: 
+  - `readConditionParams(machinery, conditionAddress)` — reads threshold/deadline from EthThresholdCondition; falls back to 0n for non-eth-threshold conditions
+  - `readProjectETHBalance(machinery, projectAddress)` — reads ETH balance via getBalance
+  - `readNoteOnChainInfo(machinery, noteContract, noteId)` — reads note slot data; returns null if note doesn't exist
+- Created `sdk/src/utils/chain-reads.test.ts` — 8 tests covering success, error fallback, and missing publicClient cases
+- Exported chain-reads from `sdk/src/utils/index.ts`
+- Used `@ts-expect-error` for viem readContract calls (same pattern as existing SDK code)
+- 202 SDK tests passing, full build clean
+
+## What to do next (continued)
+
+- Phase 2 continues: add more on-chain read functions (what else is needed from contracts?), or move to Phase 3 (event cache service)
+- Still outstanding: E2E tests need verification against Docker stack (`npm run ui:test:e2e`)
 
 ## Key notes from Chunk 5 (Delegation)
 

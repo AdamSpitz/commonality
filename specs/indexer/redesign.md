@@ -199,15 +199,10 @@ Recommendation: option 3 at small scale, option 1 if/when scale demands it.
 
 The redesign doesn't require a big-bang rewrite. The current system can be refactored incrementally:
 
-**Phase 1: Move fold logic into the SDK.**
-- For each entity type, write a `fold` function in the SDK that can reconstruct state from raw events.
-- The SDK still talks to the current Ponder indexer — but now it *could* work from raw events instead.
-- This is pure addition, nothing breaks.
-
-**Phase 2: Add direct IPFS and on-chain reads to the SDK.**
-- For IPFS content: add a `fetchStatementContent(cid)` function that hits an IPFS gateway.
-- For on-chain state: add `readProjectBalance(address)` etc. using viem contract reads.
-- The SDK can now get data from multiple sources (indexer, chain, IPFS) rather than only the indexer.
+**DONE: Phase 1**: Move fold logic into the SDK.
+**IN PROGRESS: Phase 2**: Add direct IPFS and on-chain reads to the SDK.
+- For IPFS content: `fetchFromIPFS(machinery.ipfsConfig, cid)` already exists.
+- For on-chain state: `readConditionParams`, `readProjectETHBalance`, `readNoteOnChainInfo` added to `sdk/src/utils/chain-reads.ts`. See `sdk/src/utils/chain-reads.ts`.
 
 **Phase 3: Build the thin event cache.**
 - A simple service: watch configured contracts, store events, serve via REST.
@@ -264,5 +259,6 @@ The biggest risk is if the Funding Portal's cross-entity aggregations become a p
 
 ## Implementing
 
-  - [Phase 1](./phase1-plan.md)
+  - DONE: [Phase 1](./phase1-plan.md)
+  - time to start phase 2; plan not written yet; is it big enough to need a plan or can we just go ahead and implement it?
   - remaining phases not written up yet

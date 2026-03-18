@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Indexer redesign: see specs/indexer/redesign.md
+  - [Indexer redesign](/specs/indexer/redesign.md) — Phase 1 complete, Phase 2 in progress
 
 Other big things to do soon:
   - The issues in the different workspaces' TODO.md files (see below).

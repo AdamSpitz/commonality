@@ -25,13 +25,13 @@ import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 const ALICE = '0x1111111111111111111111111111111111111111' as const;
 const BOB = '0x2222222222222222222222222222222222222222' as const;
 const CAROL = '0x3333333333333333333333333333333333333333' as const;
-const ERC20_TOKEN = '0x4444444444444444444444444444444444444444' as const;
+const _ERC20_TOKEN = '0x4444444444444444444444444444444444444444' as const;
 const ERC1155_TOKEN = '0x5555555555555555555555555555555555555555' as const;
 const NOTE_CONTRACT = '0x6666666666666666666666666666666666666666' as const;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const TX_HASH_2 = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
-const TX_HASH_3 = '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' as const;
+const _TX_HASH_3 = '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' as const;
 
 const STATEMENT_CID = fakeIpfsCidV1('statement-1');
 const STATEMENT_CID_2 = fakeIpfsCidV1('statement-2');
