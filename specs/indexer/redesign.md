@@ -209,7 +209,7 @@ The redesign doesn't require a big-bang rewrite. The current system can be refac
   - `readSaleListing`, `readBuyOrder`, `readNextNoteId`
   - 239 SDK tests passing
 
-**Phase 3: Build the thin event cache.**
+**Phase 3: Add raw events table to Ponder.** See [phase3-plan.md](./phase3-plan.md) for the implementation plan.
 - A simple service: watch configured contracts, store events, serve via REST.
 - Add the small registry tables.
 - This can run alongside Ponder initially.
