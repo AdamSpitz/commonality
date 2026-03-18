@@ -214,6 +214,8 @@ The redesign doesn't require a big-bang rewrite. The current system can be refac
 - Add the small registry tables.
 - This can run alongside Ponder initially.
 
+**Phase 3 is now complete.** The events table and registry tables have been added to the Ponder schema, and event handlers capture raw events for all contracts. The existing Ponder indexer continues to function exactly as before.
+
 **Phase 4: Switch the SDK to use the event cache.**
 - Update SDK query functions to fetch from the event cache + fold locally, instead of calling Ponder's GraphQL.
 - The Ponder indexer is now unused and can be removed.
@@ -287,3 +289,35 @@ The SDK now has `publicClient` support, and `sdk/src/utils/chain-reads.ts` conta
 All functions have comprehensive tests (happy path, fallback behavior on error, publicClient requirement enforcement).
 
 239 SDK tests passing.
+
+## Phase 3: Raw Events Cache — Complete
+
+### What's been implemented
+
+Added the thin event cache service to Ponder:
+
+1. **events table** (`schemas/events.schema.ts`): Stores raw event data with:
+   - id (txHash + logIndex), contractAddress, eventName, blockNumber, blockTimestamp
+   - transactionHash, logIndex, topic0-3, data (ABI-encoded non-indexed params)
+
+2. **Registry tables** (lightweight "what exists" tracking):
+   - `statements_registry` (cidV1, createdAtBlock, createdAtTimestamp)
+   - `projects_registry` (id, factoryAddress, createdAtBlock, createdAtTimestamp)
+   - `alignment_attestations_registry` (id, attester, subjectAddress, statementId, createdAtBlock)
+   - `implications_registry` (id, attester, fromStatementId, toStatementId, createdAtBlock)
+
+3. **Event handlers** (`src/events-cache/index.ts`): Capture raw events for all contracts:
+   - Beliefs: DirectSupport
+   - Implications: ImplicationAttestation
+   - AssuranceContractFactory: PubstarterAssuranceContractCreated
+   - AssuranceContract: 6 events
+   - SecondaryMarket: 7 events
+   - PremintingERC1155: TransferSingle, TransferBatch
+   - DelegatableNotes: 7 events
+   - NoteIntent: NoteIntentAttested
+   - AlignmentAttestations: AlignmentAttestation
+   - MutableRefUpdater: RefUpdated
+
+The existing Ponder indexer continues to function exactly as before. This is a pure addition.
+
+Build passes, SDK tests pass (239 tests).

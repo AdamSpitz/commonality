@@ -76,3 +76,12 @@ export {
   userSocialData,
   userSocialDataRelations,
 } from "./schemas/social.schema";
+
+// Import and re-export Events schema (Phase 3: raw events cache)
+export {
+  events,
+  statementsRegistry,
+  projectsRegistry,
+  alignmentAttestationsRegistry,
+  implicationsRegistry,
+} from "./schemas/events.schema";

@@ -4,44 +4,42 @@ This file is for jotting down notes that might be useful for the next AI. This f
 
 ## What to do next
 
-- **Phase 2 (indexer redesign) complete**: All chain read functions implemented. SDK has 11 on-chain read functions now. 239 SDK tests passing.
-- Phase 3 (event cache service) is next: Build the thin event cache service.
+- **Phase 3 (indexer redesign) complete**: Raw events table and registry tables added to Ponder. Event handlers capture all contract events. Build passes, 239 SDK tests passing.
+- Phase 4 (event cache SDK integration) is next: Update SDK to read from events table and fold locally instead of GraphQL.
 
-## Phase 2 progress summary (Phase 2 complete)
+## Phase 3 progress summary (Phase 3 complete)
 
-Phase 2 adds on-chain read capabilities to the SDK. All functions added:
+Phase 3 adds the thin event cache service to Ponder:
 
-### Already existed (4 functions):
-1. `readConditionParams` - threshold/deadline from EthThresholdCondition
-2. `readProjectETHBalance` - ETH balance via getBalance
-3. `readNoteOnChainInfo` - note slot data from DelegatableNotes
-4. `readBelief` - user belief state from Beliefs contract
+### Schema additions (schemas/events.schema.ts)
+1. **events** table: raw event storage
+   - id (txHash + logIndex), contractAddress, eventName, blockNumber, blockTimestamp
+   - transactionHash, logIndex, topic0-3, data (ABI-encoded)
 
-### Added this session (7 functions):
-5. `readHasAlignment` - check if alignment attestation exists (AlignmentAttestations)
-6. `readHasImplication` - check if implication attestation exists (Implications)
-7. `readExplanation` - get explanation CID for an implication (Implications)
-8. `readMutableRef` - read current ref value from MutableRefUpdater
-9. `readTotalReceivedValue` - read cumulative funding from AssuranceContract
-10. `readConditionStatus` - check hasSucceeded/hasFailed on condition contracts
-11. `readSaleListing` - read sale listing from ERC1155SecondaryMarket
-12. `readBuyOrder` - read buy order from ERC1155SecondaryMarket
-13. `readNextNoteId` - read next note ID counter from DelegatableNotes
+2. **Registry tables**: lightweight "what exists" tracking
+   - statements_registry (cidV1, createdAtBlock, createdAtTimestamp)
+   - projects_registry (id, factoryAddress, createdAtBlock, createdAtTimestamp)
+   - alignment_attestations_registry (id, attester, subjectAddress, statementId, createdAtBlock)
+   - implications_registry (id, attester, fromStatementId, toStatementId, createdAtBlock)
 
-Also updated ERC1155SecondaryMarketAbi.ts to include getSaleListing and getBuyOrder view functions.
+### Event handlers (src/events-cache/index.ts)
+Added handlers for all contracts:
+- Beliefs: DirectSupport
+- Implications: ImplicationAttestation
+- AssuranceContractFactory: PubstarterAssuranceContractCreated
+- AssuranceContract: 6 events
+- SecondaryMarket: 7 events
+- PremintingERC1155: TransferSingle, TransferBatch
+- DelegatableNotes: 7 events
+- NoteIntent: NoteIntentAttested
+- AlignmentAttestations: AlignmentAttestation
+- MutableRefUpdater: RefUpdated
+
+Registry tables are updated when new statements, projects, alignments, and implications are created.
+
+Existing Ponder indexer continues to work unchanged. This is a pure addition.
 
 ## What to do next
 
-- Phase 3: Build the thin event cache service (watch contracts, store events, serve via REST)
-
-## Key notes from Phase 2 (this session)
-
-- Added `readBelief(machinery, beliefsContract, user, statementId)` to `sdk/src/utils/chain-reads.ts`:
-  - Reads user belief about a statement from the Beliefs contract (believes/disbelieves/no opinion)
-  - Falls back to `BELIEF_NO_OPINION` (0n) on error
-  - Exports BELIEF_NO_OPINION (0n), BELIEF_BELIEVES (1n), BELIEF_DISBELIEVES (2n) constants
-  - BeliefState type: `0n | 1n | 2n` (bigint, matching viem's return type)
-  - Added 5 tests to chain-reads.test.ts
-  - 207 SDK tests passing, build clean
-- Added BeliefsReadAbi for the Beliefs contract's getBelief view function
-- Updated redesign.md to reflect Phase 2 progress
+- Phase 4: Update SDK to read from events table and fold locally instead of GraphQL
+- This will enable removing the eager indexed tables and business-logic handlers
