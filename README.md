@@ -36,5 +36,5 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 
 - Delegation UI complete with unit tests and E2E test (deposit → delegate → spend flow).
 - Funding Portals UI complete with unit tests. Code review done (4 bugs fixed), DRY refactor done. All components tested: AlignedProjectsList, DelegatableNotesSection, AlignmentAttestationsSection, FundingPortalSummary (20 tests each).
-- Indexer redesign Phase 1 in progress: SDK fold functions for Mutable Refs, Funding Portals, and Concept Space complete (Chunks 1–2). Next: Chunk 3 (Pubstarter Primary Market).
+- Indexer redesign Phase 1 **complete**: SDK fold functions for all 5 subsystems (Mutable Refs, Funding Portals, Concept Space, Pubstarter Primary+Secondary Market+Burns, Delegation). 194 SDK tests passing.
 - For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
