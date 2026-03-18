@@ -199,10 +199,15 @@ Recommendation: option 3 at small scale, option 1 if/when scale demands it.
 
 The redesign doesn't require a big-bang rewrite. The current system can be refactored incrementally:
 
-**DONE: Phase 1**: Move fold logic into the SDK.
-**IN PROGRESS: Phase 2**: Add direct IPFS and on-chain reads to the SDK.
+**Phase 1**: Move fold logic into the SDK. **COMPLETE**
+**Phase 2**: Add direct IPFS and on-chain reads to the SDK. **COMPLETE**
 - For IPFS content: `fetchFromIPFS(machinery.ipfsConfig, cid)` already exists.
-- For on-chain state: `readConditionParams`, `readProjectETHBalance`, `readNoteOnChainInfo` added to `sdk/src/utils/chain-reads.ts`. See `sdk/src/utils/chain-reads.ts`.
+- For on-chain state: 11 view functions now available in `sdk/src/utils/chain-reads.ts`:
+  - `readConditionParams`, `readProjectETHBalance`, `readNoteOnChainInfo`, `readBelief`
+  - `readHasAlignment`, `readHasImplication`, `readExplanation`, `readMutableRef`
+  - `readTotalReceivedValue`, `readConditionStatus`
+  - `readSaleListing`, `readBuyOrder`, `readNextNoteId`
+  - 239 SDK tests passing
 
 **Phase 3: Build the thin event cache.**
 - A simple service: watch configured contracts, store events, serve via REST.
@@ -213,7 +218,7 @@ The redesign doesn't require a big-bang rewrite. The current system can be refac
 - Update SDK query functions to fetch from the event cache + fold locally, instead of calling Ponder's GraphQL.
 - The Ponder indexer is now unused and can be removed.
 
-Each phase is independently deployable and testable. Phase 1 is the most valuable regardless of whether you do the full redesign — having fold functions in the SDK makes the system more resilient.
+Each phase is independently deployable and testable. Phase 1 is the most valuable regardless of whether you do the rest — having fold functions in the SDK makes the system more resilient.
 
 ---
 
@@ -257,11 +262,11 @@ The biggest risk is if the Funding Portal's cross-entity aggregations become a p
 
 **Recommendation: do it.** Start with Phase 1 (fold functions in the SDK)Take a look at specs/indexer/redesign.md, and do the first chunk of phase 1. Make sure the  — it's valuable even if you never do the rest, and it'll give you concrete data about whether client-side folding feels right in practice.
 
-## Phase 2: Chain Reads — Detailed Plan
+## Phase 2: Chain Reads — Complete
 
-### What's been done
+### What's been implemented
 
-The machinery already has `publicClient` support, and `sdk/src/utils/chain-reads.ts` contains:
+The SDK now has `publicClient` support, and `sdk/src/utils/chain-reads.ts` contains 11 functions:
 
 | Function | Contract | What it reads |
 |---|---|---|
@@ -269,118 +274,16 @@ The machinery already has `publicClient` support, and `sdk/src/utils/chain-reads
 | `readProjectETHBalance` | AssuranceContract | ETH balance |
 | `readNoteOnChainInfo` | DelegatableNotes | chainHash, amount, token info |
 | `readBelief` | Beliefs | user's belief state for a statement |
+| `readHasAlignment` | AlignmentAttestations | whether alignment attestation exists |
+| `readHasImplication` | Implications | whether implication attestation exists |
+| `readExplanation` | Implications | explanation CID for an implication |
+| `readMutableRef` | MutableRefUpdater | current ref value |
+| `readTotalReceivedValue` | AssuranceContract | cumulative funding received |
+| `readConditionStatus` | EthThresholdCondition | hasSucceeded/hasFailed |
+| `readSaleListing` | ERC1155SecondaryMarket | sale listing details |
+| `readBuyOrder` | ERC1155SecondaryMarket | buy order details |
+| `readNextNoteId` | DelegatableNotes | next note ID counter |
 
-### Remaining chain reads
+All functions have comprehensive tests (happy path, fallback behavior on error, publicClient requirement enforcement).
 
-These are the view functions that exist on contracts but aren't yet exposed in the SDK:
-
----
-
-#### Chunk 1: Funding Portal (Alignment Attestations)
-
-**Estimated size:** Small
-
-- `readAlignmentAttestation` — read whether an attester has attested alignment
-- `readHasAlignment` — check if alignment exists (bool)
-
-```typescript
-// From AlignmentAttestations contract:
-hasAttestation(attester, topicStatementId, subjectAddress, statementId) → bool
-attestations(subjectAddress, statementId, topicStatementId, attester) → bool
-```
-
----
-
-#### Chunk 2: Concept Space (Implications)
-
-**Estimated size:** Small
-
-- `readHasImplication` — check if an implication attestation exists
-- `readExplanation` — get the explanation CID for an implication
-
-```typescript
-// From Implications contract:
-hasAttestation(attester, fromStatementCid, toStatementCid) → bool
-getExplanation(attester, fromStatementCid, toStatementCid) → bytes32 (CID)
-```
-
----
-
-#### Chunk 3: Mutable Refs
-
-**Estimated size:** Small
-
-- `readMutableRef` — read current ref value directly from chain
-
-```typescript
-// From MutableRefUpdater:
-getRef(owner, name) → string
-refsByNameByOwner(owner, name) → string
-```
-
-Note: The fold function already reconstructs state from events. This chain read is a shortcut for the common case where you just want the current value without fetching events.
-
----
-
-#### Chunk 4: Pubstarter — Project progress reads
-
-**Estimated size:** Small
-
-- `readTotalReceivedValue` — read total funding from AssuranceContract
-
-```typescript
-// From MultiERC1155AssuranceContract (via ERC1155PrimaryMarket):
-getTotalReceivedValue() → uint256
-```
-
-Note: This complements `readProjectETHBalance` (which reads ETH held by the contract). `getTotalReceivedValue` tracks cumulative received value, which is the metric used for funding progress. Use whichever makes sense for the query.
-
----
-
-#### Chunk 5: Secondary Market reads
-
-**Estimated size:** Small-medium
-
-- `readSaleListing` — read sale listing details
-- `readBuyOrder` — read buy order details
-
-```typescript
-// From ERC1155SecondaryMarket:
-getSaleListing(saleListingId) → SaleListing struct
-getBuyOrder(buyOrderId) → (buyer, tokenId, count, pricePerToken)
-```
-
----
-
-#### Chunk 6: Delegation — nextNoteId
-
-**Estimated size:** Small
-
-- `readNextNoteId` — read the next note ID counter
-
-```typescript
-// From DelegatableNotes:
-nextNoteId() → uint256
-```
-
-Useful for knowing how many notes exist without querying events.
-
----
-
-### Testing approach
-
-Each chain-read function gets unit tests with:
-- **Happy path:** Mock successful contract call, verify return value
-- **Fallback behavior:** Mock revert, verify graceful fallback (0n, null, etc.)
-- **Error handling:** Verify `publicClient` requirement is enforced
-
-Test data: Simple mock PublicClient with the relevant functions overridden.
-
----
-
-## Implementing
-
-  - DONE: [Phase 1](./phase1-plan.md)
-  - we've started Phase 2 — chain reads added ad-hoc
-  - remaining chain reads to add: see above Phase 2 plan
-  - remaining phases not written up yet
+239 SDK tests passing.

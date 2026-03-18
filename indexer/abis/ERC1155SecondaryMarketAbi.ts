@@ -260,4 +260,64 @@ export const ERC1155SecondaryMarketAbi = [
     ],
     outputs: [],
   },
+
+  // View functions (read from chain)
+  {
+    type: "function",
+    name: "getSaleListing",
+    stateMutability: "view",
+    inputs: [
+      {
+        name: "saleListingId",
+        type: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "seller",
+        type: "address",
+      },
+      {
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        name: "count",
+        type: "uint256",
+      },
+      {
+        name: "pricePerToken",
+        type: "uint256",
+      },
+    ],
+  },
+  {
+    type: "function",
+    name: "getBuyOrder",
+    stateMutability: "view",
+    inputs: [
+      {
+        name: "buyOrderId",
+        type: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "buyer",
+        type: "address",
+      },
+      {
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        name: "count",
+        type: "uint256",
+      },
+      {
+        name: "pricePerToken",
+        type: "uint256",
+      },
+    ],
+  },
 ] as const;
