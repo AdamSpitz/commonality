@@ -280,6 +280,7 @@ const ALIGNMENT_ATTESTATIONS_ABI = [
       { name: 'attester', type: 'address', indexed: true },
       { name: 'subjectAddress', type: 'address', indexed: true },
       { name: 'statementId', type: 'bytes32', indexed: true },
+      { name: 'topicStatementId', type: 'bytes32', indexed: false },
     ],
   },
 ] as const;
@@ -417,7 +418,7 @@ export function decodeImplicationAttestationEvent(rawEvent: RawEventFromCache): 
   };
 }
 
-export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): { attester: `0x${string}`; subjectAddress: `0x${string}`; statementId: string; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
+export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): { attester: `0x${string}`; subjectAddress: `0x${string}`; statementId: string; topicStatementId?: string; contractAddress: `0x${string}`; blockNumber: bigint; blockTimestamp: bigint; transactionHash: `0x${string}`; logIndex: number } | null {
   if (rawEvent.eventName !== 'AlignmentAttestation') return null;
   
   const args = decodeRawEventLog(rawEvent);
@@ -427,6 +428,7 @@ export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): { 
     attester: args.attester,
     subjectAddress: args.subjectAddress,
     statementId: bytes32ToCid(args.statementId),
+    topicStatementId: args.topicStatementId ? bytes32ToCid(args.topicStatementId) : undefined,
     contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),

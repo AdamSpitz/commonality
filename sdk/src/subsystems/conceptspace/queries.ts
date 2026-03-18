@@ -8,12 +8,6 @@ import { fetchEvents, fetchStatementsRegistry } from '../../utils/eventCacheClie
 import { decodeDirectSupportEvent, decodeImplicationAttestationEvent, type DecodedDirectSupportEvent, type DecodedImplicationAttestationEvent } from '../../utils/eventDecoder.js';
 import { foldStatementBeliefs, foldImplications } from './folds.js';
 import {
-  GetStatementDocument,
-  GetUserBeliefDocument,
-  GetImplicationsFromDocument,
-  GetImplicationsToDocument,
-  GetImplicationDocument,
-  GetBelieversForStatementDocument,
   BrowseByMostSupportersDocument,
   BrowseByNewestDocument,
   BrowseStatementsDocument,
@@ -139,28 +133,6 @@ export async function getUserBelief(
 // ============================================================================
 // Implications Queries (Event Cache + Folds)
 // ============================================================================
-
-function normalizeAttester(attester: string | { id: string } | undefined): string {
-  if (!attester) return '';
-  if (typeof attester === 'string') return attester;
-  return attester.id;
-}
-
-type RawImplication = {
-  fromStatementCid: string;
-  toStatementCid: string;
-  createdAt: bigint | string;
-  blockNumber: bigint | string;
-  explanationCid?: string;
-  attester?: string | { id: string };
-};
-
-function normalizeImplication(imp: RawImplication): Implication {
-  return {
-    ...imp,
-    attester: normalizeAttester(imp.attester),
-  } as unknown as Implication;
-}
 
 /**
  * Get implications from a statement (what it implies)

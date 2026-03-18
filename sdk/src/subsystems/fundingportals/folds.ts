@@ -5,6 +5,7 @@ export interface DecodedAlignmentAttestation {
   attester: `0x${string}`;
   subjectAddress: `0x${string}`;
   statementId: string;
+  topicStatementId?: string;
   contractAddress: `0x${string}`;
   blockNumber: bigint;
   blockTimestamp: bigint;
@@ -32,10 +33,12 @@ export function foldAlignmentAttestations(events: DecodedAlignmentAttestation[])
         attester: e.attester,
         subjectAddress: e.subjectAddress,
         statementCid: e.statementId as IpfsCidV1,
-        topicStatementCid: '' as IpfsCidV1,
+        topicStatementCid: (e.topicStatementId || '') as IpfsCidV1,
         createdAt: e.blockTimestamp.toString(),
         blockNumber: e.blockNumber.toString(),
       });
+    } else if (e.topicStatementId) {
+      existing.topicStatementCid = e.topicStatementId as IpfsCidV1;
     }
   }
 

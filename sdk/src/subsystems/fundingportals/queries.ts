@@ -7,7 +7,7 @@
 
 import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
 import { fetchEvents, fetchAlignmentAttestationsRegistry } from '../../utils/eventCacheClient.js';
-import { decodeAlignmentAttestationEvent } from '../../utils/eventDecoder.js';
+import { decodeAlignmentAttestationEvent, decodeImplicationAttestationEvent } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
 import {
   GetProjectDetailsDocument,
@@ -172,8 +172,6 @@ export async function getAlignmentsByAttester(
   attesterAddress: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const contracts = machinery.contractAddresses!;
-  
   const registry = await fetchAlignmentAttestationsRegistry(machinery, {
     attester: attesterAddress.toLowerCase(),
     limit: 10000,
@@ -215,15 +213,7 @@ export async function getIndirectlyAlignedSubjects(
     limit: 10000,
   });
 
-  const decodedImplicationEvents = toEvents.map(e => {
-    const args = (e as any).args;
-    if (!args) return null;
-    return {
-      attester: args.attester,
-      fromStatementCid: args.fromStatementCid,
-      toStatementCid: args.toStatementCid,
-    };
-  }).filter((e): e is NonNullable<typeof e> => e !== null);
+  const decodedImplicationEvents = toEvents.map(e => decodeImplicationAttestationEvent(e)).filter((e): e is NonNullable<typeof e> => e !== null);
 
   let implications = decodedImplicationEvents;
 
