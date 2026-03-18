@@ -321,3 +321,19 @@ Added the thin event cache service to Ponder:
 The existing Ponder indexer continues to function exactly as before. This is a pure addition.
 
 Build passes, SDK tests pass (239 tests).
+
+
+## Phase 4: Complete
+
+Phase 4 of the indexer redesign is now complete. Here's what was implemented:
+
+**SDK Changes:**
+- Added `eventCacheUrl` and `contractAddresses` fields to `SDKMachinery`
+- Created `eventCacheClient.ts` - utility for fetching events and registry data from the event cache REST API
+- Created `eventDecoder.ts` - utility with ABIs and decode functions for all contracts (Beliefs, Implications, AssuranceContract, etc.)
+- Updated conceptspace queries (`getStatement`, `getUserBelief`, `getImplicationsFrom`, `getImplicationsTo`, `getImplication`) to use event cache + fold when available, falling back to GraphQL otherwise
+
+**Key Design Decisions:**
+- Hybrid approach: SDK checks if `eventCacheUrl` + `contractAddresses` are configured. If yes, uses event cache + fold. Otherwise falls back to existing GraphQL queries.
+- Registry-first: For "what exists" queries, uses registry tables (small, eagerly maintained). For entity state, fetches events and folds locally.
+- Backward compatible: Existing code continues to work - just add `eventCacheUrl` and `contractAddresses` to enable Phase 4.
