@@ -31,7 +31,7 @@ export function foldMutableRef(events: RefUpdatedEvent[]): MutableRef | null {
  * before calling this function.
  */
 export function foldRefHistory(events: RefUpdatedEvent[]): RefUpdate[] {
-  return events.map(e => ({
+  return events.slice().reverse().map(e => ({
     id: `${e.owner.toLowerCase()}:${e.name}:${e.blockNumber}:${e.logIndex}`,
     owner: e.owner,
     name: e.name,

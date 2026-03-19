@@ -31,7 +31,7 @@ import {
   type HighProfileSigner,
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
-import { IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
+import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
@@ -57,11 +57,13 @@ export async function getStatement(
   statementCid: IpfsCidV1
 ): Promise<Statement | null> {
   const contracts = machinery.contractAddresses!;
-  
+
+  // DirectSupport(address indexed user, bytes32 indexed statementId, uint8 beliefState)
+  // topic1 = user, topic2 = statementId (bytes32)
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
-    topic1: statementCid,
+    topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
   
@@ -75,7 +77,7 @@ export async function getStatement(
   
   const folded = foldStatementBeliefs(decodedEvents);
   
-  const statements = await fetchStatementsRegistry(machinery, { limit: 1 });
+  const statements = await fetchStatementsRegistry(machinery, { limit: 10000 });
   const statement = statements.find(s => s.cidV1 === statementCid);
   
   if (!statement && decodedEvents.length === 0) {
@@ -100,11 +102,13 @@ export async function getUserBelief(
   statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
   const contracts = machinery.contractAddresses!;
-  
+
+  // DirectSupport(address indexed user, bytes32 indexed statementId, uint8 beliefState)
+  // topic1 = user, topic2 = statementId (bytes32)
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
-    topic1: statementCid,
+    topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
   
@@ -143,11 +147,13 @@ export async function getImplicationsFrom(
   attesterAddress?: string
 ): Promise<Implication[]> {
   const contracts = machinery.contractAddresses!;
-  
+
+  // ImplicationAttestation(address indexed attester, bytes32 indexed fromStatementCid, bytes32 indexed toStatementCid, bytes32 explanationCid)
+  // topic1 = attester, topic2 = fromStatementCid, topic3 = toStatementCid
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
-    topic1: statementCid,
+    topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
   
@@ -178,11 +184,12 @@ export async function getImplicationsTo(
   attesterAddress?: string
 ): Promise<Implication[]> {
   const contracts = machinery.contractAddresses!;
-  
+
+  // ImplicationAttestation: topic3 = toStatementCid
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
-    topic2: statementCid,
+    topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
   
@@ -215,11 +222,12 @@ export async function getImplication(
 ): Promise<Implication | null> {
   const contracts = machinery.contractAddresses!;
   
+  // ImplicationAttestation: topic2 = fromStatementCid, topic3 = toStatementCid
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
-    topic1: fromStatementCid,
-    topic2: toStatementCid,
+    topic2: cidToBytes32(fromStatementCid),
+    topic3: cidToBytes32(toStatementCid),
     limit: 1000,
   });
   
@@ -269,10 +277,11 @@ export async function getIndirectSupporters(
 ): Promise<IndirectSupporter[]> {
   const contracts = machinery.contractAddresses!;
 
+  // ImplicationAttestation: topic3 = toStatementCid
   const toEvents = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
-    topic2: statementCid,
+    topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
 
@@ -295,13 +304,16 @@ export async function getIndirectSupporters(
     return [];
   }
 
-  const supporters: IndirectSupporter[] = [];
+  // Collect unique users to avoid duplicate getUserBelief calls when a user
+  // believes multiple source statements that all imply the same target.
+  const userToViaStatementCid = new Map<string, IpfsCidV1>();
 
   for (const implication of implications) {
+    // DirectSupport: topic2 = statementId (bytes32)
     const fromEvents = await fetchEvents(machinery, {
       contractAddress: contracts.beliefs,
       eventName: 'DirectSupport',
-      topic1: implication.fromStatementCid,
+      topic2: cidToBytes32(implication.fromStatementCid as IpfsCidV1),
       limit: 10000,
     });
 
@@ -314,17 +326,23 @@ export async function getIndirectSupporters(
     }
 
     const folded = foldStatementBeliefs(decodedFromEvents);
-    
+
     for (const [user, beliefState] of folded.beliefs.entries()) {
-      if (beliefState === 1) {
-        const targetBelief = await getUserBelief(machinery, user, statementCid);
-        if (!targetBelief || targetBelief.beliefState !== 2) {
-          supporters.push({
-            user: user,
-            viaStatementCid: implication.fromStatementCid,
-          });
-        }
+      if (beliefState === 1 && !userToViaStatementCid.has(user)) {
+        userToViaStatementCid.set(user, implication.fromStatementCid);
       }
+    }
+  }
+
+  const supporters: IndirectSupporter[] = [];
+
+  for (const [user, viaStatementCid] of userToViaStatementCid.entries()) {
+    const targetBelief = await getUserBelief(machinery, user, statementCid);
+    if (!targetBelief || targetBelief.beliefState !== 2) {
+      supporters.push({
+        user: user,
+        viaStatementCid,
+      });
     }
   }
 
@@ -652,9 +670,15 @@ export async function getUserIndirectSupport(
 
   for (let i = 0; i < indirectlySupportedCids.length; i++) {
     const targetCid = indirectlySupportedCids[i];
-    const statement = statements[i];
-
-    if (!statement) continue;
+    // Target statements only referenced in implications (not in statementsRegistry) return null.
+    // Use a minimal placeholder so we still include them in indirect support results.
+    const statement = statements[i] ?? {
+      id: targetCid,
+      cid: targetCid,
+      believerCount: 0,
+      disbelieverCount: 0,
+      createdAt: '',
+    } as unknown as Statement;
 
     const sourceIds = Array.from(targetToSources.get(targetCid) || []);
     const sourceStatements = userBeliefs.filter(b => sourceIds.includes(b.cid));

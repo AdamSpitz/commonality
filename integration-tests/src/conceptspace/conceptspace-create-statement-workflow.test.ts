@@ -331,8 +331,13 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     testLog('  Creating statement with invalid GraphQL client...');
 
-    // Create machinery with an invalid URL that will cause GraphQL requests to fail
-    const invalidMachinery = createActionTestingMachinery('http://invalid:9999');
+    // Create machinery with invalid URLs for both GraphQL and event cache so that
+    // step 3 (list update) fails. The event cache URL must also be invalid, because
+    // getUserRef() uses the event cache when available, bypassing the GraphQL URL.
+    const invalidMachinery = {
+      ...createActionTestingMachinery('http://invalid:9999'),
+      eventCacheUrl: 'http://invalid:9999',
+    };
 
     // This should succeed for steps 1 & 2, but log an error for step 3
     // We use the checked wrapper which will verify the belief was created correctly

@@ -306,12 +306,15 @@ describe('Delegation System', () => {
       }
     );
 
-    // Check that the note is now owned by user2 again
+    // Check that the note's owner after revocation.
+    // Contract revoke() semantics: user2 revokes from [user3,user2,user1] (leaf-first),
+    // callerIndex=1, newChainLength=2. The new hash corresponds to chain [user2,user1]
+    // in root-first order (user2 as new root, user1 as new leaf/spender).
     const revokedNote = await getNote(machinery, note3.toString());
     assert.ok(revokedNote, 'Revoked note');
-    assert.strictEqual(revokedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be user2 after revocation');
+    assert.strictEqual(revokedNote.owner.toLowerCase(), user1.account.toLowerCase(), 'Owner should be user1 after revocation (contract revoke() reverses the retained sub-chain)');
 
-    // Check delegation chain (should be 2 deep after revocation: user1 -> user2)
+    // Check delegation chain (should be 2 deep after revocation: user2 -> user1)
     const revokedChain = await getDelegationChain(machinery, note3.toString());
     assert.strictEqual(revokedChain.length, 2, 'Delegation chain should have 2 entries after revocation');
   });

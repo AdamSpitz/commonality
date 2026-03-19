@@ -12,7 +12,7 @@ export { DelegatableNotesAbi } from '../../indexer/abis/DelegatableNotesAbi.js';
 export { AlignmentAttestationsAbi } from '../../indexer/abis/AlignmentAttestationsAbi.js';
 export { NoteIntentAbi } from '../../indexer/abis/NoteIntentAbi.js';
 export { MutableRefUpdaterAbi } from '../../indexer/abis/MutableRefUpdaterAbi.js';
-export { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from '../../indexer/abis/AssuranceContractAbi.js';
+export { AssuranceContractAbi } from '../../indexer/abis/AssuranceContractAbi.js';
 export { ERC1155SecondaryMarketAbi } from '../../indexer/abis/ERC1155SecondaryMarketAbi.js';
 export { PubstarterAbi } from '../../indexer/abis/PubstarterAbi.js';
 export { PremintingERC1155Abi } from '../../indexer/abis/PremintingERC1155Abi.js';

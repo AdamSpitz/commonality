@@ -182,7 +182,7 @@ export const AssuranceContractAbi = [
         name: "ContractMetadataUpdated",
         inputs: [
             {
-                name: "uri",
+                name: "metadata",
                 type: "string",
                 indexed: false,
             },

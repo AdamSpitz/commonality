@@ -27,6 +27,21 @@ import { startSocialSyncJob } from "../utils/socialSyncJob.js";
 
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 
+/**
+ * Recursively convert BigInt values to strings for JSON serialization.
+ * Ponder's pglite returns bigint for numeric fields, which JSON.stringify can't handle.
+ */
+function serializeBigInts(obj: unknown): unknown {
+  if (typeof obj === 'bigint') return String(obj);
+  if (Array.isArray(obj)) return obj.map(serializeBigInts);
+  if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj as Record<string, unknown>).map(([k, v]) => [k, serializeBigInts(v)])
+    );
+  }
+  return obj;
+}
+
 const app = new Hono();
 
 // Expose SQL client for direct queries (all tables)
@@ -74,7 +89,7 @@ app.get("/api/events", async (c) => {
       : query
     ).limit(limit);
 
-    return c.json({ items });
+    return c.json(serializeBigInts({ items }) as object);
   } catch (error) {
     return c.json({ error: String(error) }, 500);
   }
@@ -85,7 +100,7 @@ app.get("/api/statements_registry", async (c) => {
     const limit = Math.min(parseInt(c.req.query("limit") ?? "100", 10) || 100, 10000);
     const offset = parseInt(c.req.query("offset") ?? "0", 10) || 0;
     const items = await db.select().from(schema.statementsRegistry).limit(limit).offset(offset);
-    return c.json({ items });
+    return c.json(serializeBigInts({ items }) as object);
   } catch (error) {
     return c.json({ error: String(error) }, 500);
   }
@@ -96,7 +111,7 @@ app.get("/api/projects_registry", async (c) => {
     const limit = Math.min(parseInt(c.req.query("limit") ?? "100", 10) || 100, 10000);
     const offset = parseInt(c.req.query("offset") ?? "0", 10) || 0;
     const items = await db.select().from(schema.projectsRegistry).limit(limit).offset(offset);
-    return c.json({ items });
+    return c.json(serializeBigInts({ items }) as object);
   } catch (error) {
     return c.json({ error: String(error) }, 500);
   }
@@ -121,7 +136,7 @@ app.get("/api/alignment_attestations_registry", async (c) => {
       : query
     ).limit(limit).offset(offset);
 
-    return c.json({ items });
+    return c.json(serializeBigInts({ items }) as object);
   } catch (error) {
     return c.json({ error: String(error) }, 500);
   }
@@ -146,7 +161,7 @@ app.get("/api/implications_registry", async (c) => {
       : query
     ).limit(limit).offset(offset);
 
-    return c.json({ items });
+    return c.json(serializeBigInts({ items }) as object);
   } catch (error) {
     return c.json({ error: String(error) }, 500);
   }

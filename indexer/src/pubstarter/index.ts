@@ -191,7 +191,7 @@ ponder.on(
     await context.db.insert(events).values(captureRawEvent(event, 'ContractMetadataUpdated'));
 
     const projectAddress = event.log.address;
-    const metadataCid = event.args.uri;
+    const metadataCid = event.args.metadata;
 
     const existing = await context.db.find(projects, { id: projectAddress });
     if (existing) {
@@ -269,8 +269,8 @@ ponder.on("AssuranceContract:ERC1155Bought", async ({ event, context }) => {
     participant,
     erc1155Address: erc1155Addr,
     totalCost,
-    tokenIds: JSON.stringify(ids.map((id) => id.toString())),
-    tokenCounts: JSON.stringify(counts.map((c) => c.toString())),
+    tokenIds: JSON.stringify((ids as readonly bigint[]).map(id => id.toString())),
+    tokenCounts: JSON.stringify((counts as readonly bigint[]).map(c => c.toString())),
     createdAt: timestamp,
     blockNumber,
     transactionHash,
@@ -319,8 +319,8 @@ ponder.on("AssuranceContract:ERC1155Sold", async ({ event, context }) => {
     participant,
     erc1155Address: erc1155Addr,
     totalRefund,
-    tokenIds: JSON.stringify(ids.map((id) => id.toString())),
-    tokenCounts: JSON.stringify(counts.map((c) => c.toString())),
+    tokenIds: JSON.stringify((ids as readonly bigint[]).map(id => id.toString())),
+    tokenCounts: JSON.stringify((counts as readonly bigint[]).map(c => c.toString())),
     createdAt: timestamp,
     blockNumber,
     transactionHash,

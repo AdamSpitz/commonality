@@ -19,7 +19,8 @@ import {
   type CauseFundingMetrics,
   type ContributorStats,
 } from './types.js';
-import { IpfsCidV1, normalizeCidV1 } from '../../utils/cid-types.js';
+import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
+import { padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
@@ -37,10 +38,12 @@ export async function getAlignedSubjects(
 ): Promise<AlignmentAttestation[]> {
   const contracts = machinery.contractAddresses!;
   
+  // AlignmentAttestation(address indexed attester, address indexed subjectAddress, bytes32 indexed statementId, bytes32 topicStatementId)
+  // topic1=attester, topic2=subjectAddress, topic3=statementId (bytes32)
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
-    topic1: statementCid,
+    topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
   
@@ -82,7 +85,7 @@ export async function getSubjectStatements(
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
-    topic2: subjectAddress.toLowerCase(),
+    topic2: padAddressAsTopic(subjectAddress),
     limit: 10000,
   });
   
@@ -134,8 +137,8 @@ export async function getAlignmentAttestation(
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
-    topic1: statementCid,
-    topic2: subjectAddress.toLowerCase(),
+    topic3: cidToBytes32(statementCid),
+    topic2: padAddressAsTopic(subjectAddress),
     limit: 1000,
   });
   
@@ -206,10 +209,11 @@ export async function getIndirectlyAlignedSubjects(
 ): Promise<IndirectSubjectAlignment[]> {
   const contracts = machinery.contractAddresses!;
 
+  // ImplicationAttestation: topic1=attester, topic2=fromStatementCid, topic3=toStatementCid (all bytes32)
   const toEvents = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
-    topic2: statementCid,
+    topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
 

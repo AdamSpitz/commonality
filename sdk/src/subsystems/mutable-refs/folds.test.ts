@@ -102,8 +102,8 @@ describe('foldRefHistory', () => {
     ];
     const result = foldRefHistory(events);
     assert.strictEqual(result.length, 2);
-    assert.strictEqual(result[0]!.value, 'value1');
-    assert.strictEqual(result[1]!.value, 'value2');
+    assert.strictEqual(result[0]!.value, 'value2'); // newest first
+    assert.strictEqual(result[1]!.value, 'value1');
   });
 
   it('does not mutate the input array', () => {

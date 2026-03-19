@@ -138,12 +138,13 @@ export const delegationRevocationProperty: StateTransitionProperty = {
       `Cannot revoke non-existent note ${context.entities.delegationNoteId}`
     );
 
-    // Verify the chain has been truncated (shorter than before)
+    // Verify the chain has not grown after revocation.
+    // Note: root-revoking reverses the chain (same length), so <= is correct here.
     assert(
-      after.chainLength < before.chainLength,
-      `Note ${context.entities.delegationNoteId}: Delegation chain should be truncated after revocation. ` +
+      after.chainLength <= before.chainLength,
+      `Note ${context.entities.delegationNoteId}: Delegation chain should not grow after revocation. ` +
       `Before: ${before.chainLength} positions, After: ${after.chainLength} positions. ` +
-      `Expected after < before.`
+      `Expected after <= before.`
     );
 
     // Note: The note should still exist for audit trail

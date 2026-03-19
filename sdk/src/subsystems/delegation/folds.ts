@@ -88,10 +88,9 @@ function toNote(state: NoteState): Note {
  * Caller is responsible for passing all relevant events.
  *
  * Revocation semantics mirror the contract's revoke(): when a chain member
- * revokes, the note's chain is rebuilt as:
- *   [chain[len-1-rPos], chain[len-2-rPos], ..., chain[0]]
- * where rPos is the revoker's position in the original chain (0=root).
- * This makes the original root the new leaf (spending authority).
+ * revokes, the chain is truncated to [chain[0]...chain[revoker]] where rPos
+ * is the revoker's position in root-first ordering. The revoker becomes the
+ * new leaf (spending authority), and any delegates beyond them are removed.
  */
 export function foldDelegationState(events: DelegationEvent[]): {
   notes: Map<string, Note>;
@@ -185,11 +184,11 @@ export function foldDelegationState(events: DelegationEvent[]): {
             (link) => link.address.toLowerCase() === revoker.toLowerCase(),
           );
           if (rPos >= 0) {
-            // Rebuild the chain to match the contract's revoke computation.
-            // The new chain runs from chain[len-1-rPos] (a node toward the leaf)
-            // down through chain[rPos]=revoker to chain[0]=root.
-            // The original root ends up as the new leaf (spending authority).
-            // See foldDelegationState JSDoc for full derivation.
+            // The contract's revoke() builds a new hash from owners[owners.length-newChainLength..end]
+            // where owners is leaf-first and newChainLength = callerIndex+1.
+            // This reverses the sub-chain: e.g. root-revoking [alice,bob] → [bob,alice].
+            // In root-first terms: keep the revoker's sub-chain reversed.
+            // Specifically, the new chain contains chain[0..len-1-rPos] reversed.
             const len = note.chain.length;
             const newChain: DelegationChainLink[] = [];
             for (let offset = 0; offset <= len - 1 - rPos; offset++) {
