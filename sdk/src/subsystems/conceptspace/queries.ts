@@ -277,9 +277,34 @@ export async function getIndirectSupporters(
     return [];
   }
 
+  const fromCids = implications.map(i => i.fromStatementCid);
+  const allBeliefEvents = await Promise.all(
+    fromCids.map(cid =>
+      fetchEvents(machinery, {
+        contractAddress: contracts.beliefs,
+        eventName: 'DirectSupport',
+        topic2: cidToBytes32(cid as IpfsCidV1),
+        limit: 10000,
+      })
+    )
+  );
+
+  const decodedAllBeliefs: DecodedDirectSupportEvent[] = [];
+  for (const events of allBeliefEvents) {
+    for (const event of events) {
+      const decoded = decodeDirectSupportEvent(event);
+      if (decoded) decodedAllBeliefs.push(decoded);
+    }
+  }
+
+  const foldedAll = foldAllStatements(decodedAllBeliefs);
+
   const userToViaStatementCid = new Map<string, IpfsCidV1>();
 
   for (const implication of implications) {
+    const counts = foldedAll.get(implication.fromStatementCid);
+    if (!counts || counts.believerCount === 0) continue;
+
     const fromEvents = await fetchEvents(machinery, {
       contractAddress: contracts.beliefs,
       eventName: 'DirectSupport',
@@ -290,9 +315,7 @@ export async function getIndirectSupporters(
     const decodedFromEvents: DecodedDirectSupportEvent[] = [];
     for (const event of fromEvents) {
       const decoded = decodeDirectSupportEvent(event);
-      if (decoded) {
-        decodedFromEvents.push(decoded);
-      }
+      if (decoded) decodedFromEvents.push(decoded);
     }
 
     const folded = foldStatementBeliefs(decodedFromEvents);
@@ -798,29 +821,4 @@ export async function getUserIndirectSupport(
   return results.slice(start, end);
 }
 
-// ============================================================================
-// Social Data Queries (removed per redesign — client resolves on demand)
-// ============================================================================
 
-/**
- * @deprecated Social data sync has been removed per the indexer redesign.
- * Clients should resolve ENS/social data on demand.
- */
-export async function getUserSocialData(
-  _machinery: SDKMachinery,
-  _address: string
-): Promise<null> {
-  return null;
-}
-
-/**
- * @deprecated High-profile signer detection has been removed per the indexer redesign.
- * This required server-side social data which is no longer indexed.
- */
-export async function getHighProfileSigners(
-  _machinery: SDKMachinery,
-  _statementCid: IpfsCidV1,
-  _options: { minFollowers?: number; limit?: number } = {}
-): Promise<never[]> {
-  return [];
-}

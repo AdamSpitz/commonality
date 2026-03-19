@@ -323,41 +323,32 @@ The existing Ponder indexer continues to function exactly as before. This is a p
 Build passes, SDK tests pass (239 tests).
 
 
-## Phase 4: Remove GraphQL fallback (in progress)
+## Phase 4: Event cache SDK integration (hybrid approach)
 
-Phase 4 was partially complete with a hybrid approach. This caused issues with integration tests that had both paths living side-by-side. The decision was made to **delete the GraphQL fallback and use event cache + folds exclusively**.
+Phase 4 is complete with a **hybrid approach** — not a full GraphQL replacement.
 
-### What's been done:
+### What was implemented:
 
-1. **integration-tests/src/actions/action-machinery.ts**: Updated to configure `eventCacheUrl` and `contractAddresses` when creating test machinery.
+1. **sdk/src/utils/eventCacheClient.ts**: Client for fetching raw events and registry data from the indexer's REST API.
 
-2. **integration-tests/src/utils/setup.ts**: Updated `REQUIRED_ENV_VARS` to include `EVENT_CACHE_URL` and contract addresses.
+2. **sdk/src/utils/eventDecoder.ts**: ABI-decoded event helpers for all contract event types.
 
-3. **sdk/src/subsystems/conceptspace/queries.ts**: Rewritten - entity queries use event cache + folds. Discovery/browsing queries still use GraphQL (they need pre-computed aggregations).
+3. **sdk/src/subsystems/conceptspace/queries.ts**: Fully rewritten — entity queries use event cache + folds. Discovery/browsing queries fold events client-side from the event cache.
 
-4. **sdk/src/utils/eventDecoder.ts**: Updated `decodeAlignmentAttestationEvent` to include full event metadata.
+4. **sdk/src/subsystems/conceptspace/folds.ts**: `foldStatementBeliefs`, `foldUserBeliefs`, `foldAllStatements`, `foldImplications`.
 
-5. **sdk/src/subsystems/fundingportals/folds.ts**: Updated to work with decoded events.
+5. **sdk/src/subsystems/fundingportals/queries.ts**: Entity queries (get aligned subjects, get alignment attestation, etc.) use event cache + folds. Aggregated cross-project queries (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`) still use GraphQL for pre-computed project/participant data.
 
-6. **sdk/src/subsystems/fundingportals/queries.ts**: Partially updated - entity queries use event cache.
+6. **sdk/src/subsystems/fundingportals/folds.ts**: `foldAlignmentAttestations`.
 
-### What's left:
+7. **sdk/src/machinery.ts**: Added `eventCacheUrl` and `contractAddresses` fields.
 
-1. **sdk/src/subsystems/fundingportals/queries.ts**: `getSubjectStatements`, `getAlignmentAttestation`, `getAlignmentsByAttester` still need cleanup.
+### What remains (not yet done):
 
-2. **indexer REST API for event cache**: Need to verify `/api/events` endpoint is exposed on port 42069.
+- **Cross-project aggregated queries** still use GraphQL for project balances and participant summaries. These could be replaced with event cache + chain multicalls, but the GraphQL approach works and the added complexity may not be worth it.
+- **pubstarter, delegation, mutable-refs subsystems** — entity queries still use GraphQL. No immediate plans to migrate.
+- **Delete old code** — GraphQL codegen, unused client code, and deprecated functions remain. Not a priority since GraphQL is still in use for aggregated queries.
 
-3. **Environment variable**: Need to set `EVENT_CACHE_URL=http://localhost:42069` in integration tests.
+### Architecture decision:
 
-4. **Remaining subsystems**: pubstarter, delegation, mutable-refs queries still GraphQL-only.
-
-5. **Delete old code**: Once migration is complete, remove:
-   - GraphQL codegen artifacts
-   - Ponder indexer business logic handlers
-   - Unused GraphQL client code
-
-### Migration path:
-
-- Discovery/browsing queries keep using GraphQL (need aggregations)
-- All entity-specific queries use event cache + folds
-- Indexer becomes pure event cache (no business logic)
+The Ponder indexer is **not being replaced**. It continues to serve its original role (pre-computed aggregates via GraphQL) while simultaneously acting as the event cache (serving raw events via REST). This avoids a big-bang migration and lets the system stay functional throughout. The event cache + SDK folds approach is now available for any new queries or subsystem migrations that want it, without requiring removal of the existing infrastructure.

@@ -81,41 +81,40 @@ export async function getSubjectStatements(
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
   const contracts = machinery.contractAddresses!;
-  
+
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic2: padAddressAsTopic(subjectAddress),
     limit: 10000,
   });
-  
+
   const decodedEvents = events
     .map(e => decodeAlignmentAttestationEvent(e))
     .filter((e): e is NonNullable<typeof e> => e !== null);
-  
-  let attestations = foldAlignmentAttestations(
-    decodedEvents.map(e => ({
-      ...e,
-      topicStatementId: topicStatementCid || '',
-      blockNumber: BigInt(0),
-      blockTimestamp: BigInt(0),
-      transactionHash: '' as `0x${string}`,
-      logIndex: 0,
-    }))
-  );
-  
+
+  let attestations = foldAlignmentAttestations(decodedEvents);
+
+  if (topicStatementCid) {
+    const normalizedTopic = topicStatementCid.toLowerCase();
+    attestations = attestations.filter(a => {
+      const foldedTopic = a.topicStatementCid?.toLowerCase() ?? '';
+      return foldedTopic === normalizedTopic || foldedTopic === '';
+    });
+  }
+
   if (attesterAddress) {
     const attesterLower = attesterAddress.toLowerCase();
     attestations = attestations.filter(a => a.attester.toLowerCase() === attesterLower);
   }
-  
+
   return attestations.map(a => ({
     attester: a.attester,
     subjectAddress: a.subjectAddress,
     statementCid: a.statementCid,
-    topicStatementCid,
-    createdAt: '',
-    blockNumber: '',
+    topicStatementCid: a.topicStatementCid || topicStatementCid,
+    createdAt: a.createdAt,
+    blockNumber: a.blockNumber,
   }));
 }
 
