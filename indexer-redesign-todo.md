@@ -7,10 +7,10 @@ The rest of this file should be a to-do list.
 ## What still uses GraphQL (intentionally kept per hybrid approach)
 
 **In the SDK:**
-1. `sdk/src/utils/graphqlClient.ts` — used by:
+1. ~~`sdk/src/utils/graphqlClient.ts`~~ ✅ Deleted — all usages migrated:
    - ~~`fundingportals/queries.ts:336` — `GetProjectDetailsDocument` (project threshold/deadline)~~ ✅ Replaced with `getProject()` chain reads
    - ~~`fundingportals/queries.ts:383` — `GetParticipantSummariesDocument` (contributor leaderboards)~~ ✅ Replaced with `getProjectContributions()` + `getProjectRefunds()` fold
-   - `indexer-sync.ts:67` — `_meta` query (indexer sync status)
+   - ~~`indexer-sync.ts:67` — `_meta` query (indexer sync status)~~ ✅ Replaced with Ponder REST `/status` endpoint
 
 ## What can be deleted
 
@@ -105,11 +105,11 @@ These handlers maintain the old derived tables (beliefs, implications, contribut
 **Full file deletion list:**
 
 ```
-sdk/src/generated/graphql.ts
-sdk/src/generated/gql.ts
-sdk/src/generated/index.ts
-sdk/src/utils/graphqlClient.ts
-sdk/src/utils/index.ts
+~~sdk/src/generated/graphql.ts~~ ✅ deleted
+~~sdk/src/generated/gql.ts~~ ✅ deleted
+~~sdk/src/generated/index.ts~~ ✅ deleted
+~~sdk/src/utils/graphqlClient.ts~~ ✅ deleted
+sdk/src/utils/index.ts (graphqlClient re-export removed) ✅
 
 indexer/src/conceptspace/api.ts
 indexer/src/conceptspace/index.ts
@@ -139,9 +139,9 @@ indexer/schemas/social.schema.ts
 **Remaining work** (not deletable yet without migration):
 
 - ~~`fundingportals/queries.ts:336,383` — two GraphQL calls still needed for aggregated project/participant data.~~ ✅ Done — replaced with `getProject()` + `getProjectContributions()`/`getProjectRefunds()`.
-- `indexer-sync.ts` — `META_STATUS_QUERY` for indexer sync polling (GraphQL-only)
+- ~~`indexer-sync.ts` — `META_STATUS_QUERY` for indexer sync polling (GraphQL-only)~~ ✅ Done — replaced with Ponder REST `/status` endpoint.
+- ~~The SDK generated GraphQL files and `graphqlClient.ts` can be deleted once `indexer-sync.ts` is also migrated.~~ ✅ Done — deleted `sdk/src/generated/`, `sdk/src/utils/graphqlClient.ts`.
 - The entire Ponder indexer infrastructure (`indexer/src/index.ts`, `ponder.config.ts`, etc.) — the hybrid approach keeps Ponder running as the event cache + REST API server, so Ponder itself stays.
-- The SDK generated GraphQL files and `graphqlClient.ts` can be deleted once `indexer-sync.ts` is also migrated.
 
 ## Make fold functions resumable-ready
 

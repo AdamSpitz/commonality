@@ -2,6 +2,30 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Migrated indexer-sync.ts from GraphQL to REST; deleted SDK GraphQL files
+
+**Task**: Remove the last GraphQL dependency from the SDK — `indexer-sync.ts` was using `_meta { status }` query via `executeTypedGraphQLQuery`.
+
+**What was done**:
+- `indexer-sync.ts`: Replaced `executeTypedGraphQLQuery` + `META_STATUS_QUERY` with a `fetch` to Ponder's built-in REST endpoint `GET {indexerUrl}/status`. The REST response format is `{ "hardhat": { "block": { "number": N, "timestamp": T } } }`.
+- Deleted `sdk/src/generated/graphql.ts`, `gql.ts`, `index.ts` (unused — nothing imported them)
+- Deleted `sdk/src/utils/graphqlClient.ts` (no longer used anywhere in SDK)
+- Removed `graphqlClient.js` re-export from `sdk/src/utils/index.ts`
+
+**Files changed**:
+- `sdk/src/indexer-sync.ts` — GraphQL → REST
+- `sdk/src/generated/graphql.ts`, `gql.ts`, `index.ts` — DELETED
+- `sdk/src/utils/graphqlClient.ts` — DELETED
+- `sdk/src/utils/index.ts` — removed graphqlClient re-export
+- `indexer-redesign-todo.md` — marked items complete
+
+**What's next for the indexer redesign**:
+SDK is now 100% GraphQL-free. The next major cleanup is deleting old derived-table handlers and schemas from the indexer (see "Full file deletion list" in `indexer-redesign-todo.md`). Also remaining: make fold functions resumable-ready (optional, not urgent).
+
+**Good interrupt point**: Yes — SDK GraphQL cleanup is complete.
+
+
+
 ## Eliminated last two GraphQL calls from fundingportals/queries.ts
 
 **Task**: Replace `GetProjectDetailsDocument` and `GetParticipantSummariesDocument` GraphQL calls with event cache + chain reads.

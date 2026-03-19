@@ -1,19 +1,6 @@
 import { SDKMachinery } from './machinery.js';
-import { executeTypedGraphQLQuery } from './utils/graphqlClient.js';
 
-type MetaStatusResult = {
-  _meta: {
-    status: Record<string, { block: { number: number } }>
-  }
-};
-
-const META_STATUS_QUERY = `
-  query {
-    _meta {
-      status
-    }
-  }
-`;
+type PonderStatusResult = Record<string, { block: { number: number; timestamp: number } | null } | null>;
 
 const INDEXER_SYNC = {
   /** Maximum time to wait for indexer to sync (10 seconds) */
@@ -32,7 +19,7 @@ const INDEXER_SYNC = {
  * - Tracks sync progress for debugging
  * - Verifies block actually exists before waiting
  *
- * @param client - GraphQL client or executor
+ * @param machinery - SDK machinery with indexer URL
  * @param targetBlock - Block number to wait for
  * @param timeoutMs - Maximum time to wait (default from INDEXER_SYNC.MAX_WAIT_MS)
  * @returns Promise that resolves when indexer reaches target block
@@ -62,16 +49,18 @@ export async function waitForIndexerToSyncToBlockNumber(
     try {
       attemptCount++;
 
-      // Ponder exposes indexing status via a meta query
-      // The status is a JSON object with chain-specific block info
-      const result = await executeTypedGraphQLQuery<MetaStatusResult>(
-        machinery,
-        META_STATUS_QUERY
-      );
+      // Ponder exposes indexing status via a REST endpoint at /status on the base URL
+      // (machinery.indexerUrl may be e.g. http://host/graphql, so extract the origin)
+      const baseUrl = new URL(machinery.indexerUrl).origin;
+      const response = await fetch(`${baseUrl}/status`);
+      if (!response.ok) {
+        throw new Error(`Indexer status endpoint returned ${response.status}`);
+      }
+      const result = await response.json() as PonderStatusResult;
 
       // Get the block number from the hardhat chain status
-      const hardhatStatus = result._meta.status.hardhat;
-      if (!hardhatStatus) {
+      const hardhatStatus = result.hardhat;
+      if (!hardhatStatus?.block) {
         throw new Error('No hardhat chain status found in indexer response');
       }
 
@@ -136,7 +125,7 @@ export async function waitForIndexerToSyncToBlockNumber(
  * This ensures the indexer has processed the specific transaction before
  * querying for its effects.
  *
- * @param client - GraphQL client or executor for the indexer
+ * @param machinery - SDK machinery with indexer URL
  * @param publicClient - Public client (viem) for reading blockchain state
  * @param txHash - Transaction hash to wait for
  * @param timeoutMs - Maximum time to wait (default from INDEXER_SYNC.MAX_WAIT_MS)
