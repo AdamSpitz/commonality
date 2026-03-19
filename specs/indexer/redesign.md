@@ -264,6 +264,88 @@ The biggest risk is if the Funding Portal's cross-entity aggregations become a p
 
 **Recommendation: do it.** Start with Phase 1 (fold functions in the SDK)Take a look at specs/indexer/redesign.md, and do the first chunk of phase 1. Make sure the  — it's valuable even if you never do the rest, and it'll give you concrete data about whether client-side folding feels right in practice.
 
+---
+
+## Resumable folds: the general strategy for cross-entity performance
+
+### The key insight
+
+A fold over an append-only event stream is inherently resumable. The stream only grows at the tail, so past results never invalidate. You just need the accumulator and a cursor (how far into each stream you've already processed). This means you never have to redo work — you only fold *new* events since your last checkpoint.
+
+This is a general answer to the performance concern in "Honest caveats" #1 and the cross-entity aggregation problem documented below. It applies to every fold in the system, not just the funding portal queries.
+
+### The pattern
+
+```typescript
+interface ResumableFold<Accumulator> {
+  accumulator: Accumulator;
+  cursors: Map<StreamId, Cursor>;  // e.g., (contractAddress, lastBlockNumber)
+  fold: (accumulator: Accumulator, newEvents: Event[]) => Accumulator;
+}
+
+// refresh() is the same everywhere:
+async function refresh<A>(state: ResumableFold<A>, fetchEventsSince: FetchFn): Promise<void> {
+  for (const [streamId, cursor] of state.cursors) {
+    const newEvents = await fetchEventsSince(streamId, cursor);
+    state.accumulator = state.fold(state.accumulator, newEvents);
+    state.cursors.set(streamId, newEvents.at(-1)?.cursor ?? cursor);
+  }
+  // Also check for new streams (e.g., a new project got aligned to a cause):
+  const newStreams = await discoverNewStreams();
+  for (const streamId of newStreams) {
+    if (!state.cursors.has(streamId)) {
+      const allEvents = await fetchEventsSince(streamId, BEGINNING);
+      state.accumulator = state.fold(state.accumulator, allEvents);
+      state.cursors.set(streamId, allEvents.at(-1)?.cursor ?? BEGINNING);
+    }
+  }
+}
+```
+
+The fold function is the same code the SDK already has — `foldContributionsFromEvents`, `foldProject`, `foldAlignmentAttestations`, etc. The only new thing is the cursor tracking and the `refresh()` wrapper.
+
+### Where it can run
+
+The pattern works at every layer, with different trade-offs:
+
+**Client-side (browser/SDK caller holds the state):**
+- The browser keeps a `ResumableFold` in memory (or IndexedDB for persistence across page loads).
+- On each refresh, it fetches only the delta from the event cache.
+- Good for: interactive UIs where the user is looking at a page. A leaderboard that refreshes every 30 seconds only fetches new events since the last refresh — usually zero or a handful.
+- Trade-off: cold start on first visit requires the full history. Adds stateful objects to the SDK (currently stateless).
+
+**Server-side (a process maintains the accumulator in a database):**
+- A sidecar process (or the indexer itself) holds the `ResumableFold` and writes the accumulator to a table.
+- Clients query the table instead of folding themselves.
+- Good for: eliminating cold start, sharing computation across many clients.
+- Trade-off: introduces server-side state beyond raw events. But it's a *deterministic projection* of those events — it can always be rebuilt from scratch by replaying. This is fundamentally different from the Ponder approach: same fold function, no bespoke schema language, no separate query API.
+
+**Hybrid (server provides a checkpoint, client folds the delta):**
+- Server maintains a materialized accumulator that's "close to current" (updated every N blocks or every M minutes).
+- Client fetches the checkpoint as a starting point, then folds the small delta of events since the checkpoint.
+- Good for: best of both — no cold start, no staleness, server stays simple.
+- Trade-off: need a convention for serializing/deserializing accumulator checkpoints.
+
+### Why this is different from "just use an indexer"
+
+The crucial property: **the fold function is always the same TypeScript code regardless of where it runs.** The only thing that changes is who holds the accumulator and how often `refresh()` gets called.
+
+With Ponder (or any traditional indexer), the server-side logic is written in a framework-specific handler format with its own schema language and query layer. Changing how state is computed means redeploying the indexer, re-syncing from genesis, and hoping the new schema is backwards-compatible. Here, you update one fold function in the SDK and every execution context — browser, server sidecar, hybrid checkpoint — picks it up.
+
+### What this means for the specific queries
+
+| Query | Without resumable folds | With resumable folds |
+|---|---|---|
+| `getAllAlignedProjectsForCause` | N event cache fetches + folds per refresh | Moot — use `getAssuranceContractProgress()` chain read instead (see option 5 below) |
+| `getTopContributorsForCause` | N×2 event cache fetches + folds per refresh (full history each time) | First load: full history. Subsequent: delta only. For a leaderboard refreshing every 30s, the delta is typically empty. |
+| `foldBeliefs` for all statements | Fetch all belief events, fold from scratch | Incremental: only fold new belief events since last cursor. At modest scale the full fold is already fast, but this keeps it fast as scale grows. |
+
+### Recommendation
+
+Don't build the resumable fold infrastructure yet. The current from-scratch folds work at the expected scale. But **design the fold functions to be resumable-friendly**: they should be pure functions of `(previousState, newEvents) => newState`, not functions that assume they're processing the full history from genesis. Most of them already are. When performance demands it, wrapping them in the resumable pattern is mechanical.
+
+---
+
 ## Phase 2: Chain Reads — Complete
 
 ### What's been implemented
@@ -389,4 +471,38 @@ The replacement works correctly (616 tests pass). At modest scale (a handful of 
 
 4. **Use `viem` multicall for chain reads.** Instead of 2N individual chain reads (threshold + deadline per project), batch them into a single multicall. This is an easy win independent of the other options.
 
-These aren't mutually exclusive. Option 1 is the recommendation for now; options 2-4 are tools in the toolbox for when/if scale demands it.
+5. **Chain-read `totalReceived` instead of folding events.** The contract already maintains `_totalReceivedValue` in storage, exposed via the public getter `getAssuranceContractProgress()` on `MultiERC1155AssuranceContract`. The SDK's `foldProject()` recomputes this from buy/sell events, but for `getAllAlignedProjectsForCause` we only need the total — not the per-participant breakdown. Replace the per-project event-fetch-and-fold with a chain read. Combined with option 4 (multicall), this turns N event cache fetches + N folds + 2N chain reads into a single multicall of 3N reads (totalReceived + threshold + deadline per project), with zero event cache traffic. The fold remains useful for queries that need event-level detail.
+
+These aren't mutually exclusive. Option 1 is the recommendation for now; options 2-5 are tools in the toolbox for when/if scale demands it.
+
+### `getTopContributorsForCause`: dealing with per-participant event history
+
+Unlike `getAllAlignedProjectsForCause` (where a chain read can replace the fold), the top-contributors query genuinely needs per-participant buy/sell event history across all aligned projects. There's no on-chain aggregate for "how much did address X contribute across projects Y, Z, W." The data is only recoverable from events. The leaderboard doesn't need to be real-time — stale data is acceptable.
+
+Two approaches, depending on how pure we want the architecture to be:
+
+#### Approach A: Client-side caching (stay all-in on thin cache + folds)
+
+The browser (or SDK caller) maintains a local cache of already-fetched events per project, keyed by `(projectAddress, lastBlockNumber)`. On subsequent calls:
+
+1. Ask the event cache for events *after* the last known block for each project (the event cache already supports cursor/offset-based pagination via block ranges).
+2. Fold only the new events into the existing per-participant accumulator.
+3. Merge accumulators across projects and sort.
+
+This turns the N×(full history) fetch into N×(delta since last check) after the first load. For a leaderboard that refreshes every few minutes, the deltas will usually be empty or tiny. The SDK would expose something like a `ContributorLeaderboardCache` object that callers hold onto across refreshes.
+
+Trade-offs:
+- Keeps the architecture pure — no new server-side logic.
+- First load is still the full history (cold start problem). Acceptable if N is small or if there's a loading state.
+- Adds client-side state management. The SDK currently has no stateful objects — this would be the first.
+
+#### Approach B: Server-side fold (same algorithm, runs in the indexer)
+
+Run the same fold logic server-side: the indexer watches `ERC1155Bought` and `ERC1155Sold` events and maintains a `participant_contributions` table with `(participant, project, totalContributed, totalRefunded, count)` rows, updated incrementally as events arrive. The SDK queries this table through the event cache REST API (e.g., `GET /participant-contributions?project=0x...`), then does the cross-project merge and sort client-side.
+
+This is conceptually identical to how the fold works — same incremental accumulation logic — but it runs once on the server instead of in every client. The key difference from the current Ponder/GraphQL approach: the server-side table is a mechanical projection of events (just running the fold), not a bespoke GraphQL schema. Ideally the fold function itself (`foldContributionsFromEvents`) could be shared between client and server, so there's literally one algorithm in one place.
+
+Trade-offs:
+- Eliminates the cold-start problem entirely. Clients always get pre-folded data.
+- Introduces server-side state beyond raw events — but it's a deterministic projection of those events, not business logic. It can be rebuilt from scratch by replaying.
+- Need to decide where this runs. Options: a sidecar process that reads from the event cache and writes to a separate table; or a Ponder handler that maintains the table alongside the existing indexer. The sidecar is cleaner architecturally (the event cache stays dumb); the Ponder handler is less infrastructure.

@@ -142,3 +142,42 @@ indexer/schemas/social.schema.ts
 - `indexer-sync.ts` — `META_STATUS_QUERY` for indexer sync polling (GraphQL-only)
 - The entire Ponder indexer infrastructure (`indexer/src/index.ts`, `ponder.config.ts`, etc.) — the hybrid approach keeps Ponder running as the event cache + REST API server, so Ponder itself stays.
 - The SDK generated GraphQL files and `graphqlClient.ts` can be deleted once `indexer-sync.ts` is also migrated.
+
+## Make fold functions resumable-ready
+
+The "resumable folds" pattern described in `specs/indexer/redesign.md` requires fold functions to have the signature `(previousState, newEvents) => newState`. Most already work this way in spirit; a few need their signatures adjusted so they can accept an existing accumulator instead of always building from scratch.
+
+Not urgent — the current from-scratch folds work fine at expected scale. But when the time comes to add cursor-based incremental folding (client-side or server-side), these are the functions that need attention.
+
+### Already resumable (no changes needed)
+
+These are all Map-based or last-write-wins folds. You can split the event stream at any point, fold the first half, then fold the second half starting from the first half's output, and get the same result.
+
+| Function | File | Pattern |
+|----------|------|---------|
+| `foldStatementBeliefs` | `conceptspace/folds.ts` | Map: user → beliefState |
+| `foldUserBeliefs` | `conceptspace/folds.ts` | Map: statementId → beliefState |
+| `foldAllStatements` | `conceptspace/folds.ts` | Map: (user, statement) → beliefState, then aggregate |
+| `foldImplications` | `conceptspace/folds.ts` | Map: (attester, from, to) → implication |
+| `foldAlignmentAttestations` | `fundingportals/folds.ts` | Map: (attester, subject, statement) → attestation |
+| `foldMutableRef` | `mutable-refs/folds.ts` | Last-write-wins |
+| `foldRefHistory` | `mutable-refs/folds.ts` | Append-only list |
+| `foldProjectTokens` | `pubstarter/folds.ts` | Map: (contract, addr, tokenId) → token |
+| `foldNoteIntentAttestations` | `delegation/folds.ts` | Map: (attester, contract, noteId) → attestation |
+
+### Need signature change (easy)
+
+These build their accumulator internally from scratch. The fix is to accept an optional previous state and start from that instead of empty. The loop logic doesn't change at all.
+
+| Function | File | What to change |
+|----------|------|----------------|
+| `foldProject` | `pubstarter/folds.ts` | Extract local variables (`id`, `totalReceived`, etc.) into a typed `ProjectAccumulator` and accept it as an optional param. Return both the accumulator (for cursor storage) and the `Project`. |
+| `foldSecondaryMarket` | `pubstarter/folds.ts` | Accept optional `{ saleListingsMap, buyOrdersMap, trades }` as starting state instead of always creating empty maps. |
+| `foldContributionsFromEvents` | `pubstarter/folds.ts` | Append-only lists — accept optional existing `{ contributions, refunds }` and concat new entries. Trivial. |
+| `foldTokenBurns` | `pubstarter/folds.ts` | Append-only list — accept optional existing burns array and concat. Trivial. |
+
+### Needs more thought
+
+| Function | File | Issue |
+|----------|------|-------|
+| `foldDelegationState` | `delegation/folds.ts` | The underlying fold *is* resumable — the `stateMap` accumulator handles new events correctly on existing state. The issue is `foldNote`, which wraps `foldDelegationState` and extracts a single note. To make `foldNote` incremental, you'd need to persist the full `stateMap` (not just the one note), because a new event for a *different* note (e.g., `erc1155Purchased`) might copy chains into the note you care about. In practice: make `foldDelegationState` accept an optional starting `stateMap`, and have callers hold onto the full map rather than discarding it after extracting one note. |
