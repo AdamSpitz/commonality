@@ -23,7 +23,6 @@ import {
   fetchProjectsRegistry,
   fetchERC1155TransferEvents,
   fetchAllBoughtEvents,
-  fetchAllSoldEvents,
 } from '../../utils/eventCacheClient.js';
 import {
   decodePubstarterAssuranceContractCreatedEvent,

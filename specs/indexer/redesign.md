@@ -346,7 +346,6 @@ Phase 4 is complete with a **hybrid approach** — not a full GraphQL replacemen
 ### What remains (not yet done):
 
 - **Cross-project aggregated queries** still use GraphQL for project balances and participant summaries. These could be replaced with event cache + chain multicalls, but the GraphQL approach works and the added complexity may not be worth it.
-- **pubstarter, delegation, mutable-refs subsystems** — entity queries still use GraphQL. No immediate plans to migrate.
 - **Delete old code** — GraphQL codegen, unused client code, and deprecated functions remain. Not a priority since GraphQL is still in use for aggregated queries.
 
 ### Architecture decision:

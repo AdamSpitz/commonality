@@ -1,0 +1,22 @@
+query GetProjectDetails($id: String!) {
+  projects(id: $id) {
+    id
+    threshold
+    deadline
+    totalReceived
+  }
+}
+
+query GetParticipantSummaries($projectAddress: String!) {
+  participantSummariess(where: { projectAddress: $projectAddress }) {
+    items {
+      participant
+      totalContributed
+      totalRefunded
+      netContribution
+      contributionCount
+      firstContributionAt
+      lastContributionAt
+    }
+  }
+}

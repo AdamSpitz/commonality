@@ -17,6 +17,8 @@ import {
   type GetStatementWithContentOptions,
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
+  type UserSocialData,
+  type HighProfileSigner,
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
@@ -819,6 +821,70 @@ export async function getUserIndirectSupport(
   const end = options.limit ? start + options.limit : undefined;
 
   return results.slice(start, end);
+}
+
+export interface GetHighProfileSignersOptions {
+  minFollowers?: number;
+}
+
+export async function getHighProfileSigners(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  options: GetHighProfileSignersOptions = {}
+): Promise<HighProfileSigner[]> {
+  const { minFollowers = 10000 } = options;
+  const contracts = machinery.contractAddresses!;
+
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    topic2: cidToBytes32(statementCid),
+    limit: 10000,
+  });
+
+  const decodedEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of events) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) {
+      decodedEvents.push(decoded);
+    }
+  }
+
+  const folded = foldStatementBeliefs(decodedEvents);
+  
+  const highProfileSigners: HighProfileSigner[] = [];
+  
+  for (const [userAddress, beliefState] of folded.beliefs.entries()) {
+    if (beliefState !== 1) continue;
+    
+    const socialData = await getUserSocialData(machinery, userAddress);
+    if (socialData && 
+        socialData.twitterFollowerCount && 
+        socialData.twitterFollowerCount >= minFollowers) {
+      highProfileSigners.push({
+        address: userAddress,
+        ensName: socialData.ensName,
+        twitterHandle: socialData.twitterHandle,
+        followerCount: socialData.twitterFollowerCount,
+      });
+    }
+  }
+  
+  return highProfileSigners.sort((a, b) => (b.followerCount || 0) - (a.followerCount || 0));
+}
+
+export async function getUserSocialData(
+  machinery: SDKMachinery,
+  address: string
+): Promise<UserSocialData | null> {
+  return {
+    address: address,
+    ensName: undefined,
+    twitterHandle: undefined,
+    twitterFollowerCount: undefined,
+    isTwitterVerified: false,
+    socialDataFetched: false,
+  };
 }
 
 
