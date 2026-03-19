@@ -16,9 +16,13 @@ import {
   users,
   attesters,
   userSocialData,
+  events,
+  statementsRegistry,
+  implicationsRegistry,
 } from "ponder:schema";
 import { BeliefState } from "../constants";
 import { IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
+import { captureRawEvent } from "../utils/rawEvents";
 
 // Belief state constants (matching Solidity)
 const NO_OPINION = BeliefState.NO_OPINION;
@@ -113,8 +117,21 @@ ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'DirectSupport'));
+
   // Convert bytes32 to CIDv1 for storage
   const statementIdCidV1 = bytes32ToCid(statementId as IpfsCidBytes32);
+
+  // Update statements registry (lightweight tracking)
+  const existingRegistry = await context.db.find(statementsRegistry, { cidV1: statementIdCidV1 });
+  if (!existingRegistry) {
+    await context.db.insert(statementsRegistry).values({
+      cidV1: statementIdCidV1,
+      createdAtBlock: blockNumber,
+      createdAtTimestamp: timestamp,
+    });
+  }
 
   // Ensure statement and user exist
   await ensureStatement(context, statementId as IpfsCidBytes32, timestamp);
@@ -200,10 +217,26 @@ ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'ImplicationAttestation'));
+
   // Convert bytes32 to CIDv1 for storage
   const fromStatementCidCidV1 = bytes32ToCid(fromStatementCid as IpfsCidBytes32);
   const toStatementCidCidV1 = bytes32ToCid(toStatementCid as IpfsCidBytes32);
   const explanationCidV1 = bytes32ToCid(explanationCid as IpfsCidBytes32);
+
+  // Update implications registry (lightweight tracking)
+  const implId = `${attester.toLowerCase()}-${fromStatementCidCidV1}-${toStatementCidCidV1}`;
+  const existingImpl = await context.db.find(implicationsRegistry, { id: implId });
+  if (!existingImpl) {
+    await context.db.insert(implicationsRegistry).values({
+      id: implId,
+      attester: attester.toLowerCase() as `0x${string}`,
+      fromStatementId: fromStatementCidCidV1,
+      toStatementId: toStatementCidCidV1,
+      createdAtBlock: blockNumber,
+    });
+  }
 
   // Ensure both statements and attester exist
   await ensureStatement(context, fromStatementCid as IpfsCidBytes32, timestamp);

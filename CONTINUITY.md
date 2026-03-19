@@ -2,6 +2,66 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Integration tests: PARTIALLY DONE (Hello World failing)
+
+**Goal**: Get integration tests passing, starting with `"Hello World"`.
+
+### What was fixed this session:
+
+1. **`scripts/run-integration-tests.sh`**: Replaced `sleep 10` with a polling loop that checks the GraphQL endpoint every 2s (up to 90 attempts).
+
+2. **Duplicate `ponder.on()` handlers**: `indexer/src/events-cache/index.ts` was registering duplicate handlers for every event already handled by subsystem files. Ponder auto-discovers ALL `.ts` files in `src/` that import `ponder:registry`. Fixed by:
+   - Creating `indexer/src/utils/rawEvents.ts` with `captureRawEvent(event, eventName)` utility
+   - Moving event capture logic into each subsystem handler (conceptspace, pubstarter, delegation, fundingportal, mutable-refs)
+   - Clearing `events-cache/index.ts` of all `ponder.on()` calls
+
+3. **`captureRawEvent` issues**:
+   - `event.name` is undefined in Ponder handlers — must pass `eventName` as explicit string param
+   - `log.transactionHash` is null in Ponder v2 — must use `event.transaction.hash`
+
+4. **Added REST API endpoints** to `indexer/src/api/index.ts`:
+   - `GET /api/events` (with contractAddress, eventName, topic1/2/3, blockNumber filters)
+   - `GET /api/statements_registry`
+   - `GET /api/projects_registry`
+   - `GET /api/alignment_attestations_registry`
+   - `GET /api/implications_registry`
+
+### Current blocker: `/api/statements_registry` returns 500 during test
+
+The Hello World test submits a DirectSupport transaction, waits for indexer sync, then calls `getStatement()` which calls `fetchStatementsRegistry()` at `EVENT_CACHE_URL=/api/statements_registry`. This returns 500.
+
+**Observed behavior**:
+- The endpoint returns `{"items":[]}` (200 OK) when tested manually with `curl`
+- The endpoint returns 500 AFTER the indexer processes the DirectSupport event (block 13)
+- The indexer logs show "Indexed block chain=hardhat number=13 event_count=1" successfully
+- The 500 response body contains `{ "error": "..." }` but the error string has not been observed yet
+
+**Hypothesis**: The indexer crashes or enters error state when processing the DirectSupport event, causing subsequent API calls to fail. The pglite database may be locked or the Ponder API server may be in an error state. The `captureRawEvent` or `statementsRegistry` insert might be throwing despite block being "indexed".
+
+**To debug**: Get the actual error string from the 500 response body. The endpoint handler does `return c.json({ error: String(error) }, 500)` so the response body will have the specific error. Try:
+```bash
+# Start services fresh
+PONDER_EPHEMERAL=true docker-compose up -d
+# Wait for ready, submit a DirectSupport tx, then:
+curl -s 'http://localhost:42069/api/statements_registry?limit=1&offset=0'
+# Also check indexer logs after the tx:
+docker-compose logs indexer | tail -50
+```
+
+**How to run the test**:
+```bash
+# Build indexer first if you changed indexer code:
+docker-compose build --no-cache indexer
+# Run the test:
+VERBOSE_TESTS=true ./scripts/run-integration-tests.sh "Hello World"
+```
+
+**Note**: The test script does `docker-compose up -d --build` which uses layer cache. After code changes, always rebuild with `docker-compose build --no-cache indexer` first OR the script's `--build` flag will pick up cached layers. The COPY step caches aggressively.
+
+**Also note**: `_meta { status }` is the correct GraphQL query for block sync (not `_meta { block { number } }`). Ponder returns `{ _meta: { status: { hardhat: { block: { number: N } } } } }`.
+
+---
+
 ## Phase 4 COMPLETE
 
 **Indexer redesign Phase 4 finished this session.**

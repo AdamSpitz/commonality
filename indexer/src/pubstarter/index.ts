@@ -20,7 +20,10 @@ import {
   trades,
   participantSummaries,
   tokenBurns,
+  events,
+  projectsRegistry,
 } from "ponder:schema";
+import { captureRawEvent } from "../utils/rawEvents";
 
 // ============================================================================
 // FACTORY EVENT HANDLERS
@@ -36,6 +39,20 @@ ponder.on(
     const projectAddress = event.args.assuranceContract;
     const timestamp = BigInt(event.block.timestamp);
     const blockNumber = BigInt(event.block.number);
+
+    // Capture raw event
+    await context.db.insert(events).values(captureRawEvent(event, 'PubstarterAssuranceContractCreated'));
+
+    // Update projects registry (lightweight tracking)
+    const existingRegistry = await context.db.find(projectsRegistry, { id: projectAddress });
+    if (!existingRegistry) {
+      await context.db.insert(projectsRegistry).values({
+        id: projectAddress,
+        factoryAddress: event.log.address,
+        createdAtBlock: blockNumber,
+        createdAtTimestamp: timestamp,
+      });
+    }
 
     // Create placeholder project record
     // Will be updated when AssuranceContractInitialized is received
@@ -109,6 +126,9 @@ ponder.on(
     const timestamp = BigInt(event.block.timestamp);
     const blockNumber = BigInt(event.block.number);
 
+    // Capture raw event
+    await context.db.insert(events).values(captureRawEvent(event, 'AssuranceContractInitialized'));
+
     const { recipient, condition } = event.args;
 
     // Read threshold and deadline from the condition contract (EthThresholdCondition pattern).
@@ -167,6 +187,9 @@ ponder.on(
 ponder.on(
   "AssuranceContract:ContractMetadataUpdated",
   async ({ event, context }) => {
+    // Capture raw event
+    await context.db.insert(events).values(captureRawEvent(event, 'ContractMetadataUpdated'));
+
     const projectAddress = event.log.address;
     const metadataCid = event.args.uri;
 
@@ -188,6 +211,9 @@ ponder.on(
  * This also helps us correlate ERC1155 contracts with assurance contracts
  */
 ponder.on("AssuranceContract:ERC1155Offered", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'ERC1155Offered'));
+
   const projectAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
 
@@ -223,6 +249,9 @@ ponder.on("AssuranceContract:ERC1155Offered", async ({ event, context }) => {
  * Handle primary market token purchase (contribution)
  */
 ponder.on("AssuranceContract:ERC1155Bought", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'ERC1155Bought'));
+
   const projectAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -270,6 +299,9 @@ ponder.on("AssuranceContract:ERC1155Bought", async ({ event, context }) => {
  * Handle primary market refund
  */
 ponder.on("AssuranceContract:ERC1155Sold", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'ERC1155Sold'));
+
   const projectAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -319,6 +351,9 @@ ponder.on("AssuranceContract:ERC1155Sold", async ({ event, context }) => {
 ponder.on(
   "AssuranceContract:AssuranceContractWithdrawal",
   async ({ event, context }) => {
+    // Capture raw event
+    await context.db.insert(events).values(captureRawEvent(event, 'AssuranceContractWithdrawal'));
+
     const projectAddress = event.log.address;
     const { value } = event.args;
 
@@ -337,6 +372,9 @@ ponder.on(
  * Handle new sale listing (ask order)
  */
 ponder.on("SecondaryMarket:SaleListingCreated", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'SaleListingCreated'));
+
   const marketplaceAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
 
@@ -360,6 +398,9 @@ ponder.on("SecondaryMarket:SaleListingCreated", async ({ event, context }) => {
  * Handle sale listing fulfillment (partial or full)
  */
 ponder.on("SecondaryMarket:SaleListingFulfilled", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'SaleListingFulfilled'));
+
   const marketplaceAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -413,6 +454,9 @@ ponder.on("SecondaryMarket:SaleListingFulfilled", async ({ event, context }) => 
  * Handle sale listing cancellation
  */
 ponder.on("SecondaryMarket:SaleListingCancelled", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'SaleListingCancelled'));
+
   const marketplaceAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
   const { saleListingId } = event.args;
@@ -432,6 +476,9 @@ ponder.on("SecondaryMarket:SaleListingCancelled", async ({ event, context }) => 
  * Handle new buy order (bid order)
  */
 ponder.on("SecondaryMarket:BuyOrderCreated", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'BuyOrderCreated'));
+
   const marketplaceAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
 
@@ -455,6 +502,9 @@ ponder.on("SecondaryMarket:BuyOrderCreated", async ({ event, context }) => {
  * Handle buy order fulfillment (partial or full)
  */
 ponder.on("SecondaryMarket:BuyOrderFulfilled", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'BuyOrderFulfilled'));
+
   const marketplaceAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -508,6 +558,9 @@ ponder.on("SecondaryMarket:BuyOrderFulfilled", async ({ event, context }) => {
  * Handle buy order cancellation
  */
 ponder.on("SecondaryMarket:BuyOrderCancelled", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'BuyOrderCancelled'));
+
   const marketplaceAddress = event.log.address;
   const timestamp = BigInt(event.block.timestamp);
   const { buyOrderId } = event.args;
@@ -529,6 +582,9 @@ ponder.on("SecondaryMarket:BuyOrderCancelled", async ({ event, context }) => {
  * We use it to correlate marketplaces with their ERC1155 tokens (and thus with projects)
  */
 ponder.on("SecondaryMarket:ERC1155SecondaryMarketCreated", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'ERC1155SecondaryMarketCreated'));
+
   const marketplaceAddress = event.log.address;
   const { erc1155 } = event.args;
 
@@ -611,6 +667,9 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 ponder.on("PremintingERC1155:TransferSingle", async ({ event, context }) => {
   const { to, from, id, value } = event.args;
 
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'TransferSingle'));
+
   // Only track burns (transfers to zero address)
   if (to.toLowerCase() !== ZERO_ADDRESS) {
     return;
@@ -642,6 +701,9 @@ ponder.on("PremintingERC1155:TransferSingle", async ({ event, context }) => {
  */
 ponder.on("PremintingERC1155:TransferBatch", async ({ event, context }) => {
   const { to, from, ids, values } = event.args;
+
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'TransferBatch'));
 
   // Only track burns (transfers to zero address)
   if (to.toLowerCase() !== ZERO_ADDRESS) {

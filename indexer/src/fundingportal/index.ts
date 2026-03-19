@@ -9,8 +9,9 @@
  */
 
 import { ponder } from "ponder:registry";
-import { alignmentAttestations } from "ponder:schema";
+import { alignmentAttestations, events, alignmentAttestationsRegistry } from "ponder:schema";
 import { IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
+import { captureRawEvent } from "../utils/rawEvents";
 
 /**
  * Handle AlignmentAttestation events from the AlignmentAttestations contract
@@ -24,9 +25,25 @@ ponder.on("AlignmentAttestations:AlignmentAttestation", async ({ event, context 
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
 
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'AlignmentAttestation'));
+
   // Convert bytes32 to CIDv1 for storage
   const statementIdCidV1 = bytes32ToCid(statementId as IpfsCidBytes32);
   const topicStatementIdCidV1 = bytes32ToCid(topicStatementId as IpfsCidBytes32);
+
+  // Update alignment attestations registry (lightweight tracking)
+  const registryId = `${attester.toLowerCase()}-${subjectAddress.toLowerCase()}-${statementIdCidV1}`;
+  const existingRegistry = await context.db.find(alignmentAttestationsRegistry, { id: registryId });
+  if (!existingRegistry) {
+    await context.db.insert(alignmentAttestationsRegistry).values({
+      id: registryId,
+      attester: attester.toLowerCase() as `0x${string}`,
+      subjectAddress: subjectAddress.toLowerCase() as `0x${string}`,
+      statementId: statementIdCidV1,
+      createdAtBlock: blockNumber,
+    });
+  }
 
   // Check if this alignment already exists (contract allows re-attestation)
   const existing = await context.db.find(alignmentAttestations, {

@@ -13,8 +13,10 @@ import {
   delegationChains,
   noteEvents,
   noteIntentAttestations,
+  events,
 } from "ponder:schema";
 import { IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
+import { captureRawEvent } from "../utils/rawEvents";
 
 /**
  * Helper to compute chain hash (matching Solidity logic)
@@ -74,6 +76,9 @@ async function createNoteEvent(
  * Creates a new note record with initial (root) delegation chain
  */
 ponder.on("DelegatableNotes:NoteCreated", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'NoteCreated'));
+
   const { noteId, owner, amount, token, tokenType, tokenId } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -126,6 +131,9 @@ ponder.on("DelegatableNotes:NoteCreated", async ({ event, context }) => {
  * Updates the note's owner and chain, or creates a new note if split
  */
 ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'NoteDelegated'));
+
   const { parentNoteId, childNoteId, delegate, amount } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -237,6 +245,9 @@ ponder.on("DelegatableNotes:NoteDelegated", async ({ event, context }) => {
  * with temporary values, and NoteDelegated updates the owner and chainHash.
  */
 ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'ChainSplit'));
+
   const { originalLeafId, splitLeafId, remainderLeafId: _remainderLeafId, splitAmount } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -320,6 +331,9 @@ ponder.on("DelegatableNotes:ChainSplit", async ({ event, context }) => {
  * Updates the delegation chain by truncating to the revoker
  */
 ponder.on("DelegatableNotes:NoteRevoked", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'NoteRevoked'));
+
   const { noteId, revoker } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -386,6 +400,9 @@ ponder.on("DelegatableNotes:NoteRevoked", async ({ event, context }) => {
  * Marks the note as inactive (deleted)
  */
 ponder.on("DelegatableNotes:FundsReclaimed", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'FundsReclaimed'));
+
   const { noteId, owner, amount } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);
@@ -419,6 +436,9 @@ ponder.on("DelegatableNotes:FundsReclaimed", async ({ event, context }) => {
  * Updates note amounts and marks fully spent notes as inactive
  */
 ponder.on("DelegatableNotes:NoteConsumed", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'NoteConsumed'));
+
   const { noteId, amountConsumed: _amountConsumed, remainingAmount, deleted } = event.args;
   const timestamp = BigInt(event.block.timestamp);
 
@@ -451,6 +471,9 @@ ponder.on("DelegatableNotes:NoteConsumed", async ({ event, context }) => {
  * Note: Output notes are handled by NoteCreated events
  */
 ponder.on("DelegatableNotes:ERC1155Purchased", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'ERC1155Purchased'));
+
   const { buyer, erc1155Contract, tokenIds, counts, totalCost, inputNoteIds, outputNoteIds } =
     event.args;
   const timestamp = BigInt(event.block.timestamp);
@@ -491,6 +514,9 @@ ponder.on("DelegatableNotes:ERC1155Purchased", async ({ event, context }) => {
  * Re-attestation with a different statementId updates the existing record.
  */
 ponder.on("NoteIntent:NoteIntentAttested", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'NoteIntentAttested'));
+
   const { attester, noteContract, noteId, intendedStatementId } = event.args;
   const timestamp = BigInt(event.block.timestamp);
   const blockNumber = BigInt(event.block.number);

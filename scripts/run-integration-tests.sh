@@ -51,9 +51,22 @@ npm run build --workspace=@commonality/sdk
 # Pass PONDER_EPHEMERAL=true to ensure fresh in-memory database for each run
 PONDER_EPHEMERAL=true docker-compose up -d --build
 
-# Wait for indexer to be ready
+# Wait for indexer to be ready by polling its GraphQL endpoint
 echo "Waiting for indexer to start..."
-sleep 10
+for i in $(seq 1 90); do
+    if curl -sf -X POST -H "Content-Type: application/json" \
+        --data '{"query":"{ _meta { block { number } } }"}' \
+        http://localhost:42069/graphql > /dev/null 2>&1; then
+        echo "Indexer is ready!"
+        break
+    fi
+    if [ "$i" -eq 90 ]; then
+        echo "Timeout waiting for indexer to start"
+        docker-compose logs indexer | tail -50
+        exit 1
+    fi
+    sleep 2
+done
 
 # Run tests on host machine
 cd integration-tests

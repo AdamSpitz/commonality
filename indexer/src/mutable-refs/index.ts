@@ -9,7 +9,8 @@
  */
 
 import { ponder } from "ponder:registry";
-import { mutableRefs, refUpdates } from "ponder:schema";
+import { mutableRefs, refUpdates, events } from "ponder:schema";
+import { captureRawEvent } from "../utils/rawEvents";
 
 /**
  * Handle RefUpdated events
@@ -17,6 +18,9 @@ import { mutableRefs, refUpdates } from "ponder:schema";
  * Updates the current state of a ref and creates a history record
  */
 ponder.on("MutableRefUpdater:RefUpdated", async ({ event, context }) => {
+  // Capture raw event
+  await context.db.insert(events).values(captureRawEvent(event, 'RefUpdated'));
+
   const { owner, name, currentRefValue } = event.args;
   const { db } = context;
 
