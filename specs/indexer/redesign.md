@@ -351,3 +351,42 @@ Phase 4 is complete with a **hybrid approach** — not a full GraphQL replacemen
 ### Architecture decision:
 
 The Ponder indexer is **not being replaced**. It continues to serve its original role (pre-computed aggregates via GraphQL) while simultaneously acting as the event cache (serving raw events via REST). This avoids a big-bang migration and lets the system stay functional throughout. The event cache + SDK folds approach is now available for any new queries or subsystem migrations that want it, without requiring removal of the existing infrastructure.
+
+## Open question: Cross-entity aggregation queries and performance
+
+### What happened
+
+The last two GraphQL calls in `fundingportals/queries.ts` have been replaced with event cache + chain reads:
+
+- `GetProjectDetailsDocument` → `getProject()` (fetches project events, folds, then chain-reads threshold/deadline)
+- `GetParticipantSummariesDocument` → `getProjectContributions()` + `getProjectRefunds()` (fetches bought/sold events, folds per-participant)
+
+This makes the SDK fully GraphQL-free for funding portal queries. The code is cleaner and the architecture is consistent — everything goes through event cache + folds now.
+
+### The performance concern
+
+These two queries are **cross-entity aggregations**, not single-entity folds. They're called in loops:
+
+1. `getAllAlignedProjectsForCause(statementCid)` finds all aligned projects (via registry), then for **each project** calls `getProject()` — which fetches that project's events from the cache, folds them, and makes 2 chain reads (threshold + deadline).
+
+2. `getTopContributorsForCause(statementCid)` calls `getAllAlignedProjectsForCause` (above), then for **each project** calls `getProjectContributions()` + `getProjectRefunds()` — fetching and folding bought/sold events separately per project.
+
+For a cause with N aligned projects, this is ~3N HTTP round-trips to the event cache + 2N chain reads. The old GraphQL approach was 1 query per function (hitting pre-aggregated `projects` and `participantSummaries` tables).
+
+This is different from the other fold migrations (beliefs, delegation chains, individual projects), where we're folding a **single entity's** events — typically small and bounded. Here we're aggregating **across many entities**, which is the kind of query the redesign spec acknowledged might need server-side help at scale (see "Honest caveats" #1 and the "Top contributors to cause S" row in the global-knowledge table).
+
+### Current status
+
+The replacement works correctly (616 tests pass). At modest scale (a handful of aligned projects) it will be fine. The question is what to do if/when scale grows.
+
+### Options to consider later
+
+1. **Leave as-is for now.** The system isn't deployed yet, scale is unknown, and premature optimization isn't worth it. Revisit if performance becomes an issue.
+
+2. **Batch the event cache fetches.** Instead of N individual `fetchEvents` calls (one per project), add a batch endpoint to the event cache that returns events for multiple contracts in one request. This would reduce round-trips from ~3N to ~3 while keeping all fold logic client-side.
+
+3. **Add lightweight server-side aggregates.** Keep `totalReceived` as a column on the `projects_registry` table (updated on each bought/sold event). This is a tiny increment on the "no business logic" principle — just a counter — and would let the project-details query avoid per-project event fetching entirely. Similar to the "believer_count on statements_registry" idea already in the spec.
+
+4. **Use `viem` multicall for chain reads.** Instead of 2N individual chain reads (threshold + deadline per project), batch them into a single multicall. This is an easy win independent of the other options.
+
+These aren't mutually exclusive. Option 1 is the recommendation for now; options 2-4 are tools in the toolbox for when/if scale demands it.
