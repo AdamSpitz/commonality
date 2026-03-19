@@ -1,4 +1,6 @@
 import { SDKMachinery, TestConfig, createIPFSConfigInNodeJSFromTheUsualEnvVars, createSDKMachinery, type ContractAddresses } from "@commonality/sdk";
+import { createPublicClient, http } from "viem";
+import { hardhat } from "viem/chains";
 
 export type ActionTestingMachinery = SDKMachinery;
 
@@ -8,6 +10,12 @@ export function createActionTestingMachinery(indexerUrl: string): ActionTestingM
     areWeJustRunningTests: true,
     shouldTestsBeVerbose: false,
   };
+
+  const rpcUrl = process.env.RPC_URL || 'http://localhost:8545';
+  const publicClient = createPublicClient({
+    chain: hardhat,
+    transport: http(rpcUrl),
+  });
 
   const eventCacheUrl = process.env.EVENT_CACHE_URL;
   const contractAddresses: ContractAddresses = {
@@ -22,5 +30,5 @@ export function createActionTestingMachinery(indexerUrl: string): ActionTestingM
     mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`,
   };
 
-  return createSDKMachinery(indexerUrl, ipfsConfig, testConfig, undefined, eventCacheUrl, contractAddresses);
+  return createSDKMachinery(indexerUrl, ipfsConfig, testConfig, publicClient, eventCacheUrl, contractAddresses);
 }

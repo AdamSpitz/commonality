@@ -1,26 +1,7 @@
 /**
- * GraphQL queries for Pubstarter subsystem
+ * Pubstarter queries — event cache + folds (no GraphQL)
  */
 
-import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
-import {
-  GetProjectDocument,
-  GetAllProjectsDocument,
-  GetProjectsFilteredDocument,
-  GetProjectTokensDocument,
-  GetProjectContributionsDocument,
-  GetUserContributionsDocument,
-  GetProjectRefundsDocument,
-  GetSaleListingDocument,
-  GetActiveSaleListingsDocument,
-  GetBuyOrderDocument,
-  GetActiveBuyOrdersDocument,
-  GetMarketplaceTradesDocument,
-  GetTokenTradesDocument,
-  GetTokenBurnsDocument,
-  GetUserTokenBurnsDocument,
-  GetTokenBurnsByUserDocument,
-} from '../../generated/graphql.js';
 import {
   type Project,
   type ProjectToken,
@@ -36,7 +17,14 @@ import {
   type ProjectWithMetrics,
 } from './types.js';
 import { SDKMachinery } from '../../machinery.js';
-import { isEventCacheAvailable, fetchPubstarterProjectEvents, fetchSecondaryMarketEvents } from '../../utils/eventCacheClient.js';
+import {
+  fetchPubstarterProjectEvents,
+  fetchSecondaryMarketEvents,
+  fetchProjectsRegistry,
+  fetchERC1155TransferEvents,
+  fetchAllBoughtEvents,
+  fetchAllSoldEvents,
+} from '../../utils/eventCacheClient.js';
 import {
   decodePubstarterAssuranceContractCreatedEvent,
   decodeAssuranceContractInitializedEvent,
@@ -51,8 +39,19 @@ import {
   decodeBuyOrderCreatedEvent,
   decodeBuyOrderFulfilledEvent,
   decodeBuyOrderCancelledEvent,
+  decodeTransferSingleEvent,
+  decodeTransferBatchEvent,
 } from '../../utils/eventDecoder.js';
-import { foldProject, foldProjectTokens, foldContributionsFromEvents, foldSecondaryMarket, type ProjectEvent, type SecondaryMarketEvent } from './folds.js';
+import {
+  foldProject,
+  foldProjectTokens,
+  foldContributionsFromEvents,
+  foldSecondaryMarket,
+  foldTokenBurns,
+  type ProjectEvent,
+  type SecondaryMarketEvent,
+} from './folds.js';
+import type { TransferSingleEvent, TransferBatchEvent } from './events.js';
 import { readConditionParams } from '../../utils/chain-reads.js';
 
 async function fetchAndDecodeProjectEvents(
@@ -150,6 +149,23 @@ function fetchAndDecodeSecondaryMarketEvents(
   });
 }
 
+function decodeTransferEvents(rawEvents: Awaited<ReturnType<typeof fetchERC1155TransferEvents>>): (TransferSingleEvent | TransferBatchEvent)[] {
+  const events: (TransferSingleEvent | TransferBatchEvent)[] = [];
+  for (const raw of rawEvents) {
+    if (raw.eventName === 'TransferSingle') {
+      const d = decodeTransferSingleEvent(raw);
+      if (d) events.push(d);
+    } else if (raw.eventName === 'TransferBatch') {
+      const d = decodeTransferBatchEvent(raw);
+      if (d) events.push(d);
+    }
+  }
+  return events.sort((a, b) => {
+    const bn = Number(a.blockNumber - b.blockNumber);
+    return bn !== 0 ? bn : a.logIndex - b.logIndex;
+  });
+}
+
 // ============================================================================
 // Pubstarter Queries
 // ============================================================================
@@ -161,30 +177,23 @@ export async function getProject(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Project | null> {
-  if (isEventCacheAvailable(machinery)) {
-    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
-    const partial = foldProject(projectEvents);
-    if (!partial) return null;
+  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+  const partial = foldProject(projectEvents);
+  if (!partial) return null;
 
-    let threshold = '0';
-    let deadline = '0';
-    if (machinery.publicClient && partial.conditionAddress) {
-      try {
-        const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
-        threshold = params.threshold.toString();
-        deadline = params.deadline.toString();
-      } catch {
-        // publicClient not configured or read failed — leave as '0'
-      }
+  let threshold = '0';
+  let deadline = '0';
+  if (machinery.publicClient && partial.conditionAddress) {
+    try {
+      const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
+      threshold = params.threshold.toString();
+      deadline = params.deadline.toString();
+    } catch {
+      // publicClient not configured or read failed — leave as '0'
     }
-
-    return { ...partial, threshold, deadline };
   }
-  const result = await executeTypedGraphQLQuery(machinery, GetProjectDocument, {
-    id: assuranceContractAddress.toLowerCase(),
-  });
-  // BigInt fields (threshold, deadline, totalReceived) come as strings at runtime
-  return result.projects as unknown as Project | null;
+
+  return { ...partial, threshold, deadline };
 }
 
 /**
@@ -193,23 +202,19 @@ export async function getProject(
 export async function getAllProjects(
   machinery: SDKMachinery
 ): Promise<Project[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetAllProjectsDocument);
-  // BigInt fields come as strings at runtime
-  return (result.projectss?.items ?? []) as unknown as Project[];
+  const registry = await fetchProjectsRegistry(machinery, { limit: 10000 });
+  const projects = await Promise.all(
+    registry.map(r => getProject(machinery, r.id))
+  );
+  return projects.filter((p): p is Project => p !== null);
 }
 
 // ============================================================================
-// Project Filtering and Sorting (E4)
+// Project Filtering and Sorting
 // ============================================================================
 
 /**
  * Get all projects with optional filtering and sorting.
- * Note: Some sorting (like fundingProgress) requires client-side computation.
- *
- * @param machinery SDK machinery instance
- * @param filters Optional filters to apply
- * @param sortBy Field to sort by
- * @param sortDirection Sort direction (asc or desc)
  */
 export async function getProjectsFiltered(
   machinery: SDKMachinery,
@@ -217,41 +222,56 @@ export async function getProjectsFiltered(
   sortBy?: ProjectSortField,
   sortDirection: SortDirection = 'desc'
 ): Promise<ProjectWithMetrics[]> {
-  // For fundingProgress sort, omit orderBy (sort client-side after fetching)
-  const serverOrderBy = sortBy && sortBy !== 'fundingProgress' ? sortBy : undefined;
-
-  const result = await executeTypedGraphQLQuery(machinery, GetProjectsFilteredDocument, {
-    minDeadline: filters?.minDeadline?.toString(),
-    maxDeadline: filters?.maxDeadline?.toString(),
-    minThreshold: filters?.minThreshold?.toString(),
-    maxThreshold: filters?.maxThreshold?.toString(),
-    minTotalReceived: filters?.minTotalReceived?.toString(),
-    maxTotalReceived: filters?.maxTotalReceived?.toString(),
-    orderBy: serverOrderBy,
-    orderDirection: serverOrderBy ? sortDirection : undefined,
-  });
-
-  // BigInt fields come as strings at runtime
-  const projects = (result.projectss?.items ?? []) as unknown as Array<Project & { createdAtBlock: string }>;
+  const allProjects = await getAllProjects(machinery);
 
   // Add computed metrics
-  const projectsWithMetrics: ProjectWithMetrics[] = projects.map(p => {
+  let projectsWithMetrics: ProjectWithMetrics[] = allProjects.map(p => {
     const threshold = BigInt(p.threshold);
     const totalReceived = BigInt(p.totalReceived);
     const fundingProgress = threshold > 0n
-      ? Number(totalReceived * 10000n / threshold) / 10000  // Use basis points for precision
+      ? Number(totalReceived * 10000n / threshold) / 10000
       : 0;
-
-    return {
-      ...p,
-      fundingProgress,
-    };
+    return { ...p, fundingProgress, createdAtBlock: '' };
   });
 
-  // Client-side sorting if needed
-  if (sortBy === 'fundingProgress') {
+  // Apply filters
+  if (filters) {
+    projectsWithMetrics = projectsWithMetrics.filter(p => {
+      const deadline = BigInt(p.deadline);
+      const threshold = BigInt(p.threshold);
+      const totalReceived = BigInt(p.totalReceived);
+
+      if (filters.minDeadline !== undefined && deadline < filters.minDeadline) return false;
+      if (filters.maxDeadline !== undefined && deadline > filters.maxDeadline) return false;
+      if (filters.minThreshold !== undefined && threshold < filters.minThreshold) return false;
+      if (filters.maxThreshold !== undefined && threshold > filters.maxThreshold) return false;
+      if (filters.minTotalReceived !== undefined && totalReceived < filters.minTotalReceived) return false;
+      if (filters.maxTotalReceived !== undefined && totalReceived > filters.maxTotalReceived) return false;
+      return true;
+    });
+  }
+
+  // Sort
+  if (sortBy) {
     projectsWithMetrics.sort((a, b) => {
-      const comparison = a.fundingProgress - b.fundingProgress;
+      let comparison = 0;
+      switch (sortBy) {
+        case 'createdAt':
+          comparison = (a.createdAt ?? '').localeCompare(b.createdAt ?? '');
+          break;
+        case 'deadline':
+          comparison = Number(BigInt(a.deadline) - BigInt(b.deadline));
+          break;
+        case 'threshold':
+          comparison = Number(BigInt(a.threshold) - BigInt(b.threshold));
+          break;
+        case 'totalReceived':
+          comparison = Number(BigInt(a.totalReceived) - BigInt(b.totalReceived));
+          break;
+        case 'fundingProgress':
+          comparison = a.fundingProgress - b.fundingProgress;
+          break;
+      }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }
@@ -316,18 +336,11 @@ export async function getProjectTokens(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<ProjectToken[]> {
-  if (isEventCacheAvailable(machinery)) {
-    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
-    const offeredEvents = projectEvents
-      .filter((e): e is { type: 'tokenOffered'; event: Parameters<typeof foldProjectTokens>[0][0] } => e.type === 'tokenOffered')
-      .map(e => e.event);
-    return foldProjectTokens(offeredEvents);
-  }
-  const result = await executeTypedGraphQLQuery(machinery, GetProjectTokensDocument, {
-    projectAddress: assuranceContractAddress.toLowerCase(),
-  });
-  // BigInt fields (tokenId, price, createdAt) come as strings at runtime
-  return (result.projectTokenss?.items ?? []) as unknown as ProjectToken[];
+  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+  const offeredEvents = projectEvents
+    .filter((e): e is { type: 'tokenOffered'; event: Parameters<typeof foldProjectTokens>[0][0] } => e.type === 'tokenOffered')
+    .map(e => e.event);
+  return foldProjectTokens(offeredEvents);
 }
 
 /**
@@ -337,32 +350,30 @@ export async function getProjectContributions(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Contribution[]> {
-  if (isEventCacheAvailable(machinery)) {
-    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
-    const boughtEvents = projectEvents
-      .filter((e): e is { type: 'bought'; event: Parameters<typeof foldContributionsFromEvents>[0][0] } => e.type === 'bought')
-      .map(e => e.event);
-    return foldContributionsFromEvents(boughtEvents, []).contributions;
-  }
-  const result = await executeTypedGraphQLQuery(machinery, GetProjectContributionsDocument, {
-    projectAddress: assuranceContractAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.contributionss?.items ?? []) as unknown as Contribution[];
+  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+  const boughtEvents = projectEvents
+    .filter((e): e is { type: 'bought'; event: Parameters<typeof foldContributionsFromEvents>[0][0] } => e.type === 'bought')
+    .map(e => e.event);
+  return foldContributionsFromEvents(boughtEvents, []).contributions;
 }
 
 /**
- * Get contributions by a specific user
+ * Get contributions by a specific user (across all projects)
  */
 export async function getUserContributions(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<Contribution[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetUserContributionsDocument, {
-    participant: userAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.contributionss?.items ?? []) as unknown as Contribution[];
+  const rawEvents = await fetchAllBoughtEvents(machinery);
+  const userLower = userAddress.toLowerCase();
+  const boughtEvents = [];
+  for (const raw of rawEvents) {
+    const d = decodeERC1155BoughtEvent(raw);
+    if (d && d.participant.toLowerCase() === userLower) {
+      boughtEvents.push(d);
+    }
+  }
+  return foldContributionsFromEvents(boughtEvents, []).contributions;
 }
 
 /**
@@ -372,18 +383,11 @@ export async function getProjectRefunds(
   machinery: SDKMachinery,
   assuranceContractAddress: string
 ): Promise<Refund[]> {
-  if (isEventCacheAvailable(machinery)) {
-    const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
-    const soldEvents = projectEvents
-      .filter((e): e is { type: 'sold'; event: Parameters<typeof foldContributionsFromEvents>[1][0] } => e.type === 'sold')
-      .map(e => e.event);
-    return foldContributionsFromEvents([], soldEvents).refunds;
-  }
-  const result = await executeTypedGraphQLQuery(machinery, GetProjectRefundsDocument, {
-    projectAddress: assuranceContractAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.refundss?.items ?? []) as unknown as Refund[];
+  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
+  const soldEvents = projectEvents
+    .filter((e): e is { type: 'sold'; event: Parameters<typeof foldContributionsFromEvents>[1][0] } => e.type === 'sold')
+    .map(e => e.event);
+  return foldContributionsFromEvents([], soldEvents).refunds;
 }
 
 // ============================================================================
@@ -398,18 +402,10 @@ export async function getSaleListing(
   marketplaceAddress: string,
   listingId: bigint
 ): Promise<SaleListing | null> {
-  if (isEventCacheAvailable(machinery)) {
-    const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-    const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-    const { saleListings } = foldSecondaryMarket(events);
-    return saleListings.find(l => l.listingId === listingId.toString()) ?? null;
-  }
-  const result = await executeTypedGraphQLQuery(machinery, GetSaleListingDocument, {
-    marketplaceAddress: marketplaceAddress.toLowerCase(),
-    listingId: listingId.toString(),
-  });
-  // BigInt fields come as strings at runtime
-  return ((result.saleListingss?.items ?? [])[0] ?? null) as unknown as SaleListing | null;
+  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+  const { saleListings } = foldSecondaryMarket(events);
+  return saleListings.find(l => l.listingId === listingId.toString()) ?? null;
 }
 
 /**
@@ -419,11 +415,10 @@ export async function getActiveSaleListings(
   machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<SaleListing[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetActiveSaleListingsDocument, {
-    marketplaceAddress: marketplaceAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.saleListingss?.items ?? []) as unknown as SaleListing[];
+  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+  const { saleListings } = foldSecondaryMarket(events);
+  return saleListings.filter(l => l.status === 'active');
 }
 
 /**
@@ -434,18 +429,10 @@ export async function getBuyOrder(
   marketplaceAddress: string,
   orderId: bigint
 ): Promise<BuyOrder | null> {
-  if (isEventCacheAvailable(machinery)) {
-    const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-    const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-    const { buyOrders } = foldSecondaryMarket(events);
-    return buyOrders.find(o => o.orderId === orderId.toString()) ?? null;
-  }
-  const result = await executeTypedGraphQLQuery(machinery, GetBuyOrderDocument, {
-    marketplaceAddress: marketplaceAddress.toLowerCase(),
-    orderId: orderId.toString(),
-  });
-  // BigInt fields come as strings at runtime
-  return ((result.buyOrderss?.items ?? [])[0] ?? null) as unknown as BuyOrder | null;
+  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+  const { buyOrders } = foldSecondaryMarket(events);
+  return buyOrders.find(o => o.orderId === orderId.toString()) ?? null;
 }
 
 /**
@@ -455,11 +442,10 @@ export async function getActiveBuyOrders(
   machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<BuyOrder[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetActiveBuyOrdersDocument, {
-    marketplaceAddress: marketplaceAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.buyOrderss?.items ?? []) as unknown as BuyOrder[];
+  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+  const { buyOrders } = foldSecondaryMarket(events);
+  return buyOrders.filter(o => o.status === 'active');
 }
 
 /**
@@ -469,11 +455,10 @@ export async function getMarketplaceTrades(
   machinery: SDKMachinery,
   marketplaceAddress: string
 ): Promise<Trade[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetMarketplaceTradesDocument, {
-    marketplaceAddress: marketplaceAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.tradess?.items ?? []) as unknown as Trade[];
+  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+  const { trades } = foldSecondaryMarket(events);
+  return trades;
 }
 
 /**
@@ -484,12 +469,10 @@ export async function getTokenTrades(
   marketplaceAddress: string,
   tokenId: bigint
 ): Promise<Trade[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetTokenTradesDocument, {
-    marketplaceAddress: marketplaceAddress.toLowerCase(),
-    tokenId: tokenId.toString(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.tradess?.items ?? []) as unknown as Trade[];
+  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
+  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
+  const { trades } = foldSecondaryMarket(events);
+  return trades.filter(t => t.tokenId === tokenId.toString());
 }
 
 // ============================================================================
@@ -503,11 +486,9 @@ export async function getTokenBurns(
   machinery: SDKMachinery,
   erc1155Address: string
 ): Promise<TokenBurn[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetTokenBurnsDocument, {
-    erc1155Address: erc1155Address.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.tokenBurnss?.items ?? []) as unknown as TokenBurn[];
+  const rawEvents = await fetchERC1155TransferEvents(machinery, erc1155Address);
+  const events = decodeTransferEvents(rawEvents);
+  return foldTokenBurns(events);
 }
 
 /**
@@ -517,11 +498,28 @@ export async function getUserTokenBurns(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetUserTokenBurnsDocument, {
-    burner: userAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.tokenBurnss?.items ?? []) as unknown as TokenBurn[];
+  // We need all ERC1155 contracts — get from projects registry
+  const registry = await fetchProjectsRegistry(machinery, { limit: 10000 });
+  const allBurns: TokenBurn[] = [];
+  const userLower = userAddress.toLowerCase();
+
+  // Fetch project events to discover ERC1155 addresses
+  for (const project of registry) {
+    const projectEvents = await fetchAndDecodeProjectEvents(machinery, project.id);
+    const erc1155Addresses = new Set<string>();
+    for (const pe of projectEvents) {
+      if (pe.type === 'tokenOffered') {
+        erc1155Addresses.add(pe.event.erc1155Addr);
+      }
+    }
+    for (const addr of erc1155Addresses) {
+      const rawEvents = await fetchERC1155TransferEvents(machinery, addr);
+      const events = decodeTransferEvents(rawEvents);
+      const burns = foldTokenBurns(events);
+      allBurns.push(...burns.filter(b => b.burner.toLowerCase() === userLower));
+    }
+  }
+  return allBurns;
 }
 
 /**
@@ -532,10 +530,6 @@ export async function getTokenBurnsByUser(
   erc1155Address: string,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetTokenBurnsByUserDocument, {
-    erc1155Address: erc1155Address.toLowerCase(),
-    burner: userAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.tokenBurnss?.items ?? []) as unknown as TokenBurn[];
+  const burns = await getTokenBurns(machinery, erc1155Address);
+  return burns.filter(b => b.burner.toLowerCase() === userAddress.toLowerCase());
 }

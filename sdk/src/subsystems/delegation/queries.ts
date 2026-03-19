@@ -1,17 +1,6 @@
 /**
- * GraphQL queries for Delegation subsystem
+ * Delegation queries — event cache + folds (no GraphQL)
  */
-
-import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
-import {
-  GetNoteDocument,
-  GetNotesByOwnerDocument,
-  GetNotesByRootDocument,
-  GetDelegationChainDocument,
-  GetNoteIntentAttestationDocument,
-  GetNoteIntentAttestationsByNoteDocument,
-  GetNoteIntentAttestationsByStatementDocument,
-} from '../../generated/graphql.js';
 
 import {
   type Note,
@@ -22,7 +11,7 @@ import {
 } from './types.js';
 import type { NoteIntentAttestedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
-import { isEventCacheAvailable, fetchAllDelegationEvents, fetchNoteIntentEvents } from '../../utils/eventCacheClient.js';
+import { fetchAllDelegationEvents, fetchNoteIntentEvents, fetchAllNoteIntentEvents } from '../../utils/eventCacheClient.js';
 import {
   decodeNoteCreatedEvent,
   decodeNoteDelegatedEvent,
@@ -33,7 +22,7 @@ import {
   decodeERC1155PurchasedEvent,
   decodeNoteIntentAttestedEvent,
 } from '../../utils/eventDecoder.js';
-import { foldNote, foldNoteIntentAttestations, type DelegationEvent } from './folds.js';
+import { foldDelegationState, foldNote, foldNoteIntentAttestations, type DelegationEvent } from './folds.js';
 
 function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
   const events: DelegationEvent[] = [];
@@ -93,15 +82,10 @@ export async function getNote(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<Note | null> {
-  if (isEventCacheAvailable(machinery)) {
-    const rawEvents = await fetchAllDelegationEvents(machinery);
-    const events = decodeDelegationEvents(rawEvents);
-    const result = foldNote(noteId, events);
-    return result?.note ?? null;
-  }
-  const result = await executeTypedGraphQLQuery(machinery, GetNoteDocument, { id: noteId });
-  // BigInt fields (id, tokenId, amount, createdAt, etc.) come as strings at runtime
-  return result.delegatableNotes as unknown as Note | null;
+  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const events = decodeDelegationEvents(rawEvents);
+  const result = foldNote(noteId, events);
+  return result?.note ?? null;
 }
 
 /**
@@ -111,11 +95,14 @@ export async function getNotesByOwner(
   machinery: SDKMachinery,
   ownerAddress: string
 ): Promise<Note[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetNotesByOwnerDocument, {
-    owner: ownerAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.delegatableNotess?.items ?? []) as unknown as Note[];
+  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const events = decodeDelegationEvents(rawEvents);
+  const { notes } = foldDelegationState(events);
+
+  const ownerLower = ownerAddress.toLowerCase();
+  return [...notes.values()].filter(
+    n => n.active && n.owner.toLowerCase() === ownerLower
+  );
 }
 
 /**
@@ -125,11 +112,14 @@ export async function getNotesByRoot(
   machinery: SDKMachinery,
   rootAddress: string
 ): Promise<Note[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetNotesByRootDocument, {
-    rootOwner: rootAddress.toLowerCase(),
-  });
-  // BigInt fields come as strings at runtime
-  return (result.delegatableNotess?.items ?? []) as unknown as Note[];
+  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const events = decodeDelegationEvents(rawEvents);
+  const { notes } = foldDelegationState(events);
+
+  const rootLower = rootAddress.toLowerCase();
+  return [...notes.values()].filter(
+    n => n.rootOwner.toLowerCase() === rootLower
+  );
 }
 
 /**
@@ -139,17 +129,10 @@ export async function getDelegationChain(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<DelegationChainLink[]> {
-  if (isEventCacheAvailable(machinery)) {
-    const rawEvents = await fetchAllDelegationEvents(machinery);
-    const events = decodeDelegationEvents(rawEvents);
-    const result = foldNote(noteId, events);
-    return result?.chain ?? [];
-  }
-  const result = await executeTypedGraphQLQuery(machinery, GetDelegationChainDocument, {
-    noteId: noteId,
-  });
-  // BigInt fields (createdAt) come as strings at runtime
-  return (result.delegationChainss?.items ?? []) as unknown as DelegationChainLink[];
+  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const events = decodeDelegationEvents(rawEvents);
+  const result = foldNote(noteId, events);
+  return result?.chain ?? [];
 }
 
 // ============================================================================
@@ -165,12 +148,21 @@ export async function getNoteIntentAttestation(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation | null> {
-  const result = await executeTypedGraphQLQuery(machinery, GetNoteIntentAttestationDocument, {
-    attester: attester.toLowerCase(),
-    noteContract: noteContract.toLowerCase(),
-    noteId: noteId,
+  const rawEvents = await fetchNoteIntentEvents(machinery, noteContract);
+  const events: NoteIntentAttestedEvent[] = [];
+  for (const raw of rawEvents) {
+    const d = decodeNoteIntentAttestedEvent(raw);
+    if (d && d.noteId.toString() === noteId && d.attester.toLowerCase() === attester.toLowerCase()) {
+      events.push(d);
+    }
+  }
+  if (events.length === 0) return null;
+  events.sort((a, b) => {
+    const bn = Number(a.blockNumber - b.blockNumber);
+    return bn !== 0 ? bn : a.logIndex - b.logIndex;
   });
-  return result.noteIntentAttestations as unknown as NoteIntentAttestation | null;
+  const attestations = foldNoteIntentAttestations(events);
+  return attestations[0] ?? null;
 }
 
 /**
@@ -181,26 +173,19 @@ export async function getNoteIntentAttestationsByNote(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation[]> {
-  if (isEventCacheAvailable(machinery)) {
-    const rawEvents = await fetchNoteIntentEvents(machinery, noteContract);
-    const events: NoteIntentAttestedEvent[] = [];
-    for (const raw of rawEvents) {
-      const d = decodeNoteIntentAttestedEvent(raw);
-      if (d && d.noteId.toString() === noteId) {
-        events.push(d);
-      }
+  const rawEvents = await fetchNoteIntentEvents(machinery, noteContract);
+  const events: NoteIntentAttestedEvent[] = [];
+  for (const raw of rawEvents) {
+    const d = decodeNoteIntentAttestedEvent(raw);
+    if (d && d.noteId.toString() === noteId) {
+      events.push(d);
     }
-    events.sort((a, b) => {
-      const bn = Number(a.blockNumber - b.blockNumber);
-      return bn !== 0 ? bn : a.logIndex - b.logIndex;
-    });
-    return foldNoteIntentAttestations(events);
   }
-  const result = await executeTypedGraphQLQuery(machinery, GetNoteIntentAttestationsByNoteDocument, {
-    noteContract: noteContract.toLowerCase(),
-    noteId: noteId,
+  events.sort((a, b) => {
+    const bn = Number(a.blockNumber - b.blockNumber);
+    return bn !== 0 ? bn : a.logIndex - b.logIndex;
   });
-  return (result.noteIntentAttestationss?.items ?? []) as unknown as NoteIntentAttestation[];
+  return foldNoteIntentAttestations(events);
 }
 
 /**
@@ -210,27 +195,25 @@ export async function getNoteIntentAttestationsByStatement(
   machinery: SDKMachinery,
   intendedStatementId: string
 ): Promise<NoteIntentAttestation[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetNoteIntentAttestationsByStatementDocument, {
-    intendedStatementId,
+  // intendedStatementId is non-indexed, so we fetch all and filter client-side
+  const rawEvents = await fetchAllNoteIntentEvents(machinery);
+  const events: NoteIntentAttestedEvent[] = [];
+  for (const raw of rawEvents) {
+    const d = decodeNoteIntentAttestedEvent(raw);
+    if (d && d.intendedStatementId === intendedStatementId) {
+      events.push(d);
+    }
+  }
+  events.sort((a, b) => {
+    const bn = Number(a.blockNumber - b.blockNumber);
+    return bn !== 0 ? bn : a.logIndex - b.logIndex;
   });
-  return (result.noteIntentAttestationss?.items ?? []) as unknown as NoteIntentAttestation[];
+  return foldNoteIntentAttestations(events);
 }
 
 // ============================================================================
 // Cross-subsystem: Purchased Note Events (for leaderboard delegation chains)
 // ============================================================================
-
-const GET_PURCHASED_NOTE_EVENTS_BY_TX_HASHES = `
-  query GetPurchasedNoteEventsByTxHashes($transactionHashes: [String!]!) {
-    noteEventss(where: { eventType: "purchased", transactionHash_in: $transactionHashes }) {
-      items {
-        noteId
-        transactionHash
-        data
-      }
-    }
-  }
-`;
 
 /**
  * Get "purchased" note events for a given set of transaction hashes.
@@ -241,31 +224,36 @@ export async function getPurchasedNoteEventsByTxHashes(
   transactionHashes: string[]
 ): Promise<NoteEvent[]> {
   if (transactionHashes.length === 0) return [];
-  type Result = { noteEventss?: { items: NoteEvent[] } };
-  const result = await executeTypedGraphQLQuery<Result>(
-    machinery,
-    GET_PURCHASED_NOTE_EVENTS_BY_TX_HASHES,
-    { transactionHashes }
-  );
-  return result.noteEventss?.items ?? [];
-}
 
-const GET_DELEGATION_CHAINS_FOR_NOTES = `
-  query GetDelegationChainsForNotes($noteIds: [BigInt!]!) {
-    delegationChainss(
-      where: { noteId_in: $noteIds }
-      orderBy: "position"
-      orderDirection: "asc"
-    ) {
-      items {
-        noteId
-        address
-        position
-        createdAt
-      }
+  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const txHashSet = new Set(transactionHashes.map(h => h.toLowerCase()));
+
+  const noteEvents: NoteEvent[] = [];
+  for (const raw of rawEvents) {
+    if (raw.eventName !== 'ERC1155Purchased') continue;
+    if (!txHashSet.has(raw.transactionHash.toLowerCase())) continue;
+
+    const d = decodeERC1155PurchasedEvent(raw);
+    if (!d) continue;
+
+    // Each input note gets a NoteEvent record
+    for (const inputNoteId of d.inputNoteIds) {
+      noteEvents.push({
+        noteId: inputNoteId.toString(),
+        transactionHash: d.transactionHash,
+        data: JSON.stringify({
+          inputNoteIds: d.inputNoteIds.map(id => id.toString()),
+          outputNoteIds: d.outputNoteIds.map(id => id.toString()),
+          erc1155Contract: d.erc1155Contract,
+          tokenIds: d.tokenIds.map(id => id.toString()),
+          counts: d.counts.map(c => c.toString()),
+          totalCost: d.totalCost.toString(),
+        }),
+      });
     }
   }
-`;
+  return noteEvents;
+}
 
 /**
  * Batch-fetch delegation chains for multiple note IDs.
@@ -276,11 +264,26 @@ export async function getDelegationChainsForNotes(
   noteIds: string[]
 ): Promise<DelegationChainLinkWithNote[]> {
   if (noteIds.length === 0) return [];
-  type Result = { delegationChainss?: { items: DelegationChainLinkWithNote[] } };
-  const result = await executeTypedGraphQLQuery<Result>(
-    machinery,
-    GET_DELEGATION_CHAINS_FOR_NOTES,
-    { noteIds }
-  );
-  return result.delegationChainss?.items ?? [];
+
+  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const events = decodeDelegationEvents(rawEvents);
+  const { chains } = foldDelegationState(events);
+
+  const noteIdSet = new Set(noteIds);
+  const result: DelegationChainLinkWithNote[] = [];
+
+  for (const [noteId, chain] of chains) {
+    if (!noteIdSet.has(noteId)) continue;
+    for (const link of chain) {
+      result.push({ ...link, noteId });
+    }
+  }
+
+  // Sort by noteId then position for consistent ordering
+  result.sort((a, b) => {
+    const nCmp = a.noteId.localeCompare(b.noteId);
+    return nCmp !== 0 ? nCmp : a.position - b.position;
+  });
+
+  return result;
 }

@@ -308,3 +308,80 @@ export async function fetchRefUpdatedEvents(
     limit: options.limit ?? 1000,
   });
 }
+
+/**
+ * Fetch all RefUpdated events (across all owners).
+ */
+export async function fetchAllRefUpdatedEvents(
+  machinery: SDKMachinery,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  return fetchEvents(machinery, {
+    contractAddress: machinery.contractAddresses!.mutableRefUpdater,
+    eventName: 'RefUpdated',
+    limit: options.limit ?? 10000,
+  });
+}
+
+/**
+ * Fetch ERC1155 transfer events (TransferSingle + TransferBatch) for a specific contract.
+ */
+export async function fetchERC1155TransferEvents(
+  machinery: SDKMachinery,
+  erc1155Address: string,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  const [singles, batches] = await Promise.all([
+    fetchEvents(machinery, {
+      contractAddress: erc1155Address,
+      eventName: 'TransferSingle',
+      limit: options.limit ?? 10000,
+    }),
+    fetchEvents(machinery, {
+      contractAddress: erc1155Address,
+      eventName: 'TransferBatch',
+      limit: options.limit ?? 10000,
+    }),
+  ]);
+  return [...singles, ...batches];
+}
+
+/**
+ * Fetch all NoteIntentAttested events across all noteContracts.
+ */
+export async function fetchAllNoteIntentEvents(
+  machinery: SDKMachinery,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  return fetchEvents(machinery, {
+    contractAddress: machinery.contractAddresses!.noteIntent,
+    eventName: 'NoteIntentAttested',
+    limit: options.limit ?? 10000,
+  });
+}
+
+/**
+ * Fetch all ERC1155Bought events across all contracts.
+ */
+export async function fetchAllBoughtEvents(
+  machinery: SDKMachinery,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  return fetchEvents(machinery, {
+    eventName: 'ERC1155Bought',
+    limit: options.limit ?? 10000,
+  });
+}
+
+/**
+ * Fetch all ERC1155Sold events across all contracts.
+ */
+export async function fetchAllSoldEvents(
+  machinery: SDKMachinery,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  return fetchEvents(machinery, {
+    eventName: 'ERC1155Sold',
+    limit: options.limit ?? 10000,
+  });
+}

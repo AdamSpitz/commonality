@@ -12,6 +12,7 @@ import {
   NoteIntentAbi,
   AlignmentAttestationsAbi,
   MutableRefUpdaterAbi,
+  AssuranceContractFactoryAbi,
 } from '../abis.js';
 
 const ABI_MAP: Record<string, readonly unknown[]> = {
@@ -24,6 +25,7 @@ const ABI_MAP: Record<string, readonly unknown[]> = {
   NoteIntent: NoteIntentAbi,
   AlignmentAttestations: AlignmentAttestationsAbi,
   MutableRefUpdater: MutableRefUpdaterAbi,
+  AssuranceContractFactory: AssuranceContractFactoryAbi,
 };
 
 function decodeRawEventLog(rawEvent: RawEventFromCache): Record<string, unknown> | null {

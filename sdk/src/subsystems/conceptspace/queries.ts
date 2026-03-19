@@ -1,21 +1,11 @@
 /**
- * GraphQL queries for Conceptspace subsystem
+ * Conceptspace queries — event cache + folds (no GraphQL)
  */
 
 import { fetchFromIPFS } from '../../utils/ipfs.js';
-import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
-import { fetchEvents, fetchStatementsRegistry } from '../../utils/eventCacheClient.js';
+import { fetchEvents, fetchStatementsRegistry, padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import { decodeDirectSupportEvent, decodeImplicationAttestationEvent, type DecodedDirectSupportEvent, type DecodedImplicationAttestationEvent } from '../../utils/eventDecoder.js';
-import { foldStatementBeliefs, foldImplications } from './folds.js';
-import {
-  BrowseByMostSupportersDocument,
-  BrowseByNewestDocument,
-  BrowseStatementsDocument,
-  GetAllStatementsDocument,
-  GetUserBeliefsDocument,
-  GetUserDisbeliefsDocument,
-  GetUserSocialDataDocument,
-} from '../../generated/graphql.js';
+import { foldStatementBeliefs, foldUserBeliefs, foldAllStatements, foldImplications } from './folds.js';
 import {
   type Implication,
   type Statement,
@@ -27,8 +17,6 @@ import {
   type GetStatementWithContentOptions,
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
-  type UserSocialData,
-  type HighProfileSigner,
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
@@ -58,15 +46,13 @@ export async function getStatement(
 ): Promise<Statement | null> {
   const contracts = machinery.contractAddresses!;
 
-  // DirectSupport(address indexed user, bytes32 indexed statementId, uint8 beliefState)
-  // topic1 = user, topic2 = statementId (bytes32)
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
-  
+
   const decodedEvents: DecodedDirectSupportEvent[] = [];
   for (const event of events) {
     const decoded = decodeDirectSupportEvent(event);
@@ -74,16 +60,16 @@ export async function getStatement(
       decodedEvents.push(decoded);
     }
   }
-  
+
   const folded = foldStatementBeliefs(decodedEvents);
-  
+
   const statements = await fetchStatementsRegistry(machinery, { limit: 10000 });
   const statement = statements.find(s => s.cidV1 === statementCid);
-  
+
   if (!statement && decodedEvents.length === 0) {
     return null;
   }
-  
+
   return {
     id: statementCid,
     cid: statementCid,
@@ -103,15 +89,13 @@ export async function getUserBelief(
 ): Promise<UserBelief | null> {
   const contracts = machinery.contractAddresses!;
 
-  // DirectSupport(address indexed user, bytes32 indexed statementId, uint8 beliefState)
-  // topic1 = user, topic2 = statementId (bytes32)
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
-  
+
   const decodedEvents: DecodedDirectSupportEvent[] = [];
   for (const event of events) {
     const decoded = decodeDirectSupportEvent(event);
@@ -119,14 +103,14 @@ export async function getUserBelief(
       decodedEvents.push(decoded);
     }
   }
-  
+
   const userAddressLower = userAddress.toLowerCase();
   const userEvents = decodedEvents.filter(e => e.user.toLowerCase() === userAddressLower);
-  
+
   if (userEvents.length === 0) {
     return { statementCid, beliefState: 0 };
   }
-  
+
   const latestEvent = userEvents.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
   return {
     statementCid,
@@ -148,15 +132,13 @@ export async function getImplicationsFrom(
 ): Promise<Implication[]> {
   const contracts = machinery.contractAddresses!;
 
-  // ImplicationAttestation(address indexed attester, bytes32 indexed fromStatementCid, bytes32 indexed toStatementCid, bytes32 explanationCid)
-  // topic1 = attester, topic2 = fromStatementCid, topic3 = toStatementCid
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
-  
+
   const decodedEvents: DecodedImplicationAttestationEvent[] = [];
   for (const event of events) {
     const decoded = decodeImplicationAttestationEvent(event);
@@ -164,14 +146,14 @@ export async function getImplicationsFrom(
       decodedEvents.push(decoded);
     }
   }
-  
+
   let implications = foldImplications(decodedEvents);
-  
+
   if (attesterAddress) {
     const attesterLower = attesterAddress.toLowerCase();
     implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
   }
-  
+
   return implications;
 }
 
@@ -185,14 +167,13 @@ export async function getImplicationsTo(
 ): Promise<Implication[]> {
   const contracts = machinery.contractAddresses!;
 
-  // ImplicationAttestation: topic3 = toStatementCid
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
-  
+
   const decodedEvents: DecodedImplicationAttestationEvent[] = [];
   for (const event of events) {
     const decoded = decodeImplicationAttestationEvent(event);
@@ -200,14 +181,14 @@ export async function getImplicationsTo(
       decodedEvents.push(decoded);
     }
   }
-  
+
   let implications = foldImplications(decodedEvents);
-  
+
   if (attesterAddress) {
     const attesterLower = attesterAddress.toLowerCase();
     implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
   }
-  
+
   return implications;
 }
 
@@ -221,8 +202,7 @@ export async function getImplication(
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
   const contracts = machinery.contractAddresses!;
-  
-  // ImplicationAttestation: topic2 = fromStatementCid, topic3 = toStatementCid
+
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
@@ -230,7 +210,7 @@ export async function getImplication(
     topic3: cidToBytes32(toStatementCid),
     limit: 1000,
   });
-  
+
   const decodedEvents: DecodedImplicationAttestationEvent[] = [];
   for (const event of events) {
     const decoded = decodeImplicationAttestationEvent(event);
@@ -238,14 +218,14 @@ export async function getImplication(
       decodedEvents.push(decoded);
     }
   }
-  
+
   const attesterLower = attesterAddress.toLowerCase();
   const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
-  
+
   if (matching.length === 0) {
     return null;
   }
-  
+
   const latest = matching.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
   return {
     attester: latest.attester,
@@ -263,12 +243,6 @@ export async function getImplication(
 
 /**
  * Compute indirect supporters for a statement.
- * Returns users who believe statements that imply the target statement.
- * Excludes users who explicitly disbelieve the target statement.
- *
- * @param client GraphQL client
- * @param statementId Target statement ID
- * @param attesterAddress Optional: filter implications by specific attester
  */
 export async function getIndirectSupporters(
   machinery: SDKMachinery,
@@ -277,7 +251,6 @@ export async function getIndirectSupporters(
 ): Promise<IndirectSupporter[]> {
   const contracts = machinery.contractAddresses!;
 
-  // ImplicationAttestation: topic3 = toStatementCid
   const toEvents = await fetchEvents(machinery, {
     contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
@@ -304,12 +277,9 @@ export async function getIndirectSupporters(
     return [];
   }
 
-  // Collect unique users to avoid duplicate getUserBelief calls when a user
-  // believes multiple source statements that all imply the same target.
   const userToViaStatementCid = new Map<string, IpfsCidV1>();
 
   for (const implication of implications) {
-    // DirectSupport: topic2 = statementId (bytes32)
     const fromEvents = await fetchEvents(machinery, {
       contractAddress: contracts.beliefs,
       eventName: 'DirectSupport',
@@ -362,7 +332,7 @@ export async function getIndirectSupporterCount(
 }
 
 // ============================================================================
-// Statement Discovery & Browsing Queries (GraphQL)
+// Statement Discovery & Browsing Queries (Event Cache + Folds)
 // ============================================================================
 
 /**
@@ -374,12 +344,43 @@ export async function browseStatementsByMostSupporters(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await executeTypedGraphQLQuery(machinery, BrowseByMostSupportersDocument, {
-    limit,
-    offset,
-    orderDirection,
+  const registry = await fetchStatementsRegistry(machinery, { limit: 10000 });
+  const contracts = machinery.contractAddresses!;
+
+  const allEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    limit: 10000,
   });
-  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+
+  const decodedEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of allEvents) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) decodedEvents.push(decoded);
+  }
+
+  const beliefCounts = foldAllStatements(decodedEvents);
+
+  const items: StatementListItem[] = registry.map(s => {
+    const counts = beliefCounts.get(s.cidV1) ?? { believerCount: 0, disbelieverCount: 0 };
+    return {
+      id: s.cidV1,
+      cid: s.cidV1 as IpfsCidV1,
+      statementType: '',
+      title: '',
+      excerpt: '',
+      believerCount: counts.believerCount,
+      disbelieverCount: counts.disbelieverCount,
+      createdAt: s.createdAtTimestamp ?? '',
+    };
+  });
+
+  items.sort((a, b) => {
+    const diff = a.believerCount - b.believerCount;
+    return orderDirection === 'asc' ? diff : -diff;
+  });
+
+  return items.slice(offset, offset + limit);
 }
 
 /**
@@ -391,30 +392,58 @@ export async function browseStatementsByNewest(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const result = await executeTypedGraphQLQuery(machinery, BrowseByNewestDocument, {
-    limit,
-    offset,
-    orderDirection,
+  const registry = await fetchStatementsRegistry(machinery, { limit: 10000 });
+  const contracts = machinery.contractAddresses!;
+
+  const allEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    limit: 10000,
   });
-  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+
+  const decodedEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of allEvents) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) decodedEvents.push(decoded);
+  }
+
+  const beliefCounts = foldAllStatements(decodedEvents);
+
+  const items: StatementListItem[] = registry.map(s => {
+    const counts = beliefCounts.get(s.cidV1) ?? { believerCount: 0, disbelieverCount: 0 };
+    return {
+      id: s.cidV1,
+      cid: s.cidV1 as IpfsCidV1,
+      statementType: '',
+      title: '',
+      excerpt: '',
+      believerCount: counts.believerCount,
+      disbelieverCount: counts.disbelieverCount,
+      createdAt: s.createdAtTimestamp ?? '',
+    };
+  });
+
+  items.sort((a, b) => {
+    const diff = a.createdAt.localeCompare(b.createdAt);
+    return orderDirection === 'asc' ? diff : -diff;
+  });
+
+  return items.slice(offset, offset + limit);
 }
 
 /**
- * Browse newest statements
+ * Browse statements with configurable sort
  */
 export async function browseStatements(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
-  const { limit = 10, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
+  const { orderBy = 'createdAt' } = options;
 
-  const result = await executeTypedGraphQLQuery(machinery, BrowseStatementsDocument, {
-    limit,
-    offset,
-    orderBy,
-    orderDirection,
-  });
-  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+  if (orderBy === 'believerCount' || orderBy === 'disbelieverCount') {
+    return browseStatementsByMostSupporters(machinery, options);
+  }
+  return browseStatementsByNewest(machinery, options);
 }
 
 /**
@@ -426,11 +455,38 @@ export async function getAllStatements(
 ): Promise<StatementListItem[]> {
   const { limit = 100, offset = 0 } = options;
 
-  const result = await executeTypedGraphQLQuery(machinery, GetAllStatementsDocument, {
-    limit,
-    offset,
+  const registry = await fetchStatementsRegistry(machinery, { limit: 10000 });
+  const contracts = machinery.contractAddresses!;
+
+  const allEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    limit: 10000,
   });
-  return ((result.statementss?.items ?? []) as unknown as Array<{ cidV1: string }>).map((item) => ({ ...item, id: item.cidV1, cid: item.cidV1 })) as unknown as StatementListItem[];
+
+  const decodedEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of allEvents) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) decodedEvents.push(decoded);
+  }
+
+  const beliefCounts = foldAllStatements(decodedEvents);
+
+  const items: StatementListItem[] = registry.map(s => {
+    const counts = beliefCounts.get(s.cidV1) ?? { believerCount: 0, disbelieverCount: 0 };
+    return {
+      id: s.cidV1,
+      cid: s.cidV1 as IpfsCidV1,
+      statementType: '',
+      title: '',
+      excerpt: '',
+      believerCount: counts.believerCount,
+      disbelieverCount: counts.disbelieverCount,
+      createdAt: s.createdAtTimestamp ?? '',
+    };
+  });
+
+  return items.slice(offset, offset + limit);
 }
 
 /**
@@ -440,15 +496,46 @@ export async function getUserBeliefs(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetUserBeliefsDocument, {
-    user: userAddress.toLowerCase(),
+  const contracts = machinery.contractAddresses!;
+  const paddedUser = padAddressAsTopic(userAddress);
+
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    topic1: paddedUser,
+    limit: 10000,
   });
 
-  return (result.users?.beliefs?.items.map(item => {
-    const s = item.statement as unknown as { cidV1: string } | null | undefined;
-    if (!s) return s;
-    return { ...s, id: s.cidV1, cid: s.cidV1 };
-  }) ?? []) as unknown as StatementListItem[];
+  const decodedEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of events) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) decodedEvents.push(decoded);
+  }
+
+  const userBeliefs = foldUserBeliefs(decodedEvents);
+  const believedCids = userBeliefs
+    .filter(b => b.beliefState === 1)
+    .map(b => b.statementCid);
+
+  if (believedCids.length === 0) return [];
+
+  const items: StatementListItem[] = [];
+  for (const cid of believedCids) {
+    const stmt = await getStatement(machinery, cid);
+    if (stmt) {
+      items.push({
+        id: stmt.id,
+        cid: stmt.cid,
+        statementType: stmt.statementType ?? '',
+        title: stmt.title ?? '',
+        excerpt: stmt.excerpt ?? '',
+        believerCount: stmt.believerCount,
+        disbelieverCount: stmt.disbelieverCount,
+        createdAt: stmt.createdAt ?? '',
+      });
+    }
+  }
+  return items;
 }
 
 /**
@@ -458,22 +545,50 @@ export async function getUserDisbeliefs(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const result = await executeTypedGraphQLQuery(machinery, GetUserDisbeliefsDocument, {
-    user: userAddress.toLowerCase(),
+  const contracts = machinery.contractAddresses!;
+  const paddedUser = padAddressAsTopic(userAddress);
+
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    topic1: paddedUser,
+    limit: 10000,
   });
 
-  return (result.users?.beliefs?.items.map(item => {
-    const s = item.statement as unknown as { cidV1: string } | null | undefined;
-    if (!s) return s;
-    return { ...s, id: s.cidV1, cid: s.cidV1 };
-  }) ?? []) as unknown as StatementListItem[];
+  const decodedEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of events) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) decodedEvents.push(decoded);
+  }
+
+  const userBeliefs = foldUserBeliefs(decodedEvents);
+  const disbelievedCids = userBeliefs
+    .filter(b => b.beliefState === 2)
+    .map(b => b.statementCid);
+
+  if (disbelievedCids.length === 0) return [];
+
+  const items: StatementListItem[] = [];
+  for (const cid of disbelievedCids) {
+    const stmt = await getStatement(machinery, cid);
+    if (stmt) {
+      items.push({
+        id: stmt.id,
+        cid: stmt.cid,
+        statementType: stmt.statementType ?? '',
+        title: stmt.title ?? '',
+        excerpt: stmt.excerpt ?? '',
+        believerCount: stmt.believerCount,
+        disbelieverCount: stmt.disbelieverCount,
+        createdAt: stmt.createdAt ?? '',
+      });
+    }
+  }
+  return items;
 }
 
 /**
  * Get statement suggestions for a given statement
- * Returns statements that:
- * 1. Are implied by this statement (S1 -> S2) and S2 is more popular
- * 2. Imply this statement (S2 -> S1) and S2 is more popular
  */
 export async function getStatementSuggestions(
   machinery: SDKMachinery,
@@ -550,7 +665,6 @@ export async function getStatementSuggestions(
 
 /**
  * Get statement with IPFS content and optional metrics.
- * This is a complex function that combines GraphQL queries with IPFS fetching.
  */
 export async function getStatementWithContent(
   machinery: SDKMachinery,
@@ -597,31 +711,19 @@ export async function getStatementWithContent(
 
 /**
  * Get all statements a user indirectly supports through their beliefs and implications.
- *
- * This function solves the N+1 query pattern by efficiently computing all of a user's
- * indirect support in a single operation, rather than querying each believed statement
- * separately.
- *
- * A user indirectly supports a statement if:
- * 1. They believe some statement A
- * 2. There exists an implication A -> B (attested by a trusted attester)
- * 3. They have NO explicit opinion on statement B (not belief, not disbelief)
- *
- * Note: Indirect support only applies to statements the user hasn't directly opined on.
- * If they directly believe or disbelieve a statement, it's not considered indirect support.
  */
 export async function getUserIndirectSupport(
   machinery: SDKMachinery,
   userAddress: string,
   options: GetUserIndirectSupportOptions = {}
 ): Promise<IndirectSupportInfo[]> {
-  const userBeliefs = await getUserBeliefs(machinery, userAddress);
+  const userBeliefsList = await getUserBeliefs(machinery, userAddress);
 
-  if (userBeliefs.length === 0) {
+  if (userBeliefsList.length === 0) {
     return [];
   }
 
-  const implicationsQueries = userBeliefs.map(belief =>
+  const implicationsQueries = userBeliefsList.map(belief =>
     getImplicationsFrom(machinery, belief.cid, options.trustedAttesters?.[0])
   );
 
@@ -630,7 +732,7 @@ export async function getUserIndirectSupport(
   const targetToSources = new Map<IpfsCidV1, Set<IpfsCidV1>>();
   const allTargetStatementCids = new Set<IpfsCidV1>();
 
-  userBeliefs.forEach((belief, idx) => {
+  userBeliefsList.forEach((belief, idx) => {
     const implications = implicationsResults[idx];
     implications.forEach(implication => {
       const targetCid = normalizeCidV1(implication.toStatementCid);
@@ -670,8 +772,6 @@ export async function getUserIndirectSupport(
 
   for (let i = 0; i < indirectlySupportedCids.length; i++) {
     const targetCid = indirectlySupportedCids[i];
-    // Target statements only referenced in implications (not in statementsRegistry) return null.
-    // Use a minimal placeholder so we still include them in indirect support results.
     const statement = statements[i] ?? {
       id: targetCid,
       cid: targetCid,
@@ -681,7 +781,7 @@ export async function getUserIndirectSupport(
     } as unknown as Statement;
 
     const sourceIds = Array.from(targetToSources.get(targetCid) || []);
-    const sourceStatements = userBeliefs.filter(b => sourceIds.includes(b.cid));
+    const sourceStatements = userBeliefsList.filter(b => sourceIds.includes(b.cid));
 
     results.push({
       statement: statement as StatementListItem,
@@ -699,46 +799,28 @@ export async function getUserIndirectSupport(
 }
 
 // ============================================================================
-// Social Data Queries
+// Social Data Queries (removed per redesign — client resolves on demand)
 // ============================================================================
 
 /**
- * Get social data (ENS name, Twitter info) for a user address.
- * Uses the GraphQL API auto-generated from the user_social_data table.
+ * @deprecated Social data sync has been removed per the indexer redesign.
+ * Clients should resolve ENS/social data on demand.
  */
 export async function getUserSocialData(
-  machinery: SDKMachinery,
-  address: string
-): Promise<UserSocialData | null> {
-  const result = await executeTypedGraphQLQuery(machinery, GetUserSocialDataDocument, {
-    address: address.toLowerCase(),
-  });
-  return (result.userSocialData as unknown as UserSocialData) ?? null;
+  _machinery: SDKMachinery,
+  _address: string
+): Promise<null> {
+  return null;
 }
 
 /**
- * Get high-profile signers for a statement.
- * Uses the REST endpoint since it involves a join between beliefs and social data.
+ * @deprecated High-profile signer detection has been removed per the indexer redesign.
+ * This required server-side social data which is no longer indexed.
  */
 export async function getHighProfileSigners(
-  machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
-  options: { minFollowers?: number; limit?: number } = {}
-): Promise<HighProfileSigner[]> {
-  const { minFollowers = 10000, limit = 10 } = options;
-  const params = new URLSearchParams({
-    minFollowers: String(minFollowers),
-    limit: String(limit),
-  });
-
-  const url = `${machinery.indexerUrl.replace(/\/graphql$/, '')}/conceptspace/api/high-profile-signers/${statementCid}?${params}`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    console.warn(`Failed to fetch high-profile signers: ${response.status}`);
-    return [];
-  }
-
-  const data: { signers?: HighProfileSigner[] } = await response.json();
-  return data.signers ?? [];
+  _machinery: SDKMachinery,
+  _statementCid: IpfsCidV1,
+  _options: { minFollowers?: number; limit?: number } = {}
+): Promise<never[]> {
+  return [];
 }
