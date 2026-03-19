@@ -8,8 +8,8 @@ The rest of this file should be a to-do list.
 
 **In the SDK:**
 1. `sdk/src/utils/graphqlClient.ts` — used by:
-   - `fundingportals/queries.ts:336` — `GetProjectDetailsDocument` (project threshold/deadline)
-   - `fundingportals/queries.ts:383` — `GetParticipantSummariesDocument` (contributor leaderboards)
+   - ~~`fundingportals/queries.ts:336` — `GetProjectDetailsDocument` (project threshold/deadline)~~ ✅ Replaced with `getProject()` chain reads
+   - ~~`fundingportals/queries.ts:383` — `GetParticipantSummariesDocument` (contributor leaderboards)~~ ✅ Replaced with `getProjectContributions()` + `getProjectRefunds()` fold
    - `indexer-sync.ts:67` — `_meta` query (indexer sync status)
 
 ## What can be deleted
@@ -138,6 +138,7 @@ indexer/schemas/social.schema.ts
 
 **Remaining work** (not deletable yet without migration):
 
-- `fundingportals/queries.ts:336,383` — two GraphQL calls still needed for aggregated project/participant data. These could be replaced with event cache + chain reads, but that migration isn't done yet.
+- ~~`fundingportals/queries.ts:336,383` — two GraphQL calls still needed for aggregated project/participant data.~~ ✅ Done — replaced with `getProject()` + `getProjectContributions()`/`getProjectRefunds()`.
 - `indexer-sync.ts` — `META_STATUS_QUERY` for indexer sync polling (GraphQL-only)
 - The entire Ponder indexer infrastructure (`indexer/src/index.ts`, `ponder.config.ts`, etc.) — the hybrid approach keeps Ponder running as the event cache + REST API server, so Ponder itself stays.
+- The SDK generated GraphQL files and `graphqlClient.ts` can be deleted once `indexer-sync.ts` is also migrated.

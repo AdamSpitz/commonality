@@ -1,18 +1,13 @@
 /**
- * GraphQL queries for Funding Portals subsystem (AlignmentAttestations)
+ * Queries for Funding Portals subsystem (AlignmentAttestations)
  *
- * Entity-specific queries use event cache + folds.
- * Aggregated/computed queries use GraphQL.
+ * All queries use event cache + folds + chain reads.
  */
 
-import { executeTypedGraphQLQuery } from '../../utils/graphqlClient.js';
 import { fetchEvents, fetchAlignmentAttestationsRegistry } from '../../utils/eventCacheClient.js';
 import { decodeAlignmentAttestationEvent, decodeImplicationAttestationEvent } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import {
-  GetProjectDetailsDocument,
-  GetParticipantSummariesDocument,
-} from '../../generated/graphql.js';
+import { getProject, getProjectContributions, getProjectRefunds } from '../pubstarter/queries.js';
 import {
   type AlignmentAttestation,
   type IndirectSubjectAlignment,
@@ -256,7 +251,7 @@ export async function getIndirectlyAlignedSubjects(
 export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
 
 // ============================================================================
-// Aggregated Funding Metrics (E2) - GraphQL
+// Aggregated Funding Metrics (E2) - Event Cache + Chain Reads
 // ============================================================================
 
 /**
@@ -333,18 +328,15 @@ export async function getAllAlignedProjectsForCause(
 
   const results = [];
   for (const [projectAddress, alignmentType] of projectMap.entries()) {
-    const projectResult = await executeTypedGraphQLQuery(machinery, GetProjectDetailsDocument, {
-      id: projectAddress.toLowerCase(),
-    });
+    const project = await getProject(machinery, projectAddress);
 
-    if (projectResult.projects) {
-      const p = projectResult.projects;
+    if (project) {
       results.push({
-        projectAddress: p.id,
+        projectAddress: project.id,
         alignmentType,
-        totalReceived: String(p.totalReceived),
-        threshold: String(p.threshold),
-        deadline: String(p.deadline),
+        totalReceived: project.totalReceived,
+        threshold: project.threshold,
+        deadline: project.deadline,
       });
     }
   }
@@ -353,7 +345,7 @@ export async function getAllAlignedProjectsForCause(
 }
 
 // ============================================================================
-// Contributor Leaderboards (E3) - GraphQL
+// Contributor Leaderboards (E3) - Event Cache + Chain Reads
 // ============================================================================
 
 /**
@@ -380,48 +372,66 @@ export async function getTopContributorsForCause(
   const participantMap = new Map<string, ContributorStats>();
 
   for (const project of alignedProjects) {
-    const summariesResult = await executeTypedGraphQLQuery(machinery, GetParticipantSummariesDocument, {
-      projectAddress: project.projectAddress.toLowerCase(),
-    });
+    const [contributions, refunds] = await Promise.all([
+      getProjectContributions(machinery, project.projectAddress),
+      getProjectRefunds(machinery, project.projectAddress),
+    ]);
 
-    const summaries = summariesResult.participantSummariess?.items ?? [];
+    // Build per-participant refund totals for this project
+    const refundsByParticipant = new Map<string, bigint>();
+    for (const refund of refunds) {
+      const addr = refund.participant.toLowerCase();
+      refundsByParticipant.set(addr, (refundsByParticipant.get(addr) ?? 0n) + BigInt(refund.totalRefund));
+    }
 
-    for (const summary of summaries) {
-      const participant = summary.participant.toLowerCase();
+    // Aggregate contributions per participant for this project
+    const projectParticipants = new Map<string, { totalContributed: bigint; count: number; firstAt?: bigint; lastAt?: bigint }>();
+    for (const c of contributions) {
+      const addr = c.participant.toLowerCase();
+      const existing = projectParticipants.get(addr);
+      const ts = BigInt(c.createdAt);
+      if (existing) {
+        existing.totalContributed += BigInt(c.totalCost);
+        existing.count += 1;
+        if (ts < (existing.firstAt ?? ts + 1n)) existing.firstAt = ts;
+        if (ts > (existing.lastAt ?? 0n)) existing.lastAt = ts;
+      } else {
+        projectParticipants.set(addr, { totalContributed: BigInt(c.totalCost), count: 1, firstAt: ts, lastAt: ts });
+      }
+    }
+
+    // Merge into the cross-project participantMap
+    for (const [participant, stats] of projectParticipants.entries()) {
+      const totalRefunded = refundsByParticipant.get(participant) ?? 0n;
+      const netContribution = stats.totalContributed - totalRefunded;
       const existing = participantMap.get(participant);
 
-      const totalContributed = BigInt(String(summary.totalContributed));
-      const totalRefunded = BigInt(String(summary.totalRefunded));
-      const netContribution = BigInt(String(summary.netContribution));
-      const firstAt = summary.firstContributionAt != null ? BigInt(String(summary.firstContributionAt)) : undefined;
-      const lastAt = summary.lastContributionAt != null ? BigInt(String(summary.lastContributionAt)) : undefined;
-
       if (existing) {
-        existing.totalContributed += totalContributed;
+        existing.totalContributed += stats.totalContributed;
         existing.totalRefunded += totalRefunded;
         existing.netContribution += netContribution;
-        existing.contributionCount += summary.contributionCount;
+        existing.contributionCount += stats.count;
         existing.projectsContributedTo += 1;
 
-        if (firstAt !== undefined) {
-          if (!existing.firstContributionAt || firstAt < existing.firstContributionAt) {
-            existing.firstContributionAt = firstAt;
+        if (stats.firstAt !== undefined) {
+          if (!existing.firstContributionAt || stats.firstAt < existing.firstContributionAt) {
+            existing.firstContributionAt = stats.firstAt;
           }
         }
-        if (lastAt !== undefined) {
-          if (!existing.lastContributionAt || lastAt > existing.lastContributionAt) {
-            existing.lastContributionAt = lastAt;
+        if (stats.lastAt !== undefined) {
+          if (!existing.lastContributionAt || stats.lastAt > existing.lastContributionAt) {
+            existing.lastContributionAt = stats.lastAt;
           }
         }
       } else {
         participantMap.set(participant, {
           participant,
-          totalContributed,
+          totalContributed: stats.totalContributed,
           totalRefunded,
           netContribution,
-          contributionCount: summary.contributionCount,
-          firstContributionAt: firstAt,
-          lastContributionAt: lastAt,
+          contributionCount: stats.count,
+          firstContributionAt: stats.firstAt,
+          lastContributionAt: stats.lastAt,
           projectsContributedTo: 1,
         });
       }

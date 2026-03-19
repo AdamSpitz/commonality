@@ -2,6 +2,27 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Eliminated last two GraphQL calls from fundingportals/queries.ts
+
+**Task**: Replace `GetProjectDetailsDocument` and `GetParticipantSummariesDocument` GraphQL calls with event cache + chain reads.
+
+**What was done**:
+- `GetProjectDetailsDocument` → replaced with `getProject()` from `pubstarter/queries.ts` (already uses event cache + chain reads for threshold/deadline/totalReceived)
+- `GetParticipantSummariesDocument` → replaced with `getProjectContributions()` + `getProjectRefunds()` from `pubstarter/queries.ts`, with manual per-participant aggregation
+- Removed all GraphQL imports from `fundingportals/queries.ts`
+
+**Files changed**:
+- `sdk/src/subsystems/fundingportals/queries.ts` — replaced GraphQL calls, updated imports
+- `indexer-redesign-todo.md` — marked these items as done
+- `CONTINUITY.md` — this note
+
+**What's next for the indexer redesign**:
+- `indexer-sync.ts` still uses `_meta` GraphQL query — last remaining GraphQL usage in SDK
+- Once that's migrated, the SDK generated GraphQL files (`sdk/src/generated/`) and `graphqlClient.ts` can be deleted
+- Then the old indexer files (schemas, handlers, API endpoints, sync jobs) listed in the todo can be deleted
+
+**Good interrupt point**: Yes — this is a clean checkpoint. The funding portals subsystem is now fully GraphQL-free.
+
 ## Integration tests: ALL PASSING ✓
 
 **Status**: All integration tests pass. Pre-commit hook runs 616 tests clean.
