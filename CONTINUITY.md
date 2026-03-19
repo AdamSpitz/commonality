@@ -2,6 +2,34 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Deleted old indexer derived-table handlers, schemas, APIs, and sync jobs
+
+**Task**: Delete all old indexer-side files now that business logic lives in SDK folds.
+
+**What was done**:
+- Created consolidated `indexer/src/events-cache/index.ts` — registers ALL ponder.on() handlers but ONLY captures raw events + updates registry tables. No derived table logic.
+- Stripped `indexer/src/api/index.ts` — removed subsystem API routes and background sync jobs. Only event cache REST endpoints remain.
+- Updated `indexer/src/index.ts` — now only imports `./events-cache`.
+- Updated `indexer/ponder.schema.ts` — now only re-exports from `events.schema.ts`.
+- Deleted 22 indexer files: all subsystem handlers, APIs, IPFS sync jobs, social sync, schemas.
+- Also deleted `constants.ts`, `validation.ts`, `logger.ts` (no longer referenced).
+- Removed 3 invariant checks from integration tests that queried old derived tables via GraphQL:
+  - `assertBeliefCountsMatch` (checked cached counts vs actual belief records)
+  - `assertNoOrphanedData` (checked referential integrity of derived tables)
+  - `assertAggregatedCountConsistency` (generic GraphQL-based count cross-check)
+- Deleted `integration-tests/src/queries/invariant-queries.graphql`.
+- Updated action metadata in `belief-action-properties.ts` and `alignment-action-properties.ts` to remove invariant references.
+
+**Files changed**: See `indexer-redesign-todo.md` "Full file deletion list" section (all marked ✅).
+
+**Test results**: 239 SDK + 264 UI + 107 integration = 610 tests passing. Build clean.
+
+**What's next**:
+- The "Make fold functions resumable-ready" section in `indexer-redesign-todo.md` is the remaining optional work.
+- The indexer redesign is otherwise **complete**: SDK is GraphQL-free, indexer is just an event cache + registry tables.
+
+**Good interrupt point**: Yes — this is a major milestone. The indexer is now a thin event cache. All business logic lives in SDK folds.
+
 ## Migrated indexer-sync.ts from GraphQL to REST; deleted SDK GraphQL files
 
 **Task**: Remove the last GraphQL dependency from the SDK — `indexer-sync.ts` was using `_meta { status }` query via `executeTypedGraphQLQuery`.

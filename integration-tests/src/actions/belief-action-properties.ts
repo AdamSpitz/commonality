@@ -9,7 +9,6 @@ import assert from 'assert';
 import {
   type ActionContext,
   type StateTransitionProperty,
-  type InvariantCheck,
   type ActionMetadata,
 } from './action-framework.js';
 import {
@@ -18,7 +17,6 @@ import {
   DISBELIEVES,
 } from '@commonality/sdk';
 import { getStatement, getUserBelief } from '@commonality/sdk';
-import { assertBeliefCountsMatch } from '../utils/invariants.js';
 
 /**
  * State captured before/after a belief action
@@ -124,33 +122,13 @@ export const beliefTransitionProperty: StateTransitionProperty = {
 };
 
 /**
- * Invariant Check: Belief Counts Match
- *
- * The cached believerCount and disbelieverCount on the Statement entity
- * should always match the actual count of UserBelief records.
- */
-export const beliefCountsInvariant: InvariantCheck = {
-  name: 'beliefCountsMatch',
-  check: async (context: ActionContext) => {
-    const { machinery, entities } = context;
-    const { statementCid } = entities;
-
-    if (!statementCid) {
-      throw new Error('statementCid is required in context.entities');
-    }
-
-    await assertBeliefCountsMatch(machinery, statementCid);
-  },
-};
-
-/**
  * Action metadata for believeStatement
  */
 export const believeStatementMetadata: ActionMetadata = {
   name: 'believeStatement',
   category: 'belief',
   stateTransitionProperties: [beliefTransitionProperty],
-  invariantsToCheck: [beliefCountsInvariant],
+  invariantsToCheck: [],
 };
 
 /**
@@ -160,7 +138,7 @@ export const disbelieveStatementMetadata: ActionMetadata = {
   name: 'disbelieveStatement',
   category: 'belief',
   stateTransitionProperties: [beliefTransitionProperty],
-  invariantsToCheck: [beliefCountsInvariant],
+  invariantsToCheck: [],
 };
 
 /**
@@ -170,5 +148,5 @@ export const clearOpinionMetadata: ActionMetadata = {
   name: 'clearOpinion',
   category: 'belief',
   stateTransitionProperties: [beliefTransitionProperty],
-  invariantsToCheck: [beliefCountsInvariant],
+  invariantsToCheck: [],
 };

@@ -9,7 +9,6 @@ import assert from 'assert';
 import {
   type ActionContext,
   type StateTransitionProperty,
-  type InvariantCheck,
   type ActionMetadata,
 } from './action-framework.js';
 import {
@@ -17,7 +16,6 @@ import {
   getSubjectStatements,
   getAlignmentAttestation,
 } from '@commonality/sdk';
-import { assertNoOrphanedData } from '../utils/invariants.js';
 
 /**
  * State captured before/after an alignment attestation action
@@ -173,24 +171,6 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
 };
 
 /**
- * Invariant Check: No Orphaned Alignment Data
- *
- * All alignment records should reference valid entities:
- * - Every alignment references a Statement that exists
- * - Every alignment references a Subject that exists
- * - Every alignment references an Attester that exists
- *
- * This is a referential integrity check.
- */
-export const noOrphanedAlignmentDataInvariant: InvariantCheck = {
-  name: 'noOrphanedAlignmentData',
-  check: async (context: ActionContext) => {
-    const { machinery } = context;
-    await assertNoOrphanedData(machinery);
-  },
-};
-
-/**
  * Action metadata for attestAlignment
  */
 export const attestAlignmentMetadata: ActionMetadata = {
@@ -200,7 +180,7 @@ export const attestAlignmentMetadata: ActionMetadata = {
     alignmentAttestationProperty,
     alignmentBidirectionalityProperty,
   ],
-  invariantsToCheck: [noOrphanedAlignmentDataInvariant],
+  invariantsToCheck: [],
 };
 
 /**
@@ -214,5 +194,5 @@ export const attestAlignmentsBatchMetadata: ActionMetadata = {
   name: 'attestAlignmentsBatch',
   category: 'other',
   stateTransitionProperties: [],
-  invariantsToCheck: [noOrphanedAlignmentDataInvariant],
+  invariantsToCheck: [],
 };

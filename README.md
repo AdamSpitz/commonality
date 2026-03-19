@@ -35,10 +35,7 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 ## High-level overview of current status
 
 - Delegation UI complete with unit tests and E2E test (deposit → delegate → spend flow).
-- Funding Portals UI complete with unit tests. Code review done (4 bugs fixed), DRY refactor done. All components tested: AlignedProjectsList, DelegatableNotesSection, AlignmentAttestationsSection, FundingPortalSummary (20 tests each).
-- Indexer redesign Phase 1 **complete**: SDK fold functions for all 5 subsystems (Mutable Refs, Funding Portals, Concept Space, Pubstarter Primary+Secondary Market+Burns, Delegation). 194 SDK tests passing.
-- Indexer redesign Phase 2 **complete**: SDK now has 11 on-chain read functions (readConditionParams, readProjectETHBalance, readNoteOnChainInfo, readBelief, readHasAlignment, readHasImplication, readExplanation, readMutableRef, readTotalReceivedValue, readConditionStatus, readSaleListing, readBuyOrder, readNextNoteId). 239 SDK tests passing.
-- Indexer redesign Phase 3 **complete**: Thin event cache service added to Ponder (events table + registry tables). All contract events captured. Build passes, 239 SDK tests passing.
-- Indexer redesign Phase 4 **complete**: All queries for pubstarter, delegation, and mutable-refs now use event cache + client-side folds when event cache is configured (falls back to GraphQL). eventCacheClient.ts has domain helpers (fetchPubstarterProjectEvents, fetchSecondaryMarketEvents, fetchAllDelegationEvents, fetchNoteIntentEvents, fetchRefUpdatedEvents). Build passes, 239 SDK tests passing.
-- Indexer redesign: **SDK is now 100% GraphQL-free**. `indexer-sync.ts` migrated from `_meta` GraphQL query to Ponder REST `/status` endpoint. SDK GraphQL files deleted (`sdk/src/generated/`, `graphqlClient.ts`). Next: delete old indexer derived-table handlers and schemas. 616 tests passing.
+- Funding Portals UI complete with unit tests. Code review done (4 bugs fixed), DRY refactor done. All components tested.
+- **Indexer redesign COMPLETE.** The Ponder indexer is now a thin event cache (raw events table + 4 registry tables). All business logic (beliefs, projects, delegation chains, etc.) computed client-side by SDK fold functions. Old derived-table handlers, schemas, API endpoints, and sync jobs deleted. SDK is 100% GraphQL-free. 610 tests passing.
+- Only remaining optional work: make fold functions resumable-ready (see `indexer-redesign-todo.md`).
 - For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.

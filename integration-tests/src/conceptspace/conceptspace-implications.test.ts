@@ -21,7 +21,6 @@ import {
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
-import { assertNoOrphanedData } from '../utils/invariants.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
@@ -188,9 +187,6 @@ describe('Conceptspace Implications', () => {
       imp => imp.fromStatementCid.toLowerCase() === s1.toLowerCase()
     );
     assert.strictEqual(s1ToS3, undefined, 'S1 -> S3 should NOT exist (implications are not transitive)');
-
-    // Verify no orphaned data (all implications reference valid statements and attesters)
-    await assertNoOrphanedData(machinery);
 
     testLog('  ✓ Confirmed: implications are NOT transitive');
     testLog('  ✓ To find indirect support for S3 from S1 believers, need direct S1->S3 attestation');

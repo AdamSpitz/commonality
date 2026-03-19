@@ -20,7 +20,6 @@ import {
   fakeIpfsCidV1,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
-import { assertBeliefCountsMatch, assertNoOrphanedData } from '../utils/invariants.js';
 import { getStatementWithContent } from '@commonality/sdk';
 import {
   believeStatementChecked,
@@ -185,10 +184,6 @@ describe('Conceptspace Beliefs', () => {
     assert.strictEqual(resultWithMetrics!.metrics!.directBelievers, 1, 'Should have 1 direct believer');
     assert.strictEqual(resultWithMetrics!.metrics!.directDisbelievers, 0, 'Should have 0 disbelievers');
     assert.strictEqual(resultWithMetrics!.metrics!.indirectSupporters, 0, 'Should have 0 indirect supporters');
-
-    // Verify invariants: belief counts match individual records and no orphaned data
-    await assertBeliefCountsMatch(machinery, statementCid);
-    await assertNoOrphanedData(machinery);
 
     testLog('  ✓ Fetch with metrics successful');
 

@@ -1,10 +1,10 @@
 /**
  * Main API Router
  *
- * This module composes the APIs from all logical indexer subsystems.
- * Each subsystem has its own API module that is mounted here.
- * 
- * The root GraphQL endpoint provides access to all schema tables.
+ * Serves:
+ *   - SQL client for direct queries
+ *   - GraphQL endpoint (auto-generated from schema)
+ *   - REST endpoints for the events cache and registry tables
  */
 
 import { db } from "ponder:api";
@@ -12,20 +12,6 @@ import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { and, eq, gte, lte } from "ponder";
-
-// Import subsystem API factories
-import { createConceptspaceApi } from "../conceptspace/api";
-import { createPubstarterApi } from "../pubstarter/api";
-import { createDelegationApi } from "../delegation/api";
-import { createFundingportalApi } from "../fundingportal/api";
-
-// Import background jobs
-import { startIpfsSyncJobs } from "../utils/ipfsSyncJob.js";
-import { runPubstarterIpfsSyncIteration } from "../pubstarter/utils/ipfsSyncJob";
-import { runConceptspaceIpfsSyncIteration } from "../conceptspace/utils/ipfsSyncJob.js";
-import { startSocialSyncJob } from "../utils/socialSyncJob.js";
-
-const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 
 /**
  * Recursively convert BigInt values to strings for JSON serialization.
@@ -50,12 +36,6 @@ app.use("/sql/*", client({ db, schema }));
 // Root GraphQL API (auto-generated from schema - all tables)
 app.use("/", graphql({ db, schema }));
 app.use("/graphql", graphql({ db, schema }));
-
-// Subsystems
-app.route("/conceptspace", createConceptspaceApi(db, schema));
-app.route("/pubstarter", createPubstarterApi(db, schema));
-app.route("/delegation", createDelegationApi(db, schema));
-app.route("/fundingportal", createFundingportalApi(db, schema));
 
 // ============================================================================
 // EVENTS CACHE REST API
@@ -166,14 +146,5 @@ app.get("/api/implications_registry", async (c) => {
     return c.json({ error: String(error) }, 500);
   }
 });
-
-// Background IPFS sync jobs
-startIpfsSyncJobs(IPFS_GATEWAY, db, [
-  { name: "Statements", iterationFn: runConceptspaceIpfsSyncIteration },
-  { name: "Projects", iterationFn: runPubstarterIpfsSyncIteration },
-]);
-
-// Background social data sync job (ENS names + Twitter follower counts)
-startSocialSyncJob(db);
 
 export default app;

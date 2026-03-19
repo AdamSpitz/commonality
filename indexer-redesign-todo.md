@@ -102,39 +102,45 @@ These handlers maintain the old derived tables (beliefs, implications, contribut
 | `schemas/mutable-refs.schema.ts` | Delete (derived tables) |
 | `schemas/social.schema.ts` | Delete |
 
-**Full file deletion list:**
+**Full file deletion list:** ✅ ALL DONE
 
 ```
 ~~sdk/src/generated/graphql.ts~~ ✅ deleted
 ~~sdk/src/generated/gql.ts~~ ✅ deleted
 ~~sdk/src/generated/index.ts~~ ✅ deleted
 ~~sdk/src/utils/graphqlClient.ts~~ ✅ deleted
-sdk/src/utils/index.ts (graphqlClient re-export removed) ✅
+~~sdk/src/utils/index.ts (graphqlClient re-export removed)~~ ✅
 
-indexer/src/conceptspace/api.ts
-indexer/src/conceptspace/index.ts
-indexer/src/conceptspace/utils/ipfsSyncJob.ts
-indexer/src/conceptspace/utils/ipfs.ts
-indexer/src/pubstarter/api.ts
-indexer/src/pubstarter/index.ts
-indexer/src/pubstarter/utils/ipfsSyncJob.ts
-indexer/src/pubstarter/utils/ipfs.ts
-indexer/src/fundingportal/api.ts
-indexer/src/fundingportal/index.ts
-indexer/src/delegation/api.ts
-indexer/src/delegation/index.ts
-indexer/src/mutable-refs/index.ts
-indexer/src/utils/ipfsSyncJob.ts
-indexer/src/utils/socialSyncJob.ts
-indexer/src/utils/socialData.ts
-indexer/src/api/index.ts (keep only event cache endpoints, remove sync job calls)
-indexer/schemas/conceptspace.schema.ts
-indexer/schemas/pubstarter.schema.ts
-indexer/schemas/fundingportal.schema.ts
-indexer/schemas/delegation.schema.ts
-indexer/schemas/mutable-refs.schema.ts
-indexer/schemas/social.schema.ts
+~~indexer/src/conceptspace/api.ts~~ ✅ deleted
+~~indexer/src/conceptspace/index.ts~~ ✅ deleted
+~~indexer/src/conceptspace/utils/ipfsSyncJob.ts~~ ✅ deleted
+~~indexer/src/conceptspace/utils/ipfs.ts~~ ✅ deleted
+~~indexer/src/pubstarter/api.ts~~ ✅ deleted
+~~indexer/src/pubstarter/index.ts~~ ✅ deleted
+~~indexer/src/pubstarter/utils/ipfsSyncJob.ts~~ ✅ deleted
+~~indexer/src/pubstarter/utils/ipfs.ts~~ ✅ deleted
+~~indexer/src/fundingportal/api.ts~~ ✅ deleted
+~~indexer/src/fundingportal/index.ts~~ ✅ deleted
+~~indexer/src/delegation/api.ts~~ ✅ deleted
+~~indexer/src/delegation/index.ts~~ ✅ deleted
+~~indexer/src/mutable-refs/index.ts~~ ✅ deleted
+~~indexer/src/utils/ipfsSyncJob.ts~~ ✅ deleted
+~~indexer/src/utils/socialSyncJob.ts~~ ✅ deleted
+~~indexer/src/utils/socialData.ts~~ ✅ deleted
+~~indexer/src/api/index.ts (keep only event cache endpoints, remove sync job calls)~~ ✅ stripped
+~~indexer/schemas/conceptspace.schema.ts~~ ✅ deleted
+~~indexer/schemas/pubstarter.schema.ts~~ ✅ deleted
+~~indexer/schemas/fundingportal.schema.ts~~ ✅ deleted
+~~indexer/schemas/delegation.schema.ts~~ ✅ deleted
+~~indexer/schemas/mutable-refs.schema.ts~~ ✅ deleted
+~~indexer/schemas/social.schema.ts~~ ✅ deleted
 ```
+
+Also deleted (unused after above removals):
+- `indexer/src/constants.ts`
+- `indexer/src/utils/validation.ts`
+- `indexer/src/utils/logger.ts`
+- `integration-tests/src/queries/invariant-queries.graphql`
 
 **Remaining work** (not deletable yet without migration):
 
