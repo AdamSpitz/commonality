@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - [Indexer redesign](/specs/indexer/redesign.md) — Phase 1-4 complete! All queries migrated to event cache + folds. Next: integration testing with real Ponder event cache running.
+  - [Indexer redesign](/indexer-redesign-todo.md)
 
 Other big things to do soon:
   - The issues in the different workspaces' TODO.md files (see below).
