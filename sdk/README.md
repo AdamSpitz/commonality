@@ -16,7 +16,16 @@ The SDK provides two main interfaces:
 
 2. **Queries** - Read operations (data fetching)
    - `getStatement()`, `getUserBelief()`, `getProject()`, etc.
-   - Uses a local GraphQL executor that wraps the Ponder indexer
+   - Fetches raw events from the indexer's event cache REST API, then folds them client-side into typed entity state
+   - Reads current on-chain state via contract view functions (balances, thresholds, etc.)
+   - Fetches IPFS content directly from a gateway
+
+### Key concepts
+
+- **Event cache**: The indexer stores raw on-chain events in a single `events` table, served via `GET /api/events`. No business logic in the indexer.
+- **Fold functions**: Pure functions in each subsystem's `folds.ts` that reconstruct entity state from raw events (e.g., `foldProject()`, `foldStatementBeliefs()`, `foldDelegationState()`).
+- **Event decoder**: `eventDecoder.ts` uses viem's `decodeEventLog` to decode raw events from the cache into typed event objects.
+- **Chain reads**: `chain-reads.ts` provides functions for reading current on-chain state via contract view functions.
 
 ## Usage
 
@@ -25,7 +34,7 @@ import { createSDKMachinery, createTestClients } from '@commonality/sdk';
 import { getStatement, believeStatement, waitForIndexerToSyncToTxHash } from '@commonality/sdk';
 
 // Set up machinery and clients
-const machinery = createSDKMachinery('http://localhost:42069/graphql');
+const machinery = createSDKMachinery('http://localhost:42069');
 const clients = createTestClients(privateKey, rpcUrl);
 
 // Perform actions
@@ -56,5 +65,13 @@ await waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber);
 
 ## Structure
 
-  - The `subsystems/` directory is the main public API for reading data.
+  - The `subsystems/` directory is the main public API for reading data. Each subsystem has:
+    - `queries.ts` — query functions that fetch events, fold them, and return typed results
+    - `folds.ts` — pure fold functions that reconstruct entity state from raw events
+    - `types.ts` — TypeScript types for the subsystem's entities
+    - `events.ts` — TypeScript types for the subsystem's decoded events
   - The `actions/` directory contains actions that "write" to the system (blockchain writes, IPFS uploads).
+  - The `utils/` directory contains shared utilities:
+    - `eventCacheClient.ts` — client for the indexer's REST API
+    - `eventDecoder.ts` — ABI decoding for all event types
+    - `chain-reads.ts` — on-chain view function reads

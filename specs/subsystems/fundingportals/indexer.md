@@ -1,56 +1,33 @@
-# Indexer Architecture
+# Funding Portals — Data Architecture
 
-## Key Responsibilities
+## Subsystems Covered
 
-### Pubstarter Indexer
+This document covers the data architecture for Pubstarter, Delegation, and Funding Portal subsystems.
 
-**Domain:** Individual crowdfunding projects and token markets
+## How It Works
 
-**Data stored:**
-- Project details (threshold, deadline, recipient)
-- Token types per project (ERC1155)
-- Contributions and current token holders
-- Burned tokens (donors vs investors)
-- Active market orders (buy/sell listings)
+All subsystems share a single thin event cache (one `events` table). The SDK fetches raw events and folds them client-side.
 
-**Non-obvious requirements:**
-- Multi-token tracking per project: indexes per `(project_address, token_id)`
-- Order book indexing with price-time priority
-- Track primary vs secondary market prices
-- Handle partial order fills
+### Pubstarter
 
-**Example query:** "Give me all contributors to project P, distinguishing between donors (who burned tokens) and investors (who still hold)"
+- **Project discovery:** Projects discovered from `PubstarterAssuranceContractCreated` factory events.
+- **Project state:** `foldProject()` processes `ERC1155Bought`, `ERC1155Sold`, `ContractMetadataUpdated` events per project contract. On-chain view functions provide current balance, threshold, deadline.
+- **Contributions/refunds:** `foldContributions()` and `foldRefunds()` reconstruct per-participant contribution history from events.
+- **Secondary market:** `foldSecondaryMarket()` processes listing, order, trade, and cancellation events.
+- **Token burns:** Discovered from `TransferSingle`/`TransferBatch` events where the recipient is the zero address.
 
-### Delegation Indexer
+### Delegation
 
-**Domain:** Delegatable notes and delegation chains
+- **Notes and chains:** `foldDelegationState()` processes `NoteCreated`, `NoteDelegated`, `ChainSplit`, `NoteRevoked`, `FundsReclaimed`, `NoteConsumed`, `ERC1155Purchased` events to reconstruct note ownership, delegation chains, and lifecycle state.
+- **Note intent attestations:** `foldNoteIntentAttestations()` processes `NoteIntentAttested` events.
 
-**Data stored:**
-- Active notes indexed by noteId, owner, intendedStatementId
-- Full delegation chains with position tracking
-- Commission percentages per delegation hop
+### Funding Portal
 
-**Non-obvious requirements:**
-- Efficient chain reconstruction via `(note_id, position_in_chain)` index
-- Fast sub-chain invalidation on revocation
-- Track splits/merges while maintaining chain identity
-- Commission data stored (actual calculation happens in smart contract)
+- **Alignment attestations:** `foldAlignmentAttestations()` processes `AlignmentAttestation` events to track which projects align with which statements.
+- **Cross-subsystem aggregation:** SDK functions (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`, `getTotalFundingForCause`) orchestrate calls across Concept Space, Pubstarter, and Delegation SDK queries — no indexer federation needed.
 
-**Example query:** "Give me the full delegation chain for note N (Alice → Bob → Charlie)"
+## Key Design Decisions
 
-### Funding Portal Indexer
-
-**Domain:** Cross-cutting queries joining concepts, projects, and funding
-
-**Data stored:**
-- Alignment attestations (subjectAddress → statementId, by attester)
-- Cached results of expensive federated queries
-- Aggregated contributor data across aligned projects
-
-**Non-obvious requirements:**
-- **Indirect project alignment:** Federates to Concept Space API for direct implication attestations (no transitive traversal), joins with local alignment data
-- **Aggregated funding by cause:** Federates to Delegation API for notes, Concept Space API for implications, sums across relevant statements
-- **Contributor leaderboards:** Federates to Pubstarter API for contributions, Delegation API for chains, aggregates by cause
-- Heavy caching with invalidation on: new implications, new alignments, delegation changes — deferred; currently queries are live
-
-**Example query:** "Show me all projects aligned with statement S (directly or indirectly via implications), sorted by funding progress, with top contributors and their full delegation chains"
+- No per-subsystem indexers or federation — all subsystems read from the same event cache.
+- Cross-cutting aggregations happen client-side in the SDK. See [../../indexer/redesign.md](../../indexer/redesign.md) for performance analysis and future optimization options.
+- IPFS content (project metadata) fetched directly from IPFS gateway on demand.

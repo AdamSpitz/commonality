@@ -1,6 +1,6 @@
 # Integration Tests
 
-This directory contains integration tests for the Commonality system. These tests verify that the blockchain (Hardhat), IPFS node, indexer (Ponder), and GraphQL API work together correctly.
+This directory contains integration tests for the Commonality system. These tests verify that the blockchain (Hardhat), IPFS node, indexer (Ponder event cache), and SDK (event cache client + fold functions) work together correctly.
 
 ## Test Approach
 

@@ -7,7 +7,7 @@ This guide covers deploying Commonality's smart contracts and services to local,
 Commonality consists of several deployable components:
 
 1. **Smart Contracts** - Core protocol contracts deployed to Ethereum (or L2)
-2. **Ponder Indexer** - GraphQL indexer for contract events
+2. **Ponder Indexer** - Thin event cache that stores raw contract events and serves them via REST API
 3. **AI Attester Service** - Evaluates statement implications using LLMs
 4. **Frontend UI** - User interface deployed to IPFS via Pinata, accessed via ENS + eth.limo
 
@@ -266,7 +266,7 @@ cd hardhat && npx hardhat run scripts/deploy.js --network mainnet
 - [ ] `PINATA_JWT` set in `.env.secrets`
 - [ ] `ENS_OWNER_PRIVATE_KEY` set in `.env.secrets`
 - [ ] `VITE_WALLETCONNECT_PROJECT_ID` set in `.env.secrets`
-- [ ] Indexer GraphQL endpoint URL configured (`VITE_GRAPHQL_URL`)
+- [ ] Indexer event cache URL configured (`VITE_INDEXER_URL`)
 - [ ] Run `./scripts/deploy-ui.sh <network>` — note the CID
 - [ ] Verify the build at `https://gateway.pinata.cloud/ipfs/<CID>`
 - [ ] Run `./scripts/update-ens.sh <name>.eth <CID> [--network ...]`
@@ -279,7 +279,7 @@ cd hardhat && npx hardhat run scripts/deploy.js --network mainnet
 
 2. **Pinning:** Content uploaded via Pinata is pinned automatically. As long as your Pinata account is active, the content remains available.
 
-3. **Environment Variables:** Vite only includes `VITE_*` prefixed variables in the build. Contract addresses and the GraphQL URL are baked in at build time by `setup-env.sh`.
+3. **Environment Variables:** Vite only includes `VITE_*` prefixed variables in the build. Contract addresses and the indexer URL are baked in at build time by `setup-env.sh`.
 
 4. **Network-specific builds:** Because contract addresses differ between sepolia and mainnet, each network needs its own build and CID. If you have separate ENS names for testnet and mainnet, each gets its own contenthash.
 
@@ -418,7 +418,7 @@ networks: {
 ### Health Checks
 
 - **Attester service**: `curl https://your-service.onrender.com/health`
-- **Indexer GraphQL**: `curl http://localhost:42069` (or production URL)
+- **Indexer REST API**: `curl http://localhost:42069/api/events` (or production URL)
 - **IPFS**: `curl http://localhost:5001/api/v0/id` (or Pinata/Infura)
 
 ## Troubleshooting

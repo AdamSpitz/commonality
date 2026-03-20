@@ -78,7 +78,7 @@ Replace all of the above with three simpler pieces:
 | Current piece | What happens to it |
 |---|---|
 | Ponder dependency | Gone. The event cache is ~100 lines of chain-watching logic. |
-| 5 subsystem schemas (~20 tables) | Replaced by one `events` table + a few small registry tables. |
+| 5 subsystem schemas (~20 tables) | Replaced by one `events` table (no registry tables needed). |
 | All event handler business logic | Moves into SDK fold functions. Same logic, different location. |
 | Background IPFS sync jobs | Gone. Client fetches from IPFS gateway on demand. |
 | Social data sync | Gone. Client resolves ENS/social data on demand. |
@@ -91,35 +91,27 @@ Replace all of the above with three simpler pieces:
 ```
 Storage:
   events(
+    id,                        -- txHash + logIndex
     contract_address,
-    event_signature,
-    topic1, topic2, topic3,   -- indexed params
-    data,                      -- ABI-encoded non-indexed params
+    event_name,
     block_number,
-    tx_hash,
-    log_index
+    block_timestamp,
+    transaction_hash,
+    log_index,
+    topic0,                    -- event signature
+    topic1, topic2, topic3,    -- indexed params
+    data                       -- ABI-encoded non-indexed params
   )
 
-  -- Small registry tables, eagerly maintained:
-  statements(cid, created_at_block)
-  projects(address, factory_address, created_at_block)
-  alignment_attestations(attester, subject, statement_cid)
-  implications(attester, from_cid, to_cid)
+  (No other tables. Registry tables were originally planned but turned out
+   to be unnecessary — the SDK discovers entities from creation events.)
 
 Ingestion:
-  on each new block:
-    for each configured contract:
-      fetch new events via eth_getLogs
-      insert into events table
-      if event is a creation/registry event, update registry table
+  Ponder watches configured contracts and inserts one row per event.
 
 Query API:
-  GET /events?contract=0x...&event=DirectSupport&topic1=<statementCid>
-  GET /events?contract=0x...&event=ERC1155Bought
-  GET /registry/statements
-  GET /registry/projects
-  GET /registry/alignments?statement=<cid>
-  GET /registry/implications?to=<cid>
+  GET /api/events?contractAddress=0x...&eventName=DirectSupport&topic1=...
+  (Supports filtering by contractAddress, eventName, topic1-3, blockNumber range, limit)
 ```
 
 No business logic. No schema migrations when event types change. No subsystem boundaries to maintain. No federation.
@@ -180,10 +172,10 @@ The queries that need global knowledge are:
 
 | Query | Solution in the redesign |
 |---|---|
-| "Which statements exist?" | Registry table (eagerly maintained, small) |
-| "Which projects exist?" | Registry table (eagerly maintained, small) |
-| "Projects aligned with cause S" | Registry tables (alignments + implications, both small) |
-| "Total funding for cause S" | Registry gives aligned projects; multicall reads balances from chain |
+| "Which statements exist?" | SDK discovers from `DirectSupport` creation events (fold all events, extract unique statement CIDs) |
+| "Which projects exist?" | SDK discovers from `PubstarterAssuranceContractCreated` factory events |
+| "Projects aligned with cause S" | SDK fetches `AlignmentAttestation` + `ImplicationAttestation` events, folds client-side |
+| "Total funding for cause S" | SDK finds aligned projects from events; chain reads provide balances |
 | "Statements sorted by believer count" | This is the one hard case — see below |
 | "Top contributors to cause S" | Requires folding each aligned project's events. Feasible if # of aligned projects is manageable (dozens). |
 
@@ -211,10 +203,9 @@ The redesign doesn't require a big-bang rewrite. The current system can be refac
 
 **Phase 3: Add raw events table to Ponder.** See [phase3-plan.md](./phase3-plan.md) for the implementation plan.
 - A simple service: watch configured contracts, store events, serve via REST.
-- Add the small registry tables.
 - This can run alongside Ponder initially.
 
-**Phase 3 is now complete.** The events table and registry tables have been added to the Ponder schema, and event handlers capture raw events for all contracts. The existing Ponder indexer continues to function exactly as before.
+**Phase 3 is now complete.** The events table has been added to the Ponder schema, and event handlers capture raw events for all contracts. (Registry tables were originally planned but later removed — the SDK discovers entities from creation events in the event cache.)
 
 **Phase 4: Switch the SDK to use the event cache.**
 - Update SDK query functions to fetch from the event cache + fold locally, instead of calling Ponder's GraphQL.
@@ -376,19 +367,13 @@ All functions have comprehensive tests (happy path, fallback behavior on error, 
 
 ### What's been implemented
 
-Added the thin event cache service to Ponder:
+Added the thin event cache to Ponder:
 
 1. **events table** (`schemas/events.schema.ts`): Stores raw event data with:
    - id (txHash + logIndex), contractAddress, eventName, blockNumber, blockTimestamp
    - transactionHash, logIndex, topic0-3, data (ABI-encoded non-indexed params)
 
-2. **Registry tables** (lightweight "what exists" tracking):
-   - `statements_registry` (cidV1, createdAtBlock, createdAtTimestamp)
-   - `projects_registry` (id, factoryAddress, createdAtBlock, createdAtTimestamp)
-   - `alignment_attestations_registry` (id, attester, subjectAddress, statementId, createdAtBlock)
-   - `implications_registry` (id, attester, fromStatementId, toStatementId, createdAtBlock)
-
-3. **Event handlers** (`src/events-cache/index.ts`): Capture raw events for all contracts:
+2. **Event handlers** (`src/events-cache/index.ts`): Capture raw events for all contracts:
    - Beliefs: DirectSupport
    - Implications: ImplicationAttestation
    - AssuranceContractFactory: PubstarterAssuranceContractCreated
@@ -400,9 +385,7 @@ Added the thin event cache service to Ponder:
    - AlignmentAttestations: AlignmentAttestation
    - MutableRefUpdater: RefUpdated
 
-The existing Ponder indexer continues to function exactly as before. This is a pure addition.
-
-Build passes, SDK tests pass (239 tests).
+Note: Registry tables were originally part of this phase but were later removed. The SDK discovers entities from creation events in the event cache (e.g., factory events for projects, DirectSupport events for statements).
 
 
 ## Phase 4: Event cache SDK integration — Complete
@@ -411,7 +394,7 @@ Phase 4 is complete. **The SDK is 100% GraphQL-free.** All queries use event cac
 
 ### What was implemented:
 
-1. **sdk/src/utils/eventCacheClient.ts**: Client for fetching raw events and registry data from the indexer's REST API.
+1. **sdk/src/utils/eventCacheClient.ts**: Client for fetching raw events from the indexer's REST API.
 
 2. **sdk/src/utils/eventDecoder.ts**: ABI-decoded event helpers for all contract event types.
 
@@ -430,10 +413,11 @@ Phase 4 is complete. **The SDK is 100% GraphQL-free.** All queries use event cac
 - GraphQL codegen pipeline and generated files
 - `graphqlClient.ts` and all GraphQL query files
 - Old Ponder-derived-table handlers, schemas, background sync jobs, and federation endpoints
+- Registry tables (statements, projects, alignment_attestations, implications) — the SDK discovers entities from creation events instead
 
 ### Architecture decision:
 
-The Ponder dependency is kept — but only for its event-watching and DB infrastructure. The indexer is now a thin event cache: all schema logic is in `events.schema.ts` (one events table + four small registry tables), all handlers do only `captureRawEvent()`, and the API serves raw events via REST. No business logic lives in the indexer.
+The Ponder dependency is kept — but only for its event-watching and DB infrastructure. The indexer is now a thin event cache: the only schema is `events.schema.ts` (one `events` table), all handlers do only `captureRawEvent()`, and the API serves raw events via REST. No business logic lives in the indexer.
 
 ## Open question: Cross-entity aggregation queries and performance
 

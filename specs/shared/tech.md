@@ -9,11 +9,7 @@ In general an Ethereum L2 (or validium?) is probably the best choice for which c
 
 For IPFS, do we use something like Pinata, or set up our own IPFS node?
 
-Regarding any indexers we need for the blockchain data, let's start with using Ponder, deploy on Railway for now, and we can switch/add to that later if necessary. Questions for the future:
-  - Do we need some kind of high-performance graph database for running interesting graph-analysis algorithms on the statement-implication graph? Beats me. (Sam mentioned setting up a knowledge graph database using AWS Neptune with Gremlin query language and Jupyter notebooks. I don't have experience with any of that, but I wanted to record it here.)
-  - Hopefully we can choose infrastructure that's scalable up and down - cheap while small, but can scale quickly if this thing takes off.
-
-Use GraphQL (rather than REST) for all communication between the indexers and the UIs.
+The indexer is a thin event cache built on Ponder — it stores raw on-chain events in a single `events` table and serves them via a REST API (`GET /api/events`). All business logic (state reconstruction, aggregation) lives in the SDK's fold functions, not in the indexer. See [../indexer/redesign.md](../indexer/redesign.md) for the full rationale.
 
 For UI code, let's use TypeScript, Vite, Material UI, and viem and wagmi and connectkit for blockchain stuff.
 

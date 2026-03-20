@@ -1,121 +1,74 @@
 # Indexer Architecture
 
-This document describes how the Commonality indexing system is split into independent, federated indexers.
+This document describes the Commonality indexing architecture.
 
 ## Overview
 
-Instead of one large indexer, we use multiple specialized indexers that each focus on one domain. Complex cross-cutting queries are handled by federation (one indexer queries another's GraphQL API).
+The indexer is a thin event cache — a single Ponder application that watches all contracts, stores raw events in a single `events` table, and serves them via a REST API. All business logic (state reconstruction, aggregation, cross-subsystem queries) lives in the SDK's fold functions, not in the indexer.
 
-**Important:** This describes the *logical* architecture - the conceptual separation, database schemas, and GraphQL APIs. The *physical* deployment (separate processes vs single executable) is a separate decision that can change without affecting the code.
-
-## The Five Indexers
+## Architecture
 
 ```
-┌──────────────────┐
-│ Concept Space    │  Watches: Beliefs, Implications
-│ Indexer          │  Exports: GraphQL API for statements, beliefs, implication graph
-│                  │  Dependencies: None
-└──────────────────┘
-
-┌──────────────────┐
-│ Pubstarter       │  Watches: Pubstarter contracts, ERC1155PrimaryMarket, ERC1155SecondaryMarket
-│ Indexer          │  Exports: GraphQL API for projects, contributions, market orders
-│                  │  Dependencies: None
-└──────────────────┘
-Note: The top-level spec lists Marketplace as a separate subsystem, but in the
-current implementation secondary-market indexing is folded into Pubstarter
-(since it shares the same project context). If it's ever extracted into its own
-subsystem, update this list.
-
-┌──────────────────┐
-│ Delegation       │  Watches: DelegatableNotes, NoteIntent
-│ Indexer          │  Exports: GraphQL API for notes, delegation chains
-│                  │  Dependencies: None
-└──────────────────┘
-
-┌──────────────────┐
-│ Funding Portal   │  Watches: AlignmentAttestations
-│ Indexer          │  Exports: GraphQL API for cross-cutting queries
-│                  │  Dependencies: Queries Concept Space, Pubstarter, Delegation APIs
-└──────────────────┘
-
-┌──────────────────┐
-│ Mutable Refs     │  Watches: MutableRefUpdater
-│ Indexer          │  Exports: GraphQL API for named mutable references to IPFS content
-│                  │  Dependencies: None
-└──────────────────┘
+┌─────────────────────────────────────────┐
+│  Thin Event Cache (Ponder)              │
+│  - Watches chain for all contract events│
+│  - Stores raw events in one DB table    │
+│  - Serves them via REST: GET /api/events│
+│  - No business logic, no aggregation    │
+│  - No IPFS fetching, no social data     │
+└─────────────────────────────────────────┘
+        │
+        │  GET /api/events?contractAddress=...&eventName=...&topic1=...
+        ▼
+┌─────────────────────────────────────────┐
+│  SDK with fold functions                │
+│  - Fetches raw events from the cache    │
+│  - Folds them into entity state         │
+│    client-side                          │
+│  - Reads current state from contract    │
+│    view functions where available       │
+│  - Fetches IPFS content directly        │
+│    from a gateway                       │
+│  - Does cross-entity aggregation        │
+│    (the Funding Portal logic)           │
+└─────────────────────────────────────────┘
 ```
 
-## Specs for each subsystem's indexer
+## The Events Table
 
-See:
-  - subsystems/conceptspace/indexer.md
-  - subsystems/fundingportals/indexer.md (covers Pubstarter, Delegation, and Funding Portal)
+The indexer stores one row per on-chain event:
 
-Mutable Refs is a small utility subsystem (tracks named owner+name → IPFS CID references with update history). See [subsystems/mutable-refs/README.md](subsystems/mutable-refs/README.md).
+```
+events(
+  id,                        -- txHash + logIndex
+  contractAddress,
+  eventName,
+  blockNumber, blockTimestamp,
+  transactionHash, logIndex,
+  topic0,                    -- event signature
+  topic1, topic2, topic3,    -- indexed params
+  data                       -- ABI-encoded non-indexed params
+)
+```
 
-## Cross-Cutting Concerns
+No derived tables. No registry tables. No joins. One row per event, forever.
 
-**Multi-Attester Query Performance:**
-- Almost all queries filtered by user's "trusted attesters" set
-- Can't pre-compute (every user has different trusted set)
-- Solution: Attester filtering happens once in Concept Space, filtered results passed downstream
+## How Subsystems Share Data
 
-**Event Reorg Handling:**
-- All indexers track block numbers and handle rollbacks
-- Wait for finality threshold before treating data as permanent
+Previously, the five logical subsystems (Concept Space, Pubstarter, Marketplace, Delegation, Funding Portal) were described as separate indexers with federation via GraphQL. **This is no longer the case.**
 
-**No Graph Traversal Needed:**
-- Implications are not transitive, so no BFS/DFS traversal required
-- Indirect support = simple lookup of direct implications pointing to target statement
-- Only depth limiting needed is for displaying nested statement references in UI (3-5 levels)
-
-## Deployment: Logical vs Physical
-
-### Logical Architecture (What Matters for Code)
-
-Maintain these boundaries:
-1. **Separate database schemas** - Each indexer has its own tables
-2. **Separate GraphQL schemas** - Clear API contracts
-3. **Dependency direction** - Funding Portal depends on others; others have no dependencies
-4. **No shared business logic** - Federation via GraphQL, not function calls
-
-### Physical Deployment (Flexible)
-
-You can deploy as:
-- **Monolithic** (single process, GraphQL "queries" are direct function calls) - Simplest for development
-- **Separate services** (each indexer in own container) - Best for production scaling
-- **Hybrid** (combine some, separate others)
-
-The key: Write code with logical boundaries even if deploying monolithically. Then physical architecture can evolve based on operational needs.
+All subsystems share a single event cache. The SDK's query functions for each subsystem fetch raw events from this cache (filtered by contract address and event name), then fold them into typed entity state client-side. Cross-subsystem queries (like the Funding Portal's "total funding for cause S") are implemented as SDK functions that call other subsystems' SDK query functions — no indexer-to-indexer communication needed.
 
 ## Why This Works
 
-**Clear separation of concerns:**
-- Concept Space: "Tell me about statements and beliefs"
-- Pubstarter: "Tell me about crowdfunding projects"
-- Delegation: "Tell me about notes and chains"
-- Funding Portal: "Join everything together"
+**Simple infrastructure:** One Ponder process, one database table, one REST endpoint. No schema migrations when event types change. No subsystem boundaries to maintain in the indexer.
 
-**Complex queries handled cleanly:**
-- "Projects for cause S" = Funding Portal federates to Concept Space (for implications) + local alignment data
-- "Total funding for S" = Funding Portal federates to Delegation (notes) + Concept Space (implications) + sums
-- "Top contributors to S" = Funding Portal federates to Pubstarter (contributions) + Delegation (chains) + aggregates
+**Fold logic versioned with the SDK:** When you change how state is computed, you update the SDK — no indexer redeployment, no re-sync.
 
-**Independent testing:**
-- Test each indexer with mock upstream APIs
-- No need to spin up entire system
+**Dead entities cost nothing:** A project nobody visits = zero computation. The indexer stores the events but the SDK only folds them on demand.
 
-**Reusability:**
-- Pubstarter indexer works for any Kickstarter-like system
-- Concept Space indexer works for any belief/statement tracking
-- Delegation indexer works for any delegation use case
+**Trustless verification:** The event cache is a commodity service — anyone can run one, and anyone can verify its output against the chain. No opaque business logic to trust.
 
-## Recommendation
+## Historical Note
 
-Start with federated logical architecture deployed monolithically:
-1. Write separate modules with GraphQL APIs (as if they're separate services)
-2. Deploy as single process (simpler initially)
-3. Switch to distributed deployment when needed (just config changes)
-
-This gives clean separation (good for code quality) with simple deployment (good for getting started quickly).
+The original architecture described 5 separate indexers with federation (one querying another's GraphQL API). This was replaced with the current thin event cache + SDK folds design. See [redesign.md](redesign.md) for the full rationale and migration history.

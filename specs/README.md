@@ -106,7 +106,8 @@ See [subsystems/conceptspace/README.md](subsystems/conceptspace/README.md) (stat
   - Statements are immutable IPFS content (identified by CID)
   - Various events are emitted by onchain transactions
   - Smart contracts in Solidity
-  - Indexer uses Ponder, exposes GraphQL APIs
+  - Indexer is a thin event cache (Ponder storing raw events in a single `events` table, served via REST API). No business logic in the indexer — all state reconstruction happens client-side via SDK fold functions.
+  - SDK fetches raw events from the event cache, folds them into entity state, reads current on-chain state via view functions, and fetches IPFS content directly from a gateway. No GraphQL.
   - UI stack: TypeScript, Vite, Material UI, viem/wagmi/connectkit for blockchain interaction.
 
 See [shared/tech.md](shared/tech.md) for details on tech choices and rationale (why blockchain, which L2, indexer infrastructure, deployment considerations).
@@ -126,11 +127,11 @@ See [ai-assistance.md](ai-assistance.md) for more info.
 
 ## Artifacts
 
-This section describes the conceptually-separate subsystems that make up Commonality. These represent the *logical architecture* - how we think about and organize the code, schemas, and APIs. The *physical deployment* (whether these run as separate services or in a single process) is a separate decision that can change without affecting the code structure.
+This section describes the conceptually-separate subsystems that make up Commonality. The subsystems organize the code logically (smart contracts, SDK queries/folds, UI components), but they all share a single thin event cache indexer.
 
 ### Core Subsystems
 
-The system is divided into several independent subsystems, each with its own domain, smart contracts, indexer, and UI components:
+The system is divided into several independent subsystems, each with its own domain, smart contracts, and SDK query/fold logic:
 
 #### 1. Concept Space Subsystem
 **Domain:** Statements, beliefs, and implication relationships
@@ -139,7 +140,7 @@ Components:
   - **Smart contracts:**
     - `Beliefs` - for users to express belief/disbelief in statements
     - `Implications` - for attesters to publish "S1 implies S2" relationships
-  - **Indexer:** Tracks statement content (cached from IPFS), user beliefs, and implication attestations organized by attester. Computes indirect support by looking up direct implication attestations (no transitive graph traversal needed).
+  - **SDK:** Fold functions reconstruct belief counts, user beliefs, and implication maps from raw `DirectSupport` and `ImplicationAttestation` events. IPFS content (statement text) is fetched directly from an IPFS gateway.
   - **UI:** Browse/search statements, view statement pages with support metrics, user pages showing signed statements, settings for configuring trusted attesters
   - **Implication Attester AI:** Standalone service that evaluates statement relationships and publishes attestations (can be deployed independently; other attesters can exist too)
 
@@ -148,7 +149,7 @@ Components:
 
 Components:
   - **Smart contracts:** `AssuranceContract`, `ERC1155PrimaryMarket` - ERC-1155 project contracts with threshold-based funding, deadlines, refunds (in `hardhat/contracts/individual-projects/`)
-  - **Indexer:** Tracks project details, contributions, token holders, burned tokens (donors vs investors)
+  - **SDK:** Fold functions reconstruct project state, contributions, refunds, and secondary market orders from raw events. On-chain view functions provide current balances, thresholds, and deadlines.
   - **UI:** Individual project pages showing funding progress, contributor leaderboards
 
 #### 3. Marketplace Subsystem
@@ -156,17 +157,17 @@ Components:
 
 Components:
   - **Smart contracts:** `ERC1155SecondaryMarket` - generic order book for any ERC-1155 tokens (in `hardhat/contracts/marketplace/`)
-  - **Indexer:** Tracks active buy/sell orders, order fills, price history
+  - **SDK:** Fold functions reconstruct active listings, buy orders, and trade history from raw events.
   - **UI:** Trading interface with order book display, buy/sell forms
 
-Note: This is generic infrastructure for peer-to-peer trading. Could be used for any ERC-1155 secondary market, not just Pubstarter project tokens.
+Note: This is generic infrastructure for peer-to-peer trading. In the current implementation, secondary-market indexing is folded into the Pubstarter SDK subsystem (since it shares the same project context).
 
 #### 4. Delegation Subsystem
 **Domain:** Delegatable notes and trust chains
 
 Components:
   - **Smart contracts:** `DelegatableNotes` - allows users to delegate funding decisions with composable, revocable chains
-  - **Indexer:** Tracks active notes, full delegation chains, and (if implemented) commission structures
+  - **SDK:** Fold functions reconstruct note state, delegation chains, and note intent attestations from raw events.
   - **UI:** Note management interface, delegation chain visualization, spending controls
 
 #### 5. Funding Portal Subsystem
@@ -174,7 +175,7 @@ Components:
 
 Components:
   - **Smart contracts:** `AlignmentAttestations` - for attesting that subjects (typically projects) align with statements
-  - **Indexer:** Handles complex federated queries by calling the GraphQL APIs of other indexers (Concept Space, Pubstarter, Marketplace, Delegation). Computes indirect project alignment via implication graphs, aggregates funding by cause, generates contributor leaderboards.
+  - **SDK:** Computes indirect project alignment via implication events, aggregates funding across aligned projects using on-chain reads and event folds, and generates contributor leaderboards. All cross-cutting aggregation happens client-side in the SDK.
   - **UI:** Cause-specific funding portals showing all aligned projects (direct and indirect), available funding from delegatable notes, cross-project contributor rankings
 
 ### Subsystem Dependencies
@@ -182,22 +183,22 @@ Components:
 ```
 Concept Space ──┐
                 │
-Pubstarter ────┼──> Funding Portal (federates queries to others)
+Pubstarter ────┼──> Funding Portal (SDK aggregates across subsystems)
                 │
 Marketplace ───┤
                 │
 Delegation ────┘
 
-(Arrows show data flow; Funding Portal queries the APIs of the other four)
+(Arrows show data flow; Funding Portal SDK queries call other subsystems' SDK functions)
 ```
 
-The four foundational subsystems (Concept Space, Pubstarter, Marketplace, Delegation) are independent and have no dependencies on each other. The Funding Portal subsystem orchestrates cross-cutting queries by federating to their GraphQL APIs.
+The four foundational subsystems (Concept Space, Pubstarter, Marketplace, Delegation) are independent and have no dependencies on each other. The Funding Portal subsystem's SDK orchestrates cross-cutting queries by calling the other subsystems' SDK query functions.
 
 ### Why This Structure?
 
 - **Clear separation of concerns:** Each subsystem has a well-defined domain and can be reasoned about independently
-- **Independent testing:** Can test each subsystem with mock upstream dependencies
-- **Flexible deployment:** Can deploy as separate services (for scalability) or as a monolith (for simplicity), without changing the code structure
+- **Independent testing:** Can test each subsystem with mock event data
+- **Simple infrastructure:** A single thin event cache serves all subsystems — no per-subsystem indexers or federation
 - **Reusability:** Each subsystem could potentially be used in other contexts (e.g., the Pubstarter subsystem works for any crowdfunding system, not just Commonality)
 
 ### Technical details
@@ -214,7 +215,7 @@ Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI rec
 
 In the hardhat/ directory (in the root of the project), there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
 
-In specs/graphql, there should be some graphql schema files (or at least a half-English, half-code kind of spec) describing the data that the indexer(s) make available. (In the past I've found that when I ask AI to generate graphql schemas they end up quite verbose and hard for me to grok, so mixing English and code seems to maybe be a sweet spot.)
+The indexer exposes a single REST API endpoint (`GET /api/events`) for fetching raw events by contract address, event name, and topic filters. The SDK's `eventCacheClient.ts` wraps this. All data shaping happens via SDK fold functions, not in the indexer.
 
 
 #### Modelling Statements
@@ -236,11 +237,11 @@ Store beliefs in the blockchain's state as well as emitting DirectSupport events
 
 I've already generated this one too; hardhat/contracts.
 
-#### Conceptspace indexer
+#### Conceptspace data flow
 
-Implications are *not* transitive. To find indirect supporters of statement S, simply look up all statements S' where there's a direct implication attestation S'→S (from a trusted attester), then union the direct supporters of all those S' statements. This is a simple DB query, no graph traversal needed. (Exclude anyone who's explicitly indicated disbelief in S.)
+Implications are *not* transitive. To find indirect supporters of statement S, simply look up all statements S' where there's a direct implication attestation S'→S (from a trusted attester), then union the direct supporters of all those S' statements. No graph traversal needed. (Exclude anyone who's explicitly indicated disbelief in S.)
 
-Required indexing: Maintain (1) reverse implication map (for each statement, which statements imply it, organized by attester), and (2) direct supporters cache (current set of believers for each statement).
+The SDK fetches raw `DirectSupport` and `ImplicationAttestation` events from the event cache and folds them client-side to reconstruct belief counts, implication maps, and supporter lists.
 
 #### Conceptspace UI
 
@@ -276,13 +277,13 @@ In the long run I'd like the DelegatableNotes smart contract to support various 
 Design decisions worth noting:
   - **Assurance contracts: buying is always allowed**, even after the deadline. A "failed" project can still succeed later if more people buy. Refunds are only allowed when the deadline has passed *and* the threshold hasn't been reached.
 
-#### Funding Portal indexer
+#### Funding Portal data flow
 
-Keep track of details for all the individual Pubstarter projects.
-
-Also keep track of all the projects aligned directly with a particular statementId. (And we'll also have to look up direct implication attestations to find projects that are indirectly aligned - same simple approach as in the Conceptspace indexer, no transitive graph traversal.) And keep track of top contributors (investors/donors) to any project aligned with this cause.
-
-Make GraphQL queries to the Concept Space indexer, to get the implication data needed to compute indirect project alignment.
+The SDK computes all Funding Portal aggregations client-side:
+  - Fetches `AlignmentAttestation` events from the event cache to find which projects align with a statement.
+  - Fetches `ImplicationAttestation` events to find indirect alignments (same simple approach as Conceptspace — no transitive graph traversal).
+  - For each aligned project, reads on-chain state (totalReceived, threshold, deadline) and folds contribution/refund events to build contributor leaderboards.
+  - No federation between indexers — the single event cache serves all subsystems.
 
 #### Funding Portal UI
 
@@ -305,9 +306,9 @@ Thoughts on potential threats:
 
 See [queries-and-actions.md](queries-and-actions.md) for a comprehensive list of all user queries and actions the system must support (statement browsing, belief actions, funding, delegation, etc.).
 
-#### Indexers
+#### Indexer
 
-See the [indexer](./indexer/README.md) directory for the federated indexer architecture (Concept Space, Pubstarter, Delegation, Funding Portal subsystems), data responsibilities, and implementation review notes.
+See the [indexer](./indexer/README.md) directory for the thin event cache architecture and the [indexer redesign spec](./indexer/redesign.md) for the rationale behind the current design (single `events` table, SDK fold functions, no GraphQL, no federation).
 
 #### Integration testing (blockchain plus indexer together)
 

@@ -61,7 +61,7 @@ Notes are naturally independent. Each delegation tree is its own unit.
 |--------|-----|----------------|----------------|
 | **alignmentAttestations** | (attester, subject, statement) | attesters × projects × statements | Sparse in practice |
 
-This subsystem is thin on its own. Its complexity comes from federation — querying the other three subsystems' APIs to build cross-cutting views.
+This subsystem is thin on its own. Its complexity comes from cross-subsystem aggregation — the SDK queries events from multiple contracts and folds them to build cross-cutting views.
 
 ### Mutable Refs (utility)
 
@@ -93,9 +93,9 @@ No event handler does graph traversal, aggregation across unbounded sets, or any
 | Get contributions for project P | **O(c)** | c = number of contributors to P; indexed |
 | Get delegation chain for note N | **O(d)** | d = chain depth; indexed by (noteId, position) |
 | Get implications pointing to statement S | **O(i)** | i = number of implications to S; indexed by `reverseIdx` |
-| **Get all projects aligned with cause S** | **O(a × i)** | a = attestations, i = implications. Federation: query alignments locally, then query Concept Space for implications. No graph traversal because implications are not transitive. |
-| **Total funding for cause S** | **O(p)** | p = number of aligned projects. After finding aligned projects (above), sum their `totalReceived`. Each project's `totalReceived` is pre-aggregated by its event handler. |
-| **Top contributors to cause S** | **O(p × c)** | Federate to Pubstarter for each aligned project's contributors, then aggregate. This is the most expensive query. |
+| **Get all projects aligned with cause S** | **O(a × i)** | a = attestations, i = implications. SDK fetches alignment and implication events, folds client-side. No graph traversal because implications are not transitive. |
+| **Total funding for cause S** | **O(p)** | p = number of aligned projects. After finding aligned projects (above), SDK reads `totalReceived` from chain or folds project events. |
+| **Top contributors to cause S** | **O(p × c)** | SDK fetches each aligned project's contribution events and folds per-participant. This is the most expensive query. |
 
 ### The "personalized view" problem
 
@@ -126,7 +126,7 @@ Mutable Refs
   (standalone utility)
 ```
 
-**Key property: the dependency arrow is one-way.** Only the Funding Portal depends on the other three. Concept Space, Pubstarter, and Delegation are fully independent of each other and of the Funding Portal.
+**Key property: the dependency arrow is one-way.** Only the Funding Portal's SDK queries depend on the other three subsystems' SDK queries. Concept Space, Pubstarter, and Delegation are fully independent of each other. All subsystems share the same event cache — there is no inter-indexer dependency.
 
 ---
 
@@ -139,9 +139,9 @@ Mutable Refs
 1. **Rebuild time** = proportional to total number of on-chain events ever emitted. This is a full replay from the contracts' deployment blocks. With Ponder, this is automatic — just restart with a fresh database.
 
 2. **What's temporarily lost during rebuild:**
-   - **IPFS content cache** (statement text, project metadata): Re-fetched from IPFS during background sync jobs. Available eventually, not instantly.
-   - **Social data** (ENS names, Twitter verification): Re-fetched from external APIs. Same deal.
-   - **Pre-computed aggregates** (totalReceived, believerCount): Recomputed correctly as events replay in order.
+   - **Raw events**: Re-indexed from chain as Ponder replays. Available eventually, not instantly.
+   - **IPFS content and social data**: Not stored in the indexer — the SDK fetches these on demand from IPFS gateways and external APIs, so they're unaffected by an indexer rebuild.
+   - **No pre-computed aggregates to lose**: The indexer stores only raw events. All aggregates (believerCount, totalReceived, etc.) are computed client-side by SDK fold functions on each query.
 
 3. **Service availability during rebuild:** The indexer serves stale/partial data until it catches up to chain head. The UI would show incomplete data but wouldn't break — queries return fewer results, not wrong results. (Ponder exposes a sync status endpoint that the SDK already uses via `waitForIndexerToSyncToBlockNumber`.)
 
@@ -153,17 +153,11 @@ Mutable Refs
 
 ## Per-entity independence analysis
 
-**Can each subsystem be indexed independently?** Yes — this is already the architecture.
+**Can each subsystem be indexed independently?** In the current architecture, all subsystems share a single event cache. The event cache either has all events (it's up) or none (it's down). There's no per-subsystem failure mode in the indexer — it's one table.
 
-| If this subsystem's indexer is down... | ...these still work fine | ...this breaks |
-|---------------------------------------|--------------------------|----------------|
-| Concept Space | Pubstarter, Delegation, Mutable Refs | Funding Portal can't resolve implications (falls back to direct alignments only) |
-| Pubstarter | Concept Space, Delegation, Mutable Refs | Funding Portal can't show project funding data |
-| Delegation | Concept Space, Pubstarter, Mutable Refs | Funding Portal can't show note/delegation data |
-| Funding Portal | Everything else | Nothing — it's a consumer, not a dependency |
-| Mutable Refs | Everything else | Nothing — standalone utility |
+The per-subsystem independence is in the **SDK layer**: each subsystem's fold functions only need events from their own contracts. If you wanted to, you could run separate event caches for different contract sets, but there's no need at current scale.
 
-**Can you go further and split *within* a subsystem?** For Pubstarter, yes — each project is an independent partition (its own AssuranceContract, ERC1155, SecondaryMarket). You could index each project separately and the only cross-project operation would be aggregating across projects in the Funding Portal. But Ponder's factory pattern already handles this well with dynamic contract indexing.
+**Can you go further and split *within* a subsystem?** For Pubstarter, yes — each project is an independent partition (its own AssuranceContract, ERC1155, SecondaryMarket). The SDK fetches and folds each project's events independently. Dead projects that nobody visits = zero fold computation.
 
 ---
 
@@ -205,7 +199,7 @@ Longer answer:
 
 - **Practical alternative**: The UI already has the information it needs to verify. Each project's `totalReceived` is a single on-chain read. The UI could spot-check or fully verify any aggregate by reading the underlying contracts directly. This is cheaper and simpler than cryptographic proofs.
 
-**The real mitigation is architectural, not cryptographic: the subsystem separation means you can run your own indexer for any subsystem you don't trust.** Since each subsystem is independent and has a clear GraphQL API contract, you can swap implementations freely.
+**The real mitigation is architectural, not cryptographic: the event cache is a commodity service that anyone can run and verify.** Since the indexer stores only raw events (no business logic), verifying its output is trivial — just compare against the chain. The fold logic lives in the SDK, which runs client-side and is fully transparent.
 
 ---
 

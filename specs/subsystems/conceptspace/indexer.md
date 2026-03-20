@@ -1,23 +1,23 @@
-# Indexer Architecture
+# Concept Space — Data Architecture
 
-## Key Responsibilities
+## Domain
 
-### Concept Space Indexer
+Statements, beliefs, and implication relationships.
 
-**Domain:** Statements, beliefs, and implications
+## How It Works
 
-**Data stored:**
-- Statements (IPFS content cached locally)
-- User beliefs (address → statementId → beliefState)
-- Implication graph (organized by attester)
-- Direct supporters per statement
+The indexer stores raw `DirectSupport` and `ImplicationAttestation` events in the shared `events` table. The SDK fetches these events and folds them client-side:
 
-**Non-obvious requirements:**
-- Reverse implication maps indexed by attester: `(implied_statement_id, attester_address, implying_statement_id)`
-- Implications are NOT transitive - indirect support is computed via direct implication lookups only (simple DB query, no graph traversal needed)
-- Time-series data for trending calculations ("signatures per time window") — deferred; the schema has a `trendingIdx` index on `(statementId, beliefState, updatedAt)` as a foundation
-- Full-text search on statement content — deferred
+- **Beliefs:** `foldStatementBeliefs()` processes `DirectSupport` events to reconstruct per-statement believer/disbeliever counts and lists.
+- **User beliefs:** `foldUserBeliefs()` processes `DirectSupport` events filtered by user address to get all statements a user believes/disbelieves.
+- **Implications:** `foldImplications()` processes `ImplicationAttestation` events to build the implication map (organized by attester).
+- **Statement discovery:** Statements are discovered from `DirectSupport` events — any statement CID that appears in a belief event is a known statement.
+- **Statement content:** Fetched directly from IPFS gateway on demand (not cached in the indexer).
 
-**Example query:** "Give me all statements that directly imply statement S, according to attesters A1 and A2" (then union their supporters for indirect support count)
+## Key Design Decisions
 
-For cross-cutting concerns (multi-attester filtering, event reorg handling, no-graph-traversal rationale) and deployment architecture, see [../../indexer](../../indexer/README.md).
+- Implications are NOT transitive — indirect support is computed via direct implication lookups only (no graph traversal).
+- No IPFS content caching in the indexer — the client fetches statement text from IPFS directly.
+- No social data sync — ENS names and social verification are resolved client-side on demand.
+
+For cross-cutting concerns (event cache architecture, REST API) see [../../indexer/federation.md](../../indexer/federation.md).
