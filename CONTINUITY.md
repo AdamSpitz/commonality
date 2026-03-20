@@ -2,6 +2,18 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Project-wide review (2026-03-19) ✅
+
+Ran a full project-wide review after the indexer redesign completed. All findings recorded in REVIEWS.md.
+
+**Most urgent finding**: Bug in `sdk/src/utils/eventDecoder.ts:249` — `decodeContractMetadataUpdatedEvent` returns `metadata: args.uri` but the ABI field is `metadata` not `uri`. This silently breaks pubstarter project metadata in the event cache path. Fix is one line: change `args.uri` → `args.metadata`. Also add a decoder unit test.
+
+**Also todo**: Delete `sdk/src/subsystems/fundingportals/queries.graphql` (dead tracked file), investigate `sdk/src/generated/` (untracked graphql codegen output — possibly gitignore it).
+
+**What's next**: Fix the `decodeContractMetadataUpdatedEvent` bug + add a test. Then the stale file cleanup.
+
+**Good interrupt point**: Yes — the review is complete.
+
 ## Made fold functions resumable-ready ✅
 
 **Task**: Make SDK fold functions accept optional previous-state so they can be resumed from a cursor rather than always processing all events from scratch. (See `indexer-redesign-todo.md` "Make fold functions resumable-ready".)
