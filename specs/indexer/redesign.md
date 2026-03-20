@@ -295,6 +295,22 @@ async function refresh<A>(state: ResumableFold<A>, fetchEventsSince: FetchFn): P
 
 The fold function is the same code the SDK already has — `foldContributionsFromEvents`, `foldProject`, `foldAlignmentAttestations`, etc. The only new thing is the cursor tracking and the `refresh()` wrapper.
 
+### Cursors must be blockchain coordinates
+
+**Design constraint**: Cursors must be blockchain-meaningful values — specifically `(blockNumber, logIndex)` — not opaque database row IDs or sequence numbers internal to the event cache.
+
+Why this matters:
+
+1. **Indexer bypass.** A client holding a cursor like `{ blockNumber: 18_500_000, logIndex: 42 }` can resume the fold against *any* Ethereum data source — a different indexer, a direct RPC node via `eth_getLogs(fromBlock: 18_500_001)`, or an event API like Etherscan. The cursor is portable because it refers to the blockchain, not to the indexer's database.
+
+2. **Bounded history.** You can express "only include events from the past year" as a block number range, and the cursor is self-describing. A client that starts folding from block N knows exactly what history it has and hasn't seen. This also enables partial caches — an event cache that only stores the last year of events is still useful, and cursors from that cache are still meaningful.
+
+3. **Verifiability.** A blockchain-coordinate cursor lets anyone independently verify the fold: "given events from block X to block Y, does the accumulator match?" With an opaque DB cursor, you'd have to trust the specific indexer instance.
+
+4. **Cache independence.** If the event cache is rebuilt, redeployed, or replaced, cursors from the old instance still work — they refer to the chain, not to the old DB. No cursor invalidation on infrastructure changes.
+
+The `BEGINNING` sentinel should map to block 0 (or the contract deployment block). The event cache API already supports `blockNumber` range filtering, so this is naturally compatible.
+
 ### Where it can run
 
 The pattern works at every layer, with different trade-offs:
