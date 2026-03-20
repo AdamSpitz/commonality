@@ -405,9 +405,9 @@ The existing Ponder indexer continues to function exactly as before. This is a p
 Build passes, SDK tests pass (239 tests).
 
 
-## Phase 4: Event cache SDK integration (hybrid approach)
+## Phase 4: Event cache SDK integration — Complete
 
-Phase 4 is complete with a **hybrid approach** — not a full GraphQL replacement.
+Phase 4 is complete. **The SDK is 100% GraphQL-free.** All queries use event cache + folds or on-chain reads.
 
 ### What was implemented:
 
@@ -419,20 +419,21 @@ Phase 4 is complete with a **hybrid approach** — not a full GraphQL replacemen
 
 4. **sdk/src/subsystems/conceptspace/folds.ts**: `foldStatementBeliefs`, `foldUserBeliefs`, `foldAllStatements`, `foldImplications`.
 
-5. **sdk/src/subsystems/fundingportals/queries.ts**: Entity queries (get aligned subjects, get alignment attestation, etc.) use event cache + folds. Aggregated cross-project queries (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`) still use GraphQL for pre-computed project/participant data.
+5. **sdk/src/subsystems/fundingportals/queries.ts**: Fully rewritten — all queries use event cache + folds + chain reads. Cross-project aggregations (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`) replaced `GetProjectDetailsDocument` and `GetParticipantSummariesDocument` GraphQL calls with per-project event fetches + folds + chain reads.
 
 6. **sdk/src/subsystems/fundingportals/folds.ts**: `foldAlignmentAttestations`.
 
 7. **sdk/src/machinery.ts**: Added `eventCacheUrl` and `contractAddresses` fields.
 
-### What remains (not yet done):
+### What was deleted:
 
-- **Cross-project aggregated queries** still use GraphQL for project balances and participant summaries. These could be replaced with event cache + chain multicalls, but the GraphQL approach works and the added complexity may not be worth it.
-- **Delete old code** — GraphQL codegen, unused client code, and deprecated functions remain. Not a priority since GraphQL is still in use for aggregated queries.
+- GraphQL codegen pipeline and generated files
+- `graphqlClient.ts` and all GraphQL query files
+- Old Ponder-derived-table handlers, schemas, background sync jobs, and federation endpoints
 
 ### Architecture decision:
 
-The Ponder indexer is **not being replaced**. It continues to serve its original role (pre-computed aggregates via GraphQL) while simultaneously acting as the event cache (serving raw events via REST). This avoids a big-bang migration and lets the system stay functional throughout. The event cache + SDK folds approach is now available for any new queries or subsystem migrations that want it, without requiring removal of the existing infrastructure.
+The Ponder dependency is kept — but only for its event-watching and DB infrastructure. The indexer is now a thin event cache: all schema logic is in `events.schema.ts` (one events table + four small registry tables), all handlers do only `captureRawEvent()`, and the API serves raw events via REST. No business logic lives in the indexer.
 
 ## Open question: Cross-entity aggregation queries and performance
 

@@ -123,7 +123,7 @@ export async function getRef(
  * This function handles migration from older formats (e.g., a single CID string
  * or an array of CIDs) for backward compatibility.
  *
- * @param graphqlClient - GraphQL client for querying the indexer
+ * @param machinery - SDK machinery (provides IPFS config and indexer access)
  * @param clients - Test wallet and public clients for blockchain interaction
  * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
  * @param listName - Name of the ref (e.g., "created-statements", "favorites")
@@ -136,7 +136,7 @@ export async function getRef(
  * ```typescript
  * // Add a statement to the user's created statements list
  * await appendToUserList(
- *   graphqlClient,
+ *   machinery,
  *   clients,
  *   mutableRefContract,
  *   'created-statements',
@@ -145,7 +145,7 @@ export async function getRef(
  *
  * // Add a favorite without deduplication
  * await appendToUserList(
- *   graphqlClient,
+ *   machinery,
  *   clients,
  *   mutableRefContract,
  *   'favorites',
@@ -222,7 +222,7 @@ export async function appendToUserList(
  * tracking statements created by the user. This is commonly used after
  * creating and signing a new statement.
  *
- * @param graphqlClient - GraphQL client for querying the indexer
+ * @param machinery - SDK machinery (provides IPFS config and indexer access)
  * @param clients - Test wallet and public clients for blockchain interaction
  * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
  * @param statementCid - CID of the statement to add
@@ -233,7 +233,7 @@ export async function appendToUserList(
  * // After creating and signing a statement
  * const statementCid = await uploadToIPFS(machinery.ipfsConfig, statementData);
  * await believeStatement(clients, beliefsContract, statementCid);
- * await addToCreatedStatements(graphqlClient, clients, mutableRefContract, statementCid);
+ * await addToCreatedStatements(machinery, clients, mutableRefContract, statementCid);
  * ```
  */
 export async function addToCreatedStatements(

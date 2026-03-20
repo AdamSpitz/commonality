@@ -1,18 +1,19 @@
 # Indexer
 
-Indexes blockchain events and provides GraphQL APIs (consumed by the SDK).
+Thin event cache: watches blockchain events, stores them raw, and serves them via REST API (consumed by the SDK).
 
 ## Architecture
 
-Five logically independent subsystems, each with its own schema, event handlers, and API:
+A single Ponder application with two responsibilities:
 
-- **Concept Space**
-- **Pubstarter**
-- **Delegation**
-- **Funding Portal**
-- **Mutable Refs**
+- **events table** — stores every raw contract event (all topics + ABI-encoded data)
+- **Registry tables** — small "what exists" tables maintained eagerly:
+  - `statements_registry`
+  - `projects_registry`
+  - `alignment_attestations_registry`
+  - `implications_registry`
 
-In the future these might be worth splitting off into separate indexers.
+No business logic, no aggregation, no IPFS sync. All entity-state computation happens client-side in SDK fold functions.
 
 See [specs/indexer](../specs/indexer/README.md) for the full architectural spec.
 

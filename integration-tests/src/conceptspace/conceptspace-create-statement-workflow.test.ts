@@ -284,7 +284,7 @@ describe('Conceptspace Create Statement Workflow', () => {
     }
   });
 
-  it('should throw error when addToCreatedList is true but graphqlClient is missing', async function() {
+  it('should throw error when addToCreatedList is true but machinery is missing', async function() {
     this.timeout(30000);
 
     const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -293,7 +293,7 @@ describe('Conceptspace Create Statement Workflow', () => {
       content: 'This should fail due to missing graphqlClient.',
     });
 
-    testLog('  Testing validation: missing graphqlClient...');
+    testLog('  Testing validation: missing machinery...');
 
     try {
       await createAndSignStatement(
@@ -304,7 +304,7 @@ describe('Conceptspace Create Statement Workflow', () => {
         },
         statementData,
         {
-          // Missing graphqlClient
+          // Missing machinery
           addToCreatedList: true,
         }
       );
@@ -313,10 +313,10 @@ describe('Conceptspace Create Statement Workflow', () => {
     } catch (error) {
       assert.ok(error instanceof Error, 'Should throw an Error');
       assert.ok(
-        error.message.includes('graphqlClient'),
-        'Error message should mention graphqlClient'
+        error.message.includes('machinery'),
+        'Error message should mention machinery'
       );
-      testLog('  ✓ Correctly throws error for missing graphqlClient');
+      testLog('  ✓ Correctly throws error for missing machinery');
     }
   });
 

@@ -250,7 +250,7 @@ export interface CreateAndSignStatementResult {
  *   },
  *   statementDoc,
  *   {
- *     graphqlClient,
+ *     machinery,
  *     addToCreatedList: true,
  *     onIPFSUpload: (cid) => console.log('Uploaded to IPFS:', cid),
  *     onSigned: (txHash) => console.log('Signed:', txHash),
@@ -285,7 +285,7 @@ export async function createAndSignStatement(
     throw new Error('mutableRefUpdater contract is required when addToCreatedList is true');
   }
   if (addToCreatedList && !machinery) {
-    throw new Error('machinery (with graphqlClient) is required when addToCreatedList is true');
+    throw new Error('machinery is required when addToCreatedList is true');
   }
 
   let cid: IpfsCidV1;

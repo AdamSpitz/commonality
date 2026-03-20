@@ -1,5 +1,28 @@
 # Continuity notes for ephemeral AI instances
 
+## Cleaned up remaining docs/JSDoc from indexer-redesign-todo.md (2026-03-19) ✅
+
+**Task**: Three remaining "cleanup" items from `indexer-redesign-todo.md`.
+
+**What was done**:
+- `indexer/README.md`: Rewrote to describe the thin event cache architecture (one events table + 4 registry tables, REST API, no business logic) instead of the old 5-subsystem GraphQL description.
+- `specs/indexer/redesign.md` Phase 4 section: Updated from "hybrid approach" to "100% GraphQL-free". Reflects that all queries now use event cache + folds or on-chain reads; all GraphQL code has been deleted.
+- `sdk/src/subsystems/conceptspace/actions.ts`: Fixed JSDoc example (`graphqlClient` → `machinery`) and error message string.
+- `sdk/src/subsystems/mutable-refs/actions.ts`: Fixed two `@param graphqlClient` → `@param machinery` and two code examples.
+
+**Files changed**:
+- `indexer/README.md`
+- `specs/indexer/redesign.md`
+- `sdk/src/subsystems/conceptspace/actions.ts`
+- `sdk/src/subsystems/mutable-refs/actions.ts`
+- `indexer-redesign-todo.md` — all cleanup items now ✅
+
+**What's next**: The only remaining work in `indexer-redesign-todo.md` is the larger "Remove registry tables" task — removing the 4 registry tables from the indexer schema + API and updating SDK callers to derive the same data from raw events.
+
+**Good interrupt point**: Yes — all small cleanup is done. "Remove registry tables" is a substantial refactor suitable for its own session.
+
+
+
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
 ## Updated ui/e2e/utils/indexer.ts to use Ponder REST (2026-03-19) ✅
