@@ -9,7 +9,7 @@ See specs/indexer/redesign.md for the fuller picture of what this redesign is ab
 - [x] Delete `sdk/src/generated/` (3 files: `graphql.ts`, `gql.ts`, `index.ts`) — not imported anywhere, leftover from old GraphQL codegen
 - [x] Delete `sdk/src/subsystems/fundingportals/queries.graphql` — orphaned `.graphql` file with old queries
 - [x] Delete `integration-tests/src/generated/` (`gql.ts`, `graphql.ts`) — analogous leftover generated files
-- [ ] Update `ui/e2e/utils/indexer.ts` — still uses old GraphQL `_meta` polling and references deleted `/conceptspace/api/sync-ipfs` endpoint; needs to use Ponder REST `/status` like `sdk/src/indexer-sync.ts` does
+- [x] Update `ui/e2e/utils/indexer.ts` — still uses old GraphQL `_meta` polling and references deleted `/conceptspace/api/sync-ipfs` endpoint; needs to use Ponder REST `/status` like `sdk/src/indexer-sync.ts` does
 - [ ] Update `indexer/README.md` — still describes the old 5-subsystem architecture with GraphQL APIs
 - [ ] Update `specs/indexer/redesign.md` Phase 4 section — says "hybrid approach" with some GraphQL remaining, but we've since gone fully GraphQL-free
 - [ ] Clean up stale JSDoc comments in `actions.ts` files that reference `graphqlClient`

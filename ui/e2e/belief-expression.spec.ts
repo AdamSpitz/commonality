@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
-import { waitForIndexer, triggerSyncWithRetry, waitForStatement } from './utils/indexer'
+import { waitForIndexer, waitForStatement } from './utils/indexer'
 import {
   createAndSignStatement,
   createStatement,
@@ -62,12 +62,6 @@ async function createTestStatement(
 
   // Wait for indexer to be ready
   await waitForIndexer(graphqlUrl)
-
-  // Trigger IPFS sync with retry (fetches IPFS content for existing statements)
-  await triggerSyncWithRetry(graphqlUrl)
-
-  // Additional wait for indexer to process events
-  await new Promise((r) => setTimeout(r, 2000))
 
   const statementCid = result.cid
 

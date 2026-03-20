@@ -2,6 +2,31 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Updated ui/e2e/utils/indexer.ts to use Ponder REST (2026-03-19) ✅
+
+**Task**: `ui/e2e/utils/indexer.ts` used old GraphQL `_meta` polling and referenced the deleted `/conceptspace/api/sync-ipfs` endpoint.
+
+**What was done**:
+- `waitForIndexer`: polls `{origin}/status` (Ponder REST) instead of `{base}/graphql` with `_meta` query
+- `waitForStatement`: queries `{origin}/api/events?eventName=DirectSupport&topic2=<cidBytes32>&limit=1` instead of GraphQL. Uses `cidToBytes32` from SDK to convert CID. `statementId` is topic2 in the DirectSupport event (`address indexed user` = topic1, `bytes32 indexed statementId` = topic2).
+- Removed `triggerSyncWithRetry` entirely — the `/conceptspace/api/sync-ipfs` endpoint is deleted.
+- `waitForStatementWithIPFS`: simplified to just `waitForIndexer` + `waitForStatement` (no IPFS sync step). Options `syncMaxAttempts` and `ipfsProcessingDelayMs` removed.
+- Updated callers: removed `triggerSyncWithRetry` import and calls from `belief-expression.spec.ts` and `statement-creation.spec.ts`.
+
+**Files changed**:
+- `ui/e2e/utils/indexer.ts`
+- `ui/e2e/belief-expression.spec.ts`
+- `ui/e2e/statement-creation.spec.ts`
+- `indexer-redesign-todo.md` — marked ✅
+
+**What's next** (remaining cleanup tasks):
+- Update `indexer/README.md` (stale 5-subsystem architecture description)
+- Update `specs/indexer/redesign.md` Phase 4 (hybrid→fully GraphQL-free)
+- Clean up stale JSDoc in `actions.ts` files referencing `graphqlClient`
+- Larger "Remove registry tables" task
+
+**Good interrupt point**: Yes — this is a clean checkpoint.
+
 ## Deleted orphaned generated/graphql files (2026-03-19) ✅
 
 - Deleted `sdk/src/generated/` (graphql.ts, gql.ts, index.ts) — leftover GraphQL codegen output
