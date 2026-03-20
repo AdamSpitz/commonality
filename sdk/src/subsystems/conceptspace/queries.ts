@@ -3,7 +3,7 @@
  */
 
 import { fetchFromIPFS } from '../../utils/ipfs.js';
-import { fetchEvents, fetchStatementsRegistry, padAddressAsTopic } from '../../utils/eventCacheClient.js';
+import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import { decodeDirectSupportEvent, decodeImplicationAttestationEvent, type DecodedDirectSupportEvent, type DecodedImplicationAttestationEvent } from '../../utils/eventDecoder.js';
 import { foldStatementBeliefs, foldUserBeliefs, foldAllStatements, foldImplications } from './folds.js';
 import {
@@ -65,19 +65,18 @@ export async function getStatement(
 
   const folded = foldStatementBeliefs(decodedEvents);
 
-  const statements = await fetchStatementsRegistry(machinery, { limit: 10000 });
-  const statement = statements.find(s => s.cidV1 === statementCid);
-
-  if (!statement && decodedEvents.length === 0) {
+  if (decodedEvents.length === 0) {
     return null;
   }
+
+  const earliestEvent = decodedEvents.reduce((min, e) => e.blockNumber < min.blockNumber ? e : min);
 
   return {
     id: statementCid,
     cid: statementCid,
     believerCount: folded.believerCount,
     disbelieverCount: folded.disbelieverCount,
-    createdAt: statement?.createdAtTimestamp ? statement.createdAtTimestamp : '',
+    createdAt: earliestEvent.blockTimestamp.toString(),
   };
 }
 
@@ -369,7 +368,6 @@ export async function browseStatementsByMostSupporters(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const registry = await fetchStatementsRegistry(machinery, { limit: 10000 });
   const contracts = machinery.contractAddresses!;
 
   const allEvents = await fetchEvents(machinery, {
@@ -384,19 +382,27 @@ export async function browseStatementsByMostSupporters(
     if (decoded) decodedEvents.push(decoded);
   }
 
+  const firstTimestamp = new Map<string, bigint>();
+  for (const e of decodedEvents) {
+    const existing = firstTimestamp.get(e.statementId);
+    if (!existing || e.blockTimestamp < existing) {
+      firstTimestamp.set(e.statementId, e.blockTimestamp);
+    }
+  }
+
   const beliefCounts = foldAllStatements(decodedEvents);
 
-  const items: StatementListItem[] = registry.map(s => {
-    const counts = beliefCounts.get(s.cidV1) ?? { believerCount: 0, disbelieverCount: 0 };
+  const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
+    const counts = beliefCounts.get(cidV1)!;
     return {
-      id: s.cidV1,
-      cid: s.cidV1 as IpfsCidV1,
+      id: cidV1,
+      cid: cidV1 as IpfsCidV1,
       statementType: '',
       title: '',
       excerpt: '',
       believerCount: counts.believerCount,
       disbelieverCount: counts.disbelieverCount,
-      createdAt: s.createdAtTimestamp ?? '',
+      createdAt: firstTimestamp.get(cidV1)?.toString() ?? '',
     };
   });
 
@@ -417,7 +423,6 @@ export async function browseStatementsByNewest(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const registry = await fetchStatementsRegistry(machinery, { limit: 10000 });
   const contracts = machinery.contractAddresses!;
 
   const allEvents = await fetchEvents(machinery, {
@@ -432,19 +437,27 @@ export async function browseStatementsByNewest(
     if (decoded) decodedEvents.push(decoded);
   }
 
+  const firstTimestamp = new Map<string, bigint>();
+  for (const e of decodedEvents) {
+    const existing = firstTimestamp.get(e.statementId);
+    if (!existing || e.blockTimestamp < existing) {
+      firstTimestamp.set(e.statementId, e.blockTimestamp);
+    }
+  }
+
   const beliefCounts = foldAllStatements(decodedEvents);
 
-  const items: StatementListItem[] = registry.map(s => {
-    const counts = beliefCounts.get(s.cidV1) ?? { believerCount: 0, disbelieverCount: 0 };
+  const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
+    const counts = beliefCounts.get(cidV1)!;
     return {
-      id: s.cidV1,
-      cid: s.cidV1 as IpfsCidV1,
+      id: cidV1,
+      cid: cidV1 as IpfsCidV1,
       statementType: '',
       title: '',
       excerpt: '',
       believerCount: counts.believerCount,
       disbelieverCount: counts.disbelieverCount,
-      createdAt: s.createdAtTimestamp ?? '',
+      createdAt: firstTimestamp.get(cidV1)?.toString() ?? '',
     };
   });
 
@@ -480,7 +493,6 @@ export async function getAllStatements(
 ): Promise<StatementListItem[]> {
   const { limit = 100, offset = 0 } = options;
 
-  const registry = await fetchStatementsRegistry(machinery, { limit: 10000 });
   const contracts = machinery.contractAddresses!;
 
   const allEvents = await fetchEvents(machinery, {
@@ -495,19 +507,27 @@ export async function getAllStatements(
     if (decoded) decodedEvents.push(decoded);
   }
 
+  const firstTimestamp = new Map<string, bigint>();
+  for (const e of decodedEvents) {
+    const existing = firstTimestamp.get(e.statementId);
+    if (!existing || e.blockTimestamp < existing) {
+      firstTimestamp.set(e.statementId, e.blockTimestamp);
+    }
+  }
+
   const beliefCounts = foldAllStatements(decodedEvents);
 
-  const items: StatementListItem[] = registry.map(s => {
-    const counts = beliefCounts.get(s.cidV1) ?? { believerCount: 0, disbelieverCount: 0 };
+  const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
+    const counts = beliefCounts.get(cidV1)!;
     return {
-      id: s.cidV1,
-      cid: s.cidV1 as IpfsCidV1,
+      id: cidV1,
+      cid: cidV1 as IpfsCidV1,
       statementType: '',
       title: '',
       excerpt: '',
       believerCount: counts.believerCount,
       disbelieverCount: counts.disbelieverCount,
-      createdAt: s.createdAtTimestamp ?? '',
+      createdAt: firstTimestamp.get(cidV1)?.toString() ?? '',
     };
   });
 

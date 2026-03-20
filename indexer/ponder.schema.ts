@@ -1,17 +1,10 @@
 // ============================================================================
 // PONDER SCHEMA
 // ============================================================================
-// After the indexer redesign, the only tables are:
+// After the indexer redesign, the only table is:
 //   - events: raw event cache (one row per on-chain event)
-//   - registry tables: lightweight "what exists" lookups
 //
 // All derived/aggregated data (beliefs, projects, delegation chains, etc.)
-// is now computed client-side by SDK fold functions over the raw events.
+// is computed client-side by SDK fold functions over the raw events.
 
-export {
-  events,
-  statementsRegistry,
-  projectsRegistry,
-  alignmentAttestationsRegistry,
-  implicationsRegistry,
-} from "./schemas/events.schema";
+export { events } from "./schemas/events.schema";

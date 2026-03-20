@@ -15,35 +15,6 @@ export interface RawEventFromCache {
   data: string;
 }
 
-export interface StatementRegistryItem {
-  cidV1: string;
-  createdAtBlock: string;
-  createdAtTimestamp: string;
-}
-
-export interface ProjectRegistryItem {
-  id: string;
-  factoryAddress: string;
-  createdAtBlock: string;
-  createdAtTimestamp: string;
-}
-
-export interface AlignmentAttestationRegistryItem {
-  id: string;
-  attester: string;
-  subjectAddress: string;
-  statementId: string;
-  createdAtBlock: string;
-}
-
-export interface ImplicationRegistryItem {
-  id: string;
-  attester: string;
-  fromStatementId: string;
-  toStatementId: string;
-  createdAtBlock: string;
-}
-
 interface EventQueryParams {
   contractAddress?: string;
   eventName?: string;
@@ -96,100 +67,6 @@ export async function fetchEvents(
   }
 
   const data = (await response.json()) as ListResponse<RawEventFromCache>;
-  return data.items ?? [];
-}
-
-export async function fetchStatementsRegistry(
-  machinery: SDKMachinery,
-  options: { limit?: number; offset?: number } = {}
-): Promise<StatementRegistryItem[]> {
-  if (!machinery.eventCacheUrl) {
-    throw new Error('eventCacheUrl not configured');
-  }
-
-  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'statements_registry', {
-    limit: options.limit ?? 100,
-    offset: options.offset ?? 0,
-  });
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch statements registry: ${response.status}`);
-  }
-
-  const data = (await response.json()) as ListResponse<StatementRegistryItem>;
-  return data.items ?? [];
-}
-
-export async function fetchProjectsRegistry(
-  machinery: SDKMachinery,
-  options: { limit?: number; offset?: number } = {}
-): Promise<ProjectRegistryItem[]> {
-  if (!machinery.eventCacheUrl) {
-    throw new Error('eventCacheUrl not configured');
-  }
-
-  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'projects_registry', {
-    limit: options.limit ?? 100,
-    offset: options.offset ?? 0,
-  });
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch projects registry: ${response.status}`);
-  }
-
-  const data = (await response.json()) as ListResponse<ProjectRegistryItem>;
-  return data.items ?? [];
-}
-
-export async function fetchAlignmentAttestationsRegistry(
-  machinery: SDKMachinery,
-  options: { statementId?: string; attester?: string; subjectAddress?: string; limit?: number; offset?: number } = {}
-): Promise<AlignmentAttestationRegistryItem[]> {
-  if (!machinery.eventCacheUrl) {
-    throw new Error('eventCacheUrl not configured');
-  }
-
-  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'alignment_attestations_registry', {
-    statementId: options.statementId,
-    attester: options.attester,
-    subjectAddress: options.subjectAddress,
-    limit: options.limit ?? 100,
-    offset: options.offset ?? 0,
-  });
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch alignment attestations registry: ${response.status}`);
-  }
-
-  const data = (await response.json()) as ListResponse<AlignmentAttestationRegistryItem>;
-  return data.items ?? [];
-}
-
-export async function fetchImplicationsRegistry(
-  machinery: SDKMachinery,
-  options: { fromStatementId?: string; toStatementId?: string; attester?: string; limit?: number; offset?: number } = {}
-): Promise<ImplicationRegistryItem[]> {
-  if (!machinery.eventCacheUrl) {
-    throw new Error('eventCacheUrl not configured');
-  }
-
-  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'implications_registry', {
-    fromStatementId: options.fromStatementId,
-    toStatementId: options.toStatementId,
-    attester: options.attester,
-    limit: options.limit ?? 100,
-    offset: options.offset ?? 0,
-  });
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch implications registry: ${response.status}`);
-  }
-
-  const data = (await response.json()) as ListResponse<ImplicationRegistryItem>;
   return data.items ?? [];
 }
 

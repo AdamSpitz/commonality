@@ -4,7 +4,7 @@
  * All queries use event cache + folds + chain reads.
  */
 
-import { fetchEvents, fetchAlignmentAttestationsRegistry } from '../../utils/eventCacheClient.js';
+import { fetchEvents } from '../../utils/eventCacheClient.js';
 import { decodeAlignmentAttestationEvent, decodeImplicationAttestationEvent } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
 import { getProject, getProjectContributions, getProjectRefunds } from '../pubstarter/queries.js';
@@ -169,18 +169,29 @@ export async function getAlignmentsByAttester(
   attesterAddress: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const registry = await fetchAlignmentAttestationsRegistry(machinery, {
-    attester: attesterAddress.toLowerCase(),
+  const contracts = machinery.contractAddresses!;
+
+  // AlignmentAttestation: topic1=attester, topic2=subjectAddress, topic3=statementId
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.alignmentAttestations,
+    eventName: 'AlignmentAttestation',
+    topic1: padAddressAsTopic(attesterAddress),
     limit: 10000,
   });
-  
-  return registry.map(item => ({
-    attester: item.attester,
-    subjectAddress: item.subjectAddress,
-    statementCid: normalizeCidV1(item.statementId),
+
+  const decodedEvents = events
+    .map(e => decodeAlignmentAttestationEvent(e))
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+
+  const attestations = foldAlignmentAttestations(decodedEvents);
+
+  return attestations.map(a => ({
+    attester: a.attester,
+    subjectAddress: a.subjectAddress,
+    statementCid: normalizeCidV1(a.statementCid),
     topicStatementCid,
-    createdAt: '',
-    blockNumber: '',
+    createdAt: a.createdAt,
+    blockNumber: a.blockNumber,
   }));
 }
 

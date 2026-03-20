@@ -4,14 +4,9 @@ Thin event cache: watches blockchain events, stores them raw, and serves them vi
 
 ## Architecture
 
-A single Ponder application with two responsibilities:
+A single Ponder application with one responsibility:
 
 - **events table** — stores every raw contract event (all topics + ABI-encoded data)
-- **Registry tables** — small "what exists" tables maintained eagerly:
-  - `statements_registry`
-  - `projects_registry`
-  - `alignment_attestations_registry`
-  - `implications_registry`
 
 No business logic, no aggregation, no IPFS sync. All entity-state computation happens client-side in SDK fold functions.
 

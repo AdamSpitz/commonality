@@ -4,7 +4,7 @@
  * Serves:
  *   - SQL client for direct queries
  *   - GraphQL endpoint (auto-generated from schema)
- *   - REST endpoints for the events cache and registry tables
+ *   - REST endpoint for the events cache
  */
 
 import { db } from "ponder:api";
@@ -40,8 +40,7 @@ app.use("/graphql", graphql({ db, schema }));
 // ============================================================================
 // EVENTS CACHE REST API
 // ============================================================================
-// These endpoints serve raw event data and registry tables.
-// Used by the SDK's eventCacheClient to fetch events for client-side folding.
+// This endpoint serves raw event data for SDK client-side folding.
 
 app.get("/api/events", async (c) => {
   try {
@@ -68,78 +67,6 @@ app.get("/api/events", async (c) => {
       ? query.where(and(...conditions))
       : query
     ).limit(limit);
-
-    return c.json(serializeBigInts({ items }) as object);
-  } catch (error) {
-    return c.json({ error: String(error) }, 500);
-  }
-});
-
-app.get("/api/statements_registry", async (c) => {
-  try {
-    const limit = Math.min(parseInt(c.req.query("limit") ?? "100", 10) || 100, 10000);
-    const offset = parseInt(c.req.query("offset") ?? "0", 10) || 0;
-    const items = await db.select().from(schema.statementsRegistry).limit(limit).offset(offset);
-    return c.json(serializeBigInts({ items }) as object);
-  } catch (error) {
-    return c.json({ error: String(error) }, 500);
-  }
-});
-
-app.get("/api/projects_registry", async (c) => {
-  try {
-    const limit = Math.min(parseInt(c.req.query("limit") ?? "100", 10) || 100, 10000);
-    const offset = parseInt(c.req.query("offset") ?? "0", 10) || 0;
-    const items = await db.select().from(schema.projectsRegistry).limit(limit).offset(offset);
-    return c.json(serializeBigInts({ items }) as object);
-  } catch (error) {
-    return c.json({ error: String(error) }, 500);
-  }
-});
-
-app.get("/api/alignment_attestations_registry", async (c) => {
-  try {
-    const statementId = c.req.query("statementId");
-    const attester = c.req.query("attester")?.toLowerCase();
-    const subjectAddress = c.req.query("subjectAddress")?.toLowerCase();
-    const limit = Math.min(parseInt(c.req.query("limit") ?? "100", 10) || 100, 10000);
-    const offset = parseInt(c.req.query("offset") ?? "0", 10) || 0;
-
-    const conditions: any[] = [];
-    if (statementId) conditions.push(eq(schema.alignmentAttestationsRegistry.statementId, statementId));
-    if (attester) conditions.push(eq(schema.alignmentAttestationsRegistry.attester, attester as `0x${string}`));
-    if (subjectAddress) conditions.push(eq(schema.alignmentAttestationsRegistry.subjectAddress, subjectAddress as `0x${string}`));
-
-    const query = db.select().from(schema.alignmentAttestationsRegistry);
-    const items = await (conditions.length > 0
-      ? query.where(and(...conditions))
-      : query
-    ).limit(limit).offset(offset);
-
-    return c.json(serializeBigInts({ items }) as object);
-  } catch (error) {
-    return c.json({ error: String(error) }, 500);
-  }
-});
-
-app.get("/api/implications_registry", async (c) => {
-  try {
-    const fromStatementId = c.req.query("fromStatementId");
-    const toStatementId = c.req.query("toStatementId");
-    const attester = c.req.query("attester")?.toLowerCase();
-    const limit = Math.min(parseInt(c.req.query("limit") ?? "100", 10) || 100, 10000);
-    const offset = parseInt(c.req.query("offset") ?? "0", 10) || 0;
-
-    const conditions: any[] = [];
-    if (fromStatementId) conditions.push(eq(schema.implicationsRegistry.fromStatementId, fromStatementId));
-    if (toStatementId) conditions.push(eq(schema.implicationsRegistry.toStatementId, toStatementId));
-    if (attester) conditions.push(eq(schema.implicationsRegistry.attester, attester as `0x${string}`));
-
-    const query = db.select().from(schema.implicationsRegistry);
-    const items = await (conditions.length > 0
-      ? query.where(and(...conditions))
-      : query
-    ).limit(limit).offset(offset);
 
     return c.json(serializeBigInts({ items }) as object);
   } catch (error) {

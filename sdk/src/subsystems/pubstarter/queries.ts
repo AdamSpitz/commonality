@@ -18,9 +18,9 @@ import {
 } from './types.js';
 import { SDKMachinery } from '../../machinery.js';
 import {
+  fetchEvents,
   fetchPubstarterProjectEvents,
   fetchSecondaryMarketEvents,
-  fetchProjectsRegistry,
   fetchERC1155TransferEvents,
   fetchAllBoughtEvents,
 } from '../../utils/eventCacheClient.js';
@@ -201,9 +201,18 @@ export async function getProject(
 export async function getAllProjects(
   machinery: SDKMachinery
 ): Promise<Project[]> {
-  const registry = await fetchProjectsRegistry(machinery, { limit: 10000 });
+  const contracts = machinery.contractAddresses!;
+  const rawEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.assuranceContractFactory,
+    eventName: 'PubstarterAssuranceContractCreated',
+    limit: 10000,
+  });
+  const projectAddresses = rawEvents
+    .map(e => decodePubstarterAssuranceContractCreatedEvent(e))
+    .filter((d): d is NonNullable<typeof d> => d !== null)
+    .map(d => d.assuranceContract);
   const projects = await Promise.all(
-    registry.map(r => getProject(machinery, r.id))
+    projectAddresses.map(addr => getProject(machinery, addr))
   );
   return projects.filter((p): p is Project => p !== null);
 }
@@ -497,14 +506,23 @@ export async function getUserTokenBurns(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  // We need all ERC1155 contracts — get from projects registry
-  const registry = await fetchProjectsRegistry(machinery, { limit: 10000 });
+  const contracts = machinery.contractAddresses!;
+  const rawFactoryEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.assuranceContractFactory,
+    eventName: 'PubstarterAssuranceContractCreated',
+    limit: 10000,
+  });
+  const projectAddresses = rawFactoryEvents
+    .map(e => decodePubstarterAssuranceContractCreatedEvent(e))
+    .filter((d): d is NonNullable<typeof d> => d !== null)
+    .map(d => d.assuranceContract);
+
   const allBurns: TokenBurn[] = [];
   const userLower = userAddress.toLowerCase();
 
   // Fetch project events to discover ERC1155 addresses
-  for (const project of registry) {
-    const projectEvents = await fetchAndDecodeProjectEvents(machinery, project.id);
+  for (const projectAddress of projectAddresses) {
+    const projectEvents = await fetchAndDecodeProjectEvents(machinery, projectAddress);
     const erc1155Addresses = new Set<string>();
     for (const pe of projectEvents) {
       if (pe.type === 'tokenOffered') {

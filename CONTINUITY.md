@@ -1,5 +1,26 @@
 # Continuity notes for ephemeral AI instances
 
+## Removed registry tables from indexer (2026-03-19) ✅
+
+**Task**: Remove the 4 registry tables (`statements_registry`, `projects_registry`, `alignment_attestations_registry`, `implications_registry`) from the indexer and update SDK callers to derive the same data from raw events.
+
+**What was done**:
+- `indexer/schemas/events.schema.ts`: Deleted all 4 registry table definitions.
+- `indexer/ponder.schema.ts`: Removed the 4 registry re-exports.
+- `indexer/src/events-cache/index.ts`: Stripped registry dedup logic from all 4 handlers (`DirectSupport`, `ImplicationAttestation`, `PubstarterAssuranceContractCreated`, `AlignmentAttestation`). Each handler is now a single `captureRawEvent()` call. Removed `bytes32ToCid`/`IpfsCidBytes32` imports.
+- `indexer/src/api/index.ts`: Removed 4 registry REST endpoints.
+- `sdk/src/utils/eventCacheClient.ts`: Deleted 4 types (`StatementRegistryItem`, `ProjectRegistryItem`, `AlignmentAttestationRegistryItem`, `ImplicationRegistryItem`) and 4 functions (`fetchStatementsRegistry`, `fetchProjectsRegistry`, `fetchAlignmentAttestationsRegistry`, `fetchImplicationsRegistry`).
+- `sdk/src/subsystems/conceptspace/queries.ts`: Replaced 4 `fetchStatementsRegistry()` calls with event-derived data — set of statement CIDs comes from `foldAllStatements()` keys; `createdAt` comes from the earliest `blockTimestamp` in the DirectSupport events for each CID.
+- `sdk/src/subsystems/pubstarter/queries.ts`: Replaced 2 `fetchProjectsRegistry()` calls with `fetchEvents(PubstarterAssuranceContractCreated)` from the factory contract.
+- `sdk/src/subsystems/fundingportals/queries.ts`: Replaced `fetchAlignmentAttestationsRegistry(attester=X)` with `fetchEvents(AlignmentAttestation, topic1=paddedAttester)` + fold.
+- `indexer/README.md`: Updated to reflect single-table architecture.
+- `README.md`: Updated status bullet.
+- `indexer-redesign-todo.md`: Marked complete.
+
+**Test results**: 616 tests passing. Build clean.
+
+**Good interrupt point**: Yes — this completes the `indexer-redesign-todo.md` entirely. All registry tables are gone. The indexer is now a pure event cache with one table. Good time for a project-wide review or starting new work.
+
 ## Cleaned up remaining docs/JSDoc from indexer-redesign-todo.md (2026-03-19) ✅
 
 **Task**: Three remaining "cleanup" items from `indexer-redesign-todo.md`.

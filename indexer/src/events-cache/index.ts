@@ -1,24 +1,15 @@
 /**
- * Events Cache - Raw Event Capture + Registry Table Maintenance
+ * Events Cache - Raw Event Capture
  *
  * This is the sole set of Ponder event handlers for the indexer.
- * Each handler does exactly two things:
- *   1. Inserts a raw event row into the `events` table (for SDK client-side folding)
- *   2. Updates the relevant registry table, if applicable
+ * Each handler inserts a raw event row into the `events` table for SDK client-side folding.
  *
  * All business logic (beliefs, projects, delegation chains, etc.) has been moved
  * to SDK fold functions that operate on the raw events client-side.
  */
 
 import { ponder } from "ponder:registry";
-import {
-  events,
-  statementsRegistry,
-  projectsRegistry,
-  alignmentAttestationsRegistry,
-  implicationsRegistry,
-} from "ponder:schema";
-import { IpfsCidBytes32, bytes32ToCid } from "../utils/cid-types";
+import { events } from "ponder:schema";
 import { captureRawEvent } from "../utils/rawEvents";
 
 // ============================================================================
@@ -27,51 +18,10 @@ import { captureRawEvent } from "../utils/rawEvents";
 
 ponder.on("Beliefs:DirectSupport", async ({ event, context }) => {
   await context.db.insert(events).values(captureRawEvent(event, "DirectSupport"));
-
-  const statementIdCidV1 = bytes32ToCid(event.args.statementId as IpfsCidBytes32);
-  const existing = await context.db.find(statementsRegistry, { cidV1: statementIdCidV1 });
-  if (!existing) {
-    await context.db.insert(statementsRegistry).values({
-      cidV1: statementIdCidV1,
-      createdAtBlock: BigInt(event.block.number),
-      createdAtTimestamp: BigInt(event.block.timestamp),
-    });
-  }
 });
 
 ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
   await context.db.insert(events).values(captureRawEvent(event, "ImplicationAttestation"));
-
-  const fromCid = bytes32ToCid(event.args.fromStatementCid as IpfsCidBytes32);
-  const toCid = bytes32ToCid(event.args.toStatementCid as IpfsCidBytes32);
-  const attester = event.args.attester.toLowerCase() as `0x${string}`;
-  const blockNumber = BigInt(event.block.number);
-  const timestamp = BigInt(event.block.timestamp);
-
-  // Register both statements if new
-  for (const cidV1 of [fromCid, toCid]) {
-    const existing = await context.db.find(statementsRegistry, { cidV1 });
-    if (!existing) {
-      await context.db.insert(statementsRegistry).values({
-        cidV1,
-        createdAtBlock: blockNumber,
-        createdAtTimestamp: timestamp,
-      });
-    }
-  }
-
-  // Register implication
-  const implId = `${attester}-${fromCid}-${toCid}`;
-  const existingImpl = await context.db.find(implicationsRegistry, { id: implId });
-  if (!existingImpl) {
-    await context.db.insert(implicationsRegistry).values({
-      id: implId,
-      attester,
-      fromStatementId: fromCid,
-      toStatementId: toCid,
-      createdAtBlock: blockNumber,
-    });
-  }
 });
 
 // ============================================================================
@@ -80,17 +30,6 @@ ponder.on("Implications:ImplicationAttestation", async ({ event, context }) => {
 
 ponder.on("AssuranceContractFactory:PubstarterAssuranceContractCreated", async ({ event, context }) => {
   await context.db.insert(events).values(captureRawEvent(event, "PubstarterAssuranceContractCreated"));
-
-  const projectAddress = event.args.assuranceContract;
-  const existing = await context.db.find(projectsRegistry, { id: projectAddress });
-  if (!existing) {
-    await context.db.insert(projectsRegistry).values({
-      id: projectAddress,
-      factoryAddress: event.log.address,
-      createdAtBlock: BigInt(event.block.number),
-      createdAtTimestamp: BigInt(event.block.timestamp),
-    });
-  }
 });
 
 ponder.on("ERC1155Factory:PubstarterERC1155ContractCreated", async ({ event, context }) => {
@@ -203,23 +142,6 @@ ponder.on("NoteIntent:NoteIntentAttested", async ({ event, context }) => {
 
 ponder.on("AlignmentAttestations:AlignmentAttestation", async ({ event, context }) => {
   await context.db.insert(events).values(captureRawEvent(event, "AlignmentAttestation"));
-
-  const statementIdCidV1 = bytes32ToCid(event.args.statementId as IpfsCidBytes32);
-  const attester = event.args.attester.toLowerCase() as `0x${string}`;
-  const subjectAddress = event.args.subjectAddress.toLowerCase() as `0x${string}`;
-  const blockNumber = BigInt(event.block.number);
-
-  const registryId = `${attester}-${subjectAddress}-${statementIdCidV1}`;
-  const existing = await context.db.find(alignmentAttestationsRegistry, { id: registryId });
-  if (!existing) {
-    await context.db.insert(alignmentAttestationsRegistry).values({
-      id: registryId,
-      attester,
-      subjectAddress,
-      statementId: statementIdCidV1,
-      createdAtBlock: blockNumber,
-    });
-  }
 });
 
 // ============================================================================
