@@ -2,6 +2,22 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Deleted orphaned generated/graphql files (2026-03-19) ✅
+
+- Deleted `sdk/src/generated/` (graphql.ts, gql.ts, index.ts) — leftover GraphQL codegen output
+- Deleted `sdk/src/subsystems/fundingportals/queries.graphql` — orphaned query file
+- Deleted `integration-tests/src/generated/` (graphql.ts, gql.ts, index.ts) — analogous leftovers
+- None were imported anywhere (verified with grep).
+
+**What's next**: More cleanup from `indexer-redesign-todo.md`:
+  - Update `ui/e2e/utils/indexer.ts` (old GraphQL `_meta` polling → Ponder REST `/status`)
+  - Update `indexer/README.md` (stale architecture description)
+  - Update `specs/indexer/redesign.md` Phase 4 (hybrid→fully GraphQL-free)
+  - Clean up stale JSDoc in `actions.ts` files
+  - Then the larger "Remove registry tables" task
+
+**Good interrupt point**: Yes — simple cleanup, all deletions.
+
 ## Fixed decodeContractMetadataUpdatedEvent bug + added decoder test (2026-03-19) ✅
 
 - Fixed `sdk/src/utils/eventDecoder.ts:249`: changed `args.uri` → `args.metadata` to match the ABI field name.

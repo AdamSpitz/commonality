@@ -6,9 +6,9 @@ See specs/indexer/redesign.md for the fuller picture of what this redesign is ab
 
 - [x] **Bug**: Fix `decodeContractMetadataUpdatedEvent` in `sdk/src/utils/eventDecoder.ts:249` — uses `args.uri` but ABI field is named `metadata`. Pubstarter project metadata is silently `undefined` in the event cache path. Fix: `args.uri` → `args.metadata`. (Found in 2026-03-19 review.)
 - [x] **Test**: Add unit tests for `eventDecoder.ts` — the metadata bug above slipped through because fold tests construct events directly, bypassing the decoder. At minimum, add a decoder-roundtrip test for `decodeContractMetadataUpdatedEvent`.
-- [ ] Delete `sdk/src/generated/` (3 files: `graphql.ts`, `gql.ts`, `index.ts`) — not imported anywhere, leftover from old GraphQL codegen
-- [ ] Delete `sdk/src/subsystems/fundingportals/queries.graphql` — orphaned `.graphql` file with old queries
-- [ ] Delete `integration-tests/src/generated/` (`gql.ts`, `graphql.ts`) — analogous leftover generated files
+- [x] Delete `sdk/src/generated/` (3 files: `graphql.ts`, `gql.ts`, `index.ts`) — not imported anywhere, leftover from old GraphQL codegen
+- [x] Delete `sdk/src/subsystems/fundingportals/queries.graphql` — orphaned `.graphql` file with old queries
+- [x] Delete `integration-tests/src/generated/` (`gql.ts`, `graphql.ts`) — analogous leftover generated files
 - [ ] Update `ui/e2e/utils/indexer.ts` — still uses old GraphQL `_meta` polling and references deleted `/conceptspace/api/sync-ipfs` endpoint; needs to use Ponder REST `/status` like `sdk/src/indexer-sync.ts` does
 - [ ] Update `indexer/README.md` — still describes the old 5-subsystem architecture with GraphQL APIs
 - [ ] Update `specs/indexer/redesign.md` Phase 4 section — says "hybrid approach" with some GraphQL remaining, but we've since gone fully GraphQL-free
