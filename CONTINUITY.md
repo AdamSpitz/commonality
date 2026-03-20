@@ -2,6 +2,34 @@
 
 This file is for jotting down notes that might be useful for the next AI. This file will be wiped every so often, so don't use it for information that needs to be kept long-term.
 
+## Made fold functions resumable-ready ✅
+
+**Task**: Make SDK fold functions accept optional previous-state so they can be resumed from a cursor rather than always processing all events from scratch. (See `indexer-redesign-todo.md` "Make fold functions resumable-ready".)
+
+**What was done**:
+- `foldProject` (`pubstarter/folds.ts`): Added `ProjectAccumulator` exported interface. Signature now accepts `initialAccumulator?: ProjectAccumulator` and returns `{ project, accumulator }`. Callers updated: `queries.ts` destructures `{ project: partial }`. Tests updated to destructure return value. New resumability test added.
+- `foldSecondaryMarket` (`pubstarter/folds.ts`): Accepts optional `initialState?: { saleListings, buyOrders, trades }`. Hydrates Maps from initial state arrays at start.
+- `foldContributionsFromEvents` (`pubstarter/folds.ts`): Accepts optional `initialState?: { contributions, refunds }`. Appends new entries to initial arrays.
+- `foldTokenBurns` (`pubstarter/folds.ts`): Accepts optional `initialBurns?: TokenBurn[]`. Appends new burns to initial array.
+- `NoteState` (`delegation/folds.ts`): Exported so callers can hold the full stateMap.
+- `foldDelegationState` (`delegation/folds.ts`): Accepts optional `initialStateMap?: Map<string, NoteState>` (deep-cloned on entry). Returns `{ notes, chains, stateMap }`. The stateMap must be held by callers wanting resumption (not just a single note), because ERC1155Purchased events copy chains across notes.
+- `foldNote` (`delegation/folds.ts`): Accepts optional `initialStateMap` and returns `stateMap` in result. Callers can hold the map for future incremental folding.
+- New resumability test added for `foldDelegationState`.
+
+**Files changed**:
+- `sdk/src/subsystems/pubstarter/folds.ts` — all four fold functions updated
+- `sdk/src/subsystems/pubstarter/folds.test.ts` — foldProject tests updated, resumability test added
+- `sdk/src/subsystems/pubstarter/queries.ts` — destructure `{ project: partial }` from `foldProject`
+- `sdk/src/subsystems/delegation/folds.ts` — NoteState exported, foldDelegationState + foldNote updated
+- `sdk/src/subsystems/delegation/folds.test.ts` — resumability test added
+- `indexer-redesign-todo.md` — task marked ✅
+
+**Test results**: 241 SDK tests passing (up from 239). Full suite: build clean.
+
+**What's next**: The indexer redesign is **fully complete**. All tasks in `indexer-redesign-todo.md` are done. Consider a project-wide review or starting a new feature/subsystem.
+
+**Good interrupt point**: Yes — this completes the entire indexer redesign. Excellent time for a project-wide review.
+
 ## Deleted old indexer derived-table handlers, schemas, APIs, and sync jobs
 
 **Task**: Delete all old indexer-side files now that business logic lives in SDK folds.

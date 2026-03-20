@@ -22,10 +22,11 @@ export type DelegationEvent =
   | { type: 'noteConsumed'; event: NoteConsumedEvent }
   | { type: 'erc1155Purchased'; event: ERC1155PurchasedEvent };
 
-// Internal mutable state for a note during fold processing.
+// Mutable state for a note during fold processing.
 // Inactive notes are kept in the map so their chains can be referenced
 // by subsequent ERC1155Purchased events.
-interface NoteState {
+// Exported so callers can hold onto the full stateMap for resumable folding.
+export interface NoteState {
   id: string;
   amount: bigint;
   token: `0x${string}`;
@@ -91,12 +92,25 @@ function toNote(state: NoteState): Note {
  * revokes, the chain is truncated to [chain[0]...chain[revoker]] where rPos
  * is the revoker's position in root-first ordering. The revoker becomes the
  * new leaf (spending authority), and any delegates beyond them are removed.
+ *
+ * Pass `initialStateMap` (from a previous call's `stateMap` output) to resume
+ * folding from a saved cursor. The full stateMap must be preserved (not just a
+ * single note's state) because ERC1155Purchased events can copy chains across notes.
  */
-export function foldDelegationState(events: DelegationEvent[]): {
+export function foldDelegationState(
+  events: DelegationEvent[],
+  initialStateMap?: Map<string, NoteState>,
+): {
   notes: Map<string, Note>;
   chains: Map<string, DelegationChainLink[]>;
+  stateMap: Map<string, NoteState>;
 } {
-  const stateMap = new Map<string, NoteState>();
+  // Deep-clone initial state so mutations during folding don't affect the caller's copy.
+  const stateMap = new Map<string, NoteState>(
+    initialStateMap
+      ? [...initialStateMap.entries()].map(([id, s]) => [id, { ...s, chain: s.chain.map(l => ({ ...l })) }])
+      : [],
+  );
 
   for (const ev of events) {
     switch (ev.type) {
@@ -274,7 +288,7 @@ export function foldDelegationState(events: DelegationEvent[]): {
     chains.set(id, state.chain.map((link) => ({ ...link })));
   }
 
-  return { notes, chains };
+  return { notes, chains, stateMap };
 }
 
 /**
@@ -287,19 +301,28 @@ export function foldDelegationState(events: DelegationEvent[]): {
  * Events must arrive in block/logIndex order.
  * Caller must pass all relevant events, including ChainSplit and NoteDelegated
  * events that reference this noteId as a parent.
+ *
+ * The returned `stateMap` contains the full delegation state for all notes.
+ * Pass it as `initialStateMap` to a subsequent `foldDelegationState` call to
+ * resume folding incrementally — the full map is needed (not just this note)
+ * because ERC1155Purchased events can copy chains from other notes.
+ *
+ * Pass `initialStateMap` (from a previous call) to resume from a cursor.
  */
 export function foldNote(
   noteId: string,
   events: DelegationEvent[],
+  initialStateMap?: Map<string, NoteState>,
 ): {
   note: Note;
   chain: DelegationChainLink[];
+  stateMap: Map<string, NoteState>;
 } | null {
-  const { notes, chains } = foldDelegationState(events);
+  const { notes, chains, stateMap } = foldDelegationState(events, initialStateMap);
   const note = notes.get(noteId);
   const chain = chains.get(noteId);
   if (!note || !chain) return null;
-  return { note, chain };
+  return { note, chain, stateMap };
 }
 
 /**

@@ -547,6 +547,22 @@ describe('foldNote', () => {
     assert.strictEqual(result.note.owner, BOB);
     assert.strictEqual(result.chain.length, 2);
   });
+
+  it('resumable: folding in two halves produces the same result as one full fold', () => {
+    const allEvents: DelegationEvent[] = [
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 1n }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 2n, blockNumber: 101n }) },
+      { type: 'noteDelegated', event: makeNoteDelegated({ delegate: BOB, blockNumber: 102n }) },
+      { type: 'noteDelegated', event: makeNoteDelegated({ parentNoteId: 2n, childNoteId: 2n, delegate: CAROL, blockNumber: 103n }) },
+    ];
+    const half = Math.floor(allEvents.length / 2);
+    const { stateMap } = foldDelegationState(allEvents.slice(0, half));
+    const { notes: resumedNotes } = foldDelegationState(allEvents.slice(half), stateMap);
+    const { notes: fullNotes } = foldDelegationState(allEvents);
+    // Both approaches yield the same owner for note 1
+    assert.strictEqual(resumedNotes.get('1')?.owner, fullNotes.get('1')?.owner);
+    assert.strictEqual(resumedNotes.get('2')?.owner, fullNotes.get('2')?.owner);
+  });
 });
 
 // ============================================================================

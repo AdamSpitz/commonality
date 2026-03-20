@@ -158,7 +158,7 @@ function wrap(created?: boolean, initialized?: boolean): ProjectEvent[] {
 
 describe('foldProject', () => {
   it('returns null for empty events', () => {
-    assert.strictEqual(foldProject([]), null);
+    assert.strictEqual(foldProject([]).project, null);
   });
 
   it('returns basic project from created + initialized events', () => {
@@ -166,7 +166,7 @@ describe('foldProject', () => {
       { type: 'created', event: makeCreatedEvent() },
       { type: 'initialized', event: makeInitializedEvent() },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.id, PROJECT_ADDR);
     assert.strictEqual(result.recipient, RECIPIENT);
@@ -182,7 +182,7 @@ describe('foldProject', () => {
       { type: 'initialized', event: makeInitializedEvent() },
       { type: 'tokenOffered', event: makeOfferedEvent() },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.erc1155Address, ERC1155);
   });
@@ -194,7 +194,7 @@ describe('foldProject', () => {
       { type: 'tokenOffered', event: makeOfferedEvent({ erc1155Addr: ERC1155, logIndex: 0 }) },
       { type: 'tokenOffered', event: makeOfferedEvent({ erc1155Addr: OTHER_ERC1155, id: 1n, logIndex: 1 }) },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.erc1155Address, ERC1155);
   });
@@ -205,7 +205,7 @@ describe('foldProject', () => {
       { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: METADATA_CID, blockNumber: 102n }) },
       { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: METADATA_CID_2, blockNumber: 110n, logIndex: 1 }) },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.metadataCid, METADATA_CID_2);
   });
@@ -216,7 +216,7 @@ describe('foldProject', () => {
       { type: 'bought', event: makeBoughtEvent({ totalCost: 100000000000000000n, blockNumber: 200n }) },
       { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_B, totalCost: 200000000000000000n, blockNumber: 201n, logIndex: 1 }) },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.totalReceived, '300000000000000000');
   });
@@ -227,7 +227,7 @@ describe('foldProject', () => {
       { type: 'bought', event: makeBoughtEvent({ totalCost: 500000000000000000n, blockNumber: 200n }) },
       { type: 'sold', event: makeSoldEvent({ totalCost: 100000000000000000n, blockNumber: 300n }) },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.totalReceived, '400000000000000000');
   });
@@ -238,7 +238,7 @@ describe('foldProject', () => {
       { type: 'bought', event: makeBoughtEvent({ totalCost: 500000000000000000n, blockNumber: 200n }) },
       { type: 'withdrawal', event: makeWithdrawalEvent({ value: 500000000000000000n, blockNumber: 400n }) },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.totalReceived, '500000000000000000');
   });
@@ -247,7 +247,7 @@ describe('foldProject', () => {
     const events: ProjectEvent[] = [
       { type: 'initialized', event: makeInitializedEvent() },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.id, PROJECT_ADDR);
   });
@@ -256,7 +256,7 @@ describe('foldProject', () => {
     const events: ProjectEvent[] = [
       { type: 'created', event: makeCreatedEvent() },
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.metadataCid, undefined);
   });
@@ -265,9 +265,24 @@ describe('foldProject', () => {
     const events: ProjectEvent[] = [
       ...wrap(true, true),
     ];
-    const result = foldProject(events);
+    const { project: result } = foldProject(events);
     assert.ok(result !== null);
     assert.strictEqual(result.erc1155Address, '');
+  });
+
+  it('resumable: folding in two halves produces the same result as one full fold', () => {
+    const allEvents: ProjectEvent[] = [
+      ...wrap(true, true),
+      { type: 'bought', event: makeBoughtEvent({ totalCost: 100000000000000000n, blockNumber: 200n }) },
+      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: METADATA_CID, blockNumber: 210n }) },
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_B, totalCost: 200000000000000000n, blockNumber: 220n, logIndex: 1 }) },
+      { type: 'sold', event: makeSoldEvent({ totalCost: 50000000000000000n, blockNumber: 300n }) },
+    ];
+    const half = Math.floor(allEvents.length / 2);
+    const { accumulator } = foldProject(allEvents.slice(0, half));
+    const { project: resumedResult } = foldProject(allEvents.slice(half), accumulator);
+    const { project: fullResult } = foldProject(allEvents);
+    assert.deepStrictEqual(resumedResult, fullResult);
   });
 });
 

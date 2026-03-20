@@ -149,7 +149,7 @@ Also deleted (unused after above removals):
 - ~~The SDK generated GraphQL files and `graphqlClient.ts` can be deleted once `indexer-sync.ts` is also migrated.~~ ✅ Done — deleted `sdk/src/generated/`, `sdk/src/utils/graphqlClient.ts`.
 - The entire Ponder indexer infrastructure (`indexer/src/index.ts`, `ponder.config.ts`, etc.) — the hybrid approach keeps Ponder running as the event cache + REST API server, so Ponder itself stays.
 
-## Make fold functions resumable-ready
+## ✅ Make fold functions resumable-ready
 
 The "resumable folds" pattern described in `specs/indexer/redesign.md` requires fold functions to have the signature `(previousState, newEvents) => newState`. Most already work this way in spirit; a few need their signatures adjusted so they can accept an existing accumulator instead of always building from scratch.
 

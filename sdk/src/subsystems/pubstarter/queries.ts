@@ -177,7 +177,7 @@ export async function getProject(
   assuranceContractAddress: string
 ): Promise<Project | null> {
   const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
-  const partial = foldProject(projectEvents);
+  const { project: partial } = foldProject(projectEvents);
   if (!partial) return null;
 
   let threshold = '0';

@@ -29,6 +29,20 @@ export type ProjectEvent =
   | { type: 'withdrawal'; event: AssuranceContractWithdrawalEvent };
 
 /**
+ * Mutable accumulator for foldProject — holds the raw (pre-serialized) state
+ * so it can be stored and passed back in for incremental/resumable folding.
+ */
+export interface ProjectAccumulator {
+  id: string;
+  erc1155Address: string;
+  recipient: string;
+  conditionAddress: string | null;
+  metadataCid: string | undefined;
+  createdAt: string | undefined;
+  totalReceived: bigint;
+}
+
+/**
  * Fold primary-market events for a single project → Project state.
  *
  * threshold and deadline are omitted because they require on-chain reads (Phase 2).
@@ -39,40 +53,40 @@ export type ProjectEvent =
  *
  * Caller is responsible for filtering events to a single assuranceContract address
  * before calling this function. Events must arrive in block/logIndex order.
+ *
+ * Pass `initialAccumulator` (from a previous call's `accumulator` output) to resume
+ * folding from a saved cursor rather than processing all events from scratch.
  */
-export function foldProject(events: ProjectEvent[]): Omit<Project, 'threshold' | 'deadline'> | null {
-  if (events.length === 0) return null;
-
-  let id = '';
-  let erc1155Address = '';
-  let recipient = '';
-  let conditionAddress: string | null = null;
-  let metadataCid: string | undefined;
-  let createdAt: string | undefined;
-  let totalReceived = 0n;
+export function foldProject(
+  events: ProjectEvent[],
+  initialAccumulator?: ProjectAccumulator,
+): { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator } {
+  const acc: ProjectAccumulator = initialAccumulator
+    ? { ...initialAccumulator }
+    : { id: '', erc1155Address: '', recipient: '', conditionAddress: null, metadataCid: undefined, createdAt: undefined, totalReceived: 0n };
 
   for (const { type, event } of events) {
     switch (type) {
       case 'created':
-        id = event.assuranceContract;
-        createdAt = event.blockTimestamp.toString();
+        acc.id = event.assuranceContract;
+        acc.createdAt = event.blockTimestamp.toString();
         break;
       case 'initialized':
-        if (!id) id = event.contractAddress;
-        recipient = event.recipient;
-        conditionAddress = event.condition;
+        if (!acc.id) acc.id = event.contractAddress;
+        acc.recipient = event.recipient;
+        acc.conditionAddress = event.condition;
         break;
       case 'metadataUpdated':
-        metadataCid = event.uri || event.metadata;
+        acc.metadataCid = event.uri || event.metadata;
         break;
       case 'tokenOffered':
-        if (!erc1155Address) erc1155Address = event.erc1155Addr;
+        if (!acc.erc1155Address) acc.erc1155Address = event.erc1155Addr;
         break;
       case 'bought':
-        totalReceived += event.totalCost;
+        acc.totalReceived += event.totalCost;
         break;
       case 'sold':
-        totalReceived -= event.totalCost;
+        acc.totalReceived -= event.totalCost;
         break;
       case 'withdrawal':
         // Withdrawals do not change totalReceived — they represent disbursement of funds
@@ -81,16 +95,20 @@ export function foldProject(events: ProjectEvent[]): Omit<Project, 'threshold' |
     }
   }
 
-  return {
-    id,
-    erc1155Address,
-    marketplaceAddress: null,
-    recipient,
-    totalReceived: totalReceived.toString(),
-    conditionAddress,
-    metadataCid,
-    createdAt,
-  };
+  const project: Omit<Project, 'threshold' | 'deadline'> | null = acc.id
+    ? {
+        id: acc.id,
+        erc1155Address: acc.erc1155Address,
+        marketplaceAddress: null,
+        recipient: acc.recipient,
+        totalReceived: acc.totalReceived.toString(),
+        conditionAddress: acc.conditionAddress,
+        metadataCid: acc.metadataCid,
+        createdAt: acc.createdAt,
+      }
+    : null;
+
+  return { project, accumulator: acc };
 }
 
 /**
@@ -101,13 +119,14 @@ export function foldProject(events: ProjectEvent[]): Omit<Project, 'threshold' |
  */
 export function foldContributionsFromEvents(
   boughtEvents: ERC1155BoughtEvent[],
-  soldEvents: ERC1155SoldEvent[]
+  soldEvents: ERC1155SoldEvent[],
+  initialState?: { contributions: Contribution[]; refunds: Refund[] },
 ): {
   contributions: Contribution[];
   refunds: Refund[];
 } {
-  const contributions: Contribution[] = [];
-  const refunds: Refund[] = [];
+  const contributions: Contribution[] = initialState ? [...initialState.contributions] : [];
+  const refunds: Refund[] = initialState ? [...initialState.refunds] : [];
 
   for (const event of boughtEvents) {
     const id = `${event.transactionHash}-${event.logIndex}`;
@@ -207,14 +226,21 @@ export type SecondaryMarketEvent =
  * Caller is responsible for filtering events to a single marketplace address
  * before calling this function. Events must arrive in block/logIndex order.
  */
-export function foldSecondaryMarket(events: SecondaryMarketEvent[]): {
+export function foldSecondaryMarket(
+  events: SecondaryMarketEvent[],
+  initialState?: { saleListings: SaleListing[]; buyOrders: BuyOrder[]; trades: Trade[] },
+): {
   saleListings: SaleListing[];
   buyOrders: BuyOrder[];
   trades: Trade[];
 } {
-  const saleListingsMap = new Map<string, SaleListing>();
-  const buyOrdersMap = new Map<string, BuyOrder>();
-  const trades: Trade[] = [];
+  const saleListingsMap = new Map<string, SaleListing>(
+    initialState?.saleListings.map(l => [l.listingId, { ...l }]) ?? [],
+  );
+  const buyOrdersMap = new Map<string, BuyOrder>(
+    initialState?.buyOrders.map(o => [o.orderId, { ...o }]) ?? [],
+  );
+  const trades: Trade[] = initialState ? [...initialState.trades] : [];
 
   for (const { type, event } of events) {
     const marketplaceAddress = event.contractAddress;
@@ -352,9 +378,12 @@ export function foldSecondaryMarket(events: SecondaryMarketEvent[]): {
  * Caller may pass all transfer events; non-burn transfers are filtered out.
  * Events must arrive in block/logIndex order.
  */
-export function foldTokenBurns(events: (TransferSingleEvent | TransferBatchEvent)[]): TokenBurn[] {
+export function foldTokenBurns(
+  events: (TransferSingleEvent | TransferBatchEvent)[],
+  initialBurns?: TokenBurn[],
+): TokenBurn[] {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-  const burns: TokenBurn[] = [];
+  const burns: TokenBurn[] = initialBurns ? [...initialBurns] : [];
 
   for (const event of events) {
     if (event.to.toLowerCase() !== ZERO_ADDRESS) continue;
