@@ -3,8 +3,9 @@
 ---
 
 Main thing I want to work on next:
-  - **Bug fix** (from 2026-03-19 review): `decodeContractMetadataUpdatedEvent` in `sdk/src/utils/eventDecoder.ts:249` uses `args.uri` but the ABI field is named `metadata`. Pubstarter project metadata is silently `undefined` in the event cache path. Fix: `args.uri` → `args.metadata`. Add a decoder unit test to prevent regression.
+  - ~~**Bug fix** (from 2026-03-19 review): `decodeContractMetadataUpdatedEvent` — DONE. Fixed `args.uri` → `args.metadata`, added decoder roundtrip test.~~
   - **Cleanup** (from 2026-03-19 review): Delete `sdk/src/subsystems/fundingportals/queries.graphql` (dead file). Investigate/gitignore `sdk/src/generated/` directory (untracked graphql codegen output).
+  - Continue with remaining cleanup tasks in [indexer-redesign-todo.md](indexer-redesign-todo.md).
 
 Other big things to do soon:
   - The issues in the different workspaces' TODO.md files (see below).

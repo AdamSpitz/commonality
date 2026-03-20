@@ -246,7 +246,7 @@ export function decodeContractMetadataUpdatedEvent(
   const args = decodeRawEventLog(rawEvent);
   if (!args) return null;
   return {
-    metadata: args.uri as string,
+    metadata: args.metadata as string,
     contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),
