@@ -144,31 +144,31 @@ The four foundational subsystems (Concept Space, Pubstarter, Marketplace, Delega
 - **Simple infrastructure:** A single thin event cache serves all subsystems — no per-subsystem indexers or federation
 - **Reusability:** Each subsystem could potentially be used in other contexts (e.g., the Pubstarter subsystem works for any crowdfunding system, not just Commonality)
 
-### Technical details
+## Implementation notes
 
 When asking AI to generate mid-level specs and code, I've found that it sometimes gets some key details wrong. So let's pin down some points here:
 
-#### General stuff
+### General stuff
 
 In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
 
 Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI recommendation (which is fine with me, I don't know much about it): use CIDv1 with SHA-256. For onchain storage, convert to bytes32 by extracting the 32-byte digest. Need helper functions cidToBytes32() and bytes32ToCid().
 
-#### Integration points between artifacts
+### Integration points between artifacts
 
 In the hardhat/ directory (in the root of the project), there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
 
 The indexer exposes a single REST API endpoint (`GET /api/events`) for fetching raw events by contract address, event name, and topic filters. The SDK's `eventCacheClient.ts` wraps this. All data shaping happens via SDK fold functions, not in the indexer.
 
 
-#### Modelling Statements
+### Modelling Statements
 
 A Statement should be represented as a displayable-document (see [subsystems/conceptspace/displayable-documents.md](subsystems/conceptspace/displayable-documents.md)), which is a JSON document that we upload to IPFS. A statement's ID is the IPFS CID of this JSON document. See [subsystems/conceptspace/statements.md](subsystems/conceptspace/statements.md) for more info.
 
 There's also a smart contract called MutableRefUpdater that we use to store a list of "here's the statements this user has created/saved", kept in a mutable ref onchain.
 
 
-#### Beliefs smart contract
+### Beliefs smart contract
 
 See hardhat/contracts.
 
@@ -176,17 +176,17 @@ A belief state needs to have three possible values: noOpinion, believes, disbeli
 
 Store beliefs in the blockchain's state as well as emitting DirectSupport events; it may be useful for other smart contracts to be able to read that info onchain.
 
-#### Implications smart contract
+### Implications smart contract
 
 I've already generated this one too; hardhat/contracts.
 
-#### Conceptspace data flow
+### Conceptspace data flow
 
 Implications are *not* transitive. To find indirect supporters of statement S, simply look up all statements S' where there's a direct implication attestation S'→S (from a trusted attester), then union the direct supporters of all those S' statements. No graph traversal needed. (Exclude anyone who's explicitly indicated disbelief in S.)
 
 The SDK fetches raw `DirectSupport` and `ImplicationAttestation` events from the event cache and folds them client-side to reconstruct belief counts, implication maps, and supporter lists.
 
-#### Conceptspace UI
+### Conceptspace UI
 
 Root page for the site: if there's a connected user, show the stuff on his user page (see below)
 
@@ -205,11 +205,11 @@ There's a settings page where users can configure which implication attesters th
 
 (This isn't meant to be an exhaustive list. Include whatever else makes sense.)
 
-#### Implication Attester AI
+### Implication Attester AI
 
 See [subsystems/conceptspace/implication-attester-ai.md](subsystems/conceptspace/implication-attester-ai.md) for more detail. The main idea is that this is an independent service (probably run by an AI, but could be a human, doesn't matter, and there can be many of these out there) that has an Ethereum address and publishes implication attestations ("if someone believes S1 he probably also believes S2"). It'll have an API so that anyone can ask it "could you please look at S1 and S2 and publish an attestation if you think S1 -> S2?"
 
-#### Funding Portal smart contracts
+### Funding Portal smart contracts
 
 See the hardhat/contracts directory; the pubstarter stuff is old code that I wrote a while ago, but I think it should be useful.
 
@@ -220,7 +220,7 @@ In the long run I'd like the DelegatableNotes smart contract to support various 
 Design decisions worth noting:
   - **Assurance contracts: buying is always allowed**, even after the deadline. A "failed" project can still succeed later if more people buy. Refunds are only allowed when the deadline has passed *and* the threshold hasn't been reached.
 
-#### Funding Portal data flow
+### Funding Portal data flow
 
 The SDK computes all Funding Portal aggregations client-side:
   - Fetches `AlignmentAttestation` events from the event cache to find which projects align with a statement.
@@ -228,7 +228,7 @@ The SDK computes all Funding Portal aggregations client-side:
   - For each aligned project, reads on-chain state (totalReceived, threshold, deadline) and folds contribution/refund events to build contributor leaderboards.
   - No federation between indexers — the single event cache serves all subsystems.
 
-#### Funding Portal UI
+### Funding Portal UI
 
 There's a page that shows many projects that are (directly or indirectly) aligned with a particular statementId. Prominently display total available funding for this cause (from delegatable notes). Offer various ways to sort/filter: date created, assurance-contract deadline, amount needed, trending, etc. Show a "leaderboard" for the top contributors to any project aligned with this cause.
 
@@ -236,7 +236,7 @@ There's a page that shows a particular project (identified by its smart-contract
 
 (This isn't meant to be an exhaustive list. Include whatever else makes sense.)
 
-#### Security & Abuse Prevention
+### Security & Abuse Prevention
 
 Thoughts on potential threats:
   - **Standard web security**: Sanitize all markdown (use DOMPurify or equivalent), validate JSON strictly, use CSP headers, handle IPFS failures gracefully
@@ -245,15 +245,15 @@ Thoughts on potential threats:
   - **Funding scams**: Accept as inevitable; rely on transparency + retroactive funding incentives + social reputation
   - **Smart contract security**: Before mainnet, must implement comprehensive testing, have AI do a basic audit, and get professional audit
 
-#### User queries and actions
+### User queries and actions
 
-See [queries-and-actions.md](queries-and-actions.md) for a comprehensive list of all user queries and actions the system must support (statement browsing, belief actions, funding, delegation, etc.).
+See [subsystems/conceptspace/queries-and-actions.md](subsystems/conceptspace/queries-and-actions.md) and [subsystems/fundingportals/queries-and-actions.md](subsystems/fundingportals/queries-and-actions.md) for comprehensive lists of user queries and actions each subsystem must support.
 
-#### Indexer
+### Indexer
 
 See the [indexer](./indexer/README.md) directory for the thin event cache architecture and the [indexer redesign spec](./indexer/redesign.md) for the rationale behind the current design (single `events` table, SDK fold functions, no GraphQL, no federation).
 
-### Testing
+## Testing
 
 See [./testing/README.md](./testing/README.md).
 
@@ -264,6 +264,10 @@ See [./testing/README.md](./testing/README.md).
 ## Additional documentation
 
 - [chats/](chats/) - Directory containing meeting notes and transcripts from planning sessions (preserved for historical context but not necessary for implementation)
+- [bridges.md](bridges.md) - Fiat bridge implementation: Stripe flow, ETH conversion options, licensed third-party services (Transak, Wert, Crossmint), refunds
+- [content.md](content.md) - Content bootstrapping: seed statements, AI-assisted discovery, handling the empty-field problem
+- [mvp.md](mvp.md) - MVP planning notes and entry-point descriptions (work in progress)
+- [ai-assisted-development.md](ai-assisted-development.md) - Notes on the AI-assisted development process used to build this project
 
 
 ## Future steps
