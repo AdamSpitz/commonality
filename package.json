@@ -10,6 +10,7 @@
     "hardhat",
     "indexer",
     "attester",
+    "finder",
     "fake-data-generation",
     "ui"
   ],

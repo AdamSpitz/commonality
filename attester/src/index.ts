@@ -41,6 +41,14 @@ async function getCurrentGasPrice(): Promise<bigint> {
 }
 
 async function requirePayment(req: Request, res: Response, next: NextFunction) {
+  // Trusted-caller bypass: if TRUSTED_FINDER_KEY is configured and the request
+  // provides a matching X-Finder-Key header, skip payment validation.
+  const trustedKey = process.env.TRUSTED_FINDER_KEY;
+  if (trustedKey && req.headers['x-finder-key'] === trustedKey) {
+    next();
+    return;
+  }
+
   const xPaymentProof = req.headers['x-payment-proof'] as string | undefined;
   const paymentId = getPaymentFromHeader(xPaymentProof);
 

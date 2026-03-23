@@ -12,6 +12,7 @@ export interface PaymentDetails {
 const pendingPayments = new Map<string, { details: PaymentDetails; expires: number }>();
 const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
 
+// TODO: I'm uneasy about using floats for currency calculations
 const LLM_PRICING: Record<string, { inputPer1M: number; outputPer1M: number }> = {
   'anthropic/claude-3.5-haiku': { inputPer1M: 0.80, outputPer1M: 4.00 },
   'anthropic/claude-3-haiku': { inputPer1M: 0.25, outputPer1M: 1.25 },
