@@ -220,7 +220,7 @@ class SimulationRunner {
     // Generate or load users
     console.log('\nGenerating users...');
     try {
-      const usersPath = join(__dirname, 'users.json');
+      const usersPath = join(__dirname, 'data', 'users.json');
       const data = await fs.readFile(usersPath, 'utf-8');
       this.users = JSON.parse(data) as User[];
       console.log(`Loaded ${this.users.length} existing users`);
@@ -231,7 +231,7 @@ class SimulationRunner {
     // Generate or load statements
     console.log('\nGenerating statements...');
     try {
-      const stmtsPath = join(__dirname, 'statements.json');
+      const stmtsPath = join(__dirname, 'data', 'statements.json');
       const data = await fs.readFile(stmtsPath, 'utf-8');
       this.statements = JSON.parse(data) as Statement[];
       console.log(`Loaded ${this.statements.length} existing statements`);
@@ -810,8 +810,11 @@ class SimulationRunner {
       return value;
     };
 
+    // Ensure output directory exists
+    await fs.mkdir(join(__dirname, 'output'), { recursive: true });
+
     // Save actions log
-    const actionsPath = join(__dirname, 'actions.json');
+    const actionsPath = join(__dirname, 'output', 'actions.json');
     await fs.writeFile(actionsPath, JSON.stringify(this.actions, bigIntReplacer, 2));
 
     // Calculate and save metrics
@@ -821,7 +824,7 @@ class SimulationRunner {
       errors: this.metrics.errors
     };
 
-    const metricsPath = join(__dirname, 'metrics.json');
+    const metricsPath = join(__dirname, 'output', 'metrics.json');
     await fs.writeFile(metricsPath, JSON.stringify(metricsReport, bigIntReplacer, 2));
 
     console.log('Results Summary:');

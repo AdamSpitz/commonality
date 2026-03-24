@@ -130,7 +130,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
   }
 
   // Save to file (without CIDs — those are set at runtime via IPFS upload)
-  const outputPath = join(__dirname, 'statements.json');
+  const outputPath = join(__dirname, 'data', 'statements.json');
   const statementsForFile = statements.map(({ cid, ...rest }) => rest);
   await fs.writeFile(outputPath, JSON.stringify(statementsForFile, null, 2));
 
@@ -143,7 +143,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
 }
 
 async function loadStatements(): Promise<Statement[]> {
-  const statementsPath = join(__dirname, 'statements.json');
+  const statementsPath = join(__dirname, 'data', 'statements.json');
   const data = await fs.readFile(statementsPath, 'utf-8');
   return JSON.parse(data) as Statement[];
 }

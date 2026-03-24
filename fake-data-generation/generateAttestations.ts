@@ -42,7 +42,7 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
   console.log('=== Generating Pre-computed Attestations ===\n');
 
   // Load statements
-  const statementsPath = join(__dirname, 'statements.json');
+  const statementsPath = join(__dirname, 'data', 'statements.json');
   let statements: Statement[];
   try {
     const data = await fs.readFile(statementsPath, 'utf-8');
@@ -55,7 +55,7 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
 
   // Load attesters
   let attesters: Attester[] = [];
-  const attestersPath = join(__dirname, 'attesters.json');
+  const attestersPath = join(__dirname, 'data', 'attesters.json');
   try {
     const data = await fs.readFile(attestersPath, 'utf-8');
     attesters = JSON.parse(data) as Attester[];
@@ -156,7 +156,7 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
   console.log(`Estimated cost: ~$${totalCost.toFixed(2)}`);
 
   // Save to file
-  const outputPath = join(__dirname, 'attestations.json');
+  const outputPath = join(__dirname, 'data', 'attestations.json');
   await fs.writeFile(outputPath, JSON.stringify(attestations, null, 2));
   console.log(`Saved to: ${outputPath}`);
 
@@ -170,7 +170,7 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
     model: 'anthropic/claude-3.5-haiku'
   };
 
-  const metadataPath = join(__dirname, 'attestations.metadata.json');
+  const metadataPath = join(__dirname, 'data', 'attestations.metadata.json');
   await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
   console.log(`Metadata saved to: ${metadataPath}`);
 
@@ -181,7 +181,7 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
  * Load pre-computed attestations
  */
 async function loadAttestations(): Promise<Attestation[]> {
-  const path = join(__dirname, 'attestations.json');
+  const path = join(__dirname, 'data', 'attestations.json');
   try {
     const data = await fs.readFile(path, 'utf-8');
     return JSON.parse(data) as Attestation[];
@@ -219,7 +219,7 @@ async function getAttestationsForStatement(statementCid: IpfsCidV1): Promise<{
  * Check if pre-generated attestations exist
  */
 async function hasAttestations(): Promise<boolean> {
-  const path = join(__dirname, 'attestations.json');
+  const path = join(__dirname, 'data', 'attestations.json');
   try {
     await fs.access(path);
     return true;
@@ -232,8 +232,8 @@ async function hasAttestations(): Promise<boolean> {
  * Clear cached attestations (for regeneration)
  */
 async function clearAttestations(): Promise<void> {
-  const path = join(__dirname, 'attestations.json');
-  const metadataPath = join(__dirname, 'attestations.metadata.json');
+  const path = join(__dirname, 'data', 'attestations.json');
+  const metadataPath = join(__dirname, 'data', 'attestations.metadata.json');
 
   try {
     await fs.unlink(path);

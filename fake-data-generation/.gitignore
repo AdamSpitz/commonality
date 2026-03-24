@@ -1,11 +1,13 @@
-# Generated test data (can be regenerated)
-users.json
-statements.json
-actions.json
-metrics.json
+# Cheap to regenerate — not worth committing
+data/users.json
+data/statements.json
 
-# Node modules (if any local packages are added)
+# Per-simulation run outputs — ephemeral
+output/
+
+# data/attesters.json   — committed (stable reference, deterministically generated)
+# data/attestations.json — committed (LLM-generated, expensive to reproduce)
+
 node_modules/
 
 dist/
-

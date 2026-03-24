@@ -108,7 +108,7 @@ async function generateAttesters(count = 10): Promise<Attester[]> {
   }
 
   // Save to file
-  const outputPath = join(__dirname, 'attesters.json');
+  const outputPath = join(__dirname, 'data', 'attesters.json');
   await fs.writeFile(outputPath, JSON.stringify(attesters, null, 2));
 
   // Print summary
@@ -129,7 +129,7 @@ async function generateAttesters(count = 10): Promise<Attester[]> {
  */
 async function loadAttesters(): Promise<Attester[]> {
   try {
-    const attestersPath = join(__dirname, 'attesters.json');
+    const attestersPath = join(__dirname, 'data', 'attesters.json');
     const data = await fs.readFile(attestersPath, 'utf-8');
     return JSON.parse(data) as Attester[];
   } catch {

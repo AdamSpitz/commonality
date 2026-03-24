@@ -229,7 +229,7 @@ async function generateUsers(count: number, options: GenerateUsersOptions = {}):
   }
 
   // Save to file
-  const outputPath = join(__dirname, 'users.json');
+  const outputPath = join(__dirname, 'data', 'users.json');
   await fs.writeFile(outputPath, JSON.stringify(users, null, 2));
 
   console.log(`Generated ${count} users`);

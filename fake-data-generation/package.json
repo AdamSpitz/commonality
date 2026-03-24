@@ -11,7 +11,7 @@
     "gen:small": "tsx runSimulation.ts 10 3",
     "gen:medium": "tsx runSimulation.ts 50 5",
     "gen:large": "tsx runSimulation.ts 100 10",
-    "gen:clean": "rm -f users.json statements.json actions.json metrics.json",
+    "gen:clean": "rm -f data/users.json data/statements.json output/actions.json output/metrics.json",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "clean": "rm -rf dist",

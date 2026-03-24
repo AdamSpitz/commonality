@@ -51,15 +51,22 @@ npm run gen:statements
 npm run gen:attesters
 ```
 
-## Generated Files
+## File Layout
 
-After running the simulation, you'll find:
+Generated files are split into two directories to make their lifecycle explicit:
 
-- `users.json` - Generated user profiles with addresses and private keys
-- `statements.json` - Generated statements from the universe
-- `attesters.json` - Generated implication attesters with evaluation strategies
-- `actions.json` - Log of all actions performed during simulation
-- `metrics.json` - Gas usage statistics and performance metrics
+**`data/`** — Pre-generated inputs, produced once and reused across simulation runs:
+- `data/users.json` — User profiles with addresses and private keys (gitignored, cheap to regen, but we pre-generate so that they'll stay stable across runs and so that we can use the private keys when debugging)
+- `data/statements.json` — Statements from the universe (gitignored, cheap to regen)
+- `data/attesters.json` — Implication attesters with evaluation strategies (committed, stable reference)
+- `data/attestations.json` — LLM-evaluated implication pairs (committed, expensive to reproduce)
+- `data/attestations.metadata.json` — Generation metadata for the above
+
+**`output/`** — Per-simulation-run outputs, produced fresh each time (gitignored):
+- `output/actions.json` — Log of all actions performed during simulation
+- `output/metrics.json` — Gas usage statistics and performance metrics
+
+`universe.json` at the root is the hand-authored source configuration that drives generation.
 
 ## Configuration
 
@@ -214,8 +221,8 @@ npm run gen:attestations 100
 ```
 
 This creates:
-- `attestations.json` - Pre-computed implication attestations
-- `attestations.metadata.json` - Generation metadata
+- `data/attestations.json` - Pre-computed implication attestations
+- `data/attestations.metadata.json` - Generation metadata
 
 **Running simulations:**
 ```bash
