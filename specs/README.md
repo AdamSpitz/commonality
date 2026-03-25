@@ -4,44 +4,32 @@ This is the top-level spec for a software project called Commonality. It's meant
 
 ## What is this?
 
-Right now, if you want to fund public goods, your options are basically: hope the government does it, donate to a charity, or try to organize something yourself. All of these have serious problems - government is slow and captured, charities are opaque and overhead-heavy, and organizing people is a massive coordination headache.
+TODO: Read the stuff in the specs/motivation directory, then see if you can rewrite this section a bit better using the insights from there. 
 
-Commonality is a system for crowdfunding public goods without needing a central organization. The key insight is that we can build something that does what government and charities do (fund public goods) but with much better transparency, much less overhead, and - crucially - almost no need for people to coordinate with each other upfront.
+Right now, if you want to fund public goods, your options are basically: hope the government does it, or donate to a charity. Both of these have serious problems - government is slow and expensive and captured, charities are opaque and overhead-heavy.
+
+Commonality is a system for crowdfunding public goods without needing a central organization. The theory is that we can build something that does what government and charities do (fund public goods) but better in many ways: much better transparency, much less overhead, and - crucially - almost no need for people to coordinate with each other upfront.
 
 The original motivating thought came from Balaji Srinivasan's "network state" idea: large numbers of aligned people coordinating online to get things done sounds great, except that Balaji seems to envision something like a big monolithic million-member Discord chat with a treasury, which sounds awful. Big groups (governments or corporations or whatever) don't really work all that well. So the goal is: make it possible for large numbers of aligned people to coordinate online and crowdfund projects aligned with their cause, but do it as a network of individuals rather than a big monolithic group.
 
-## Why this might actually work
-
-See [./motivation/README.md](./motivation/README.md).
+See [./motivation/README.md](./motivation/README.md) for the full discussion of what this is and why it might actually work.
 
 ## Key ideas
 
-  - **Implication attestations reduce coordination friction:** AI-generated "S1 implies S2" attestations eliminate the need for everyone to rally around a single canonical statement. Say exactly what you want to say; the system automatically connects you with others saying similar things.
+  - **Assurance contracts address the free-rider problem:** This isn't *new* (e.g. Kickstarter already exists), but it's massively underused.
+  - **Alignment attestations allow connecting supply and demand:** Projects declare their purpose; donation pledges can be imbued with an intended-purpose; this allows supply of aligned projects to respond to demand for aligned projects, and vice versa. Crucially, AI-generated "S1 implies S2" attestations eliminate the need for everyone to coordinate to rally around a single canonical statement.
   - **Retroactive funding via resellable NFTs:** Contribution NFTs are tradeable on secondary markets, separating the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) - creating a nano-VC system for public goods.
-  - **Composable delegation enables nano-trustees:** Contribute funds but delegate spending decisions to trusted individuals (who can further delegate), creating chains of specialized judgment without requiring everyone to evaluate every project.
-  - **AI skills make this system easy to use.**
-
+  - **Composable delegation addresses the laziness problem:** Contribute funds but delegate spending decisions to trusted individuals (who can further delegate). Donors don't have to put in much work, but still retain flexibility and revocability.
 
 ## Main components
 
-The overall system is made of two big components: Concept Space and Funding Portals.
-
-See [subsystems/conceptspace/README.md](subsystems/conceptspace/README.md) (statements, beliefs, and AI-generated implication relationships) and [subsystems/fundingportals/README.md](subsystems/fundingportals/README.md) (crowdfunding projects with retroactive funding and delegation) for more detail, but here are the main ideas:
-
-### Concept Space
-
-  - Users create immutable statements (representing ideas/causes) stored on IPFS and sign them onchain to express belief/disbelief.
-  - AI attesters publish "S1 implies S2" relationships, enabling indirect support tracking — people can create improved versions of statements while inheriting support via direct implication attestations. This drastically reduces the need for coordination: no need to rally around a single canonical statement, yet the system gently nudges toward coordination by suggesting more-popular equivalent statements. (Note: implications are *not* transitive - if you want to know whether S1 supporters indirectly support S3, you need a direct attestation from S1 to S3, not a chain through S2. This avoids the problem where S1→S2 and S2→S3 each seem reasonable but S1→S3 is a stretch.)
-  - Later (don't bother with this for the MVP) we can make it easy for a user (or an AI that the user trusts) to click a button that says "that implication attestation is bogus" and "stop trusting whoever attested to that". Point is, it's not like it's some horrible problem if we have a rogue attester that starts producing bad implication attestations - it's not actually hard for the system to self-correct.
-
-### Funding Portals
-
-  - Each statement has a funding portal showing aligned projects (Kickstarter-style ERC-1155 contracts).
-    - Projects inherit alignment through the implication graph, so submitters don't need to worry about exact statement matching.
-  - Contribution NFTs are resellable, creating a retroactive funding market: VCs identify promising projects early, then exit by selling to altruistic donors later.
-  - Users can create "delegatable notes" to let trusted individuals make funding decisions on their behalf (with composable, revocable delegation chains).
-  - The system provides transparency and social recognition by displaying contributor leaderboards and full delegation chains.
-
+The overall system can be broken down into subsystems:
+  - [pubstarter](subsystems/pubstarter/README.md): individual "projects" (Kickstarter-style assurance contracts, implemeneted as ERC-1155 tokens; importantly, these tokens can be resold on secondary markets, enabling profit-seeking investors to supply early funds and then exit by selling to altruistic donors later).
+  - [delegation](subsystems/delegation/README.md): donors can create "delegatable notes" to let trusted individuals make funding decisions on their behalf (with composable, revocable delegation chains).
+  - [conceptspace](subsystems/conceptspace/README.md): statements, beliefs, and AI-generated implication relationships. Used for declaring a project's alignment ("project P is aligned with statement S") and for declaring a delegatable-note's intended purpose ("this note is intended to be donated to projects aligned with statement S").
+    - Importantly, the system allows the (probably AI-assisted) creation of a web of implication arrows, so that a project can be attested to be aligned with S1 and a note can be intended for S2 and the system can notice that S1 -> S2 and so the project is a suitable candidate for that note.
+    - As a somewhat-unrelated purpose, individuals can also "sign" statement S, so the statement's page can show the number of supporters (of S or any other statement S2 such that S2 -> S). Not directly related to funding, but a useful other purpose of the conceptspace system.
+  - [fundingportals](subsystems/fundingportals/README.md): Each statement has a funding portal showing projects aligned with that statement. (Projects inherit alignment through the implication graph, so submitters don't need to worry about exact statement matching.) The system provides transparency and social recognition by displaying contributor leaderboards and full delegation chains.
 
 ## Tech choices
 
@@ -274,8 +262,6 @@ See [./testing/README.md](./testing/README.md).
 
   - A few thoughts from our most recent chat:
     - Sam wants me to set up the node and indexer to run in Docker, so that he can play around with extracting the info and feeding it into a graph database.
-  - Generate mid-level specs from this high-level spec.
-  - Generate running code from the mid-level specs.
   - Future chat sessions for us to have:
     - Gaming/scamming/abuse prevention session: have a dedicated chat session to identify attack vectors and protections.
     - Marketing session: Dedicated planning for exposure and promotion.

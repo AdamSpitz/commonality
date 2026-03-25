@@ -1,8 +1,14 @@
 # Concept Space
 
-Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes. (Each statement is a displayable document, as described in displayable-documents.md.) Users can "sign" these statements (by submitting an onchain transaction) to show belief/disbelief/no-opinion (the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to). Anyone (though this'll probably be done by AI, not by humans) can publish ImplicationAttestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements.
+## The core idea
 
-Some points about this:
+  - Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes.
+  - Each statement is a displayable document, as described in displayable-documents.md.
+  - Users can "sign" these statements (by submitting an onchain transaction) to show belief/disbelief/no-opinion (the system defaults to assuming that the user has no opinion about the statement, and a user can explicitly express "no, I don't believe that" if he wants to).
+  - Anyone (though this'll probably be done by AI, not by humans) can publish ImplicationAttestation events of the form "if someone believes statement S1 he probably also believes statement S2", to connect related statements. This enables indirect support tracking — people can create improved versions of statements while inheriting support via direct implication attestations. This drastically reduces the need for coordination: no need to rally around a single canonical statement, yet the system gently nudges toward coordination by suggesting more-popular equivalent statements. (Note: implications are *not* transitive - if you want to know whether S1 supporters indirectly support S3, you need a direct attestation from S1 to S3, not a chain through S2. This avoids the problem where S1→S2 and S2→S3 each seem reasonable but S1→S3 is a stretch.)
+  - Later (don't bother with this for the MVP) we can make it easy for a user (or an AI that the user trusts) to click a button that says "that implication attestation is bogus" and "stop trusting whoever attested to that". Point is, it's not like it's some horrible problem if we have a rogue attester that starts producing bad implication attestations - it's not actually hard for the system to self-correct.
+
+## More details
     
   - **Transparency:** The Concept Space website should be transparent about how many accounts have directly signed, versus how many have indirectly shown probable support. (i.e. "17 people signed this statement; 118 people have signed these other five statements that the system thinks imply this statement, and so those people probably also believe this statement.") We don't want the UI to mislead anyone about a statement's level of support - it can simply be clear about direct explicit support vs indirect probable support.
 

@@ -6,6 +6,8 @@ Main thing I want to work on next:
   - ?
 
 Other big things to do soon:
+  - Figure out the seed statements?
+  - Generate a proliferation of similar statements around the seed statements. Use an LLM *once* to pre-generate evaluations of all the S1 -> S2 implication candidates, then store those statements and those evaluations as another pre-generated data to be used in the fake-data simulations.
   - Make sure the attester and finder seem viable. (Get them into the docker-compose setup? Problem is that it actually costs money to run the LLMs, so I want them to be part of the pre-generated stuff, not something that runs every time I run the tests.)
   - Merge specs/motivation with the wider specs directory? (Sort-of a prerequisite for writing the documentation; I want to get all the ideas clear first.)
   - Write the documentation and AI skills? Including the seed content? So that even when I'm looking locally at the fake-data-generation simulation, I'm seeing the seed stuff.
