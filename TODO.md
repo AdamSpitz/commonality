@@ -22,6 +22,10 @@ Other big things to do soon:
 Ideas from the specs/motivation stuff:
   - Bridges to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.
 
+Ideas from seed-content work:
+  - Think about whether we need a formal structure (or at least informal pattern) for "multiple answers to the same question" — e.g. the extremist/moderate/commonality pattern on polarized issues. Right now the system has individual statements and implication links between them, but nothing that groups a set of statements as "these are all different positions on the same issue." Might be useful for the explorer AI (present multiple positions side by side), for the UI (show a spectrum view), and for the implication attester (know which statements to evaluate against each other). Could be as simple as a convention in extras (e.g. `questionId` field linking statements to a shared question) or as heavy as a new smart contract. Worth thinking about before we have too many statements in the wild.
+  - Think about orthogonal hierarchy dimensions — geographic and topical. Statements like "I'm interested in improving Grey County" and "I'm interested in furthering crypto adoption" are independent axes, and their conjunction ("further crypto in Grey County") creates a more specific interest. This matters for funding portal discovery (a project at the intersection should show up in both parent portals) and for delegatable note intents. May need conjunction/intersection statements and implication links from the conjunction to each parent. See seed-content.md for more detail.
+
 ---
 
 ## Miscellaneous TODO.md files
