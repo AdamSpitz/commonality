@@ -32,7 +32,7 @@ Don't give the LLM any info about the support numbers for the statements; just s
 
 If a statement includes references to other statements, read those too and provide the LLM with a structure containing all of the transitively-referenced statements. (Limit to a depth of, say, 10, though, for now.)
 
-If it's not obvious what the different statementType values mean, give the LLM a brief explanation. I expect it to be mostly self-explanatory, though.
+If the document's `extras` contains metadata that helps clarify its meaning, include that context for the LLM.
 
 
 **Handling References:**
