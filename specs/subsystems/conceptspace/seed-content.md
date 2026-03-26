@@ -202,32 +202,7 @@ We should also seed a few example conjunctions to demonstrate the pattern, e.g.:
 - "I'm interested in open-source infrastructure" (topical, already in meta-statements)
 - "I'm interested in open-source civic tools for Ontario municipalities" (conjunction → implies both parents)
 
-### Open question: how heavy does the conjunction machinery need to be?
-
-Right now, a conjunction statement is just a regular statement that happens to imply both parents (via implication attestations). That might be sufficient — no special data model needed. But if conjunctions become very common (every project sits at some geographic × topical intersection), we might want:
-- A convention in `extras` (e.g. `{ "conjunctionOf": ["cid1", "cid2"] }`) so the explorer AI can recognize conjunctions and generate them automatically.
-- Or even a dedicated smart contract / event type for declaring conjunctions.
-
-For now, regular statements + implication links are probably fine. See TODO.md for the reminder to revisit this.
-
----
-
-## Open question: formalizing "multiple answers to the same question"
-
-The hidden-majority issues above follow a clear pattern: multiple statements that are all different positions on the same underlying question. Right now, the system represents each statement independently and connects them only via implication links. But there's no formal notion of "these five statements are all answers to the question 'what should abortion policy be?'"
-
-Having such a grouping could be useful for:
-- **The explorer AI:** present multiple positions side by side and ask "which of these is closest to your view?"
-- **The UI:** show a spectrum or comparison view for a contested issue
-- **The implication attester:** know which statements to evaluate against each other (if I see a new statement about abortion, I should evaluate it against all the other abortion statements)
-- **Analytics:** track how support distributes across the different positions on an issue
-
-Options range from lightweight to heavy:
-- **Convention in extras:** `{ "questionId": "abortion-policy" }` — just a tag that groups statements informally. Easy to add, no contract changes.
-- **A "question" document type:** a displayable document that describes the question, with statements linking back to it. Still just implication links + convention.
-- **A new smart contract:** explicitly register "statement S is a position on question Q." Queryable onchain.
-
-Probably start with the lightest option (extras convention) and see if we need more. See TODO.md.
+Conjunction statements are just regular statements written in plain English (e.g. "I'm interested in furthering crypto adoption in Grey County, Ontario") with implication links to both parent statements. No special data model or structured content is needed — the attester can trivially evaluate these implications, and the explorer AI can compose conjunction statements as plain English.
 
 ---
 
