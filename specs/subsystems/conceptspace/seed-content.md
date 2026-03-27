@@ -1,19 +1,27 @@
 # Seed content
 
-To help ramp up [content](../../content.md) faster, before launch, we should create a curated set of seed statements covering areas we expect early users to care about. These serve two purposes:
+To help ramp up [content](../../content.md) faster, before launch, we should create a curated set of seed statements covering areas we expect early users to care about.
 
-1. **Early users sign the same statements** rather than each getting a unique LLM-generated one, which means the implication graph starts forming immediately and signer counts are nonzero.
+## Purposes of seeding
+
+1. **Early users sign the same statements** rather than each getting a unique LLM-generated one, which means the implication graph starts forming immediately and signer counts are nonzero. (Not strictly necessary because the whole point of this system is that we have implications to smooth over the difference between multiple statements of the same concept... but still, it'd be nice to just get started with some unity.)
 2. **The explorer AI has something to work with.** Even without a rich implication graph, it can show the user a set of seed statements in their area of interest and say "which of these resonate with you?"
+
+We probably don't need hundreds (although that's not out of the question) — a few dozen well-chosen ones should be enough to make the explorer feel populated rather than empty.
+
+Note: the fake-data-generation system already has 90 statements across 6 domains (politics, crypto, religion, music, climate, technology) in `universe.json`. Those are simulation data — short, generic, and meant to test the system's mechanics. The seed content below is different: it's curated for real early users, focused on areas where fundable projects plausibly exist, and written to demonstrate the system's coalition-building power.
+
+## Useful patterns in seed content
+
+See [content patterns](./content-patterns.md).
+
+
 
 The seed set should include:
 - High-level interest areas ("I am interested in politics", "I am interested in crypto", etc.). These are useful as statements in their own right — any specific political position implies "I am interested in politics", so these naturally serve as top-level entry points.
 - A layer of more specific positions within each area.
    - Including positions that are somewhat-but-not-completely aligned with each other.
 - Some cross-cutting statements that might form natural coalitions.
-
-We probably don't need hundreds (although that's not out of the question) — a few dozen well-chosen ones should be enough to make the explorer feel populated rather than empty.
-
-Note: the fake-data-generation system already has 90 statements across 6 domains (politics, crypto, religion, music, climate, technology) in `universe.json`. Those are simulation data — short, generic, and meant to test the system's mechanics. The seed content below is different: it's curated for real early users, focused on areas where fundable projects plausibly exist, and written to demonstrate the system's coalition-building power.
 
 ---
 
@@ -28,21 +36,6 @@ The fake-data system (`universe.json`) uses a different set of statements optimi
 5. The explorer AI can then use these as its starting points for onboarding new users.
 
 The fake-data system can also be updated to use these statements (or a superset of them) for more realistic simulations.
-
----
-
-## The big idea: hidden majorities
-
-The most powerful thing the seed content can demonstrate is Commonality's ability to **reveal hidden majorities** that the current left/right coalition structure obscures.
-
-The pattern: on many polarized issues, the two "sides" that dominate public discourse are actually minority positions. The actual majority holds a more nuanced view — but nobody knows it, because the current system forces everyone to pick a team, and each team's position is defined by its loudest members. The implication graph can make these hidden majorities visible.
-
-For each such issue, the seed content includes:
-- **Pole statements** (the positions the two parties rally around)
-- **Moderate-from-each-side statements** (what most people on each "side" actually think)
-- **A commonality statement** (the position that both moderates imply — probably the supermajority position, if anyone bothered to ask)
-
-The point isn't that moderate positions are always right. The point is that when a supermajority position *exists* but is *invisible* because the political system is structured around two coalitions that each bundle it with other things, that's a bug. The implication graph fixes it.
 
 ---
 
