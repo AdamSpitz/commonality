@@ -34,7 +34,4 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 
 ## High-level overview of current status
 
-- Delegation UI complete with unit tests and E2E test (deposit → delegate → spend flow).
-- Funding Portals UI complete with unit tests. Code review done (4 bugs fixed), DRY refactor done. All components tested.
-- **Indexer redesign COMPLETE.** The Ponder indexer is a pure thin event cache (one raw events table, nothing else). All business logic computed client-side by SDK fold functions. SDK is 100% GraphQL-free. All fold functions are resumable-ready. 616 tests passing.
-- For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
+For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
