@@ -366,15 +366,14 @@ class SimulationRunner {
       transport: http(RPC_URL)
     });
 
-    // Use Hardhat's pre-funded default accounts as funders (they start with 10,000 ETH each)
-    const funderClients = HARDHAT_PRIVATE_KEYS.map(key => createTestClients(key, RPC_URL));
+    // Use Hardhat's pre-funded default account as funder (starts with 10,000 ETH)
+    const funderClient = createTestClients(HARDHAT_PRIVATE_KEYS[0], RPC_URL);
 
     let fundedCount = 0;
     let failedCount = 0;
 
     for (let i = 0; i < this.users.length; i++) {
       const user = this.users[i];
-      const funderClient = funderClients[i % funderClients.length];
 
       const baseAmount = parseEther('1');
       const wealthAmount = parseEther(user.wealth.toString());
