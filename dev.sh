@@ -53,6 +53,32 @@ show_usage() {
     echo "  COMMONALITY_DATA_DIR    Set data directory (default: ./data)"
 }
 
+check_prerequisites() {
+    local missing=0
+
+    if ! command -v docker &> /dev/null; then
+        echo "Error: Docker is not installed. Install it from https://docs.docker.com/get-docker/"
+        missing=1
+    elif ! docker info &> /dev/null 2>&1; then
+        echo "Error: Docker daemon is not running. Start Docker and try again."
+        missing=1
+    fi
+
+    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null 2>&1; then
+        echo "Error: Docker Compose is not installed. Install it from https://docs.docker.com/compose/install/"
+        missing=1
+    fi
+
+    if [ ! -d "$SCRIPT_DIR/node_modules" ]; then
+        echo "Error: node_modules not found. Run 'npm install' first."
+        missing=1
+    fi
+
+    if [ $missing -ne 0 ]; then
+        exit 1
+    fi
+}
+
 wipe_data() {
     echo "Wiping data directory: $DATA_DIR"
     
@@ -76,7 +102,11 @@ wipe_data() {
 }
 
 start_services() {
+    check_prerequisites
     echo "Starting services with data directory: $DATA_DIR"
+    # Ensure .env exists (docker-compose needs it for the indexer's env_file).
+    # The deploy container will populate it with contract addresses.
+    touch "$SCRIPT_DIR/.env"
     docker-compose up -d
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."
@@ -96,8 +126,12 @@ seed_data() {
     local size="${1:-small}"
     local extra_args="${2:-}"
     
+    check_prerequisites
     echo "Starting services with fake data (size: $size)..."
-    
+
+    # Ensure .env exists (docker-compose needs it for the indexer's env_file).
+    # The deploy container will populate it with contract addresses.
+    touch "$SCRIPT_DIR/.env"
     # Start services (don't wipe - might have permission issues)
     docker-compose up -d
     

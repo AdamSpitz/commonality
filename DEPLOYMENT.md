@@ -15,6 +15,8 @@ Commonality consists of several deployable components:
 
 ### Quick Start with Docker Compose
 
+**No secrets needed for local dev.** The Docker Compose setup runs everything locally (Hardhat blockchain, IPFS node, Ponder indexer) without any API keys or private keys. Just run `npm install` and then `./dev.sh --seed`. Secrets (in `.env.secrets`) are only needed for testnet/mainnet deployment and for running the AI attester service.
+
 The fastest way to run Commonality locally is to use the dev.sh script:
 
 ```bash

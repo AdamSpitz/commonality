@@ -1,5 +1,19 @@
 # Commonality
 
+## Getting started
+
+**Prerequisites:** [Node.js 24.x](https://nodejs.org/), [Docker](https://docs.docker.com/get-docker/)
+
+```bash
+npm install
+./dev.sh --seed
+cd ui && npm run dev
+```
+
+That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS and the Ponder indexer, and populates the chain with fake data (10 users, 3 rounds). The UI will be at http://localhost:5173.
+
+No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEPLOYMENT.md) for testnet/mainnet deployment (which does require secrets).
+
 ## Where to find various files
 
   - Specs: [specs/README.md](specs/README.md)
