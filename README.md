@@ -5,7 +5,7 @@
   - Specs: [specs/README.md](specs/README.md)
   - AI continuity notes: [CONTINUITY.md](CONTINUITY.md)
   - Reviews: [REVIEWS.md](REVIEWS.md)
-  - Deployment instructions (including how to run locally): [DEPLOYMENT.md]
+  - Deployment instructions (including how to run locally): [DEPLOYMENT.md](DEPLOYMENT.md)
   - To-do list: [TODO.md](TODO.md)
 
 ## Feedback loops
