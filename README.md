@@ -6,6 +6,7 @@
 
 ```bash
 npm install
+npm run build
 ./dev.sh --seed
 cd ui && npm run dev
 ```
