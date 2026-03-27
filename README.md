@@ -25,6 +25,7 @@ Note that the build and tests are run by the Git pre-commit hook, and the whole 
   - Integration tests: `integration-tests/README.md`
   - UI: `ui/README.md`
   - Attester AI: `attester/README.md`
+  - Finder AI: `finder/README.md`
 
 ## Other things worth noting
 
