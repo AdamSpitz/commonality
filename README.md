@@ -6,7 +6,8 @@
 
 ```bash
 npm install
-./dev.sh --seed
+./services.sh --start
+./data.sh --seed
 cd ui && npm run dev
 ```
 

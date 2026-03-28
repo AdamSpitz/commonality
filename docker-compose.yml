@@ -164,5 +164,5 @@ networks:
 #   docker-compose up -d
 #
 # Or use the provided scripts:
-#   ./dev.sh              # Local development (uses ./data)
+#   ./services.sh --start  # Local development (uses ./data)
 #   ./scripts/run-integration-tests.sh  # Integration tests (uses /tmp/commonality-it)

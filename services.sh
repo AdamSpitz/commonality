@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Manage docker-compose services (hardhat, IPFS, indexer, etc.)
+#
+# Usage:
+#   ./services.sh --start   # Start services (preserves existing data)
+#   ./services.sh --stop    # Stop services (preserves existing data)
+#   ./services.sh --status  # Show whether services are running
+#
+# Note: This script isn't much more than a thin wrapper around
+# docker-compose; it's fine to just use docker-compose directly
+# if you're comfortable with that. We might be better off just
+# documenting the docker-compose commands instead of having this
+# script at all.
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
+cd "$SCRIPT_DIR"
+
+show_usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --start   Start services (preserves existing data)"
+    echo "  --stop    Stop services (preserves existing data)"
+    echo "  --status  Show whether services are running"
+    echo "  --help    Show this help message"
+    echo ""
+    echo "Data is stored in $DATA_DIR/. Use data.sh to manage it."
+}
+
+start_services() {
+    "$SCRIPT_DIR/scripts/check-prerequisites.sh"
+    echo "Starting services with data directory: $DATA_DIR"
+    docker-compose up -d
+    echo ""
+    echo "Services started. Use 'docker-compose logs -f' to view logs."
+}
+
+stop_services() {
+    echo "Stopping services..."
+    docker-compose down
+    echo "Services stopped (data preserved in $DATA_DIR)."
+}
+
+show_status() {
+    docker-compose ps
+}
+
+case "${1:-}" in
+    --start)
+        start_services
+        ;;
+    --stop)
+        stop_services
+        ;;
+    --status)
+        show_status
+        ;;
+    --help|-h|"")
+        show_usage
+        ;;
+    *)
+        echo "Error: Unknown option: $1"
+        echo ""
+        show_usage
+        exit 1
+        ;;
+esac

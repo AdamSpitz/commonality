@@ -15,31 +15,32 @@ Commonality consists of several deployable components:
 
 ### Quick Start with Docker Compose
 
-**No secrets needed for local dev.** The Docker Compose setup runs everything locally (Hardhat blockchain, IPFS node, Ponder indexer) without any API keys or private keys. Just run `npm install` and then `./dev.sh --seed`. Secrets (in `.env.secrets`) are only needed for testnet/mainnet deployment and for running the AI attester service.
+**No secrets needed for local dev.** The Docker Compose setup runs everything locally (Hardhat blockchain, IPFS node, Ponder indexer) without any API keys or private keys. Just run `npm install`, `./services.sh --start`, and `./data.sh --seed`. Secrets (in `.env.secrets`) are only needed for testnet/mainnet deployment and for running the AI attester service.
 
-The fastest way to run Commonality locally is to use the dev.sh script:
+Services and data are managed by two separate scripts:
 
 ```bash
-./dev.sh --stop      # Stop services without wiping data
-./dev.sh --wipe      # Wipe data directory only
-./dev.sh --start     # Start services (preserves existing data)
-./dev.sh --fresh     # Wipe, then start
+# Services (docker-compose lifecycle):
+./services.sh --start    # Start services (preserves existing data)
+./services.sh --stop     # Stop services (preserves existing data)
+./services.sh --status   # Show whether services are running
 
-# Populate with fake data:
-./dev.sh --seed         # Small dataset (10 users, 3 rounds) - default
-./dev.sh --seed=small   # Small dataset (10 users, 3 rounds)
-./dev.sh --seed=medium  # Medium dataset (50 users, 5 rounds)
-./dev.sh --seed=large   # Large dataset (100 users, 10 rounds)
+# Data (wipe or seed, independent of service lifecycle):
+./data.sh --wipe            # Wipe data directory (stops services first)
+./data.sh --seed            # Small dataset (10 users, 3 rounds) - default
+./data.sh --seed=small      # Small dataset (10 users, 3 rounds)
+./data.sh --seed=medium     # Medium dataset (50 users, 5 rounds)
+./data.sh --seed=large      # Large dataset (100 users, 10 rounds)
 
 # Use hardhat accounts for the first 20 users (so you can connect with your wallet):
 # The 0th user will be 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (the default hardhat account)
-./dev.sh --seed --use-hardhat-accounts
-./dev.sh --seed=large --use-hardhat-accounts
+./data.sh --seed --use-hardhat-accounts
+./data.sh --seed=large --use-hardhat-accounts
 ```
 
 All data (hardhat, ipfs, ponder) is stored in `./data/` by default. To use a custom data directory:
 ```bash
-export COMMONALITY_DATA_DIR=/custom/path ./dev.sh
+COMMONALITY_DATA_DIR=/custom/path ./services.sh --start
 ```
 
 To use the UI locally:
