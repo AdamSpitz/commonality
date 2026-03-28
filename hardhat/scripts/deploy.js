@@ -160,6 +160,7 @@ async function main() {
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
     'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS': alignmentAttestationsAddress,
     'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,
+    'PROJECT_ALIGNMENT_CONTRACT_ADDRESS': alignmentAttestationsAddress,
     'NOTE_INTENT_ADDRESS': noteIntentAddress,
     'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
     'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
@@ -212,6 +213,7 @@ async function main() {
   if (isLocal) {
     rootEnvContent = updateEnv(rootEnvContent, 'IPFS_API', 'http://localhost:5001');
     rootEnvContent = updateEnv(rootEnvContent, 'IPFS_GATEWAY', 'http://localhost:8080/ipfs');
+    rootEnvContent = updateEnv(rootEnvContent, 'EVENT_CACHE_URL', 'http://localhost:42069');
   }
   await fs.writeFile(rootEnvPath, rootEnvContent);
   console.log('  ✓ Updated .env');

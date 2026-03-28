@@ -76,7 +76,7 @@ export async function getStatement(
     cid: statementCid,
     believerCount: folded.believerCount,
     disbelieverCount: folded.disbelieverCount,
-    createdAt: earliestEvent.blockTimestamp.toString(),
+    createdAt: new Date(Number(earliestEvent.blockTimestamp) * 1000).toISOString(),
   };
 }
 
@@ -233,7 +233,7 @@ export async function getImplication(
     fromStatementCid: latest.fromStatementCid as IpfsCidV1,
     toStatementCid: latest.toStatementCid as IpfsCidV1,
     explanationCid: latest.explanationCid as IpfsCidV1,
-    createdAt: latest.blockTimestamp.toString(),
+    createdAt: new Date(Number(latest.blockTimestamp) * 1000).toISOString(),
     blockNumber: latest.blockNumber.toString(),
   };
 }
@@ -359,6 +359,24 @@ export async function getIndirectSupporterCount(
 // Statement Discovery & Browsing Queries (Event Cache + Folds)
 // ============================================================================
 
+async function enrichWithIPFSContent(
+  machinery: SDKMachinery,
+  items: StatementListItem[]
+): Promise<StatementListItem[]> {
+  return Promise.all(items.map(async item => {
+    try {
+      const doc = await fetchFromIPFS(machinery.ipfsConfig, item.cid, 5000).catch(() => null);
+      const content = (doc as Record<string, unknown>)?.content ?? '';
+      if (content) {
+        return { ...item, title: String(content).split('\n')[0].slice(0, 200), excerpt: String(content).slice(0, 200) };
+      }
+    } catch {
+      // ignore IPFS errors; item title/excerpt stays empty
+    }
+    return item;
+  }));
+}
+
 /**
  * Browse statements by most supporters (direct believers)
  */
@@ -394,6 +412,7 @@ export async function browseStatementsByMostSupporters(
 
   const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
     const counts = beliefCounts.get(cidV1)!;
+    const ts = firstTimestamp.get(cidV1);
     return {
       id: cidV1,
       cid: cidV1 as IpfsCidV1,
@@ -402,7 +421,7 @@ export async function browseStatementsByMostSupporters(
       excerpt: '',
       believerCount: counts.believerCount,
       disbelieverCount: counts.disbelieverCount,
-      createdAt: firstTimestamp.get(cidV1)?.toString() ?? '',
+      createdAt: ts ? new Date(Number(ts) * 1000).toISOString() : '',
     };
   });
 
@@ -411,7 +430,8 @@ export async function browseStatementsByMostSupporters(
     return orderDirection === 'asc' ? diff : -diff;
   });
 
-  return items.slice(offset, offset + limit);
+  const page = items.slice(offset, offset + limit);
+  return enrichWithIPFSContent(machinery, page);
 }
 
 /**
@@ -449,6 +469,7 @@ export async function browseStatementsByNewest(
 
   const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
     const counts = beliefCounts.get(cidV1)!;
+    const ts = firstTimestamp.get(cidV1);
     return {
       id: cidV1,
       cid: cidV1 as IpfsCidV1,
@@ -457,7 +478,7 @@ export async function browseStatementsByNewest(
       excerpt: '',
       believerCount: counts.believerCount,
       disbelieverCount: counts.disbelieverCount,
-      createdAt: firstTimestamp.get(cidV1)?.toString() ?? '',
+      createdAt: ts ? new Date(Number(ts) * 1000).toISOString() : '',
     };
   });
 
@@ -466,7 +487,8 @@ export async function browseStatementsByNewest(
     return orderDirection === 'asc' ? diff : -diff;
   });
 
-  return items.slice(offset, offset + limit);
+  const page = items.slice(offset, offset + limit);
+  return enrichWithIPFSContent(machinery, page);
 }
 
 /**
@@ -519,6 +541,7 @@ export async function getAllStatements(
 
   const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
     const counts = beliefCounts.get(cidV1)!;
+    const ts = firstTimestamp.get(cidV1);
     return {
       id: cidV1,
       cid: cidV1 as IpfsCidV1,
@@ -527,7 +550,7 @@ export async function getAllStatements(
       excerpt: '',
       believerCount: counts.believerCount,
       disbelieverCount: counts.disbelieverCount,
-      createdAt: firstTimestamp.get(cidV1)?.toString() ?? '',
+      createdAt: ts ? new Date(Number(ts) * 1000).toISOString() : '',
     };
   });
 
@@ -564,23 +587,25 @@ export async function getUserBeliefs(
 
   if (believedCids.length === 0) return [];
 
-  const items: StatementListItem[] = [];
-  for (const cid of believedCids) {
-    const stmt = await getStatement(machinery, cid);
-    if (stmt) {
-      items.push({
-        id: stmt.id,
-        cid: stmt.cid,
-        statementType: stmt.statementType ?? '',
-        title: stmt.title ?? '',
-        excerpt: stmt.excerpt ?? '',
-        believerCount: stmt.believerCount,
-        disbelieverCount: stmt.disbelieverCount,
-        createdAt: stmt.createdAt ?? '',
-      });
-    }
-  }
-  return items;
+  const results = await Promise.all(believedCids.map(async cid => {
+    const [stmt, doc] = await Promise.all([
+      getStatement(machinery, cid),
+      fetchFromIPFS(machinery.ipfsConfig, cid, 5000).catch(() => null),
+    ]);
+    if (!stmt) return null;
+    const content = String((doc as Record<string, unknown>)?.content ?? '');
+    return {
+      id: stmt.id,
+      cid: stmt.cid,
+      statementType: stmt.statementType ?? '',
+      title: content ? content.split('\n')[0].slice(0, 200) : '',
+      excerpt: content ? content.slice(0, 200) : '',
+      believerCount: stmt.believerCount,
+      disbelieverCount: stmt.disbelieverCount,
+      createdAt: stmt.createdAt ?? '',
+    } as StatementListItem;
+  }));
+  return results.filter((item): item is StatementListItem => item !== null);
 }
 
 /**
@@ -613,23 +638,25 @@ export async function getUserDisbeliefs(
 
   if (disbelievedCids.length === 0) return [];
 
-  const items: StatementListItem[] = [];
-  for (const cid of disbelievedCids) {
-    const stmt = await getStatement(machinery, cid);
-    if (stmt) {
-      items.push({
-        id: stmt.id,
-        cid: stmt.cid,
-        statementType: stmt.statementType ?? '',
-        title: stmt.title ?? '',
-        excerpt: stmt.excerpt ?? '',
-        believerCount: stmt.believerCount,
-        disbelieverCount: stmt.disbelieverCount,
-        createdAt: stmt.createdAt ?? '',
-      });
-    }
-  }
-  return items;
+  const results = await Promise.all(disbelievedCids.map(async cid => {
+    const [stmt, doc] = await Promise.all([
+      getStatement(machinery, cid),
+      fetchFromIPFS(machinery.ipfsConfig, cid, 5000).catch(() => null),
+    ]);
+    if (!stmt) return null;
+    const content = String((doc as Record<string, unknown>)?.content ?? '');
+    return {
+      id: stmt.id,
+      cid: stmt.cid,
+      statementType: stmt.statementType ?? '',
+      title: content ? content.split('\n')[0].slice(0, 200) : '',
+      excerpt: content ? content.slice(0, 200) : '',
+      believerCount: stmt.believerCount,
+      disbelieverCount: stmt.disbelieverCount,
+      createdAt: stmt.createdAt ?? '',
+    } as StatementListItem;
+  }));
+  return results.filter((item): item is StatementListItem => item !== null);
 }
 
 /**

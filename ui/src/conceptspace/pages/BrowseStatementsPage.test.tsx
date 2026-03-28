@@ -428,6 +428,10 @@ describe('BrowseStatementsPage', () => {
       await waitFor(() => {
         expect(createSDKMachinery).toHaveBeenCalledWith(
           expect.stringContaining('graphql'),
+          expect.any(Object),
+          undefined,
+          expect.any(Object),
+          expect.any(String),
           expect.any(Object)
         )
       })

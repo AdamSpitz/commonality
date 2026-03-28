@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
-import { waitForIndexer } from './utils/indexer'
+import { waitForProject } from './utils/indexer'
 import {
   AssuranceContractAbi,
   PubstarterAbi,
@@ -64,8 +64,7 @@ test.describe('Pubstarter Flow', () => {
     console.log('Project assurance contract:', projectDetails.assuranceContractAddress)
 
     // Wait for the indexer to process the project creation event
-    await waitForIndexer(graphqlUrl)
-    await new Promise((r) => setTimeout(r, 2000))
+    await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)
 
     // Connect wallet and navigate to browse projects page
     await page.goto('/')
@@ -150,9 +149,8 @@ test.describe('Pubstarter Flow', () => {
     })
     console.log('Bought 5 tokens for 0.5 ETH')
 
-    // Wait for the indexer to process both events
-    await waitForIndexer(graphqlUrl)
-    await new Promise((r) => setTimeout(r, 2000))
+    // Wait for the indexer to process the project creation event
+    await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)
 
     // =========================================================================
     // Step 3: Navigate to project detail page and verify funding progress

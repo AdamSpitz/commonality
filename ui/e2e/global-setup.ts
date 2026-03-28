@@ -33,8 +33,14 @@ function copyContractAddresses(projectRoot: string): void {
     // Extract contract addresses we need for the UI
     const addressesToCopy = [
       'BELIEFS_CONTRACT_ADDRESS',
+      'IMPLICATIONS_CONTRACT_ADDRESS',
       'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
       'DELEGATABLE_NOTES_ADDRESS',
+      'NOTE_INTENT_ADDRESS',
+      'ASSURANCE_CONTRACT_FACTORY_ADDRESS',
+      'ERC1155_FACTORY_ADDRESS',
+      'MARKETPLACE_FACTORY_ADDRESS',
+      'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
       'PUBSTARTER_ADDRESS',
     ];
 
@@ -64,7 +70,15 @@ function copyContractAddresses(projectRoot: string): void {
     const autoPopulatedPrefixes = [
       ...addressesToCopy.map(key => `VITE_${key}=`),
       'VITE_GRAPHQL_URL=',
+      'VITE_IPFS_GATEWAY=',
+      'VITE_ETH_RPC_URL=',
       'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=',
+      'VITE_NOTE_INTENT_CONTRACT_ADDRESS=',
+      'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS=',
+      'VITE_ERC1155_FACTORY_ADDRESS=',
+      'VITE_MARKETPLACE_FACTORY_ADDRESS=',
+      'VITE_IMPLICATIONS_CONTRACT_ADDRESS=',
+      'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=',
       'VITE_PUBSTARTER_CONTRACT_ADDRESS=',
       '# Contract addresses (auto-populated',
     ];
@@ -84,13 +98,23 @@ function copyContractAddresses(projectRoot: string): void {
       '',
       '# Contract addresses (auto-populated by E2E test setup)',
       `VITE_BELIEFS_CONTRACT_ADDRESS=${addresses.BELIEFS_CONTRACT_ADDRESS || ''}`,
+      `VITE_IMPLICATIONS_CONTRACT_ADDRESS=${addresses.IMPLICATIONS_CONTRACT_ADDRESS || ''}`,
       `VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS=${addresses.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || ''}`,
       // Note: DELEGATABLE_NOTES_ADDRESS → VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS (name differs)
       `VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=${addresses.DELEGATABLE_NOTES_ADDRESS || ''}`,
+      `VITE_NOTE_INTENT_CONTRACT_ADDRESS=${addresses.NOTE_INTENT_ADDRESS || ''}`,
+      `VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS=${addresses.ASSURANCE_CONTRACT_FACTORY_ADDRESS || ''}`,
+      `VITE_ERC1155_FACTORY_ADDRESS=${addresses.ERC1155_FACTORY_ADDRESS || ''}`,
+      `VITE_MARKETPLACE_FACTORY_ADDRESS=${addresses.MARKETPLACE_FACTORY_ADDRESS || ''}`,
+      `VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${addresses.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || ''}`,
       `VITE_PUBSTARTER_CONTRACT_ADDRESS=${addresses.PUBSTARTER_ADDRESS || ''}`,
       // Use the Vite dev-server proxy URL so the browser avoids CORS issues.
       // Both the browser (via Vite proxy) and the Node.js test-runner reach the indexer this way.
       `VITE_GRAPHQL_URL=http://localhost:5173/graphql`,
+      // IPFS gateway for client-side IPFS content fetching (project names, statement titles)
+      `VITE_IPFS_GATEWAY=http://localhost:8080/ipfs`,
+      // Hardhat RPC for on-chain reads (e.g. threshold/deadline from condition contracts)
+      `VITE_ETH_RPC_URL=http://127.0.0.1:8545`,
     ];
 
     // Write back to ui/.env
