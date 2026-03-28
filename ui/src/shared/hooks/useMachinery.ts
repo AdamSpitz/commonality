@@ -10,8 +10,10 @@ export function useMachinery(): SDKMachinery {
       gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY,
       apiUrl: import.meta.env.VITE_IPFS_API,
     }
-    // Event cache is served from the same origin as the Vite dev server (proxied to indexer)
-    const eventCacheUrl = new URL(indexerUrl).origin
+    // Event cache requests use relative paths (/api/...) so the Vite dev server
+    // proxy forwards them to the indexer. An explicit override can be set via
+    // VITE_EVENT_CACHE_URL for non-proxied deployments.
+    const eventCacheUrl = import.meta.env.VITE_EVENT_CACHE_URL ?? ''
     const contractAddresses = {
       beliefs: import.meta.env.VITE_BELIEFS_CONTRACT_ADDRESS as `0x${string}`,
       implications: import.meta.env.VITE_IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`,

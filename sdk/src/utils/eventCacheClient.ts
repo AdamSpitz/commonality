@@ -46,7 +46,7 @@ export async function fetchEvents(
   machinery: SDKMachinery,
   params: EventQueryParams
 ): Promise<RawEventFromCache[]> {
-  if (!machinery.eventCacheUrl) {
+  if (machinery.eventCacheUrl == null) {
     throw new Error('eventCacheUrl not configured');
   }
 
@@ -75,7 +75,7 @@ export function getContractAddresses(machinery: SDKMachinery): ContractAddresses
 }
 
 export function isEventCacheAvailable(machinery: SDKMachinery): boolean {
-  return !!machinery.eventCacheUrl && !!machinery.contractAddresses;
+  return machinery.eventCacheUrl != null && !!machinery.contractAddresses;
 }
 
 // ============================================================================

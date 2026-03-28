@@ -3,6 +3,8 @@
 ---
 
 Main thing I want to work on next:
+  - Make sure the local deployment stuff actually persists the data even after stopping the services. (Is PONDER_EPHEMERAL relevant?)
+  - Is there some way to prevent anyone from running "npm install" in a workspace directory? LLMs keep doing that, and it's causing problems? (Should only be called from the top-level directory, IIUC.)
   - ?
 
 Other big things to do soon:

@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import { IpfsCidV1, normalizeCidV1, buildCidV1FromDigest } from './cid-types';
 
 const RAW_CODEC = 0x55;
@@ -30,7 +29,7 @@ export function clearMockIPFS(): void {
  * Generates deterministic CID based on content
  */
 export async function uploadToMockIPFS(content: object): Promise<IpfsCidV1> {
-  const bytes = Buffer.from(JSON.stringify(content));
+  const bytes = new TextEncoder().encode(JSON.stringify(content));
   const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
   const digest = new Uint8Array(hashBuffer);
   const cid = buildCidV1FromDigest(RAW_CODEC, digest);

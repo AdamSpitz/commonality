@@ -14,10 +14,68 @@ import { join } from 'path';
 
 const { ethers } = hre;
 
+/**
+ * Parse a simple KEY=VALUE env file, ignoring comments and blank lines.
+ */
+function parseEnvFile(content) {
+  const result = {};
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const idx = trimmed.indexOf('=');
+    if (idx === -1) continue;
+    result[trimmed.slice(0, idx)] = trimmed.slice(idx + 1);
+  }
+  return result;
+}
+
+/**
+ * Check if a contract address has deployed code on-chain.
+ */
+async function hasCode(address) {
+  if (!address) return false;
+  const code = await ethers.provider.getCode(address);
+  return code !== '0x';
+}
+
 async function main() {
   const network = hre.network.name;
   const isLocal = network === 'localhost';
   console.log(`\n=== Deploying Contracts to ${network} ===\n`);
+
+  // For localhost: check if contracts are already deployed and skip if so.
+  // This makes restart idempotent when chain data is persisted.
+  if (isLocal) {
+    const rootDir = join(process.cwd(), '..');
+    const networkEnvPath = join(rootDir, 'deployments', `${network}.env`);
+    try {
+      const content = await fs.readFile(networkEnvPath, 'utf-8');
+      const existing = parseEnvFile(content);
+      const addressKeys = [
+        'BELIEFS_CONTRACT_ADDRESS',
+        'IMPLICATIONS_CONTRACT_ADDRESS',
+        'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
+        'NOTE_INTENT_ADDRESS',
+        'DELEGATABLE_NOTES_CONTRACT_ADDRESS',
+        'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
+        'FREE_ERC1155_FACTORY_ADDRESS',
+        'ASSURANCE_CONTRACT_FACTORY_ADDRESS',
+        'ERC1155_FACTORY_ADDRESS',
+        'MARKETPLACE_FACTORY_ADDRESS',
+        'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS',
+        'PUBSTARTER_ADDRESS',
+      ];
+      const checks = await Promise.all(addressKeys.map(k => hasCode(existing[k])));
+      if (checks.every(Boolean)) {
+        console.log('Contracts already deployed on-chain — skipping redeployment.');
+        console.log(`(addresses from ${networkEnvPath})\n`);
+        process.exit(0);
+      }
+      console.log('Some contracts missing from chain — redeploying all contracts.\n');
+    } catch {
+      // No existing deployment file; deploy fresh.
+    }
+  }
 
   // Get deployer account
   const [deployer] = await ethers.getSigners();

@@ -16,7 +16,7 @@ import { createIPFSConfigInNodeJSFromTheUsualEnvVars, uploadToIPFS } from '../..
 import { createSDKMachinery } from '../../machinery.js';
 
 const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-const machinery = createSDKMachinery(GRAPHQL_URL, createIPFSConfigInNodeJSFromTheUsualEnvVars(), { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
+const machinery = createSDKMachinery(GRAPHQL_URL, { ...createIPFSConfigInNodeJSFromTheUsualEnvVars(), shouldUseMock: true }, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
 
 // ============================================================================
 // toCanonicalJson
