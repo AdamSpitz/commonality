@@ -19,6 +19,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 cd "$SCRIPT_DIR"
 
+# Export UID/GID so docker-compose can run containers as the current user.
+# UID is a bash built-in and isn't exported by default; GID has no built-in at all.
+export UID
+export GID=$(id -g)
+
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -34,6 +39,9 @@ show_usage() {
 start_services() {
     "$SCRIPT_DIR/scripts/check-prerequisites.sh"
     echo "Starting services with data directory: $DATA_DIR"
+    # Pre-create data directories owned by the current user so containers
+    # don't create them as root.
+    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder"
     docker-compose up -d
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."

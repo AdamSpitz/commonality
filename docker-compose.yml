@@ -65,6 +65,7 @@ services:
   ipfs:
     image: ipfs/kubo:latest
     container_name: commonality-ipfs
+    user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "5001:5001"  # API port
       - "8080:8080"  # Gateway port
@@ -100,6 +101,7 @@ services:
       context: ./indexer
       dockerfile: Dockerfile
     container_name: commonality-indexer
+    user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "42069:42069"
     volumes:

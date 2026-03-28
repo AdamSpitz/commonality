@@ -15,6 +15,10 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Allow any user to write to /app (needed when running as non-root via
+# user: "${UID}:${GID}" in docker-compose — ponder writes ponder-env.d.ts here)
+RUN chmod -R a+rwX /app
+
 # Expose Ponder API port
 EXPOSE 42069
 

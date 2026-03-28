@@ -25,6 +25,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 cd "$SCRIPT_DIR"
 
+# Export UID/GID so docker-compose can run containers as the current user.
+# UID is a bash built-in and isn't exported by default; GID has no built-in at all.
+export UID
+export GID=$(id -g)
+
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -48,15 +53,10 @@ wipe_data() {
 
     # Try to remove the directory
     if ! rm -rf "$DATA_DIR" 2>/dev/null; then
-        echo "Warning: Could not remove $DATA_DIR (permission denied)"
-        echo ""
-        echo "This can happen because docker runs as root and creates files owned by root."
-        echo "To avoid this issue in the future, you can configure docker to run as your user:"
-        echo "  https://docs.docker.com/engine/install/linux-postinstall/"
-        echo ""
-        echo "Trying to continue anyway..."
-        # TODO: Wait, what does that mean, trying to continue anyway? Are we just
-        # printing "Data wiped" even though it wasn't? Maybe we should exit with an error instead?
+        echo "Error: Could not remove $DATA_DIR (permission denied)."
+        echo "You may have stale root-owned files from a previous run without UID/GID export."
+        echo "Try: sudo rm -rf $DATA_DIR"
+        exit 1
     fi
 
     mkdir -p "$DATA_DIR"

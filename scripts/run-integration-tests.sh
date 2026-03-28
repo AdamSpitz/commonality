@@ -28,6 +28,11 @@ cd "$SCRIPT_DIR/.."
 # This ensures clean state without affecting development data
 export COMMONALITY_DATA_DIR="/tmp/commonality-it"
 
+# Export UID/GID so docker-compose runs containers as the current user.
+# UID is a bash built-in and isn't exported by default; GID has no built-in at all.
+export UID
+export GID=$(id -g)
+
 # Use ephemeral database for integration tests - fresh in-memory state each run
 # This avoids issues with stale indexer state when hardhat restarts fresh
 export PONDER_EPHEMERAL=true
@@ -36,10 +41,15 @@ export PONDER_EPHEMERAL=true
 # This ensures we start fresh with no stale container state
 docker-compose down 2>/dev/null || true
 
-# Use a docker container to clean up root-owned files in the data directory
-# This is needed because docker runs as root and creates files we can't delete
-# The sh -c wrapper is needed because glob expansion happens on host before docker runs
-docker run --rm -v "$COMMONALITY_DATA_DIR:/data" alpine sh -c "rm -rf /data/*" 2>/dev/null || true
+# Wipe old test data. Files are user-owned so plain rm works; fall back to
+# docker if there are stale root-owned files from a pre-fix run.
+if ! rm -rf "$COMMONALITY_DATA_DIR" 2>/dev/null; then
+    docker run --rm -v "/tmp:/tmp" alpine rm -rf "$COMMONALITY_DATA_DIR"
+fi
+
+# Pre-create data directories owned by the current user so containers
+# don't create them as root.
+mkdir -p "$COMMONALITY_DATA_DIR/hardhat" "$COMMONALITY_DATA_DIR/ipfs" "$COMMONALITY_DATA_DIR/ponder"
 
 # Build the SDK to ensure integration tests use latest code
 # The SDK is a workspace dependency used by integration-tests, so it must be built
@@ -79,9 +89,8 @@ else
     EXIT_CODE=$?
 fi
 
-# Clean up test data - use docker to clean root-owned files from IPFS
 cd "$SCRIPT_DIR/.."
-docker run --rm -v "$COMMONALITY_DATA_DIR:/data" alpine sh -c "rm -rf /data/*" 2>/dev/null || true
 docker-compose down
+rm -rf "$COMMONALITY_DATA_DIR" 2>/dev/null || docker run --rm -v "/tmp:/tmp" alpine rm -rf "$COMMONALITY_DATA_DIR"
 
 exit $EXIT_CODE
