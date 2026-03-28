@@ -6,6 +6,7 @@
 
 ```bash
 npm install
+npm run build
 ./services.sh --start
 ./data.sh --seed
 cd ui && npm run dev

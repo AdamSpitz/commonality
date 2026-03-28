@@ -51,7 +51,7 @@ export function createSDKMachinery(
   return {
     indexerUrl,
     ipfsConfig,
-    testConfig,
+    testConfig: testConfig ?? {},
     publicClient,
     eventCacheUrl,
     contractAddresses,

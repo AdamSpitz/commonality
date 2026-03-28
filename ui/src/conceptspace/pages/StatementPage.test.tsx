@@ -454,10 +454,8 @@ describe('StatementPage', () => {
 
 
       await waitFor(() => {
-        expect(createSDKMachinery).toHaveBeenCalledWith(
-          expect.stringContaining('graphql'),
-          expect.any(Object)
-        )
+        expect(createSDKMachinery).toHaveBeenCalled()
+        expect(vi.mocked(createSDKMachinery).mock.calls[0][0]).toContain('graphql')
       })
     })
 

@@ -3,7 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { generateUsers } from './generateUsers.js';
+import { generateUsers, HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { generateStatements } from './generateStatements.js';
 import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
 import { FundingAndDelegationActions } from './fundingAndDelegationActions.js';
@@ -366,15 +366,14 @@ class SimulationRunner {
       transport: http(RPC_URL)
     });
 
-    const funders = this.users.slice(0, 5);
-    const funderClients = funders.map(u => this.getClientsForUser(u));
+    // Use Hardhat's pre-funded default account as funder (starts with 10,000 ETH)
+    const funderClient = createTestClients(HARDHAT_PRIVATE_KEYS[0], RPC_URL);
 
     let fundedCount = 0;
     let failedCount = 0;
 
     for (let i = 0; i < this.users.length; i++) {
       const user = this.users[i];
-      const funderClient = funderClients[i % funderClients.length];
 
       const baseAmount = parseEther('1');
       const wealthAmount = parseEther(user.wealth.toString());

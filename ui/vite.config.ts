@@ -22,6 +22,7 @@ export default defineConfig({
       // The indexer runs at localhost:42069; the dev server runs at localhost:5173.
       '/graphql': 'http://localhost:42069',
       '/conceptspace': 'http://localhost:42069',
+      '/api': 'http://localhost:42069',
     },
   },
 })

@@ -35,7 +35,7 @@ async function createTestStatement(
 ) {
   const clients = createE2ETestClients(accountName)
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
-  const machinery = createSDKMachinery(graphqlUrl, ipfsConfig)
+  const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, { areWeJustRunningTests: true, shouldTestsBeVerbose: false })
 
   const statementContent = `Profile test statement ${Date.now()}`
   const statementData = createStatement({ content: statementContent })
