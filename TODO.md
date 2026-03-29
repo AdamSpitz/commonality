@@ -3,7 +3,6 @@
 ---
 
 Main thing I want to work on next:
-  - Fix local service persistence (see section below for details)
   - ?
 
 Other big things to do soon:
@@ -25,34 +24,6 @@ Ideas from the specs/motivation stuff:
 
 Ideas from seed-content work:
   - Think about orthogonal hierarchy dimensions — geographic and topical. Statements like "I'm interested in improving Grey County" and "I'm interested in furthering crypto adoption" are independent axes, and their conjunction ("further crypto in Grey County") creates a more specific interest. This matters for funding portal discovery (a project at the intersection should show up in both parent portals) and for delegatable note intents. These are just regular statements in plain English with implication links to both parents. See seed-content.md for more detail.
-
----
-
-## Fixing local service persistence
-
-**Tested and confirmed broken.** Stopping and restarting services does NOT preserve data. Here's what's actually happening:
-
-### Issue 1: Hardhat's `--state` flag is missing
-
-The `./data/hardhat` directory is mounted into the container at `/data`, but the hardhat node command doesn't use it:
-
-```yaml
-command: node ../node_modules/hardhat/internal/cli/bootstrap.js node --hostname 0.0.0.0
-```
-
-Hardhat's `node` command supports a `--state <file>` flag that saves the entire chain state (blocks, accounts, contract storage) to disk and reloads it on startup. Without this flag, the volume is mounted but ignored — the chain always starts fresh.
-
-**Fix:** Add `--state /data/state.json` to the hardhat-node command in `docker-compose.yml`.
-
-### Issue 2: `hardhat-deploy` always re-runs on every startup
-
-The `hardhat-deploy` service runs every time services start (it's a one-shot service with `condition: service_completed_successfully`). If hardhat's chain state is persisted (contracts already deployed), running deploy again would deploy them a second time — likely to different addresses, breaking the `.env` file and everything downstream.
-
-**Fix:** Make the deploy script idempotent — check if contracts are already deployed at the addresses in `.env` (or if `.env` already exists with valid addresses), and skip deployment if so.
-
-### Note on `PONDER_EPHEMERAL`
-
-`PONDER_EPHEMERAL` is not the culprit here. By default it's `false`, meaning Ponder uses a persistent database at `./data/ponder`. Ponder's persistence actually *works* — the indexer database survived the restart in testing. The problem is that Ponder's database references block hashes that no longer exist on the freshly-restarted hardhat chain, so it errors trying to resume from where it left off.
 
 ---
 
