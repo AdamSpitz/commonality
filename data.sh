@@ -59,7 +59,9 @@ wipe_data() {
         exit 1
     fi
 
-    mkdir -p "$DATA_DIR"
+    # Pre-create data directories owned by the current user so containers
+    # don't create them as root.
+    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder"
     echo "Data wiped. (Services were stopped — run ./services.sh --start to restart.)"
 }
 
