@@ -32,7 +32,7 @@ Services and data are managed by two separate scripts:
 ./data.sh --seed=medium     # Medium dataset (50 users, 5 rounds)
 ./data.sh --seed=large      # Large dataset (100 users, 10 rounds)
 
-# Use hardhat accounts for the first 20 users (so you can connect with your wallet):
+# Use hardhat accounts for the first 20 users (so you can connect with your wallet - set up your wallet with the nth hardhat account's private key):
 # The 0th user will be 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (the default hardhat account)
 ./data.sh --seed --use-hardhat-accounts
 ./data.sh --seed=large --use-hardhat-accounts
@@ -465,7 +465,7 @@ networks: {
 
 ## Next Steps After Deployment
 
-1. **Generative Testing** - Run attack scenarios and invariant checking (see [TODO.md](TODO.md))
+1. **Generative Testing** - Run attack scenarios and invariant checking
 2. **Professional Audit** - Engage smart contract auditors
 3. **Documentation Update** - Update all docs with mainnet addresses
 4. **Community Announcement** - Notify users of deployment
