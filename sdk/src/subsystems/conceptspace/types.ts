@@ -1,6 +1,22 @@
 import { IpfsCidV1 } from "../../utils/cid-types";
 import { type DisplayableDocument } from "../displayable-documents/displayable-document.js";
 
+/**
+ * Belief state values as numbers (uint8), matching the Beliefs.sol constants and event fields.
+ * Use these instead of raw numbers when reading beliefState from DirectSupport events or UserBelief.
+ *   NO_OPINION = 0  (user has not expressed a view, or retracted a previous one)
+ *   BELIEVES   = 1
+ *   DISBELIEVES= 2
+ *
+ * Note: chain-reads.ts has analogous bigint constants (BELIEF_NO_OPINION etc.) for on-chain viem reads.
+ */
+export const BeliefStates = {
+  NO_OPINION: 0,
+  BELIEVES: 1,
+  DISBELIEVES: 2,
+} as const;
+export type BeliefStateNumber = (typeof BeliefStates)[keyof typeof BeliefStates];
+
 export interface Statement {
   id: string;
   believerCount: number;
