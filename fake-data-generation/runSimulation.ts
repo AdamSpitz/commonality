@@ -247,10 +247,6 @@ class SimulationRunner {
     if (attestationsExist && this.usePreGeneratedAttestations) {
       this.attestations = await loadAttestations();
       console.log(`Loaded ${this.attestations.length} pre-generated attestations`);
-    } else if (this.usePreGeneratedAttestations) {
-      console.log('No pre-generated attestations found. Set OPENROUTER_API_KEY and run:');
-      console.log('  npx tsx generateAttestations.ts');
-      console.log('Or disable with --no-pregenerated flag');
     } else {
       console.log('Using random attestation decisions (no LLM)');
     }
