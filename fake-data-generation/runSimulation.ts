@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, parseEther, keccak256, toBytes } from 'viem';
+import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
@@ -20,6 +20,7 @@ import {
   DelegatableNotesAbi,
   createStatement,
   publishDocument,
+  cidToBytes32,
   type IpfsCidV1,
   type IPFSConfig,
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
@@ -46,9 +47,6 @@ const hardhat = {
 const BELIEVES = 1;
 const DISBELIEVES = 2;
 
-function cidToBytes32(cid: string): `0x${string}` {
-  return keccak256(toBytes(cid));
-}
 
 function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost:8545') {
   const account = privateKeyToAccount(privateKey);
