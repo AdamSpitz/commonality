@@ -9,10 +9,9 @@ npm install
 npm run build
 ./services.sh --start
 ./data.sh --seed
-cd ui && npm run dev
 ```
 
-That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS and the Ponder indexer, and populates the chain with fake data (10 users, 3 rounds). The UI will be at http://localhost:5173.
+That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the UI, and populates the chain with fake data (10 users, 3 rounds). The UI will be at http://localhost:5173.
 
 No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEPLOYMENT.md) for testnet/mainnet deployment (which does require secrets).
 
