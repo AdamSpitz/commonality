@@ -293,6 +293,7 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
   if (isLocal) {
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
+    uiEnvContent = updateEnv(uiEnvContent, 'VITE_IPFS_GATEWAY', 'http://localhost:8080/ipfs');
   }
   await fs.writeFile(uiEnvPath, uiEnvContent);
   console.log('  ✓ Updated ui/.env');
