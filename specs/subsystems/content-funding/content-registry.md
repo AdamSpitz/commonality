@@ -23,6 +23,8 @@ Content IDs are `keccak256` hashes of canonical identifiers:
 
 ERC-1155 token IDs are `uint256` and `keccak256` produces `bytes32` — same size, direct mapping. The content ID *is* the token type ID.
 
+These identifiers must come from the canonicalization rules in [canonicalization.md](canonicalization.md), not from raw user input. The registry's uniqueness guarantee only works if all clients normalize equivalent URLs and platform IDs to the same canonical string before hashing.
+
 The contract doesn't validate that the content exists — it just enforces ID uniqueness. Social and market forces handle the rest (no one will fund a contract referencing garbage content IDs). Maybe we can also make the UI check the links or show the content (or an excerpt) inline, but it doesn't need to be validated at the contract level.
 
 ## Failed contracts free their content items

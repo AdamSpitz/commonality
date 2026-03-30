@@ -32,11 +32,41 @@ Contracts created by third parties before the creator claimed continue as normal
 
 ### Identity verification
 
-Channel claiming uses a **pluggable verifier interface**:
+Channel claiming uses a **pluggable verifier interface**, but the proof format should be concrete enough that the off-chain and on-chain pieces cannot drift.
+
+At the protocol level, a successful claim should be based on a short-lived authorization over a canonical channel ID:
+
+```solidity
+struct ChannelClaimProof {
+    string channelId;        // canonical form, e.g. "twitter:@username"
+    address claimant;        // address that will own the channel
+    bytes32 nonce;           // backend-issued challenge nonce
+    uint256 deadline;        // expiry for replay resistance
+    bytes verifierSignature; // signature from trusted verifier
+}
+```
+
+And the registry should expose a proof-carrying claim entrypoint, e.g.:
+
+```solidity
+function claimChannel(ChannelClaimProof calldata proof) external;
+```
+
+The registry verifies:
+
+- `channelId` is canonical
+- `claimant` is the address that will become channel owner
+- `nonce` has not already been used
+- `deadline` has not passed
+- `verifierSignature` is valid for the exact `(channelId, claimant, nonce, deadline)` payload
+
+This keeps the contract-side rule crisp even if we later support multiple verification methods behind the same interface.
+
+The verifier implementation can still be pluggable:
 
 ```solidity
 interface IChannelVerifier {
-    function verifyChannel(string calldata channelId, address claimant) external view returns (bool);
+    function verifyClaimProof(ChannelClaimProof calldata proof) external view returns (bool);
 }
 ```
 
@@ -44,25 +74,26 @@ The channel registry contract delegates all verification to an `IChannelVerifier
 
 #### MVP: tweet-based verification
 
-The first verifier implementation uses **tweet-based proof of ownership**. The creator tweets a message containing their Ethereum address (or a challenge nonce), and a trusted backend confirms the tweet exists and came from the correct account.
+The first verifier implementation uses **tweet-based proof of ownership**. The creator tweets a short challenge string, and a trusted backend confirms the tweet exists and came from the correct account before signing a `ChannelClaimProof`.
 
 The creator's experience:
 
 1. Open the claim page, see your escrowed funds and funded content items.
 2. Connect an existing wallet, or create one in-app.
-3. Click "verify" — receive a message to tweet (e.g., "Claiming my Commonality channel: 0xABC...").
+3. Click "verify" — receive a message to tweet containing a short challenge string.
 4. Tweet it.
-5. Click "confirm" — the backend checks the tweet via the Twitter API, signs an attestation, and submits the claim transaction on the creator's behalf.
+5. Click "confirm" — the backend checks the tweet, signs the proof, and submits the claim transaction on the creator's behalf.
 
 This is the same "tweet to verify" pattern used by Keybase, ENS profile verification, and countless other services. Every creator already knows how to tweet. The backend bears the gas cost — this is user acquisition spend, not anti-spam (the real anti-abuse control is that the tweet must come from the correct account).
 
 The backend verifier is a simple service:
 - Accepts a `(channelId, claimantAddress)` pair
-- Checks the Twitter API for a recent tweet from `@username` containing the claimant address or a challenge nonce
-- If valid, signs an attestation that the on-chain verifier contract can check (e.g., via ECDSA signature from a trusted signer address)
-- The on-chain `IChannelVerifier` implementation just checks `ecrecover` against the trusted signer
+- Returns a challenge nonce to be tweeted
+- Checks the Twitter API for a recent tweet from `@username` containing that nonce
+- If valid, signs a proof over `(channelId, claimantAddress, nonce, deadline)`
+- The on-chain verifier checks the signature and nonce/deadline rules
 
-No self-attestation, no first-claim-wins. The proof comes from the platform itself (the tweet exists on Twitter, posted by the account in question), verified by our backend.
+No self-attestation, no first-claim-wins. The proof comes from the platform itself (the tweet exists on Twitter, posted by the account in question), verified by our backend, but packaged in a way that is explicit, replay-resistant, and relayer-friendly.
 
 #### Future: ENS-based verification
 
