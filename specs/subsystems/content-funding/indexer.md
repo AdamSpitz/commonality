@@ -83,6 +83,9 @@ Start with the community-driven approach (cheapest, no API dependencies) and add
 The "unclaimed funded content" page is critical to the adoption funnel. When a community member shares a link with a creator saying "hey, someone wants to fund your work," the landing page needs to:
 - Clearly explain what happened ("supporters have pooled $X to fund your content")
 - Walk the creator through the system without jargon or crypto-native assumptions
+- Show the current claim state: escrowed funds, active pre-claim contracts, and whether a veto window will open after claim
 - Make the whole thing feel legitimate and non-seedy — remember, most creators will be encountering anything crypto-related with skepticism
-- Provide a simple path to claiming (ENS setup, channel claim, fund withdrawal)
+- Provide a simple path to claiming (wallet creation or connection, ENS setup, verification, channel claim, fund withdrawal)
+- Sponsor gas and setup costs where possible, because the claim flow is otherwise too easy to abandon halfway through
+- Allow the creator to stop and resume later without losing visibility into the funds or claim status
 - Show which specific content items are being funded and why (link to the attester explanations)

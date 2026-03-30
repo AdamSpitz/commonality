@@ -10,7 +10,7 @@ That's fine — that opportunity cost is a great incentive for creators to learn
 
 ## The proposal: open until claimed
 
-**Before the creator has claimed their channel**, anyone can create assurance contracts for that creator's content. The creator address (the address that receives funds on success) is set at contract creation. Third parties set it to the creator's known address (or a placeholder if unknown — see below).
+**Before the creator has claimed their channel**, anyone can create assurance contracts for that creator's content. But for an **unclaimed** channel, the payout recipient is not an arbitrary creator address chosen by the third party; it is the channel escrow for that channel ID (see below). That keeps the "someone funded your content" viral loop while avoiding accidental or malicious misdirection of funds.
 
 **Once the creator claims their channel**, only the creator can create new contracts for their content. Claiming is an on-chain action: the creator calls a function on a channel registry contract, proving ownership of their platform identity (or simply asserting it — see identity verification below).
 
@@ -25,11 +25,10 @@ A channel is identified by a creator's platform identity (e.g., `twitter:@userna
 ### What happens to pre-claim contracts
 
 Contracts created by third parties before the creator claimed continue as normal:
-- If they succeed, the funds go to whatever creator address was specified at contract creation.
+- If they succeed, the funds go to the channel escrow keyed by that channel ID.
 - If they fail, the content items are freed (per [content-registry.md](content-registry.md)) and the creator can re-register them on their own terms.
-- The creator can't cancel or modify pre-claim contracts — they're already deployed. This is intentional: the third party took a risk setting up the contract, and the tokens already sold shouldn't be invalidated.
-
-If a third party set the wrong creator address (or a placeholder), the funds from a successful contract go to that wrong address. This is a known risk of pre-claim contracts and part of why claiming early is valuable.
+- If the creator later claims the channel, they still can't rewrite the economics of those pre-claim contracts, but they may get a bounded veto window (described below) before those contracts finish.
+- Aside from that veto window, the creator can't cancel or modify pre-claim contracts — they're already deployed. This is intentional: the third party took a risk setting up the contract, and the tokens already sold shouldn't be invalidated.
 
 ### Identity verification
 
@@ -48,13 +47,27 @@ The existing code in `sdk/src/utils/twitter.ts` already resolves ENS names to Tw
 
 The channel registry contract should use a pluggable verifier interface so that the verification method can be upgraded without redeployment (e.g., to support additional platforms beyond Twitter/X).
 
-TODO: The creator onboarding funnel has a big gap. The path is: fan creates contract → creator gets notified → creator claims channel. But "creator claims channel" requires ENS setup, which is non-trivial for someone who's never touched crypto. The escrow contract buys time, but the conversion rate from "notified creator" to "claimed channel" will be low unless the onboarding is exceptional. The landing page spec is a start, but this probably deserves its own design doc. How easy can we make this while still keeping everything secure?
+### Creator onboarding requirements
 
-### The "placeholder address" problem
+The hard part here is not the cryptography; it's converting a skeptical, non-crypto-native creator from "someone sent me a weird link" to "I successfully claimed this channel." The spec should treat that as a first-class product surface, not an afterthought.
 
-If a third party creates a contract for a creator who isn't on the platform yet, what address receives the funds?
+The required flow:
 
-**Escrow/claim contract.** Funds go to a holding contract keyed by channel ID. When the creator claims the channel, they can withdraw from the escrow. This cleanly separates the "who gets paid" question from the assurance contract itself — no need to modify assurance contract semantics to support changing recipients.
+1. The creator opens a landing page for their specific channel and sees the plain-English state before doing anything wallet-related: which content items are being funded, how much money is already in escrow, whether any pre-claim contracts are still active, and whether a veto window will open upon claim.
+2. The page offers two paths: connect an existing wallet, or create a wallet in-app. For first-time creators, the in-app path should be the default. Key export/recovery still matters, but it should come after the creator understands what they're claiming.
+3. The claim wizard then guides the creator through the minimum required identity steps: obtain or connect an ENS name, set the relevant text record (for example `com.twitter`), complete ENS profile verification, and finally call `claimChannel(...)`.
+4. Gas and one-time setup costs should be sponsored by the platform for first-time claimants if at all feasible. This is user acquisition cost, not a meaningful anti-spam defense; the real anti-abuse control is the ENS-backed identity proof.
+5. There is no weaker provisional claim mode. Until ENS verification succeeds and the on-chain claim is submitted, the creator has no control over future contracts and cannot withdraw escrowed funds. Progress can be saved off-chain for UX purposes, but it confers no authority.
+
+This implies a product requirement for the "unclaimed funded content" page described in [indexer.md](indexer.md): it is not just an informational page; it is the guided claim funnel.
+
+### Payout target for unclaimed channels
+
+If a third party creates a contract for a creator who isn't on the platform yet, where do successful funds go?
+
+**Channel escrow contract.** Funds go to a holding contract keyed by channel ID. When the creator claims the channel, they can withdraw from the escrow. This cleanly separates the "who gets paid" question from the assurance contract itself — no need to modify assurance contract semantics to support changing recipients.
+
+For the MVP, this should be the only payout mode for unclaimed channels. Requiring third parties to guess or supply a creator wallet address is unnecessary friction and introduces an avoidable failure mode. Once a channel is claimed, newly created contracts can pay the claimed owner address directly.
 
 The escrow contract is simple: it holds funds mapped to channel IDs, and releases them to whoever successfully claims that channel (via the identity verification described above).
 
