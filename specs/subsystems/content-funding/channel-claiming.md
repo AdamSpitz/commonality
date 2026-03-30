@@ -12,7 +12,7 @@ That's fine — that opportunity cost is a great incentive for creators to learn
 
 **Before the creator has claimed their channel**, anyone can create assurance contracts for that creator's content. But for an **unclaimed** channel, the payout recipient is not an arbitrary creator address chosen by the third party; it is the channel escrow for that channel ID (see below). That keeps the "someone funded your content" viral loop while avoiding accidental or malicious misdirection of funds.
 
-**Once the creator claims their channel**, only the creator can create new contracts for their content. Claiming is an on-chain action: the creator calls a function on a channel registry contract, proving ownership of their platform identity (or simply asserting it — see identity verification below).
+**Once the creator claims their channel**, only the creator can create new contracts for their content. Claiming is an on-chain action: the creator calls a function on a channel registry contract, proving ownership of their platform identity via a pluggable verifier.
 
 ### What "claiming" means
 
@@ -32,32 +32,60 @@ Contracts created by third parties before the creator claimed continue as normal
 
 ### Identity verification
 
-Channel claiming uses **ENS-based social verification**. The creator proves they own a channel by linking their platform identity to their Ethereum address through ENS text records and ENS's profile verification system.
+Channel claiming uses a **pluggable verifier interface**:
 
-The flow:
+```solidity
+interface IChannelVerifier {
+    function verifyChannel(string calldata channelId, address claimant) external view returns (bool);
+}
+```
 
-1. The creator sets their platform handle in their ENS profile (e.g., the `com.twitter` text record for Twitter/X).
-2. ENS's [profile verification system](https://support.ens.domains/en/articles/9626402-profile-verification) confirms the link between the ENS name and the platform account.
-3. The creator calls `claimChannel("twitter:@username")` from the address that owns that ENS name.
-4. The channel registry contract (or an off-chain verifier it trusts) checks that the ENS records and verification status match.
+The channel registry contract delegates all verification to an `IChannelVerifier` implementation. This means the verification method can be upgraded or extended without redeploying the registry — swap the verifier address, and the same contract supports new platforms or stronger proof methods.
 
-This is non-negotiable — no self-attestation, no first-claim-wins. The rest of the world already views anything crypto-related with suspicion; channel claiming must be clearly legitimate from day one.
+#### MVP: tweet-based verification
 
-The existing code in `sdk/src/utils/twitter.ts` already resolves ENS names to Twitter handles via the `com.twitter` text record and has a placeholder for checking ENS verification status. That same infrastructure serves channel claiming.
+The first verifier implementation uses **tweet-based proof of ownership**. The creator tweets a message containing their Ethereum address (or a challenge nonce), and a trusted backend confirms the tweet exists and came from the correct account.
 
-The channel registry contract should use a pluggable verifier interface so that the verification method can be upgraded without redeployment (e.g., to support additional platforms beyond Twitter/X).
+The creator's experience:
 
-### Creator onboarding requirements
+1. Open the claim page, see your escrowed funds and funded content items.
+2. Connect an existing wallet, or create one in-app.
+3. Click "verify" — receive a message to tweet (e.g., "Claiming my Commonality channel: 0xABC...").
+4. Tweet it.
+5. Click "confirm" — the backend checks the tweet via the Twitter API, signs an attestation, and submits the claim transaction on the creator's behalf.
 
-The hard part here is not the cryptography; it's converting a skeptical, non-crypto-native creator from "someone sent me a weird link" to "I successfully claimed this channel." The spec should treat that as a first-class product surface, not an afterthought.
+This is the same "tweet to verify" pattern used by Keybase, ENS profile verification, and countless other services. Every creator already knows how to tweet. The backend bears the gas cost — this is user acquisition spend, not anti-spam (the real anti-abuse control is that the tweet must come from the correct account).
+
+The backend verifier is a simple service:
+- Accepts a `(channelId, claimantAddress)` pair
+- Checks the Twitter API for a recent tweet from `@username` containing the claimant address or a challenge nonce
+- If valid, signs an attestation that the on-chain verifier contract can check (e.g., via ECDSA signature from a trusted signer address)
+- The on-chain `IChannelVerifier` implementation just checks `ecrecover` against the trusted signer
+
+No self-attestation, no first-claim-wins. The proof comes from the platform itself (the tweet exists on Twitter, posted by the account in question), verified by our backend.
+
+#### Future: ENS-based verification
+
+A stronger verifier can use **ENS-based social verification**: the creator links their platform identity to their Ethereum address through ENS text records and ENS's [profile verification system](https://support.ens.domains/en/articles/9626402-profile-verification). This is fully on-chain and removes the trusted backend, but it requires the creator to acquire an ENS name and complete the ENS verification flow — significantly more friction.
+
+The existing code in `sdk/src/utils/twitter.ts` already resolves ENS names to Twitter handles via the `com.twitter` text record and has a placeholder for checking ENS verification status. That infrastructure can serve an ENS-based verifier when the time comes.
+
+ENS verification becomes worth adding when: (a) there are creators actively requesting trustless claiming, or (b) the trusted backend becomes a bottleneck or trust concern. Until then, tweet-based verification is simpler, faster, and more legible to non-crypto-native creators.
+
+#### Future: additional platforms
+
+The pluggable verifier interface naturally extends to other platforms. A YouTube verifier might check a video description or channel "about" section. A Substack verifier might check a post or bio. Each platform gets its own verification pattern, but the contract interface stays the same.
+
+### Creator onboarding
+
+The hard part is not the cryptography; it's converting a skeptical, non-crypto-native creator from "someone sent me a weird link" to "I successfully claimed this channel." The claim page is a first-class product surface, not an afterthought.
 
 The required flow:
 
-1. The creator opens a landing page for their specific channel and sees the plain-English state before doing anything wallet-related: which content items are being funded, how much money is already in escrow, whether any pre-claim contracts are still active, and whether a veto window will open upon claim.
+1. The creator opens a landing page for their specific channel and sees the plain-English state before doing anything wallet-related: which content items are being funded, how much money is already in escrow, and whether any pre-claim contracts are still active.
 2. The page offers two paths: connect an existing wallet, or create a wallet in-app. For first-time creators, the in-app path should be the default. Key export/recovery still matters, but it should come after the creator understands what they're claiming.
-3. The claim wizard then guides the creator through the minimum required identity steps: obtain or connect an ENS name, set the relevant text record (for example `com.twitter`), complete ENS profile verification, and finally call `claimChannel(...)`.
-4. Gas and one-time setup costs should be sponsored by the platform for first-time claimants if at all feasible. This is user acquisition cost, not a meaningful anti-spam defense; the real anti-abuse control is the ENS-backed identity proof.
-5. There is no weaker provisional claim mode. Until ENS verification succeeds and the on-chain claim is submitted, the creator has no control over future contracts and cannot withdraw escrowed funds. Progress can be saved off-chain for UX purposes, but it confers no authority.
+3. The creator clicks "verify," tweets the verification message, and clicks "confirm." The backend handles everything else — tweet checking, attestation signing, on-chain claim transaction, gas.
+4. There is no weaker provisional claim mode. Until verification succeeds and the on-chain claim is submitted, the creator has no control over future contracts and cannot withdraw escrowed funds. Progress can be saved off-chain for UX purposes, but it confers no authority.
 
 This implies a product requirement for the "unclaimed funded content" page described in [indexer.md](indexer.md): it is not just an informational page; it is the guided claim funnel.
 
