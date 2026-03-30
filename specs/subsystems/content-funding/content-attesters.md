@@ -2,7 +2,7 @@
 
 AI services that evaluate content and publish quality attestations. Structurally almost identical to the [implication attester](../conceptspace/implication-attester-ai.md) — same architecture, different prompt.
 
-TODO: would it be reasonable to create a generalized attester framework? Or is that premature generalization?
+A generalized attester framework (shared between implication attesters and content attesters) is a natural evolution — the architecture is identical and only the prompts differ — but it's not needed for the MVP. Build the content attester as a standalone service first, then extract the common framework when the pattern is proven and a third attester type emerges.
 
 ## Architecture
 

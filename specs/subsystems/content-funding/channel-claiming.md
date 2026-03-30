@@ -33,31 +33,30 @@ If a third party set the wrong creator address (or a placeholder), the funds fro
 
 ### Identity verification
 
-How does a creator prove they own a channel? Options, from simplest to most robust:
+Channel claiming uses **ENS-based social verification**. The creator proves they own a channel by linking their platform identity to their Ethereum address through ENS text records and ENS's profile verification system.
 
-1. **Self-attestation.** The creator just calls `claimChannel("twitter:@username")` from their Ethereum address. No verification. First-claim-wins. Simple but vulnerable to squatting.
+The flow:
 
-2. **Social verification.** The creator posts a message on their platform containing their Ethereum address (like ENS verification). An off-chain service (or the community) verifies and attests. More robust but requires infrastructure.
+1. The creator sets their platform handle in their ENS profile (e.g., the `com.twitter` text record for Twitter/X).
+2. ENS's [profile verification system](https://support.ens.domains/en/articles/9626402-profile-verification) confirms the link between the ENS name and the platform account.
+3. The creator calls `claimChannel("twitter:@username")` from the address that owns that ENS name.
+4. The channel registry contract (or an off-chain verifier it trusts) checks that the ENS records and verification status match.
 
-3. **Oracle-based.** A trusted oracle service verifies platform ownership. Most robust but adds a dependency.
+This is non-negotiable — no self-attestation, no first-claim-wins. The rest of the world already views anything crypto-related with suspicion; channel claiming must be clearly legitimate from day one.
 
-Recommendation: start with self-attestation. Squatting is unlikely to be a serious problem early on — there's no value in squatting a channel nobody is funding. Add social verification later if needed. The channel registry contract should be designed to support upgrading the verification method without redeployment (e.g., a pluggable verifier interface).
+The existing code in `sdk/src/utils/twitter.ts` already resolves ENS names to Twitter handles via the `com.twitter` text record and has a placeholder for checking ENS verification status. That same infrastructure serves channel claiming.
 
-TODO: No. Delete that option. I don't want squatting to be possible. The rest of the world already views anything crypto-related as basically scams; I want it to be clear from the start that this isn't a place for shenanigans like that. And I think ENS already has a Twitter-verification mechanism (maybe involving a third party who does the verification? I forget). Take a look at sdk/src/utils/twitter.ts.
+The channel registry contract should use a pluggable verifier interface so that the verification method can be upgraded without redeployment (e.g., to support additional platforms beyond Twitter/X).
+
+TODO: The creator onboarding funnel has a big gap. The path is: fan creates contract → creator gets notified → creator claims channel. But "creator claims channel" requires ENS setup, which is non-trivial for someone who's never touched crypto. The escrow contract buys time, but the conversion rate from "notified creator" to "claimed channel" will be low unless the onboarding is exceptional. The landing page spec is a start, but this probably deserves its own design doc. How easy can we make this while still keeping everything secure?
 
 ### The "placeholder address" problem
 
-If a third party creates a contract for a creator who isn't on the platform yet, what address receives the funds? Options:
+If a third party creates a contract for a creator who isn't on the platform yet, what address receives the funds?
 
-1. **Use the zero address as a placeholder**, with a claim function the creator calls later to redirect funds. This requires the assurance contract to support changing the recipient, which adds complexity.
+**Escrow/claim contract.** Funds go to a holding contract keyed by channel ID. When the creator claims the channel, they can withdraw from the escrow. This cleanly separates the "who gets paid" question from the assurance contract itself — no need to modify assurance contract semantics to support changing recipients.
 
-2. **Use an escrow/claim contract.** Funds go to a holding contract keyed by channel ID. When the creator claims the channel, they can withdraw from the escrow. Cleanly separates the "who gets paid" question from the assurance contract itself.
-
-3. **Require a real address.** The third party must specify some address. If the creator shows up later and it's the wrong address, too bad — the incentive is for third parties to do their homework (check the creator's ENS, ask them directly, etc.).
-
-Option 2 is the cleanest. The escrow contract is simple and addresses the problem directly without modifying assurance contract semantics. Option 3 is acceptable as an MVP.
-
-TODO: yes, option 2. Delete the other two options.
+The escrow contract is simple: it holds funds mapped to channel IDs, and releases them to whoever successfully claims that channel (via the identity verification described above).
 
 ## Incentives
 
@@ -72,18 +71,18 @@ If the fan set bad terms:
   - The contract might fail (not enough buyers at that price). That's fine — [failed contracts free their content items](content-registry.md), and the creator can try again with better terms.
   - Or the contract might succeed but bring in less money than might have been possible. That's fine too - it's better than nothing, and it's a good incentive for the creator to take control himself.
 
-## Open questions
+## Anti-abuse measures
 
-### Should third-party contracts require a minimum threshold?
+### Third-party creation fee
 
-Without a minimum, someone could create a trivially-small contract ($1 threshold) just to lock up content items in the registry. With failed-contract freeing, this is a temporary nuisance at worst (the contract fails, items are freed). But it's still annoying. A minimum threshold (or a creation fee) would discourage this.
+Third-party contract creation requires a minimum donation (e.g., "you must buy at least $X worth of tokens in the contract you're creating"). Without this, a single troll could lock up content items across every creator on the platform for nearly free. Failed-contract freeing limits the damage to a temporary nuisance, but the creation fee makes it expensive enough to not be worth trying.
 
-TODO: yes, I do think I like this idea. I don't like the idea that it's just incredibly cheap for one troll who discovers this system to lock up all the content items ever created for every twitter account in existence. Maybe a third-party creation fee? Even just "you have to donate at least $X per contract" (for third-party creations) might do it?
+This fee only applies to third-party creations. Once a creator has claimed their channel, they can create contracts for their own content without a minimum.
 
-### Should the creator be able to veto pre-claim contracts?
+### Creator veto for pre-claim contracts
 
-Currently they can't — pre-claim contracts are fire-and-forget. An alternative: after claiming, the creator gets a grace period to veto any existing contracts for their content (triggering an early failure and refund). This protects creators from being stuck with bad terms but adds complexity and undermines the certainty that token buyers expect.
+When a creator claims their channel, they get a grace period to veto any existing third-party contracts for their content. Vetoing a contract triggers an early failure and refund to token holders.
 
-Lean toward no veto. The failed-contract-freeing mechanism already handles the worst case (bad terms → contract fails → items freed → try again).
+This protects creators from being stuck with contracts that have bad terms (wrong prices, unreasonable thresholds, etc.) while still allowing the "someone offered money for your content" viral moment. The grace period is bounded — after it expires, remaining pre-claim contracts proceed as normal.
 
-TODO: Oh, that's a good point. Assurance contracts have a deadline anyway - not quite the same as a creator's-veto period, but it doesn't feel conceptually out of place to say "for third-party-created contracts, the creator has a grace period during which he's allowed to claim his channel, then cancel the contract." So the smart contract might need an extra thing that allows that sort of cancellation, but that doesn't sound like a terrible idea. Let's try that.
+The mechanism: third-party-created contracts carry a flag marking them as pre-claim. When a `ChannelClaimed` event fires, a grace window opens during which the new channel owner can call a `vetoContract()` function on any flagged contract, triggering the standard failure/refund flow. This is conceptually similar to the existing deadline mechanism — just an additional early-termination condition.

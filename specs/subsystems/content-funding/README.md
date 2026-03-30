@@ -9,23 +9,15 @@ This is a general-purpose mechanism. You could fund content for any reason: noni
 
 ## Components
 
-TODO: this "table" format is annoying, just make a simple list.
-
-| Component | Description | Spec |
-|---|---|---|
-| **Content registry** | On-chain mapping ensuring each content item appears in at most one *active* assurance contract. | [content-registry.md](content-registry.md) |
-| **Creator contracts** | Creator-level assurance contracts using ERC-1155 token types for individual content items. | [creator-contracts.md](creator-contracts.md) |
-| **Channel claiming** | Rules for who can create contracts for a creator's content, and how creators take ownership. | [channel-claiming.md](channel-claiming.md) |
-| **Content attesters** | AI services that evaluate content quality and publish attestations. General framework; specific attester criteria are per-use-case. | [content-attesters.md](content-attesters.md) |
-| **Indexer** | Data architecture: event cache integration, SDK fold functions, notification service. | [indexer.md](indexer.md) |
+- **[Content registry](content-registry.md)** — On-chain mapping ensuring each content item appears in at most one *active* assurance contract.
+- **[Creator contracts](creator-contracts.md)** — Creator-level assurance contracts using ERC-1155 token types for individual content items.
+- **[Channel claiming](channel-claiming.md)** — Rules for who can create contracts for a creator's content, and how creators take ownership.
+- **[Content attesters](content-attesters.md)** — AI services that evaluate content quality and publish attestations. General framework; specific attester criteria are per-use-case.
+- **[Indexer](indexer.md)** — Data architecture: event cache integration, SDK fold functions, notification service.
 
 ## Use cases
 
-TODO: ditto here, just make a list.
-
-| Use case | Description | Spec |
-|---|---|---|
-| **Noninflammatory content** | Funding political content that communicates perspectives without antagonizing the other side. The inaugural use case and the one that best demonstrates organic coalition-building. | [noninflammatory-content.md](noninflammatory-content.md) |
+- **[Noninflammatory content](noninflammatory-content.md)** — Funding political content that communicates perspectives without antagonizing the other side. The inaugural use case and the one that best demonstrates organic coalition-building.
 
 
 ## Relationship to other subsystems

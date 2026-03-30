@@ -44,10 +44,7 @@ The implication attester links all of these up to broader statements like "reduc
 
 The evaluator takes as input: the content (URL, pasted text, or IPFS CID), the declared perspective ("this is from a left-wing perspective"), and the target audience ("evaluate whether this would be inflammatory to right-wingers"). Returns a boolean attestation with confidence score and explanation (stored on IPFS).
 
-### "Noninflammatory" is itself contested
-
-Some people find *any* presentation of an opposing viewpoint inflammatory. The standards are defined in attester criteria, not encoded in smart contracts. Different attesters having different standards is fine and expected.
-
+TODO clean up this text: If it's hard to create a nonpartisan attester, that's totally fine; different attesters having different standards is fine and expected. We may want to create multiple attesters from day one (e.g. one from a left-wing perspective - "here's what a piece of right-wing content would need to do in order to not piss off left-wingers" - and another from a right-wing perspective). If other people want different ones that's fine too. And if other people find this whole idea offensive or think the attesters' "noninflammatoriness" criteria are biased or illegitimate or whatever, that's fine too. There isn't much need for an attester to avoid being seen as "illegitimate" or "biased" or whatever. What matters is that some people *do* find the attester useful enough to take its judgments into account - that allows them to use it as a source of content, and allows the other side to use it as a guideline for writing content that will reach the first side.
 
 ## A potential AI skill
 

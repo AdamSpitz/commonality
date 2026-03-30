@@ -76,7 +76,13 @@ Options:
 
 - **Twitter/X DM or reply**: If the canonical ID is a tweet, reply to it or DM the author. Requires API access and risks being flagged as spam.
 - **Email**: If the creator has a public email (common for Substack authors, YouTubers). Less intrusive.
-- **In-platform notification**: If the creator is already a Commonality user. Easy but only works for existing users. (TODO: Not sure what this means, because a "user" is just an Ethereum account. But if there's some sort of Ethereum messaging system we could use that.)
 - **Community-driven**: Surface "unclaimed funded content" in the UI and let the community reach out. The least automated but the most organic.
 
-Start with community-driven (cheapest, no API dependencies) and add automated notifications for specific platforms as needed. TODO: yes, this is fine with me. Just make sure the "hey, if you're the owner of this channel you've got some money you could claim" page is very clear and talks through the whole idea to make it understandable and seem non-seedy to the content creators.
+Start with the community-driven approach (cheapest, no API dependencies) and add automated notifications for specific platforms as needed.
+
+The "unclaimed funded content" page is critical to the adoption funnel. When a community member shares a link with a creator saying "hey, someone wants to fund your work," the landing page needs to:
+- Clearly explain what happened ("supporters have pooled $X to fund your content")
+- Walk the creator through the system without jargon or crypto-native assumptions
+- Make the whole thing feel legitimate and non-seedy — remember, most creators will be encountering anything crypto-related with skepticism
+- Provide a simple path to claiming (ENS setup, channel claim, fund withdrawal)
+- Show which specific content items are being funded and why (link to the attester explanations)
