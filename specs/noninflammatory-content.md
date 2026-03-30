@@ -16,7 +16,7 @@ The goal: make this a *commonly used* funding pattern on the system, not a one-o
 
 This means the implication system would naturally connect supporters from both sides — without either side coordinating or even being aware of the other.
 
-**It's an infinite, repeatable pattern.** Unlike a one-time infrastructure project, there's an endless supply of inflammatory content to rewrite and noninflammatory content to produce. This makes it a *category* of funded activity, not a single project — exactly the kind of thing that can become a commonly-used pattern.
+**It's an infinite, repeatable pattern.** Unlike a one-time infrastructure project, there's an endless supply of noninflammatory content to produce. This makes it a *category* of funded activity, not a single project — exactly the kind of thing that can become a commonly-used pattern.
 
 
 ## How it maps onto existing mechanics
@@ -32,40 +32,63 @@ Create a cluster of statements, expressed in terms each side would naturally use
 
 The implication attester links all of these up to broader statements like "reducing political polarization through content." Donors who care about the general cause can fund both sides' content without needing to personally endorse either perspective. A project funded from any of these portals is visible to all.
 
-### Funding models
+### Funding model: creator-level assurance contracts
 
-Several models, not mutually exclusive:
+The natural unit for funding noninflammatory content is the **creator**, not the individual content item. The MVP funding flow uses standard Pubstarter assurance contracts:
 
-**Content creator patronage** (most straightforward): Fund specific creators who commit to noninflammatory communication. Assurance contracts: "if 200 people pledge $5/month, this creator's noninflammatory political commentary is funded." Delegation works here too: "I delegate $20/month toward noninflammatory political content" and a trusted delegate handles the rest.
+1. Someone creates a normal Pubstarter assurance contract where the recipient is a content creator's Ethereum address.
+2. The contract's description references the specific content items (tweets, posts, etc.) that motivated the campaign — e.g., "funding @creator for their noninflammatory political commentary, including [these specific posts]."
+3. Donors pledge toward the threshold: "I'll contribute $5 toward this creator's $500 funding goal."
+4. If the threshold is met, the creator gets the funds. If not, pledges refund.
 
-**Rewriting bounties** (most novel and most repeatable): "Here's a viral inflammatory tweet/post. Bounty for the best rewrite that conveys the same substantive point without the inflammatory framing." Small, concrete, verifiable deliverables — perfect for assurance contracts. Could be human-written or AI-assisted. The output is a public good (anyone can share the rewrite). The volume and repeatability is what makes this a "commonly used" pattern.
+This uses existing infrastructure with zero new contracts. The tokens donors hold represent "I contributed to a campaign funding this creator's noninflammatory work" — meaningful, tradeable on secondary markets, and compatible with the retroactive funding dynamics (early supporters can sell to later altruistic donors).
 
-**AI tools/services**: Fund development of an AI service that helps authors self-edit before posting, or that takes inflammatory content and rewrites it. This is a traditional "fund a project" use case.
+The "someone funded you for writing that tweet" viral aspect is preserved: the campaign description names the specific content, even though the contract itself is at the creator level. And this still allows for delegation: "I delegate $20/month toward noninflammatory political content" and a trusted delegate picks the creators.
 
-**Curated collections**: Alignment attesters review content and attest "this piece discusses [topic] from [perspective] without being inflammatory." A funding portal for "noninflammatory left-wing content on immigration" aggregates all attested pieces, creating a discovery mechanism.
+**Why not per-content-item contracts?** Tokenizing individual content items (giving every tweet its own on-chain identity) is an interesting future direction but adds substantial complexity — content identity, rightful-owner claims, fractionalization — without being necessary for the core value proposition. The free-rider problem exists at the "should I fund this creator?" level, not the "should I fund this specific tweet?" level. Per-item tokenization can layer on top later if there's demand.
 
 ### Retroactive funding
 
 Retroactive funding is arguably the *best* fit here. Content creators publish the work first, let the actual reception prove it was noninflammatory, *then* get retroactively funded via the token model. Early supporters who bet on a creator's quality can later sell their tokens to altruistic donors. The proof-of-quality is baked into the retroactive model — no separate verification needed.
 
+### Other models
 
-## The hard part: verification
+**AI tools/services**: Fund development of an AI service that helps authors self-edit before posting, or that takes inflammatory content and rewrites it noninflammatorily. This is a traditional "fund a project" use case.
 
-"Noninflammatory" is subjective. Three viable approaches, in order of complexity:
+**Curated collections**: Alignment attesters review content and attest "this piece discusses [topic] from [perspective] without being inflammatory." A funding portal for "noninflammatory left-wing content on immigration" aggregates all attested pieces, creating a discovery mechanism.
 
-1. **Retroactive-only** (easiest): Fund content that already exists. Real-world reception *is* the verification. No new infrastructure needed. Start here.
 
-2. **AI evaluator service** (medium): An AI service (analogous to the implication attester) that scores content against defined criteria — tone, steelmanning, absence of strawmanning, etc. — and publishes a "quality attestation." A natural extension of the attester model. Also note that this may combine nicely with retroactive content funding: we could have funding 
+## Verification: is the content actually noninflammatory?
 
-3. **Cross-partisan attestation** (most legitimate): This is where it gets really interesting. A right-winger is the best judge of whether left-wing content is inflammatory to right-wingers. So the ideal attester for "this left-wing post is noninflammatory" is someone from the other side. Cross-partisan attestation carries more weight precisely because it's cross-partisan. This creates a natural role for cross-partisan delegates and attesters — people trusted by the other side to evaluate tone.
+"Noninflammatory" is subjective. Two viable approaches:
 
-The cross-partisan attestation idea could be formalized: a content piece that has an attestation from someone known to hold the *opposite* political views gets a stronger signal. This doesn't require new smart contracts — it's just a pattern of who does the attesting, surfaced in the UI. (How do you avoid having people game that, though, by *pretending* to hold opposite views? Still, yes, I expect that people will configure their content-funding portals to respect only attesters they trust, and those will be the ones on their side. And if we're gonna have that AI evaluator service anyway, we could either create a really really good impartial one that both sides might trust, or else create one on each side so that each side can trust their own side's attester.)
+### 1. Retroactive-only (easiest)
+
+Fund content that already exists. Real-world reception *is* the verification. No new infrastructure needed. Start here.
+
+### 2. AI evaluator service
+
+An AI service (analogous to the [implication attester](subsystems/conceptspace/implication-attester-ai.md)) that evaluates content and publishes attestations. Structurally almost identical to the implication attester:
+
+  - Same architecture: standalone Express service with its own Ethereum key
+  - Same payment model (x402, cost-plus)
+  - Same on-chain output: publishes attestations (using whatever attestation contract we settle on — see open questions below)
+  - Different LLM prompt: instead of "does S1 imply S2?", it evaluates content against noninflammatory criteria
+
+**Key framing for the LLM prompt: this is about persuasion effectiveness, not politeness.** The evaluator should assess whether content is *effective at communicating its perspective to people who disagree*, not whether it's "nice." Specific criteria:
+  - Does it steelman the opposing view (or at least not strawman it)?
+  - Does it avoid ad hominem, mockery, and contempt?
+  - Is the substantive point preserved and clearly stated?
+  - Would a reasonable person holding the opposing view feel that they could engage with this without being attacked?
+  - Does the framing invite consideration rather than defensive reaction?
+
+The evaluator takes as input: the content (URL, pasted text, or IPFS CID), the declared perspective ("this is from a left-wing perspective"), and the target audience ("evaluate whether this would be inflammatory to right-wingers"). Returns a boolean attestation with confidence score and explanation (stored on IPFS).
+
+In practice, multiple AI evaluator services will exist with different standards and calibrations. Users choose which attesters they trust, just as with implication attesters. People will naturally gravitate toward attester services aligned with their views — a left-leaning attester service and a right-leaning one, each trusted by their respective side. This is fine; that's how the system is designed to work. Cross-partisan attestation (where it happens naturally) carries extra weight, but it doesn't need to be engineered.
 
 ### "Noninflammatory" is itself contested
 
-Some people find *any* presentation of an opposing viewpoint inflammatory. The standards need to be defined carefully — probably in project descriptions and attester criteria rather than encoded in smart contracts, at least initially. Different attesters having different standards is fine; that's how the system is designed to work. Users choose which attesters they trust.
-
-(Yes, I agree. I'm not worried about this; it'll just be baked into the attester criteria.)
+Some people find *any* presentation of an opposing viewpoint inflammatory. The standards are defined in attester criteria, not encoded in smart contracts. Different attesters having different standards is fine and expected.
 
 
 ## A potential AI skill
@@ -73,7 +96,7 @@ Some people find *any* presentation of an opposing viewpoint inflammatory. The s
 There's a natural new AI skill here (see [ai-assistance.md](ai-assistance.md)):
 
 **Noninflammatory Content Assistant**
-  - *Generation mode*: "Write a post on [topic] from [perspective], designed to be engaging to in-group while not alienating out-group" — with explicit criteria (steelmanning, no ad-hominem, honest framing, etc.)
+  - *Generation mode*: "Write a post on [topic] from [perspective], designed to be engaging to in-group while not alienating out-group" — framed around persuasion effectiveness, not politeness. Explicit criteria: steelmanning, no ad-hominem, honest framing, etc.
   - *Evaluation mode*: Score existing content on inflammatory dimensions, suggest rewrites.
   - *Attester mode*: As an AI quality attester, publish quality attestations for submitted content.
 
@@ -82,43 +105,30 @@ This would be a genuinely novel application of an AI service acting as a quality
 
 ## The showcase moment
 
-The demo that makes people get it: a left-wing post gets rewritten, attested as noninflammatory by a conservative attester, and funded by donors from both sides who found it through different statements in the implication graph. Neither side had to coordinate with the other. They just individually said what they valued, and the system connected them.
+The demo that makes people get it: a left-wing post gets attested as noninflammatory by an AI evaluator, and funded by donors from both sides who found it through different statements in the implication graph. Neither side had to coordinate with the other. They just individually said what they valued, and the system connected them.
 
 This is the [Millbrook water walkthrough](motivation/walkthrough.md) but for something much bigger and more visible — and it directly demonstrates the "discovering commonality" thesis that the whole system is named for.
 
 
 ## Practical path
 
-1. **Build one or two more smart contracts first** so the system is battle-tested on simpler use cases.
-2. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse. Make sure statements are phrased in terms each side would naturally use.
-3. **Start with retroactive funding** of existing noninflammatory content. No new infrastructure needed. This validates whether people actually want to fund this.
-4. **Try rewriting bounties** — small, concrete, verifiable. A single rewrite of a viral inflammatory post is a self-contained project. Demonstrates the concept without needing sustained creator relationships.
-5. **Recruit a few cross-partisan attesters** — even two or three people willing to evaluate content from the other side.
-6. **Build the AI evaluator** in parallel as a second-phase addition once the pattern is validated.
-7. **Consider a specialized showcase funding portal** for noninflammatory content as a demo of the whole system.
+1. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse. Make sure statements are phrased in terms each side would naturally use.
+2. **Build the AI content evaluator** — fork the implication attester architecture, swap the prompt and contract call. This is cheap to build and solves the verification problem that makes everything else work.
+3. **Start with retroactive funding** of existing noninflammatory content via creator-level assurance contracts. This validates whether people actually want to fund this.
+4. **Build a specialized showcase funding portal** for noninflammatory content as a demo of the whole system.
+5. **Per-content-item tokenization** can be explored later if there's demand for finer-grained funding.
 
-## User talking out these ideas to himself
 
-### Content tokens
+## Open questions
 
-Question: what would it take to create an ERC-1155 token where every post out there on every platform (e.g. every tweet, every blog post, etc.) has a token type that is claimable by the "rightful owner" of that post? (That is, the owner of the Twitter account would need to prove that he's the owner of some particular Ethereum account - which is maybe already handled by that ENS thing, at least for linking Twitter accounts? - and then he'd be able to move the tokens representing posts by that Twitter account to that Ethereum account.)
+### Attestation contract: generalize or specialize?
 
-### "This content item is noninflammatory" attestations?
+The existing `AlignmentAttestations.sol` identifies subjects by `address`, but content items don't have Ethereum addresses. Two options, still undecided:
+  - **Generalize**: Change `address subjectAddress` to `bytes32 subjectId` in `AlignmentAttestations`, allowing it to identify subjects by address (left-padded) or content hash. One contract for both use cases.
+  - **Specialize**: Create a new `ContentAttestations.sol` (or similar) purpose-built for content items. Avoids touching the existing contract but introduces near-duplicate code.
 
-We already have the pretty-general AlignmentAttestations.sol smart contract. Is that good enough?
-  - The statementId will do fine - the statement can just be "this is content from the orange perspective that won't piss off the purples."
-  - The contract assumes that the "subject" being attested about is representable as an Ethereum address, which is maybe not quite what we want. We could generalize the contract (or make one specifically geared to social-media content items, or whatever) pretty easily.
+For the creator-level MVP (where the "subject" is the creator's assurance contract address), the existing contract works as-is. This question only matters when/if we want to attest about individual content items directly.
 
-### Who does these attestations?
+### Per-content-item tokenization (future)
 
-In the abstract, anyone. Just like the alignment attestations for projects. People can configure their funding portal to pay attention only to the attesters they trust.
-
-But in particular, I do like the idea of setting up an AI evaluator service to do it, as mentioned above.
-
-### Putting this together
-
-So if we had those pieces in place, then anyone (and in particular, delegates who are controlling delegatable notes pledged towards noninflammatory content) could simply make offers to buy the content tokens corresponding to posts they deem noninflammatory. And those posts could be made easier to find by having a funding portal dedicated to posts that have received noninflammatory-content attestations.
-
-### Assurance contracts
-
-This does seem like it might potentially be a good use case for assurance contracts. Like, people might prefer to say, "I'm not going to just unconditionally give $5 for this post, but I'll pledge $5 towards the post's $100 funding goal."
+What would it take to create an ERC-1155 token where every post out there on every platform (e.g. every tweet, every blog post, etc.) has a token type that is claimable by the "rightful owner" of that post? Content identity, rightful-owner verification (ENS Twitter linking?), and the relationship between content tokens and assurance contracts are all open design questions. Not needed for MVP but worth exploring later — the "someone offered money for your tweet" notification could be a powerful viral growth mechanism.
