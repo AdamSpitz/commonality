@@ -47,6 +47,8 @@ The "someone funded you for writing that tweet" viral aspect is preserved: the c
 
 **Why not per-content-item contracts?** Tokenizing individual content items (giving every tweet its own on-chain identity) is an interesting future direction but adds substantial complexity — content identity, rightful-owner claims, fractionalization — without being necessary for the core value proposition. The free-rider problem exists at the "should I fund this creator?" level, not the "should I fund this specific tweet?" level. Per-item tokenization can layer on top later if there's demand.
 
+**On the other hand:** TODO think this through: Part of the point of the retroactive-funding secondary-market stuff is that there should be a known finite list of the tokens associated with some particular chunk of work; once they've all been sold on the primary market, you have to go to the secondary market to get them. Whereas if we go with this approach of "just make an assurance contract saying that it's for content items 1, 2, and 3", we lose that. Maybe this *should* be participating in some more-explicit way of referencing which content items this particular assurance contract is for, with a rule saying that no content item can be included more than once.
+
 ### Retroactive funding
 
 Retroactive funding is arguably the *best* fit here. Content creators publish the work first, let the actual reception prove it was noninflammatory, *then* get retroactively funded via the token model. Early supporters who bet on a creator's quality can later sell their tokens to altruistic donors. The proof-of-quality is baked into the retroactive model — no separate verification needed.
