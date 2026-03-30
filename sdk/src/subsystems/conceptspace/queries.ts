@@ -22,6 +22,7 @@ import {
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
+import { fetchAddressSocialData } from '../../utils/twitter.js';
 import { SDKMachinery } from '../../machinery.js';
 
 // ============================================================================
@@ -457,19 +458,20 @@ export async function browseStatementsByNewest(
     if (decoded) decodedEvents.push(decoded);
   }
 
-  const firstTimestamp = new Map<string, bigint>();
+  const firstSeen = new Map<string, { blockTimestamp: bigint; blockNumber: bigint }>();
   for (const e of decodedEvents) {
-    const existing = firstTimestamp.get(e.statementId);
-    if (!existing || e.blockTimestamp < existing) {
-      firstTimestamp.set(e.statementId, e.blockTimestamp);
+    const existing = firstSeen.get(e.statementId);
+    if (!existing || e.blockTimestamp < existing.blockTimestamp
+      || (e.blockTimestamp === existing.blockTimestamp && e.blockNumber < existing.blockNumber)) {
+      firstSeen.set(e.statementId, { blockTimestamp: e.blockTimestamp, blockNumber: e.blockNumber });
     }
   }
 
   const beliefCounts = foldAllStatements(decodedEvents);
 
-  const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
+  const items: (StatementListItem & { _blockNumber: bigint })[] = [...beliefCounts.keys()].map(cidV1 => {
     const counts = beliefCounts.get(cidV1)!;
-    const ts = firstTimestamp.get(cidV1);
+    const seen = firstSeen.get(cidV1);
     return {
       id: cidV1,
       cid: cidV1 as IpfsCidV1,
@@ -478,16 +480,18 @@ export async function browseStatementsByNewest(
       excerpt: '',
       believerCount: counts.believerCount,
       disbelieverCount: counts.disbelieverCount,
-      createdAt: ts ? new Date(Number(ts) * 1000).toISOString() : '',
+      createdAt: seen ? new Date(Number(seen.blockTimestamp) * 1000).toISOString() : '',
+      _blockNumber: seen?.blockNumber ?? 0n,
     };
   });
 
   items.sort((a, b) => {
-    const diff = a.createdAt.localeCompare(b.createdAt);
+    const diff = a.createdAt.localeCompare(b.createdAt)
+      || Number(a._blockNumber - b._blockNumber);
     return orderDirection === 'asc' ? diff : -diff;
   });
 
-  const page = items.slice(offset, offset + limit);
+  const page: StatementListItem[] = items.slice(offset, offset + limit).map(({ _blockNumber: _, ...item }) => item);
   return enrichWithIPFSContent(machinery, page);
 }
 
@@ -921,16 +925,18 @@ export async function getHighProfileSigners(
 }
 
 export async function getUserSocialData(
-  machinery: SDKMachinery,
+  _machinery: SDKMachinery,
   address: string
 ): Promise<UserSocialData | null> {
+  const data = await fetchAddressSocialData(address);
   return {
-    address: address,
-    ensName: undefined,
-    twitterHandle: undefined,
-    twitterFollowerCount: undefined,
-    isTwitterVerified: false,
-    socialDataFetched: false,
+    address,
+    ensName: data.ensName,
+    twitterHandle: data.twitterHandle,
+    twitterFollowerCount: data.twitterFollowerCount,
+    isTwitterVerified: data.isTwitterVerified,
+    socialDataFetched: true,
+    fetchedAt: new Date().toISOString(),
   };
 }
 

@@ -39,6 +39,7 @@ export interface ProjectAccumulator {
   conditionAddress: string | null;
   metadataCid: string | undefined;
   createdAt: string | undefined;
+  blockNumber: string | undefined;
   totalReceived: bigint;
 }
 
@@ -63,13 +64,14 @@ export function foldProject(
 ): { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator } {
   const acc: ProjectAccumulator = initialAccumulator
     ? { ...initialAccumulator }
-    : { id: '', erc1155Address: '', recipient: '', conditionAddress: null, metadataCid: undefined, createdAt: undefined, totalReceived: 0n };
+    : { id: '', erc1155Address: '', recipient: '', conditionAddress: null, metadataCid: undefined, createdAt: undefined, blockNumber: undefined, totalReceived: 0n };
 
   for (const { type, event } of events) {
     switch (type) {
       case 'created':
         acc.id = event.assuranceContract;
         acc.createdAt = event.blockTimestamp.toString();
+        acc.blockNumber = event.blockNumber.toString();
         break;
       case 'initialized':
         if (!acc.id) acc.id = event.contractAddress;
@@ -105,6 +107,7 @@ export function foldProject(
         conditionAddress: acc.conditionAddress,
         metadataCid: acc.metadataCid,
         createdAt: acc.createdAt,
+        blockNumber: acc.blockNumber,
       }
     : null;
 

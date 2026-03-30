@@ -239,7 +239,7 @@ export async function getProjectsFiltered(
     const fundingProgress = threshold > 0n
       ? Number(totalReceived * 10000n / threshold) / 10000
       : 0;
-    return { ...p, fundingProgress, createdAtBlock: '' };
+    return { ...p, fundingProgress, createdAtBlock: p.blockNumber ?? '' };
   });
 
   // Apply filters
@@ -265,7 +265,8 @@ export async function getProjectsFiltered(
       let comparison = 0;
       switch (sortBy) {
         case 'createdAt':
-          comparison = (a.createdAt ?? '').localeCompare(b.createdAt ?? '');
+          comparison = (a.createdAt ?? '').localeCompare(b.createdAt ?? '')
+            || Number(BigInt(a.createdAtBlock || '0') - BigInt(b.createdAtBlock || '0'));
           break;
         case 'deadline':
           comparison = Number(BigInt(a.deadline) - BigInt(b.deadline));

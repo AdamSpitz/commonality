@@ -10,6 +10,7 @@ export interface Project {
   conditionAddress: string | null;
   metadataCid?: string;
   createdAt?: string;
+  blockNumber?: string;
 }
 
 export interface ProjectToken {

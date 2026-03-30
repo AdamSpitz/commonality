@@ -14,7 +14,9 @@
     "fake-data-generation",
     "ui"
   ],
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint-precommit": "npm run lint --workspace hardhat && npm run lint --workspace indexer && npm run lint --workspace sdk",
