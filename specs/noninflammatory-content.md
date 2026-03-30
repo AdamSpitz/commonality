@@ -32,26 +32,52 @@ Create a cluster of statements, expressed in terms each side would naturally use
 
 The implication attester links all of these up to broader statements like "reducing political polarization through content." Donors who care about the general cause can fund both sides' content without needing to personally endorse either perspective. A project funded from any of these portals is visible to all.
 
-### Funding model: creator-level assurance contracts
+### Funding model: creator-level assurance contracts with per-content-item tokens
 
-The natural unit for funding noninflammatory content is the **creator**, not the individual content item. The MVP funding flow uses standard Pubstarter assurance contracts:
+The natural unit for funding noninflammatory content is the **creator**, not the individual content item. But the retroactive funding model's secondary-market dynamics depend on **scarcity** — a finite token supply tied to a specific piece of work, so that later donors must buy on the secondary market, rewarding early supporters who bet correctly. This means content items need explicit on-chain identity, not just a text description.
 
-1. Someone creates a normal Pubstarter assurance contract where the recipient is a content creator's Ethereum address.
-2. The contract's description references the specific content items (tweets, posts, etc.) that motivated the campaign — e.g., "funding @creator for their noninflammatory political commentary, including [these specific posts]."
-3. Donors pledge toward the threshold: "I'll contribute $5 toward this creator's $500 funding goal."
-4. If the threshold is met, the creator gets the funds. If not, pledges refund.
+The solution uses the ERC-1155 structure Pubstarter already has: **use the content ID as the token type**. A single creator contract might contain:
 
-This uses existing infrastructure with zero new contracts. The tokens donors hold represent "I contributed to a campaign funding this creator's noninflammatory work" — meaningful, tradeable on secondary markets, and compatible with the retroactive funding dynamics (early supporters can sell to later altruistic donors).
+| Token type (`uint256`) | Content | Supply | Price |
+|---|---|---|---|
+| `keccak256("twitter:18347...")` | That great thread on housing | 100 | $5 |
+| `keccak256("twitter:29451...")` | The immigration steelman post | 100 | $5 |
+| `keccak256("substack:https://...")` | The long-form essay | 100 | $5 |
 
-The "someone funded you for writing that tweet" viral aspect is preserved: the campaign description names the specific content, even though the contract itself is at the creator level. And this still allows for delegation: "I delegate $20/month toward noninflammatory political content" and a trusted delegate picks the creators.
+ERC-1155 token IDs are `uint256` and `keccak256` produces `bytes32` — same size, direct mapping. Per-content-item tokens come for free from the ERC-1155 structure.
 
-**Why not per-content-item contracts?** Tokenizing individual content items (giving every tweet its own on-chain identity) is an interesting future direction but adds substantial complexity — content identity, rightful-owner claims, fractionalization — without being necessary for the core value proposition. The free-rider problem exists at the "should I fund this creator?" level, not the "should I fund this specific tweet?" level. Per-item tokenization can layer on top later if there's demand.
+**The funding flow:**
 
-**On the other hand:** TODO think this through: Part of the point of the retroactive-funding secondary-market stuff is that there should be a known finite list of the tokens associated with some particular chunk of work; once they've all been sold on the primary market, you have to go to the secondary market to get them. Whereas if we go with this approach of "just make an assurance contract saying that it's for content items 1, 2, and 3", we lose that. Maybe this *should* be participating in some more-explicit way of referencing which content items this particular assurance contract is for, with a rule saying that no content item can be included more than once.
+1. Someone creates a Pubstarter assurance contract for a content creator, listing specific content items by their canonical IDs.
+2. Each content item becomes a token type in the ERC-1155 contract, with a configurable supply (e.g., 100 tokens at $5 each).
+3. Donors choose which content items to fund by buying tokens of that type. To fund the creator without expressing a preference, buy some of each.
+4. Funds go into escrow. If the contract's threshold is met, the creator gets the funds. If not, token holders can reclaim.
+5. After funding, tokens are tradeable on secondary markets — at the per-content-item level.
+
+**Content ID uniqueness.** A content registry contract (`mapping(uint256 contentId => address assuranceContract)`) ensures each content item can only appear in one assurance contract. The assurance contract factory checks the registry at creation time and reverts if any listed content ID is already claimed. This enforces the scarcity that makes secondary markets work: if you want to retroactively fund *that specific tweet*, you can't just create a new contract — you must buy tokens from the existing one.
+
+**Content ID scheme.** Content IDs are `keccak256` hashes of canonical identifiers: `keccak256("twitter:18347...")`, `keccak256("https://example.com/post")`, or an IPFS CID. The contract doesn't validate that the content exists — it just enforces ID uniqueness. Social and market forces handle the rest (no one will fund a contract referencing garbage content IDs).
+
+**Contracts as "rounds."** Each contract represents a funding round for a batch of content. Once funded and closed, a new contract can be created for the creator's newer content. This preserves clean assurance-contract semantics (one threshold, one outcome) and maps naturally onto the rhythm of "here's what I produced recently — was it worth funding?"
+
+**Supply per content item** should be configurable per contract or per content item. Lower supply (e.g., 10 tokens) means more scarcity and stronger speculative incentives but fewer primary-market participants. Higher supply (e.g., 500 tokens) means broader access but a diluted scarcity signal. The contract creator sets this based on the expected donor base and desired price point.
+
+**Price tiers.** Existing Pubstarter contracts use different token types for different price tiers ($5, $25, $100 "Gold Supporter" etc.). With token types now representing content items, explicit tiers go away — but a donor who wants to contribute $50 to a $5-per-token content item just buys 10. The granularity of having many tokens per item handles this naturally. Cosmetic tier differences (badges, etc.) can move to a quantity-held basis if anyone cares.
+
+**Delegation still works.** "I delegate $20/month toward noninflammatory political content" → a trusted delegate picks creators and content items, buying tokens on the donor's behalf.
+
+**Why this isn't as complex as it sounds.** The "Per-content-item tokenization" section of this doc originally framed this as a heavy future lift involving content identity, rightful-owner claims, and fractionalization. Using the ERC-1155 token type ID sidesteps most of that:
+  - Content identity is just a hash of a canonical URL/ID — simple.
+  - Rightful-owner claims are handled at the contract level (the creator claims the contract's funds), not per-token.
+  - Fractionalization isn't needed — having 100 tokens of a type *is* the fractionalization.
+
+The actual new infrastructure is modest: one content registry contract (a simple mapping plus access check), a content ID field on assurance contracts, and a factory check. Well below the complexity threshold that would warrant deferring it.
 
 ### Retroactive funding
 
-Retroactive funding is arguably the *best* fit here. Content creators publish the work first, let the actual reception prove it was noninflammatory, *then* get retroactively funded via the token model. Early supporters who bet on a creator's quality can later sell their tokens to altruistic donors. The proof-of-quality is baked into the retroactive model — no separate verification needed.
+Retroactive funding is arguably the *best* fit here. Content creators publish the work first, let the actual reception prove it was noninflammatory, *then* get retroactively funded via the token model. Early supporters who bet on a creator's quality can later sell their per-content-item tokens to altruistic donors who arrive later. The proof-of-quality is baked into the retroactive model — no separate verification needed.
+
+The per-content-item token model strengthens retroactive funding specifically: secondary markets operate at the granularity of individual content items, so a tweet that goes viral as a model of noninflammatory discourse will see its token price rise on the secondary market, directly rewarding the early supporters who identified it.
 
 ### Other models
 
@@ -115,10 +141,11 @@ This is the [Millbrook water walkthrough](motivation/walkthrough.md) but for som
 ## Practical path
 
 1. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse. Make sure statements are phrased in terms each side would naturally use.
-2. **Build the AI content evaluator** — fork the implication attester architecture, swap the prompt and contract call. This is cheap to build and solves the verification problem that makes everything else work.
-3. **Start with retroactive funding** of existing noninflammatory content via creator-level assurance contracts. This validates whether people actually want to fund this.
-4. **Build a specialized showcase funding portal** for noninflammatory content as a demo of the whole system.
-5. **Per-content-item tokenization** can be explored later if there's demand for finer-grained funding.
+2. **Build the content registry contract** — a simple `mapping(uint256 => address)` that enforces content-item uniqueness across assurance contracts. Update the assurance contract factory to register content IDs and use them as ERC-1155 token types.
+3. **Build the AI content evaluator** — fork the implication attester architecture, swap the prompt and contract call. This is cheap to build and solves the verification problem that makes everything else work.
+4. **Start with retroactive funding** of existing noninflammatory content via creator-level assurance contracts with per-content-item tokens. This validates whether people actually want to fund this.
+5. **Build a specialized showcase funding portal** for noninflammatory content as a demo of the whole system.
+6. **Build the notification indexer** — watch for content registration events, resolve content IDs to platform URLs, and notify creators that their content has been funded.
 
 
 ## Open questions
@@ -131,6 +158,6 @@ The existing `AlignmentAttestations.sol` identifies subjects by `address`, but c
 
 For the creator-level MVP (where the "subject" is the creator's assurance contract address), the existing contract works as-is. This question only matters when/if we want to attest about individual content items directly.
 
-### Per-content-item tokenization (future)
+### The "someone funded your tweet" notification
 
-What would it take to create an ERC-1155 token where every post out there on every platform (e.g. every tweet, every blog post, etc.) has a token type that is claimable by the "rightful owner" of that post? Content identity, rightful-owner verification (ENS Twitter linking?), and the relationship between content tokens and assurance contracts are all open design questions. Not needed for MVP but worth exploring later — the "someone offered money for your tweet" notification could be a powerful viral growth mechanism.
+The per-content-item token model creates the preconditions for the viral "someone offered money for your tweet" moment. To make it work, an off-chain indexer needs to resolve `keccak256("twitter:18347...")` back to the actual tweet and figure out who the author is. This is tractable: the assurance contract factory can emit an event that includes the plaintext canonical ID alongside the hash when a content item is registered. The indexer watches for these events and handles notifications. The hard part is reaching the creator (who may not be on the platform yet), not the on-chain mechanics.
