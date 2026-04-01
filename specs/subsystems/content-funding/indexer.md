@@ -55,34 +55,4 @@ The one query that could get expensive at scale is "show me all content items by
 
 ## Reaching creators
 
-The one piece that doesn't fit the client-side fold pattern is **reaching creators whose content has been funded**. This is fundamentally different from the other indexer work — it's an *action* (get a creator's attention), not a *query* (what's the current state?).
-
-### Fan-driven outreach (MVP)
-
-The fan who created the contract is the best person to notify the creator. They already follow the creator, they're motivated, and they won't get spam-flagged. The system's job is to make it trivially easy for them to do the outreach.
-
-When a fan creates a contract for unclaimed content, the UI should:
-
-1. Generate a **shareable claim link** for the creator's channel landing page.
-2. Provide a **suggested message** the fan can copy-paste or adapt: *"Hey @creator, I funded your thread on housing policy — supporters have pooled $X for your work. Claim it here: [link]"*
-3. Surface the share action prominently in the post-creation flow — this is not a buried "share" button, it's the natural next step after creating a contract.
-
-This approach is the cheapest (no API dependencies), the most organic (comes from someone the creator recognizes), and the most honest (the fan is telling the creator what they did, not the system spamming them).
-
-### Automated notification (future)
-
-A server-side notification service can supplement fan-driven outreach for high-value unclaimed content. It would watch for `ContentItemRegistered` events, resolve the canonical ID to a platform identity, and reach out via available channels (Twitter reply/DM, public email for Substack/YouTube creators, in-app notification if they're already a user).
-
-This is a separate lightweight service — it doesn't need the full event cache infrastructure, just a watcher on one event type. But it should come after the fan-driven approach is proven, because automated outreach from an unknown system risks looking like spam. A message from a fan the creator recognizes is worth ten automated DMs.
-
-### The claim landing page
-
-The claim link points to a per-channel landing page that serves as the guided onboarding funnel. The full onboarding flow is specified in [channel-claiming.md](channel-claiming.md) — here we describe the data requirements.
-
-The landing page needs to present:
-
-- **Above the fold**: "People pooled $X because they liked your work." Nothing else required at first glance — no mention of contracts, tokens, escrow, or blockchain. Just the money and the reason.
-- **Progressive disclosure**: Which specific content items were funded, how much each, what the attesters said about why. The creator can drill in if they're curious, but the top-level message stands on its own.
-- **Claim action**: A single "claim these funds" button that kicks off identity verification and payout. Wallet creation happens behind the scenes unless the creator opts into self-custody (see custodial bridge in [channel-claiming.md](channel-claiming.md)).
-
-The landing page is fully browsable without connecting a wallet or signing anything. The creator should be able to see everything about their funded content before being asked to take any action.
+Reaching creators whose content has been funded is an *action*, not a *query* — it doesn't fit the client-side fold pattern. See [channel-claiming.md](channel-claiming.md) for the full creator outreach and onboarding strategy (fan-driven outreach, automated notification, claim landing page).
