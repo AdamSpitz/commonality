@@ -1,6 +1,6 @@
 # Channel Claiming
 
-Rules for who can create assurance contracts for a creator's content, and how creators take ownership of their channel.
+Rules for who can create assurance contracts for a creator's content, how creators verify their identity, and how they take ownership of their channel.
 
 ## The problem
 
@@ -8,33 +8,102 @@ We want *others* to be able to fund a creator's work even if the creator doesn't
 
 That's fine — that opportunity cost is a great incentive for creators to learn about the system and start using it themselves. But we need clear rules.
 
-## The proposal: open until claimed
+## Channel states
 
-**Before the creator has claimed their channel**, anyone can create assurance contracts for that creator's content. But for an **unclaimed** channel, the payout recipient is not an arbitrary creator address chosen by the third party; it is the channel escrow for that channel ID (see below). That keeps the "someone funded your content" viral loop while avoiding accidental or malicious misdirection of funds.
+A channel moves through three states. Each state determines who can create contracts, where funds go, and what the creator can do.
 
-**Once the creator claims their channel**, only the creator can create new contracts for their content. Claiming is an on-chain action: the creator calls a function on a channel registry contract, proving ownership of their platform identity via a pluggable verifier.
+### State 1: Unclaimed
 
-### What "claiming" means
+**No verified creator. Open to third-party contract creation.**
 
-A channel is identified by a creator's platform identity in canonical form (e.g., `twitter:uid:44196397` — see [canonicalization.md](canonicalization.md)). Claiming it means:
+This is every channel's initial state. Anyone can create assurance contracts for the creator's content, subject to the [third-party creation fee](#third-party-creation-fee). Funds from successful contracts go to the **channel escrow** — a holding contract keyed by channel ID (see [payout target](#payout-target-channel-escrow) below). No one can withdraw yet.
 
-1. An Ethereum address is now the canonical owner of that channel.
-2. Only that address can create new assurance contracts containing content items from that channel.
-3. Existing contracts (created before the claim) are unaffected — they continue to operate, and the creator can still claim proceeds from them.
+This is what makes the viral loop work: a fan can fund a creator's content before the creator has ever heard of the system.
 
-### What happens to pre-claim contracts
+### State 2: Verified
 
-Contracts created by third parties before the creator claimed continue as normal:
-- If they succeed, the funds go to the channel escrow keyed by that channel ID.
-- If they fail, the content items are freed (per [content-registry.md](content-registry.md)) and the creator can re-register them on their own terms.
-- If the creator later claims the channel, they still can't rewrite the economics of those pre-claim contracts, but they may get a bounded veto window (described below) before those contracts finish.
-- Aside from that veto window, the creator can't cancel or modify pre-claim contracts — they're already deployed. This is intentional: the third party took a risk setting up the contract, and the tokens already sold shouldn't be invalidated.
+**Verified creator address. Still open to third-party contract creation.**
 
-### Identity verification
+The creator has proven ownership of their platform identity (see [identity verification](#identity-verification) below) and an Ethereum address is now associated with the channel. This enables two things:
 
-Channel claiming uses a **pluggable verifier interface**, but the proof format should be concrete enough that the off-chain and on-chain pieces cannot drift.
+1. The creator can **withdraw** from the channel escrow — both existing funds and future deposits from third-party contracts.
+2. The creator can **create contracts** for their own content (without the third-party creation fee).
 
-At the protocol level, a successful claim should be based on a short-lived authorization over a canonical channel ID:
+But third parties can still create contracts too. The channel remains open. This is the right default: a creator who just verified their identity to claim some money shouldn't be forced into actively managing their channel. If fans want to keep creating contracts on their behalf, that's fine — the funds still flow to the creator via the escrow.
+
+### State 3: Creator-controlled
+
+**Verified creator address. Only the creator can create contracts.**
+
+The creator has explicitly opted into channel control by calling a separate on-chain function. Now:
+
+1. Only the verified creator address can create new assurance contracts containing content items from this channel.
+2. Third-party contract creation is blocked.
+3. The creator has full authority over pricing, thresholds, and which content items to include.
+
+This is a separate action from verification, not bundled into it. A creator who verified just to withdraw funds doesn't get pushed into governance they didn't ask for.
+
+### State transitions
+
+```
+  ┌─────────────┐    verify identity    ┌──────────┐    take control    ┌─────────────────────┐
+  │  Unclaimed   │ ───────────────────→  │ Verified │ ────────────────→  │ Creator-controlled  │
+  │              │                       │          │                    │                     │
+  │ 3rd-party: ✓ │                       │ 3rd-party: ✓                  │ 3rd-party: ✗        │
+  │ withdraw:  ✗ │                       │ withdraw:  ✓                  │ withdraw:  ✓        │
+  └─────────────┘                       └──────────┘                    └─────────────────────┘
+```
+
+Both transitions are one-way. There's no reason to un-verify or relinquish control.
+
+### What happens to pre-existing contracts
+
+Contracts created by third parties before verification or before the creator takes control continue as normal:
+- If they succeed, funds go to the channel escrow (and the creator can withdraw once verified).
+- If they fail, the content items are freed (per [content-registry.md](content-registry.md)) and can be re-registered in new contracts.
+- The creator can't rewrite the economics of pre-existing contracts — they're already deployed. The third party took a risk setting up the contract, and the tokens already sold shouldn't be invalidated.
+- But when a creator takes control (state 3), they get a bounded [veto window](#creator-veto-for-pre-control-contracts) over existing third-party contracts.
+
+## Payout target: channel escrow
+
+If a third party creates a contract for a creator who isn't verified yet, where do successful funds go?
+
+**Channel escrow contract.** Funds go to a holding contract keyed by channel ID. When the creator verifies their identity (transitions to state 2), they can withdraw from the escrow. This cleanly separates the "who gets paid" question from the assurance contract itself — no need to modify assurance contract semantics to support changing recipients.
+
+For the MVP, this should be the only payout mode for unclaimed channels. Requiring third parties to guess or supply a creator wallet address is unnecessary friction and introduces an avoidable failure mode. Once a channel is verified, newly created contracts can pay the verified creator address directly — but the escrow remains available for any third-party contracts still in flight.
+
+The escrow contract is simple: it holds funds mapped to channel IDs, and releases them to whoever successfully verifies that channel.
+
+### Fiat off-ramp for non-crypto-native creators
+
+Most creators encountering this system will not have an Ethereum wallet and will not want one. The default path should not require the creator to understand or manage keys.
+
+**Embedded wallet.** When a creator signs in (via email, Google, or Twitter OAuth), the system provisions an **embedded wallet** through a service like Privy, Dynamic, or Web3Auth. Behind the scenes this creates an MPC or account-abstraction wallet — the creator never sees a seed phrase or knows they "have a wallet." The verification proof uses this wallet's address as the `claimant`. We are not a custodian; the embedded wallet provider handles key management and the associated regulatory burden.
+
+The creator can upgrade to self-custody at any time by exporting the embedded wallet or transferring channel ownership to their own address.
+
+**Integrated off-ramp.** Once the creator's embedded wallet has withdrawn ETH from the escrow, an integrated off-ramp provider (MoonPay, Transak, or similar) converts it to fiat. The creator clicks "withdraw," enters their bank details or PayPal, and the provider handles KYC/AML and the conversion. Fees are higher than a direct exchange withdrawal, but the creator never has to create an exchange account or understand crypto plumbing.
+
+The end-to-end experience:
+
+1. Creator opens claim page, sees "$340 waiting for you."
+2. Signs in with Twitter (which also serves as identity verification — see [tweet-based verification](#mvp-tweet-based-verification) below).
+3. Behind the scenes: embedded wallet created, verification proof signed, escrow withdrawal submitted.
+4. Creator sees "$340 available to withdraw."
+5. Clicks "withdraw," enters bank details, off-ramp provider handles conversion.
+6. Money arrives in bank account in 1–3 business days.
+
+The creator's mental model is "I signed in, I clicked withdraw, money showed up." The wallet, the on-chain transactions, the escrow — all invisible.
+
+**Note on denomination.** Contracts currently use ETH, which means the creator bears price volatility between "contract succeeded" and "creator withdrew." Stablecoin-denominated contracts (USDC/DAI) would eliminate this and simplify the off-ramp (stablecoin off-ramps are a commodity service with lower fees and no slippage). This is a meaningful design change that affects the assurance contract infrastructure, not just the bridge — worth revisiting once the core contract mechanics are stable.
+
+## Identity verification
+
+A channel is identified by a creator's platform identity in canonical form (e.g., `twitter:uid:44196397` — see [canonicalization.md](canonicalization.md)). Verification means proving ownership of that platform identity and associating an Ethereum address with it.
+
+Channel verification uses a **pluggable verifier interface**, but the proof format should be concrete enough that the off-chain and on-chain pieces cannot drift.
+
+At the protocol level, a successful verification should be based on a short-lived authorization over a canonical channel ID:
 
 ```solidity
 struct ChannelClaimProof {
@@ -46,10 +115,10 @@ struct ChannelClaimProof {
 }
 ```
 
-And the registry should expose a proof-carrying claim entrypoint, e.g.:
+And the registry should expose a proof-carrying verification entrypoint, e.g.:
 
 ```solidity
-function claimChannel(ChannelClaimProof calldata proof) external;
+function verifyChannel(ChannelClaimProof calldata proof) external;
 ```
 
 The registry verifies:
@@ -72,7 +141,15 @@ interface IChannelVerifier {
 
 The channel registry contract delegates all verification to an `IChannelVerifier` implementation. This means the verification method can be upgraded or extended without redeploying the registry — swap the verifier address, and the same contract supports new platforms or stronger proof methods.
 
-#### MVP: tweet-based verification
+Taking channel control (state 2 → state 3) is a separate on-chain call that only the verified address can make:
+
+```solidity
+function takeChannelControl(string calldata channelId) external;
+```
+
+This is a simple authorization check — only the address registered as the channel's verified owner can call it.
+
+### MVP: tweet-based verification
 
 The first verifier implementation uses **tweet-based proof of ownership**. The creator tweets a short challenge string, and a trusted backend confirms the tweet exists and came from the correct account before signing a `ChannelClaimProof`.
 
@@ -83,7 +160,7 @@ The creator's experience:
 3. Optionally connect an existing wallet — otherwise the system creates and manages one on your behalf (see custodial bridge above).
 4. Click "verify" — receive a pre-written tweet to post.
 5. Tweet it.
-6. Click "confirm" — the backend checks the tweet, signs the proof, and submits the claim transaction on the creator's behalf.
+6. Click "confirm" — the backend checks the tweet, signs the proof, and submits the verification transaction on the creator's behalf.
 
 This is the same "tweet to verify" pattern used by Keybase, ENS profile verification, and countless other services. Every creator already knows how to tweet. The backend bears the gas cost — this is user acquisition spend, not anti-spam (the real anti-abuse control is that the tweet must come from the correct account).
 
@@ -101,7 +178,7 @@ No self-attestation, no first-claim-wins. The proof comes from the platform itse
 
 Note that the creator provides their handle, but the canonical channel ID uses the numeric user ID (resolved by the backend). This means handle renames don't break channel identity — see [canonicalization.md](canonicalization.md) for rationale.
 
-#### Future: ENS-based verification
+### Future: ENS-based verification
 
 A stronger verifier can use **ENS-based social verification**: the creator links their platform identity to their Ethereum address through ENS text records and ENS's [profile verification system](https://support.ens.domains/en/articles/9626402-profile-verification). This is fully on-chain and removes the trusted backend, but it requires the creator to acquire an ENS name and complete the ENS verification flow — significantly more friction.
 
@@ -109,57 +186,35 @@ The existing code in `sdk/src/utils/twitter.ts` already resolves ENS names to Tw
 
 ENS verification becomes worth adding when: (a) there are creators actively requesting trustless claiming, or (b) the trusted backend becomes a bottleneck or trust concern. Until then, tweet-based verification is simpler, faster, and more legible to non-crypto-native creators.
 
-#### Future: additional platforms
+### Future: additional platforms
 
 The pluggable verifier interface naturally extends to other platforms. A YouTube verifier might check a video description or channel "about" section. A Substack verifier might check a post or bio. Each platform gets its own verification pattern, but the contract interface stays the same.
 
-### Creator onboarding
+## Creator onboarding
 
-The hard part is not the cryptography; it's converting a skeptical, non-crypto-native creator from "someone sent me a weird link" to "I successfully claimed this channel." The claim page is a first-class product surface, not an afterthought.
+The hard part is not the cryptography; it's converting a skeptical, non-crypto-native creator from "someone sent me a weird link" to "I successfully claimed my funds." The claim page is a first-class product surface, not an afterthought.
 
-#### Lead with the money, hide the machinery
+### Lead with the money, hide the machinery
 
 The above-the-fold message is: **"People pooled $X because they liked your work."** That's it. No mention of smart contracts, tokens, escrow, or attestations. Everything else is progressive disclosure — the creator can drill into which specific content items were funded, what the attesters said about them, and how the economics work, but none of that is required to understand "people want to pay you for your work."
 
-#### Don't gate on wallet creation
+### Don't gate on wallet creation
 
 The landing page must be fully browsable without connecting or creating a wallet. The creator should be able to see exactly what's been funded, how much is waiting, and why — before being asked to do anything. The wallet moment comes when they click "claim these funds," not when they arrive.
 
-#### Split claiming from channel control
+### The onboarding flow maps to state transitions
 
-Claiming funds and taking governance control over a channel are conceptually separate actions, and the onboarding flow should treat them that way. A creator who just learned this system exists wants the money; they don't yet want to think about managing future contracts, veto windows, or channel settings.
+The onboarding flow mirrors the channel states directly:
 
-The flow:
+1. **Browse** (state 1 — unclaimed): Creator opens their landing page and sees plain-English state — which content was funded, how much is escrowed, why supporters funded it. No wallet required.
+2. **Verify and withdraw** (state 1 → state 2): Creator clicks "claim funds," verifies their platform identity (see tweet-based verification above), and receives their escrowed funds. The channel is now verified.
+3. **Take channel control** (state 2 → state 3, optional): At any point after verification, the creator can opt into full channel ownership — controlling who can create future contracts for their content. This is presented as a separate action, not bundled into the initial claim.
 
-1. **Browse**: Creator opens their landing page and sees plain-English state — which content was funded, how much is escrowed, why supporters funded it. No wallet required.
-2. **Verify identity**: Creator clicks "claim funds," verifies their platform identity (see tweet-based verification above), and receives their escrowed funds.
-3. **Take channel control (optional, later)**: At any point after identity verification, the creator can opt into full channel ownership — controlling who can create future contracts for their content. This is presented as a separate action, not bundled into the initial claim.
+A creator can get paid without ever engaging with channel governance. If they come back later and want control, the path is there. If they don't, the open-to-third-parties rules continue to apply, and future fan-created contracts keep paying into the channel escrow (which the creator can now withdraw from).
 
-Identity verification is the same in both steps — the creator proves they own the platform account. The difference is what authority it grants. Step 2 releases funds from the channel escrow. Step 3 registers the creator's address as the channel owner on the channel registry, activating the "only owner can create new contracts" rule.
+### No weaker provisional claim
 
-This separation means a creator can get paid without ever engaging with channel governance. If they come back later and want control, the path is there. If they don't, the open-until-claimed rules continue to apply, and future fan-created contracts continue paying into the channel escrow.
-
-#### Custodial bridge for non-crypto-native creators
-
-Most creators encountering this system will not have an Ethereum wallet and will not want one. For them, offer a custodial path: the system manages a wallet on the creator's behalf, and the creator withdraws funds to their bank account, PayPal, or equivalent via a traditional payment rail.
-
-The on-chain claim happens behind the scenes with a system-managed wallet. The creator can "upgrade" to self-custody at any time by exporting the wallet or transferring channel ownership to their own address. But the default path should not require the creator to understand or manage keys.
-
-This sidesteps the single biggest drop-off point in the funnel. A creator who came for "someone funded my tweet" should not leave because they got confused by MetaMask.
-
-#### No weaker provisional claim
-
-Until identity verification succeeds and the on-chain claim is submitted (whether to a self-custody or system-managed wallet), the creator has no control over future contracts and cannot withdraw escrowed funds. Progress can be saved off-chain for UX purposes, but it confers no authority.
-
-### Payout target for unclaimed channels
-
-If a third party creates a contract for a creator who isn't on the platform yet, where do successful funds go?
-
-**Channel escrow contract.** Funds go to a holding contract keyed by channel ID. When the creator claims the channel, they can withdraw from the escrow. This cleanly separates the "who gets paid" question from the assurance contract itself — no need to modify assurance contract semantics to support changing recipients.
-
-For the MVP, this should be the only payout mode for unclaimed channels. Requiring third parties to guess or supply a creator wallet address is unnecessary friction and introduces an avoidable failure mode. Once a channel is claimed, newly created contracts can pay the claimed owner address directly.
-
-The escrow contract is simple: it holds funds mapped to channel IDs, and releases them to whoever successfully claims that channel (via the identity verification described above).
+Until identity verification succeeds and the on-chain transaction is submitted (whether to a self-custody or system-managed wallet), the creator has no control over future contracts and cannot withdraw escrowed funds. Progress can be saved off-chain for UX purposes, but it confers no authority.
 
 ## Incentives
 
@@ -167,12 +222,12 @@ The rules create a natural adoption funnel:
 
 1. **Fan creates a contract** for a creator they admire. Sets reasonable prices and threshold.
 2. **Creator gets notified** (via the [notification indexer](indexer.md)) that someone is offering money for their content.
-3. **Creator claims their channel** to take control of future contracts.
-4. **Creator now has incentive to learn the system** — they're already getting funded, and claiming gives them control over terms.
+3. **Creator verifies their identity** to withdraw funds.
+4. **Creator optionally takes channel control** to manage future contracts on their own terms.
 
 If the fan set bad terms:
   - The contract might fail (not enough buyers at that price). That's fine — [failed contracts free their content items](content-registry.md), and the creator can try again with better terms.
-  - Or the contract might succeed but bring in less money than might have been possible. That's fine too - it's better than nothing, and it's a good incentive for the creator to take control himself.
+  - Or the contract might succeed but bring in less money than might have been possible. That's fine too — it's better than nothing, and it's a good incentive for the creator to take control himself.
 
 ## Anti-abuse measures
 
@@ -180,12 +235,14 @@ If the fan set bad terms:
 
 Third-party contract creation requires a minimum donation (e.g., "you must buy at least $X worth of tokens in the contract you're creating"). Without this, a single troll could lock up content items across every creator on the platform for nearly free. Failed-contract freeing limits the damage to a temporary nuisance, but the creation fee makes it expensive enough to not be worth trying.
 
-This fee only applies to third-party creations. Once a creator has claimed their channel, they can create contracts for their own content without a minimum.
+This fee only applies to third-party creations. Once a creator has taken channel control (state 3), they can create contracts for their own content without a minimum.
 
-### Creator veto for pre-claim contracts
+### Creator veto for pre-control contracts
 
-When a creator claims their channel, they get a grace period to veto any existing third-party contracts for their content. Vetoing a contract triggers an early failure and refund to token holders.
+When a creator takes channel control (state 2 → state 3), they get a grace period to veto any existing third-party contracts for their content. Vetoing a contract triggers an early failure and refund to token holders.
 
-This protects creators from being stuck with contracts that have bad terms (wrong prices, unreasonable thresholds, etc.) while still allowing the "someone offered money for your content" viral moment. The grace period is bounded — after it expires, remaining pre-claim contracts proceed as normal.
+This protects creators from being stuck with contracts that have bad terms (wrong prices, unreasonable thresholds, etc.) while still allowing the "someone offered money for your content" viral moment. The grace period is bounded — after it expires, remaining pre-control contracts proceed as normal.
 
-The mechanism: third-party-created contracts carry a flag marking them as pre-claim. When a `ChannelClaimed` event fires, a grace window opens during which the new channel owner can call a `vetoContract()` function on any flagged contract, triggering the standard failure/refund flow. This is conceptually similar to the existing deadline mechanism — just an additional early-termination condition.
+The mechanism: third-party-created contracts carry a flag marking them as pre-control. When a `ChannelControlTaken` event fires, a grace window opens during which the channel owner can call a `vetoContract()` function on any flagged contract, triggering the standard failure/refund flow. This is conceptually similar to the existing deadline mechanism — just an additional early-termination condition.
+
+Note that the veto window opens when the creator takes control, not when they verify. A creator in state 2 (verified but not controlling) has accepted the status quo of third-party contract creation — vetoing only makes sense when they're actively taking over.
