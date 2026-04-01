@@ -36,7 +36,8 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     );
 
     // Create AssuranceContract through factory (so it's whitelisted)
-    const deadline = Math.floor(Date.now() / 1000) + 86400; // 1 day from now
+    const latestBlock = await ethers.provider.getBlock("latest");
+    const deadline = latestBlock.timestamp + 86400; // 1 day from the current chain time
     const tx = await assuranceFactory.createAssuranceContract(
       seller.address,
       seller.address,

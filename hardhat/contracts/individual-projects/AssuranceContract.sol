@@ -19,6 +19,7 @@ abstract contract AssuranceContract {
     error ETHTransferFailed();
     error ConditionNotMet();
     error ConditionNotFailed();
+    error ConditionHasFailed();
     error ConditionAlreadySet();
     error ConditionNotSet();
 
@@ -103,5 +104,12 @@ abstract contract AssuranceContract {
     function requireAssuranceContractHasFailed() internal view {
         if (!_conditionSet) revert ConditionNotSet();
         if (!_condition.hasFailed()) revert ConditionNotFailed();
+    }
+
+    /**
+     * @notice Reverts if the assurance contract has already failed
+     */
+    function requireAssuranceContractHasNotFailed() internal view {
+        if (_conditionSet && _condition.hasFailed()) revert ConditionHasFailed();
     }
 }

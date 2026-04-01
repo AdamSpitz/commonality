@@ -337,15 +337,16 @@ describe('Pubstarter Edge Cases', () => {
       abi: PubstarterAbi,
     };
 
-    // Create a project with a deadline 3 seconds from now
+    // Create a project with a deadline 300 seconds from now (evm_increaseTime used to expire it)
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Deadline Timing Test Project',
       description: 'Testing exact deadline timing',
     });
 
     const tokenPrice = parseEther('0.1');
-    const currentTime = Math.floor(Date.now() / 1000);
-    const deadline = BigInt(currentTime + 3);
+    // Use chain time (not wall clock) as previous tests may have advanced evm time significantly
+    const latestBlock = await aliceClients.publicClient.getBlock({ blockTag: 'latest' });
+    const deadline = latestBlock.timestamp + 300n;
 
     testLog('  Creating project...');
     const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
@@ -390,7 +391,7 @@ describe('Pubstarter Edge Cases', () => {
     testLog('  Advancing blockchain time past deadline...');
     await bobClients.publicClient.request({
       method: 'evm_increaseTime',
-      params: [4] as any,
+      params: [305] as any,
     } as any);
     // Mine a block to apply the time change
     await bobClients.publicClient.request({
@@ -398,11 +399,10 @@ describe('Pubstarter Edge Cases', () => {
       params: [] as any,
     } as any);
 
-    // Note: Per the AssuranceContract design (see AssuranceContracts.sol:116-119),
-    // buying is ALWAYS allowed, even after the deadline. This is intentional to allow
-    // additional contributions that could help the project reach its goal.
-    testLog('  Bob purchasing after deadline (should still succeed per contract design)...');
-    let purchaseAfterSucceeded = true;
+    // Per the updated AssuranceContract design, buying is DISABLED once the contract
+    // has entered a failed state (deadline passed without reaching threshold).
+    testLog('  Bob purchasing after deadline (should fail per contract design)...');
+    let purchaseAfterFailed = false;
     try {
       await buyProjectTokensChecked(bobClients, assuranceContract, machinery, {
         buyer: bobClients.account,
@@ -411,12 +411,12 @@ describe('Pubstarter Edge Cases', () => {
         tokenCounts: [5n],
         totalCost: tokenPrice * 5n,
       });
-      testLog('  ✓ Purchase after deadline succeeded (as expected, state transitions verified)');
-    } catch (error) {
-      purchaseAfterSucceeded = false;
-      console.error('  Unexpected error purchasing after deadline:', error);
+      console.error('  Unexpected: purchase after deadline succeeded');
+    } catch (_error) {
+      purchaseAfterFailed = true;
+      testLog('  ✓ Purchase after deadline correctly rejected');
     }
 
-    assert.ok(purchaseAfterSucceeded, 'Purchase after deadline should succeed (contract allows buying at any time)');
+    assert.ok(purchaseAfterFailed, 'Purchase after deadline should fail (contract disallows buying once failed)');
   });
 });

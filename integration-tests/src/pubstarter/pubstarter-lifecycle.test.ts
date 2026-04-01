@@ -156,14 +156,17 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
-    // Create project with high threshold and very short deadline
+    // Create project with high threshold and deadline based on chain time (not wall clock)
+    // Previous tests may have advanced blockchain time with evm_increaseTime, so
+    // Date.now() can lag far behind block.timestamp.
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Failed Project',
       description: 'This project will fail',
     });
 
+    const latestBlock = await creatorClients.publicClient.getBlock({ blockTag: 'latest' });
     const threshold = parseEther('10.0'); // Need 10 ETH to succeed (impossible)
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 2); // 2 seconds from now
+    const deadline = latestBlock.timestamp + 300n; // 5 minutes from current chain time
 
     testLog('  Creating project with high threshold...');
     const pubstarterContract: PubstarterContract = {
@@ -217,10 +220,10 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
 
     // Wait for deadline to pass by advancing blockchain time
     testLog('  Advancing blockchain time past deadline...');
-    // Increase time by 5 seconds (past the 2 second deadline)
+    // Increase time by 305 seconds (past the 5 minute deadline)
     await contributorClients.publicClient.request({
       method: 'evm_increaseTime',
-      params: [5] as any,
+      params: [305] as any,
     } as any);
     // Mine a block to apply the time change
     await contributorClients.publicClient.request({

@@ -118,10 +118,10 @@ contract MultiERC1155AssuranceContract is
 
     /**
      * @inheritdoc ERC1155PrimaryMarket
-     * @dev Buying is always allowed - no checks needed
+     * @dev Buying is disabled once the assurance contract has failed
      */
-    // solhint-disable-next-line no-empty-blocks
     function requireBuyingAllowed() internal view override {
+        requireAssuranceContractHasNotFailed();
     }
 
     /**

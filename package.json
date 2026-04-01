@@ -49,9 +49,10 @@
   "license": "MIT",
   "devDependencies": {
     "husky": "^9.1.7",
-    "vite": "^7.2.4"
+    "vite": "7.2.4"
   },
   "overrides": {
-    "viem": "2.47.6"
+    "viem": "2.47.6",
+    "rollup": "4.59.0"
   }
 }

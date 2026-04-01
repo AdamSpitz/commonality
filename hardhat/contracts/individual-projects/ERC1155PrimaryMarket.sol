@@ -149,13 +149,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
 
     /**
      * @notice Refunds ERC1155 tokens back to this contract for ETH
-     * @dev If the deadline has passed and the funding target hasn't been reached,
-     *      allow a donor to get a refund. Note that it's still possible for the project
-     *      to succeed after this; the tokens are still available for purchase, and if the
-     *      project later passes the threshold it will be considered successful.
-     *      After success we no longer allow refunds, but after refunds there is still a
-     *      possibility of success. (The point being that presumably the buyers *want*
-     *      the project to succeed, so no one's going to be upset if it does.)
+     * @dev Refunds are only available once the contract has entered a failed state.
      * @param holder The address that currently holds the tokens to be refunded
      * @param erc1155Addr The address of the ERC1155 token contract
      * @param ids Array of token IDs to refund

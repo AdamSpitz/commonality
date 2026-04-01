@@ -4,15 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "../node_modules/.bin/vite",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && ../node_modules/.bin/vite build",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "preview": "vite preview"
+    "preview": "../node_modules/.bin/vite preview"
   },
   "dependencies": {
     "@commonality/sdk": "file:../sdk",
@@ -50,7 +50,7 @@
     "jsdom": "^27.0.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4",
+    "vite": "7.2.4",
     "vitest": "^3.2.4"
   }
 }

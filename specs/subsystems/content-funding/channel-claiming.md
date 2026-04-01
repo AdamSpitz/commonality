@@ -243,6 +243,25 @@ When a creator takes channel control (state 2 → state 3), they get a grace per
 
 This protects creators from being stuck with contracts that have bad terms (wrong prices, unreasonable thresholds, etc.) while still allowing the "someone offered money for your content" viral moment. The grace period is bounded — after it expires, remaining pre-control contracts proceed as normal.
 
-The mechanism: third-party-created contracts carry a flag marking them as pre-control. When a `ChannelControlTaken` event fires, a grace window opens during which the channel owner can call a `vetoContract()` function on any flagged contract, triggering the standard failure/refund flow. This is conceptually similar to the existing deadline mechanism — just an additional early-termination condition.
+The mechanism:
+- Do **not** bolt a `hasBeenCancelled` flag directly onto the assurance contract. In the current architecture, success/failure lives behind the `IAssuranceCondition`, and the veto mechanism should stay within that boundary.
+- Instead, third-party-created contracts should use a **cancellable condition** (or a thin wrapper around `EthThresholdCondition`) that adds one extra transition: "cancelled by authorized veto controller."
+- That condition must preserve the core invariant: `hasSucceeded()` and `hasFailed()` must never both be true. Once cancelled, the contract is terminally failed: `hasSucceeded() = false` forever, `hasFailed() = true` forever.
+- Cancellation must also disable further primary-market purchases. Otherwise we get an incoherent state where refunds are open because the contract has failed, but new buys are still allowed. In practice this means the assurance contract's "buying allowed" check should reject canceled/failed contracts, not just permit buying unconditionally.
+- When a third party creates a contract for channel `X`, the factory marks it as:
+  - belonging to channel `X`
+  - third-party-created
+  - vetoable until `controlTakenAt + vetoWindow`, if channel control is later taken
+- The actual cancellation authority should live in a dedicated **channel-control / veto-controller contract**, not in the channel escrow. Escrow is about payouts; veto is a governance rule.
+- When a creator takes channel control (state 3), that control contract opens a veto window for the channel's outstanding third-party contracts. During that window, the creator-controlled address can call something like `vetoContract(contractAddress)`.
+- The veto-controller contract should only forward the cancellation if all of the following are true:
+  - the caller is the state-3 controller for the relevant channel
+  - the target contract is marked as a third-party-created contract for that channel
+  - the veto window is still open
+  - the contract has not already succeeded
+- The effect of veto is early failure plus the normal refund flow:
+  - buyers can refund tokens immediately
+  - the recipient can no longer withdraw
+  - the associated content items are released from the [content registry](content-registry.md)
 
-Note that the veto window opens when the creator takes control, not when they verify. A creator in state 2 (verified but not controlling) has accepted the status quo of third-party contract creation — vetoing only makes sense when they're actively taking over.
+So the mental model is: **veto is not a special side door in the assurance contract; it is one more way for the contract's condition to become permanently failed, administered by channel control.**

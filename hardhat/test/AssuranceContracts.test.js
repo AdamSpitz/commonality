@@ -14,6 +14,16 @@ describe("MultiERC1155AssuranceContract", function () {
     return EthThresholdCondition.deploy(progressSource, thresh, dl);
   }
 
+  async function deployCancellableCondition(progressSource, thresh, dl, canceller) {
+    const baseCondition = await deployCondition(progressSource, thresh, dl);
+    const CancellableCondition = await ethers.getContractFactory("CancellableCondition");
+    const wrappedCondition = await CancellableCondition.deploy(
+      await baseCondition.getAddress(),
+      canceller
+    );
+    return { baseCondition, wrappedCondition };
+  }
+
   beforeEach(async function () {
     [owner, recipient, alice, bob, charlie] = await ethers.getSigners();
 
@@ -583,7 +593,7 @@ describe("MultiERC1155AssuranceContract", function () {
       );
     });
 
-    it("Should allow buying after deadline (always allowed)", async function () {
+    it("Should reject buying after deadline when threshold not met", async function () {
       const tokenAddr = await erc1155Token.getAddress();
       await assuranceContract
         .connect(owner)
@@ -599,49 +609,129 @@ describe("MultiERC1155AssuranceContract", function () {
           .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
             value: ethers.parseEther("1.0"),
           })
+      ).to.be.revertedWithCustomError(assuranceContract, "ConditionHasFailed");
+    });
+  });
+
+  describe("CancellableCondition", function () {
+    let cancellableContract;
+    let cancellableToken;
+    let baseCondition;
+    let wrappedCondition;
+
+    beforeEach(async function () {
+      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
+      cancellableToken = await PremintingERC1155.deploy(
+        owner.address,
+        "https://example.com/cancellable/{id}.json",
+        "ipfs://QmCancellableToken"
+      );
+      await cancellableToken.mintBatch(owner.address, [1], [100]);
+
+      const AssuranceContracts = await ethers.getContractFactory(
+        "MultiERC1155AssuranceContract"
+      );
+      cancellableContract = await AssuranceContracts.deploy(
+        owner.address,
+        recipient.address,
+        "ipfs://QmCancellableProject"
+      );
+
+      const deployed = await deployCancellableCondition(
+        await cancellableContract.getAddress(),
+        threshold,
+        deadline,
+        charlie.address
+      );
+      baseCondition = deployed.baseCondition;
+      wrappedCondition = deployed.wrappedCondition;
+
+      await cancellableContract
+        .connect(owner)
+        .setCondition(await wrappedCondition.getAddress());
+
+      await cancellableToken.safeBatchTransferFrom(
+        owner.address,
+        await cancellableContract.getAddress(),
+        [1],
+        [100],
+        "0x"
+      );
+
+      await cancellableContract.connect(owner).setPricesERC1155(
+        await cancellableToken.getAddress(),
+        [1],
+        [ethers.parseEther("1.0")]
+      );
+    });
+
+    it("Should allow the canceller to force early failure and refunds", async function () {
+      await cancellableContract.connect(alice).buyERC1155(
+        alice.address,
+        await cancellableToken.getAddress(),
+        [1],
+        [1],
+        "0x",
+        { value: ethers.parseEther("1.0") }
+      );
+
+      await expect(wrappedCondition.connect(charlie).cancel())
+        .to.emit(wrappedCondition, "ConditionCancelled")
+        .withArgs(charlie.address);
+
+      expect(await wrappedCondition.hasSucceeded()).to.equal(false);
+      expect(await wrappedCondition.hasFailed()).to.equal(true);
+      expect(await baseCondition.hasFailed()).to.equal(false);
+
+      await cancellableToken
+        .connect(alice)
+        .setApprovalForAll(await cancellableContract.getAddress(), true);
+
+      await expect(
+        cancellableContract.connect(alice).refundERC1155(
+          alice.address,
+          await cancellableToken.getAddress(),
+          [1],
+          [1],
+          "0x"
+        )
       ).to.not.be.reverted;
     });
 
-    it("Should allow success after some refunds", async function () {
-      const tokenAddr = await erc1155Token.getAddress();
-      await assuranceContract
-        .connect(owner)
-        .setPricesERC1155(tokenAddr, [1], [ethers.parseEther("1.0")]);
+    it("Should reject cancellation by a non-canceller", async function () {
+      await expect(
+        wrappedCondition.connect(alice).cancel()
+      ).to.be.revertedWithCustomError(wrappedCondition, "OnlyCancellerCanCancel");
+    });
 
-      // Alice buys
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [5], "0x", {
-          value: ethers.parseEther("5.0"),
-        });
+    it("Should reject buying after cancellation", async function () {
+      await wrappedCondition.connect(charlie).cancel();
 
-      // Fast forward past deadline
-      await hre.network.provider.send("evm_increaseTime", [86400]);
-      await hre.network.provider.send("evm_mine");
+      await expect(
+        cancellableContract.connect(alice).buyERC1155(
+          alice.address,
+          await cancellableToken.getAddress(),
+          [1],
+          [1],
+          "0x",
+          { value: ethers.parseEther("1.0") }
+        )
+      ).to.be.revertedWithCustomError(cancellableContract, "ConditionHasFailed");
+    });
 
-      // Alice gets refund
-      await erc1155Token
-        .connect(alice)
-        .setApprovalForAll(await assuranceContract.getAddress(), true);
-      await assuranceContract
-        .connect(alice)
-        .refundERC1155(alice.address, tokenAddr, [1], [2], "0x");
-
-      // Progress should be 3 ETH now
-      expect(await assuranceContract.getAssuranceContractProgress()).to.equal(
-        ethers.parseEther("3.0")
+    it("Should reject cancellation after success", async function () {
+      await cancellableContract.connect(alice).buyERC1155(
+        alice.address,
+        await cancellableToken.getAddress(),
+        [1],
+        [10],
+        "0x",
+        { value: ethers.parseEther("10.0") }
       );
 
-      // Bob buys enough to reach threshold
-      await assuranceContract
-        .connect(bob)
-        .buyERC1155(bob.address, tokenAddr, [1], [7], "0x", {
-          value: ethers.parseEther("7.0"),
-        });
-
-      // Should now be successful
-      await expect(assuranceContract.connect(recipient).withdraw()).to.not.be
-        .reverted;
+      await expect(
+        wrappedCondition.connect(charlie).cancel()
+      ).to.be.revertedWithCustomError(wrappedCondition, "ConditionAlreadySucceeded");
     });
   });
 
