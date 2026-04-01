@@ -78,13 +78,16 @@ The first verifier implementation uses **tweet-based proof of ownership**. The c
 
 The creator's experience:
 
-1. Open the claim page, see your escrowed funds and funded content items.
-2. Connect an existing wallet, or create one in-app.
-3. Click "verify" — receive a message to tweet containing a short challenge string.
-4. Tweet it.
-5. Click "confirm" — the backend checks the tweet, signs the proof, and submits the claim transaction on the creator's behalf.
+1. Open the claim page, browse your funded content and escrowed amounts (no wallet required).
+2. Click "claim funds."
+3. Optionally connect an existing wallet — otherwise the system creates and manages one on your behalf (see custodial bridge above).
+4. Click "verify" — receive a pre-written tweet to post.
+5. Tweet it.
+6. Click "confirm" — the backend checks the tweet, signs the proof, and submits the claim transaction on the creator's behalf.
 
 This is the same "tweet to verify" pattern used by Keybase, ENS profile verification, and countless other services. Every creator already knows how to tweet. The backend bears the gas cost — this is user acquisition spend, not anti-spam (the real anti-abuse control is that the tweet must come from the correct account).
+
+**The verification tweet is a feature, not friction.** The challenge string should be human-readable and shareable — not a hex blob. Something like: *"Claiming my funded content on @commonality — supporters pooled $340 for my housing thread 🔗 [claim-page-url] #commonality-abc123"*. The unique suffix provides verification; the rest is a natural announcement that the creator's audience will see. This turns the verification step into a distribution moment: the creator is telling their followers that their content got funded, which recruits more funders into the system.
 
 The backend verifier is a simple service:
 - Accepts a `(twitterHandle, claimantAddress)` pair
@@ -114,14 +117,39 @@ The pluggable verifier interface naturally extends to other platforms. A YouTube
 
 The hard part is not the cryptography; it's converting a skeptical, non-crypto-native creator from "someone sent me a weird link" to "I successfully claimed this channel." The claim page is a first-class product surface, not an afterthought.
 
-The required flow:
+#### Lead with the money, hide the machinery
 
-1. The creator opens a landing page for their specific channel and sees the plain-English state before doing anything wallet-related: which content items are being funded, how much money is already in escrow, and whether any pre-claim contracts are still active.
-2. The page offers two paths: connect an existing wallet, or create a wallet in-app. For first-time creators, the in-app path should be the default. Key export/recovery still matters, but it should come after the creator understands what they're claiming.
-3. The creator clicks "verify," tweets the verification message, and clicks "confirm." The backend handles everything else — tweet checking, attestation signing, on-chain claim transaction, gas.
-4. There is no weaker provisional claim mode. Until verification succeeds and the on-chain claim is submitted, the creator has no control over future contracts and cannot withdraw escrowed funds. Progress can be saved off-chain for UX purposes, but it confers no authority.
+The above-the-fold message is: **"People pooled $X because they liked your work."** That's it. No mention of smart contracts, tokens, escrow, or attestations. Everything else is progressive disclosure — the creator can drill into which specific content items were funded, what the attesters said about them, and how the economics work, but none of that is required to understand "people want to pay you for your work."
 
-This implies a product requirement for the "unclaimed funded content" page described in [indexer.md](indexer.md): it is not just an informational page; it is the guided claim funnel.
+#### Don't gate on wallet creation
+
+The landing page must be fully browsable without connecting or creating a wallet. The creator should be able to see exactly what's been funded, how much is waiting, and why — before being asked to do anything. The wallet moment comes when they click "claim these funds," not when they arrive.
+
+#### Split claiming from channel control
+
+Claiming funds and taking governance control over a channel are conceptually separate actions, and the onboarding flow should treat them that way. A creator who just learned this system exists wants the money; they don't yet want to think about managing future contracts, veto windows, or channel settings.
+
+The flow:
+
+1. **Browse**: Creator opens their landing page and sees plain-English state — which content was funded, how much is escrowed, why supporters funded it. No wallet required.
+2. **Verify identity**: Creator clicks "claim funds," verifies their platform identity (see tweet-based verification above), and receives their escrowed funds.
+3. **Take channel control (optional, later)**: At any point after identity verification, the creator can opt into full channel ownership — controlling who can create future contracts for their content. This is presented as a separate action, not bundled into the initial claim.
+
+Identity verification is the same in both steps — the creator proves they own the platform account. The difference is what authority it grants. Step 2 releases funds from the channel escrow. Step 3 registers the creator's address as the channel owner on the channel registry, activating the "only owner can create new contracts" rule.
+
+This separation means a creator can get paid without ever engaging with channel governance. If they come back later and want control, the path is there. If they don't, the open-until-claimed rules continue to apply, and future fan-created contracts continue paying into the channel escrow.
+
+#### Custodial bridge for non-crypto-native creators
+
+Most creators encountering this system will not have an Ethereum wallet and will not want one. For them, offer a custodial path: the system manages a wallet on the creator's behalf, and the creator withdraws funds to their bank account, PayPal, or equivalent via a traditional payment rail.
+
+The on-chain claim happens behind the scenes with a system-managed wallet. The creator can "upgrade" to self-custody at any time by exporting the wallet or transferring channel ownership to their own address. But the default path should not require the creator to understand or manage keys.
+
+This sidesteps the single biggest drop-off point in the funnel. A creator who came for "someone funded my tweet" should not leave because they got confused by MetaMask.
+
+#### No weaker provisional claim
+
+Until identity verification succeeds and the on-chain claim is submitted (whether to a self-custody or system-managed wallet), the creator has no control over future contracts and cannot withdraw escrowed funds. Progress can be saved off-chain for UX purposes, but it confers no authority.
 
 ### Payout target for unclaimed channels
 

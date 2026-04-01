@@ -53,39 +53,36 @@ The one query that could get expensive at scale is "show me all content items by
 
 **Bottom line:** the event-cache-and-fold architecture works here. No need for eager indexing or pre-computed aggregates at the expected scale.
 
-## The notification service
+## Reaching creators
 
-The one piece that doesn't fit the client-side fold pattern is the **creator notification service**: watching for `ContentItemRegistered` events and proactively reaching out to creators whose content has been registered.
+The one piece that doesn't fit the client-side fold pattern is **reaching creators whose content has been funded**. This is fundamentally different from the other indexer work — it's an *action* (get a creator's attention), not a *query* (what's the current state?).
 
-This is a server-side process, not a client-side fold. It needs to:
+### Fan-driven outreach (MVP)
 
-1. Watch for `ContentItemRegistered` events (from the event cache or directly from the chain).
-2. Resolve the canonical ID to a platform URL (the plaintext canonical ID is in the event data).
-3. Figure out who the creator is (platform API, scraping, manual lookup).
-4. Notify the creator (DM, email, in-app notification if they're already a user).
+The fan who created the contract is the best person to notify the creator. They already follow the creator, they're motivated, and they won't get spam-flagged. The system's job is to make it trivially easy for them to do the outreach.
 
-This is fundamentally different from the other indexer work — it's an *action* (send a notification), not a *query* (what's the current state?). It's more like a bot or a webhook handler than an indexer.
+When a fan creates a contract for unclaimed content, the UI should:
 
-It can be a separate lightweight service. It doesn't need the full event cache infrastructure — it just needs to watch one event type from one contract and do something when it fires. A simple chain-watcher or even an event subscription would suffice.
+1. Generate a **shareable claim link** for the creator's channel landing page.
+2. Provide a **suggested message** the fan can copy-paste or adapt: *"Hey @creator, I funded your thread on housing policy — supporters have pooled $X for your work. Claim it here: [link]"*
+3. Surface the share action prominently in the post-creation flow — this is not a buried "share" button, it's the natural next step after creating a contract.
 
-### Reaching creators who aren't on the platform
+This approach is the cheapest (no API dependencies), the most organic (comes from someone the creator recognizes), and the most honest (the fan is telling the creator what they did, not the system spamming them).
 
-The hard part isn't the on-chain mechanics — it's reaching a creator who may have no idea this system exists. 
+### Automated notification (future)
 
-Options:
+A server-side notification service can supplement fan-driven outreach for high-value unclaimed content. It would watch for `ContentItemRegistered` events, resolve the canonical ID to a platform identity, and reach out via available channels (Twitter reply/DM, public email for Substack/YouTube creators, in-app notification if they're already a user).
 
-- **Twitter/X DM or reply**: If the canonical ID is a tweet, reply to it or DM the author. Requires API access and risks being flagged as spam.
-- **Email**: If the creator has a public email (common for Substack authors, YouTubers). Less intrusive.
-- **Community-driven**: Surface "unclaimed funded content" in the UI and let the community reach out. The least automated but the most organic.
+This is a separate lightweight service — it doesn't need the full event cache infrastructure, just a watcher on one event type. But it should come after the fan-driven approach is proven, because automated outreach from an unknown system risks looking like spam. A message from a fan the creator recognizes is worth ten automated DMs.
 
-Start with the community-driven approach (cheapest, no API dependencies) and add automated notifications for specific platforms as needed.
+### The claim landing page
 
-The "unclaimed funded content" page is critical to the adoption funnel. When a community member shares a link with a creator saying "hey, someone wants to fund your work," the landing page needs to:
-- Clearly explain what happened ("supporters have pooled $X to fund your content")
-- Walk the creator through the system without jargon or crypto-native assumptions
-- Show the current claim state: escrowed funds, active pre-claim contracts, and whether a veto window will open after claim
-- Make the whole thing feel legitimate and non-seedy — remember, most creators will be encountering anything crypto-related with skepticism
-- Provide a simple path to claiming (wallet creation or connection, ENS setup, verification, channel claim, fund withdrawal)
-- Sponsor gas and setup costs where possible, because the claim flow is otherwise too easy to abandon halfway through
-- Allow the creator to stop and resume later without losing visibility into the funds or claim status
-- Show which specific content items are being funded and why (link to the attester explanations)
+The claim link points to a per-channel landing page that serves as the guided onboarding funnel. The full onboarding flow is specified in [channel-claiming.md](channel-claiming.md) — here we describe the data requirements.
+
+The landing page needs to present:
+
+- **Above the fold**: "People pooled $X because they liked your work." Nothing else required at first glance — no mention of contracts, tokens, escrow, or blockchain. Just the money and the reason.
+- **Progressive disclosure**: Which specific content items were funded, how much each, what the attesters said about why. The creator can drill in if they're curious, but the top-level message stands on its own.
+- **Claim action**: A single "claim these funds" button that kicks off identity verification and payout. Wallet creation happens behind the scenes unless the creator opts into self-custody (see custodial bridge in [channel-claiming.md](channel-claiming.md)).
+
+The landing page is fully browsable without connecting a wallet or signing anything. The creator should be able to see everything about their funded content before being asked to take any action.
