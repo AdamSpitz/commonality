@@ -16,10 +16,10 @@ Content IDs are `keccak256` hashes of canonical identifiers:
 
 | Source | Canonical ID | Content ID |
 |---|---|---|
-| Twitter/X | `twitter:18347...` | `keccak256("twitter:18347...")` |
-| Substack | `https://example.substack.com/p/post-slug` | `keccak256("https://example.substack.com/p/post-slug")` |
+| Twitter/X | `twitter:18347` | `keccak256("twitter:18347")` |
 | YouTube | `youtube:dQw4w9WgXcQ` | `keccak256("youtube:dQw4w9WgXcQ")` |
-| IPFS | `ipfs:QmXyz...` | `keccak256("ipfs:QmXyz...")` |
+| Substack | `substack:example/my-post` | `keccak256("substack:example/my-post")` |
+| IPFS | `ipfs:bafyXyz...` | `keccak256("ipfs:bafyXyz...")` |
 
 ERC-1155 token IDs are `uint256` and `keccak256` produces `bytes32` — same size, direct mapping. The content ID *is* the token type ID.
 
@@ -48,7 +48,7 @@ The factory should emit an event that includes the plaintext canonical ID alongs
 event ContentItemRegistered(
     uint256 indexed contentId,    // keccak256 hash
     address indexed assuranceContract,
-    string canonicalId            // e.g., "twitter:18347..."
+    string canonicalId            // e.g., "twitter:18347"
 );
 ```
 

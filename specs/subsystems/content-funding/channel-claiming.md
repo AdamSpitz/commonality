@@ -16,7 +16,7 @@ That's fine — that opportunity cost is a great incentive for creators to learn
 
 ### What "claiming" means
 
-A channel is identified by a creator's platform identity (e.g., `twitter:@username`). Claiming it means:
+A channel is identified by a creator's platform identity in canonical form (e.g., `twitter:uid:44196397` — see [canonicalization.md](canonicalization.md)). Claiming it means:
 
 1. An Ethereum address is now the canonical owner of that channel.
 2. Only that address can create new assurance contracts containing content items from that channel.
@@ -38,7 +38,7 @@ At the protocol level, a successful claim should be based on a short-lived autho
 
 ```solidity
 struct ChannelClaimProof {
-    string channelId;        // canonical form, e.g. "twitter:@username"
+    string channelId;        // canonical form, e.g. "twitter:uid:44196397"
     address claimant;        // address that will own the channel
     bytes32 nonce;           // backend-issued challenge nonce
     uint256 deadline;        // expiry for replay resistance
@@ -87,13 +87,16 @@ The creator's experience:
 This is the same "tweet to verify" pattern used by Keybase, ENS profile verification, and countless other services. Every creator already knows how to tweet. The backend bears the gas cost — this is user acquisition spend, not anti-spam (the real anti-abuse control is that the tweet must come from the correct account).
 
 The backend verifier is a simple service:
-- Accepts a `(channelId, claimantAddress)` pair
+- Accepts a `(twitterHandle, claimantAddress)` pair
+- Resolves the handle to a stable numeric user ID via the Twitter API
 - Returns a challenge nonce to be tweeted
-- Checks the Twitter API for a recent tweet from `@username` containing that nonce
-- If valid, signs a proof over `(channelId, claimantAddress, nonce, deadline)`
+- Checks the Twitter API for a recent tweet from that account containing the nonce
+- If valid, signs a proof over `(channelId, claimantAddress, nonce, deadline)` where `channelId` uses the numeric ID (e.g., `twitter:uid:44196397`)
 - The on-chain verifier checks the signature and nonce/deadline rules
 
 No self-attestation, no first-claim-wins. The proof comes from the platform itself (the tweet exists on Twitter, posted by the account in question), verified by our backend, but packaged in a way that is explicit, replay-resistant, and relayer-friendly.
+
+Note that the creator provides their handle, but the canonical channel ID uses the numeric user ID (resolved by the backend). This means handle renames don't break channel identity — see [canonicalization.md](canonicalization.md) for rationale.
 
 #### Future: ENS-based verification
 

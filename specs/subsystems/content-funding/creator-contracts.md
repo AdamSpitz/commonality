@@ -8,9 +8,9 @@ A single creator contract lists specific content items:
 
 | Token type (`uint256`) | Content | Supply | Price |
 |---|---|---|---|
-| `keccak256("twitter:18347...")` | That great thread on housing | 100 | $5 |
-| `keccak256("twitter:29451...")` | The immigration steelman post | 100 | $5 |
-| `keccak256("substack:https://...")` | The long-form essay | 100 | $5 |
+| `keccak256("twitter:18347")` | That great thread on housing | 100 | $5 |
+| `keccak256("twitter:29451")` | The immigration steelman post | 100 | $5 |
+| `keccak256("substack:example/the-long-form-essay")` | The long-form essay | 100 | $5 |
 
 ## Funding flow
 
