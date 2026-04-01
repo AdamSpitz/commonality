@@ -6,7 +6,7 @@ Rules for turning platform URLs and identities into stable canonical IDs before 
 
 This system supports a fixed list of platforms: **Twitter/X**, **YouTube**, and **Substack**. That's it for MVP.
 
-This is a deliberate choice, not a limitation we're working around. Channel claiming requires platform-specific ownership verification (see [channel-claiming.md](channel-claiming.md)), so we can never support arbitrary platforms anyway. These three cover the content types that matter most for the [noninflammatory content](noninflammatory-content.md) use case and can be expanded later.
+This is a deliberate choice, not a limitation we're working around. Channel claiming requires platform-specific ownership verification (see [channel-claiming.md](channel-claiming.md)), so we can never support arbitrary platforms anyway. These three cover the content types that matter most for the [noninflammatory content](noninflammatory-content/) use case and can be expanded later.
 
 ## The two problems
 

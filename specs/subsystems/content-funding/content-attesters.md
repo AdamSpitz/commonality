@@ -27,7 +27,7 @@ A generalized attester framework (shared between implication attesters and conte
 
 In practice, multiple attester services will exist with different criteria and calibrations. Users choose which attesters they trust, just as with implication attesters. Different attesters having different standards is fine and expected — that's how the system is designed to work.
 
-For example, in the [noninflammatory content](noninflammatory-content.md) use case, there might be a left-leaning attester and a right-leaning one, each trusted by their respective side. Cross-partisan attestation carries extra weight where it happens naturally, but it doesn't need to be engineered.
+For example, in the [noninflammatory content](noninflammatory-content/) use case, there might be a left-leaning attester and a right-leaning one, each trusted by their respective side. Cross-partisan attestation carries extra weight where it happens naturally, but it doesn't need to be engineered.
 
 ## Attestation contract
 
@@ -40,4 +40,4 @@ For the MVP (where the "subject" is the creator's assurance contract address), t
 
 ## Use-case-specific criteria
 
-The attester framework is general; what makes it specific to a use case is the LLM prompt and evaluation criteria. See individual use case specs (e.g., [noninflammatory-content.md](noninflammatory-content.md)) for specific criteria.
+The attester framework is general; what makes it specific to a use case is the LLM prompt and evaluation criteria. See individual use case specs (e.g., [noninflammatory-content](noninflammatory-content/)) for specific criteria.

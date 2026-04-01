@@ -18,7 +18,7 @@ This is a general-purpose mechanism. You could fund content for any reason: noni
 
 ## Use cases
 
-- **[Noninflammatory content](noninflammatory-content.md)** — Funding political content that communicates perspectives without antagonizing the other side. The inaugural use case and the one that best demonstrates organic coalition-building.
+- **[Noninflammatory content](noninflammatory-content/)** — Funding political content that communicates perspectives without antagonizing the other side. The inaugural use case and the one that best demonstrates organic coalition-building.
 
 
 ## Relationship to other subsystems

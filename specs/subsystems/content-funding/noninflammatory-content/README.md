@@ -2,16 +2,20 @@
 
 Funding political content that communicates perspectives without antagonizing people who disagree. E.g., "this post was written from a left-wing perspective, but it's written in such a way as to not piss off right-wingers."
 
-This is the inaugural use case for the [content-funding subsystem](README.md) and the one that best demonstrates Commonality's core thesis of organic coalition-building.
+This is the inaugural use case for the [content-funding subsystem](../README.md) and the one that best demonstrates Commonality's core thesis of organic coalition-building.
 
-For the general content-funding mechanics (contracts, registry, tokens, channel claiming), see the other files in this directory. This document covers what's specific to the noninflammatory use case: motivation, conceptspace seeding, attester criteria, and the showcase demo.
+For the general content-funding mechanics (contracts, registry, tokens, channel claiming), see the other files in the parent directory. This document covers what's specific to the noninflammatory use case: motivation, conceptspace seeding, attester criteria, and the showcase demo.
+
+**See also:**
+- [seed-statements.md](seed-statements.md) — concrete statements to seed the conceptspace
+- [attester-prompts.md](attester-prompts.md) — LLM prompts for different attester personas
 
 
 ## Why this is a natural fit for Commonality
 
 **It's a textbook market failure.** Inflammatory content generates engagement and ad revenue; thoughtful, noninflammatory content gets fewer clicks. Creators who *want* to communicate respectfully face financial pressure against it. That's exactly the kind of public-good-with-positive-externalities that Commonality is designed for.
 
-**It showcases organic coalition-building.** This is almost the canonical demonstration of the system's core idea of [organic coalitions](../../motivation/why-its-better/organic-coalitions.md). Noninflammatory political content is a genuine public good that *both sides* benefit from:
+**It showcases organic coalition-building.** This is almost the canonical demonstration of the system's core idea of [organic coalitions](../../../motivation/why-its-better/organic-coalitions.md). Noninflammatory political content is a genuine public good that *both sides* benefit from:
   - The left benefits: their ideas reach more people, persuade instead of repel.
   - The right benefits: their media diet is less hostile, they can engage with opposing ideas without feeling attacked.
   - Everyone benefits: reduced polarization is a public good.
@@ -23,14 +27,7 @@ This means the implication system would naturally connect supporters from both s
 
 ## Conceptspace seeding
 
-Create a cluster of statements, expressed in terms each side would naturally use (not a single "centrist" framing):
-  - "Political perspectives can and should be communicated in ways that don't alienate those who disagree"
-  - "Left-wing perspectives can be presented in ways that conservatives can engage with non-defensively"
-  - "Right-wing perspectives can be presented in ways that progressives can engage with non-defensively"
-  - "I want political content I consume to not be designed to make me angry"
-  - "Progressive ideas should be communicated in ways that persuade rather than antagonize"
-
-The implication attester links all of these up to broader statements like "reducing political polarization through content." Donors who care about the general cause can fund both sides' content without needing to personally endorse either perspective. A project funded from any of these portals is visible to all.
+Create a cluster of statements, expressed in terms each side would naturally use (not a single "centrist" framing). See [seed-statements.md](seed-statements.md) for the concrete statements and the implication structure between them.
 
 
 ## Attester criteria for "noninflammatory"
@@ -61,7 +58,7 @@ Cross-attester agreement is especially valuable when it happens, but it is not r
 
 ## A potential AI skill
 
-There's a natural new AI skill here (see [../../ai-assistance.md](../../ai-assistance.md)):
+There's a natural new AI skill here (see [../../../ai-assistance.md](../../../ai-assistance.md)):
 
 **Noninflammatory Content Assistant**
   - *Generation mode*: "Write a post on [topic] from [perspective], designed to be engaging to in-group while not alienating out-group" — framed around persuasion effectiveness, not politeness. Explicit criteria: steelmanning, no ad-hominem, honest framing, etc.
@@ -73,14 +70,14 @@ There's a natural new AI skill here (see [../../ai-assistance.md](../../ai-assis
 
 The demo that makes people get it: a left-wing post gets attested as noninflammatory by an AI evaluator, and funded by donors from both sides who found it through different statements in the implication graph. Neither side had to coordinate with the other. They just individually said what they valued, and the system connected them.
 
-This is the [Millbrook water walkthrough](../../motivation/walkthrough.md) but for something much bigger and more visible — and it directly demonstrates the "discovering commonality" thesis that the whole system is named for.
+This is the [Millbrook water walkthrough](../../../motivation/walkthrough.md) but for something much bigger and more visible — and it directly demonstrates the "discovering commonality" thesis that the whole system is named for.
 
 
 ## Practical path
 
 1. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse.
 2. **Build the content-funding subsystem** — the content registry, factory modifications, and channel claiming (see other files in this directory).
-3. **Build the AI content evaluator** — fork the implication attester architecture, swap the prompt (see attester criteria above).
+3. **Build the AI content evaluator** — fork the implication attester architecture, swap the prompt (see [attester-prompts.md](attester-prompts.md)).
 4. **Start with retroactive funding** of existing noninflammatory content. This validates whether people actually want to fund this.
 5. **Build a specialized showcase funding portal** for noninflammatory content.
-6. **Build the notification service** (see [indexer.md](indexer.md)) to reach creators whose content has been registered.
+6. **Build the notification service** (see [../indexer.md](../indexer.md)) to reach creators whose content has been registered.
