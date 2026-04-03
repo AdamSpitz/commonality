@@ -126,7 +126,7 @@ export function decodeImplicationAttestationEvent(rawEvent: RawEventFromCache): 
 
 export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): {
   attester: `0x${string}`;
-  subjectAddress: `0x${string}`;
+  subjectId: `0x${string}`;
   statementId: string;
   topicStatementId?: string;
   contractAddress: `0x${string}`;
@@ -136,13 +136,13 @@ export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): {
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'AlignmentAttestation') return null;
-  
+
   const args = decodeRawEventLog(rawEvent);
   if (!args) return null;
-  
+
   return {
     attester: args.attester as `0x${string}`,
-    subjectAddress: args.subjectAddress as `0x${string}`,
+    subjectId: args.subjectId as `0x${string}`,
     statementId: bytes32ToCid(args.statementId as `0x${string}`),
     topicStatementId: args.topicStatementId ? bytes32ToCid(args.topicStatementId as `0x${string}`) : undefined,
     contractAddress: rawEvent.contractAddress as `0x${string}`,

@@ -14,7 +14,7 @@ export const AlignmentAttestationsAbi = [
   },
   {
     "inputs": [],
-    "name": "InvalidSubjectAddress",
+    "name": "InvalidSubjectId",
     "type": "error"
   },
   {
@@ -33,9 +33,9 @@ export const AlignmentAttestationsAbi = [
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "subjectAddress",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
       },
       {
         "indexed": true,
@@ -64,9 +64,9 @@ export const AlignmentAttestationsAbi = [
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "subjectAddress",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
       },
       {
         "indexed": true,
@@ -81,9 +81,9 @@ export const AlignmentAttestationsAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "subjectAddress",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
       },
       {
         "internalType": "bytes32",
@@ -104,9 +104,9 @@ export const AlignmentAttestationsAbi = [
   {
     "inputs": [
       {
-        "internalType": "address[]",
-        "name": "subjectAddresses",
-        "type": "address[]"
+        "internalType": "bytes32[]",
+        "name": "subjectIds",
+        "type": "bytes32[]"
       },
       {
         "internalType": "bytes32[]",
@@ -137,9 +137,9 @@ export const AlignmentAttestationsAbi = [
         "type": "bytes32"
       },
       {
-        "internalType": "address",
+        "internalType": "bytes32",
         "name": "",
-        "type": "address"
+        "type": "bytes32"
       },
       {
         "internalType": "bytes32",
@@ -171,9 +171,9 @@ export const AlignmentAttestationsAbi = [
         "type": "bytes32"
       },
       {
-        "internalType": "address",
-        "name": "subjectAddress",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
       },
       {
         "internalType": "bytes32",
@@ -195,9 +195,9 @@ export const AlignmentAttestationsAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "subjectAddress",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
       },
       {
         "internalType": "bytes32",

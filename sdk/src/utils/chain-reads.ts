@@ -84,7 +84,7 @@ const AlignmentAttestationsReadAbi = [
     inputs: [
       { name: 'attester', type: 'address' },
       { name: 'topicStatementId', type: 'bytes32' },
-      { name: 'subjectAddress', type: 'address' },
+      { name: 'subjectId', type: 'bytes32' },
       { name: 'statementId', type: 'bytes32' },
     ],
     outputs: [{ type: 'bool' }],
@@ -345,7 +345,7 @@ export async function readBelief(
  * @param attestationsContract Address of the AlignmentAttestations contract
  * @param attester Address of the attester
  * @param topicStatementId IPFS CID (bytes32) of the topic statement
- * @param subjectAddress Address of the subject project
+ * @param subjectId bytes32 subject identifier. For address subjects, use toSubjectId(address).
  * @param statementId IPFS CID (bytes32) of the alignment statement
  */
 export async function readHasAlignment(
@@ -353,7 +353,7 @@ export async function readHasAlignment(
   attestationsContract: Address,
   attester: Address,
   topicStatementId: `0x${string}`,
-  subjectAddress: Address,
+  subjectId: `0x${string}`,
   statementId: `0x${string}`,
 ): Promise<boolean> {
   const client = requirePublicClient(machinery);
@@ -364,7 +364,7 @@ export async function readHasAlignment(
       address: attestationsContract,
       abi: AlignmentAttestationsReadAbi,
       functionName: 'hasAttestation',
-      args: [attester, topicStatementId, subjectAddress, statementId],
+      args: [attester, topicStatementId, subjectId, statementId],
     });
     return result as unknown as boolean;
   } catch {

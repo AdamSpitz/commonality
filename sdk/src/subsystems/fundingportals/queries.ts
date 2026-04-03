@@ -33,8 +33,8 @@ export async function getAlignedSubjects(
 ): Promise<AlignmentAttestation[]> {
   const contracts = machinery.contractAddresses!;
   
-  // AlignmentAttestation(address indexed attester, address indexed subjectAddress, bytes32 indexed statementId, bytes32 topicStatementId)
-  // topic1=attester, topic2=subjectAddress, topic3=statementId (bytes32)
+  // AlignmentAttestation(address indexed attester, bytes32 indexed subjectId, bytes32 indexed statementId, bytes32 topicStatementId)
+  // topic1=attester, topic2=subjectId, topic3=statementId (bytes32)
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
@@ -55,7 +55,7 @@ export async function getAlignedSubjects(
   
   return attestations.map(a => ({
     attester: a.attester,
-    subjectAddress: a.subjectAddress,
+    subjectId: a.subjectId,
     statementCid: a.statementCid,
     topicStatementCid,
     createdAt: a.createdAt,
@@ -68,10 +68,12 @@ export const getAlignedProjects = getAlignedSubjects;
 
 /**
  * Get all statement alignments for a specific subject (by attester if provided)
+ *
+ * @param subjectId bytes32 subject identifier. For address subjects, use toSubjectId(address).
  */
 export async function getSubjectStatements(
   machinery: SDKMachinery,
-  subjectAddress: string,
+  subjectId: string,
   attesterAddress?: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
@@ -80,7 +82,7 @@ export async function getSubjectStatements(
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
-    topic2: padAddressAsTopic(subjectAddress),
+    topic2: subjectId,
     limit: 10000,
   });
 
@@ -105,7 +107,7 @@ export async function getSubjectStatements(
 
   return attestations.map(a => ({
     attester: a.attester,
-    subjectAddress: a.subjectAddress,
+    subjectId: a.subjectId,
     statementCid: a.statementCid,
     topicStatementCid: a.topicStatementCid || topicStatementCid,
     createdAt: a.createdAt,
@@ -118,39 +120,41 @@ export const getProjectStatements = getSubjectStatements;
 
 /**
  * Get a specific alignment attestation
+ *
+ * @param subjectId bytes32 subject identifier. For address subjects, use toSubjectId(address).
  */
 export async function getAlignmentAttestation(
   machinery: SDKMachinery,
   attesterAddress: string,
-  subjectAddress: string,
+  subjectId: string,
   statementCid: IpfsCidV1,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
   const contracts = machinery.contractAddresses!;
-  
+
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic3: cidToBytes32(statementCid),
-    topic2: padAddressAsTopic(subjectAddress),
+    topic2: subjectId,
     limit: 1000,
   });
-  
+
   const decodedEvents = events
     .map(e => decodeAlignmentAttestationEvent(e))
     .filter((e): e is NonNullable<typeof e> => e !== null);
-  
+
   const attesterLower = attesterAddress.toLowerCase();
   const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
-  
+
   if (matching.length === 0) {
     return null;
   }
-  
+
   const latest = matching[matching.length - 1];
   return {
     attester: latest.attester,
-    subjectAddress: latest.subjectAddress,
+    subjectId: latest.subjectId,
     statementCid: latest.statementId as IpfsCidV1,
     topicStatementCid,
     createdAt: '',
@@ -171,7 +175,7 @@ export async function getAlignmentsByAttester(
 ): Promise<AlignmentAttestation[]> {
   const contracts = machinery.contractAddresses!;
 
-  // AlignmentAttestation: topic1=attester, topic2=subjectAddress, topic3=statementId
+  // AlignmentAttestation: topic1=attester, topic2=subjectId, topic3=statementId
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
@@ -187,7 +191,7 @@ export async function getAlignmentsByAttester(
 
   return attestations.map(a => ({
     attester: a.attester,
-    subjectAddress: a.subjectAddress,
+    subjectId: a.subjectId,
     statementCid: normalizeCidV1(a.statementCid),
     topicStatementCid,
     createdAt: a.createdAt,
@@ -247,7 +251,7 @@ export async function getIndirectlyAlignedSubjects(
 
     for (const alignment of alignments) {
       indirectAlignments.push({
-        subjectAddress: alignment.subjectAddress,
+        subjectId: alignment.subjectId,
         directStatementCid: fromStatementCid,
         indirectStatementCid: statementCid,
         attester: alignment.attester,
@@ -328,17 +332,19 @@ export async function getAllAlignedProjectsForCause(
 
   const projectMap = new Map<string, 'direct' | 'indirect'>();
   directAlignments.forEach(a =>
-    projectMap.set(a.subjectAddress.toLowerCase(), 'direct')
+    projectMap.set(a.subjectId.toLowerCase(), 'direct')
   );
   indirectAlignments.forEach(a => {
-    const addr = a.subjectAddress.toLowerCase();
+    const addr = a.subjectId.toLowerCase();
     if (!projectMap.has(addr)) {
       projectMap.set(addr, 'indirect');
     }
   });
 
   const results = [];
-  for (const [projectAddress, alignmentType] of projectMap.entries()) {
+  for (const [subjectId, alignmentType] of projectMap.entries()) {
+    // subjectId is bytes32 (left-padded address); extract the last 20 bytes as an address
+    const projectAddress = `0x${subjectId.slice(-40)}`;
     const project = await getProject(machinery, projectAddress);
 
     if (project) {

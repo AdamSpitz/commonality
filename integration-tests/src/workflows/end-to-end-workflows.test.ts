@@ -27,6 +27,7 @@ import {
   getUserBeliefs,
   getImplicationsFrom,
   getIndirectlyAlignedProjects,
+  toSubjectId,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
@@ -409,8 +410,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 11. Verify the project is found via indirect alignment
       assert.strictEqual(indirectAlignments.length, 1, 'Should have one indirectly aligned project');
       assert.strictEqual(
-        indirectAlignments[0].subjectAddress.toLowerCase(),
-        projectResult.projectDetails.assuranceContractAddress.toLowerCase(),
+        indirectAlignments[0].subjectId.toLowerCase(),
+        toSubjectId(projectResult.projectDetails.assuranceContractAddress).toLowerCase(),
         'Project should be indirectly aligned with S2'
       );
       assert.strictEqual(

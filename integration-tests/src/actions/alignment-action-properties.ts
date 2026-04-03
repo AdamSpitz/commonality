@@ -34,13 +34,13 @@ interface AlignmentState {
  */
 async function captureAlignmentState(context: ActionContext): Promise<AlignmentState> {
   const { machinery, entities } = context;
-  const { statementCid, subjectAddress, attesterAddress } = entities;
+  const { statementCid, subjectId, attesterAddress } = entities;
 
   if (!statementCid) {
     throw new Error('statementCid is required in context.entities for alignment state');
   }
-  if (!subjectAddress) {
-    throw new Error('subjectAddress is required in context.entities for alignment state');
+  if (!subjectId) {
+    throw new Error('subjectId is required in context.entities for alignment state');
   }
   if (!attesterAddress) {
     throw new Error('attesterAddress is required in context.entities for alignment state');
@@ -50,13 +50,13 @@ async function captureAlignmentState(context: ActionContext): Promise<AlignmentS
   const alignedSubjects = await getAlignedSubjects(machinery, statementCid);
 
   // Get all statements this subject is aligned with
-  const subjectStatements = await getSubjectStatements(machinery, subjectAddress);
+  const subjectStatements = await getSubjectStatements(machinery, subjectId);
 
   // Check if this specific alignment exists
   const alignment = await getAlignmentAttestation(
     machinery,
     attesterAddress,
-    subjectAddress,
+    subjectId,
     statementCid
   );
 
@@ -128,44 +128,44 @@ export const alignmentBidirectionalityProperty: StateTransitionProperty = {
   captureState: async () => ({}), // No state to capture, we just verify after
   check: async (context: ActionContext) => {
     const { machinery, entities } = context;
-    const { statementCid, subjectAddress, attesterAddress } = entities;
+    const { statementCid, subjectId, attesterAddress } = entities;
 
-    if (!statementCid || !subjectAddress || !attesterAddress) {
-      throw new Error('statementCid, subjectAddress, and attesterAddress are required');
+    if (!statementCid || !subjectId || !attesterAddress) {
+      throw new Error('statementCid, subjectId, and attesterAddress are required');
     }
 
     // Query by statement - should include this subject
     const alignedSubjects = await getAlignedSubjects(machinery, statementCid);
     const subjectFound = alignedSubjects.some(
-      a => a.subjectAddress.toLowerCase() === subjectAddress.toLowerCase() &&
+      a => a.subjectId.toLowerCase() === subjectId.toLowerCase() &&
            a.attester.toLowerCase() === attesterAddress.toLowerCase()
     );
     assert.ok(
       subjectFound,
-      `Subject ${subjectAddress} should appear in aligned subjects for statement ${statementCid}`
+      `Subject ${subjectId} should appear in aligned subjects for statement ${statementCid}`
     );
 
     // Query by subject - should include this statement
-    const subjectStatements = await getSubjectStatements(machinery, subjectAddress);
+    const subjectStatements = await getSubjectStatements(machinery, subjectId);
     const statementFound = subjectStatements.some(
       a => a.statementCid.toLowerCase() === statementCid.toLowerCase() &&
            a.attester.toLowerCase() === attesterAddress.toLowerCase()
     );
     assert.ok(
       statementFound,
-      `Statement ${statementCid} should appear in statements for subject ${subjectAddress}`
+      `Statement ${statementCid} should appear in statements for subject ${subjectId}`
     );
 
     // Query the specific alignment - should exist
     const alignment = await getAlignmentAttestation(
       machinery,
       attesterAddress,
-      subjectAddress,
+      subjectId,
       statementCid
     );
     assert.ok(
       alignment,
-      `Alignment should exist for attester ${attesterAddress}, subject ${subjectAddress}, statement ${statementCid}`
+      `Alignment should exist for attester ${attesterAddress}, subject ${subjectId}, statement ${statementCid}`
     );
   },
 };

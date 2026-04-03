@@ -24,6 +24,7 @@ import {
   type IpfsCidV1,
   type IPFSConfig,
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
+  toSubjectId,
   PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
@@ -153,7 +154,7 @@ async function attestAlignment(
     address: contract.address as `0x${string}`,
     abi: contract.abi,
     functionName: 'attestAlignment',
-    args: [subjectAddress, cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
+    args: [toSubjectId(subjectAddress), cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account,
   });

@@ -19,6 +19,7 @@ import {
   PubstarterAbi,
   PROJECT_ALIGNMENT_TOPIC,
   fakeIpfsCidV1,
+  toSubjectId,
 } from '@commonality/sdk';
 import {
   getAlignedSubjects,
@@ -171,7 +172,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Query all aligned subjects (should show 2 attestations for same subject)
     const alignedSubjects = await getAlignedSubjects(machinery, statementCid, undefined, PROJECT_ALIGNMENT_TOPIC);
     const matchingAlignments = alignedSubjects.filter(
-      a => a.subjectAddress.toLowerCase() === projectDetails.tokenAddress.toLowerCase()
+      a => a.subjectId.toLowerCase() === toSubjectId(projectDetails.tokenAddress).toLowerCase()
     );
     assert.strictEqual(
       matchingAlignments.length,
@@ -316,7 +317,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Verify all alignments exist
     const subjectStatements = await getSubjectStatements(
       machinery,
-      projectDetails.tokenAddress,
+      toSubjectId(projectDetails.tokenAddress),
       attesterClients.account,
       PROJECT_ALIGNMENT_TOPIC
     );

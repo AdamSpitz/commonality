@@ -16,16 +16,28 @@ export interface AlignmentAttestationsContract {
 }
 
 /**
- * Attest that a subject (project, user, etc.) is aligned with a statement/cause
+ * Convert an Ethereum address to a bytes32 subject ID (left-padded).
+ * Use this when passing an address as a subject to attestAlignment or hasAttestation.
+ * For content ID subjects, use the keccak256 hash directly.
+ */
+export function toSubjectId(address: Address): `0x${string}` {
+  const normalized = address.toLowerCase().replace(/^0x/, '');
+  return `0x${'0'.repeat(24)}${normalized}` as `0x${string}`;
+}
+
+/**
+ * Attest that a subject (project, user, content item, etc.) is aligned with a statement/cause
  *
- * @param topicStatementCidOrId Required topic for indexer filtering.
- *                              Can be a CID string or a bytes32 (like PROJECT_ALIGNMENT_TOPIC).
- *                              Every attestation must explicitly declare its topic.
+ * @param subjectId bytes32 subject identifier. For address subjects, use toSubjectId(address).
+ *                  For content items, use keccak256 of the canonical content ID.
+ * @param topicStatementCid Required topic for indexer filtering.
+ *                          Can be a CID string or a bytes32 (like PROJECT_ALIGNMENT_TOPIC).
+ *                          Every attestation must explicitly declare its topic.
  */
 export async function attestAlignment(
   clients: TestClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
-  subjectAddress: Address,
+  subjectId: `0x${string}`,
   statementCid: IpfsCidV1,
   topicStatementCid: IpfsCidV1
 ): Promise<Hash> {
@@ -33,7 +45,7 @@ export async function attestAlignment(
     address: alignmentAttestationsContract.address,
     abi: alignmentAttestationsContract.abi,
     functionName: 'attestAlignment',
-    args: [subjectAddress, cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
+    args: [subjectId, cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -45,6 +57,7 @@ export async function attestAlignment(
 /**
  * Batch attest multiple alignments
  *
+ * @param subjectIds Array of bytes32 subject identifiers. For address subjects, use toSubjectId(address).
  * @param topicStatementCidsOrIds Required array of topics for indexer filtering.
  *                                Can be CID strings or bytes32 values.
  *                                Must have same length as other arrays.
@@ -52,7 +65,7 @@ export async function attestAlignment(
 export async function attestAlignmentsBatch(
   clients: TestClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
-  subjectAddresses: Address[],
+  subjectIds: `0x${string}`[],
   statementCids: IpfsCidV1[],
   topicStatementCids: IpfsCidV1[]
 ): Promise<Hash> {
@@ -60,7 +73,7 @@ export async function attestAlignmentsBatch(
     address: alignmentAttestationsContract.address,
     abi: alignmentAttestationsContract.abi,
     functionName: 'attestAlignmentsInBatch',
-    args: [subjectAddresses, statementCids.map(cidToBytes32), topicStatementCids.map(cidToBytes32)],
+    args: [subjectIds, statementCids.map(cidToBytes32), topicStatementCids.map(cidToBytes32)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

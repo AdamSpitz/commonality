@@ -4,8 +4,8 @@ import type { AlignmentAttestationEvent } from './events.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 
 const ATTESTER = '0x1111111111111111111111111111111111111111' as const;
-const SUBJECT = '0x2222222222222222222222222222222222222222' as const;
-const SUBJECT_2 = '0x3333333333333333333333333333333333333333' as const;
+const SUBJECT = '0x0000000000000000000000002222222222222222222222222222222222222222' as const;
+const SUBJECT_2 = '0x0000000000000000000000003333333333333333333333333333333333333333' as const;
 const CONTRACT_ADDRESS = '0x9999999999999999999999999999999999999999' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const TX_HASH_2 = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
@@ -19,7 +19,7 @@ function makeEvent(overrides: Partial<AlignmentAttestationEvent> = {}): Alignmen
   return {
     contractAddress: CONTRACT_ADDRESS,
     attester: ATTESTER,
-    subjectAddress: SUBJECT,
+    subjectId: SUBJECT,
     statementId: STATEMENT_CID,
     topicStatementId: TOPIC_CID_1,
     blockNumber: 100n,
@@ -44,7 +44,7 @@ describe('foldAlignmentAttestations', () => {
     assert.strictEqual(result.length, 1);
     const att = result[0]!;
     assert.strictEqual(att.attester, ATTESTER);
-    assert.strictEqual(att.subjectAddress, SUBJECT);
+    assert.strictEqual(att.subjectId, SUBJECT);
     assert.strictEqual(att.statementCid, STATEMENT_CID);
     assert.strictEqual(att.topicStatementCid, TOPIC_CID_1);
     assert.strictEqual(att.createdAt, '1700000000');
@@ -73,9 +73,9 @@ describe('foldAlignmentAttestations', () => {
 
   it('different (attester, subject, statement) triples create separate records', () => {
     const events = [
-      makeEvent({ subjectAddress: SUBJECT, statementId: STATEMENT_CID }),
-      makeEvent({ subjectAddress: SUBJECT_2, statementId: STATEMENT_CID }),
-      makeEvent({ subjectAddress: SUBJECT, statementId: STATEMENT_CID_2 }),
+      makeEvent({ subjectId: SUBJECT, statementId: STATEMENT_CID }),
+      makeEvent({ subjectId: SUBJECT_2, statementId: STATEMENT_CID }),
+      makeEvent({ subjectId: SUBJECT, statementId: STATEMENT_CID_2 }),
     ];
     const result = foldAlignmentAttestations(events);
     assert.strictEqual(result.length, 3);

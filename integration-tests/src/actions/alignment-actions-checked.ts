@@ -6,18 +6,19 @@
  *
  * Usage:
  *   // Instead of:
- *   await attestAlignment(clients, contract, subjectAddress, statementCid, topicStatementCid);
+ *   await attestAlignment(clients, contract, toSubjectId(address), statementCid, topicStatementCid);
  *   await waitForIndexerToSyncToTxHash(machinery, publicClient);
  *   // ... manual assertions ...
  *
  *   // Write:
- *   await attestAlignmentChecked(clients, contract, graphqlClient, subjectAddress, statementCid, topicStatementCid);
+ *   await attestAlignmentChecked(clients, contract, machinery, toSubjectId(address), statementCid, topicStatementCid);
  */
 
 import type { Hash, Address } from 'viem';
 import {
   attestAlignment,
   attestAlignmentsBatch,
+  toSubjectId,
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type AlignmentAttestationsContract,
@@ -46,10 +47,9 @@ import {
  * @param clients - Test wallet and public clients
  * @param alignmentAttestationsContract - The AlignmentAttestations contract instance
  * @param machinery - Action testing machinery
- * @param subjectAddress - Address of the subject (project, user, etc.) to align
+ * @param subjectAddress - Address of the subject (project, user, etc.) to align; converted to subjectId internally
  * @param statementCid - IPFS CID of the statement
  * @param topicStatementCid - IPFS CID of the topic for indexer filtering
- * @param statementId - Statement ID (bytes32 derived from CID)
  * @param options - Optional: control which checks run
  * @returns Transaction hash
  *
@@ -75,10 +75,11 @@ export async function attestAlignmentChecked(
   topicStatementCid: IpfsCidV1,
   options?: ActionRunOptions
 ): Promise<Hash> {
+  const subjectId = toSubjectId(subjectAddress);
   const context: ActionContext = {
     machinery,
     entities: {
-      subjectAddress,
+      subjectId,
       statementCid,
       attesterAddress: clients.account,
     },
@@ -89,7 +90,7 @@ export async function attestAlignmentChecked(
       const hash = await attestAlignment(
         clients,
         alignmentAttestationsContract,
-        subjectAddress,
+        subjectId,
         statementCid,
         topicStatementCid
       );
@@ -113,8 +114,8 @@ export async function attestAlignmentChecked(
  *
  * @param clients - Test wallet and public clients
  * @param alignmentAttestationsContract - The AlignmentAttestations contract instance
- * @param graphqlClient - GraphQL client for the indexer
- * @param subjectAddresses - Addresses of the subjects to align
+ * @param machinery - Action testing machinery
+ * @param subjectAddresses - Addresses of the subjects to align; converted to subjectIds internally
  * @param statementCids - IPFS CIDs of the statements (parallel to subjectAddresses)
  * @param topicStatementCids - IPFS CIDs of the topics (parallel to subjectAddresses)
  * @param options - Optional: control which checks run
@@ -125,7 +126,7 @@ export async function attestAlignmentChecked(
  * const txHash = await attestAlignmentsBatchChecked(
  *   clients,
  *   alignmentAttestationsContract,
- *   graphqlClient,
+ *   machinery,
  *   [project1.tokenAddress, project2.tokenAddress],
  *   [statement1Cid, statement2Cid],
  *   [topicCid, topicCid]
@@ -142,6 +143,7 @@ export async function attestAlignmentsBatchChecked(
   topicStatementCids: IpfsCidV1[],
   options?: ActionRunOptions
 ): Promise<Hash> {
+  const subjectIds = subjectAddresses.map(toSubjectId);
   // For batch operations, we don't track specific entities since there are many
   const context: ActionContext = {
     machinery,
@@ -155,7 +157,7 @@ export async function attestAlignmentsBatchChecked(
       const hash = await attestAlignmentsBatch(
         clients,
         alignmentAttestationsContract,
-        subjectAddresses,
+        subjectIds,
         statementCids,
         topicStatementCids
       );

@@ -46,7 +46,7 @@ export interface ActionContext {
   entities: {
     statementCid?: IpfsCidV1;
     projectAddress?: string;
-    subjectAddress?: string;
+    subjectId?: string;
     userAddress?: string;
     delegationNoteId?: string;
     fromStatementCid?: IpfsCidV1;

@@ -2,10 +2,15 @@ import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
 
+// Convert an address to a bytes32 subject ID (left-padded)
+function addressToSubjectId(addr) {
+  return ethers.zeroPadValue(addr, 32);
+}
+
 describe("AlignmentAttestations", function () {
   let alignmentAttestations;
   let alice, bob, charlie;
-  let subjectAddress1, subjectAddress2, subjectAddress3;
+  let subjectId1, subjectId2, subjectId3;
   let topicId; // Default topic for tests
 
   beforeEach(async function () {
@@ -13,10 +18,10 @@ describe("AlignmentAttestations", function () {
     const AlignmentAttestations = await ethers.getContractFactory("AlignmentAttestations");
     alignmentAttestations = await AlignmentAttestations.deploy();
 
-    // Use some addresses to represent subject addresses (projects, users, etc.)
-    subjectAddress1 = ethers.Wallet.createRandom().address;
-    subjectAddress2 = ethers.Wallet.createRandom().address;
-    subjectAddress3 = ethers.Wallet.createRandom().address;
+    // Use address-derived subject IDs (the common case for projects/users)
+    subjectId1 = addressToSubjectId(ethers.Wallet.createRandom().address);
+    subjectId2 = addressToSubjectId(ethers.Wallet.createRandom().address);
+    subjectId3 = addressToSubjectId(ethers.Wallet.createRandom().address);
 
     // Default topic for most tests
     topicId = ethers.encodeBytes32String("alignment-topic");
@@ -28,12 +33,12 @@ describe("AlignmentAttestations", function () {
 
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, statementId, topicId);
+        .attestAlignment(subjectId1, statementId, topicId);
 
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
         topicId,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
       expect(hasAttestation).to.equal(true);
@@ -45,10 +50,10 @@ describe("AlignmentAttestations", function () {
       await expect(
         alignmentAttestations
           .connect(alice)
-          .attestAlignment(subjectAddress1, statementId, topicId)
+          .attestAlignment(subjectId1, statementId, topicId)
       )
         .to.emit(alignmentAttestations, "AlignmentAttestation")
-        .withArgs(alice.address, subjectAddress1, statementId, topicId);
+        .withArgs(alice.address, subjectId1, statementId, topicId);
     });
 
     it("Should reject zero topicStatementId", async function () {
@@ -57,25 +62,25 @@ describe("AlignmentAttestations", function () {
       await expect(
         alignmentAttestations
           .connect(alice)
-          .attestAlignment(subjectAddress1, statementId, ethers.ZeroHash)
+          .attestAlignment(subjectId1, statementId, ethers.ZeroHash)
       ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidTopicStatementId");
     });
 
-    it("Should reject zero subject address", async function () {
+    it("Should reject zero subject ID", async function () {
       const statementId = ethers.encodeBytes32String("climate-action");
 
       await expect(
         alignmentAttestations
           .connect(alice)
-          .attestAlignment(ethers.ZeroAddress, statementId, topicId)
-      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidSubjectAddress");
+          .attestAlignment(ethers.ZeroHash, statementId, topicId)
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidSubjectId");
     });
 
     it("Should reject zero statement ID", async function () {
       await expect(
         alignmentAttestations
           .connect(alice)
-          .attestAlignment(subjectAddress1, ethers.ZeroHash, topicId)
+          .attestAlignment(subjectId1, ethers.ZeroHash, topicId)
       ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidStatementId");
     });
 
@@ -84,15 +89,15 @@ describe("AlignmentAttestations", function () {
 
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, statementId, topicId);
+        .attestAlignment(subjectId1, statementId, topicId);
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, statementId, topicId);
+        .attestAlignment(subjectId1, statementId, topicId);
 
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
         topicId,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
       expect(hasAttestation).to.equal(true);
@@ -105,18 +110,18 @@ describe("AlignmentAttestations", function () {
 
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, statementId, topicId);
+        .attestAlignment(subjectId1, statementId, topicId);
 
       const aliceHas = await alignmentAttestations.hasAttestation(
         alice.address,
         topicId,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
       const bobHas = await alignmentAttestations.hasAttestation(
         bob.address,
         topicId,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
 
@@ -129,21 +134,21 @@ describe("AlignmentAttestations", function () {
 
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, statementId, topicId);
+        .attestAlignment(subjectId1, statementId, topicId);
       await alignmentAttestations
         .connect(bob)
-        .attestAlignment(subjectAddress1, statementId, topicId);
+        .attestAlignment(subjectId1, statementId, topicId);
 
       const aliceHas = await alignmentAttestations.hasAttestation(
         alice.address,
         topicId,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
       const bobHas = await alignmentAttestations.hasAttestation(
         bob.address,
         topicId,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
 
@@ -160,19 +165,19 @@ describe("AlignmentAttestations", function () {
 
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, climate, topicId);
+        .attestAlignment(subjectId1, climate, topicId);
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, poverty, topicId);
+        .attestAlignment(subjectId1, poverty, topicId);
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, education, topicId);
+        .attestAlignment(subjectId1, education, topicId);
 
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           climate
         )
       ).to.equal(true);
@@ -180,7 +185,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           poverty
         )
       ).to.equal(true);
@@ -188,7 +193,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           education
         )
       ).to.equal(true);
@@ -199,19 +204,19 @@ describe("AlignmentAttestations", function () {
 
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, climate, topicId);
+        .attestAlignment(subjectId1, climate, topicId);
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress2, climate, topicId);
+        .attestAlignment(subjectId2, climate, topicId);
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress3, climate, topicId);
+        .attestAlignment(subjectId3, climate, topicId);
 
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           climate
         )
       ).to.equal(true);
@@ -219,7 +224,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress2,
+          subjectId2,
           climate
         )
       ).to.equal(true);
@@ -227,7 +232,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress3,
+          subjectId3,
           climate
         )
       ).to.equal(true);
@@ -240,19 +245,19 @@ describe("AlignmentAttestations", function () {
       // Subject 1 aligns with climate
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, climate, topicId);
+        .attestAlignment(subjectId1, climate, topicId);
 
       // Subject 2 aligns with poverty
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress2, poverty, topicId);
+        .attestAlignment(subjectId2, poverty, topicId);
 
       // Verify correct alignments exist
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           climate
         )
       ).to.equal(true);
@@ -260,7 +265,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress2,
+          subjectId2,
           poverty
         )
       ).to.equal(true);
@@ -270,7 +275,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           poverty
         )
       ).to.equal(false);
@@ -278,7 +283,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress2,
+          subjectId2,
           climate
         )
       ).to.equal(false);
@@ -287,7 +292,7 @@ describe("AlignmentAttestations", function () {
 
   describe("Batch Attestations", function () {
     it("Should handle batch attestations", async function () {
-      const subjects = [subjectAddress1, subjectAddress2, subjectAddress3];
+      const subjects = [subjectId1, subjectId2, subjectId3];
       const statements = [
         ethers.encodeBytes32String("climate-action"),
         ethers.encodeBytes32String("poverty-reduction"),
@@ -311,7 +316,7 @@ describe("AlignmentAttestations", function () {
     });
 
     it("Should emit events for each batch attestation with topicStatementId", async function () {
-      const subjects = [subjectAddress1, subjectAddress2];
+      const subjects = [subjectId1, subjectId2];
       const statements = [
         ethers.encodeBytes32String("climate-action"),
         ethers.encodeBytes32String("poverty-reduction"),
@@ -332,7 +337,7 @@ describe("AlignmentAttestations", function () {
     });
 
     it("Should allow different topics per attestation in batch", async function () {
-      const subjects = [subjectAddress1, subjectAddress2];
+      const subjects = [subjectId1, subjectId2];
       const statements = [
         ethers.encodeBytes32String("climate-action"),
         ethers.encodeBytes32String("poverty-reduction"),
@@ -355,7 +360,7 @@ describe("AlignmentAttestations", function () {
     });
 
     it("Should reject batch with mismatched array lengths", async function () {
-      const subjects = [subjectAddress1, subjectAddress2];
+      const subjects = [subjectId1, subjectId2];
       const statements = [ethers.encodeBytes32String("climate-action")];
       const topics = [topicId, topicId];
 
@@ -367,7 +372,7 @@ describe("AlignmentAttestations", function () {
     });
 
     it("Should reject batch with mismatched topics array length", async function () {
-      const subjects = [subjectAddress1, subjectAddress2];
+      const subjects = [subjectId1, subjectId2];
       const statements = [
         ethers.encodeBytes32String("climate-action"),
         ethers.encodeBytes32String("poverty-reduction"),
@@ -381,8 +386,8 @@ describe("AlignmentAttestations", function () {
       ).to.be.revertedWithCustomError(alignmentAttestations, "ArrayLengthMismatch");
     });
 
-    it("Should reject batch with zero subject address", async function () {
-      const subjects = [ethers.ZeroAddress];
+    it("Should reject batch with zero subject ID", async function () {
+      const subjects = [ethers.ZeroHash];
       const statements = [ethers.encodeBytes32String("climate-action")];
       const topics = [topicId];
 
@@ -390,11 +395,11 @@ describe("AlignmentAttestations", function () {
         alignmentAttestations
           .connect(alice)
           .attestAlignmentsInBatch(subjects, statements, topics)
-      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidSubjectAddress");
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidSubjectId");
     });
 
     it("Should reject batch with zero statement ID", async function () {
-      const subjects = [subjectAddress1];
+      const subjects = [subjectId1];
       const statements = [ethers.ZeroHash];
       const topics = [topicId];
 
@@ -406,7 +411,7 @@ describe("AlignmentAttestations", function () {
     });
 
     it("Should reject batch with zero topic statement ID", async function () {
-      const subjects = [subjectAddress1];
+      const subjects = [subjectId1];
       const statements = [ethers.encodeBytes32String("climate-action")];
       const topics = [ethers.ZeroHash];
 
@@ -423,6 +428,116 @@ describe("AlignmentAttestations", function () {
     });
   });
 
+  describe("Content Item Subjects", function () {
+    it("Should allow attesting about a content item by its content ID hash", async function () {
+      // Content ID: keccak256("twitter:18347") — same scheme as the content registry
+      const contentId = ethers.keccak256(ethers.toUtf8Bytes("twitter:18347"));
+      const statementId = ethers.encodeBytes32String("noninflammatory");
+
+      await alignmentAttestations
+        .connect(alice)
+        .attestAlignment(contentId, statementId, topicId);
+
+      const hasAttestation = await alignmentAttestations.hasAttestation(
+        alice.address,
+        topicId,
+        contentId,
+        statementId
+      );
+      expect(hasAttestation).to.equal(true);
+    });
+
+    it("Should keep address-derived and content-hash subjects independent", async function () {
+      const contentId = ethers.keccak256(ethers.toUtf8Bytes("youtube:dQw4w9WgXcQ"));
+      const statementId = ethers.encodeBytes32String("noninflammatory");
+
+      await alignmentAttestations
+        .connect(alice)
+        .attestAlignment(contentId, statementId, topicId);
+      await alignmentAttestations
+        .connect(alice)
+        .attestAlignment(subjectId1, statementId, topicId);
+
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, contentId, statementId)
+      ).to.equal(true);
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, subjectId1, statementId)
+      ).to.equal(true);
+
+      // They are independent — revoking one doesn't affect the other
+      await alignmentAttestations
+        .connect(alice)
+        .removeAttestation(contentId, statementId, topicId);
+
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, contentId, statementId)
+      ).to.equal(false);
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, subjectId1, statementId)
+      ).to.equal(true);
+    });
+
+    it("Should batch attest mixed address and content subjects", async function () {
+      const contentId = ethers.keccak256(ethers.toUtf8Bytes("twitter:29451"));
+      const subjects = [subjectId1, contentId];
+      const statements = [
+        ethers.encodeBytes32String("climate-action"),
+        ethers.encodeBytes32String("noninflammatory"),
+      ];
+      const topics = [topicId, topicId];
+
+      await alignmentAttestations
+        .connect(alice)
+        .attestAlignmentsInBatch(subjects, statements, topics);
+
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, subjectId1, statements[0])
+      ).to.equal(true);
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, contentId, statements[1])
+      ).to.equal(true);
+    });
+  });
+
+  describe("Revocation", function () {
+    it("Should allow revoking an attestation", async function () {
+      const statementId = ethers.encodeBytes32String("climate-action");
+
+      await alignmentAttestations
+        .connect(alice)
+        .attestAlignment(subjectId1, statementId, topicId);
+
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, subjectId1, statementId)
+      ).to.equal(true);
+
+      await alignmentAttestations
+        .connect(alice)
+        .removeAttestation(subjectId1, statementId, topicId);
+
+      expect(
+        await alignmentAttestations.hasAttestation(alice.address, topicId, subjectId1, statementId)
+      ).to.equal(false);
+    });
+
+    it("Should emit AlignmentRevoked event", async function () {
+      const statementId = ethers.encodeBytes32String("climate-action");
+
+      await alignmentAttestations
+        .connect(alice)
+        .attestAlignment(subjectId1, statementId, topicId);
+
+      await expect(
+        alignmentAttestations
+          .connect(alice)
+          .removeAttestation(subjectId1, statementId, topicId)
+      )
+        .to.emit(alignmentAttestations, "AlignmentRevoked")
+        .withArgs(alice.address, subjectId1, statementId);
+    });
+  });
+
   describe("Edge Cases", function () {
     it("Should return false for non-existent attestation", async function () {
       const statementId = ethers.encodeBytes32String("climate-action");
@@ -430,24 +545,24 @@ describe("AlignmentAttestations", function () {
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
         topicId,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
       expect(hasAttestation).to.equal(false);
     });
 
-    it("Should allow using actual contract addresses as subjects", async function () {
+    it("Should allow using a contract address as subject (left-padded to bytes32)", async function () {
       const statementId = ethers.encodeBytes32String("climate-action");
 
-      // Use the deployed contract's address as a "subject" (valid use case)
+      const contractSubjectId = addressToSubjectId(await alignmentAttestations.getAddress());
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(await alignmentAttestations.getAddress(), statementId, topicId);
+        .attestAlignment(contractSubjectId, statementId, topicId);
 
       const hasAttestation = await alignmentAttestations.hasAttestation(
         alice.address,
         topicId,
-        await alignmentAttestations.getAddress(),
+        contractSubjectId,
         statementId
       );
       expect(hasAttestation).to.equal(true);
@@ -459,13 +574,13 @@ describe("AlignmentAttestations", function () {
 
       await alignmentAttestations
         .connect(alice)
-        .attestAlignment(subjectAddress1, stmt1, topicId);
+        .attestAlignment(subjectId1, stmt1, topicId);
 
       expect(
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           stmt1
         )
       ).to.equal(true);
@@ -473,7 +588,7 @@ describe("AlignmentAttestations", function () {
         await alignmentAttestations.hasAttestation(
           alice.address,
           topicId,
-          subjectAddress1,
+          subjectId1,
           stmt2
         )
       ).to.equal(false);
@@ -490,30 +605,30 @@ describe("AlignmentAttestations", function () {
       await expect(
         alignmentAttestations
           .connect(alice)
-          .attestAlignment(subjectAddress1, statementId, topic1)
+          .attestAlignment(subjectId1, statementId, topic1)
       )
         .to.emit(alignmentAttestations, "AlignmentAttestation")
-        .withArgs(alice.address, subjectAddress1, statementId, topic1);
+        .withArgs(alice.address, subjectId1, statementId, topic1);
 
       await expect(
         alignmentAttestations
           .connect(alice)
-          .attestAlignment(subjectAddress1, statementId, topic2)
+          .attestAlignment(subjectId1, statementId, topic2)
       )
         .to.emit(alignmentAttestations, "AlignmentAttestation")
-        .withArgs(alice.address, subjectAddress1, statementId, topic2);
+        .withArgs(alice.address, subjectId1, statementId, topic2);
 
       // The attestation mapping tracks per topic; both topic1 and topic2 have the attestation
       const hasAttestation1 = await alignmentAttestations.hasAttestation(
         alice.address,
         topic1,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
       const hasAttestation2 = await alignmentAttestations.hasAttestation(
         alice.address,
         topic2,
-        subjectAddress1,
+        subjectId1,
         statementId
       );
       expect(hasAttestation1).to.equal(true);
