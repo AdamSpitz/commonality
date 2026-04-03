@@ -32,3 +32,45 @@ Anyway, the idea is that we use each user's transitive trust mapping to create t
 In particular, our system will make use of it for the funding portal subsystem: for any particular user who's looking at the funding portal for a particular statementId, rather than seeing *all* the projects that anyone has attested to as being aligned with that statement, he'll only see the ones attested to by accounts within his transitive trust mapping.
 
 Why this is important: I don't want incompetent or malicious users to spam the system with bad project-alignment attestations.
+
+## Implementation: incremental client-side computation
+
+Each user needs their own trust graph, and there's no sharing between users. So we compute entirely in the browser — no server-side computation needed.
+
+### Background processing loop
+
+The transitive trust algorithm runs incrementally in the browser using a Web Worker, processing one step at a time without blocking the UI.
+
+Each "step" is:
+  1. Pop the highest-trust path off the priority queue
+  2. Fetch that user's TrustMappingEntry events from the indexer (one network request)
+  3. Fold the events into that user's direct trust mapping
+  4. For each user they trust, compute the cumulative trust (multiply along the path) and add to the priority queue if it's above the threshold (0.01)
+  5. Update the transitive trust mapping with any new or improved trust scores
+
+The priority queue is ordered by cumulative trust along the path, so the most important relationships are discovered first. This means even an incomplete mapping is useful — it contains the highest-trust paths.
+
+### Persistence
+
+Store the computed state in IndexedDB:
+  - The transitive trust mapping (Map<address, trustScore>)
+  - The serialized priority queue (paths still to explore)
+  - Cached direct trust mappings for already-visited users
+
+On app startup, rehydrate from IndexedDB and continue processing where we left off. The trust graph doesn't need to be rebuilt from scratch each session.
+
+### Invalidation
+
+When a new TrustMappingEntry event shows up for a user already in the mapping, invalidate the subtree rooted at that user (all paths that went through them) and re-enqueue those paths for reprocessing.
+
+### What the rest of the app sees
+
+The rest of the app just calls something like `getTrustedSet()` which synchronously returns whatever's been computed so far. The funding portal filters alignment attestations against this set.
+
+### What the user experiences
+
+First time: trust graph is empty, user sees all attestations (or a "building your trust network..." indicator). Within a few seconds of background processing, attestations start getting filtered as the graph fills in. By the next session it's mostly complete and loads instantly from IndexedDB.
+
+### Rate limiting consideration
+
+Each hop in the graph requires a network request to the indexer (to fetch that user's TrustMappingEntry events). So the graph fills in at roughly "one user per round-trip" pace. With a reasonable network, that's a few hundred transitive trust relationships per minute — more than enough for practical use.
