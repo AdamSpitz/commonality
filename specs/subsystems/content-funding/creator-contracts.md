@@ -50,6 +50,8 @@ Not much. The actual new infrastructure is:
 - A factory check against the registry at creation time
 - [Channel claiming](channel-claiming.md) logic
 
+These four contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) are deployed as a [per-platform set](README.md#per-platform-deployment). The factory, registry, escrow, and channel-claiming contracts for Twitter are separate deployments from the YouTube ones, etc.
+
 The ERC-1155 structure, threshold/deadline mechanics, escrow, secondary market, and delegation all come from Pubstarter unchanged.
 
 To create social-recognition incentives for owning the tokens, the contribution leaderboards may need to be specialized for this system, because they should show "who owns (or has burned) the tokens for this content item" as well as "who owns (or has burned) the tokens for this creator".

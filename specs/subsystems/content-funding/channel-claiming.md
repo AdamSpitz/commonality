@@ -188,7 +188,9 @@ ENS verification becomes worth adding when: (a) there are creators actively requ
 
 ### Future: additional platforms
 
-The pluggable verifier interface naturally extends to other platforms. A YouTube verifier might check a video description or channel "about" section. A Substack verifier might check a post or bio. Each platform gets its own verification pattern, but the contract interface stays the same.
+Each platform gets its own ChannelRegistry deployment with a platform-appropriate verifier (see [per-platform deployment](README.md#per-platform-deployment)). A YouTube ChannelRegistry might use a video-description verifier; a Bluesky ChannelRegistry might use DID-based proof. The `IChannelVerifier` interface stays the same, but each platform's ChannelRegistry is a separate contract with its own verifier implementation.
+
+Anyone can deploy a new platform's contract set. The UI decides which deployments to trust.
 
 ## Creator onboarding
 

@@ -2,7 +2,9 @@
 
 ## Can we use the same "store events and fold them" architecture?
 
-Yes. Content funding fits naturally into the existing thin event cache + SDK fold architecture. The new contracts (content registry, creator assurance contracts) emit events; those events go into the same `events` table; the SDK gets fold functions for content-funding entities.
+Yes. Content funding fits naturally into the existing thin event cache + SDK fold architecture. Each platform's contracts (content registry, channel registry, creator assurance contracts) emit events; those events go into the same `events` table; the SDK gets fold functions for content-funding entities.
+
+Since contracts are deployed [per-platform](README.md#per-platform-deployment), the event cache needs to watch contract addresses from each platform's deployment. The UI configuration that lists known platform contract sets also tells the indexer which addresses to watch.
 
 ### New events to capture
 

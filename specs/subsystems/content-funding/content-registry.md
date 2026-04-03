@@ -1,6 +1,8 @@
 # Content Registry
 
-A simple on-chain registry that enforces content-item uniqueness across assurance contracts.
+A simple on-chain registry that enforces content-item uniqueness across assurance contracts within a single platform deployment.
+
+Each platform (Twitter, YouTube, Substack) gets its own ContentRegistry instance, deployed alongside the platform's ChannelRegistry, ChannelEscrow, and CreatorAssuranceContractFactory. See the [per-platform deployment](README.md#per-platform-deployment) section for rationale. Uniqueness is enforced within a platform deployment — competing deployments for the same platform each have their own content-item space, with the UI deciding which to trust.
 
 ## The contract
 
@@ -8,7 +10,7 @@ A simple on-chain registry that enforces content-item uniqueness across assuranc
 mapping(uint256 contentId => address assuranceContract)
 ```
 
-The assurance contract factory checks the registry at creation time and reverts if any listed content ID is already claimed by an *active* contract. This enforces the scarcity that makes secondary markets work: if you want to retroactively fund *that specific tweet*, you can't just create a new contract — you must buy tokens from the existing one.
+The platform's assurance contract factory checks the registry at creation time and reverts if any listed content ID is already claimed by an *active* contract. This enforces the scarcity that makes secondary markets work: if you want to retroactively fund *that specific tweet*, you can't just create a new contract — you must buy tokens from the existing one.
 
 ## Content ID scheme
 
@@ -42,7 +44,7 @@ The lazy approach is simplest (no callback infrastructure), but it means stale e
 
 ## Plaintext event for off-chain resolution
 
-The factory should emit an event that includes the plaintext canonical ID alongside the hash when a content item is registered:
+The platform's factory should emit an event that includes the plaintext canonical ID alongside the hash when a content item is registered:
 
 ```solidity
 event ContentItemRegistered(

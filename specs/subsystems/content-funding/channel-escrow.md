@@ -2,6 +2,8 @@
 
 A holding contract that receives funds on behalf of creators who haven't verified their identity yet. Simple by design: it maps channel IDs to balances and releases funds to whoever successfully verifies that channel.
 
+Each platform deployment has its own ChannelEscrow paired with its own ChannelRegistry (see [per-platform deployment](README.md#per-platform-deployment)). The escrow reads the verified owner from its paired ChannelRegistry.
+
 ## Why a separate contract
 
 The escrow exists because of a timing gap: a fan can create and fund a contract for a creator who doesn't have a wallet yet and doesn't know this system exists. The assurance contract needs a payout target at creation time; the escrow is that target for unclaimed channels.
