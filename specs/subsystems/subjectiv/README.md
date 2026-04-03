@@ -1,7 +1,20 @@
 # Subjectiv: trust-graph-mediated event streams
 
-I haven't completely decided whether or not to include this yet. For now, consider this to be just thinking out loud - don't implement any of this.
+## Decision
 
+We're building this, specifically for alignment attestations (project-to-cause links).
+
+The key insight: different attestation types have different trust requirements.
+
+**Implication attestations and noninflammatory-content attestations** are fairly objective — they can be evaluated by an LLM looking at the content itself. For these, a simple "choose which centralized attesters you trust" model works fine, because the attesters are doing a straightforward mechanical job. It doesn't really matter that they're centralized.
+
+**Alignment attestations** are fundamentally different. Evaluating whether a particular project is actually aligned with a cause requires knowing something about who's going to be doing the work, how trustworthy they are, whether the project is a good idea, etc. This is inherently social judgment — the kind of thing that propagates through personal networks via word-of-mouth, not the kind of thing you delegate to a few approved evaluators.
+
+If we used the centralized-attester model for alignment attestations, it would feel like a credentialing system (who's on the approved list?). The trust graph makes it feel like word-of-mouth, which is how this kind of judgment actually works. This matters for the overall feeling of the system — we want it to feel open and network-driven, not gatekept.
+
+So: Subjectiv is used for alignment attestations. The other attestation types keep the simpler centralized-attester model.
+
+## Design
 
 I want a subsystem called subjectiv.
 

@@ -6,6 +6,7 @@ Main thing I want to work on next:
   - ?
 
 Other big things to do soon:
+  - Implement the Subjectiv trust graph for alignment attestations. (Decision made: alignment attestations need the trust graph because they're inherently social judgment, unlike implication/content attestations which are objective enough for centralized attesters. See specs/subsystems/subjectiv/README.md.)
   - Figure out the seed statements?
   - Generate a proliferation of similar statements around the seed statements. Use an LLM *once* to pre-generate evaluations of all the S1 -> S2 implication candidates, then store those statements and those evaluations as another pre-generated data to be used in the fake-data simulations.
   - Make sure the attester and finder seem viable. (Get them into the docker-compose setup? Problem is that it actually costs money to run the LLMs, so I want them to be part of the pre-generated stuff, not something that runs every time I run the tests.)
