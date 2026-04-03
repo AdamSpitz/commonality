@@ -26,6 +26,8 @@ This is a general-purpose mechanism. You could fund content for any reason: noni
 
 The four new smart contracts — ContentRegistry, ChannelRegistry, ChannelEscrow, and CreatorAssuranceContractFactory — are deployed as a **set per platform**. Twitter gets one set, YouTube gets another, Substack gets another.
 
+**Open question: do we need four separate contracts?** The ChannelRegistry and ChannelEscrow are tightly coupled (escrow reads from the registry on every withdrawal; veto lives on the registry but affects contracts created by the factory). A two-contract split — ChannelRegistry+Escrow and ContentRegistry+Factory — would reduce deployment surface, eliminate cross-contract calls, and simplify the UI config. The four-contract version works fine; whether to consolidate is worth revisiting during implementation when the right boundaries become obvious.
+
 This keeps the system open: anyone can deploy a new set of contracts for a new platform (Bluesky, Mastodon, whatever) without needing permission or coordination. The contracts themselves don't privilege any particular platform — the question of "which platform deployments are the legitimate ones" is pushed upward into **UI configuration**.
 
 The UI maintains a list of known platform contract sets. Assurance contracts created via a known factory get a trust indicator; contracts from unknown factories get a warning. Adding support for a new platform means deploying a new contract set and updating the UI config — no existing contracts need to change.
