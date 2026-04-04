@@ -58,4 +58,4 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
-- Full lint now passes. Working on e2e tests for pubstarter, fundingportals, mutablerefs, and other subsystems.
+- All tests passing: 1238 total (243 SDK + 272 Hardhat + 107 integration + 616 UI). E2e tests exist for all major subsystems (pubstarter, fundingportals, mutablerefs, marketplace).

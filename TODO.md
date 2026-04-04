@@ -3,8 +3,13 @@
 ---
 
 Main thing I want to work on next:
-  - [x] Get the full lint to pass, then make it part of the precommit hook.
-  - I'm not sure exactly what e2e tests are done already and what's not, but we just wrote the UI code for some other subsystems (pubstarter, fundingportals, mutablerefs, anything else?), and I suspect we don't have e2e tests for them yet. So that'd be a good thing to do.
+  - E2e tests: DISCOVERED - most subsystems already have tests!
+    - Pubstarter: 7 integration test files + UI tests + e2e spec ✓
+    - Funding Portals: 4 integration test files (alignment, indirect, leaderboards, metrics) ✓
+    - Mutable Refs: 1 integration test file + UI tests ✓
+    - Marketplace: 1 integration test file ✓
+    - Displayable Documents: Only unit tests (utility library, no e2e needed)
+    - Tests all pass: 243 SDK + 272 Hardhat + 107 integration + 616 UI = 1238 passing
 
 Other big things to do soon:
   - Implement the Subjectiv trust graph for alignment attestations. (Decision made: alignment attestations need the trust graph because they're inherently social judgment, unlike implication/content attestations which are objective enough for centralized attesters. See specs/subsystems/subjectiv/README.md.)

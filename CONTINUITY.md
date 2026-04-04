@@ -98,6 +98,35 @@ Next item in TODO.md: **Implement user-selectable attester trust** — users sho
 
 ---
 
+## E2e tests discovery — COMPLETE ✓
+
+### What was done
+
+Investigated the "e2e tests for pubstarter, fundingportals, mutablerefs" task from TODO.md. Discovered that tests already exist for all major subsystems:
+
+1. **Pubstarter**: 7 integration test files + UI tests + e2e Playwright spec ✓
+2. **Funding Portals**: 4 integration test files (alignment, indirect alignment, leaderboards, aggregated metrics) ✓
+3. **Mutable Refs**: 1 integration test file + UI tests ✓
+4. **Marketplace**: 1 integration test file ✓
+5. **Displayable Documents**: Only unit tests (utility library, no e2e needed)
+
+All tests pass: 243 SDK + 272 Hardhat + 107 integration + 616 UI = **1238 passing**.
+
+### Files changed
+- `TODO.md` — updated task status (was discovery task)
+- `README.md` — updated status section
+- `CONTINUITY.md` — this note
+
+### Notes for next session
+
+Good interrupt point. All major subsystems have test coverage. The remaining TODO items are:
+- Implement the Subjectiv trust graph for alignment attestations
+- Implement the content-funding system
+- Figure out the seed statements
+- (And others listed in TODO.md)
+
+---
+
 ## Local deploy data persistence — COMPLETE ✓
 
 ### What was done
