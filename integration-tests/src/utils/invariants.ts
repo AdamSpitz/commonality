@@ -13,7 +13,7 @@
 import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
 import {
-  getIndirectSupporterCount, getIndirectSupporters, SDKMachinery, IpfsCidV1,
+  getIndirectSupporterCount, getIndirectSupporters, IpfsCidV1,
   getProject, getProjectContributions, getProjectRefunds,
   getTokenBurns, getNote, getDelegationChain,
   getUserRef, getRef, getUserRefHistory,

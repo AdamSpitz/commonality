@@ -1,4 +1,4 @@
-import { keccak256, toBytes, fromBytes, formatEther, parseEther } from 'viem';
+import { keccak256, formatEther, parseEther } from 'viem';
 
 /**
  * Utility functions for generative testing

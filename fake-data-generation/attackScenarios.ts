@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, parseEther, keccak256, toBytes } from 'viem';
+import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import {
   BeliefsAbi,

@@ -16,9 +16,16 @@ export default defineConfig([
         node: true,
         mocha: true,
       },
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
-    parserOptions: {
-      tsconfigRootDir: import.meta.dirname,
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ])

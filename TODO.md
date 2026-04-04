@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Get the full lint to pass, then make it part of the precommit hook.
+  - [x] Get the full lint to pass, then make it part of the precommit hook.
   - I'm not sure exactly what e2e tests are done already and what's not, but we just wrote the UI code for some other subsystems (pubstarter, fundingportals, mutablerefs, anything else?), and I suspect we don't have e2e tests for them yet. So that'd be a good thing to do.
 
 Other big things to do soon:

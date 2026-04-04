@@ -20,7 +20,6 @@ export function selectCandidatePairs(
   popularStatements: PopularStatement[],
   alreadyEvaluated: Set<string>,
 ): CandidatePair[] {
-  const popularCids = new Set(popularStatements.map(s => s.cid));
   const pairs: CandidatePair[] = [];
 
   for (const newCid of newStatementCids) {

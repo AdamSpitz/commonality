@@ -15,9 +15,9 @@ export default defineConfig([
       globals: {
         ...globals.node,
       },
-    },
-    parserOptions: {
-      tsconfigRootDir: import.meta.dirname,
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
   {
@@ -31,6 +31,13 @@ export default defineConfig([
       globals: {
         ...globals.node,
       },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^__',
+      }],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ])

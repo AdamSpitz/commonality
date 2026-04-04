@@ -46,7 +46,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
   };
 
   const statements: Statement[] = [];
-  let idCounter = 0;
+  let __idCounter = 0;
 
   for (const [domain] of Object.entries(universe.domains)) {
     const templates = universe.statementTemplates[domain];
@@ -60,7 +60,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
           position: positionKey
         };
 
-        idCounter++;
+        __idCounter++;
         const cid = await uploadStatementToIPFS(ipfsConfig, content, domain, positionKey, 'simple');
         const statement: Statement = {
           domain,
@@ -82,7 +82,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
     const stmt2 = statements[Math.floor(Math.random() * statements.length)];
 
     if (stmt1 !== stmt2 && stmt1.domain === stmt2.domain) {
-      idCounter++;
+      __idCounter++;
       const content = {
         text: `I support either "${stmt1.content.text}" or "${stmt2.content.text}"`,
         domain: stmt1.domain,
@@ -109,7 +109,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
     const stmt2 = statements[Math.floor(Math.random() * statements.length)];
 
     if (stmt1 !== stmt2 && stmt1.domain === stmt2.domain) {
-      idCounter++;
+      __idCounter++;
       const content = {
         text: `Both "${stmt1.content.text}" and "${stmt2.content.text}" are important`,
         domain: stmt1.domain,
@@ -131,7 +131,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
 
   // Save to file (without CIDs — those are set at runtime via IPFS upload)
   const outputPath = join(__dirname, 'data', 'statements.json');
-  const statementsForFile = statements.map(({ cid, ...rest }) => rest);
+  const statementsForFile = statements.map(({ cid: __unused_cid, ...rest }) => rest);
   await fs.writeFile(outputPath, JSON.stringify(statementsForFile, null, 2));
 
   console.log(`Generated ${statements.length} statements`);

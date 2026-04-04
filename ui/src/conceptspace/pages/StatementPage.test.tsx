@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { StatementPage } from './StatementPage'
-import type { Statement, DisplayableDocument } from '@commonality/sdk'
 
 // Mock wagmi hooks
 vi.mock('wagmi', () => ({

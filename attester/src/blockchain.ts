@@ -1,5 +1,3 @@
-import { createWalletClient, createPublicClient, http } from 'viem';
-import { mainnet, sepolia } from 'viem/chains';
 import {
   createTestClients,
   attestImplication,
@@ -9,7 +7,7 @@ import {
   IpfsCidV1,
 } from '@commonality/sdk';
 import { loadConfig } from './config.js';
-import { classifyBlockchainError, BlockchainError } from './errors.js';
+import { classifyBlockchainError } from './errors.js';
 
 let testClients: TestClients | null = null;
 let implicationsContract: ImplicationsContract | null = null;
@@ -62,8 +60,8 @@ export async function publishAttestation(
 }
 
 export async function checkExistingAttestation(
-  fromStatementCid: IpfsCidV1,
-  toStatementCid: IpfsCidV1
+  _fromStatementCid: IpfsCidV1,
+  _toStatementCid: IpfsCidV1
 ): Promise<boolean> {
   return false;
 }
