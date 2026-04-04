@@ -1,9 +1,9 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getDirectTrustMapping, getTrustedSet } from '@commonality/sdk'
 import { useTrustedSet } from './useTrustedSet'
 import { SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT } from '../subjectivTrust'
+import { computeSubjectivTrustedSet } from '../subjectivTrustWorkerClient'
 
 const mockMachinery = {
   eventCacheUrl: 'http://localhost:42069/api',
@@ -12,13 +12,12 @@ const mockMachinery = {
   },
 } as any
 
-vi.mock('@commonality/sdk', () => ({
-  getDirectTrustMapping: vi.fn(),
-  getTrustedSet: vi.fn(),
-}))
-
 vi.mock('./useMachinery', () => ({
   useMachinery: () => mockMachinery,
+}))
+
+vi.mock('../subjectivTrustWorkerClient', () => ({
+  computeSubjectivTrustedSet: vi.fn(),
 }))
 
 function TrustedSetProbe({
@@ -42,21 +41,22 @@ function TrustedSetProbe({
   )
 }
 
-function makeDirectTrustMapping() {
-  return new Map([['0xfeedfeedfeedfeedfeedfeedfeedfeedfeedfeed', 100]])
-}
-
 describe('useTrustedSet', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useRealTimers()
-    vi.mocked(getDirectTrustMapping).mockResolvedValue(makeDirectTrustMapping())
   })
 
   it('supports manual refreshes', async () => {
-    vi.mocked(getTrustedSet)
-      .mockResolvedValueOnce(new Set(['0x1111111111111111111111111111111111111111']))
-      .mockResolvedValueOnce(new Set(['0x2222222222222222222222222222222222222222']))
+    vi.mocked(computeSubjectivTrustedSet)
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0x1111111111111111111111111111111111111111'],
+      })
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0x2222222222222222222222222222222222222222'],
+      })
 
     const user = userEvent.setup()
     render(<TrustedSetProbe />)
@@ -73,9 +73,15 @@ describe('useTrustedSet', () => {
   })
 
   it('recomputes when the trust network is invalidated elsewhere in the UI', async () => {
-    vi.mocked(getTrustedSet)
-      .mockResolvedValueOnce(new Set(['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']))
-      .mockResolvedValueOnce(new Set(['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb']))
+    vi.mocked(computeSubjectivTrustedSet)
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
+      })
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+      })
 
     render(<TrustedSetProbe />)
 
@@ -93,10 +99,19 @@ describe('useTrustedSet', () => {
   })
 
   it('refreshes on an interval when configured', async () => {
-    vi.mocked(getTrustedSet)
-      .mockResolvedValueOnce(new Set(['0x3333333333333333333333333333333333333333']))
-      .mockResolvedValueOnce(new Set(['0x4444444444444444444444444444444444444444']))
-      .mockResolvedValue(new Set(['0x4444444444444444444444444444444444444444']))
+    vi.mocked(computeSubjectivTrustedSet)
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0x3333333333333333333333333333333333333333'],
+      })
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0x4444444444444444444444444444444444444444'],
+      })
+      .mockResolvedValue({
+        hasDirectTrust: true,
+        trustedSet: ['0x4444444444444444444444444444444444444444'],
+      })
 
     render(<TrustedSetProbe refreshIntervalMs={25} />)
 
@@ -110,6 +125,20 @@ describe('useTrustedSet', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('trusted-set')).toHaveTextContent('0x4444444444444444444444444444444444444444')
+    })
+  })
+
+  it('falls back to showing no trusted set when the user has no direct trust declarations', async () => {
+    vi.mocked(computeSubjectivTrustedSet).mockResolvedValue({
+      hasDirectTrust: false,
+      trustedSet: [],
+    })
+
+    render(<TrustedSetProbe />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('trusted-set')).toHaveTextContent('none')
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
     })
   })
 })

@@ -1,5 +1,40 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv Web Worker execution — COMPLETE ✓
+
+### What was done
+
+Moved Subjectiv trusted-set computation off the main thread for the UI hook that powers funding-portal filtering and the Settings summary.
+
+Key decisions:
+- Kept the public `useTrustedSet()` hook API unchanged so the rest of the UI did not need to change.
+- Added a dedicated browser worker entrypoint plus a small shared client that sends compute requests and receives trusted-set results.
+- Kept a main-thread fallback in the client for environments without `Worker`, so tests and unsupported runtimes still behave correctly.
+- Left IndexedDB persistence and partial-progress streaming for a later chunk; this task only changes where the full recomputation runs.
+
+### Files changed
+- `ui/src/shared/hooks/useTrustedSet.ts`
+- `ui/src/shared/hooks/useTrustedSet.test.tsx`
+- `ui/src/shared/subjectivTrust.ts`
+- `ui/src/shared/subjectivTrustWorkerClient.ts`
+- `ui/src/shared/workers/subjectivTrustWorker.ts`
+- `ui/vite.config.ts`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The remaining Subjectiv chunks are still:
+- IndexedDB persistence / rehydration for the computed network and direct-trust cache
+- Partial-progress updates so the UI can show the network filling in while traversal is underway
+- Any wording cleanup in Settings / funding portal once the behavior feels stable
+
+The new worker bundle is fairly large because it currently pulls in the SDK trust-query path directly. That is acceptable for now, but if bundle size becomes a concern, a future pass could extract a slimmer worker-specific SDK entrypoint.
+
+---
+
 ## Subjectiv MVP implementation — COMPLETE (first slice) ✓
 
 ### What was done

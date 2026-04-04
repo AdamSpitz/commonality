@@ -8,6 +8,9 @@ const indexerUrl = process.env.INDEXER_URL ?? 'http://localhost:42069';
 
 export default defineConfig({
   plugins: [react()],
+  worker: {
+    format: 'es',
+  },
   resolve: {
     preserveSymlinks: true,
     alias: {

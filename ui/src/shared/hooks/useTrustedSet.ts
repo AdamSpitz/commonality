@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getDirectTrustMapping, getTrustedSet } from '@commonality/sdk'
 import { useMachinery } from './useMachinery'
 import {
   SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT,
   SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS,
 } from '../subjectivTrust'
+import { computeSubjectivTrustedSet } from '../subjectivTrustWorkerClient'
 
 interface UseTrustedSetOptions {
   refreshIntervalMs?: number
@@ -37,16 +37,21 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
       setError(null)
 
       try {
-        const directTrust = await getDirectTrustMapping(machinery, address)
+        const result = await computeSubjectivTrustedSet({
+          address,
+          eventCacheUrl: machinery.eventCacheUrl,
+          contractAddresses: machinery.contractAddresses,
+        })
+
         if (cancelled) return
 
-        if (directTrust.size === 0) {
+        if (!result.hasDirectTrust) {
           setTrustedSet(undefined)
           return
         }
 
-        const nextTrustedSet = await getTrustedSet(machinery, address)
         if (!cancelled) {
+          const nextTrustedSet = new Set(result.trustedSet)
           setTrustedSet(nextTrustedSet.size > 0 ? nextTrustedSet : undefined)
         }
       } catch (err) {

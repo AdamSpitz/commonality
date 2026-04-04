@@ -14,7 +14,6 @@ This is the currently implemented slice of Subjectiv:
 
 Deliberately deferred from the original spec:
 
-- Web Worker execution
 - IndexedDB persistence / rehydration
 - Partial-progress trust graph updates while traversal is still running
 - Event-driven or incremental recomputation sourced directly from TrustRegistry events
@@ -22,5 +21,5 @@ Deliberately deferred from the original spec:
 Current behavior:
 
 - If the user has no direct trust declarations yet, the funding portal falls back to showing all alignment attestations.
-- Once the user declares direct trust, the UI computes the transitive trusted set in memory and uses that set for filtering.
+- Once the user declares direct trust, the UI computes the transitive trusted set in a Web Worker and uses that set for filtering.
 - The UI recomputes the trusted set when the user changes direct trust, clicks manual refresh, refocuses the window, or waits for the periodic refresh timer.
