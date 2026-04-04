@@ -1,5 +1,26 @@
 # Continuity notes for ephemeral AI instances
 
+## Working-directory guard for fake-data scripts — COMPLETE ✓
+
+### What was done
+
+Added a `process.cwd()` guard to `fake-data-generation/loadEnv.ts`. If the script is not run from within the `fake-data-generation/` directory, a clear warning is printed with the current directory, the expected directory, and the corrective command (`cd fake-data-generation && npm run gen:small`).
+
+Key decision: the check uses `basename(process.cwd()) !== 'fake-data-generation'` — it checks the directory name only, not the full path, so it works regardless of where the project is cloned.
+
+Note: the `fake-data-generation/README.md` says scripts need to be run from `hardhat/` — that's outdated. The scripts were refactored to use `viem` directly (no hardhat runtime) and now use `__dirname`-based paths, so `fake-data-generation/` is the correct expected cwd. The README note about hardhat is stale but was not updated as part of this task.
+
+### Files changed
+- `fake-data-generation/loadEnv.ts` — added cwd guard
+- `TODO.md` — marked task done
+- `CONTINUITY.md` — this note
+
+### Notes for next session
+
+The `fake-data-generation/README.md` still incorrectly says scripts need to run from `hardhat/`. Could be cleaned up. Also, `npm run lint` fails due to a pre-existing ESLint flat-config issue in `fake-data-generation/eslint.config.js` — unrelated to this task.
+
+---
+
 ## Local deploy data persistence — COMPLETE ✓
 
 ### What was done

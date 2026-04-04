@@ -1,10 +1,23 @@
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, basename } from 'path';
 import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Guard: these scripts must be run from the fake-data-generation/ directory
+// (i.e. via `npm run gen:*` or `tsx <script>.ts` from within this directory).
+// Running from elsewhere (e.g. the project root or hardhat/) will cause subtle
+// failures because npm script resolution and any cwd-relative paths won't work.
+if (basename(process.cwd()) !== 'fake-data-generation') {
+  console.warn(
+    `Warning: fake-data scripts should be run from the fake-data-generation/ directory.\n` +
+    `  Current directory: ${process.cwd()}\n` +
+    `  Expected:          .../fake-data-generation/\n` +
+    `  Try: cd fake-data-generation && npm run gen:small`
+  );
+}
 
 const envPath = join(__dirname, '..', '.env');
 if (fs.existsSync(envPath)) {
