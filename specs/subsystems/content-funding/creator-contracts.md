@@ -16,8 +16,8 @@ A single creator contract lists specific content items:
 
 1. Someone creates an assurance contract for a content creator, listing specific content items by their canonical IDs. (See [channel-claiming.md](channel-claiming.md) for who's allowed to do this.)
 2. Each content item becomes a token type in the ERC-1155 contract, with a configurable supply and price.
-3. Donors choose which content items to fund by buying tokens of that type. To fund the creator without expressing a preference, buy some of each.
-4. Funds go into escrow. If the contract's threshold is met, the creator gets the funds. If not, token holders can reclaim.
+3. Donors choose which content items to fund by buying tokens of that type. Third-party contract creators must make an initial token purchase during creation. To fund the creator without expressing a preference, buy some of each.
+4. Funds go into the assurance contract. If the contract's threshold is met, the creator gets the funds; for unclaimed channels, successful funds are moved into the channel escrow first. If not, token holders can reclaim.
 5. After funding, tokens are tradeable on secondary markets — at the per-content-item level.
 
 ## Contracts as "rounds"

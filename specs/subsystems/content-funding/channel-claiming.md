@@ -26,10 +26,10 @@ This is what makes the viral loop work: a fan can fund a creator's content befor
 
 The creator has proven ownership of their platform identity (see [identity verification](#identity-verification) below) and an Ethereum address is now associated with the channel. This enables two things:
 
-1. The creator can **withdraw** from the channel escrow — both existing funds and future deposits from third-party contracts.
+1. The creator can **withdraw** from the channel escrow — both existing funds and any later escrow deposits from contracts that were created while the channel was still unclaimed.
 2. The creator can **create contracts** for their own content (without the third-party creation fee).
 
-But third parties can still create contracts too. The channel remains open. This is the right default: a creator who just verified their identity to claim some money shouldn't be forced into actively managing their channel. If fans want to keep creating contracts on their behalf, that's fine — the funds still flow to the creator via the escrow.
+But third parties can still create contracts too. The channel remains open. This is the right default: a creator who just verified their identity to claim some money shouldn't be forced into actively managing their channel. If fans want to keep creating contracts on their behalf, that's fine — and because the channel is already verified, successful newly created contracts can pay the creator address directly.
 
 ### State 3: Creator-controlled
 
@@ -255,7 +255,7 @@ If the fan set bad terms:
 
 ### Third-party creation fee
 
-Third-party contract creation requires a minimum donation (e.g., "you must buy at least $X worth of tokens in the contract you're creating"). Without this, a single troll could lock up content items across every creator on the platform for nearly free. Failed-contract freeing limits the damage to a temporary nuisance, but the creation fee makes it expensive enough to not be worth trying.
+Third-party contract creation requires a minimum donation: the contract creator must buy at least $X worth of tokens in the contract they're creating, in the same transaction as creation. Without this, a single troll could lock up content items across every creator on the platform for nearly free. Failed-contract freeing limits the damage to a temporary nuisance, but the creation fee makes it expensive enough to not be worth trying.
 
 This fee only applies to third-party creations. Once a creator has taken channel control (state 3), they can create contracts for their own content without a minimum.
 

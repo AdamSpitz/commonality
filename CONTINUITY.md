@@ -481,29 +481,33 @@ Followed up on another review pass over the content-funding contracts and fixed 
    - Replaced the old mutable-content-IDs test with checks that initialized content IDs are exposed but cannot be changed afterward.
    - Extended the veto tests to verify that veto releases content and that the content can be re-registered in a new contract.
 
-### Remaining issue noted
+### Follow-up completed
 
-There is still a **spec / implementation mismatch** around the third-party creation fee:
+The third-party creation fee semantics are now aligned:
 
-- The current contract behavior treats the fee as an escrow deposit.
-- The current spec/UI wording says the third-party creator must buy tokens worth at least the creation fee.
-
-This needs a product decision. I added a TODO item so the contracts/tests/specs can be aligned once that decision is made.
+- Third-party creation no longer treats `msg.value` as an escrow deposit.
+- Instead, the third-party creator must specify an initial token purchase whose total cost meets `thirdPartyMinPurchase`, and the factory executes that purchase in the same transaction as contract creation.
+- Successful contracts created while a channel is still unclaimed now have a `withdrawToEscrow()` path so their funds can actually be moved into `ChannelEscrow`.
 
 ### Files changed
 
 - `hardhat/contracts/content-funding/CreatorAssuranceContract.sol`
 - `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol`
-- `hardhat/contracts/content-funding/ChannelRegistry.sol`
 - `hardhat/test/ContentFunding.test.js`
+- `specs/subsystems/content-funding/channel-claiming.md`
+- `specs/subsystems/content-funding/channel-escrow.md`
+- `specs/subsystems/content-funding/creator-contracts.md`
+- `specs/subsystems/content-funding/ui.md`
 - `TODO.md`
 - `CONTINUITY.md`
 
 ### Verification
 
 - Ran `npx --workspace=hardhat hardhat test test/ContentFunding.test.js`
-- Result: **55 passing**
+- Result: **56 passing**
+- Ran `npx --workspace=hardhat hardhat test`
+- Result: **328 passing**
 
 ### Interrupt point
 
-Good interrupt point. The new content-funding hardening pass is done and documented. The main content-funding work left is still indexer integration, UI implementation, and resolving the third-party creation fee semantics.
+Good interrupt point. The content-funding contract hardening and the third-party creation fee alignment are now done. The main content-funding work left is still indexer integration and UI implementation.

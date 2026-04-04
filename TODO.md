@@ -3,8 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Implement the content-funding system. Smart contracts reviewed and fixed (access control, escrow routing, dead code, owner spoofing, mutable content-ID cleanup, veto cleanup — all done). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
-  - Content-funding follow-up: resolve the third-party creation fee issue. The current contract implementation treats it as an escrow deposit, but the spec/UI text currently describe it as "you must buy tokens worth at least the creation fee." Decide which behavior we want, then align the contracts/tests/specs.
+  - Implement the content-funding system. Smart contracts are implemented and tested, though honestly I'd still like to review them again. Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
 
 Other big things to do soon:
   - Do we have the "subjectiv" thing specced out enough for you to be ready to implement it? If so, take a crack at it; if not, let's talk about what remains to be figured out. (See specs/subsystems/subjectiv/README.md.) Then implement it.

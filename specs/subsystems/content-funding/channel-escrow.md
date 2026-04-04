@@ -10,6 +10,8 @@ The escrow exists because of a timing gap: a fan can create and fund a contract 
 
 Once a channel is verified (state 2 — see [channel-claiming.md](channel-claiming.md)), the creator can withdraw from the escrow. Newly created contracts for an already-verified channel can pay the creator's address directly, but the escrow remains available for any third-party contracts still in flight.
 
+In the current contract implementation, successful contracts created while a channel is still unclaimed expose a `withdrawToEscrow()` step that moves the assurance contract's ETH balance into the channel escrow.
+
 ## Interface
 
 ```solidity

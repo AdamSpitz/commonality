@@ -81,7 +81,9 @@ describe("ContentFunding", function () {
         "ipfs://QmTest",
         "https://meta/{id}.json",
         "ipfs://QmContract",
-        false
+        false,
+        [],
+        []
       );
 
       expect(await contentRegistry.isRegistered(contentId1)).to.be.true;
@@ -128,7 +130,9 @@ describe("ContentFunding", function () {
         "ipfs://QmTest",
         "https://meta/{id}.json",
         "ipfs://QmContract",
-        false
+        false,
+        [],
+        []
       );
 
       // Create another channel to try registering same content via third-party
@@ -152,6 +156,8 @@ describe("ContentFunding", function () {
         "https://meta/{id}.json",
         "ipfs://QmContract",
         true,
+        [contentId1],
+        [1],
         { value: ethers.parseEther("0.1") }
       )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
         .withArgs(contentId1);
@@ -423,7 +429,9 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false
+        false,
+        [],
+        []
       );
 
       const receipt = await tx.wait();
@@ -454,7 +462,9 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false
+        false,
+        [],
+        []
       )).to.be.revertedWithCustomError(factory, "ArrayLengthMismatch");
     });
 
@@ -471,7 +481,9 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false
+        false,
+        [],
+        []
       )).to.be.revertedWithCustomError(factory, "ChannelNotVerifiedOrControlled")
         .withArgs(unverifiedChannel);
     });
@@ -487,13 +499,15 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false
+        false,
+        [],
+        []
       )).to.be.revertedWithCustomError(factory, "OnlyChannelOwnerCanCreateCreatorContract")
         .withArgs(channelId);
     });
 
-    it("Should create third-party contract with ETH deposit to escrow", async function () {
-      const depositAmount = ethers.parseEther("0.1");
+    it("Should create third-party contract with an initial token purchase", async function () {
+      const purchaseAmount = prices[0];
 
       const tx = await factory.connect(owner).createContract(
         channelId,
@@ -506,7 +520,9 @@ describe("ContentFunding", function () {
         erc1155MetadataUri,
         erc1155ContractUri,
         true,
-        { value: depositAmount }
+        [contentIds[0]],
+        [1],
+        { value: purchaseAmount }
       );
 
       const receipt = await tx.wait();
@@ -515,40 +531,81 @@ describe("ContentFunding", function () {
       );
 
       const contractAddress = creatorContractCreatedEvent.args.contractAddress;
+      const erc1155Address = await factory.contractERC1155(contractAddress);
+      const erc1155 = await ethers.getContractAt("PremintingERC1155", erc1155Address);
+      const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
 
       expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
-      expect(await channelEscrow.balance(channelId)).to.equal(depositAmount);
+      expect(await erc1155.balanceOf(owner.address, contentIds[0])).to.equal(1);
+      expect(await createdContract.getAssuranceContractProgress()).to.equal(purchaseAmount);
+      expect(await channelEscrow.balance(channelId)).to.equal(0);
     });
 
-    it("Should create third-party contract on Unclaimed channel (escrow path)", async function () {
+    it("Should create third-party contract on Unclaimed channel without upfront escrow deposit", async function () {
       const unclaimedChannel = ethers.id("unclaimed-channel");
-      const depositAmount = ethers.parseEther("0.1");
+      const purchaseAmount = ethers.parseEther("0.1");
       const unclaimedContentIds = [9001, 9002];
+      const unclaimedPrices = [ethers.parseEther("0.1"), ethers.parseEther("0.2")];
 
       const tx = await factory.connect(thirdParty).createContract(
         unclaimedChannel,
         unclaimedContentIds,
         [50, 50],
-        [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
+        unclaimedPrices,
         ethers.parseEther("5.0"),
         deadline,
         "ipfs://QmThirdParty",
         "https://meta/{id}.json",
         "ipfs://QmContract",
         true,
-        { value: depositAmount }
+        [unclaimedContentIds[0]],
+        [1],
+        { value: purchaseAmount }
       );
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const contractAddress = event.args.contractAddress;
+      const erc1155Address = await factory.contractERC1155(contractAddress);
+      const erc1155 = await ethers.getContractAt("PremintingERC1155", erc1155Address);
 
-      // Funds should be in escrow
-      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(depositAmount);
+      // Creation fee now buys tokens instead of depositing to escrow.
+      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(0);
       expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
+      expect(await erc1155.balanceOf(thirdParty.address, unclaimedContentIds[0])).to.equal(1);
 
       // Content should be registered
       expect(await contentRegistry.isRegistered(unclaimedContentIds[0])).to.be.true;
+    });
+
+    it("Should allow a successful unclaimed contract to move funds into escrow", async function () {
+      const unclaimedChannel = ethers.id("successful-unclaimed-channel");
+      const successThreshold = ethers.parseEther("0.1");
+      const purchaseAmount = ethers.parseEther("0.1");
+      const tx = await factory.connect(thirdParty).createContract(
+        unclaimedChannel,
+        [9101],
+        [50],
+        [purchaseAmount],
+        successThreshold,
+        deadline,
+        "ipfs://QmThirdParty",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        [9101],
+        [1],
+        { value: purchaseAmount }
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const contractAddress = event.args.contractAddress;
+      const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
+
+      await createdContract.withdrawToEscrow();
+
+      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount);
     });
 
     it("Should revert third-party contract on CreatorControlled channel", async function () {
@@ -565,25 +622,30 @@ describe("ContentFunding", function () {
         "https://meta/{id}.json",
         "ipfs://QmContract",
         true,
+        [8001],
+        [1],
         { value: ethers.parseEther("0.1") }
       )).to.be.revertedWithCustomError(factory, "ChannelCreatorControlled")
         .withArgs(channelId);
     });
 
-    it("Should revert third-party creation with insufficient ETH", async function () {
+    it("Should revert third-party creation when the initial purchase is below the minimum", async function () {
       const insufficientAmount = ethers.parseEther("0.001");
+      const cheapContentId = 3001;
 
       await expect(factory.connect(owner).createContract(
         channelId,
-        contentIds,
-        supplies,
-        prices,
+        [cheapContentId],
+        [100],
+        [insufficientAmount],
         threshold,
         deadline,
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
         true,
+        [cheapContentId],
+        [1],
         { value: insufficientAmount }
       )).to.be.revertedWithCustomError(factory, "InsufficientThirdPartyPurchase");
     });
@@ -599,7 +661,9 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false
+        false,
+        [],
+        []
       );
 
       const newChannelId = ethers.id("new-channel");
@@ -622,6 +686,8 @@ describe("ContentFunding", function () {
         erc1155MetadataUri,
         erc1155ContractUri,
         true,
+        [contentIds[0]],
+        [1],
         { value: ethers.parseEther("0.1") }
       )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
         .withArgs(contentIds[0]);
@@ -671,7 +737,9 @@ describe("ContentFunding", function () {
         "ipfs://QmProject",
         "https://meta/{id}.json",
         "ipfs://QmContract",
-        false
+        false,
+        [],
+        []
       );
 
       const receipt = await tx.wait();
@@ -725,7 +793,7 @@ describe("ContentFunding", function () {
       );
 
       // Create a third-party contract on this verified channel
-      const depositAmount = ethers.parseEther("0.1");
+      const purchaseAmount = ethers.parseEther("0.1");
       const tx = await factory.connect(thirdParty).createContract(
         channelId,
         [7001, 7002],
@@ -737,12 +805,16 @@ describe("ContentFunding", function () {
         "https://meta/{id}.json",
         "ipfs://QmContract",
         true,
-        { value: depositAmount }
+        [7001],
+        [1],
+        { value: purchaseAmount }
       );
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const thirdPartyContractAddr = event.args.contractAddress;
+      const erc1155Address = await factory.contractERC1155(thirdPartyContractAddr);
+      const erc1155 = await ethers.getContractAt("PremintingERC1155", erc1155Address);
 
       // Creator takes channel control
       await channelRegistry.connect(alice).takeChannelControl(channelId);
@@ -757,6 +829,7 @@ describe("ContentFunding", function () {
       expect(await condition.hasFailed()).to.be.true;
       expect(await contentRegistry.isRegistered(7001)).to.be.false;
       expect(await contentRegistry.isRegistered(7002)).to.be.false;
+      expect(await erc1155.balanceOf(thirdParty.address, 7001)).to.equal(1);
     });
 
     it("Should free vetoed content for re-registration", async function () {
@@ -785,6 +858,8 @@ describe("ContentFunding", function () {
         "https://meta/{id}.json",
         "ipfs://QmContract",
         true,
+        [vetoedContentId],
+        [1],
         { value: ethers.parseEther("0.1") }
       );
 
@@ -807,7 +882,9 @@ describe("ContentFunding", function () {
         "ipfs://QmCreatorRetry",
         "https://meta/{id}.json",
         "ipfs://QmContract2",
-        false
+        false,
+        [],
+        []
       )).to.not.be.reverted;
     });
 
@@ -822,7 +899,7 @@ describe("ContentFunding", function () {
       const tx = await factory.connect(thirdParty).createContract(
         channelId, [7101], [50], [ethers.parseEther("0.1")],
         ethers.parseEther("5.0"), deadline, "ipfs://Qm", "https://m/{id}.json", "ipfs://Qm",
-        true, { value: ethers.parseEther("0.1") }
+        true, [7101], [1], { value: ethers.parseEther("0.1") }
       );
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -846,7 +923,7 @@ describe("ContentFunding", function () {
       const tx = await factory.connect(alice).createContract(
         channelId, [7201], [50], [ethers.parseEther("0.1")],
         ethers.parseEther("5.0"), deadline, "ipfs://Qm", "https://m/{id}.json", "ipfs://Qm",
-        false
+        false, [], []
       );
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -880,7 +957,9 @@ describe("ContentFunding", function () {
         "ipfs://QmRelease",
         "https://meta/{id}.json",
         "ipfs://QmContract",
-        false
+        false,
+        [],
+        []
       );
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -920,7 +999,9 @@ describe("ContentFunding", function () {
         "ipfs://QmRelease2",
         "https://meta/{id}.json",
         "ipfs://QmContract",
-        false
+        false,
+        [],
+        []
       );
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -970,7 +1051,9 @@ describe("ContentFunding", function () {
         "ipfs://QmProject",
         "https://meta/{id}.json",
         "ipfs://QmContract",
-        false
+        false,
+        [],
+        []
       );
 
       const receipt = await tx.wait();
@@ -1002,7 +1085,7 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      const depositAmount = ethers.parseEther("0.1");
+      const purchaseAmount = ethers.parseEther("0.5");
       const newContentIds = [20001, 20002];
       const tx = await factory.connect(owner).createContract(
         thirdPartyChannelId,
@@ -1015,13 +1098,15 @@ describe("ContentFunding", function () {
         "https://meta/{id}.json",
         "ipfs://QmContract",
         true,
-        { value: depositAmount }
+        [newContentIds[0]],
+        [1],
+        { value: purchaseAmount }
       );
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const thirdPartyContract = event.args.contractAddress;
 
-      expect(await channelEscrow.balance(thirdPartyChannelId)).to.equal(depositAmount);
+      expect(await channelEscrow.balance(thirdPartyChannelId)).to.equal(0);
       expect(await factory.isThirdPartyCreated(thirdPartyContract)).to.be.true;
 
       // Charlie takes control and vetoes

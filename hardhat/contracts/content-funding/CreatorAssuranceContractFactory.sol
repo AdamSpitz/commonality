@@ -18,7 +18,9 @@ error ArrayLengthMismatch();
 error ChannelNotVerifiedOrControlled(bytes32 channelId);
 error ChannelCreatorControlled(bytes32 channelId);
 error InsufficientThirdPartyPurchase();
+error InitialPurchaseValueMismatch();
 error ContentAlreadyRegisteredForContract(uint256 contentId);
+error InvalidInitialPurchaseToken(uint256 contentId);
 error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
 error MarketplaceCreationFailed();
@@ -35,10 +37,6 @@ interface IContentRegistry {
     function registerContent(uint256 contentId, address assuranceContract) external;
     function releaseContent(uint256 contentId) external;
     function isRegistered(uint256 contentId) external view returns (bool);
-}
-
-interface IChannelEscrow {
-    function deposit(bytes32 channelId) external payable;
 }
 
 contract CreatorAssuranceContractFactory is Ownable {
@@ -98,10 +96,26 @@ contract CreatorAssuranceContractFactory is Ownable {
         string memory metadataCid,
         string memory erc1155MetadataUri,
         string memory erc1155ContractUri,
-        bool isThirdParty
+        bool isThirdParty,
+        uint256[] memory initialPurchaseIds,
+        uint256[] memory initialPurchaseCounts
     ) external payable returns (address) {
-        if (contentIds.length != supplies.length || contentIds.length != prices.length) {
+        if (
+            contentIds.length != supplies.length
+                || contentIds.length != prices.length
+                || initialPurchaseIds.length != initialPurchaseCounts.length
+        ) {
             revert ArrayLengthMismatch();
+        }
+
+        uint256 initialPurchaseValue = _calculateInitialPurchaseValue(
+            contentIds,
+            prices,
+            initialPurchaseIds,
+            initialPurchaseCounts
+        );
+        if (msg.value != initialPurchaseValue) {
+            revert InitialPurchaseValueMismatch();
         }
 
         bool verified = IChannelRegistry(address(channelRegistry)).isVerified(channelId);
@@ -115,7 +129,7 @@ contract CreatorAssuranceContractFactory is Ownable {
             if (creatorControlled) {
                 revert ChannelCreatorControlled(channelId);
             }
-            if (msg.value < thirdPartyMinPurchase) {
+            if (initialPurchaseValue < thirdPartyMinPurchase) {
                 revert InsufficientThirdPartyPurchase();
             }
             for (uint256 i = 0; i < contentIds.length; i++) {
@@ -154,7 +168,8 @@ contract CreatorAssuranceContractFactory is Ownable {
             address(this),
             recipient,
             metadataCid,
-            channelId
+            channelId,
+            !verified
         );
 
         address conditionAddress;
@@ -195,8 +210,14 @@ contract CreatorAssuranceContractFactory is Ownable {
         contractCondition[address(ac)] = conditionAddress;
         contractERC1155[address(ac)] = address(erc1155);
 
-        if (isThirdParty && msg.value > 0) {
-            IChannelEscrow(address(channelEscrow)).deposit{value: msg.value}(channelId);
+        if (initialPurchaseValue > 0) {
+            ac.buyERC1155{value: initialPurchaseValue}(
+                msg.sender,
+                address(erc1155),
+                initialPurchaseIds,
+                initialPurchaseCounts,
+                ""
+            );
         }
 
         emit CreatorContractCreated(address(ac), channelId, address(erc1155), isThirdParty);
@@ -226,5 +247,30 @@ contract CreatorAssuranceContractFactory is Ownable {
         } catch (bytes memory) { // solhint-disable-line no-empty-blocks
             // Fallback: content IDs not retrievable from contract
         }
+    }
+
+    function _calculateInitialPurchaseValue(
+        uint256[] memory contentIds,
+        uint256[] memory prices,
+        uint256[] memory initialPurchaseIds,
+        uint256[] memory initialPurchaseCounts
+    ) private pure returns (uint256 totalValue) {
+        for (uint256 i = 0; i < initialPurchaseIds.length; i++) {
+            uint256 price = _findPrice(contentIds, prices, initialPurchaseIds[i]);
+            totalValue += price * initialPurchaseCounts[i];
+        }
+    }
+
+    function _findPrice(
+        uint256[] memory contentIds,
+        uint256[] memory prices,
+        uint256 purchaseId
+    ) private pure returns (uint256) {
+        for (uint256 i = 0; i < contentIds.length; i++) {
+            if (contentIds[i] == purchaseId) {
+                return prices[i];
+            }
+        }
+        revert InvalidInitialPurchaseToken(purchaseId);
     }
 }

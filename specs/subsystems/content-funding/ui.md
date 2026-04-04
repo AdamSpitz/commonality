@@ -138,8 +138,8 @@ A form for creating a new content-funding contract for a specific channel. Avail
 
 1. Canonicalize all URLs
 2. Check content registry — reject any items already in active contracts
-3. Call the platform's `CreatorAssuranceContractFactory`
-4. If third-party creation: enforce minimum donation (the creator must buy tokens worth at least the creation fee)
+3. If third-party creation: collect an initial token purchase whose total cost is at least the creation fee
+4. Call the platform's `CreatorAssuranceContractFactory` to create the contract and execute that initial purchase in the same transaction
 5. Show success with:
    - Link to the new contract's project detail page
    - Shareable claim link (if channel is unclaimed)
