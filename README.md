@@ -58,4 +58,4 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
-- Same-domain restriction verified as implemented across fake-data-generation. Ready to work on Pubstarter UI token images or e2e tests.
+- Token type images for Pubstarter verified as implemented. Working on e2e tests for pubstarter, fundingportals, mutablerefs, and other subsystems.

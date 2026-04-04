@@ -193,3 +193,40 @@ Wired the trusted attester list (stored in localStorage by the Settings page) in
 Good interrupt point. The attester trust feature is fully wired end-to-end.
 
 Next item in TODO.md: **Clarify the plan for implication "Discovery" services** or **Restrict implication generation to same-domain pairs in `universe.json`**. Or consider doing some seed-content / statement proliferation work.
+
+---
+
+## Token type images for Pubstarter UI — COMPLETE ✓
+
+### What was done
+
+Verified that token type images are **already implemented** across the Pubstarter UI:
+
+1. **CreateProjectPage.tsx** (lines 27-34, 106-119):
+   - `TokenTypeRow` interface includes `imageFile: File | null` and `imagePreviewUrl: string | null`
+   - On file selection, creates preview URL with `URL.createObjectURL(file)`
+   - On submit: uploads image to IPFS via `uploadBlobToIPFS`, builds per-token metadata with image CID, stores metadata in IPFS, and includes token CIDs in the main project metadata under `tokens` field
+
+2. **ProjectDetailPage.tsx** (lines 50, 139-159):
+   - Fetches `metadata.tokens` from IPFS
+   - For each token CID, fetches token metadata and extracts the `image` field
+   - Stores in `tokenImages` state: `Record<string, string>` (tokenId → IPFS image URL)
+
+3. **BuyTokensSection.tsx** (line 23): accepts optional `tokenImages` prop, renders images for tokens (lines 265-268, 319-322)
+
+4. **BurnTokensSection.tsx** (line 18): accepts optional `tokenImages` prop, renders images (lines 88-91)
+
+5. **SecondaryMarketSection.tsx** (line 54): accepts optional `tokenImages` prop, renders images in both sale listings (lines 238-241) and buy orders (lines 307-310)
+
+### Tests
+
+- CreateProjectPage.test.tsx has 3 tests for per-token images (lines 139-181)
+- BuyTokensSection.test.tsx has 3 tests for token images (lines 139-180)
+
+### Notes for next iteration
+
+The feature is complete and tested. No further action needed on this item.
+
+Next item in TODO.md: **e2e tests for pubstarter, fundingportals, mutablerefs, and other subsystems** — the TODO notes "I'm not sure exactly what e2e tests are done already and what's not, but we just wrote the UI code for some other subsystems (pubstarter, fundingportals, mutablerefs, anything else?), and I suspect we don't have e2e tests for them yet."
+
+Note: `npm run lint` fails due to a pre-existing ESLint flat-config issue in `fake-data-generation/eslint.config.js` (unrelated to this task).
