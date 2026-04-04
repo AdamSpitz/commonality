@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 error ChannelAlreadyVerified(bytes32 channelId);
 error ChannelNotVerified(bytes32 channelId);
 error ChannelAlreadyCreatorControlled(bytes32 channelId);
@@ -17,6 +19,7 @@ error ContractAlreadySucceeded(address contractAddress);
 error ContractNotCreatedByFactory(address contractAddress);
 error OnlyFactoryCanRegister();
 error InvalidVerifierAddress();
+error InvalidFactoryAddress();
 error FactoryNotSet();
 
 interface IChannelVerifier {
@@ -52,7 +55,7 @@ interface ICreatorAssuranceContractFactory {
     function contractCondition(address contractAddress) external view returns (address);
 }
 
-contract ChannelRegistry is IChannelRegistry {
+contract ChannelRegistry is IChannelRegistry, Ownable {
     enum ChannelState {
         Unclaimed,
         Verified,
@@ -74,7 +77,7 @@ contract ChannelRegistry is IChannelRegistry {
     event VerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
     event FactoryUpdated(address indexed oldFactory, address indexed newFactory);
 
-    constructor(address _verifier) {
+    constructor(address _verifier) Ownable(msg.sender) {
         if (_verifier == address(0)) revert InvalidVerifierAddress();
         verifier = _verifier;
     }
@@ -95,15 +98,15 @@ contract ChannelRegistry is IChannelRegistry {
         return _channelStates[channelId] == ChannelState.CreatorControlled;
     }
 
-    function setVerifier(address _verifier) external {
+    function setVerifier(address _verifier) external onlyOwner {
         if (_verifier == address(0)) revert InvalidVerifierAddress();
         address oldVerifier = verifier;
         verifier = _verifier;
         emit VerifierUpdated(oldVerifier, _verifier);
     }
 
-    function setFactory(address _factory) external {
-        if (_factory == address(0)) revert InvalidVerifierAddress();
+    function setFactory(address _factory) external onlyOwner {
+        if (_factory == address(0)) revert InvalidFactoryAddress();
         address oldFactory = factory;
         factory = _factory;
         emit FactoryUpdated(oldFactory, _factory);
@@ -139,7 +142,7 @@ contract ChannelRegistry is IChannelRegistry {
     }
 
     function takeChannelControl(bytes32 channelId) external {
-        if (_channelStates[channelId] != ChannelState.Verified) {
+        if (_channelStates[channelId] == ChannelState.Unclaimed) {
             revert ChannelNotVerified(channelId);
         }
         if (_channelStates[channelId] == ChannelState.CreatorControlled) {
@@ -157,31 +160,26 @@ contract ChannelRegistry is IChannelRegistry {
 
     function vetoContract(address contractAddress) external {
         if (factory == address(0)) revert FactoryNotSet();
-        
+
         bytes32 channelId = ICreatorAssuranceContractFactory(factory).channelIdByContract(contractAddress);
         if (channelId == bytes32(0)) revert ContractNotCreatedByFactory(contractAddress);
-        
+
         if (_channelStates[channelId] != ChannelState.CreatorControlled) {
             revert ChannelNotCreatorControlled(channelId);
         }
         if (msg.sender != _channelOwners[channelId]) revert OnlyChannelOwnerCanVeto();
-        
+
         if (!ICreatorAssuranceContractFactory(factory).isThirdPartyCreated(contractAddress)) {
             revert ContractNotThirdParty(channelId, contractAddress);
         }
-        
+
         uint256 controlTaken = _controlTakenAt[channelId];
         if (block.timestamp > controlTaken + vetoWindowDuration) revert VetoWindowExpired();
-        
+
         address conditionAddress = ICreatorAssuranceContractFactory(factory).contractCondition(contractAddress);
         if (conditionAddress == address(0)) revert ContractNotCreatedByFactory(contractAddress);
-        
-        ICancellableCondition(conditionAddress).cancel();
-    }
 
-    function canCreateContract(bytes32 channelId) external view returns (bool) {
-        ChannelState state = _channelStates[channelId];
-        return state != ChannelState.CreatorControlled;
+        ICancellableCondition(conditionAddress).cancel();
     }
 }
 

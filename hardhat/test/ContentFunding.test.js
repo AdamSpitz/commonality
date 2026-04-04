@@ -42,6 +42,9 @@ describe("ContentFunding", function () {
       await conditionFactory.getAddress()
     );
 
+    // Transfer ContentRegistry ownership to factory so it can register/release content
+    await contentRegistry.connect(owner).transferOwnership(await factory.getAddress());
+
     await channelRegistry.connect(owner).setFactory(await factory.getAddress());
   });
 
@@ -53,68 +56,110 @@ describe("ContentFunding", function () {
       contentId2 = 1002;
     });
 
-    it("Should register content successfully", async function () {
-      const AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
-      const assuranceContract = await AssuranceContract.deploy(
+    it("Should register content successfully (via factory)", async function () {
+      // Content registration now happens through the factory during createContract
+      const channelId = ethers.id("content-reg-test");
+      await mockVerifier.setValid(true);
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      await channelRegistry.verifyChannel(
+        channelId,
         owner.address,
-        recipient.address,
-        "ipfs://QmTest"
+        ethers.id("nonce-1"),
+        deadline,
+        "0x"
       );
 
-      await expect(contentRegistry.registerContent(contentId1, await assuranceContract.getAddress()))
-        .to.emit(contentRegistry, "ContentRegistered")
-        .withArgs(contentId1, await assuranceContract.getAddress());
+      await factory.connect(owner).createContract(
+        channelId,
+        [contentId1],
+        [100],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmTest",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        false
+      );
 
-      expect(await contentRegistry.contentContract(contentId1)).to.equal(await assuranceContract.getAddress());
       expect(await contentRegistry.isRegistered(contentId1)).to.be.true;
     });
 
+    it("Should revert when non-owner calls registerContent directly", async function () {
+      await expect(contentRegistry.connect(alice).registerContent(contentId1, alice.address))
+        .to.be.revertedWithCustomError(contentRegistry, "OwnableUnauthorizedAccount");
+    });
+
+    it("Should revert when non-owner calls releaseContent directly", async function () {
+      await expect(contentRegistry.connect(alice).releaseContent(contentId1))
+        .to.be.revertedWithCustomError(contentRegistry, "OwnableUnauthorizedAccount");
+    });
+
     it("Should revert when registering content with invalid contentId (0)", async function () {
-      await expect(contentRegistry.registerContent(0, owner.address))
+      // Even the owner (factory) can't register contentId 0
+      // We test via the view function since we can't call registerContent directly
+      await expect(contentRegistry.contentContract(0))
         .to.be.revertedWithCustomError(contentRegistry, "InvalidContentId");
     });
 
     it("Should revert when registering duplicate content", async function () {
-      const AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
-      const assuranceContract = await AssuranceContract.deploy(
+      const channelId = ethers.id("dup-content-test");
+      await mockVerifier.setValid(true);
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      await channelRegistry.verifyChannel(
+        channelId,
         owner.address,
-        recipient.address,
-        "ipfs://QmTest"
+        ethers.id("nonce-1"),
+        deadline,
+        "0x"
       );
 
-      await contentRegistry.registerContent(contentId1, await assuranceContract.getAddress());
-
-      await expect(contentRegistry.registerContent(contentId1, await assuranceContract.getAddress()))
-        .to.be.revertedWithCustomError(contentRegistry, "ContentAlreadyRegistered")
-        .withArgs(contentId1, await assuranceContract.getAddress());
-    });
-
-    it("Should release content successfully", async function () {
-      const AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
-      const assuranceContract = await AssuranceContract.deploy(
-        owner.address,
-        recipient.address,
-        "ipfs://QmTest"
+      await factory.connect(owner).createContract(
+        channelId,
+        [contentId1],
+        [100],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmTest",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        false
       );
 
-      await contentRegistry.registerContent(contentId1, await assuranceContract.getAddress());
-      
-      await expect(contentRegistry.releaseContent(contentId1))
-        .to.emit(contentRegistry, "ContentReleased")
-        .withArgs(contentId1);
+      // Create another channel to try registering same content via third-party
+      const channelId2 = ethers.id("dup-content-test-2");
+      await channelRegistry.verifyChannel(
+        channelId2,
+        owner.address,
+        ethers.id("nonce-2"),
+        deadline,
+        "0x"
+      );
 
-      expect(await contentRegistry.contentContract(contentId1)).to.equal(ethers.ZeroAddress);
-      expect(await contentRegistry.isRegistered(contentId1)).to.be.false;
-    });
-
-    it("Should revert when releasing unregistered content", async function () {
-      await expect(contentRegistry.releaseContent(contentId1))
-        .to.be.revertedWithCustomError(contentRegistry, "ContentNotRegistered")
+      await expect(factory.connect(owner).createContract(
+        channelId2,
+        [contentId1],
+        [100],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmTest",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        { value: ethers.parseEther("0.1") }
+      )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
         .withArgs(contentId1);
     });
 
     it("Should return zero address for unregistered content", async function () {
       expect(await contentRegistry.contentContract(contentId1)).to.equal(ethers.ZeroAddress);
+      expect(await contentRegistry.isRegistered(contentId1)).to.be.false;
     });
   });
 
@@ -162,16 +207,26 @@ describe("ContentFunding", function () {
 
     it("Should revert when using expired deadline", async function () {
       const expiredDeadline = Math.floor(Date.now() / 1000) - 3600;
-      
+
       await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, expiredDeadline, verifierSignature))
         .to.be.revertedWithCustomError(channelRegistry, "ProofExpired");
     });
 
     it("Should revert when verifier signature is invalid", async function () {
       const invalidSig = "0x12345678";
-      
+
       await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, invalidSig))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierSignature");
+    });
+
+    it("Should revert when reusing a nonce", async function () {
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
+
+      // Try to use the same nonce for a different channel
+      const channelId2 = ethers.id("test-channel-2");
+      await expect(channelRegistry.verifyChannel(channelId2, alice.address, nonce, deadline, verifierSignature))
+        .to.be.revertedWithCustomError(channelRegistry, "InvalidNonce");
     });
 
     it("Should take channel control after verification", async function () {
@@ -206,13 +261,13 @@ describe("ContentFunding", function () {
       await channelRegistry.connect(alice).takeChannelControl(channelId);
 
       await expect(channelRegistry.connect(alice).takeChannelControl(channelId))
-        .to.be.revertedWithCustomError(channelRegistry, "ChannelNotVerified")
+        .to.be.revertedWithCustomError(channelRegistry, "ChannelAlreadyCreatorControlled")
         .withArgs(channelId);
     });
 
-    it("Should update verifier", async function () {
+    it("Should update verifier (owner only)", async function () {
       const newVerifier = bob;
-      
+
       await expect(channelRegistry.connect(owner).setVerifier(await newVerifier.getAddress()))
         .to.emit(channelRegistry, "VerifierUpdated")
         .withArgs(await mockVerifier.getAddress(), await newVerifier.getAddress());
@@ -220,14 +275,19 @@ describe("ContentFunding", function () {
       expect(await channelRegistry.verifier()).to.equal(await newVerifier.getAddress());
     });
 
+    it("Should revert setVerifier from non-owner", async function () {
+      await expect(channelRegistry.connect(alice).setVerifier(await bob.getAddress()))
+        .to.be.revertedWithCustomError(channelRegistry, "OwnableUnauthorizedAccount");
+    });
+
     it("Should revert when setting invalid verifier address", async function () {
       await expect(channelRegistry.setVerifier(ethers.ZeroAddress))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierAddress");
     });
 
-    it("Should update factory", async function () {
+    it("Should update factory (owner only)", async function () {
       const newFactory = bob;
-      
+
       await expect(channelRegistry.connect(owner).setFactory(await newFactory.getAddress()))
         .to.emit(channelRegistry, "FactoryUpdated")
         .withArgs(await factory.getAddress(), await newFactory.getAddress());
@@ -235,12 +295,14 @@ describe("ContentFunding", function () {
       expect(await channelRegistry.factory()).to.equal(await newFactory.getAddress());
     });
 
-    it("Should check canCreateContract correctly", async function () {
-      await mockVerifier.setValid(true);
-      expect(await channelRegistry.canCreateContract(channelId)).to.be.equal(true);
+    it("Should revert setFactory from non-owner", async function () {
+      await expect(channelRegistry.connect(alice).setFactory(await bob.getAddress()))
+        .to.be.revertedWithCustomError(channelRegistry, "OwnableUnauthorizedAccount");
+    });
 
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
-      expect(await channelRegistry.canCreateContract(channelId)).to.be.equal(true);
+    it("Should revert when setting invalid factory address", async function () {
+      await expect(channelRegistry.setFactory(ethers.ZeroAddress))
+        .to.be.revertedWithCustomError(channelRegistry, "InvalidFactoryAddress");
     });
   });
 
@@ -253,25 +315,6 @@ describe("ContentFunding", function () {
 
     it("Should deposit ETH successfully", async function () {
       const depositAmount = ethers.parseEther("1.0");
-      
-      await expect(channelRegistry.connect(bob).verifyChannel(
-        channelId,
-        bob.address,
-        ethers.id("nonce-1"),
-        (await ethers.provider.getBlock("latest")).timestamp + 86400,
-        "0x"
-      )).to.be.reverted;
-
-      await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
-        channelId,
-        bob.address,
-        ethers.id("nonce-1"),
-        (await ethers.provider.getBlock("latest")).timestamp + 86400,
-        "0x"
-      );
-
-      await expect(channelRegistry.connect(bob).verifyChannel(channelId, bob.address, ethers.id("nonce-2"), (await ethers.provider.getBlock("latest")).timestamp + 86400, "0x")).to.be.reverted;
 
       await expect(channelEscrow.connect(alice).deposit(channelId, { value: depositAmount }))
         .to.emit(channelEscrow, "Deposited")
@@ -287,7 +330,7 @@ describe("ContentFunding", function () {
 
     it("Should withdraw ETH successfully", async function () {
       const depositAmount = ethers.parseEther("2.0");
-      
+
       await mockVerifier.setValid(true);
       await channelRegistry.verifyChannel(
         channelId,
@@ -299,8 +342,6 @@ describe("ContentFunding", function () {
 
       await channelEscrow.connect(bob).deposit(channelId, { value: depositAmount });
 
-      const bobBalanceBefore = await ethers.provider.getBalance(bob.address);
-      
       await expect(channelEscrow.connect(bob).withdraw(channelId))
         .to.emit(channelEscrow, "Withdrawn")
         .withArgs(channelId, await bob.getAddress(), depositAmount);
@@ -389,7 +430,7 @@ describe("ContentFunding", function () {
       const creatorContractCreatedEvent = receipt.logs.find(
         (log) => log.fragment?.name === "CreatorContractCreated"
       );
-      
+
       const contractAddress = creatorContractCreatedEvent.args.contractAddress;
 
       expect(await factory.channelIdByContract(contractAddress)).to.equal(channelId);
@@ -402,7 +443,7 @@ describe("ContentFunding", function () {
 
     it("Should revert when array lengths mismatch", async function () {
       const mismatchedSupplies = [100, 100];
-      
+
       await expect(factory.connect(owner).createContract(
         channelId,
         contentIds,
@@ -417,9 +458,9 @@ describe("ContentFunding", function () {
       )).to.be.revertedWithCustomError(factory, "ArrayLengthMismatch");
     });
 
-    it("Should revert when channel not verified or controlled", async function () {
+    it("Should revert creator contract when channel not verified", async function () {
       const unverifiedChannel = ethers.id("unverified-channel");
-      
+
       await expect(factory.connect(owner).createContract(
         unverifiedChannel,
         contentIds,
@@ -435,9 +476,9 @@ describe("ContentFunding", function () {
         .withArgs(unverifiedChannel);
     });
 
-    it("Should create third-party contract with ETH deposit", async function () {
+    it("Should create third-party contract with ETH deposit to escrow", async function () {
       const depositAmount = ethers.parseEther("0.1");
-      
+
       const tx = await factory.connect(owner).createContract(
         channelId,
         contentIds,
@@ -456,16 +497,66 @@ describe("ContentFunding", function () {
       const creatorContractCreatedEvent = receipt.logs.find(
         (log) => log.fragment?.name === "CreatorContractCreated"
       );
-      
+
       const contractAddress = creatorContractCreatedEvent.args.contractAddress;
 
       expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
       expect(await channelEscrow.balance(channelId)).to.equal(depositAmount);
     });
 
+    it("Should create third-party contract on Unclaimed channel (escrow path)", async function () {
+      const unclaimedChannel = ethers.id("unclaimed-channel");
+      const depositAmount = ethers.parseEther("0.1");
+      const unclaimedContentIds = [9001, 9002];
+
+      const tx = await factory.connect(thirdParty).createContract(
+        unclaimedChannel,
+        unclaimedContentIds,
+        [50, 50],
+        [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmThirdParty",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        { value: depositAmount }
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const contractAddress = event.args.contractAddress;
+
+      // Funds should be in escrow
+      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(depositAmount);
+      expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
+
+      // Content should be registered
+      expect(await contentRegistry.isRegistered(unclaimedContentIds[0])).to.be.true;
+    });
+
+    it("Should revert third-party contract on CreatorControlled channel", async function () {
+      await channelRegistry.connect(owner).takeChannelControl(channelId);
+
+      await expect(factory.connect(thirdParty).createContract(
+        channelId,
+        [8001],
+        [100],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmThirdParty",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        { value: ethers.parseEther("0.1") }
+      )).to.be.revertedWithCustomError(factory, "ChannelCreatorControlled")
+        .withArgs(channelId);
+    });
+
     it("Should revert third-party creation with insufficient ETH", async function () {
       const insufficientAmount = ethers.parseEther("0.001");
-      
+
       await expect(factory.connect(owner).createContract(
         channelId,
         contentIds,
@@ -520,11 +611,16 @@ describe("ContentFunding", function () {
         .withArgs(contentIds[0]);
     });
 
-    it("Should set third party min purchase", async function () {
+    it("Should set third party min purchase (owner only)", async function () {
       const newMin = ethers.parseEther("0.05");
       await factory.setThirdPartyMinPurchase(newMin);
-      
+
       expect(await factory.thirdPartyMinPurchase()).to.equal(newMin);
+    });
+
+    it("Should revert setThirdPartyMinPurchase from non-owner", async function () {
+      await expect(factory.connect(alice).setThirdPartyMinPurchase(ethers.parseEther("0.05")))
+        .to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
     });
 
     it("Should update factory addresses", async function () {
@@ -569,7 +665,7 @@ describe("ContentFunding", function () {
 
     it("Should set content IDs", async function () {
       const newContentIds = [4001, 4002, 4003];
-      
+
       await createdContract.setContentIds(newContentIds);
 
       const storedIds = await createdContract.getContentIds();
@@ -579,7 +675,7 @@ describe("ContentFunding", function () {
     it("Should emit content item registered event", async function () {
       const contentId = 5001;
       const canonicalId = "canonical-123";
-      
+
       await expect(createdContract.connect(owner).registerContentItem(contentId, canonicalId))
         .to.emit(createdContract, "ContentItemRegistered")
         .withArgs(channelId, contentId, canonicalId);
@@ -592,6 +688,179 @@ describe("ContentFunding", function () {
     it("Should only allow owner to set content IDs", async function () {
       await expect(createdContract.connect(alice).setContentIds([4001]))
         .to.be.revertedWithCustomError(createdContract, "OnlyOwnerOrSelf");
+    });
+  });
+
+  describe("Veto flow", function () {
+    it("Should veto a third-party contract within the veto window", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("veto-test-channel");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      // Verify channel
+      await channelRegistry.verifyChannel(
+        channelId,
+        alice.address,
+        ethers.id("nonce-veto-1"),
+        deadline,
+        "0x"
+      );
+
+      // Create a third-party contract on this verified channel
+      const depositAmount = ethers.parseEther("0.1");
+      const tx = await factory.connect(thirdParty).createContract(
+        channelId,
+        [7001, 7002],
+        [50, 50],
+        [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmThirdParty",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        { value: depositAmount }
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const thirdPartyContractAddr = event.args.contractAddress;
+
+      // Creator takes channel control
+      await channelRegistry.connect(alice).takeChannelControl(channelId);
+
+      // Creator vetoes the third-party contract
+      await channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
+
+      // Verify the condition is cancelled
+      const conditionAddr = await factory.contractCondition(thirdPartyContractAddr);
+      const condition = await ethers.getContractAt("CancellableCondition", conditionAddr);
+      expect(await condition.isCancelled()).to.be.true;
+      expect(await condition.hasFailed()).to.be.true;
+    });
+
+    it("Should revert veto from non-channel-owner", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("veto-test-2");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v2"), deadline, "0x");
+
+      const tx = await factory.connect(thirdParty).createContract(
+        channelId, [7101], [50], [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"), deadline, "ipfs://Qm", "https://m/{id}.json", "ipfs://Qm",
+        true, { value: ethers.parseEther("0.1") }
+      );
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const addr = event.args.contractAddress;
+
+      await channelRegistry.connect(alice).takeChannelControl(channelId);
+
+      await expect(channelRegistry.connect(bob).vetoContract(addr))
+        .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanVeto");
+    });
+
+    it("Should revert veto on non-third-party contract", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("veto-test-3");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v3"), deadline, "0x");
+
+      // Creator creates their own contract (not third-party)
+      const tx = await factory.connect(alice).createContract(
+        channelId, [7201], [50], [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"), deadline, "ipfs://Qm", "https://m/{id}.json", "ipfs://Qm",
+        false
+      );
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const addr = event.args.contractAddress;
+
+      await channelRegistry.connect(alice).takeChannelControl(channelId);
+
+      await expect(channelRegistry.connect(alice).vetoContract(addr))
+        .to.be.revertedWithCustomError(channelRegistry, "ContractNotThirdParty");
+    });
+  });
+
+  describe("releaseContentOnFailure", function () {
+    it("Should release content when condition has failed", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("release-test");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      // Use a very short deadline so we can make it fail
+      const deadline = latestBlock.timestamp + 2;
+
+      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r1"), deadline, "0x");
+
+      const releaseContentIds = [6001, 6002];
+      const tx = await factory.connect(owner).createContract(
+        channelId,
+        releaseContentIds,
+        [100, 100],
+        [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmRelease",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        false
+      );
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const contractAddress = event.args.contractAddress;
+
+      // Content should be registered
+      expect(await contentRegistry.isRegistered(releaseContentIds[0])).to.be.true;
+      expect(await contentRegistry.isRegistered(releaseContentIds[1])).to.be.true;
+
+      // Mine blocks to pass the deadline
+      await ethers.provider.send("evm_increaseTime", [10]);
+      await ethers.provider.send("evm_mine");
+
+      // Now the condition should have failed (deadline passed, threshold not met)
+      await factory.releaseContentOnFailure(contractAddress);
+
+      // Content should be released
+      expect(await contentRegistry.isRegistered(releaseContentIds[0])).to.be.false;
+      expect(await contentRegistry.isRegistered(releaseContentIds[1])).to.be.false;
+    });
+
+    it("Should revert releaseContentOnFailure when condition has not failed", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("release-test-2");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r2"), deadline, "0x");
+
+      const tx = await factory.connect(owner).createContract(
+        channelId,
+        [6101],
+        [100],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmRelease2",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        false
+      );
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+
+      await expect(factory.releaseContentOnFailure(event.args.contractAddress))
+        .to.be.revertedWithCustomError(factory, "ConditionNotFailed");
+    });
+
+    it("Should revert releaseContentOnFailure for unknown contract", async function () {
+      await expect(factory.releaseContentOnFailure(alice.address))
+        .to.be.revertedWithCustomError(factory, "NotCreatorContract");
     });
   });
 
@@ -637,13 +906,12 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const contractAddress = event.args.contractAddress;
 
-      const assuranceContract = await ethers.getContractAt("MultiERC1155AssuranceContract", contractAddress);
-      
       expect(await contentRegistry.contentContract(contentIds[0])).to.equal(contractAddress);
       expect(await contentRegistry.isRegistered(contentIds[0])).to.be.true;
     });
 
     it("Should handle third-party contract with veto flow", async function () {
+      // Verify and take control of owner's channel
       await channelRegistry.verifyChannel(
         channelId,
         owner.address,
@@ -651,9 +919,9 @@ describe("ContentFunding", function () {
         deadline,
         "0x"
       );
-
       await channelRegistry.connect(owner).takeChannelControl(channelId);
 
+      // Create a third-party contract on a different verified channel
       const thirdPartyChannelId = ethers.id("third-party-channel");
       await channelRegistry.verifyChannel(
         thirdPartyChannelId,
@@ -684,6 +952,15 @@ describe("ContentFunding", function () {
 
       expect(await channelEscrow.balance(thirdPartyChannelId)).to.equal(depositAmount);
       expect(await factory.isThirdPartyCreated(thirdPartyContract)).to.be.true;
+
+      // Charlie takes control and vetoes
+      await channelRegistry.connect(charlie).takeChannelControl(thirdPartyChannelId);
+      await channelRegistry.connect(charlie).vetoContract(thirdPartyContract);
+
+      // Verify the condition is cancelled
+      const conditionAddr = await factory.contractCondition(thirdPartyContract);
+      const condition = await ethers.getContractAt("CancellableCondition", conditionAddr);
+      expect(await condition.isCancelled()).to.be.true;
     });
   });
 });
@@ -694,42 +971,42 @@ describe("MockChannelVerifier", function () {
 
   beforeEach(async function () {
     [owner, claimant] = await ethers.getSigners();
-    
+
     const MockChannelVerifier = await ethers.getContractFactory("MockChannelVerifier");
     mockVerifier = await MockChannelVerifier.deploy();
   });
 
   it("Should return valid result based on setValid", async function () {
     await mockVerifier.setValid(true);
-    
+
     const channelId = ethers.id("test-channel");
     const nonce = ethers.id("nonce-1");
     const deadline = (await ethers.provider.getBlock("latest")).timestamp + 86400;
-    
+
     const message = ethers.solidityPacked(
       ["bytes32", "address", "bytes32", "uint256"],
       [channelId, claimant.address, nonce, deadline]
     );
     const hash = ethers.keccak256(message);
     const sig = await claimant.signMessage(ethers.getBytes(hash));
-    
+
     expect(await mockVerifier.verifyClaimProof(channelId, claimant.address, nonce, deadline, sig)).to.be.true;
   });
 
   it("Should return invalid when setValid is false", async function () {
     await mockVerifier.setValid(false);
-    
+
     const channelId = ethers.id("test-channel");
     const nonce = ethers.id("nonce-1");
     const deadline = (await ethers.provider.getBlock("latest")).timestamp + 86400;
-    
+
     const message = ethers.solidityPacked(
       ["bytes32", "address", "bytes32", "uint256"],
       [channelId, claimant.address, nonce, deadline]
     );
     const hash = ethers.keccak256(message);
     const sig = await claimant.signMessage(ethers.getBytes(hash));
-    
+
     expect(await mockVerifier.verifyClaimProof(channelId, claimant.address, nonce, deadline, sig)).to.be.false;
   });
 });

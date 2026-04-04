@@ -402,3 +402,52 @@ All 38 tests passing. The content-funding smart contracts are now fully tested.
 ### Interrupt point
 
 Good interrupt point — smart contracts and tests are complete. Next item in TODO.md is "Implement the Subjectiv trust graph for alignment attestations" or the seed statements work.
+
+---
+
+## Content-funding smart contract fixes (from review) — COMPLETE ✓
+
+### What was done
+
+Fixed all issues from the content-funding code review in TODO.md:
+
+1. **Access control (Ownable)** — Added to all 3 contracts:
+   - `ContentRegistry`: `registerContent` and `releaseContent` now `onlyOwner`. Factory is set as owner via `transferOwnership` after deployment.
+   - `ChannelRegistry`: `setVerifier` and `setFactory` now `onlyOwner`.
+   - `CreatorAssuranceContractFactory`: `setThirdPartyMinPurchase` now `onlyOwner`.
+
+2. **Escrow recipient dead code fixed** — Third-party contracts can now be created on Unclaimed channels (per spec). The factory routes funds to escrow for Unclaimed channels and to the channel owner for Verified/CreatorControlled. Added `ChannelCreatorControlled` error to block third-party creation on CreatorControlled channels.
+
+3. **Dead code in `takeChannelControl` fixed** — Restructured checks to use explicit state comparisons (`== Unclaimed` and `== CreatorControlled`) so both `ChannelNotVerified` and `ChannelAlreadyCreatorControlled` errors are reachable.
+
+4. **Wrong error in `setFactory` fixed** — Added `InvalidFactoryAddress` error (was reusing `InvalidVerifierAddress`).
+
+5. **Removed `canCreateContract`** — Unused function removed from contract and interface. The factory has its own inline access logic.
+
+6. **Fixed `releaseContentOnFailure`** — Interface was calling `contentIds()` (public array getter, takes index) instead of `getContentIds()` (returns full array). Fixed to use `getContentIds()`.
+
+7. **Test coverage expanded** (38 → 52 content-funding tests, 324 total hardhat):
+   - Veto flow: actually calls `vetoContract`, verifies condition is cancelled
+   - `releaseContentOnFailure`: tests success path (deadline passed) and failure paths
+   - Nonce reuse prevention test
+   - Access control tests for all 3 contracts (non-owner rejection)
+   - `ChannelAlreadyCreatorControlled` error test (was previously unreachable)
+   - Third-party on Unclaimed channel (escrow path) test
+   - Third-party blocked on CreatorControlled channel test
+   - Cleaned up escrow deposit test (removed noisy failed verifyChannel calls)
+
+### Key decisions
+
+- ContentRegistry ownership transferred to factory (not deployer) since only the factory should register/release content.
+- Used OZ v5 Ownable (already a dependency) rather than a custom access control scheme.
+- Kept `canCreateContract` removed rather than fixing it — the factory already encodes the access rules inline and a separate function would risk getting out of sync.
+
+### Files changed
+- `hardhat/contracts/content-funding/ContentRegistry.sol` — added Ownable
+- `hardhat/contracts/content-funding/ChannelRegistry.sol` — added Ownable, fixed takeChannelControl, fixed setFactory error, removed canCreateContract
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol` — added Ownable, fixed escrow routing, fixed releaseContentOnFailure interface
+- `hardhat/test/ContentFunding.test.js` — expanded from 38 to 52 tests
+
+### Interrupt point
+
+Good interrupt point — all review issues resolved. Next steps for content-funding: indexer integration and UI implementation.

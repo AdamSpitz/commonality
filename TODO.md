@@ -3,39 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Implement the content-funding system. Smart contracts and tests done; reviewed; issues listed below. Still need to fix those issues, and also implement whatever needs to be done in the indexer, and write the ui. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
-
-### Content-funding smart contract issues (from review)
-
-**Critical: No access control (3 contracts)**
-
-- `ContentRegistry.registerContent` and `releaseContent` are callable by anyone. An attacker can squat content IDs or release content from legitimate contracts. Needs Ownable or similar.
-- `ChannelRegistry.setVerifier` and `setFactory` are callable by anyone. An attacker can replace the verifier with one that always returns true, then verify any channel to themselves. Needs Ownable or similar.
-- `CreatorAssuranceContractFactory.setThirdPartyMinPurchase` is callable by anyone. Needs Ownable or similar.
-
-**Bug: Escrow recipient path is dead code (CreatorAssuranceContractFactory.sol:122-123)**
-
-`isVerified` (from ChannelRegistry) returns true for both Verified and CreatorControlled states. The earlier check on line 106 already reverts if the channel is Unclaimed. So by line 122, `isVerified` is always true — the `recipient = address(channelEscrow)` branch never executes. Funds always go directly to the channel owner. This contradicts the spec's intent that fans can fund unverified creators via escrow through the factory. Fix the condition or rethink the flow.
-
-**Bug: Dead code in `takeChannelControl` (ChannelRegistry.sol:145-147)**
-
-The check `_channelStates[channelId] == CreatorControlled` is unreachable because the prior check `!= Verified` already catches CreatorControlled and reverts with `ChannelNotVerified`. The `ChannelAlreadyCreatorControlled` error is never emitted. Remove the dead branch or restructure the checks.
-
-**Bug: Wrong error in `setFactory` (ChannelRegistry.sol:106)**
-
-Reverts with `InvalidVerifierAddress()` instead of a factory-specific error.
-
-**Design: `canCreateContract` is inverted and unused**
-
-Returns true for Unclaimed channels and false for CreatorControlled. The factory doesn't call it. Either fix the logic and use it, or remove it.
-
-**Test gaps**
-
-- `vetoContract` is untested (the "veto flow" integration test never actually calls it)
-- `releaseContentOnFailure` is untested
-- Nonce reuse prevention is untested
-- No access control tests (because there's no access control to test — add tests after fixing)
-- The escrow deposit test is noisy (includes unrelated failed verifyChannel calls)
+  - Implement the content-funding system. Smart contracts reviewed and fixed (access control, escrow routing, dead code — all done). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
 
 Other big things to do soon:
   - Do we have the "subjectiv" thing specced out enough for you to be ready to implement it? If so, take a crack at it; if not, let's talk about what remains to be figured out. (See specs/subsystems/subjectiv/README.md.) Then implement it.

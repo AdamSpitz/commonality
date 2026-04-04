@@ -1,7 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import {CreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {CreatorAssuranceContract, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
 import {ChannelRegistry} from "./ChannelRegistry.sol";
 import {ChannelEscrow} from "./ChannelEscrow.sol";
@@ -15,6 +16,7 @@ import {IAssuranceCondition} from "../individual-projects/IAssuranceCondition.so
 
 error ArrayLengthMismatch();
 error ChannelNotVerifiedOrControlled(bytes32 channelId);
+error ChannelCreatorControlled(bytes32 channelId);
 error InsufficientThirdPartyPurchase();
 error ContentAlreadyRegisteredForContract(uint256 contentId);
 error ConditionNotFailed();
@@ -37,17 +39,15 @@ interface IChannelEscrow {
     function deposit(bytes32 channelId) external payable;
 }
 
-interface ICreatorAssuranceContract {
-    function contentIds() external view returns (uint256[] memory);
-}
-
-contract CreatorAssuranceContractFactory {
+contract CreatorAssuranceContractFactory is Ownable {
     event CreatorContractCreated(
         address indexed contractAddress,
         bytes32 indexed channelId,
         address indexed erc1155,
         bool isThirdParty
     );
+
+    event ThirdPartyMinPurchaseUpdated(uint256 oldValue, uint256 newValue);
 
     ContentRegistry public contentRegistry;
     ChannelRegistry public channelRegistry;
@@ -71,7 +71,7 @@ contract CreatorAssuranceContractFactory {
         address _erc1155Factory,
         address _marketplaceFactory,
         address _conditionFactory
-    ) {
+    ) Ownable(msg.sender) {
         contentRegistry = ContentRegistry(_contentRegistry);
         channelRegistry = ChannelRegistry(_channelRegistry);
         channelEscrow = ChannelEscrow(_channelEscrow);
@@ -80,8 +80,10 @@ contract CreatorAssuranceContractFactory {
         conditionFactory = EthThresholdConditionFactory(_conditionFactory);
     }
 
-    function setThirdPartyMinPurchase(uint256 _minPurchase) external {
+    function setThirdPartyMinPurchase(uint256 _minPurchase) external onlyOwner {
+        uint256 oldValue = thirdPartyMinPurchase;
         thirdPartyMinPurchase = _minPurchase;
+        emit ThirdPartyMinPurchaseUpdated(oldValue, _minPurchase);
     }
 
     function createContract(
@@ -100,14 +102,14 @@ contract CreatorAssuranceContractFactory {
             revert ArrayLengthMismatch();
         }
 
-        bool isVerified = IChannelRegistry(address(channelRegistry)).isVerified(channelId);
-        bool isCreatorControlled = IChannelRegistry(address(channelRegistry)).isCreatorControlled(channelId);
-
-        if (!isVerified && !isCreatorControlled) {
-            revert ChannelNotVerifiedOrControlled(channelId);
-        }
+        bool verified = IChannelRegistry(address(channelRegistry)).isVerified(channelId);
+        bool creatorControlled = IChannelRegistry(address(channelRegistry)).isCreatorControlled(channelId);
 
         if (isThirdParty) {
+            // Third parties can create for Unclaimed or Verified channels, not CreatorControlled
+            if (creatorControlled) {
+                revert ChannelCreatorControlled(channelId);
+            }
             if (msg.value < thirdPartyMinPurchase) {
                 revert InsufficientThirdPartyPurchase();
             }
@@ -116,10 +118,16 @@ contract CreatorAssuranceContractFactory {
                     revert ContentAlreadyRegisteredForContract(contentIds[i]);
                 }
             }
+        } else {
+            // Creator contracts require Verified or CreatorControlled channel
+            if (!verified) {
+                revert ChannelNotVerifiedOrControlled(channelId);
+            }
         }
 
+        // Unclaimed channels route funds to escrow; verified/controlled go to channel owner
         address recipient;
-        if (!isVerified) {
+        if (!verified) {
             recipient = address(channelEscrow);
         } else {
             recipient = IChannelRegistry(address(channelRegistry)).channelOwner(channelId);
@@ -196,18 +204,18 @@ contract CreatorAssuranceContractFactory {
 
         address conditionAddr = contractCondition[contractAddress];
         IAssuranceCondition condition = IAssuranceCondition(conditionAddr);
-        
+
         if (!condition.hasFailed()) {
             revert ConditionNotFailed();
         }
 
-        try ICreatorAssuranceContract(contractAddress).contentIds() returns (uint256[] memory contentIds) {
+        try ICreatorAssuranceContract(contractAddress).getContentIds() returns (uint256[] memory contentIds) {
             for (uint256 i = 0; i < contentIds.length; i++) {
                 if (IContentRegistry(address(contentRegistry)).isRegistered(contentIds[i])) {
                     IContentRegistry(address(contentRegistry)).releaseContent(contentIds[i]);
                 }
             }
-        } catch (bytes memory) {
+        } catch (bytes memory) { // solhint-disable-line no-empty-blocks
             // Fallback: content IDs not retrievable from contract
         }
     }

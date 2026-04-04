@@ -3,10 +3,14 @@ pragma solidity 0.8.33;
 
 import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceContracts.sol";
 
+interface ICreatorAssuranceContract {
+    function getContentIds() external view returns (uint256[] memory);
+}
+
 error OnlyOwnerOrSelf();
 error OnlySelfOrOwner();
 
-contract CreatorAssuranceContract is MultiERC1155AssuranceContract {
+contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssuranceContract {
     bytes32 public channelId;
     uint256[] public contentIds;
 
