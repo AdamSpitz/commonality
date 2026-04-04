@@ -3,10 +3,42 @@
 ---
 
 Main thing I want to work on next:
-  - Implement the Subjectiv trust graph for alignment attestations. (Decision made: alignment attestations need the trust graph because they're inherently social judgment, unlike implication/content attestations which are objective enough for centralized attesters. See specs/subsystems/subjectiv/README.md.)
+  - Implement the content-funding system. Smart contracts and tests done; reviewed; issues listed below. Still need to fix those issues, and also implement whatever needs to be done in the indexer, and write the ui. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
+
+### Content-funding smart contract issues (from review)
+
+**Critical: No access control (3 contracts)**
+
+- `ContentRegistry.registerContent` and `releaseContent` are callable by anyone. An attacker can squat content IDs or release content from legitimate contracts. Needs Ownable or similar.
+- `ChannelRegistry.setVerifier` and `setFactory` are callable by anyone. An attacker can replace the verifier with one that always returns true, then verify any channel to themselves. Needs Ownable or similar.
+- `CreatorAssuranceContractFactory.setThirdPartyMinPurchase` is callable by anyone. Needs Ownable or similar.
+
+**Bug: Escrow recipient path is dead code (CreatorAssuranceContractFactory.sol:122-123)**
+
+`isVerified` (from ChannelRegistry) returns true for both Verified and CreatorControlled states. The earlier check on line 106 already reverts if the channel is Unclaimed. So by line 122, `isVerified` is always true — the `recipient = address(channelEscrow)` branch never executes. Funds always go directly to the channel owner. This contradicts the spec's intent that fans can fund unverified creators via escrow through the factory. Fix the condition or rethink the flow.
+
+**Bug: Dead code in `takeChannelControl` (ChannelRegistry.sol:145-147)**
+
+The check `_channelStates[channelId] == CreatorControlled` is unreachable because the prior check `!= Verified` already catches CreatorControlled and reverts with `ChannelNotVerified`. The `ChannelAlreadyCreatorControlled` error is never emitted. Remove the dead branch or restructure the checks.
+
+**Bug: Wrong error in `setFactory` (ChannelRegistry.sol:106)**
+
+Reverts with `InvalidVerifierAddress()` instead of a factory-specific error.
+
+**Design: `canCreateContract` is inverted and unused**
+
+Returns true for Unclaimed channels and false for CreatorControlled. The factory doesn't call it. Either fix the logic and use it, or remove it.
+
+**Test gaps**
+
+- `vetoContract` is untested (the "veto flow" integration test never actually calls it)
+- `releaseContentOnFailure` is untested
+- Nonce reuse prevention is untested
+- No access control tests (because there's no access control to test — add tests after fixing)
+- The escrow deposit test is noisy (includes unrelated failed verifyChannel calls)
 
 Other big things to do soon:
-  - Implement the content-funding system. (Smart contracts and tests done ✓)
+  - Do we have the "subjectiv" thing specced out enough for you to be ready to implement it? If so, take a crack at it; if not, let's talk about what remains to be figured out. (See specs/subsystems/subjectiv/README.md.) Then implement it.
   - Figure out the seed statements.
   - Figure out the seed statements. (We've started, but then we realized that content-funding and in particular noninflammatory-content funding was a major use case, so we got sidetracked into that. Once we have the content-funding system MVP built, go back to writing up seed statements.)
   - Generate a proliferation of similar statements around the seed statements. Use an LLM *once* to pre-generate evaluations of all the S1 -> S2 implication candidates, then store those statements and those evaluations as another pre-generated data to be used in the fake-data simulations.
