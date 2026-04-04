@@ -22,6 +22,7 @@ error ContentAlreadyRegisteredForContract(uint256 contentId);
 error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
 error MarketplaceCreationFailed();
+error OnlyChannelOwnerCanCreateCreatorContract(bytes32 channelId);
 
 interface IChannelRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
@@ -30,6 +31,7 @@ interface IChannelRegistry {
 }
 
 interface IContentRegistry {
+    function contentContract(uint256 contentId) external view returns (address);
     function registerContent(uint256 contentId, address assuranceContract) external;
     function releaseContent(uint256 contentId) external;
     function isRegistered(uint256 contentId) external view returns (bool);
@@ -104,6 +106,9 @@ contract CreatorAssuranceContractFactory is Ownable {
 
         bool verified = IChannelRegistry(address(channelRegistry)).isVerified(channelId);
         bool creatorControlled = IChannelRegistry(address(channelRegistry)).isCreatorControlled(channelId);
+        address channelOwner = verified
+            ? IChannelRegistry(address(channelRegistry)).channelOwner(channelId)
+            : address(0);
 
         if (isThirdParty) {
             // Third parties can create for Unclaimed or Verified channels, not CreatorControlled
@@ -123,6 +128,9 @@ contract CreatorAssuranceContractFactory is Ownable {
             if (!verified) {
                 revert ChannelNotVerifiedOrControlled(channelId);
             }
+            if (msg.sender != channelOwner) {
+                revert OnlyChannelOwnerCanCreateCreatorContract(channelId);
+            }
         }
 
         // Unclaimed channels route funds to escrow; verified/controlled go to channel owner
@@ -130,7 +138,7 @@ contract CreatorAssuranceContractFactory is Ownable {
         if (!verified) {
             recipient = address(channelEscrow);
         } else {
-            recipient = IChannelRegistry(address(channelRegistry)).channelOwner(channelId);
+            recipient = channelOwner;
         }
 
         PremintingERC1155 erc1155 = erc1155Factory.createPremintingERC1155(
@@ -211,7 +219,7 @@ contract CreatorAssuranceContractFactory is Ownable {
 
         try ICreatorAssuranceContract(contractAddress).getContentIds() returns (uint256[] memory contentIds) {
             for (uint256 i = 0; i < contentIds.length; i++) {
-                if (IContentRegistry(address(contentRegistry)).isRegistered(contentIds[i])) {
+                if (IContentRegistry(address(contentRegistry)).contentContract(contentIds[i]) == contractAddress) {
                     IContentRegistry(address(contentRegistry)).releaseContent(contentIds[i]);
                 }
             }

@@ -451,3 +451,59 @@ Fixed all issues from the content-funding code review in TODO.md:
 ### Interrupt point
 
 Good interrupt point — all review issues resolved. Next steps for content-funding: indexer integration and UI implementation.
+
+---
+
+## Content-funding review follow-up hardening — COMPLETE ✓
+
+### What was done
+
+Followed up on another review pass over the content-funding contracts and fixed the issues that turned up:
+
+1. **Locked `contentIds` after initialization**
+   - `CreatorAssuranceContract.setContentIds()` is now one-time only.
+   - This prevents a contract owner from rewriting the content list after deployment.
+
+2. **Prevented arbitrary registry cleanup on failed contracts**
+   - `releaseContentOnFailure()` now checks `contentRegistry.contentContract(contentId) == contractAddress` before releasing each item.
+   - This means a failed contract can only free its own registered content IDs, not somebody else's.
+
+3. **Blocked unauthorized fee-free "creator contract" creation**
+   - `CreatorAssuranceContractFactory.createContract(..., isThirdParty = false)` now requires `msg.sender` to be the verified channel owner.
+   - This closes the hole where anyone could create a non-third-party contract for another creator's verified channel and thereby bypass the third-party path and vetoability.
+
+4. **Made veto actually free content immediately**
+   - `ChannelRegistry.vetoContract()` now calls `releaseContentOnFailure()` after cancelling the condition.
+   - This makes the veto flow match the intended product behavior: creator vetoes, contract fails, content becomes available for re-registration right away.
+
+5. **Expanded regression coverage**
+   - Added a test that non-owners cannot create fee-free creator contracts on verified channels.
+   - Replaced the old mutable-content-IDs test with checks that initialized content IDs are exposed but cannot be changed afterward.
+   - Extended the veto tests to verify that veto releases content and that the content can be re-registered in a new contract.
+
+### Remaining issue noted
+
+There is still a **spec / implementation mismatch** around the third-party creation fee:
+
+- The current contract behavior treats the fee as an escrow deposit.
+- The current spec/UI wording says the third-party creator must buy tokens worth at least the creation fee.
+
+This needs a product decision. I added a TODO item so the contracts/tests/specs can be aligned once that decision is made.
+
+### Files changed
+
+- `hardhat/contracts/content-funding/CreatorAssuranceContract.sol`
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol`
+- `hardhat/contracts/content-funding/ChannelRegistry.sol`
+- `hardhat/test/ContentFunding.test.js`
+- `TODO.md`
+- `CONTINUITY.md`
+
+### Verification
+
+- Ran `npx --workspace=hardhat hardhat test test/ContentFunding.test.js`
+- Result: **55 passing**
+
+### Interrupt point
+
+Good interrupt point. The new content-funding hardening pass is done and documented. The main content-funding work left is still indexer integration, UI implementation, and resolving the third-party creation fee semantics.

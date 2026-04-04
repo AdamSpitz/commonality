@@ -9,10 +9,12 @@ interface ICreatorAssuranceContract {
 
 error OnlyOwnerOrSelf();
 error OnlySelfOrOwner();
+error ContentIdsAlreadySet();
 
 contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssuranceContract {
     bytes32 public channelId;
     uint256[] public contentIds;
+    bool public contentIdsInitialized;
 
     event ContentItemRegistered(
         bytes32 indexed channelId,
@@ -32,7 +34,9 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
 
     function setContentIds(uint256[] memory _contentIds) external {
         if (msg.sender != owner() && msg.sender != address(this)) revert OnlyOwnerOrSelf();
+        if (contentIdsInitialized) revert ContentIdsAlreadySet();
         contentIds = _contentIds;
+        contentIdsInitialized = true;
         emit ContentIdsSet(_contentIds);
     }
 

@@ -476,6 +476,22 @@ describe("ContentFunding", function () {
         .withArgs(unverifiedChannel);
     });
 
+    it("Should revert creator contract when caller is not the verified channel owner", async function () {
+      await expect(factory.connect(thirdParty).createContract(
+        channelId,
+        contentIds,
+        supplies,
+        prices,
+        threshold,
+        deadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        false
+      )).to.be.revertedWithCustomError(factory, "OnlyChannelOwnerCanCreateCreatorContract")
+        .withArgs(channelId);
+    });
+
     it("Should create third-party contract with ETH deposit to escrow", async function () {
       const depositAmount = ethers.parseEther("0.1");
 
@@ -663,13 +679,14 @@ describe("ContentFunding", function () {
       createdContract = await ethers.getContractAt("CreatorAssuranceContract", event.args.contractAddress);
     });
 
-    it("Should set content IDs", async function () {
-      const newContentIds = [4001, 4002, 4003];
-
-      await createdContract.setContentIds(newContentIds);
-
+    it("Should expose the initialized content IDs", async function () {
       const storedIds = await createdContract.getContentIds();
-      expect(storedIds).to.deep.equal(newContentIds);
+      expect(storedIds).to.deep.equal(contentIds);
+    });
+
+    it("Should not allow content IDs to be changed after initialization", async function () {
+      await expect(createdContract.setContentIds([4001, 4002, 4003]))
+        .to.be.revertedWithCustomError(createdContract, "ContentIdsAlreadySet");
     });
 
     it("Should emit content item registered event", async function () {
@@ -738,6 +755,60 @@ describe("ContentFunding", function () {
       const condition = await ethers.getContractAt("CancellableCondition", conditionAddr);
       expect(await condition.isCancelled()).to.be.true;
       expect(await condition.hasFailed()).to.be.true;
+      expect(await contentRegistry.isRegistered(7001)).to.be.false;
+      expect(await contentRegistry.isRegistered(7002)).to.be.false;
+    });
+
+    it("Should free vetoed content for re-registration", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("veto-reregister-channel");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+      const vetoedContentId = 7301;
+
+      await channelRegistry.verifyChannel(
+        channelId,
+        alice.address,
+        ethers.id("nonce-veto-r1"),
+        deadline,
+        "0x"
+      );
+
+      const tx = await factory.connect(thirdParty).createContract(
+        channelId,
+        [vetoedContentId],
+        [50],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmThirdParty",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        { value: ethers.parseEther("0.1") }
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const thirdPartyContractAddr = event.args.contractAddress;
+
+      await channelRegistry.connect(alice).takeChannelControl(channelId);
+      await channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
+
+      expect(await contentRegistry.isRegistered(vetoedContentId)).to.be.false;
+
+      await expect(factory.connect(alice).createContract(
+        channelId,
+        [vetoedContentId],
+        [100],
+        [ethers.parseEther("0.2")],
+        ethers.parseEther("6.0"),
+        deadline,
+        "ipfs://QmCreatorRetry",
+        "https://meta/{id}.json",
+        "ipfs://QmContract2",
+        false
+      )).to.not.be.reverted;
     });
 
     it("Should revert veto from non-channel-owner", async function () {

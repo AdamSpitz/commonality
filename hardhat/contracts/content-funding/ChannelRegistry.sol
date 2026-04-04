@@ -53,6 +53,7 @@ interface ICreatorAssuranceContractFactory {
     function channelIdByContract(address contractAddress) external view returns (bytes32);
     function isThirdPartyCreated(address contractAddress) external view returns (bool);
     function contractCondition(address contractAddress) external view returns (address);
+    function releaseContentOnFailure(address contractAddress) external;
 }
 
 contract ChannelRegistry is IChannelRegistry, Ownable {
@@ -180,6 +181,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
         if (conditionAddress == address(0)) revert ContractNotCreatedByFactory(contractAddress);
 
         ICancellableCondition(conditionAddress).cancel();
+        ICreatorAssuranceContractFactory(factory).releaseContentOnFailure(contractAddress);
     }
 }
 
