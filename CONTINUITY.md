@@ -21,6 +21,35 @@ The next item in TODO.md's "Main thing I want to work on next" is: Document the 
 
 ---
 
+## Same-domain implication restriction — COMPLETE ✓
+
+### What was done
+
+Verified and documented that the same-domain restriction for implication generation is already implemented across the codebase:
+
+1. **generateAttestations.ts:88-102** — generates implication pairs within the same domain only
+2. **runSimulation.ts:514** — simulation only creates implications between statements of the same domain
+3. **generateStatements.ts:84, 111** — generates conjunction/disjunction statements only within same domain
+
+The `universe.json` file already defines domains (politics, crypto, religion, music, climate, technology) and statements are tagged with their domain. The code correctly restricts implication generation to same-domain pairs.
+
+The task in TODO.md was phrased as "restrict in universe.json" but the restriction is already enforced in the code that generates implications — there's nothing to add to `universe.json` itself.
+
+### Files changed
+- `TODO.md` — marked task done
+- `README.md` — updated status section
+- `CONTINUITY.md` — this note
+
+### Notes for next session
+
+Task complete. The TODO.md item was a misunderstanding — the restriction was already implemented, just not explicitly documented as "done."
+
+Next items in TODO.md:
+- Pubstarter UI: token type images
+- e2e tests for pubstarter, fundingportals, mutablerefs, etc.
+
+---
+
 ## Working-directory guard for fake-data scripts — COMPLETE ✓
 
 ### What was done

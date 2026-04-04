@@ -58,4 +58,4 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
-- User-selectable attester trust implemented. Implication discovery plan documented (transitive chain detection, same-domain filtering as proposed enhancements). Ready to work on statement proliferation/seed content or the next item.
+- Same-domain restriction verified as implemented across fake-data-generation. Ready to work on Pubstarter UI token images or e2e tests.
