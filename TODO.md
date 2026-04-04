@@ -4,7 +4,7 @@
 
 Main thing I want to work on next:
   - ~~Document the "Client-Side Folding" architecture pattern.~~ Done.
-  - Document the `chainHash` delegation mechanism. Explain how the indexer tracks `NoteDelegated` events so the SDK can reconstruct the `address[] owners` array. Update `specs/subsystems/delegation/README.md` and SDK docs.
+  - ~~Document the `chainHash` delegation mechanism. Explain how the indexer tracks `NoteDelegated` events so the SDK can reconstruct the `address[] owners` array. Update `specs/subsystems/delegation/README.md` and SDK docs.~~ Done.
   - ~~**Add a working-directory guard to `loadEnv.ts`.**~~ Done.
   - **Implement user-selectable attester trust.** Users should see implications filtered by attesters they personally trust, not a global feed. The specs already describe "non-transitive, per-user" trust — surface this in the UI as a curated attester list.
   - **Clarify the plan for implication "Discovery" services.** The SDK only looks one level deep for indirect support. Define whether a service should suggest adding direct `A -> C` implications when a clear `A -> B -> C` chain exists. (I think this should be part of the "finder" service. That's its job - to look for pairs to suggest to the attester. Noticing that A -> B and B -> C and so it might make sense to have A -> C would be a good heuristic for it to have in its toolbox.)

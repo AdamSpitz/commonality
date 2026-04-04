@@ -42,6 +42,33 @@ The `fake-data-generation/README.md` still incorrectly says scripts need to run 
 
 ---
 
+## Document chainHash delegation mechanism — COMPLETE ✓
+
+### What was done
+
+Wrote `specs/subsystems/delegation/README.md` explaining the `chainHash` commitment design:
+- Why the contract stores a hash instead of an explicit owner list (gas efficiency)
+- How `chainHash` is computed recursively from root to leaf
+- How the indexer captures raw events so the SDK can reconstruct chains client-side
+- The chain-ordering mismatch: SDK is root-first, contract expects leaf-first — callers must `.reverse()` before calling contract functions
+- Full lifecycle example showing deposit → delegate → partial-delegate → revoke → spend
+
+Key references explored: `DelegatableNotes.sol`, `sdk/src/subsystems/delegation/folds.ts`, `events.ts`, `types.ts`, `queries.ts`, `actions.ts`.
+
+### Files changed
+- `specs/subsystems/delegation/README.md` — full rewrite: now documents the chainHash mechanism
+- `TODO.md` — marked task done
+- `README.md` — updated status section
+- `CONTINUITY.md` — this note
+
+### Notes for next session
+
+Good interrupt point — docs for two major architectural patterns (Client-Side Folding and chainHash delegation) are now complete.
+
+Next item in TODO.md: **Implement user-selectable attester trust** — users should see implications filtered by attesters they personally trust, not a global feed.
+
+---
+
 ## Local deploy data persistence — COMPLETE ✓
 
 ### What was done
