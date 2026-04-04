@@ -4,6 +4,10 @@ import {
   SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT,
   SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS,
 } from '../subjectivTrust'
+import {
+  loadCachedSubjectivTrustedSet,
+  saveCachedSubjectivTrustedSet,
+} from '../subjectivTrustCache'
 import { computeSubjectivTrustedSet } from '../subjectivTrustWorkerClient'
 
 interface UseTrustedSetOptions {
@@ -33,8 +37,38 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
         return
       }
 
-      setIsLoading(true)
       setError(null)
+      setIsLoading(true)
+
+      const cacheOptions = {
+        address,
+        eventCacheUrl: machinery.eventCacheUrl,
+        contractAddresses: {
+          trustRegistry: machinery.contractAddresses.trustRegistry,
+        },
+      }
+      let cachedResult = null
+
+      try {
+        cachedResult = await loadCachedSubjectivTrustedSet(cacheOptions)
+      } catch (cacheError) {
+        console.warn('Failed to rehydrate Subjectiv trust network from IndexedDB', cacheError)
+      }
+
+      if (cancelled) return
+
+      if (cachedResult) {
+        if (!cachedResult.hasDirectTrust) {
+          setTrustedSet(undefined)
+        } else {
+          const cachedTrustedSet = new Set(cachedResult.trustedSet)
+          setTrustedSet(cachedTrustedSet.size > 0 ? cachedTrustedSet : undefined)
+        }
+
+        if (refreshNonce === 0) {
+          setIsLoading(false)
+        }
+      }
 
       try {
         const result = await computeSubjectivTrustedSet({
@@ -47,16 +81,21 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
 
         if (!result.hasDirectTrust) {
           setTrustedSet(undefined)
-          return
-        }
-
-        if (!cancelled) {
+        } else if (!cancelled) {
           const nextTrustedSet = new Set(result.trustedSet)
           setTrustedSet(nextTrustedSet.size > 0 ? nextTrustedSet : undefined)
         }
+
+        try {
+          await saveCachedSubjectivTrustedSet(cacheOptions, result)
+        } catch (cacheError) {
+          console.warn('Failed to persist Subjectiv trust network to IndexedDB', cacheError)
+        }
       } catch (err) {
         if (!cancelled) {
-          setTrustedSet(undefined)
+          if (!cachedResult) {
+            setTrustedSet(undefined)
+          }
           setError(err instanceof Error ? err.message : 'Failed to build trust network')
         }
       } finally {

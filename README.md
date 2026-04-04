@@ -60,5 +60,5 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
 - Test coverage exists across all major subsystems (SDK, hardhat, integration tests, UI, and e2e coverage for pubstarter/fundingportals/mutablerefs/marketplace).
-- Subjectiv trust-network computation now runs in a Web Worker and refreshes on direct-trust edits, manual refresh, window focus, and a periodic timer. IndexedDB persistence and partial-progress updates are still pending.
+- Subjectiv trust-network computation now runs in a Web Worker, rehydrates cached trusted sets from IndexedDB on startup, and refreshes on direct-trust edits, manual refresh, window focus, and a periodic timer. Per-user direct-trust caching and partial-progress updates are still pending.
 - Content-funding smart contracts reviewed and fixed: access control (Ownable), escrow routing for unclaimed channels, dead code removal. Still needs indexer + UI integration.

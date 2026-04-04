@@ -1,5 +1,37 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv IndexedDB trusted-set rehydration — COMPLETE ✓
+
+### What was done
+
+Added IndexedDB-backed persistence for the UI's computed Subjectiv trusted set and rehydrated that snapshot on startup before the next recomputation finishes.
+
+Key decisions:
+- Kept the public `useTrustedSet()` hook API unchanged and layered persistence underneath it.
+- Rehydrated only the final trusted-set snapshot for now, because the current SDK/worker path does not expose the traversal's per-user direct-trust cache as a reusable artifact yet.
+- If a refresh fails after startup, the hook now keeps showing the cached trusted set and surfaces the error instead of dropping back to an empty state.
+- Treated IndexedDB as an opportunistic cache: failures to read or write it log warnings but do not block fresh computation.
+
+### Files changed
+- `ui/src/shared/hooks/useTrustedSet.ts`
+- `ui/src/shared/hooks/useTrustedSet.test.tsx`
+- `ui/src/shared/subjectivTrustCache.ts`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Subjectiv now has worker execution plus trusted-set snapshot rehydration. The remaining chunks are:
+- Persist and reuse cached per-user direct trust mappings during recomputation so startup refreshes can avoid re-fetching already-visited users.
+- Partial-progress updates so the UI can show the trust network filling in while traversal is underway.
+- Any wording cleanup in Settings / funding portal once the behavior feels stable.
+
+The worker bundle is still large because it pulls in the SDK trust-query path directly, and this change does not alter that.
+
+---
+
 ## Subjectiv Web Worker execution — COMPLETE ✓
 
 ### What was done
