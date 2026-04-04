@@ -50,6 +50,7 @@ services:
     environment:
       # Point to the hardhat-node service using Docker networking
       - HARDHAT_NETWORK_URL=http://hardhat-node:8545
+      - HOME=/tmp
     networks:
       - commonality
 
@@ -121,6 +122,7 @@ services:
       # Point to local IPFS gateway
       - IPFS_GATEWAY=http://ipfs:8080/ipfs
       - IPFS_API=http://ipfs:5001
+      - HOME=/tmp
     # Load contract addresses from .env file (created by hardhat-deploy; may not exist on fresh clone)
     env_file:
       - path: .env
@@ -157,6 +159,7 @@ services:
     environment:
       # Proxy to indexer service by name instead of localhost
       - INDEXER_URL=http://indexer:42069
+      - HOME=/tmp
     depends_on:
       hardhat-deploy:
         condition: service_completed_successfully

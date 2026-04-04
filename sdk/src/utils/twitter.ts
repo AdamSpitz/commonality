@@ -1,6 +1,6 @@
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
-import { getEnsName, getEnsText } from 'viem/ens';
+import { getEnsName, getEnsText } from 'viem/actions';
 
 const X_API_KEY = process.env.X_API_KEY;
 

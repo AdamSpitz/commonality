@@ -35,6 +35,11 @@ export const MultiERC1155AssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "ConditionHasFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ConditionNotFailed",
     "type": "error"
   },

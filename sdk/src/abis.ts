@@ -1,24 +1,23 @@
 /**
  * Centralized Contract ABIs for Integration Tests
  *
- * This file re-exports all contract ABIs from the indexer's abis directory.
- * This eliminates duplication and ensures test ABIs stay in sync with the indexer.
+ * This file re-exports the SDK's local ABI files.
+ * This keeps the SDK self-contained instead of relying on runtime files from the indexer.
  */
 
-// Re-export ABIs from indexer
-export { BeliefsAbi } from '../../indexer/abis/BeliefsAbi.js';
-export { ImplicationsAbi } from '../../indexer/abis/ImplicationsAbi.js';
-export { DelegatableNotesAbi } from '../../indexer/abis/DelegatableNotesAbi.js';
-export { AlignmentAttestationsAbi } from '../../indexer/abis/AlignmentAttestationsAbi.js';
-export { NoteIntentAbi } from '../../indexer/abis/NoteIntentAbi.js';
-export { MutableRefUpdaterAbi } from '../../indexer/abis/MutableRefUpdaterAbi.js';
-export { AssuranceContractAbi } from '../../indexer/abis/AssuranceContractAbi.js';
-export { ERC1155SecondaryMarketAbi } from '../../indexer/abis/ERC1155SecondaryMarketAbi.js';
-export { PubstarterAbi } from '../../indexer/abis/PubstarterAbi.js';
-export { PremintingERC1155Abi } from '../../indexer/abis/PremintingERC1155Abi.js';
-export {
-  PremintingERC1155FactoryAbi,
-  MarketplaceFactoryAbi,
-  AssuranceContractFactoryAbi,
-  EthThresholdConditionFactoryAbi,
-} from '../../indexer/abis/PubstarterFactoriesAbi.js';
+// Re-export ABIs from the SDK's local abis directory.
+export { BeliefsAbi } from '../abis/BeliefsAbi.js';
+export { ImplicationsAbi } from '../abis/ImplicationsAbi.js';
+export { DelegatableNotesAbi } from '../abis/DelegatableNotesAbi.js';
+export { AlignmentAttestationsAbi } from '../abis/AlignmentAttestationsAbi.js';
+export { NoteIntentAbi } from '../abis/NoteIntentAbi.js';
+export { MutableRefUpdaterAbi } from '../abis/MutableRefUpdaterAbi.js';
+export { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from '../abis/AssuranceContractAbi.js';
+export { ERC1155SecondaryMarketAbi } from '../abis/ERC1155SecondaryMarketAbi.js';
+export { PubstarterAbi } from '../abis/PubstarterAbi.js';
+export { PremintingERC1155Abi } from '../abis/PremintingERC1155Abi.js';
+export { PremintingERC1155FactoryAbi } from '../abis/PremintingERC1155FactoryAbi.js';
+export { MarketplaceFactoryAbi } from '../abis/MarketplaceFactoryAbi.js';
+export { AssuranceContractFactoryAbi } from '../abis/AssuranceContractFactoryAbi.js';
+export { EthThresholdConditionFactoryAbi } from '../abis/EthThresholdConditionFactoryAbi.js';
+export { FreeERC1155FactoryAbi } from '../abis/FreeERC1155FactoryAbi.js';

@@ -30,7 +30,12 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   PremintingERC1155: { artifactPath: "utils/PremintingERC1155.sol/PremintingERC1155.json", outputFile: "PremintingERC1155Abi.ts" },
   MultiERC1155AssuranceContract: { artifactPath: "individual-projects/AssuranceContracts.sol/MultiERC1155AssuranceContract.json", outputFile: "AssuranceContractAbi.ts" },
   ERC1155SecondaryMarket: { artifactPath: "marketplace/ERC1155SecondaryMarket.sol/ERC1155SecondaryMarket.json", outputFile: "ERC1155SecondaryMarketAbi.ts" },
-  PubstarterFactories: { artifactPath: "individual-projects/Pubstarter.sol/Pubstarter.json", outputFile: "PubstarterFactoriesAbi.ts" },
+  Pubstarter: { artifactPath: "individual-projects/Pubstarter.sol/Pubstarter.json", outputFile: "PubstarterAbi.ts" },
+  FreeERC1155Factory: { artifactPath: "individual-projects/Pubstarter.sol/FreeERC1155Factory.json", outputFile: "FreeERC1155FactoryAbi.ts" },
+  PremintingERC1155Factory: { artifactPath: "individual-projects/Pubstarter.sol/PremintingERC1155Factory.json", outputFile: "PremintingERC1155FactoryAbi.ts" },
+  MarketplaceFactory: { artifactPath: "individual-projects/Pubstarter.sol/MarketplaceFactory.json", outputFile: "MarketplaceFactoryAbi.ts" },
+  AssuranceContractFactory: { artifactPath: "individual-projects/Pubstarter.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts" },
+  EthThresholdConditionFactory: { artifactPath: "individual-projects/Pubstarter.sol/EthThresholdConditionFactory.json", outputFile: "EthThresholdConditionFactoryAbi.ts" },
 };
 
 function main() {
