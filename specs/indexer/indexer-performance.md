@@ -1,6 +1,6 @@
 # Indexer performance (in theory)
 
-TODO: I want a better understanding of indexer performance characteristics. (In theory only - this isn't deployed yet, I just want an analysis of big-O characteristics, concurrency, composability, etc.)
+I want a better understanding of indexer performance characteristics. (In theory only - this isn't deployed yet, I just want an analysis of big-O characteristics, concurrency, composability, etc.)
 
 (Partly my motivation is: what if I screw it up, or want to switch to The Graph, or whatever?)
 

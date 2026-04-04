@@ -3,15 +3,24 @@
 ---
 
 Main thing I want to work on next:
-  - ?
+  - Document the "Client-Side Folding" architecture pattern. The indexer is intentionally dumb (event cache only), with fold logic in the SDK. This is non-obvious and trips up new developers. Make sure specs/indexer/ has a proper description of what and why, and indexer/README.md has a brief description and a link to the place in the specs, and maybe also put a very very brief note in the root-level README.md just so that it's obvious to new devs that there's something unusual here.
+  - Document the `chainHash` delegation mechanism. Explain how the indexer tracks `NoteDelegated` events so the SDK can reconstruct the `address[] owners` array. Update `specs/subsystems/delegation/README.md` and SDK docs.
+  - **Add a working-directory guard to `loadEnv.ts`.** The fake-data scripts silently fail if not run from the `hardhat/` directory. Add a check that warns the user if `process.cwd()` is wrong.
+  - **Implement user-selectable attester trust.** Users should see implications filtered by attesters they personally trust, not a global feed. The specs already describe "non-transitive, per-user" trust — surface this in the UI as a curated attester list.
+  - **Clarify the plan for implication "Discovery" services.** The SDK only looks one level deep for indirect support. Define whether a service should suggest adding direct `A -> C` implications when a clear `A -> B -> C` chain exists. (I think this should be part of the "finder" service. That's its job - to look for pairs to suggest to the attester. Noticing that A -> B and B -> C and so it might make sense to have A -> C would be a good heuristic for it to have in its toolbox.)
+  - **Restrict implication generation to same-domain pairs in `universe.json`.** Prevents O(N^2) explosion as statement count grows.
+  - Pubstarter UI: I'd like to enhance the project-creation and project-viewing pages to allow token types to have an image. (For project creation, if the user uploads an image, add it to IPFS.) (Wait, did we do this already, or not?)
+  - I'm not sure exactly what e2e tests are done already and what's not, but we just wrote the UI code for some other subsystems (pubstarter, fundingportals, mutablerefs, anything else?), and I suspect we don't have e2e tests for them yet. So that'd be a good thing to do.
 
 Other big things to do soon:
   - Implement the Subjectiv trust graph for alignment attestations. (Decision made: alignment attestations need the trust graph because they're inherently social judgment, unlike implication/content attestations which are objective enough for centralized attesters. See specs/subsystems/subjectiv/README.md.)
-  - Figure out the seed statements?
+  - Implement the content-funding system.
+  - Figure out the seed statements. (We've started, but then we realized that content-funding and in particular noninflammatory-content funding was a major use case, so we got sidetracked into that. Once we have the content-funding system MVP built, go back to writing up seed statements.)
   - Generate a proliferation of similar statements around the seed statements. Use an LLM *once* to pre-generate evaluations of all the S1 -> S2 implication candidates, then store those statements and those evaluations as another pre-generated data to be used in the fake-data simulations.
-  - Make sure the attester and finder seem viable. (Get them into the docker-compose setup? Problem is that it actually costs money to run the LLMs, so I want them to be part of the pre-generated stuff, not something that runs every time I run the tests.)
+  - Switch the fake-data-simulation stuff so that it uses the seed statements and the proliferation of similar stuff, so that even when I'm looking locally at the fake-data-generation simulation, I'm seeing the seed stuff, not those less-sophisticated statements I generated and put into universe.json a long time ago - those can be deleted once we're using the real seed content.
+  - Make sure the attester and finder seem viable. (Get them into the docker-compose setup? Make sure they're using the pre-generated stuff, not spending LLM credits every time I run the tests.)
   - Merge specs/motivation with the wider specs directory? (Sort-of a prerequisite for writing the documentation; I want to get all the ideas clear first.)
-  - Write the documentation and AI skills? Including the seed content? So that even when I'm looking locally at the fake-data-generation simulation, I'm seeing the seed stuff.
+  - Write the documentation and AI skills.
   - Audit the smart contracts using a more-competent AI. (Still doesn't replace a real auditing by competent humans, but it's better than nothing and much easier. Also, I suspect that most of these contracts are simple enough that I can probably get them right without too much trouble.)
   - Do I trust the UI? No.
 
@@ -30,7 +39,4 @@ Ideas from seed-content work:
 
 ## Miscellaneous TODO.md files
 
-- [hardhat/TODO.md](hardhat/TODO.md)
-- [sdk/TODO.md](sdk/TODO.md)
 - [ui/TODO.md](ui/TODO.md)
-- [attester/TODO.md](attester/TODO.md)

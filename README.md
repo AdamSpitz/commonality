@@ -33,6 +33,8 @@ Note that the build and tests are run by the Git pre-commit hook, and the whole 
 
 ## Artifacts
 
+TODO: make these real markdown links
+
   - Smart contracts: `hardhat/README.md`
   - Fake-data generation: `fake-data-generation/README.md`
   - Indexer: `indexer/README.md`
