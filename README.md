@@ -46,6 +46,10 @@ TODO: make these real markdown links
 
 ## Other things worth noting
 
+### Unusual architecture: Client-Side Folding
+
+The indexer is intentionally dumb — it's a thin event cache that stores raw blockchain events and nothing else. All state computation ("folding") happens client-side in the SDK. If you're wondering why the indexer has no business logic, this is why. See [specs/indexer/README.md](specs/indexer/README.md).
+
 ### Local dev done using Docker
 
 We have a Docker Compose setup for running Hardhat and the Ponder indexer. This provides a clean, isolated environment for development and testing.

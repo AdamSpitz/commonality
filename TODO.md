@@ -3,7 +3,7 @@
 ---
 
 Main thing I want to work on next:
-  - Document the "Client-Side Folding" architecture pattern. The indexer is intentionally dumb (event cache only), with fold logic in the SDK. This is non-obvious and trips up new developers. Make sure specs/indexer/ has a proper description of what and why, and indexer/README.md has a brief description and a link to the place in the specs, and maybe also put a very very brief note in the root-level README.md just so that it's obvious to new devs that there's something unusual here.
+  - ~~Document the "Client-Side Folding" architecture pattern.~~ Done.
   - Document the `chainHash` delegation mechanism. Explain how the indexer tracks `NoteDelegated` events so the SDK can reconstruct the `address[] owners` array. Update `specs/subsystems/delegation/README.md` and SDK docs.
   - ~~**Add a working-directory guard to `loadEnv.ts`.**~~ Done.
   - **Implement user-selectable attester trust.** Users should see implications filtered by attesters they personally trust, not a global feed. The specs already describe "non-transitive, per-user" trust — surface this in the UI as a curated attester list.

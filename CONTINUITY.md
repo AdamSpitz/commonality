@@ -1,5 +1,26 @@
 # Continuity notes for ephemeral AI instances
 
+## Document Client-Side Folding architecture — COMPLETE ✓
+
+### What was done
+
+Wrote proper documentation for the "Client-Side Folding" architecture pattern (the indexer is intentionally a dumb event cache; all fold logic lives in the SDK).
+
+Key decision: The existing `specs/indexer/federation.md` already had good content. Rewrote `specs/indexer/README.md` to be the canonical entry point — explicitly names the pattern, explains what/why, and links to the supplementary files. Left the other files (`federation.md`, `redesign.md`, etc.) in place as supplementary reading.
+
+### Files changed
+- `specs/indexer/README.md` — full rewrite: now the canonical "Client-Side Folding" doc
+- `indexer/README.md` — added the pattern name and updated link text
+- `README.md` — added "Unusual architecture" note under "Other things worth noting"
+- `TODO.md` — marked task done
+- `CONTINUITY.md` — this note
+
+### Notes for next session
+
+The next item in TODO.md's "Main thing I want to work on next" is: Document the `chainHash` delegation mechanism. Good interrupt point — the Client-Side Folding docs are complete and standalone.
+
+---
+
 ## Working-directory guard for fake-data scripts — COMPLETE ✓
 
 ### What was done
