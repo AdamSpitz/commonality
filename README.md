@@ -36,6 +36,7 @@ Note that the build and tests are run by the Git pre-commit hook, and the whole 
 TODO: make these real markdown links
 
   - Smart contracts: `hardhat/README.md`
+  - Content-funding contracts: `hardhat/contracts/content-funding/`
   - Fake-data generation: `fake-data-generation/README.md`
   - Indexer: `indexer/README.md`
   - SDK (used by both integration-tests and ui): `sdk/README.md`
@@ -59,3 +60,4 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
 - All tests passing: 1238 total (243 SDK + 272 Hardhat + 107 integration + 616 UI). E2e tests exist for all major subsystems (pubstarter, fundingportals, mutablerefs, marketplace).
+- Content-funding smart contracts implemented (awaiting tests)

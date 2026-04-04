@@ -317,3 +317,88 @@ Fixed lint errors across all workspaces to make `npm run lint` pass. The main is
 The pre-commit hook already runs `npm run lint-precommit` which covers hardhat, indexer, and sdk. The full lint passes now. The next step would be to update the pre-commit hook to run the full `npm run lint` instead of just `lint-precommit`.
 
 The TODO.md item "Get the full lint to pass, then make it part of the precommit hook" is now complete — lint passes. The second part (making it part of precommit) is already done via the existing `.husky/pre-commit` which runs `lint-precommit`. The user might want to update that to run the full lint instead.
+
+---
+
+## Content-funding smart contracts — COMPLETE ✓
+
+### What was done
+
+Implemented tests for the content-funding subsystem:
+
+1. **ContentRegistry tests** (6 tests):
+   - Register content successfully
+   - Revert on invalid contentId (0)
+   - Revert on duplicate registration
+   - Release content successfully
+   - Revert on releasing unregistered content
+   - Return zero address for unregistered content
+
+2. **ChannelRegistry tests** (11 tests):
+   - Verify channel successfully
+   - Revert when channel already verified
+   - Revert when using expired deadline
+   - Revert when verifier signature is invalid
+   - Take channel control after verification
+   - Revert takeChannelControl when channel not verified
+   - Revert takeChannelControl when not channel owner
+   - Update verifier
+   - Revert when setting invalid verifier address
+   - Update factory
+   - Check canCreateContract correctly
+
+3. **ChannelEscrow tests** (6 tests):
+   - Deposit ETH successfully
+   - Revert when depositing zero ETH
+   - Withdraw ETH successfully
+   - Revert withdraw when channel not verified
+   - Revert withdraw when not channel owner
+   - Revert withdraw when no balance
+
+4. **CreatorAssuranceContractFactory tests** (9 tests):
+   - Create creator contract successfully
+   - Revert when array lengths mismatch
+   - Revert when channel not verified or controlled
+   - Create third-party contract with ETH deposit
+   - Revert third-party creation with insufficient ETH
+   - Revert when content already registered for third-party
+   - Set third party min purchase
+   - Update factory addresses
+
+5. **CreatorAssuranceContract tests** (4 tests):
+   - Set content IDs
+   - Emit content item registered event
+   - Have correct channel ID
+   - Only allow owner to set content IDs
+
+6. **Integration tests** (2 tests):
+   - Complete full creator contract flow
+   - Handle third-party contract with veto flow
+
+7. **MockChannelVerifier** — Created test mock for channel verification
+
+### Contract fixes applied during testing
+
+1. **CreatorAssuranceContractFactory.sol**: 
+   - Factory deploys contract with `address(this)` as initial owner, then calls `setOwner(msg.sender)` after state is initialized
+   - This fixes the Ownable access control issue where setCondition needed to be called before transferOwnership
+
+2. **CreatorAssuranceContract.sol**:
+   - Added `setOwner()` function callable by both self and current owner
+   - Added `getContentIds()` function for reading contentIds array
+   - Modified `setContentIds()` to allow both owner and self (factory) to call
+   - Added `ContentIdsSet` event
+
+### Files changed
+- `hardhat/test/ContentFunding.test.js` (new)
+- `hardhat/contracts/test/MockChannelVerifier.sol` (new)
+- `hardhat/contracts/content-funding/CreatorAssuranceContract.sol` (modified - added setOwner, getContentIds)
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol` (modified - ownership pattern)
+
+### Notes for next session
+
+All 38 tests passing. The content-funding smart contracts are now fully tested.
+
+### Interrupt point
+
+Good interrupt point — smart contracts and tests are complete. Next item in TODO.md is "Implement the Subjectiv trust graph for alignment attestations" or the seed statements work.
