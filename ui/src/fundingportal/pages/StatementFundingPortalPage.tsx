@@ -81,7 +81,7 @@ export function StatementFundingPortalPage() {
     return () => {
       cancelled = true
     }
-  }, [statementCid])
+  }, [machinery, statementCid])
 
   if (loading) {
     return (

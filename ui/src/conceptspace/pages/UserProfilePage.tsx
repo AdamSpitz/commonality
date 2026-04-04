@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -66,11 +66,7 @@ export function UserProfilePage() {
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
 
-  useEffect(() => {
-    loadUserData()
-  }, [displayAddress])
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     if (!displayAddress) {
       setLoading(false)
       return
@@ -80,7 +76,6 @@ export function UserProfilePage() {
       setLoading(true)
       setError(null)
 
-      // Load user's beliefs, disbeliefs, and indirect support in parallel
       const [userBeliefs, userDisbeliefs, userIndirectSupport] = await Promise.all([
         getUserBeliefs(machinery, displayAddress),
         getUserDisbeliefs(machinery, displayAddress),
@@ -98,7 +93,11 @@ export function UserProfilePage() {
       setError(err instanceof Error ? err.message : 'Failed to load user data')
       setLoading(false)
     }
-  }
+  }, [displayAddress, machinery, trustedAttesters])
+
+  useEffect(() => {
+    loadUserData()
+  }, [loadUserData])
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue)

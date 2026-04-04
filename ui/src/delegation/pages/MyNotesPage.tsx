@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -244,7 +244,7 @@ export function MyNotesPage() {
     }
   }
 
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     if (!address) return
     try {
       setLoading(true)
@@ -261,11 +261,11 @@ export function MyNotesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [address, machinery])
 
   useEffect(() => {
     loadNotes()
-  }, [address])
+  }, [loadNotes])
 
   const handleDelegate = (note: Note) => {
     setDelegateTarget(note)

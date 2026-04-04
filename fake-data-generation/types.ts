@@ -52,7 +52,6 @@ export interface Attester {
 
 export interface ContractConfig {
   address: `0x${string}` | undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abi: readonly any[];
 }
 

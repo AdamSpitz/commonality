@@ -16,6 +16,8 @@ error ContractNotThirdParty(bytes32 channelId, address contractAddress);
 error ContractAlreadySucceeded(address contractAddress);
 error ContractNotCreatedByFactory(address contractAddress);
 error OnlyFactoryCanRegister();
+error InvalidVerifierAddress();
+error FactoryNotSet();
 
 interface IChannelVerifier {
     function verifyClaimProof(
@@ -73,6 +75,7 @@ contract ChannelRegistry is IChannelRegistry {
     event FactoryUpdated(address indexed oldFactory, address indexed newFactory);
 
     constructor(address _verifier) {
+        if (_verifier == address(0)) revert InvalidVerifierAddress();
         verifier = _verifier;
     }
 
@@ -93,14 +96,14 @@ contract ChannelRegistry is IChannelRegistry {
     }
 
     function setVerifier(address _verifier) external {
-        require(_verifier != address(0), "Invalid verifier address");
+        if (_verifier == address(0)) revert InvalidVerifierAddress();
         address oldVerifier = verifier;
         verifier = _verifier;
         emit VerifierUpdated(oldVerifier, _verifier);
     }
 
     function setFactory(address _factory) external {
-        require(_factory != address(0), "Invalid factory address");
+        if (_factory == address(0)) revert InvalidVerifierAddress();
         address oldFactory = factory;
         factory = _factory;
         emit FactoryUpdated(oldFactory, _factory);
@@ -153,7 +156,7 @@ contract ChannelRegistry is IChannelRegistry {
     }
 
     function vetoContract(address contractAddress) external {
-        require(factory != address(0), "Factory not set");
+        if (factory == address(0)) revert FactoryNotSet();
         
         bytes32 channelId = ICreatorAssuranceContractFactory(factory).channelIdByContract(contractAddress);
         if (channelId == bytes32(0)) revert ContractNotCreatedByFactory(contractAddress);

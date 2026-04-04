@@ -65,7 +65,7 @@ export function DelegatableNotesSection({ statementCid }: Props) {
     return () => {
       cancelled = true
     }
-  }, [open, statementCid])
+  }, [machinery, open, statementCid])
 
   return (
     <Box sx={{ mb: 3 }}>

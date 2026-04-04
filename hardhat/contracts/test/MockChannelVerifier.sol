@@ -19,11 +19,11 @@ contract MockChannelVerifier is IChannelVerifier {
     }
 
     function verifyClaimProof(
-        bytes32 channelId,
-        address claimant,
-        bytes32 nonce,
-        uint256 deadline,
-        bytes calldata verifierSignature
+        bytes32,
+        address,
+        bytes32,
+        uint256,
+        bytes calldata
     ) external view override returns (bool) {
         return _isValid;
     }

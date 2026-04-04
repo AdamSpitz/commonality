@@ -99,7 +99,7 @@ export function FundingPortalSummary({ statementCid }: { statementCid: string })
     return () => {
       cancelled = true
     }
-  }, [statementCid])
+  }, [machinery, statementCid])
 
   if (loading) {
     return (

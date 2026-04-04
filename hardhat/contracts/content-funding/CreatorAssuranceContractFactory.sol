@@ -7,8 +7,7 @@ import {ChannelRegistry} from "./ChannelRegistry.sol";
 import {ChannelEscrow} from "./ChannelEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {PremintingERC1155Factory} from "../individual-projects/Pubstarter.sol";
-import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
-import {MarketplaceFactory} from "../individual-projects/Pubstarter.sol";
+import {MarketplaceFactory, ERC1155SecondaryMarket} from "../individual-projects/Pubstarter.sol";
 import {EthThresholdCondition} from "../individual-projects/EthThresholdCondition.sol";
 import {EthThresholdConditionFactory} from "../individual-projects/Pubstarter.sol";
 import {CancellableCondition} from "../individual-projects/CancellableCondition.sol";
@@ -20,6 +19,7 @@ error InsufficientThirdPartyPurchase();
 error ContentAlreadyRegisteredForContract(uint256 contentId);
 error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
+error MarketplaceCreationFailed();
 
 interface IChannelRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
@@ -131,7 +131,8 @@ contract CreatorAssuranceContractFactory {
             erc1155ContractUri
         );
 
-        marketplaceFactory.createMarketplace(address(erc1155));
+        ERC1155SecondaryMarket marketplace = marketplaceFactory.createMarketplace(address(erc1155));
+        if (address(marketplace) == address(0)) revert MarketplaceCreationFailed();
 
         CreatorAssuranceContract ac = new CreatorAssuranceContract(
             address(this),
@@ -206,7 +207,7 @@ contract CreatorAssuranceContractFactory {
                     IContentRegistry(address(contentRegistry)).releaseContent(contentIds[i]);
                 }
             }
-        } catch {
+        } catch (bytes memory) {
             // Fallback: content IDs not retrievable from contract
         }
     }

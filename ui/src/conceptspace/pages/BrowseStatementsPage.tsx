@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -32,7 +32,7 @@ export function BrowseStatementsPage() {
 
   const machinery = useMachinery()
 
-  const loadStatements = async (sort: SortOption) => {
+  const loadStatements = useCallback(async (sort: SortOption) => {
     try {
       setLoading(true)
       setError(null)
@@ -47,11 +47,11 @@ export function BrowseStatementsPage() {
       setError(err instanceof Error ? err.message : 'Failed to load statements')
       setLoading(false)
     }
-  }
+  }, [machinery])
 
   useEffect(() => {
     loadStatements(sortBy)
-  }, [sortBy])
+  }, [sortBy, loadStatements])
 
   const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: SortOption | null) => {
     if (newSort !== null) {

@@ -3,12 +3,17 @@ pragma solidity 0.8.33;
 
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 
+interface ICancellableCondition {
+    function cancel() external;
+    function hasSucceeded() external view returns (bool);
+}
+
 /**
  * @title CancellableCondition
  * @notice Wraps another assurance condition and allows an authorized canceller
  *         to force a terminal failed state before the wrapped condition succeeds.
  */
-contract CancellableCondition is IAssuranceCondition {
+contract CancellableCondition is IAssuranceCondition, ICancellableCondition {
     error InvalidBaseConditionAddress();
     error InvalidCancellerAddress();
     error OnlyCancellerCanCancel();
@@ -36,7 +41,7 @@ contract CancellableCondition is IAssuranceCondition {
         emit ConditionCancelled(msg.sender);
     }
 
-    function hasSucceeded() external view override returns (bool) {
+    function hasSucceeded() external view override(IAssuranceCondition, ICancellableCondition) returns (bool) {
         if (isCancelled) return false;
         return baseCondition.hasSucceeded();
     }

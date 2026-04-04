@@ -62,7 +62,7 @@ export function AvailableDelegatableFunding({ statementCid }: Props) {
 
     load()
     return () => { cancelled = true }
-  }, [statementCid])
+  }, [machinery, statementCid])
 
   if (loading) {
     return (

@@ -85,7 +85,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
 
     load()
     return () => { cancelled = true }
-  }, [projectAddress, refreshKey])
+  }, [machinery, projectAddress, refreshKey])
 
   const handleOpenDialog = () => {
     setDialogOpen(true)

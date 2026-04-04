@@ -82,7 +82,7 @@ export function CauseLeaderboardPage() {
     return () => {
       cancelled = true
     }
-  }, [statementCid, userAddress])
+  }, [machinery, statementCid, userAddress])
 
   if (loading) {
     return (

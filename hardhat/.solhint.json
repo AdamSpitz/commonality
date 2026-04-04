@@ -6,6 +6,8 @@
     "immutable-vars-naming": "off",
     "max-line-length": ["warn", 120],
     "not-rely-on-time": "off",
-    "no-inline-assembly": "off"
+    "no-inline-assembly": "off",
+    "gas-custom-errors": "off",
+    "no-empty-blocks": ["warn", {"ignoreConstructors": true, "ignoreCatchBlocks": true}]
   }
 }

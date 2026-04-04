@@ -78,7 +78,7 @@ export function AlignedProjectsList({ statementCid }: { statementCid: string }) 
 
     load()
     return () => { cancelled = true }
-  }, [statementCid])
+  }, [machinery, statementCid])
 
   const filtered = projects
     .filter(p => statusFilter === 'all' || getProjectStatus(p) === statusFilter)

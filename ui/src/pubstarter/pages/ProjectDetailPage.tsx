@@ -178,7 +178,7 @@ export function ProjectDetailPage() {
     }
 
     load()
-  }, [projectAddress])
+  }, [projectAddress, loadProjectData])
 
   const handleRefresh = useCallback(async () => {
     await loadProjectData()

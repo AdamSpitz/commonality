@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -49,7 +49,7 @@ export function BrowseProjectsPage() {
 
   const machinery = useMachinery()
 
-  const loadProjects = async (sort: SortOption) => {
+  const loadProjects = useCallback(async (sort: SortOption) => {
     try {
       setLoading(true)
       setError(null)
@@ -58,7 +58,6 @@ export function BrowseProjectsPage() {
 
       setProjects(results)
 
-      // Fetch IPFS metadata for projects that have a metadataCid
       const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
       const metadataEntries = await Promise.all(
         results
@@ -80,11 +79,11 @@ export function BrowseProjectsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [machinery])
 
   useEffect(() => {
     loadProjects(sortBy)
-  }, [sortBy])
+  }, [sortBy, loadProjects])
 
   const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: SortOption | null) => {
     if (newSort !== null) setSortBy(newSort)

@@ -28,7 +28,7 @@ export function HighProfileSigners({ statementCid, minFollowers = 10000 }: HighP
         setLoaded(true)
       })
       .catch(() => setLoaded(true))
-  }, [statementCid, minFollowers])
+  }, [machinery, statementCid, minFollowers])
 
   // Don't render anything if no high-profile signers or still loading
   if (!loaded || signers.length === 0) return null

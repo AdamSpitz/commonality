@@ -2,7 +2,9 @@
 pragma solidity 0.8.33;
 
 import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceContracts.sol";
-import {IAssuranceCondition} from "../individual-projects/IAssuranceCondition.sol";
+
+error OnlyOwnerOrSelf();
+error OnlySelfOrOwner();
 
 contract CreatorAssuranceContract is MultiERC1155AssuranceContract {
     bytes32 public channelId;
@@ -25,7 +27,7 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract {
     }
 
     function setContentIds(uint256[] memory _contentIds) external {
-        require(msg.sender == owner() || msg.sender == address(this), "Only owner or self");
+        if (msg.sender != owner() && msg.sender != address(this)) revert OnlyOwnerOrSelf();
         contentIds = _contentIds;
         emit ContentIdsSet(_contentIds);
     }
@@ -35,7 +37,7 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract {
     }
 
     function setOwner(address newOwner) external {
-        require(msg.sender == address(this) || msg.sender == owner(), "Only self or owner");
+        if (msg.sender != address(this) && msg.sender != owner()) revert OnlySelfOrOwner();
         transferOwnership(newOwner);
     }
 

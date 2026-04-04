@@ -23,7 +23,7 @@ export function AddressDisplay({ address, showFullAddress = false, variant = 'bo
     getUserSocialData(machinery, address)
       .then(setSocialData)
       .catch(() => {}) // silently fail — just show the address
-  }, [address])
+  }, [machinery, address])
 
   const ensName = socialData?.ensName
 

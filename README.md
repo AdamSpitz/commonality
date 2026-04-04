@@ -60,4 +60,4 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
 - All tests passing: 1238 total (243 SDK + 272 Hardhat + 107 integration + 616 UI). E2e tests exist for all major subsystems (pubstarter, fundingportals, mutablerefs, marketplace).
-- Content-funding smart contracts implemented (awaiting tests)
+- Content-funding smart contracts implemented with 38 passing tests

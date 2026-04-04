@@ -2,6 +2,12 @@
 pragma solidity 0.8.33;
 
 error OnlyChannelOwnerCanWithdraw();
+error InvalidRegistryAddress();
+error MustSendEth();
+error ChannelNotVerified();
+error OnlyChannelOwner();
+error NoBalance();
+error TransferFailed();
 
 interface IChannelRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
@@ -23,31 +29,30 @@ contract ChannelEscrow is IChannelEscrow {
     event Withdrawn(bytes32 indexed channelId, address indexed to, uint256 amount);
 
     constructor(address _channelRegistry) {
-        require(_channelRegistry != address(0), "Invalid registry address");
+        if (_channelRegistry == address(0)) revert InvalidRegistryAddress();
         channelRegistry = _channelRegistry;
     }
 
     function deposit(bytes32 channelId) external payable {
-        require(msg.value > 0, "Must send ETH");
+        if (msg.value == 0) revert MustSendEth();
         _balances[channelId] += msg.value;
         emit Deposited(channelId, msg.sender, msg.value);
     }
 
     function withdraw(bytes32 channelId) external {
-        require(IChannelRegistry(channelRegistry).isVerified(channelId), "Channel not verified");
-        require(
-            msg.sender == IChannelRegistry(channelRegistry).channelOwner(channelId),
-            "Only channel owner"
-        );
+        if (!IChannelRegistry(channelRegistry).isVerified(channelId)) revert ChannelNotVerified();
+        if (msg.sender != IChannelRegistry(channelRegistry).channelOwner(channelId)) {
+            revert OnlyChannelOwner();
+        }
 
         uint256 amount = _balances[channelId];
-        require(amount > 0, "No balance");
+        if (amount == 0) revert NoBalance();
 
         delete _balances[channelId];
         emit Withdrawn(channelId, msg.sender, amount);
 
         (bool success, ) = payable(msg.sender).call{value: amount}("");
-        require(success, "Transfer failed");
+        if (!success) revert TransferFailed();
     }
 
     function balance(bytes32 channelId) external view returns (uint256) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
@@ -34,7 +34,7 @@ export function StatementPage() {
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
 
-  const loadStatementData = async () => {
+  const loadStatementData = useCallback(async () => {
     if (!statementCid) {
       setError('No statement CID provided')
       setLoading(false)
@@ -46,8 +46,6 @@ export function StatementPage() {
       setError(null)
       setContentError(null)
 
-      // Load statement with content and metrics using the new SDK function
-      // IPFS gateway is configured via VITE_IPFS_GATEWAY env var
       const result = await getStatementWithContent(machinery, statementCid, {
         includeMetrics: true,
         trustedAttesters,
@@ -62,18 +60,15 @@ export function StatementPage() {
       setStatement(result.statement)
       setStatementContent(result.content)
 
-      // Set content error if content failed to load but statement exists
       if (!result.content && result.statement.cid) {
         console.log('Statement content failed to load from IPFS:', result)
         setContentError('Failed to load statement content from IPFS')
       }
 
-      // Set metrics if available
       if (result.metrics) {
         setIndirectSupporters(result.metrics.indirectSupporters)
       }
 
-      // Load user belief if connected
       if (address) {
         const belief = await getUserBelief(machinery, address, statementCid)
         setUserBeliefState(belief?.beliefState ?? 0)
@@ -85,16 +80,15 @@ export function StatementPage() {
       setError(err instanceof Error ? err.message : 'Failed to load statement')
       setLoading(false)
     }
-  }
+  }, [statementCid, address, machinery, trustedAttesters])
 
   useEffect(() => {
     loadStatementData()
-  }, [statementCid, address])
+  }, [loadStatementData])
 
-  const handleBeliefChanged = () => {
-    // Reload statement data after belief change
+  const handleBeliefChanged = useCallback(() => {
     loadStatementData()
-  }
+  }, [loadStatementData])
 
   if (loading) {
     return (

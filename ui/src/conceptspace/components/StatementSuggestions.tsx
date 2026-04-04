@@ -40,7 +40,7 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
     }
 
     loadSuggestions()
-  }, [statementCid])
+  }, [statementCid, machinery, trustedAttesters])
 
   if (loading) {
     return (

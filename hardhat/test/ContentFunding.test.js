@@ -222,7 +222,7 @@ describe("ContentFunding", function () {
 
     it("Should revert when setting invalid verifier address", async function () {
       await expect(channelRegistry.setVerifier(ethers.ZeroAddress))
-        .to.be.revertedWith("Invalid verifier address");
+        .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierAddress");
     });
 
     it("Should update factory", async function () {
@@ -282,7 +282,7 @@ describe("ContentFunding", function () {
 
     it("Should revert when depositing zero ETH", async function () {
       await expect(channelEscrow.deposit(channelId, { value: 0 }))
-        .to.be.revertedWith("Must send ETH");
+        .to.be.revertedWithCustomError(channelEscrow, "MustSendEth");
     });
 
     it("Should withdraw ETH successfully", async function () {
@@ -310,7 +310,7 @@ describe("ContentFunding", function () {
 
     it("Should revert withdraw when channel not verified", async function () {
       await expect(channelEscrow.withdraw(channelId))
-        .to.be.revertedWith("Channel not verified");
+        .to.be.revertedWithCustomError(channelEscrow, "ChannelNotVerified");
     });
 
     it("Should revert withdraw when not channel owner", async function () {
@@ -326,7 +326,7 @@ describe("ContentFunding", function () {
       await channelEscrow.connect(bob).deposit(channelId, { value: ethers.parseEther("1.0") });
 
       await expect(channelEscrow.connect(alice).withdraw(channelId))
-        .to.be.revertedWith("Only channel owner");
+        .to.be.revertedWithCustomError(channelEscrow, "OnlyChannelOwner");
     });
 
     it("Should revert withdraw when no balance", async function () {
@@ -340,7 +340,7 @@ describe("ContentFunding", function () {
       );
 
       await expect(channelEscrow.connect(bob).withdraw(channelId))
-        .to.be.revertedWith("No balance");
+        .to.be.revertedWithCustomError(channelEscrow, "NoBalance");
     });
   });
 
@@ -591,7 +591,7 @@ describe("ContentFunding", function () {
 
     it("Should only allow owner to set content IDs", async function () {
       await expect(createdContract.connect(alice).setContentIds([4001]))
-        .to.be.revertedWith("Only owner or self");
+        .to.be.revertedWithCustomError(createdContract, "OnlyOwnerOrSelf");
     });
   });
 
