@@ -99,9 +99,31 @@ Clean stop/start cycle confirmed working:
 
 ---
 
-## User-selectable attester trust — COMPLETE ✓
+## Implication Discovery plan — COMPLETE ✓
 
 ### What was done
+
+Wrote `specs/subsystems/conceptspace/implication-discovery.md` clarifying the plan for implication "discovery" services:
+
+1. **Current finder architecture** — documented how the finder proactively discovers candidate pairs by polling for new statements, building a popularity map, and submitting pairs to the attester.
+
+2. **Transitive chain discovery** — proposed a new finder feature: when it notices A→B→C chains, suggest the A→C direct link to the attester. This is a good heuristic because the chain suggests the direct link is likely valid.
+
+3. **Same-domain restriction** — noted that fake-data-generation already restricts implications to same-domain pairs (to prevent O(N²) explosion). Proposed applying the same filter to the finder.
+
+### Files changed
+- `specs/subsystems/conceptspace/implication-discovery.md` — new doc
+- `TODO.md` — marked task done
+- `CONTINUITY.md` — this note
+
+### Notes for next session
+
+Good interrupt point — the discovery plan is documented and the spec is ready for implementation if desired.
+
+Next item in TODO.md: **Restrict implication generation to same-domain pairs in `universe.json`** (preventing O(N²) explosion). This is already implemented in `generateAttestations.ts` but may need to be verified/communicated.
+
+---
+
 
 Wired the trusted attester list (stored in localStorage by the Settings page) into the SDK and UI:
 
