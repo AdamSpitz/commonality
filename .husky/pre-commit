@@ -1,6 +1,6 @@
 # Skip build and tests if only documentation files changed
 if git diff --cached --name-only | grep -qvE '\.(txt|md)$'; then
-  npm run lint-precommit && npm run build && npm test
+  npm run lint && npm run build && npm test
 else
   echo "Only .txt/.md files changed, skipping build and tests"
 fi
