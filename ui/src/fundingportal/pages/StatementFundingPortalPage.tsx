@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
+import { useAccount } from 'wagmi'
 import {
   Box,
   Typography,
@@ -17,6 +18,7 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
 import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
@@ -25,6 +27,8 @@ import { DelegatableNotesSection } from '../components/DelegatableNotesSection'
 export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
   const machinery = useMachinery()
+  const { address } = useAccount()
+  const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +49,7 @@ export function StatementFundingPortalPage() {
       try {
         const [stmtResult, fundingMetrics] = await Promise.all([
           getStatementWithContent(machinery, cid as IpfsCidV1),
-          getTotalFundingForCause(machinery, cid as IpfsCidV1),
+          getTotalFundingForCause(machinery, cid as IpfsCidV1, undefined, trustedSet),
         ])
 
         if (cancelled) return
@@ -81,7 +85,7 @@ export function StatementFundingPortalPage() {
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid])
+  }, [machinery, statementCid, trustedSet])
 
   if (loading) {
     return (
@@ -155,8 +159,17 @@ export function StatementFundingPortalPage() {
         </Stack>
       </Paper>
 
+      {address && trustedSetLoading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Building your trust network. Until that finishes, some alignment filtering may be incomplete.
+        </Alert>
+      )}
+
       {/* Aligned Projects */}
-      <AlignedProjectsList statementCid={statementCid!} />
+      <AlignedProjectsList
+        statementCid={statementCid!}
+        trustedAlignmentAttesters={trustedSet}
+      />
 
       {/* Attest Project Alignment */}
       <AttestAlignmentForm statementCid={statementCid!} />

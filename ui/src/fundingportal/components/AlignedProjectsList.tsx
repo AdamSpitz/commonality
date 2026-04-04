@@ -24,7 +24,13 @@ type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type AlignmentFilter = 'all' | 'direct' | 'indirect'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
 
-export function AlignedProjectsList({ statementCid }: { statementCid: string }) {
+export function AlignedProjectsList({
+  statementCid,
+  trustedAlignmentAttesters,
+}: {
+  statementCid: string
+  trustedAlignmentAttesters?: Iterable<string>
+}) {
   const machinery = useMachinery()
   const [projects, setProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
@@ -43,7 +49,9 @@ export function AlignedProjectsList({ statementCid }: { statementCid: string }) 
       try {
         const aligned = await getAllAlignedProjectsForCause(
           machinery,
-          statementCid as IpfsCidV1
+          statementCid as IpfsCidV1,
+          undefined,
+          trustedAlignmentAttesters
         )
         if (cancelled) return
 
@@ -78,7 +86,7 @@ export function AlignedProjectsList({ statementCid }: { statementCid: string }) 
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid])
+  }, [machinery, statementCid, trustedAlignmentAttesters])
 
   const filtered = projects
     .filter(p => statusFilter === 'all' || getProjectStatus(p) === statusFilter)

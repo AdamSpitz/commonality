@@ -123,10 +123,6 @@ services:
       - IPFS_GATEWAY=http://ipfs:8080/ipfs
       - IPFS_API=http://ipfs:5001
       - HOME=/tmp
-    # Load contract addresses from .env file (created by hardhat-deploy; may not exist on fresh clone)
-    env_file:
-      - path: .env
-        required: false
     healthcheck:
       test: |
         curl -f -X POST -H "Content-Type: application/json" \

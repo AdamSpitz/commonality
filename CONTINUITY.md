@@ -1,5 +1,65 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv MVP implementation — COMPLETE (first slice) ✓
+
+### What was done
+
+Implemented the first usable Subjectiv slice:
+
+1. **On-chain trust declarations**
+   - Added `hardhat/contracts/subjectiv/TrustRegistry.sol`
+   - Added hardhat tests for trust setting, batch updates, revocation, and validation
+   - Wired deployment/env propagation for `TRUST_REGISTRY_ADDRESS`
+
+2. **SDK support**
+   - Added `sdk/src/subsystems/subjectiv/`
+   - Added `TrustRegistryAbi`
+   - Added event decoding + direct trust folding
+   - Added transitive trust computation (`getTransitiveTrustMapping`, `getTrustedSet`)
+
+3. **Funding portal integration**
+   - Funding-portal alignment filters now accept a trusted attester set instead of one trusted alignment attester
+   - UI funding portal pages now use the connected user's computed trusted set
+
+4. **Settings UI**
+   - Kept the existing implication-attester settings
+   - Added a new direct-trust management section for alignment trust
+
+### Important scope note
+
+This is intentionally an MVP, not the full original spec. We **did not** implement:
+- Web Worker background processing
+- IndexedDB persistence / rehydration
+- Incremental recomputation
+
+Instead, the current UI computes the trust graph in memory. If the user has no direct trust declarations yet, the portal falls back to showing all alignments.
+
+### Files changed
+- `hardhat/contracts/subjectiv/TrustRegistry.sol`
+- `hardhat/test/TrustRegistry.test.js`
+- `hardhat/scripts/deploy.js`
+- `sdk/abis/TrustRegistryAbi.ts`
+- `sdk/src/subsystems/subjectiv/`
+- `sdk/src/subsystems/fundingportals/queries.ts`
+- `ui/src/shared/hooks/useTrustedSet.ts`
+- `ui/src/conceptspace/components/DirectTrustSettingsSection.tsx`
+- `ui/src/conceptspace/pages/SettingsPage.tsx`
+- `ui/src/fundingportal/components/AlignedProjectsList.tsx`
+- `ui/src/fundingportal/components/FundingPortalSummary.tsx`
+- `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`
+- `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx`
+- `ui/src/conceptspace/pages/StatementPage.tsx`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+
+### Notes for next session
+
+If we want to push Subjectiv closer to the original spec, the next obvious chunk is:
+- move trust-graph computation into a Web Worker
+- persist computed state in IndexedDB
+- rehydrate on startup and recompute on refresh/user trust changes
+
+---
+
 ## Document Client-Side Folding architecture — COMPLETE ✓
 
 ### What was done

@@ -54,6 +54,7 @@ async function main() {
       const addressKeys = [
         'BELIEFS_CONTRACT_ADDRESS',
         'IMPLICATIONS_CONTRACT_ADDRESS',
+        'TRUST_REGISTRY_ADDRESS',
         'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
         'NOTE_INTENT_ADDRESS',
         'DELEGATABLE_NOTES_CONTRACT_ADDRESS',
@@ -97,6 +98,13 @@ async function main() {
   await implications.waitForDeployment();
   const implicationsAddress = await implications.getAddress();
   console.log(`✓ Implications: ${implicationsAddress}`);
+
+  console.log('Deploying TrustRegistry...');
+  const TrustRegistry = await ethers.getContractFactory('TrustRegistry');
+  const trustRegistry = await TrustRegistry.deploy();
+  await trustRegistry.waitForDeployment();
+  const trustRegistryAddress = await trustRegistry.getAddress();
+  console.log(`✓ TrustRegistry: ${trustRegistryAddress}`);
 
   // Deploy AlignmentAttestations contract
   console.log('Deploying AlignmentAttestations...');
@@ -190,6 +198,7 @@ async function main() {
       contracts: {
         Beliefs: beliefsAddress,
         Implications: implicationsAddress,
+        TrustRegistry: trustRegistryAddress,
         AlignmentAttestations: alignmentAttestationsAddress,
         NoteIntent: noteIntentAddress,
         DelegatableNotes: delegatableNotesAddress,
@@ -216,6 +225,7 @@ async function main() {
   const addressEntries = {
     'BELIEFS_CONTRACT_ADDRESS': beliefsAddress,
     'IMPLICATIONS_CONTRACT_ADDRESS': implicationsAddress,
+    'TRUST_REGISTRY_ADDRESS': trustRegistryAddress,
     'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS': alignmentAttestationsAddress,
     'ALIGNMENT_ATTESTATIONS_ADDRESS': alignmentAttestationsAddress,
     'PROJECT_ALIGNMENT_CONTRACT_ADDRESS': alignmentAttestationsAddress,
@@ -291,6 +301,7 @@ async function main() {
   }
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_BELIEFS_CONTRACT_ADDRESS', beliefsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS', trustRegistryAddress);
   if (isLocal) {
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_IPFS_GATEWAY', 'http://localhost:8080/ipfs');
@@ -315,6 +326,7 @@ async function main() {
   console.log('Contract Addresses:');
   console.log(`  Beliefs:                 ${beliefsAddress}`);
   console.log(`  Implications:            ${implicationsAddress}`);
+  console.log(`  TrustRegistry:           ${trustRegistryAddress}`);
   console.log(`  AlignmentAttestations:   ${alignmentAttestationsAddress}`);
   console.log(`  NoteIntent:              ${noteIntentAddress}`);
   console.log(`  DelegatableNotes:        ${delegatableNotesAddress}`);

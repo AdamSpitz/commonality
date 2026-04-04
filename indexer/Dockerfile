@@ -18,10 +18,11 @@ COPY . .
 # Allow any user to write to /app (needed when running as non-root via
 # user: "${UID}:${GID}" in docker-compose — ponder writes ponder-env.d.ts here)
 RUN chmod -R a+rwX /app
+RUN chmod a+rx /app/start.sh
 
 # Expose Ponder API port
 EXPOSE 42069
 
 # Start Ponder in dev mode (no UI for integration tests)
-# Use dev:no-ui which doesn't require DATABASE_SCHEMA
-CMD ["npm", "run", "dev:no-ui"]
+# Use a wrapper script so the container reads the latest /workspace/.env at runtime.
+CMD ["/app/start.sh"]

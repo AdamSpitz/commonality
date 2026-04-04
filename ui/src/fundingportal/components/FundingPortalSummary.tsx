@@ -22,7 +22,13 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 
-export function FundingPortalSummary({ statementCid }: { statementCid: string }) {
+export function FundingPortalSummary({
+  statementCid,
+  trustedAlignmentAttesters,
+}: {
+  statementCid: string
+  trustedAlignmentAttesters?: Iterable<string>
+}) {
   const machinery = useMachinery()
 
   const [loading, setLoading] = useState(true)
@@ -41,8 +47,8 @@ export function FundingPortalSummary({ statementCid }: { statementCid: string })
       setError(null)
       try {
         const [fundingMetrics, allProjects] = await Promise.all([
-          getTotalFundingForCause(machinery, statementCid as IpfsCidV1),
-          getAllAlignedProjectsForCause(machinery, statementCid as IpfsCidV1),
+          getTotalFundingForCause(machinery, statementCid as IpfsCidV1, undefined, trustedAlignmentAttesters),
+          getAllAlignedProjectsForCause(machinery, statementCid as IpfsCidV1, undefined, trustedAlignmentAttesters),
         ])
         if (cancelled) return
 
@@ -99,7 +105,7 @@ export function FundingPortalSummary({ statementCid }: { statementCid: string })
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid])
+  }, [machinery, statementCid, trustedAlignmentAttesters])
 
   if (loading) {
     return (

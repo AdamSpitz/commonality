@@ -18,6 +18,25 @@ import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.j
 import { padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import { SDKMachinery } from '../../machinery.js';
 
+type TrustedAddressInput = string | Iterable<string>;
+
+function normalizeTrustedAddresses(
+  trustedAddresses?: TrustedAddressInput
+): Set<string> | null {
+  if (!trustedAddresses) return null;
+
+  if (typeof trustedAddresses === 'string') {
+    return new Set([trustedAddresses.toLowerCase()]);
+  }
+
+  const normalized = new Set<string>();
+  for (const address of trustedAddresses) {
+    normalized.add(address.toLowerCase());
+  }
+
+  return normalized.size > 0 ? normalized : null;
+}
+
 // ============================================================================
 // AlignmentAttestation Queries (Event Cache + Folds)
 // ============================================================================
@@ -28,7 +47,7 @@ import { SDKMachinery } from '../../machinery.js';
 export async function getAlignedSubjects(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string,
+  trustedAlignmentAttesters?: TrustedAddressInput,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
   const contracts = machinery.contractAddresses!;
@@ -48,9 +67,9 @@ export async function getAlignedSubjects(
   
   let attestations = foldAlignmentAttestations(decodedEvents);
   
-  if (attesterAddress) {
-    const attesterLower = attesterAddress.toLowerCase();
-    attestations = attestations.filter(a => a.attester.toLowerCase() === attesterLower);
+  const trustedAddresses = normalizeTrustedAddresses(trustedAlignmentAttesters);
+  if (trustedAddresses) {
+    attestations = attestations.filter(a => trustedAddresses.has(a.attester.toLowerCase()));
   }
   
   return attestations.map(a => ({
@@ -214,7 +233,7 @@ export async function getIndirectlyAlignedSubjects(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
-  trustedAlignmentAttester?: string
+  trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<IndirectSubjectAlignment[]> {
   const contracts = machinery.contractAddresses!;
 
@@ -246,7 +265,7 @@ export async function getIndirectlyAlignedSubjects(
     const alignments = await getAlignedSubjects(
       machinery,
       fromStatementCid,
-      trustedAlignmentAttester
+      trustedAlignmentAttesters
     );
 
     for (const alignment of alignments) {
@@ -277,13 +296,13 @@ export async function getTotalFundingForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
-  trustedAlignmentAttester?: string
+  trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<CauseFundingMetrics> {
   const allAlignedProjects = await getAllAlignedProjectsForCause(
     machinery,
     statementCid,
     trustedImplicationAttester,
-    trustedAlignmentAttester
+    trustedAlignmentAttesters
   );
 
   let totalRaised = 0n;
@@ -309,7 +328,7 @@ export async function getAllAlignedProjectsForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttester?: string,
-  trustedAlignmentAttester?: string
+  trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<Array<{
   projectAddress: string;
   alignmentType: 'direct' | 'indirect';
@@ -320,14 +339,14 @@ export async function getAllAlignedProjectsForCause(
   const directAlignments = await getAlignedSubjects(
     machinery,
     statementCid,
-    trustedAlignmentAttester
+    trustedAlignmentAttesters
   );
 
   const indirectAlignments = await getIndirectlyAlignedSubjects(
     machinery,
     statementCid,
     trustedImplicationAttester,
-    trustedAlignmentAttester
+    trustedAlignmentAttesters
   );
 
   const projectMap = new Map<string, 'direct' | 'indirect'>();
@@ -373,13 +392,13 @@ export async function getTopContributorsForCause(
   statementCid: IpfsCidV1,
   limit: number = 10,
   trustedImplicationAttester?: string,
-  trustedAlignmentAttester?: string
+  trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<ContributorStats[]> {
   const alignedProjects = await getAllAlignedProjectsForCause(
     machinery,
     statementCid,
     trustedImplicationAttester,
-    trustedAlignmentAttester
+    trustedAlignmentAttesters
   );
 
   if (alignedProjects.length === 0) {
@@ -472,7 +491,7 @@ export async function getUserContributionRankForCause(
   statementCid: IpfsCidV1,
   userAddress: string,
   trustedImplicationAttester?: string,
-  trustedAlignmentAttester?: string
+  trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<{
   rank: number;
   stats: ContributorStats | null;
@@ -483,7 +502,7 @@ export async function getUserContributionRankForCause(
     statementCid,
     1000000,
     trustedImplicationAttester,
-    trustedAlignmentAttester
+    trustedAlignmentAttesters
   );
 
   const userAddr = userAddress.toLowerCase();

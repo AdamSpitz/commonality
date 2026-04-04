@@ -28,6 +28,7 @@ export function createActionTestingMachinery(indexerUrl: string): ActionTestingM
     noteIntent: process.env.NOTE_INTENT_ADDRESS as `0x${string}`,
     alignmentAttestations: process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as `0x${string}`,
     mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`,
+    trustRegistry: process.env.TRUST_REGISTRY_ADDRESS as `0x${string}`,
   };
 
   return createSDKMachinery(indexerUrl, ipfsConfig, testConfig, publicClient, eventCacheUrl, contractAddresses);

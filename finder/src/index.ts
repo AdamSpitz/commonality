@@ -24,6 +24,7 @@ const machinery: SDKMachinery = {
     noteIntent: '0x0',
     alignmentAttestations: '0x0',
     mutableRefUpdater: '0x0',
+    trustRegistry: '0x0',
   },
 };
 

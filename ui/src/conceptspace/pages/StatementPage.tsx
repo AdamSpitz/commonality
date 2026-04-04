@@ -11,6 +11,7 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
+import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
@@ -33,6 +34,7 @@ export function StatementPage() {
 
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
+  const { trustedSet: trustedAlignmentAttesters } = useTrustedSet(address)
 
   const loadStatementData = useCallback(async () => {
     if (!statementCid) {
@@ -162,7 +164,10 @@ export function StatementPage() {
       <AvailableDelegatableFunding statementCid={statementCid || ''} />
 
       {/* Funding Portal Summary */}
-      <FundingPortalSummary statementCid={statementCid || ''} />
+      <FundingPortalSummary
+        statementCid={statementCid || ''}
+        trustedAlignmentAttesters={trustedAlignmentAttesters}
+      />
     </Box>
   )
 }

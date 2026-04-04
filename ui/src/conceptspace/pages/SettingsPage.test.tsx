@@ -3,6 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SettingsPage } from './SettingsPage'
 
+vi.mock('wagmi', () => ({
+  useAccount: () => ({ address: undefined, isConnected: false }),
+  useWalletClient: () => ({ data: undefined }),
+  usePublicClient: () => undefined,
+}))
+
 const TRUSTED_ATTESTERS_KEY = 'commonality:trustedAttesters'
 const VALID_ADDRESS_1 = '0x1234567890abcdef1234567890abcdef12345678'
 const VALID_ADDRESS_2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'

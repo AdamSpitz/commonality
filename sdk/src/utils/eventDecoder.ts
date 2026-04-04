@@ -5,6 +5,7 @@ import type { RawEventFromCache } from './eventCacheClient.js';
 import {
   BeliefsAbi,
   ImplicationsAbi,
+  TrustRegistryAbi,
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi,
   PremintingERC1155Abi,
@@ -18,6 +19,7 @@ import {
 const ABI_MAP: Record<string, readonly unknown[]> = {
   Beliefs: BeliefsAbi,
   Implications: ImplicationsAbi,
+  TrustRegistry: TrustRegistryAbi,
   AssuranceContract: AssuranceContractAbi,
   SecondaryMarket: ERC1155SecondaryMarketAbi,
   PremintingERC1155: PremintingERC1155Abi,
@@ -145,6 +147,33 @@ export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): {
     subjectId: args.subjectId as `0x${string}`,
     statementId: bytes32ToCid(args.statementId as `0x${string}`),
     topicStatementId: args.topicStatementId ? bytes32ToCid(args.topicStatementId as `0x${string}`) : undefined,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeTrustSetEvent(rawEvent: RawEventFromCache): {
+  truster: `0x${string}`;
+  trustee: `0x${string}`;
+  score: number;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'TrustSet') return null;
+
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+
+  return {
+    truster: args.truster as `0x${string}`,
+    trustee: args.trustee as `0x${string}`,
+    score: Number(args.score),
     contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),

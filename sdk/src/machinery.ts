@@ -16,6 +16,7 @@ export interface ContractAddresses {
   noteIntent: `0x${string}`;
   alignmentAttestations: `0x${string}`;
   mutableRefUpdater: `0x${string}`;
+  trustRegistry: `0x${string}`;
 }
 
 export type SDKMachinery = {

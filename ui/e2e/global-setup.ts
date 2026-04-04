@@ -41,6 +41,7 @@ function copyContractAddresses(projectRoot: string): void {
       'ERC1155_FACTORY_ADDRESS',
       'MARKETPLACE_FACTORY_ADDRESS',
       'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
+      'TRUST_REGISTRY_ADDRESS',
       'PUBSTARTER_ADDRESS',
     ];
 
@@ -79,6 +80,7 @@ function copyContractAddresses(projectRoot: string): void {
       'VITE_MARKETPLACE_FACTORY_ADDRESS=',
       'VITE_IMPLICATIONS_CONTRACT_ADDRESS=',
       'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=',
+      'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS=',
       'VITE_PUBSTARTER_CONTRACT_ADDRESS=',
       '# Contract addresses (auto-populated',
     ];
@@ -107,6 +109,7 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_ERC1155_FACTORY_ADDRESS=${addresses.ERC1155_FACTORY_ADDRESS || ''}`,
       `VITE_MARKETPLACE_FACTORY_ADDRESS=${addresses.MARKETPLACE_FACTORY_ADDRESS || ''}`,
       `VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${addresses.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || ''}`,
+      `VITE_TRUST_REGISTRY_CONTRACT_ADDRESS=${addresses.TRUST_REGISTRY_ADDRESS || ''}`,
       `VITE_PUBSTARTER_CONTRACT_ADDRESS=${addresses.PUBSTARTER_ADDRESS || ''}`,
       // Use the Vite dev-server proxy URL so the browser avoids CORS issues.
       // Both the browser (via Vite proxy) and the Node.js test-runner reach the indexer this way.

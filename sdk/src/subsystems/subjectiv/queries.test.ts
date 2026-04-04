@@ -1,0 +1,46 @@
+import assert from 'assert';
+import { computeTransitiveTrustMapping } from './queries.js';
+
+describe('computeTransitiveTrustMapping', () => {
+  it('propagates trust transitively using multiplicative scores', async () => {
+    const mapping = await computeTransitiveTrustMapping(async (trusterAddress) => {
+      const normalized = trusterAddress.toLowerCase();
+      if (normalized === '0x1000000000000000000000000000000000000000') {
+        return new Map([
+          ['0xa000000000000000000000000000000000000000', 80],
+          ['0xb000000000000000000000000000000000000000', 30],
+        ]);
+      }
+      if (normalized === '0xa000000000000000000000000000000000000000') {
+        return new Map([['0xc000000000000000000000000000000000000000', 50]]);
+      }
+      if (normalized === '0xb000000000000000000000000000000000000000') {
+        return new Map([['0xc000000000000000000000000000000000000000', 90]]);
+      }
+      return new Map();
+    }, '0x1000000000000000000000000000000000000000');
+
+    assert.strictEqual(mapping.get('0xa000000000000000000000000000000000000000'), 80);
+    assert.strictEqual(mapping.get('0xb000000000000000000000000000000000000000'), 30);
+    assert.strictEqual(mapping.get('0xc000000000000000000000000000000000000000'), 40);
+  });
+
+  it('respects the minimum score threshold and max hops', async () => {
+    const mapping = await computeTransitiveTrustMapping(async (trusterAddress) => {
+      const normalized = trusterAddress.toLowerCase();
+      if (normalized === '0x1000000000000000000000000000000000000000') {
+        return new Map([['0xa000000000000000000000000000000000000000', 10]]);
+      }
+      if (normalized === '0xa000000000000000000000000000000000000000') {
+        return new Map([['0xb000000000000000000000000000000000000000', 5]]);
+      }
+      return new Map();
+    }, '0x1000000000000000000000000000000000000000', {
+      minScore: 1,
+      maxHops: 2,
+    });
+
+    assert.strictEqual(mapping.get('0xa000000000000000000000000000000000000000'), 10);
+    assert.strictEqual(mapping.has('0xb000000000000000000000000000000000000000'), false);
+  });
+});

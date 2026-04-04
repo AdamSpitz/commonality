@@ -24,6 +24,7 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 
 function truncateAddr(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
@@ -33,6 +34,7 @@ export function CauseLeaderboardPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
   const machinery = useMachinery()
   const { address: userAddress } = useAccount()
+  const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(userAddress)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -55,6 +57,8 @@ export function CauseLeaderboardPage() {
           machinery,
           statementCid as IpfsCidV1,
           50,
+          undefined,
+          trustedSet,
         )
         if (cancelled) return
         setContributors(topContributors)
@@ -64,6 +68,8 @@ export function CauseLeaderboardPage() {
             machinery,
             statementCid as IpfsCidV1,
             userAddress,
+            undefined,
+            trustedSet,
           )
           if (cancelled) return
           setUserRank(rankResult)
@@ -82,7 +88,7 @@ export function CauseLeaderboardPage() {
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, userAddress])
+  }, [machinery, statementCid, userAddress, trustedSet])
 
   if (loading) {
     return (
@@ -128,6 +134,12 @@ export function CauseLeaderboardPage() {
         <Typography variant="h4" component="h1" gutterBottom>
           Cause Leaderboard
         </Typography>
+
+        {userAddress && trustedSetLoading && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Building your trust network. Leaderboard results may expand as more trusted alignments are discovered.
+          </Alert>
+        )}
 
         {contributors.length === 0 ? (
           <Typography variant="body2" color="text.secondary">

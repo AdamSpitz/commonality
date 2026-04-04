@@ -16,6 +16,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import { TRUSTED_ATTESTERS_KEY, loadTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
+import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
 
 function isValidAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address)
@@ -171,6 +172,8 @@ export function SettingsPage() {
           {trustedAttesters.length} trusted attester{trustedAttesters.length !== 1 ? 's' : ''} configured
         </Typography>
       </Paper>
+
+      <DirectTrustSettingsSection />
     </Box>
   )
 }

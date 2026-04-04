@@ -6,7 +6,12 @@ Main thing I want to work on next:
   - Implement the content-funding system. Smart contracts are implemented and tested, though honestly I'd still like to review them again. Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
 
 Other big things to do soon:
-  - Do we have the "subjectiv" thing specced out enough for you to be ready to implement it? If so, take a crack at it; if not, let's talk about what remains to be figured out. (See specs/subsystems/subjectiv/README.md.) Then implement it.
+  - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, and Settings now has a direct-trust UI. What's left to do:
+    - Move trust-graph computation into a Web Worker.
+    - Persist the computed trust graph / cached direct trust mappings in IndexedDB and rehydrate on startup.
+    - Add refresh / recomputation policy (e.g. on a timer, on explicit refresh, and when the user changes his direct trust mappings).
+    - Consider incremental / partial-progress updates so the UI can show the trust network filling in while computation is still underway.
+    - Decide whether the settings / funding-portal UI wording needs another pass now that it's no longer just "pick one trusted attester".
   - Figure out the seed statements.
   - Figure out the seed statements. (We've started, but then we realized that content-funding and in particular noninflammatory-content funding was a major use case, so we got sidetracked into that. Once we have the content-funding system MVP built, go back to writing up seed statements.)
   - Generate a proliferation of similar statements around the seed statements. Use an LLM *once* to pre-generate evaluations of all the S1 -> S2 implication candidates, then store those statements and those evaluations as another pre-generated data to be used in the fake-data simulations.
