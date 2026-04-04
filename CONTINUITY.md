@@ -571,3 +571,60 @@ The third-party creation fee semantics are now aligned:
 ### Interrupt point
 
 Good interrupt point. The content-funding contract hardening and the third-party creation fee alignment are now done. The main content-funding work left is still indexer integration and UI implementation.
+
+---
+
+## Subjectiv refresh / recomputation policy — COMPLETE ✓
+
+### What was done
+
+Implemented the missing lightweight refresh policy for the Subjectiv trusted-set UI:
+
+1. **Refreshable trusted-set hook**
+   - `useTrustedSet()` now exposes `refreshTrustedSet()`.
+   - The hook also recomputes automatically on a periodic timer and when the browser window regains focus.
+
+2. **Cross-UI invalidation event**
+   - Added a small shared browser event for Subjectiv trust-network invalidation.
+   - When the user updates or removes a direct trust score in Settings, every mounted `useTrustedSet()` consumer can recompute without requiring a page reload.
+
+3. **Manual refresh in Settings**
+   - Added a `Refresh Network` button to the direct-trust settings section so the user has an explicit recompute path.
+
+4. **Documentation + tests**
+   - Updated the Subjectiv MVP notes to reflect the new behavior.
+   - Added focused UI tests for manual refresh, invalidation-event refresh, and timer-based refresh.
+
+### Key decisions
+
+- Kept the implementation intentionally lightweight: browser event + timer + focus refresh, instead of jumping straight to a Web Worker or IndexedDB.
+- Used a shared invalidation event so funding-portal pages and the settings page stay in sync after trust edits.
+- Left event-sourced incremental recomputation as future work; the current implementation still does full in-memory recomputation.
+
+### Files changed
+
+- `ui/src/shared/subjectivTrust.ts`
+- `ui/src/shared/hooks/useTrustedSet.ts`
+- `ui/src/shared/hooks/useTrustedSet.test.tsx`
+- `ui/src/conceptspace/components/DirectTrustSettingsSection.tsx`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Verification
+
+- Ran `npm run test --workspace=ui -- useTrustedSet`
+- Result: **3 passing**
+- Ran `npm run test --workspace=ui`
+- Result: **619 passing**
+- Ran `npm run test`
+- Result: **passed** (`249 SDK + 335 Hardhat + 107 integration + 619 UI`)
+- Ran `npm run build`
+- Result: **passed**
+- Ran `npm run lint --workspace=ui`
+- Result: **passed with 1 pre-existing warning** in `ui/src/main.tsx` (`react-refresh/only-export-components`)
+
+### Interrupt point
+
+Good interrupt point. Subjectiv now has a usable refresh policy, and the main remaining Subjectiv work is still Web Worker execution, IndexedDB persistence/rehydration, partial-progress updates, and any wording cleanup in the UI.

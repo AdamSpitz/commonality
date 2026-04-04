@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi'
 import { isAddress } from 'viem'
 import {
@@ -27,6 +28,7 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
+import { notifySubjectivTrustNetworkInvalidated } from '../../shared/subjectivTrust'
 
 function normalizeEntries(entries: Map<string, number>) {
   return Array.from(entries.entries())
@@ -39,7 +41,12 @@ export function DirectTrustSettingsSection() {
   const { address, isConnected } = useAccount()
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
-  const { trustedSet, isLoading: trustedSetLoading, error: trustedSetError } = useTrustedSet(address)
+  const {
+    trustedSet,
+    isLoading: trustedSetLoading,
+    error: trustedSetError,
+    refreshTrustedSet,
+  } = useTrustedSet(address)
 
   const [loading, setLoading] = useState(false)
   const [entries, setEntries] = useState<Array<{ trustee: string; score: number }>>([])
@@ -136,6 +143,7 @@ export function DirectTrustSettingsSection() {
       setNewTrustee('')
       setNewScore('100')
       setSuccessMessage('Direct trust updated')
+      notifySubjectivTrustNetworkInvalidated()
       setRefreshKey(k => k + 1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update direct trust')
@@ -160,6 +168,7 @@ export function DirectTrustSettingsSection() {
     try {
       await setTrust(clients, trustRegistryContract, trustee as `0x${string}`, 0)
       setSuccessMessage('Direct trust removed')
+      notifySubjectivTrustNetworkInvalidated()
       setRefreshKey(k => k + 1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove direct trust')
@@ -227,6 +236,15 @@ export function DirectTrustSettingsSection() {
               sx={{ whiteSpace: 'nowrap' }}
             >
               Save
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              onClick={refreshTrustedSet}
+              disabled={trustedSetLoading}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Refresh Network
             </Button>
           </Box>
 

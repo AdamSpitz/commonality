@@ -9,7 +9,6 @@ Other big things to do soon:
   - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, and Settings now has a direct-trust UI. What's left to do:
     - Move trust-graph computation into a Web Worker.
     - Persist the computed trust graph / cached direct trust mappings in IndexedDB and rehydrate on startup.
-    - Add refresh / recomputation policy (e.g. on a timer, on explicit refresh, and when the user changes his direct trust mappings).
     - Consider incremental / partial-progress updates so the UI can show the trust network filling in while computation is still underway.
     - Decide whether the settings / funding-portal UI wording needs another pass now that it's no longer just "pick one trusted attester".
   - Figure out the seed statements.

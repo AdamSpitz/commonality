@@ -1,12 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { getDirectTrustMapping, getTrustedSet } from '@commonality/sdk'
 import { useMachinery } from './useMachinery'
+import {
+  SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT,
+  SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS,
+} from '../subjectivTrust'
 
-export function useTrustedSet(address?: string) {
+interface UseTrustedSetOptions {
+  refreshIntervalMs?: number
+}
+
+export function useTrustedSet(address?: string, options: UseTrustedSetOptions = {}) {
   const machinery = useMachinery()
   const [trustedSet, setTrustedSet] = useState<Set<string> | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [refreshNonce, setRefreshNonce] = useState(0)
+  const refreshIntervalMs = options.refreshIntervalMs ?? SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS
+
+  const refreshTrustedSet = useCallback(() => {
+    setRefreshNonce(nonce => nonce + 1)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -51,11 +65,35 @@ export function useTrustedSet(address?: string) {
     return () => {
       cancelled = true
     }
-  }, [address, machinery])
+  }, [address, machinery, refreshNonce])
+
+  useEffect(() => {
+    if (!address || !machinery.eventCacheUrl || !machinery.contractAddresses?.trustRegistry) {
+      return
+    }
+
+    const handleWindowFocus = () => {
+      refreshTrustedSet()
+    }
+
+    window.addEventListener(SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT, refreshTrustedSet)
+    window.addEventListener('focus', handleWindowFocus)
+
+    const intervalId = window.setInterval(() => {
+      refreshTrustedSet()
+    }, refreshIntervalMs)
+
+    return () => {
+      window.removeEventListener(SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT, refreshTrustedSet)
+      window.removeEventListener('focus', handleWindowFocus)
+      window.clearInterval(intervalId)
+    }
+  }, [address, machinery, refreshIntervalMs, refreshTrustedSet])
 
   return {
     trustedSet,
     isLoading,
     error,
+    refreshTrustedSet,
   }
 }
