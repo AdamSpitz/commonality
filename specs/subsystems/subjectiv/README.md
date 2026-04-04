@@ -16,24 +16,72 @@ So: Subjectiv is used for alignment attestations. The other attestation types ke
 
 ## Design
 
-I want a subsystem called subjectiv.
-
 The point of the system is to allow the creation of trust-graph-mediated event streams.
 
-Input data: each user emits a stream of TrustMappingEntry events, saying "my trust in user U is T" (some number between 0 and 1).
+Input data: each user emits trust declarations on-chain via a `TrustRegistry` contract, saying "my trust in user U is T" (an integer 0–100, where 100 means full trust and 0 means no trust / revoke).
 
 Derived data:
-  - Direct trust mapping: fold the TrustMappingEntry events emitted by that user into a mapping. (Simple.)
-  - Transitive trust mapping: this one needs a fancy algorithm. The notion is that if A trusts B and B trusts C, then A trusts C (to some extent). For now let's just multiply the trust numbers to get the transitive trust number. Put a cap on the number of steps we allow along any one pathway, so that the algorithm doesn't run forever. Also put a trust threshold: if the transitive trust along this pathway drops below 0.01 or whatever, don't bother following that path anymore.
-    - I think it should be possible for this algorithm to run incrementally in the background. The algorithm is basically a breadth-first traversal (or maybe not breadth-first exactly, maybe more like there's a priority queue, where the next path to explore is the path with the highest multiplied-trust-along-that-path). So keep an explicit priority queue for paths that still need to be explored, and explore them one at a time. (When users within the root user's transitive trust mapping publish new TrustMappingEntry events, we can invalidate whatever needs to be invalidated and then put a new item into the priority queue.) The value of having the algorithm run incrementally is that it might be slow but it's fine for the purposes of the app if we use an incomplete transitive trust mapping.
+  - Direct trust mapping: fold the `TrustSet` events emitted by that user into a mapping. (Simple.)
+  - Transitive trust mapping: this one needs a fancy algorithm. The notion is that if A trusts B and B trusts C, then A trusts C (to some extent). For now let's just multiply the trust numbers (treating them as fractions of 100) to get the transitive trust number. Put a cap on the number of steps we allow along any one pathway, so that the algorithm doesn't run forever. Also put a trust threshold: if the transitive trust along this pathway drops below 1 (i.e. 1/100), don't bother following that path anymore.
+    - This algorithm runs incrementally in the background. The algorithm is basically a priority-queue traversal, where the next path to explore is the path with the highest cumulative trust. So keep an explicit priority queue for paths that still need to be explored, and explore them one at a time. The value of having the algorithm run incrementally is that it might be slow but it's fine for the purposes of the app if we use an incomplete transitive trust mapping.
 
-Anyway, the idea is that we use each user's transitive trust mapping to create trust-graph-mediated event streams. That is, conceptually there's the stream of *all* possible events, but each user only sees the events published by users he transitively-trusts.
+The transitive trust mapping creates trust-graph-mediated event streams. That is, conceptually there's the stream of *all* possible events, but each user only sees the events published by users he transitively-trusts.
 
 In particular, our system will make use of it for the funding portal subsystem: for any particular user who's looking at the funding portal for a particular statementId, rather than seeing *all* the projects that anyone has attested to as being aligned with that statement, he'll only see the ones attested to by accounts within his transitive trust mapping.
 
 Why this is important: I don't want incompetent or malicious users to spam the system with bad project-alignment attestations.
 
-## Implementation: incremental client-side computation
+## On-chain data: TrustRegistry contract
+
+Trust declarations are stored on-chain via a new `TrustRegistry.sol` contract. This keeps the architecture uniform — everything is on-chain events → event cache → client-side fold, the same pattern used for all other subsystems. Trust updates are infrequent enough that gas cost is negligible on an L2.
+
+### Contract: `TrustRegistry.sol`
+
+```solidity
+contract TrustRegistry {
+    // trust scores: 0 = no trust / revoke, 1–100 = trust level
+    mapping(address => mapping(address => uint8)) public trustScores;
+
+    event TrustSet(
+        address indexed truster,
+        address indexed trustee,
+        uint8 score
+    );
+
+    function setTrust(address trustee, uint8 score) external {
+        require(score <= 100, "Score must be 0-100");
+        require(trustee != msg.sender, "Cannot trust yourself");
+        trustScores[msg.sender][trustee] = score;
+        emit TrustSet(msg.sender, trustee, score);
+    }
+
+    function setTrustBatch(address[] calldata trustees, uint8[] calldata scores) external {
+        require(trustees.length == scores.length, "Array length mismatch");
+        for (uint256 i = 0; i < trustees.length; i++) {
+            require(scores[i] <= 100, "Score must be 0-100");
+            require(trustees[i] != msg.sender, "Cannot trust yourself");
+            trustScores[msg.sender][trustees[i]] = scores[i];
+            emit TrustSet(msg.sender, trustees[i], scores[i]);
+        }
+    }
+
+    function getTrust(address truster, address trustee) external view returns (uint8) {
+        return trustScores[truster][trustee];
+    }
+}
+```
+
+### SDK layer
+
+Follow the existing subsystem pattern (see `sdk/src/subsystems/` for examples):
+
+- `sdk/src/subsystems/subjectiv/events.ts` — `TrustSetEvent` extending `RawEvent`
+- `sdk/src/subsystems/subjectiv/folds.ts` — fold `TrustSet` events into `Map<address, uint8>` (latest score wins per trustee)
+- `sdk/src/subsystems/subjectiv/queries.ts` — `getDirectTrustMapping(machinery, trusterAddress)` fetches events from event cache, folds them
+- `sdk/src/subsystems/subjectiv/actions.ts` — `setTrust(machinery, trustee, score)` and `setTrustBatch(machinery, trustees, scores)`
+- `sdk/src/subsystems/subjectiv/types.ts` — type definitions
+
+## Implementation: client-side trust graph computation
 
 Each user needs their own trust graph, and there's no sharing between users. So we compute entirely in the browser — no server-side computation needed.
 
@@ -43,29 +91,36 @@ The transitive trust algorithm runs incrementally in the browser using a Web Wor
 
 Each "step" is:
   1. Pop the highest-trust path off the priority queue
-  2. Fetch that user's TrustMappingEntry events from the indexer (one network request)
+  2. Call the SDK's `getDirectTrustMapping()` for that user (which hits the event cache — one network request)
   3. Fold the events into that user's direct trust mapping
-  4. For each user they trust, compute the cumulative trust (multiply along the path) and add to the priority queue if it's above the threshold (0.01)
+  4. For each user they trust, compute the cumulative trust (multiply along the path, treating scores as fractions of 100) and add to the priority queue if cumulative trust is above 1/100
   5. Update the transitive trust mapping with any new or improved trust scores
 
 The priority queue is ordered by cumulative trust along the path, so the most important relationships are discovered first. This means even an incomplete mapping is useful — it contains the highest-trust paths.
 
+Cap the maximum path length at some reasonable number (e.g. 6 hops) to bound computation.
+
 ### Persistence
 
 Store the computed state in IndexedDB:
-  - The transitive trust mapping (Map<address, trustScore>)
-  - The serialized priority queue (paths still to explore)
+  - The transitive trust mapping (`Map<address, trustScore>`)
   - Cached direct trust mappings for already-visited users
 
-On app startup, rehydrate from IndexedDB and continue processing where we left off. The trust graph doesn't need to be rebuilt from scratch each session.
-
-### Invalidation
-
-When a new TrustMappingEntry event shows up for a user already in the mapping, invalidate the subtree rooted at that user (all paths that went through them) and re-enqueue those paths for reprocessing.
+On app startup, rehydrate from IndexedDB. For MVP, skip incremental invalidation — instead, recompute on a timer (e.g. every 24 hours) or when the user explicitly requests a refresh, or when the user updates their own trust mappings. Full recomputation should be fast enough for practical trust network sizes (dozens to low hundreds of users).
 
 ### What the rest of the app sees
 
-The rest of the app just calls something like `getTrustedSet()` which synchronously returns whatever's been computed so far. The funding portal filters alignment attestations against this set.
+The rest of the app just calls something like `getTrustedSet()` which synchronously returns whatever's been computed so far — a `Set<address>` of all transitively trusted accounts.
+
+### Integration with funding portal queries
+
+Currently the SDK's funding portal queries (in `sdk/src/subsystems/fundingportals/queries.ts`) accept `trustedAlignmentAttester?: string` — a single attester address. The UI passes this from localStorage settings.
+
+Replace this with `trustedAlignmentAttesters?: Set<string>` (or `string[]`). The filter logic stays the same — it's still a client-side `.filter()` on folded attestation arrays — but instead of checking against one address, it checks membership in the trust set.
+
+In the UI, replace the `useTrustedAttesters()` hook (which reads from localStorage) with a `useTrustedSet()` hook that reads from the Web Worker's computed trust set.
+
+The existing Settings page UI for manually adding trusted attester addresses can be replaced with a UI for setting direct trust scores on other users.
 
 ### What the user experiences
 
@@ -73,4 +128,4 @@ First time: trust graph is empty, user sees all attestations (or a "building you
 
 ### Rate limiting consideration
 
-Each hop in the graph requires a network request to the indexer (to fetch that user's TrustMappingEntry events). So the graph fills in at roughly "one user per round-trip" pace. With a reasonable network, that's a few hundred transitive trust relationships per minute — more than enough for practical use.
+Each hop in the graph requires a network request to the indexer (to fetch that user's TrustSet events). So the graph fills in at roughly "one user per round-trip" pace. With a reasonable network, that's a few hundred transitive trust relationships per minute — more than enough for practical use.
