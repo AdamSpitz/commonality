@@ -7,19 +7,20 @@ import {
   type StatementSuggestion,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 
 interface StatementSuggestionsProps {
   statementCid: IpfsCidV1;
-  userAddress?: string;
 }
 
-export function StatementSuggestions({ statementCid, userAddress }: StatementSuggestionsProps) {
+export function StatementSuggestions({ statementCid }: StatementSuggestionsProps) {
   const navigate = useNavigate()
   const [suggestions, setSuggestions] = useState<StatementSuggestion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const machinery = useMachinery()
+  const trustedAttesters = useTrustedAttesters()
 
   useEffect(() => {
     const loadSuggestions = async () => {
@@ -27,7 +28,8 @@ export function StatementSuggestions({ statementCid, userAddress }: StatementSug
         setLoading(true)
         setError(null)
 
-        const data = await getStatementSuggestions(machinery, statementCid, userAddress)
+        const attesters = trustedAttesters.length > 0 ? trustedAttesters : undefined
+        const data = await getStatementSuggestions(machinery, statementCid, attesters)
         setSuggestions(data)
       } catch (err) {
         console.error('Error loading statement suggestions:', err)
@@ -38,7 +40,7 @@ export function StatementSuggestions({ statementCid, userAddress }: StatementSug
     }
 
     loadSuggestions()
-  }, [statementCid, userAddress])
+  }, [statementCid])
 
   if (loading) {
     return (

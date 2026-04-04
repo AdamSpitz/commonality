@@ -179,7 +179,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester1Implications = await getImplicationsTo(
       machinery,
       s2Cid,
-      attester1.account
+      [attester1.account]
     );
     assert.strictEqual(
       attester1Implications.length,
@@ -197,7 +197,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester2Implications = await getImplicationsTo(
       machinery,
       s2Cid,
-      attester2.account
+      [attester2.account]
     );
     assert.strictEqual(
       attester2Implications.length,
@@ -238,7 +238,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester1Implications = await getImplicationsTo(
       machinery,
       generalCid,
-      attester1.account
+      [attester1.account]
     );
     assert.strictEqual(
       attester1Implications.length,
@@ -249,7 +249,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     const attester2Implications = await getImplicationsTo(
       machinery,
       generalCid,
-      attester2.account
+      [attester2.account]
     );
     assert.strictEqual(
       attester2Implications.length,
@@ -273,7 +273,7 @@ describe('Multiple Attesters Tests (F2)', () => {
     testLog(`  Querying implications from unused attester: ${unusedAttester.account}`);
 
     // Query implications filtering by an attester who hasn't attested anything
-    const implications = await getImplicationsTo(machinery, statementCid, unusedAttester.account);
+    const implications = await getImplicationsTo(machinery, statementCid, [unusedAttester.account]);
 
     assert.strictEqual(
       implications.length,

@@ -23,6 +23,7 @@ import {
   type IndirectSupportInfo,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { AddressDisplay } from '../../shared/components/AddressDisplay'
 import AddIcon from '@mui/icons-material/Add'
 
@@ -63,6 +64,7 @@ export function UserProfilePage() {
   const [error, setError] = useState<string | null>(null)
 
   const machinery = useMachinery()
+  const trustedAttesters = useTrustedAttesters()
 
   useEffect(() => {
     loadUserData()
@@ -82,7 +84,9 @@ export function UserProfilePage() {
       const [userBeliefs, userDisbeliefs, userIndirectSupport] = await Promise.all([
         getUserBeliefs(machinery, displayAddress),
         getUserDisbeliefs(machinery, displayAddress),
-        getUserIndirectSupport(machinery, displayAddress),
+        getUserIndirectSupport(machinery, displayAddress, {
+          trustedAttesters: trustedAttesters.length > 0 ? trustedAttesters : undefined,
+        }),
       ])
 
       setBeliefs(userBeliefs)

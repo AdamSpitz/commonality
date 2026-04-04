@@ -79,7 +79,7 @@ export interface StatementWithContent {
 export interface GetStatementWithContentOptions {
   includeMetrics?: boolean;
   timeout?: number;
-  attesterAddress?: string;
+  trustedAttesters?: string[];
 }
 
 export interface IndirectSupportInfo {

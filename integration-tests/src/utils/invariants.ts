@@ -264,13 +264,13 @@ export async function assertTradeDataConsistency(
 export async function assertIndirectSupporterCountConsistency(
   machinery: ActionTestingMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string
+  trustedAttesters?: string[]
 ): Promise<void> {
-  const count = await getIndirectSupporterCount(machinery, statementCid, attesterAddress);
-  const supporters = await getIndirectSupporters(machinery, statementCid, attesterAddress);
+  const count = await getIndirectSupporterCount(machinery, statementCid, trustedAttesters);
+  const supporters = await getIndirectSupporters(machinery, statementCid, trustedAttesters);
   const actualCount = supporters.length;
 
-  const attesterInfo = attesterAddress ? ` (filtered by attester ${attesterAddress})` : '';
+  const attesterInfo = trustedAttesters?.length ? ` (filtered by attesters ${trustedAttesters.join(', ')})` : '';
   assert.strictEqual(
     count,
     actualCount,
@@ -552,7 +552,7 @@ export async function assertImplicationNonTransitivity(
     `Non-transitivity test setup error: User ${believerAddress} should NOT disbelieve S3 (${s3Cid}).`
   );
 
-  const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Cid, normalizedAttester);
+  const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Cid, [normalizedAttester]);
   const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
 
   assert.ok(
@@ -563,7 +563,7 @@ export async function assertImplicationNonTransitivity(
     `but ${believerAddress} is not among them: [${s2SupporterAddresses.join(', ')}]`
   );
 
-  const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Cid, normalizedAttester);
+  const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Cid, [normalizedAttester]);
   const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
 
   assert.ok(

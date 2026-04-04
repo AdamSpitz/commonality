@@ -15,26 +15,10 @@ import {
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
-
-const TRUSTED_ATTESTERS_KEY = 'commonality:trustedAttesters'
+import { TRUSTED_ATTESTERS_KEY, loadTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 
 function isValidAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address)
-}
-
-function loadTrustedAttesters(): string[] {
-  try {
-    const stored = localStorage.getItem(TRUSTED_ATTESTERS_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      if (Array.isArray(parsed)) {
-        return parsed.filter(isValidAddress)
-      }
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return []
 }
 
 function saveTrustedAttesters(attesters: string[]): void {

@@ -672,7 +672,7 @@ describe('Conceptspace Indirect Support', () => {
     );
 
     // Verify S1 → S2 worked correctly: believer should support S2 indirectly
-    const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Cid, attesterClients.account);
+    const s2IndirectSupporters = await getIndirectSupporters(machinery, s2Cid, [attesterClients.account]);
     const s2SupporterAddresses = s2IndirectSupporters.map(s => s.user.toLowerCase());
     const believerAddress = believerClients.account.toLowerCase();
 
@@ -684,7 +684,7 @@ describe('Conceptspace Indirect Support', () => {
     testLog('  ✓ Believer correctly appears as indirect supporter of S2 (one hop)');
 
     // Verify S1 → S2 → S3 does NOT make believer an indirect supporter of S3 (two hops)
-    const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Cid, attesterClients.account);
+    const s3IndirectSupporters = await getIndirectSupporters(machinery, s3Cid, [attesterClients.account]);
     const s3SupporterAddresses = s3IndirectSupporters.map(s => s.user.toLowerCase());
 
     assert.ok(

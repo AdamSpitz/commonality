@@ -27,6 +27,10 @@ vi.mock('react-router-dom', async () => {
 import { createSDKMachinery, getStatementSuggestions } from '@commonality/sdk'
 import { useNavigate } from 'react-router-dom'
 
+const TRUSTED_ATTESTERS_KEY = 'commonality:trustedAttesters'
+const VALID_ATTESTER_1 = '0xaabbccddaabbccddaabbccddaabbccddaabbccdd'
+const VALID_ATTESTER_2 = '0x1234567890123456789012345678901234567890'
+
 // Helper to wrap components with BrowserRouter
 const renderWithRouter = (ui: React.ReactElement) => {
   return render(<BrowserRouter>{ui}</BrowserRouter>)
@@ -38,6 +42,7 @@ describe('StatementSuggestions', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
   })
@@ -323,7 +328,7 @@ describe('StatementSuggestions', () => {
       })
     })
 
-    it('calls getStatementSuggestions with statementCid and no userAddress', async () => {
+    it('calls getStatementSuggestions with undefined trustedAttesters when none configured', async () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(
@@ -339,26 +344,41 @@ describe('StatementSuggestions', () => {
       })
     })
 
-    it('calls getStatementSuggestions with statementCid and userAddress when provided', async () => {
+    it('passes trustedAttesters from localStorage to getStatementSuggestions', async () => {
+      localStorage.setItem(TRUSTED_ATTESTERS_KEY, JSON.stringify([VALID_ATTESTER_1, VALID_ATTESTER_2]))
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(
-        <StatementSuggestions
-          statementCid="bafyTest123"
-          userAddress="0x1234567890123456789012345678901234567890"
-        />
+        <StatementSuggestions statementCid="bafyTest123" />
       )
 
       await waitFor(() => {
         expect(getStatementSuggestions).toHaveBeenCalledWith(
           mockMachinery,
           'bafyTest123',
-          '0x1234567890123456789012345678901234567890'
+          [VALID_ATTESTER_1, VALID_ATTESTER_2]
         )
       })
     })
 
-    it('refetches suggestions when statementId changes', async () => {
+    it('passes undefined when trustedAttesters list is empty', async () => {
+      localStorage.setItem(TRUSTED_ATTESTERS_KEY, JSON.stringify([]))
+      vi.mocked(getStatementSuggestions).mockResolvedValue([])
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(getStatementSuggestions).toHaveBeenCalledWith(
+          mockMachinery,
+          'bafyTest123',
+          undefined
+        )
+      })
+    })
+
+    it('refetches suggestions when statementCid changes', async () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       const { rerender } = renderWithRouter(
@@ -381,33 +401,6 @@ describe('StatementSuggestions', () => {
           mockMachinery,
           'bafyTest456',
           undefined
-        )
-      })
-    })
-
-    it('refetches suggestions when userAddress changes', async () => {
-      vi.mocked(getStatementSuggestions).mockResolvedValue([])
-
-      const { rerender } = renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" userAddress="0xAAA" />
-      )
-
-      await waitFor(() => {
-        expect(getStatementSuggestions).toHaveBeenCalledTimes(1)
-      })
-
-      rerender(
-        <BrowserRouter>
-          <StatementSuggestions statementCid="bafyTest123" userAddress="0xBBB" />
-        </BrowserRouter>
-      )
-
-      await waitFor(() => {
-        expect(getStatementSuggestions).toHaveBeenCalledTimes(2)
-        expect(getStatementSuggestions).toHaveBeenLastCalledWith(
-          mockMachinery,
-          'bafyTest123',
-          '0xBBB'
         )
       })
     })

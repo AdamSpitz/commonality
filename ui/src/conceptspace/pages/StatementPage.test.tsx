@@ -53,9 +53,9 @@ vi.mock('../components/SupportMetrics', () => ({
 }))
 
 vi.mock('../components/StatementSuggestions', () => ({
-  StatementSuggestions: vi.fn(({ statementCid, userAddress }) => (
+  StatementSuggestions: vi.fn(({ statementCid }) => (
     <div data-testid="statement-suggestions">
-      Suggestions for: {statementCid} (user: {userAddress || 'none'})
+      Suggestions for: {statementCid}
     </div>
   )),
 }))
@@ -317,7 +317,6 @@ describe('StatementPage', () => {
       await waitFor(() => {
         const suggestions = screen.getByTestId('statement-suggestions')
         expect(suggestions.textContent).toContain('Suggestions for: stmt123')
-        expect(suggestions.textContent).toContain('user: none')
       })
     })
 
@@ -393,7 +392,7 @@ describe('StatementPage', () => {
       })
     })
 
-    it('passes user address to StatementSuggestions when wallet is connected', async () => {
+    it('renders StatementSuggestions with statementCid when wallet is connected', async () => {
       const walletAddress = '0x1234567890123456789012345678901234567890'
       vi.mocked(useAccount).mockReturnValue({
         address: walletAddress,
@@ -405,7 +404,7 @@ describe('StatementPage', () => {
 
       await waitFor(() => {
         const suggestions = screen.getByTestId('statement-suggestions')
-        expect(suggestions.textContent).toContain(`user: ${walletAddress}`)
+        expect(suggestions.textContent).toContain('Suggestions for: stmt123')
       })
     })
   })
@@ -474,7 +473,7 @@ describe('StatementPage', () => {
         expect(getStatementWithContent).toHaveBeenCalledWith(
           mockExecutor,
           'stmt123',
-          { includeMetrics: true }
+          { includeMetrics: true, trustedAttesters: [] }
         )
       })
     })

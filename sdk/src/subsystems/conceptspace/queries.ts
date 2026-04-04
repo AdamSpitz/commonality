@@ -125,12 +125,25 @@ export async function getUserBelief(
 // ============================================================================
 
 /**
+ * Filter implications to only those from trusted attesters.
+ * If trustedAttesters is undefined or empty, returns all implications unfiltered.
+ */
+function filterByTrustedAttesters(
+  implications: Implication[],
+  trustedAttesters?: string[]
+): Implication[] {
+  if (!trustedAttesters || trustedAttesters.length === 0) return implications;
+  const lowerAttesters = trustedAttesters.map(a => a.toLowerCase());
+  return implications.filter(i => lowerAttesters.includes(i.attester.toLowerCase()));
+}
+
+/**
  * Get implications from a statement (what it implies)
  */
 export async function getImplicationsFrom(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string
+  trustedAttesters?: string[]
 ): Promise<Implication[]> {
   const contracts = machinery.contractAddresses!;
 
@@ -149,14 +162,7 @@ export async function getImplicationsFrom(
     }
   }
 
-  let implications = foldImplications(decodedEvents);
-
-  if (attesterAddress) {
-    const attesterLower = attesterAddress.toLowerCase();
-    implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
-  }
-
-  return implications;
+  return filterByTrustedAttesters(foldImplications(decodedEvents), trustedAttesters);
 }
 
 /**
@@ -165,7 +171,7 @@ export async function getImplicationsFrom(
 export async function getImplicationsTo(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string
+  trustedAttesters?: string[]
 ): Promise<Implication[]> {
   const contracts = machinery.contractAddresses!;
 
@@ -184,14 +190,7 @@ export async function getImplicationsTo(
     }
   }
 
-  let implications = foldImplications(decodedEvents);
-
-  if (attesterAddress) {
-    const attesterLower = attesterAddress.toLowerCase();
-    implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
-  }
-
-  return implications;
+  return filterByTrustedAttesters(foldImplications(decodedEvents), trustedAttesters);
 }
 
 /**
@@ -249,7 +248,7 @@ export async function getImplication(
 export async function getIndirectSupporters(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string
+  trustedAttesters?: string[]
 ): Promise<IndirectSupporter[]> {
   const contracts = machinery.contractAddresses!;
 
@@ -268,12 +267,7 @@ export async function getIndirectSupporters(
     }
   }
 
-  let implications = foldImplications(decodedToEvents);
-
-  if (attesterAddress) {
-    const attesterLower = attesterAddress.toLowerCase();
-    implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
-  }
+  const implications = filterByTrustedAttesters(foldImplications(decodedToEvents), trustedAttesters);
 
   if (implications.length === 0) {
     return [];
@@ -350,9 +344,9 @@ export async function getIndirectSupporters(
 export async function getIndirectSupporterCount(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string
+  trustedAttesters?: string[]
 ): Promise<number> {
-  const supporters = await getIndirectSupporters(machinery, statementCid, attesterAddress);
+  const supporters = await getIndirectSupporters(machinery, statementCid, trustedAttesters);
   return supporters.length;
 }
 
@@ -669,7 +663,7 @@ export async function getUserDisbeliefs(
 export async function getStatementSuggestions(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  attesterAddress?: string
+  trustedAttesters?: string[]
 ): Promise<Array<{
   statement: StatementListItem;
   reason: string;
@@ -686,7 +680,7 @@ export async function getStatementSuggestions(
     return [];
   }
 
-  const implicationsFrom = await getImplicationsFrom(machinery, statementCid, attesterAddress);
+  const implicationsFrom = await getImplicationsFrom(machinery, statementCid, trustedAttesters);
 
   for (const implication of implicationsFrom) {
     const targetStatement = await getStatement(machinery, implication.toStatementCid);
@@ -708,7 +702,7 @@ export async function getStatementSuggestions(
     }
   }
 
-  const implicationsTo = await getImplicationsTo(machinery, statementCid, attesterAddress);
+  const implicationsTo = await getImplicationsTo(machinery, statementCid, trustedAttesters);
 
   for (const implication of implicationsTo) {
     const sourceOfImplication = await getStatement(machinery, implication.fromStatementCid);
@@ -750,7 +744,7 @@ export async function getStatementWithContent(
   const {
     includeMetrics = false,
     timeout = 10000,
-    attesterAddress,
+    trustedAttesters,
   } = options;
 
   const statement = await getStatement(machinery, statementCid);
@@ -768,7 +762,7 @@ export async function getStatementWithContent(
     const indirectSupporters = await getIndirectSupporterCount(
       machinery,
       statementCid,
-      attesterAddress
+      trustedAttesters
     );
 
     metrics = {
@@ -800,7 +794,7 @@ export async function getUserIndirectSupport(
   }
 
   const implicationsQueries = userBeliefsList.map(belief =>
-    getImplicationsFrom(machinery, belief.cid, options.trustedAttesters?.[0])
+    getImplicationsFrom(machinery, belief.cid, options.trustedAttesters)
   );
 
   const implicationsResults = await Promise.all(implicationsQueries);
@@ -902,15 +896,15 @@ export async function getHighProfileSigners(
   }
 
   const folded = foldStatementBeliefs(decodedEvents);
-  
+
   const highProfileSigners: HighProfileSigner[] = [];
-  
+
   for (const [userAddress, beliefState] of folded.beliefs.entries()) {
     if (beliefState !== 1) continue;
-    
+
     const socialData = await getUserSocialData(machinery, userAddress);
-    if (socialData && 
-        socialData.twitterFollowerCount && 
+    if (socialData &&
+        socialData.twitterFollowerCount &&
         socialData.twitterFollowerCount >= minFollowers) {
       highProfileSigners.push({
         address: userAddress,
@@ -920,7 +914,7 @@ export async function getHighProfileSigners(
       });
     }
   }
-  
+
   return highProfileSigners.sort((a, b) => (b.followerCount || 0) - (a.followerCount || 0));
 }
 

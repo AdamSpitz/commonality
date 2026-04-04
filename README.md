@@ -58,4 +58,4 @@ We have a Docker Compose setup for running Hardhat and the Ponder indexer. This 
 
 For now, this project hasn't even been deployed yet, so don't worry about backward compatibility.
 
-- Documentation pass in progress: Client-Side Folding and the chainHash delegation mechanism are now documented. Next up: user-selectable attester trust UI.
+- User-selectable attester trust implemented: trusted attester list stored in localStorage filters indirect support, suggestions, and user profile indirect support tab. Next up: implication discovery (finder service) or statement proliferation / seed content.

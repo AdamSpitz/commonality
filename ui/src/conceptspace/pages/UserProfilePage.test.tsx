@@ -884,7 +884,7 @@ describe('UserProfilePage', () => {
         expect(createSDKMachinery).toHaveBeenCalled()
         expect(getUserBeliefs).toHaveBeenCalledWith(mockExecutor, address)
         expect(getUserDisbeliefs).toHaveBeenCalledWith(mockExecutor, address)
-        expect(getUserIndirectSupport).toHaveBeenCalledWith(mockExecutor, address)
+        expect(getUserIndirectSupport).toHaveBeenCalledWith(mockExecutor, address, { trustedAttesters: undefined })
       })
     })
 
@@ -904,7 +904,7 @@ describe('UserProfilePage', () => {
       await waitFor(() => {
         expect(getUserBeliefs).toHaveBeenCalledWith(mockExecutor, paramAddress)
         expect(getUserDisbeliefs).toHaveBeenCalledWith(mockExecutor, paramAddress)
-        expect(getUserIndirectSupport).toHaveBeenCalledWith(mockExecutor, paramAddress)
+        expect(getUserIndirectSupport).toHaveBeenCalledWith(mockExecutor, paramAddress, { trustedAttesters: undefined })
       })
     })
 
@@ -956,7 +956,7 @@ describe('UserProfilePage', () => {
       await waitFor(() => {
         expect(getUserBeliefs).toHaveBeenCalledWith(mockExecutor, '0xabc')
         expect(getUserDisbeliefs).toHaveBeenCalledWith(mockExecutor, '0xabc')
-        expect(getUserIndirectSupport).toHaveBeenCalledWith(mockExecutor, '0xabc')
+        expect(getUserIndirectSupport).toHaveBeenCalledWith(mockExecutor, '0xabc', { trustedAttesters: undefined })
       })
     })
   })

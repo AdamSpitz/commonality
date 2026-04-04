@@ -500,7 +500,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         const impliedStatements = await getImplicationsFrom(
           machinery,
           belief.cid,
-          attesterClients.account // Trust this attester's implications
+          [attesterClients.account] // Trust this attester's implications
         );
         for (const implication of impliedStatements) {
           // Only suggest if user hasn't already expressed an opinion on it

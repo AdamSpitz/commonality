@@ -96,3 +96,49 @@ Healthcheck updated to use `cast block-number` (bundled in foundry image).
 Clean stop/start cycle confirmed working:
 1. `./services.sh --stop` → Anvil writes `./data/hardhat/state.json`, Ponder's `./data/ponder/pglite` persists
 2. `./services.sh --start` → Anvil loads same blocks, deploy skips, Ponder resumes from pglite with no reorg error
+
+---
+
+## User-selectable attester trust — COMPLETE ✓
+
+### What was done
+
+Wired the trusted attester list (stored in localStorage by the Settings page) into the SDK and UI:
+
+1. **SDK** (`sdk/src/subsystems/conceptspace/`):
+   - Changed all attester-filter params from `attesterAddress?: string` to `trustedAttesters?: string[]` — `getImplicationsFrom`, `getImplicationsTo`, `getIndirectSupporters`, `getIndirectSupporterCount`, `getStatementSuggestions`, `getStatementWithContent` options.
+   - Fixed `getUserIndirectSupport` which was incorrectly using only `trustedAttesters?.[0]` — now passes the full array.
+   - Empty array or undefined → no filter (show all attesters).
+
+2. **New hook** `ui/src/shared/hooks/useTrustedAttesters.ts`: reads the list from localStorage once on mount.
+
+3. **SettingsPage.tsx**: refactored to import shared `TRUSTED_ATTESTERS_KEY` and `loadTrustedAttesters` from the new hook (no behavior change).
+
+4. **StatementPage.tsx**: passes `trustedAttesters` to `getStatementWithContent` so indirect support count respects user preferences.
+
+5. **StatementSuggestions.tsx**: removed the buggy `userAddress` prop (which was being incorrectly passed as an attester address). Now reads trusted attesters from the hook and passes them to `getStatementSuggestions`.
+
+6. **UserProfilePage.tsx**: passes trusted attesters to `getUserIndirectSupport`.
+
+7. **Integration tests** updated: changed single-string attester args to arrays in `conceptspace-multiple-attesters.test.ts`, `conceptspace-indirect-support.test.ts`, `end-to-end-workflows.test.ts`, and `invariants.ts`.
+
+### Files changed
+- `sdk/src/subsystems/conceptspace/types.ts`
+- `sdk/src/subsystems/conceptspace/queries.ts`
+- `ui/src/shared/hooks/useTrustedAttesters.ts` (new)
+- `ui/src/conceptspace/pages/SettingsPage.tsx`
+- `ui/src/conceptspace/pages/StatementPage.tsx`
+- `ui/src/conceptspace/components/StatementSuggestions.tsx`
+- `ui/src/conceptspace/components/StatementSuggestions.test.tsx`
+- `ui/src/conceptspace/pages/UserProfilePage.tsx`
+- `integration-tests/src/conceptspace/conceptspace-multiple-attesters.test.ts`
+- `integration-tests/src/conceptspace/conceptspace-indirect-support.test.ts`
+- `integration-tests/src/workflows/end-to-end-workflows.test.ts`
+- `integration-tests/src/utils/invariants.ts`
+- `TODO.md`, `README.md`, `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The attester trust feature is fully wired end-to-end.
+
+Next item in TODO.md: **Clarify the plan for implication "Discovery" services** or **Restrict implication generation to same-domain pairs in `universe.json`**. Or consider doing some seed-content / statement proliferation work.

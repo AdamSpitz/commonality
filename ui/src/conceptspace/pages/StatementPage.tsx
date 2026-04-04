@@ -10,6 +10,7 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
@@ -31,6 +32,7 @@ export function StatementPage() {
   const [contentError, setContentError] = useState<string | null>(null)
 
   const machinery = useMachinery()
+  const trustedAttesters = useTrustedAttesters()
 
   const loadStatementData = async () => {
     if (!statementCid) {
@@ -48,6 +50,7 @@ export function StatementPage() {
       // IPFS gateway is configured via VITE_IPFS_GATEWAY env var
       const result = await getStatementWithContent(machinery, statementCid, {
         includeMetrics: true,
+        trustedAttesters,
       })
 
       if (!result) {
@@ -159,10 +162,7 @@ export function StatementPage() {
       </Box>
 
       {/* Statement Suggestions */}
-      <StatementSuggestions
-        statementCid={statementCid as IpfsCidV1}
-        userAddress={address}
-      />
+      <StatementSuggestions statementCid={statementCid as IpfsCidV1} />
 
       {/* Available Delegatable Funding */}
       <AvailableDelegatableFunding statementCid={statementCid || ''} />
