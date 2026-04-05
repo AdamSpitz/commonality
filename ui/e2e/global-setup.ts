@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 
 /**
  * Global setup for Playwright E2E tests
@@ -161,12 +161,20 @@ export default async function globalSetup() {
       // Ignore if directory doesn't exist or can't be removed
     }
 
-    // Start all services with build flag
+    // Pre-create bind-mounted data directories as the host user so Docker
+    // does not recreate them as root-owned directories.
+    for (const directory of ['hardhat', 'ipfs', 'ponder']) {
+      mkdirSync(resolve(projectRoot, 'data', directory), { recursive: true });
+    }
+
+    // Start only the backend services with build flag.
+    // Playwright's webServer config starts the Vite UI locally, so the docker-compose
+    // ui service would just race for port 5173 and fail.
     // Docker Compose will wait for healthchecks to pass due to depends_on configuration
     // PONDER_EPHEMERAL=true: use in-memory DB to avoid stale-state issues when the
     // Hardhat chain restarts fresh but the Ponder bind-mount has old block data.
     console.log('🔨 Building and starting services...');
-    execSync('docker-compose up -d --build', {
+    execSync('docker-compose up -d --build hardhat-node hardhat-deploy ipfs indexer', {
       cwd: projectRoot,
       stdio: 'inherit',
       env: { ...process.env, PONDER_EPHEMERAL: 'true' },

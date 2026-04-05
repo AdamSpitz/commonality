@@ -1,5 +1,54 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv browser-level e2e attempt — IN PROGRESS / BLOCKED
+
+### What was done
+
+Tried to finish the remaining Subjectiv browser-level e2e pass by adding a real Playwright flow that creates a cause statement, two projects, alignment attestations, and a transitive trust path, then verifies the funding portal before and after adding direct trust in Settings.
+
+### Key decisions
+
+- Reused the existing `ui/e2e` Playwright harness rather than inventing a new test type.
+- Added a new spec at `ui/e2e/subjectiv-flow.spec.ts` rather than extending a different subsystem's e2e file.
+- Fixed two real harness problems discovered along the way:
+  - `ui/e2e/global-setup.ts` now recreates `data/{hardhat,ipfs,ponder}` after clearing Ponder state, so Docker does not recreate the bind-mounted `data/ponder` directory as root and break the non-root indexer container.
+  - `ui/e2e/global-setup.ts` now starts only backend Docker services (`hardhat-node`, `hardhat-deploy`, `ipfs`, `indexer`) because Playwright's `webServer` already starts Vite locally; starting the docker-compose `ui` service too caused a port `5173` collision.
+- Confirmed that Playwright itself was not the remaining blocker:
+  - `npx playwright install chromium` succeeded.
+  - `npm run build --workspace=ui` succeeded.
+- Fixed one mistake in the new Subjectiv spec itself:
+  - alignment actions need `toSubjectId(projectTokenAddress)`, not a raw project/assurance address.
+
+### What is currently blocking progress
+
+The new Playwright Subjectiv spec still fails before reaching the browser assertions because the fresh e2e backend/indexer path never appears to advance past block 0:
+
+- `waitForIndexerToSyncToTxHash()` times out even with a 60s timeout.
+- The failure happens immediately after startup while creating the initial Subjectiv scenario, not because of missing Playwright browsers anymore.
+- Example failure seen repeatedly: `Indexer did not sync to block 30 within 60000ms. Last seen block: 0`.
+
+So the remaining blocker looks like a Ponder / e2e indexer-startup issue in this path, not a Playwright installation problem and not obviously a Nix/browser issue.
+
+### Likely next steps
+
+- Inspect why the indexer reports healthy but `waitForIndexerToSyncToTxHash()` still sees block 0 forever in the Playwright startup path.
+- Compare this e2e startup path with the integration-test path that successfully waits for indexer sync.
+- Check whether the issue is:
+  - a stale or incorrect GraphQL/status/meta endpoint assumption in `waitForIndexerToSyncToTxHash()`,
+  - the indexer starting "healthy" before it is actually reading new blocks,
+  - or some mismatch between fresh-anvil startup and Ponder's observed head block in this docker-compose path.
+- Once indexer sync is trustworthy, rerun `npm run test:e2e --workspace=ui -- subjectiv-flow.spec.ts` and then decide whether the TODO item can be marked done.
+
+### Files changed during this attempt
+
+- `ui/e2e/subjectiv-flow.spec.ts`
+- `ui/e2e/global-setup.ts`
+- `ui/e2e/utils/blockchain.ts`
+
+### Notes for next session
+
+This is not a dead end, but it is not finished. The Playwright/browser installation hurdle is cleared; the current problem is the e2e indexer sync path. Start there rather than re-debugging browser installation.
+
 ## Subjectiv wording cleanup for Settings and funding portal — COMPLETE ✓
 
 ### What was done

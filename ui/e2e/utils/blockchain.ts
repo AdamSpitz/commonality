@@ -116,6 +116,9 @@ export function getContractAddresses() {
   const beliefsAddress =
     envVars.VITE_BELIEFS_CONTRACT_ADDRESS ||
     process.env.VITE_BELIEFS_CONTRACT_ADDRESS
+  const alignmentAttestationsAddress =
+    envVars.VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS ||
+    process.env.VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS
   const mutableRefUpdaterAddress =
     envVars.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS ||
     process.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS
@@ -125,6 +128,9 @@ export function getContractAddresses() {
   const pubstarterAddress =
     envVars.VITE_PUBSTARTER_CONTRACT_ADDRESS ||
     process.env.VITE_PUBSTARTER_CONTRACT_ADDRESS
+  const trustRegistryAddress =
+    envVars.VITE_TRUST_REGISTRY_CONTRACT_ADDRESS ||
+    process.env.VITE_TRUST_REGISTRY_CONTRACT_ADDRESS
   const graphqlUrl =
     envVars.VITE_GRAPHQL_URL ||
     process.env.VITE_GRAPHQL_URL ||
@@ -140,9 +146,12 @@ export function getContractAddresses() {
 
   return {
     beliefsAddress: beliefsAddress as `0x${string}`,
+    alignmentAttestationsAddress:
+      alignmentAttestationsAddress as `0x${string}` | undefined,
     mutableRefUpdaterAddress: mutableRefUpdaterAddress as `0x${string}`,
     delegatableNotesAddress: delegatableNotesAddress as `0x${string}` | undefined,
     pubstarterAddress: pubstarterAddress as `0x${string}` | undefined,
+    trustRegistryAddress: trustRegistryAddress as `0x${string}` | undefined,
     graphqlUrl,
   }
 }
