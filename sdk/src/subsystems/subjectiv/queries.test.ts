@@ -78,4 +78,51 @@ describe('computeTransitiveTrustMapping', () => {
       80
     );
   });
+
+  it('reports progress as the trusted set grows', async () => {
+    const progressSnapshots: string[][] = [];
+
+    const mapping = await computeTransitiveTrustMapping(async (trusterAddress) => {
+      const normalized = trusterAddress.toLowerCase();
+      if (normalized === '0x1000000000000000000000000000000000000000') {
+        return new Map([
+          ['0xa000000000000000000000000000000000000000', 80],
+          ['0xb000000000000000000000000000000000000000', 30],
+        ]);
+      }
+      if (normalized === '0xa000000000000000000000000000000000000000') {
+        return new Map([
+          ['0xc000000000000000000000000000000000000000', 50],
+          ['0xb000000000000000000000000000000000000000', 20],
+        ]);
+      }
+      if (normalized === '0xb000000000000000000000000000000000000000') {
+        return new Map([['0xd000000000000000000000000000000000000000', 90]]);
+      }
+      return new Map();
+    }, '0x1000000000000000000000000000000000000000', {
+      onProgress: (snapshot) => {
+        progressSnapshots.push(Array.from(snapshot.keys()).sort());
+      },
+    });
+
+    assert.deepStrictEqual(progressSnapshots, [
+      [
+        '0xa000000000000000000000000000000000000000',
+        '0xb000000000000000000000000000000000000000',
+      ],
+      [
+        '0xa000000000000000000000000000000000000000',
+        '0xb000000000000000000000000000000000000000',
+        '0xc000000000000000000000000000000000000000',
+      ],
+      [
+        '0xa000000000000000000000000000000000000000',
+        '0xb000000000000000000000000000000000000000',
+        '0xc000000000000000000000000000000000000000',
+        '0xd000000000000000000000000000000000000000',
+      ],
+    ]);
+    assert.strictEqual(mapping.get('0xd000000000000000000000000000000000000000'), 27);
+  });
 });

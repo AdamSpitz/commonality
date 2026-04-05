@@ -137,7 +137,9 @@ export function CauseLeaderboardPage() {
 
         {userAddress && trustedSetLoading && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            Building your trust network. Leaderboard results may expand as more trusted alignments are discovered.
+            {trustedSet
+              ? `Building your trust network. Leaderboard results are currently using ${trustedSet.size} trusted account${trustedSet.size !== 1 ? 's' : ''} discovered so far.`
+              : 'Building your trust network. Leaderboard results may expand as more trusted alignments are discovered.'}
           </Alert>
         )}
 

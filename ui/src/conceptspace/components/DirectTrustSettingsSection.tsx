@@ -292,7 +292,9 @@ export function DirectTrustSettingsSection() {
 
           {trustedSetLoading ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              Building your transitive trust network...
+              {trustedSet
+                ? `Building your transitive trust network... ${trustedSet.size} trusted account${trustedSet.size !== 1 ? 's' : ''} found so far.`
+                : 'Building your transitive trust network...'}
             </Typography>
           ) : trustedSet ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>

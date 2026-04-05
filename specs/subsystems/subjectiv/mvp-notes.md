@@ -14,7 +14,6 @@ This is the currently implemented slice of Subjectiv:
 
 Deliberately deferred from the original spec:
 
-- Partial-progress trust graph updates while traversal is still running
 - Event-driven or incremental recomputation sourced directly from TrustRegistry events
 
 Current behavior:
@@ -22,5 +21,6 @@ Current behavior:
 - If the user has no direct trust declarations yet, the funding portal falls back to showing all alignment attestations.
 - On startup, `useTrustedSet()` rehydrates a cached trusted-set snapshot plus any previously visited per-user direct trust mappings from IndexedDB before kicking off a fresh background recomputation.
 - Once the user declares direct trust, the UI computes the transitive trusted set in a Web Worker and uses that set for filtering.
+- While the worker traversal is still running, it now streams partial trusted-set snapshots back to the UI so trust-aware screens can start updating before the full recomputation finishes.
 - Refreshes reuse cached direct trust mappings for already visited downstream accounts while always refetching the connected user's own direct trust mapping first.
 - The UI recomputes the trusted set when the user changes direct trust, clicks manual refresh, refocuses the window, or waits for the periodic refresh timer.

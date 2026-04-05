@@ -161,7 +161,9 @@ export function StatementFundingPortalPage() {
 
       {address && trustedSetLoading && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Building your trust network. Until that finishes, some alignment filtering may be incomplete.
+          {trustedSet
+            ? `Building your trust network. Filtering is currently using ${trustedSet.size} trusted account${trustedSet.size !== 1 ? 's' : ''} discovered so far.`
+            : 'Building your trust network. Until that finishes, some alignment filtering may be incomplete.'}
         </Alert>
       )}
 

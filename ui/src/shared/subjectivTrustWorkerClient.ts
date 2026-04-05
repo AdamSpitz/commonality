@@ -1,6 +1,7 @@
 import type {
   SubjectivCachedDirectTrustMappings,
   SubjectivTrustedSetComputationResult,
+  SubjectivTrustedSetProgressUpdate,
   SubjectivTrustWorkerRequest,
   SubjectivTrustWorkerResponse,
 } from './subjectivTrust'
@@ -11,11 +12,13 @@ interface ComputeTrustedSetOptions {
   eventCacheUrl: string
   contractAddresses: SubjectivTrustWorkerRequest['contractAddresses']
   cachedDirectTrustMappings?: SubjectivCachedDirectTrustMappings
+  onProgress?: (update: SubjectivTrustedSetProgressUpdate) => void
 }
 
 interface PendingRequest {
   resolve: (result: SubjectivTrustedSetComputationResult) => void
   reject: (error: Error) => void
+  onProgress?: (update: SubjectivTrustedSetProgressUpdate) => void
 }
 
 let workerInstance: Worker | null = null
@@ -46,6 +49,14 @@ function handleWorkerMessage(event: MessageEvent<SubjectivTrustWorkerResponse>):
   const pendingRequest = pendingRequests.get(message.requestId)
 
   if (!pendingRequest) {
+    return
+  }
+
+  if (message.type === 'trustedSetProgress') {
+    pendingRequest.onProgress?.({
+      hasDirectTrust: message.hasDirectTrust,
+      trustedSet: message.trustedSet,
+    })
     return
   }
 
@@ -105,7 +116,7 @@ export async function computeSubjectivTrustedSet(
   }
 
   return new Promise<SubjectivTrustedSetComputationResult>((resolve, reject) => {
-    pendingRequests.set(requestId, { resolve, reject })
+    pendingRequests.set(requestId, { resolve, reject, onProgress: options.onProgress })
     worker.postMessage(request)
   })
 }

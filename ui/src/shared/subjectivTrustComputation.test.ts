@@ -92,4 +92,51 @@ describe('computeSubjectivTrustedSetResult', () => {
       },
     })
   })
+
+  it('forwards partial trusted-set progress updates from the SDK traversal', async () => {
+    vi.mocked(getDirectTrustMapping).mockResolvedValue(
+      new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
+    )
+    vi.mocked(getTrustedSet).mockImplementation(async (_machinery, _address, options) => {
+      options?.onProgress?.(
+        new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
+      )
+      options?.onProgress?.(
+        new Map([
+          ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90],
+          ['0xcccccccccccccccccccccccccccccccccccccccc', 45],
+        ])
+      )
+
+      return new Set([
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        '0xcccccccccccccccccccccccccccccccccccccccc',
+      ])
+    })
+
+    const progressUpdates: Array<{ hasDirectTrust: boolean; trustedSet: string[] }> = []
+
+    await computeSubjectivTrustedSetResult({
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      eventCacheUrl: 'http://localhost:42069/api',
+      contractAddresses,
+      onProgress: update => {
+        progressUpdates.push(update)
+      },
+    })
+
+    expect(progressUpdates).toEqual([
+      {
+        hasDirectTrust: true,
+        trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+      },
+      {
+        hasDirectTrust: true,
+        trustedSet: [
+          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          '0xcccccccccccccccccccccccccccccccccccccccc',
+        ],
+      },
+    ])
+  })
 })

@@ -224,6 +224,47 @@ describe('useTrustedSet', () => {
     )
   })
 
+  it('shows partial trusted-set progress before the full recomputation finishes', async () => {
+    let resolveFreshResult:
+      | ((value: { hasDirectTrust: true; trustedSet: string[] }) => void)
+      | undefined
+
+    vi.mocked(computeSubjectivTrustedSet).mockImplementation(
+      ({ onProgress }) => {
+        onProgress?.({
+          hasDirectTrust: true,
+          trustedSet: ['0x1111111111111111111111111111111111111111'],
+        })
+
+        return new Promise(resolve => {
+          resolveFreshResult = resolve
+        })
+      }
+    )
+
+    render(<TrustedSetProbe />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('trusted-set')).toHaveTextContent('0x1111111111111111111111111111111111111111')
+      expect(screen.getByTestId('loading')).toHaveTextContent('true')
+    })
+
+    resolveFreshResult?.({
+      hasDirectTrust: true,
+      trustedSet: [
+        '0x1111111111111111111111111111111111111111',
+        '0x2222222222222222222222222222222222222222',
+      ],
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('trusted-set')).toHaveTextContent(
+        '0x1111111111111111111111111111111111111111,0x2222222222222222222222222222222222222222'
+      )
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    })
+  })
+
   it('keeps the cached trusted set visible if the refresh fails', async () => {
     vi.mocked(loadCachedSubjectivTrustedSet).mockResolvedValue({
       hasDirectTrust: true,

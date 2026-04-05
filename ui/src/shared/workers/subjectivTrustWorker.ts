@@ -19,6 +19,16 @@ self.addEventListener('message', async (event: MessageEvent<SubjectivTrustWorker
       eventCacheUrl: request.eventCacheUrl,
       contractAddresses: request.contractAddresses,
       cachedDirectTrustMappings: request.cachedDirectTrustMappings,
+      onProgress: (update) => {
+        const progressResponse: SubjectivTrustWorkerResponse = {
+          type: 'trustedSetProgress',
+          requestId: request.requestId,
+          hasDirectTrust: update.hasDirectTrust,
+          trustedSet: update.trustedSet,
+        }
+
+        self.postMessage(progressResponse)
+      },
     })
 
     const response: SubjectivTrustWorkerResponse = {

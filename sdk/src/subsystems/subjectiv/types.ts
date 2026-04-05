@@ -1,5 +1,8 @@
 export type DirectTrustMapping = Map<string, number>;
 export type TransitiveTrustMapping = Map<string, number>;
+export type TrustComputationProgressHandler = (
+  mapping: ReadonlyMap<string, number>
+) => void;
 
 export interface DirectTrustEntry {
   trustee: string;
@@ -10,4 +13,5 @@ export interface TrustComputationOptions {
   maxHops?: number;
   minScore?: number;
   directTrustCache?: Map<string, DirectTrustMapping>;
+  onProgress?: TrustComputationProgressHandler;
 }

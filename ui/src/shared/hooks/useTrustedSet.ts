@@ -76,6 +76,19 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
           eventCacheUrl: machinery.eventCacheUrl,
           contractAddresses: machinery.contractAddresses,
           cachedDirectTrustMappings: cachedResult?.directTrustMappings,
+          onProgress: progress => {
+            if (cancelled) {
+              return
+            }
+
+            if (!progress.hasDirectTrust) {
+              setTrustedSet(undefined)
+              return
+            }
+
+            const nextTrustedSet = new Set(progress.trustedSet)
+            setTrustedSet(nextTrustedSet.size > 0 ? nextTrustedSet : undefined)
+          },
         })
 
         if (cancelled) return

@@ -8,6 +8,7 @@ import {
 import type {
   SubjectivCachedDirectTrustMappings,
   SubjectivTrustedSetComputationResult,
+  SubjectivTrustedSetProgressUpdate,
 } from './subjectivTrust'
 
 export interface ComputeSubjectivTrustedSetOptions {
@@ -15,12 +16,13 @@ export interface ComputeSubjectivTrustedSetOptions {
   eventCacheUrl: string
   contractAddresses: ContractAddresses
   cachedDirectTrustMappings?: SubjectivCachedDirectTrustMappings
+  onProgress?: (update: SubjectivTrustedSetProgressUpdate) => void
 }
 
 function createSubjectivMachinery({
   eventCacheUrl,
   contractAddresses,
-}: Omit<ComputeSubjectivTrustedSetOptions, 'address' | 'cachedDirectTrustMappings'>): SDKMachinery {
+}: Omit<ComputeSubjectivTrustedSetOptions, 'address' | 'cachedDirectTrustMappings' | 'onProgress'>): SDKMachinery {
   return {
     indexerUrl: '',
     ipfsConfig: {},
@@ -84,6 +86,14 @@ export async function computeSubjectivTrustedSetResult(
 
   const trustedSet = await getTrustedSet(machinery, normalizedAddress, {
     directTrustCache,
+    onProgress: options.onProgress
+      ? (mapping) => {
+          options.onProgress?.({
+            hasDirectTrust: true,
+            trustedSet: Array.from(mapping.keys()),
+          })
+        }
+      : undefined,
   })
 
   return {

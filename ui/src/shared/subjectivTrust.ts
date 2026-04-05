@@ -14,6 +14,11 @@ export interface SubjectivTrustedSetComputationResult {
   directTrustMappings?: SubjectivCachedDirectTrustMappings
 }
 
+export interface SubjectivTrustedSetProgressUpdate {
+  hasDirectTrust: boolean
+  trustedSet: string[]
+}
+
 export interface SubjectivTrustWorkerRequest {
   type: 'computeTrustedSet'
   requestId: number
@@ -35,6 +40,12 @@ export interface SubjectivTrustWorkerRequest {
 }
 
 export type SubjectivTrustWorkerResponse =
+  | {
+      type: 'trustedSetProgress'
+      requestId: number
+      hasDirectTrust: boolean
+      trustedSet: string[]
+    }
   | {
       type: 'trustedSetResult'
       requestId: number

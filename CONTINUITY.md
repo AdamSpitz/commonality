@@ -1,5 +1,54 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv partial-progress UI updates — COMPLETE ✓
+
+### What was done
+
+Added incremental Subjectiv progress updates so trust-aware UI surfaces can start rendering with a partially discovered trusted set before the background recomputation fully finishes.
+
+Key decisions:
+- Extended the SDK trust traversal with an optional progress callback that emits snapshots only when the reachable trusted-set membership grows, so the UI gets meaningful updates without excessive chatter.
+- Kept IndexedDB persistence final-result-only; partial updates are transient UI state and do not complicate the cache format.
+- Reused the existing worker pipeline by adding a lightweight `trustedSetProgress` message instead of introducing a separate streaming API surface.
+- Updated the main trust UI copy to surface "accounts found so far" while recomputation is still in flight.
+
+### PRD reference
+
+- `specs/subsystems/subjectiv/README.md`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+
+### Files changed
+
+- `sdk/src/subsystems/subjectiv/types.ts`
+- `sdk/src/subsystems/subjectiv/queries.ts`
+- `sdk/src/subsystems/subjectiv/queries.test.ts`
+- `ui/src/shared/subjectivTrust.ts`
+- `ui/src/shared/subjectivTrustComputation.ts`
+- `ui/src/shared/subjectivTrustComputation.test.ts`
+- `ui/src/shared/subjectivTrustWorkerClient.ts`
+- `ui/src/shared/subjectivTrustWorkerClient.test.ts`
+- `ui/src/shared/workers/subjectivTrustWorker.ts`
+- `ui/src/shared/hooks/useTrustedSet.ts`
+- `ui/src/shared/hooks/useTrustedSet.test.tsx`
+- `ui/src/conceptspace/components/DirectTrustSettingsSection.tsx`
+- `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`
+- `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Subjectiv now supports worker-based partial trusted-set updates on top of cache rehydration.
+
+Remaining Subjectiv chunks:
+- Decide whether the settings / funding-portal wording needs another pass now that the UI exposes trust-network progress and no longer centers on a single trusted attester.
+- Broader coverage review for the overall Subjectiv flow beyond the newly added progress-path tests.
+- Longer-term freshness / invalidation strategy for cached downstream direct-trust mappings if periodic full refresh still feels too stale.
+
+This is a reasonable point for either a small wording-focused pass or a higher-level review of Subjectiv test coverage.
+
 ## Subjectiv per-user direct-trust cache reuse — COMPLETE ✓
 
 ### What was done

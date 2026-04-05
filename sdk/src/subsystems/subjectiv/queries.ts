@@ -69,11 +69,22 @@ export async function computeTransitiveTrustMapping(
 ): Promise<TransitiveTrustMapping> {
   const maxHops = options.maxHops ?? 6;
   const minScore = options.minScore ?? 1;
+  const onProgress = options.onProgress;
 
   const directTrustCache = options.directTrustCache ?? new Map<string, DirectTrustMapping>();
   const bestScores: TransitiveTrustMapping = new Map();
   const queue: Array<{ address: string; score: number; hops: number }> = [];
   const rootAddress = trusterAddress.toLowerCase();
+  let lastEmittedSize = -1;
+
+  const emitProgress = (): void => {
+    if (!onProgress || bestScores.size === lastEmittedSize) {
+      return;
+    }
+
+    lastEmittedSize = bestScores.size;
+    onProgress(new Map(bestScores));
+  };
 
   const getCachedDirectTrust = async (address: string): Promise<DirectTrustMapping> => {
     const normalized = address.toLowerCase();
@@ -91,6 +102,7 @@ export async function computeTransitiveTrustMapping(
     bestScores.set(trustee, score);
     queue.push({ address: trustee, score, hops: 1 });
   }
+  emitProgress();
 
   while (queue.length > 0) {
     queue.sort((a, b) => b.score - a.score);
@@ -118,6 +130,8 @@ export async function computeTransitiveTrustMapping(
         });
       }
     }
+
+    emitProgress();
   }
 
   return bestScores;
