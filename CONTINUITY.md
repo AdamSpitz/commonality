@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding cumulative escrow withdrawal coverage — COMPLETE ✓
+
+### What was done
+
+Added the missing Hardhat regression test covering two successful unclaimed-channel contracts depositing into the same escrow balance and the eventual verified channel owner withdrawing the combined total.
+
+### Key decisions
+
+- Kept this pass scoped to one remaining content-funding smart-contract review test gap.
+- Exercised the real unclaimed-channel path by creating two separate third-party contracts that each succeed immediately, then calling `withdrawToEscrow()` on both before channel verification.
+- Verified the cumulative behavior at the `ChannelEscrow.withdraw()` boundary by asserting the summed withdrawal event amount and final zero escrow balance.
+
+### PRD reference
+
+- `TODO.md` content-funding smart-contract review (2026-04-05), test gap: multiple deposits to escrow with cumulative withdrawal
+
+### Files changed
+
+- `hardhat/test/ContentFunding.test.js`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The remaining content-funding smart-contract review follow-up is the veto-window-expiry regression test, after which the contract-side TODO section should be fully closed.
+
 ## Content-funding non-escrow withdrawToEscrow coverage — COMPLETE ✓
 
 ### What was done

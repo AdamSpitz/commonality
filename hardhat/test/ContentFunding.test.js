@@ -355,6 +355,81 @@ describe("ContentFunding", function () {
       expect(await channelEscrow.balance(channelId)).to.equal(0);
     });
 
+    it("Should allow cumulative escrow withdrawal after multiple deposits for the same channel", async function () {
+      const escrowedChannelId = ethers.id("cumulative-escrow-channel");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+      const firstDepositAmount = ethers.parseEther("0.1");
+      const secondDepositAmount = ethers.parseEther("0.2");
+
+      const firstTx = await factory.connect(thirdParty).createContract(
+        escrowedChannelId,
+        [9301],
+        [50],
+        [firstDepositAmount],
+        firstDepositAmount,
+        deadline,
+        "ipfs://QmEscrowOne",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        [9301],
+        [1],
+        { value: firstDepositAmount }
+      );
+
+      const firstReceipt = await firstTx.wait();
+      const firstEvent = firstReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const firstContract = await ethers.getContractAt(
+        "CreatorAssuranceContract",
+        firstEvent.args.contractAddress
+      );
+
+      const secondTx = await factory.connect(owner).createContract(
+        escrowedChannelId,
+        [9302],
+        [50],
+        [secondDepositAmount],
+        secondDepositAmount,
+        deadline,
+        "ipfs://QmEscrowTwo",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        [9302],
+        [1],
+        { value: secondDepositAmount }
+      );
+
+      const secondReceipt = await secondTx.wait();
+      const secondEvent = secondReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const secondContract = await ethers.getContractAt(
+        "CreatorAssuranceContract",
+        secondEvent.args.contractAddress
+      );
+
+      await firstContract.withdrawToEscrow();
+      await secondContract.withdrawToEscrow();
+
+      const totalEscrowBalance = firstDepositAmount + secondDepositAmount;
+      expect(await channelEscrow.balance(escrowedChannelId)).to.equal(totalEscrowBalance);
+
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(
+        escrowedChannelId,
+        alice.address,
+        ethers.id("nonce-cumulative-withdraw"),
+        deadline,
+        "0x"
+      );
+
+      await expect(channelEscrow.connect(alice).withdraw(escrowedChannelId))
+        .to.emit(channelEscrow, "Withdrawn")
+        .withArgs(escrowedChannelId, await alice.getAddress(), totalEscrowBalance);
+
+      expect(await channelEscrow.balance(escrowedChannelId)).to.equal(0);
+    });
+
     it("Should revert withdraw when channel not verified", async function () {
       await expect(channelEscrow.withdraw(channelId))
         .to.be.revertedWithCustomError(channelEscrow, "ChannelNotVerified");
