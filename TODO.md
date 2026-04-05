@@ -2,13 +2,7 @@
 
 ## Main thing I want to work on next
 
-  - Implement the content-funding system. Smart contracts are implemented and tested (reviewed below). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
-
-### Content-funding smart contract review (2026-04-05)
-
-Contracts reviewed: `CreatorAssuranceContract`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, `CreatorAssuranceContractFactory` (all in `hardhat/contracts/content-funding/`). Tests in `hardhat/test/ContentFunding.test.js` — 62 tests, all passing.
-
-**Overall: contracts faithfully implement the spec. No security issues found.** The targeted contract-review follow-up tests are now filled; the remaining content-funding work is indexer integration and UI support.
+  - Implement the content-funding system. Smart contracts are implemented and tested (though I wouldn't mind doing another review). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
 
 ## Other big things to do soon
 
