@@ -16,11 +16,9 @@ All in `hardhat/test/ContentFunding.test.js`:
 
 1. **Veto window expiration.** No test that veto fails after the 7-day window. Should `evm_increaseTime` past `vetoWindowDuration`, then assert `vetoContract` reverts with `VetoWindowExpired`.
 
-2. **Veto on already-succeeded contract.** The `vetoContract` function relies on `CancellableCondition.cancel()` reverting with `ConditionAlreadySucceeded` rather than checking `hasSucceeded()` itself. This works, but should be tested: fund a third-party contract past threshold, take control, attempt veto, assert revert.
+2. **Multiple deposits to escrow, cumulative withdrawal.** No test that two separate contracts (or two deposits) for the same channel accumulate, and the creator withdraws the total.
 
-3. **Multiple deposits to escrow, cumulative withdrawal.** No test that two separate contracts (or two deposits) for the same channel accumulate, and the creator withdraws the total.
-
-4. **`withdrawToEscrow` on non-escrow recipient.** The `RecipientNotEscrow` revert path (for contracts where `recipientIsEscrow` is false) is untested.
+3. **`withdrawToEscrow` on non-escrow recipient.** The `RecipientNotEscrow` revert path (for contracts where `recipientIsEscrow` is false) is untested.
 
 ## Other big things to do soon
 

@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding veto-after-success regression coverage — COMPLETE ✓
+
+### What was done
+
+Added the missing Hardhat coverage for vetoing a third-party content-funding contract after it has already reached its funding threshold and succeeded.
+
+### Key decisions
+
+- Kept this pass strictly to one of the remaining content-funding smart-contract review test gaps instead of bundling the other veto/escrow cases.
+- Tested the behavior at the `ChannelRegistry.vetoContract()` entry point rather than calling `CancellableCondition.cancel()` directly, so the regression covers the real creator-control flow.
+- Asserted the bubbled `ConditionAlreadySucceeded` error from the wrapped cancellable condition and also verified that the condition remains uncancelled and the content stays registered.
+
+### PRD reference
+
+- `TODO.md` content-funding smart-contract review (2026-04-05), test gap: veto on already-succeeded contract
+
+### Files changed
+
+- `hardhat/test/ContentFunding.test.js`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining content-funding smart-contract review follow-ups are the three unfilled test gaps around veto-window expiry, cumulative escrow withdrawal, and `withdrawToEscrow` on non-escrow recipients.
+
 ## Content-funding duplicate-content factory error consistency — COMPLETE ✓
 
 ### What was done

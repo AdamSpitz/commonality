@@ -906,6 +906,54 @@ describe("ContentFunding", function () {
       expect(await erc1155.balanceOf(thirdParty.address, 7001)).to.equal(1);
     });
 
+    it("Should revert veto on an already-succeeded third-party contract", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("veto-succeeded-channel");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+      const successThreshold = ethers.parseEther("0.1");
+
+      await channelRegistry.verifyChannel(
+        channelId,
+        alice.address,
+        ethers.id("nonce-veto-success"),
+        deadline,
+        "0x"
+      );
+
+      const tx = await factory.connect(thirdParty).createContract(
+        channelId,
+        [7401],
+        [50],
+        [successThreshold],
+        successThreshold,
+        deadline,
+        "ipfs://QmThirdParty",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        [7401],
+        [1],
+        { value: successThreshold }
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const thirdPartyContractAddr = event.args.contractAddress;
+      const conditionAddress = await factory.contractCondition(thirdPartyContractAddr);
+      const condition = await ethers.getContractAt("CancellableCondition", conditionAddress);
+
+      expect(await condition.hasSucceeded()).to.be.true;
+
+      await channelRegistry.connect(alice).takeChannelControl(channelId);
+
+      await expect(channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr))
+        .to.be.revertedWithCustomError(condition, "ConditionAlreadySucceeded");
+
+      expect(await condition.isCancelled()).to.be.false;
+      expect(await contentRegistry.isRegistered(7401)).to.be.true;
+    });
+
     it("Should free vetoed content for re-registration", async function () {
       await mockVerifier.setValid(true);
       const channelId = ethers.id("veto-reregister-channel");
