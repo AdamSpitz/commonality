@@ -449,6 +449,38 @@ describe("ContentFunding", function () {
       expect(await contentRegistry.isRegistered(contentIds[2])).to.be.true;
     });
 
+    it("Should create creator contract successfully on CreatorControlled channel", async function () {
+      await channelRegistry.connect(owner).takeChannelControl(channelId);
+
+      const controlledContentIds = [2101, 2102];
+      const tx = await factory.connect(owner).createContract(
+        channelId,
+        controlledContentIds,
+        [25, 25],
+        [ethers.parseEther("0.15"), ethers.parseEther("0.25")],
+        threshold,
+        deadline,
+        "ipfs://QmCreatorControlled",
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        false,
+        [],
+        []
+      );
+
+      const receipt = await tx.wait();
+      const creatorContractCreatedEvent = receipt.logs.find(
+        (log) => log.fragment?.name === "CreatorContractCreated"
+      );
+
+      const contractAddress = creatorContractCreatedEvent.args.contractAddress;
+
+      expect(await factory.channelIdByContract(contractAddress)).to.equal(channelId);
+      expect(await factory.isThirdPartyCreated(contractAddress)).to.be.false;
+      expect(await contentRegistry.isRegistered(controlledContentIds[0])).to.be.true;
+      expect(await contentRegistry.isRegistered(controlledContentIds[1])).to.be.true;
+    });
+
     it("Should revert when array lengths mismatch", async function () {
       const mismatchedSupplies = [100, 100];
 

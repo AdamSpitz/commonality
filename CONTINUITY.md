@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding CreatorControlled creator-contract test gap — COMPLETE ✓
+
+### What was done
+
+Added the missing Hardhat coverage for creator-created content-funding contracts on channels that have already moved from `Verified` to `CreatorControlled`.
+
+### Key decisions
+
+- Kept this pass strictly to one TODO item from the content-funding smart-contract review instead of bundling the other test gaps.
+- Added the assertion in `CreatorAssuranceContractFactory` coverage, where the verified-channel creator-creation path was already tested, so the two allowed creator states are now covered together.
+- Verified the success path by checking both factory bookkeeping and content registration, not just that the transaction avoided reverting.
+
+### PRD reference
+
+- `TODO.md` content-funding smart-contract review (2026-04-05), test gap #5
+
+### Files changed
+
+- `hardhat/test/ContentFunding.test.js`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining content-funding smart-contract review follow-ups are still the four unfilled test gaps around veto-window expiry, veto-after-success, cumulative escrow withdrawal, and `withdrawToEscrow` on non-escrow recipients.
+
 ## Subjectiv browser-level e2e attempt — IN PROGRESS / BLOCKED
 
 ### What was done

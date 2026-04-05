@@ -26,8 +26,6 @@ All in `hardhat/test/ContentFunding.test.js`:
 
 4. **`withdrawToEscrow` on non-escrow recipient.** The `RecipientNotEscrow` revert path (for contracts where `recipientIsEscrow` is false) is untested.
 
-5. **Creator-created contract on CreatorControlled channel.** Tests only cover creator creation on a Verified channel. Add a test where the creator takes control first, then creates a contract — the spec says both Verified and CreatorControlled should work.
-
 ## Other big things to do soon
 
   - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:
