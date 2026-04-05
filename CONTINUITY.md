@@ -1,5 +1,28 @@
 # Continuity notes for ephemeral AI instances
 
+## SDK-dependent workspace build ordering — COMPLETE ✓
+
+### What was done
+
+Added explicit SDK prebuild hooks to the workspaces that compile against `@commonality/sdk` build artifacts so they no longer race stale `sdk/dist` output during local builds or type-checks.
+
+Key decisions:
+- Chose the minimal safe fix: `prebuild` / `pretypecheck` hooks (and `predev` where it mattered) instead of a larger monorepo refactor to source-level aliasing.
+- Applied the fix to all current SDK-consuming workspaces that compile locally: `ui`, `attester`, `finder`, and `fake-data-generation`.
+- Verified the main failure mode directly by deleting `sdk/dist` and rebuilding `ui`; the UI build now rebuilds the SDK first instead of failing on stale types.
+
+### Files changed
+
+- `ui/package.json`
+- `attester/package.json`
+- `finder/package.json`
+- `fake-data-generation/package.json`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+This removes the stale-SDK-artifact trap for normal per-workspace builds and type-checks. One tradeoff remains: if you intentionally kick off several SDK-dependent workspace builds in parallel, they will each redundantly rebuild the SDK first. That's inefficient but safe.
+
 ## Subjectiv partial-progress UI updates — COMPLETE ✓
 
 ### What was done

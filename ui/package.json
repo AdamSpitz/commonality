@@ -4,8 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "npm run build --workspace=@commonality/sdk",
     "dev": "../node_modules/.bin/vite",
+    "pretypecheck": "npm run build --workspace=@commonality/sdk",
     "typecheck": "tsc --noEmit",
+    "prebuild": "npm run build --workspace=@commonality/sdk",
     "build": "tsc -b && ../node_modules/.bin/vite build",
     "lint": "eslint .",
     "test": "vitest run",
