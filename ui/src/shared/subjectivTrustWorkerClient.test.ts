@@ -8,6 +8,7 @@ vi.mock('./subjectivTrustComputation', () => ({
 
 class FakeWorker {
   static lastInstance: FakeWorker | null = null
+  static instances: FakeWorker[] = []
 
   postedMessages: unknown[] = []
   terminated = false
@@ -15,6 +16,7 @@ class FakeWorker {
 
   constructor(_url: URL, _options: WorkerOptions) {
     FakeWorker.lastInstance = this
+    FakeWorker.instances.push(this)
   }
 
   addEventListener(type: string, listener: (event: MessageEvent<any>) => void) {
@@ -58,6 +60,7 @@ describe('computeSubjectivTrustedSet', () => {
     vi.resetModules()
     vi.clearAllMocks()
     FakeWorker.lastInstance = null
+    FakeWorker.instances = []
     globalThis.Worker = FakeWorker as any
   })
 
@@ -120,6 +123,116 @@ describe('computeSubjectivTrustedSet', () => {
         trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
       },
     ])
+    expect(computeSubjectivTrustedSetResult).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the main-thread implementation when Worker is unavailable', async () => {
+    globalThis.Worker = undefined as any
+    computeSubjectivTrustedSetResult.mockImplementation(async ({ onProgress }) => {
+      onProgress?.({
+        hasDirectTrust: true,
+        trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+      })
+
+      return {
+        hasDirectTrust: true,
+        trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+        directTrustMappings: {
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa': [
+            { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 90 },
+          ],
+        },
+      }
+    })
+
+    const progressUpdates: Array<{ hasDirectTrust: boolean; trustedSet: string[] }> = []
+    const { computeSubjectivTrustedSet } = await import('./subjectivTrustWorkerClient')
+
+    await expect(
+      computeSubjectivTrustedSet({
+        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        eventCacheUrl: 'http://localhost:42069/api',
+        contractAddresses,
+        onProgress: update => {
+          progressUpdates.push(update)
+        },
+      })
+    ).resolves.toEqual({
+      hasDirectTrust: true,
+      trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+      directTrustMappings: {
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa': [
+          { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 90 },
+        ],
+      },
+    })
+
+    expect(progressUpdates).toEqual([
+      {
+        hasDirectTrust: true,
+        trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+      },
+    ])
+    expect(FakeWorker.instances).toHaveLength(0)
+    expect(computeSubjectivTrustedSetResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        eventCacheUrl: 'http://localhost:42069/api',
+      })
+    )
+  })
+
+  it('rejects crashed worker requests and recreates the worker for the next request', async () => {
+    const { computeSubjectivTrustedSet } = await import('./subjectivTrustWorkerClient')
+
+    const firstResultPromise = computeSubjectivTrustedSet({
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      eventCacheUrl: 'http://localhost:42069/api',
+      contractAddresses,
+    })
+
+    const firstWorker = FakeWorker.lastInstance
+    expect(firstWorker).not.toBeNull()
+
+    firstWorker!.dispatch('error', undefined)
+
+    await expect(firstResultPromise).rejects.toThrow('Subjectiv trust worker crashed')
+    expect(firstWorker!.terminated).toBe(true)
+
+    const secondResultPromise = computeSubjectivTrustedSet({
+      address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      eventCacheUrl: 'http://localhost:42069/api',
+      contractAddresses,
+    })
+
+    const secondWorker = FakeWorker.lastInstance
+    expect(secondWorker).not.toBeNull()
+    expect(secondWorker).not.toBe(firstWorker)
+    expect(FakeWorker.instances).toHaveLength(2)
+
+    const [request] = secondWorker!.postedMessages as Array<{ requestId: number }>
+
+    secondWorker!.dispatch('message', {
+      type: 'trustedSetResult',
+      requestId: request.requestId,
+      hasDirectTrust: true,
+      trustedSet: ['0xcccccccccccccccccccccccccccccccccccccccc'],
+      directTrustMappings: {
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': [
+          { trustee: '0xcccccccccccccccccccccccccccccccccccccccc', score: 80 },
+        ],
+      },
+    })
+
+    await expect(secondResultPromise).resolves.toEqual({
+      hasDirectTrust: true,
+      trustedSet: ['0xcccccccccccccccccccccccccccccccccccccccc'],
+      directTrustMappings: {
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': [
+          { trustee: '0xcccccccccccccccccccccccccccccccccccccccc', score: 80 },
+        ],
+      },
+    })
     expect(computeSubjectivTrustedSetResult).not.toHaveBeenCalled()
   })
 

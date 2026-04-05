@@ -1,5 +1,40 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv infrastructure test coverage expansion — COMPLETE ✓
+
+### What was done
+
+Added focused UI-side Subjectiv test coverage for the remaining infrastructure plumbing around worker execution and IndexedDB persistence.
+
+Key decisions:
+- Kept the scope to one cohesive testing pass instead of mixing in wording/UI changes, since the TODO question was specifically about whether the newer Subjectiv behavior was covered.
+- Expanded `subjectivTrustWorkerClient` coverage to include the no-Worker main-thread fallback plus worker crash recovery and re-creation for a subsequent request.
+- Added a dedicated `subjectivTrustCache` test file with a tiny in-test IndexedDB fake so cache-key normalization and cache-entry isolation can be verified reliably in the current Vitest environment.
+- Narrowed the top-level TODO/README wording from a vague "do we have tests?" prompt to the more honest remaining work: a higher-level integration/e2e Subjectiv review.
+
+### PRD reference
+
+- `specs/subsystems/subjectiv/README.md`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+
+### Files changed
+
+- `ui/src/shared/subjectivTrustWorkerClient.test.ts`
+- `ui/src/shared/subjectivTrustCache.test.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Subjectiv unit coverage is now stronger around the worker/cache infrastructure.
+
+Remaining Subjectiv chunks:
+- Decide whether the settings / funding-portal wording needs another pass now that the UI exposes trust-network progress and no longer centers on a single trusted attester.
+- Do a higher-level integration/e2e coverage pass for the full Subjectiv flow across Settings, trust recomputation, and funding-portal filtering.
+
+This is a reasonable point either for a small wording pass or for a broader cross-component review of Subjectiv behavior.
+
 ## SDK-dependent workspace build ordering — COMPLETE ✓
 
 ### What was done
