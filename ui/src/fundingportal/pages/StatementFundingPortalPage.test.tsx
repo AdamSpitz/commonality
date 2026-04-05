@@ -131,7 +131,7 @@ describe('StatementFundingPortalPage', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Building your trust network. Filtering is currently using 2 trusted accounts discovered so far.'
+          'Refreshing your trust network. This portal is currently filtered using 2 accounts in your network. Results may still change as more are discovered.'
         )
       ).toBeInTheDocument()
     })
@@ -148,7 +148,7 @@ describe('StatementFundingPortalPage', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Building your trust network. Until that finishes, some alignment filtering may be incomplete.'
+          'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all alignment attestations.'
         )
       ).toBeInTheDocument()
     })

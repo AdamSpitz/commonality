@@ -178,18 +178,18 @@ export function DirectTrustSettingsSection() {
   return (
     <Paper sx={{ p: 3, mt: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Trusted Alignment Network
+        Alignment Trust Network
       </Typography>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Alignment attestations are filtered through your trust graph. Set direct trust
-        scores here, and the funding portal will include attestations from accounts that
-        are reachable through that network.
+        Alignment attestations use your personal trust network rather than a single
+        approved attester. Add direct trust scores here, and alignment pages will
+        follow those links transitively and filter with the accounts discovered so far.
       </Typography>
 
       {!isConnected ? (
         <Alert severity="info">
-          Connect your wallet to manage direct trust scores for alignment attestations.
+          Connect your wallet to manage direct trust scores for alignment filtering.
         </Alert>
       ) : (
         <>
@@ -256,7 +256,8 @@ export function DirectTrustSettingsSection() {
             </Box>
           ) : entries.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-              No direct trust scores configured yet.
+              No direct trust scores yet. Until you add some, alignment pages will show
+              all alignment attestations.
             </Typography>
           ) : (
             <List>
@@ -293,12 +294,12 @@ export function DirectTrustSettingsSection() {
           {trustedSetLoading ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
               {trustedSet
-                ? `Building your transitive trust network... ${trustedSet.size} trusted account${trustedSet.size !== 1 ? 's' : ''} found so far.`
-                : 'Building your transitive trust network...'}
+                ? `Refreshing your transitive trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
+                : 'Refreshing your transitive trust network. Until any trusted accounts are found, alignment pages still show all alignment attestations.'}
             </Typography>
           ) : trustedSet ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              Current trusted set size: {trustedSet.size} account{trustedSet.size !== 1 ? 's' : ''}
+              Current network size: {trustedSet.size} account{trustedSet.size !== 1 ? 's' : ''}
             </Typography>
           ) : null}
         </>

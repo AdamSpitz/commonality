@@ -98,7 +98,21 @@ describe('DirectTrustSettingsSection', () => {
     expect(screen.getByText('Trust score: 40')).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Building your transitive trust network... 2 trusted accounts found so far.'
+        'Refreshing your transitive trust network. Currently using 2 accounts in your network.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('explains the alignment fallback when no direct trust scores exist yet', async () => {
+    render(<DirectTrustSettingsSection />)
+
+    await waitFor(() => {
+      expect(getDirectTrustMapping).toHaveBeenCalledTimes(1)
+    })
+
+    expect(
+      screen.getByText(
+        'No direct trust scores yet. Until you add some, alignment pages will show all alignment attestations.'
       )
     ).toBeInTheDocument()
   })

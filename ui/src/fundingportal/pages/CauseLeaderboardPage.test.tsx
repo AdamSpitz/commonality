@@ -118,7 +118,7 @@ describe('CauseLeaderboardPage', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Building your trust network. Leaderboard results are currently using 2 trusted accounts discovered so far.'
+          'Refreshing your trust network. This leaderboard is currently using 2 accounts in your network. Results may still change as more are discovered.'
         )
       ).toBeInTheDocument()
     })
@@ -135,7 +135,7 @@ describe('CauseLeaderboardPage', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Building your trust network. Leaderboard results may expand as more trusted alignments are discovered.'
+          'Refreshing your trust network. Until any trusted accounts are found, this leaderboard still includes all alignment attestations.'
         )
       ).toBeInTheDocument()
     })

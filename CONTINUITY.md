@@ -1,5 +1,38 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv wording cleanup for Settings and funding portal — COMPLETE ✓
+
+### What was done
+
+Cleaned up the remaining Subjectiv UI copy so the current behavior is easier to understand without knowing the implementation details.
+
+Key decisions:
+- Kept this task strictly to wording and expectation-setting, without mixing in new behavior or a browser-level e2e pass.
+- Reframed the Settings copy around a personal trust network instead of a single approved attester, which better matches the Subjectiv spec.
+- Made the partial-loading alerts in the funding portal and leaderboard explicit that results may still change while more of the network is discovered.
+- Added copy for the no-direct-trust case so users are told plainly that alignment pages still show all alignment attestations until they add trust scores.
+
+### PRD reference
+
+- `specs/subsystems/subjectiv/README.md`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+
+### Files changed
+
+- `ui/src/conceptspace/components/DirectTrustSettingsSection.tsx`
+- `ui/src/conceptspace/components/DirectTrustSettingsSection.test.tsx`
+- `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`
+- `ui/src/fundingportal/pages/StatementFundingPortalPage.test.tsx`
+- `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx`
+- `ui/src/fundingportal/pages/CauseLeaderboardPage.test.tsx`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The remaining Subjectiv follow-up in TODO is the optional true browser-level e2e pass once the flow feels stable enough to avoid churn.
+
 ## Subjectiv higher-level UI integration coverage — COMPLETE ✓
 
 ### What was done
