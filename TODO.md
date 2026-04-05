@@ -1,8 +1,7 @@
 # What we've been working on lately
 
----
+## Main thing I want to work on next
 
-Main thing I want to work on next:
   - Implement the content-funding system. Smart contracts are implemented and tested (reviewed below). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
 
 ### Content-funding smart contract review (2026-04-05)
@@ -29,7 +28,8 @@ All in `hardhat/test/ContentFunding.test.js`:
 
 5. **Creator-created contract on CreatorControlled channel.** Tests only cover creator creation on a Verified channel. Add a test where the creator takes control first, then creates a contract — the spec says both Verified and CreatorControlled should work.
 
-Other big things to do soon:
+## Other big things to do soon
+
   - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:
     - Decide whether the settings / funding-portal UI wording needs another pass now that it's no longer just "pick one trusted attester".
     - If we still want a true browser-level Subjectiv e2e test later, add it after the wording/flow settles. Higher-level UI integration coverage now exists for the direct-trust settings flow plus funding-portal and leaderboard trust-network filtering.
@@ -43,8 +43,6 @@ Other big things to do soon:
   - Audit the smart contracts using a more-competent AI. (Still doesn't replace a real auditing by competent humans, but it's better than nothing and much easier. Also, I suspect that most of these contracts are simple enough that I can probably get them right without too much trouble.)
   - Do I trust the UI? No.
 
-  - The issues in the different workspaces' TODO.md files (see below).
-  - Fix the problem where I start up the simulation but then I don't actually see the IPFS content in the web browser. (Is the IPFS content not making it into the dockerized IPFS node? Or is it not being fetched properly by the UI? Or what?)
   - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
   - (Not a task for AI.) I need to do a big code review myself, of the whole thing. I don't trust it.
 
@@ -53,9 +51,3 @@ Ideas from the specs/motivation stuff:
 
 Ideas from seed-content work:
   - Think about orthogonal hierarchy dimensions — geographic and topical. Statements like "I'm interested in improving Grey County" and "I'm interested in furthering crypto adoption" are independent axes, and their conjunction ("further crypto in Grey County") creates a more specific interest. This matters for funding portal discovery (a project at the intersection should show up in both parent portals) and for delegatable note intents. These are just regular statements in plain English with implication links to both parents. See seed-content.md for more detail.
-
----
-
-## Miscellaneous TODO.md files
-
-- [ui/TODO.md](ui/TODO.md)
