@@ -43,4 +43,39 @@ describe('computeTransitiveTrustMapping', () => {
     assert.strictEqual(mapping.get('0xa000000000000000000000000000000000000000'), 10);
     assert.strictEqual(mapping.has('0xb000000000000000000000000000000000000000'), false);
   });
+
+  it('reuses and fills a provided direct trust cache', async () => {
+    const directTrustCache = new Map([
+      [
+        '0xa000000000000000000000000000000000000000',
+        new Map([['0xc000000000000000000000000000000000000000', 50]]),
+      ],
+      [
+        '0xc000000000000000000000000000000000000000',
+        new Map(),
+      ],
+    ]);
+    const fetchedAddresses: string[] = [];
+
+    const mapping = await computeTransitiveTrustMapping(async (trusterAddress) => {
+      const normalized = trusterAddress.toLowerCase();
+      fetchedAddresses.push(normalized);
+
+      if (normalized === '0x1000000000000000000000000000000000000000') {
+        return new Map([['0xa000000000000000000000000000000000000000', 80]]);
+      }
+
+      throw new Error(`Unexpected direct trust fetch for ${normalized}`);
+    }, '0x1000000000000000000000000000000000000000', {
+      directTrustCache,
+    });
+
+    assert.deepStrictEqual(fetchedAddresses, ['0x1000000000000000000000000000000000000000']);
+    assert.strictEqual(mapping.get('0xa000000000000000000000000000000000000000'), 80);
+    assert.strictEqual(mapping.get('0xc000000000000000000000000000000000000000'), 40);
+    assert.strictEqual(
+      directTrustCache.get('0x1000000000000000000000000000000000000000')?.get('0xa000000000000000000000000000000000000000'),
+      80
+    );
+  });
 });

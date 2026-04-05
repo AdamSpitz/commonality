@@ -1,5 +1,53 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv per-user direct-trust cache reuse — COMPLETE ✓
+
+### What was done
+
+Extended the Subjectiv IndexedDB cache so refreshes can reuse previously visited users' folded direct-trust mappings instead of refetching the whole known trust neighborhood every time.
+
+Key decisions:
+- Kept the cache opportunistic: cached downstream direct-trust mappings are reused, but the connected user's own direct-trust mapping is always refetched first so local edits take effect immediately.
+- Reused the SDK traversal's existing in-memory direct-trust cache by allowing callers to seed it, rather than adding a second traversal implementation in the UI.
+- Stored cached direct-trust mappings in a structured-clone-friendly object shape so the same payload works for IndexedDB persistence and worker message passing.
+- Preserved backward compatibility with existing cached trusted-set snapshots by treating the new direct-trust mapping payload as optional.
+
+### PRD reference
+
+- `specs/subsystems/subjectiv/README.md`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+
+### Files changed
+
+- `sdk/src/subsystems/subjectiv/types.ts`
+- `sdk/src/subsystems/subjectiv/queries.ts`
+- `sdk/src/subsystems/subjectiv/queries.test.ts`
+- `ui/src/shared/subjectivTrust.ts`
+- `ui/src/shared/subjectivTrustCache.ts`
+- `ui/src/shared/subjectivTrustComputation.ts`
+- `ui/src/shared/subjectivTrustComputation.test.ts`
+- `ui/src/shared/subjectivTrustWorkerClient.ts`
+- `ui/src/shared/workers/subjectivTrustWorker.ts`
+- `ui/src/shared/hooks/useTrustedSet.ts`
+- `ui/src/shared/hooks/useTrustedSet.test.tsx`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Subjectiv now persists both the trusted-set snapshot and the visited direct-trust neighborhood cache.
+
+Remaining Subjectiv chunks:
+- Partial-progress / incremental UI updates while the worker traversal is still running
+- Any wording cleanup in Settings / funding portal now that alignment filtering is trust-graph-based
+- Longer-term freshness strategy for downstream cached direct-trust mappings if periodic full refresh still feels too stale
+
+This may be a good point for a higher-level Subjectiv review after the partial-progress pass, since the main MVP infrastructure pieces are now in place.
+
+---
+
 ## Subjectiv IndexedDB trusted-set rehydration — COMPLETE ✓
 
 ### What was done

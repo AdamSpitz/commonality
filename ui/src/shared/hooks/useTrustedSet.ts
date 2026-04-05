@@ -75,6 +75,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
           address,
           eventCacheUrl: machinery.eventCacheUrl,
           contractAddresses: machinery.contractAddresses,
+          cachedDirectTrustMappings: cachedResult?.directTrustMappings,
         })
 
         if (cancelled) return

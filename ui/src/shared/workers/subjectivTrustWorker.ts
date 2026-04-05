@@ -1,26 +1,10 @@
 /// <reference lib="webworker" />
 
-import {
-  getDirectTrustMapping,
-  getTrustedSet,
-  type SDKMachinery,
-} from '@commonality/sdk'
 import type {
   SubjectivTrustWorkerRequest,
   SubjectivTrustWorkerResponse,
 } from '../subjectivTrust'
-
-function createSubjectivMachinery(
-  request: SubjectivTrustWorkerRequest
-): SDKMachinery {
-  return {
-    indexerUrl: '',
-    ipfsConfig: {},
-    testConfig: {},
-    eventCacheUrl: request.eventCacheUrl,
-    contractAddresses: request.contractAddresses,
-  }
-}
+import { computeSubjectivTrustedSetResult } from '../subjectivTrustComputation'
 
 self.addEventListener('message', async (event: MessageEvent<SubjectivTrustWorkerRequest>) => {
   const request = event.data
@@ -30,15 +14,19 @@ self.addEventListener('message', async (event: MessageEvent<SubjectivTrustWorker
   }
 
   try {
-    const machinery = createSubjectivMachinery(request)
-    const directTrust = await getDirectTrustMapping(machinery, request.address)
-    const trustedSet = directTrust.size > 0 ? await getTrustedSet(machinery, request.address) : undefined
+    const result = await computeSubjectivTrustedSetResult({
+      address: request.address,
+      eventCacheUrl: request.eventCacheUrl,
+      contractAddresses: request.contractAddresses,
+      cachedDirectTrustMappings: request.cachedDirectTrustMappings,
+    })
 
     const response: SubjectivTrustWorkerResponse = {
       type: 'trustedSetResult',
       requestId: request.requestId,
-      hasDirectTrust: directTrust.size > 0,
-      trustedSet: trustedSet ? Array.from(trustedSet) : [],
+      hasDirectTrust: result.hasDirectTrust,
+      trustedSet: result.trustedSet,
+      directTrustMappings: result.directTrustMappings,
     }
 
     self.postMessage(response)

@@ -70,7 +70,7 @@ export async function computeTransitiveTrustMapping(
   const maxHops = options.maxHops ?? 6;
   const minScore = options.minScore ?? 1;
 
-  const directTrustCache = new Map<string, DirectTrustMapping>();
+  const directTrustCache = options.directTrustCache ?? new Map<string, DirectTrustMapping>();
   const bestScores: TransitiveTrustMapping = new Map();
   const queue: Array<{ address: string; score: number; hops: number }> = [];
   const rootAddress = trusterAddress.toLowerCase();

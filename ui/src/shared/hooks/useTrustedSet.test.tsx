@@ -158,6 +158,11 @@ describe('useTrustedSet', () => {
     vi.mocked(loadCachedSubjectivTrustedSet).mockResolvedValue({
       hasDirectTrust: true,
       trustedSet: ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
+      directTrustMappings: {
+        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': [
+          { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 75 },
+        ],
+      },
     })
     vi.mocked(computeSubjectivTrustedSet).mockImplementation(
       () =>
@@ -176,11 +181,29 @@ describe('useTrustedSet', () => {
     resolveFreshResult?.({
       hasDirectTrust: true,
       trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+      directTrustMappings: {
+        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': [
+          { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 75 },
+        ],
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': [
+          { trustee: '0xcccccccccccccccccccccccccccccccccccccccc', score: 50 },
+        ],
+      },
     })
 
     await waitFor(() => {
       expect(screen.getByTestId('trusted-set')).toHaveTextContent('0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
     })
+
+    expect(computeSubjectivTrustedSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cachedDirectTrustMappings: {
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': [
+            { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 75 },
+          ],
+        },
+      })
+    )
 
     expect(saveCachedSubjectivTrustedSet).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -189,6 +212,14 @@ describe('useTrustedSet', () => {
       {
         hasDirectTrust: true,
         trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+        directTrustMappings: {
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': [
+            { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 75 },
+          ],
+          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': [
+            { trustee: '0xcccccccccccccccccccccccccccccccccccccccc', score: 50 },
+          ],
+        },
       }
     )
   })

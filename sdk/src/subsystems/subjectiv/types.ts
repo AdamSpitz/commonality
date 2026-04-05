@@ -9,4 +9,5 @@ export interface DirectTrustEntry {
 export interface TrustComputationOptions {
   maxHops?: number;
   minScore?: number;
+  directTrustCache?: Map<string, DirectTrustMapping>;
 }

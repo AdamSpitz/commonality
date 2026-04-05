@@ -7,7 +7,6 @@ Main thing I want to work on next:
 
 Other big things to do soon:
   - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:
-    - Persist and reuse cached per-user direct trust mappings in IndexedDB so recomputation can avoid re-fetching already-visited trust neighborhoods.
     - Consider incremental / partial-progress updates so the UI can show the trust network filling in while computation is still underway.
     - Decide whether the settings / funding-portal UI wording needs another pass now that it's no longer just "pick one trusted attester".
   - Figure out the seed statements. (We've started, but then we realized that content-funding and in particular noninflammatory-content funding was a major use case, so we got sidetracked into that. Once we have the content-funding system MVP built, go back to writing up seed statements.)

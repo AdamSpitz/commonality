@@ -1,9 +1,17 @@
 export const SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT = 'commonality:subjectiv-trust-network-invalidated'
 export const SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS = 5 * 60 * 1000
 
+export interface SubjectivCachedDirectTrustEntry {
+  trustee: string
+  score: number
+}
+
+export type SubjectivCachedDirectTrustMappings = Record<string, SubjectivCachedDirectTrustEntry[]>
+
 export interface SubjectivTrustedSetComputationResult {
   hasDirectTrust: boolean
   trustedSet: string[]
+  directTrustMappings?: SubjectivCachedDirectTrustMappings
 }
 
 export interface SubjectivTrustWorkerRequest {
@@ -11,6 +19,7 @@ export interface SubjectivTrustWorkerRequest {
   requestId: number
   address: string
   eventCacheUrl: string
+  cachedDirectTrustMappings?: SubjectivCachedDirectTrustMappings
   contractAddresses: {
     beliefs: `0x${string}`
     implications: `0x${string}`
@@ -31,6 +40,7 @@ export type SubjectivTrustWorkerResponse =
       requestId: number
       hasDirectTrust: boolean
       trustedSet: string[]
+      directTrustMappings?: SubjectivCachedDirectTrustMappings
     }
   | {
       type: 'trustedSetError'

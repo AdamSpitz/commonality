@@ -1,19 +1,16 @@
-import {
-  getDirectTrustMapping,
-  getTrustedSet,
-  type ContractAddresses,
-  type SDKMachinery,
-} from '@commonality/sdk'
 import type {
+  SubjectivCachedDirectTrustMappings,
   SubjectivTrustedSetComputationResult,
   SubjectivTrustWorkerRequest,
   SubjectivTrustWorkerResponse,
 } from './subjectivTrust'
+import { computeSubjectivTrustedSetResult } from './subjectivTrustComputation'
 
 interface ComputeTrustedSetOptions {
   address: string
   eventCacheUrl: string
-  contractAddresses: ContractAddresses
+  contractAddresses: SubjectivTrustWorkerRequest['contractAddresses']
+  cachedDirectTrustMappings?: SubjectivCachedDirectTrustMappings
 }
 
 interface PendingRequest {
@@ -25,37 +22,10 @@ let workerInstance: Worker | null = null
 let nextRequestId = 1
 const pendingRequests = new Map<number, PendingRequest>()
 
-function createSubjectivMachinery({
-  eventCacheUrl,
-  contractAddresses,
-}: Omit<ComputeTrustedSetOptions, 'address'>): SDKMachinery {
-  return {
-    indexerUrl: '',
-    ipfsConfig: {},
-    testConfig: {},
-    eventCacheUrl,
-    contractAddresses,
-  }
-}
-
 async function computeTrustedSetOnMainThread(
   options: ComputeTrustedSetOptions
 ): Promise<SubjectivTrustedSetComputationResult> {
-  const machinery = createSubjectivMachinery(options)
-  const directTrust = await getDirectTrustMapping(machinery, options.address)
-
-  if (directTrust.size === 0) {
-    return {
-      hasDirectTrust: false,
-      trustedSet: [],
-    }
-  }
-
-  const trustedSet = await getTrustedSet(machinery, options.address)
-  return {
-    hasDirectTrust: true,
-    trustedSet: Array.from(trustedSet),
-  }
+  return computeSubjectivTrustedSetResult(options)
 }
 
 function resetWorker(errorMessage: string): void {
@@ -85,6 +55,7 @@ function handleWorkerMessage(event: MessageEvent<SubjectivTrustWorkerResponse>):
     pendingRequest.resolve({
       hasDirectTrust: message.hasDirectTrust,
       trustedSet: message.trustedSet,
+      directTrustMappings: message.directTrustMappings,
     })
     return
   }
@@ -129,6 +100,7 @@ export async function computeSubjectivTrustedSet(
     requestId,
     address: options.address,
     eventCacheUrl: options.eventCacheUrl,
+    cachedDirectTrustMappings: options.cachedDirectTrustMappings,
     contractAddresses: options.contractAddresses,
   }
 
