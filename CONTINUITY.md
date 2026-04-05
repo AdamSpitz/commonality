@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding non-escrow withdrawToEscrow coverage — COMPLETE ✓
+
+### What was done
+
+Added the missing Hardhat regression test for calling `withdrawToEscrow()` on a content-funding contract whose recipient is not the channel escrow.
+
+### Key decisions
+
+- Kept this pass scoped to a single remaining content-funding smart-contract review test gap.
+- Covered the revert on a creator-created contract for a verified channel, which exercises the `recipientIsEscrow == false` path without needing extra setup around success conditions.
+- Placed the assertion in the existing `CreatorAssuranceContractFactory` coverage where the nearby escrow-routing tests already live.
+
+### PRD reference
+
+- `TODO.md` content-funding smart-contract review (2026-04-05), test gap: `withdrawToEscrow` on non-escrow recipient
+
+### Files changed
+
+- `hardhat/test/ContentFunding.test.js`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining content-funding smart-contract review follow-ups are the two unfilled test gaps around veto-window expiry and cumulative escrow withdrawal.
+
 ## Content-funding veto-after-success regression coverage — COMPLETE ✓
 
 ### What was done

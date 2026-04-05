@@ -18,8 +18,6 @@ All in `hardhat/test/ContentFunding.test.js`:
 
 2. **Multiple deposits to escrow, cumulative withdrawal.** No test that two separate contracts (or two deposits) for the same channel accumulate, and the creator withdraws the total.
 
-3. **`withdrawToEscrow` on non-escrow recipient.** The `RecipientNotEscrow` revert path (for contracts where `recipientIsEscrow` is false) is untested.
-
 ## Other big things to do soon
 
   - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:

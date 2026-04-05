@@ -640,6 +640,31 @@ describe("ContentFunding", function () {
       expect(await channelEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount);
     });
 
+    it("Should revert withdrawToEscrow when contract recipient is not escrow", async function () {
+      const tx = await factory.connect(owner).createContract(
+        channelId,
+        [9201],
+        [50],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmCreatorOwned",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        false,
+        [],
+        []
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const contractAddress = event.args.contractAddress;
+      const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
+
+      await expect(createdContract.withdrawToEscrow())
+        .to.be.revertedWithCustomError(createdContract, "RecipientNotEscrow");
+    });
+
     it("Should revert third-party contract on CreatorControlled channel", async function () {
       await channelRegistry.connect(owner).takeChannelControl(channelId);
 
