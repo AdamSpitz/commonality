@@ -3,7 +3,31 @@
 ---
 
 Main thing I want to work on next:
-  - Implement the content-funding system. Smart contracts are implemented and tested, though honestly I'd still like to review them again. Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
+  - Implement the content-funding system. Smart contracts are implemented and tested (reviewed below). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
+
+### Content-funding smart contract review (2026-04-05)
+
+Contracts reviewed: `CreatorAssuranceContract`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, `CreatorAssuranceContractFactory` (all in `hardhat/contracts/content-funding/`). Tests in `hardhat/test/ContentFunding.test.js` — 56 tests, all passing.
+
+**Overall: contracts faithfully implement the spec. No security issues found.** One minor divergence and several test gaps below.
+
+#### Minor divergence
+
+- **Content uniqueness error path for creator-created contracts.** In `CreatorAssuranceContractFactory.sol`, the `isRegistered` check (lines 135-139) only runs inside the `isThirdParty` branch. Creator-created contracts skip that check. Uniqueness is *still enforced* because ContentRegistry's `registerContent` will revert with `ContentAlreadyRegistered` — but the error comes from ContentRegistry rather than the factory's `ContentAlreadyRegisteredForContract`. Either add the same check to the creator branch for a consistent error, or leave it as-is (it's cosmetic, not a logic bug).
+
+#### Test gaps to fill
+
+All in `hardhat/test/ContentFunding.test.js`:
+
+1. **Veto window expiration.** No test that veto fails after the 7-day window. Should `evm_increaseTime` past `vetoWindowDuration`, then assert `vetoContract` reverts with `VetoWindowExpired`.
+
+2. **Veto on already-succeeded contract.** The `vetoContract` function relies on `CancellableCondition.cancel()` reverting with `ConditionAlreadySucceeded` rather than checking `hasSucceeded()` itself. This works, but should be tested: fund a third-party contract past threshold, take control, attempt veto, assert revert.
+
+3. **Multiple deposits to escrow, cumulative withdrawal.** No test that two separate contracts (or two deposits) for the same channel accumulate, and the creator withdraws the total.
+
+4. **`withdrawToEscrow` on non-escrow recipient.** The `RecipientNotEscrow` revert path (for contracts where `recipientIsEscrow` is false) is untested.
+
+5. **Creator-created contract on CreatorControlled channel.** Tests only cover creator creation on a Verified channel. Add a test where the creator takes control first, then creates a contract — the spec says both Verified and CreatorControlled should work.
 
 Other big things to do soon:
   - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:
