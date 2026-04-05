@@ -6,13 +6,9 @@
 
 ### Content-funding smart contract review (2026-04-05)
 
-Contracts reviewed: `CreatorAssuranceContract`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, `CreatorAssuranceContractFactory` (all in `hardhat/contracts/content-funding/`). Tests in `hardhat/test/ContentFunding.test.js` — 56 tests, all passing.
+Contracts reviewed: `CreatorAssuranceContract`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, `CreatorAssuranceContractFactory` (all in `hardhat/contracts/content-funding/`). Tests in `hardhat/test/ContentFunding.test.js` — 57 tests, all passing.
 
-**Overall: contracts faithfully implement the spec. No security issues found.** One minor divergence and several test gaps below.
-
-#### Minor divergence
-
-- **Content uniqueness error path for creator-created contracts.** In `CreatorAssuranceContractFactory.sol`, the `isRegistered` check (lines 135-139) only runs inside the `isThirdParty` branch. Creator-created contracts skip that check. Uniqueness is *still enforced* because ContentRegistry's `registerContent` will revert with `ContentAlreadyRegistered` — but the error comes from ContentRegistry rather than the factory's `ContentAlreadyRegisteredForContract`. Either add the same check to the creator branch for a consistent error, or leave it as-is (it's cosmetic, not a logic bug).
+**Overall: contracts faithfully implement the spec. No security issues found.** Several targeted test gaps remain below.
 
 #### Test gaps to fill
 

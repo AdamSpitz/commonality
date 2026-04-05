@@ -132,11 +132,6 @@ contract CreatorAssuranceContractFactory is Ownable {
             if (initialPurchaseValue < thirdPartyMinPurchase) {
                 revert InsufficientThirdPartyPurchase();
             }
-            for (uint256 i = 0; i < contentIds.length; i++) {
-                if (IContentRegistry(address(contentRegistry)).isRegistered(contentIds[i])) {
-                    revert ContentAlreadyRegisteredForContract(contentIds[i]);
-                }
-            }
         } else {
             // Creator contracts require Verified or CreatorControlled channel
             if (!verified) {
@@ -144,6 +139,12 @@ contract CreatorAssuranceContractFactory is Ownable {
             }
             if (msg.sender != channelOwner) {
                 revert OnlyChannelOwnerCanCreateCreatorContract(channelId);
+            }
+        }
+
+        for (uint256 i = 0; i < contentIds.length; i++) {
+            if (IContentRegistry(address(contentRegistry)).isRegistered(contentIds[i])) {
+                revert ContentAlreadyRegisteredForContract(contentIds[i]);
             }
         }
 

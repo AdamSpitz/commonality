@@ -1,5 +1,33 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding duplicate-content factory error consistency — COMPLETE ✓
+
+### What was done
+
+Resolved the remaining cosmetic divergence in the content-funding factory so creator-created contracts now reject already-registered content IDs with the factory's `ContentAlreadyRegisteredForContract` error instead of bubbling the registry-level error from `ContentRegistry`.
+
+### Key decisions
+
+- Kept this pass scoped to one TODO item from the content-funding smart-contract review instead of mixing in the remaining test-gap work.
+- Moved the duplicate-content preflight check to a shared post-authorization path in `CreatorAssuranceContractFactory`, so third-party and creator-created contracts now validate uniqueness consistently without changing the existing channel-authorization ordering.
+- Added a focused Hardhat regression test for the creator-created duplicate path rather than broadening unrelated coverage in the same pass.
+
+### PRD reference
+
+- `TODO.md` content-funding smart-contract review (2026-04-05), minor divergence on creator-created duplicate-content errors
+
+### Files changed
+
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol`
+- `hardhat/test/ContentFunding.test.js`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining content-funding smart-contract review follow-ups are the four unfilled test gaps around veto-window expiry, veto-after-success, cumulative escrow withdrawal, and `withdrawToEscrow` on non-escrow recipients.
+
 ## Content-funding CreatorControlled creator-contract test gap — COMPLETE ✓
 
 ### What was done

@@ -725,6 +725,48 @@ describe("ContentFunding", function () {
         .withArgs(contentIds[0]);
     });
 
+    it("Should revert when content already registered for creator-created contract", async function () {
+      await factory.connect(owner).createContract(
+        channelId,
+        [contentIds[0]],
+        [supplies[0]],
+        [prices[0]],
+        threshold,
+        deadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        false,
+        [],
+        []
+      );
+
+      const newChannelId = ethers.id("new-channel-creator-duplicate");
+      await channelRegistry.verifyChannel(
+        newChannelId,
+        owner.address,
+        ethers.id("nonce-3"),
+        deadline,
+        "0x"
+      );
+
+      await expect(factory.connect(owner).createContract(
+        newChannelId,
+        [contentIds[0]],
+        [supplies[0]],
+        [prices[0]],
+        threshold,
+        deadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        false,
+        [],
+        []
+      )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
+        .withArgs(contentIds[0]);
+    });
+
     it("Should set third party min purchase (owner only)", async function () {
       const newMin = ethers.parseEther("0.05");
       await factory.setThirdPartyMinPurchase(newMin);
