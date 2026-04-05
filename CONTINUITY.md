@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding veto-window expiry coverage — COMPLETE ✓
+
+### What was done
+
+Added the remaining Hardhat regression test covering a creator trying to veto a third-party content-funding contract after the 7-day veto window has elapsed.
+
+### Key decisions
+
+- Kept this pass scoped to the final open content-funding smart-contract review test gap.
+- Reused the existing `Veto flow` coverage pattern so the regression exercises the real `takeChannelControl()` then `vetoContract()` path.
+- Asserted both the `VetoWindowExpired` revert and that the failed veto leaves the condition uncancelled with content still registered.
+
+### PRD reference
+
+- `TODO.md` content-funding smart-contract review (2026-04-05), test gap: veto window expiration
+
+### Files changed
+
+- `hardhat/test/ContentFunding.test.js`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The content-funding smart-contract review follow-ups are now fully closed, so the next content-funding chunk should move up-stack into indexer integration or UI support.
+
 ## Content-funding cumulative escrow withdrawal coverage — COMPLETE ✓
 
 ### What was done

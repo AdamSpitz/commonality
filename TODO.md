@@ -6,15 +6,9 @@
 
 ### Content-funding smart contract review (2026-04-05)
 
-Contracts reviewed: `CreatorAssuranceContract`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, `CreatorAssuranceContractFactory` (all in `hardhat/contracts/content-funding/`). Tests in `hardhat/test/ContentFunding.test.js` — 57 tests, all passing.
+Contracts reviewed: `CreatorAssuranceContract`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, `CreatorAssuranceContractFactory` (all in `hardhat/contracts/content-funding/`). Tests in `hardhat/test/ContentFunding.test.js` — 62 tests, all passing.
 
-**Overall: contracts faithfully implement the spec. No security issues found.** Several targeted test gaps remain below.
-
-#### Test gaps to fill
-
-All in `hardhat/test/ContentFunding.test.js`:
-
-1. **Veto window expiration.** No test that veto fails after the 7-day window. Should `evm_increaseTime` past `vetoWindowDuration`, then assert `vetoContract` reverts with `VetoWindowExpired`.
+**Overall: contracts faithfully implement the spec. No security issues found.** The targeted contract-review follow-up tests are now filled; the remaining content-funding work is indexer integration and UI support.
 
 ## Other big things to do soon
 

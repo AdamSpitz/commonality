@@ -1006,6 +1006,55 @@ describe("ContentFunding", function () {
       expect(await erc1155.balanceOf(thirdParty.address, 7001)).to.equal(1);
     });
 
+    it("Should revert veto after the veto window has expired", async function () {
+      await mockVerifier.setValid(true);
+      const channelId = ethers.id("veto-expired-channel");
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      await channelRegistry.verifyChannel(
+        channelId,
+        alice.address,
+        ethers.id("nonce-veto-expired"),
+        deadline,
+        "0x"
+      );
+
+      const tx = await factory.connect(thirdParty).createContract(
+        channelId,
+        [7411],
+        [50],
+        [ethers.parseEther("0.1")],
+        ethers.parseEther("5.0"),
+        deadline,
+        "ipfs://QmThirdParty",
+        "https://meta/{id}.json",
+        "ipfs://QmContract",
+        true,
+        [7411],
+        [1],
+        { value: ethers.parseEther("0.1") }
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const thirdPartyContractAddr = event.args.contractAddress;
+      const conditionAddress = await factory.contractCondition(thirdPartyContractAddr);
+      const condition = await ethers.getContractAt("CancellableCondition", conditionAddress);
+
+      await channelRegistry.connect(alice).takeChannelControl(channelId);
+
+      const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
+      await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
+      await ethers.provider.send("evm_mine");
+
+      await expect(channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr))
+        .to.be.revertedWithCustomError(channelRegistry, "VetoWindowExpired");
+
+      expect(await condition.isCancelled()).to.be.false;
+      expect(await contentRegistry.isRegistered(7411)).to.be.true;
+    });
+
     it("Should revert veto on an already-succeeded third-party contract", async function () {
       await mockVerifier.setValid(true);
       const channelId = ethers.id("veto-succeeded-channel");
