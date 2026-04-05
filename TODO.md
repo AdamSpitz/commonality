@@ -3,6 +3,10 @@
 ## Main thing I want to work on next
 
   - Implement the content-funding system. Smart contracts are implemented and tested (though I wouldn't mind doing another review). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
+    - Smart contract audit follow-up:
+      - Add an on-chain check that every `contentId` in a creator contract actually belongs to the supplied `channelId`. Right now channel authorization is enforced, but the factory never proves that the content being registered belongs to that channel, which means an attacker can lock someone else's content by creating a contract under some other channel.
+      - Fix the third-party veto bypass. Right now a third party can choose a threshold equal to their required initial purchase, making the contract succeed inside `createContract()` and become immediately non-vetoable, which defeats the whole "creator can cancel underpriced fan-created contracts during the veto window" design.
+      - Reject `bytes32(0)` as a channel ID (or otherwise stop using zero as the sentinel for "unknown contract"). Right now zero-channel contracts can get stored in `channelIdByContract`, but later cleanup/veto logic treats zero as "not created by the factory", which can strand registry entries.
 
 ## Other big things to do soon
 
@@ -16,7 +20,10 @@
   - Merge specs/motivation with the wider specs directory? (Sort-of a prerequisite for writing the documentation; I want to get all the ideas clear first.)
   - Write the documentation and AI skills.
   - If the repeated SDK prebuild cost becomes annoying, consider a more monorepo-aware build setup so SDK-dependent workspaces don't redundantly rebuild the SDK.
-  - Audit the smart contracts using a more-competent AI. (Still doesn't replace a real auditing by competent humans, but it's better than nothing and much easier. Also, I suspect that most of these contracts are simple enough that I can probably get them right without too much trouble.)
+  - Do another smart-contract audit pass after fixing the current content-funding findings. Current audit findings:
+    - The content-funding factory does not validate that the supplied content items belong to the supplied channel.
+    - Third-party contracts can be made to succeed during creation, bypassing the intended creator veto protection.
+    - Zero channel IDs collide with the factory's "unknown contract" sentinel value and can break veto/failure cleanup bookkeeping.
   - Do I trust the UI? No.
 
   - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
