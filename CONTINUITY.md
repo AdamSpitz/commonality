@@ -1,5 +1,39 @@
 # Continuity notes for ephemeral AI instances
 
+## Subjectiv higher-level UI integration coverage — COMPLETE ✓
+
+### What was done
+
+Added a higher-level Subjectiv UI test pass that exercises how the trusted-set state is surfaced and wired through the app, not just the lower-level worker/cache hooks.
+
+Key decisions:
+- Kept this task scoped to integration coverage instead of mixing in wording changes, since the remaining TODOs had cleanly separated those concerns.
+- Added direct tests for the Settings direct-trust section rather than only expanding the older implication-attester settings page tests, because Subjectiv behavior now lives in `DirectTrustSettingsSection`.
+- Verified funding-portal and leaderboard pages at the page boundary by mocking the heavy child components/queries and asserting that the current trusted set is passed into the trust-aware query/filtering surfaces.
+- Kept the new coverage in the existing UI Vitest layer. This gives faster feedback on the Subjectiv flow today, while leaving true browser-level e2e as an optional later follow-up if the UI stabilizes further.
+
+### PRD reference
+
+- `specs/subsystems/subjectiv/README.md`
+- `specs/subsystems/subjectiv/mvp-notes.md`
+
+### Files changed
+
+- `ui/src/conceptspace/components/DirectTrustSettingsSection.test.tsx`
+- `ui/src/fundingportal/pages/StatementFundingPortalPage.test.tsx`
+- `ui/src/fundingportal/pages/CauseLeaderboardPage.test.tsx`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Subjectiv now has stronger coverage both for the lower-level worker/cache infrastructure and for the higher-level UI wiring through Settings and funding-portal pages.
+
+Remaining Subjectiv chunks:
+- Decide whether the settings / funding-portal wording needs another pass now that the trust network is surfaced progressively and no longer centers on a single trusted attester.
+- If desired later, add a true browser-level e2e test for the Subjectiv flow after the UI text/interaction flow feels stable enough to avoid churn.
+
 ## Subjectiv infrastructure test coverage expansion — COMPLETE ✓
 
 ### What was done
