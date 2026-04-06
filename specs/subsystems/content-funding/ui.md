@@ -126,8 +126,8 @@ A form for creating a new content-funding contract for a specific channel. Avail
 ### Fields
 
 - **Content items** (dynamic list): For each item:
-  - Platform URL (e.g., tweet URL, YouTube video URL) — auto-canonicalized per [canonicalization.md](canonicalization.md)
-  - Validation indicator: shows whether the URL resolves, whether the content item is already registered in another active contract, and whether the canonical ID matches this channel
+  - Platform URL (e.g., tweet URL, YouTube video URL) — the UI extracts the content-specific part (tweet ID, video ID) from the URL, then calls the backend to resolve the author's channel prefix (see [canonicalization.md](canonicalization.md#resolving-channel-prefixes)) and construct the full canonical ID
+  - Validation indicator: shows whether the URL resolves, whether the resolved author matches this channel, and whether the content item is already registered in another active contract
   - Token supply (default suggestion, e.g., 100)
   - Token price (in ETH)
 - **Funding threshold** (ETH amount) — default suggestion based on total token value
@@ -136,7 +136,7 @@ A form for creating a new content-funding contract for a specific channel. Avail
 
 ### On submit
 
-1. Canonicalize all URLs
+1. Resolve all URLs to canonical IDs (extracts content-specific part from URL, calls backend for channel prefix resolution — see [canonicalization.md](canonicalization.md#resolving-channel-prefixes))
 2. Check content registry — reject any items already in active contracts
 3. If third-party creation: collect an initial token purchase whose total cost is at least the creation fee
 4. Call the platform's `CreatorAssuranceContractFactory` to create the contract and execute that initial purchase in the same transaction
@@ -148,7 +148,7 @@ A form for creating a new content-funding contract for a specific channel. Avail
 ### Validation
 
 - URLs must belong to the correct platform for this channel's registry
-- Content items must belong to this channel (the canonical channel ID extracted from the URL must match)
+- Content items must belong to this channel (the author resolved from the platform API must match this channel's canonical ID)
 - Content items must not already be registered in an active contract
 - If channel is creator-controlled and the connected wallet is not the verified owner, show an error explaining that only the creator can create contracts
 

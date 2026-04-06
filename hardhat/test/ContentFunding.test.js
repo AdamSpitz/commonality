@@ -2,6 +2,78 @@ import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
 
+function channelIdFromCanonical(channelCanonicalId) {
+  return ethers.id(channelCanonicalId);
+}
+
+function contentCanonicalId(channelCanonicalId, contentSuffix, separator = ":") {
+  return `${channelCanonicalId}${separator}${contentSuffix}`;
+}
+
+function contentIdFromParts(channelCanonicalId, contentSuffix, separator = ":") {
+  return ethers.toBigInt(ethers.id(contentCanonicalId(channelCanonicalId, contentSuffix, separator)));
+}
+
+function contentIdsFromSuffixes(channelCanonicalId, contentSuffixes, separator = ":") {
+  return contentSuffixes.map((suffix) => contentIdFromParts(channelCanonicalId, suffix, separator));
+}
+
+async function createContentFundingContract({
+  factory,
+  signer,
+  channelCanonicalId,
+  contentSuffixes,
+  supplies,
+  prices,
+  threshold,
+  deadline,
+  metadataCid,
+  erc1155MetadataUri,
+  erc1155ContractUri,
+  isThirdParty,
+  initialPurchaseContentSuffixes = [],
+  initialPurchaseCounts = [],
+  value,
+}) {
+  const channelId = channelIdFromCanonical(channelCanonicalId);
+  const initialPurchaseIds = contentIdsFromSuffixes(channelCanonicalId, initialPurchaseContentSuffixes);
+
+  if (value === undefined) {
+    return factory.connect(signer).createContract(
+      channelId,
+      channelCanonicalId,
+      contentSuffixes,
+      supplies,
+      prices,
+      threshold,
+      deadline,
+      metadataCid,
+      erc1155MetadataUri,
+      erc1155ContractUri,
+      isThirdParty,
+      initialPurchaseIds,
+      initialPurchaseCounts
+    );
+  }
+
+  return factory.connect(signer).createContract(
+    channelId,
+    channelCanonicalId,
+    contentSuffixes,
+    supplies,
+    prices,
+    threshold,
+    deadline,
+    metadataCid,
+    erc1155MetadataUri,
+    erc1155ContractUri,
+    isThirdParty,
+    initialPurchaseIds,
+    initialPurchaseCounts,
+    { value }
+  );
+}
+
 describe("ContentFunding", function () {
   let contentRegistry, channelRegistry, channelEscrow;
   let factory, erc1155Factory, marketplaceFactory, conditionFactory;
@@ -39,7 +111,8 @@ describe("ContentFunding", function () {
       await channelEscrow.getAddress(),
       await erc1155Factory.getAddress(),
       await marketplaceFactory.getAddress(),
-      await conditionFactory.getAddress()
+      await conditionFactory.getAddress(),
+      ":"
     );
 
     // Transfer ContentRegistry ownership to factory so it can register/release content
@@ -49,16 +122,18 @@ describe("ContentFunding", function () {
   });
 
   describe("ContentRegistry", function () {
-    let contentId1, contentId2;
+    let channelCanonicalId, channelId, contentSuffix1, contentSuffix2, contentId1, contentId2;
 
     beforeEach(async function () {
-      contentId1 = 1001;
-      contentId2 = 1002;
+      channelCanonicalId = "twitter:uid:content-reg-test";
+      channelId = channelIdFromCanonical(channelCanonicalId);
+      contentSuffix1 = "1001";
+      contentSuffix2 = "1002";
+      [contentId1, contentId2] = contentIdsFromSuffixes(channelCanonicalId, [contentSuffix1, contentSuffix2]);
     });
 
     it("Should register content successfully (via factory)", async function () {
       // Content registration now happens through the factory during createContract
-      const channelId = ethers.id("content-reg-test");
       await mockVerifier.setValid(true);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
@@ -73,7 +148,8 @@ describe("ContentFunding", function () {
 
       await factory.connect(owner).createContract(
         channelId,
-        [contentId1],
+        channelCanonicalId,
+        [contentSuffix1],
         [100],
         [ethers.parseEther("0.1")],
         ethers.parseEther("5.0"),
@@ -90,7 +166,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should revert when non-owner calls registerContent directly", async function () {
-      await expect(contentRegistry.connect(alice).registerContent(contentId1, alice.address))
+      await expect(contentRegistry.connect(alice).registerContent(contentId1, alice.address, "canonical-id"))
         .to.be.revertedWithCustomError(contentRegistry, "OwnableUnauthorizedAccount");
     });
 
@@ -107,13 +183,16 @@ describe("ContentFunding", function () {
     });
 
     it("Should revert when registering duplicate content", async function () {
-      const channelId = ethers.id("dup-content-test");
+      const duplicateChannelCanonicalId = "twitter:uid:dup-content-test";
+      const duplicateChannelId = channelIdFromCanonical(duplicateChannelCanonicalId);
+      const duplicateContentSuffix = "18347";
+      const duplicateContentId = contentIdFromParts(duplicateChannelCanonicalId, duplicateContentSuffix);
       await mockVerifier.setValid(true);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
       await channelRegistry.verifyChannel(
-        channelId,
+        duplicateChannelId,
         owner.address,
         ethers.id("nonce-1"),
         deadline,
@@ -121,8 +200,9 @@ describe("ContentFunding", function () {
       );
 
       await factory.connect(owner).createContract(
-        channelId,
-        [contentId1],
+        duplicateChannelId,
+        duplicateChannelCanonicalId,
+        [duplicateContentSuffix],
         [100],
         [ethers.parseEther("0.1")],
         ethers.parseEther("5.0"),
@@ -135,19 +215,10 @@ describe("ContentFunding", function () {
         []
       );
 
-      // Create another channel to try registering same content via third-party
-      const channelId2 = ethers.id("dup-content-test-2");
-      await channelRegistry.verifyChannel(
-        channelId2,
-        owner.address,
-        ethers.id("nonce-2"),
-        deadline,
-        "0x"
-      );
-
       await expect(factory.connect(owner).createContract(
-        channelId2,
-        [contentId1],
+        duplicateChannelId,
+        duplicateChannelCanonicalId,
+        [duplicateContentSuffix],
         [100],
         [ethers.parseEther("0.1")],
         ethers.parseEther("5.0"),
@@ -155,12 +226,11 @@ describe("ContentFunding", function () {
         "ipfs://QmTest",
         "https://meta/{id}.json",
         "ipfs://QmContract",
-        true,
-        [contentId1],
-        [1],
-        { value: ethers.parseEther("0.1") }
+        false,
+        [],
+        []
       )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
-        .withArgs(contentId1);
+        .withArgs(duplicateContentId);
     });
 
     it("Should return zero address for unregistered content", async function () {
@@ -356,27 +426,30 @@ describe("ContentFunding", function () {
     });
 
     it("Should allow cumulative escrow withdrawal after multiple deposits for the same channel", async function () {
-      const escrowedChannelId = ethers.id("cumulative-escrow-channel");
+      const escrowedChannelCanonicalId = "twitter:uid:cumulative-escrow-channel";
+      const escrowedChannelId = channelIdFromCanonical(escrowedChannelCanonicalId);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
       const firstDepositAmount = ethers.parseEther("0.1");
       const secondDepositAmount = ethers.parseEther("0.2");
 
-      const firstTx = await factory.connect(thirdParty).createContract(
-        escrowedChannelId,
-        [9301],
-        [50],
-        [firstDepositAmount],
-        firstDepositAmount,
+      const firstTx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId: escrowedChannelCanonicalId,
+        contentSuffixes: ["9301"],
+        supplies: [50],
+        prices: [firstDepositAmount],
+        threshold: firstDepositAmount,
         deadline,
-        "ipfs://QmEscrowOne",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [9301],
-        [1],
-        { value: firstDepositAmount }
-      );
+        metadataCid: "ipfs://QmEscrowOne",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: ["9301"],
+        initialPurchaseCounts: [1],
+        value: firstDepositAmount,
+      });
 
       const firstReceipt = await firstTx.wait();
       const firstEvent = firstReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -385,21 +458,23 @@ describe("ContentFunding", function () {
         firstEvent.args.contractAddress
       );
 
-      const secondTx = await factory.connect(owner).createContract(
-        escrowedChannelId,
-        [9302],
-        [50],
-        [secondDepositAmount],
-        secondDepositAmount,
+      const secondTx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId: escrowedChannelCanonicalId,
+        contentSuffixes: ["9302"],
+        supplies: [50],
+        prices: [secondDepositAmount],
+        threshold: secondDepositAmount,
         deadline,
-        "ipfs://QmEscrowTwo",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [9302],
-        [1],
-        { value: secondDepositAmount }
-      );
+        metadataCid: "ipfs://QmEscrowTwo",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: ["9302"],
+        initialPurchaseCounts: [1],
+        value: secondDepositAmount,
+      });
 
       const secondReceipt = await secondTx.wait();
       const secondEvent = secondReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -467,13 +542,15 @@ describe("ContentFunding", function () {
   });
 
   describe("CreatorAssuranceContractFactory", function () {
-    let channelId, contentIds, supplies, prices;
+    let channelCanonicalId, channelId, contentSuffixes, contentIds, supplies, prices;
     let threshold, deadline, metadataCid;
     let erc1155MetadataUri, erc1155ContractUri;
 
     beforeEach(async function () {
-      channelId = ethers.id("factory-test-channel");
-      contentIds = [2001, 2002, 2003];
+      channelCanonicalId = "twitter:uid:factory-test-channel";
+      channelId = channelIdFromCanonical(channelCanonicalId);
+      contentSuffixes = ["2001", "2002", "2003"];
+      contentIds = contentIdsFromSuffixes(channelCanonicalId, contentSuffixes);
       supplies = [100, 100, 100];
       prices = [ethers.parseEther("0.1"), ethers.parseEther("0.2"), ethers.parseEther("0.3")];
       threshold = ethers.parseEther("5.0");
@@ -494,9 +571,11 @@ describe("ContentFunding", function () {
     });
 
     it("Should create creator contract successfully", async function () {
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        contentIds,
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes,
         supplies,
         prices,
         threshold,
@@ -504,10 +583,8 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      );
+        isThirdParty: false,
+      });
 
       const receipt = await tx.wait();
       const creatorContractCreatedEvent = receipt.logs.find(
@@ -527,21 +604,22 @@ describe("ContentFunding", function () {
     it("Should create creator contract successfully on CreatorControlled channel", async function () {
       await channelRegistry.connect(owner).takeChannelControl(channelId);
 
-      const controlledContentIds = [2101, 2102];
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        controlledContentIds,
-        [25, 25],
-        [ethers.parseEther("0.15"), ethers.parseEther("0.25")],
+      const controlledContentSuffixes = ["2101", "2102"];
+      const controlledContentIds = contentIdsFromSuffixes(channelCanonicalId, controlledContentSuffixes);
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: controlledContentSuffixes,
+        supplies: [25, 25],
+        prices: [ethers.parseEther("0.15"), ethers.parseEther("0.25")],
         threshold,
         deadline,
-        "ipfs://QmCreatorControlled",
+        metadataCid: "ipfs://QmCreatorControlled",
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      );
+        isThirdParty: false,
+      });
 
       const receipt = await tx.wait();
       const creatorContractCreatedEvent = receipt.logs.find(
@@ -559,28 +637,31 @@ describe("ContentFunding", function () {
     it("Should revert when array lengths mismatch", async function () {
       const mismatchedSupplies = [100, 100];
 
-      await expect(factory.connect(owner).createContract(
-        channelId,
-        contentIds,
-        mismatchedSupplies,
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes,
+        supplies: mismatchedSupplies,
         prices,
         threshold,
         deadline,
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      )).to.be.revertedWithCustomError(factory, "ArrayLengthMismatch");
+        isThirdParty: false,
+      })).to.be.revertedWithCustomError(factory, "ArrayLengthMismatch");
     });
 
     it("Should revert creator contract when channel not verified", async function () {
-      const unverifiedChannel = ethers.id("unverified-channel");
+      const unverifiedChannelCanonicalId = "twitter:uid:unverified-channel";
+      const unverifiedChannelId = channelIdFromCanonical(unverifiedChannelCanonicalId);
 
-      await expect(factory.connect(owner).createContract(
-        unverifiedChannel,
-        contentIds,
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId: unverifiedChannelCanonicalId,
+        contentSuffixes,
         supplies,
         prices,
         threshold,
@@ -588,17 +669,17 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      )).to.be.revertedWithCustomError(factory, "ChannelNotVerifiedOrControlled")
-        .withArgs(unverifiedChannel);
+        isThirdParty: false,
+      })).to.be.revertedWithCustomError(factory, "ChannelNotVerifiedOrControlled")
+        .withArgs(unverifiedChannelId);
     });
 
     it("Should revert creator contract when caller is not the verified channel owner", async function () {
-      await expect(factory.connect(thirdParty).createContract(
-        channelId,
-        contentIds,
+      await expect(createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes,
         supplies,
         prices,
         threshold,
@@ -606,19 +687,19 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      )).to.be.revertedWithCustomError(factory, "OnlyChannelOwnerCanCreateCreatorContract")
+        isThirdParty: false,
+      })).to.be.revertedWithCustomError(factory, "OnlyChannelOwnerCanCreateCreatorContract")
         .withArgs(channelId);
     });
 
     it("Should create third-party contract with an initial token purchase", async function () {
       const purchaseAmount = prices[0];
 
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        contentIds,
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes,
         supplies,
         prices,
         threshold,
@@ -626,11 +707,11 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        true,
-        [contentIds[0]],
-        [1],
-        { value: purchaseAmount }
-      );
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffixes[0]],
+        initialPurchaseCounts: [1],
+        value: purchaseAmount,
+      });
 
       const receipt = await tx.wait();
       const creatorContractCreatedEvent = receipt.logs.find(
@@ -649,26 +730,30 @@ describe("ContentFunding", function () {
     });
 
     it("Should create third-party contract on Unclaimed channel without upfront escrow deposit", async function () {
-      const unclaimedChannel = ethers.id("unclaimed-channel");
+      const unclaimedChannelCanonicalId = "twitter:uid:unclaimed-channel";
+      const unclaimedChannel = channelIdFromCanonical(unclaimedChannelCanonicalId);
       const purchaseAmount = ethers.parseEther("0.1");
-      const unclaimedContentIds = [9001, 9002];
+      const unclaimedContentSuffixes = ["9001", "9002"];
+      const unclaimedContentIds = contentIdsFromSuffixes(unclaimedChannelCanonicalId, unclaimedContentSuffixes);
       const unclaimedPrices = [ethers.parseEther("0.1"), ethers.parseEther("0.2")];
 
-      const tx = await factory.connect(thirdParty).createContract(
-        unclaimedChannel,
-        unclaimedContentIds,
-        [50, 50],
-        unclaimedPrices,
-        ethers.parseEther("5.0"),
+      const tx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId: unclaimedChannelCanonicalId,
+        contentSuffixes: unclaimedContentSuffixes,
+        supplies: [50, 50],
+        prices: unclaimedPrices,
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [unclaimedContentIds[0]],
-        [1],
-        { value: purchaseAmount }
-      );
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [unclaimedContentSuffixes[0]],
+        initialPurchaseCounts: [1],
+        value: purchaseAmount,
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -686,24 +771,28 @@ describe("ContentFunding", function () {
     });
 
     it("Should allow a successful unclaimed contract to move funds into escrow", async function () {
-      const unclaimedChannel = ethers.id("successful-unclaimed-channel");
+      const unclaimedChannelCanonicalId = "twitter:uid:successful-unclaimed-channel";
+      const unclaimedChannel = channelIdFromCanonical(unclaimedChannelCanonicalId);
+      const unclaimedContentSuffix = "9101";
       const successThreshold = ethers.parseEther("0.1");
       const purchaseAmount = ethers.parseEther("0.1");
-      const tx = await factory.connect(thirdParty).createContract(
-        unclaimedChannel,
-        [9101],
-        [50],
-        [purchaseAmount],
-        successThreshold,
+      const tx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId: unclaimedChannelCanonicalId,
+        contentSuffixes: [unclaimedContentSuffix],
+        supplies: [50],
+        prices: [purchaseAmount],
+        threshold: successThreshold,
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [9101],
-        [1],
-        { value: purchaseAmount }
-      );
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [unclaimedContentSuffix],
+        initialPurchaseCounts: [1],
+        value: purchaseAmount,
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -716,20 +805,20 @@ describe("ContentFunding", function () {
     });
 
     it("Should revert withdrawToEscrow when contract recipient is not escrow", async function () {
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        [9201],
-        [50],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: ["9201"],
+        supplies: [50],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmCreatorOwned",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      );
+        metadataCid: "ipfs://QmCreatorOwned",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: false,
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -743,128 +832,152 @@ describe("ContentFunding", function () {
     it("Should revert third-party contract on CreatorControlled channel", async function () {
       await channelRegistry.connect(owner).takeChannelControl(channelId);
 
-      await expect(factory.connect(thirdParty).createContract(
-        channelId,
-        [8001],
-        [100],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
+      await expect(createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes: ["8001"],
+        supplies: [100],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [8001],
-        [1],
-        { value: ethers.parseEther("0.1") }
-      )).to.be.revertedWithCustomError(factory, "ChannelCreatorControlled")
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: ["8001"],
+        initialPurchaseCounts: [1],
+        value: ethers.parseEther("0.1"),
+      })).to.be.revertedWithCustomError(factory, "ChannelCreatorControlled")
         .withArgs(channelId);
     });
 
     it("Should revert third-party creation when the initial purchase is below the minimum", async function () {
       const insufficientAmount = ethers.parseEther("0.001");
-      const cheapContentId = 3001;
+      const cheapContentSuffix = "3001";
 
-      await expect(factory.connect(owner).createContract(
-        channelId,
-        [cheapContentId],
-        [100],
-        [insufficientAmount],
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: [cheapContentSuffix],
+        supplies: [100],
+        prices: [insufficientAmount],
         threshold,
         deadline,
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        true,
-        [cheapContentId],
-        [1],
-        { value: insufficientAmount }
-      )).to.be.revertedWithCustomError(factory, "InsufficientThirdPartyPurchase");
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [cheapContentSuffix],
+        initialPurchaseCounts: [1],
+        value: insufficientAmount,
+      })).to.be.revertedWithCustomError(factory, "InsufficientThirdPartyPurchase");
     });
 
     it("Should revert when content already registered for third-party", async function () {
-      await factory.connect(owner).createContract(
-        channelId,
-        [contentIds[0]],
-        [supplies[0]],
-        [prices[0]],
+      await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffixes[0]],
+        supplies: [supplies[0]],
+        prices: [prices[0]],
         threshold,
         deadline,
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      );
+        isThirdParty: false,
+      });
 
-      const newChannelId = ethers.id("new-channel");
-      await channelRegistry.verifyChannel(
-        newChannelId,
-        owner.address,
-        ethers.id("nonce-2"),
-        deadline,
-        "0x"
-      );
-
-      await expect(factory.connect(owner).createContract(
-        newChannelId,
-        [contentIds[0]],
-        [supplies[0]],
-        [prices[0]],
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffixes[0]],
+        supplies: [supplies[0]],
+        prices: [prices[0]],
         threshold,
         deadline,
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        true,
-        [contentIds[0]],
-        [1],
-        { value: ethers.parseEther("0.1") }
-      )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffixes[0]],
+        initialPurchaseCounts: [1],
+        value: ethers.parseEther("0.1"),
+      })).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
         .withArgs(contentIds[0]);
     });
 
     it("Should revert when content already registered for creator-created contract", async function () {
-      await factory.connect(owner).createContract(
-        channelId,
-        [contentIds[0]],
-        [supplies[0]],
-        [prices[0]],
+      await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffixes[0]],
+        supplies: [supplies[0]],
+        prices: [prices[0]],
         threshold,
         deadline,
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      );
+        isThirdParty: false,
+      });
 
-      const newChannelId = ethers.id("new-channel-creator-duplicate");
-      await channelRegistry.verifyChannel(
-        newChannelId,
-        owner.address,
-        ethers.id("nonce-3"),
-        deadline,
-        "0x"
-      );
-
-      await expect(factory.connect(owner).createContract(
-        newChannelId,
-        [contentIds[0]],
-        [supplies[0]],
-        [prices[0]],
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffixes[0]],
+        supplies: [supplies[0]],
+        prices: [prices[0]],
         threshold,
         deadline,
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
+        isThirdParty: false,
+      })).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
         .withArgs(contentIds[0]);
+    });
+
+    it("Should reject a zero channel ID", async function () {
+      await expect(factory.connect(owner).createContract(
+        ethers.ZeroHash,
+        channelCanonicalId,
+        contentSuffixes,
+        supplies,
+        prices,
+        threshold,
+        deadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        false,
+        [],
+        []
+      )).to.be.revertedWithCustomError(factory, "InvalidChannelId");
+    });
+
+    it("Should reject a channel canonical ID that does not match the supplied hash", async function () {
+      await expect(factory.connect(owner).createContract(
+        channelId,
+        "twitter:uid:someone-else",
+        contentSuffixes,
+        supplies,
+        prices,
+        threshold,
+        deadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        false,
+        [],
+        []
+      )).to.be.revertedWithCustomError(factory, "ChannelCanonicalIdMismatch");
     });
 
     it("Should set third party min purchase (owner only)", async function () {
@@ -885,12 +998,14 @@ describe("ContentFunding", function () {
   });
 
   describe("CreatorAssuranceContract", function () {
-    let channelId, contentIds;
-    let createdContract;
+    let channelCanonicalId, channelId, contentSuffixes, contentIds;
+    let createdContract, creationReceipt;
 
     beforeEach(async function () {
-      channelId = ethers.id("creator-contract-test");
-      contentIds = [3001, 3002];
+      channelCanonicalId = "twitter:uid:creator-contract-test";
+      channelId = channelIdFromCanonical(channelCanonicalId);
+      contentSuffixes = ["3001", "3002"];
+      contentIds = contentIdsFromSuffixes(channelCanonicalId, contentSuffixes);
 
       await mockVerifier.setValid(true);
       await channelRegistry.verifyChannel(
@@ -901,23 +1016,23 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        contentIds,
-        [100, 100],
-        [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
-        ethers.parseEther("5.0"),
-        (await ethers.provider.getBlock("latest")).timestamp + 86400,
-        "ipfs://QmProject",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      );
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes,
+        supplies: [100, 100],
+        prices: [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
+        threshold: ethers.parseEther("5.0"),
+        deadline: (await ethers.provider.getBlock("latest")).timestamp + 86400,
+        metadataCid: "ipfs://QmProject",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: false,
+      });
 
-      const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      creationReceipt = await tx.wait();
+      const event = creationReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       createdContract = await ethers.getContractAt("CreatorAssuranceContract", event.args.contractAddress);
     });
 
@@ -931,13 +1046,18 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(createdContract, "ContentIdsAlreadySet");
     });
 
-    it("Should emit content item registered event", async function () {
-      const contentId = 5001;
-      const canonicalId = "canonical-123";
+    it("Should emit content item registered events from the registry with canonical IDs", async function () {
+      const registryEvents = await contentRegistry.queryFilter(
+        contentRegistry.filters.ContentItemRegistered(),
+        creationReceipt.blockNumber,
+        creationReceipt.blockNumber
+      );
 
-      await expect(createdContract.connect(owner).registerContentItem(contentId, canonicalId))
-        .to.emit(createdContract, "ContentItemRegistered")
-        .withArgs(channelId, contentId, canonicalId);
+      expect(registryEvents).to.have.length(2);
+      expect(registryEvents[0].args.contentId).to.equal(contentIds[0]);
+      expect(registryEvents[0].args.canonicalId).to.equal(contentCanonicalId(channelCanonicalId, contentSuffixes[0]));
+      expect(registryEvents[1].args.contentId).to.equal(contentIds[1]);
+      expect(registryEvents[1].args.canonicalId).to.equal(contentCanonicalId(channelCanonicalId, contentSuffixes[1]));
     });
 
     it("Should have correct channel ID", async function () {
@@ -953,7 +1073,10 @@ describe("ContentFunding", function () {
   describe("Veto flow", function () {
     it("Should veto a third-party contract within the veto window", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("veto-test-channel");
+      const channelCanonicalId = "twitter:uid:veto-test-channel";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
+      const contentSuffixes = ["7001", "7002"];
+      const contentIds = contentIdsFromSuffixes(channelCanonicalId, contentSuffixes);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
@@ -968,21 +1091,23 @@ describe("ContentFunding", function () {
 
       // Create a third-party contract on this verified channel
       const purchaseAmount = ethers.parseEther("0.1");
-      const tx = await factory.connect(thirdParty).createContract(
-        channelId,
-        [7001, 7002],
-        [50, 50],
-        [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
-        ethers.parseEther("5.0"),
+      const tx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes,
+        supplies: [50, 50],
+        prices: [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [7001],
-        [1],
-        { value: purchaseAmount }
-      );
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffixes[0]],
+        initialPurchaseCounts: [1],
+        value: purchaseAmount,
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -1001,14 +1126,17 @@ describe("ContentFunding", function () {
       const condition = await ethers.getContractAt("CancellableCondition", conditionAddr);
       expect(await condition.isCancelled()).to.be.true;
       expect(await condition.hasFailed()).to.be.true;
-      expect(await contentRegistry.isRegistered(7001)).to.be.false;
-      expect(await contentRegistry.isRegistered(7002)).to.be.false;
-      expect(await erc1155.balanceOf(thirdParty.address, 7001)).to.equal(1);
+      expect(await contentRegistry.isRegistered(contentIds[0])).to.be.false;
+      expect(await contentRegistry.isRegistered(contentIds[1])).to.be.false;
+      expect(await erc1155.balanceOf(thirdParty.address, contentIds[0])).to.equal(1);
     });
 
     it("Should revert veto after the veto window has expired", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("veto-expired-channel");
+      const channelCanonicalId = "twitter:uid:veto-expired-channel";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
+      const contentSuffix = "7411";
+      const contentId = contentIdFromParts(channelCanonicalId, contentSuffix);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
@@ -1020,21 +1148,23 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      const tx = await factory.connect(thirdParty).createContract(
-        channelId,
-        [7411],
-        [50],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
+      const tx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffix],
+        supplies: [50],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [7411],
-        [1],
-        { value: ethers.parseEther("0.1") }
-      );
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffix],
+        initialPurchaseCounts: [1],
+        value: ethers.parseEther("0.1"),
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -1052,12 +1182,15 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(channelRegistry, "VetoWindowExpired");
 
       expect(await condition.isCancelled()).to.be.false;
-      expect(await contentRegistry.isRegistered(7411)).to.be.true;
+      expect(await contentRegistry.isRegistered(contentId)).to.be.true;
     });
 
     it("Should revert veto on an already-succeeded third-party contract", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("veto-succeeded-channel");
+      const channelCanonicalId = "twitter:uid:veto-succeeded-channel";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
+      const contentSuffix = "7401";
+      const contentId = contentIdFromParts(channelCanonicalId, contentSuffix);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
       const successThreshold = ethers.parseEther("0.1");
@@ -1070,21 +1203,23 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      const tx = await factory.connect(thirdParty).createContract(
-        channelId,
-        [7401],
-        [50],
-        [successThreshold],
-        successThreshold,
+      const tx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffix],
+        supplies: [50],
+        prices: [successThreshold],
+        threshold: successThreshold,
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [7401],
-        [1],
-        { value: successThreshold }
-      );
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffix],
+        initialPurchaseCounts: [1],
+        value: successThreshold,
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -1100,15 +1235,17 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(condition, "ConditionAlreadySucceeded");
 
       expect(await condition.isCancelled()).to.be.false;
-      expect(await contentRegistry.isRegistered(7401)).to.be.true;
+      expect(await contentRegistry.isRegistered(contentId)).to.be.true;
     });
 
     it("Should free vetoed content for re-registration", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("veto-reregister-channel");
+      const channelCanonicalId = "twitter:uid:veto-reregister-channel";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
-      const vetoedContentId = 7301;
+      const vetoedContentSuffix = "7301";
+      const vetoedContentId = contentIdFromParts(channelCanonicalId, vetoedContentSuffix);
 
       await channelRegistry.verifyChannel(
         channelId,
@@ -1118,21 +1255,23 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      const tx = await factory.connect(thirdParty).createContract(
-        channelId,
-        [vetoedContentId],
-        [50],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
+      const tx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes: [vetoedContentSuffix],
+        supplies: [50],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [vetoedContentId],
-        [1],
-        { value: ethers.parseEther("0.1") }
-      );
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [vetoedContentSuffix],
+        initialPurchaseCounts: [1],
+        value: ethers.parseEther("0.1"),
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -1143,35 +1282,49 @@ describe("ContentFunding", function () {
 
       expect(await contentRegistry.isRegistered(vetoedContentId)).to.be.false;
 
-      await expect(factory.connect(alice).createContract(
-        channelId,
-        [vetoedContentId],
-        [100],
-        [ethers.parseEther("0.2")],
-        ethers.parseEther("6.0"),
+      await expect(createContentFundingContract({
+        factory,
+        signer: alice,
+        channelCanonicalId,
+        contentSuffixes: [vetoedContentSuffix],
+        supplies: [100],
+        prices: [ethers.parseEther("0.2")],
+        threshold: ethers.parseEther("6.0"),
         deadline,
-        "ipfs://QmCreatorRetry",
-        "https://meta/{id}.json",
-        "ipfs://QmContract2",
-        false,
-        [],
-        []
-      )).to.not.be.reverted;
+        metadataCid: "ipfs://QmCreatorRetry",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract2",
+        isThirdParty: false,
+      })).to.not.be.reverted;
     });
 
     it("Should revert veto from non-channel-owner", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("veto-test-2");
+      const channelCanonicalId = "twitter:uid:veto-test-2";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
+      const contentSuffix = "7101";
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
       await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v2"), deadline, "0x");
 
-      const tx = await factory.connect(thirdParty).createContract(
-        channelId, [7101], [50], [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"), deadline, "ipfs://Qm", "https://m/{id}.json", "ipfs://Qm",
-        true, [7101], [1], { value: ethers.parseEther("0.1") }
-      );
+      const tx = await createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffix],
+        supplies: [50],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
+        deadline,
+        metadataCid: "ipfs://Qm",
+        erc1155MetadataUri: "https://m/{id}.json",
+        erc1155ContractUri: "ipfs://Qm",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffix],
+        initialPurchaseCounts: [1],
+        value: ethers.parseEther("0.1"),
+      });
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const addr = event.args.contractAddress;
@@ -1184,18 +1337,28 @@ describe("ContentFunding", function () {
 
     it("Should revert veto on non-third-party contract", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("veto-test-3");
+      const channelCanonicalId = "twitter:uid:veto-test-3";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
       await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v3"), deadline, "0x");
 
       // Creator creates their own contract (not third-party)
-      const tx = await factory.connect(alice).createContract(
-        channelId, [7201], [50], [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"), deadline, "ipfs://Qm", "https://m/{id}.json", "ipfs://Qm",
-        false, [], []
-      );
+      const tx = await createContentFundingContract({
+        factory,
+        signer: alice,
+        channelCanonicalId,
+        contentSuffixes: ["7201"],
+        supplies: [50],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
+        deadline,
+        metadataCid: "ipfs://Qm",
+        erc1155MetadataUri: "https://m/{id}.json",
+        erc1155ContractUri: "ipfs://Qm",
+        isThirdParty: false,
+      });
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const addr = event.args.contractAddress;
@@ -1210,28 +1373,30 @@ describe("ContentFunding", function () {
   describe("releaseContentOnFailure", function () {
     it("Should release content when condition has failed", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("release-test");
+      const channelCanonicalId = "twitter:uid:release-test";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
       const latestBlock = await ethers.provider.getBlock("latest");
       // Use a very short deadline so we can make it fail
       const deadline = latestBlock.timestamp + 2;
 
       await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r1"), deadline, "0x");
 
-      const releaseContentIds = [6001, 6002];
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        releaseContentIds,
-        [100, 100],
-        [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
-        ethers.parseEther("5.0"),
+      const releaseContentSuffixes = ["6001", "6002"];
+      const releaseContentIds = contentIdsFromSuffixes(channelCanonicalId, releaseContentSuffixes);
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: releaseContentSuffixes,
+        supplies: [100, 100],
+        prices: [ethers.parseEther("0.1"), ethers.parseEther("0.2")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmRelease",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      );
+        metadataCid: "ipfs://QmRelease",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: false,
+      });
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const contractAddress = event.args.contractAddress;
@@ -1254,26 +1419,27 @@ describe("ContentFunding", function () {
 
     it("Should revert releaseContentOnFailure when condition has not failed", async function () {
       await mockVerifier.setValid(true);
-      const channelId = ethers.id("release-test-2");
+      const channelCanonicalId = "twitter:uid:release-test-2";
+      const channelId = channelIdFromCanonical(channelCanonicalId);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
       await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r2"), deadline, "0x");
 
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        [6101],
-        [100],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: ["6101"],
+        supplies: [100],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmRelease2",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      );
+        metadataCid: "ipfs://QmRelease2",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: false,
+      });
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
 
@@ -1288,12 +1454,14 @@ describe("ContentFunding", function () {
   });
 
   describe("Integration: Full Content Funding Flow", function () {
-    let channelId, contentIds, supplies, prices;
+    let channelCanonicalId, channelId, contentSuffixes, contentIds, supplies, prices;
     let threshold, deadline;
 
     beforeEach(async function () {
-      channelId = ethers.id("integration-channel");
-      contentIds = [10001, 10002];
+      channelCanonicalId = "twitter:uid:integration-channel";
+      channelId = channelIdFromCanonical(channelCanonicalId);
+      contentSuffixes = ["10001", "10002"];
+      contentIds = contentIdsFromSuffixes(channelCanonicalId, contentSuffixes);
       supplies = [50, 50];
       prices = [ethers.parseEther("0.5"), ethers.parseEther("1.0")];
       threshold = ethers.parseEther("10.0");
@@ -1312,20 +1480,20 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      const tx = await factory.connect(owner).createContract(
-        channelId,
-        contentIds,
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes,
         supplies,
         prices,
         threshold,
         deadline,
-        "ipfs://QmProject",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      );
+        metadataCid: "ipfs://QmProject",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: false,
+      });
 
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -1347,7 +1515,8 @@ describe("ContentFunding", function () {
       await channelRegistry.connect(owner).takeChannelControl(channelId);
 
       // Create a third-party contract on a different verified channel
-      const thirdPartyChannelId = ethers.id("third-party-channel");
+      const thirdPartyChannelCanonicalId = "twitter:uid:third-party-channel";
+      const thirdPartyChannelId = channelIdFromCanonical(thirdPartyChannelCanonicalId);
       await channelRegistry.verifyChannel(
         thirdPartyChannelId,
         charlie.address,
@@ -1357,22 +1526,24 @@ describe("ContentFunding", function () {
       );
 
       const purchaseAmount = ethers.parseEther("0.5");
-      const newContentIds = [20001, 20002];
-      const tx = await factory.connect(owner).createContract(
-        thirdPartyChannelId,
-        newContentIds,
+      const newContentSuffixes = ["20001", "20002"];
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId: thirdPartyChannelCanonicalId,
+        contentSuffixes: newContentSuffixes,
         supplies,
         prices,
         threshold,
         deadline,
-        "ipfs://QmThirdParty",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        true,
-        [newContentIds[0]],
-        [1],
-        { value: purchaseAmount }
-      );
+        metadataCid: "ipfs://QmThirdParty",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [newContentSuffixes[0]],
+        initialPurchaseCounts: [1],
+        value: purchaseAmount,
+      });
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const thirdPartyContract = event.args.contractAddress;

@@ -15,12 +15,16 @@ import {CancellableCondition} from "../individual-projects/CancellableCondition.
 import {IAssuranceCondition} from "../individual-projects/IAssuranceCondition.sol";
 
 error ArrayLengthMismatch();
+error InvalidChannelId();
+error InvalidContentIdSeparator();
+error ChannelCanonicalIdMismatch(bytes32 channelId, bytes32 canonicalChannelIdHash);
 error ChannelNotVerifiedOrControlled(bytes32 channelId);
 error ChannelCreatorControlled(bytes32 channelId);
 error InsufficientThirdPartyPurchase();
 error InitialPurchaseValueMismatch();
 error ContentAlreadyRegisteredForContract(uint256 contentId);
 error InvalidInitialPurchaseToken(uint256 contentId);
+error EmptyContentSuffix(uint256 index);
 error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
 error MarketplaceCreationFailed();
@@ -34,7 +38,7 @@ interface IChannelRegistry {
 
 interface IContentRegistry {
     function contentContract(uint256 contentId) external view returns (address);
-    function registerContent(uint256 contentId, address assuranceContract) external;
+    function registerContent(uint256 contentId, address assuranceContract, string calldata canonicalId) external;
     function releaseContent(uint256 contentId) external;
     function isRegistered(uint256 contentId) external view returns (bool);
 }
@@ -56,6 +60,7 @@ contract CreatorAssuranceContractFactory is Ownable {
     PremintingERC1155Factory public immutable erc1155Factory;
     MarketplaceFactory public immutable marketplaceFactory;
     EthThresholdConditionFactory public immutable conditionFactory;
+    string public contentIdSeparator;
 
     mapping(address => bytes32) public channelIdByContract;
     mapping(address => bool) public isThirdPartyCreated;
@@ -70,14 +75,17 @@ contract CreatorAssuranceContractFactory is Ownable {
         address _channelEscrow,
         address _erc1155Factory,
         address _marketplaceFactory,
-        address _conditionFactory
+        address _conditionFactory,
+        string memory _contentIdSeparator
     ) Ownable(msg.sender) {
+        if (bytes(_contentIdSeparator).length != 1) revert InvalidContentIdSeparator();
         contentRegistry = ContentRegistry(_contentRegistry);
         channelRegistry = ChannelRegistry(_channelRegistry);
         channelEscrow = ChannelEscrow(_channelEscrow);
         erc1155Factory = PremintingERC1155Factory(_erc1155Factory);
         marketplaceFactory = MarketplaceFactory(_marketplaceFactory);
         conditionFactory = EthThresholdConditionFactory(_conditionFactory);
+        contentIdSeparator = _contentIdSeparator;
     }
 
     function setThirdPartyMinPurchase(uint256 _minPurchase) external onlyOwner {
@@ -88,7 +96,8 @@ contract CreatorAssuranceContractFactory is Ownable {
 
     function createContract(
         bytes32 channelId,
-        uint256[] memory contentIds,
+        string memory channelCanonicalId,
+        string[] memory contentSuffixes,
         uint256[] memory supplies,
         uint256[] memory prices,
         uint256 threshold,
@@ -101,11 +110,27 @@ contract CreatorAssuranceContractFactory is Ownable {
         uint256[] memory initialPurchaseCounts
     ) external payable returns (address) {
         if (
-            contentIds.length != supplies.length
-                || contentIds.length != prices.length
+            contentSuffixes.length != supplies.length
+                || contentSuffixes.length != prices.length
                 || initialPurchaseIds.length != initialPurchaseCounts.length
         ) {
             revert ArrayLengthMismatch();
+        }
+
+        if (channelId == bytes32(0)) revert InvalidChannelId();
+
+        bytes32 canonicalChannelIdHash = keccak256(bytes(channelCanonicalId));
+        if (canonicalChannelIdHash != channelId) {
+            revert ChannelCanonicalIdMismatch(channelId, canonicalChannelIdHash);
+        }
+
+        uint256[] memory contentIds = new uint256[](contentSuffixes.length);
+        for (uint256 i = 0; i < contentSuffixes.length; i++) {
+            (uint256 contentId, ) = _buildContentId(channelCanonicalId, contentSuffixes[i], i);
+            if (IContentRegistry(address(contentRegistry)).isRegistered(contentId)) {
+                revert ContentAlreadyRegisteredForContract(contentId);
+            }
+            contentIds[i] = contentId;
         }
 
         uint256 initialPurchaseValue = _calculateInitialPurchaseValue(
@@ -139,12 +164,6 @@ contract CreatorAssuranceContractFactory is Ownable {
             }
             if (msg.sender != channelOwner) {
                 revert OnlyChannelOwnerCanCreateCreatorContract(channelId);
-            }
-        }
-
-        for (uint256 i = 0; i < contentIds.length; i++) {
-            if (IContentRegistry(address(contentRegistry)).isRegistered(contentIds[i])) {
-                revert ContentAlreadyRegisteredForContract(contentIds[i]);
             }
         }
 
@@ -203,7 +222,8 @@ contract CreatorAssuranceContractFactory is Ownable {
         erc1155.renounceOwnership();
 
         for (uint256 i = 0; i < contentIds.length; i++) {
-            IContentRegistry(address(contentRegistry)).registerContent(contentIds[i], address(ac));
+            (, string memory canonicalId) = _buildContentId(channelCanonicalId, contentSuffixes[i], i);
+            IContentRegistry(address(contentRegistry)).registerContent(contentIds[i], address(ac), canonicalId);
         }
 
         channelIdByContract[address(ac)] = channelId;
@@ -273,5 +293,15 @@ contract CreatorAssuranceContractFactory is Ownable {
             }
         }
         revert InvalidInitialPurchaseToken(purchaseId);
+    }
+
+    function _buildContentId(
+        string memory channelCanonicalId,
+        string memory contentSuffix,
+        uint256 index
+    ) private view returns (uint256 contentId, string memory canonicalId) {
+        if (bytes(contentSuffix).length == 0) revert EmptyContentSuffix(index);
+        canonicalId = string.concat(channelCanonicalId, contentIdSeparator, contentSuffix);
+        contentId = uint256(keccak256(bytes(canonicalId)));
     }
 }

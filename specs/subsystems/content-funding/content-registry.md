@@ -18,8 +18,8 @@ Content IDs are `keccak256` hashes of canonical identifiers:
 
 | Source | Canonical ID | Content ID |
 |---|---|---|
-| Twitter/X | `twitter:18347` | `keccak256("twitter:18347")` |
-| YouTube | `youtube:dQw4w9WgXcQ` | `keccak256("youtube:dQw4w9WgXcQ")` |
+| Twitter/X | `twitter:uid:12345678:18347` | `keccak256("twitter:uid:12345678:18347")` |
+| YouTube | `youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw:dQw4w9WgXcQ` | `keccak256("youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw:dQw4w9WgXcQ")` |
 | Substack | `substack:example/my-post` | `keccak256("substack:example/my-post")` |
 | IPFS | `ipfs:bafyXyz...` | `keccak256("ipfs:bafyXyz...")` |
 
@@ -50,7 +50,7 @@ The platform's factory should emit an event that includes the plaintext canonica
 event ContentItemRegistered(
     uint256 indexed contentId,    // keccak256 hash
     address indexed assuranceContract,
-    string canonicalId            // e.g., "twitter:18347"
+    string canonicalId            // e.g., "twitter:uid:12345678:18347"
 );
 ```
 

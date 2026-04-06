@@ -9,7 +9,7 @@ error InvalidContentId();
 
 interface IContentRegistry {
     function contentContract(uint256 contentId) external view returns (address);
-    function registerContent(uint256 contentId, address assuranceContract) external;
+    function registerContent(uint256 contentId, address assuranceContract, string calldata canonicalId) external;
     function releaseContent(uint256 contentId) external;
     function isRegistered(uint256 contentId) external view returns (bool);
 }
@@ -17,8 +17,12 @@ interface IContentRegistry {
 contract ContentRegistry is IContentRegistry, Ownable {
     mapping(uint256 contentId => address assuranceContract) private _contentContracts;
 
-    event ContentRegistered(uint256 indexed contentId, address indexed assuranceContract);
-    event ContentReleased(uint256 indexed contentId);
+    event ContentItemRegistered(
+        uint256 indexed contentId,
+        address indexed assuranceContract,
+        string canonicalId
+    );
+    event ContentItemReleased(uint256 indexed contentId);
 
     modifier onlyValidContentId(uint256 contentId) {
         if (contentId == 0) revert InvalidContentId();
@@ -33,13 +37,14 @@ contract ContentRegistry is IContentRegistry, Ownable {
 
     function registerContent(
         uint256 contentId,
-        address assuranceContract
+        address assuranceContract,
+        string calldata canonicalId
     ) external onlyOwner onlyValidContentId(contentId) {
         if (_contentContracts[contentId] != address(0)) {
             revert ContentAlreadyRegistered(contentId, _contentContracts[contentId]);
         }
         _contentContracts[contentId] = assuranceContract;
-        emit ContentRegistered(contentId, assuranceContract);
+        emit ContentItemRegistered(contentId, assuranceContract, canonicalId);
     }
 
     function releaseContent(uint256 contentId) external onlyOwner onlyValidContentId(contentId) {
@@ -47,7 +52,7 @@ contract ContentRegistry is IContentRegistry, Ownable {
             revert ContentNotRegistered(contentId);
         }
         delete _contentContracts[contentId];
-        emit ContentReleased(contentId);
+        emit ContentItemReleased(contentId);
     }
 
     function isRegistered(uint256 contentId) external view onlyValidContentId(contentId) returns (bool) {

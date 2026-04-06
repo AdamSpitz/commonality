@@ -22,11 +22,6 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
     bool public contentIdsInitialized;
     bool public immutable recipientIsEscrow;
 
-    event ContentItemRegistered(
-        bytes32 indexed channelId,
-        uint256 indexed contentId,
-        string canonicalId
-    );
     event ContentIdsSet(uint256[] contentIds);
 
     constructor(
@@ -63,9 +58,5 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
         uint256 value = address(this).balance;
         emit AssuranceContractWithdrawal(_recipient, value);
         IChannelEscrow(_recipient).deposit{value: value}(channelId);
-    }
-
-    function registerContentItem(uint256 contentId, string calldata canonicalId) external onlyOwner {
-        emit ContentItemRegistered(channelId, contentId, canonicalId);
     }
 }

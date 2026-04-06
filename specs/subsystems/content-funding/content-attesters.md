@@ -34,7 +34,7 @@ For example, in the [noninflammatory content](noninflammatory-content/) use case
 `AlignmentAttestations.sol` uses `bytes32 subjectId`, which can represent either:
 
 - An Ethereum address (left-padded: `bytes32(uint256(uint160(addr)))`) — for attesting about projects, users, or assurance contracts
-- A content ID hash (`keccak256("twitter:18347")`) — for attesting about individual content items
+- A content ID hash (`keccak256("twitter:uid:12345678:18347")`) — for attesting about individual content items
 
 One contract handles both use cases. The content attester service passes the content ID hash directly as the subject, using the same content ID scheme as the [content registry](content-registry.md). This means a content item can be attested as noninflammatory (or whatever the criteria) at the individual-item level, not just at the contract level.
 
