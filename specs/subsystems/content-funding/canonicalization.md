@@ -115,6 +115,20 @@ Content IDs are minimal: `twitter:<tweetId>`, not `twitter:<userId>:<tweetId>`. 
 
 This keeps content IDs derivable from URLs as a pure function (no API calls), keeps the content and channel ID schemes independent, and avoids coupling content registration to channel resolution.
 
+### Important design note: this is not currently enforced on-chain
+
+This separation is elegant at the spec level, but it creates a real enforcement problem for the contracts. If content IDs do not embed channel IDs, and the chain only sees hashed `contentId` and hashed `channelId`, then the factory cannot infer on its own whether a given content item actually belongs to the supplied channel.
+
+That means "creator-controlled channels" are only meaningful if contract creation includes some additional proof of content-to-channel membership. Without that, a malicious caller can register someone else's content under an arbitrary channel and still satisfy the current on-chain access checks.
+
+So we likely need to rethink this part of the design before treating the current contracts as complete. Plausible directions:
+
+1. A signed backend proof at contract-creation time attesting that the exact `(channelId, contentIds...)` bundle is valid.
+2. A different content ID scheme that embeds the channel identity.
+3. A separate on-chain content-ownership registry populated via an oracle/backend process.
+
+Which of these is best is still an open design question.
+
 
 ## Duplicates
 

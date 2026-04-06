@@ -43,6 +43,8 @@ The creator has explicitly opted into channel control by calling a separate on-c
 
 This is a separate action from verification, not bundled into it. A creator who verified just to withdraw funds doesn't get pushed into governance they didn't ask for.
 
+**Important design caveat:** this guarantee only really holds if contract creation can prove that the listed content items actually belong to the channel being controlled. With the current ID scheme, content IDs and channel IDs are independent hashes, so the factory cannot derive that relationship by itself. If we keep the current content ID format, we likely need an additional proof/registry/signature step at contract creation time; otherwise "creator-controlled" does not fully protect the creator's content from being registered under some other channel.
+
 ### State transitions
 
 ```
