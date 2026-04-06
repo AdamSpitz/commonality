@@ -4,18 +4,12 @@
 
   - Implement the content-funding system. Smart contracts are implemented and tested (though I wouldn't mind doing another review). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
     - Spec-alignment follow-up from the recent canonicalization changes:
-      - Update the on-chain content-funding factory flow so the caller supplies the canonical channel ID plus content-specific suffixes, and the factory constructs the full canonical content IDs on-chain before hashing/registering them. The current implementation still accepts opaque pre-hashed `contentIds`, so it can't enforce the new "content IDs embed channel IDs" rule.
-      - Make the registry/factory emit the plaintext canonical content IDs in the event path that off-chain consumers actually watch. Right now the registry only emits `ContentRegistered(contentId, assuranceContract)` and the contract-local `registerContentItem()` event is disconnected from creation.
-      - Reject `bytes32(0)` channel IDs and verify that the supplied canonical channel string hashes to the channel ID used with `ChannelRegistry`, so we don't keep the current zero-ID bookkeeping bug while adding canonical strings.
-      - Update the Hardhat content-funding tests around contract creation, duplicate detection, and emitted events so they cover the new channel-prefixed content ID construction.
       - Add the shared SDK content-funding canonicalization helpers from the spec: strict Twitter/X, YouTube, and Substack URL parsing that extracts content-specific suffixes and rejects ambiguous inputs.
       - Add the backend author/channel-prefix resolution layer for Twitter and YouTube, with caching of resolved platform API lookups. The spec now assumes the same backend used for channel claiming also resolves and caches the stable channel prefixes needed to build content IDs.
       - Wire the future content-funding UI creation flow to that resolver/cache so it validates "this URL belongs to this channel" before submitting a contract.
       - Implement the indexer/SDK content-funding event handling described in the spec, using the plaintext canonical IDs from events to power channel pages and contract views.
     - Smart contract audit follow-up:
-      - Add an on-chain check that every `contentId` in a creator contract actually belongs to the supplied `channelId`. Right now channel authorization is enforced, but the factory never proves that the content being registered belongs to that channel, which means an attacker can lock someone else's content by creating a contract under some other channel.
       - Fix the third-party veto bypass. Right now a third party can choose a threshold equal to their required initial purchase, making the contract succeed inside `createContract()` and become immediately non-vetoable, which defeats the whole "creator can cancel underpriced fan-created contracts during the veto window" design.
-      - Reject `bytes32(0)` as a channel ID (or otherwise stop using zero as the sentinel for "unknown contract"). Right now zero-channel contracts can get stored in `channelIdByContract`, but later cleanup/veto logic treats zero as "not created by the factory", which can strand registry entries.
 
 ## Other big things to do soon
 
@@ -30,9 +24,7 @@
   - Write the documentation and AI skills.
   - If the repeated SDK prebuild cost becomes annoying, consider a more monorepo-aware build setup so SDK-dependent workspaces don't redundantly rebuild the SDK.
   - Do another smart-contract audit pass after fixing the current content-funding findings. Current audit findings:
-    - The content-funding factory does not validate that the supplied content items belong to the supplied channel.
     - Third-party contracts can be made to succeed during creation, bypassing the intended creator veto protection.
-    - Zero channel IDs collide with the factory's "unknown contract" sentinel value and can break veto/failure cleanup bookkeeping.
   - Do I trust the UI? No.
 
   - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
