@@ -33,6 +33,7 @@ const navigationItems = [
   { label: 'My Profile', path: '/profile' },
   { label: 'Settings', path: '/settings' },
   { label: 'Refs', path: '/refs' },
+  { label: 'Creator Dashboard', path: '/content/dashboard' },
   { label: 'Creators (Twitter)', path: '/content/twitter' },
   { label: 'Creators (YouTube)', path: '/content/youtube' },
   { label: 'Creators (Substack)', path: '/content/substack' },

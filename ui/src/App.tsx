@@ -14,6 +14,7 @@ import { MyRefsPage } from './mutablerefs'
 import { BrowseCreatorsPage } from './content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from './content-funding/pages/ChannelPage'
 import { CreateContractPage } from './content-funding/pages/CreateContractPage'
+import { CreatorDashboardPage } from './content-funding/pages/CreatorDashboardPage'
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/content/:platform" element={<BrowseCreatorsPage />} />
           <Route path="/content/:platform/:channelId" element={<ChannelPage />} />
           <Route path="/content/:platform/:channelId/new" element={<CreateContractPage />} />
+          <Route path="/content/dashboard" element={<CreatorDashboardPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>

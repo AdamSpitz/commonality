@@ -201,3 +201,61 @@ export async function getThirdPartyMinPurchase(
 
   return value as bigint;
 }
+
+export async function withdrawFromEscrow(
+  clients: TestClients,
+  escrowContract: { address: Address; abi: Abi },
+  channelId: string,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: escrowContract.address,
+    abi: escrowContract.abi,
+    functionName: 'withdraw',
+    args: [channelId as `0x${string}`],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+export async function takeChannelControl(
+  clients: TestClients,
+  registryContract: { address: Address; abi: Abi },
+  channelId: string,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'takeChannelControl',
+    args: [channelId as `0x${string}`],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+export async function vetoContract(
+  clients: TestClients,
+  registryContract: { address: Address; abi: Abi },
+  channelId: string,
+  contractAddress: Address,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'vetoContract',
+    args: [channelId as `0x${string}`, contractAddress],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}

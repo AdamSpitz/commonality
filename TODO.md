@@ -16,7 +16,7 @@
     - DONE: Browse Creators page (`/content/:platform`) — first content-funding UI slice. Includes all necessary SDK plumbing: content-funding ABIs in SDK, event decoders, `fetchAndFoldContentFundingState`, `getAllChannelOverviews`, `buildChannelCanonicalIdMap`, `extractChannelCanonicalIdFromContentCanonicalId`, contract address wiring in useMachinery.
     - DONE: Channel Page (`/content/:platform/:channelId`) — public-facing channel view with hero for unclaimed channels, content items list, contracts list, share/notify section.
     - DONE: Create Contract page (`/content/:platform/:channelId/new`) — form for creating a new funding contract.
-    - TODO: Creator Dashboard (`/content/dashboard`) — management page for verified creators.
+    - DONE: Creator Dashboard (`/content/dashboard`) — management page for verified creators.
     - TODO: Integration with Pubstarter project detail page — content items section, channel info, attestations.
     - TODO: Integration with Funding Portal — recognize creator assurance contracts.
     - TODO: Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end.
