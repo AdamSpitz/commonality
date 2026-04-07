@@ -77,6 +77,13 @@ export const ChannelRegistryAbi: Abi = [
   },
   {
     type: 'function',
+    name: 'vetoContract',
+    inputs: [{ name: 'contractAddress', type: 'address' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     name: 'isVerified',
     inputs: [{ name: 'channelId', type: 'bytes32' }],
     outputs: [{ name: '', type: 'bool' }],

@@ -1,5 +1,48 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding bug fixes: 5 UI/SDK issues — COMPLETE ✓
+
+### What was done
+
+Fixed all 5 content-funding bugs from TODO.md:
+
+1. **ChannelRegistryAbi missing vetoContract**: Added the missing `vetoContract` function to both `sdk/abis/ChannelRegistryAbi.ts` and `indexer/abis/ChannelRegistryAbi.ts`. The contract's `vetoContract(address)` takes only one argument.
+
+2. **SDK vetoContract passes wrong args**: Fixed `sdk/src/subsystems/content-funding/actions.ts` to call `vetoContract` with just `contractAddress` instead of `[channelId, contractAddress]`. Also updated the UI caller in `CreatorDashboardPage.tsx`.
+
+3. **Creator Dashboard shows all verified channels**: Fixed the filter to require that `ch.channel.owner?.toLowerCase() === address.toLowerCase()` for verified channels, not just any verified channel.
+
+4. **ContentFundingProjectSection hardcodes twitter platform**: Added `getPlatformFromChannelId` helper to extract platform from canonical channel ID (`twitter:`, `youtube:`, `substack:`) and use it in the URL path.
+
+5. **actions.ts duplicates canonicalization**: Refactored `parseContentUrl` to use `parseContentFundingUrl` from `canonicalization.ts` instead of duplicating the logic.
+
+### Key decisions
+
+- Kept all 5 fixes in one pass since they're closely related content-funding bug fixes.
+- Fixed the indexer ABI as well for consistency, even though it's mainly used by the indexer.
+
+### PRD reference
+
+- `TODO.md` content-funding bug list (2026-04-07)
+
+### Files changed
+
+- `sdk/abis/ChannelRegistryAbi.ts` — added vetoContract function
+- `indexer/abis/ChannelRegistryAbi.ts` — added vetoContract function  
+- `sdk/src/subsystems/content-funding/actions.ts` — fixed vetoContract args, refactored parseContentUrl
+- `ui/src/content-funding/pages/CreatorDashboardPage.tsx` — fixed vetoContract call, fixed channel filter
+- `ui/src/content-funding/components/ContentFundingProjectSection.tsx` — extract platform from canonical ID
+- `TODO.md` — marked all 5 as DONE
+- `README.md` — updated status
+
+### Notes for next session
+
+Content-funding bugs are now all fixed. Remaining content-funding work:
+- Claim Flow UI (modal for creators to verify identity and withdraw)
+- Wire Create Contract page to Platform API Service's `/resolve/content`
+
+---
+
 ## Real ChannelVerifier contract — COMPLETE ✓
 
 ### What was done

@@ -147,8 +147,17 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
   const { channel, contract } = contentFundingInfo
 
   const canonicalChannelId = channel.canonicalChannelId
+
+  const getPlatformFromChannelId = (channelId: string): string => {
+    if (channelId.startsWith('twitter:')) return 'twitter'
+    if (channelId.startsWith('youtube:')) return 'youtube'
+    if (channelId.startsWith('substack:')) return 'substack'
+    return 'twitter'
+  }
+
+  const platform = canonicalChannelId ? getPlatformFromChannelId(canonicalChannelId) : null
   const channelPageUrl = canonicalChannelId
-    ? `/content/twitter/${encodeURIComponent(canonicalChannelId)}`
+    ? `/content/${platform}/${encodeURIComponent(canonicalChannelId)}`
     : null
 
   return (

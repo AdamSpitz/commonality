@@ -272,8 +272,8 @@ export function CreatorDashboardPage() {
       if (ch.channel.owner?.toLowerCase() === address.toLowerCase()) {
         return true
       }
-      // Also include verified channels where the connected wallet could take control
-      if (ch.channel.state === 'verified') {
+      // Also include verified channels where the connected wallet is the owner (can take control)
+      if (ch.channel.state === 'verified' && ch.channel.owner?.toLowerCase() === address.toLowerCase()) {
         return true
       }
       return false
@@ -374,7 +374,7 @@ export function CreatorDashboardPage() {
         abi: ChannelRegistryAbi,
       }
 
-      await vetoContract(clients, registryContract, hashCanonicalId(channel.canonicalChannelId), contractAddress as `0x${string}`)
+      await vetoContract(clients, registryContract, contractAddress as `0x${string}`)
       window.location.reload()
     } catch (err) {
       setVetoError(err instanceof Error ? err.message : 'Failed to veto contract')

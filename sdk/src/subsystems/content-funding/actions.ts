@@ -5,7 +5,7 @@
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type TestClients } from '../../utils/ethereum.js';
 import { CreatorAssuranceContractFactoryAbi } from '../../abis.js';
-import { hashCanonicalId } from './canonicalization.js';
+import { hashCanonicalId, parseContentFundingUrl } from './canonicalization.js';
 
 export interface ContentFundingContract {
   address: Address;
@@ -35,77 +35,14 @@ export interface CreateContentFundingContractParams {
 }
 
 function parseContentUrl(url: string): { contentSuffix: string; platform: string } {
-  try {
-    const parsedUrl = new URL(url);
-    const hostname = parsedUrl.hostname.toLowerCase();
-    const pathname = parsedUrl.pathname;
-
-    if (hostname === 'twitter.com' || hostname === 'www.twitter.com' || hostname === 'x.com' || hostname === 'www.x.com') {
-      const segments = pathname.split('/').filter(Boolean);
-      let tweetId: string | null = null;
-
-      if (segments[0] === 'i' && segments[1] === 'web' && segments[2] === 'status' && segments[3]) {
-        tweetId = segments[3];
-      } else if (segments[1] === 'status' && segments[2]) {
-        tweetId = segments[2];
-      }
-
-      if (!tweetId || !/^\d+$/.test(tweetId)) {
-        throw new Error('Invalid Twitter URL: could not extract tweet ID');
-      }
-
-      return { contentSuffix: tweetId, platform: 'twitter' };
-    }
-
-    if (hostname === 'youtube.com' || hostname === 'www.youtube.com') {
-      const searchParams = parsedUrl.searchParams;
-      const segments = pathname.split('/').filter(Boolean);
-      let videoId: string | null = null;
-
-      if (segments[0] === 'watch') {
-        videoId = searchParams.get('v');
-      } else if ((segments[0] === 'shorts' || segments[0] === 'embed') && segments[1]) {
-        videoId = segments[1];
-      }
-
-      if (!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-        throw new Error('Invalid YouTube URL: could not extract video ID');
-      }
-
-      return { contentSuffix: videoId, platform: 'youtube' };
-    }
-
-    if (hostname === 'youtu.be') {
-      const segments = pathname.split('/').filter(Boolean);
-      const videoId = segments[0];
-
-      if (!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-        throw new Error('Invalid YouTube short URL: could not extract video ID');
-      }
-
-      return { contentSuffix: videoId, platform: 'youtube' };
-    }
-
-    if (hostname.endsWith('.substack.com')) {
-      const labels = hostname.split('.');
-      if (labels.length !== 3 || labels[1] !== 'substack' || labels[2] !== 'com') {
-        throw new Error('Invalid Substack URL: must use publication subdomain');
-      }
-
-      const pathSegments = pathname.split('/').filter(Boolean);
-
-      if (pathSegments.length !== 2 || pathSegments[0] !== 'p' || !pathSegments[1]) {
-        throw new Error('Invalid Substack URL: must point to a /p/<slug> post');
-      }
-
-      const slug = pathSegments[1];
-      return { contentSuffix: slug, platform: 'substack' };
-    }
-
-    throw new Error(`Unsupported platform: ${hostname}`);
-  } catch (err) {
-    if (err instanceof Error) throw err;
-    throw new Error(`Failed to parse content URL: ${url}`);
+  const parsed = parseContentFundingUrl(url);
+  switch (parsed.platform) {
+    case 'twitter':
+      return { contentSuffix: parsed.tweetId, platform: 'twitter' };
+    case 'youtube':
+      return { contentSuffix: parsed.videoId, platform: 'youtube' };
+    case 'substack':
+      return { contentSuffix: parsed.slug, platform: 'substack' };
   }
 }
 
@@ -243,14 +180,13 @@ export async function takeChannelControl(
 export async function vetoContract(
   clients: TestClients,
   registryContract: { address: Address; abi: Abi },
-  channelId: string,
   contractAddress: Address,
 ): Promise<{ hash: Hash }> {
   const hash = await clients.walletClient.writeContract({
     address: registryContract.address,
     abi: registryContract.abi,
     functionName: 'vetoContract',
-    args: [channelId as `0x${string}`, contractAddress],
+    args: [contractAddress],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
