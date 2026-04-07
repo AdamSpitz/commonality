@@ -60,6 +60,56 @@ describe('PlatformApiService', () => {
     assert.deepStrictEqual(first, second);
   });
 
+  it('reuses the latest resolved handle for cached aliases on the same channel', async () => {
+    let callCount = 0;
+    const twitterClient = createTwitterClient({
+      resolveChannel: async (input) => {
+        callCount += 1;
+
+        if (input === '@alice') {
+          return {
+            platform: 'twitter',
+            channelId: 'twitter:uid:12345678',
+            handle: '@alice',
+            displayName: 'Alice',
+          };
+        }
+
+        if (input === '@alice_new') {
+          return {
+            platform: 'twitter',
+            channelId: 'twitter:uid:12345678',
+            handle: '@alice_new',
+            displayName: 'Alice Renamed',
+          };
+        }
+
+        throw new Error(`Unexpected handle lookup: ${input}`);
+      },
+    });
+
+    const service = createService({ twitterClient });
+
+    const original = await service.resolveChannel('twitter', '@alice');
+    const renamed = await service.resolveChannel('twitter', '@alice_new');
+    const originalAfterRename = await service.resolveChannel('twitter', '@alice');
+
+    assert.strictEqual(callCount, 2);
+    assert.deepStrictEqual(original, {
+      platform: 'twitter',
+      channelId: 'twitter:uid:12345678',
+      handle: '@alice',
+      displayName: 'Alice',
+    });
+    assert.deepStrictEqual(renamed, {
+      platform: 'twitter',
+      channelId: 'twitter:uid:12345678',
+      handle: '@alice_new',
+      displayName: 'Alice Renamed',
+    });
+    assert.deepStrictEqual(originalAfterRename, renamed);
+  });
+
   it('creates a verification challenge and signs a recoverable proof', async () => {
     let observedChallengeCode = '';
     const twitterClient = createTwitterClient({

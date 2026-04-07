@@ -320,12 +320,18 @@ export class PlatformApiService {
     const cacheKey = `channel:${platform}:${normalizedInput}`;
     const cached = this.channelCache.get(cacheKey);
     if (cached) {
-      return cached;
+      const canonical = this.channelCache.get(this.getChannelIdCacheKey(platform, cached.channelId));
+      return canonical ?? cached;
     }
 
     const resolved = await resolveChannel(handle);
     this.channelCache.set(cacheKey, resolved);
+    this.channelCache.set(this.getChannelIdCacheKey(platform, resolved.channelId), resolved);
     return resolved;
+  }
+
+  private getChannelIdCacheKey(platform: 'twitter' | 'youtube', channelId: string): string {
+    return `channel-by-id:${platform}:${channelId}`;
   }
 
   private getContentCacheKey(parsed: ParsedContentFundingUrl): string {

@@ -3,12 +3,11 @@
 ## Main thing I want to work on next
 
   - Implement the content-funding system. Smart contracts are implemented and tested (though I wouldn't mind doing another review). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
-    - MOSTLY DONE: Implement the platform API service (see [platform-api-service.md](specs/subsystems/content-funding/platform-api-service.md)). Core implementation is solid: all 4 endpoints (`/resolve/channel`, `/resolve/content`, `/verify/challenge`, `/verify/confirm`) plus `/health`, caching strategy matches spec, rate limiting matches spec, Ethereum signing + optional on-chain tx submission, SDK canonicalization functions used correctly, 4 tests passing. Remaining:
+    - MOSTLY DONE: Implement the platform API service (see [platform-api-service.md](specs/subsystems/content-funding/platform-api-service.md)). Core implementation is solid: all 4 endpoints (`/resolve/channel`, `/resolve/content`, `/verify/challenge`, `/verify/confirm`) plus `/health`, caching strategy matches spec, rate limiting matches spec, Ethereum signing + optional on-chain tx submission, SDK canonicalization functions used correctly, 5 tests passing. Remaining:
       - Add CORS support (UI will call this cross-origin unless there's a reverse proxy).
       - Add to docker-compose.yml (spec says "deployed alongside the existing services").
       - More test coverage: YouTube resolution, Twitter/YouTube content resolution, error paths (invalid platform, unconfigured providers, invalid inputs), Express route layer.
       - Rate limiter never cleans up stale entries (minor memory leak with many distinct IPs).
-      - Channel cache doesn't cross-reference by resolved ID — spec says "The handle→ID mapping is updated if we see a different handle resolve to the same ID" but cache is keyed only by normalized handle input.
     - Spec-alignment follow-up from the recent canonicalization changes:
       - Add the shared SDK content-funding canonicalization helpers from the spec: strict Twitter/X, YouTube, and Substack URL parsing that extracts content-specific suffixes and rejects ambiguous inputs.
       - Add the backend author/channel-prefix resolution layer for Twitter and YouTube, with caching of resolved platform API lookups. The spec now assumes the same backend used for channel claiming also resolves and caches the stable channel prefixes needed to build content IDs.

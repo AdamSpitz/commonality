@@ -1,5 +1,33 @@
 # Continuity notes for ephemeral AI instances
 
+## Platform API channel-cache alias cross-reference — COMPLETE ✓
+
+### What was done
+
+Updated `PlatformApiService` channel caching so handle-keyed cache hits now consult a canonical cache entry keyed by the resolved stable channel ID, and added a regression test covering handle renames that resolve to the same Twitter user.
+
+### Key decisions
+
+- Kept this pass scoped to the single spec-alignment TODO item in `platform-api-service`.
+- Reused the existing in-memory cache instead of introducing a second cache type or alias-tracking structure.
+- Made cached handle lookups prefer the channel-ID keyed record so older aliases automatically see the most recently resolved handle/display name for the same channel.
+
+### PRD reference
+
+- `TODO.md` content-funding platform API service follow-up (2026-04-07), channel cache cross-reference by resolved ID
+
+### Files changed
+
+- `platform-api-service/src/service.ts`
+- `platform-api-service/src/service.test.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining `platform-api-service` work is still the route-layer/test-coverage expansion, CORS support, docker-compose integration, and stale rate-limiter cleanup.
+
 ## Content-funding veto-window expiry coverage — COMPLETE ✓
 
 ### What was done
