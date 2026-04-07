@@ -31,6 +31,10 @@ import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
 import { ChannelEscrowAbi } from "./abis/ChannelEscrowAbi";
 import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
 
+const creatorContractCreatedEvent = CreatorAssuranceContractFactoryAbi.find(
+  (entry) => entry.type === "event" && entry.name === "CreatorContractCreated",
+);
+
 // ============================================================================
 // CONCEPTSPACE CONTRACT ADDRESSES
 // ============================================================================
@@ -275,7 +279,7 @@ export default createConfig({
       address: CREATOR_CONTRACT_FACTORY_ADDRESS
         ? factory({
             address: CREATOR_CONTRACT_FACTORY_ADDRESS,
-            event: CreatorAssuranceContractFactoryAbi[21] as any, // CreatorContractCreated
+            event: creatorContractCreatedEvent as any,
             parameter: "contractAddress",
           })
         : undefined,

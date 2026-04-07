@@ -1,5 +1,43 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding deployment wiring — COMPLETE ✓
+
+### What was done
+
+Added the remaining deployment wiring for the content-funding contract set:
+
+1. Updated `hardhat/scripts/deploy.js` to deploy `MockChannelVerifier`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, and `CreatorAssuranceContractFactory`
+2. Wired the post-deploy ownership/registration steps (`ContentRegistry.transferOwnership(factory)` and `ChannelRegistry.setFactory(factory)`)
+3. Extended generated deployment/env output with `CHANNEL_VERIFIER_ADDRESS`, `CONTENT_REGISTRY_ADDRESS`, `CHANNEL_REGISTRY_ADDRESS`, `CHANNEL_ESCROW_ADDRESS`, `CREATOR_CONTRACT_FACTORY_ADDRESS`, and `CONTENT_FUNDING_START_BLOCK`
+4. Updated `scripts/setup-env.sh` so regenerated root env files also include the content-funding addresses for indexer/docker/service use
+5. Fixed `indexer/ponder.config.ts` so dynamic indexing of creator assurance contracts looks up the `CreatorContractCreated` event by name instead of a brittle ABI array index
+6. Documented that the current deploy path uses the repo's mock verifier until a production verifier contract exists
+
+### Key decisions
+
+- Kept this pass scoped to the single deployment-wiring TODO item rather than starting fake-data or UI work.
+- Used `MockChannelVerifier` as the bootstrapping verifier on all deployments because the repo does not yet contain a production `IChannelVerifier` implementation; `ChannelRegistry` ownership still allows swapping in a real verifier later via `setVerifier(...)`.
+- Propagated `CONTENT_FUNDING_START_BLOCK` alongside the new addresses so the indexer can opt into a content-funding-specific start block without extra manual env edits.
+
+### PRD reference
+
+- `TODO.md` content-funding (2026-04-07), deployment wiring for local Hardhat/testnet
+
+### Files changed
+
+- `hardhat/scripts/deploy.js`
+- `scripts/setup-env.sh`
+- `indexer/ponder.config.ts`
+- `DEPLOYMENT.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Blockers or notes for next iteration
+
+- The deploy flow is now complete enough for local/testnet address propagation, but the verifier is still a placeholder. Real creator verification on shared networks depends on implementing and deploying a production verifier contract, then updating `ChannelRegistry` to point at it.
+- Good interrupt point. The next content-funding chunk should probably be either fake-data seeding or the first UI slice that consumes the now-deployed contract set.
+
 ## Content-funding SDK cross-cutting queries — COMPLETE ✓
 
 ### What was done

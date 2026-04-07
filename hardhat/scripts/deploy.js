@@ -65,6 +65,11 @@ async function main() {
         'MARKETPLACE_FACTORY_ADDRESS',
         'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS',
         'PUBSTARTER_ADDRESS',
+        'CHANNEL_VERIFIER_ADDRESS',
+        'CONTENT_REGISTRY_ADDRESS',
+        'CHANNEL_REGISTRY_ADDRESS',
+        'CHANNEL_ESCROW_ADDRESS',
+        'CREATOR_CONTRACT_FACTORY_ADDRESS',
       ];
       const checks = await Promise.all(addressKeys.map(k => hasCode(existing[k])));
       if (checks.every(Boolean)) {
@@ -173,6 +178,52 @@ async function main() {
   const conditionFactoryAddress = await conditionFactory.getAddress();
   console.log(`✓ EthThresholdConditionFactory: ${conditionFactoryAddress}`);
 
+  console.log('\nDeploying Content Funding contracts...');
+
+  // Use the mock verifier as the initial channel verifier until a production
+  // verifier contract exists. The owner can later swap in a real verifier.
+  const MockChannelVerifier = await ethers.getContractFactory('MockChannelVerifier');
+  const channelVerifier = await MockChannelVerifier.deploy();
+  await channelVerifier.waitForDeployment();
+  const channelVerifierAddress = await channelVerifier.getAddress();
+  console.log(`✓ MockChannelVerifier: ${channelVerifierAddress}`);
+
+  const ContentRegistry = await ethers.getContractFactory('ContentRegistry');
+  const contentRegistry = await ContentRegistry.deploy();
+  await contentRegistry.waitForDeployment();
+  const contentRegistryAddress = await contentRegistry.getAddress();
+  console.log(`✓ ContentRegistry: ${contentRegistryAddress}`);
+
+  const ChannelRegistry = await ethers.getContractFactory('ChannelRegistry');
+  const channelRegistry = await ChannelRegistry.deploy(channelVerifierAddress);
+  await channelRegistry.waitForDeployment();
+  const channelRegistryAddress = await channelRegistry.getAddress();
+  console.log(`✓ ChannelRegistry: ${channelRegistryAddress}`);
+
+  const ChannelEscrow = await ethers.getContractFactory('ChannelEscrow');
+  const channelEscrow = await ChannelEscrow.deploy(channelRegistryAddress);
+  await channelEscrow.waitForDeployment();
+  const channelEscrowAddress = await channelEscrow.getAddress();
+  console.log(`✓ ChannelEscrow: ${channelEscrowAddress}`);
+
+  const CreatorAssuranceContractFactory = await ethers.getContractFactory('CreatorAssuranceContractFactory');
+  const creatorContractFactory = await CreatorAssuranceContractFactory.deploy(
+    contentRegistryAddress,
+    channelRegistryAddress,
+    channelEscrowAddress,
+    erc1155FactoryAddress,
+    marketplaceFactoryAddress,
+    conditionFactoryAddress,
+    ':'
+  );
+  await creatorContractFactory.waitForDeployment();
+  const creatorContractFactoryAddress = await creatorContractFactory.getAddress();
+  console.log(`✓ CreatorAssuranceContractFactory: ${creatorContractFactoryAddress}`);
+
+  await contentRegistry.transferOwnership(creatorContractFactoryAddress);
+  await channelRegistry.setFactory(creatorContractFactoryAddress);
+  console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory)');
+
   // Deploy Pubstarter main contract
   console.log('Deploying Pubstarter...');
   const Pubstarter = await ethers.getContractFactory('Pubstarter');
@@ -207,7 +258,13 @@ async function main() {
         AssuranceContractFactory: assuranceFactoryAddress,
         PremintingERC1155Factory: erc1155FactoryAddress,
         MarketplaceFactory: marketplaceFactoryAddress,
-        Pubstarter: pubstarterAddress
+        EthThresholdConditionFactory: conditionFactoryAddress,
+        Pubstarter: pubstarterAddress,
+        MockChannelVerifier: channelVerifierAddress,
+        ContentRegistry: contentRegistryAddress,
+        ChannelRegistry: channelRegistryAddress,
+        ChannelEscrow: channelEscrowAddress,
+        CreatorAssuranceContractFactory: creatorContractFactoryAddress,
       }
     };
 
@@ -240,6 +297,12 @@ async function main() {
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
     'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS': conditionFactoryAddress,
     'PUBSTARTER_ADDRESS': pubstarterAddress,
+    'CHANNEL_VERIFIER_ADDRESS': channelVerifierAddress,
+    'CONTENT_REGISTRY_ADDRESS': contentRegistryAddress,
+    'CHANNEL_REGISTRY_ADDRESS': channelRegistryAddress,
+    'CHANNEL_ESCROW_ADDRESS': channelEscrowAddress,
+    'CREATOR_CONTRACT_FACTORY_ADDRESS': creatorContractFactoryAddress,
+    'CONTENT_FUNDING_START_BLOCK': '1',
     'START_BLOCK': '1',
   };
 
@@ -337,6 +400,11 @@ async function main() {
   console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);
   console.log(`  ConditionFactory:        ${conditionFactoryAddress}`);
   console.log(`  Pubstarter:              ${pubstarterAddress}`);
+  console.log(`  ChannelVerifier:         ${channelVerifierAddress}`);
+  console.log(`  ContentRegistry:         ${contentRegistryAddress}`);
+  console.log(`  ChannelRegistry:         ${channelRegistryAddress}`);
+  console.log(`  ChannelEscrow:           ${channelEscrowAddress}`);
+  console.log(`  CreatorContractFactory:  ${creatorContractFactoryAddress}`);
 
   console.log('\nNext steps:');
   if (isLocal) {
