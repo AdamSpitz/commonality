@@ -349,9 +349,19 @@ export function ChannelPage() {
       {/* Contracts List */}
       {contracts.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            Contracts
-          </Typography>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
+            <Typography variant="h5">
+              Contracts
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              component={RouterLink}
+              to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
+            >
+              Create Contract
+            </Button>
+          </Stack>
           <Stack spacing={1.5}>
             {contracts.map((contract) => (
               <ContractCard key={contract.contractAddress} contract={contract} />
@@ -362,7 +372,14 @@ export function ChannelPage() {
 
       {contracts.length === 0 && (
         <Paper sx={{ p: 3, mb: 3, textAlign: 'center' }}>
-          <Typography color="text.secondary">No contracts yet for this channel.</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>No contracts yet for this channel.</Typography>
+          <Button
+            variant="contained"
+            component={RouterLink}
+            to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
+          >
+            Create Contract
+          </Button>
         </Paper>
       )}
 

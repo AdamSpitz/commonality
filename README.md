@@ -27,7 +27,7 @@ No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEP
 
 - `npm run lint` to run various linters
 - `npm run build` to make sure everything builds and type-checks
-- `npm run test` to run the tests
+- `npm run test` to run the tests (takes many minutes!)
 
 Note that the build and tests are run by the Git pre-commit hook, and the whole thing takes a few minutes to run, so if you're ready to commit and the only thing left to do is run the build and the tests, it's okay to just attempt to commit and make sure it goes through; no need to run the whole test suite only to have it run again when you commit immediately afterward.
 
@@ -62,4 +62,4 @@ For now, this project hasn't even been deployed yet, so don't worry about backwa
 
 - Test coverage exists across all major subsystems (SDK, hardhat, integration tests, UI, and e2e coverage for pubstarter/fundingportals/mutablerefs/marketplace).
 - Subjectiv trust-network computation now runs in a Web Worker, rehydrates cached trusted sets plus visited per-user direct-trust mappings from IndexedDB on startup, refreshes on direct-trust edits/manual refresh/window focus/a periodic timer, streams partial trusted-set updates into the UI while recomputation is still underway, has higher-level UI integration coverage across the direct-trust settings flow plus funding-portal and leaderboard trust-aware filtering, and now has clearer Settings/funding-portal copy around personal trust networks, partial loading, and the no-direct-trust fallback.
-- Content-funding: smart contracts implemented and reviewed, SDK fully wired (ABIs, event decoders, fold functions, cross-cutting query helpers, `fetchAndFoldContentFundingState`, `getAllChannelOverviews`), deployment flow and fake-data pipeline complete. UI in progress: Browse Creators page (`/content/:platform`) and Channel Page (`/content/:platform/:channelId`) are live; Create Contract, Creator Dashboard, and Pubstarter/Portal integrations still TODO.
+- Content-funding: smart contracts implemented and reviewed, SDK fully wired (ABIs, event decoders, fold functions, cross-cutting query helpers, `fetchAndFoldContentFundingState`, `getAllChannelOverviews`), deployment flow and fake-data pipeline complete. UI in progress: Browse Creators, Channel Page, and Create Contract (`/content/:platform/:channelId/new`) pages are live; Creator Dashboard and Pubstarter/Portal integrations still TODO.

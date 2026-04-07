@@ -13,6 +13,7 @@ import { StatementFundingPortalPage, CauseLeaderboardPage } from './fundingporta
 import { MyRefsPage } from './mutablerefs'
 import { BrowseCreatorsPage } from './content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from './content-funding/pages/ChannelPage'
+import { CreateContractPage } from './content-funding/pages/CreateContractPage'
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/refs" element={<MyRefsPage />} />
           <Route path="/content/:platform" element={<BrowseCreatorsPage />} />
           <Route path="/content/:platform/:channelId" element={<ChannelPage />} />
+          <Route path="/content/:platform/:channelId/new" element={<CreateContractPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>

@@ -1,5 +1,37 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding UI: Create Contract page — COMPLETE ✓
+
+### What was done
+
+Implemented the Create Contract page at `/content/:platform/:channelId/new` — the third content-funding UI slice.
+
+**New file:**
+- `ui/src/content-funding/pages/CreateContractPage.tsx` — full Create Contract form component
+- `sdk/src/subsystems/content-funding/actions.ts` — SDK action functions for creating content-funding contracts
+
+**Updated files:**
+- `ui/src/App.tsx` — added route `/content/:platform/:channelId/new`
+- `ui/src/content-funding/pages/ChannelPage.tsx` — added "Create Contract" button to contracts section
+- `sdk/src/subsystems/content-funding/index.ts` — exported new actions
+- `TODO.md` — marked Create Contract page as DONE
+- `README.md` — updated status
+
+### Key decisions
+
+- Reused the existing content-funding canonicalization helpers (`parseContentFundingUrl`, `buildCanonicalContentId`, `hashCanonicalId`) from the SDK.
+- Created a `createContentFundingContract` SDK action that follows the same pattern as `createProject` in the pubstarter subsystem: writes to the factory contract, waits for receipt, parses events with `parseEventLogs`.
+- The form validates content URLs using the SDK's canonicalization, checks for minimum third-party purchase requirement, and calculates initial purchase value from token prices/supplies.
+- Added "Create Contract" button to the Channel Page that appears in both the contracts list header and the empty state.
+- The Create Contract page gates creation based on channel state: unclaimed/verified channels allow third-party creation; creator-controlled channels require the connected wallet to be the channel owner.
+
+### Notes for next session
+
+The remaining content-funding UI slices, roughly in priority order:
+1. **Creator Dashboard** (`/content/dashboard`) — management page for verified creators (withdraw from escrow, veto window, take control).
+2. **Pubstarter project detail page integration** — recognize creator assurance contracts and show content-funding-specific info.
+3. **Funding Portal integration** — recognize creator assurance contracts in aligned-projects list.
+
 ## Content-funding UI: Channel Page — COMPLETE ✓
 
 ### What was done
