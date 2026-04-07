@@ -20,6 +20,14 @@ vi.mock('@commonality/sdk', async () => {
   }
 })
 
+vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
+  useContentFundingState: vi.fn(() => ({
+    state: null,
+    channels: [],
+    loading: false,
+  })),
+}))
+
 import {
   createSDKMachinery,
   getAllAlignedProjectsForCause,

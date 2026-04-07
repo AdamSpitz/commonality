@@ -18,7 +18,7 @@
     - DONE: Create Contract page (`/content/:platform/:channelId/new`) — form for creating a new funding contract.
     - DONE: Creator Dashboard (`/content/dashboard`) — management page for verified creators.
     - DONE: Integration with Pubstarter project detail page — content items section, channel info, attestations.
-    - TODO: Integration with Funding Portal — recognize creator assurance contracts.
+    - DONE: Integration with Funding Portal — recognize creator assurance contracts.
     - TODO: Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end.
 
 ## Other big things to do soon

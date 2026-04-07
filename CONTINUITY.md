@@ -1,5 +1,45 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding UI: Funding Portal integration — COMPLETE ✓
+
+### What was done
+
+Integrated content-funding information into the Funding Portal's aligned-projects list. When an aligned project is a content-funding creator assurance contract, the project card now displays a "Content Funding" badge, channel info, and contract status.
+
+**Updated files:**
+- `ui/src/fundingportal/components/AlignedProjectCard.tsx` — added content-funding detection and display:
+  - `useContentFundingInfo` hook to look up contract info from channels
+  - `ContentFundingBadge` component showing "Content Funding" + "Fan-created" chips
+  - `ContentFundingCardDetails` component showing channel name, state, and contract status
+  - Updated `AlignedProjectCard` to render these when content-funding info exists
+- `ui/src/fundingportal/components/AlignedProjectsList.test.tsx` — added mock for `useContentFundingState`
+
+### Key decisions
+
+- Reused the existing `useContentFundingState` hook from the content-funding module to detect whether a project is a content-funding contract
+- The card searches all channels' contracts for a matching address and shows content-funding info only when found
+- Components gracefully handle missing content-funding state (card renders normally without content-funding badges)
+- Used the same `getChannelDisplayName` helper from the ContentFundingProjectSection for consistency
+
+### PRD reference
+
+- `TODO.md` content-funding UI: "Integration with Funding Portal — recognize creator assurance contracts"
+
+### Files changed
+
+- `ui/src/fundingportal/components/AlignedProjectCard.tsx`
+- `ui/src/fundingportal/components/AlignedProjectsList.test.tsx`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Content-funding UI MVP is now complete. The remaining TODO item for content-funding is:
+- **Replace the deployment-time `MockChannelVerifier` placeholder** with a real on-chain verifier contract once the verification path is implemented end-to-end.
+
+---
+
 ## Content-funding UI: Pubstarter project detail page integration — COMPLETE ✓
 
 ### What was done
