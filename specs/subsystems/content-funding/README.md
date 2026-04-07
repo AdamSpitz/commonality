@@ -15,6 +15,7 @@ This is a general-purpose mechanism. You could fund content for any reason: noni
 - **[Channel claiming](channel-claiming.md)** — Rules for who can create contracts for a creator's content, and how creators take ownership.
 - **[Channel escrow](channel-escrow.md)** — Holding contract that receives funds for unclaimed channels and releases them when the creator verifies.
 - **[Content attesters](content-attesters.md)** — AI services that evaluate content quality and publish attestations. General framework; specific attester criteria are per-use-case.
+- **[Platform API service](platform-api-service.md)** — Backend service that resolves platform handles/URLs to stable channel IDs, validates content ownership, and handles channel verification (tweet-based proof).
 - **[Indexer](indexer.md)** — Data architecture: event cache integration, SDK fold functions, notification service.
 - **[UI](ui.md)** — Pages and components: browse creators, channel page, create contract, creator dashboard, and integration with Pubstarter and Funding Portal.
 
