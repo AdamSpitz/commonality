@@ -2,24 +2,23 @@
 
 ## Main thing I want to work on next
 
-  - Implement the content-funding system. Smart contracts, SDK folds, canonicalization, platform API service, and indexer integration are all implemented and tested. Still need to implement the UI and supporting pieces. Note that the UI needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
-    - DONE: Indexer integration for content-funding events (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory). SDK now exports fold functions for content items, channel state, channel escrow balances, and creator contracts. Platform API service canonicalization helpers are already in the SDK.
-    - DONE: Fix the third-party veto bypass. Third-party contracts on Verified channels now require threshold > initialPurchaseValue, preventing the contract from succeeding inside createContract() and bypassing the creator's veto window. Unclaimed channels don't have this restriction since there's no veto window.
-    - DONE: Add the shared SDK content-funding canonicalization helpers from the spec: strict Twitter/X, YouTube, and Substack URL parsing that extracts content-specific suffixes and rejects ambiguous inputs.
-    - DONE: Add the backend author/channel-prefix resolution layer for Twitter and YouTube, with caching of resolved platform API lookups. The spec now assumes the same backend used for channel claiming also resolves and caches the stable channel prefixes needed to build content IDs.
-    - DONE: Wire the future content-funding UI creation flow to that resolver/cache so it validates "this URL belongs to this channel" before submitting a contract.
-    - DONE: Cross-cutting SDK queries (getChannelOverview, getContentItemStatus, getContractsForChannel, getVetoableContracts) from the indexer spec are now implemented in the SDK as fold-orchestration helpers for the future UI.
-    - DONE: Add content-funding contracts to the deployment script (hardhat/scripts/deploy.js) so local/testnet deployments now include `MockChannelVerifier`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, and `CreatorAssuranceContractFactory`, wire the necessary ownership/factory links, and write the new addresses plus `CONTENT_FUNDING_START_BLOCK` into the shared env flow.
-    - DONE: Add content-funding scenarios to the fake data generation pipeline so the UI can be developed against realistic data.
-    - DONE: Browse Creators page (`/content/:platform`) — first content-funding UI slice. Includes all necessary SDK plumbing: content-funding ABIs in SDK, event decoders, `fetchAndFoldContentFundingState`, `getAllChannelOverviews`, `buildChannelCanonicalIdMap`, `extractChannelCanonicalIdFromContentCanonicalId`, contract address wiring in useMachinery.
-    - DONE: Channel Page (`/content/:platform/:channelId`) — public-facing channel view with hero for unclaimed channels, content items list, contracts list, share/notify section.
-    - DONE: Create Contract page (`/content/:platform/:channelId/new`) — form for creating a new funding contract.
-    - DONE: Creator Dashboard (`/content/dashboard`) — management page for verified creators.
-    - DONE: Integration with Pubstarter project detail page — content items section, channel info, attestations.
-    - DONE: Integration with Funding Portal — recognize creator assurance contracts.
-    - DONE: BUG: Added the missing ContractVetoed event declaration and emit in ChannelRegistry.vetoContract(). Also updated SDK event types, indexer ABI, and event decoder.
-    - DONE: Minor: Changed CreatorContractCreated event to emit `creator` instead of `erc1155`, per the spec. Updated SDK events, ABIs, folds, and tests.
-    - Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end.
+  - Implement the content-funding system. Smart contracts, SDK, all 4 UI pages, and Pubstarter/Funding Portal integrations are done. What remains: fix bugs in the existing implementation, then build the backend Platform API Service and Claim Flow.
+    - DONE: Smart contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContract, CreatorAssuranceContractFactory).
+    - DONE: SDK: events, folds, queries (getChannelOverview, getContentItemStatus, getContractsForChannel, getVetoableContracts, getAllChannelOverviews), actions, canonicalization (Twitter/X, YouTube, Substack).
+    - DONE: Indexer integration, event decoders, deployment script, fake data generation.
+    - DONE: All 4 UI pages: Browse Creators, Channel Page, Create Contract, Creator Dashboard.
+    - DONE: Pubstarter project detail page integration (ContentFundingProjectSection).
+    - DONE: Funding Portal integration (AlignedProjectCard recognizes content-funding contracts).
+    - DONE: Fix third-party veto bypass, add ContractVetoed event, change CreatorContractCreated to emit `creator` instead of `erc1155`.
+    - BUG: `ChannelRegistryAbi` (sdk/abis/ChannelRegistryAbi.ts) is missing the `vetoContract` function definition. The veto action from the Creator Dashboard will fail at runtime because the function isn't in the ABI.
+    - BUG: SDK `vetoContract` action (sdk/src/subsystems/content-funding/actions.ts:253) passes `[channelId, contractAddress]` but the contract's `vetoContract(address)` takes only one argument. The channelId arg needs to be removed.
+    - BUG: Creator Dashboard (ui/src/content-funding/pages/CreatorDashboardPage.tsx:276) shows ALL verified channels in the system, not just the connected wallet's. The `ch.channel.state === 'verified'` filter should also require `ch.channel.owner?.toLowerCase() === address.toLowerCase()`.
+    - BUG: ContentFundingProjectSection (ui/src/content-funding/components/ContentFundingProjectSection.tsx:151) hardcodes `/content/twitter/` in the channel page URL instead of extracting the platform from the canonical channel ID.
+    - BUG: `actions.ts` `parseContentUrl` duplicates the canonicalization logic already in `canonicalization.ts`. Should reuse `parseContentFundingUrl` instead.
+    - DONE: Platform API Service (platform-api-service/). Express backend with `/resolve/channel`, `/resolve/content`, `/verify/challenge`, `/verify/confirm`. Twitter and YouTube clients, in-memory caching, rate limiting, verification proof signing, optional on-chain tx submission. See platform-api-service/README.md.
+    - Implement the Claim Flow UI (spec: specs/subsystems/content-funding/ui.md#claim-flow). Currently shows a disabled "Claim these funds (coming soon)" button for unclaimed channels. Needs: tweet-based verification modal, embedded wallet provisioning, escrow withdrawal, and off-ramp integration. The Platform API Service backend for this already exists.
+    - Wire the UI's Create Contract page to use the Platform API Service's `/resolve/content` endpoint for author validation, instead of client-side-only URL parsing.
+    - Replace `MockChannelVerifier` with a real `ChannelVerifier` contract. The Platform API Service already signs `encodePacked(channelId, claimant, nonce, deadline)` with a verifier EOA key. The real contract just needs to: store a trusted verifier address, reconstruct that digest, `ECDSA.recover` the signer from the signature, and return `signer == trustedVerifier`. ~15 lines using OpenZeppelin ECDSA + MessageHashUtils. Then call `channelRegistry.setVerifier(realVerifierAddress)` — no registry redeployment needed.
 
 ## Other big things to do soon
 
@@ -33,7 +32,7 @@
   - Merge specs/motivation with the wider specs directory? (Sort-of a prerequisite for writing the documentation; I want to get all the ideas clear first.)
   - Write the documentation and AI skills.
   - If the repeated SDK prebuild cost becomes annoying, consider a more monorepo-aware build setup so SDK-dependent workspaces don't redundantly rebuild the SDK.
-  - Do another smart-contract audit pass. Previous finding (third-party veto bypass) is fixed. The ContractVetoed event bug (see content-funding section above) should be fixed first.
+  - Do another smart-contract audit pass. Previous findings (third-party veto bypass, ContractVetoed event) are fixed.
   - Do I trust the UI? No.
 
   - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
