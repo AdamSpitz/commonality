@@ -71,6 +71,12 @@ npm run dev --workspace=@commonality/platform-api-service
 
 Cross-origin browser requests are enabled by default. Set `CORS_ALLOWED_ORIGINS` to a comma-separated allowlist if you want the service to echo only specific origins instead of `*`.
 
+The local docker-compose stack also starts this service and exposes it at `http://localhost:3001`:
+
+```bash
+./services.sh --start
+```
+
 For production:
 
 ```bash

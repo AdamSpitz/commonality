@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Manage docker-compose services (hardhat, IPFS, indexer, etc.)
+# Manage docker-compose services (hardhat, IPFS, indexer, platform API, etc.)
 #
 # Usage:
 #   ./services.sh --start   # Start services (preserves existing data)
@@ -81,6 +81,7 @@ start_services() {
     docker-compose up -d
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."
+    echo "Platform API service health: http://localhost:3001/health"
 }
 
 stop_services() {

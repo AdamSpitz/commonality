@@ -1,5 +1,34 @@
 # Continuity notes for ephemeral AI instances
 
+## Platform API service docker-compose integration — COMPLETE ✓
+
+### What was done
+
+Added `platform-api-service` to the local `docker-compose.yml` stack with a healthcheck, exposed port `3001`, and pass-through environment wiring for platform API credentials and optional verification settings. Also updated the local-start docs/task tracking to reflect that the compose integration TODO item is closed.
+
+### Key decisions
+
+- Kept this pass scoped to the single `platform-api-service` TODO item for docker-compose integration.
+- Made the compose service start even when optional Twitter/YouTube/verifier credentials are unset, matching the service's existing `/health` behavior and allowing local startup without secrets.
+- Pointed `ETHEREUM_RPC_URL` at the internal `hardhat-node` service by default so optional on-chain verification submission can target the local chain without extra compose edits.
+
+### PRD reference
+
+- `TODO.md` content-funding platform API service follow-up (2026-04-07), add service to docker-compose
+
+### Files changed
+
+- `docker-compose.yml`
+- `services.sh`
+- `platform-api-service/README.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining `platform-api-service` work is broader route/service coverage for YouTube and error paths.
+
 ## Platform API rate-limiter stale-entry cleanup — COMPLETE ✓
 
 ### What was done
