@@ -1,5 +1,78 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding UI: Browse Creators page — COMPLETE ✓
+
+### What was done
+
+Implemented the first content-funding UI slice: the Browse Creators page at `/content/:platform`.
+
+**SDK additions (plumbing needed before any UI):**
+1. Copied content-funding ABIs from `indexer/abis/` into `sdk/abis/` (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory)
+2. Added them to `sdk/src/abis.ts`
+3. Added content-funding ABI entries to `sdk/src/utils/eventDecoder.ts` ABI_MAP and added decoder functions for all 8 content-funding event types
+4. Added `fetchAllContentFundingEvents` to `sdk/src/utils/eventCacheClient.ts`
+5. Added optional content-funding address fields to `ContractAddresses` in `sdk/src/machinery.ts`
+6. Added `extractChannelCanonicalIdFromContentCanonicalId` utility to `sdk/src/subsystems/content-funding/canonicalization.ts`
+7. Added to `sdk/src/subsystems/content-funding/queries.ts`:
+   - `fetchAndFoldContentFundingState` — fetches, decodes, and folds all content-funding events
+   - `buildChannelCanonicalIdMap` — maps bytes32 channelId → human-readable canonical ID (via content item canonical IDs)
+   - `getAllChannelOverviews` — returns all channels with their canonical IDs
+   - `ChannelWithCanonicalId` type
+
+**UI additions:**
+- Wired content-funding addresses in `ui/src/shared/hooks/useMachinery.ts` (4 new VITE_* env vars)
+- Added content-funding addresses to `ui/.env`
+- Updated `scripts/setup-env.sh` to propagate all UI env vars (was missing many)
+- Created `ui/src/content-funding/hooks/useContentFundingState.ts` — React hook that loads all content-funding state + pubstarter projects
+- Created `ui/src/content-funding/pages/BrowseCreatorsPage.tsx` — Browse Creators page with sort/filter controls, channel cards
+- Added route `/content/:platform` to `ui/src/App.tsx`
+- Added nav links for Twitter/YouTube/Substack creator pages to `AppShell.tsx`
+
+### Key decisions
+
+- On-chain channelId is `keccak256(channelCanonicalId)` — a bytes32 hash. The fold functions use this as map keys. To display the human-readable channel name (e.g. "twitter:uid:111111111"), we extract it from content item canonical IDs. `extractChannelCanonicalIdFromContentCanonicalId` handles Twitter/YouTube (strip last `:suffix`) and Substack (split on `/`).
+- Content-funding addresses are optional in `ContractAddresses` (UI degrades gracefully if not configured).
+- The Browse Creators page filters by platform from the URL path, then lets users sort/filter by state/activity.
+
+### Files changed
+
+- `sdk/abis/ContentRegistryAbi.ts` (new — copied from indexer)
+- `sdk/abis/ChannelRegistryAbi.ts` (new)
+- `sdk/abis/ChannelEscrowAbi.ts` (new)
+- `sdk/abis/CreatorAssuranceContractFactoryAbi.ts` (new)
+- `sdk/src/abis.ts`
+- `sdk/src/machinery.ts`
+- `sdk/src/utils/eventDecoder.ts`
+- `sdk/src/utils/eventCacheClient.ts`
+- `sdk/src/subsystems/content-funding/canonicalization.ts`
+- `sdk/src/subsystems/content-funding/queries.ts`
+- `ui/src/shared/hooks/useMachinery.ts`
+- `ui/.env`
+- `scripts/setup-env.sh`
+- `ui/src/content-funding/hooks/useContentFundingState.ts` (new)
+- `ui/src/content-funding/pages/BrowseCreatorsPage.tsx` (new)
+- `ui/src/App.tsx`
+- `ui/src/shared/components/AppShell.tsx`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+The next content-funding UI slice should be the **Channel Page** (`/content/:platform/:channelId`). This is the most important page for the creator acquisition story — it's the landing page creators see when a fan sends them a claim link.
+
+The Channel Page needs:
+- Header with channel state, total funding, escrowed balance
+- Hero section for unclaimed channels ("Supporters have pooled $X for [creator]")
+- Content items list (with canonical IDs)
+- Contracts list (linking to Pubstarter project detail pages)
+- Share / notify section (copyable claim link, suggested message template)
+
+Implementation notes:
+- The route would be `/content/:platform/:channelId` where `:channelId` is the URL-encoded canonical channel ID (e.g. `twitter:uid:111111111`)
+- `getChannelOverview(state, channelIdBytes32, options)` takes the bytes32 hash, not the canonical ID — so the page needs to compute `hashCanonicalId(channelId)` to look up the channel
+- Or alternatively, find the channel in `getAllChannelOverviews` by matching `canonicalChannelId`
+
 ## Content-funding fake-data seeding — COMPLETE ✓
 
 ### What was done

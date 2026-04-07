@@ -25,6 +25,10 @@ export function useMachinery(): SDKMachinery {
       alignmentAttestations: import.meta.env.VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS as `0x${string}`,
       mutableRefUpdater: import.meta.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`,
       trustRegistry: import.meta.env.VITE_TRUST_REGISTRY_CONTRACT_ADDRESS as `0x${string}`,
+      contentRegistry: import.meta.env.VITE_CONTENT_REGISTRY_ADDRESS as `0x${string}` | undefined,
+      channelRegistry: import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS as `0x${string}` | undefined,
+      channelEscrow: import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS as `0x${string}` | undefined,
+      creatorContractFactory: import.meta.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS as `0x${string}` | undefined,
     }
     const ethRpcUrl = import.meta.env.VITE_ETH_RPC_URL
     const publicClient = ethRpcUrl

@@ -11,6 +11,7 @@ import { CreateProjectPage } from './pubstarter/pages/CreateProjectPage'
 import { MyNotesPage, NoteDetailPage, DepositPage } from './delegation/pages'
 import { StatementFundingPortalPage, CauseLeaderboardPage } from './fundingportal/pages'
 import { MyRefsPage } from './mutablerefs'
+import { BrowseCreatorsPage } from './content-funding/pages/BrowseCreatorsPage'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/portal/:statementCid" element={<StatementFundingPortalPage />} />
           <Route path="/portal/:statementCid/leaderboard" element={<CauseLeaderboardPage />} />
           <Route path="/refs" element={<MyRefsPage />} />
+          <Route path="/content/:platform" element={<BrowseCreatorsPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>

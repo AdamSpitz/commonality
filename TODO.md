@@ -13,7 +13,12 @@
     - DONE: Cross-cutting SDK queries (getChannelOverview, getContentItemStatus, getContractsForChannel, getVetoableContracts) from the indexer spec are now implemented in the SDK as fold-orchestration helpers for the future UI.
     - DONE: Add content-funding contracts to the deployment script (hardhat/scripts/deploy.js) so local/testnet deployments now include `MockChannelVerifier`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, and `CreatorAssuranceContractFactory`, wire the necessary ownership/factory links, and write the new addresses plus `CONTENT_FUNDING_START_BLOCK` into the shared env flow.
     - DONE: Add content-funding scenarios to the fake data generation pipeline so the UI can be developed against realistic data.
-    - TODO: Implement the content-funding UI (specs/subsystems/content-funding/ui.md): Browse Creators page, Channel Page, Create Contract page, Creator Dashboard, plus integration with Pubstarter project detail and Funding Portal.
+    - DONE: Browse Creators page (`/content/:platform`) — first content-funding UI slice. Includes all necessary SDK plumbing: content-funding ABIs in SDK, event decoders, `fetchAndFoldContentFundingState`, `getAllChannelOverviews`, `buildChannelCanonicalIdMap`, `extractChannelCanonicalIdFromContentCanonicalId`, contract address wiring in useMachinery.
+    - TODO: Channel Page (`/content/:platform/:channelId`) — public-facing channel view with hero for unclaimed channels, content items list, contracts list, share/notify section.
+    - TODO: Create Contract page (`/content/:platform/:channelId/new`) — form for creating a new funding contract.
+    - TODO: Creator Dashboard (`/content/dashboard`) — management page for verified creators.
+    - TODO: Integration with Pubstarter project detail page — content items section, channel info, attestations.
+    - TODO: Integration with Funding Portal — recognize creator assurance contracts.
     - TODO: Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end.
 
 ## Other big things to do soon

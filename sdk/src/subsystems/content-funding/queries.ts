@@ -1,5 +1,14 @@
 import type { Project } from '../pubstarter/types.js';
-import type { ContractVetoedEvent } from './events.js';
+import type {
+  ContentItemRegisteredEvent,
+  ContentItemReleasedEvent,
+  ChannelVerifiedEvent,
+  ChannelControlTakenEvent,
+  ContractVetoedEvent,
+  DepositedEvent,
+  WithdrawnEvent,
+  CreatorContractCreatedEvent,
+} from './events.js';
 import type {
   ChannelEscrowState,
   ChannelInfo,
@@ -7,6 +16,19 @@ import type {
   ContentItem,
   CreatorContractInfo,
 } from './folds.js';
+import { foldAllContentFundingEvents } from './folds.js';
+import { extractChannelCanonicalIdFromContentCanonicalId } from './canonicalization.js';
+import type { SDKMachinery } from '../../machinery.js';
+import { fetchAllContentFundingEvents } from '../../utils/eventCacheClient.js';
+import {
+  decodeContentItemRegisteredEvent,
+  decodeContentItemReleasedEvent,
+  decodeChannelVerifiedEvent,
+  decodeChannelControlTakenEvent,
+  decodeDepositedEvent,
+  decodeWithdrawnEvent,
+  decodeCreatorContractCreatedEvent,
+} from '../../utils/eventDecoder.js';
 
 export const DEFAULT_VETO_WINDOW_SECONDS = 7n * 24n * 60n * 60n;
 
@@ -282,3 +304,145 @@ export function getVetoableContracts(
     contract.isThirdParty && contract.status === 'active'
   ));
 }
+
+// ============================================================================
+// Channel canonical ID helpers
+// ============================================================================
+
+/**
+ * Build a map from bytes32 channelId → human-readable channel canonical ID.
+ *
+ * On-chain, channelId is stored as keccak256(channelCanonicalId). The only
+ * way to recover the human-readable form is from content item canonical IDs,
+ * which embed it as a prefix (e.g. "twitter:uid:12345:67890").
+ */
+export function buildChannelCanonicalIdMap(state: ContentFundingState): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const item of state.contentRegistry.items.values()) {
+    try {
+      const channelCanonicalId = extractChannelCanonicalIdFromContentCanonicalId(item.canonicalId);
+      const contractAddress = item.contractAddress.toLowerCase();
+      const contract = state.creatorContracts.contracts.get(contractAddress);
+      if (contract && !map.has(contract.channelId)) {
+        map.set(contract.channelId, channelCanonicalId);
+      }
+    } catch {
+      // Skip items whose canonical ID cannot be parsed
+    }
+  }
+  return map;
+}
+
+// ============================================================================
+// getAllChannelOverviews
+// ============================================================================
+
+export interface ChannelWithCanonicalId extends ChannelOverview {
+  /** Human-readable canonical channel ID (e.g. "twitter:uid:12345"), or null if unavailable. */
+  canonicalChannelId: string | null;
+}
+
+/**
+ * Return an overview for every channel that appears in the state —
+ * from channelRegistry, creator contracts, or content items.
+ */
+export function getAllChannelOverviews(
+  state: ContentFundingState,
+  options: ContentFundingQueryOptions = {},
+): ChannelWithCanonicalId[] {
+  const channelIds = new Set<string>();
+  for (const channelId of state.channelRegistry.channels.keys()) {
+    channelIds.add(channelId);
+  }
+  for (const contract of state.creatorContracts.contracts.values()) {
+    channelIds.add(contract.channelId);
+  }
+
+  const canonicalIdMap = buildChannelCanonicalIdMap(state);
+
+  return Array.from(channelIds).map((channelId) => ({
+    ...getChannelOverview(state, channelId, options),
+    canonicalChannelId: canonicalIdMap.get(channelId) ?? null,
+  }));
+}
+
+// ============================================================================
+// fetchAndFoldContentFundingState
+// ============================================================================
+
+function sortedByBlockOrder<T extends { blockNumber: bigint; logIndex: number }>(events: T[]): T[] {
+  return events.sort((a, b) => {
+    if (a.blockNumber !== b.blockNumber) {
+      return a.blockNumber < b.blockNumber ? -1 : 1;
+    }
+    return a.logIndex - b.logIndex;
+  });
+}
+
+/**
+ * Fetch all content-funding events from the event cache, decode and fold them
+ * into a `ContentFundingState` ready for SDK query helpers.
+ *
+ * Returns null if the content-funding contract addresses are not configured.
+ */
+export async function fetchAndFoldContentFundingState(
+  machinery: SDKMachinery,
+): Promise<ContentFundingState | null> {
+  const rawEvents = await fetchAllContentFundingEvents(machinery);
+  if (rawEvents.length === 0 && !machinery.contractAddresses?.contentRegistry) {
+    return null;
+  }
+
+  const contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[] = [];
+  const channelRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[] = [];
+  const channelEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
+  const creatorContractEvents: CreatorContractCreatedEvent[] = [];
+
+  for (const raw of rawEvents) {
+    switch (raw.eventName) {
+      case 'ContentItemRegistered': {
+        const d = decodeContentItemRegisteredEvent(raw);
+        if (d) contentRegistryEvents.push({ type: 'ContentItemRegistered', ...d });
+        break;
+      }
+      case 'ContentItemReleased': {
+        const d = decodeContentItemReleasedEvent(raw);
+        if (d) contentRegistryEvents.push({ type: 'ContentItemReleased', contentId: d.contentId, contractAddress: d.contractAddress, blockNumber: d.blockNumber, blockTimestamp: d.blockTimestamp, transactionHash: d.transactionHash, logIndex: d.logIndex });
+        break;
+      }
+      case 'ChannelVerified': {
+        const d = decodeChannelVerifiedEvent(raw);
+        if (d) channelRegistryEvents.push({ type: 'ChannelVerified', ...d });
+        break;
+      }
+      case 'ChannelControlTaken': {
+        const d = decodeChannelControlTakenEvent(raw);
+        if (d) channelRegistryEvents.push({ type: 'ChannelControlTaken', ...d });
+        break;
+      }
+      case 'Deposited': {
+        const d = decodeDepositedEvent(raw);
+        if (d) channelEscrowEvents.push({ type: 'Deposited', ...d });
+        break;
+      }
+      case 'Withdrawn': {
+        const d = decodeWithdrawnEvent(raw);
+        if (d) channelEscrowEvents.push({ type: 'Withdrawn', ...d });
+        break;
+      }
+      case 'CreatorContractCreated': {
+        const d = decodeCreatorContractCreatedEvent(raw);
+        if (d) creatorContractEvents.push({ type: 'CreatorContractCreated', contractAddress: d.contractAddress, channelId: d.channelId, erc1155: d.erc1155, isThirdParty: d.isThirdParty, blockNumber: d.blockNumber, blockTimestamp: d.blockTimestamp, transactionHash: d.transactionHash, logIndex: d.logIndex });
+        break;
+      }
+    }
+  }
+
+  return foldAllContentFundingEvents(
+    sortedByBlockOrder(contentRegistryEvents),
+    sortedByBlockOrder(channelRegistryEvents),
+    sortedByBlockOrder(channelEscrowEvents),
+    sortedByBlockOrder(creatorContractEvents),
+  );
+}
+

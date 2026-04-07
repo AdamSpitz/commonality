@@ -289,6 +289,31 @@ export function hashCanonicalId(canonicalId: string): Hex {
   return keccak256(stringToBytes(canonicalId));
 }
 
+/**
+ * Extract the channel canonical ID from a content canonical ID.
+ *
+ * Content canonical ID formats:
+ *   Twitter:   "twitter:uid:DIGITS:TWEETID"   → "twitter:uid:DIGITS"
+ *   YouTube:   "youtube:channel:UCID:VIDEOID" → "youtube:channel:UCID"
+ *   Substack:  "substack:PUB/SLUG"            → "substack:PUB"
+ */
+export function extractChannelCanonicalIdFromContentCanonicalId(contentCanonicalId: string): string {
+  const slashIndex = contentCanonicalId.indexOf('/');
+  if (slashIndex !== -1) {
+    // Substack: "substack:pub/slug" → "substack:pub"
+    return contentCanonicalId.slice(0, slashIndex);
+  }
+  // Twitter / YouTube: "platform:type:id:suffix" → "platform:type:id"
+  const parts = contentCanonicalId.split(':');
+  if (parts.length >= 4) {
+    return parts.slice(0, 3).join(':');
+  }
+  throw new ContentFundingCanonicalizationError(
+    'invalid_content_suffix',
+    `Cannot extract channel canonical ID from content canonical ID: ${contentCanonicalId}`,
+  );
+}
+
 function parseUrl(rawUrl: string): URL {
   try {
     return new URL(rawUrl);

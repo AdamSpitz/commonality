@@ -17,6 +17,10 @@ export interface ContractAddresses {
   alignmentAttestations: `0x${string}`;
   mutableRefUpdater: `0x${string}`;
   trustRegistry: `0x${string}`;
+  contentRegistry?: `0x${string}`;
+  channelRegistry?: `0x${string}`;
+  channelEscrow?: `0x${string}`;
+  creatorContractFactory?: `0x${string}`;
 }
 
 export type SDKMachinery = {

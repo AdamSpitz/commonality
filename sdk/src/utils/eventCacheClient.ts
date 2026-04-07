@@ -262,3 +262,33 @@ export async function fetchAllSoldEvents(
     limit: options.limit ?? 10000,
   });
 }
+
+// ============================================================================
+// Content-funding event fetch helpers
+// ============================================================================
+
+/**
+ * Fetch all content-funding events across all four contracts:
+ * ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory.
+ *
+ * Returns a flat array of raw events ready for decoding and folding.
+ */
+export async function fetchAllContentFundingEvents(
+  machinery: SDKMachinery,
+  options: { limit?: number } = {}
+): Promise<RawEventFromCache[]> {
+  const contracts = machinery.contractAddresses;
+  if (!contracts?.contentRegistry || !contracts?.channelRegistry || !contracts?.channelEscrow || !contracts?.creatorContractFactory) {
+    return [];
+  }
+
+  const limit = options.limit ?? 10000;
+  const [contentRegistryEvents, channelRegistryEvents, channelEscrowEvents, factoryEvents] = await Promise.all([
+    fetchEvents(machinery, { contractAddress: contracts.contentRegistry, limit }),
+    fetchEvents(machinery, { contractAddress: contracts.channelRegistry, limit }),
+    fetchEvents(machinery, { contractAddress: contracts.channelEscrow, limit }),
+    fetchEvents(machinery, { contractAddress: contracts.creatorContractFactory, limit }),
+  ]);
+
+  return [...contentRegistryEvents, ...channelRegistryEvents, ...channelEscrowEvents, ...factoryEvents];
+}

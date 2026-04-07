@@ -22,3 +22,7 @@ export { MarketplaceFactoryAbi } from '../abis/MarketplaceFactoryAbi.js';
 export { AssuranceContractFactoryAbi } from '../abis/AssuranceContractFactoryAbi.js';
 export { EthThresholdConditionFactoryAbi } from '../abis/EthThresholdConditionFactoryAbi.js';
 export { FreeERC1155FactoryAbi } from '../abis/FreeERC1155FactoryAbi.js';
+export { ContentRegistryAbi } from '../abis/ContentRegistryAbi.js';
+export { ChannelRegistryAbi } from '../abis/ChannelRegistryAbi.js';
+export { ChannelEscrowAbi } from '../abis/ChannelEscrowAbi.js';
+export { CreatorAssuranceContractFactoryAbi } from '../abis/CreatorAssuranceContractFactoryAbi.js';
