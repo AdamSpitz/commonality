@@ -1360,3 +1360,43 @@ Implemented the missing lightweight refresh policy for the Subjectiv trusted-set
 ### Interrupt point
 
 Good interrupt point. Subjectiv now has a usable refresh policy, and the main remaining Subjectiv work is still Web Worker execution, IndexedDB persistence/rehydration, partial-progress updates, and any wording cleanup in the UI.
+
+---
+
+## Content-funding third-party veto bypass fix — COMPLETE ✓
+
+### What was done
+
+Fixed the third-party veto bypass vulnerability in the content-funding smart contracts. Previously, a third party could choose a threshold equal to their required initial purchase, making the contract succeed immediately inside `createContract()` and become non-vetoable, bypassing the creator's veto window.
+
+**Solution implemented:**
+- Added `ThresholdMustExceedInitialPurchase` error in `CreatorAssuranceContractFactory.sol`
+- Added validation that requires `threshold > initialPurchaseValue` for third-party contracts on Verified channels
+- Unclaimed channels are exempt from this check since they have no veto window (no channel owner to veto)
+- Updated tests to reflect the new validation and fixed failing test cases
+
+### Key decisions
+
+- Applied the check only for Verified channels, not Unclaimed channels, to preserve the intended behavior for unclaimed channel contracts
+- Removed the now-obsolete test "Should revert veto on an already-succeeded third-party contract" since this scenario can no longer occur (contract cannot succeed at creation time on a verified channel with threshold <= initial purchase)
+
+### PRD reference
+
+- `TODO.md` content-funding smart contract audit follow-up (2026-04-07), "Fix the third-party veto bypass"
+
+### Files changed
+
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol` — added `ThresholdMustExceedInitialPurchase` error and validation logic
+- `hardhat/test/ContentFunding.test.js` — added new test, updated existing tests
+- `TODO.md` — marked task done
+- `README.md` — updated status section
+- `CONTINUITY.md` — this note
+
+### Verification
+
+- `npm run build` — passed
+- `npm run test` — 265 SDK + 343 Hardhat + 107 integration + 619 UI = 1334 passing
+
+### Notes for next session
+
+Good interrupt point. The third-party veto bypass fix is complete. Remaining content-funding work is the UI implementation per the spec in `specs/subsystems/content-funding/ui.md`.

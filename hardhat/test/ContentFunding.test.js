@@ -774,7 +774,6 @@ describe("ContentFunding", function () {
       const unclaimedChannelCanonicalId = "twitter:uid:successful-unclaimed-channel";
       const unclaimedChannel = channelIdFromCanonical(unclaimedChannelCanonicalId);
       const unclaimedContentSuffix = "9101";
-      const successThreshold = ethers.parseEther("0.1");
       const purchaseAmount = ethers.parseEther("0.1");
       const tx = await createContentFundingContract({
         factory,
@@ -783,7 +782,7 @@ describe("ContentFunding", function () {
         contentSuffixes: [unclaimedContentSuffix],
         supplies: [50],
         prices: [purchaseAmount],
-        threshold: successThreshold,
+        threshold: purchaseAmount,
         deadline,
         metadataCid: "ipfs://QmThirdParty",
         erc1155MetadataUri: "https://meta/{id}.json",
@@ -873,6 +872,42 @@ describe("ContentFunding", function () {
         initialPurchaseCounts: [1],
         value: insufficientAmount,
       })).to.be.revertedWithCustomError(factory, "InsufficientThirdPartyPurchase");
+    });
+
+    it("Should revert when third-party threshold does not exceed initial purchase", async function () {
+      await mockVerifier.setValid(true);
+      const channelCanonicalId = "twitter:uid:test-channel";
+      const contentSuffix = "4001";
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 86400;
+
+      await channelRegistry.verifyChannel(
+        channelIdFromCanonical(channelCanonicalId),
+        alice.address,
+        ethers.id("nonce-threshold-test"),
+        deadline,
+        "0x"
+      );
+
+      const initialPurchaseValue = ethers.parseEther("0.1");
+
+      await expect(createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffix],
+        supplies: [100],
+        prices: [initialPurchaseValue],
+        threshold: initialPurchaseValue,
+        deadline,
+        metadataCid: "ipfs://QmTest",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffix],
+        initialPurchaseCounts: [1],
+        value: initialPurchaseValue,
+      })).to.be.revertedWithCustomError(factory, "ThresholdMustExceedInitialPurchase");
     });
 
     it("Should revert when content already registered for third-party", async function () {
@@ -1180,59 +1215,6 @@ describe("ContentFunding", function () {
 
       await expect(channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr))
         .to.be.revertedWithCustomError(channelRegistry, "VetoWindowExpired");
-
-      expect(await condition.isCancelled()).to.be.false;
-      expect(await contentRegistry.isRegistered(contentId)).to.be.true;
-    });
-
-    it("Should revert veto on an already-succeeded third-party contract", async function () {
-      await mockVerifier.setValid(true);
-      const channelCanonicalId = "twitter:uid:veto-succeeded-channel";
-      const channelId = channelIdFromCanonical(channelCanonicalId);
-      const contentSuffix = "7401";
-      const contentId = contentIdFromParts(channelCanonicalId, contentSuffix);
-      const latestBlock = await ethers.provider.getBlock("latest");
-      const deadline = latestBlock.timestamp + 86400;
-      const successThreshold = ethers.parseEther("0.1");
-
-      await channelRegistry.verifyChannel(
-        channelId,
-        alice.address,
-        ethers.id("nonce-veto-success"),
-        deadline,
-        "0x"
-      );
-
-      const tx = await createContentFundingContract({
-        factory,
-        signer: thirdParty,
-        channelCanonicalId,
-        contentSuffixes: [contentSuffix],
-        supplies: [50],
-        prices: [successThreshold],
-        threshold: successThreshold,
-        deadline,
-        metadataCid: "ipfs://QmThirdParty",
-        erc1155MetadataUri: "https://meta/{id}.json",
-        erc1155ContractUri: "ipfs://QmContract",
-        isThirdParty: true,
-        initialPurchaseContentSuffixes: [contentSuffix],
-        initialPurchaseCounts: [1],
-        value: successThreshold,
-      });
-
-      const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
-      const thirdPartyContractAddr = event.args.contractAddress;
-      const conditionAddress = await factory.contractCondition(thirdPartyContractAddr);
-      const condition = await ethers.getContractAt("CancellableCondition", conditionAddress);
-
-      expect(await condition.hasSucceeded()).to.be.true;
-
-      await channelRegistry.connect(alice).takeChannelControl(channelId);
-
-      await expect(channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr))
-        .to.be.revertedWithCustomError(condition, "ConditionAlreadySucceeded");
 
       expect(await condition.isCancelled()).to.be.false;
       expect(await contentRegistry.isRegistered(contentId)).to.be.true;

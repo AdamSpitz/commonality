@@ -29,6 +29,7 @@ error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
 error MarketplaceCreationFailed();
 error OnlyChannelOwnerCanCreateCreatorContract(bytes32 channelId);
+error ThresholdMustExceedInitialPurchase();
 
 interface IChannelRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
@@ -156,6 +157,12 @@ contract CreatorAssuranceContractFactory is Ownable {
             }
             if (initialPurchaseValue < thirdPartyMinPurchase) {
                 revert InsufficientThirdPartyPurchase();
+            }
+            // For Verified channels, require threshold > initial purchase so contract can't succeed
+            // inside createContract() and bypass the creator's veto window.
+            // Unclaimed channels have no veto window, so this check is skipped.
+            if (verified && threshold <= initialPurchaseValue) {
+                revert ThresholdMustExceedInitialPurchase();
             }
         } else {
             // Creator contracts require Verified or CreatorControlled channel
