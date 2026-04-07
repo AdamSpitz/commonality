@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## Platform API Express route coverage — COMPLETE ✓
+
+### What was done
+
+Added focused `platform-api-service` route-layer coverage for the Express app: success-path delegation for all four POST endpoints, request-validation failures, `HttpError` and unexpected-error serialization, and separate resolve/verify rate-limit behavior.
+
+### Key decisions
+
+- Kept this pass scoped to the single remaining `platform-api-service` TODO item for Express route coverage.
+- Added coverage in `app.test.ts` only, without changing runtime behavior, because the route layer itself was already implemented and the gap was confidence rather than functionality.
+- Verified both limiter buckets in one integration-style test so the app-level separation between `/resolve/*` and `/verify/*` routes is covered explicitly.
+
+### PRD reference
+
+- `TODO.md` content-funding platform API service follow-up (2026-04-07), Express route layer coverage
+
+### Files changed
+
+- `platform-api-service/src/app.test.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining `platform-api-service` coverage work is the deeper service-level YouTube/content-resolution/error-path cases.
+
 ## Platform API service docker-compose integration — COMPLETE ✓
 
 ### What was done

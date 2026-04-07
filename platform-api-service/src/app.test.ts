@@ -3,12 +3,15 @@ import { createServer } from 'http';
 import type { Address, Hex } from 'viem';
 import { createApp } from './app.js';
 import type { PlatformApiServiceConfig } from './config.js';
+import { HttpError } from './errors.js';
 import type { PlatformApiService } from './service.js';
 
 describe('createApp CORS', () => {
   it('allows wildcard cross-origin health requests by default', async () => {
     const server = await startTestServer({
-      corsAllowedOrigins: '*',
+      configOverrides: {
+        corsAllowedOrigins: '*',
+      },
     });
 
     try {
@@ -31,7 +34,9 @@ describe('createApp CORS', () => {
 
   it('responds to allowed preflight requests for configured origins', async () => {
     const server = await startTestServer({
-      corsAllowedOrigins: ['https://ui.example'],
+      configOverrides: {
+        corsAllowedOrigins: ['https://ui.example'],
+      },
     });
 
     try {
@@ -62,7 +67,9 @@ describe('createApp CORS', () => {
 
   it('rejects disallowed preflight origins', async () => {
     const server = await startTestServer({
-      corsAllowedOrigins: ['https://ui.example'],
+      configOverrides: {
+        corsAllowedOrigins: ['https://ui.example'],
+      },
     });
 
     try {
@@ -88,8 +95,327 @@ describe('createApp CORS', () => {
   });
 });
 
-async function startTestServer(configOverrides: Partial<PlatformApiServiceConfig>) {
-  const app = createApp(createStubService(), {
+describe('createApp routes', () => {
+  it('forwards resolve/channel requests to the service', async () => {
+    const seenRequests: Array<{ platform: string; handle: string }> = [];
+    const server = await startTestServer({
+      service: createStubService({
+        resolveChannel: async (platform, handle) => {
+          seenRequests.push({ platform, handle });
+          return {
+            platform: 'twitter',
+            channelId: 'twitter:uid:12345678',
+            handle,
+            displayName: 'Alice',
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/resolve/channel`, {
+        platform: 'twitter',
+        handle: '@alice',
+      });
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        platform: 'twitter',
+        channelId: 'twitter:uid:12345678',
+        handle: '@alice',
+        displayName: 'Alice',
+      });
+      assert.deepStrictEqual(seenRequests, [
+        {
+          platform: 'twitter',
+          handle: '@alice',
+        },
+      ]);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('forwards resolve/content requests to the service', async () => {
+    const seenRequests: string[] = [];
+    const url = 'https://x.com/alice/status/18347';
+    const server = await startTestServer({
+      service: createStubService({
+        resolveContent: async (requestUrl) => {
+          seenRequests.push(requestUrl);
+          return {
+            platform: 'twitter',
+            channelId: 'twitter:uid:12345678',
+            contentSuffix: '18347',
+            canonicalId: 'twitter:uid:12345678:18347',
+            metadata: {
+              authorHandle: '@alice',
+            },
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/resolve/content`, { url });
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        platform: 'twitter',
+        channelId: 'twitter:uid:12345678',
+        contentSuffix: '18347',
+        canonicalId: 'twitter:uid:12345678:18347',
+        metadata: {
+          authorHandle: '@alice',
+        },
+      });
+      assert.deepStrictEqual(seenRequests, [url]);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('forwards verify/challenge requests to the service', async () => {
+    const seenRequests: Array<{
+      platform: string;
+      handle: string;
+      claimantAddress: string;
+    }> = [];
+    const server = await startTestServer({
+      service: createStubService({
+        createVerificationChallenge: async (request) => {
+          seenRequests.push(request);
+          return {
+            nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
+            challengeCode: 'challenge',
+            channelId: 'twitter:uid:12345678',
+            handle: request.handle,
+            displayName: 'Alice',
+            tweetTemplate: 'Claiming',
+            deadline: 1_700_000_000,
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/verify/challenge`, {
+        platform: 'twitter',
+        handle: '@alice',
+        claimantAddress: '0x1234567890123456789012345678901234567890',
+      });
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        nonce: '0x1111111111111111111111111111111111111111111111111111111111111111',
+        challengeCode: 'challenge',
+        channelId: 'twitter:uid:12345678',
+        handle: '@alice',
+        displayName: 'Alice',
+        tweetTemplate: 'Claiming',
+        deadline: 1_700_000_000,
+      });
+      assert.deepStrictEqual(seenRequests, [
+        {
+          platform: 'twitter',
+          handle: '@alice',
+          claimantAddress: '0x1234567890123456789012345678901234567890',
+        },
+      ]);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('forwards verify/confirm requests to the service', async () => {
+    const seenRequests: Array<{ nonce: string }> = [];
+    const nonce = '0x1111111111111111111111111111111111111111111111111111111111111111';
+    const server = await startTestServer({
+      service: createStubService({
+        confirmVerification: async (request) => {
+          seenRequests.push(request);
+          return {
+            proof: {
+              channelId: 'twitter:uid:12345678',
+              claimant: '0x1234567890123456789012345678901234567890' as Address,
+              nonce: request.nonce as Hex,
+              deadline: 1_700_000_000,
+              verifierSignature: '0x11' as Hex,
+            },
+            observedPostId: 'tweet-1',
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/verify/confirm`, { nonce });
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        proof: {
+          channelId: 'twitter:uid:12345678',
+          claimant: '0x1234567890123456789012345678901234567890',
+          nonce,
+          deadline: 1_700_000_000,
+          verifierSignature: '0x11',
+        },
+        observedPostId: 'tweet-1',
+      });
+      assert.deepStrictEqual(seenRequests, [{ nonce }]);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('returns 400s for missing required request fields', async () => {
+    const server = await startTestServer();
+
+    try {
+      const resolveChannelResponse = await postJson(`${server.baseUrl}/resolve/channel`, {
+        platform: 'twitter',
+      });
+      assert.strictEqual(resolveChannelResponse.status, 400);
+      assert.deepStrictEqual(await resolveChannelResponse.json(), {
+        error: 'invalid_request',
+        message: 'Missing required fields: platform, handle',
+      });
+
+      const resolveContentResponse = await postJson(`${server.baseUrl}/resolve/content`, {});
+      assert.strictEqual(resolveContentResponse.status, 400);
+      assert.deepStrictEqual(await resolveContentResponse.json(), {
+        error: 'invalid_request',
+        message: 'Missing required field: url',
+      });
+
+      const challengeResponse = await postJson(`${server.baseUrl}/verify/challenge`, {
+        platform: 'twitter',
+        handle: '@alice',
+      });
+      assert.strictEqual(challengeResponse.status, 400);
+      assert.deepStrictEqual(await challengeResponse.json(), {
+        error: 'invalid_request',
+        message: 'Missing required fields: platform, handle, claimantAddress',
+      });
+
+      const confirmResponse = await postJson(`${server.baseUrl}/verify/confirm`, {});
+      assert.strictEqual(confirmResponse.status, 400);
+      assert.deepStrictEqual(await confirmResponse.json(), {
+        error: 'invalid_request',
+        message: 'Missing required field: nonce',
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('serializes service HttpErrors through the route layer', async () => {
+    const server = await startTestServer({
+      service: createStubService({
+        resolveChannel: async () => {
+          throw new HttpError(
+            503,
+            'service_unavailable',
+            'twitter channel resolution is unavailable because the platform API credentials are not configured',
+          );
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/resolve/channel`, {
+        platform: 'twitter',
+        handle: '@alice',
+      });
+
+      assert.strictEqual(response.status, 503);
+      assert.deepStrictEqual(await response.json(), {
+        error: 'service_unavailable',
+        message: 'twitter channel resolution is unavailable because the platform API credentials are not configured',
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('returns 500s for unexpected route-layer errors', async () => {
+    const server = await startTestServer({
+      service: createStubService({
+        resolveContent: async () => {
+          throw new Error('kaboom');
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/resolve/content`, {
+        url: 'https://x.com/alice/status/18347',
+      });
+
+      assert.strictEqual(response.status, 500);
+      assert.deepStrictEqual(await response.json(), {
+        error: 'internal_error',
+        message: 'kaboom',
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('applies separate rate limits to resolve and verify routes', async () => {
+    const server = await startTestServer({
+      configOverrides: {
+        resolveRateLimitMaxRequests: 1,
+        verifyRateLimitMaxRequests: 1,
+        resolveRateLimitWindowMs: 60_000,
+        verifyRateLimitWindowMs: 60_000,
+      },
+    });
+
+    try {
+      const firstResolve = await postJson(`${server.baseUrl}/resolve/channel`, {
+        platform: 'twitter',
+        handle: '@alice',
+      });
+      assert.strictEqual(firstResolve.status, 200);
+
+      const secondResolve = await postJson(`${server.baseUrl}/resolve/content`, {
+        url: 'https://x.com/alice/status/18347',
+      });
+      assert.strictEqual(secondResolve.status, 429);
+      assert.deepStrictEqual(await secondResolve.json(), {
+        error: 'rate_limit_exceeded',
+        message: 'Too many resolution requests. Please wait before trying again.',
+        retryAfter: 60,
+      });
+
+      const firstVerify = await postJson(`${server.baseUrl}/verify/challenge`, {
+        platform: 'twitter',
+        handle: '@alice',
+        claimantAddress: '0x1234567890123456789012345678901234567890',
+      });
+      assert.strictEqual(firstVerify.status, 200);
+
+      const secondVerify = await postJson(`${server.baseUrl}/verify/confirm`, {
+        nonce: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      });
+      assert.strictEqual(secondVerify.status, 429);
+      assert.deepStrictEqual(await secondVerify.json(), {
+        error: 'rate_limit_exceeded',
+        message: 'Too many verification requests. Please wait before trying again.',
+        retryAfter: 60,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+async function startTestServer(options: {
+  configOverrides?: Partial<PlatformApiServiceConfig>;
+  service?: PlatformApiService;
+} = {}) {
+  const app = createApp(options.service ?? createStubService(), {
     port: 3001,
     corsAllowedOrigins: '*',
     commonalityTwitterHandle: '@commonality',
@@ -108,7 +434,7 @@ async function startTestServer(configOverrides: Partial<PlatformApiServiceConfig
     resolveRateLimitMaxRequests: 60,
     verifyRateLimitWindowMs: 60_000,
     verifyRateLimitMaxRequests: 5,
-    ...configOverrides,
+    ...options.configOverrides,
   });
 
   const server = createServer(app);
@@ -143,22 +469,46 @@ async function startTestServer(configOverrides: Partial<PlatformApiServiceConfig
   };
 }
 
-function createStubService(): PlatformApiService {
+function postJson(url: string, body: unknown): Promise<Response> {
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+function createStubService(overrides: Partial<{
+  resolveChannel: (platform: string, handle: string) => ReturnType<PlatformApiService['resolveChannel']>;
+  resolveContent: (url: string) => ReturnType<PlatformApiService['resolveContent']>;
+  createVerificationChallenge: (
+    request: {
+      platform: string;
+      handle: string;
+      claimantAddress: string;
+    },
+  ) => ReturnType<PlatformApiService['createVerificationChallenge']>;
+  confirmVerification: (
+    request: { nonce: string },
+  ) => ReturnType<PlatformApiService['confirmVerification']>;
+  health: () => ReturnType<PlatformApiService['health']>;
+}> = {}): PlatformApiService {
   return {
-    resolveChannel: async () => ({
+    resolveChannel: overrides.resolveChannel ?? (async () => ({
       platform: 'twitter',
       channelId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
-    }),
-    resolveContent: async () => ({
+    })),
+    resolveContent: overrides.resolveContent ?? (async () => ({
       platform: 'twitter',
       channelId: 'twitter:uid:12345678',
       contentSuffix: '18347',
       canonicalId: 'twitter:uid:12345678:18347',
       metadata: {},
-    }),
-    createVerificationChallenge: async () => ({
+    })),
+    createVerificationChallenge: overrides.createVerificationChallenge ?? (async () => ({
       nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
       challengeCode: 'challenge',
       channelId: 'twitter:uid:12345678',
@@ -166,8 +516,8 @@ function createStubService(): PlatformApiService {
       displayName: 'Alice',
       tweetTemplate: 'Claiming',
       deadline: 1_700_000_000,
-    }),
-    confirmVerification: async () => ({
+    })),
+    confirmVerification: overrides.confirmVerification ?? (async () => ({
       proof: {
         channelId: 'twitter:uid:12345678',
         claimant: '0x1234567890123456789012345678901234567890' as Address,
@@ -175,7 +525,7 @@ function createStubService(): PlatformApiService {
         deadline: 1_700_000_000,
         verifierSignature: '0x11' as Hex,
       },
-    }),
-    health: () => ({ ok: true }),
+    })),
+    health: overrides.health ?? (() => ({ ok: true })),
   } as unknown as PlatformApiService;
 }
