@@ -12,7 +12,7 @@
     - Minor: CreatorContractCreated event emits `erc1155` (token address) instead of `creator` (who called the factory) as the spec's indexer.md describes. SDK and indexer ABI match the contract, not the spec. The UI can't determine contract creator from events alone without looking at tx sender.
     - DONE: Cross-cutting SDK queries (getChannelOverview, getContentItemStatus, getContractsForChannel, getVetoableContracts) from the indexer spec are now implemented in the SDK as fold-orchestration helpers for the future UI.
     - DONE: Add content-funding contracts to the deployment script (hardhat/scripts/deploy.js) so local/testnet deployments now include `MockChannelVerifier`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, and `CreatorAssuranceContractFactory`, wire the necessary ownership/factory links, and write the new addresses plus `CONTENT_FUNDING_START_BLOCK` into the shared env flow.
-    - TODO: Add content-funding scenarios to the fake data generation pipeline so the UI can be developed against realistic data.
+    - DONE: Add content-funding scenarios to the fake data generation pipeline so the UI can be developed against realistic data.
     - TODO: Implement the content-funding UI (specs/subsystems/content-funding/ui.md): Browse Creators page, Channel Page, Create Contract page, Creator Dashboard, plus integration with Pubstarter project detail and Funding Portal.
     - TODO: Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end.
 

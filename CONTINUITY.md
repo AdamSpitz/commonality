@@ -1,5 +1,39 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding fake-data seeding — COMPLETE ✓
+
+### What was done
+
+Added content-funding on-chain scenarios to the fake-data generation pipeline:
+
+1. Created `fake-data-generation/contentFundingActions.ts` with a `generateContentFundingScenarios` function that runs three deterministic scenarios:
+   - **Unclaimed Twitter channel** (`twitter:uid:111111111`): a fan creates a third-party contract with 2 content items; two buyers purchase tokens
+   - **Verified YouTube channel** (`youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa`): creator verifies the channel via MockChannelVerifier then creates a creator contract; two buyers purchase tokens
+   - **Creator-controlled Substack channel** (`substack:smartwriter`): creator verifies the channel, fan creates a third-party contract (while channel is Verified), creator creates their own contract, then creator takes control — leaving the third-party contract open for a veto during the 7-day window
+
+2. Updated `fake-data-generation/loadEnv.ts` to expose three new content-funding addresses: `channelVerifier`, `channelRegistry`, `creatorContractFactory`.
+
+3. Updated `fake-data-generation/runSimulation.ts` to call `generateContentFundingScenarios` after the main simulation, guarded by a check for the required env vars.
+
+### Key decisions
+
+- Used relative path imports for the indexer ABIs (`../indexer/abis/`) to avoid duplication. This works fine with `tsx` which resolves `.js` → `.ts` imports.
+- Scenarios are deterministic (fixed channel IDs and content suffixes), not random, so they produce stable indexer data for UI development.
+- Fixed a subtle sequencing issue: third-party contracts cannot be created on CreatorControlled channels, only on Unclaimed or Verified ones. Scenario 3 therefore creates the third-party contract while the channel is still Verified, then the creator takes control.
+
+### Files changed
+
+- `fake-data-generation/contentFundingActions.ts` (new)
+- `fake-data-generation/loadEnv.ts`
+- `fake-data-generation/runSimulation.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The fake-data pipeline now seeds all three channel states and multiple contract types, giving the upcoming UI something realistic to display. The next content-funding chunk should be the first UI slice — likely the Browse Creators page or Channel Page.
+
 ## Content-funding deployment wiring — COMPLETE ✓
 
 ### What was done

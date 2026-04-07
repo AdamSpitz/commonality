@@ -10,6 +10,7 @@ import { FundingAndDelegationActions } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
+import { generateContentFundingScenarios } from './contentFundingActions.js';
 import {
   BeliefsAbi,
   ImplicationsAbi,
@@ -939,6 +940,22 @@ async function main(): Promise<void> {
 
   await simulation.initialize(numUsers);
   await simulation.runSimulation(numRounds);
+
+  // Generate content-funding on-chain state (deterministic scenarios).
+  const cfAddresses = {
+    channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
+    channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
+    creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
+  };
+  if (cfAddresses.channelVerifier && cfAddresses.channelRegistry && cfAddresses.creatorContractFactory) {
+    await generateContentFundingScenarios(
+      cfAddresses as { channelVerifier: `0x${string}`; channelRegistry: `0x${string}`; creatorContractFactory: `0x${string}` },
+      simulation.users,
+    );
+  } else {
+    console.warn('Content-funding addresses not configured — skipping content-funding scenarios.');
+    console.warn('  (Set CHANNEL_VERIFIER_ADDRESS, CHANNEL_REGISTRY_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
+  }
 
   // Run attack scenarios if requested
   if (runAttacks) {
