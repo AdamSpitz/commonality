@@ -1,5 +1,43 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding SDK cross-cutting queries — COMPLETE ✓
+
+### What was done
+
+Added the missing SDK-side content-funding query helpers described in `specs/subsystems/content-funding/indexer.md`:
+
+1. `getContractsForChannel(...)`
+2. `getChannelOverview(...)`
+3. `getContentItemStatus(...)`
+4. `getVetoableContracts(...)`
+
+These live in `sdk/src/subsystems/content-funding/queries.ts` and orchestrate across the existing content-funding fold outputs plus folded Pubstarter project data supplied by the caller.
+
+Also added focused coverage in `sdk/src/subsystems/content-funding/queries.test.ts` for funding-progress/status derivation, channel overview aggregation, content-item lookup, and veto-window filtering.
+
+### Key decisions
+
+- Kept this pass scoped to the single SDK query-layer TODO item instead of expanding into event-cache decoding or UI wiring.
+- Implemented these as pure fold-orchestration helpers over existing folded state so the future UI can consume them without adding another fetching abstraction first.
+- Treated vetoed contracts as event-driven and contract status as a pragmatic derived view (`active`, `successful`, `failed`, `vetoed`, `unknown`) based on folded project totals plus optional `now`.
+
+### PRD reference
+
+- `TODO.md` content-funding (2026-04-07), cross-cutting SDK queries from `specs/subsystems/content-funding/indexer.md`
+
+### Files changed
+
+- `sdk/src/subsystems/content-funding/queries.ts` (new)
+- `sdk/src/subsystems/content-funding/queries.test.ts` (new)
+- `sdk/src/subsystems/content-funding/index.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The SDK now has the content-funding query helpers the UI spec expects. The next content-funding chunk should probably be either deployment/fake-data wiring or the first actual UI page that consumes these helpers.
+
 ## Content-funding indexer integration — COMPLETE ✓
 
 ### What was done

@@ -10,7 +10,7 @@
     - DONE: Wire the future content-funding UI creation flow to that resolver/cache so it validates "this URL belongs to this channel" before submitting a contract.
     - BUG: ChannelRegistry.sol vetoContract() does not emit the ContractVetoed event. The spec, indexer ABI, SDK event types, and indexer event handler all expect it, but the contract never emits it. The veto works functionally (calls cancel() on CancellableCondition) but produces no indexable event.
     - Minor: CreatorContractCreated event emits `erc1155` (token address) instead of `creator` (who called the factory) as the spec's indexer.md describes. SDK and indexer ABI match the contract, not the spec. The UI can't determine contract creator from events alone without looking at tx sender.
-    - TODO: Cross-cutting SDK queries (getChannelOverview, getContentItemStatus, getContractsForChannel, getVetoableContracts) from the indexer spec are not implemented yet. These orchestrate across multiple fold results and are needed by the UI.
+    - DONE: Cross-cutting SDK queries (getChannelOverview, getContentItemStatus, getContractsForChannel, getVetoableContracts) from the indexer spec are now implemented in the SDK as fold-orchestration helpers for the future UI.
     - TODO: Add content-funding contracts to the deployment script (hardhat/scripts/deploy.js) so they get deployed to local Hardhat and testnet.
     - TODO: Add content-funding scenarios to the fake data generation pipeline so the UI can be developed against realistic data.
     - TODO: Implement the content-funding UI (specs/subsystems/content-funding/ui.md): Browse Creators page, Channel Page, Create Contract page, Creator Dashboard, plus integration with Pubstarter project detail and Funding Portal.
