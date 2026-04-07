@@ -75,6 +75,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
 
     event ChannelVerified(bytes32 indexed channelId, address indexed owner);
     event ChannelControlTaken(bytes32 indexed channelId, address indexed owner);
+    event ContractVetoed(bytes32 indexed channelId, address indexed contractAddress);
     event VerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
     event FactoryUpdated(address indexed oldFactory, address indexed newFactory);
 
@@ -182,6 +183,8 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
 
         ICancellableCondition(conditionAddress).cancel();
         ICreatorAssuranceContractFactory(factory).releaseContentOnFailure(contractAddress);
+
+        emit ContractVetoed(channelId, contractAddress);
     }
 }
 

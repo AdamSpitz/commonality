@@ -1070,7 +1070,7 @@ export function decodeCreatorContractCreatedEvent(
 ): {
   contractAddress: `0x${string}`;
   channelId: string;
-  erc1155: `0x${string}`;
+  creator: `0x${string}`;
   isThirdParty: boolean;
   blockNumber: bigint;
   blockTimestamp: bigint;
@@ -1083,7 +1083,7 @@ export function decodeCreatorContractCreatedEvent(
   return {
     contractAddress: args.contractAddress as `0x${string}`,
     channelId: args.channelId as string,
-    erc1155: args.erc1155 as `0x${string}`,
+    creator: args.creator as `0x${string}`,
     isThirdParty: args.isThirdParty as boolean,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),

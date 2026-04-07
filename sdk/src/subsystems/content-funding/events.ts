@@ -48,7 +48,7 @@ export interface CreatorContractCreatedEvent extends RawEvent {
   type: 'CreatorContractCreated';
   contractAddress: `0x${string}`;
   channelId: string;
-  erc1155: `0x${string}`;
+  creator: `0x${string}`;
   isThirdParty: boolean;
 }
 

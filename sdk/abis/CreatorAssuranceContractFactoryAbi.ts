@@ -120,7 +120,7 @@ export const CreatorAssuranceContractFactoryAbi: Abi = [
     inputs: [
       { name: 'contractAddress', type: 'address', indexed: true },
       { name: 'channelId', type: 'bytes32', indexed: true },
-      { name: 'erc1155', type: 'address', indexed: false },
+      { name: 'creator', type: 'address', indexed: false },
       { name: 'isThirdParty', type: 'bool', indexed: false },
     ],
   },

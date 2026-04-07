@@ -17,9 +17,9 @@
     - DONE: Creator Dashboard (`/content/dashboard`) — management page for verified creators.
     - DONE: Integration with Pubstarter project detail page — content items section, channel info, attestations.
     - DONE: Integration with Funding Portal — recognize creator assurance contracts.
-    - BUG: ChannelRegistry.sol vetoContract() does not emit the ContractVetoed event. The spec, indexer ABI, SDK event types, and indexer event handler all expect it, but the contract never emits it. The veto works functionally (calls cancel() on CancellableCondition) but produces no indexable event.
-    - Minor: CreatorContractCreated event emits `erc1155` (token address) instead of `creator` (who called the factory) as the spec's indexer.md describes. SDK and indexer ABI match the contract, not the spec. The UI can't determine contract creator from events alone without looking at tx sender.
-    - TODO: Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end. (Wait, okay, so we need a todo item for implementing the verification path?)
+    - DONE: BUG: Added the missing ContractVetoed event declaration and emit in ChannelRegistry.vetoContract(). Also updated SDK event types, indexer ABI, and event decoder.
+    - DONE: Minor: Changed CreatorContractCreated event to emit `creator` instead of `erc1155`, per the spec. Updated SDK events, ABIs, folds, and tests.
+    - Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end.
 
 ## Other big things to do soon
 

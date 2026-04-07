@@ -109,7 +109,7 @@ export function foldChannelEscrow(events: (DepositedEvent | WithdrawnEvent)[]): 
 export interface CreatorContractInfo {
   contractAddress: string;
   channelId: string;
-  erc1155: string;
+  creator: string;
   isThirdParty: boolean;
 }
 
@@ -124,7 +124,7 @@ export function foldCreatorContracts(events: CreatorContractCreatedEvent[]): Cre
     contracts.set(event.contractAddress, {
       contractAddress: event.contractAddress,
       channelId: event.channelId,
-      erc1155: event.erc1155,
+      creator: event.creator,
       isThirdParty: event.isThirdParty,
     });
   }

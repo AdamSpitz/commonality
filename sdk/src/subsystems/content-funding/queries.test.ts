@@ -19,12 +19,11 @@ import type { Project } from '../pubstarter/types.js';
 const CHANNEL_A = 'twitter:uid:creator-a';
 const CHANNEL_B = 'twitter:uid:creator-b';
 const OWNER_A = '0x1111111111111111111111111111111111111111' as const;
+const OWNER_B = '0x2222222222222222222222222222222222222222' as const;
+const OWNER_C = '0x3333333333333333333333333333333333333333' as const;
 const CONTRACT_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const CONTRACT_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
 const CONTRACT_C = '0xcccccccccccccccccccccccccccccccccccccccc' as const;
-const ERC1155_A = '0xdddddddddddddddddddddddddddddddddddddddd' as const;
-const ERC1155_B = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as const;
-const ERC1155_C = '0xffffffffffffffffffffffffffffffffffffffff' as const;
 const TX_HASH = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as const;
 
 function makeRegisteredEvent(overrides: Partial<ContentItemRegisteredEvent> = {}): ContentItemRegisteredEvent {
@@ -90,7 +89,7 @@ function makeContractCreatedEvent(overrides: Partial<CreatorContractCreatedEvent
     type: 'CreatorContractCreated',
     contractAddress: CONTRACT_A,
     channelId: CHANNEL_A,
-    erc1155: ERC1155_A,
+    creator: OWNER_A,
     isThirdParty: true,
     blockNumber: 100n,
     blockTimestamp: 1000n,
@@ -114,9 +113,10 @@ function makeVetoedEvent(overrides: Partial<ContractVetoedEvent> = {}): Contract
 }
 
 function makeProject(overrides: Partial<Project> = {}): Project {
+  const defaultErc1155 = '0xdddddddddddddddddddddddddddddddddddddddd' as const;
   return {
     id: CONTRACT_A,
-    erc1155Address: ERC1155_A,
+    erc1155Address: defaultErc1155,
     marketplaceAddress: null,
     recipient: OWNER_A,
     threshold: '100',
@@ -170,7 +170,7 @@ describe('content-funding query helpers', () => {
       makeContractCreatedEvent(),
       makeContractCreatedEvent({
         contractAddress: CONTRACT_B,
-        erc1155: ERC1155_B,
+        creator: OWNER_B,
         isThirdParty: false,
         blockNumber: 110n,
         blockTimestamp: 1100n,
@@ -178,7 +178,7 @@ describe('content-funding query helpers', () => {
       }),
       makeContractCreatedEvent({
         contractAddress: CONTRACT_C,
-        erc1155: ERC1155_C,
+        creator: OWNER_C,
         isThirdParty: true,
         blockNumber: 115n,
         blockTimestamp: 1150n,
@@ -187,7 +187,7 @@ describe('content-funding query helpers', () => {
       makeContractCreatedEvent({
         contractAddress: '0x1212121212121212121212121212121212121212',
         channelId: CHANNEL_B,
-        erc1155: '0x1313131313131313131313131313131313131313',
+        creator: '0x1313131313131313131313131313131313131313',
         isThirdParty: true,
         blockNumber: 101n,
         blockTimestamp: 1010n,
@@ -200,14 +200,14 @@ describe('content-funding query helpers', () => {
     makeProject(),
     makeProject({
       id: CONTRACT_B,
-      erc1155Address: ERC1155_B,
+      erc1155Address: OWNER_B,
       totalReceived: '150',
       createdAt: '1100',
       blockNumber: '110',
     }),
     makeProject({
       id: CONTRACT_C,
-      erc1155Address: ERC1155_C,
+      erc1155Address: OWNER_C,
       totalReceived: '10',
       createdAt: '1150',
       blockNumber: '115',

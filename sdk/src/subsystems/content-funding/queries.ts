@@ -432,7 +432,7 @@ export async function fetchAndFoldContentFundingState(
       }
       case 'CreatorContractCreated': {
         const d = decodeCreatorContractCreatedEvent(raw);
-        if (d) creatorContractEvents.push({ type: 'CreatorContractCreated', contractAddress: d.contractAddress, channelId: d.channelId, erc1155: d.erc1155, isThirdParty: d.isThirdParty, blockNumber: d.blockNumber, blockTimestamp: d.blockTimestamp, transactionHash: d.transactionHash, logIndex: d.logIndex });
+        if (d) creatorContractEvents.push({ type: 'CreatorContractCreated', contractAddress: d.contractAddress, channelId: d.channelId, creator: d.creator, isThirdParty: d.isThirdParty, blockNumber: d.blockNumber, blockTimestamp: d.blockTimestamp, transactionHash: d.transactionHash, logIndex: d.logIndex });
         break;
       }
     }

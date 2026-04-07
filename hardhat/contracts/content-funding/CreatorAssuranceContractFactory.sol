@@ -48,7 +48,7 @@ contract CreatorAssuranceContractFactory is Ownable {
     event CreatorContractCreated(
         address indexed contractAddress,
         bytes32 indexed channelId,
-        address indexed erc1155,
+        address indexed creator,
         bool isThirdParty
     );
 
@@ -248,7 +248,7 @@ contract CreatorAssuranceContractFactory is Ownable {
             );
         }
 
-        emit CreatorContractCreated(address(ac), channelId, address(erc1155), isThirdParty);
+        emit CreatorContractCreated(address(ac), channelId, msg.sender, isThirdParty);
 
         return address(ac);
     }

@@ -1,5 +1,42 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding bug fixes: ContractVetoed event and creator field — COMPLETE ✓
+
+### What was done
+
+Fixed two content-funding issues from TODO.md:
+
+1. **BUG: ContractVetoed event missing**: Added the missing `ContractVetoed` event declaration in `ChannelRegistry.sol` and added the emit in `vetoContract()` function. The event was expected by the spec, indexer ABI, SDK event types, and indexer event handler, but never actually emitted.
+
+2. **Minor: CreatorContractCreated event field**: Changed `CreatorContractCreated` event to emit `creator` (the address that called the factory) instead of `erc1155` (the token address), as described in the spec. Updated SDK events, ABIs, folds, queries, and tests.
+
+### Key decisions
+
+- Kept both fixes in a single pass since they're closely related (both are event field corrections).
+- For the CreatorContractCreated change, also updated `CreatorContractInfo` interface in folds to store `creator` instead of `erc1155` - this makes the folded state correctly represent what's in the event.
+
+### Files changed
+
+- `hardhat/contracts/content-funding/ChannelRegistry.sol` — added ContractVetoed event and emit
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol` — changed event to emit creator
+- `sdk/abis/CreatorAssuranceContractFactoryAbi.ts` — creator field
+- `indexer/abis/CreatorAssuranceContractFactoryAbi.ts` — creator field
+- `sdk/src/subsystems/content-funding/events.ts` — CreatorContractCreatedEvent.creator
+- `sdk/src/subsystems/content-funding/folds.ts` — CreatorContractInfo.creator
+- `sdk/src/subsystems/content-funding/queries.ts` — decode and push creator
+- `sdk/src/utils/eventDecoder.ts` — decode creator field
+- `sdk/src/subsystems/content-funding/queries.test.ts` — test updates
+- `TODO.md` — marked as DONE
+- `CONTINUITY.md` — this entry
+
+### Notes for next session
+
+The content-funding system is now fully complete (MVP). The remaining TODO items are:
+- Replace MockChannelVerifier with a real verifier contract once verification path is implemented
+- This was the last bug and the last minor issue from the content-funding section
+
+---
+
 ## Content-funding UI: Funding Portal integration — COMPLETE ✓
 
 ### What was done
