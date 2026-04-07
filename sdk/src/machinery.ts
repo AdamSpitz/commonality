@@ -1,4 +1,4 @@
-import { IPFSConfig } from "./utils/ipfs";
+import { IPFSConfig } from "./utils/ipfs.js";
 import { type PublicClient } from "viem";
 
 export interface TestConfig {

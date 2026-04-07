@@ -1,4 +1,4 @@
-import { IpfsCidV1 } from "../../utils/cid-types";
+import { IpfsCidV1 } from "../../utils/cid-types.js";
 import { type DisplayableDocument } from "../displayable-documents/displayable-document.js";
 
 /**

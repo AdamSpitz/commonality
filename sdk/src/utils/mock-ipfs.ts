@@ -1,4 +1,4 @@
-import { IpfsCidV1, normalizeCidV1, buildCidV1FromDigest } from './cid-types';
+import { IpfsCidV1, normalizeCidV1, buildCidV1FromDigest } from './cid-types.js';
 
 const RAW_CODEC = 0x55;
 

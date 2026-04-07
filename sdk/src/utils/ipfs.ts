@@ -1,5 +1,5 @@
-import { IpfsCidV1, normalizeCidV1 } from "./cid-types";
-import { fetchFromMockIPFS, uploadToMockIPFS, uploadBlobToMockIPFS } from "./mock-ipfs";
+import { IpfsCidV1, normalizeCidV1 } from "./cid-types.js";
+import { fetchFromMockIPFS, uploadToMockIPFS, uploadBlobToMockIPFS } from "./mock-ipfs.js";
 
 export type IPFSConfig = {
   gatewayUrl?: string;
