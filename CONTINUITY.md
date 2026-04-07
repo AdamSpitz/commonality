@@ -1,5 +1,66 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding indexer integration — COMPLETE ✓
+
+### What was done
+
+Added the indexer integration for content-funding events as described in `specs/subsystems/content-funding/indexer.md`:
+
+1. **Created content-funding ABIs** in `indexer/abis/`:
+   - `ContentRegistryAbi.ts` — ContentItemRegistered, ContentItemReleased events
+   - `ChannelRegistryAbi.ts` — ChannelVerified, ChannelControlTaken, ContractVetoed events  
+   - `ChannelEscrowAbi.ts` — Deposited, Withdrawn events
+   - `CreatorAssuranceContractFactoryAbi.ts` — CreatorContractCreated, ThirdPartyMinPurchaseUpdated events
+
+2. **Added content-funding contracts to ponder.config.ts**:
+   - Added environment variables: CONTENT_REGISTRY_ADDRESS, CHANNEL_REGISTRY_ADDRESS, CHANNEL_ESCROW_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS
+   - Added contract registrations for ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory
+   - Added dynamic factory indexing for CreatorAssuranceContract (child contracts created by the factory)
+
+3. **Registered content-funding event handlers** in `indexer/src/events-cache/index.ts`:
+   - ContentRegistry:ContentItemRegistered, ContentItemReleased
+   - ChannelRegistry:ChannelVerified, ChannelControlTaken, ContractVetoed
+   - ChannelEscrow:Deposited, Withdrawn
+   - CreatorAssuranceContractFactory:CreatorContractCreated
+
+4. **Created SDK fold functions** in `sdk/src/subsystems/content-funding/`:
+   - `events.ts` — TypeScript interfaces for all content-funding event types with discriminated union
+   - `folds.ts` — foldContentRegistry, foldChannelState, foldChannelEscrow, foldCreatorContracts, foldAllContentFundingEvents
+
+### Key decisions
+
+- Reused the existing Pubstarter AssuranceContract ABI for dynamically indexed creator contracts — they're the same contract type, just created by a different factory
+- Exported all fold functions from the SDK's content-funding index for easy consumption
+- Used `as const` for the factory ABI to match the pattern used by other factory ABIs in the indexer
+
+### PRD reference
+
+- `TODO.md` content-funding (2026-04-07), "Implement the indexer/SDK content-funding event handling described in the spec"
+- `specs/subsystems/content-funding/indexer.md`
+
+### Files changed
+
+- `indexer/abis/ContentRegistryAbi.ts` (new)
+- `indexer/abis/ChannelRegistryAbi.ts` (new)
+- `indexer/abis/ChannelEscrowAbi.ts` (new)
+- `indexer/abis/CreatorAssuranceContractFactoryAbi.ts` (new)
+- `indexer/ponder.config.ts`
+- `indexer/src/events-cache/index.ts`
+- `sdk/src/subsystems/content-funding/events.ts` (new)
+- `sdk/src/subsystems/content-funding/folds.ts` (new)
+- `sdk/src/subsystems/content-funding/index.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Content-funding indexer integration is now complete. Remaining content-funding work:
+- On-chain signature-verifier contract path (the ChannelRegistry uses a verifier interface, but the actual verifier contract implementation may need to be created or integrated)
+- UI implementation per the spec in `specs/subsystems/content-funding/ui.md`
+
+---
+
 ## Platform API service deeper service-level coverage — COMPLETE ✓
 
 ### What was done

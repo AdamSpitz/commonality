@@ -25,6 +25,12 @@ import { AlignmentAttestationsAbi } from "./abis/AlignmentAttestationsAbi";
 // Mutable Refs ABIs
 import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
 
+// Content Funding ABIs
+import { ContentRegistryAbi } from "./abis/ContentRegistryAbi";
+import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
+import { ChannelEscrowAbi } from "./abis/ChannelEscrowAbi";
+import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
+
 // ============================================================================
 // CONCEPTSPACE CONTRACT ADDRESSES
 // ============================================================================
@@ -55,11 +61,20 @@ const ALIGNMENT_ATTESTATIONS_ADDRESS = (process.env.ALIGNMENT_ATTESTATIONS_ADDRE
 // ============================================================================
 const MUTABLE_REF_UPDATER_ADDRESS = (process.env.MUTABLE_REF_UPDATER_ADDRESS && process.env.MUTABLE_REF_UPDATER_ADDRESS !== '') ? process.env.MUTABLE_REF_UPDATER_ADDRESS as `0x${string}` : undefined;
 
+// ============================================================================
+// CONTENT FUNDING CONTRACT ADDRESSES
+// ============================================================================
+const CONTENT_REGISTRY_ADDRESS = (process.env.CONTENT_REGISTRY_ADDRESS && process.env.CONTENT_REGISTRY_ADDRESS !== '') ? process.env.CONTENT_REGISTRY_ADDRESS as `0x${string}` : undefined;
+const CHANNEL_REGISTRY_ADDRESS = (process.env.CHANNEL_REGISTRY_ADDRESS && process.env.CHANNEL_REGISTRY_ADDRESS !== '') ? process.env.CHANNEL_REGISTRY_ADDRESS as `0x${string}` : undefined;
+const CHANNEL_ESCROW_ADDRESS = (process.env.CHANNEL_ESCROW_ADDRESS && process.env.CHANNEL_ESCROW_ADDRESS !== '') ? process.env.CHANNEL_ESCROW_ADDRESS as `0x${string}` : undefined;
+const CREATOR_CONTRACT_FACTORY_ADDRESS = (process.env.CREATOR_CONTRACT_FACTORY_ADDRESS && process.env.CREATOR_CONTRACT_FACTORY_ADDRESS !== '') ? process.env.CREATOR_CONTRACT_FACTORY_ADDRESS as `0x${string}` : undefined;
+
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
 const PUBSTARTER_START_BLOCK = Number(process.env.PUBSTARTER_START_BLOCK || START_BLOCK);
 const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || START_BLOCK);
 const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
+const CONTENT_FUNDING_START_BLOCK = Number(process.env.CONTENT_FUNDING_START_BLOCK || START_BLOCK);
 
 export default createConfig({
   database: process.env.PONDER_EPHEMERAL === 'true'
@@ -216,6 +231,55 @@ export default createConfig({
       chain: "hardhat",
       address: MUTABLE_REF_UPDATER_ADDRESS,
       startBlock: START_BLOCK,
+    },
+
+    // ========================================================================
+    // CONTENT FUNDING INDEXER CONTRACTS
+    // ========================================================================
+    // Content Registry - tracks registered content items and their contracts
+    ContentRegistry: {
+      abi: ContentRegistryAbi,
+      chain: "hardhat",
+      address: CONTENT_REGISTRY_ADDRESS,
+      startBlock: CONTENT_FUNDING_START_BLOCK,
+    },
+
+    // Channel Registry - tracks channel verification and control states
+    ChannelRegistry: {
+      abi: ChannelRegistryAbi,
+      chain: "hardhat",
+      address: CHANNEL_REGISTRY_ADDRESS,
+      startBlock: CONTENT_FUNDING_START_BLOCK,
+    },
+
+    // Channel Escrow - holds funds for unclaimed channels
+    ChannelEscrow: {
+      abi: ChannelEscrowAbi,
+      chain: "hardhat",
+      address: CHANNEL_ESCROW_ADDRESS,
+      startBlock: CONTENT_FUNDING_START_BLOCK,
+    },
+
+    // Creator Assurance Contract Factory - creates content-funding contracts
+    CreatorAssuranceContractFactory: {
+      abi: CreatorAssuranceContractFactoryAbi,
+      chain: "hardhat",
+      address: CREATOR_CONTRACT_FACTORY_ADDRESS,
+      startBlock: CONTENT_FUNDING_START_BLOCK,
+    },
+
+    // Dynamically indexed creator assurance contracts (created by factory)
+    CreatorAssuranceContract: {
+      abi: AssuranceContractAbi,
+      chain: "hardhat",
+      address: CREATOR_CONTRACT_FACTORY_ADDRESS
+        ? factory({
+            address: CREATOR_CONTRACT_FACTORY_ADDRESS,
+            event: CreatorAssuranceContractFactoryAbi[21] as any, // CreatorContractCreated
+            parameter: "contractAddress",
+          })
+        : undefined,
+      startBlock: CONTENT_FUNDING_START_BLOCK,
     },
   },
 });

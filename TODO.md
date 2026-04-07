@@ -2,13 +2,12 @@
 
 ## Main thing I want to work on next
 
-  - Implement the content-funding system. Smart contracts are implemented and tested (though I wouldn't mind doing another review). Still need to implement the indexer integration and the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
-    - DONE: Implement the platform API service MVP (see [platform-api-service.md](specs/subsystems/content-funding/platform-api-service.md)). Core implementation is solid: all 4 endpoints (`/resolve/channel`, `/resolve/content`, `/verify/challenge`, `/verify/confirm`) plus `/health`, caching strategy matches spec, rate limiting matches spec, Ethereum signing + optional on-chain tx submission, SDK canonicalization functions used correctly, and focused workspace tests now cover both the route layer and the remaining service-layer YouTube/content-resolution/error-path cases.
+  - Implement the content-funding system. Smart contracts are implemented and tested (though I wouldn't mind doing another review). Still need to implement the UI. Note that the ui needs some new components and also some changes to existing components - e.g. when looking at a pubstarter assurance contract, check to see whether it's a content-funding assurance contract and then show it specifically as such.
+    - DONE: Indexer integration for content-funding events (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory). SDK now exports fold functions for content items, channel state, channel escrow balances, and creator contracts. Platform API service canonicalization helpers are already in the SDK.
     - Spec-alignment follow-up from the recent canonicalization changes:
       - Add the shared SDK content-funding canonicalization helpers from the spec: strict Twitter/X, YouTube, and Substack URL parsing that extracts content-specific suffixes and rejects ambiguous inputs.
       - Add the backend author/channel-prefix resolution layer for Twitter and YouTube, with caching of resolved platform API lookups. The spec now assumes the same backend used for channel claiming also resolves and caches the stable channel prefixes needed to build content IDs.
       - Wire the future content-funding UI creation flow to that resolver/cache so it validates "this URL belongs to this channel" before submitting a contract.
-      - Implement the indexer/SDK content-funding event handling described in the spec, using the plaintext canonical IDs from events to power channel pages and contract views.
     - Smart contract audit follow-up:
       - Fix the third-party veto bypass. Right now a third party can choose a threshold equal to their required initial purchase, making the contract succeed inside `createContract()` and become immediately non-vetoable, which defeats the whole "creator can cancel underpriced fan-created contracts during the veto window" design.
 

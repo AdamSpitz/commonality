@@ -1,0 +1,132 @@
+import type { Abi } from 'viem';
+
+export const ChannelRegistryAbi: Abi = [
+  {
+    type: 'error',
+    inputs: [{ name: 'channelId', type: 'bytes32' }],
+    name: 'ChannelAlreadyVerified',
+  },
+  { type: 'error', inputs: [{ name: 'channelId', type: 'bytes32' }], name: 'ChannelNotVerified' },
+  { type: 'error', inputs: [{ name: 'channelId', type: 'bytes32' }], name: 'ChannelAlreadyCreatorControlled' },
+  { type: 'error', inputs: [{ name: 'channelId', type: 'bytes32' }], name: 'ChannelNotCreatorControlled' },
+  { type: 'error', inputs: [], name: 'OnlyChannelOwnerCanVerify' },
+  { type: 'error', inputs: [], name: 'OnlyChannelOwnerCanTakeControl' },
+  { type: 'error', inputs: [], name: 'OnlyChannelOwnerCanVeto' },
+  { type: 'error', inputs: [], name: 'InvalidNonce' },
+  { type: 'error', inputs: [], name: 'ProofExpired' },
+  { type: 'error', inputs: [], name: 'InvalidVerifierSignature' },
+  { type: 'error', inputs: [], name: 'VetoWindowExpired' },
+  {
+    type: 'error',
+    inputs: [{ name: 'channelId', type: 'bytes32' }, { name: 'contractAddress', type: 'address' }],
+    name: 'ContractNotThirdParty',
+  },
+  { type: 'error', inputs: [{ name: 'contractAddress', type: 'address' }], name: 'ContractAlreadySucceeded' },
+  { type: 'error', inputs: [{ name: 'contractAddress', type: 'address' }], name: 'ContractNotCreatedByFactory' },
+  { type: 'error', inputs: [], name: 'OnlyFactoryCanRegister' },
+  { type: 'error', inputs: [], name: 'InvalidVerifierAddress' },
+  { type: 'error', inputs: [], name: 'InvalidFactoryAddress' },
+  { type: 'error', inputs: [], name: 'FactoryNotSet' },
+  {
+    type: 'function',
+    name: 'channelOwner',
+    inputs: [{ name: 'channelId', type: 'bytes32' }],
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'channelState',
+    inputs: [{ name: 'channelId', type: 'bytes32' }],
+    outputs: [{ name: '', type: 'uint8' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'verifyChannel',
+    inputs: [
+      { name: 'channelId', type: 'bytes32' },
+      { name: 'claimant', type: 'address' },
+      { name: 'nonce', type: 'bytes32' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'verifierSignature', type: 'bytes' },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'takeChannelControl',
+    inputs: [{ name: 'channelId', type: 'bytes32' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'setVerifier',
+    inputs: [{ name: '_verifier', type: 'address' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'setFactory',
+    inputs: [{ name: '_factory', type: 'address' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'isVerified',
+    inputs: [{ name: 'channelId', type: 'bytes32' }],
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'isCreatorControlled',
+    inputs: [{ name: 'channelId', type: 'bytes32' }],
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'event',
+    name: 'ChannelVerified',
+    inputs: [
+      { name: 'channelId', type: 'bytes32', indexed: true },
+      { name: 'owner', type: 'address', indexed: true },
+    ],
+  },
+  {
+    type: 'event',
+    name: 'ChannelControlTaken',
+    inputs: [
+      { name: 'channelId', type: 'bytes32', indexed: true },
+      { name: 'owner', type: 'address', indexed: true },
+    ],
+  },
+  {
+    type: 'event',
+    name: 'ContractVetoed',
+    inputs: [
+      { name: 'channelId', type: 'bytes32', indexed: true },
+      { name: 'contractAddress', type: 'address', indexed: true },
+    ],
+  },
+  {
+    type: 'event',
+    name: 'VerifierUpdated',
+    inputs: [
+      { name: 'oldVerifier', type: 'address', indexed: true },
+      { name: 'newVerifier', type: 'address', indexed: true },
+    ],
+  },
+  {
+    type: 'event',
+    name: 'FactoryUpdated',
+    inputs: [
+      { name: 'oldFactory', type: 'address', indexed: true },
+      { name: 'newFactory', type: 'address', indexed: true },
+    ],
+  },
+];
