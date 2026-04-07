@@ -1,5 +1,50 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding UI: Pubstarter project detail page integration — COMPLETE ✓
+
+### What was done
+
+Integrated content-funding information into the Pubstarter project detail page (`/projects/:projectAddress`). When a project is a content-funding creator assurance contract, it now displays a "Content Funding" section with channel info, contract status, and content items.
+
+**New file:**
+- `ui/src/content-funding/components/ContentFundingProjectSection.tsx` — displays:
+  - Channel name (linked to channel page when available)
+  - Channel canonical ID
+  - Channel status (Unclaimed/Verified/Creator-Controlled)
+  - Contract status (Active/Succeeded/Failed/Vetoed)
+  - Escrowed balance (if any)
+  - Content items list with direct links to content
+
+**Updated files:**
+- `ui/src/pubstarter/pages/ProjectDetailPage.tsx` — imported and added `<ContentFundingProjectSection />` below the alignment attestations section
+
+### Key decisions
+
+- Reused the existing `useContentFundingState` hook that already provides channels and contracts data
+- Searched all channels and their contracts to find a matching contract address — this handles both fan-created and creator-created contracts
+- Returns null (component renders nothing) if the project is not a content-funding contract, so the UI degrades gracefully
+- Used the same helper functions (`getChannelDisplayName`, `getContentUrl`) from the ChannelPage for consistency
+- Component returns early if loading or not a content-funding project, avoiding unnecessary rendering
+
+### PRD reference
+
+- `TODO.md` content-funding UI: "Integration with Pubstarter project detail page — content items section, channel info, attestations"
+
+### Files changed
+
+- `ui/src/content-funding/components/ContentFundingProjectSection.tsx` (new)
+- `ui/src/pubstarter/pages/ProjectDetailPage.tsx`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Remaining content-funding UI integration:
+1. **Funding Portal integration** — recognize creator assurance contracts in the aligned-projects list
+
+---
+
 ## Content-funding UI: Creator Dashboard — COMPLETE ✓
 
 ### What was done
