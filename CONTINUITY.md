@@ -1,5 +1,37 @@
 # Continuity notes for ephemeral AI instances
 
+## Real ChannelVerifier contract — COMPLETE ✓
+
+### What was done
+
+Replaced the `MockChannelVerifier` (test-only stub that returned a hardcoded bool) with a real `ChannelVerifier` contract that verifies EIP-191 signed proofs from the Platform API Service's trusted verifier EOA.
+
+### Key decisions
+
+- The contract uses OpenZeppelin ECDSA + MessageHashUtils to recover the signer from signatures that match the Platform API Service's `signClaimProof` scheme: `keccak256(abi.encodePacked(channelId, claimant, nonce, deadline))` signed with EIP-191 personal sign.
+- `MockChannelVerifier` is kept in `contracts/test/` for existing ChannelRegistry unit tests — those tests are testing registry logic, not verifier logic.
+- The deploy script now deploys the real verifier with the deployer as `trustedVerifier`. For local dev, the Hardhat account #0 private key is written to `.env` as `VERIFIER_PRIVATE_KEY`.
+- Fake-data generation was updated to sign real proofs instead of toggling `setValid(true)` on the mock.
+
+### Files changed
+
+- `hardhat/contracts/content-funding/ChannelVerifier.sol` — new contract
+- `hardhat/test/ChannelVerifier.test.js` — 14 tests (standalone + ChannelRegistry integration)
+- `hardhat/scripts/deploy.js` — deploy real verifier, write `VERIFIER_PRIVATE_KEY` to local .env
+- `fake-data-generation/contentFundingActions.ts` — sign real proofs, removed mock-verifier dependency
+- `fake-data-generation/runSimulation.ts` — removed `channelVerifier` from addresses interface
+- `TODO.md` — marked as DONE
+- `CONTINUITY.md` — this entry
+
+### Notes for next session
+
+The content-funding system now has a complete end-to-end verification path from Platform API Service through to on-chain. Remaining content-funding work:
+- 5 UI/SDK bugs listed in TODO.md (veto ABI, dashboard filter, hardcoded platform, etc.)
+- Claim Flow UI (modal for creators to verify identity and withdraw)
+- Wire Create Contract page to Platform API Service's `/resolve/content`
+
+---
+
 ## Content-funding bug fixes: ContractVetoed event and creator field — COMPLETE ✓
 
 ### What was done

@@ -13,6 +13,7 @@
 import {
   createPublicClient,
   createWalletClient,
+  encodePacked,
   http,
   keccak256,
   toBytes,
@@ -41,16 +42,11 @@ const hardhat = {
   },
 } as const;
 
-// Minimal ABI for MockChannelVerifier — just the setValid control knob.
-const MockChannelVerifierAbi = [
-  {
-    type: 'function',
-    name: 'setValid',
-    inputs: [{ name: 'valid', type: 'bool' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-] as const;
+// Well-known Hardhat account #0 private key — used as the trusted verifier
+// in local deployments. The deploy script sets this address as the
+// ChannelVerifier's trustedVerifier.
+const HARDHAT_DEPLOYER_PRIVATE_KEY: Hex =
+  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -93,22 +89,26 @@ async function waitForTx(
 // ---------------------------------------------------------------------------
 
 /**
- * Enable the MockChannelVerifier so the next verifyChannel call succeeds.
- * Any account can call setValid — the mock has no access control.
+ * Sign a channel-claim proof using the same scheme as the Platform API Service:
+ * keccak256(abi.encodePacked(channelId, claimant, nonce, deadline)) signed with
+ * EIP-191 personal sign.
  */
-async function enableMockVerifier(
-  clients: ReturnType<typeof createClients>,
-  verifierAddress: `0x${string}`,
-) {
-  const hash = await clients.walletClient.writeContract({
-    address: verifierAddress,
-    abi: MockChannelVerifierAbi,
-    functionName: 'setValid',
-    args: [true],
-    chain: hardhat,
-    account: clients.walletClient.account!,
+async function signClaimProof(
+  verifierPrivateKey: Hex,
+  channelId: Hex,
+  claimant: `0x${string}`,
+  nonce: Hex,
+  deadline: bigint,
+): Promise<Hex> {
+  const verifierAccount = privateKeyToAccount(verifierPrivateKey);
+  const packed = encodePacked(
+    ['bytes32', 'address', 'bytes32', 'uint256'],
+    [channelId, claimant, nonce, deadline],
+  );
+  const digest = keccak256(packed);
+  return verifierAccount.signMessage({
+    message: { raw: toBytes(digest) },
   });
-  await waitForTx(clients.publicClient, hash);
 }
 
 /** Verify a channel so that a user becomes its on-chain owner. */
@@ -123,11 +123,19 @@ async function verifyChannel(
   // Random nonce — just needs to be unused.
   const nonce = keccak256(toBytes(`nonce-${channelCanonicalId}-${Date.now()}`));
 
+  const signature = await signClaimProof(
+    HARDHAT_DEPLOYER_PRIVATE_KEY,
+    chId,
+    clients.account as `0x${string}`,
+    nonce,
+    deadline,
+  );
+
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
     abi: ChannelRegistryAbi,
     functionName: 'verifyChannel',
-    args: [chId, clients.account, nonce, deadline, '0x' as Hex],
+    args: [chId, clients.account, nonce, deadline, signature],
     chain: hardhat,
     account: clients.walletClient.account!,
   });
@@ -298,7 +306,6 @@ async function getERC1155Address(
 // ---------------------------------------------------------------------------
 
 export interface ContentFundingAddresses {
-  channelVerifier: `0x${string}`;
   channelRegistry: `0x${string}`;
   creatorContractFactory: `0x${string}`;
 }
@@ -318,7 +325,7 @@ export async function generateContentFundingScenarios(
     return;
   }
 
-  const { channelVerifier, channelRegistry, creatorContractFactory } = addresses;
+  const { channelRegistry, creatorContractFactory } = addresses;
 
   // Assign roles. Use later users so they don't clash with the primary hardhat
   // account (index 0) used as the funder in the main simulation.
@@ -388,8 +395,6 @@ export async function generateContentFundingScenarios(
     const prices = [tokenPrice];
     const threshold = parseEther('0.5');
 
-    // Enable the mock verifier then verify the channel.
-    await enableMockVerifier(creatorClients, channelVerifier);
     await verifyChannel(creatorClients, channelRegistry, channelCanonicalId);
 
     const contractAddress = await createCreatorContract(creatorClients, {
@@ -443,7 +448,6 @@ export async function generateContentFundingScenarios(
     const thirdPartyThreshold = parseEther('0.5');
 
     // Step 1: Verify the channel — it's now Verified (not CreatorControlled).
-    await enableMockVerifier(creatorClients, channelVerifier);
     await verifyChannel(creatorClients, channelRegistry, channelCanonicalId);
 
     // Step 2: Fan creates a third-party contract while channel is still Verified.

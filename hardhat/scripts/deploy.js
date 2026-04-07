@@ -180,13 +180,15 @@ async function main() {
 
   console.log('\nDeploying Content Funding contracts...');
 
-  // Use the mock verifier as the initial channel verifier until a production
-  // verifier contract exists. The owner can later swap in a real verifier.
-  const MockChannelVerifier = await ethers.getContractFactory('MockChannelVerifier');
-  const channelVerifier = await MockChannelVerifier.deploy();
+  // Deploy the real ChannelVerifier with the deployer as the trusted verifier.
+  // The deployer's key is also used by the platform-api-service (VERIFIER_PRIVATE_KEY)
+  // to sign channel-claim proofs. The owner can update the trusted verifier later
+  // via setTrustedVerifier().
+  const ChannelVerifier = await ethers.getContractFactory('ChannelVerifier');
+  const channelVerifier = await ChannelVerifier.deploy(deployer.address);
   await channelVerifier.waitForDeployment();
   const channelVerifierAddress = await channelVerifier.getAddress();
-  console.log(`✓ MockChannelVerifier: ${channelVerifierAddress}`);
+  console.log(`✓ ChannelVerifier: ${channelVerifierAddress} (trustedVerifier: ${deployer.address})`);
 
   const ContentRegistry = await ethers.getContractFactory('ContentRegistry');
   const contentRegistry = await ContentRegistry.deploy();
@@ -260,7 +262,7 @@ async function main() {
         MarketplaceFactory: marketplaceFactoryAddress,
         EthThresholdConditionFactory: conditionFactoryAddress,
         Pubstarter: pubstarterAddress,
-        MockChannelVerifier: channelVerifierAddress,
+        ChannelVerifier: channelVerifierAddress,
         ContentRegistry: contentRegistryAddress,
         ChannelRegistry: channelRegistryAddress,
         ChannelEscrow: channelEscrowAddress,
@@ -345,6 +347,8 @@ async function main() {
     rootEnvContent = updateEnv(rootEnvContent, 'IPFS_API', 'http://localhost:5001');
     rootEnvContent = updateEnv(rootEnvContent, 'IPFS_GATEWAY', 'http://localhost:8080/ipfs');
     rootEnvContent = updateEnv(rootEnvContent, 'EVENT_CACHE_URL', 'http://localhost:42069');
+    // Hardhat account #0 private key — matches the deployer/trustedVerifier for local dev.
+    rootEnvContent = updateEnv(rootEnvContent, 'VERIFIER_PRIVATE_KEY', '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80');
   }
   await fs.writeFile(rootEnvPath, rootEnvContent);
   console.log('  ✓ Updated .env');
