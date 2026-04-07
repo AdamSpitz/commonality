@@ -12,6 +12,7 @@ import { MyNotesPage, NoteDetailPage, DepositPage } from './delegation/pages'
 import { StatementFundingPortalPage, CauseLeaderboardPage } from './fundingportal/pages'
 import { MyRefsPage } from './mutablerefs'
 import { BrowseCreatorsPage } from './content-funding/pages/BrowseCreatorsPage'
+import { ChannelPage } from './content-funding/pages/ChannelPage'
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/portal/:statementCid/leaderboard" element={<CauseLeaderboardPage />} />
           <Route path="/refs" element={<MyRefsPage />} />
           <Route path="/content/:platform" element={<BrowseCreatorsPage />} />
+          <Route path="/content/:platform/:channelId" element={<ChannelPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>

@@ -1,5 +1,36 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding UI: Channel Page — COMPLETE ✓
+
+### What was done
+
+Implemented the Channel Page at `/content/:platform/:channelId` — the second content-funding UI slice.
+
+**New file:**
+- `ui/src/content-funding/pages/ChannelPage.tsx` — full Channel Page component
+
+**Updated files:**
+- `ui/src/App.tsx` — added route `/content/:platform/:channelId`
+- `TODO.md` — marked Channel Page as DONE
+- `README.md` — updated status
+- `CONTINUITY.md` — this entry
+
+### Key decisions
+
+- The URL `:channelId` param is the URL-encoded canonical channel ID (e.g. `twitter:uid:111111111`). The page decodes it and calls `hashCanonicalId()` to get the bytes32 key used by `getChannelOverview()`.
+- `getChannelOverview` is called with the full `projects` list (from `useContentFundingState`) so contract funding progress is computed correctly.
+- Content item URLs are reconstructed from canonical IDs via regex matching (no external API calls needed for the MVP).
+- The "Claim these funds" button is present but disabled (with "coming soon") — the verification/claim flow is a larger feature (wallet connect, Twitter OAuth, etc.) that's out of scope for this slice.
+- Clipboard copy uses `void navigator.clipboard.writeText(...)` (no await needed in an onClick handler).
+
+### Notes for next session
+
+The next content-funding UI slices, roughly in priority order:
+1. **Create Contract page** (`/content/:platform/:channelId/new`) — form for creating a new funding contract for a channel.
+2. **Creator Dashboard** (`/content/dashboard`) — management page for verified creators (withdraw from escrow, veto window, take control).
+3. **Pubstarter project detail page integration** — recognize creator assurance contracts and show content-funding-specific info (content items list, channel info, attestations).
+4. **Funding Portal integration** — recognize creator assurance contracts in aligned-projects list.
+
 ## Content-funding UI: Browse Creators page — COMPLETE ✓
 
 ### What was done
