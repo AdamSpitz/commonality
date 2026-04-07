@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## Platform API service deeper service-level coverage — COMPLETE ✓
+
+### What was done
+
+Expanded `platform-api-service/src/service.test.ts` to cover the remaining service-layer cases called out in `TODO.md`: YouTube channel resolution caching, Twitter and YouTube content-resolution caching, unsupported platform rejection, unconfigured provider failures, and invalid verification inputs.
+
+### Key decisions
+
+- Kept this pass scoped to the single remaining `platform-api-service` coverage task instead of changing runtime behavior.
+- Added the missing assertions at the service layer, since route-layer coverage was already in place and the remaining risk was the core orchestration logic around provider selection, caching, and explicit failures.
+- Extended the test helpers just enough to override provider configuration and config values so the error paths stay deterministic.
+
+### PRD reference
+
+- `TODO.md` content-funding platform API service follow-up (2026-04-07), deeper service-level YouTube/content-resolution/error-path coverage
+
+### Files changed
+
+- `platform-api-service/src/service.test.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The platform API service MVP coverage follow-up is now closed; the next content-funding chunk should move either to the on-chain signature-verifier contract path or to indexer/UI integration.
+
 ## Platform API Express route coverage — COMPLETE ✓
 
 ### What was done

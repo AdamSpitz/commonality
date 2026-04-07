@@ -110,6 +110,183 @@ describe('PlatformApiService', () => {
     assert.deepStrictEqual(originalAfterRename, renamed);
   });
 
+  it('caches YouTube channel lookups', async () => {
+    let callCount = 0;
+    const youtubeClient = createYouTubeClient({
+      resolveChannel: async () => {
+        callCount += 1;
+        return {
+          platform: 'youtube',
+          channelId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw',
+          handle: '@alicevideos',
+          displayName: 'Alice Videos',
+        };
+      },
+    });
+
+    const service = createService({ youtubeClient });
+    const first = await service.resolveChannel('youtube', '@AliceVideos');
+    const second = await service.resolveChannel('youtube', '@alicevideos');
+
+    assert.strictEqual(callCount, 1);
+    assert.deepStrictEqual(first, second);
+  });
+
+  it('caches Twitter content lookups by tweet ID', async () => {
+    let callCount = 0;
+    const twitterClient = createTwitterClient({
+      resolveContent: async () => {
+        callCount += 1;
+        return {
+          platform: 'twitter',
+          channelId: 'twitter:uid:12345678',
+          contentSuffix: '18347',
+          canonicalId: 'twitter:uid:12345678:18347',
+          metadata: {
+            authorHandle: '@alice',
+          },
+        };
+      },
+    });
+
+    const service = createService({ twitterClient });
+    const first = await service.resolveContent('https://x.com/alice/status/18347?s=20');
+    const second = await service.resolveContent('https://twitter.com/alice/status/18347');
+
+    assert.strictEqual(callCount, 1);
+    assert.deepStrictEqual(first, second);
+  });
+
+  it('caches YouTube content lookups by video ID', async () => {
+    let callCount = 0;
+    const youtubeClient = createYouTubeClient({
+      resolveContent: async () => {
+        callCount += 1;
+        return {
+          platform: 'youtube',
+          channelId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw',
+          contentSuffix: 'dQw4w9WgXcQ',
+          canonicalId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw:dQw4w9WgXcQ',
+          metadata: {
+            title: 'Never Gonna Give You Up',
+          },
+        };
+      },
+    });
+
+    const service = createService({ youtubeClient });
+    const first = await service.resolveContent('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30s');
+    const second = await service.resolveContent('https://youtu.be/dQw4w9WgXcQ');
+
+    assert.strictEqual(callCount, 1);
+    assert.deepStrictEqual(first, second);
+  });
+
+  it('rejects unsupported channel-resolution platforms', async () => {
+    const service = createService();
+
+    await assert.rejects(
+      () => service.resolveChannel('substack', '@alice'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_request' &&
+        error.message === 'resolve/channel currently supports only twitter and youtube',
+    );
+  });
+
+  it('returns clear errors when channel resolution providers are unconfigured', async () => {
+    const twitterUnavailable = createService({
+      twitterClient: createTwitterClient({
+        isConfigured: () => false,
+      }),
+    });
+    const youtubeUnavailable = createService({
+      youtubeClient: createYouTubeClient({
+        isConfigured: () => false,
+      }),
+    });
+
+    await assert.rejects(
+      () => twitterUnavailable.resolveChannel('twitter', '@alice'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 503 &&
+        error.code === 'service_unavailable' &&
+        error.message === 'twitter channel resolution is unavailable because the platform API credentials are not configured',
+    );
+
+    await assert.rejects(
+      () => youtubeUnavailable.resolveChannel('youtube', '@alice'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 503 &&
+        error.code === 'service_unavailable' &&
+        error.message === 'youtube channel resolution is unavailable because the platform API credentials are not configured',
+    );
+  });
+
+  it('returns clear errors when content-validation providers are unconfigured', async () => {
+    const twitterUnavailable = createService({
+      twitterClient: createTwitterClient({
+        isConfigured: () => false,
+      }),
+    });
+    const youtubeUnavailable = createService({
+      youtubeClient: createYouTubeClient({
+        isConfigured: () => false,
+      }),
+    });
+
+    await assert.rejects(
+      () => twitterUnavailable.resolveContent('https://x.com/alice/status/18347'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 503 &&
+        error.code === 'service_unavailable' &&
+        error.message === 'Twitter content validation is unavailable because X_API_BEARER_TOKEN is not set',
+    );
+
+    await assert.rejects(
+      () => youtubeUnavailable.resolveContent('https://youtu.be/dQw4w9WgXcQ'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 503 &&
+        error.code === 'service_unavailable' &&
+        error.message === 'YouTube content validation is unavailable because YOUTUBE_API_KEY is not set',
+    );
+  });
+
+  it('rejects invalid verification challenge inputs before calling providers', async () => {
+    const service = createService();
+
+    await assert.rejects(
+      () => service.createVerificationChallenge({
+        platform: 'youtube',
+        handle: '@alice',
+        claimantAddress: '0x1234567890123456789012345678901234567890',
+      }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_request' &&
+        error.message === 'verify/challenge currently supports only twitter',
+    );
+
+    await assert.rejects(
+      () => service.createVerificationChallenge({
+        platform: 'twitter',
+        handle: '@alice',
+        claimantAddress: 'not-an-address',
+      }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_request' &&
+        error.message === 'Invalid claimant address: not-an-address',
+    );
+  });
+
   it('creates a verification challenge and signs a recoverable proof', async () => {
     let observedChallengeCode = '';
     const twitterClient = createTwitterClient({
@@ -182,9 +359,39 @@ describe('PlatformApiService', () => {
         error.code === 'verification_post_not_found',
     );
   });
+
+  it('rejects invalid verification confirmation inputs', async () => {
+    const invalidNonceService = createService();
+    const missingVerifierKeyService = createService({
+      configOverrides: {
+        verifierPrivateKey: undefined,
+      },
+    });
+
+    await assert.rejects(
+      () => invalidNonceService.confirmVerification({ nonce: 'bad-nonce' }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_request' &&
+        error.message === 'Invalid nonce: bad-nonce',
+    );
+
+    await assert.rejects(
+      () => missingVerifierKeyService.confirmVerification({
+        nonce: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 503 &&
+        error.code === 'service_unavailable' &&
+        error.message === 'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY is not set',
+    );
+  });
 });
 
 function createService(overrides: Partial<{
+  configOverrides: Partial<PlatformApiServiceConfig>;
   twitterClient: TwitterClientLike;
   youtubeClient: YouTubeClientLike;
   createChallengeCode: () => string;
@@ -209,6 +416,7 @@ function createService(overrides: Partial<{
     resolveRateLimitMaxRequests: 60,
     verifyRateLimitWindowMs: 60_000,
     verifyRateLimitMaxRequests: 5,
+    ...overrides.configOverrides,
   };
 
   return new PlatformApiService({
@@ -221,6 +429,8 @@ function createService(overrides: Partial<{
 }
 
 function createTwitterClient(overrides: Partial<{
+  isConfigured: () => boolean;
+  normalizeLookupInput: (input: string) => string;
   resolveChannel: (input: string) => Promise<ResolvedChannel>;
   resolveContent: (url: string) => Promise<ResolvedContent>;
   findVerificationPost: (
@@ -230,8 +440,8 @@ function createTwitterClient(overrides: Partial<{
   ) => Promise<VerificationPostMatch | null>;
 }> = {}): TwitterClientLike {
   return {
-    isConfigured: () => true,
-    normalizeLookupInput: (input: string) => input.trim().replace(/^@/, '').toLowerCase(),
+    isConfigured: overrides.isConfigured ?? (() => true),
+    normalizeLookupInput: overrides.normalizeLookupInput ?? ((input: string) => input.trim().replace(/^@/, '').toLowerCase()),
     resolveChannel: overrides.resolveChannel ?? (async () => ({
       platform: 'twitter',
       channelId: 'twitter:uid:12345678',
@@ -249,22 +459,27 @@ function createTwitterClient(overrides: Partial<{
   };
 }
 
-function createYouTubeClient(): YouTubeClientLike {
+function createYouTubeClient(overrides: Partial<{
+  isConfigured: () => boolean;
+  normalizeLookupInput: (input: string) => string;
+  resolveChannel: (input: string) => Promise<ResolvedChannel>;
+  resolveContent: (url: string) => Promise<ResolvedContent>;
+}> = {}): YouTubeClientLike {
   return {
-    isConfigured: () => true,
-    normalizeLookupInput: (input: string) => input.trim().toLowerCase(),
-    resolveChannel: async () => ({
+    isConfigured: overrides.isConfigured ?? (() => true),
+    normalizeLookupInput: overrides.normalizeLookupInput ?? ((input: string) => input.trim().toLowerCase()),
+    resolveChannel: overrides.resolveChannel ?? (async () => ({
       platform: 'youtube',
       channelId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw',
       handle: '@alice',
       displayName: 'Alice Videos',
-    }),
-    resolveContent: async () => ({
+    })),
+    resolveContent: overrides.resolveContent ?? (async () => ({
       platform: 'youtube',
       channelId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw',
       contentSuffix: 'dQw4w9WgXcQ',
       canonicalId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw:dQw4w9WgXcQ',
       metadata: {},
-    }),
+    })),
   };
 }
