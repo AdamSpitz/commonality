@@ -192,6 +192,7 @@ function createService(overrides: Partial<{
 }> = {}) {
   const config: PlatformApiServiceConfig = {
     port: 3001,
+    corsAllowedOrigins: '*',
     commonalityTwitterHandle: '@commonality',
     claimPageBaseUrl: 'https://commonality.example',
     xApiBearerToken: 'token',

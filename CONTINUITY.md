@@ -1,5 +1,36 @@
 # Continuity notes for ephemeral AI instances
 
+## Platform API service CORS support — COMPLETE ✓
+
+### What was done
+
+Added configurable CORS handling to `platform-api-service`, including browser preflight support for the existing JSON POST routes, and added route-layer coverage for wildcard mode, allowlisted origins, and rejected preflights.
+
+### Key decisions
+
+- Kept this pass scoped to the single `platform-api-service` TODO item for CORS support.
+- Defaulted `CORS_ALLOWED_ORIGINS` to `*` so the UI can call the service cross-origin out of the box, while still supporting a comma-separated origin allowlist for tighter deployments.
+- Implemented CORS directly in the Express app instead of adding another dependency, since the required behavior is small and specific.
+
+### PRD reference
+
+- `TODO.md` content-funding platform API service follow-up (2026-04-07), CORS support for browser clients
+
+### Files changed
+
+- `platform-api-service/src/app.ts`
+- `platform-api-service/src/app.test.ts`
+- `platform-api-service/src/config.ts`
+- `platform-api-service/src/service.test.ts`
+- `platform-api-service/README.md`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining `platform-api-service` work is docker-compose integration, broader platform/error-path route coverage, and stale rate-limiter cleanup.
+
 ## Platform API channel-cache alias cross-reference — COMPLETE ✓
 
 ### What was done

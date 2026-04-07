@@ -33,6 +33,7 @@ All configuration is via environment variables.
 ### Core
 
 - `PORT` default `3001`
+- `CORS_ALLOWED_ORIGINS` default `*`; either `*` for wildcard CORS or a comma-separated list of bare origins like `https://app.example.com,http://localhost:5173`
 - `COMMONALITY_TWITTER_HANDLE` default `@commonality`
 - `CLAIM_PAGE_BASE_URL` optional public base URL used in challenge tweet templates
 
@@ -67,6 +68,8 @@ All configuration is via environment variables.
 ```bash
 npm run dev --workspace=@commonality/platform-api-service
 ```
+
+Cross-origin browser requests are enabled by default. Set `CORS_ALLOWED_ORIGINS` to a comma-separated allowlist if you want the service to echo only specific origins instead of `*`.
 
 For production:
 

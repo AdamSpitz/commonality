@@ -1,4 +1,8 @@
-import express, { type Request, type Response } from 'express';
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 import { createRateLimiter } from './rateLimit.js';
 import { toErrorResponse } from './errors.js';
 import type { PlatformApiService } from './service.js';
@@ -9,6 +13,7 @@ export function createApp(
   config: PlatformApiServiceConfig,
 ): express.Express {
   const app = express();
+  app.use(createCorsMiddleware(config));
   app.use(express.json());
 
   const resolveLimiter = createRateLimiter({
@@ -99,6 +104,55 @@ export function createApp(
   return app;
 }
 
+function createCorsMiddleware(config: PlatformApiServiceConfig) {
+  const allowAnyOrigin = config.corsAllowedOrigins === '*';
+  const allowedOrigins = allowAnyOrigin ? undefined : new Set(config.corsAllowedOrigins);
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    const origin = req.headers.origin;
+    const requestHeaders = req.headers['access-control-request-headers'];
+    const isAllowedOrigin = typeof origin === 'string' &&
+      (allowAnyOrigin || allowedOrigins?.has(origin) === true);
+
+    if (isAllowedOrigin && typeof origin === 'string') {
+      res.setHeader('Access-Control-Allow-Origin', allowAnyOrigin ? '*' : origin);
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        typeof requestHeaders === 'string' && requestHeaders.trim()
+          ? requestHeaders
+          : 'Content-Type',
+      );
+      res.setHeader('Access-Control-Max-Age', '600');
+
+      if (!allowAnyOrigin) {
+        res.setHeader('Vary', appendVaryHeader(res.getHeader('Vary'), 'Origin'));
+      }
+      if (typeof requestHeaders === 'string' && requestHeaders.trim()) {
+        res.setHeader(
+          'Vary',
+          appendVaryHeader(res.getHeader('Vary'), 'Access-Control-Request-Headers'),
+        );
+      }
+    }
+
+    if (req.method === 'OPTIONS') {
+      if (typeof origin === 'string' && !isAllowedOrigin) {
+        res.status(403).json({
+          error: 'cors_origin_not_allowed',
+          message: `Origin is not allowed by CORS: ${origin}`,
+        });
+        return;
+      }
+
+      res.status(204).end();
+      return;
+    }
+
+    next();
+  };
+}
+
 function handleRoute(
   handler: (req: Request, res: Response) => Promise<void>,
 ) {
@@ -110,4 +164,18 @@ function handleRoute(
       res.status(response.status).json(response.body);
     }
   };
+}
+
+function appendVaryHeader(
+  existing: number | string | string[] | undefined,
+  value: string,
+): string {
+  const varyValues = new Set(
+    (Array.isArray(existing) ? existing.join(',') : typeof existing === 'string' ? existing : '')
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+  );
+  varyValues.add(value);
+  return [...varyValues].join(', ');
 }

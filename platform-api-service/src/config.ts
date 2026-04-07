@@ -1,7 +1,10 @@
 import type { Address, Hex } from 'viem';
 
+export type CorsAllowedOrigins = '*' | string[];
+
 export interface PlatformApiServiceConfig {
   port: number;
+  corsAllowedOrigins: CorsAllowedOrigins;
   commonalityTwitterHandle: string;
   claimPageBaseUrl?: string;
   xApiBearerToken?: string;
@@ -23,6 +26,7 @@ export interface PlatformApiServiceConfig {
 export function loadConfig(): PlatformApiServiceConfig {
   return {
     port: parseInteger('PORT', process.env.PORT, 3001),
+    corsAllowedOrigins: parseCorsAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS),
     commonalityTwitterHandle: normalizeTwitterHandle(
       process.env.COMMONALITY_TWITTER_HANDLE ?? '@commonality',
     ),
@@ -90,9 +94,32 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   throw new Error(`Invalid boolean value: ${value}`);
 }
 
+function parseCorsAllowedOrigins(value: string | undefined): CorsAllowedOrigins {
+  if (!value?.trim() || value.trim() === '*') {
+    return '*';
+  }
+
+  const origins = value.split(',').map((entry) => normalizeCorsOrigin(entry));
+  return [...new Set(origins)];
+}
+
 function normalizeOptionalString(value: string | undefined): string | undefined {
   const normalized = value?.trim();
   return normalized ? normalized : undefined;
+}
+
+function normalizeCorsOrigin(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error('CORS_ALLOWED_ORIGINS must not contain empty entries');
+  }
+
+  const url = new URL(trimmed);
+  if (url.pathname !== '/' || url.search || url.hash) {
+    throw new Error(`CORS_ALLOWED_ORIGINS must contain bare origins, not full URLs: ${value}`);
+  }
+
+  return url.origin;
 }
 
 function normalizeRequiredUrlBase(value: string): string {
