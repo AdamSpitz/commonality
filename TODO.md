@@ -8,8 +8,6 @@
     - DONE: Add the shared SDK content-funding canonicalization helpers from the spec: strict Twitter/X, YouTube, and Substack URL parsing that extracts content-specific suffixes and rejects ambiguous inputs.
     - DONE: Add the backend author/channel-prefix resolution layer for Twitter and YouTube, with caching of resolved platform API lookups. The spec now assumes the same backend used for channel claiming also resolves and caches the stable channel prefixes needed to build content IDs.
     - DONE: Wire the future content-funding UI creation flow to that resolver/cache so it validates "this URL belongs to this channel" before submitting a contract.
-    - BUG: ChannelRegistry.sol vetoContract() does not emit the ContractVetoed event. The spec, indexer ABI, SDK event types, and indexer event handler all expect it, but the contract never emits it. The veto works functionally (calls cancel() on CancellableCondition) but produces no indexable event.
-    - Minor: CreatorContractCreated event emits `erc1155` (token address) instead of `creator` (who called the factory) as the spec's indexer.md describes. SDK and indexer ABI match the contract, not the spec. The UI can't determine contract creator from events alone without looking at tx sender.
     - DONE: Cross-cutting SDK queries (getChannelOverview, getContentItemStatus, getContractsForChannel, getVetoableContracts) from the indexer spec are now implemented in the SDK as fold-orchestration helpers for the future UI.
     - DONE: Add content-funding contracts to the deployment script (hardhat/scripts/deploy.js) so local/testnet deployments now include `MockChannelVerifier`, `ContentRegistry`, `ChannelRegistry`, `ChannelEscrow`, and `CreatorAssuranceContractFactory`, wire the necessary ownership/factory links, and write the new addresses plus `CONTENT_FUNDING_START_BLOCK` into the shared env flow.
     - DONE: Add content-funding scenarios to the fake data generation pipeline so the UI can be developed against realistic data.
@@ -19,7 +17,9 @@
     - DONE: Creator Dashboard (`/content/dashboard`) — management page for verified creators.
     - DONE: Integration with Pubstarter project detail page — content items section, channel info, attestations.
     - DONE: Integration with Funding Portal — recognize creator assurance contracts.
-    - TODO: Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end.
+    - BUG: ChannelRegistry.sol vetoContract() does not emit the ContractVetoed event. The spec, indexer ABI, SDK event types, and indexer event handler all expect it, but the contract never emits it. The veto works functionally (calls cancel() on CancellableCondition) but produces no indexable event.
+    - Minor: CreatorContractCreated event emits `erc1155` (token address) instead of `creator` (who called the factory) as the spec's indexer.md describes. SDK and indexer ABI match the contract, not the spec. The UI can't determine contract creator from events alone without looking at tx sender.
+    - TODO: Replace the deployment-time `MockChannelVerifier` placeholder with a real on-chain verifier contract once the verification path is implemented end-to-end. (Wait, okay, so we need a todo item for implementing the verification path?)
 
 ## Other big things to do soon
 
