@@ -1,5 +1,33 @@
 # Continuity notes for ephemeral AI instances
 
+## Platform API rate-limiter stale-entry cleanup — COMPLETE ✓
+
+### What was done
+
+Updated `platform-api-service`'s in-memory rate limiter to lazily sweep expired client entries during requests, and added focused unit coverage for both window reset behavior and stale-entry cleanup.
+
+### Key decisions
+
+- Kept this pass scoped to the single `platform-api-service` TODO item about stale rate-limiter entries.
+- Used periodic lazy sweeping inside the existing in-memory limiter instead of timers or background jobs, which keeps the implementation process-local and simple.
+- Added a small unit-testable limiter class with injectable time so the cleanup behavior can be verified deterministically.
+
+### PRD reference
+
+- `TODO.md` content-funding platform API service follow-up (2026-04-07), stale rate-limiter entry cleanup
+
+### Files changed
+
+- `platform-api-service/src/rateLimit.ts`
+- `platform-api-service/src/rateLimit.test.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. Remaining `platform-api-service` work is docker-compose integration plus broader route/service coverage for YouTube and error paths.
+
 ## Platform API service CORS support — COMPLETE ✓
 
 ### What was done
