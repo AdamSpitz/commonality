@@ -9,7 +9,7 @@
     - Indexer — all content-funding events registered and handled.
     - SDK — canonicalization, events, folds, queries, actions — all implemented with tests.
     - UI — all 4 pages (Browse Creators, Channel Page, Create Contract, Creator Dashboard), claim flow modal, content attestation badges, Pubstarter project page integration, Funding Portal integration — all done.
-    - Remaining question: rename `attester/` directory to `implication-attester/` (and all references)? The refactoring to depend on `attester-core/` is done, but the directory still has the old name.
+    - The refactoring to depend on `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
     - No end-to-end integration tests for the content-funding flow yet.
     - On-chain channel verification currently uses a MockChannelVerifier; the real signature-verifying verifier contract (matching the ChannelClaimProof spec) hasn't been built yet. The platform-api-service can sign proofs, but the on-chain side just has a mock.
     - Future: Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).

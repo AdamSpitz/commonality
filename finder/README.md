@@ -1,6 +1,6 @@
 # Implication Finder
 
-The finder is an AI-assisted service that automatically discovers candidate implication pairs between statements and submits them to the [attester](../attester/README.md) for evaluation.
+The finder is an AI-assisted service that automatically discovers candidate implication pairs between statements and submits them to the [implication-attester](../implication-attester/README.md) for evaluation.
 
 ## What problem does it solve?
 

@@ -2,11 +2,11 @@
 node_modules
 .env
 .env.secrets
-attester/.env
+implication-attester/.env
 ui/.env
 integration-tests/.env.local
 typechain-types/
-attester/dist
+implication-attester/dist
 hardhat/deployments/
 deployments/localhost.env
 /data

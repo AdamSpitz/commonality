@@ -1,5 +1,5 @@
 {
-  "name": "@commonality/attester",
+  "name": "@commonality/implication-attester",
   "version": "0.1.0",
   "description": "Implication Attester AI service for evaluating statement implications",
   "type": "module",

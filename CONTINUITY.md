@@ -1,5 +1,52 @@
 # Continuity notes for ephemeral AI instances
 
+## Rename attester/ to implication-attester/ — COMPLETE ✓
+
+### What was done
+
+Renamed the `attester/` directory to `implication-attester/` and updated all references.
+
+**Changes:**
+1. Renamed `attester/` → `implication-attester/`
+2. Updated package.json: `"name": "@commonality/attester"` → `"@commonality/implication-attester"`
+3. Updated `package.json` workspaces: `attester` → `implication-attester`
+4. Updated `package.json` script: `attester:build` → `implication-attester`
+5. Updated `README.md`: Attester AI → Implication Attester AI
+6. Updated `render.yaml`: dockerfilePath
+7. Updated `hardhat/scripts/deploy.js`: paths to implication-attester/.env
+8. Updated `scripts/setup-env.sh`: paths to implication-attester/.env
+9. Updated `.gitignore`: attester/.env and attester/dist → implication-attester/
+10. Updated `finder/README.md`: link to implication-attester
+11. Updated `implication-attester/Dockerfile`: paths to implication-attester/
+12. Updated `DEPLOYMENT.md`: all references
+
+### Key decisions
+
+- Ran `npm install` to regenerate lockfile with new workspace name
+- Build passes, SDK tests pass (270 tests)
+
+### PRD reference
+
+- `TODO.md` (2026-04-08): "Remaining question: rename `attester/` directory to `implication-attester/` (and all references)?"
+
+### Files changed
+
+- `attester/` → `implication-attester/`
+- `package.json` — workspace name, script
+- `README.md` — artifact list
+- `render.yaml` — dockerfile path
+- `hardhat/scripts/deploy.js` — .env paths
+- `scripts/setup-env.sh` — .env paths
+- `.gitignore` — dist and .env paths
+- `finder/README.md` — link
+- `DEPLOYMENT.md` — all references
+
+### Notes for next iteration
+
+- This was a simple rename task. Good interrupt point.
+
+---
+
 ## Content-funding: content attestation badges — COMPLETE ✓
 
 ### What was done

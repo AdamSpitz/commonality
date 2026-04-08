@@ -43,7 +43,7 @@ TODO: make these real markdown links
   - Integration tests: `integration-tests/README.md`
   - UI: `ui/README.md`
   - Platform API service: `platform-api-service/README.md`
-  - Attester AI: `attester/README.md`
+  - Implication Attester AI: `implication-attester/README.md`
   - Content Attester AI: `content-attester/README.md`
   - Finder AI: `finder/README.md`
 

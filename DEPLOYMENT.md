@@ -78,7 +78,7 @@ This will:
 - Deploy all smart contracts to Sepolia
 - Save contract addresses to `deployments/sepolia.env` (commit this!)
 - Save detailed deployment metadata to `hardhat/deployments/sepolia-<timestamp>.json`
-- Update `.env`, `ui/.env`, `attester/.env`, and `integration-tests/.env.local` with addresses
+- Update `.env`, `ui/.env`, `implication-attester/.env`, and `integration-tests/.env.local` with addresses
 
 The content-funding deployment currently boots `ChannelRegistry` with the repo's `MockChannelVerifier` so the full contract set can be deployed consistently before a production verifier contract is added. Verification flows on deployed testnets will need that verifier to be replaced via `setVerifier(...)` before real channel claims should be used.
 
@@ -97,7 +97,7 @@ npx hardhat verify --network sepolia <CONTRACT_ADDRESS> <CONSTRUCTOR_ARGS>
 
 ### Deploy Attester to Render
 
-See [attester/README.md](attester/README.md) for comprehensive Render deployment instructions.
+See [implication-attester/README.md](implication-attester/README.md) for comprehensive Render deployment instructions.
 
 **Summary:**
 
@@ -355,7 +355,7 @@ deployments/<network>.env ← deploy script fills in (committed)
   ./scripts/setup-env.sh <network>
          ↓
   .env                    ← root (hardhat, docker-compose, indexer)
-  attester/.env           ← attester service
+  implication-attester/.env           ← attester service
   ui/.env                 ← frontend (VITE_ prefixed)
   integration-tests/.env.local
 ```
@@ -364,7 +364,7 @@ The deploy script also propagates addresses to service `.env` files automaticall
 
 ### Attester Service Variables
 
-See [attester/README.md](attester/README.md) for full list. Key variables:
+See [implication-attester/README.md](implication-attester/README.md) for full list. Key variables:
 
 ```bash
 ETHEREUM_RPC_URL=...                # RPC endpoint for network
