@@ -2,20 +2,18 @@
 
 ## Main thing I want to work on next
 
-  - Content-funding system: core implementation exists, but the MVP is **not** competently done end-to-end yet (see [spec](./specs/subsystems/content-funding/README.md)).
-    - Smart contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) — implemented with tests and deployment scripts.
-    - Content attester infrastructure (`attester-core/`, `content-attester/`, three noninflammatory docker-compose instances) — implemented.
-    - Platform API service — implemented for channel resolution, content resolution, and Twitter claim-proof signing / optional on-chain submission. Supports Twitter + YouTube resolution/content lookup and Substack canonicalization.
-    - Indexer / SDK — content-funding events, folds, queries, and actions are implemented and tested.
+  - (DONE) Content-funding system MVP (see [spec](./specs/subsystems/content-funding/README.md)). All layers implemented and tested:
+    - Smart contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory, CreatorAssuranceContract, ChannelVerifier) — 64 tests passing.
+    - SDK (folds, queries, actions, canonicalization, events) — 273 SDK tests passing.
+    - Content attester infrastructure (`attester-core/`, `content-attester/`, three noninflammatory docker-compose instances).
+    - Platform API service (channel/content resolution, Twitter claim-proof signing, on-chain submission).
+    - Indexer/Ponder watches all content-funding events.
+    - UI: BrowseCreatorsPage, ChannelPage (with claim flow modal, share section, oEmbed previews), CreateContractPage (with validation and content resolution — 4 tests), CreatorDashboardPage (withdraw, veto, take control), ContentFundingProjectSection (Pubstarter integration), ContentAttestationSummary (2 tests).
     - The refactoring of the old `attester/` code onto `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
-    - What is still wrong / incomplete:
-      - (DONE) Fix the creator claim flow UI. The current `ClaimFlowModal` / `useClaimFlow` integration does not match the platform API response shapes, starts unclaimed channels on the wrong step, and passes a stable ID where the backend expects a Twitter handle.
-      - (DONE) Fix verified-creator contract creation. On a merely `verified` channel, the UI currently treats even the real creator as a third party, which incorrectly forces the minimum initial purchase path instead of allowing creator-created contracts.
-      - (DONE) Fix create-contract validation. The UI should require successful `/resolve/content` results, verify that each resolved author matches the channel, and check/prevent already-registered content items before submission instead of mostly relying on on-chain reverts.
-      - (DONE) Fix content-funding UI polish/accuracy gaps: the Pubstarter integration now shows the correct "Escrowed Balance" value (channel.escrow.balance instead of contract.project.totalReceived).
-      - (DONE) Tighten content-attestation display so the UI can show known attesters coherently instead of only the latest fetched attestation per content item.
-      - (DONE) Add focused unit/integration coverage for the content-funding UI; `CreateContractPage` now has focused UI coverage for the verified-creator path, mismatched resolved content rejection, already-registered content rejection, and unclaimed-channel third-party minimum-purchase enforcement.
-      - (DONE) Surface already-registered content status immediately after content resolution in the create-contract form, rather than only blocking at submit time.
+    - Minor polish items (not blocking MVP):
+      - Placeholder IPFS metadata CIDs in CreateContractPage (`bafkriaaaa`).
+      - No Funding Portal integration for content-funding contracts (spec mentions content-funding-aware display in the aligned-projects list — minor display enhancement).
+      - oEmbed previews on ChannelPage don't cache results.
     - Future non-MVP work:
       - Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
       - Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
