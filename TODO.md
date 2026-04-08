@@ -2,19 +2,25 @@
 
 ## Main thing I want to work on next
 
-  - Content-funding system MVP is done (see [spec](./specs/subsystems/content-funding/README.md)):
-    - Smart contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) — all implemented with tests and deployment scripts.
-    - Content attesters (attester-core, content-attester, three noninflammatory instances in docker-compose) — done.
-    - Platform API service (channel resolution, content validation, tweet-based verification) — done. Supports Twitter, YouTube, and Substack.
-    - Indexer — all content-funding events registered and handled.
-    - SDK — canonicalization, events, folds, queries, actions — all implemented with tests.
-    - UI — all 4 pages (Browse Creators, Channel Page, Create Contract, Creator Dashboard), claim flow modal, content attestation badges, Pubstarter project page integration, Funding Portal integration — all done.
-    - The refactoring of the `attester` code to depend on `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
-    - Content-funding Playwright e2e test written (`ui/e2e/content-funding-flow.spec.ts`). Root cause of the blocking issue (Vite proxy missing `/status` route) has been fixed. Needs a live Playwright run (`cd ui && npx playwright test content-funding-flow`) to confirm end-to-end.
-    - Future: Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
-    - Future: Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
-    - Future: ENS-based verification (infrastructure exists in sdk/src/utils/twitter.ts, deferred).
-    - Future: Additional platform verifiers beyond Twitter (YouTube video-description, Bluesky DID, Substack email/DNS). Twitter is the only platform with a real verification flow; YouTube and Substack verification are deferred.
+  - Content-funding system: core implementation exists, but the MVP is **not** competently done end-to-end yet (see [spec](./specs/subsystems/content-funding/README.md)).
+    - Smart contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) — implemented with tests and deployment scripts.
+    - Content attester infrastructure (`attester-core/`, `content-attester/`, three noninflammatory docker-compose instances) — implemented.
+    - Platform API service — implemented for channel resolution, content resolution, and Twitter claim-proof signing / optional on-chain submission. Supports Twitter + YouTube resolution/content lookup and Substack canonicalization.
+    - Indexer / SDK — content-funding events, folds, queries, and actions are implemented and tested.
+    - The refactoring of the old `attester/` code onto `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
+    - What is still wrong / incomplete:
+      - Fix the creator claim flow UI. The current `ClaimFlowModal` / `useClaimFlow` integration does not match the platform API response shapes, starts unclaimed channels on the wrong step, and passes a stable ID where the backend expects a Twitter handle.
+      - Fix verified-creator contract creation. On a merely `verified` channel, the UI currently treats even the real creator as a third party, which incorrectly forces the minimum initial purchase path instead of allowing creator-created contracts.
+      - Fix create-contract validation. The UI should require successful `/resolve/content` results, verify that each resolved author matches the channel, and check/prevent already-registered content items before submission instead of mostly relying on on-chain reverts.
+      - Fix content-funding UI polish/accuracy gaps: creator/channel pages still mostly show canonical IDs instead of resolved handles/display names, and the Pubstarter integration currently shows the wrong "Escrowed Balance" value.
+      - Tighten content-attestation display so the UI can show known attesters coherently instead of only the latest fetched attestation per content item.
+      - Add focused unit/integration coverage for the content-funding UI; current automated coverage is strong for contracts/backend, but very thin for the content-funding React surfaces.
+      - Run the live content-funding Playwright flow (`cd ui && npx playwright test content-funding-flow`) and then expand it beyond the current tracer-bullet contract-creation/browse check.
+    - Future non-MVP work:
+      - Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
+      - Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
+      - ENS-based verification (infrastructure exists in `sdk/src/utils/twitter.ts`, deferred).
+      - Additional platform verifiers beyond Twitter (YouTube video-description, Bluesky DID, Substack email/DNS). Twitter is the only platform with a real verification flow; YouTube and Substack verification are deferred.
 
 ## Other big things to do soon
 
