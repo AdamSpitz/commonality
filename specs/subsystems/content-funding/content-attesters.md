@@ -2,7 +2,17 @@
 
 AI services that evaluate content and publish quality attestations. Structurally almost identical to the [implication attester](../conceptspace/implication-attester-ai.md) — same architecture, different prompt.
 
-A generalized attester framework (shared between implication attesters and content attesters) is a natural evolution — the architecture is identical and only the prompts differ — but it's not needed for the MVP. Build the content attester as a standalone service first, then extract the common framework when the pattern is proven and a third attester type emerges.
+With the noninflammatory content attesters (neutral, left-evaluating-right, right-evaluating-left) joining the existing implication attester, we now have enough concrete attester types to justify extracting the shared infrastructure into a common library.
+
+## Shared attester library (`attester-core/`)
+
+The plan is to extract the infrastructure that's identical across all attesters into a shared library, keeping each attester type as a thin service that provides its specific prompt, contract interaction, and input/output shape.
+
+**Shared (attester-core):** Express server setup, health/status endpoints, x402 payment validation and cost-plus pricing, rate limiting, error classification, IPFS read/write, OpenRouter LLM call wrapper, config structure.
+
+**Per-attester-type (pluggable):** LLM prompt, which contract to call (Implications vs. AlignmentAttestations), input shape (two CIDs for implications vs. content + optional perspective for content attesters), response schema (content attesters return `dimensions` that implication attesters don't).
+
+The existing `attester/` (implication attester) gets refactored to import from `attester-core/`. The new `content-attester/` service also imports from `attester-core/`. Each noninflammatory content attester instance (neutral, left, right) is the same `content-attester/` code deployed with different config (different prompt, different Ethereum key).
 
 ## Architecture
 
