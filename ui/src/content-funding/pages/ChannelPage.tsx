@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import {
   Box,
@@ -27,6 +27,7 @@ import {
   type ChannelState,
 } from '@commonality/sdk'
 import { useContentFundingState } from '../hooks/useContentFundingState'
+import { ClaimFlowModal } from '../components/ClaimFlowModal'
 
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
@@ -194,6 +195,7 @@ function CopyLinkButton({ url }: { url: string }) {
 export function ChannelPage() {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { state, projects, loading, error } = useContentFundingState()
+  const [claimModalOpen, setClaimModalOpen] = useState(false)
 
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : null
 
@@ -297,8 +299,13 @@ export function ChannelPage() {
             This channel hasn&apos;t been claimed yet. If you&apos;re the creator, you can verify your
             identity and withdraw these funds.
           </Typography>
-          <Button variant="contained" color="warning" size="large" disabled>
-            Claim these funds (coming soon)
+          <Button
+            variant="contained"
+            color="warning"
+            size="large"
+            onClick={() => setClaimModalOpen(true)}
+          >
+            Claim these funds
           </Button>
         </Paper>
       )}
@@ -402,6 +409,17 @@ export function ChannelPage() {
           </Paper>
         )}
       </Box>
+
+      {isUnclaimed && escrow.balance > 0n && (
+        <ClaimFlowModal
+          open={claimModalOpen}
+          onClose={() => setClaimModalOpen(false)}
+          channelDisplayName={displayName}
+          onSuccess={() => {
+            window.location.reload()
+          }}
+        />
+      )}
     </Box>
   )
 }

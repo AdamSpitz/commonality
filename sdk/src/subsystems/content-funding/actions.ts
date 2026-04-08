@@ -195,3 +195,32 @@ export async function vetoContract(
 
   return { hash };
 }
+
+export async function verifyChannel(
+  clients: TestClients,
+  registryContract: { address: Address; abi: Abi },
+  channelId: string,
+  claimant: Address,
+  nonce: `0x${string}`,
+  deadline: bigint,
+  verifierSignature: `0x${string}`,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'verifyChannel',
+    args: [
+      channelId as `0x${string}`,
+      claimant,
+      nonce,
+      BigInt(deadline),
+      verifierSignature,
+    ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}

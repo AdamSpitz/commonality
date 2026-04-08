@@ -31,6 +31,8 @@ export default defineConfig({
       '/graphql': indexerUrl,
       '/conceptspace': indexerUrl,
       '/api': indexerUrl,
+      // Proxy platform-api-service requests (runs at localhost:3001)
+      '/api/platform-api': 'http://localhost:3001',
     },
   },
 })

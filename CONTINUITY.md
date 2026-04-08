@@ -1,5 +1,56 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding Claim Flow UI — COMPLETE ✓
+
+### What was done
+
+Implemented the Claim Flow UI as described in `specs/subsystems/content-funding/ui.md#claim-flow`. Added a verification modal that enables creators to verify their identity and claim escrowed funds.
+
+**SDK additions:**
+- Added `verifyChannel` action in `sdk/src/subsystems/content-funding/actions.ts` — calls the `ChannelRegistry.verifyChannel` contract function with channel ID, claimant address, nonce, deadline, and verifier signature.
+
+**UI additions:**
+- Created `ui/src/content-funding/hooks/useClaimFlow.ts` — hook for calling Platform API Service endpoints `/verify/challenge` and `/verify/confirm`.
+- Created `ui/src/content-funding/components/ClaimFlowModal.tsx` — modal component with 3-step flow:
+  1. Connect wallet (prompts user to connect)
+  2. Verify identity (get challenge tweet, post it, confirm)
+  3. Claim success (shows transaction hash)
+- Updated `ui/src/content-funding/pages/ChannelPage.tsx` to wire the modal:
+  - Enabled the "Claim these funds" button (was disabled with "coming soon")
+  - Added ClaimFlowModal for unclaimed channels with escrow balance
+- Added Vite proxy for `/api/platform-api` → `http://localhost:3001` in `ui/vite.config.ts`
+
+### Key decisions
+
+- Used the existing Platform API Service endpoints for verification — the backend already handles tweet-based verification and proof signing.
+- The modal currently relies on the user having an existing wallet (ConnectKit). Embedded wallet provisioning for non-crypto-native creators is a future enhancement.
+- The verification flow uses a simple stepper UI: connect → verify → claim. Success triggers a page reload to refresh the channel state.
+- Added proxy in Vite config so the UI can call the Platform API Service without CORS issues during development.
+
+### PRD reference
+
+- `TODO.md` content-funding (2026-04-07), "Implement the Claim Flow UI"
+- `specs/subsystems/content-funding/ui.md#claim-flow`
+
+### Files changed
+
+- `sdk/src/subsystems/content-funding/actions.ts` — added verifyChannel action
+- `ui/src/content-funding/hooks/useClaimFlow.ts` (new)
+- `ui/src/content-funding/components/ClaimFlowModal.tsx` (new)
+- `ui/src/content-funding/pages/ChannelPage.tsx` — wired ClaimFlowModal, enabled button
+- `ui/vite.config.ts` — added platform-api proxy
+- `TODO.md` — marked as DONE
+- `README.md` — updated status (done in previous session)
+
+### Notes for next session
+
+Content-funding Claim Flow UI MVP is complete. Remaining content-funding work:
+- **Wire Create Contract page** to use Platform API Service's `/resolve/content` for author validation (instead of client-side-only URL parsing)
+- (Future) Embedded wallet provisioning for non-crypto-native creators
+- (Future) Integrated off-ramp for fiat withdrawal
+
+---
+
 ## Content-funding bug fixes: 5 UI/SDK issues — COMPLETE ✓
 
 ### What was done
