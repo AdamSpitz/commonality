@@ -6,8 +6,8 @@ import {
   ImplicationsAbi,
   IpfsCidV1,
 } from '@commonality/sdk';
+import { classifyBlockchainError } from '@commonality/attester-core';
 import { loadConfig } from './config.js';
-import { classifyBlockchainError } from './errors.js';
 
 let testClients: TestClients | null = null;
 let implicationsContract: ImplicationsContract | null = null;

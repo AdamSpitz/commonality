@@ -1,4 +1,4 @@
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+import { OpenRouterInvalidJsonError, requestJsonCompletion } from '@commonality/attester-core';
 
 export interface LlmEvaluationResult {
   implies: boolean;
@@ -13,56 +13,30 @@ export async function evaluateImplicationWithLLM(
   model: string = 'anthropic/claude-3.5-haiku'
 ): Promise<LlmEvaluationResult> {
   const prompt = buildImplicationPrompt(statement1Content, statement2Content);
-
-  const response = await fetch(OPENROUTER_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-      'HTTP-Referer': 'https://commonality.app',
-      'X-Title': 'Commonality Implication Attester'
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert in logical reasoning and statement analysis. Your job is to evaluate whether one statement logically implies another. Be conservative - only say "yes" if the implication is clear and direct.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 500,
-      response_format: { type: 'json_object' }
-    })
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as { error?: { message: string } };
-    throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-  }
-
-  const data = await response.json() as { choices?: { message: { content: string } }[] };
-  const content = data.choices?.[0]?.message?.content;
-
-  if (!content) {
-    throw new Error('Empty response from OpenRouter API');
-  }
-
-  let result;
+  let result: Record<string, unknown>;
   try {
-    result = JSON.parse(content);
-  } catch {
-    result = extractResultFromText(content);
+    result = await requestJsonCompletion<Record<string, unknown>>({
+      apiKey,
+      model,
+      systemPrompt: 'You are an expert in logical reasoning and statement analysis. Your job is to evaluate whether one statement logically implies another. Be conservative - only say "yes" if the implication is clear and direct.',
+      userPrompt: prompt,
+      title: 'Commonality Implication Attester',
+    });
+  } catch (error) {
+    if (error instanceof OpenRouterInvalidJsonError) {
+      result = extractResultFromText(error.content);
+    } else {
+      throw error;
+    }
   }
 
   return {
     implies: result.implies === true || result.implies === 'true',
     confidence: normalizeConfidence(result.confidence),
-    reasoning: result.reasoning || result.explanation || 'No reasoning provided'
+    reasoning:
+      (typeof result.reasoning === 'string' && result.reasoning) ||
+      (typeof result['explanation'] === 'string' && result['explanation']) ||
+      'No reasoning provided',
   };
 }
 
@@ -110,7 +84,7 @@ function normalizeConfidence(confidence: unknown): 'high' | 'medium' | 'low' {
   return 'low';
 }
 
-function extractResultFromText(text: string): { implies: boolean; confidence: string; reasoning: string } {
+function extractResultFromText(text: string): Record<string, unknown> {
   const lowerText = text.toLowerCase();
   
   let implies = false;

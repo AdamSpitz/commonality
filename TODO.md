@@ -4,8 +4,9 @@
 
   - Finish implementing the content-funding system (see [spec](./specs/subsystems/content-funding/README.md)):
     - Content attesters (noninflammatory) (see [spec](./specs/subsystems/content-funding/content-attesters.md)):
-      - Extract shared attester infrastructure into `attester-core/` library (Express server, x402 payment, rate limiting, error classification, IPFS, OpenRouter LLM wrapper, config).
-      - Refactor existing `attester/` (implication attester) to import from `attester-core/` instead of owning the infrastructure code directly.
+      - [x] Extract shared attester infrastructure into `attester-core/` library for x402 payment pricing/validation, rate limiting, error classification, IPFS helpers, OpenRouter JSON calls, and shared config helpers.
+      - [x] Refactor existing `attester/` (implication attester) to import from `attester-core/` instead of owning that shared infrastructure code directly.
+      - [x] Move the shared Express app setup plus `/health`, `/quote`, and placeholder `/status` route scaffolding into `attester-core/` too.
       - Build `content-attester/` service on top of `attester-core/`. Input: content text/URL/CID + optional declared perspective. Output: decision + confidence + reasoning + dimension scores. Publishes to `AlignmentAttestations.sol`.
       - Wire up the three noninflammatory attester prompts (perspective-neutral, left-evaluating-right, right-evaluating-left) from `specs/subsystems/content-funding/noninflammatory-content/attester-prompts.md` as deployable configurations of the content-attester service.
       - Add content attester(s) to docker-compose for local dev.

@@ -34,6 +34,13 @@ export function useMachinery(): SDKMachinery {
     const publicClient = ethRpcUrl
       ? createPublicClient({ chain: hardhat, transport: http(ethRpcUrl) })
       : undefined
-    return createSDKMachinery(indexerUrl, ipfsConfig, undefined, publicClient, eventCacheUrl, contractAddresses)
+    return createSDKMachinery(
+      indexerUrl,
+      ipfsConfig,
+      undefined,
+      publicClient as any,
+      eventCacheUrl,
+      contractAddresses,
+    )
   }, [])
 }

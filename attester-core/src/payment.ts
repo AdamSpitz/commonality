@@ -1,5 +1,3 @@
-import { loadConfig } from './config.js';
-
 export interface PaymentDetails {
   amount: string;
   amountUsd: string;
@@ -9,10 +7,19 @@ export interface PaymentDetails {
   expiresAt: string;
 }
 
+export interface PaymentConfig {
+  openRouterModel: string;
+  estimatedInputTokens: number;
+  estimatedOutputTokens: number;
+  serviceMarginPercent: number;
+  ethUsdPrice: number;
+  paymentAddress: string;
+  estimatedGas?: number;
+}
+
 const pendingPayments = new Map<string, { details: PaymentDetails; expires: number }>();
 const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
 
-// TODO: I'm uneasy about using floats for currency calculations
 const LLM_PRICING: Record<string, { inputPer1M: number; outputPer1M: number }> = {
   'anthropic/claude-3.5-haiku': { inputPer1M: 0.80, outputPer1M: 4.00 },
   'anthropic/claude-3-haiku': { inputPer1M: 0.25, outputPer1M: 1.25 },
@@ -21,21 +28,20 @@ const LLM_PRICING: Record<string, { inputPer1M: number; outputPer1M: number }> =
   'openai/gpt-4o': { inputPer1M: 2.50, outputPer1M: 10.00 },
 };
 
-const ESTIMATED_GAS = 50000;
-
 function generatePaymentId(): string {
   return `pay_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export function calculatePaymentRequired(currentGasPriceWei: bigint): PaymentDetails {
-  const config = loadConfig();
-
+export function calculatePaymentRequired(
+  currentGasPriceWei: bigint,
+  config: PaymentConfig
+): PaymentDetails {
   const modelPricing = LLM_PRICING[config.openRouterModel] || LLM_PRICING['anthropic/claude-3.5-haiku'];
   const llmCostUsd =
     (config.estimatedInputTokens / 1_000_000) * modelPricing.inputPer1M +
     (config.estimatedOutputTokens / 1_000_000) * modelPricing.outputPer1M;
 
-  const gasCostWei = currentGasPriceWei * BigInt(ESTIMATED_GAS);
+  const gasCostWei = currentGasPriceWei * BigInt(config.estimatedGas || 50000);
   const gasCostEth = Number(gasCostWei) / 1e18;
   const gasCostUsd = gasCostEth * config.ethUsdPrice;
 

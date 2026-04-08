@@ -1,9 +1,3 @@
-/**
- * Blockchain error handling utilities
- * 
- * Provides error classification and handling for blockchain interactions
- */
-
 export class BlockchainError extends Error {
   constructor(
     message: string,
@@ -63,9 +57,6 @@ export class ContractError extends BlockchainError {
   }
 }
 
-/**
- * Parse viem errors and classify them into specific error types
- */
 export function classifyBlockchainError(error: unknown): BlockchainError {
   if (error instanceof BlockchainError) {
     return error;
@@ -74,7 +65,6 @@ export function classifyBlockchainError(error: unknown): BlockchainError {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const errorLower = errorMessage.toLowerCase();
 
-  // Insufficient funds
   if (
     errorLower.includes('insufficient funds') ||
     errorLower.includes('insufficient balance') ||
@@ -83,20 +73,17 @@ export function classifyBlockchainError(error: unknown): BlockchainError {
     return new InsufficientFundsError(errorMessage);
   }
 
-  // Transaction reverted
   if (
     errorLower.includes('revert') ||
     errorLower.includes('transaction failed') ||
     errorLower.includes('execution reverted') ||
     errorLower.includes('vm exception')
   ) {
-    // Try to extract revert reason
     const revertMatch = errorMessage.match(/reverted with reason string '([^']+)'/);
     const revertReason = revertMatch ? revertMatch[1] : undefined;
     return new TransactionRevertedError(errorMessage, revertReason);
   }
 
-  // Connection/network errors
   if (
     errorLower.includes('connection refused') ||
     errorLower.includes('network error') ||
@@ -109,7 +96,6 @@ export function classifyBlockchainError(error: unknown): BlockchainError {
     return new ConnectionError(errorMessage);
   }
 
-  // Nonce errors
   if (
     errorLower.includes('nonce') ||
     errorLower.includes('replacement transaction underpriced') ||
@@ -118,7 +104,6 @@ export function classifyBlockchainError(error: unknown): BlockchainError {
     return new NonceError(errorMessage);
   }
 
-  // Gas price/estimation errors
   if (
     errorLower.includes('gas') ||
     errorLower.includes('fee') ||
@@ -127,7 +112,6 @@ export function classifyBlockchainError(error: unknown): BlockchainError {
     return new GasPriceError(errorMessage);
   }
 
-  // Contract errors (invalid ABI, wrong address, etc.)
   if (
     errorLower.includes('contract') ||
     errorLower.includes('abi') ||
@@ -136,17 +120,9 @@ export function classifyBlockchainError(error: unknown): BlockchainError {
     return new ContractError(errorMessage);
   }
 
-  // Default: unknown blockchain error
-  return new BlockchainError(
-    errorMessage,
-    'BLOCKCHAIN_ERROR',
-    true // Assume retryable for unknown errors
-  );
+  return new BlockchainError(errorMessage, 'BLOCKCHAIN_ERROR', true);
 }
 
-/**
- * Format blockchain error for API response
- */
 export function formatBlockchainError(error: unknown): {
   error: string;
   message: string;
@@ -161,7 +137,6 @@ export function formatBlockchainError(error: unknown): {
     retryable: classifiedError.isRetryable,
   };
 
-  // Add specific details based on error type
   if (classifiedError instanceof TransactionRevertedError && classifiedError.revertReason) {
     return {
       ...baseResponse,
@@ -179,23 +154,20 @@ export function formatBlockchainError(error: unknown): {
   return baseResponse;
 }
 
-/**
- * Get HTTP status code for blockchain error
- */
 export function getHttpStatusForError(error: BlockchainError): number {
   switch (error.code) {
     case 'INSUFFICIENT_FUNDS':
-      return 503; // Service Unavailable - server can't process due to lack of funds
+      return 503;
     case 'TRANSACTION_REVERTED':
-      return 422; // Unprocessable Entity - transaction was valid but execution failed
+      return 422;
     case 'CONNECTION_ERROR':
-      return 503; // Service Unavailable - can't connect to blockchain
+      return 503;
     case 'NONCE_ERROR':
-      return 503; // Service Unavailable - temporary state issue
+      return 503;
     case 'GAS_PRICE_ERROR':
-      return 503; // Service Unavailable - temporary gas issue
+      return 503;
     case 'CONTRACT_ERROR':
-      return 500; // Internal Server Error - configuration issue
+      return 500;
     default:
       return 500;
   }

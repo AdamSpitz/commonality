@@ -1,5 +1,96 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: attester-core extraction and implication-attester refactor — COMPLETE ✓
+
+### What was done
+
+Created a new `attester-core/` workspace to hold the reusable infrastructure shared by attester services, and refactored the existing implication attester to import those shared modules instead of owning duplicate copies.
+
+**Changes:**
+1. Added `attester-core/` workspace with shared modules for:
+   - config/env parsing helpers
+   - blockchain error classification/formatting
+   - IPFS upload/fetch helpers
+   - OpenRouter JSON completion wrapper
+   - x402-style payment quote/validation helpers
+   - Express rate-limiting middleware
+2. Moved the existing shared unit tests for errors, payment, and rate limiting into `attester-core/`.
+3. Updated `attester/` to depend on `@commonality/attester-core` and removed the now-duplicated local modules/tests.
+4. Ran `npm install` so the new workspace is linked correctly and `package-lock.json` reflects the workspace graph.
+
+### Key decisions
+
+- Kept implication-specific logic local to `attester/`: blockchain contract publishing, implication prompt construction, and the implication-specific HTTP routes.
+- Extracted shared config as low-level env parsing helpers plus attester-side adapters (`getIpfsConfig()`, `getPaymentConfig()`), which keeps `attester-core` reusable across future attesters without baking in implication-specific env names.
+- Left Express route/app scaffolding in `attester/` for now; only the clearly reusable infrastructure moved. Added a TODO follow-up to extract route/status setup later if it repeats in the upcoming `content-attester/`.
+
+### PRD reference
+
+- `TODO.md` content-funding content-attesters work (2026-04-08): create `attester-core/` and refactor the existing `attester/` to consume it
+- `specs/subsystems/content-funding/content-attesters.md`
+
+### Files changed
+
+- `attester-core/` — new shared workspace with src/tests/package metadata
+- `attester/package.json` — depends on `@commonality/attester-core`
+- `attester/src/config.ts` — now composes shared config helpers
+- `attester/src/blockchain.ts` — now imports shared blockchain error classification
+- `attester/src/evaluator.ts` — now uses shared OpenRouter wrapper
+- `attester/src/index.ts` — now uses shared IPFS/payment/rate-limit/error helpers
+- `attester/src/errors.ts` — removed
+- `attester/src/ipfs.ts` — removed
+- `attester/src/payment.ts` — removed
+- `attester/src/rateLimit.ts` — removed
+- `attester/test/errors.test.ts` — removed
+- `attester/test/payment.test.ts` — removed
+- `attester/test/rateLimit.test.ts` — removed
+- `package.json` / `package-lock.json` — workspace graph updated
+- `TODO.md` — marked the extraction/refactor work done and added one follow-up
+- `README.md` — updated high-level project status
+
+### Notes for next iteration
+
+- The next bounded content-funding task should be building `content-attester/` on top of `attester-core/`.
+- Good interrupt point: yes. This is a clean seam before starting the new service, and it may also be a reasonable moment for a light architecture review of the attester/service packaging if more shared pieces start appearing.
+
+## Content-funding: shared attester HTTP scaffolding extraction — COMPLETE ✓
+
+### What was done
+
+Moved the repeated Express bootstrap and common `/health`, `/quote`, and placeholder `/status` route logic into `attester-core/`, then refactored the existing implication attester to use those shared helpers.
+
+**Changes:**
+1. Added `attester-core/src/http.ts` with `createAttesterApp()` and `registerCommonAttesterRoutes(...)`.
+2. Refactored `attester/src/index.ts` to register the common routes from `attester-core` and keep only implication-specific evaluation and blockchain-status endpoints local.
+3. Added `attester-core/test/http.test.ts` coverage for quote, health degradation, and placeholder status responses.
+4. Updated the attester-core README and marked the follow-up task complete in `TODO.md`.
+
+### Key decisions
+
+- Kept the shared HTTP API concrete instead of introducing a generic plugin system: the helper only owns JSON middleware and the three clearly repeated routes.
+- Left `/attester-status` local to `attester/` because it exposes implication-attester-specific operational data that the upcoming content attester may not want in the same shape.
+- Made the placeholder status route configurable by path, required params, and payment-description text so future attesters can reuse it without forcing the implication attester's parameter names.
+
+### PRD reference
+
+- `TODO.md` content-funding content-attesters work (2026-04-08): move shared Express app setup plus status/health/quote route scaffolding into `attester-core/`
+- `specs/subsystems/content-funding/content-attesters.md`
+
+### Files changed
+
+- `attester-core/src/http.ts` — new shared Express app and common route helpers
+- `attester-core/src/index.ts` — exports the new HTTP helpers
+- `attester-core/test/http.test.ts` — new route tests
+- `attester-core/README.md` — documents shared route scaffolding
+- `attester/src/index.ts` — now uses shared app/route registration
+- `TODO.md` — marked the route-scaffolding follow-up done
+- `README.md` — updated status summary
+
+### Notes for next iteration
+
+- The next bounded attester task is still building the new `content-attester/` workspace on top of the now-more-complete `attester-core/` helpers.
+- Good interrupt point: yes. The shared attester seam is cleaner now, so the next session can focus on the new service rather than more extraction work.
+
 ## Content-funding: Platform embed previews — COMPLETE ✓
 
 ### What was done

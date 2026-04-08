@@ -9,6 +9,7 @@
     "integration-tests",
     "hardhat",
     "indexer",
+    "attester-core",
     "attester",
     "finder",
     "platform-api-service",

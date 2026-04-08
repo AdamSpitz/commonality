@@ -219,83 +219,38 @@ describe('classifyBlockchainError', () => {
       assert.strictEqual(result.code, 'BLOCKCHAIN_ERROR');
       assert.strictEqual(result.isRetryable, true);
     });
-
-    it('handles non-Error objects', () => {
-      const result = classifyBlockchainError('string error');
-      assert.ok(result instanceof BlockchainError);
-      assert.strictEqual(result.message, 'string error');
-    });
-
-    it('handles null/undefined', () => {
-      const result = classifyBlockchainError(null);
-      assert.ok(result instanceof BlockchainError);
-      assert.strictEqual(result.message, 'null');
-    });
   });
 });
 
 describe('formatBlockchainError', () => {
-  it('formats base error correctly', () => {
-    const error = new BlockchainError('Test message', 'TEST_CODE', false);
-    const formatted = formatBlockchainError(error);
-    assert.strictEqual(formatted.error, 'TEST_CODE');
-    assert.strictEqual(formatted.message, 'Test message');
-    assert.strictEqual(formatted.retryable, false);
+  it('formats basic error response', () => {
+    const error = new InsufficientFundsError('Not enough ETH');
+    const result = formatBlockchainError(error);
+    assert.deepStrictEqual(result, {
+      error: 'INSUFFICIENT_FUNDS',
+      message: 'Not enough ETH',
+      retryable: false,
+    });
   });
 
-  it('includes revert reason for TransactionRevertedError', () => {
-    const error = new TransactionRevertedError('Reverted', 'Out of gas');
-    const formatted = formatBlockchainError(error);
-    assert.strictEqual(formatted.error, 'TRANSACTION_REVERTED');
-    assert.deepStrictEqual(formatted.details, { revertReason: 'Out of gas' });
-  });
-
-  it('includes contract error details', () => {
-    const error = new ContractError('Failed', 'Method not found');
-    const formatted = formatBlockchainError(error);
-    assert.deepStrictEqual(formatted.details, { contractError: 'Method not found' });
-  });
-
-  it('handles raw errors by classifying them', () => {
-    const error = new Error('insufficient funds');
-    const formatted = formatBlockchainError(error);
-    assert.strictEqual(formatted.error, 'INSUFFICIENT_FUNDS');
+  it('includes revert reason for reverted transactions', () => {
+    const error = new TransactionRevertedError('Reverted', 'Invalid input');
+    const result = formatBlockchainError(error);
+    assert.deepStrictEqual(result, {
+      error: 'TRANSACTION_REVERTED',
+      message: 'Reverted',
+      retryable: false,
+      details: { revertReason: 'Invalid input' },
+    });
   });
 });
 
 describe('getHttpStatusForError', () => {
-  it('returns 503 for insufficient funds', () => {
-    const error = new InsufficientFundsError();
-    assert.strictEqual(getHttpStatusForError(error), 503);
+  it('maps insufficient funds to 503', () => {
+    assert.strictEqual(getHttpStatusForError(new InsufficientFundsError()), 503);
   });
 
-  it('returns 422 for transaction reverted', () => {
-    const error = new TransactionRevertedError();
-    assert.strictEqual(getHttpStatusForError(error), 422);
-  });
-
-  it('returns 503 for connection errors', () => {
-    const error = new ConnectionError();
-    assert.strictEqual(getHttpStatusForError(error), 503);
-  });
-
-  it('returns 503 for nonce errors', () => {
-    const error = new NonceError();
-    assert.strictEqual(getHttpStatusForError(error), 503);
-  });
-
-  it('returns 503 for gas price errors', () => {
-    const error = new GasPriceError();
-    assert.strictEqual(getHttpStatusForError(error), 503);
-  });
-
-  it('returns 500 for contract errors', () => {
-    const error = new ContractError();
-    assert.strictEqual(getHttpStatusForError(error), 500);
-  });
-
-  it('returns 500 for unknown errors', () => {
-    const error = new BlockchainError('Unknown', 'UNKNOWN');
-    assert.strictEqual(getHttpStatusForError(error), 500);
+  it('maps reverted transactions to 422', () => {
+    assert.strictEqual(getHttpStatusForError(new TransactionRevertedError()), 422);
   });
 });

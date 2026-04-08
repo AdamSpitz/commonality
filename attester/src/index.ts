@@ -1,25 +1,25 @@
-import express, { type Request, type Response, type NextFunction } from 'express';
-import { loadConfig } from './config.js';
-import { evaluateImplicationWithLLM } from './evaluator.js';
-import { uploadToIpfs, fetchFromIpfs } from './ipfs.js';
-import { publishAttestation, getBlockchainClients, checkAttesterBalance } from './blockchain.js';
-import {
-  calculatePaymentRequired,
-  validatePayment,
-  getPaymentFromHeader,
-  createPaymentRequiredResponse,
-} from './payment.js';
-import { createRateLimiter } from './rateLimit.js';
+import { type Request, type Response, type NextFunction } from 'express';
 import {
   BlockchainError,
+  calculatePaymentRequired,
   classifyBlockchainError,
+  createAttesterApp,
+  createPaymentRequiredResponse,
+  createRateLimiter,
+  fetchFromIpfs,
   formatBlockchainError,
   getHttpStatusForError,
-} from './errors.js';
-import { IpfsCidV1 } from '@commonality/sdk';
+  getPaymentFromHeader,
+  registerCommonAttesterRoutes,
+  uploadToIpfs,
+  validatePayment,
+} from '@commonality/attester-core';
+import { getIpfsConfig, getPaymentConfig, loadConfig } from './config.js';
+import { evaluateImplicationWithLLM } from './evaluator.js';
+import { publishAttestation, getBlockchainClients, checkAttesterBalance, getAttesterAddress } from './blockchain.js';
+import { IpfsCidV1, normalizeCidV1 } from '@commonality/sdk';
 
-const app = express();
-app.use(express.json());
+const app = createAttesterApp();
 
 const config = loadConfig();
 
@@ -54,13 +54,27 @@ async function requirePayment(req: Request, res: Response, next: NextFunction) {
 
   if (!paymentId || !validatePayment(paymentId)) {
     const gasPrice = await getCurrentGasPrice();
-    const paymentDetails = calculatePaymentRequired(gasPrice);
+    const paymentDetails = calculatePaymentRequired(gasPrice, getPaymentConfig());
     res.status(402).json(createPaymentRequiredResponse(paymentDetails));
     return;
   }
 
   next();
 }
+
+registerCommonAttesterRoutes(app, {
+  getConfig: loadConfig,
+  getCurrentGasPrice,
+  getPaymentConfig,
+  checkAttesterBalance,
+  version: '0.2.0',
+  statusRoute: {
+    path: '/status/:fromStatementCid/:toStatementCid',
+    requiredParams: ['fromStatementCid', 'toStatementCid'],
+    missingParamsMessage: 'Missing required parameters: fromStatementCid, toStatementCid',
+    paymentDescription: 'Payment required to check attestation status',
+  },
+});
 
 interface EvaluateImplicationRequest {
   fromStatementCid: IpfsCidV1;
@@ -120,7 +134,7 @@ async function processSingleEvaluation(
     let statement2Content: string;
 
     try {
-      statement1Content = await fetchFromIpfs(fromStatementCid);
+      statement1Content = await fetchFromIpfs(getIpfsConfig(), fromStatementCid);
     } catch {
       return {
         fromStatementCid,
@@ -132,7 +146,7 @@ async function processSingleEvaluation(
     }
 
     try {
-      statement2Content = await fetchFromIpfs(toStatementCid);
+      statement2Content = await fetchFromIpfs(getIpfsConfig(), toStatementCid);
     } catch {
       return {
         fromStatementCid,
@@ -179,7 +193,8 @@ async function processSingleEvaluation(
       timestamp: new Date().toISOString(),
     };
 
-    const { cid: explanationCid } = await uploadToIpfs(JSON.stringify(explanationData));
+    const uploadResult = await uploadToIpfs(getIpfsConfig(), JSON.stringify(explanationData));
+    const explanationCid = normalizeCidV1(uploadResult.cid);
 
     // Publish attestation with blockchain error handling
     let txHash: string;
@@ -245,7 +260,7 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
     let statement2Content: string;
 
     try {
-      statement1Content = await fetchFromIpfs(fromStatementCid);
+      statement1Content = await fetchFromIpfs(getIpfsConfig(), fromStatementCid);
     } catch {
       res.status(404).json({
         error: 'statement_not_found',
@@ -256,7 +271,7 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
     }
 
     try {
-      statement2Content = await fetchFromIpfs(toStatementCid);
+      statement2Content = await fetchFromIpfs(getIpfsConfig(), toStatementCid);
     } catch {
       res.status(404).json({
         error: 'statement_not_found',
@@ -302,7 +317,8 @@ app.post('/evaluate-implication', evaluationRateLimiter, requirePayment, async (
       timestamp: new Date().toISOString(),
     };
 
-    const { cid: explanationCid } = await uploadToIpfs(JSON.stringify(explanationData));
+    const uploadResult = await uploadToIpfs(getIpfsConfig(), JSON.stringify(explanationData));
+    const explanationCid = normalizeCidV1(uploadResult.cid);
 
     // Publish attestation with blockchain error handling
     let txHash: string;
@@ -448,124 +464,12 @@ app.post('/evaluate-implications-batch', evaluationRateLimiter, requirePayment, 
   }
 });
 
-app.get('/health', async (_req: Request, res: Response) => {
-  try {
-    const config = loadConfig();
-    let ethBalance = '0';
-    let lowBalanceWarning = false;
-    let blockchainConnected = false;
-    let blockchainError: string | null = null;
-    
-    try {
-      const balanceInfo = await checkAttesterBalance();
-      ethBalance = (Number(balanceInfo.balance) / 1e18).toFixed(4);
-      lowBalanceWarning = !balanceInfo.hasSufficientFunds;
-      blockchainConnected = true;
-    } catch (error) {
-      lowBalanceWarning = true;
-      blockchainConnected = false;
-      const classifiedError = classifyBlockchainError(error);
-      blockchainError = classifiedError.message;
-    }
-
-    const status = !blockchainConnected 
-      ? 'degraded' 
-      : lowBalanceWarning 
-        ? 'degraded' 
-        : 'healthy';
-
-    const response: Record<string, unknown> = {
-      status,
-      details: {
-        ethBalance,
-        ethBalanceUsd: (parseFloat(ethBalance) * config.ethUsdPrice).toFixed(2),
-        lowBalanceWarning,
-        blockchainConnected,
-        openRouterConfigured: !!config.openRouterApiKey,
-        ethereumConfigured: !!config.ethereumPrivateKey,
-        ipfsConfigured: !!config.ipfsApiUrl,
-        paymentAddress: config.paymentAddress,
-      },
-      uptime: process.uptime(),
-      version: '0.2.0',
-    };
-
-    if (blockchainError) {
-      response.details = {
-        ...response.details as Record<string, unknown>,
-        blockchainError,
-      };
-    }
-
-    res.status(status === 'healthy' ? 200 : 503).json(response);
-  } catch (error) {
-    res.status(503).json({
-      status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Configuration error',
-    });
-  }
-});
-
-app.get('/status/:fromStatementCid/:toStatementCid', async (req: Request, res: Response) => {
-  const { fromStatementCid, toStatementCid } = req.params;
-
-  if (!fromStatementCid || !toStatementCid) {
-    res.status(400).json({
-      error: 'invalid_request',
-      message: 'Missing required parameters: fromStatementCid, toStatementCid',
-    });
-    return;
-  }
-
-  try {
-    const gasPrice = await getCurrentGasPrice();
-    const paymentDetails = calculatePaymentRequired(gasPrice);
-
-    res.json({
-      exists: false,
-      attestation: null,
-      paymentDetails: {
-        ...paymentDetails,
-        description: 'Payment required to check attestation status',
-      },
-    });
-  } catch (error) {
-    console.error('Error in /status:', error);
-    res.status(500).json({
-      error: 'internal_error',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
-    });
-  }
-});
-
-app.get('/quote', async (_req: Request, res: Response) => {
-  try {
-    const gasPrice = await getCurrentGasPrice();
-    const paymentDetails = calculatePaymentRequired(gasPrice);
-    res.json({
-      price: paymentDetails.amount,
-      priceUsd: paymentDetails.amountUsd,
-      currency: paymentDetails.currency,
-      expiresAt: paymentDetails.expiresAt,
-    });
-  } catch (error) {
-    console.error('Error in /quote:', error);
-    res.status(500).json({
-      error: 'internal_error',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
-    });
-  }
-});
-
 app.get('/attester-status', async (_req: Request, res: Response) => {
   try {
     const balanceInfo = await checkAttesterBalance();
     
     res.json({
-      address: await (async () => {
-        const { testClients } = getBlockchainClients();
-        return testClients.account;
-      })(),
+      address: await getAttesterAddress(),
       balanceWei: balanceInfo.balance.toString(),
       balanceEth: (Number(balanceInfo.balance) / 1e18).toFixed(6),
       hasSufficientFunds: balanceInfo.hasSufficientFunds,
