@@ -175,6 +175,123 @@ services:
       - commonality
 
   # =============================================================================
+  # Content attester services for noninflammatory content evaluation
+  # =============================================================================
+  content-attester-neutral:
+    build:
+      context: .
+      dockerfile: content-attester/Dockerfile
+    container_name: commonality-content-attester-neutral
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "3002:3000"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    environment:
+      - PORT=3000
+      - CONTENT_ATTESTER_NAME=perspective-neutral
+      - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/content-attester/prompts/perspective-neutral.md
+      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - IPFS_API=http://ipfs:5001
+      - IPFS_GATEWAY=http://ipfs:8080
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - ATTESTER_PRIVATE_KEY=${CONTENT_ATTESTER_PRIVATE_KEY:-}
+      - X402_PAYMENT_ADDRESS=${CONTENT_ATTESTER_PAYMENT_ADDRESS:-}
+      - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
+      - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
+      - ETH_USD_PRICE=3000
+      - GAS_PRICE_MULTIPLIER=1.2
+      - SERVICE_MARGIN_PERCENT=20
+      - ESTIMATED_INPUT_TOKENS=2500
+      - ESTIMATED_OUTPUT_TOKENS=400
+      - RATE_LIMIT_WINDOW_MS=60000
+      - RATE_LIMIT_MAX_REQUESTS=10
+    networks:
+      - commonality
+
+  content-attester-left-eval-right:
+    build:
+      context: .
+      dockerfile: content-attester/Dockerfile
+    container_name: commonality-content-attester-left-eval-right
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "3003:3000"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    environment:
+      - PORT=3000
+      - CONTENT_ATTESTER_NAME=left-evaluating-right
+      - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/content-attester/prompts/left-evaluating-right.md
+      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - IPFS_API=http://ipfs:5001
+      - IPFS_GATEWAY=http://ipfs:8080
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - ATTESTER_PRIVATE_KEY=${CONTENT_ATTESTER_PRIVATE_KEY:-}
+      - X402_PAYMENT_ADDRESS=${CONTENT_ATTESTER_PAYMENT_ADDRESS:-}
+      - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
+      - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
+      - ETH_USD_PRICE=3000
+      - GAS_PRICE_MULTIPLIER=1.2
+      - SERVICE_MARGIN_PERCENT=20
+      - ESTIMATED_INPUT_TOKENS=2500
+      - ESTIMATED_OUTPUT_TOKENS=400
+      - RATE_LIMIT_WINDOW_MS=60000
+      - RATE_LIMIT_MAX_REQUESTS=10
+    networks:
+      - commonality
+
+  content-attester-right-eval-left:
+    build:
+      context: .
+      dockerfile: content-attester/Dockerfile
+    container_name: commonality-content-attester-right-eval-left
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "3004:3000"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    environment:
+      - PORT=3000
+      - CONTENT_ATTESTER_NAME=right-evaluating-left
+      - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/content-attester/prompts/right-evaluating-left.md
+      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - IPFS_API=http://ipfs:5001
+      - IPFS_GATEWAY=http://ipfs:8080
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - ATTESTER_PRIVATE_KEY=${CONTENT_ATTESTER_PRIVATE_KEY:-}
+      - X402_PAYMENT_ADDRESS=${CONTENT_ATTESTER_PAYMENT_ADDRESS:-}
+      - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
+      - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
+      - ETH_USD_PRICE=3000
+      - GAS_PRICE_MULTIPLIER=1.2
+      - SERVICE_MARGIN_PERCENT=20
+      - ESTIMATED_INPUT_TOKENS=2500
+      - ESTIMATED_OUTPUT_TOKENS=400
+      - RATE_LIMIT_WINDOW_MS=60000
+      - RATE_LIMIT_MAX_REQUESTS=10
+    networks:
+      - commonality
+
+  # =============================================================================
   # Vite dev server for the UI
   # =============================================================================
   # Source is mounted from the host so hot-module replacement works.

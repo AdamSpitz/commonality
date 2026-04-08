@@ -1,5 +1,48 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: Wire three noninflammatory attester prompts — COMPLETE ✓
+
+### What was done
+
+Added three noninflammatory content attester services to docker-compose.yml and created the corresponding prompt template files.
+
+**Changes:**
+1. Created `content-attester/prompts/perspective-neutral.md` — evaluates any political content using steelmanning, contempt, ad hominem, tribal signaling, and emotional manipulation dimensions
+2. Created `content-attester/prompts/left-evaluating-right.md` — evaluates right-wing content from the perspective of a moderate left-leaning reader
+3. Created `content-attester/prompts/right-evaluating-left.md` — evaluates left-wing content from the perspective of a moderate right-leaning reader
+4. Updated `content-attester/src/config.ts` to support loading prompt templates from files via `CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE` environment variable
+5. Added three services to docker-compose.yml:
+   - `content-attester-neutral` (port 3002)
+   - `content-attester-left-eval-right` (port 3003)
+   - `content-attester-right-eval-left` (port 3004)
+
+### Key decisions
+
+- Each attester runs as a separate container with the same image but different environment variables
+- Prompt templates are loaded from files in the container, making it easy to swap prompts without rebuilding
+- Ports are offset to avoid conflicts with other services (platform-api-service is 3001)
+
+### PRD reference
+
+- `TODO.md` content-funding content-attesters (2026-04-08): "Wire up the three noninflammatory attester prompts (perspective-neutral, left-evaluating-right, right-evaluating-left) as deployable configurations of the content-attester service"
+- `specs/subsystems/content-funding/noninflammatory-content/attester-prompts.md`
+
+### Files changed
+
+- `content-attester/prompts/perspective-neutral.md` (new)
+- `content-attester/prompts/left-evaluating-right.md` (new)
+- `content-attester/prompts/right-evaluating-left.md` (new)
+- `content-attester/src/config.ts` — added file-based prompt loading
+- `docker-compose.yml` — added three content attester services
+
+### Notes for next iteration
+
+- Next todo item is "Add content attester(s) to docker-compose for local dev" — this is now complete
+- The remaining item is "Integrate content attestation badges into Channel Page and Pubstarter project detail" — this requires the content attester services to be running and producing attestations
+- Good interrupt point: the three attester configurations are now deployable
+
+---
+
 ## Content-funding: content-attester workspace — COMPLETE ✓
 
 ### What was done

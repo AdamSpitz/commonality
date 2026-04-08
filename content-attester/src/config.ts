@@ -6,6 +6,7 @@ import {
   type PaymentConfig,
 } from '@commonality/attester-core';
 import type { IpfsCidV1 } from '@commonality/sdk';
+import { readFileSync } from 'fs';
 
 export interface ContentAttesterConfig {
   ethereumPrivateKey: string;
@@ -30,6 +31,15 @@ export interface ContentAttesterConfig {
 }
 
 export function loadConfig(): ContentAttesterConfig {
+  const promptTemplateFile = process.env.CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE;
+  let promptTemplate: string;
+  
+  if (promptTemplateFile) {
+    promptTemplate = readFileSync(promptTemplateFile, 'utf-8');
+  } else {
+    promptTemplate = requireEnv('CONTENT_ATTESTER_PROMPT_TEMPLATE', process.env.CONTENT_ATTESTER_PROMPT_TEMPLATE);
+  }
+
   return {
     ethereumPrivateKey: requireEnv('ATTESTER_PRIVATE_KEY', process.env.ATTESTER_PRIVATE_KEY),
     ethereumRpcUrl: requireEnv('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL),
@@ -55,7 +65,7 @@ export function loadConfig(): ContentAttesterConfig {
     rateLimitWindowMs: readNumberEnv('RATE_LIMIT_WINDOW_MS', 60000),
     rateLimitMaxRequests: readNumberEnv('RATE_LIMIT_MAX_REQUESTS', 10),
     attesterName: readStringEnv('CONTENT_ATTESTER_NAME', 'content-attester'),
-    promptTemplate: requireEnv('CONTENT_ATTESTER_PROMPT_TEMPLATE', process.env.CONTENT_ATTESTER_PROMPT_TEMPLATE),
+    promptTemplate,
   };
 }
 
