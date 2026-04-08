@@ -17,7 +17,7 @@
     - DONE: `actions.ts` `parseContentUrl` duplicates the canonicalization logic already in `canonicalization.ts`. Should reuse `parseContentFundingUrl` instead.
     - DONE: Platform API Service (platform-api-service/). Express backend with `/resolve/channel`, `/resolve/content`, `/verify/challenge`, `/verify/confirm`. Twitter and YouTube clients, in-memory caching, rate limiting, verification proof signing, optional on-chain tx submission. See platform-api-service/README.md.
     - DONE: Implement the Claim Flow UI (spec: specs/subsystems/content-funding/ui.md#claim-flow). Added verification modal with tweet-based verification flow, connected to Platform API Service. The "Claim these funds" button is now enabled for unclaimed channels. Still missing: embedded wallet provisioning for non-crypto-native creators, and integrated off-ramp for fiat withdrawal.
-    - Wire the UI's Create Contract page to use the Platform API Service's `/resolve/content` endpoint for author validation, instead of client-side-only URL parsing.
+    - DONE: Wire the UI's Create Contract page to use the Platform API Service's `/resolve/content` endpoint for author validation, instead of client-side-only URL parsing.
     - DONE: Replaced `MockChannelVerifier` with real `ChannelVerifier` contract using OpenZeppelin ECDSA + MessageHashUtils. Verifies EIP-191 signed proofs from the Platform API Service's trusted verifier EOA. Deploy script now deploys the real verifier (deployer = trustedVerifier), fake-data generation signs real proofs, and `VERIFIER_PRIVATE_KEY` is written to .env for local dev.
 
 ## Other big things to do soon

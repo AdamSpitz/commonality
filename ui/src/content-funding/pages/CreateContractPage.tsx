@@ -28,6 +28,7 @@ import {
 } from '@commonality/sdk'
 import { CreatorAssuranceContractFactoryAbi, createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk'
 import { useContentFundingState } from '../hooks/useContentFundingState'
+import { usePlatformApi } from '../hooks/usePlatformApi'
 
 interface ContentItemRow {
   id: string
@@ -35,6 +36,8 @@ interface ContentItemRow {
   supply: string
   price: string
   parsed: ParsedContentFundingUrl | null
+  resolved: { channelId: string; canonicalId: string; metadata: Record<string, unknown> } | null
+  validating: boolean
   error: string | null
 }
 
@@ -44,6 +47,8 @@ const EMPTY_CONTENT_ITEM: ContentItemRow = {
   supply: '100',
   price: '0.01',
   parsed: null,
+  resolved: null,
+  validating: false,
   error: null,
 }
 
@@ -76,6 +81,18 @@ function getChannelDisplayName(canonicalId: string): string {
   }
 }
 
+function getValidationStatus(item: ContentItemRow): string {
+  if (item.error) return item.error
+  if (item.validating) return 'Validating...'
+  if (item.resolved) {
+    const metadata = item.resolved.metadata as Record<string, unknown>
+    if (metadata.authorHandle) return `Verified author: ${metadata.authorHandle}`
+    if (item.parsed) return `Detected: ${item.parsed.platform} ✓`
+  }
+  if (item.parsed) return `Detected: ${item.parsed.platform}`
+  return ''
+}
+
 export function CreateContractPage() {
   const navigate = useNavigate()
   const { channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
@@ -83,6 +100,7 @@ export function CreateContractPage() {
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
   const { state, projects, loading, error: stateError } = useContentFundingState()
+  const { resolveContent } = usePlatformApi()
 
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : null
 
@@ -111,11 +129,26 @@ export function CreateContractPage() {
       if (item.id !== id) return item
 
       if (field === 'url') {
+        if (!value) {
+          return { ...item, url: value, parsed: null, resolved: null, validating: false, error: null }
+        }
         try {
           const parsed = parseContentFundingUrl(value)
+          setContentItems(current => current.map(i => 
+            i.id === id ? { ...i, validating: true } : i
+          ))
+          resolveContent(value).then(resolved => {
+            setContentItems(current => current.map(i => 
+              i.id === id ? { ...i, resolved, validating: false } : i
+            ))
+          }).catch(() => {
+            setContentItems(current => current.map(i => 
+              i.id === id ? { ...i, resolved: null, validating: false } : i
+            ))
+          })
           return { ...item, url: value, parsed, error: null }
         } catch (err) {
-          return { ...item, url: value, parsed: null, error: err instanceof Error ? err.message : 'Invalid URL' }
+          return { ...item, url: value, parsed: null, resolved: null, validating: false, error: err instanceof Error ? err.message : 'Invalid URL' }
         }
       }
 
@@ -348,7 +381,7 @@ export function CreateContractPage() {
                         value={item.url}
                         onChange={(e) => handleContentItemChange(item.id, 'url', e.target.value)}
                         error={!!item.error}
-                        helperText={item.error || (item.parsed ? `Detected: ${item.parsed.platform}` : '')}
+                        helperText={getValidationStatus(item)}
                         sx={{ flex: 1, minWidth: 250 }}
                         size="small"
                       />

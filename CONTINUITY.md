@@ -1,5 +1,49 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: Wire Create Contract to Platform API Service — COMPLETE ✓
+
+### What was done
+
+Wired the UI's Create Contract page to use the Platform API Service's `/resolve/content` endpoint for author validation, instead of client-side-only URL parsing.
+
+**Changes:**
+1. Added `VITE_PLATFORM_API_URL` to `ui/.env` (default `http://localhost:3001`) and `.env.example`
+2. Created `ui/src/content-funding/hooks/usePlatformApi.ts` — React hook with:
+   - `resolveChannel(platform, handle)` — calls `/resolve/channel`
+   - `resolveContent(url)` — calls `/resolve/content`
+   - Returns `{ isLoading, error, clearError }` state
+3. Updated `CreateContractPage.tsx`:
+   - Added `resolved` and `validating` fields to `ContentItemRow` interface
+   - Hooks up the Platform API on URL input change, storing server-validated author metadata
+   - Added `getValidationStatus()` helper that displays "Validating...", "Verified author: @handle", or platform detection status
+   - Gracefully falls back to client-side parsing if Platform API is unavailable
+
+### Key decisions
+
+- The hook makes asynchronous calls when users type a content URL, showing a "Validating..." state while the request is in flight
+- If the Platform API is unavailable or fails, the UI gracefully degrades to client-side parsing only (no error shown to user)
+- The validation status displays "Verified author: @handle" when the server returns author metadata, giving users confidence in the content's provenance
+
+### PRD reference
+
+- `TODO.md` content-funding (2026-04-07), "Wire the UI's Create Contract page to use the Platform API Service's `/resolve/content` endpoint for author validation"
+
+### Files changed
+
+- `ui/.env` — added VITE_PLATFORM_API_URL
+- `ui/.env.example` — added VITE_PLATFORM_API_URL
+- `ui/src/content-funding/hooks/usePlatformApi.ts` (new)
+- `ui/src/content-funding/pages/CreateContractPage.tsx` — wired Platform API for content validation
+- `TODO.md` — marked as DONE
+
+### Notes for next iteration
+
+Content-funding MVP is now complete (contracts, SDK, deployment, fake-data, platform API service, UI all implemented). Remaining future work:
+- (Future) Embedded wallet provisioning for non-crypto-native creators
+- (Future) Integrated off-ramp for fiat withdrawal
+
+---
+
 ## Content-funding Claim Flow UI — COMPLETE ✓
 
 ### What was done
