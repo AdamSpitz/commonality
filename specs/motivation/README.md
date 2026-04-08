@@ -31,11 +31,12 @@ In the past we've needed government or big private charity orgs to do this kind 
 
 **"Okay, but why bother? We already have government and private charities for funding public goods."**
 
-Because [it's better](./why-its-better/README.md) in various important ways: better signal (doing what people actually want), preserves real commonality rather than polarizing, more effective (retroactive funding, crowdsourced project surfacing/evaluation), less need for coordination, plus all the onchain benefits like transparency and trustlessness and censorship-resistance.
+Because [it's better](./why-its-better/README.md) in various important ways: better signal (doing what people actually want), preserves real commonality rather than polarizing, more effective (retroactive funding, crowdsourced project surfacing/evaluation), less need for coordination, no need to approach centralized gatekeepers, plus all the onchain benefits like transparency and trustlessness and censorship-resistance.
 
 **"Even if it's better, getting people to switch is hard."**
 
 Yes. [But](./getting-people-to-switch.md):
+  - For projects that simply aren't getting funded at all by the current system, it's not a matter of *switching*; Commonality lets those projects find funding without needing to get through the current system's centralized gatekeepers.
   - The legacy system is frustrating; we might draw in people who are fed up with it, or abstaining from it.
   - Switching is remarkably easy.
   - Switching generates value right away.

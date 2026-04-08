@@ -8,7 +8,7 @@ Commonality isn't just a credible replacement for government and charity — it'
 
   - **[Retroactive funding](./retroactive-funding.md):** Donations generate tokens that can be resold, creating a nano-VC market for public goods. Early identifiers of promising projects are rewarded, attracting more talent to project evaluation.
 
-  - **[Openness](./openness.md):** Anyone can publish projects, statements, attestations. Filtering happens through social signals rather than gatekeepers. If you care more about the cause than about control, this is strictly better.
+  - **[Openness](./openness.md):** Anyone can publish projects, statements, attestations. Filtering happens through social signals rather than gatekeepers. If you care more about the cause than about control, this is strictly better. And there are many public-good projects that *aren't* getting funded by our current system of centralized gatekeepers; the openness of Commonality lets us simply bypass those systems.
 
   - **Transparency and trustlessness:** Everything is onchain and auditable. No need to trust a charity's annual report or a government's budget numbers. The blockchain *is* the report.
 
