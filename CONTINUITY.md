@@ -1,5 +1,44 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding UI fixes — COMPLETED
+
+### What was done
+
+Fixed three issues with the content-funding UI:
+
+**1. Creator claim flow UI — API response shape mismatch**
+- Updated `useClaimFlow.ts` to use correct API field names: `tweetTemplate` instead of `challengeTweetText`, and added new fields (`channelId`, `handle`, `displayName`).
+- Updated `ClaimFlowModal.tsx` to use `tweetTemplate` field and handle the new verify confirm response shape (`proof` object with `txHash`).
+- Fixed the step initialization logic: unclaimed channels now correctly start at step 1 (verify identity) instead of skipping to step 2.
+
+**2. Verified-creator contract creation — wrong third-party detection**
+- Fixed `CreateContractPage.tsx` to only treat `unclaimed` channels as third-party, not `verified` channels. Per the spec, verified creators should be able to create contracts without the minimum purchase requirement.
+
+**3. Create-contract validation — missing checks**
+- Added validation requiring all content items to resolve successfully via `/resolve/content`.
+- Added validation that resolved content belongs to the correct channel (matches canonicalChannelId).
+- Added check for already-registered content items by querying `state.contentRegistry.items`.
+- Added UI feedback via `alreadyRegistered` field and updated validation status display.
+
+**4. Pubstarter "Escrowed Balance" display**
+- Fixed `ContentFundingProjectSection.tsx` to display the channel escrow balance (`channel.escrow.balance`) instead of the unrelated `contract.project.totalReceived`.
+
+### Notes for next session
+
+All unit tests pass. The remaining items from the TODO are:
+- Run the live content-funding Playwright flow (`cd ui && npx playwright test content-funding-flow`)
+- Add unit/integration coverage for content-funding UI surfaces
+- UI polish: creator/channel pages still show canonical IDs instead of resolved handles/display names (partially addressed in claim flow but not fully resolved)
+
+### Files changed
+
+- `ui/src/content-funding/hooks/useClaimFlow.ts`
+- `ui/src/content-funding/components/ClaimFlowModal.tsx`
+- `ui/src/content-funding/pages/CreateContractPage.tsx`
+- `ui/src/content-funding/components/ContentFundingProjectSection.tsx`
+
+---
+
 ## Content-funding e2e test — COMPLETED (pending live test run)
 
 ### What was done

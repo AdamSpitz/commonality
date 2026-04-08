@@ -7,9 +7,8 @@ import {
   Stack,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import {
-  type ContentItem,
-} from '@commonality/sdk'
+import { formatEther } from 'viem'
+import { type ContentItem } from '@commonality/sdk'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {
@@ -223,7 +222,7 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
           <Box>
             <Typography variant="caption" color="text.secondary">Escrowed Balance</Typography>
             <Typography variant="body2" fontWeight="bold" color="warning.main">
-              {contract.project ? (Number(contract.project.totalReceived) / 1e18).toFixed(4) : '0'} ETH
+              {formatEther(channel.escrow.balance)} ETH
             </Typography>
           </Box>
         )}

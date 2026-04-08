@@ -9,10 +9,10 @@
     - Indexer / SDK — content-funding events, folds, queries, and actions are implemented and tested.
     - The refactoring of the old `attester/` code onto `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
     - What is still wrong / incomplete:
-      - Fix the creator claim flow UI. The current `ClaimFlowModal` / `useClaimFlow` integration does not match the platform API response shapes, starts unclaimed channels on the wrong step, and passes a stable ID where the backend expects a Twitter handle.
-      - Fix verified-creator contract creation. On a merely `verified` channel, the UI currently treats even the real creator as a third party, which incorrectly forces the minimum initial purchase path instead of allowing creator-created contracts.
-      - Fix create-contract validation. The UI should require successful `/resolve/content` results, verify that each resolved author matches the channel, and check/prevent already-registered content items before submission instead of mostly relying on on-chain reverts.
-      - Fix content-funding UI polish/accuracy gaps: creator/channel pages still mostly show canonical IDs instead of resolved handles/display names, and the Pubstarter integration currently shows the wrong "Escrowed Balance" value.
+      - (DONE) Fix the creator claim flow UI. The current `ClaimFlowModal` / `useClaimFlow` integration does not match the platform API response shapes, starts unclaimed channels on the wrong step, and passes a stable ID where the backend expects a Twitter handle.
+      - (DONE) Fix verified-creator contract creation. On a merely `verified` channel, the UI currently treats even the real creator as a third party, which incorrectly forces the minimum initial purchase path instead of allowing creator-created contracts.
+      - (DONE) Fix create-contract validation. The UI should require successful `/resolve/content` results, verify that each resolved author matches the channel, and check/prevent already-registered content items before submission instead of mostly relying on on-chain reverts.
+      - (DONE) Fix content-funding UI polish/accuracy gaps: the Pubstarter integration now shows the correct "Escrowed Balance" value (channel.escrow.balance instead of contract.project.totalReceived).
       - Tighten content-attestation display so the UI can show known attesters coherently instead of only the latest fetched attestation per content item.
       - Add focused unit/integration coverage for the content-funding UI; current automated coverage is strong for contracts/backend, but very thin for the content-funding React surfaces.
       - Run the live content-funding Playwright flow (`cd ui && npx playwright test content-funding-flow`) and then expand it beyond the current tracer-bullet contract-creation/browse check.

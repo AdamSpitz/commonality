@@ -54,7 +54,7 @@ export function ClaimFlowModal({
   const { getChallenge, confirmVerification, loading: apiLoading, error: apiError, clearError } = useClaimFlow()
 
   const [activeStep, setActiveStep] = useState(0)
-  const [challenge, setChallenge] = useState<{ nonce: string; challengeTweetText: string } | null>(null)
+  const [challenge, setChallenge] = useState<{ nonce: string; tweetTemplate: string; channelId: string; handle?: string; displayName?: string } | null>(null)
   const [tweetUrl, setTweetUrl] = useState('')
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmError, setConfirmError] = useState<string | null>(null)
@@ -74,8 +74,9 @@ export function ClaimFlowModal({
   useEffect(() => {
     if (open) {
       let step = isConnected ? 1 : 0
-      if (!showWithdrawStep) step = 2
-      if (!showTakeControlStep && showWithdrawStep) step = 2
+      if (channelState === 'unclaimed' && isConnected) {
+        step = 1
+      }
       setActiveStep(step)
       setChallenge(null)
       setTweetUrl('')
@@ -87,7 +88,7 @@ export function ClaimFlowModal({
       setTakeControlTxHash(null)
       clearError()
     }
-  }, [open, isConnected, clearError, showWithdrawStep, showTakeControlStep])
+  }, [open, isConnected, clearError, channelState])
 
   const handleGetChallenge = async () => {
     const result = await getChallenge(platform, handle, claimantAddress)
@@ -110,8 +111,8 @@ export function ClaimFlowModal({
         return
       }
 
-      if (verificationResult.success && verificationResult.transactionHash) {
-        setTransactionHash(verificationResult.transactionHash)
+      if (verificationResult.txHash) {
+        setTransactionHash(verificationResult.txHash)
         const nextStep = showWithdrawStep ? 2 : 3
         setActiveStep(nextStep)
         onSuccess?.()
@@ -250,7 +251,7 @@ export function ClaimFlowModal({
                 </Alert>
                 <TextField
                   label="Tweet text"
-                  value={challenge.challengeTweetText}
+                  value={challenge.tweetTemplate}
                   multiline
                   rows={3}
                   fullWidth
@@ -258,7 +259,7 @@ export function ClaimFlowModal({
                 />
                 <Button
                   variant="outlined"
-                  href={`https://x.com/intent/tweet?text=${encodeURIComponent(challenge.challengeTweetText)}`}
+                  href={`https://x.com/intent/tweet?text=${encodeURIComponent(challenge.tweetTemplate)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

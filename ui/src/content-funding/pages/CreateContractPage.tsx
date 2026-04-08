@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -39,6 +39,7 @@ interface ContentItemRow {
   resolved: { channelId: string; canonicalId: string; metadata: Record<string, unknown> } | null
   validating: boolean
   error: string | null
+  alreadyRegistered: boolean
 }
 
 const EMPTY_CONTENT_ITEM: ContentItemRow = {
@@ -50,6 +51,7 @@ const EMPTY_CONTENT_ITEM: ContentItemRow = {
   resolved: null,
   validating: false,
   error: null,
+  alreadyRegistered: false,
 }
 
 function getContentPreviewUrl(url: string): string | null {
@@ -126,6 +128,7 @@ function getChannelDisplayName(canonicalId: string): string {
 function getValidationStatus(item: ContentItemRow): string {
   if (item.error) return item.error
   if (item.validating) return 'Validating...'
+  if (item.alreadyRegistered) return 'Already registered in an active contract'
   if (item.resolved) {
     const metadata = item.resolved.metadata as Record<string, unknown>
     if (metadata.authorHandle) return `Verified author: ${metadata.authorHandle}`
@@ -166,6 +169,17 @@ export function CreateContractPage() {
     }
   }, [state, canonicalChannelId, projects])
 
+  useEffect(() => {
+    if (!state) return
+    setContentItems(prev => prev.map(item => {
+      if (!item.resolved) return item
+      const contentId = BigInt(hashCanonicalId(item.resolved.canonicalId))
+      const existing = state.contentRegistry.items.get(contentId)
+      const alreadyRegistered = !!(existing && existing.status === 'active')
+      return { ...item, alreadyRegistered }
+    }))
+  }, [state])
+
   const [contentItems, setContentItems] = useState<ContentItemRow[]>([{ ...EMPTY_CONTENT_ITEM }])
   const [threshold, setThreshold] = useState('0.5')
   const [deadline, setDeadline] = useState('')
@@ -181,12 +195,12 @@ export function CreateContractPage() {
 
       if (field === 'url') {
         if (!value) {
-          return { ...item, url: value, parsed: null, resolved: null, validating: false, error: null }
+          return { ...item, url: value, parsed: null, resolved: null, validating: false, error: null, alreadyRegistered: false }
         }
         try {
           const parsed = parseContentFundingUrl(value)
           setContentItems(current => current.map(i => 
-            i.id === id ? { ...i, validating: true } : i
+            i.id === id ? { ...i, validating: true, alreadyRegistered: false } : i
           ))
           resolveContent(value).then(resolved => {
             setContentItems(current => current.map(i => 
@@ -225,7 +239,7 @@ export function CreateContractPage() {
       return
     }
 
-    const validItems = contentItems.filter(item => item.parsed && !item.error)
+    const validItems = contentItems.filter(item => item.parsed && !item.error && !item.alreadyRegistered)
     if (validItems.length === 0) {
       setSubmitError('At least one valid content item is required')
       return
@@ -248,12 +262,43 @@ export function CreateContractPage() {
       return
     }
 
+    const unresolvedItems = validItems.filter(item => !item.resolved)
+    if (unresolvedItems.length > 0) {
+      setSubmitError('All content items must be verified. Please ensure each URL resolves successfully.')
+      return
+    }
+
+    const mismatchedItems = validItems.filter(item => {
+      if (!item.resolved) return false
+      return item.resolved.channelId !== canonicalChannelId
+    })
+    if (mismatchedItems.length > 0) {
+      setSubmitError(`Some content items belong to different channels. All content must belong to ${getChannelDisplayName(canonicalChannelId)}.`)
+      return
+    }
+
+    if (state) {
+      const alreadyRegisteredItems: string[] = []
+      for (const item of validItems) {
+        if (!item.resolved) continue
+        const contentId = BigInt(hashCanonicalId(item.resolved.canonicalId))
+        const existing = state.contentRegistry.items.get(contentId)
+        if (existing && existing.status === 'active') {
+          alreadyRegisteredItems.push(item.url)
+        }
+      }
+      if (alreadyRegisteredItems.length > 0) {
+        setSubmitError(`The following content items are already registered in active contracts: ${alreadyRegisteredItems.join(', ')}`)
+        return
+      }
+    }
+
     try {
       setSubmitting(true)
       setSubmitError(null)
       setSuccess(null)
 
-      const isThirdParty = overview?.channel.state === 'unclaimed' || overview?.channel.state === 'verified'
+      const isThirdParty = overview?.channel.state === 'unclaimed'
 
       let minPurchase = 0n
       if (isThirdParty) {
