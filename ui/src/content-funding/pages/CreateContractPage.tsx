@@ -68,6 +68,48 @@ function getContentPreviewUrl(url: string): string | null {
   }
 }
 
+function getYouTubeThumbnailFromUrl(url: string): string | null {
+  try {
+    const parsed = parseContentFundingUrl(url)
+    if (parsed.platform === 'youtube' && parsed.videoId) {
+      return `https://img.youtube.com/vi/${parsed.videoId}/hqdefault.jpg`
+    }
+  } catch {
+    // ignore parse errors, return null
+  }
+  return null
+}
+
+function ContentUrlPreview({ url }: { url: string }) {
+  const thumbnail = getYouTubeThumbnailFromUrl(url)
+
+  if (!thumbnail) return null
+
+  return (
+    <Box
+      component="a"
+      href={getContentPreviewUrl(url) ?? undefined}
+      target="_blank"
+      rel="noopener noreferrer"
+      sx={{ display: 'block', lineHeight: 0 }}
+    >
+      <Box
+        component="img"
+        src={thumbnail}
+        alt="YouTube preview"
+        sx={{
+          width: 120,
+          height: 68,
+          objectFit: 'cover',
+          borderRadius: 1,
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      />
+    </Box>
+  )
+}
+
 function getChannelDisplayName(canonicalId: string): string {
   try {
     const parsed = parseCanonicalChannelId(canonicalId)
@@ -385,6 +427,7 @@ export function CreateContractPage() {
 
                   return (
                     <Box key={item.id} sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 2 }}>
+                      {item.url && <ContentUrlPreview url={item.url} />}
                       <TextField
                         label="Content URL"
                         value={item.url}

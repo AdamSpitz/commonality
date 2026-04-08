@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import {
   Box,
@@ -158,11 +158,75 @@ function ContractCard({ contract }: { contract: ContentFundingContractSummary })
   )
 }
 
+function getYouTubeThumbnail(canonicalId: string): string | null {
+  const match = /^youtube:channel:[^:]+:([A-Za-z0-9_-]{11})$/.exec(canonicalId)
+  if (match) {
+    return `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`
+  }
+  return null
+}
+
+
+
+function ContentItemPreview({ canonicalId, url }: { canonicalId: string; url: string | null }) {
+  const [oEmbedHtml, setOEmbedHtml] = useState<string | null>(null)
+  const thumbnail = getYouTubeThumbnail(canonicalId)
+
+  useEffect(() => {
+    if (!url || !canonicalId.startsWith('twitter:')) return
+    fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`)
+      .then((res) => res.json())
+      .then((data) => setOEmbedHtml(data.html))
+      .catch(() => setOEmbedHtml(null))
+  }, [url, canonicalId])
+
+  if (thumbnail) {
+    return (
+      <Box
+        component="a"
+        href={url ?? undefined}
+        target="_blank"
+        rel="noopener noreferrer"
+        sx={{ display: 'block', lineHeight: 0 }}
+      >
+        <Box
+          component="img"
+          src={thumbnail}
+          alt="YouTube video"
+          sx={{
+            width: 160,
+            height: 90,
+            objectFit: 'cover',
+            borderRadius: 1,
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        />
+      </Box>
+    )
+  }
+
+  if (canonicalId.startsWith('twitter:') && oEmbedHtml) {
+    return (
+      <Box
+        sx={{
+          width: 200,
+          '& .twitter-tweet': { display: 'none' },
+        }}
+        dangerouslySetInnerHTML={{ __html: oEmbedHtml }}
+      />
+    )
+  }
+
+  return null
+}
+
 function ContentItemRow({ item }: { item: ContentItem }) {
   const url = getContentUrl(item.canonicalId)
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1 }}>
+      <ContentItemPreview canonicalId={item.canonicalId} url={url} />
       <Typography variant="body2" sx={{ flex: 1, wordBreak: 'break-all' }} color="text.secondary">
         {item.canonicalId}
       </Typography>

@@ -28,7 +28,7 @@
     - DONE: Gap: Create Contract success state doesn't show shareable claim link or suggested creator notification message (spec says this is the primary creator acquisition flow).
     - DONE: Gap: Claim flow modal doesn't include inline withdraw or take-control steps (spec Steps 3-4). Currently just says "go to dashboard." Not blocking but doesn't match spec's intended flow.
     - Gap: No content attestation badges shown in Channel Page or Pubstarter integration (spec calls for attester pass/fail badges per content item). Depends on content attester infrastructure existing.
-    - Gap: No platform embed previews (embedded tweets, YouTube thumbnails) — just text links. Spec wants inline previews on Channel Page and Create Contract Page.
+    - DONE: Gap: No platform embed previews (embedded tweets, YouTube thumbnails) — just text links. Spec wants inline previews on Channel Page and Create Contract Page.
     - Future: Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
     - Future: Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
     - Future: ENS-based verification (infrastructure exists in sdk/src/utils/twitter.ts, deferred).

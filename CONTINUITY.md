@@ -1,5 +1,44 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: Platform embed previews — COMPLETE ✓
+
+### What was done
+
+Added platform embed previews (YouTube thumbnails and Twitter embeds) to content item displays on the Channel Page and Create Contract Page as specified in `specs/subsystems/content-funding/ui.md`.
+
+**Changes:**
+1. `ChannelPage.tsx` — added `ContentItemPreview` component:
+   - YouTube video thumbnails from `img.youtube.com/vi/{videoId}/hqdefault.jpg`
+   - Twitter oEmbed integration via `publish.twitter.com/oembed` API (falls back to plain link)
+2. `CreateContractPage.tsx` — added `ContentUrlPreview` component:
+   - YouTube thumbnail previews inline as URLs are entered
+
+### Key decisions
+
+- Used public YouTube thumbnail URLs directly (no API key needed)
+- oEmbed for Twitter is tried but gracefully degrades to plain link if it fails
+- Both previews are clickable links to the actual content
+
+### PRD reference
+
+- `TODO.md` content-funding gap (2026-04-08), "No platform embed previews (embedded tweets, YouTube thumbnails)"
+- `specs/subsystems/content-funding/ui.md#content-items`, "Platform embed or preview (if feasible)"
+
+### Files changed
+
+- `ui/src/content-funding/pages/ChannelPage.tsx` — added embed previews
+- `ui/src/content-funding/pages/CreateContractPage.tsx` — added embed previews
+- `TODO.md` — marked as DONE
+
+### Notes for next iteration
+
+Content-funding MVP is now fully complete. The remaining gaps are all marked as "Future":
+- Content attestation badges (depends on attester infrastructure)
+- Embedded wallet provisioning
+- Fiat off-ramp
+
+---
+
 ## Content-funding: Claim flow inline withdraw and take-control — COMPLETE ✓
 
 ### What was done
