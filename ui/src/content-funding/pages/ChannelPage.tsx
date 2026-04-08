@@ -221,7 +221,7 @@ function ContentItemPreview({ canonicalId, url }: { canonicalId: string; url: st
   return null
 }
 
-function ContentItemRow({ item }: { item: ContentItem }) {
+function ContentItemRow({ item, attestationInfo }: { item: ContentItem; attestationInfo?: { attested: boolean; attester: string } }) {
   const url = getContentUrl(item.canonicalId)
 
   return (
@@ -239,6 +239,11 @@ function ContentItemRow({ item }: { item: ContentItem }) {
       )}
       {item.status === 'released' && (
         <Chip label="Released" size="small" variant="outlined" />
+      )}
+      {attestationInfo?.attested && (
+        <Tooltip title={`Attested by ${attestationInfo.attester.slice(0, 10)}...`}>
+          <Chip label="Attested" size="small" color="success" variant="outlined" />
+        </Tooltip>
       )}
     </Box>
   )
@@ -259,7 +264,7 @@ function CopyLinkButton({ url }: { url: string }) {
 
 export function ChannelPage() {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
-  const { state, projects, loading, error } = useContentFundingState()
+  const { state, projects, loading, error, contentAttestations } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
   const { address } = useAccount()
 
@@ -477,9 +482,13 @@ export function ChannelPage() {
         ) : (
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Stack divider={<Divider />} spacing={0}>
-              {contentItems.map((item) => (
-                <ContentItemRow key={item.contentId.toString()} item={item} />
-              ))}
+              {contentItems.map((item) => {
+                const attestations = contentAttestations.get(item.canonicalId)
+                const attestationInfo = attestations?.[0]
+                return (
+                  <ContentItemRow key={item.contentId.toString()} item={item} attestationInfo={attestationInfo} />
+                )
+              })}
             </Stack>
           </Paper>
         )}

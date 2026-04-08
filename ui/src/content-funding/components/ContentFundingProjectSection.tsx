@@ -62,7 +62,7 @@ function getContentUrl(canonicalId: string): string | null {
   return null
 }
 
-function ContentItemList({ items }: { items: ContentItem[] }) {
+function ContentItemList({ items, contentAttestations }: { items: ContentItem[]; contentAttestations?: Map<string, { attested: boolean; attester: string }[]> }) {
   if (items.length === 0) return null
 
   return (
@@ -73,6 +73,8 @@ function ContentItemList({ items }: { items: ContentItem[] }) {
       <Stack spacing={1}>
         {items.map((item) => {
           const url = getContentUrl(item.canonicalId)
+          const attestations = contentAttestations?.get(item.canonicalId)
+          const attestationInfo = attestations?.[0]
           return (
             <Box
               key={item.contentId.toString()}
@@ -106,6 +108,9 @@ function ContentItemList({ items }: { items: ContentItem[] }) {
               {item.status === 'released' && (
                 <Chip label="Released" size="small" variant="outlined" />
               )}
+              {attestationInfo?.attested && (
+                <Chip label="Attested" size="small" color="success" variant="outlined" />
+              )}
             </Box>
           )
         })}
@@ -119,7 +124,7 @@ interface ContentFundingProjectSectionProps {
 }
 
 export function ContentFundingProjectSection({ projectAddress }: ContentFundingProjectSectionProps) {
-  const { state, channels, loading } = useContentFundingState()
+  const { state, channels, loading, contentAttestations } = useContentFundingState()
 
   const contentFundingInfo = useMemo(() => {
     if (!state) return null
@@ -225,7 +230,7 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
       </Stack>
 
       {contract.contentItems.length > 0 && (
-        <ContentItemList items={contract.contentItems} />
+        <ContentItemList items={contract.contentItems} contentAttestations={contentAttestations} />
       )}
     </Paper>
   )

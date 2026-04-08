@@ -10,8 +10,8 @@
       - [x] Build `content-attester/` service on top of `attester-core/`. Input: content text/URL/CID + optional declared perspective. Output: decision + confidence + reasoning + dimension scores. Publishes to `AlignmentAttestations.sol`.
       - [x] Wire up the three noninflammatory attester prompts (perspective-neutral, left-evaluating-right, right-evaluating-left) from `specs/subsystems/content-funding/noninflammatory-content/attester-prompts.md` as deployable configurations of the content-attester service.
       - [x] Add content attester(s) to docker-compose for local dev.
-      - Integrate content attestation badges into Channel Page and Pubstarter project detail (the existing gap above).
-    - Gap: No content attestation badges shown in Channel Page or Pubstarter integration (spec calls for attester pass/fail badges per content item). Depends on content attester infrastructure existing.
+      - Integrate content attestation badges into Channel Page and Pubstarter project detail (the existing gap mentioned below).
+    - Gap: No content attestation badges shown in Channel Page or Pubstarter integration (spec calls for attester pass/fail badges per content item). Depends on content attester infrastructure existing. DONE ✓
     - Future: Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
     - Future: Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
     - Future: ENS-based verification (infrastructure exists in sdk/src/utils/twitter.ts, deferred).

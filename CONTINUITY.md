@@ -1,5 +1,59 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: content attestation badges — COMPLETE ✓
+
+### What was done
+
+Added content attestation badges to both Channel Page and Pubstarter Project Detail page, showing which content items have been attested by content attester services.
+
+**Changes:**
+1. **SDK (`sdk/src/subsystems/content-funding/queries.ts`):**
+   - Added `getContentSubjectId(canonicalContentId: string)` — computes keccak256 hash of canonical content ID, matching how content-attester service derives on-chain subjectId
+   - Added `getContentAttestation(machinery, canonicalContentId, attesterAddress?)` — queries AlignmentAttestations contract for attestation records for a specific content item, returns `{ attested, attester, statementCid }` or null
+
+2. **UI hook (`ui/src/content-funding/hooks/useContentFundingState.ts`):**
+   - Added `ContentAttestationInfo` interface for tracking attestation info per content item
+   - Added `contentAttestations: Map<string, ContentAttestationInfo[]>` to return value
+   - Modified the loading effect to also fetch content attestations for all content items across all contracts
+
+3. **Channel Page (`ui/src/content-funding/pages/ChannelPage.tsx`):**
+   - Updated `ContentItemRow` component to accept optional `attestationInfo` prop
+   - Added "Attested" chip (green, outlined) with tooltip showing attester address when content has an attestation
+
+4. **ContentFundingProjectSection (`ui/src/content-funding/components/ContentFundingProjectSection.tsx`):**
+   - Updated `ContentItemList` to accept `contentAttestations` prop
+   - Added "Attested" chip to each content item row when attestation exists
+
+### Key decisions
+
+- Content attestation query runs in the same hook that loads content-funding state, reusing the machinery and contract addresses
+- Badge shows "Attested" with green color (success) to indicate positive attestation — the spec calls for pass/fail badges, and we surface pass only for now since that's what the on-chain record contains
+- The `getContentAttestation` function queries AlignmentAttestations by subjectId (content hash), which matches how content-attester service computes the subjectId from canonical content IDs
+
+### PRD reference
+
+- `TODO.md` content-funding (2026-04-08): "Integrate content attestation badges into Channel Page and Pubstarter project detail (the existing gap mentioned below)"
+- `specs/subsystems/content-funding/content-attesters.md` — "content item can be attested as noninflammatory (or whatever the criteria) at the individual-item level"
+
+### Files changed
+
+- `sdk/src/subsystems/content-funding/queries.ts` — added `getContentSubjectId` and `getContentAttestation` functions
+- `ui/src/content-funding/hooks/useContentFundingState.ts` — added attestation loading
+- `ui/src/content-funding/pages/ChannelPage.tsx` — added attestation badges to content items
+- `ui/src/content-funding/components/ContentFundingProjectSection.tsx` — added attestation badges
+- `TODO.md` — marked the task as DONE
+
+### Notes for next iteration
+
+- Content-funding MVP is now fully complete. All remaining items in TODO.md are marked as "Future":
+  - Embedded wallet provisioning for non-crypto creators
+  - Integrated off-ramp for fiat withdrawal
+  - ENS-based verification
+  - Additional platform verifiers (YouTube, Bluesky)
+- This is a good interrupt point for a broader review of the content-funding system
+
+---
+
 ## Content-funding: Wire three noninflammatory attester prompts — COMPLETE ✓
 
 ### What was done

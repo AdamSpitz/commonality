@@ -460,3 +460,72 @@ export async function fetchAndFoldContentFundingState(
   return { state, vetoedEvents: contractVetoedEvents };
 }
 
+// ============================================================================
+// Content Attestation Queries (AlignmentAttestations for content items)
+// ============================================================================
+
+import { keccak256, stringToBytes } from 'viem';
+import { fetchEvents } from '../../utils/eventCacheClient.js';
+import { decodeAlignmentAttestationEvent } from '../../utils/eventDecoder.js';
+
+/**
+ * Get the keccak256 hash of a canonical content ID for use as an AlignmentAttestation subjectId.
+ * This matches how content-attester service computes the subjectId.
+ */
+export function getContentSubjectId(canonicalContentId: string): string {
+  return keccak256(stringToBytes(canonicalContentId));
+}
+
+/**
+ * Query attestation status for a specific content item.
+ */
+export async function getContentAttestation(
+  machinery: SDKMachinery,
+  canonicalContentId: string,
+  attesterAddress?: string,
+): Promise<{ attested: boolean; attester: string; statementCid: string } | null> {
+  const contracts = machinery.contractAddresses;
+  if (!contracts?.alignmentAttestations) {
+    return null;
+  }
+
+  const subjectId = getContentSubjectId(canonicalContentId);
+
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.alignmentAttestations,
+    eventName: 'AlignmentAttestation',
+    topic2: subjectId,
+    limit: 100,
+  });
+
+  const decodedEvents = events
+    .map(e => decodeAlignmentAttestationEvent(e))
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+
+  if (decodedEvents.length === 0) {
+    return null;
+  }
+
+  // If specific attester requested, filter to that attester
+  let matchingEvents = decodedEvents;
+  if (attesterAddress) {
+    const attesterLower = attesterAddress.toLowerCase();
+    matchingEvents = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
+  }
+
+  if (matchingEvents.length === 0) {
+    return null;
+  }
+
+  // Get the latest attestation (most recent block)
+  const latest = matchingEvents.reduce((a, b) =>
+    BigInt(a.blockNumber) > BigInt(b.blockNumber) ? a : b
+  );
+
+  return {
+    attested: true,
+    attester: latest.attester,
+    statementCid: latest.statementId,
+  };
+}
+
