@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
 
+const getBaseUrl = () => import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001'
+
 export interface ClaimChallengeResponse {
   nonce: string
   challengeTweetText: string
@@ -26,7 +28,7 @@ export function useClaimFlow() {
     setError(null)
 
     try {
-      const response = await fetch('/api/platform-api/verify/challenge', {
+      const response = await fetch(`${getBaseUrl()}/verify/challenge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform, handle, claimantAddress }),
@@ -51,7 +53,7 @@ export function useClaimFlow() {
     setError(null)
 
     try {
-      const response = await fetch('/api/platform-api/verify/confirm', {
+      const response = await fetch(`${getBaseUrl()}/verify/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nonce }),

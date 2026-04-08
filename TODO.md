@@ -24,11 +24,11 @@
     - DONE: BUG: `ClaimFlowModal` / `useClaimFlow` — `getChallenge('twitter')` only sends `{ platform }` to the `/verify/challenge` endpoint, but the Platform API Service requires `platform`, `handle`, and `claimantAddress`. Will fail with 400. Fix: pass the channel's Twitter handle and the connected wallet address through to the API call.
     - DONE: BUG: `fetchAndFoldContentFundingState` (queries.ts) doesn't decode `ContractVetoed` events — the switch statement has no case for it. Result: vetoed contracts show as "active" instead of "vetoed" in all UI views. Fix: add a `ContractVetoed` case, collect those events, and pass them through to the query layer as `vetoedEvents`.
     - DONE: BUG: Creator Dashboard withdraw button only appears for creator-controlled channels (CreatorDashboardPage.tsx:154). Spec says verified creators (State 2) can also withdraw from escrow. Fix: show withdraw button when `channel.state === 'verified' || channel.state === 'creator-controlled'`.
-    - Minor: `useClaimFlow` sends requests to `/api/platform-api/...` (assuming a dev proxy), while `usePlatformApi` hits `VITE_PLATFORM_API_URL` directly. Should be consistent.
+    - DONE: Minor: `useClaimFlow` sends requests to `/api/platform-api/...` (assuming a dev proxy), while `usePlatformApi` hits `VITE_PLATFORM_API_URL` directly. Should be consistent.
+    - DONE: Gap: Create Contract success state doesn't show shareable claim link or suggested creator notification message (spec says this is the primary creator acquisition flow).
     - Gap: Claim flow modal doesn't include inline withdraw or take-control steps (spec Steps 3-4). Currently just says "go to dashboard." Not blocking but doesn't match spec's intended flow.
     - Gap: No content attestation badges shown in Channel Page or Pubstarter integration (spec calls for attester pass/fail badges per content item). Depends on content attester infrastructure existing.
     - Gap: No platform embed previews (embedded tweets, YouTube thumbnails) — just text links. Spec wants inline previews on Channel Page and Create Contract Page.
-    - Gap: Create Contract success state doesn't show shareable claim link or suggested creator notification message (spec says this is the primary creator acquisition flow).
     - Future: Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
     - Future: Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
     - Future: ENS-based verification (infrastructure exists in sdk/src/utils/twitter.ts, deferred).

@@ -104,6 +104,15 @@ export function CreateContractPage() {
 
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : null
 
+  const channelParsed = useMemo(() => {
+    if (!canonicalChannelId) return null
+    try {
+      return parseCanonicalChannelId(canonicalChannelId)
+    } catch {
+      return null
+    }
+  }, [canonicalChannelId])
+
   const overview = useMemo(() => {
     if (!state || !canonicalChannelId) return null
     try {
@@ -505,18 +514,39 @@ export function CreateContractPage() {
 
             {submitError && <Alert severity="error">{submitError}</Alert>}
             {success && (
-              <Alert severity="success">
-                {success}
-                {createdContractAddress && (
-                  <Button
-                    size="small"
-                    onClick={() => navigate(`/projects/${createdContractAddress}`)}
-                    sx={{ ml: 1 }}
-                  >
-                    View Project
-                  </Button>
+              <Stack spacing={2}>
+                <Alert severity="success">
+                  {success}
+                  {createdContractAddress && (
+                    <Button
+                      size="small"
+                      onClick={() => navigate(`/projects/${createdContractAddress}`)}
+                      sx={{ ml: 1 }}
+                    >
+                      View Project
+                    </Button>
+                  )}
+                </Alert>
+                {canonicalChannelId && overview && channelParsed && (
+                  <Alert severity="info">
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Share this link with the creator to claim their funds:
+                    </Typography>
+                    <Box
+                      sx={{
+                        p: 1,
+                        bgcolor: 'grey.100',
+                        borderRadius: 1,
+                        fontFamily: 'monospace',
+                        fontSize: '0.85rem',
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      {window.location.origin}/content/{channelParsed.platform}/{encodeURIComponent(canonicalChannelId)}
+                    </Box>
+                  </Alert>
                 )}
-              </Alert>
+              </Stack>
             )}
           </Stack>
         </Paper>

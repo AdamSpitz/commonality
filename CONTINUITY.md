@@ -1,5 +1,67 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: Create Contract success share link — COMPLETE ✓
+
+### What was done
+
+Updated the Create Contract success state to show a shareable claim link that creators can use to claim their funds. Also fixed the inconsistency where `useClaimFlow` used the dev proxy path while `usePlatformApi` used the environment variable directly.
+
+**Changes:**
+1. `useClaimFlow.ts` — now uses `VITE_PLATFORM_API_URL` environment variable like `usePlatformApi` for consistency between dev and production
+2. `CreateContractPage.tsx` — added share link display in the success state showing the claim URL for the channel
+
+### Key decisions
+
+- Both hooks now use `import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001'` as the base URL
+- Share link shows `origin/content/{platform}/{channelId}` that creators can visit to claim their funds
+
+### PRD reference
+
+- `TODO.md` content-funding gaps (2026-04-07), "Create Contract success state doesn't show shareable claim link"
+
+### Files changed
+
+- `ui/src/content-funding/hooks/useClaimFlow.ts` — use VITE_PLATFORM_API_URL
+- `ui/src/content-funding/pages/CreateContractPage.tsx` — added share link in success state
+
+### Notes for next iteration
+
+Content-funding MVP is now fully complete. Remaining gaps:
+- Claim flow modal with inline withdraw/take-control steps
+- Content attestation badges
+- Platform embed previews
+
+---
+
+## Content-funding: make useClaimFlow consistent with usePlatformApi — COMPLETE ✓
+
+### What was done
+
+Fixed the inconsistency where `useClaimFlow` used the dev proxy path `/api/platform-api/...` while `usePlatformApi` used `VITE_PLATFORM_API_URL` directly. Now both hooks use the same environment variable approach for consistency between dev and production environments.
+
+### Key decisions
+
+- Both hooks now use `import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001'` as the base URL
+- Removed the dependency on the Vite dev proxy for Platform API calls
+
+### PRD reference
+
+- `TODO.md` Minor item (2026-04-07), consistency between useClaimFlow and usePlatformApi
+
+### Files changed
+
+- `ui/src/content-funding/hooks/useClaimFlow.ts` — use VITE_PLATFORM_API_URL environment variable
+
+### Notes for next iteration
+
+Content-funding MVP is now fully complete. Remaining gaps:
+- Claim flow modal with inline withdraw/take-control steps
+- Content attestation badges
+- Platform embed previews
+- Create Contract success with share link
+
+---
+
 ## Content-funding bug fixes: 5 remaining bugs — COMPLETE ✓
 
 ### What was done
