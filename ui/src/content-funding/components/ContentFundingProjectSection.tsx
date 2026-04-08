@@ -9,7 +9,8 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import { formatEther } from 'viem'
 import { type ContentItem } from '@commonality/sdk'
-import { useContentFundingState } from '../hooks/useContentFundingState'
+import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
+import { ContentAttestationSummary } from './ContentAttestationSummary'
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {
   active: 'Active',
@@ -61,7 +62,7 @@ function getContentUrl(canonicalId: string): string | null {
   return null
 }
 
-function ContentItemList({ items, contentAttestations }: { items: ContentItem[]; contentAttestations?: Map<string, { attested: boolean; attester: string }[]> }) {
+function ContentItemList({ items, contentAttestations }: { items: ContentItem[]; contentAttestations?: Map<string, ContentAttestationInfo[]> }) {
   if (items.length === 0) return null
 
   return (
@@ -73,7 +74,6 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
         {items.map((item) => {
           const url = getContentUrl(item.canonicalId)
           const attestations = contentAttestations?.get(item.canonicalId)
-          const attestationInfo = attestations?.[0]
           return (
             <Box
               key={item.contentId.toString()}
@@ -107,9 +107,7 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
               {item.status === 'released' && (
                 <Chip label="Released" size="small" variant="outlined" />
               )}
-              {attestationInfo?.attested && (
-                <Chip label="Attested" size="small" color="success" variant="outlined" />
-              )}
+              <ContentAttestationSummary attestations={attestations} />
             </Box>
           )
         })}

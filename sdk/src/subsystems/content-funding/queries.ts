@@ -69,6 +69,13 @@ export interface ContentFundingQueryOptions {
   vetoWindowSeconds?: bigint;
 }
 
+export interface ContentAttestationRecord {
+  attested: boolean;
+  attester: string;
+  statementCid: string;
+  blockNumber: bigint;
+}
+
 function normalizeAddress(address: string): string {
   return address.toLowerCase();
 }
@@ -468,6 +475,8 @@ import { keccak256, stringToBytes } from 'viem';
 import { fetchEvents } from '../../utils/eventCacheClient.js';
 import { decodeAlignmentAttestationEvent } from '../../utils/eventDecoder.js';
 
+type DecodedAlignmentAttestationEvent = NonNullable<ReturnType<typeof decodeAlignmentAttestationEvent>>;
+
 /**
  * Get the keccak256 hash of a canonical content ID for use as an AlignmentAttestation subjectId.
  * This matches how content-attester service computes the subjectId.
@@ -476,17 +485,56 @@ export function getContentSubjectId(canonicalContentId: string): string {
   return keccak256(stringToBytes(canonicalContentId));
 }
 
+export function selectLatestContentAttestations(
+  decodedEvents: DecodedAlignmentAttestationEvent[],
+  attesterAddress?: string,
+): ContentAttestationRecord[] {
+  let matchingEvents = decodedEvents;
+  if (attesterAddress) {
+    const attesterLower = attesterAddress.toLowerCase();
+    matchingEvents = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
+  }
+
+  const latestByAttester = new Map<string, DecodedAlignmentAttestationEvent>();
+
+  for (const event of matchingEvents) {
+    const key = event.attester.toLowerCase();
+    const existing = latestByAttester.get(key);
+    if (
+      !existing ||
+      event.blockNumber > existing.blockNumber ||
+      (event.blockNumber === existing.blockNumber && event.logIndex > existing.logIndex)
+    ) {
+      latestByAttester.set(key, event);
+    }
+  }
+
+  return Array.from(latestByAttester.values())
+    .sort((a, b) => {
+      if (a.blockNumber !== b.blockNumber) {
+        return a.blockNumber > b.blockNumber ? -1 : 1;
+      }
+      return b.logIndex - a.logIndex;
+    })
+    .map(event => ({
+      attested: true,
+      attester: event.attester,
+      statementCid: event.statementId,
+      blockNumber: event.blockNumber,
+    }));
+}
+
 /**
- * Query attestation status for a specific content item.
+ * Query latest attestation status per attester for a specific content item.
  */
-export async function getContentAttestation(
+export async function getContentAttestations(
   machinery: SDKMachinery,
   canonicalContentId: string,
   attesterAddress?: string,
-): Promise<{ attested: boolean; attester: string; statementCid: string } | null> {
+): Promise<ContentAttestationRecord[]> {
   const contracts = machinery.contractAddresses;
   if (!contracts?.alignmentAttestations) {
-    return null;
+    return [];
   }
 
   const subjectId = getContentSubjectId(canonicalContentId);
@@ -500,32 +548,32 @@ export async function getContentAttestation(
 
   const decodedEvents = events
     .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
+    .filter((e): e is DecodedAlignmentAttestationEvent => e !== null);
 
   if (decodedEvents.length === 0) {
-    return null;
+    return [];
   }
 
-  // If specific attester requested, filter to that attester
-  let matchingEvents = decodedEvents;
-  if (attesterAddress) {
-    const attesterLower = attesterAddress.toLowerCase();
-    matchingEvents = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
-  }
-
-  if (matchingEvents.length === 0) {
-    return null;
-  }
-
-  // Get the latest attestation (most recent block)
-  const latest = matchingEvents.reduce((a, b) =>
-    BigInt(a.blockNumber) > BigInt(b.blockNumber) ? a : b
-  );
-
-  return {
-    attested: true,
-    attester: latest.attester,
-    statementCid: latest.statementId,
-  };
+  return selectLatestContentAttestations(decodedEvents, attesterAddress);
 }
 
+/**
+ * Query attestation status for a specific content item.
+ */
+export async function getContentAttestation(
+  machinery: SDKMachinery,
+  canonicalContentId: string,
+  attesterAddress?: string,
+): Promise<{ attested: boolean; attester: string; statementCid: string } | null> {
+  const attestations = await getContentAttestations(machinery, canonicalContentId, attesterAddress);
+  const latest = attestations[0];
+  if (!latest) {
+    return null;
+  }
+
+  return {
+    attested: latest.attested,
+    attester: latest.attester,
+    statementCid: latest.statementCid,
+  };
+}

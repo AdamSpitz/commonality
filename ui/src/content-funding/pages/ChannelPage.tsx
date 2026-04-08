@@ -27,8 +27,9 @@ import {
   type ContentItem,
   type ChannelState,
 } from '@commonality/sdk'
-import { useContentFundingState } from '../hooks/useContentFundingState'
+import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
+import { ContentAttestationSummary } from '../components/ContentAttestationSummary'
 
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
@@ -221,7 +222,7 @@ function ContentItemPreview({ canonicalId, url }: { canonicalId: string; url: st
   return null
 }
 
-function ContentItemRow({ item, attestationInfo }: { item: ContentItem; attestationInfo?: { attested: boolean; attester: string } }) {
+function ContentItemRow({ item, attestations }: { item: ContentItem; attestations?: ContentAttestationInfo[] }) {
   const url = getContentUrl(item.canonicalId)
 
   return (
@@ -240,11 +241,7 @@ function ContentItemRow({ item, attestationInfo }: { item: ContentItem; attestat
       {item.status === 'released' && (
         <Chip label="Released" size="small" variant="outlined" />
       )}
-      {attestationInfo?.attested && (
-        <Tooltip title={`Attested by ${attestationInfo.attester.slice(0, 10)}...`}>
-          <Chip label="Attested" size="small" color="success" variant="outlined" />
-        </Tooltip>
-      )}
+      <ContentAttestationSummary attestations={attestations} />
     </Box>
   )
 }
@@ -484,9 +481,8 @@ export function ChannelPage() {
             <Stack divider={<Divider />} spacing={0}>
               {contentItems.map((item) => {
                 const attestations = contentAttestations.get(item.canonicalId)
-                const attestationInfo = attestations?.[0]
                 return (
-                  <ContentItemRow key={item.contentId.toString()} item={item} attestationInfo={attestationInfo} />
+                  <ContentItemRow key={item.contentId.toString()} item={item} attestations={attestations} />
                 )
               })}
             </Stack>

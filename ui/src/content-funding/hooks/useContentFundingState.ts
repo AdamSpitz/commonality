@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   fetchAndFoldContentFundingState,
   getAllChannelOverviews,
-  getContentAttestation,
+  getContentAttestations,
   getContentSubjectId,
   type ChannelWithCanonicalId,
   type ContentFundingQueryOptions,
@@ -68,35 +68,41 @@ export function useContentFundingState(): ContentFundingData {
           }
           setChannels(getAllChannelOverviews(contentFundingResult.state, options))
 
-          // Load content attestations - collect all content items from contracts
-          const attestationMap = new Map<string, ContentAttestationInfo[]>()
-          
+          const canonicalIds = new Set<string>()
           for (const channel of getAllChannelOverviews(contentFundingResult.state, options)) {
             for (const contract of channel.contracts) {
               for (const item of contract.contentItems) {
-                const canonicalId = item.canonicalId
-                const subjectId = getContentSubjectId(canonicalId)
-                
-                try {
-                  const attestation = await getContentAttestation(machinery, canonicalId)
-                  if (attestation) {
-                    const existing = attestationMap.get(canonicalId) || []
-                    existing.push({
-                      canonicalId,
-                      subjectId,
-                      attested: attestation.attested,
-                      attester: attestation.attester,
-                      statementCid: attestation.statementCid,
-                    })
-                    attestationMap.set(canonicalId, existing)
-                  }
-                } catch {
-                  // Skip failed attestations
-                }
+                canonicalIds.add(item.canonicalId)
               }
             }
           }
-          
+
+          const attestationEntries = await Promise.all(
+            Array.from(canonicalIds).map(async (canonicalId) => {
+              const subjectId = getContentSubjectId(canonicalId)
+
+              try {
+                const attestations: ContentAttestationInfo[] = (await getContentAttestations(machinery, canonicalId)).map(attestation => ({
+                  canonicalId,
+                  subjectId,
+                  attested: attestation.attested,
+                  attester: attestation.attester,
+                  statementCid: attestation.statementCid,
+                }))
+                return [
+                  canonicalId,
+                  attestations,
+                ] as const
+              } catch {
+                return [canonicalId, [] as ContentAttestationInfo[]] as const
+              }
+            }),
+          )
+
+          const attestationMap = new Map<string, ContentAttestationInfo[]>(
+            attestationEntries.filter(([, attestations]) => attestations.length > 0),
+          )
+
           setContentAttestations(attestationMap)
         } else {
           setState(null)

@@ -13,7 +13,7 @@
       - (DONE) Fix verified-creator contract creation. On a merely `verified` channel, the UI currently treats even the real creator as a third party, which incorrectly forces the minimum initial purchase path instead of allowing creator-created contracts.
       - (DONE) Fix create-contract validation. The UI should require successful `/resolve/content` results, verify that each resolved author matches the channel, and check/prevent already-registered content items before submission instead of mostly relying on on-chain reverts.
       - (DONE) Fix content-funding UI polish/accuracy gaps: the Pubstarter integration now shows the correct "Escrowed Balance" value (channel.escrow.balance instead of contract.project.totalReceived).
-      - Tighten content-attestation display so the UI can show known attesters coherently instead of only the latest fetched attestation per content item.
+      - (DONE) Tighten content-attestation display so the UI can show known attesters coherently instead of only the latest fetched attestation per content item.
       - (DONE) Add focused unit/integration coverage for the content-funding UI; `CreateContractPage` now has focused UI coverage for the verified-creator path, mismatched resolved content rejection, already-registered content rejection, and unclaimed-channel third-party minimum-purchase enforcement.
       - (DONE) Surface already-registered content status immediately after content resolution in the create-contract form, rather than only blocking at submit time.
     - Future non-MVP work:

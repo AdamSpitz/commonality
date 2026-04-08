@@ -11,6 +11,7 @@ import { foldAllContentFundingEvents } from './folds.js';
 import {
   buildChannelCanonicalIdMap,
   getChannelOverview,
+  selectLatestContentAttestations,
   getContentItemStatus,
   getContractsForChannel,
   getVetoableContracts,
@@ -329,5 +330,91 @@ describe('content-funding query helpers', () => {
       }),
       [],
     );
+  });
+
+  it('keeps the latest content attestation per attester', () => {
+    const attestations = selectLatestContentAttestations([
+      {
+        attester: OWNER_A,
+        subjectId: '0xsubject1' as `0x${string}`,
+        statementId: 'bafy-statement-old',
+        contractAddress: CONTRACT_A,
+        blockNumber: 100n,
+        blockTimestamp: 1000n,
+        transactionHash: TX_HASH,
+        logIndex: 0,
+      },
+      {
+        attester: OWNER_B,
+        subjectId: '0xsubject1' as `0x${string}`,
+        statementId: 'bafy-statement-b',
+        contractAddress: CONTRACT_A,
+        blockNumber: 105n,
+        blockTimestamp: 1050n,
+        transactionHash: TX_HASH,
+        logIndex: 1,
+      },
+      {
+        attester: OWNER_A,
+        subjectId: '0xsubject1' as `0x${string}`,
+        statementId: 'bafy-statement-new',
+        contractAddress: CONTRACT_A,
+        blockNumber: 110n,
+        blockTimestamp: 1100n,
+        transactionHash: TX_HASH,
+        logIndex: 2,
+      },
+    ]);
+
+    assert.deepStrictEqual(attestations.map(attestation => ({
+      attester: attestation.attester,
+      statementCid: attestation.statementCid,
+      blockNumber: attestation.blockNumber,
+    })), [
+      { attester: OWNER_A, statementCid: 'bafy-statement-new', blockNumber: 110n },
+      { attester: OWNER_B, statementCid: 'bafy-statement-b', blockNumber: 105n },
+    ]);
+  });
+
+  it('filters latest content attestations to a requested attester', () => {
+    const attestations = selectLatestContentAttestations([
+      {
+        attester: OWNER_A,
+        subjectId: '0xsubject1' as `0x${string}`,
+        statementId: 'bafy-statement-old',
+        contractAddress: CONTRACT_A,
+        blockNumber: 100n,
+        blockTimestamp: 1000n,
+        transactionHash: TX_HASH,
+        logIndex: 0,
+      },
+      {
+        attester: OWNER_A.toUpperCase() as typeof OWNER_A,
+        subjectId: '0xsubject1' as `0x${string}`,
+        statementId: 'bafy-statement-new',
+        contractAddress: CONTRACT_A,
+        blockNumber: 101n,
+        blockTimestamp: 1010n,
+        transactionHash: TX_HASH,
+        logIndex: 1,
+      },
+      {
+        attester: OWNER_B,
+        subjectId: '0xsubject1' as `0x${string}`,
+        statementId: 'bafy-statement-b',
+        contractAddress: CONTRACT_A,
+        blockNumber: 102n,
+        blockTimestamp: 1020n,
+        transactionHash: TX_HASH,
+        logIndex: 2,
+      },
+    ], OWNER_A);
+
+    assert.deepStrictEqual(attestations.map(attestation => ({
+      attester: attestation.attester,
+      statementCid: attestation.statementCid,
+    })), [
+      { attester: OWNER_A.toUpperCase(), statementCid: 'bafy-statement-new' },
+    ]);
   });
 });

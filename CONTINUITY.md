@@ -134,6 +134,59 @@ multi-attester display task.
 
 ---
 
+## Content-funding multi-attester display — COMPLETED
+
+### What was done
+
+Finished the remaining content-attestation display follow-up so content-funding UI surfaces no
+longer collapse each content item down to a single latest attestation.
+
+Key changes:
+1. `sdk/src/subsystems/content-funding/queries.ts` now exposes
+   `getContentAttestations()` plus `selectLatestContentAttestations()`, which keep the latest
+   attestation per attester for a content item instead of returning only one global latest event.
+2. `ui/src/content-funding/hooks/useContentFundingState.ts` now fetches attestations once per
+   canonical content ID, stores all latest-per-attester results, and avoids redundant lookups for
+   duplicate content IDs in the rendered state.
+3. Added `ContentAttestationSummary.tsx`, a shared UI component that renders one compact badge per
+   attester with stable ordering and tooltips.
+4. `ChannelPage.tsx` and `ContentFundingProjectSection.tsx` now use that shared component, so both
+   the channel-level content list and the Pubstarter-integrated project section show multiple known
+   attesters coherently.
+
+PRD/spec reference: `specs/subsystems/content-funding/ui.md` content-attestation display
+requirements and the content-funding follow-up list in `TODO.md`.
+
+### Notes for next session
+
+Remaining content-funding MVP follow-up is now just:
+- Run the live content-funding Playwright flow against a real local stack.
+
+Good interrupt point: yes. The remaining work is now a clean e2e validation task rather than more
+content-funding UI implementation.
+
+### Files changed
+
+- `sdk/src/subsystems/content-funding/queries.ts`
+- `sdk/src/subsystems/content-funding/queries.test.ts`
+- `ui/src/content-funding/hooks/useContentFundingState.ts`
+- `ui/src/content-funding/components/ContentAttestationSummary.tsx` (new)
+- `ui/src/content-funding/components/ContentAttestationSummary.test.tsx` (new)
+- `ui/src/content-funding/components/ContentFundingProjectSection.tsx`
+- `ui/src/content-funding/pages/ChannelPage.tsx`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Verification
+
+- `npm test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`
+- `npm test --workspace=ui -- ContentAttestationSummary.test.tsx`
+- `npm run build --workspace=@commonality/sdk`
+- `npm run build --workspace=ui`
+
+---
+
 ## Content-funding already-registered status surfacing — COMPLETED
 
 ### What was done
