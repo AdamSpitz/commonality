@@ -82,7 +82,7 @@ const CONTENT_FUNDING_START_BLOCK = Number(process.env.CONTENT_FUNDING_START_BLO
 
 export default createConfig({
   database: process.env.PONDER_EPHEMERAL === 'true'
-    ? { kind: "pglite", directory: undefined } // Uses in-memory ephemeral database
+    ? { kind: "pglite", directory: "/tmp/ponder-pglite" } // Writable ephemeral DB for Docker-based test runs
     : undefined, // Uses default persistent database
   chains: {
     // Local Hardhat network for development

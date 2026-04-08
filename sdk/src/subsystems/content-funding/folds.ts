@@ -121,8 +121,9 @@ export function foldCreatorContracts(events: CreatorContractCreatedEvent[]): Cre
   const contracts = new Map<string, CreatorContractInfo>();
 
   for (const event of events) {
-    contracts.set(event.contractAddress, {
-      contractAddress: event.contractAddress,
+    const contractAddress = event.contractAddress.toLowerCase();
+    contracts.set(contractAddress, {
+      contractAddress,
       channelId: event.channelId,
       creator: event.creator,
       isThirdParty: event.isThirdParty,

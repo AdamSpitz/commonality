@@ -9,6 +9,7 @@ import type {
 } from './events.js';
 import { foldAllContentFundingEvents } from './folds.js';
 import {
+  buildChannelCanonicalIdMap,
   getChannelOverview,
   getContentItemStatus,
   getContractsForChannel,
@@ -265,6 +266,40 @@ describe('content-funding query helpers', () => {
     assert.strictEqual(itemStatus.contractAddress, CONTRACT_A);
     assert.ok(itemStatus.contract);
     assert.strictEqual(itemStatus.contract.status, 'active');
+  });
+
+  it('links content items to checksum-cased creator contract addresses', () => {
+    const checksumContract = '0x24B3c7704709ed1491473F30393FFc93cFB0FC34' as const;
+    const checksumState = foldAllContentFundingEvents(
+      [
+        makeRegisteredEvent({
+          assuranceContract: checksumContract,
+          canonicalId: 'twitter:uid:123456789:987654321',
+        }),
+      ],
+      [
+        makeVerifiedEvent({
+          channelId: '0xfeed',
+          owner: OWNER_A,
+        }),
+      ],
+      [],
+      [
+        makeContractCreatedEvent({
+          contractAddress: checksumContract,
+          channelId: '0xfeed',
+        }),
+      ],
+    );
+
+    const contracts = getContractsForChannel(checksumState, '0xfeed');
+    assert.strictEqual(contracts.length, 1);
+    assert.deepStrictEqual(contracts[0]?.contentItems.map((item) => item.canonicalId), [
+      'twitter:uid:123456789:987654321',
+    ]);
+
+    const canonicalIds = buildChannelCanonicalIdMap(checksumState);
+    assert.strictEqual(canonicalIds.get('0xfeed'), 'twitter:uid:123456789');
   });
 
   it('returns an unregistered content-item status when absent', () => {
