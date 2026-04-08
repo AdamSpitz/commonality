@@ -30,6 +30,8 @@ export default defineConfig({
       // The indexer runs at localhost:42069; the dev server runs at localhost:5173.
       '/graphql': indexerUrl,
       '/conceptspace': indexerUrl,
+      // /status is polled by waitForIndexerToSyncToTxHash in E2E tests
+      '/status': indexerUrl,
       '/api': indexerUrl,
       // Proxy platform-api-service requests (runs at localhost:3001)
       '/api/platform-api': 'http://localhost:3001',

@@ -43,6 +43,10 @@ function copyContractAddresses(projectRoot: string): void {
       'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
       'TRUST_REGISTRY_ADDRESS',
       'PUBSTARTER_ADDRESS',
+      'CONTENT_REGISTRY_ADDRESS',
+      'CHANNEL_REGISTRY_ADDRESS',
+      'CHANNEL_ESCROW_ADDRESS',
+      'CREATOR_CONTRACT_FACTORY_ADDRESS',
     ];
 
     // Parse the addresses
@@ -82,6 +86,10 @@ function copyContractAddresses(projectRoot: string): void {
       'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=',
       'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS=',
       'VITE_PUBSTARTER_CONTRACT_ADDRESS=',
+      'VITE_CONTENT_REGISTRY_ADDRESS=',
+      'VITE_CHANNEL_REGISTRY_ADDRESS=',
+      'VITE_CHANNEL_ESCROW_ADDRESS=',
+      'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS=',
       '# Contract addresses (auto-populated',
     ];
     const existingLines = uiEnv.split('\n').filter(line => {
@@ -111,6 +119,10 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${addresses.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || ''}`,
       `VITE_TRUST_REGISTRY_CONTRACT_ADDRESS=${addresses.TRUST_REGISTRY_ADDRESS || ''}`,
       `VITE_PUBSTARTER_CONTRACT_ADDRESS=${addresses.PUBSTARTER_ADDRESS || ''}`,
+      `VITE_CONTENT_REGISTRY_ADDRESS=${addresses.CONTENT_REGISTRY_ADDRESS || ''}`,
+      `VITE_CHANNEL_REGISTRY_ADDRESS=${addresses.CHANNEL_REGISTRY_ADDRESS || ''}`,
+      `VITE_CHANNEL_ESCROW_ADDRESS=${addresses.CHANNEL_ESCROW_ADDRESS || ''}`,
+      `VITE_CREATOR_CONTRACT_FACTORY_ADDRESS=${addresses.CREATOR_CONTRACT_FACTORY_ADDRESS || ''}`,
       // Use the Vite dev-server proxy URL so the browser avoids CORS issues.
       // Both the browser (via Vite proxy) and the Node.js test-runner reach the indexer this way.
       `VITE_GRAPHQL_URL=http://localhost:5173/graphql`,

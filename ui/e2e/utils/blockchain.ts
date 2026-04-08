@@ -131,6 +131,18 @@ export function getContractAddresses() {
   const trustRegistryAddress =
     envVars.VITE_TRUST_REGISTRY_CONTRACT_ADDRESS ||
     process.env.VITE_TRUST_REGISTRY_CONTRACT_ADDRESS
+  const contentRegistryAddress =
+    envVars.VITE_CONTENT_REGISTRY_ADDRESS ||
+    process.env.VITE_CONTENT_REGISTRY_ADDRESS
+  const channelRegistryAddress =
+    envVars.VITE_CHANNEL_REGISTRY_ADDRESS ||
+    process.env.VITE_CHANNEL_REGISTRY_ADDRESS
+  const channelEscrowAddress =
+    envVars.VITE_CHANNEL_ESCROW_ADDRESS ||
+    process.env.VITE_CHANNEL_ESCROW_ADDRESS
+  const creatorContractFactoryAddress =
+    envVars.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS ||
+    process.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS
   const graphqlUrl =
     envVars.VITE_GRAPHQL_URL ||
     process.env.VITE_GRAPHQL_URL ||
@@ -152,6 +164,10 @@ export function getContractAddresses() {
     delegatableNotesAddress: delegatableNotesAddress as `0x${string}` | undefined,
     pubstarterAddress: pubstarterAddress as `0x${string}` | undefined,
     trustRegistryAddress: trustRegistryAddress as `0x${string}` | undefined,
+    contentRegistryAddress: contentRegistryAddress as `0x${string}` | undefined,
+    channelRegistryAddress: channelRegistryAddress as `0x${string}` | undefined,
+    channelEscrowAddress: channelEscrowAddress as `0x${string}` | undefined,
+    creatorContractFactoryAddress: creatorContractFactoryAddress as `0x${string}` | undefined,
     graphqlUrl,
   }
 }

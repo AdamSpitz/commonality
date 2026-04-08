@@ -28,7 +28,7 @@ const INDEXER_SYNC = {
 export async function waitForIndexerToSyncToBlockNumber(
   machinery: SDKMachinery,
   targetBlock: bigint,
-  timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
+  timeoutMs: number = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
   const startTime = Date.now();
   const targetBlockNum = Number(targetBlock);
@@ -159,7 +159,7 @@ export async function waitForIndexerToSyncToTxHash(
     getTransactionReceipt: (args: { hash: `0x${string}` }) => Promise<{ blockNumber: bigint }>;
   },
   txHash: `0x${string}`,
-  timeoutMs = INDEXER_SYNC.MAX_WAIT_MS
+  timeoutMs: number = INDEXER_SYNC.MAX_WAIT_MS
 ): Promise<void> {
   const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
   return waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber, timeoutMs);
