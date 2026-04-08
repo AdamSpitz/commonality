@@ -1,5 +1,48 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: Claim flow inline withdraw and take-control — COMPLETE ✓
+
+### What was done
+
+Updated the ClaimFlowModal to include inline withdraw (Step 3) and take-control (Step 4) steps as specified in `specs/subsystems/content-funding/ui.md`.
+
+**Changes:**
+1. `ClaimFlowModal.tsx` — added new props: `channelId`, `escrowBalance`, `channelState`
+2. Added wallet client hooks (`useWalletClient`, `usePublicClient`) for transaction signing
+3. Added `handleWithdraw()` — calls `withdrawFromEscrow` SDK action, shows balance and "Withdraw to Wallet" button
+4. Added `handleTakeControl()` — calls `takeChannelControl` SDK action, shows "Take Control" button
+5. Updated steps array to `['Connect Wallet', 'Verify Identity', 'Withdraw Funds', 'Take Control']`
+6. Updated modal content for Steps 2-4 to include inline withdraw/take-control flow
+7. Updated ChannelPage to pass new props: shows modal for unclaimed OR verified channels with escrow balance
+
+### Key decisions
+
+- Modal now triggers for both unclaimed and verified channels (previously only unclaimed)
+- Verified channels can withdraw immediately after verification without visiting dashboard
+- For verified channels: verify → withdraw → take control (each as inline steps)
+- For unclaimed channels: verify → the old "go to dashboard" message is shown
+- Reused the same SDK action pattern from CreatorDashboardPage
+
+### PRD reference
+
+- `TODO.md` content-funding gap (2026-04-08), "Claim flow modal doesn't include inline withdraw or take-control steps"
+- `specs/subsystems/content-funding/ui.md#claim-flow`, Steps 3-4
+
+### Files changed
+
+- `ui/src/content-funding/components/ClaimFlowModal.tsx` — added inline withdraw/take-control steps
+- `ui/src/content-funding/pages/ChannelPage.tsx` — pass escrow balance and channel state
+
+### Notes for next iteration
+
+Content-funding MVP is now fully complete. Remaining gaps are future work:
+- Content attestation badges
+- Platform embed previews
+- Embedded wallet provisioning
+- Fiat off-ramp
+
+---
+
 ## Content-funding: Create Contract success share link — COMPLETE ✓
 
 ### What was done

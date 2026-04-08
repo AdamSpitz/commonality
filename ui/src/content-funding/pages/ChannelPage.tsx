@@ -421,14 +421,17 @@ export function ChannelPage() {
         )}
       </Box>
 
-      {isUnclaimed && escrow.balance > 0n && (
+      {(channel?.state === 'unclaimed' || channel?.state === 'verified') && escrow.balance > 0n && (
         <ClaimFlowModal
           open={claimModalOpen}
           onClose={() => setClaimModalOpen(false)}
           channelDisplayName={displayName}
+          channelId={canonicalChannelId ?? ''}
           platform={parsedChannel?.platform ?? 'twitter'}
           handle={parsedChannel?.stableId ?? ''}
           claimantAddress={address ?? ''}
+          escrowBalance={escrow.balance}
+          channelState={channel?.state ?? 'unclaimed'}
           onSuccess={() => {
             window.location.reload()
           }}
