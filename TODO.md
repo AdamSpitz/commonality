@@ -15,12 +15,12 @@
       - (DONE) Fix content-funding UI polish/accuracy gaps: the Pubstarter integration now shows the correct "Escrowed Balance" value (channel.escrow.balance instead of contract.project.totalReceived).
       - Tighten content-attestation display so the UI can show known attesters coherently instead of only the latest fetched attestation per content item.
       - Add focused unit/integration coverage for the content-funding UI; current automated coverage is strong for contracts/backend, but very thin for the content-funding React surfaces.
-      - Run the live content-funding Playwright flow (`cd ui && npx playwright test content-funding-flow`) and then expand it beyond the current tracer-bullet contract-creation/browse check.
     - Future non-MVP work:
       - Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
       - Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
       - ENS-based verification (infrastructure exists in `sdk/src/utils/twitter.ts`, deferred).
       - Additional platform verifiers beyond Twitter (YouTube video-description, Bluesky DID, Substack email/DNS). Twitter is the only platform with a real verification flow; YouTube and Substack verification are deferred.
+      - Run the live content-funding Playwright flow (`cd ui && npx playwright test content-funding-flow`) and then expand it beyond the current tracer-bullet contract-creation/browse check. (NOTE: we've had trouble getting the e2e tests to work; leave this for later.)
 
 ## Other big things to do soon
 
