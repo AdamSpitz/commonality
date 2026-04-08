@@ -133,7 +133,10 @@ describe('CreateContractPage', () => {
     import.meta.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS = FACTORY_ADDRESS
   })
 
-  async function fillFormWithResolvedContent(resolved = makeResolvedContent()) {
+  async function fillFormWithResolvedContent(
+    resolved = makeResolvedContent(),
+    expectedStatusText = 'Verified author: @alice',
+  ) {
     const user = userEvent.setup()
     resolveContent.mockResolvedValue(resolved)
 
@@ -143,7 +146,7 @@ describe('CreateContractPage', () => {
     await user.type(screen.getByLabelText('Content URL'), CONTENT_URL)
 
     await waitFor(() => {
-      expect(screen.getByText('Verified author: @alice')).toBeInTheDocument()
+      expect(screen.getByText(expectedStatusText)).toBeInTheDocument()
     })
 
     await user.type(screen.getByLabelText('Deadline'), futureDeadline())
@@ -197,9 +200,12 @@ describe('CreateContractPage', () => {
       error: null,
     })
 
-    const user = await fillFormWithResolvedContent(makeResolvedContent({
-      canonicalId: registeredCanonicalId,
-    }))
+    const user = await fillFormWithResolvedContent(
+      makeResolvedContent({
+        canonicalId: registeredCanonicalId,
+      }),
+      'Already registered in an active contract',
+    )
 
     await user.click(screen.getByRole('button', { name: 'Create Contract' }))
 

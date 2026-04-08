@@ -138,6 +138,16 @@ function getValidationStatus(item: ContentItemRow): string {
   return ''
 }
 
+function isContentAlreadyRegistered(
+  state: ReturnType<typeof useContentFundingState>['state'],
+  canonicalId: string,
+): boolean {
+  if (!state) return false
+  const contentId = BigInt(hashCanonicalId(canonicalId))
+  const existing = state.contentRegistry.items.get(contentId)
+  return !!(existing && existing.status === 'active')
+}
+
 export function CreateContractPage() {
   const navigate = useNavigate()
   const { channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
@@ -173,10 +183,7 @@ export function CreateContractPage() {
     if (!state) return
     setContentItems(prev => prev.map(item => {
       if (!item.resolved) return item
-      const contentId = BigInt(hashCanonicalId(item.resolved.canonicalId))
-      const existing = state.contentRegistry.items.get(contentId)
-      const alreadyRegistered = !!(existing && existing.status === 'active')
-      return { ...item, alreadyRegistered }
+      return { ...item, alreadyRegistered: isContentAlreadyRegistered(state, item.resolved.canonicalId) }
     }))
   }, [state])
 
@@ -204,7 +211,14 @@ export function CreateContractPage() {
           ))
           resolveContent(value).then(resolved => {
             setContentItems(current => current.map(i => 
-              i.id === id ? { ...i, resolved, validating: false } : i
+              i.id === id
+                ? {
+                    ...i,
+                    resolved,
+                    validating: false,
+                    alreadyRegistered: isContentAlreadyRegistered(state, resolved.canonicalId),
+                  }
+                : i
             ))
           }).catch(() => {
             setContentItems(current => current.map(i => 
@@ -239,7 +253,7 @@ export function CreateContractPage() {
       return
     }
 
-    const validItems = contentItems.filter(item => item.parsed && !item.error && !item.alreadyRegistered)
+    const validItems = contentItems.filter(item => item.parsed && !item.error)
     if (validItems.length === 0) {
       setSubmitError('At least one valid content item is required')
       return
@@ -293,6 +307,12 @@ export function CreateContractPage() {
       }
     }
 
+    const submitItems = validItems.filter(item => !item.alreadyRegistered)
+    if (submitItems.length === 0) {
+      setSubmitError('At least one valid content item is required')
+      return
+    }
+
     try {
       setSubmitting(true)
       setSubmitError(null)
@@ -314,7 +334,7 @@ export function CreateContractPage() {
         minPurchase = await getThirdPartyMinPurchase(clients, factoryContract)
       }
 
-      const totalInitialValue = validItems.reduce((total, item) => {
+      const totalInitialValue = submitItems.reduce((total, item) => {
         const price = parseEther(item.price || '0')
         const supply = BigInt(item.supply || '0')
         return total + (price * supply)
@@ -325,15 +345,15 @@ export function CreateContractPage() {
         return
       }
 
-      const contentUrls = validItems.map(item => item.url)
-      const contentSupplies = validItems.map(item => BigInt(item.supply))
-      const contentPrices = validItems.map(item => parseEther(item.price))
+      const contentUrls = submitItems.map(item => item.url)
+      const contentSupplies = submitItems.map(item => BigInt(item.supply))
+      const contentPrices = submitItems.map(item => parseEther(item.price))
 
       const initialPurchaseTokenIds: bigint[] = []
       const initialPurchaseCounts: bigint[] = []
 
-      for (let i = 0; i < validItems.length; i++) {
-        const item = validItems[i]
+      for (let i = 0; i < submitItems.length; i++) {
+        const item = submitItems[i]
         let contentSuffix: string
 
         if (item.parsed!.platform === 'twitter') {

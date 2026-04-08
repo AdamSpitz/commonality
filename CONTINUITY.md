@@ -131,3 +131,48 @@ multi-attester display task.
 
 - `npm test --workspace=ui -- CreateContractPage.test.tsx`
 - `npm run build --workspace=ui`
+
+---
+
+## Content-funding already-registered status surfacing — COMPLETED
+
+### What was done
+
+Finished the remaining create-contract UX follow-up so already-registered content is surfaced
+immediately after `/resolve/content` succeeds, instead of only appearing as a submit-time block.
+
+Key changes:
+1. `CreateContractPage.tsx` now derives `alreadyRegistered` as soon as resolved content comes
+   back from the platform API, using current folded state.
+2. The existing `state`-driven recomputation remains in place so the flag still refreshes if the
+   folded content-registry state changes later.
+3. Submit validation was reordered so registered items produce the specific
+   "already registered in active contracts" error instead of getting filtered out too early and
+   falling back to the generic "At least one valid content item is required" message.
+4. `CreateContractPage.test.tsx` now asserts that the helper text appears immediately after
+   resolution for already-registered content, while preserving the submit-time rejection test.
+
+PRD/spec reference: `specs/subsystems/content-funding/ui.md` and `TODO.md` content-funding
+follow-up list.
+
+### Notes for next session
+
+Remaining content-funding MVP follow-up is now down to:
+- Tighten multi-attester display so known attesters render coherently in the UI.
+- Run the live Playwright content-funding flow against a real local stack.
+
+Good interrupt point: yes. This closes the last small create-contract validation/polish item, so
+the next pass can cleanly focus on the multi-attester display task or the live e2e run.
+
+### Files changed
+
+- `ui/src/content-funding/pages/CreateContractPage.tsx`
+- `ui/src/content-funding/pages/CreateContractPage.test.tsx`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Verification
+
+- `npm test --workspace=ui -- CreateContractPage.test.tsx`
+- `npm run build --workspace=ui`
