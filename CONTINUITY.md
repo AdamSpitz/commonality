@@ -1,5 +1,41 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding: content-attester workspace — COMPLETE ✓
+
+### What was done
+
+Built a new `content-attester/` workspace on top of `attester-core/` to evaluate content items against alignment statements and publish positive attestations on-chain through `AlignmentAttestations.sol`.
+
+**Changes:**
+1. Added a standalone `content-attester/` package with build/lint/test config, README, and Dockerfile.
+2. Implemented content-attester config loading, content resolution from inline text/URL/IPFS, prompt templating, OpenRouter JSON evaluation, and alignment-attestation blockchain publishing.
+3. Added an Express app that reuses `attester-core` for common routes, payment handling, rate limiting, and IPFS explanation uploads.
+4. Added focused tests for the HTTP flow and content/prompt helpers, then updated workspace wiring and lockfile metadata.
+
+### Key decisions
+
+- Kept the service deployment-specific rather than request-profile-specific: the active prompt/profile is configured through environment variables, and the next task can package the three noninflammatory prompt variants as deployable configs.
+- Required callers to provide a canonical content ID alongside the content source so the service can deterministically derive the on-chain `subjectId` via the existing SDK hashing rules.
+- Supported three content input paths now (`contentText`, `contentUrl`, `contentCid`) and kept status lookups on the shared placeholder route for parity with the implication attester's current scaffolding.
+
+### PRD reference
+
+- `TODO.md` content-funding content-attesters work (2026-04-08): build `content-attester/` service on top of `attester-core/`
+- `specs/subsystems/content-funding/content-attesters.md`
+
+### Files changed
+
+- `content-attester/` — new workspace with runtime code, tests, docs, and Dockerfile
+- `package.json` / `package-lock.json` — workspace graph updated
+- `TODO.md` — marked the content-attester task complete
+- `README.md` — updated artifact list and high-level status
+
+### Notes for next iteration
+
+- The next bounded attester task is wiring the three noninflammatory prompt profiles into concrete deployable configurations for `content-attester/`.
+- One implementation wrinkle to consider next time: the shared `/quote` route currently returns pricing metadata but not a reusable `paymentId`, so real payment-driven clients still need the 402 response path to obtain the proof token. Decide whether that should be fixed in `attester-core` before broader integration.
+- Good interrupt point: yes. The new service exists, has tests, and the next TODO item is a clean configuration/deployment follow-up.
+
 ## Content-funding: attester-core extraction and implication-attester refactor — COMPLETE ✓
 
 ### What was done

@@ -1,5 +1,5 @@
 # Dockerfile for Ponder indexer
-FROM node:20-alpine
+FROM node:24-alpine
 
 # Install curl for healthcheck
 RUN apk add --no-cache curl

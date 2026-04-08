@@ -1,0 +1,35 @@
+{
+  "name": "@commonality/content-attester",
+  "version": "0.1.0",
+  "description": "Content Attester AI service for publishing alignment attestations about content items",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "predev": "npm run build --workspace=@commonality/sdk",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "prebuild": "npm run build --workspace=@commonality/sdk",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "pretypecheck": "npm run build --workspace=@commonality/sdk",
+    "typecheck": "tsc --noEmit",
+    "test": "mocha",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@commonality/attester-core": "0.1.0",
+    "@commonality/sdk": "1.0.0",
+    "express": "^4.18.2",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.10.0",
+    "eslint": "^9.39.1",
+    "mocha": "^10.8.2",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.46.4"
+  }
+}
