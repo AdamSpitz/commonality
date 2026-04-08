@@ -93,3 +93,41 @@ so the fix here should unblock that test too (no code changes needed there).
 - `hardhat/scripts/deploy.js`
 - `sdk/src/indexer-sync.ts`
 - `ui/e2e/content-funding-flow.spec.ts` (new)
+
+---
+
+## Content-funding create-contract UI coverage — COMPLETED
+
+### What was done
+
+Added focused Vitest coverage for `CreateContractPage` so the recent content-funding UI fixes
+are now exercised by automation instead of relying only on manual testing.
+
+Covered cases:
+1. Verified channels submit as creator contracts (`isThirdParty: false`) and do not invoke the
+   third-party minimum-purchase check.
+2. Resolved content from a different channel is rejected before submission.
+3. Already-registered content is rejected before submission.
+4. Unclaimed channels enforce the third-party minimum purchase requirement.
+
+### Notes for next session
+
+The tests exposed one remaining UX gap: the create-contract form does not surface the
+"already registered" helper text immediately after content resolution when the registration
+already exists in state; it still blocks correctly at submit time. This was added back to
+`TODO.md` as a follow-up polish item.
+
+Good interrupt point: yes. The recent create-contract fixes now have focused UI coverage, so a
+next pass could either address the remaining create-contract polish item or move to the
+multi-attester display task.
+
+### Files changed
+
+- `ui/src/content-funding/pages/CreateContractPage.test.tsx` (new)
+- `TODO.md`
+- `README.md`
+
+### Verification
+
+- `npm test --workspace=ui -- CreateContractPage.test.tsx`
+- `npm run build --workspace=ui`
