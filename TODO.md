@@ -10,7 +10,7 @@
     - SDK — canonicalization, events, folds, queries, actions — all implemented with tests.
     - UI — all 4 pages (Browse Creators, Channel Page, Create Contract, Creator Dashboard), claim flow modal, content attestation badges, Pubstarter project page integration, Funding Portal integration — all done.
     - The refactoring of the `attester` code to depend on `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
-    - No end-to-end integration tests for the content-funding flow yet.
+    - No end-to-end integration tests for the content-funding flow yet. IMPORTANT: we tried this once and it was harder than expected; see CONTINUITY.md for details. Don't try to do this all at once; treat it as a bunch of smaller steps.
     - Future: Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
     - Future: Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
     - Future: ENS-based verification (infrastructure exists in sdk/src/utils/twitter.ts, deferred).
