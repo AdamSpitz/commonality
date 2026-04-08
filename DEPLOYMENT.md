@@ -80,7 +80,7 @@ This will:
 - Save detailed deployment metadata to `hardhat/deployments/sepolia-<timestamp>.json`
 - Update `.env`, `ui/.env`, `implication-attester/.env`, and `integration-tests/.env.local` with addresses
 
-The content-funding deployment currently boots `ChannelRegistry` with the repo's `MockChannelVerifier` so the full contract set can be deployed consistently before a production verifier contract is added. Verification flows on deployed testnets will need that verifier to be replaced via `setVerifier(...)` before real channel claims should be used.
+The content-funding deployment now boots `ChannelRegistry` with the real `ChannelVerifier` contract. That verifier trusts the configured verifier EOA for signed `ChannelClaimProof`s, so testnet/mainnet deployments must keep the platform-api-service `VERIFIER_PRIVATE_KEY` aligned with the on-chain verifier's `trustedVerifier` address (or update it later via `setTrustedVerifier(...)`).
 
 To regenerate all service `.env` files later (e.g. on a fresh clone):
 

@@ -16,15 +16,15 @@ This workspace implements the service described in [the spec](../specs/subsystem
 - Twitter/X and YouTube resolution clients built on plain `fetch`
 - optional on-chain submission for `ChannelRegistry.verifyChannel(...)`
 
-## Important limitation
+## Verification model
 
-The repo's current content-funding contracts do **not** yet include the signature-verifying on-chain verifier described in the spec. `ChannelRegistry` still trusts a verifier contract, not a verifier EOA directly.
+The repo's current content-funding contracts include a real signature-verifying `ChannelVerifier` contract. `ChannelRegistry` still trusts a verifier contract, not a verifier EOA directly, and that verifier contract in turn trusts a specific signer address.
 
 That means:
 
-- `POST /verify/confirm` can sign a proof today
-- `POST /verify/confirm` can optionally submit `verifyChannel(...)` if you configure a compatible verifier contract on-chain
-- this workspace does **not** by itself make channel verification end-to-end live on the current local deployment
+- `POST /verify/confirm` signs the exact proof payload that the on-chain `ChannelVerifier` checks
+- `POST /verify/confirm` can optionally submit `verifyChannel(...)` if `ETHEREUM_RPC_URL`, `CHANNEL_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
+- end-to-end verification works on the local deployment as long as `VERIFIER_PRIVATE_KEY` corresponds to the verifier contract's configured `trustedVerifier`
 
 ## Configuration
 

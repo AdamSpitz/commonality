@@ -1746,6 +1746,33 @@ The worker bundle is still large because it pulls in the SDK trust-query path di
 
 ---
 
+## Content-funding on-chain verification docs reconciliation — COMPLETE ✓
+
+### What was done
+
+Reconciled the project-facing status/docs after confirming that the real `ChannelVerifier` contract was already implemented and deployed by the current content-funding stack, while several top-level docs still described the old mock-only state.
+
+Key decisions:
+- Treated this as a single-task cleanup pass rather than re-implementing verifier logic, because the contract, deploy script, fake-data flow, and tests were already present in the tracked tree.
+- Preserved the user's staged wording tweak in `TODO.md` and removed only the obsolete "MockChannelVerifier still in use" bullet.
+- Updated deployment and platform-api-service docs to emphasize the real operational requirement now: the service's `VERIFIER_PRIVATE_KEY` must match the verifier contract's configured `trustedVerifier`.
+
+### Files changed
+- `TODO.md`
+- `README.md`
+- `DEPLOYMENT.md`
+- `platform-api-service/README.md`
+- `CONTINUITY.md`
+
+### Notes for next session
+
+Good interrupt point. The missing content-funding work is now the actual remaining work again, not stale status text:
+- End-to-end integration coverage for the content-funding flow
+- Embedded-wallet / off-ramp onboarding polish in the claim flow
+- Additional platform-specific verifier implementations beyond Twitter
+
+---
+
 ## Subjectiv Web Worker execution — COMPLETE ✓
 
 ### What was done
