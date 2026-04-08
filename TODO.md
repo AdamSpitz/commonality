@@ -2,20 +2,20 @@
 
 ## Main thing I want to work on next
 
-  - Finish implementing the content-funding system (see [spec](./specs/subsystems/content-funding/README.md)):
-    - Content attesters (noninflammatory) (see [spec](./specs/subsystems/content-funding/content-attesters.md)):
-      - [x] Extract shared attester infrastructure into `attester-core/` library for x402 payment pricing/validation, rate limiting, error classification, IPFS helpers, OpenRouter JSON calls, and shared config helpers.
-      - [x] Refactor existing `attester/` (implication attester) to import from `attester-core/` instead of owning that shared infrastructure code directly.
-      - [x] Move the shared Express app setup plus `/health`, `/quote`, and placeholder `/status` route scaffolding into `attester-core/` too.
-      - [x] Build `content-attester/` service on top of `attester-core/`. Input: content text/URL/CID + optional declared perspective. Output: decision + confidence + reasoning + dimension scores. Publishes to `AlignmentAttestations.sol`.
-      - [x] Wire up the three noninflammatory attester prompts (perspective-neutral, left-evaluating-right, right-evaluating-left) from `specs/subsystems/content-funding/noninflammatory-content/attester-prompts.md` as deployable configurations of the content-attester service.
-      - [x] Add content attester(s) to docker-compose for local dev.
-    - Gap: No content attestation badges shown in Channel Page or Pubstarter integration (spec calls for attester pass/fail badges per content item). Depends on content attester infrastructure existing. DONE ✓
-    - Question: has the implication attester (what was formerly in the "attester" top-level directory) now been integrated into the pattern of "depend on attester-core and just be as thin as possible"? Can we rename the directory to "implication-attester" (and rename all references, of course)?
+  - Content-funding system MVP is done (see [spec](./specs/subsystems/content-funding/README.md)):
+    - Smart contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) — all implemented with tests and deployment scripts.
+    - Content attesters (attester-core, content-attester, three noninflammatory instances in docker-compose) — done.
+    - Platform API service (channel resolution, content validation, tweet-based verification) — done. Supports Twitter, YouTube, and Substack.
+    - Indexer — all content-funding events registered and handled.
+    - SDK — canonicalization, events, folds, queries, actions — all implemented with tests.
+    - UI — all 4 pages (Browse Creators, Channel Page, Create Contract, Creator Dashboard), claim flow modal, content attestation badges, Pubstarter project page integration, Funding Portal integration — all done.
+    - Remaining question: rename `attester/` directory to `implication-attester/` (and all references)? The refactoring to depend on `attester-core/` is done, but the directory still has the old name.
+    - No end-to-end integration tests for the content-funding flow yet.
+    - On-chain channel verification currently uses a MockChannelVerifier; the real signature-verifying verifier contract (matching the ChannelClaimProof spec) hasn't been built yet. The platform-api-service can sign proofs, but the on-chain side just has a mock.
     - Future: Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
     - Future: Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
     - Future: ENS-based verification (infrastructure exists in sdk/src/utils/twitter.ts, deferred).
-    - Future: Additional platform verifiers beyond Twitter (YouTube video-description, Bluesky DID). (Hold on, does that mean we don't have proper verification for YouTube yet? How about Substack?)
+    - Future: Additional platform verifiers beyond Twitter (YouTube video-description, Bluesky DID, Substack email/DNS). Twitter is the only platform with a real verification flow; YouTube and Substack verification are deferred.
 
 ## Other big things to do soon
 
