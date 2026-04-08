@@ -12,6 +12,7 @@ import type { ProjectWithMetrics } from '@commonality/sdk'
 
 export interface ContentFundingData {
   state: ContentFundingState | null
+  vetoedEvents: import('@commonality/sdk').ContractVetoedEvent[]
   projects: ProjectWithMetrics[]
   channels: ChannelWithCanonicalId[]
   loading: boolean
@@ -21,6 +22,7 @@ export interface ContentFundingData {
 export function useContentFundingState(): ContentFundingData {
   const machinery = useMachinery()
   const [state, setState] = useState<ContentFundingState | null>(null)
+  const [vetoedEvents, setVetoedEvents] = useState<import('@commonality/sdk').ContractVetoedEvent[]>([])
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [channels, setChannels] = useState<ChannelWithCanonicalId[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,24 +36,29 @@ export function useContentFundingState(): ContentFundingData {
         setLoading(true)
         setError(null)
 
-        const [contentFundingState, allProjects] = await Promise.all([
+        const [contentFundingResult, allProjects] = await Promise.all([
           fetchAndFoldContentFundingState(machinery),
           getProjectsFiltered(machinery),
         ])
 
         if (cancelled) return
 
-        setState(contentFundingState)
-        setProjects(allProjects)
+        if (contentFundingResult) {
+          setState(contentFundingResult.state)
+          setVetoedEvents(contentFundingResult.vetoedEvents)
+          setProjects(allProjects)
 
-        if (contentFundingState) {
           const now = BigInt(Math.floor(Date.now() / 1000))
           const options: ContentFundingQueryOptions = {
             projects: allProjects,
             now,
+            vetoedEvents: contentFundingResult.vetoedEvents,
           }
-          setChannels(getAllChannelOverviews(contentFundingState, options))
+          setChannels(getAllChannelOverviews(contentFundingResult.state, options))
         } else {
+          setState(null)
+          setVetoedEvents([])
+          setProjects(allProjects)
           setChannels([])
         }
       } catch (err) {
@@ -68,5 +75,5 @@ export function useContentFundingState(): ContentFundingData {
     return () => { cancelled = true }
   }, [machinery])
 
-  return { state, projects, channels, loading, error }
+  return { state, vetoedEvents, projects, channels, loading, error }
 }

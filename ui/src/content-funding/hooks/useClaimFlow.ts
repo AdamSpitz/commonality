@@ -21,7 +21,7 @@ export function useClaimFlow() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<ClaimFlowError | null>(null)
 
-  const getChallenge = useCallback(async (platform: string): Promise<ClaimChallengeResponse | null> => {
+  const getChallenge = useCallback(async (platform: string, handle: string, claimantAddress: string): Promise<ClaimChallengeResponse | null> => {
     setLoading(true)
     setError(null)
 
@@ -29,7 +29,7 @@ export function useClaimFlow() {
       const response = await fetch('/api/platform-api/verify/challenge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform }),
+        body: JSON.stringify({ platform, handle, claimantAddress }),
       })
 
       if (!response.ok) {

@@ -17,6 +17,7 @@ import {
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { formatEther } from 'viem'
+import { useAccount } from 'wagmi'
 import {
   parseCanonicalChannelId,
   getChannelOverview,
@@ -196,8 +197,18 @@ export function ChannelPage() {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { state, projects, loading, error } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
+  const { address } = useAccount()
 
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : null
+
+  const parsedChannel = useMemo(() => {
+    if (!canonicalChannelId) return null
+    try {
+      return parseCanonicalChannelId(canonicalChannelId)
+    } catch {
+      return null
+    }
+  }, [canonicalChannelId])
 
   const overview = useMemo(() => {
     if (!state || !canonicalChannelId) return null
@@ -415,6 +426,9 @@ export function ChannelPage() {
           open={claimModalOpen}
           onClose={() => setClaimModalOpen(false)}
           channelDisplayName={displayName}
+          platform={parsedChannel?.platform ?? 'twitter'}
+          handle={parsedChannel?.stableId ?? ''}
+          claimantAddress={address ?? ''}
           onSuccess={() => {
             window.location.reload()
           }}

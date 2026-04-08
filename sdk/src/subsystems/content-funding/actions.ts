@@ -61,14 +61,8 @@ export async function createContentFundingContract(
 
   let actualInitialPurchaseValue = 0n;
   for (let i = 0; i < params.initialPurchaseTokenIds.length; i++) {
-    const tokenId = params.initialPurchaseTokenIds[i];
     const count = params.initialPurchaseCounts[i];
-    const contentIndex = params.contentUrls.findIndex((_, idx) => {
-      try { return parseContentUrl(params.contentUrls[idx]).contentSuffix === String(tokenId) } catch { return false };
-    });
-    if (contentIndex !== -1) {
-      actualInitialPurchaseValue += params.contentPrices[contentIndex] * count;
-    }
+    actualInitialPurchaseValue += params.contentPrices[i] * count;
   }
 
   const hash = await clients.walletClient.writeContract({
@@ -110,7 +104,8 @@ export async function createContentFundingContract(
   const event = events[0];
   const args = event.args as unknown as {
     contractAddress: Address;
-    erc1155: Address;
+    channelId: string;
+    creator: Address;
     isThirdParty: boolean;
   };
 
@@ -118,8 +113,8 @@ export async function createContentFundingContract(
     hash,
     contractDetails: {
       contractAddress: args.contractAddress,
-      erc1155Address: args.erc1155,
-      channelId: channelId,
+      erc1155Address: args.creator,
+      channelId: args.channelId,
       isThirdParty: args.isThirdParty,
     },
   };

@@ -151,7 +151,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
           </Box>
         )}
 
-        {channel.channel.state === 'creator-controlled' && hasEscrowBalance && (
+        {(channel.channel.state === 'verified' || channel.channel.state === 'creator-controlled') && hasEscrowBalance && (
           <Box sx={{ mb: 2 }}>
             <Button
               variant="contained"

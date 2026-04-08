@@ -25,6 +25,7 @@ import {
   decodeContentItemReleasedEvent,
   decodeChannelVerifiedEvent,
   decodeChannelControlTakenEvent,
+  decodeContractVetoedEvent,
   decodeDepositedEvent,
   decodeWithdrawnEvent,
   decodeCreatorContractCreatedEvent,
@@ -385,9 +386,14 @@ function sortedByBlockOrder<T extends { blockNumber: bigint; logIndex: number }>
  *
  * Returns null if the content-funding contract addresses are not configured.
  */
+export interface ContentFundingStateWithVetoedEvents {
+  state: ContentFundingState;
+  vetoedEvents: ContractVetoedEvent[];
+}
+
 export async function fetchAndFoldContentFundingState(
   machinery: SDKMachinery,
-): Promise<ContentFundingState | null> {
+): Promise<ContentFundingStateWithVetoedEvents | null> {
   const rawEvents = await fetchAllContentFundingEvents(machinery);
   if (rawEvents.length === 0 && !machinery.contractAddresses?.contentRegistry) {
     return null;
@@ -397,6 +403,7 @@ export async function fetchAndFoldContentFundingState(
   const channelRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[] = [];
   const channelEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
   const creatorContractEvents: CreatorContractCreatedEvent[] = [];
+  const contractVetoedEvents: ContractVetoedEvent[] = [];
 
   for (const raw of rawEvents) {
     switch (raw.eventName) {
@@ -420,6 +427,11 @@ export async function fetchAndFoldContentFundingState(
         if (d) channelRegistryEvents.push({ type: 'ChannelControlTaken', ...d });
         break;
       }
+      case 'ContractVetoed': {
+        const d = decodeContractVetoedEvent(raw);
+        if (d) contractVetoedEvents.push({ type: 'ContractVetoed', ...d });
+        break;
+      }
       case 'Deposited': {
         const d = decodeDepositedEvent(raw);
         if (d) channelEscrowEvents.push({ type: 'Deposited', ...d });
@@ -438,11 +450,13 @@ export async function fetchAndFoldContentFundingState(
     }
   }
 
-  return foldAllContentFundingEvents(
+  const state = foldAllContentFundingEvents(
     sortedByBlockOrder(contentRegistryEvents),
     sortedByBlockOrder(channelRegistryEvents),
     sortedByBlockOrder(channelEscrowEvents),
     sortedByBlockOrder(creatorContractEvents),
   );
+
+  return { state, vetoedEvents: contractVetoedEvents };
 }
 

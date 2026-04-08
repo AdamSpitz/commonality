@@ -22,6 +22,9 @@ interface ClaimFlowModalProps {
   open: boolean
   onClose: () => void
   channelDisplayName: string
+  platform: string
+  handle: string
+  claimantAddress: string
   onSuccess?: () => void
 }
 
@@ -31,6 +34,9 @@ export function ClaimFlowModal({
   open,
   onClose,
   channelDisplayName,
+  platform,
+  handle,
+  claimantAddress,
   onSuccess,
 }: ClaimFlowModalProps) {
   const { isConnected } = useAccount()
@@ -55,7 +61,7 @@ export function ClaimFlowModal({
   }, [open, isConnected, clearError])
 
   const handleGetChallenge = async () => {
-    const result = await getChallenge('twitter')
+    const result = await getChallenge(platform, handle, claimantAddress)
     if (result) {
       setChallenge(result)
     }

@@ -1,5 +1,52 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding bug fixes: 5 remaining bugs — COMPLETE ✓
+
+### What was done
+
+Fixed all 5 remaining content-funding bugs from TODO.md:
+
+1. **SDK actions.ts event args cast**: Updated the `CreatorContractCreated` event args cast to match the actual event fields (`creator` instead of `erc1155`, added `channelId`). Also fixed `erc1155Address` to use `args.creator`.
+
+2. **Initial purchase value calculation**: Fixed the broken calculation logic that tried to match token IDs (content ID hashes) against content suffixes via string comparison. Now correctly matches by index position — `contentPrices[i] * initialPurchaseCounts[i]`.
+
+3. **ClaimFlowModal API parameters**: Updated `useClaimFlow.getChallenge()` to accept `platform`, `handle`, and `claimantAddress` parameters and pass them to the API. Updated `ClaimFlowModal` component to receive and pass these values, extracting the handle from the canonical channel ID via `parseCanonicalChannelId`.
+
+4. **ContractVetoed event decoding**: Added `ContractVetoed` case to the switch statement in `fetchAndFoldContentFundingState`, collect vetoed events, and return them alongside the state. Updated `useContentFundingState` hook to pass vetoed events to the query layer.
+
+5. **Creator Dashboard withdraw button**: Updated the condition to show withdraw button for both verified and creator-controlled channels: `channel.channel.state === 'verified' || channel.channel.state === 'creator-controlled'`.
+
+### Key decisions
+
+- Changed `fetchAndFoldContentFundingState` return type to `ContentFundingStateWithVetoedEvents` to expose vetoed events to the UI layer
+- The ClaimFlowModal fix extracts the Twitter handle from the canonical channel ID using `parseCanonicalChannelId`
+
+### PRD reference
+
+- `TODO.md` content-funding bugs (2026-04-07)
+
+### Files changed
+
+- `sdk/src/subsystems/content-funding/actions.ts` — fixed event args cast, fixed initial purchase calculation
+- `ui/src/content-funding/hooks/useClaimFlow.ts` — added handle and claimantAddress params
+- `ui/src/content-funding/components/ClaimFlowModal.tsx` — added platform, handle, claimantAddress props
+- `ui/src/content-funding/pages/ChannelPage.tsx` — wired ClaimFlowModal with channel info and wallet address
+- `sdk/src/subsystems/content-funding/queries.ts` — added ContractVetoed decoding, changed return type
+- `ui/src/content-funding/hooks/useContentFundingState.ts` — updated to handle new return type and pass vetoed events
+- `ui/src/content-funding/pages/CreatorDashboardPage.tsx` — fixed withdraw button condition
+- `TODO.md` — marked all 5 bugs as DONE
+- `README.md` — updated status
+
+### Notes for next iteration
+
+Content-funding MVP is now fully complete with all bugs fixed. Remaining items are future work:
+- Embedded wallet provisioning for non-crypto-native creators
+- Integrated off-ramp for fiat withdrawal
+- Platform embed previews (embedded tweets, YouTube thumbnails)
+- Claim flow success state with shareable link and notification message
+
+---
+
 ## Content-funding: Wire Create Contract to Platform API Service — COMPLETE ✓
 
 ### What was done
