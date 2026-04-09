@@ -107,9 +107,12 @@ export function ClaimFlowModal({
       const verificationResult = await confirmVerification(challenge.nonce)
 
       if (!verificationResult) {
-        setConfirmError(platform === 'twitter'
+        const platformMessage = platform === 'twitter'
           ? 'Verification failed. Please make sure you have tweeted the challenge.'
-          : 'Verification failed. Please make sure the challenge text is in your video description.')
+          : platform === 'youtube'
+            ? 'Verification failed. Please make sure the challenge text is in your video description.'
+            : 'Verification failed. Please make sure you have published the post and the RSS feed has updated.'
+        setConfirmError(platformMessage)
         return
       }
 
@@ -251,10 +254,12 @@ export function ClaimFlowModal({
                 <Alert severity="info">
                   {platform === 'twitter'
                     ? 'Tweet the following to verify your identity:'
-                    : 'Add the following to your video description to verify your identity:'}
+                    : platform === 'youtube'
+                      ? 'Add the following to your video description to verify your identity:'
+                      : 'Publish the following post on your Substack to verify your identity:'}
                 </Alert>
                 <TextField
-                  label={platform === 'twitter' ? 'Tweet text' : 'Video description text'}
+                  label={platform === 'twitter' ? 'Tweet text' : platform === 'youtube' ? 'Video description text' : 'Post content'}
                   value={challenge.verificationPostTemplate}
                   multiline
                   rows={3}
@@ -270,7 +275,7 @@ export function ClaimFlowModal({
                   >
                     Open X to Tweet
                   </Button>
-                ) : (
+                ) : platform === 'youtube' ? (
                   <Button
                     variant="outlined"
                     href={`https://www.youtube.com/channel/${handle?.replace('@', '')}/videos`}
@@ -278,6 +283,15 @@ export function ClaimFlowModal({
                     rel="noopener noreferrer"
                   >
                     Open YouTube Studio
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    href={`https://${handle}.substack.com/publish`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Substack Editor
                   </Button>
                 )}
                 {platform === 'twitter' ? (
@@ -290,7 +304,9 @@ export function ClaimFlowModal({
                   />
                 ) : (
                   <Typography color="text.secondary" sx={{ mt: 2 }}>
-                    After adding the text above to your video description, click the button below. The system will search for your video with the challenge code.
+                    {platform === 'youtube'
+                      ? 'After adding the text above to your video description, click the button below. The system will search for your video with the challenge code.'
+                      : 'After publishing the post, click the button below. The system will search the RSS feed for the challenge code. Note that the RSS feed may take several minutes to update.'}
                   </Typography>
                 )}
                 <Button
@@ -298,7 +314,7 @@ export function ClaimFlowModal({
                   onClick={handleConfirmVerification}
                   disabled={platform === 'twitter' ? (!tweetUrl || confirmLoading) : confirmLoading}
                 >
-                  {confirmLoading ? <CircularProgress size={24} /> : platform === 'twitter' ? 'I Tweeted It' : 'I Added It'}
+                  {confirmLoading ? <CircularProgress size={24} /> : platform === 'twitter' ? 'I Tweeted It' : platform === 'youtube' ? 'I Added It' : 'I Published It'}
                 </Button>
                 {confirmError && (
                   <Alert severity="error">

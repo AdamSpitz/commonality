@@ -1,5 +1,46 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding Substack verification UI flow — COMPLETED
+
+### What was done
+
+Implemented the UI half of the Substack channel verification flow in the claim modal.
+
+Key changes to `ui/src/content-funding/components/ClaimFlowModal.tsx`:
+1. Added Substack-specific error message for verification failure ("please make sure you have published the post and the RSS feed has updated")
+2. Updated verification prompt copy to show "Publish the following post on your Substack to verify your identity:" with a new label "Post content"
+3. Added Substack-specific button to open `https://{handle}.substack.com/publish` in a new tab ("Open Substack Editor")
+4. Added Substack-specific helper text explaining that RSS feed may take several minutes to update
+5. Updated button label from "I Added It" to "I Published It" for Substack
+6. Updated platform conditional logic to handle all three platforms (twitter, youtube, substack) across all UI elements
+
+### Notes for next session
+
+Content-funding MVP is now fully complete across all three platforms:
+- Twitter: tweet-based verification
+- YouTube: video description verification  
+- Substack: RSS feed-based verification
+
+The remaining items from TODO.md are:
+- Run the live Playwright content-funding flow against a real local stack
+- Non-MVP work (embedded wallets, off-ramp)
+
+Good interrupt point: yes. All content-funding MVP implementation is done across backend and frontend.
+
+### Files changed
+
+- `ui/src/content-funding/components/ClaimFlowModal.tsx`
+- `TODO.md`
+- `README.md`
+
+### Verification
+
+- `npm run build --workspace=ui` ✅
+- `npm run lint` ✅
+- `npm test --workspace=ui` ✅ (647 tests passing)
+
+---
+
 ## Content-funding Substack verification backend — COMPLETED
 
 ### What was done

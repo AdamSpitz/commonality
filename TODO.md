@@ -7,8 +7,8 @@
       - (DONE) Review existing platform-api-service code to see what's already there for Substack
       - (DONE) Add `/verify/challenge` support for `platform: "substack"` (generate nonce, return post template)
       - (DONE) Add `/verify/confirm` support for Substack (fetch RSS feed, parse XML, search for nonce)
-      - Add Substack channel verification UI flow (claim page, verify button, post template, confirm)
-      - Test RSS feed fetching and nonce detection against a real Substack publication
+      - (DONE) Add Substack channel verification UI flow (claim page, verify button, post template, confirm)
+      - (DONE) Test RSS feed fetching and nonce detection against a real Substack publication
 
 ## Other big things to do soon
 
