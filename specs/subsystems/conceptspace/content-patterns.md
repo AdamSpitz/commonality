@@ -15,6 +15,27 @@ For each such issue, the seed content includes:
 
 The point isn't that moderate positions are always right. The point is that when a supermajority position *exists* but is *invisible* because the political system is structured around two coalitions that each bundle it with other things, that's a bug. The implication graph fixes it.
 
+What *use* is it to find these commonalities? Like, what kinds of things can be *done* with them, within the system?
+  - Write and sign statements. (Might be interesting just to see how many people support these positions. This will be more compelling once we implement optionally-anonymous account-linking to some sort of unique-human IDs, so that we can trust that the signers are people rather than bots and that no person has a thousand sock puppets.)
+  - Have fundable projects that position themselves as being aligned with these positions. Have funding portals for viewing many such projects. Have money (delegatable notes) pledged towards supporting projects like that.
+
+## Noninflammatory content funding
+
+We have a whole [social-media content funding](../content-funding/README.md) system, and one of the use cases for it that we hope to promote is [noninflammatory](../content-funding/noninflammatory-content/README.md) social media content.
+
+Pieces of this:
+  - Statements describing what kind of content we're talking about. (e.g. "Here's a post written from the right-wing perspective but written so as to *not* infuriate reasonable left-wingers.") We're [seeding](./seed-content.md) the system with a couple of basic ones like that, but I expect that people will want to:
+    - Improve those statements (make versions that say roughly the same thing but more to their liking).
+    - Make similar statements in other domains. (e.g. Between fans of different sports teams, or different kinds of music, or whatever.)
+    - Make specializations for particular areas. (e.g. Between left and right in Canada, or in Toronto.)
+  - Bots to identify content like that. (Again, we have bots for the basic left-right ones, but people may want to create others.)
+  - We have the ability to create "social-media content contracts" that tokenize social-media posts, so that people can invest in or donate to the creators of content like that.
+  - If you express interest (by signing a statement, or just by explicitly configuring your funding portal), your funding portal will show you such contracts.
+  - You can pledge money towards that kind of purpose.
+
+So it would be worthwhile to have the documentation explicitly point out these patterns to people, so they can write/sign statements, pledge money, create content contracts, etc.
+
+
 ## Causes that we think are likely good early use cases for Commonality
 
 Just guessing, but:
