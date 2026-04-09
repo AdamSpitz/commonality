@@ -191,7 +191,7 @@ describe('createApp routes', () => {
             channelId: 'twitter:uid:12345678',
             handle: request.handle,
             displayName: 'Alice',
-            tweetTemplate: 'Claiming',
+            verificationPostTemplate: 'Claiming',
             deadline: 1_700_000_000,
           };
         },
@@ -212,7 +212,7 @@ describe('createApp routes', () => {
         channelId: 'twitter:uid:12345678',
         handle: '@alice',
         displayName: 'Alice',
-        tweetTemplate: 'Claiming',
+        verificationPostTemplate: 'Claiming',
         deadline: 1_700_000_000,
       });
       assert.deepStrictEqual(seenRequests, [

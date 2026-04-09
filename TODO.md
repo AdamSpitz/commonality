@@ -2,24 +2,10 @@
 
 ## Main thing I want to work on next
 
-  - (DONE) Content-funding system MVP (see [spec](./specs/subsystems/content-funding/README.md)). All layers implemented and tested:
-    - Smart contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory, CreatorAssuranceContract, ChannelVerifier) — 64 tests passing.
-    - SDK (folds, queries, actions, canonicalization, events) — 273 SDK tests passing.
-    - Content attester infrastructure (`attester-core/`, `content-attester/`, three noninflammatory docker-compose instances).
-    - Platform API service (channel/content resolution, Twitter claim-proof signing, on-chain submission).
-    - Indexer/Ponder watches all content-funding events.
-    - UI: BrowseCreatorsPage, ChannelPage (with claim flow modal, share section, oEmbed previews), CreateContractPage (with validation and content resolution — 4 tests), CreatorDashboardPage (withdraw, veto, take control), ContentFundingProjectSection (Pubstarter integration), ContentAttestationSummary (2 tests).
-    - The refactoring of the old `attester/` code onto `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
-    - Minor polish items (not blocking MVP):
-      - (DONE) Placeholder IPFS metadata CIDs in CreateContractPage (`bafkriaaaa`).
-      - (DONE) Funding Portal integration for content-funding contracts (shows content items count, type badge).
-      - (DONE) oEmbed previews on ChannelPage now cache results.
-    - Future non-MVP work:
-      - Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
-      - Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
-      - ENS-based verification (infrastructure exists in `sdk/src/utils/twitter.ts`, deferred).
-      - Additional platform verifiers beyond Twitter (YouTube video-description, Bluesky DID, Substack email/DNS). Twitter is the only platform with a real verification flow; YouTube and Substack verification are deferred.
-      - Run the live content-funding Playwright flow (`cd ui && npx playwright test content-funding-flow`) and then expand it beyond the current tracer-bullet contract-creation/browse check. (NOTE: we've had trouble getting the e2e tests to work; leave this for later.)
+  - (DONE) Content-funding system MVP (see [spec](./specs/subsystems/content-funding/README.md)). All MVP items complete:
+    - Twitter verification (tweet-based proof) ✅
+    - YouTube verification (video-description proof) ✅
+    - Substack verification deferred (no API available per spec; can add email/DNS later) — not part of MVP
 
 ## Other big things to do soon
 

@@ -23,7 +23,7 @@ export interface VerificationPostMatch {
 }
 
 export interface PendingVerificationChallenge {
-  platform: 'twitter';
+  platform: 'twitter' | 'youtube';
   channelId: string;
   claimantAddress: Address;
   nonce: Hex;
@@ -32,7 +32,7 @@ export interface PendingVerificationChallenge {
   createdAtMs: number;
   handle: string;
   displayName?: string;
-  tweetTemplate: string;
+  verificationPostTemplate: string;
 }
 
 export interface ChannelClaimProof {
@@ -66,4 +66,9 @@ export interface YouTubeClientLike {
   normalizeLookupInput(input: string): string;
   resolveChannel(input: string): Promise<ResolvedChannel>;
   resolveContent(url: string): Promise<ResolvedContent>;
+  findVerificationPost(
+    channelId: string,
+    challengeCode: string,
+    issuedAfterMs: number,
+  ): Promise<VerificationPostMatch | null>;
 }

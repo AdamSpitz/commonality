@@ -178,7 +178,6 @@ Never guess or fabricate a resolution. This aligns with the [canonicalization pr
 
 ## Future work
 
-- **YouTube channel verification.** Requires a platform-specific proof method (video description containing a challenge string, or YouTube API OAuth). Design this when there's demand.
 - **Substack channel verification.** Email-based or DNS-based proof for custom-domain publications.
 - **Additional platforms.** Each new platform needs: a URL parser (in the shared SDK), a channel resolver (in this service), and a verification method. The service is structured per-platform, so adding one doesn't affect the others.
 - **Substack custom domain resolution.** If users find it too annoying to convert custom-domain URLs to `*.substack.com` URLs manually, add a resolver that fetches the custom domain page and extracts the underlying publication subdomain.

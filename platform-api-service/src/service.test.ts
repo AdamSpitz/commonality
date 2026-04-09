@@ -262,7 +262,7 @@ describe('PlatformApiService', () => {
 
     await assert.rejects(
       () => service.createVerificationChallenge({
-        platform: 'youtube',
+        platform: 'substack',
         handle: '@alice',
         claimantAddress: '0x1234567890123456789012345678901234567890',
       }),
@@ -270,7 +270,7 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 400 &&
         error.code === 'invalid_request' &&
-        error.message === 'verify/challenge currently supports only twitter',
+        error.message === 'verify/challenge currently supports only twitter and youtube',
     );
 
     await assert.rejects(
@@ -312,7 +312,7 @@ describe('PlatformApiService', () => {
     });
 
     assert.strictEqual(challenge.challengeCode, 'abc123def456');
-    assert.ok(challenge.tweetTemplate.includes('#commonality-abc123def456'));
+    assert.ok(challenge.verificationPostTemplate.includes('#commonality-abc123def456'));
 
     const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
     assert.strictEqual(observedChallengeCode, 'abc123def456');
@@ -464,6 +464,11 @@ function createYouTubeClient(overrides: Partial<{
   normalizeLookupInput: (input: string) => string;
   resolveChannel: (input: string) => Promise<ResolvedChannel>;
   resolveContent: (url: string) => Promise<ResolvedContent>;
+  findVerificationPost: (channelId: string, challengeCode: string, issuedAfterMs: number) => Promise<{
+    id: string;
+    text: string;
+    createdAt?: string;
+  } | null>;
 }> = {}): YouTubeClientLike {
   return {
     isConfigured: overrides.isConfigured ?? (() => true),
@@ -481,5 +486,6 @@ function createYouTubeClient(overrides: Partial<{
       canonicalId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw:dQw4w9WgXcQ',
       metadata: {},
     })),
+    findVerificationPost: overrides.findVerificationPost ?? (async () => null),
   };
 }

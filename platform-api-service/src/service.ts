@@ -157,14 +157,14 @@ export class PlatformApiService {
     channelId: string;
     handle?: string;
     displayName?: string;
-    tweetTemplate: string;
+    verificationPostTemplate: string;
     deadline: number;
   }> {
-    if (request.platform !== 'twitter') {
+    if (request.platform !== 'twitter' && request.platform !== 'youtube') {
       throw new HttpError(
         400,
         'invalid_request',
-        'verify/challenge currently supports only twitter',
+        'verify/challenge currently supports only twitter and youtube',
       );
     }
 
@@ -172,21 +172,32 @@ export class PlatformApiService {
       throw new HttpError(400, 'invalid_request', `Invalid claimant address: ${request.claimantAddress}`);
     }
 
-    const channel = await this.resolveChannel('twitter', request.handle);
+    const channel = await this.resolveChannel(request.platform, request.handle);
     const challengeCode = this.createChallengeCode();
     const nonce = keccak256(
       stringToBytes(`commonality:${challengeCode}:${channel.channelId}:${request.claimantAddress.toLowerCase()}`),
     );
     const deadline = Math.floor(this.now() / 1000) + this.deps.config.challengeTtlSeconds;
-    const tweetTemplate = buildTweetTemplate(
-      this.deps.config.commonalityTwitterHandle,
-      challengeCode,
-      this.deps.config.claimPageBaseUrl,
-      channel.channelId,
-    );
+    
+    let verificationPostTemplate: string;
+    
+    if (request.platform === 'twitter') {
+      verificationPostTemplate = buildTweetTemplate(
+        this.deps.config.commonalityTwitterHandle,
+        challengeCode,
+        this.deps.config.claimPageBaseUrl,
+        channel.channelId,
+      );
+    } else {
+      verificationPostTemplate = buildVideoDescriptionTemplate(
+        challengeCode,
+        this.deps.config.claimPageBaseUrl,
+        channel.channelId,
+      );
+    }
 
     this.challengeCache.set(nonce, {
-      platform: 'twitter',
+      platform: request.platform as 'twitter' | 'youtube',
       channelId: channel.channelId,
       claimantAddress: request.claimantAddress as Address,
       nonce,
@@ -195,7 +206,7 @@ export class PlatformApiService {
       createdAtMs: this.now(),
       handle: channel.handle ?? request.handle,
       displayName: channel.displayName,
-      tweetTemplate,
+      verificationPostTemplate,
     });
 
     return {
@@ -204,7 +215,7 @@ export class PlatformApiService {
       channelId: channel.channelId,
       handle: channel.handle,
       displayName: channel.displayName,
-      tweetTemplate,
+      verificationPostTemplate,
       deadline,
     };
   }
@@ -227,7 +238,8 @@ export class PlatformApiService {
       throw new HttpError(404, 'challenge_not_found', 'Verification challenge not found or expired');
     }
 
-    const matchingPost = await this.deps.twitterClient.findVerificationPost(
+    const client = challenge.platform === 'twitter' ? this.deps.twitterClient : this.deps.youtubeClient;
+    const matchingPost = await client.findVerificationPost(
       challenge.channelId,
       challenge.challengeCode,
       challenge.createdAtMs,
@@ -237,7 +249,9 @@ export class PlatformApiService {
       throw new HttpError(
         404,
         'verification_post_not_found',
-        'Verification post not found yet; try again after posting the tweet',
+        challenge.platform === 'twitter'
+          ? 'Verification tweet not found yet; try again after posting the tweet'
+          : 'Verification video not found yet; try again after adding the challenge to your video description',
       );
     }
 
@@ -282,6 +296,7 @@ export class PlatformApiService {
         },
         youtube: {
           resolveConfigured: this.deps.youtubeClient.isConfigured(),
+          verifyConfigured: this.deps.youtubeClient.isConfigured(),
         },
         substack: {
           resolveConfigured: true,
@@ -425,4 +440,15 @@ function buildTweetTemplate(
     ? ` ${claimPageBaseUrl}/channels/${encodeURIComponent(channelId)}`
     : '';
   return `Claiming my funded content on ${commonalityHandle}${claimLink} #commonality-${challengeCode}`;
+}
+
+function buildVideoDescriptionTemplate(
+  challengeCode: string,
+  claimPageBaseUrl: string | undefined,
+  channelId: string,
+): string {
+  const claimLink = claimPageBaseUrl
+    ? `${claimPageBaseUrl}/channels/${encodeURIComponent(channelId)}`
+    : '';
+  return `Commonality verification: ${challengeCode}${claimLink ? ` ${claimLink}` : ''}`;
 }

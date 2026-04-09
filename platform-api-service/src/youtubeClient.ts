@@ -1,11 +1,12 @@
 import {
   buildCanonicalChannelId,
   buildCanonicalContentId,
+  parseCanonicalChannelId,
   parseYouTubeVideoUrl,
 } from '@commonality/sdk';
 import { HttpError } from './errors.js';
 import type { PlatformApiServiceConfig } from './config.js';
-import type { ResolvedChannel, ResolvedContent, YouTubeClientLike } from './types.js';
+import type { ResolvedChannel, ResolvedContent, YouTubeClientLike, VerificationPostMatch } from './types.js';
 
 interface YouTubeChannelsResponse {
   items?: Array<{
@@ -95,6 +96,39 @@ export class YouTubeClient implements YouTubeClientLike {
         channelTitle: snippet.channelTitle,
         publishedAt: snippet.publishedAt,
       },
+    };
+  }
+
+  async findVerificationPost(
+    channelId: string,
+    challengeCode: string,
+    _issuedAfterMs: number,
+  ): Promise<VerificationPostMatch | null> {
+    this.ensureConfigured('YouTube verification is unavailable because YOUTUBE_API_KEY is not set');
+
+    const parsedChannelId = parseCanonicalChannelId(channelId);
+    if (parsedChannelId.platform !== 'youtube') {
+      throw new HttpError(400, 'invalid_request', `Not a YouTube channel ID: ${channelId}`);
+    }
+
+    const response = await this.fetchJson<YouTubeVideosResponse>(
+      `/search?part=snippet&channelId=${encodeURIComponent(parsedChannelId.stableId)}&order=date&maxResults=20&type=video&key=${encodeURIComponent(this.config.youtubeApiKey!)}`,
+    );
+
+    const matchingVideo = response.items?.find((video) => {
+      const title = video.snippet?.title ?? '';
+      const description = (video.snippet as { description?: string })?.description ?? '';
+      return title.includes(challengeCode) || description.includes(challengeCode);
+    });
+
+    if (!matchingVideo?.id) {
+      return null;
+    }
+
+    return {
+      id: matchingVideo.id,
+      text: `${matchingVideo.snippet?.title ?? ''}\n${(matchingVideo.snippet as { description?: string })?.description ?? ''}`,
+      createdAt: matchingVideo.snippet?.publishedAt,
     };
   }
 

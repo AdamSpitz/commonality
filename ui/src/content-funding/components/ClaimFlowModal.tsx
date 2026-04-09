@@ -54,7 +54,7 @@ export function ClaimFlowModal({
   const { getChallenge, confirmVerification, loading: apiLoading, error: apiError, clearError } = useClaimFlow()
 
   const [activeStep, setActiveStep] = useState(0)
-  const [challenge, setChallenge] = useState<{ nonce: string; tweetTemplate: string; channelId: string; handle?: string; displayName?: string } | null>(null)
+  const [challenge, setChallenge] = useState<{ nonce: string; verificationPostTemplate: string; channelId: string; handle?: string; displayName?: string } | null>(null)
   const [tweetUrl, setTweetUrl] = useState('')
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmError, setConfirmError] = useState<string | null>(null)
@@ -107,7 +107,9 @@ export function ClaimFlowModal({
       const verificationResult = await confirmVerification(challenge.nonce)
 
       if (!verificationResult) {
-        setConfirmError('Verification failed. Please make sure you have tweeted the challenge.')
+        setConfirmError(platform === 'twitter'
+          ? 'Verification failed. Please make sure you have tweeted the challenge.'
+          : 'Verification failed. Please make sure the challenge text is in your video description.')
         return
       }
 
@@ -247,37 +249,56 @@ export function ClaimFlowModal({
             ) : (
               <Stack spacing={2}>
                 <Alert severity="info">
-                  Tweet the following to verify your identity:
+                  {platform === 'twitter'
+                    ? 'Tweet the following to verify your identity:'
+                    : 'Add the following to your video description to verify your identity:'}
                 </Alert>
                 <TextField
-                  label="Tweet text"
-                  value={challenge.tweetTemplate}
+                  label={platform === 'twitter' ? 'Tweet text' : 'Video description text'}
+                  value={challenge.verificationPostTemplate}
                   multiline
                   rows={3}
                   fullWidth
                   InputProps={{ readOnly: true }}
                 />
-                <Button
-                  variant="outlined"
-                  href={`https://x.com/intent/tweet?text=${encodeURIComponent(challenge.tweetTemplate)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open X to Tweet
-                </Button>
-                <TextField
-                  label="Paste your tweet URL here after posting"
-                  value={tweetUrl}
-                  onChange={(e) => setTweetUrl(e.target.value)}
-                  placeholder="https://x.com/username/status/..."
-                  fullWidth
-                />
+                {platform === 'twitter' ? (
+                  <Button
+                    variant="outlined"
+                    href={`https://x.com/intent/tweet?text=${encodeURIComponent(challenge.verificationPostTemplate)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open X to Tweet
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    href={`https://www.youtube.com/channel/${handle?.replace('@', '')}/videos`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open YouTube Studio
+                  </Button>
+                )}
+                {platform === 'twitter' ? (
+                  <TextField
+                    label="Paste your tweet URL here after posting"
+                    value={tweetUrl}
+                    onChange={(e) => setTweetUrl(e.target.value)}
+                    placeholder="https://x.com/username/status/..."
+                    fullWidth
+                  />
+                ) : (
+                  <Typography color="text.secondary" sx={{ mt: 2 }}>
+                    After adding the text above to your video description, click the button below. The system will search for your video with the challenge code.
+                  </Typography>
+                )}
                 <Button
                   variant="contained"
                   onClick={handleConfirmVerification}
-                  disabled={!tweetUrl || confirmLoading}
+                  disabled={platform === 'twitter' ? (!tweetUrl || confirmLoading) : confirmLoading}
                 >
-                  {confirmLoading ? <CircularProgress size={24} /> : 'I Tweeted It'}
+                  {confirmLoading ? <CircularProgress size={24} /> : platform === 'twitter' ? 'I Tweeted It' : 'I Added It'}
                 </Button>
                 {confirmError && (
                   <Alert severity="error">

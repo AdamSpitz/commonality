@@ -78,3 +78,13 @@ Content funding builds on top of existing Commonality infrastructure:
 - **Conceptspace**: Content is funded *for a reason*, expressed as alignment with statements in conceptspace. The same alignment-attestation and implication-graph mechanics connect content funding to causes.
 - **Delegation**: "I delegate $20/month toward noninflammatory political content" works unchanged — the delegate picks creators and content items on the donor's behalf.
 - **Funding portals**: A specialized portal for content funding is a natural extension of the existing portal UI.
+
+
+## Deferred, not part of MVP
+
+Future non-MVP work:
+  - Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
+  - Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).
+  - ENS-based verification (infrastructure exists in `sdk/src/utils/twitter.ts`, deferred).
+  - Run the live content-funding Playwright flow (`cd ui && npx playwright test content-funding-flow`) and then expand it beyond the current tracer-bullet contract-creation/browse check. (NOTE: we've had trouble getting the e2e tests to work; leave this for later.)
+
