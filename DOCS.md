@@ -12,4 +12,6 @@
       - What other roles have I forgotten?
 
 
+In particular, the thing I need to do right now is create documentation for the user (or for an LLM assisting the user). It doesn't need to be complete or polished; I just want to take a first crack at it because I want to figure out whether we can tell a compelling story of "here's this cool system we built, here's why you might want to use it, here's what some typical use cases might be, here's how you can get started."
+
 
