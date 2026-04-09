@@ -37,6 +37,7 @@ vi.mock('@commonality/sdk', async () => {
     ...actual,
     createContentFundingContract: vi.fn(),
     getThirdPartyMinPurchase: vi.fn(),
+    uploadToIPFS: vi.fn().mockResolvedValue('bafkriptest123'),
   }
 })
 
@@ -118,6 +119,11 @@ describe('CreateContractPage', () => {
       contentAttestations: new Map(),
       loading: false,
       error: null,
+      machinery: {
+        indexerUrl: 'http://localhost:3000/graphql',
+        ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
+        testConfig: { areWeJustRunningTests: true },
+      },
     })
     vi.mocked(usePlatformApi).mockReturnValue({
       resolveChannel: vi.fn(),
@@ -198,6 +204,11 @@ describe('CreateContractPage', () => {
       contentAttestations: new Map(),
       loading: false,
       error: null,
+      machinery: {
+        indexerUrl: 'http://localhost:3000/graphql',
+        ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
+        testConfig: { areWeJustRunningTests: true },
+      },
     })
 
     const user = await fillFormWithResolvedContent(
@@ -224,6 +235,11 @@ describe('CreateContractPage', () => {
       contentAttestations: new Map(),
       loading: false,
       error: null,
+      machinery: {
+        indexerUrl: 'http://localhost:3000/graphql',
+        ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
+        testConfig: { areWeJustRunningTests: true },
+      },
     })
 
     const user = await fillFormWithResolvedContent()

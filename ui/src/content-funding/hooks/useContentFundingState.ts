@@ -28,6 +28,7 @@ export interface ContentFundingData {
   contentAttestations: Map<string, ContentAttestationInfo[]>
   loading: boolean
   error: string | null
+  machinery: ReturnType<typeof useMachinery>
 }
 
 export function useContentFundingState(): ContentFundingData {
@@ -125,5 +126,5 @@ export function useContentFundingState(): ContentFundingData {
     return () => { cancelled = true }
   }, [machinery])
 
-  return { state, vetoedEvents, projects, channels, contentAttestations, loading, error }
+  return { state, vetoedEvents, projects, channels, contentAttestations, loading, error, machinery }
 }

@@ -11,9 +11,9 @@
     - UI: BrowseCreatorsPage, ChannelPage (with claim flow modal, share section, oEmbed previews), CreateContractPage (with validation and content resolution — 4 tests), CreatorDashboardPage (withdraw, veto, take control), ContentFundingProjectSection (Pubstarter integration), ContentAttestationSummary (2 tests).
     - The refactoring of the old `attester/` code onto `attester-core/` is done, and the directory has been renamed to `implication-attester/`.
     - Minor polish items (not blocking MVP):
-      - Placeholder IPFS metadata CIDs in CreateContractPage (`bafkriaaaa`).
-      - No Funding Portal integration for content-funding contracts (spec mentions content-funding-aware display in the aligned-projects list — minor display enhancement).
-      - oEmbed previews on ChannelPage don't cache results.
+      - (DONE) Placeholder IPFS metadata CIDs in CreateContractPage (`bafkriaaaa`).
+      - (DONE) Funding Portal integration for content-funding contracts (shows content items count, type badge).
+      - (DONE) oEmbed previews on ChannelPage now cache results.
     - Future non-MVP work:
       - Embedded wallet provisioning for non-crypto creators (referenced in spec, not implemented).
       - Integrated off-ramp for fiat withdrawal (referenced in spec, not implemented).

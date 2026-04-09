@@ -229,3 +229,52 @@ the next pass can cleanly focus on the multi-attester display task or the live e
 
 - `npm test --workspace=ui -- CreateContractPage.test.tsx`
 - `npm run build --workspace=ui`
+
+---
+
+## Content-funding polish items — COMPLETED
+
+### What was done
+
+Completed three minor polish items from the content-funding follow-up list:
+
+**1. Placeholder IPFS metadata CIDs replaced with real uploads**
+- Added contract name and description fields to `CreateContractPage.tsx`
+- On submit, uploads metadata to IPFS using `uploadToIPFS` from the SDK
+- Uses the real CID instead of placeholder `bafkriaaaa`
+- Added `machinery` to `useContentFundingState` return type so components can access IPFS config
+
+**2. Funding Portal integration for content-funding contracts**
+- Updated `AlignedProjectCard.tsx` to include content-funding info (channel, state, content item count)
+- Added `ContentFundingBadge` showing "Content Funding" type indicator
+- Added `contentItemCount` to the `ContentFundingInfo` type and populated from contract's `contentItems.length`
+- Renders in the card details section
+
+**3. oEmbed preview caching**
+- Added a module-level `oEmbedCache` Map in `ChannelPage.tsx`
+- Caches Twitter oEmbed responses by URL key
+- Checked on mount; only fetches if not already cached
+
+### Notes for next session
+
+All content-funding minor polish items are now complete. The remaining content-funding work is:
+- Run the live Playwright content-funding flow against a real local stack
+- Non-MVP work (embedded wallets, off-ramp, etc.)
+
+Good interrupt point: yes. All content-funding MVP polish is done. Next step could be running the e2e tests.
+
+### Files changed
+
+- `ui/src/content-funding/hooks/useContentFundingState.ts` — added `machinery` to return type
+- `ui/src/content-funding/pages/CreateContractPage.tsx` — added contract name/description fields, real IPFS upload
+- `ui/src/content-funding/pages/CreateContractPage.test.tsx` — added machinery mock, uploadToIPFS mock
+- `ui/src/fundingportal/components/AlignedProjectCard.tsx` — added content-funding info display
+- `ui/src/content-funding/pages/ChannelPage.tsx` — added oEmbed caching
+- `TODO.md` — marked items as done
+- `README.md` — updated status
+
+### Verification
+
+- `npm test --workspace=ui -- CreateContractPage.test.tsx`
+- `npm test --workspace=ui -- ContentAttestationSummary.test.tsx`
+- `npm run build`

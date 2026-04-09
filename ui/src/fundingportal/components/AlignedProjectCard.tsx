@@ -33,6 +33,7 @@ export type ContentFundingInfo = {
   channelState: 'unclaimed' | 'verified' | 'creator-controlled'
   isThirdParty: boolean
   contractStatus: 'active' | 'successful' | 'failed' | 'vetoed' | 'unknown'
+  contentItemCount: number
 }
 
 function getChannelDisplayName(canonicalId: string): string {
@@ -64,6 +65,7 @@ function useContentFundingInfo(projectAddress: string): ContentFundingInfo | nul
         channelState: channel.channel.state,
         isThirdParty: contract.isThirdParty,
         contractStatus: contract.status,
+        contentItemCount: contract.contentItems.length,
       }
     }
   }
@@ -124,6 +126,12 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
             color={info.contractStatus === 'successful' ? 'success' : info.contractStatus === 'active' ? 'primary' : 'default'}
           />
         </Box>
+        {info.contentItemCount > 0 && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">Content Items</Typography>
+            <Typography variant="body2">{info.contentItemCount}</Typography>
+          </Box>
+        )}
       </Stack>
     </Box>
   )

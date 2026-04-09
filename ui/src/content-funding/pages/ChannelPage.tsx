@@ -169,16 +169,30 @@ function getYouTubeThumbnail(canonicalId: string): string | null {
 
 
 
+const oEmbedCache = new Map<string, string>()
+
 function ContentItemPreview({ canonicalId, url }: { canonicalId: string; url: string | null }) {
   const [oEmbedHtml, setOEmbedHtml] = useState<string | null>(null)
   const thumbnail = getYouTubeThumbnail(canonicalId)
 
   useEffect(() => {
-    if (!url || !canonicalId.startsWith('twitter:')) return
-    fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`)
-      .then((res) => res.json())
-      .then((data) => setOEmbedHtml(data.html))
-      .catch(() => setOEmbedHtml(null))
+    if (!url) return
+
+    const cacheKey = url
+
+    if (canonicalId.startsWith('twitter:')) {
+      if (oEmbedCache.has(cacheKey)) {
+        setOEmbedHtml(oEmbedCache.get(cacheKey) ?? null)
+        return
+      }
+      fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          oEmbedCache.set(cacheKey, data.html)
+          setOEmbedHtml(data.html)
+        })
+        .catch(() => setOEmbedHtml(null))
+    }
   }, [url, canonicalId])
 
   if (thumbnail) {

@@ -25,6 +25,7 @@ import {
   parseContentFundingUrl,
   buildCanonicalContentId,
   type ParsedContentFundingUrl,
+  uploadToIPFS,
 } from '@commonality/sdk'
 import { CreatorAssuranceContractFactoryAbi, createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk'
 import { useContentFundingState } from '../hooks/useContentFundingState'
@@ -154,7 +155,7 @@ export function CreateContractPage() {
   const { address, isConnected } = useAccount()
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
-  const { state, projects, loading, error: stateError } = useContentFundingState()
+  const { state, projects, loading, error: stateError, machinery } = useContentFundingState()
   const { resolveContent } = usePlatformApi()
 
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : null
@@ -190,6 +191,8 @@ export function CreateContractPage() {
   const [contentItems, setContentItems] = useState<ContentItemRow[]>([{ ...EMPTY_CONTENT_ITEM }])
   const [threshold, setThreshold] = useState('0.5')
   const [deadline, setDeadline] = useState('')
+  const [contractName, setContractName] = useState('')
+  const [contractDescription, setContractDescription] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -385,6 +388,16 @@ export function CreateContractPage() {
         account: address,
       }
 
+      const ipfsConfig = machinery.ipfsConfig
+      const metadataCid = await uploadToIPFS(ipfsConfig, {
+        name: contractName.trim() || `Content Funding for ${displayName}`,
+        description: contractDescription.trim() || `Content funding contract for ${canonicalChannelId}`,
+        channel: canonicalChannelId,
+        contentCount: submitItems.length,
+        threshold: thresholdValue.toString(),
+        deadline: deadlineTimestamp,
+      })
+
       const result = await createContentFundingContract(clients, factoryContract, {
         channelCanonicalId: canonicalChannelId,
         contentUrls,
@@ -392,9 +405,9 @@ export function CreateContractPage() {
         contentPrices,
         threshold: thresholdValue,
         deadline: BigInt(deadlineTimestamp),
-        metadataCid: 'bafkriaaaa', // placeholder for now
-        erc1155MetadataUri: 'ipfs://bafkriaaaa/',
-        erc1155ContractUri: 'ipfs://bafkriaaaa/',
+        metadataCid,
+        erc1155MetadataUri: `ipfs://${metadataCid}/`,
+        erc1155ContractUri: `ipfs://${metadataCid}`,
         isThirdParty,
         initialPurchaseTokenIds,
         initialPurchaseCounts,
@@ -605,6 +618,38 @@ export function CreateContractPage() {
                 You are the channel owner. Creating a creator contract. No minimum purchase required.
               </Alert>
             )}
+
+            <Divider />
+
+            <Box>
+              <Typography variant="h6" component="h2" gutterBottom>
+                Contract Details
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                These details will be stored on IPFS and associated with the contract.
+              </Typography>
+
+              <Stack spacing={2}>
+                <TextField
+                  label="Contract Name"
+                  value={contractName}
+                  onChange={(e) => setContractName(e.target.value)}
+                  fullWidth
+                  size="small"
+                  placeholder="e.g., Support for @username's Q2 content"
+                />
+                <TextField
+                  label="Description"
+                  value={contractDescription}
+                  onChange={(e) => setContractDescription(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  size="small"
+                  placeholder="Describe what this funding supports..."
+                />
+              </Stack>
+            </Box>
 
             <Button
               variant="contained"
