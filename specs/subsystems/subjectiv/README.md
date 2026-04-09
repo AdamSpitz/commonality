@@ -129,3 +129,11 @@ First time: trust graph is empty, user sees all attestations (or a "building you
 ### Rate limiting consideration
 
 Each hop in the graph requires a network request to the indexer (to fetch that user's TrustSet events). So the graph fills in at roughly "one user per round-trip" pace. With a reasonable network, that's a few hundred transitive trust relationships per minute — more than enough for practical use.
+
+
+## What's done?
+
+  - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:
+    - Make a true browser-level Subjectiv e2e test later. Higher-level UI integration coverage now exists for the direct-trust settings flow plus funding-portal and leaderboard trust-network filtering.
+      - Current status: a Playwright Subjectiv e2e spec now exists in `ui/e2e/subjectiv-flow.spec.ts`, and the local Playwright/browser install plus e2e Docker harness were partially repaired, but the run is still blocked because the freshly started Ponder indexer reports healthy while `waitForIndexerToSyncToTxHash()` never advances past block 0 in this startup path.
+
