@@ -15,6 +15,7 @@
   - Do another smart-contract audit pass. Previous findings (third-party veto bypass, ContractVetoed event) are fixed.
   - Do I trust the UI? No.
   - Does the "finder" have any particular focus, like finding "commonality" statements (along the lines of the "coalition between the moderates on both sides" idea)? Maybe it should. (I'm not sure how necessary it'll be. Maybe a single finder can just keep on top of everything? But I kinda suspect that it might be valuable to have a "focus", like "watch for moderate statements on both sides and try to synthesize bridges between them".)
+  - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
 
   - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
   - (Not a task for AI.) I need to do a big code review myself, of the whole thing. I don't trust it.
