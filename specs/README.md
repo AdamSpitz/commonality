@@ -251,6 +251,7 @@ See [./testing/README.md](./testing/README.md).
 
 ## Additional documentation
 
+- [scalability.md](scalability.md) - How each component is expected to scale, and potential bottlenecks
 - [user-docs.md](user-docs.md) - Structure and design decisions for user-facing documentation (the plan from which actual docs are generated)
 - [chats/](chats/) - Directory containing meeting notes and transcripts from planning sessions (preserved for historical context but not necessary for implementation)
 - [bridges.md](bridges.md) - Fiat bridge implementation: Stripe flow, ETH conversion options, licensed third-party services (Transak, Wert, Crossmint), refunds
