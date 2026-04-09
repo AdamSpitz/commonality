@@ -514,7 +514,7 @@ function createStubService(overrides: Partial<{
       channelId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
-      tweetTemplate: 'Claiming',
+      verificationPostTemplate: 'Claiming',
       deadline: 1_700_000_000,
     })),
     confirmVerification: overrides.confirmVerification ?? (async () => ({

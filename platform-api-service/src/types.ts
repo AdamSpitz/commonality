@@ -2,7 +2,7 @@ import type { ContentFundingPlatform } from '@commonality/sdk';
 import type { Address, Hex } from 'viem';
 
 export interface ResolvedChannel {
-  platform: 'twitter' | 'youtube';
+  platform: ContentFundingPlatform;
   channelId: string;
   handle?: string;
   displayName?: string;
@@ -23,7 +23,7 @@ export interface VerificationPostMatch {
 }
 
 export interface PendingVerificationChallenge {
-  platform: 'twitter' | 'youtube';
+  platform: 'twitter' | 'youtube' | 'substack';
   channelId: string;
   claimantAddress: Address;
   nonce: Hex;
@@ -71,4 +71,10 @@ export interface YouTubeClientLike {
     challengeCode: string,
     issuedAfterMs: number,
   ): Promise<VerificationPostMatch | null>;
+}
+
+export interface SubstackVerificationPostLookup {
+  publication: string;
+  challengeCode: string;
+  issuedAfterMs: number;
 }

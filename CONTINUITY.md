@@ -1,5 +1,45 @@
 # Continuity notes for ephemeral AI instances
 
+## Content-funding Substack verification backend — COMPLETED
+
+### What was done
+
+Implemented the backend half of the remaining Substack verification work in the platform API service.
+
+Key changes:
+1. `platform-api-service/src/service.ts` now accepts `platform: 'substack'` in `/verify/challenge`, normalizes the publication name without requiring platform credentials, gives Substack challenges a longer minimum TTL, and returns a human-readable verification post template.
+2. The same service now handles `/verify/confirm` for Substack by fetching `https://<publication>.substack.com/feed`, parsing RSS `<item>` entries, checking for the challenge code, and returning the usual signed `ChannelClaimProof`.
+3. `platform-api-service/src/types.ts` now allows pending verification challenges to track the `substack` platform.
+4. `platform-api-service/src/service.test.ts` now covers Substack challenge creation, successful RSS-based confirmation, and the not-found path. `platform-api-service/src/app.test.ts` also had one stale mock field name updated to match the current API response shape.
+
+PRD/spec reference: `specs/subsystems/content-funding/channel-claiming.md` and `specs/subsystems/content-funding/platform-api-service.md`.
+
+### Notes for next session
+
+Remaining Substack work from `TODO.md`:
+- Add the Substack channel verification UI flow on the claim page.
+- Test RSS feed fetching and nonce detection against a real Substack publication.
+
+Good interrupt point: yes. The backend path is now in place and covered by tests, so the next pass can stay focused on UI wiring or live validation.
+
+### Files changed
+
+- `platform-api-service/src/service.ts`
+- `platform-api-service/src/types.ts`
+- `platform-api-service/src/service.test.ts`
+- `platform-api-service/src/app.test.ts`
+- `TODO.md`
+- `README.md`
+- `CONTINUITY.md`
+
+### Verification
+
+- `npm run build --workspace=@commonality/platform-api-service`
+- `npm run lint --workspace=@commonality/platform-api-service`
+- `npm test --workspace=@commonality/platform-api-service`
+
+---
+
 ## Content-funding platform verifiers — COMPLETED
 
 ### What was done

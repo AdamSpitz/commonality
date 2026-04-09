@@ -188,9 +188,36 @@ The existing code in `sdk/src/utils/twitter.ts` already resolves ENS names to Tw
 
 ENS verification becomes worth adding when: (a) there are creators actively requesting trustless claiming, or (b) the trusted backend becomes a bottleneck or trust concern. Until then, tweet-based verification is simpler, faster, and more legible to non-crypto-native creators.
 
+### MVP: Substack post-based verification
+
+Substack has no official API, but Substack publications expose a public RSS feed at `<publication>.substack.com/feed`. This is enough for a post-based verification flow that mirrors the tweet-based approach.
+
+The creator's experience:
+
+1. Open the claim page, browse funded content and escrowed amounts.
+2. Click "claim funds."
+3. Optionally connect an existing wallet — otherwise the system creates one on their behalf.
+4. Click "verify" — receive a pre-written short post to publish on their Substack.
+5. Publish it (recommended: uncheck "send to email" to avoid notifying subscribers).
+6. Click "confirm" — the backend checks the RSS feed, signs the proof, and submits the verification transaction.
+
+The verification post follows the same philosophy as the verification tweet: **the post is a feature, not friction.** The template should be human-readable and shareable — something like: *"Claiming my funded content on commonality — supporters pooled $340 for my writing 🔗 [claim-page-url] #commonality-abc123"*. If the creator leaves it up (or even emails it to subscribers), it becomes a distribution moment. If they'd rather keep it quiet, they can publish without emailing and delete after verification — but the post remains in the RSS feed history and can be independently re-verified by anyone, which is important for the system's trustworthiness.
+
+**Why posts rather than About-page edits:** A post is permanent and publicly verifiable — anyone can check the RSS feed or visit the post URL to confirm that the creator published the verification string. An About-page edit is ephemeral; once removed, the proof is gone, and verification becomes "trust us, we saw it." In a system built on minimizing trust, permanent verifiable proof is the right default.
+
+The backend verifier:
+- Accepts a `(publication, claimantAddress)` pair
+- The publication subdomain is already the stable channel ID (no resolution needed — see [canonicalization.md](canonicalization.md))
+- Returns a challenge nonce and post template
+- Fetches `https://<publication>.substack.com/feed` and searches RSS entries for the nonce
+- If found, signs a proof over `(channelId, claimantAddress, nonce, deadline)` where `channelId` is `substack:<publication>`
+- The nonce TTL should be generous (e.g., 60 minutes) since RSS feed propagation can have a short delay
+
+No API keys needed. No rate limits to worry about. The RSS feed is a simple HTTP GET returning XML.
+
 ### Future: additional platforms
 
-Each platform gets its own ChannelRegistry deployment with a platform-appropriate verifier (see [per-platform deployment](README.md#per-platform-deployment)). A YouTube ChannelRegistry might use a video-description verifier; a Bluesky ChannelRegistry might use DID-based proof. The `IChannelVerifier` interface stays the same, but each platform's ChannelRegistry is a separate contract with its own verifier implementation.
+Each platform gets its own ChannelRegistry deployment with a platform-appropriate verifier (see [per-platform deployment](README.md#per-platform-deployment)). A Bluesky ChannelRegistry might use DID-based proof. The `IChannelVerifier` interface stays the same, but each platform's ChannelRegistry is a separate contract with its own verifier implementation.
 
 Anyone can deploy a new platform's contract set. The UI decides which deployments to trust.
 

@@ -26,8 +26,10 @@ import type {
   PendingVerificationChallenge,
   ResolvedChannel,
   ResolvedContent,
+  SubstackVerificationPostLookup,
   TwitterClientLike,
   VerificationConfirmation,
+  VerificationPostMatch,
   YouTubeClientLike,
 } from './types.js';
 
@@ -53,6 +55,7 @@ export interface PlatformApiServiceDependencies {
   youtubeClient: YouTubeClientLike;
   now?: () => number;
   createChallengeCode?: () => string;
+  fetch?: typeof fetch;
 }
 
 export class PlatformApiService {
@@ -61,12 +64,14 @@ export class PlatformApiService {
   private readonly challengeCache: MemoryCache<PendingVerificationChallenge>;
   private readonly now: () => number;
   private readonly createChallengeCode: () => string;
+  private readonly fetchImpl: typeof fetch;
 
   constructor(private readonly deps: PlatformApiServiceDependencies) {
     this.contentCache = new MemoryCache(deps.config.contentCacheTtlSeconds * 1000);
     this.challengeCache = new MemoryCache(deps.config.challengeTtlSeconds * 1000);
     this.now = deps.now ?? (() => Date.now());
     this.createChallengeCode = deps.createChallengeCode ?? (() => randomBytes(6).toString('hex'));
+    this.fetchImpl = deps.fetch ?? fetch;
   }
 
   async resolveChannel(platform: string, handle: string): Promise<ResolvedChannel> {
@@ -160,11 +165,15 @@ export class PlatformApiService {
     verificationPostTemplate: string;
     deadline: number;
   }> {
-    if (request.platform !== 'twitter' && request.platform !== 'youtube') {
+    if (
+      request.platform !== 'twitter' &&
+      request.platform !== 'youtube' &&
+      request.platform !== 'substack'
+    ) {
       throw new HttpError(
         400,
         'invalid_request',
-        'verify/challenge currently supports only twitter and youtube',
+        'verify/challenge currently supports only twitter, youtube, and substack',
       );
     }
 
@@ -172,12 +181,14 @@ export class PlatformApiService {
       throw new HttpError(400, 'invalid_request', `Invalid claimant address: ${request.claimantAddress}`);
     }
 
-    const channel = await this.resolveChannel(request.platform, request.handle);
+    const channel = request.platform === 'substack'
+      ? resolveSubstackPublication(request.handle)
+      : await this.resolveChannel(request.platform, request.handle);
     const challengeCode = this.createChallengeCode();
     const nonce = keccak256(
       stringToBytes(`commonality:${challengeCode}:${channel.channelId}:${request.claimantAddress.toLowerCase()}`),
     );
-    const deadline = Math.floor(this.now() / 1000) + this.deps.config.challengeTtlSeconds;
+    const deadline = Math.floor(this.now() / 1000) + this.getChallengeTtlSeconds(request.platform);
     
     let verificationPostTemplate: string;
     
@@ -188,8 +199,15 @@ export class PlatformApiService {
         this.deps.config.claimPageBaseUrl,
         channel.channelId,
       );
-    } else {
+    } else if (request.platform === 'youtube') {
       verificationPostTemplate = buildVideoDescriptionTemplate(
+        challengeCode,
+        this.deps.config.claimPageBaseUrl,
+        channel.channelId,
+      );
+    } else {
+      verificationPostTemplate = buildSubstackPostTemplate(
+        this.deps.config.commonalityTwitterHandle,
         challengeCode,
         this.deps.config.claimPageBaseUrl,
         channel.channelId,
@@ -197,7 +215,7 @@ export class PlatformApiService {
     }
 
     this.challengeCache.set(nonce, {
-      platform: request.platform as 'twitter' | 'youtube',
+      platform: request.platform,
       channelId: channel.channelId,
       claimantAddress: request.claimantAddress as Address,
       nonce,
@@ -238,12 +256,7 @@ export class PlatformApiService {
       throw new HttpError(404, 'challenge_not_found', 'Verification challenge not found or expired');
     }
 
-    const client = challenge.platform === 'twitter' ? this.deps.twitterClient : this.deps.youtubeClient;
-    const matchingPost = await client.findVerificationPost(
-      challenge.channelId,
-      challenge.challengeCode,
-      challenge.createdAtMs,
-    );
+    const matchingPost = await this.findVerificationPost(challenge);
 
     if (!matchingPost) {
       throw new HttpError(
@@ -251,7 +264,9 @@ export class PlatformApiService {
         'verification_post_not_found',
         challenge.platform === 'twitter'
           ? 'Verification tweet not found yet; try again after posting the tweet'
-          : 'Verification video not found yet; try again after adding the challenge to your video description',
+          : challenge.platform === 'youtube'
+            ? 'Verification video not found yet; try again after adding the challenge to your video description'
+            : 'Verification post not found yet; try again after publishing the Substack post and waiting for the RSS feed to update',
       );
     }
 
@@ -300,6 +315,7 @@ export class PlatformApiService {
         },
         substack: {
           resolveConfigured: true,
+          verifyConfigured: true,
         },
       },
       verification: {
@@ -408,6 +424,72 @@ export class PlatformApiService {
 
     return await walletClient.writeContract(simulation.request);
   }
+
+  private getChallengeTtlSeconds(platform: 'twitter' | 'youtube' | 'substack'): number {
+    if (platform === 'substack') {
+      return Math.max(this.deps.config.challengeTtlSeconds, 3600);
+    }
+
+    return this.deps.config.challengeTtlSeconds;
+  }
+
+  private async findVerificationPost(
+    challenge: PendingVerificationChallenge,
+  ): Promise<VerificationPostMatch | null> {
+    if (challenge.platform === 'twitter') {
+      return await this.deps.twitterClient.findVerificationPost(
+        challenge.channelId,
+        challenge.challengeCode,
+        challenge.createdAtMs,
+      );
+    }
+
+    if (challenge.platform === 'youtube') {
+      return await this.deps.youtubeClient.findVerificationPost(
+        challenge.channelId,
+        challenge.challengeCode,
+        challenge.createdAtMs,
+      );
+    }
+
+    return await this.findSubstackVerificationPost({
+      publication: parseSubstackPublicationFromChannelId(challenge.channelId),
+      challengeCode: challenge.challengeCode,
+      issuedAfterMs: challenge.createdAtMs,
+    });
+  }
+
+  private async findSubstackVerificationPost(
+    lookup: SubstackVerificationPostLookup,
+  ): Promise<VerificationPostMatch | null> {
+    const response = await this.fetchImpl(`https://${lookup.publication}.substack.com/feed`);
+    if (!response.ok) {
+      throw new HttpError(
+        502,
+        'substack_feed_unavailable',
+        `Substack RSS feed lookup failed for ${lookup.publication}: HTTP ${response.status}`,
+      );
+    }
+
+    const xml = await response.text();
+    const items = parseSubstackFeedItems(xml);
+    for (const item of items) {
+      if (!item.text.includes(lookup.challengeCode)) {
+        continue;
+      }
+
+      if (item.createdAt) {
+        const publishedAtMs = Date.parse(item.createdAt);
+        if (Number.isFinite(publishedAtMs) && publishedAtMs < lookup.issuedAfterMs) {
+          continue;
+        }
+      }
+
+      return item;
+    }
+
+    return null;
+  }
 }
 
 export async function signClaimProof(
@@ -451,4 +533,89 @@ function buildVideoDescriptionTemplate(
     ? `${claimPageBaseUrl}/channels/${encodeURIComponent(channelId)}`
     : '';
   return `Commonality verification: ${challengeCode}${claimLink ? ` ${claimLink}` : ''}`;
+}
+
+function buildSubstackPostTemplate(
+  commonalityHandle: string,
+  challengeCode: string,
+  claimPageBaseUrl: string | undefined,
+  channelId: string,
+): string {
+  const claimLink = claimPageBaseUrl
+    ? ` ${claimPageBaseUrl}/channels/${encodeURIComponent(channelId)}`
+    : '';
+  return `Claiming my funded content on ${commonalityHandle}${claimLink} #commonality-${challengeCode}`;
+}
+
+function resolveSubstackPublication(handle: string): ResolvedChannel {
+  const publication = normalizeSubstackPublication(handle);
+  return {
+    platform: 'substack',
+    channelId: buildCanonicalChannelId('substack', publication),
+    handle: publication,
+    displayName: publication,
+  };
+}
+
+function normalizeSubstackPublication(handle: string): string {
+  const trimmed = handle.trim().toLowerCase();
+  const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
+  const withoutHostSuffix = withoutProtocol.replace(/\.substack\.com(?:\/.*)?$/, '');
+  const publication = withoutHostSuffix.replace(/^@/, '').split('/')[0];
+
+  if (!/^[a-z0-9-]+$/.test(publication)) {
+    throw new HttpError(400, 'invalid_request', `Invalid Substack publication: ${handle}`);
+  }
+
+  return publication;
+}
+
+function parseSubstackPublicationFromChannelId(channelId: string): string {
+  const parsed = /^substack:([a-z0-9-]+)$/.exec(channelId);
+  if (!parsed) {
+    throw new HttpError(500, 'internal_error', `Invalid Substack channel ID: ${channelId}`);
+  }
+
+  return parsed[1];
+}
+
+function parseSubstackFeedItems(xml: string): VerificationPostMatch[] {
+  const items = [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)];
+  return items.map((match, index) => {
+    const itemXml = match[0];
+    const title = decodeXmlEntities(extractXmlTag(itemXml, 'title') ?? '');
+    const description = decodeXmlEntities(extractXmlTag(itemXml, 'description') ?? '');
+    const encoded = decodeXmlEntities(extractXmlTag(itemXml, 'content:encoded') ?? '');
+    const guid = decodeXmlEntities(extractXmlTag(itemXml, 'guid') ?? `substack-item-${index}`);
+    const link = decodeXmlEntities(extractXmlTag(itemXml, 'link') ?? guid);
+    const createdAt = decodeXmlEntities(extractXmlTag(itemXml, 'pubDate') ?? '');
+
+    return {
+      id: guid || link,
+      text: [title, description, encoded].filter(Boolean).join('\n'),
+      createdAt: createdAt || undefined,
+    };
+  });
+}
+
+function extractXmlTag(xml: string, tagName: string): string | undefined {
+  const escaped = tagName.replace(':', '\\:');
+  const match = new RegExp(`<${escaped}\\b[^>]*>([\\s\\S]*?)<\\/${escaped}>`, 'i').exec(xml);
+  if (!match) {
+    return undefined;
+  }
+
+  return match[1]
+    .replace(/^<!\[CDATA\[/, '')
+    .replace(/\]\]>$/, '')
+    .trim();
+}
+
+function decodeXmlEntities(value: string): string {
+  return value
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, '\'')
+    .replace(/&amp;/g, '&');
 }

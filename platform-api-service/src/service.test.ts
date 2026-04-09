@@ -262,7 +262,7 @@ describe('PlatformApiService', () => {
 
     await assert.rejects(
       () => service.createVerificationChallenge({
-        platform: 'substack',
+        platform: 'mastodon',
         handle: '@alice',
         claimantAddress: '0x1234567890123456789012345678901234567890',
       }),
@@ -270,7 +270,7 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 400 &&
         error.code === 'invalid_request' &&
-        error.message === 'verify/challenge currently supports only twitter and youtube',
+        error.message === 'verify/challenge currently supports only twitter, youtube, and substack',
     );
 
     await assert.rejects(
@@ -339,6 +339,67 @@ describe('PlatformApiService', () => {
     assert.strictEqual(recovered.toLowerCase(), verifierAddress.toLowerCase());
   });
 
+  it('creates a Substack verification challenge without platform credentials', async () => {
+    const service = createService({
+      configOverrides: {
+        challengeTtlSeconds: 1800,
+      },
+      now: () => 1_700_000_000_000,
+      createChallengeCode: () => 'abc123def456',
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'substack',
+      handle: 'Example',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+
+    assert.strictEqual(challenge.channelId, 'substack:example');
+    assert.strictEqual(challenge.handle, 'example');
+    assert.strictEqual(challenge.displayName, 'example');
+    assert.ok(challenge.verificationPostTemplate.includes('#commonality-abc123def456'));
+    assert.strictEqual(challenge.deadline, 1_700_003_600);
+  });
+
+  it('confirms Substack verification from the RSS feed', async () => {
+    const observedUrls: string[] = [];
+    const feedXml = `<?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+        <channel>
+          <item>
+            <title>Verification post</title>
+            <guid>post-1</guid>
+            <pubDate>Tue, 14 Nov 2023 22:30:00 GMT</pubDate>
+            <description><![CDATA[Claiming my funded content #commonality-abc123def456]]></description>
+          </item>
+        </channel>
+      </rss>`;
+    const service = createService({
+      createChallengeCode: () => 'abc123def456',
+      now: () => 1_700_000_000_000,
+      fetch: async (input) => {
+        observedUrls.push(String(input));
+        return new Response(feedXml, {
+          status: 200,
+          headers: {
+            'content-type': 'application/rss+xml',
+          },
+        });
+      },
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'substack',
+      handle: 'example',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+
+    const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
+    assert.deepStrictEqual(observedUrls, ['https://example.substack.com/feed']);
+    assert.strictEqual(confirmed.observedPostId, 'post-1');
+    assert.strictEqual(confirmed.proof.channelId, 'substack:example');
+  });
+
   it('returns a clear error when the verification post is not found', async () => {
     const service = createService({
       createChallengeCode: () => 'abc123def456',
@@ -357,6 +418,34 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 404 &&
         error.code === 'verification_post_not_found',
+    );
+  });
+
+  it('returns a clear error when the Substack RSS feed does not contain the nonce yet', async () => {
+    const service = createService({
+      createChallengeCode: () => 'abc123def456',
+      now: () => 1_700_000_000_000,
+      fetch: async () => new Response(`<?xml version="1.0"?><rss><channel><item><guid>post-1</guid><description>No nonce here</description></item></channel></rss>`, {
+        status: 200,
+        headers: {
+          'content-type': 'application/rss+xml',
+        },
+      }),
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'substack',
+      handle: 'example',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+
+    await assert.rejects(
+      () => service.confirmVerification({ nonce: challenge.nonce }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 404 &&
+        error.code === 'verification_post_not_found' &&
+        error.message === 'Verification post not found yet; try again after publishing the Substack post and waiting for the RSS feed to update',
     );
   });
 
@@ -396,6 +485,7 @@ function createService(overrides: Partial<{
   youtubeClient: YouTubeClientLike;
   createChallengeCode: () => string;
   now: () => number;
+  fetch: typeof fetch;
 }> = {}) {
   const config: PlatformApiServiceConfig = {
     port: 3001,
@@ -425,6 +515,7 @@ function createService(overrides: Partial<{
     youtubeClient: overrides.youtubeClient ?? createYouTubeClient(),
     createChallengeCode: overrides.createChallengeCode,
     now: overrides.now,
+    fetch: overrides.fetch,
   });
 }
 

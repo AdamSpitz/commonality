@@ -59,15 +59,15 @@ The UI calls this for each URL entered in the [create contract form](ui.md#creat
 Issue a verification challenge for channel claiming.
 
 ```
-Request:  { platform: "twitter", handle: "@alice", claimantAddress: "0x..." }
-Response: { nonce: "abc123...", channelId: "twitter:uid:12345678", tweetTemplate: "Claiming my funded content on @commonality — supporters pooled $340 for my housing thread https://... #commonality-abc123", deadline: 1720000000 }
+Request:  { platform: "twitter" | "youtube" | "substack", handle: "@alice" | "UCxyz..." | "publication-name", claimantAddress: "0x..." }
+Response: { nonce: "abc123...", channelId: "twitter:uid:12345678", postTemplate: "Claiming my funded content on @commonality — supporters pooled $340 for my housing thread https://... #commonality-abc123", deadline: 1720000000 }
 ```
 
-Resolves the handle to a stable ID (reusing `/resolve/channel` internally), generates a nonce, and returns a human-readable tweet template containing the nonce. The nonce and associated data are stored server-side with a TTL (e.g., 30 minutes).
+Resolves the handle to a stable ID (reusing `/resolve/channel` internally), generates a nonce, and returns a human-readable post template containing the nonce. The nonce and associated data are stored server-side with a TTL (e.g., 30 minutes for Twitter/YouTube, 60 minutes for Substack to account for RSS propagation delay).
 
 ### `POST /verify/confirm`
 
-Check that the verification tweet was posted and sign a `ChannelClaimProof`.
+Check that the verification post was published and sign a `ChannelClaimProof`.
 
 ```
 Request:  { nonce: "abc123..." }
@@ -76,12 +76,15 @@ Response: { proof: { channelId, claimant, nonce, deadline, verifierSignature } }
 
 The service:
 1. Looks up the pending challenge by nonce
-2. Searches the user's recent tweets for one containing the nonce (Twitter recent search API or user timeline)
+2. Checks the platform for a post containing the nonce:
+   - **Twitter:** searches the user's recent tweets (Twitter recent search API or user timeline)
+   - **YouTube:** checks the specified video's description via the YouTube Data API
+   - **Substack:** fetches `https://<publication>.substack.com/feed` and searches RSS entries for the nonce
 3. If found, signs the `ChannelClaimProof` with the service's Ethereum key
 4. Submits the on-chain verification transaction on the creator's behalf (the service pays gas — this is user acquisition spend)
 5. Returns the proof (and optionally the tx hash)
 
-If the tweet isn't found, returns an error suggesting the user try again.
+If the post isn't found, returns an error suggesting the user try again.
 
 ## Platform API costs and quotas
 
@@ -119,13 +122,18 @@ At MVP scale, we use a handful of units per day. The free quota is more than suf
 
 ### Substack
 
-Substack has [no official API](https://iam.slys.dev/p/no-official-api-no-problem-how-i). For the MVP, this doesn't matter:
+Substack has [no official API](https://iam.slys.dev/p/no-official-api-no-problem-how-i). But publications expose a public RSS feed at `<publication>.substack.com/feed`, which is enough for verification.
 
 - **Channel resolution:** Not needed — the publication subdomain is already in the URL ([canonicalization.md](canonicalization.md#substack)).
 - **Content validation:** The UI can validate Substack URLs client-side (check URL format, confirm the path matches `/p/<slug>`). Optionally, the service can fetch the Substack post page to confirm it exists (a simple HTTP GET, no API key needed).
-- **Channel verification:** Substack has no tweet equivalent. Defer to a future verification method (email-based, custom domain DNS record, or manual review). For the MVP, Substack channels can only be created by fans (state 1) and verified manually if needed.
+- **Channel verification:** Post-based proof via RSS feed. The creator publishes a short post containing a nonce; the service fetches the RSS feed and searches for it. See [channel-claiming.md](channel-claiming.md#mvp-substack-post-based-verification) for the full flow.
 
-The no-API situation is fine because Substack's canonicalization is the simplest of the three — no ID resolution needed.
+| Operation | Cost | When it happens |
+|---|---|---|
+| RSS feed fetch | Free (public HTTP GET) | Checking for verification post |
+| Post page fetch | Free (public HTTP GET) | Optional content existence check |
+
+No API keys needed. No rate limits. The RSS feed is standard XML.
 
 ## Architecture
 
@@ -178,6 +186,5 @@ Never guess or fabricate a resolution. This aligns with the [canonicalization pr
 
 ## Future work
 
-- **Substack channel verification.** Email-based or DNS-based proof for custom-domain publications.
 - **Additional platforms.** Each new platform needs: a URL parser (in the shared SDK), a channel resolver (in this service), and a verification method. The service is structured per-platform, so adding one doesn't affect the others.
 - **Substack custom domain resolution.** If users find it too annoying to convert custom-domain URLs to `*.substack.com` URLs manually, add a resolver that fetches the custom domain page and extracts the underlying publication subdomain.
