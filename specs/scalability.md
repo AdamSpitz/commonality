@@ -34,6 +34,7 @@ The system has a deliberate architecture: a thin event cache (no business logic)
 - Per-statement page: O(believers) events
 - Per-note page: O(chain depth) events
 - No global folds — each query is independent
+- (Question: have we implemented cursors yet, so that a particular device can resume a particular fold from where it left off rather than repeating it from scratch each time?)
 
 ### IPFS Content
 
