@@ -251,6 +251,7 @@ See [./testing/README.md](./testing/README.md).
 
 ## Additional documentation
 
+- [user-docs.md](user-docs.md) - Structure and design decisions for user-facing documentation (the plan from which actual docs are generated)
 - [chats/](chats/) - Directory containing meeting notes and transcripts from planning sessions (preserved for historical context but not necessary for implementation)
 - [bridges.md](bridges.md) - Fiat bridge implementation: Stripe flow, ETH conversion options, licensed third-party services (Transak, Wert, Crossmint), refunds
 - [content.md](content.md) - Content bootstrapping: seed statements, AI-assisted discovery, handling the empty-field problem
