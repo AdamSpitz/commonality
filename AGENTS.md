@@ -2,7 +2,7 @@
 
 ## Get acquainted with the project
 
-Please read the project's README.md.
+Please read the project's README.md. Follow the role-routing in "Finding relevant specs" for your task. Do NOT broadly explore specs/ — most of it won't be relevant to you.
 
 ## Shell commands
 

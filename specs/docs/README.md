@@ -10,4 +10,4 @@ Different roles require different kinds of documentation:
   - [Dev](./dev-docs.md): Turning the medium-level specs into running code.
   - [User](./user-docs.md) (or LLM whose role is to assist the user).
 
-TODO: Can we organize our documentation in such a way as to make it clearer which docs are useful for what roles/purposes? The point is that if a fresh LLM is looking at this code base for the first time, I want it to (a) be able to easily find what it needs, and (b) *not* waste its time exploring docs it doesn't really need for its role.
+Role-based routing is in the top-level [README.md](../../README.md#finding-relevant-specs), so a fresh LLM (or human) can quickly find the specs relevant to their role without exploring everything.
