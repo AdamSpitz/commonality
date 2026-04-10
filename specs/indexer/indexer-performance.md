@@ -505,3 +505,50 @@ This has a nice property: **the fold logic is in the same codebase as the UI, ve
 
 **"What if I want to switch to The Graph?"**
 → Feasible but not free. Main friction is federation (The Graph doesn't natively support it) and the AssemblyScript rewrite. Not worth it unless you want decentralized indexing guarantees.
+
+---
+
+## Why we didn't implement per-entity lazy fetching
+
+### The appeal of the idea
+
+The ideal mental model: instead of one monolithic indexer that ingests everything, you have conceptually many tiny independent per-entity indexers. Each project, each delegation chain, each statement has its own little indexer that starts empty and populates lazily only when someone asks for it. If there's a bug, you blow away that one entity's data and it rebuilds on next access. If the indexer is down entirely, per-entity queries could fall back to querying a blockchain node directly. The whole thing feels more fault-tolerant, more scalable, and less scary to deploy.
+
+This is a real architectural intuition and it's worth understanding why the current system doesn't fully implement it — and why it mostly doesn't need to.
+
+### What the current architecture already provides
+
+The current architecture is closer to this ideal than it first appears:
+
+**The indexer has no business logic.** Every event handler is a single raw insert. The only way the indexer can produce wrong data is if it stores an event incorrectly — which is trivially detectable (compare against the chain). There's no fold logic, no aggregation, no derived state in the indexer. Bugs in "how do we compute project state" live in the SDK fold functions, which run client-side and can be fixed by deploying new UI code without touching the indexer at all.
+
+**Blowing away and rebuilding is already safe and fast.** Since the schema is just raw events, a full rebuild is a mechanical replay — no decisions, no business logic, no state to reconstruct. At early scale this takes seconds to minutes. There's no "partial rebuild" danger, no migration risk, no derived-table inconsistency. It's just re-watching the chain.
+
+**Per-entity isolation already exists in the query layer.** The SDK's `fetchPubstarterProjectEvents` fetches only events for one contract address. Per-entity queries are already isolated at the read layer, even if the write layer is monolithic. A bug that corrupts one project's events would require a global rebuild to fix, but the SDK fold functions run per-entity and a buggy fold for one entity doesn't infect others.
+
+### What's actually missing and why it wasn't added
+
+True lazy per-entity fetching would require replacing Ponder's eager replay with on-demand `eth_getLogs` calls, cached per entity. The complexity cost comes from three things Ponder currently handles for free:
+
+**Staleness tracking.** Once you've fetched entity X's events up to block N, you need to know when new events have arrived. This means either (a) polling the chain to track the current tip and re-fetching deltas per entity, or (b) re-querying the chain on every request. Both require re-implementing the "follow the chain" logic that Ponder provides automatically.
+
+**Reorg handling.** Ponder handles chain reorganizations — if a block is reorged away, Ponder rolls back the affected events. A DIY lazy fetch layer that caches raw events needs to handle the case where a cached block gets reorged. Solvable (track by block hash, invalidate on reorg) but non-trivial.
+
+**Enumeration can't be lazy.** `getAllProjects()` needs to know which projects exist. That requires scanning factory events from block 0. You can't lazily discover "what entities exist" — you either index factory events eagerly or you scan everything on every enumeration query. So the eager tier can't be eliminated entirely, which means you still have Ponder for factory/registry events, plus a new custom lazy layer for per-entity detail. Two systems instead of one.
+
+### The residual risk and how to think about it
+
+The real fear is: deploy, discover a bug, and have to do something expensive or irreversible to fix it. Here's where that risk actually lives:
+
+- **Bug in the indexer's event capture**: Almost impossible — the handler is `insert(rawEvent)`. Detectable by comparing against the chain.
+- **Bug in an SDK fold function**: Fix the fold, redeploy the UI. No indexer rebuild needed.
+- **Wrong events being indexed (missing a contract, wrong ABI)**: Requires a rebuild, but rebuilds are fast and safe.
+- **Scalability problem in the indexer**: The indexer is stateless raw inserts. If it gets slow, the bottleneck is RPC throughput or database write throughput — well-understood problems with well-understood solutions (batching, better RPC provider, read replicas).
+
+The scary scenario — "I deployed, accumulated lots of state, and now I need to fix something but can't rebuild without hours of downtime" — doesn't really apply here because the indexer holds no derived state. The closest risk is "the chain has grown so large that a rebuild takes hours." That's a real risk at extreme scale, but at that scale you'd have the resources to run a dedicated archive node and the rebuild would be fast again.
+
+### Verdict
+
+The per-entity lazy approach would add meaningful complexity (staleness tracking, reorgs, two-tier architecture) without much additional fault isolation — because the main source of potential bugs (fold logic) is already fully isolated from the indexer. The current architecture gives most of what the mental model promises: no business logic in the indexer, fast safe rebuilds, per-entity isolation at the query layer, and the ability to swap the indexer for direct blockchain reads by changing the SDK query layer.
+
+If the system grows to the point where eager indexing of all events is genuinely too slow or expensive, the lazy approach would become worth revisiting. At that scale the engineering investment is justified and the problem is better understood. For now, the simple eager indexer with zero business logic is the right call.
