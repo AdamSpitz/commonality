@@ -12,11 +12,16 @@ import {
 } from './displayable-document.js';
 import { clearMockIPFS } from '../../utils/mock-ipfs.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars, uploadToIPFS } from '../../utils/ipfs.js';
+import { uploadToIPFS } from '../../utils/ipfs.js';
+import { graphqlURLFromTheUsualEnvVars, createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '../../config-node.js';
 import { createSDKMachinery } from '../../machinery.js';
 
-const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-const machinery = createSDKMachinery(GRAPHQL_URL, { ...createIPFSConfigInNodeJSFromTheUsualEnvVars(), shouldUseMock: true }, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
+const machinery = createSDKMachinery(
+  graphqlURLFromTheUsualEnvVars(),
+  { ...createIPFSConfigInNodeJSFromTheUsualEnvVars(), shouldUseMock: true },
+  createTwitterApiConfigInNodeJSFromTheUsualEnvVars(),
+  { areWeJustRunningTests: true, shouldTestsBeVerbose: false }
+);
 
 // ============================================================================
 // toCanonicalJson

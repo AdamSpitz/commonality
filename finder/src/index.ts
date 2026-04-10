@@ -11,6 +11,7 @@ const config = loadConfig();
 const machinery: SDKMachinery = {
   indexerUrl: '',
   ipfsConfig: { gatewayUrl: '', apiUrl: '' },
+  twitterApiConfig: { twitterApiDotIoApiKey: '' },
   testConfig: {},
   eventCacheUrl: config.eventCacheUrl,
   contractAddresses: {

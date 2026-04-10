@@ -26,6 +26,7 @@ function createSubjectivMachinery({
   return {
     indexerUrl: '',
     ipfsConfig: {},
+    twitterApiConfig: { twitterApiDotIoApiKey: '' },
     testConfig: {},
     eventCacheUrl,
     contractAddresses,

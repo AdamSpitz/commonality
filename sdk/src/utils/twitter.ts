@@ -2,7 +2,11 @@ import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 import { getEnsName, getEnsText } from 'viem/actions';
 
-const X_API_KEY = process.env.X_API_KEY;
+export type TwitterApiConfig = {
+  // Uses twitterapi.io (not the official Twitter API, which is very expensive)
+  // TODO: we're gonna switch to using the real Twitter API; it's not expensive anymore.
+  twitterApiDotIoApiKey: string; // API key for twitterapi.io
+}
 
 // ENS is always on Ethereum mainnet
 const mainnetClient = createPublicClient({
@@ -38,15 +42,15 @@ async function fetchTwitterHandleFromEns(ensName: string): Promise<string | unde
   }
 }
 
-async function fetchFollowerCount(handle: string): Promise<number | undefined> {
-  if (!X_API_KEY) {
+async function fetchFollowerCount(config: TwitterApiConfig, handle: string): Promise<number | undefined> {
+  if (!config.twitterApiDotIoApiKey) {
     console.warn('X_API_KEY not set; skipping Twitter follower count fetch');
     return undefined;
   }
   try {
     // Uses twitterapi.io (not the official Twitter API, which is very expensive)
     const response = await fetch(`https://api.twitterapi.io/twitter/user/info?userName=${handle}`, {
-      headers: { 'X-API-Key': X_API_KEY, 'Content-Type': 'application/json' },
+      headers: { 'X-API-Key': config.twitterApiDotIoApiKey, 'Content-Type': 'application/json' },
     });
     const data = await response.json() as { data?: { followers?: number } };
     const count = data?.data?.followers;
@@ -57,12 +61,12 @@ async function fetchFollowerCount(handle: string): Promise<number | undefined> {
   }
 }
 
-export async function fetchAddressSocialData(address: string): Promise<AddressSocialData> {
+export async function fetchAddressSocialData(config: TwitterApiConfig, address: string): Promise<AddressSocialData> {
   const ensName = await resolveEnsName(address);
   if (!ensName) return { isTwitterVerified: false };
 
   const twitterHandle = await fetchTwitterHandleFromEns(ensName);
-  const twitterFollowerCount = twitterHandle ? await fetchFollowerCount(twitterHandle) : undefined;
+  const twitterFollowerCount = twitterHandle ? await fetchFollowerCount(config, twitterHandle) : undefined;
 
   // TODO: check ENS verification status
   // see https://support.ens.domains/en/articles/9626402-profile-verification

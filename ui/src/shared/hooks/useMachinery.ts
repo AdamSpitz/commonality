@@ -9,7 +9,10 @@ export function useMachinery(): SDKMachinery {
     const ipfsConfig = {
       gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY,
       apiUrl: import.meta.env.VITE_IPFS_API,
-    }
+    };
+    const twitterApiConfig = {
+      twitterApiDotIoApiKey: import.meta.env.VITE_X_API_KEY || '',
+    };
     // Event cache requests use relative paths (/api/...) so the Vite dev server
     // proxy forwards them to the indexer. An explicit override can be set via
     // VITE_EVENT_CACHE_URL for non-proxied deployments.
@@ -37,6 +40,7 @@ export function useMachinery(): SDKMachinery {
     return createSDKMachinery(
       indexerUrl,
       ipfsConfig,
+      twitterApiConfig,
       undefined,
       publicClient as any,
       eventCacheUrl,

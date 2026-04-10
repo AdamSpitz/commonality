@@ -8,15 +8,6 @@ export type IPFSConfig = {
   shouldUseMock?: boolean; // If true, forces using the mock IPFS implementation
 };
 
-export function createIPFSConfigInNodeJSFromTheUsualEnvVars() {
-  return {
-    gatewayUrl: process.env.IPFS_GATEWAY,
-    apiUrl: process.env.IPFS_API,
-    debugIpfs: process.env.DEBUG_IPFS === 'true',
-    shouldUseMock: process.env.SHOULD_USE_MOCK_IPFS === 'true',
-  }
-}
-
 /**
  * Fetch content from IPFS
  *

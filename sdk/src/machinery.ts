@@ -1,4 +1,5 @@
 import { IPFSConfig } from "./utils/ipfs.js";
+import { TwitterApiConfig } from "./utils/twitter.js";
 import { type PublicClient } from "viem";
 
 export interface TestConfig {
@@ -26,6 +27,7 @@ export interface ContractAddresses {
 export type SDKMachinery = {
   indexerUrl: string;
   ipfsConfig: IPFSConfig;
+  twitterApiConfig: TwitterApiConfig;
   testConfig: TestConfig;
   /**
    * Viem public client for on-chain reads.
@@ -48,6 +50,7 @@ export type SDKMachinery = {
 export function createSDKMachinery(
   indexerUrl: string,
   ipfsConfig: IPFSConfig,
+  twitterApiConfig?: TwitterApiConfig,
   testConfig?: TestConfig,
   publicClient?: PublicClient,
   eventCacheUrl?: string,
@@ -56,6 +59,7 @@ export function createSDKMachinery(
   return {
     indexerUrl,
     ipfsConfig,
+    twitterApiConfig: twitterApiConfig ?? { twitterApiDotIoApiKey: '' },
     testConfig: testConfig ?? {},
     publicClient,
     eventCacheUrl,

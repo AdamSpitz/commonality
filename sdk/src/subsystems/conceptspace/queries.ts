@@ -922,7 +922,7 @@ export async function getUserSocialData(
   _machinery: SDKMachinery,
   address: string
 ): Promise<UserSocialData | null> {
-  const data = await fetchAddressSocialData(address);
+  const data = await fetchAddressSocialData(_machinery.twitterApiConfig, address);
   return {
     address,
     ensName: data.ensName,

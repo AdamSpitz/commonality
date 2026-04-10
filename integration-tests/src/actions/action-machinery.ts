@@ -1,4 +1,4 @@
-import { SDKMachinery, TestConfig, createIPFSConfigInNodeJSFromTheUsualEnvVars, createSDKMachinery, type ContractAddresses } from "@commonality/sdk";
+import { SDKMachinery, TestConfig, createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars, createSDKMachinery, type ContractAddresses } from "@commonality/sdk";
 import { createPublicClient, http } from "viem";
 import { hardhat } from "viem/chains";
 
@@ -31,5 +31,5 @@ export function createActionTestingMachinery(indexerUrl: string): ActionTestingM
     trustRegistry: process.env.TRUST_REGISTRY_ADDRESS as `0x${string}`,
   };
 
-  return createSDKMachinery(indexerUrl, ipfsConfig, testConfig, publicClient, eventCacheUrl, contractAddresses);
+  return createSDKMachinery(indexerUrl, ipfsConfig, createTwitterApiConfigInNodeJSFromTheUsualEnvVars(), testConfig, publicClient, eventCacheUrl, contractAddresses);
 }
