@@ -12,17 +12,24 @@ import {IOracle} from "./IOracle.sol";
 contract OracleCondition is IAssuranceCondition {
     error InvalidOracleAddress();
 
+    /// @notice The oracle contract that determines the outcome
     address public immutable oracle;
 
+    /**
+     * @notice Initializes the condition with an oracle address
+     * @param _oracle The address of the IOracle contract
+     */
     constructor(address _oracle) {
         if (_oracle == address(0)) revert InvalidOracleAddress();
         oracle = _oracle;
     }
 
+    /// @inheritdoc IAssuranceCondition
     function hasSucceeded() external view override returns (bool) {
         return IOracle(oracle).result() == 1;
     }
 
+    /// @inheritdoc IAssuranceCondition
     function hasFailed() external view override returns (bool) {
         return IOracle(oracle).result() == 2;
     }

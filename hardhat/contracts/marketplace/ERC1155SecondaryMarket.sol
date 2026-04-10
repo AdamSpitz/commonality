@@ -166,11 +166,26 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         emit SaleListingCreated(saleListingId, seller, tokenId, count, pricePerToken);
     }
 
+    /**
+     * @notice Buy tokens from a sale listing
+     * @dev Sends ETH to the seller and transfers tokens to the caller.
+     *      Supports partial fulfillment.
+     * @param saleListingId The ID of the sale listing to buy from
+     * @param count The number of tokens to buy
+     */
     function fulfillSaleListing(uint256 saleListingId, uint256 count) external payable nonReentrant {
         address buyer = _msgSender();
         _fulfillSaleListingInternal(saleListingId, count, buyer);
     }
 
+    /**
+     * @notice Buy tokens from a sale listing and send them to a specific recipient
+     * @dev Same as fulfillSaleListing but allows specifying a different token recipient.
+     *      Used by DelegatableNotes to purchase on behalf of the note system.
+     * @param saleListingId The ID of the sale listing to buy from
+     * @param count The number of tokens to buy
+     * @param recipient The address that will receive the purchased tokens
+     */
     function fulfillSaleListingTo(
         uint256 saleListingId,
         uint256 count,
@@ -219,6 +234,11 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         emit SaleListingFulfilled(saleListingId, buyer, count);
     }
 
+    /**
+     * @notice Cancel a sale listing and return tokens to the seller
+     * @dev Only the original seller can cancel their listing.
+     * @param saleListingId The ID of the sale listing to cancel
+     */
     function cancelSaleListing(uint256 saleListingId) external nonReentrant {
         SaleListing storage listing = _saleListings[saleListingId];
         address seller = listing.seller;
@@ -240,6 +260,14 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         emit SaleListingCancelled(saleListingId);
     }
 
+    /**
+     * @notice Create a buy order (bid) for ERC1155 tokens
+     * @dev ETH is held in escrow until the order is fulfilled or cancelled.
+     *      msg.value must equal count * pricePerToken.
+     * @param tokenId The ERC1155 token ID to buy
+     * @param count The number of tokens wanted
+     * @param pricePerToken The price per token in wei
+     */
     function createBuyOrder(
         uint256 tokenId,
         uint256 count,
@@ -263,6 +291,13 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         emit BuyOrderCreated(buyOrderId, buyer, tokenId, count, pricePerToken);
     }
 
+    /**
+     * @notice Fulfill a buy order by selling tokens to the buyer
+     * @dev Transfers tokens from the seller to the buyer and sends escrowed ETH to the seller.
+     *      Supports partial fulfillment.
+     * @param buyOrderId The ID of the buy order to fulfill
+     * @param count The number of tokens to sell
+     */
     // slither-disable-next-line arbitrary-send-eth
     function fulfillBuyOrder(uint256 buyOrderId, uint256 count) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
@@ -299,6 +334,11 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         emit BuyOrderFulfilled(buyOrderId, seller, count);
     }
 
+    /**
+     * @notice Cancel a buy order and refund escrowed ETH to the buyer
+     * @dev Only the original buyer can cancel their order.
+     * @param buyOrderId The ID of the buy order to cancel
+     */
     function cancelBuyOrder(uint256 buyOrderId) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
         address buyer = order.buyer;

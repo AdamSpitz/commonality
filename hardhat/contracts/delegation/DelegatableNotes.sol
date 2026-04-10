@@ -73,7 +73,15 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     secondaryMarketFactory = MarketplaceFactory(_secondaryMarketFactory);
   }
 
-  // Events
+  /**
+   * @notice Emitted when a new note is created via deposit
+   * @param noteId The ID of the created note
+   * @param owner The address that deposited and owns the note
+   * @param amount The amount of tokens deposited
+   * @param token The token contract address (address(0) for ETH)
+   * @param tokenType Whether the token is ERC20 or ERC1155
+   * @param tokenId The ERC1155 token ID (0 for ERC20/ETH)
+   */
   event NoteCreated(
     uint256 indexed noteId,
     address indexed owner,
@@ -82,13 +90,37 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     TokenType tokenType,
     uint256 tokenId
   );
+
+  /**
+   * @notice Emitted when a note is delegated to another address
+   * @param parentNoteId The note being delegated from
+   * @param childNoteId The new note created for the delegate (same as parent for full delegation)
+   * @param delegate The address receiving the delegation
+   * @param amount The amount delegated
+   */
   event NoteDelegated(
     uint256 indexed parentNoteId,
     uint256 indexed childNoteId,
     address indexed delegate,
     uint256 amount
   );
+
+  /**
+   * @notice Emitted when a delegation is revoked
+   * @param noteId The note whose delegation was revoked
+   * @param revoker The address that revoked the delegation
+   */
   event NoteRevoked(uint256 indexed noteId, address indexed revoker);
+
+  /**
+   * @notice Emitted when the root owner reclaims funds from a note
+   * @param noteId The note being reclaimed
+   * @param owner The address receiving the reclaimed funds
+   * @param amount The amount reclaimed
+   * @param token The token contract address
+   * @param tokenType Whether the token is ERC20 or ERC1155
+   * @param tokenId The ERC1155 token ID (0 for ERC20/ETH)
+   */
   event FundsReclaimed(
     uint256 indexed noteId,
     address indexed owner,
@@ -97,18 +129,45 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     TokenType tokenType,
     uint256 tokenId
   );
+
+  /**
+   * @notice Emitted when a note is split during partial delegation
+   * @param originalLeafId The original note ID (becomes the remainder)
+   * @param splitLeafId The new note created for the delegated portion
+   * @param remainderLeafId The note retaining the undelegated remainder
+   * @param splitAmount The amount split off for delegation
+   */
   event ChainSplit(
     uint256 indexed originalLeafId,
     uint256 indexed splitLeafId,
     uint256 indexed remainderLeafId,
     uint256 splitAmount
   );
+
+  /**
+   * @notice Emitted when a note's balance is consumed (spent) during a purchase
+   * @param noteId The note being consumed
+   * @param amountConsumed The amount spent from the note
+   * @param remainingAmount The amount remaining in the note after consumption
+   * @param deleted Whether the note was fully consumed and deleted
+   */
   event NoteConsumed(
     uint256 indexed noteId,
     uint256 amountConsumed,
     uint256 remainingAmount,
     bool deleted
   );
+
+  /**
+   * @notice Emitted when ERC1155 tokens are purchased using notes
+   * @param buyer The address that initiated the purchase
+   * @param erc1155Contract The ERC1155 token contract
+   * @param tokenIds The token IDs purchased
+   * @param counts The amounts of each token purchased
+   * @param totalCost The total ETH spent
+   * @param inputNoteIds The notes used for payment
+   * @param outputNoteIds The new notes created holding the purchased tokens
+   */
   event ERC1155Purchased(
     address indexed buyer,
     address indexed erc1155Contract,
@@ -145,6 +204,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
   // ============ Deposit Functions ============
 
+  /**
+   * @notice Deposit tokens to create a new note owned by the caller
+   * @dev For ETH deposits, send ETH with the call and set token to address(0).
+   *      For ERC20, approve this contract first. For ERC1155, set approval for all.
+   * @param token The token contract address (address(0) for ETH)
+   * @param tokenType ERC20 or ERC1155
+   * @param tokenId The ERC1155 token ID (ignored for ERC20/ETH)
+   * @param amount The amount to deposit (ignored for ETH, uses msg.value instead)
+   * @return The ID of the created note
+   */
   function deposit(
     address token,
     TokenType tokenType,

@@ -22,6 +22,10 @@ error InvalidVerifierAddress();
 error InvalidFactoryAddress();
 error FactoryNotSet();
 
+/**
+ * @title IChannelVerifier
+ * @notice Interface for verifying channel ownership claim proofs
+ */
 interface IChannelVerifier {
     function verifyClaimProof(
         bytes32 channelId,
@@ -32,6 +36,10 @@ interface IChannelVerifier {
     ) external view returns (bool);
 }
 
+/**
+ * @title IChannelRegistry
+ * @notice Interface for the channel registry
+ */
 interface IChannelRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
     function channelState(bytes32 channelId) external view returns (uint8);
@@ -49,6 +57,10 @@ interface IChannelRegistry {
     function isCreatorControlled(bytes32 channelId) external view returns (bool);
 }
 
+/**
+ * @title ICreatorAssuranceContractFactory
+ * @notice Interface for querying creator assurance contract factory state
+ */
 interface ICreatorAssuranceContractFactory {
     function channelIdByContract(address contractAddress) external view returns (bytes32);
     function isThirdPartyCreated(address contractAddress) external view returns (bool);
@@ -56,7 +68,21 @@ interface ICreatorAssuranceContractFactory {
     function releaseContentOnFailure(address contractAddress) external;
 }
 
+/**
+ * @title ChannelRegistry
+ * @notice Tracks channel ownership and verification state for the content funding system
+ * @dev Channels progress through three states: Unclaimed -> Verified -> CreatorControlled.
+ *      Verification requires a signed proof from an off-chain verifier (the Platform API Service).
+ *      Once creator-controlled, the channel owner can veto third-party assurance contracts
+ *      within a time window.
+ */
 contract ChannelRegistry is IChannelRegistry, Ownable {
+    /**
+     * @notice Channel lifecycle states
+     * @dev Unclaimed: no owner verified yet
+     *      Verified: owner proven via off-chain signature, third parties can still create contracts
+     *      CreatorControlled: owner has taken full control, can veto third-party contracts
+     */
     enum ChannelState {
         Unclaimed,
         Verified,
@@ -67,39 +93,100 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
     mapping(bytes32 channelId => ChannelState) private _channelStates;
     mapping(bytes32 nonce => bool) private _usedNonces;
 
+    /// @notice The verifier contract used to validate channel claim proofs
     address public verifier;
+    /// @notice The creator assurance contract factory
     address public factory;
+    /// @notice Duration of the veto window after a creator takes channel control (default: 7 days)
     uint256 public vetoWindowDuration = 7 days;
 
     mapping(bytes32 channelId => uint256 controlTakenAt) private _controlTakenAt;
 
+    /**
+     * @notice Emitted when a channel's ownership is verified
+     * @param channelId The verified channel
+     * @param owner The verified owner address
+     */
     event ChannelVerified(bytes32 indexed channelId, address indexed owner);
+
+    /**
+     * @notice Emitted when a channel owner takes full control
+     * @param channelId The channel
+     * @param owner The owner who took control
+     */
     event ChannelControlTaken(bytes32 indexed channelId, address indexed owner);
+
+    /**
+     * @notice Emitted when a channel owner vetoes a third-party contract
+     * @param channelId The channel
+     * @param contractAddress The vetoed contract address
+     */
     event ContractVetoed(bytes32 indexed channelId, address indexed contractAddress);
+
+    /**
+     * @notice Emitted when the verifier contract is updated
+     * @param oldVerifier The previous verifier address
+     * @param newVerifier The new verifier address
+     */
     event VerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+
+    /**
+     * @notice Emitted when the factory contract is updated
+     * @param oldFactory The previous factory address
+     * @param newFactory The new factory address
+     */
     event FactoryUpdated(address indexed oldFactory, address indexed newFactory);
 
+    /**
+     * @notice Initializes the channel registry with a verifier contract
+     * @param _verifier The address of the IChannelVerifier contract
+     */
     constructor(address _verifier) Ownable(msg.sender) {
         if (_verifier == address(0)) revert InvalidVerifierAddress();
         verifier = _verifier;
     }
 
+    /**
+     * @notice Returns the owner of a channel
+     * @param channelId The channel to query
+     * @return The owner address (zero if unclaimed)
+     */
     function channelOwner(bytes32 channelId) external view returns (address) {
         return _channelOwners[channelId];
     }
 
+    /**
+     * @notice Returns the current state of a channel as a uint8
+     * @param channelId The channel to query
+     * @return The channel state (0=Unclaimed, 1=Verified, 2=CreatorControlled)
+     */
     function channelState(bytes32 channelId) external view returns (uint8) {
         return uint8(_channelStates[channelId]);
     }
 
+    /**
+     * @notice Check if a channel has been verified (Verified or CreatorControlled)
+     * @param channelId The channel to check
+     * @return True if the channel is at least Verified
+     */
     function isVerified(bytes32 channelId) external view returns (bool) {
         return _channelStates[channelId] >= ChannelState.Verified;
     }
 
+    /**
+     * @notice Check if a channel is in the CreatorControlled state
+     * @param channelId The channel to check
+     * @return True if the channel is CreatorControlled
+     */
     function isCreatorControlled(bytes32 channelId) external view returns (bool) {
         return _channelStates[channelId] == ChannelState.CreatorControlled;
     }
 
+    /**
+     * @notice Update the verifier contract address
+     * @dev Only callable by the contract owner
+     * @param _verifier The new verifier contract address
+     */
     function setVerifier(address _verifier) external onlyOwner {
         if (_verifier == address(0)) revert InvalidVerifierAddress();
         address oldVerifier = verifier;
@@ -107,6 +194,11 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
         emit VerifierUpdated(oldVerifier, _verifier);
     }
 
+    /**
+     * @notice Update the factory contract address
+     * @dev Only callable by the contract owner
+     * @param _factory The new factory contract address
+     */
     function setFactory(address _factory) external onlyOwner {
         if (_factory == address(0)) revert InvalidFactoryAddress();
         address oldFactory = factory;
@@ -114,6 +206,16 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
         emit FactoryUpdated(oldFactory, _factory);
     }
 
+    /**
+     * @notice Verify channel ownership using a signed proof from the off-chain verifier
+     * @dev Transitions the channel from Unclaimed to Verified. Can only be called once per channel.
+     *      The proof must be signed by the trusted verifier and not expired.
+     * @param channelId The channel to verify
+     * @param claimant The address claiming ownership of the channel
+     * @param nonce A unique nonce to prevent replay attacks
+     * @param deadline The unix timestamp after which the proof expires
+     * @param verifierSignature The signature from the off-chain verifier
+     */
     function verifyChannel(
         bytes32 channelId,
         address claimant,
@@ -143,6 +245,12 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
         emit ChannelVerified(channelId, claimant);
     }
 
+    /**
+     * @notice Take full control of a verified channel
+     * @dev Transitions the channel from Verified to CreatorControlled.
+     *      Only the verified channel owner can call this. Starts the veto window.
+     * @param channelId The channel to take control of
+     */
     function takeChannelControl(bytes32 channelId) external {
         if (_channelStates[channelId] == ChannelState.Unclaimed) {
             revert ChannelNotVerified(channelId);
@@ -160,6 +268,13 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
         emit ChannelControlTaken(channelId, msg.sender);
     }
 
+    /**
+     * @notice Veto a third-party assurance contract within the veto window
+     * @dev Only callable by the creator-controlled channel owner. Cancels the contract's
+     *      condition and releases the associated content IDs. Must be called within
+     *      the veto window period after taking channel control.
+     * @param contractAddress The address of the third-party assurance contract to veto
+     */
     function vetoContract(address contractAddress) external {
         if (factory == address(0)) revert FactoryNotSet();
 
@@ -188,6 +303,10 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
     }
 }
 
+/**
+ * @title ICancellableCondition
+ * @notice Interface for conditions that can be cancelled
+ */
 interface ICancellableCondition {
     function cancel() external;
     function hasSucceeded() external view returns (bool);
