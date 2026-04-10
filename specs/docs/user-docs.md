@@ -93,13 +93,15 @@ Each walkthrough is a concrete end-to-end story showing how pieces of the system
 
 ### A town replaces its government funding (millbrook.md)
 
+TODO: put this later in the list, I think; I have dreams of using this system to transition currently-government-funded things away from being government-funded, but that's a much more far-fetched use case than the simple ones that can happen right away.
+
 Already written as [motivation/walkthrough.md](motivation/walkthrough.md). Adapt for user-facing docs (less spec-like, more narrative). A community's youth program gets defunded; they use Commonality to demonstrate they can fund it themselves, and the mere visibility of locked pledges is enough to make the government back down.
 
 **Illustrates:** assurance contracts, credible threats, delegation, bridges to traditional finance.
 
 ### Funding better political discourse (noninflammatory-content.md)
 
-A left-wing writer produces a thoughtful piece that right-wingers can actually engage with. An AI evaluator attests that it's noninflammatory. Donors from both sides end up funding it — without coordinating or even knowing about each other — because each side signed statements that the implication graph connected.
+A left-wing writer produces a thoughtful piece that right-wingers can actually engage with. An AI evaluator (trusted by the right) attests that it's noninflammatory. Donors from both sides end up funding it — without coordinating or even knowing about each other — because each side signed statements that the implication graph connected.
 
 **Illustrates:** content funding, AI attesters, implication graph, organic coalition-building.
 

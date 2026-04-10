@@ -76,8 +76,6 @@ The main things that need attention at scale are:
 
 ## Dev's thoughts
 
-TODO:
-
 First, what about the attester(s) (like, implication attester and content attesters) and finder(s) (ditto)? Those are services that we need to run somewhere. Does this document mention them? Will they scale? (I figure the attesters are probably stateless; how about the finders? Those might need some sort of DB or something? I forget how they work.) And is it possible/reasonable to just start out running them in some sort of elastic cloud thingy, so that they scale nicely by default, rather than us noticing later that our lone server is being overloaded and then needing to scramble to rejigger it to make it scale? Or is that awkward or expensive or something?
 
 Second, can we do IPFS in a similar way? Like, is there a way to do IPFS in such a way that it scales up and down nicely by default? And how can we do that CDN thing?
