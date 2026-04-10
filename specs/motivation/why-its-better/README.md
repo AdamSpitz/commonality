@@ -6,7 +6,7 @@ Commonality isn't just a credible replacement for government and charity — it'
 
   - **[Organic coalition-building](./organic-coalitions.md):** Centralized legacy systems polarize; individualized systems let commonality be discovered organically by analyzing individual statements to find common ground. THIS IS WHY THE SYSTEM IS NAMED COMMONALITY.
 
-  - **[Retroactive funding](./retroactive-funding.md):** Donations generate tokens that can be resold, creating a nano-VC market for public goods. Early identifiers of promising projects are rewarded, attracting more talent to project evaluation.
+  - **[Retroactive funding](./retroactive-funding.md):** Don't try to predict which projects will succeed — fund the ones that already have. Scouts who spotted them early are rewarded, creating a virtuous cycle that attracts more talent to project evaluation and gets more good projects funded.
 
   - **[Openness](./openness.md):** Anyone can publish projects, statements, attestations. Filtering happens through social signals rather than gatekeepers. If you care more about the cause than about control, this is strictly better. And there are many public-good projects that *aren't* getting funded by our current system of centralized gatekeepers; the openness of Commonality lets us simply bypass those systems.
 

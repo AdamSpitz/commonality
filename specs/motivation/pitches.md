@@ -8,7 +8,7 @@ Of course a cause still does need to actually gather users — get donors to ple
 
 **The cautious donor:** "Pledge to an assurance contract — your money is only spent if enough others also pledge. If the threshold isn't met, you get refunded. You risk nothing."
 
-**The retroactive donor:** "Don't worry about trying to predict which projects *will be* successful. It is perfectly fine and actually extremely valuable to buy-and-burn the tokens of projects that have already proven their value. You still receive social recognition for your contribution, even if it's retroactive. Yes, you'll pay more per token than the early investors did — but that's the whole point. The price difference is what rewards the [nano-VCs](#investorsspeculators-people-with-foresight) for taking the risk of betting early. If you'd rather fund proven successes than gamble on unproven ideas, that's a perfectly legitimate role — and the system needs both kinds of funders to work."
+**The retroactive donor:** "Don't want to gamble on which projects will pan out? Don't. Just look for projects that have *already* delivered results and fund those. You'll see exactly what they accomplished — it's all verifiable. Your contribution shows up on the project's leaderboard, and you get a permanent receipt. Part of your money also rewards the scouts who spotted the project early, which means more scouts will look for the *next* good project. You're funding proven successes *and* fueling the pipeline for future ones."
 
 ## Project creators (people with ideas)
 
@@ -26,9 +26,9 @@ Of course a cause still does need to actually gather users — get donors to ple
 
 "Use Commonality as your operational backend. Keep doing what you're good at — evaluating projects — but shed the overhead. Accept donations via delegatable notes, direct funds toward aligned projects, and let the blockchain handle the transparency and accounting. Start as the sole trusted attester (identical to your current process), then gradually open up to external suggestions if you want." See [for-established-orgs.md](./ease-of-adoption/for-established-orgs.md).
 
-## Investors/speculators (people with foresight)
+## Scouts (people with foresight)
 
-"Good at spotting promising projects early? Buy tokens in projects you think will succeed. If the project delivers, altruistic donors will later want to buy and burn those tokens for social recognition — and you can sell to them at a profit. You're a nano-VC for public goods."
+"Good at spotting promising projects early? Fund them before anyone else does. If the project delivers, retroactive funders will later want to support it — and the tokens you got for being early will be worth more than you paid. You're a scout for public goods: your skill at identifying good projects is financially rewarded, and the projects you spot get the early funding they need to get off the ground."
 
 ## The common thread
 
