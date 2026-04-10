@@ -3,7 +3,7 @@
 ## Main thing I want to work on next
 
   - Remove GraphQL? Are we even using it?
-  - Clarify/organize the documentation for different audiences. See [here](specs/docs/README.md).
+  - Work more on the user docs. See [here](specs/docs/user-docs.md).
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
 
 ## Other things to do soon
