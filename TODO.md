@@ -2,9 +2,10 @@
 
 ## Main thing I want to work on next
 
-  - Remove GraphQL? Are we even using it?
+  - Remove GraphQL? I don't think we're using it, but there's someplace where we keep seeing a GraphQL URL.
   - Work more on the user docs. See [here](specs/docs/user-docs.md).
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
+    - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
 
 ## Other things to do soon
 
@@ -20,17 +21,19 @@
   - Do I trust the UI? No.
   - In the UI, put a "post a GitHub issue" button.
   - Does the "finder" have any particular focus, like finding "commonality" statements (along the lines of the "coalition between the moderates on both sides" idea)? Maybe it should. (I'm not sure how necessary it'll be. Maybe a single finder can just keep on top of everything? But I kinda suspect that it might be valuable to have a "focus", like "watch for moderate statements on both sides and try to synthesize bridges between them".)
-  - Implement the `foldVersion` idea described in our indexer spec](specs/indexer/README.md). Then implement client-side storage (in localStorage?) of accumulators; blow away the accumulators when foldVersion changes.
+  - Implement the `foldVersion` idea described in our [indexer spec](specs/indexer/README.md). Then implement client-side storage (in localStorage?) of accumulators; blow away the accumulators when foldVersion changes.
   - How do we keep deployments (of all sorts of things: smart contracts, indexer, UI, various services like the attesters and finders and so on) from becoming unwieldy? It's probably not that big a deal - when deploying, just keep track of the info regarding where the code was deployed to and so on - but there are so many moving parts here that I'm starting to be intimidated.
   - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
+  - Make sure that the UI contains the user docs, including API docs and so on.
   - Point an AI at the UI and tell it "go use this."
   
 
   - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
   - (Not a task for AI.) I need to do a big code review myself, of the whole thing. I don't trust it.
 
-Ideas from the specs/motivation stuff:
-  - Bridges to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.
+Founder-level stuff:
+  - Think about orthogonal hierarchy dimensions for statements — geographic and topical. See [seed-content.md](./specs/subsystems/conceptspace/seed-content.md) for more detail.
 
-Ideas from seed-content work:
-  - Think about orthogonal hierarchy dimensions — geographic and topical. Statements like "I'm interested in improving Grey County" and "I'm interested in furthering crypto adoption" are independent axes, and their conjunction ("further crypto in Grey County") creates a more specific interest. This matters for funding portal discovery (a project at the intersection should show up in both parent portals) and for delegatable note intents. These are just regular statements in plain English with implication links to both parents. See seed-content.md for more detail.
+Out of scope for the MVP, but I still want to remember that these are important and not done yet:
+  - [Bridges](specs/bridges.md) to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.
+
