@@ -44,11 +44,12 @@ The actual doc files will get out of date as the system evolves. This plan descr
 docs/
   index.md                          — Landing page
   walkthroughs/
-    millbrook.md                    — A town replaces its government funding
-    noninflammatory-content.md      — Funding better political discourse
+    noninflammatory-content.md      — Supporting the kind of political writing you actually want to read
     moderate-majority.md            — Discovering the silent moderate majority
     research-funding.md             — Getting a research project funded
-    park-slide.md                   — A neighborhood builds a park slide
+    block-party.md                  — A neighborhood throws a block party
+  longer-term-possibilities/
+    millbrook.md                    — A town transitions away from government funding
   roles/
     fund-something.md               — Direct donor: buy tokens for projects you like
     pledge-to-a-cause.md            — Indirect donor: delegate funds to a cause
@@ -62,7 +63,7 @@ docs/
     statements.md                   — Expressing what you care about
     implication-graph.md            — How the system connects related causes automatically
     delegation.md                   — Contributing while being lazy
-    retroactive-funding.md          — The nano-VC idea; secondary markets
+    retroactive-funding.md          — Fund things that already worked; reward early believers
     trust-networks.md               — How you control what you see
     content-funding.md              — Funding individual pieces of content
   why-trust-it.md                   — Open-source, transparent, no one controls it
@@ -78,7 +79,7 @@ The landing page has these sections in order:
 
 1. **What is Commonality?** — One short paragraph. No jargon. Something like: "Commonality lets people crowdfund projects and content they care about — without needing an organization, without needing to coordinate, and without risking anything."
 
-2. **See it in action** — The walkthroughs, presented as a menu. Each gets a one-sentence summary and a parenthetical noting which concepts it illustrates. The reader picks whichever resonates.
+2. **See it in action** — The walkthroughs, presented as a menu. Each gets a one-sentence summary and a parenthetical noting which concepts it illustrates. The reader picks whichever resonates. Below the primary list, a smaller secondary section ("longer-term possibilities") links to more speculative scenarios like Millbrook.
 
 3. **What can I do?** — Links to the role-based pages.
 
@@ -93,19 +94,23 @@ The landing page has these sections in order:
 
 Each walkthrough is a concrete end-to-end story showing how pieces of the system fit together in practice. They should be written in plain language, with a specific setting and specific characters.
 
-### A town replaces its government funding (millbrook.md)
+### Supporting the kind of political writing you actually want to read (noninflammatory-content.md)
 
-TODO: put this later in the list, I think; I have dreams of using this system to transition currently-government-funded things away from being government-funded, but that's a much more far-fetched use case than the simple ones that can happen right away.
+This is the flagship walkthrough. The core idea: there's now a way to have a pool of money dedicated to funding content with specific properties — "right-wing writing that won't alienate left-wingers," "left-wing writing that engages rather than preaches," or anything similar. This is fairly new as a concept. The walkthrough should make it feel obvious and achievable.
 
-Already written as [motivation/walkthrough.md](motivation/walkthrough.md). Adapt for user-facing docs (less spec-like, more narrative). A community's youth program gets defunded; they use Commonality to demonstrate they can fund it themselves, and the mere visibility of locked pledges is enough to make the government back down.
+Emphasize that there are multiple roles, each genuinely easy:
 
-**Illustrates:** assurance contracts, credible threats, delegation, bridges to traditional finance.
+- **Passive supporter:** Find a delegate you trust (someone who's good at curating this kind of writing), pledge $10/month, let them decide where it goes. Done. You don't have to think about it again.
+- **Content creator:** Look at the funding portal for this cause and see real money pledged and available. Write a piece. Submit it to one of the AI services that evaluate content for the relevant properties. If it qualifies, it gets funded.
+- **Active reader / taste-maker:** Accumulate a small delegation from friends who trust your judgment. When you encounter a piece you think deserves support, click "fund this." Your delegated funds flow to it.
 
-### Funding better political discourse (noninflammatory-content.md)
+None of these roles require understanding the underlying system. Each one is independently easy.
 
-A left-wing writer produces a thoughtful piece that right-wingers can actually engage with. An AI evaluator (trusted by the right) attests that it's noninflammatory. Donors from both sides end up funding it — without coordinating or even knowing about each other — because each side signed statements that the implication graph connected.
+The story: a writer publishes a piece about immigration that conservatives can actually engage with. They submit it to an AI evaluator trusted by right-leaning audiences; it passes. Left-leaning donors who pledged to "constructive discourse" and right-leaning donors who pledged to "content that doesn't paint us as villains" both end up funding it — without coordinating or even knowing about each other — because the implication graph connected their stated values.
 
-**Illustrates:** content funding, AI attesters, implication graph, organic coalition-building.
+Note that this applies far beyond politics. Programming language debates, diet wars, parenting discourse, sports rivalries — any domain where online discussion has gone toxic could have a "civil discourse" funding pool. The political version is just the highest-stakes example.
+
+**Illustrates:** content funding, AI attesters, delegation, implication graph, organic coalition-building, multiple easy entry points.
 
 ### Discovering the silent moderate majority (moderate-majority.md)
 
@@ -129,17 +134,36 @@ The arc:
 
 ### Getting a research project funded (research-funding.md)
 
-A scientist has an idea that's too niche for traditional grants. A delegate with domain expertise spots it and directs pooled funds toward it. An early investor buys tokens betting it'll succeed. When it does, retroactive donors buy and burn tokens — the investor profits, the scientist was funded, and nobody needed a grant committee.
+A scientist has an idea that's too niche for traditional grants. A delegate with domain expertise spots it and directs pooled funds toward it. When the project delivers real results, people who didn't want to bet on an unknown quantity can now fund it retroactively — and part of what they pay flows back to the delegate who believed in it early, as a reward for that early judgment.
 
-**Illustrates:** delegation, retroactive funding, secondary markets, nano-VC.
+The key idea for plain-language explanation: you don't have to bet on what might work. You can wait until something has already proven itself, then fund it. And the people who took the early risk — who believed in the project before it was obvious — get credit when you do.
 
-### A neighborhood builds a park slide (park-slide.md)
+TODO: "research project" requires imagining a niche scientific context, which adds cognitive load. Would a community documentary, or a piece of investigative journalism that uncovered something important, be a more intuitive vehicle for the retroactive funding story? Or is research better because the "niche, hard-to-evaluate, no grant committee" problem is so recognizable? Needs a decision.
 
-Three families want a slide in their local park. They set up an assurance contract for $2,000. Twelve families pledge. It funds. That's it.
+TODO: need to avoid the words "tokens," "secondary market," and "burn" in the walkthrough. The concept page can explain those; the story just needs to make the flow feel natural. The key framing: "the early backer took a risk when nobody else believed in it — when you come along later and fund it, part of your money goes to them as thanks for that bet." Test whether that's enough.
 
-**Illustrates:** the system scales down to trivially small things, no critical mass needed.
+**Illustrates:** delegation, retroactive funding, rewarding early believers, nano-VC without the jargon.
 
-TODO: is this a bad example because maybe building a slide in a public park requires getting through a bunch of regulations? If so, can we find a better example of a similar flavour that doesn't have that problem?
+### A neighborhood throws a block party (block-party.md)
+
+A few families on a street want to throw a proper summer block party — live music, food, bounce castle, the works. It would cost $1,500. Worth it for fifty households; not worth it for five. They set up an assurance contract. Within a week, forty households have pledged. It funds.
+
+That's the whole story. Nobody had to organize a meeting. Nobody had to chase down payments. Nobody had to risk putting money in before knowing if enough others would join.
+
+**Illustrates:** the system scales down to trivially small things; assurance contracts solve real coordination problems even when no one involved has ever heard of an assurance contract.
+
+
+## Longer-term possibilities
+
+These scenarios illustrate directions the system could eventually go, but they're more speculative — they depend on broader adoption or more ambitious coordination than the primary walkthroughs. Not front-and-center on the landing page, but worth documenting for readers who want to understand the larger vision.
+
+### A town transitions away from government funding (millbrook.md)
+
+Already written as [motivation/walkthrough.md](motivation/walkthrough.md). Adapt for user-facing docs (less spec-like, more narrative). A community's youth program gets defunded; they use Commonality to demonstrate they can fund it themselves, and the mere visibility of locked pledges is enough to make the government back down.
+
+This is speculative as an immediate use case — "create a credible threat of replacing government funding with crowdfunding" requires a lot of existing trust in the platform and meaningful pledge volume. But it illustrates the game-theoretic potential of credible threats, and it's worth describing as a possibility the system is designed to eventually support.
+
+**Illustrates:** assurance contracts, credible threats, delegation, bridges to traditional finance.
 
 
 ## Role pages (roles/)
