@@ -14,3 +14,10 @@ Maybe DAI is the best we can do at the moment?
 
 Should we just straight-up *convert* to *only* using the stablecoin, or should we offer each assurance contract the ability to choose which token it wants to use? (That'd probably be a lot more complicated, but in a sense feels cleaner and more in line with the philosophy of the project: the assurance contracts are meant to be separate things, a contract between the participants; it's not really anyone else's business what currency they want to use. But still, it's more complex to code and probably opens up more security worries and it's also an extra choice that the users would have to think about, although having sane defaults might make that livable.)
 
+One thought about DAI vs USDC: if the long-term plan (post MVP) is to offer the ability for each assurance contract to choose, then we don't actually need to worry so much about whether the one token that we choose for now is censorship-resistant or not. Just use USDC if that's easier, and later on we can open it up so that contracts that care about censorship-resistance can use DAI or ETH or whatever they want.
+
+Okay, let's try:
+  - For MVP production, USDC only.
+  - For MVP dev/testing, maybe ETH is fine for ease of testing?
+  - Maybe for now we can at least make our queries and stuff be explicit about which currency, rather than assuming ETH.
+  - Post-MVP: let each assurance contract choose which token.
