@@ -170,7 +170,14 @@ function decodeTransferEvents(rawEvents: Awaited<ReturnType<typeof fetchERC1155T
 // ============================================================================
 
 /**
- * Get project by assurance contract address (which is the project id)
+ * Get a crowdfunding project by its assurance contract address.
+ *
+ * Fetches and folds all project events, then reads threshold/deadline
+ * from the on-chain condition contract if a publicClient is available.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param assuranceContractAddress - Address of the project's assurance contract
+ * @returns The project, or null if no creation event exists
  */
 export async function getProject(
   machinery: SDKMachinery,
@@ -196,7 +203,10 @@ export async function getProject(
 }
 
 /**
- * Get all projects
+ * Get all crowdfunding projects created through the factory.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @returns Array of all projects
  */
 export async function getAllProjects(
   machinery: SDKMachinery
@@ -223,6 +233,15 @@ export async function getAllProjects(
 
 /**
  * Get all projects with optional filtering and sorting.
+ *
+ * Supports filtering by deadline, threshold, and totalReceived ranges,
+ * and sorting by any project field.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param filters - Optional filter criteria (min/max deadline, threshold, totalReceived)
+ * @param sortBy - Field to sort by
+ * @param sortDirection - Sort direction (default: `'desc'`)
+ * @returns Filtered and sorted array of projects with computed funding metrics
  */
 export async function getProjectsFiltered(
   machinery: SDKMachinery,
@@ -289,7 +308,11 @@ export async function getProjectsFiltered(
 }
 
 /**
- * Get projects sorted by date created (newest first by default).
+ * Get projects sorted by creation date.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param sortDirection - Sort direction (default: `'desc'`, newest first)
+ * @returns Array of projects with metrics, sorted by date
  */
 export async function getProjectsByDate(
   machinery: SDKMachinery,
@@ -299,7 +322,11 @@ export async function getProjectsByDate(
 }
 
 /**
- * Get projects sorted by deadline (soonest first by default).
+ * Get projects sorted by deadline.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param sortDirection - Sort direction (default: `'asc'`, soonest first)
+ * @returns Array of projects with metrics, sorted by deadline
  */
 export async function getProjectsByDeadline(
   machinery: SDKMachinery,
@@ -309,7 +336,11 @@ export async function getProjectsByDeadline(
 }
 
 /**
- * Get projects sorted by funding goal/threshold (highest first by default).
+ * Get projects sorted by funding goal (threshold).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param sortDirection - Sort direction (default: `'desc'`, highest first)
+ * @returns Array of projects with metrics, sorted by threshold
  */
 export async function getProjectsByFundingGoal(
   machinery: SDKMachinery,
@@ -319,7 +350,11 @@ export async function getProjectsByFundingGoal(
 }
 
 /**
- * Get projects sorted by funding progress (most funded first by default).
+ * Get projects sorted by funding progress ratio.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param sortDirection - Sort direction (default: `'desc'`, most funded first)
+ * @returns Array of projects with metrics, sorted by funding progress
  */
 export async function getProjectsByFundingProgress(
   machinery: SDKMachinery,
@@ -329,7 +364,11 @@ export async function getProjectsByFundingProgress(
 }
 
 /**
- * Get projects sorted by amount raised (highest first by default).
+ * Get projects sorted by total amount raised.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param sortDirection - Sort direction (default: `'desc'`, highest first)
+ * @returns Array of projects with metrics, sorted by totalReceived
  */
 export async function getProjectsByAmountRaised(
   machinery: SDKMachinery,
@@ -339,7 +378,11 @@ export async function getProjectsByAmountRaised(
 }
 
 /**
- * Get project tokens for a project
+ * Get the ERC-1155 tokens offered by a project.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param assuranceContractAddress - Address of the project's assurance contract
+ * @returns Array of token definitions (ID, supply, price, metadata)
  */
 export async function getProjectTokens(
   machinery: SDKMachinery,
@@ -353,7 +396,11 @@ export async function getProjectTokens(
 }
 
 /**
- * Get contributions for a project
+ * Get all contributions (purchases) for a project.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param assuranceContractAddress - Address of the project's assurance contract
+ * @returns Array of contribution records
  */
 export async function getProjectContributions(
   machinery: SDKMachinery,
@@ -367,7 +414,11 @@ export async function getProjectContributions(
 }
 
 /**
- * Get contributions by a specific user (across all projects)
+ * Get all contributions made by a specific user across all projects.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param userAddress - Ethereum address of the contributor
+ * @returns Array of contribution records from all projects
  */
 export async function getUserContributions(
   machinery: SDKMachinery,
@@ -386,7 +437,11 @@ export async function getUserContributions(
 }
 
 /**
- * Get refunds for a specific project
+ * Get all refunds (sell-backs) for a project.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param assuranceContractAddress - Address of the project's assurance contract
+ * @returns Array of refund records
  */
 export async function getProjectRefunds(
   machinery: SDKMachinery,
@@ -404,7 +459,12 @@ export async function getProjectRefunds(
 // ============================================================================
 
 /**
- * Get a specific sale listing by marketplace and listing ID
+ * Get a specific secondary market sale listing.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
+ * @param listingId - Numeric listing ID
+ * @returns The sale listing, or null if not found
  */
 export async function getSaleListing(
   machinery: SDKMachinery,
@@ -418,7 +478,11 @@ export async function getSaleListing(
 }
 
 /**
- * Get all active sale listings for a marketplace
+ * Get all active (unfulfilled, uncancelled) sale listings for a marketplace.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
+ * @returns Array of active sale listings
  */
 export async function getActiveSaleListings(
   machinery: SDKMachinery,
@@ -431,7 +495,12 @@ export async function getActiveSaleListings(
 }
 
 /**
- * Get a specific buy order by marketplace and order ID
+ * Get a specific secondary market buy order.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
+ * @param orderId - Numeric order ID
+ * @returns The buy order, or null if not found
  */
 export async function getBuyOrder(
   machinery: SDKMachinery,
@@ -445,7 +514,11 @@ export async function getBuyOrder(
 }
 
 /**
- * Get all active buy orders for a marketplace
+ * Get all active (unfulfilled, uncancelled) buy orders for a marketplace.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
+ * @returns Array of active buy orders
  */
 export async function getActiveBuyOrders(
   machinery: SDKMachinery,
@@ -458,7 +531,11 @@ export async function getActiveBuyOrders(
 }
 
 /**
- * Get all trades for a marketplace
+ * Get all completed trades for a marketplace.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
+ * @returns Array of trade records
  */
 export async function getMarketplaceTrades(
   machinery: SDKMachinery,
@@ -471,7 +548,12 @@ export async function getMarketplaceTrades(
 }
 
 /**
- * Get trades for a specific token
+ * Get all trades for a specific token in a marketplace.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
+ * @param tokenId - Numeric token ID to filter by
+ * @returns Array of trade records for this token
  */
 export async function getTokenTrades(
   machinery: SDKMachinery,
@@ -489,7 +571,13 @@ export async function getTokenTrades(
 // ============================================================================
 
 /**
- * Get all token burns for a specific ERC1155 contract
+ * Get all token burns for a specific ERC-1155 contract.
+ *
+ * Burns are detected from transfer events to the zero address.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param erc1155Address - Address of the ERC-1155 token contract
+ * @returns Array of burn records
  */
 export async function getTokenBurns(
   machinery: SDKMachinery,
@@ -501,7 +589,13 @@ export async function getTokenBurns(
 }
 
 /**
- * Get token burns by a specific user
+ * Get token burns by a specific user across all projects.
+ *
+ * Discovers ERC-1155 contracts from project events and checks each for burns.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param userAddress - Ethereum address of the burner
+ * @returns Array of burn records from all projects
  */
 export async function getUserTokenBurns(
   machinery: SDKMachinery,
@@ -541,7 +635,12 @@ export async function getUserTokenBurns(
 }
 
 /**
- * Get token burns for a specific ERC1155 contract by a specific user
+ * Get token burns for a specific ERC-1155 contract filtered by user.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param erc1155Address - Address of the ERC-1155 token contract
+ * @param userAddress - Ethereum address of the burner
+ * @returns Array of burn records by this user
  */
 export async function getTokenBurnsByUser(
   machinery: SDKMachinery,

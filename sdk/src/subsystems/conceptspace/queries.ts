@@ -29,9 +29,13 @@ import { SDKMachinery } from '../../machinery.js';
 // Type Definitions
 // ============================================================================
 
+/** A suggested related statement, with the reason for the suggestion. */
 export interface StatementSuggestion {
+  /** The suggested statement. */
   statement: StatementListItem;
+  /** Human-readable explanation of why this statement is suggested. */
   reason: string;
+  /** Type of relationship (e.g. `'implies'`, `'impliedBy'`). */
   relationshipType: string;
 }
 
@@ -41,7 +45,14 @@ export interface StatementSuggestion {
 // ============================================================================
 
 /**
- * Get statement by ID
+ * Get a statement's on-chain metadata by its CID.
+ *
+ * Fetches DirectSupport events for the statement and folds them to compute
+ * believer/disbeliever counts and creation timestamp.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the statement
+ * @returns Statement metadata, or null if no events exist for this CID
  */
 export async function getStatement(
   machinery: SDKMachinery,
@@ -82,7 +93,14 @@ export async function getStatement(
 }
 
 /**
- * Get user's belief about a statement
+ * Get a user's current belief state for a specific statement.
+ *
+ * Returns the latest belief state: 0 = no opinion, 1 = believes, 2 = disbelieves.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param userAddress - Ethereum address of the user
+ * @param statementCid - CIDv1 of the statement
+ * @returns User's belief (beliefState 0 if no events found), or null on error
  */
 export async function getUserBelief(
   machinery: SDKMachinery,
@@ -138,7 +156,12 @@ function filterByTrustedAttesters(
 }
 
 /**
- * Get implications from a statement (what it implies)
+ * Get all implications originating from a statement (what it implies).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the source statement
+ * @param trustedAttesters - Optional list of attester addresses to filter by
+ * @returns Array of implications where this statement is the "from" side
  */
 export async function getImplicationsFrom(
   machinery: SDKMachinery,
@@ -166,7 +189,12 @@ export async function getImplicationsFrom(
 }
 
 /**
- * Get implications to a statement (what implies it)
+ * Get all implications pointing to a statement (what implies it).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the target statement
+ * @param trustedAttesters - Optional list of attester addresses to filter by
+ * @returns Array of implications where this statement is the "to" side
  */
 export async function getImplicationsTo(
   machinery: SDKMachinery,
@@ -194,7 +222,13 @@ export async function getImplicationsTo(
 }
 
 /**
- * Get a specific implication attestation
+ * Get a specific implication attestation by attester and statement pair.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param attesterAddress - Ethereum address of the attester
+ * @param fromStatementCid - CIDv1 of the source statement
+ * @param toStatementCid - CIDv1 of the target statement
+ * @returns The implication attestation, or null if not found
  */
 export async function getImplication(
   machinery: SDKMachinery,
@@ -244,6 +278,14 @@ export async function getImplication(
 
 /**
  * Compute indirect supporters for a statement.
+ *
+ * An indirect supporter is a user who believes a statement that implies this one
+ * (via the implication graph) but has not directly expressed a belief on this statement.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the target statement
+ * @param trustedAttesters - Optional list of attester addresses to filter implications by
+ * @returns Array of indirect supporters with the "via" statement they believe
  */
 export async function getIndirectSupporters(
   machinery: SDKMachinery,
@@ -339,7 +381,14 @@ export async function getIndirectSupporters(
 }
 
 /**
- * Get count of indirect supporters for a statement.
+ * Get the count of indirect supporters for a statement.
+ *
+ * Convenience wrapper around {@link getIndirectSupporters}.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the target statement
+ * @param trustedAttesters - Optional list of attester addresses to filter implications by
+ * @returns Number of indirect supporters
  */
 export async function getIndirectSupporterCount(
   machinery: SDKMachinery,
@@ -373,7 +422,14 @@ async function enrichWithIPFSContent(
 }
 
 /**
- * Browse statements by most supporters (direct believers)
+ * Browse statements sorted by number of direct believers.
+ *
+ * Fetches all DirectSupport events, folds them to compute believer counts,
+ * sorts by count, and enriches the page with IPFS content (title/excerpt).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param options - Pagination (limit, offset) and sort direction
+ * @returns Paginated array of statement list items
  */
 export async function browseStatementsByMostSupporters(
   machinery: SDKMachinery,
@@ -430,7 +486,11 @@ export async function browseStatementsByMostSupporters(
 }
 
 /**
- * Browse newest statements
+ * Browse statements sorted by creation date (newest first by default).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param options - Pagination (limit, offset) and sort direction
+ * @returns Paginated array of statement list items
  */
 export async function browseStatementsByNewest(
   machinery: SDKMachinery,
@@ -490,7 +550,14 @@ export async function browseStatementsByNewest(
 }
 
 /**
- * Browse statements with configurable sort
+ * Browse statements with configurable sort order.
+ *
+ * Delegates to {@link browseStatementsByMostSupporters} for believerCount/disbelieverCount
+ * ordering, or {@link browseStatementsByNewest} for date ordering.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param options - Pagination, sort field (orderBy), and sort direction
+ * @returns Paginated array of statement list items
  */
 export async function browseStatements(
   machinery: SDKMachinery,
@@ -505,7 +572,11 @@ export async function browseStatements(
 }
 
 /**
- * Get all statements (for basic listing)
+ * Get all statements as a basic paginated list (no IPFS enrichment).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param options - Pagination (limit, offset)
+ * @returns Array of statement list items (title/excerpt will be empty)
  */
 export async function getAllStatements(
   machinery: SDKMachinery,
@@ -556,7 +627,14 @@ export async function getAllStatements(
 }
 
 /**
- * Get statements a user directly believes
+ * Get all statements a user directly believes (beliefState = 1).
+ *
+ * Fetches the user's DirectSupport events, filters for active beliefs,
+ * then enriches each statement with IPFS content.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param userAddress - Ethereum address of the user
+ * @returns Array of statement list items the user believes
  */
 export async function getUserBeliefs(
   machinery: SDKMachinery,
@@ -607,7 +685,11 @@ export async function getUserBeliefs(
 }
 
 /**
- * Get statements a user directly disbelieves
+ * Get all statements a user directly disbelieves (beliefState = 2).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param userAddress - Ethereum address of the user
+ * @returns Array of statement list items the user disbelieves
  */
 export async function getUserDisbeliefs(
   machinery: SDKMachinery,
@@ -658,7 +740,15 @@ export async function getUserDisbeliefs(
 }
 
 /**
- * Get statement suggestions for a given statement
+ * Get statement suggestions related to a given statement.
+ *
+ * Returns statements connected via the implication graph that have more
+ * supporters than the source statement, sorted by supporter count.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the source statement
+ * @param trustedAttesters - Optional list of attester addresses to filter implications by
+ * @returns Array of suggested statements with relationship info, sorted by believer count
  */
 export async function getStatementSuggestions(
   machinery: SDKMachinery,
@@ -734,7 +824,15 @@ export async function getStatementSuggestions(
 // ============================================================================
 
 /**
- * Get statement with IPFS content and optional metrics.
+ * Get a statement's on-chain metadata together with its IPFS content document.
+ *
+ * Optionally includes computed metrics (direct believers, disbelievers,
+ * indirect supporters).
+ *
+ * @param machinery - SDK machinery with event cache and IPFS configuration
+ * @param statementCid - CIDv1 of the statement
+ * @param options - Include metrics, IPFS timeout, trusted attesters for indirect support
+ * @returns Statement with content, or null if the statement doesn't exist on-chain
  */
 export async function getStatementWithContent(
   machinery: SDKMachinery,
@@ -781,6 +879,15 @@ export async function getStatementWithContent(
 
 /**
  * Get all statements a user indirectly supports through their beliefs and implications.
+ *
+ * Traverses the implication graph from the user's directly-believed statements,
+ * excludes statements the user has already expressed a direct opinion on,
+ * and returns the remaining targets with the "via" paths.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param userAddress - Ethereum address of the user
+ * @param options - Pagination (limit, offset), trusted attesters for implications
+ * @returns Paginated array of indirectly supported statements with via paths
  */
 export async function getUserIndirectSupport(
   machinery: SDKMachinery,
@@ -868,10 +975,23 @@ export async function getUserIndirectSupport(
   return results.slice(start, end);
 }
 
+/** Options for {@link getHighProfileSigners}. */
 export interface GetHighProfileSignersOptions {
+  /** Minimum Twitter follower count to qualify as "high-profile" (default: 10000). */
   minFollowers?: number;
 }
 
+/**
+ * Get high-profile signers (believers) of a statement, ranked by follower count.
+ *
+ * Fetches all believers for a statement, looks up their social data, and
+ * returns those meeting the minimum follower threshold.
+ *
+ * @param machinery - SDK machinery with event cache and Twitter API configuration
+ * @param statementCid - CIDv1 of the statement
+ * @param options - Minimum follower count threshold
+ * @returns Array of high-profile signers sorted by follower count (descending)
+ */
 export async function getHighProfileSigners(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
@@ -918,6 +1038,13 @@ export async function getHighProfileSigners(
   return highProfileSigners.sort((a, b) => (b.followerCount || 0) - (a.followerCount || 0));
 }
 
+/**
+ * Fetch social data (ENS name, Twitter handle, follower count) for an Ethereum address.
+ *
+ * @param _machinery - SDK machinery with Twitter API configuration
+ * @param address - Ethereum address to look up
+ * @returns Social data for the address
+ */
 export async function getUserSocialData(
   _machinery: SDKMachinery,
   address: string

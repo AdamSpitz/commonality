@@ -7,18 +7,25 @@ import { type TestClients } from '../../utils/ethereum.js';
 import { CreatorAssuranceContractFactoryAbi } from '../../abis.js';
 import { hashCanonicalId, parseContentFundingUrl } from './canonicalization.js';
 
+/** Contract instance for the CreatorAssuranceContractFactory. */
 export interface ContentFundingContract {
   address: Address;
   abi: Abi;
 }
 
+/** Addresses and metadata returned after creating a content-funding contract. */
 export interface ContentFundingContractDetails {
+  /** Address of the newly deployed assurance contract. */
   contractAddress: Address;
+  /** Address of the associated ERC-1155 token contract. */
   erc1155Address: Address;
+  /** Bytes32 keccak256 hash of the channel's canonical ID. */
   channelId: string;
+  /** Whether this contract was created by a third party (not the channel owner). */
   isThirdParty: boolean;
 }
 
+/** Parameters for creating a new content-funding contract. */
 export interface CreateContentFundingContractParams {
   channelCanonicalId: string;
   contentUrls: string[];
@@ -46,6 +53,17 @@ function parseContentUrl(url: string): { contentSuffix: string; platform: string
   }
 }
 
+/**
+ * Deploy a new content-funding contract via the factory.
+ *
+ * Creates an assurance contract with ERC-1155 tokens representing content items.
+ * Supports an optional initial purchase in the same transaction.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param factoryContract - The CreatorAssuranceContractFactory contract instance
+ * @param params - Contract creation parameters (channel, content URLs, pricing, etc.)
+ * @returns Transaction hash and details of the created contracts
+ */
 export async function createContentFundingContract(
   clients: TestClients,
   factoryContract: ContentFundingContract,
@@ -120,6 +138,13 @@ export async function createContentFundingContract(
   };
 }
 
+/**
+ * Read the minimum initial purchase amount required for third-party contracts.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param factoryContract - The CreatorAssuranceContractFactory contract instance
+ * @returns Minimum purchase amount in wei
+ */
 export async function getThirdPartyMinPurchase(
   clients: TestClients,
   factoryContract: ContentFundingContract,
@@ -134,6 +159,17 @@ export async function getThirdPartyMinPurchase(
   return value as bigint;
 }
 
+/**
+ * Withdraw accumulated funds from the channel escrow.
+ *
+ * Only the verified channel owner can withdraw. Funds accumulate from
+ * successful content-funding contracts.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param escrowContract - The ChannelEscrow contract instance
+ * @param channelId - Bytes32 channel ID to withdraw from
+ * @returns Transaction hash
+ */
 export async function withdrawFromEscrow(
   clients: TestClients,
   escrowContract: { address: Address; abi: Abi },
@@ -153,6 +189,18 @@ export async function withdrawFromEscrow(
   return { hash };
 }
 
+/**
+ * Take control of a verified channel.
+ *
+ * After a channel is verified, the verified owner can "take control" to
+ * enable the veto window — a period during which they can veto any
+ * third-party contracts created for their channel.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param registryContract - The ChannelRegistry contract instance
+ * @param channelId - Bytes32 channel ID to take control of
+ * @returns Transaction hash
+ */
 export async function takeChannelControl(
   clients: TestClients,
   registryContract: { address: Address; abi: Abi },
@@ -172,6 +220,17 @@ export async function takeChannelControl(
   return { hash };
 }
 
+/**
+ * Veto a third-party content-funding contract.
+ *
+ * Only available to the channel owner within the veto window after
+ * taking control. Vetoed contracts are marked as invalid.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param registryContract - The ChannelRegistry contract instance
+ * @param contractAddress - Address of the contract to veto
+ * @returns Transaction hash
+ */
 export async function vetoContract(
   clients: TestClients,
   registryContract: { address: Address; abi: Abi },
@@ -191,6 +250,22 @@ export async function vetoContract(
   return { hash };
 }
 
+/**
+ * Verify ownership of a channel using a signed attestation from the verifier.
+ *
+ * The verifier (an off-chain service) signs a message confirming that the
+ * claimant controls the social media account. This signature is submitted
+ * on-chain to register the channel.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param registryContract - The ChannelRegistry contract instance
+ * @param channelId - Bytes32 channel ID to verify
+ * @param claimant - Address claiming ownership of the channel
+ * @param nonce - Random nonce to prevent replay attacks
+ * @param deadline - Unix timestamp after which the signature expires
+ * @param verifierSignature - EIP-712 signature from the trusted verifier
+ * @returns Transaction hash
+ */
 export async function verifyChannel(
   clients: TestClients,
   registryContract: { address: Address; abi: Abi },

@@ -40,7 +40,12 @@ function decodeRefUpdatedEvents(rawEvents: Awaited<ReturnType<typeof fetchRefUpd
 // ============================================================================
 
 /**
- * Get the current value of a user's ref
+ * Get the current value of a named mutable reference owned by a user.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param owner - Ethereum address of the ref owner
+ * @param name - Name of the reference
+ * @returns The current ref value, or null if no updates exist
  */
 export async function getUserRef(
   machinery: SDKMachinery,
@@ -53,7 +58,11 @@ export async function getUserRef(
 }
 
 /**
- * Get all refs for a user
+ * Get all named mutable references owned by a user.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param owner - Ethereum address of the ref owner
+ * @returns Array of all refs with their current values
  */
 export async function getUserRefs(
   machinery: SDKMachinery,
@@ -79,7 +88,13 @@ export async function getUserRefs(
 }
 
 /**
- * Get the update history for a specific ref
+ * Get the update history for a specific named reference.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param owner - Ethereum address of the ref owner
+ * @param name - Name of the reference
+ * @param limit - Maximum number of history entries to return (default: 100)
+ * @returns Array of ref updates in chronological order
  */
 export async function getUserRefHistory(
   machinery: SDKMachinery,
@@ -93,7 +108,14 @@ export async function getUserRefHistory(
 }
 
 /**
- * Get all ref updates across all users for a specific ref name
+ * Get all refs with a specific name across all users.
+ *
+ * Useful for discovering all users who have set a particular named reference.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param name - Name of the reference to search for
+ * @param limit - Maximum number of results to return (default: 100)
+ * @returns Array of refs with their current values, one per owner
  */
 export async function getRefsByName(
   machinery: SDKMachinery,

@@ -1,13 +1,13 @@
 const DAG_PB_CODE = 0x70;
 
 /**
- * Different types for IPFS CIDs to prevent mixing up formats.
- *
- * - IpfsCidV1: CIDv1 string format (e.g., "bafybe...")
- * - IpfsCidBytes32: bytes32 hex format for onchain storage (e.g., "0xabcd...")
+ * Branded string types for IPFS CIDs to prevent mixing up formats at the type level.
  */
 
+/** CIDv1 in base32 encoding (starts with 'b', e.g. "bafybe..."). Used in SDK APIs. */
 export type IpfsCidV1 = `b${string}`;
+
+/** CID as a bytes32 hex string (e.g. "0xabcd..."). Used for on-chain storage. */
 export type IpfsCidBytes32 = `0x${string}`;
 
 // Base32 (lowercase RFC 4648, no padding) — multibase prefix 'b' used by CIDv1
@@ -56,12 +56,25 @@ function base58Decode(s: string): Uint8Array {
   return new Uint8Array([...new Array(leadingZeros).fill(0), ...bytes]);
 }
 
-/** Build a CIDv1 string from a codec + sha2-256 digest. */
+/**
+ * Build a CIDv1 string from a multicodec code and a 32-byte sha2-256 digest.
+ *
+ * @param codec - Multicodec code (e.g. 0x70 for dag-pb, 0x55 for raw)
+ * @param digest - The 32-byte sha2-256 hash digest
+ * @returns CIDv1 in base32 encoding
+ */
 export function buildCidV1FromDigest(codec: number, digest: Uint8Array): IpfsCidV1 {
   const cidBytes = new Uint8Array([0x01, codec, 0x12, 0x20, ...digest]);
   return `b${base32Encode(cidBytes)}` as IpfsCidV1;
 }
 
+/**
+ * Assert that a string is a valid CIDv1 and return it as the branded type.
+ *
+ * @param value - String to validate
+ * @returns The value as IpfsCidV1
+ * @throws Error if the value is not a valid CIDv1
+ */
 export function ensureIpfsCidV1(value: string): IpfsCidV1 {
   if (!isValidCidV1(value)) {
     throw new Error(`Invalid IPFS CIDv1: ${value}`);
@@ -69,10 +82,12 @@ export function ensureIpfsCidV1(value: string): IpfsCidV1 {
   return value;
 }
 
+/** Type guard: checks if a string looks like a bytes32 hex value (0x + 64 hex chars). */
 export function isIpfsCidBytes32(value: string): value is IpfsCidBytes32 {
   return value.startsWith("0x") && value.length === 66;
 }
 
+/** Type guard: checks if a string is a valid CIDv1 (base32, version byte = 1). */
 export function isValidCidV1(cid: string): cid is IpfsCidV1 {
   try {
     if (!cid.startsWith('b')) return false;
@@ -84,7 +99,14 @@ export function isValidCidV1(cid: string): cid is IpfsCidV1 {
 }
 
 /**
- * Convert IPFS CID to bytes32 for onchain storage
+ * Convert a CIDv1 string to a bytes32 hex string for on-chain storage.
+ *
+ * Extracts the 32-byte sha2-256 digest from the CID. Only works with
+ * CIDv1 strings that use sha2-256 as the hash function.
+ *
+ * @param cid - CIDv1 string (base32, starts with 'b')
+ * @returns 32-byte hex string (0x-prefixed, 66 chars total)
+ * @throws Error if the CID is not CIDv1 or doesn't use sha2-256
  */
 export function cidToBytes32(cid: string): `0x${string}` {
   if (!cid.startsWith('b')) throw new Error(`Expected CIDv1 (base32, starts with 'b'), got: ${cid}`);
@@ -98,7 +120,13 @@ export function cidToBytes32(cid: string): `0x${string}` {
 }
 
 /**
- * Convert bytes32 to IPFS CID
+ * Convert a bytes32 hex string back to a CIDv1 string.
+ *
+ * Wraps the 32-byte digest with CIDv1 headers (version=1, codec=dag-pb,
+ * multihash=sha2-256) and encodes as base32.
+ *
+ * @param bytes32 - 32-byte hex string (0x-prefixed)
+ * @returns CIDv1 string in base32 encoding
  */
 export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
   const hex = bytes32.slice(2);
@@ -112,8 +140,16 @@ export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
 // ============================================================================
 
 /**
- * Convert a statement ID from hex format (0x...) or CIDv0 format (Qm...) to CIDv1 format (bafy...)
- * for indexer queries. If already in CIDv1 format, returns as-is.
+ * Normalize any CID format to CIDv1 base32.
+ *
+ * Accepts:
+ * - CIDv1 base32 (starts with 'b') — returned as-is
+ * - Bytes32 hex (starts with '0x', 66 chars) — converted via bytes32ToCid
+ * - CIDv0 base58btc (starts with 'Qm') — converted to CIDv1 with dag-pb codec
+ *
+ * @param s - CID in any supported format
+ * @returns CIDv1 in base32 encoding
+ * @throws Error if the format is unrecognized or invalid
  */
 export function normalizeCidV1(s: string): IpfsCidV1 {
   if (s.startsWith('0x') && s.length === 66) {

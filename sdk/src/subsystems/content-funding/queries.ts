@@ -31,48 +31,83 @@ import {
   decodeCreatorContractCreatedEvent,
 } from '../../utils/eventDecoder.js';
 
+/** Default veto window: 7 days in seconds. */
 export const DEFAULT_VETO_WINDOW_SECONDS = 7n * 24n * 60n * 60n;
 
+/** Lifecycle status of a content-funding contract. */
 export type ContentFundingContractStatus = 'active' | 'successful' | 'failed' | 'vetoed' | 'unknown';
+
+/** Registration status of a content item in the ContentRegistry. */
 export type ContentItemRegistrationStatus = 'unregistered' | 'active' | 'released';
 
+/** A content-funding contract enriched with project data, content items, and status. */
 export interface ContentFundingContractSummary extends CreatorContractInfo {
+  /** The associated Pubstarter project, or null if not yet resolved. */
   project: Project | null;
+  /** Content items registered to this contract. */
   contentItems: ContentItem[];
+  /** Computed lifecycle status. */
   status: ContentFundingContractStatus;
+  /** Funding progress ratio (0.0–1.0+), or null if threshold is unknown/zero. */
   fundingProgress: number | null;
 }
 
+/** Complete overview of a channel: its state, escrow balance, contracts, and content. */
 export interface ChannelOverview {
+  /** Channel registry state. */
   channel: ChannelInfo;
+  /** Escrow balance and cumulative totals for this channel. */
   escrow: {
     balance: bigint;
     totalDeposited: bigint;
     totalWithdrawn: bigint;
   };
+  /** All content-funding contracts for this channel, sorted by creation date. */
   contracts: ContentFundingContractSummary[];
+  /** All content items across all contracts for this channel. */
   contentItems: ContentItem[];
 }
 
+/** Status of a single content item: its registration state and associated contract. */
 export interface ContentItemStatus {
+  /** Numeric content ID. */
   contentId: bigint;
+  /** Whether the item is registered, active, or released. */
   registrationStatus: ContentItemRegistrationStatus;
+  /** Platform-specific canonical ID, or null if unregistered. */
   canonicalId: string | null;
+  /** Address of the contract this item is registered to, or null. */
   contractAddress: string | null;
+  /** Summary of the associated contract, or null. */
   contract: ContentFundingContractSummary | null;
 }
 
+/**
+ * Options for content-funding query functions.
+ *
+ * These allow callers to inject pre-fetched data (projects, veto events)
+ * and control time-dependent computations (veto window).
+ */
 export interface ContentFundingQueryOptions {
+  /** Pre-fetched Pubstarter projects for enriching contract summaries. */
   projects?: Iterable<Project>;
+  /** Pre-fetched ContractVetoed events for marking vetoed contracts. */
   vetoedEvents?: Iterable<ContractVetoedEvent>;
+  /** Current block timestamp for time-dependent status checks. */
   now?: bigint;
+  /** Veto window duration in seconds (default: 7 days). */
   vetoWindowSeconds?: bigint;
 }
 
+/** A record of an AlignmentAttestation for a content item. */
 export interface ContentAttestationRecord {
+  /** Whether an attestation exists (always true in query results). */
   attested: boolean;
+  /** Address of the attester. */
   attester: string;
+  /** CID of the statement used in the attestation. */
   statementCid: string;
+  /** Block number of the attestation. */
   blockNumber: bigint;
 }
 
@@ -220,6 +255,15 @@ function getEscrowEntry(
   };
 }
 
+/**
+ * Get all content-funding contracts for a specific channel, enriched with
+ * project data and status. Results are sorted by creation date.
+ *
+ * @param state - Pre-folded ContentFundingState
+ * @param channelId - Bytes32 channel ID
+ * @param options - Query options (projects, veto events, current time)
+ * @returns Sorted array of contract summaries
+ */
 export function getContractsForChannel(
   state: ContentFundingState,
   channelId: string,
@@ -236,6 +280,15 @@ export function getContractsForChannel(
   return sortContracts(contracts);
 }
 
+/**
+ * Get a complete overview of a channel: registry state, escrow balance,
+ * all contracts, and all content items.
+ *
+ * @param state - Pre-folded ContentFundingState
+ * @param channelId - Bytes32 channel ID
+ * @param options - Query options (projects, veto events, current time)
+ * @returns Channel overview with all associated data
+ */
 export function getChannelOverview(
   state: ContentFundingState,
   channelId: string,
@@ -252,6 +305,14 @@ export function getChannelOverview(
   };
 }
 
+/**
+ * Get the registration status and associated contract for a content item.
+ *
+ * @param state - Pre-folded ContentFundingState
+ * @param contentId - Numeric content ID from the ContentRegistry
+ * @param options - Query options (projects, veto events, current time)
+ * @returns Content item status (unregistered if not found)
+ */
 export function getContentItemStatus(
   state: ContentFundingState,
   contentId: bigint,
@@ -288,6 +349,18 @@ export function getContentItemStatus(
   };
 }
 
+/**
+ * Get third-party contracts that the channel owner can currently veto.
+ *
+ * Returns contracts that are: third-party, active, and within the veto
+ * window (relative to when the owner took control). Returns empty if the
+ * channel is not creator-controlled or the veto window has expired.
+ *
+ * @param state - Pre-folded ContentFundingState
+ * @param channelId - Bytes32 channel ID
+ * @param options - Must include `now` for time-dependent check
+ * @returns Array of vetoable contract summaries
+ */
 export function getVetoableContracts(
   state: ContentFundingState,
   channelId: string,
@@ -318,11 +391,14 @@ export function getVetoableContracts(
 // ============================================================================
 
 /**
- * Build a map from bytes32 channelId → human-readable channel canonical ID.
+ * Build a map from bytes32 channelId to human-readable channel canonical ID.
  *
- * On-chain, channelId is stored as keccak256(channelCanonicalId). The only
+ * On-chain, channelId is stored as `keccak256(channelCanonicalId)`. The only
  * way to recover the human-readable form is from content item canonical IDs,
- * which embed it as a prefix (e.g. "twitter:uid:12345:67890").
+ * which embed it as a prefix (e.g. `"twitter:uid:12345:67890"`).
+ *
+ * @param state - Pre-folded ContentFundingState
+ * @returns Map from bytes32 channelId to canonical channel ID string
  */
 export function buildChannelCanonicalIdMap(state: ContentFundingState): Map<string, string> {
   const map = new Map<string, string>();
@@ -345,14 +421,21 @@ export function buildChannelCanonicalIdMap(state: ContentFundingState): Map<stri
 // getAllChannelOverviews
 // ============================================================================
 
+/** Channel overview enriched with the human-readable canonical channel ID. */
 export interface ChannelWithCanonicalId extends ChannelOverview {
   /** Human-readable canonical channel ID (e.g. "twitter:uid:12345"), or null if unavailable. */
   canonicalChannelId: string | null;
 }
 
 /**
- * Return an overview for every channel that appears in the state —
- * from channelRegistry, creator contracts, or content items.
+ * Return an overview for every channel that appears in the state.
+ *
+ * Discovers channels from the channelRegistry, creator contracts, and content items.
+ * Each overview includes the human-readable canonical channel ID when available.
+ *
+ * @param state - Pre-folded ContentFundingState
+ * @param options - Query options (projects, veto events, current time)
+ * @returns Array of channel overviews with canonical IDs
  */
 export function getAllChannelOverviews(
   state: ContentFundingState,
@@ -389,12 +472,19 @@ function sortedByBlockOrder<T extends { blockNumber: bigint; logIndex: number }>
 
 /**
  * Fetch all content-funding events from the event cache, decode and fold them
- * into a `ContentFundingState` ready for SDK query helpers.
+ * into a {@link ContentFundingState} ready for SDK query helpers.
  *
  * Returns null if the content-funding contract addresses are not configured.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @returns Folded state and veto events, or null if content-funding is not configured
  */
+
+/** Result of fetching and folding all content-funding events, including veto events. */
 export interface ContentFundingStateWithVetoedEvents {
+  /** The folded content-funding state. */
   state: ContentFundingState;
+  /** ContractVetoed events (not folded into state, passed as query options). */
   vetoedEvents: ContractVetoedEvent[];
 }
 
@@ -478,13 +568,27 @@ import { decodeAlignmentAttestationEvent } from '../../utils/eventDecoder.js';
 type DecodedAlignmentAttestationEvent = NonNullable<ReturnType<typeof decodeAlignmentAttestationEvent>>;
 
 /**
- * Get the keccak256 hash of a canonical content ID for use as an AlignmentAttestation subjectId.
- * This matches how content-attester service computes the subjectId.
+ * Compute the keccak256 hash of a canonical content ID for use as an AlignmentAttestation subjectId.
+ *
+ * This matches how the content-attester service computes the subjectId on-chain.
+ *
+ * @param canonicalContentId - Canonical content ID (e.g. `"twitter:uid:123:456"`)
+ * @returns Bytes32 keccak256 hash as a hex string
  */
 export function getContentSubjectId(canonicalContentId: string): string {
   return keccak256(stringToBytes(canonicalContentId));
 }
 
+/**
+ * Select the latest attestation per attester from decoded AlignmentAttestation events.
+ *
+ * When multiple attestations exist for the same attester, only the most recent
+ * (by block number and log index) is kept.
+ *
+ * @param decodedEvents - Decoded AlignmentAttestation events
+ * @param attesterAddress - Optional filter to a specific attester address
+ * @returns Array of latest attestation records, sorted by most recent first
+ */
 export function selectLatestContentAttestations(
   decodedEvents: DecodedAlignmentAttestationEvent[],
   attesterAddress?: string,
@@ -526,6 +630,14 @@ export function selectLatestContentAttestations(
 
 /**
  * Query latest attestation status per attester for a specific content item.
+ *
+ * Fetches AlignmentAttestation events from the event cache filtered by the
+ * content item's subjectId, then returns the latest attestation per attester.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param canonicalContentId - Canonical content ID (e.g. `"twitter:uid:123:456"`)
+ * @param attesterAddress - Optional filter to a specific attester address
+ * @returns Array of attestation records, or empty if no attestations exist
  */
 export async function getContentAttestations(
   machinery: SDKMachinery,
@@ -558,7 +670,15 @@ export async function getContentAttestations(
 }
 
 /**
- * Query attestation status for a specific content item.
+ * Query the single most recent attestation for a specific content item.
+ *
+ * Convenience wrapper around {@link getContentAttestations} that returns
+ * only the latest attestation record (or null if none exist).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param canonicalContentId - Canonical content ID (e.g. `"twitter:uid:123:456"`)
+ * @param attesterAddress - Optional filter to a specific attester address
+ * @returns Latest attestation record, or null if no attestations exist
  */
 export async function getContentAttestation(
   machinery: SDKMachinery,

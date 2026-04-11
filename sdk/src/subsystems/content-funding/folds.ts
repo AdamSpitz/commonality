@@ -8,17 +8,29 @@ import type {
   CreatorContractCreatedEvent,
 } from './events.js';
 
+/** A registered content item linked to an assurance contract. */
 export interface ContentItem {
+  /** Numeric content ID assigned by the ContentRegistry. */
   contentId: bigint;
+  /** Address of the assurance contract this content is registered to. */
   contractAddress: string;
+  /** Platform-specific canonical ID (e.g. "twitter:uid:123:456"). */
   canonicalId: string;
+  /** 'active' until explicitly released by the contract. */
   status: 'active' | 'released';
 }
 
+/** Folded state of the ContentRegistry contract. */
 export interface ContentRegistryState {
+  /** Map from contentId to ContentItem. */
   items: Map<bigint, ContentItem>;
 }
 
+/**
+ * Fold ContentItemRegistered and ContentItemReleased events into registry state.
+ *
+ * Each registered event creates an item; each released event marks it inactive.
+ */
 export function foldContentRegistry(
   events: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
 ): ContentRegistryState {
@@ -43,19 +55,33 @@ export function foldContentRegistry(
   return { items };
 }
 
+/** Lifecycle state of a channel in the ChannelRegistry. */
 export type ChannelState = 'unclaimed' | 'verified' | 'creator-controlled';
 
+/** Current state of a channel (creator account) in the registry. */
 export interface ChannelInfo {
+  /** Bytes32 keccak256 hash of the channel's canonical ID. */
   channelId: string;
+  /** Ethereum address of the verified owner, or null if unclaimed. */
   owner: string | null;
+  /** Current lifecycle state. */
   state: ChannelState;
+  /** Block timestamp when the owner took control, or null. */
   controlTakenAt: bigint | null;
 }
 
+/** Folded state of the ChannelRegistry contract. */
 export interface ChannelRegistryState {
+  /** Map from channelId (bytes32) to ChannelInfo. */
   channels: Map<string, ChannelInfo>;
 }
 
+/**
+ * Fold ChannelVerified and ChannelControlTaken events into registry state.
+ *
+ * Verified events register a channel with an owner. ControlTaken events
+ * transition to 'creator-controlled' and record the timestamp.
+ */
 export function foldChannelState(
   events: (ChannelVerifiedEvent | ChannelControlTakenEvent)[],
 ): ChannelRegistryState {
@@ -82,10 +108,18 @@ export function foldChannelState(
   return { channels };
 }
 
+/** Folded state of the ChannelEscrow contract. */
 export interface ChannelEscrowState {
+  /** Map from channelId (bytes32) to balance tracking. */
   balances: Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>;
 }
 
+/**
+ * Fold Deposited and Withdrawn events into escrow balance state.
+ *
+ * Deposits increase balance; withdrawals decrease it. Both are tracked
+ * cumulatively for reporting.
+ */
 export function foldChannelEscrow(events: (DepositedEvent | WithdrawnEvent)[]): ChannelEscrowState {
   const balances = new Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>();
 
@@ -106,17 +140,27 @@ export function foldChannelEscrow(events: (DepositedEvent | WithdrawnEvent)[]): 
   return { balances };
 }
 
+/** Metadata for a content-funding contract created via the factory. */
 export interface CreatorContractInfo {
+  /** Address of the assurance contract. */
   contractAddress: string;
+  /** Bytes32 channel ID this contract is associated with. */
   channelId: string;
+  /** Address of the contract creator. */
   creator: string;
+  /** Whether created by a third party (not the channel owner). */
   isThirdParty: boolean;
 }
 
+/** Folded state of the CreatorAssuranceContractFactory. */
 export interface CreatorContractsState {
+  /** Map from contract address (lowercased) to CreatorContractInfo. */
   contracts: Map<string, CreatorContractInfo>;
 }
 
+/**
+ * Fold CreatorContractCreated events into a map of known contracts.
+ */
 export function foldCreatorContracts(events: CreatorContractCreatedEvent[]): CreatorContractsState {
   const contracts = new Map<string, CreatorContractInfo>();
 
@@ -133,6 +177,7 @@ export function foldCreatorContracts(events: CreatorContractCreatedEvent[]): Cre
   return { contracts };
 }
 
+/** Combined folded state across all four content-funding contracts. */
 export interface ContentFundingState {
   contentRegistry: ContentRegistryState;
   channelRegistry: ChannelRegistryState;
@@ -140,6 +185,15 @@ export interface ContentFundingState {
   creatorContracts: CreatorContractsState;
 }
 
+/**
+ * Fold events from all four content-funding contracts into a single state object.
+ *
+ * @param contentRegistryEvents - ContentItemRegistered and ContentItemReleased events
+ * @param channelRegistryEvents - ChannelVerified and ChannelControlTaken events
+ * @param channelEscrowEvents - Deposited and Withdrawn events
+ * @param creatorContractEvents - CreatorContractCreated events
+ * @returns Combined ContentFundingState
+ */
 export function foldAllContentFundingEvents(
   contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
   channelRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[],

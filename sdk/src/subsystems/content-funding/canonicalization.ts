@@ -1,7 +1,9 @@
 import { keccak256, stringToBytes, type Hex } from 'viem';
 
+/** Supported content platforms for the content-funding subsystem. */
 export type ContentFundingPlatform = 'twitter' | 'youtube' | 'substack';
 
+/** Error codes for content-funding URL/ID canonicalization failures. */
 export type ContentFundingCanonicalizationErrorCode =
   | 'invalid_url'
   | 'unsupported_platform'
@@ -12,7 +14,14 @@ export type ContentFundingCanonicalizationErrorCode =
   | 'invalid_channel_id'
   | 'invalid_content_suffix';
 
+/**
+ * Error thrown when a content-funding URL or canonical ID cannot be parsed.
+ *
+ * The `code` property identifies the specific failure reason, making it easy
+ * to provide targeted user-facing error messages.
+ */
 export class ContentFundingCanonicalizationError extends Error {
+  /** Machine-readable error code identifying the failure reason. */
   readonly code: ContentFundingCanonicalizationErrorCode;
 
   constructor(code: ContentFundingCanonicalizationErrorCode, message: string) {
@@ -22,30 +31,42 @@ export class ContentFundingCanonicalizationError extends Error {
   }
 }
 
+/** Result of parsing a Twitter/X tweet URL. */
 export interface ParsedTwitterStatusUrl {
   platform: 'twitter';
+  /** Numeric tweet ID. */
   tweetId: string;
+  /** Twitter handle (with @ prefix), if present in the URL. */
   handle?: string;
 }
 
+/** Result of parsing a YouTube video URL. */
 export interface ParsedYouTubeVideoUrl {
   platform: 'youtube';
+  /** 11-character YouTube video ID. */
   videoId: string;
 }
 
+/** Result of parsing a Substack post URL. */
 export interface ParsedSubstackPostUrl {
   platform: 'substack';
+  /** Substack publication subdomain slug. */
   publication: string;
+  /** Post slug from the `/p/<slug>` path. */
   slug: string;
 }
 
+/** Discriminated union of all supported parsed content-funding URLs. */
 export type ParsedContentFundingUrl =
   | ParsedTwitterStatusUrl
   | ParsedYouTubeVideoUrl
   | ParsedSubstackPostUrl;
 
+/** Result of parsing a canonical channel ID string back into its components. */
 export interface ParsedCanonicalChannelId {
+  /** Platform the channel belongs to. */
   platform: ContentFundingPlatform;
+  /** Platform-specific stable identifier (e.g. numeric Twitter user ID, UC-prefixed YouTube channel ID). */
   stableId: string;
 }
 
@@ -59,6 +80,16 @@ const SUBSTACK_SLUG_PATTERN = /^[A-Za-z0-9-]+$/;
 const TWITTER_CHANNEL_ID_PATTERN = /^\d+$/;
 const YOUTUBE_CHANNEL_ID_PATTERN = /^UC[A-Za-z0-9_-]+$/;
 
+/**
+ * Parse a content URL into its platform-specific components.
+ *
+ * Detects the platform from the URL hostname and delegates to the
+ * appropriate platform-specific parser.
+ *
+ * @param rawUrl - Full URL to a tweet, YouTube video, or Substack post
+ * @returns Parsed URL with platform-specific fields
+ * @throws {@link ContentFundingCanonicalizationError} if the URL is invalid or from an unsupported platform
+ */
 export function parseContentFundingUrl(rawUrl: string): ParsedContentFundingUrl {
   const url = parseUrl(rawUrl);
   const host = url.hostname.toLowerCase();
@@ -79,6 +110,16 @@ export function parseContentFundingUrl(rawUrl: string): ParsedContentFundingUrl 
   );
 }
 
+/**
+ * Parse a Twitter/X tweet URL into its components.
+ *
+ * Supports both `twitter.com` and `x.com` hosts, as well as the
+ * `/i/web/status/<id>` and `/<handle>/status/<id>` URL formats.
+ *
+ * @param rawUrl - Full Twitter/X tweet URL
+ * @returns Parsed tweet ID and optional handle
+ * @throws {@link ContentFundingCanonicalizationError} with code `invalid_twitter_url`
+ */
 export function parseTwitterStatusUrl(rawUrl: string): ParsedTwitterStatusUrl {
   const url = parseUrl(rawUrl);
   const host = url.hostname.toLowerCase();
@@ -121,6 +162,16 @@ export function parseTwitterStatusUrl(rawUrl: string): ParsedTwitterStatusUrl {
   };
 }
 
+/**
+ * Parse a YouTube video URL into its components.
+ *
+ * Supports `youtube.com/watch?v=`, `youtube.com/shorts/`, `youtube.com/embed/`,
+ * and `youtu.be/` short URLs.
+ *
+ * @param rawUrl - Full YouTube video URL
+ * @returns Parsed 11-character video ID
+ * @throws {@link ContentFundingCanonicalizationError} with code `invalid_youtube_url`
+ */
 export function parseYouTubeVideoUrl(rawUrl: string): ParsedYouTubeVideoUrl {
   const url = parseUrl(rawUrl);
   const host = url.hostname.toLowerCase();
@@ -156,6 +207,16 @@ export function parseYouTubeVideoUrl(rawUrl: string): ParsedYouTubeVideoUrl {
   };
 }
 
+/**
+ * Parse a Substack post URL into its components.
+ *
+ * Only `*.substack.com` URLs are supported; custom domains are rejected.
+ * The URL must follow the `/p/<slug>` path format.
+ *
+ * @param rawUrl - Full Substack post URL (e.g. `https://example.substack.com/p/my-post`)
+ * @returns Parsed publication name and post slug
+ * @throws {@link ContentFundingCanonicalizationError} with code `invalid_substack_url` or `unsupported_substack_custom_domain`
+ */
 export function parseSubstackPostUrl(rawUrl: string): ParsedSubstackPostUrl {
   const url = parseUrl(rawUrl);
   const host = url.hostname.toLowerCase();
@@ -198,6 +259,19 @@ export function parseSubstackPostUrl(rawUrl: string): ParsedSubstackPostUrl {
   };
 }
 
+/**
+ * Build a canonical channel ID string from a platform and stable identifier.
+ *
+ * Canonical channel ID formats:
+ * - Twitter: `"twitter:uid:<numericUserId>"`
+ * - YouTube: `"youtube:channel:<UCchannelId>"`
+ * - Substack: `"substack:<publicationSlug>"`
+ *
+ * @param platform - Content platform
+ * @param stableId - Platform-specific stable identifier
+ * @returns Canonical channel ID string
+ * @throws {@link ContentFundingCanonicalizationError} with code `invalid_channel_id`
+ */
 export function buildCanonicalChannelId(
   platform: ContentFundingPlatform,
   stableId: string,
@@ -232,6 +306,13 @@ export function buildCanonicalChannelId(
   }
 }
 
+/**
+ * Parse a canonical channel ID string back into its platform and stable ID components.
+ *
+ * @param channelId - Canonical channel ID (e.g. `"twitter:uid:123"`, `"youtube:channel:UCxyz"`)
+ * @returns Parsed platform and stable ID
+ * @throws {@link ContentFundingCanonicalizationError} with code `invalid_channel_id`
+ */
 export function parseCanonicalChannelId(channelId: string): ParsedCanonicalChannelId {
   const twitterMatch = /^twitter:uid:(\d+)$/.exec(channelId);
   if (twitterMatch) {
@@ -254,6 +335,19 @@ export function parseCanonicalChannelId(channelId: string): ParsedCanonicalChann
   );
 }
 
+/**
+ * Build a canonical content ID by combining a channel ID with a content suffix.
+ *
+ * Content ID formats:
+ * - Twitter: `"twitter:uid:<userId>:<tweetId>"`
+ * - YouTube: `"youtube:channel:<channelId>:<videoId>"`
+ * - Substack: `"substack:<publication>/<slug>"`
+ *
+ * @param channelId - Canonical channel ID
+ * @param contentSuffix - Platform-specific content identifier (tweet ID, video ID, or post slug)
+ * @returns Canonical content ID string
+ * @throws {@link ContentFundingCanonicalizationError} with code `invalid_content_suffix`
+ */
 export function buildCanonicalContentId(channelId: string, contentSuffix: string): string {
   const parsedChannelId = parseCanonicalChannelId(channelId);
 
@@ -285,6 +379,12 @@ export function buildCanonicalContentId(channelId: string, contentSuffix: string
   }
 }
 
+/**
+ * Compute the keccak256 hash of a canonical ID string for on-chain storage.
+ *
+ * @param canonicalId - Canonical channel or content ID string
+ * @returns 32-byte keccak256 hash as a hex string
+ */
 export function hashCanonicalId(canonicalId: string): Hex {
   return keccak256(stringToBytes(canonicalId));
 }

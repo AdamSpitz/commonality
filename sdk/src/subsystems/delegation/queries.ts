@@ -76,7 +76,11 @@ function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDel
 // ============================================================================
 
 /**
- * Get a note by ID
+ * Get a delegatable note by its ID.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param noteId - Unique identifier of the note
+ * @returns The note, or null if not found
  */
 export async function getNote(
   machinery: SDKMachinery,
@@ -89,7 +93,11 @@ export async function getNote(
 }
 
 /**
- * Get all notes owned by a specific address (as leaf owner)
+ * Get all active notes currently owned by a specific address (as leaf owner).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param ownerAddress - Ethereum address of the current note owner
+ * @returns Array of active notes owned by this address
  */
 export async function getNotesByOwner(
   machinery: SDKMachinery,
@@ -106,7 +114,13 @@ export async function getNotesByOwner(
 }
 
 /**
- * Get all notes deposited by a specific address (as root)
+ * Get all notes originally deposited by a specific address (as root owner).
+ *
+ * Includes both active and consumed/revoked notes.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param rootAddress - Ethereum address of the root depositor
+ * @returns Array of notes where this address is the root owner
  */
 export async function getNotesByRoot(
   machinery: SDKMachinery,
@@ -123,7 +137,14 @@ export async function getNotesByRoot(
 }
 
 /**
- * Get the full delegation chain for a note
+ * Get the full delegation chain for a note.
+ *
+ * Returns an ordered list of chain links from root to current owner,
+ * showing each delegation step.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param noteId - Unique identifier of the note
+ * @returns Array of delegation chain links (empty if note not found)
  */
 export async function getDelegationChain(
   machinery: SDKMachinery,
@@ -140,7 +161,13 @@ export async function getDelegationChain(
 // ============================================================================
 
 /**
- * Get a specific note intent attestation by attester + noteContract + noteId
+ * Get a specific note intent attestation by attester, note contract, and note ID.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param attester - Ethereum address of the attester
+ * @param noteContract - Address of the note contract
+ * @param noteId - Unique identifier of the note
+ * @returns The attestation, or null if not found
  */
 export async function getNoteIntentAttestation(
   machinery: SDKMachinery,
@@ -166,7 +193,12 @@ export async function getNoteIntentAttestation(
 }
 
 /**
- * Get all note intent attestations for a specific note (across all attesters)
+ * Get all note intent attestations for a specific note across all attesters.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param noteContract - Address of the note contract
+ * @param noteId - Unique identifier of the note
+ * @returns Array of intent attestations for this note
  */
 export async function getNoteIntentAttestationsByNote(
   machinery: SDKMachinery,
@@ -189,7 +221,14 @@ export async function getNoteIntentAttestationsByNote(
 }
 
 /**
- * Get all note intent attestations for a specific statement
+ * Get all note intent attestations targeting a specific statement.
+ *
+ * Since `intendedStatementId` is not indexed on-chain, this fetches all
+ * NoteIntentAttested events and filters client-side.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param intendedStatementId - CID of the intended statement
+ * @returns Array of intent attestations targeting this statement
  */
 export async function getNoteIntentAttestationsByStatement(
   machinery: SDKMachinery,
@@ -216,8 +255,14 @@ export async function getNoteIntentAttestationsByStatement(
 // ============================================================================
 
 /**
- * Get "purchased" note events for a given set of transaction hashes.
- * Used to identify which contributions were made via delegatable notes.
+ * Get ERC1155Purchased note events matching a set of transaction hashes.
+ *
+ * Used to identify which crowdfunding contributions were made via delegatable notes,
+ * typically for building leaderboard delegation chains.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param transactionHashes - Transaction hashes to match against
+ * @returns Array of NoteEvent records (one per input note used in each purchase)
  */
 export async function getPurchasedNoteEventsByTxHashes(
   machinery: SDKMachinery,
@@ -257,7 +302,13 @@ export async function getPurchasedNoteEventsByTxHashes(
 
 /**
  * Batch-fetch delegation chains for multiple note IDs.
- * Returns chain links with noteId included for grouping.
+ *
+ * Returns chain links enriched with the noteId for grouping. Sorted by
+ * noteId then position within the chain.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param noteIds - Array of note IDs to fetch chains for
+ * @returns Array of chain links with noteId, sorted by noteId then position
  */
 export async function getDelegationChainsForNotes(
   machinery: SDKMachinery,

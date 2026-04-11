@@ -1,11 +1,26 @@
 import { type Address, type Hash, type Abi } from 'viem';
 import { type TestClients } from '../../utils/ethereum.js';
 
+/** Contract instance for the TrustRegistry. */
 export interface TrustRegistryContract {
   address: Address;
   abi: Abi;
 }
 
+/**
+ * Set the caller's direct trust score for another address.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param trustRegistryContract - The TrustRegistry contract instance
+ * @param trustee - Address to assign a trust score to
+ * @param score - Trust score (1–100 to trust, 0 to revoke)
+ * @returns Transaction hash
+ *
+ * @example
+ * ```typescript
+ * await setTrust(clients, trustRegistry, bobAddress, 80);
+ * ```
+ */
 export async function setTrust(
   clients: TestClients,
   trustRegistryContract: TrustRegistryContract,
@@ -25,6 +40,15 @@ export async function setTrust(
   return hash;
 }
 
+/**
+ * Set the caller's direct trust scores for multiple addresses in one transaction.
+ *
+ * @param clients - Wallet and public clients for blockchain interaction
+ * @param trustRegistryContract - The TrustRegistry contract instance
+ * @param trustees - Addresses to assign trust scores to
+ * @param scores - Trust scores (1–100 to trust, 0 to revoke); must match trustees length
+ * @returns Transaction hash
+ */
 export async function setTrustBatch(
   clients: TestClients,
   trustRegistryContract: TrustRegistryContract,

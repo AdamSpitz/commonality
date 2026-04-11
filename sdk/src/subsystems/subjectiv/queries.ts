@@ -36,6 +36,13 @@ function decodeTrustSetEvents(
   });
 }
 
+/**
+ * Get a user's direct trust mapping — all addresses they explicitly trust and the scores.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param trusterAddress - Ethereum address of the truster
+ * @returns Map from trustee address (lowercased) to trust score (1–100)
+ */
 export async function getDirectTrustMapping(
   machinery: SDKMachinery,
   trusterAddress: string
@@ -50,6 +57,17 @@ export async function getDirectTrustMapping(
   return foldDirectTrustMapping(decodeTrustSetEvents(rawEvents));
 }
 
+/**
+ * Compute the transitive trust mapping for a user by traversing the trust graph.
+ *
+ * Uses BFS through the on-chain trust graph: if A trusts B at 80% and B trusts C
+ * at 50%, A's transitive trust of C is (80 * 50) / 100 = 40%.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param trusterAddress - Ethereum address of the root truster
+ * @param options - Computation options (maxHops, minScore, caching, progress)
+ * @returns Map from address (lowercased) to cumulative transitive trust score
+ */
 export async function getTransitiveTrustMapping(
   machinery: SDKMachinery,
   trusterAddress: string,
@@ -62,6 +80,18 @@ export async function getTransitiveTrustMapping(
   );
 }
 
+/**
+ * Pure computation of transitive trust from any direct-trust data source.
+ *
+ * This is the underlying BFS algorithm used by {@link getTransitiveTrustMapping}.
+ * Accepts a custom `getDirectTrust` function so it can be used with
+ * mock data or alternative data sources.
+ *
+ * @param getDirectTrust - Async function that returns a user's direct trust mapping
+ * @param trusterAddress - Ethereum address of the root truster
+ * @param options - Computation options (maxHops, minScore, caching, progress)
+ * @returns Map from address (lowercased) to cumulative transitive trust score
+ */
 export async function computeTransitiveTrustMapping(
   getDirectTrust: (address: string) => Promise<DirectTrustMapping>,
   trusterAddress: string,
@@ -137,6 +167,17 @@ export async function computeTransitiveTrustMapping(
   return bestScores;
 }
 
+/**
+ * Get the set of all addresses transitively trusted by a user.
+ *
+ * Convenience wrapper around {@link getTransitiveTrustMapping} that returns
+ * just the set of addresses (discarding scores).
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param trusterAddress - Ethereum address of the root truster
+ * @param options - Computation options (maxHops, minScore, caching, progress)
+ * @returns Set of trusted addresses (lowercased)
+ */
 export async function getTrustedSet(
   machinery: SDKMachinery,
   trusterAddress: string,
