@@ -6,6 +6,7 @@
   - Work more on the user docs. See [here](specs/docs/user-docs.md).
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
     - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
+  - [Support multiple currencies](./specs/currency.md). (Requiring funds to be escrowed as ETH is maybe not what we want.)
 
 ## Other things to do soon
 
@@ -38,4 +39,3 @@ Founder-level stuff:
 
 Out of scope for the MVP, but I still want to remember that these are important and not done yet:
   - [Bridges](specs/bridges.md) to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.
-  - Stablecoins. (Requiring funds to be escrowed as ETH is maybe not what we want.)

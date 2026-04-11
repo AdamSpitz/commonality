@@ -17,7 +17,8 @@ Should we just straight-up *convert* to *only* using the stablecoin, or should w
 One thought about DAI vs USDC: if the long-term plan (post MVP) is to offer the ability for each assurance contract to choose, then we don't actually need to worry so much about whether the one token that we choose for now is censorship-resistant or not. Just use USDC if that's easier, and later on we can open it up so that contracts that care about censorship-resistance can use DAI or ETH or whatever they want.
 
 Okay, let's try:
+  - Generalize the smart contracts so that they can work with any arbitrary ERC-20 token, but make each assurance contract specify in the constructor which particular token to accept. (What's the standard way of doing ETH? Do we do wETH so that it's all ERC-20, or do we special-case the code to use ETH directly?)
+  - For now we can at least make our queries and so on be explicit about which currency, rather than assuming ETH. (If you need to make a sum of X ETH + Y USDC, just store that as "X ETH and Y USDC"; maybe we'll find an exchange rate and convert to a single scalar at the very end for display if necessary.)
   - For MVP production, USDC only.
-  - For MVP dev/testing, maybe ETH is fine for ease of testing?
-  - Maybe for now we can at least make our queries and stuff be explicit about which currency, rather than assuming ETH.
+  - For MVP dev/testing, using ETH is fine for ease of testing.
   - Post-MVP: let each assurance contract choose which token.
