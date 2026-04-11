@@ -268,3 +268,5 @@ See [./testing/README.md](./testing/README.md).
     - Gaming/scamming/abuse prevention session: have a dedicated chat session to identify attack vectors and protections.
     - Marketing session: Dedicated planning for exposure and promotion.
       - Strategic outreach: Approaching Turning Point USA, Daily Wire, Jordan Peterson, etc. with a working prototype. It may not actually be that hard to get them to support this, if we've got something that basically works.
+    - [Currency](./currency.md): is ETH-only viable, or do we need to support stablecoins?
+
