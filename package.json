@@ -10,9 +10,11 @@
     "hardhat",
     "indexer",
     "attester-core",
+    "finder-core",
     "implication-attester",
     "content-attester",
-    "finder",
+    "implication-finder",
+    "content-finder",
     "platform-api-service",
     "fake-data-generation",
     "ui"

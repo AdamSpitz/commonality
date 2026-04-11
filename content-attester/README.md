@@ -48,6 +48,9 @@ ESTIMATED_OUTPUT_TOKENS=400
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=10
+
+# Optional finder bypass
+TRUSTED_FINDER_KEY=shared-secret-for-content-finders
 ```
 
 ## API Endpoints
@@ -98,3 +101,9 @@ Shared health endpoint from `attester-core`.
 ### GET /status/:statementCid/:contentCanonicalId
 
 Shared placeholder status endpoint from `attester-core`.
+
+### POST /evaluate-content-batch
+
+Evaluate multiple content items in a single request. Maximum batch size is 10.
+
+This endpoint is intended for trusted finder services. If `TRUSTED_FINDER_KEY` is configured, callers can provide that value in the `X-Finder-Key` header to bypass the x402 payment flow.

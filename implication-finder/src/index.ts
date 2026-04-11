@@ -1,3 +1,4 @@
+import { runPollingFinder } from '@commonality/finder-core';
 import { type SDKMachinery } from '@commonality/sdk';
 import { loadConfig } from './config.js';
 import { loadState, saveState, pairKey } from './state.js';
@@ -138,23 +139,16 @@ async function runOnce(stateFilePath: string): Promise<void> {
 }
 
 async function main() {
-  console.log('Implication Finder starting.');
   console.log(`  Event cache: ${config.eventCacheUrl}`);
   console.log(`  Attester: ${config.attesterUrl}`);
-  console.log(`  Poll interval: ${config.pollIntervalMs}ms`);
   console.log(`  Top N statements: ${config.topNStatements}`);
   console.log(`  Min believer threshold: ${config.minBelieverThreshold}`);
 
-  // Run immediately, then on interval.
-  while (true) {
-    try {
-      await runOnce(config.stateFilePath);
-    } catch (error) {
-      console.error('Error in poll cycle:', error);
-    }
-
-    await new Promise(resolve => setTimeout(resolve, config.pollIntervalMs));
-  }
+  await runPollingFinder({
+    serviceName: 'Implication Finder',
+    pollIntervalMs: config.pollIntervalMs,
+    runOnce: () => runOnce(config.stateFilePath),
+  });
 }
 
 main();

@@ -28,6 +28,7 @@ export interface ContentAttesterConfig {
   rateLimitMaxRequests: number;
   attesterName: string;
   promptTemplate: string;
+  trustedFinderKey?: string;
 }
 
 export function loadConfig(): ContentAttesterConfig {
@@ -66,6 +67,7 @@ export function loadConfig(): ContentAttesterConfig {
     rateLimitMaxRequests: readNumberEnv('RATE_LIMIT_MAX_REQUESTS', 10),
     attesterName: readStringEnv('CONTENT_ATTESTER_NAME', 'content-attester'),
     promptTemplate,
+    trustedFinderKey: process.env.TRUSTED_FINDER_KEY,
   };
 }
 

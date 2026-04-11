@@ -19,6 +19,7 @@ const testConfig: ContentAttesterAppConfig = {
   alignmentTopicStatementCid: 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as IpfsCidV1,
   attesterName: 'test-attester',
   promptTemplate: '{content}\n{declared_perspective_context}',
+  trustedFinderKey: 'trusted-finder-key',
 };
 
 async function withServer(
@@ -189,6 +190,39 @@ describe('content attester HTTP app', () => {
       assert.strictEqual(json.explanationCid, 'bafybeiexplanationcid');
       assert.strictEqual(json.decision, true);
       assert.ok(typeof json.subjectId === 'string');
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('accepts finder-authenticated batch evaluations without payment proof', async () => {
+    const server = await withServer();
+
+    try {
+      const response = await fetch(`${server.baseUrl}/evaluate-content-batch`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-finder-key': 'trusted-finder-key',
+        },
+        body: JSON.stringify({
+          evaluations: [
+            {
+              contentCanonicalId: 'twitter:uid:12345678:18347',
+              statementCid: 'bafybeistatementcid',
+              contentText: 'text',
+            },
+          ],
+        }),
+      });
+
+      assert.strictEqual(response.status, 200);
+      const json = await response.json() as Record<string, unknown>;
+      assert.strictEqual(json.total, 1);
+      assert.strictEqual(json.successful, 1);
+      const results = json.results as Array<Record<string, unknown>>;
+      assert.strictEqual(results[0]?.success, true);
+      assert.strictEqual(results[0]?.transactionHash, '0xabc123');
     } finally {
       await server.close();
     }

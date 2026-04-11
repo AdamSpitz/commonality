@@ -1,0 +1,29 @@
+{
+  "name": "@commonality/content-finder",
+  "version": "0.1.0",
+  "description": "Content Finder service - resolves submitted content candidates and requests content attester evaluations",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "mocha",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@commonality/finder-core": "0.1.0",
+    "@commonality/sdk": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.10.0",
+    "eslint": "^9.39.1",
+    "mocha": "^10.8.2",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.46.4"
+  }
+}

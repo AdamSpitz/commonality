@@ -18,7 +18,10 @@ import {
 import type { Express } from 'express';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
-import type { ContentAttesterEvaluationResult } from './evaluator.js';
+import type {
+  ContentAttesterDimensionScore,
+  ContentAttesterEvaluationResult,
+} from './evaluator.js';
 import type { ContentSource } from './content.js';
 
 export interface ContentAttesterAppConfig extends CommonAttesterConfigSnapshot {
@@ -32,6 +35,7 @@ export interface ContentAttesterAppConfig extends CommonAttesterConfigSnapshot {
   alignmentTopicStatementCid: IpfsCidV1;
   attesterName: string;
   promptTemplate: string;
+  trustedFinderKey?: string;
 }
 
 export interface EvaluateContentRequest {
@@ -41,6 +45,28 @@ export interface EvaluateContentRequest {
   contentUrl?: string;
   contentCid?: IpfsCidV1;
   declaredPerspective?: string;
+}
+
+interface BatchEvaluateContentRequest {
+  evaluations: EvaluateContentRequest[];
+}
+
+interface BatchEvaluateContentResult {
+  contentCanonicalId: string;
+  statementCid: IpfsCidV1;
+  success: boolean;
+  decision?: boolean;
+  confidence?: 'high' | 'medium' | 'low';
+  reasoning?: string;
+  dimensions?: Record<string, ContentAttesterDimensionScore>;
+  subjectId?: string;
+  explanationCid?: string | null;
+  transactionHash?: string | null;
+  error?: string;
+  errorCode?: string;
+  errorDetails?: unknown;
+  statusCode?: number;
+  processingTime: number;
 }
 
 export interface ContentAttesterAppDependencies {
@@ -67,6 +93,120 @@ export interface ContentAttesterAppDependencies {
   version: string;
 }
 
+function validateEvaluateContentRequest(body: EvaluateContentRequest): string | null {
+  const sourceCount = [body.contentText, body.contentUrl, body.contentCid].filter(Boolean).length;
+
+  if (!body.contentCanonicalId || !body.statementCid) {
+    return 'Missing required fields: contentCanonicalId, statementCid';
+  }
+
+  if (sourceCount !== 1) {
+    return 'Provide exactly one of contentText, contentUrl, or contentCid';
+  }
+
+  return null;
+}
+
+async function evaluateSingleContentRequest(
+  dependencies: ContentAttesterAppDependencies,
+  body: EvaluateContentRequest,
+): Promise<BatchEvaluateContentResult> {
+  const startTime = Date.now();
+  const config = dependencies.getConfig();
+  const ipfsConfig = dependencies.getIpfsConfig(config);
+  const content = await dependencies.resolveContent(
+    {
+      contentText: body.contentText,
+      contentUrl: body.contentUrl,
+      contentCid: body.contentCid,
+    } as ContentSource,
+    ipfsConfig,
+  );
+
+  const evaluation = await dependencies.evaluateContent({
+    content,
+    declaredPerspective: body.declaredPerspective,
+    apiKey: config.openRouterApiKey,
+    model: config.openRouterModel,
+    promptTemplate: config.promptTemplate,
+    attesterName: config.attesterName,
+  });
+
+  if (!evaluation.decision || evaluation.confidence === 'low') {
+    return {
+      contentCanonicalId: body.contentCanonicalId,
+      statementCid: body.statementCid,
+      success: true,
+      decision: evaluation.decision,
+      confidence: evaluation.confidence,
+      reasoning: evaluation.reasoning,
+      dimensions: evaluation.dimensions,
+      subjectId: getSubjectIdForContentCanonicalId(body.contentCanonicalId),
+      explanationCid: null,
+      transactionHash: null,
+      processingTime: Date.now() - startTime,
+    };
+  }
+
+  const explanationPayload = {
+    attesterName: config.attesterName,
+    contentCanonicalId: body.contentCanonicalId,
+    statementCid: body.statementCid,
+    decision: evaluation.decision,
+    confidence: evaluation.confidence,
+    reasoning: evaluation.reasoning,
+    dimensions: evaluation.dimensions,
+    declaredPerspective: body.declaredPerspective ?? null,
+    timestamp: new Date().toISOString(),
+  };
+
+  const uploadResult = await dependencies.uploadExplanation(
+    ipfsConfig,
+    JSON.stringify(explanationPayload),
+  );
+  const explanationCid = uploadResult.cid as IpfsCidV1;
+
+  try {
+    const transactionHash = await dependencies.publishAttestation(
+      body.contentCanonicalId,
+      body.statementCid,
+      config.alignmentTopicStatementCid,
+    );
+
+    return {
+      contentCanonicalId: body.contentCanonicalId,
+      statementCid: body.statementCid,
+      success: true,
+      decision: evaluation.decision,
+      confidence: evaluation.confidence,
+      reasoning: evaluation.reasoning,
+      dimensions: evaluation.dimensions,
+      subjectId: getSubjectIdForContentCanonicalId(body.contentCanonicalId),
+      explanationCid,
+      transactionHash,
+      processingTime: Date.now() - startTime,
+    };
+  } catch (error) {
+    const blockchainError = classifyBlockchainError(error);
+    const formattedError = formatBlockchainError(blockchainError);
+    return {
+      contentCanonicalId: body.contentCanonicalId,
+      statementCid: body.statementCid,
+      success: false,
+      decision: evaluation.decision,
+      confidence: evaluation.confidence,
+      reasoning: evaluation.reasoning,
+      dimensions: evaluation.dimensions,
+      explanationCid,
+      error: formattedError.message,
+      errorCode: blockchainError.code,
+      errorDetails: formattedError.details,
+      statusCode: getHttpStatusForError(blockchainError),
+      processingTime: Date.now() - startTime,
+    };
+  }
+}
+
 export function createContentAttesterServiceApp(
   dependencies: ContentAttesterAppDependencies,
 ): Express {
@@ -78,6 +218,12 @@ export function createContentAttesterServiceApp(
   });
 
   async function requirePayment(req: Request, res: Response, next: NextFunction) {
+    const trustedFinderKey = dependencies.getConfig().trustedFinderKey;
+    if (trustedFinderKey && req.headers['x-finder-key'] === trustedFinderKey) {
+      next();
+      return;
+    }
+
     const xPaymentProof = req.headers['x-payment-proof'] as string | undefined;
     const paymentId = getPaymentFromHeader(xPaymentProof);
 
@@ -109,114 +255,42 @@ export function createContentAttesterServiceApp(
   });
 
   app.post('/evaluate-content', evaluationRateLimiter, requirePayment, async (req: Request, res: Response) => {
-    const startTime = Date.now();
+    const body = req.body as EvaluateContentRequest;
+    const validationError = validateEvaluateContentRequest(body);
+    if (validationError) {
+      res.status(400).json({
+        error: 'invalid_request',
+        message: validationError,
+      });
+      return;
+    }
 
     try {
-      const body = req.body as EvaluateContentRequest;
-      const sourceCount = [body.contentText, body.contentUrl, body.contentCid].filter(Boolean).length;
-
-      if (!body.contentCanonicalId || !body.statementCid) {
-        res.status(400).json({
-          error: 'invalid_request',
-          message: 'Missing required fields: contentCanonicalId, statementCid',
-        });
-        return;
-      }
-
-      if (sourceCount !== 1) {
-        res.status(400).json({
-          error: 'invalid_request',
-          message: 'Provide exactly one of contentText, contentUrl, or contentCid',
-        });
-        return;
-      }
-
-      const config = dependencies.getConfig();
-      const ipfsConfig = dependencies.getIpfsConfig(config);
-      const content = await dependencies.resolveContent(
-        {
-          contentText: body.contentText,
-          contentUrl: body.contentUrl,
-          contentCid: body.contentCid,
-        } as ContentSource,
-        ipfsConfig,
-      );
-
-      const evaluation = await dependencies.evaluateContent({
-        content,
-        declaredPerspective: body.declaredPerspective,
-        apiKey: config.openRouterApiKey,
-        model: config.openRouterModel,
-        promptTemplate: config.promptTemplate,
-        attesterName: config.attesterName,
-      });
-
-      if (!evaluation.decision || evaluation.confidence === 'low') {
-        res.json({
-          alreadyAttested: false,
-          decision: evaluation.decision,
-          confidence: evaluation.confidence,
-          reasoning: evaluation.reasoning,
-          dimensions: evaluation.dimensions,
-          subjectId: getSubjectIdForContentCanonicalId(body.contentCanonicalId),
-          explanationCid: null,
-          transactionHash: null,
-          processingTime: Date.now() - startTime,
-        });
-        return;
-      }
-
-      const explanationPayload = {
-        attesterName: config.attesterName,
-        contentCanonicalId: body.contentCanonicalId,
-        statementCid: body.statementCid,
-        decision: evaluation.decision,
-        confidence: evaluation.confidence,
-        reasoning: evaluation.reasoning,
-        dimensions: evaluation.dimensions,
-        declaredPerspective: body.declaredPerspective ?? null,
-        timestamp: new Date().toISOString(),
-      };
-
-      const uploadResult = await dependencies.uploadExplanation(
-        ipfsConfig,
-        JSON.stringify(explanationPayload),
-      );
-      const explanationCid = uploadResult.cid as IpfsCidV1;
-
-      let transactionHash: string;
-      try {
-        transactionHash = await dependencies.publishAttestation(
-          body.contentCanonicalId,
-          body.statementCid,
-          config.alignmentTopicStatementCid,
-        );
-      } catch (error) {
-        const blockchainError = classifyBlockchainError(error);
-        const formattedError = formatBlockchainError(blockchainError);
-        res.status(getHttpStatusForError(blockchainError)).json({
-          error: blockchainError.code,
-          message: formattedError.message,
-          details: formattedError.details,
-          decision: evaluation.decision,
-          confidence: evaluation.confidence,
-          reasoning: evaluation.reasoning,
-          dimensions: evaluation.dimensions,
-          explanationCid,
+      const result = await evaluateSingleContentRequest(dependencies, body);
+      if (!result.success) {
+        res.status(result.statusCode ?? 502).json({
+          error: result.errorCode ?? 'attestation_failed',
+          message: result.error,
+          details: result.errorDetails,
+          decision: result.decision,
+          confidence: result.confidence,
+          reasoning: result.reasoning,
+          dimensions: result.dimensions,
+          explanationCid: result.explanationCid,
         });
         return;
       }
 
       res.json({
         alreadyAttested: false,
-        decision: evaluation.decision,
-        confidence: evaluation.confidence,
-        reasoning: evaluation.reasoning,
-        dimensions: evaluation.dimensions,
-        subjectId: getSubjectIdForContentCanonicalId(body.contentCanonicalId),
-        explanationCid,
-        transactionHash,
-        processingTime: Date.now() - startTime,
+        decision: result.decision,
+        confidence: result.confidence,
+        reasoning: result.reasoning,
+        dimensions: result.dimensions,
+        subjectId: result.subjectId,
+        explanationCid: result.explanationCid,
+        transactionHash: result.transactionHash,
+        processingTime: result.processingTime,
       });
     } catch (error) {
       const blockchainError = classifyBlockchainError(error);
@@ -235,6 +309,65 @@ export function createContentAttesterServiceApp(
         message: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     }
+  });
+
+  app.post('/evaluate-content-batch', evaluationRateLimiter, requirePayment, async (req: Request, res: Response) => {
+    const { evaluations } = req.body as BatchEvaluateContentRequest;
+
+    if (!Array.isArray(evaluations) || evaluations.length === 0) {
+      res.status(400).json({
+        error: 'invalid_request',
+        message: 'Missing required field: evaluations (must be a non-empty array)',
+      });
+      return;
+    }
+
+    if (evaluations.length > 10) {
+      res.status(400).json({
+        error: 'batch_too_large',
+        message: 'Batch size exceeds maximum of 10 evaluations',
+        details: {
+          requested: evaluations.length,
+          maximum: 10,
+        },
+      });
+      return;
+    }
+
+    const results: BatchEvaluateContentResult[] = [];
+
+    for (const evaluation of evaluations) {
+      const validationError = validateEvaluateContentRequest(evaluation);
+      if (validationError) {
+        results.push({
+          contentCanonicalId: evaluation.contentCanonicalId,
+          statementCid: evaluation.statementCid,
+          success: false,
+          error: validationError,
+          processingTime: 0,
+        });
+        continue;
+      }
+
+      try {
+        results.push(await evaluateSingleContentRequest(dependencies, evaluation));
+      } catch (error) {
+        results.push({
+          contentCanonicalId: evaluation.contentCanonicalId,
+          statementCid: evaluation.statementCid,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unexpected error',
+          processingTime: 0,
+        });
+      }
+    }
+
+    res.json({
+      total: evaluations.length,
+      successful: results.filter((result) => result.success).length,
+      failed: results.filter((result) => !result.success).length,
+      results,
+    });
   });
 
   return app;

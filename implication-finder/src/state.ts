@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { loadJsonState, saveJsonState } from '@commonality/finder-core';
 
 export interface FinderState {
   /** Last block number we've processed up to. */
@@ -13,20 +13,21 @@ const EMPTY_STATE: FinderState = {
 };
 
 export async function loadState(filePath: string): Promise<FinderState> {
-  try {
-    const raw = await readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(raw) as FinderState;
-    return {
-      lastBlockSeen: parsed.lastBlockSeen ?? '0',
-      evaluatedPairs: parsed.evaluatedPairs ?? [],
-    };
-  } catch {
-    return { ...EMPTY_STATE };
-  }
+  return loadJsonState(
+    filePath,
+    (value: unknown) => {
+      const parsed = value as Partial<FinderState>;
+      return {
+        lastBlockSeen: parsed.lastBlockSeen ?? '0',
+        evaluatedPairs: parsed.evaluatedPairs ?? [],
+      };
+    },
+    () => ({ ...EMPTY_STATE }),
+  );
 }
 
 export async function saveState(filePath: string, state: FinderState): Promise<void> {
-  await writeFile(filePath, JSON.stringify(state, null, 2), 'utf-8');
+  await saveJsonState(filePath, state);
 }
 
 export function pairKey(fromCid: string, toCid: string): string {

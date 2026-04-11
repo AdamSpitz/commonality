@@ -1,7 +1,7 @@
 {
-  "name": "@commonality/finder",
+  "name": "@commonality/implication-finder",
   "version": "0.1.0",
-  "description": "Implication Finder service - watches for new statements and requests attester evaluations",
+  "description": "Implication Finder service - watches for new statements and requests implication attester evaluations",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@commonality/finder-core": "0.1.0",
     "@commonality/sdk": "1.0.0"
   },
   "devDependencies": {

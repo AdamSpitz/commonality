@@ -54,7 +54,9 @@ TODO: make these real markdown links
   - Platform API service: `platform-api-service/README.md`
   - Implication Attester AI: `implication-attester/README.md`
   - Content Attester AI: `content-attester/README.md`
-  - Finder AI: `finder/README.md`
+  - Finder Core: `finder-core/README.md`
+  - Implication Finder AI: `implication-finder/README.md`
+  - Content Finder AI: `content-finder/README.md`
 
 ## Other things worth noting
 
