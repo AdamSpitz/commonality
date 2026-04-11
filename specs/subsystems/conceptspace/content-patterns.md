@@ -1,6 +1,10 @@
 # Content patterns
 
-This isn't based on observation, this is based on our hopes and predictions.
+This document describes the kinds of content we expect and hope to see in the system — our hypotheses and predictions, not just observations of what's already there.
+
+See [seed-content](./seed-content.md) for our approach to creating the initial "seed" content using these patterns.
+
+---
 
 ## Hidden majorities
 
@@ -8,39 +12,90 @@ Commonality has the ability to **reveal hidden majorities** that the current pol
 
 The pattern: on many polarized issues, the two "sides" that dominate public discourse are actually minority positions. The actual majority holds a more nuanced view — but nobody knows it, because the current system forces everyone to pick a team, and each team's position is defined by its loudest members. The implication graph can make these hidden majorities visible.
 
-For each such issue, the seed content includes:
-- **Pole statements** (the positions the two parties rally around)
-- **Moderate-from-each-side statements** (what most people on each "side" actually think)
-- **A commonality statement** (the position that both moderates imply — probably the supermajority position, if anyone bothered to ask)
+For each such issue, we're expecting content to be (roughly) classifiable into categories like:
+- **Pole statements** — the positions the two parties rally around
+- **Moderate-from-each-side statements** — what most people on each "side" actually think
+- **A commonality statement** — the position that both moderates imply, which is probably the supermajority position if anyone bothered to ask
 
-The point isn't that moderate positions are always right. The point is that when a supermajority position *exists* but is *invisible* because the political system is structured around two coalitions that each bundle it with other things, that's a bug. The implication graph fixes it.
+Note that the proper phrasing for the moderate-from-each-side statements is probably "I'd prefer..." These are the statements that the moderates of each side actually believe; they just happen to be common-sense positions that have reasonable overlap with the other side's moderate position. Whereas the proper phrasing for the commonality statement is probably more like "I'd be okay with it if..." These aren't necessarily the statements that each side's moderates would *prefer* if they could have everything they wanted, but there's enough overlap that they'd be fine with it. (e.g. Abortion: moderate left might prefer for abortion to be available until *at least* 12 weeks, moderate right might prefer for abortion to be available until *at most* 16 weeks, so the compromise is 12-16 weeks, which isn't exactly either side's ideal but it's fine with the moderates on both sides.)
 
-What *use* is it to find these commonalities? Like, what kinds of things can be *done* with them, within the system?
-  - Write and sign statements. (Might be interesting just to see how many people support these positions. This will be more compelling once we implement optionally-anonymous account-linking to some sort of unique-human IDs, so that we can trust that the signers are people rather than bots and that no person has a thousand sock puppets.)
-  - Have fundable projects that position themselves as being aligned with these positions. Have funding portals for viewing many such projects. Have money (delegatable notes) pledged towards supporting projects like that.
+The point isn't that moderate positions are always right. The point is that when a supermajority position *exists* but is *invisible* because the political system is structured around two coalitions that (a) bundle it with other things, and (b) teach their side that the other side is full of nutty extremists who wouldn't support this obvious common-sense position... that's a bug the system fixes.
+
+**Why this matters for funding:**
+- Fundable projects can position themselves aligned with these commonality statements
+- If the hidden-majority thesis is right, projects aligned with these positions will attract funding from both "sides" without either side coordinating
+- This is the core demonstration of organic coalition-building
+
+**See also:** [seed-content/hidden-majority.md](./seed-content/hidden-majority.md) — concrete examples
+
+---
 
 ## Noninflammatory content funding
 
-We have a whole [social-media content funding](../content-funding/README.md) system, and one of the use cases for it that we hope to promote is [noninflammatory](../content-funding/noninflammatory-content/README.md) social media content.
+We have a [content-funding subsystem](../content-funding/README.md), and one of the use cases we hope to promote is **noninflammatory social media content** — content that communicates perspectives from one side but is written to be engaging to the other side rather than alienating.
 
-Pieces of this:
-  - Statements describing what kind of content we're talking about. (e.g. "Here's a post written from the right-wing perspective but written so as to *not* infuriate reasonable left-wingers.") We're [seeding](./seed-content.md) the system with a couple of basic ones like that, but I expect that people will want to:
-    - Improve those statements (make versions that say roughly the same thing but more to their liking).
-    - Make similar statements in other domains. (e.g. Between fans of different sports teams, or different kinds of music, or whatever.)
-    - Make specializations for particular areas. (e.g. Between left and right in Canada, or in Toronto.)
-  - Bots to identify content like that. (Again, we have bots for the basic left-right ones, but people may want to create others.)
-  - We have the ability to create "social-media content contracts" that tokenize social-media posts, so that people can invest in or donate to the creators of content like that.
-  - If you express interest (by signing a statement, or just by explicitly configuring your funding portal), your funding portal will show you such contracts.
-  - You can pledge money towards that kind of purpose.
+See the dedicated [content-funding/noninflammatory-content/README.md](../content-funding/noninflammatory-content/README.md) for the full analysis of this use case.
 
-So it would be worthwhile to have the documentation explicitly point out these patterns to people, so they can write/sign statements, pledge money, create content contracts, etc.
+**The core pattern:**
 
+1. **Statements describing what kind of content** — e.g., "I'm interested in content that communicates right-wing perspectives in a way that won't piss off left-wingers"
 
-## Causes that we think are likely good early use cases for Commonality
+2. **Content attesters** that identify content matching these criteria
 
-Just guessing, but:
-  - crypto (because this is a decentralized system)
-  - meta-systems for funding public goods (including dev work on Commonality itself!) (because this is a system for funding public goods, so the early users are likely to be interested in that)
-  - churches collecting money for various purposes (helping community members in need, supporting missions, etc.; TODO: AI, could you flesh this out with some general knowledge of what kinds of causes churches collect for?): might be too conservative/normie to try something weird like this, but it might (a) tap into a group of people who are genuinely willing to donate, and (b) solve a real coordination problem (because each church is small, so any projects that might elicit donations from multiple churches require coordination of some sort)
-  - right-wing stuff in general?: I generally get the sense that the government (especially in Canada where I am, but also in the US) is funnelling huge amounts of money towards left-coded public goods, but hostile to right-coded ones
-  - small local community projects? (e.g. slide in a park? except there's probably a ton of regulations) (e.g. run a street-wide party): point is just to start small and local.
+3. **Content contracts** that let people fund creators of such content
+
+4. **Funding portals** that show these contracts to people who declared interest
+
+**Why this is a natural fit:**
+- It's a textbook market failure. Inflammatory content generates engagement and ad revenue; noninflammatory content gets fewer clicks. Creators who want to communicate respectfully face financial pressure against it.
+- It benefits *both sides* directly — left-wing content that right-wingers can engage with benefits both audiences.
+- The implication graph naturally connects supporters from both sides to the same content, without either coordinating.
+
+---
+
+## Early use cases for Commonality
+
+Based on domain analysis, we think these areas are likely good early candidates:
+
+1. **Crypto / decentralized systems** — Commonality itself is a decentralized system, so early users are likely to be interested in this space
+
+2. **Meta-systems for funding public goods** — including dev work on Commonality itself. This is a system for funding public goods, so early adopters are likely to be interested in that use case
+
+3. **Churches and religious communities** — collecting for various purposes (helping community members, missions, etc.). Churches are small and any projects requiring cross-church coordination face a real coordination problem
+
+4. **Right-coded public goods** — the observation (not judgment) that government funding is heavily skewed toward left-coded public goods, with right-coded ones chronically underfunded. Commonality could help fill that gap
+
+5. **Local community projects** — starting small and local is a natural path to proving the system
+
+**See also:** The [seed-content](./seed-content/) directory for concrete statements in these areas
+
+---
+
+## Geographic × topical intersections
+
+Many real-world projects sit at the intersection of **geographic** and **topical** axes:
+
+- Topical: "I'm interested in crypto"
+- Geographic: "I'm interested in Ontario"
+- Conjunction: "I'm interested in crypto in Ontario"
+
+The system supports this through:
+- Geographic interest statements at multiple levels (town → county → province → country)
+- Topical interest statements
+- Conjunction statements that imply both parents
+
+A project aligned with a conjunction statement appears in *both* parent portals — this is important for discoverability.
+
+**See also:** [seed-content/meta.md](./seed-content/meta.md) — includes geographic hierarchy and example conjunctions
+
+---
+
+## What to do with this
+
+People can interact with these patterns by:
+- **Writing and signing statements** describing what they care about
+- **Creating implied statements** that reveal commonality (the explorer AI can help with this)
+- **Building project statements** aligned with these positions
+- **Funding projects** that align with them
+- **Creating content** that matches these criteria
+- **Running attesters** that identify content in these categories
