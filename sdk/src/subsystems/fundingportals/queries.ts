@@ -8,6 +8,7 @@ import { fetchEvents } from '../../utils/eventCacheClient.js';
 import { decodeAlignmentAttestationEvent, decodeImplicationAttestationEvent } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
 import { getProject, getProjectContributions, getProjectRefunds } from '../pubstarter/queries.js';
+import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
   type IndirectSubjectAlignment,
@@ -17,6 +18,27 @@ import {
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import { SDKMachinery } from '../../machinery.js';
+import {
+  addCurrencyAmount,
+  currencyTotalsToArray,
+  getCurrencyForTokenValue,
+  getCurrencyKey,
+  type Currency,
+  type CurrencyAmountBigInt,
+} from '../../utils/currency.js';
+
+function addAmountToCurrencyList(
+  totals: CurrencyAmountBigInt[],
+  currency: Currency,
+  amount: bigint,
+): CurrencyAmountBigInt[] {
+  const map = new Map<string, CurrencyAmountBigInt>();
+  for (const entry of totals) {
+    map.set(getCurrencyKey(entry.currency), { ...entry });
+  }
+  addCurrencyAmount(map, currency, amount);
+  return currencyTotalsToArray(map);
+}
 
 type TrustedAddressInput = string | Iterable<string>;
 
@@ -305,18 +327,43 @@ export async function getTotalFundingForCause(
     trustedAlignmentAttesters
   );
 
-  let totalRaised = 0n;
+  const totalRaised = new Map<string, CurrencyAmountBigInt>();
   for (const project of allAlignedProjects) {
-    totalRaised += BigInt(project.totalReceived);
+    addCurrencyAmount(totalRaised, project.fundingCurrency, BigInt(project.totalReceived));
   }
 
-  const totalAvailable = 0n;
+  const statementCids = new Set<string>([statementCid]);
+  const indirectAlignments = await getIndirectlyAlignedSubjects(
+    machinery,
+    statementCid,
+    trustedImplicationAttester,
+    trustedAlignmentAttesters,
+  );
+  for (const alignment of indirectAlignments) {
+    statementCids.add(alignment.directStatementCid);
+  }
+
+  const noteAttestations = (
+    await Promise.all(
+      [...statementCids].map((cid) => getNoteIntentAttestationsByStatement(machinery, cid))
+    )
+  ).flat();
+
+  const noteTotals = new Map<string, CurrencyAmountBigInt>();
+  let noteCount = 0;
+  const noteIds = [...new Set(noteAttestations.map((attestation) => attestation.noteId))];
+  const notes = await Promise.all(noteIds.map((noteId) => getNote(machinery, noteId).catch(() => null)));
+  for (const note of notes) {
+    if (!note || !note.active) continue;
+    addCurrencyAmount(noteTotals, getCurrencyForTokenValue(note), BigInt(note.amount));
+    noteCount += 1;
+  }
 
   return {
-    totalRaisedAcrossProjects: totalRaised,
-    totalAvailableFromNotes: totalAvailable,
+    totalRaisedAcrossProjects: currencyTotalsToArray(totalRaised),
+    totalAvailableFromNotes: currencyTotalsToArray(noteTotals),
     projectCount: allAlignedProjects.length,
-    noteCount: 0,
+    noteCount,
   };
 }
 
@@ -332,6 +379,7 @@ export async function getAllAlignedProjectsForCause(
 ): Promise<Array<{
   projectAddress: string;
   alignmentType: 'direct' | 'indirect';
+  fundingCurrency: Currency;
   totalReceived: string;
   threshold: string;
   deadline: string;
@@ -370,6 +418,7 @@ export async function getAllAlignedProjectsForCause(
       results.push({
         projectAddress: project.id,
         alignmentType,
+        fundingCurrency: project.fundingCurrency,
         totalReceived: project.totalReceived,
         threshold: project.threshold,
         deadline: project.deadline,
@@ -443,9 +492,21 @@ export async function getTopContributorsForCause(
       const existing = participantMap.get(participant);
 
       if (existing) {
-        existing.totalContributed += stats.totalContributed;
-        existing.totalRefunded += totalRefunded;
-        existing.netContribution += netContribution;
+        existing.totalContributed = addAmountToCurrencyList(
+          existing.totalContributed,
+          project.fundingCurrency,
+          stats.totalContributed,
+        );
+        existing.totalRefunded = addAmountToCurrencyList(
+          existing.totalRefunded,
+          project.fundingCurrency,
+          totalRefunded,
+        );
+        existing.netContribution = addAmountToCurrencyList(
+          existing.netContribution,
+          project.fundingCurrency,
+          netContribution,
+        );
         existing.contributionCount += stats.count;
         existing.projectsContributedTo += 1;
 
@@ -462,9 +523,9 @@ export async function getTopContributorsForCause(
       } else {
         participantMap.set(participant, {
           participant,
-          totalContributed: stats.totalContributed,
-          totalRefunded,
-          netContribution,
+          totalContributed: addAmountToCurrencyList([], project.fundingCurrency, stats.totalContributed),
+          totalRefunded: addAmountToCurrencyList([], project.fundingCurrency, totalRefunded),
+          netContribution: addAmountToCurrencyList([], project.fundingCurrency, netContribution),
           contributionCount: stats.count,
           firstContributionAt: stats.firstAt,
           lastContributionAt: stats.lastAt,
@@ -476,8 +537,10 @@ export async function getTopContributorsForCause(
 
   return Array.from(participantMap.values())
     .sort((a, b) => {
-      if (a.netContribution > b.netContribution) return -1;
-      if (a.netContribution < b.netContribution) return 1;
+      const aNet = a.netContribution.reduce((sum, entry) => sum + entry.amount, 0n);
+      const bNet = b.netContribution.reduce((sum, entry) => sum + entry.amount, 0n);
+      if (aNet > bNet) return -1;
+      if (aNet < bNet) return 1;
       return 0;
     })
     .slice(0, limit);

@@ -228,7 +228,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor1Clients.account.toLowerCase(),
       'Rank 1 should be Contributor 1'
     );
-    assert.strictEqual(rank1.netContribution, parseEther('3.0'), 'Rank 1 should have 3 ETH');
+    assert.strictEqual(rank1.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('3.0'), 'Rank 1 should have 3 ETH');
     assert.strictEqual(rank1.projectsContributedTo, 2, 'Rank 1 should have contributed to 2 projects');
     assert.strictEqual(rank1.contributionCount, 2, 'Rank 1 should have 2 contributions');
 
@@ -238,7 +238,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor2Clients.account.toLowerCase(),
       'Rank 2 should be Contributor 2'
     );
-    assert.strictEqual(rank2.netContribution, parseEther('1.5'), 'Rank 2 should have 1.5 ETH');
+    assert.strictEqual(rank2.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('1.5'), 'Rank 2 should have 1.5 ETH');
     assert.strictEqual(rank2.projectsContributedTo, 1, 'Rank 2 should have contributed to 1 project');
 
     // Rank 3 should be contributor 3 (0.5 ETH)
@@ -247,7 +247,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor3Clients.account.toLowerCase(),
       'Rank 3 should be Contributor 3'
     );
-    assert.strictEqual(rank3.netContribution, parseEther('0.5'), 'Rank 3 should have 0.5 ETH');
+    assert.strictEqual(rank3.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('0.5'), 'Rank 3 should have 0.5 ETH');
 
     testLog('  Test passed!');
   });
@@ -353,7 +353,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     assert.strictEqual(rankResult!.rank, 2, 'Contributor 2 should be rank 2');
     assert.strictEqual(rankResult!.totalContributors, 3, 'Should have 3 total contributors');
     assert.ok(rankResult!.stats, 'Should have stats');
-    assert.strictEqual(rankResult!.stats!.netContribution, parseEther('2.0'), 'Net contribution should be 2 ETH');
+    assert.strictEqual(rankResult!.stats!.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('2.0'), 'Net contribution should be 2 ETH');
 
     testLog(`  Rank: ${rankResult!.rank} of ${rankResult!.totalContributors}`);
     testLog(`  Net contribution: ${rankResult!.stats!.netContribution}`);

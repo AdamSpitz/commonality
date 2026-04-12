@@ -1,8 +1,10 @@
 import {
+  ETH_CURRENCY,
   getNoteIntentAttestationsByStatement,
   getNote,
   type SDKMachinery,
   type Note,
+  type CurrencyAmountBigInt,
 } from '@commonality/sdk'
 import { isEthNote } from '../delegation/utils'
 
@@ -13,9 +15,9 @@ import { isEthNote } from '../delegation/utils'
 export async function computeAvailableDelegatableFunding(
   machinery: SDKMachinery,
   statementCid: string
-): Promise<bigint> {
+): Promise<CurrencyAmountBigInt[]> {
   const attests = await getNoteIntentAttestationsByStatement(machinery, statementCid)
-  if (attests.length === 0) return 0n
+  if (attests.length === 0) return []
 
   const noteResults = await Promise.all(
     attests.map((a) => getNote(machinery, a.noteId).catch(() => null))
@@ -24,5 +26,6 @@ export async function computeAvailableDelegatableFunding(
   const activeEthNotes = noteResults.filter(
     (n): n is Note => n !== null && n.active && isEthNote(n)
   )
-  return activeEthNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
+  const total = activeEthNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
+  return [{ currency: ETH_CURRENCY, amount: total }]
 }

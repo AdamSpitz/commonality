@@ -1,4 +1,6 @@
 
+import type { Currency } from '../../utils/currency.js';
+
 /**
  * A crowdfunding project created via the Pubstarter system.
  *
@@ -15,6 +17,8 @@ export interface Project {
   marketplaceAddress: string | null;
   /** Address that receives funds if the project succeeds. */
   recipient: string;
+  /** Currency used for threshold, contributions, refunds, and balances. */
+  fundingCurrency: Currency;
   /** Minimum funding amount (in wei) required for success. */
   threshold: string;
   /** Unix timestamp deadline for the funding campaign. */
@@ -39,6 +43,8 @@ export interface ProjectToken {
   erc1155Address: string;
   /** Numeric token ID within the ERC-1155 contract. */
   tokenId: string;
+  /** Currency used when buying this token tier. */
+  currency: Currency;
   /** Price per token (in wei). */
   price: string;
   /** Block timestamp when this token was first offered. */
@@ -59,6 +65,8 @@ export interface Contribution {
   tokenIds: string;
   /** JSON-encoded array of quantities per token ID. */
   tokenCounts: string;
+  /** Currency used for the purchase. */
+  currency: Currency;
   /** Total cost paid (in wei). */
   totalCost: string;
   /** Block timestamp of the purchase. */
@@ -82,6 +90,8 @@ export interface Refund {
   tokenIds: string;
   /** JSON-encoded array of quantities per token ID. */
   tokenCounts: string;
+  /** Currency used for the refund. */
+  currency: Currency;
   /** Total refund amount (in wei). */
   totalRefund: string;
   /** Block timestamp of the refund. */
@@ -137,6 +147,8 @@ export interface SaleListing {
   originalCount: string;
   /** Remaining quantity available for purchase. */
   remainingCount: string;
+  /** Currency used for settlement. */
+  currency: Currency;
   /** Price per token (in wei). */
   pricePerToken: string;
   /** Current status: 'active', 'filled', or 'cancelled'. */
@@ -158,6 +170,8 @@ export interface BuyOrder {
   originalCount: string;
   /** Remaining quantity to be filled. */
   remainingCount: string;
+  /** Currency used for settlement. */
+  currency: Currency;
   /** Price per token (in wei). */
   pricePerToken: string;
   /** Current status: 'active', 'filled', or 'cancelled'. */
@@ -181,6 +195,8 @@ export interface Trade {
   tokenId: string;
   /** Number of tokens traded. */
   count: string;
+  /** Currency used for settlement. */
+  currency: Currency;
   /** Price per token (in wei). */
   pricePerToken: string;
   /** Total trade value (count * pricePerToken, in wei). */

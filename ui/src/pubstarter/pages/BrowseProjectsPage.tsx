@@ -23,7 +23,7 @@ import {
   type ProjectSortField,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatEther } from 'viem'
+import { formatCurrencyAmount } from '../../shared/currency'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
@@ -185,7 +185,7 @@ export function BrowseProjectsPage() {
                     <Box sx={{ mb: 1 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                         <Typography variant="body2" color="text.secondary">
-                          {formatEther(BigInt(project.totalReceived))} / {formatEther(BigInt(project.threshold))} ETH
+                          {formatCurrencyAmount(project.totalReceived, project.fundingCurrency)} / {formatCurrencyAmount(project.threshold, project.fundingCurrency)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {Math.round(project.fundingProgress * 100)}%

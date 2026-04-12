@@ -1,4 +1,4 @@
-import type { Project, Contribution, Refund, TokenBurn } from '@commonality/sdk'
+import { ETH_CURRENCY, type Project, type Contribution, type Refund, type TokenBurn } from '@commonality/sdk'
 
 export type ProjectStatus = 'active' | 'succeeded' | 'refunding'
 
@@ -88,25 +88,26 @@ export function computeUserTokenBalance(
 }
 
 export function computeContributorStats(contributions: Contribution[], refunds: Refund[]) {
-  const stats = new Map<string, { contributed: bigint; refunded: bigint }>()
+  const stats = new Map<string, { contributed: bigint; refunded: bigint; currency: Contribution['currency'] | Refund['currency'] }>()
 
   for (const c of contributions) {
     const addr = c.participant.toLowerCase()
-    const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n }
+    const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n, currency: c.currency }
     entry.contributed += BigInt(c.totalCost)
     stats.set(addr, entry)
   }
 
   for (const r of refunds) {
     const addr = r.participant.toLowerCase()
-    const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n }
+    const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n, currency: r.currency }
     entry.refunded += BigInt(r.totalRefund)
     stats.set(addr, entry)
   }
 
   return Array.from(stats.entries())
-    .map(([address, { contributed, refunded }]) => ({
+    .map(([address, { contributed, refunded, currency }]) => ({
       address,
+      currency: currency ?? ETH_CURRENCY,
       contributed,
       refunded,
       net: contributed - refunded,

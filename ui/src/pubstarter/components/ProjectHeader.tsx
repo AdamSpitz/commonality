@@ -1,7 +1,7 @@
 import { Box, Typography, Paper, Chip, Stack, LinearProgress } from '@mui/material'
-import { formatEther } from 'viem'
 import type { Project } from '@commonality/sdk'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
+import { formatCurrencyRaised } from '../../shared/currency'
 
 type ProjectMetadata = { name?: string; description?: string }
 
@@ -47,7 +47,7 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
       <Box sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
           <Typography variant="body1">
-            {formatEther(BigInt(project.totalReceived))} of {formatEther(BigInt(project.threshold))} ETH raised
+            {formatCurrencyRaised(project.totalReceived, project.threshold, project.fundingCurrency)}
           </Typography>
           <Typography variant="body1">
             {progressPercent}%

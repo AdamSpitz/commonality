@@ -1,5 +1,5 @@
 import type { Note } from '@commonality/sdk'
-import { formatEther } from 'viem'
+import { formatCurrencyAmount, getCurrencyForNote } from '../shared/currency'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -9,7 +9,7 @@ export function isEthNote(note: Note): boolean {
 
 export function formatNoteAmount(note: Note): string {
   if (isEthNote(note)) {
-    return `${formatEther(BigInt(note.amount))} ETH`
+    return formatCurrencyAmount(note.amount, getCurrencyForNote(note))
   }
   return `${note.amount} tokens`
 }

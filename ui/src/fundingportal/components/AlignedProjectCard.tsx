@@ -9,7 +9,7 @@ import {
   LinearProgress,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { formatEther } from 'viem'
+import type { Currency } from '@commonality/sdk'
 import {
   getProjectStatus,
   STATUS_COLORS,
@@ -17,10 +17,12 @@ import {
   formatRelativeDeadline,
 } from '../../pubstarter/utils'
 import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
+import { formatCurrencyProgress } from '../../shared/currency'
 
 export type AlignedProject = {
   projectAddress: string
   alignmentType: 'direct' | 'indirect'
+  fundingCurrency: Currency
   totalReceived: string
   threshold: string
   deadline: string
@@ -177,7 +179,7 @@ export function AlignedProjectCard({
           <Box sx={{ mb: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
               <Typography variant="body2" color="text.secondary">
-                {formatEther(BigInt(project.totalReceived))} / {formatEther(BigInt(project.threshold))} ETH
+                {formatCurrencyProgress(project.totalReceived, project.threshold, project.fundingCurrency)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {Math.round(fundingProgress)}%

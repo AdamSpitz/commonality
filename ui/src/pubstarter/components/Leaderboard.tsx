@@ -10,9 +10,9 @@ import {
   Box,
   Tooltip,
 } from '@mui/material'
-import { formatEther } from 'viem'
 import type { Contribution, Refund } from '@commonality/sdk'
 import { computeContributorStats } from '../utils'
+import { formatCurrencyAmount } from '../../shared/currency'
 
 function truncateAddr(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
@@ -107,9 +107,9 @@ export function Leaderboard({ contributions, refunds, contributionChains }: Lead
                       </Box>
                     )}
                   </TableCell>
-                  <TableCell align="right">{formatEther(entry.contributed)} ETH</TableCell>
-                  <TableCell align="right">{formatEther(entry.refunded)} ETH</TableCell>
-                  <TableCell align="right">{formatEther(entry.net)} ETH</TableCell>
+                  <TableCell align="right">{formatCurrencyAmount(entry.contributed, entry.currency)}</TableCell>
+                  <TableCell align="right">{formatCurrencyAmount(entry.refunded, entry.currency)}</TableCell>
+                  <TableCell align="right">{formatCurrencyAmount(entry.net, entry.currency)}</TableCell>
                 </TableRow>
               )
             })}

@@ -230,8 +230,9 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
     // Total should be 0.5 + 0.3 = 0.8 ETH
     const expectedTotal = parseEther('0.8');
+    const ethTotal = metrics.totalRaisedAcrossProjects.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n;
     assert.strictEqual(
-      metrics.totalRaisedAcrossProjects,
+      ethTotal,
       expectedTotal,
       'Total funding should be 0.8 ETH'
     );
@@ -289,7 +290,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       causeCid
     );
 
-    testLog(`  Total available from notes: ${metrics.totalAvailableFromNotes}`);
+    const formattedTotals = metrics.totalAvailableFromNotes
+      .map((entry) => `${entry.amount.toString()} ${entry.currency.symbol}`)
+      .join(', ');
+    testLog(`  Total available from notes: ${formattedTotals}`);
     testLog(`  Note count: ${metrics.noteCount}`);
 
     // Should have at least 2 notes (may have more on non-fresh blockchain)
@@ -297,9 +301,11 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
     // Verify our specific notes exist by checking the total includes at least our 1.5 ETH
     const expectedMinimum = parseEther('1.5');
+    const ethTotal = metrics.totalAvailableFromNotes
+      .find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n;
     assert(
-      BigInt(metrics.totalAvailableFromNotes) >= expectedMinimum,
-      `Total available should be at least 1.5 ETH, got ${metrics.totalAvailableFromNotes}`
+      ethTotal >= expectedMinimum,
+      `Total available should be at least 1.5 ETH, got ${formattedTotals}`
     );
 
     testLog('  Test passed!');

@@ -11,13 +11,13 @@ import {
   Divider,
   Button,
 } from '@mui/material'
-import { formatEther } from 'viem'
 import {
   getStatementWithContent,
   getTotalFundingForCause,
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { formatCurrencyTotals } from '../../shared/currency'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
@@ -34,8 +34,8 @@ export function StatementFundingPortalPage() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState<string | null>(null)
   const [summary, setSummary] = useState<string | null>(null)
-  const [totalRaised, setTotalRaised] = useState<bigint>(0n)
-  const [availableDelegatable, setAvailableDelegatable] = useState<bigint>(0n)
+  const [totalRaised, setTotalRaised] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']>([])
+  const [availableDelegatable, setAvailableDelegatable] = useState<Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>>([])
   const [projectCount, setProjectCount] = useState<number>(0)
 
   useEffect(() => {
@@ -140,14 +140,14 @@ export function StatementFundingPortalPage() {
             <Typography variant="caption" color="text.secondary" display="block">
               Total Funding Raised
             </Typography>
-            <Typography variant="h6">{formatEther(totalRaised)} ETH</Typography>
+            <Typography variant="h6">{formatCurrencyTotals(totalRaised)}</Typography>
           </Box>
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
               Available Delegatable Funding
             </Typography>
-            <Typography variant="h6">{formatEther(availableDelegatable)} ETH</Typography>
+            <Typography variant="h6">{formatCurrencyTotals(availableDelegatable)}</Typography>
           </Box>
 
           <Box>

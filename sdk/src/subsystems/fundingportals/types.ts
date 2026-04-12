@@ -1,4 +1,5 @@
 import { IpfsCidV1 } from "../../utils/cid-types.js";
+import type { CurrencyAmountBigInt } from "../../utils/currency.js";
 
 /**
  * An attestation that a subject (project, user, content item) is aligned with a statement/cause.
@@ -46,10 +47,10 @@ export type IndirectProjectAlignment = IndirectSubjectAlignment;
 
 /** Aggregated funding metrics for a cause across all aligned projects. */
 export interface CauseFundingMetrics {
-  /** Sum of totalReceived across all aligned projects (in wei). */
-  totalRaisedAcrossProjects: bigint;
-  /** Sum of available note values aligned to this cause (in wei). */
-  totalAvailableFromNotes: bigint;
+  /** Sum of totalReceived across all aligned projects, grouped by currency. */
+  totalRaisedAcrossProjects: CurrencyAmountBigInt[];
+  /** Sum of available note values aligned to this cause, grouped by currency. */
+  totalAvailableFromNotes: CurrencyAmountBigInt[];
   /** Number of projects aligned to this cause. */
   projectCount: number;
   /** Number of notes aligned to this cause. */
@@ -60,12 +61,12 @@ export interface CauseFundingMetrics {
 export interface ContributorStats {
   /** Ethereum address of the contributor. */
   participant: string;
-  /** Total amount contributed across all projects (in wei). */
-  totalContributed: bigint;
-  /** Total amount refunded across all projects (in wei). */
-  totalRefunded: bigint;
-  /** Net contribution (totalContributed - totalRefunded, in wei). */
-  netContribution: bigint;
+  /** Total amount contributed across all projects, grouped by currency. */
+  totalContributed: CurrencyAmountBigInt[];
+  /** Total amount refunded across all projects, grouped by currency. */
+  totalRefunded: CurrencyAmountBigInt[];
+  /** Net contribution (totalContributed - totalRefunded), grouped by currency. */
+  netContribution: CurrencyAmountBigInt[];
   /** Number of individual contribution transactions. */
   contributionCount: number;
   /** Block timestamp of the earliest contribution. */

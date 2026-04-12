@@ -11,8 +11,8 @@ import {
   TableRow,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { formatEther } from 'viem'
 import type { Trade } from '@commonality/sdk'
+import { formatCurrencyAmount } from '../../shared/currency'
 
 interface TradeHistoryProps {
   trades: Trade[]
@@ -55,7 +55,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
                   </TableCell>
                   <TableCell>{trade.tokenId}</TableCell>
                   <TableCell align="right">{trade.count}</TableCell>
-                  <TableCell align="right">{formatEther(BigInt(trade.totalPrice))} ETH</TableCell>
+                  <TableCell align="right">{formatCurrencyAmount(trade.totalPrice, trade.currency)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

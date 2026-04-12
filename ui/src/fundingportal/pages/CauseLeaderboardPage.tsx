@@ -15,7 +15,6 @@ import {
   TableRow,
   Tooltip,
 } from '@mui/material'
-import { formatEther } from 'viem'
 import { useAccount } from 'wagmi'
 import {
   getTopContributorsForCause,
@@ -24,6 +23,7 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { formatCurrencyTotals } from '../../shared/currency'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 
 function truncateAddr(addr: string): string {
@@ -119,7 +119,7 @@ export function CauseLeaderboardPage() {
           <Typography variant="body1">
             You are <strong>#{userRank.rank}</strong> contributor to this cause
             {' — '}
-            {formatEther(userRank.stats.netContribution)} ETH across{' '}
+            {formatCurrencyTotals(userRank.stats.netContribution)} across{' '}
             {userRank.stats.projectsContributedTo} project
             {userRank.stats.projectsContributedTo !== 1 ? 's' : ''}.
           </Typography>
@@ -186,13 +186,13 @@ export function CauseLeaderboardPage() {
                         </Tooltip>
                       </TableCell>
                       <TableCell align="right">
-                        {formatEther(entry.totalContributed)} ETH
+                        {formatCurrencyTotals(entry.totalContributed)}
                       </TableCell>
                       <TableCell align="right">
                         {entry.projectsContributedTo}
                       </TableCell>
                       <TableCell align="right">
-                        {formatEther(entry.netContribution)} ETH
+                        {formatCurrencyTotals(entry.netContribution)}
                       </TableCell>
                     </TableRow>
                   )

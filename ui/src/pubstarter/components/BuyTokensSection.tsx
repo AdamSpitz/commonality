@@ -1,10 +1,10 @@
 import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress } from '@mui/material'
-import { formatEther } from 'viem'
 import { useWalletClient, usePublicClient } from 'wagmi'
 import type { Project, ProjectToken, TestClients, AssuranceContract, Note } from '@commonality/sdk'
 import { AssuranceContractAbi, buyProjectTokens, getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes, DelegatableNotesAbi } from '@commonality/sdk'
 import { useState, useEffect } from 'react'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { formatCurrencyAmount } from '../../shared/currency'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -202,6 +202,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   }
 
   const selectedNote = notes.find(n => n.id === selectedNoteId)
+  const fundingCurrency = project.fundingCurrency
   const noteTotalCost = tokens.reduce((sum, token) => {
     const qty = parseInt(noteQuantities[token.tokenId] || '0', 10)
     return sum + BigInt(qty) * BigInt(token.price)
@@ -254,7 +255,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   >
                     {notes.map(note => (
                       <MenuItem key={note.id} value={note.id}>
-                        Note #{note.id} — {formatEther(BigInt(note.amount))} ETH
+                        Note #{note.id} — {formatCurrencyAmount(note.amount, fundingCurrency)}
                       </MenuItem>
                     ))}
                   </Select>
@@ -274,7 +275,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                       Token #{token.tokenId}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
-                      {formatEther(BigInt(token.price))} ETH each
+                      {formatCurrencyAmount(token.price, token.currency)} each
                     </Typography>
                     <TextField
                       type="number"
@@ -291,11 +292,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                 {noteTotalCost > 0n && (
                   <Box>
                     <Typography variant="body2">
-                      Total cost: {formatEther(noteTotalCost)} ETH
+                      Total cost: {formatCurrencyAmount(noteTotalCost, fundingCurrency)}
                     </Typography>
                     {selectedNote && !noteBalanceSufficient && (
                       <Typography variant="caption" color="error">
-                        Exceeds note balance ({formatEther(BigInt(selectedNote.amount))} ETH)
+                        Exceeds note balance ({formatCurrencyAmount(selectedNote.amount, fundingCurrency)})
                       </Typography>
                     )}
                   </Box>
@@ -328,7 +329,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   Token #{token.tokenId}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
-                  {formatEther(BigInt(token.price))} ETH each
+                  {formatCurrencyAmount(token.price, token.currency)} each
                 </Typography>
                 <TextField
                   type="number"

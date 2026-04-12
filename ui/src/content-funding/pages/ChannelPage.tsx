@@ -28,6 +28,7 @@ import {
   type ChannelState,
 } from '@commonality/sdk'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
+import { formatCurrencyAmount } from '../../shared/currency'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
 import { ContentAttestationSummary } from '../components/ContentAttestationSummary'
 
@@ -135,13 +136,13 @@ function ContractCard({ contract }: { contract: ContentFundingContractSummary })
             <Box>
               <Typography variant="caption" color="text.secondary">Raised</Typography>
               <Typography variant="body2">
-                {formatEther(BigInt(contract.project.totalReceived))} ETH
+                {formatCurrencyAmount(contract.project.totalReceived, contract.project.fundingCurrency)}
               </Typography>
             </Box>
             <Box>
               <Typography variant="caption" color="text.secondary">Threshold</Typography>
               <Typography variant="body2">
-                {formatEther(BigInt(contract.project.threshold))} ETH
+                {formatCurrencyAmount(contract.project.threshold, contract.project.fundingCurrency)}
               </Typography>
             </Box>
           </Stack>

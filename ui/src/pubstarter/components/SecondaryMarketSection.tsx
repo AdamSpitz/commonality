@@ -16,7 +16,7 @@ import {
   Stack,
   Alert,
 } from '@mui/material'
-import { formatEther, parseEther } from 'viem'
+import { parseEther } from 'viem'
 import { useWalletClient, usePublicClient } from 'wagmi'
 import type {
   Project,
@@ -25,6 +25,7 @@ import type {
   TestClients,
   SecondaryMarketContract,
 } from '@commonality/sdk'
+import { formatCurrencyAmount } from '../../shared/currency'
 import {
   ERC1155SecondaryMarketAbi,
   fulfillSaleListing,
@@ -247,7 +248,7 @@ export function SecondaryMarketSection({
                     </Box>
                   </TableCell>
                   <TableCell align="right">{listing.remainingCount}</TableCell>
-                  <TableCell align="right">{formatEther(BigInt(listing.pricePerToken))} ETH</TableCell>
+                  <TableCell align="right">{formatCurrencyAmount(listing.pricePerToken, listing.currency)}</TableCell>
                   {isConnected && (
                     <TableCell align="right">
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
@@ -316,7 +317,7 @@ export function SecondaryMarketSection({
                     </Box>
                   </TableCell>
                   <TableCell align="right">{order.remainingCount}</TableCell>
-                  <TableCell align="right">{formatEther(BigInt(order.pricePerToken))} ETH</TableCell>
+                  <TableCell align="right">{formatCurrencyAmount(order.pricePerToken, order.currency)}</TableCell>
                   {isConnected && (
                     <TableCell align="right">
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
