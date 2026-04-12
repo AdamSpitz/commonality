@@ -7,6 +7,8 @@
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
     - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
   - [Support multiple currencies](./specs/currency.md). (Requiring funds to be escrowed as ETH is maybe not what we want.)
+    - First, make the non-smart-contract layers explicit about currency while keeping behavior exactly the same: queries, folds, SDK types, UI displays, and aggregations should all carry currency information instead of silently assuming ETH. At this stage everything can still be ETH-only in practice; the goal is to remove the implicit assumption.
+    - Then, once the off-chain model is currency-aware, generalize the smart contracts and transaction flows so that assurance contracts can settle in arbitrary ERC-20s without the rest of the stack still pretending everything is ETH.
 
 ## Other things to do soon
 

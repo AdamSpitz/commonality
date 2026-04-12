@@ -22,3 +22,25 @@ Okay, let's try:
   - For MVP production, USDC only.
   - For MVP dev/testing, using ETH is fine for ease of testing.
   - Post-MVP: let each assurance contract choose which token.
+
+## Order of work
+
+The safest way to do this is probably *not* to start by changing the smart contracts.
+
+Instead, first change the off-chain layers so that they are explicit about currency even while the underlying behavior remains exactly the same as it is now. In other words: for a while, everything can still really be ETH, but the queries, folded state, SDK types, UI components, formatting helpers, and aggregate calculations should all stop silently assuming that "amount" means "ETH amount". They should carry explicit currency information.
+
+That gives us a useful intermediate state:
+
+  - Behavior is unchanged, so this phase should mostly be a refactor rather than a semantic change.
+  - The stack becomes honest about what kind of value it is displaying or aggregating.
+  - We find all the places that currently assume different projects' values can be combined into one scalar just because they are numbers.
+  - When we later change the smart contracts, the off-chain code will already know how to represent "this project uses token T" rather than needing that whole refactor at the same time.
+
+This should lower risk substantially. If we try to generalize the smart contracts first while the SDK/UI/query layers are still implicitly ETH-shaped, there's a good chance of introducing confusing bugs where the contracts are technically multi-currency-capable but the rest of the system still treats everything as if it were ETH.
+
+So the intended sequence is:
+
+  - First: make the non-smart-contract layers currency-explicit, while still effectively ETH-only.
+  - Second: generalize settlement and escrow in the smart contracts and transaction flows.
+  - Third: for MVP production, probably pick one stablecoin and use only that in practice.
+  - Later: allow each assurance contract to choose its own token.
