@@ -114,6 +114,8 @@ Note that this applies far beyond politics. Programming language debates, diet w
 
 ### Discovering the silent moderate majority (moderate-majority.md)
 
+TODO: let's rename this to common-sense-majority, not moderate-majority. The point isn't exactly that the moderate position is always right or that this hidden-supermajority position is always moderate; the point is that (I suspect) most people are *normal* and would agree readily with common-sense views. (I think there are several mechanisms driving our current polarization: sometimes the media is whipping up each side into a frenzy over how evil the other side is, even though the other side is made up of normal people too who just happen to inhabit the opposing media bubble; sometimes there really are differences in views but there's a moderate position in the middle that most would be fine with; etc.)
+
 The arc:
 
 1. **Seeding.** Various people independently sign statements in their own language:
@@ -152,6 +154,11 @@ That's the whole story. Nobody had to organize a meeting. Nobody had to chase do
 
 **Illustrates:** the system scales down to trivially small things; assurance contracts solve real coordination problems even when no one involved has ever heard of an assurance contract.
 
+TODO: I want to think about this more. I think this type of use case is viable and mildly interesting, but it doesn't get me really fired up. Thoughts:
+  - Can we come up with an argument along the lines of: "there are a LOT of little public goods like this that are just NOT getting produced; our civilization would have significantly more 'nice things' if it was just sorta common knowledge that there's a system like this and that funding public goods in this way is easy and normal"?
+
+TODO: We should put the writeup of this into the specs/motivation directory somewhere; if anything, that should be the "source of truth" for our writeup of these example use cases, and then this file can just say "put the block-party example into the user-facing docs".
+
 
 ## Longer-term possibilities
 
@@ -188,6 +195,8 @@ Note: the first role listed should probably be "Find/write statements describing
 
 ## Concept pages (concepts/)
 
+(TODO: I feel like this material also should be properly-homed somewhere in the specs directory, and then this file can simply say "include the concept pages".)
+
 Each page has:
 - A **"TL;DR for AI assistants"** block at the top (structured: what it is, when a user encounters it, what actions they might want help with)
 - A **plain-language explanation** (no crypto jargon)
@@ -195,14 +204,13 @@ Each page has:
 
 The concepts:
 
-- **Assurance contracts** — You pledge money toward a goal. If enough people pledge and the goal is met, the money goes to the project. If not, everyone gets refunded. You risk nothing.
+- **Assurance contracts** — You pledge money toward a goal. If enough people pledge and the goal is met, the money goes to the project. If not, everyone gets refunded. You risk nothing. (Note that this not a new idea; e.g. Kickstarter does it. The point is that assurance contracts are a surprisingly-important mechanism, and we really ought to be using them for a lot more things.)
+- **Delegation** — Contribute funds but let someone you trust decide where they go. Revocable anytime. Composable (delegates can sub-delegate). This lets you be lazy (mostly you can just fire-and-forget - "here's $20 for this cause; Andrew, you decide what to do with it"), while still giving you fine-grained control and the ability to change your mind if you need to.
+- **Retroactive funding & secondary markets** — Early investors buy tokens in promising projects; later donors buy those tokens at higher prices. The price difference rewards foresight. A nano-VC system for public goods. Your role, as an altruistic donor who cares about furthering the cause but doesn't want to get overwhelmed with trying to evaluate the legitimacy and competence of a bunch of projects, is simply to find projects that have *already* done good and snap up their tokens.
 - **Credible threats** — Distinct from "pledges refund if not met." The idea that the *visible existence* of locked pledges changes the game even if the money is never spent. One of the most powerful ideas in the system.
-- **Statements** — Express what you care about by signing statements. This is how the system knows what to show you.
-- **Implication graph** — The system automatically connects related statements ("if you believe X, you probably also believe Y"). This is how people who care about related things find each other without coordinating.
-- **Delegation** — Contribute funds but let someone you trust decide where they go. Revocable anytime. Composable (delegates can sub-delegate).
-- **Retroactive funding & secondary markets** — Fund things that already worked. Early investors buy tokens in promising projects; later donors buy those tokens at higher prices. The price difference rewards foresight. A nano-VC system for public goods.
-- **Trust networks** — You choose who you trust. The system computes transitive trust (if you trust A and A trusts B, you see B's attestations). This is how the system filters noise without central gatekeepers.
+- **Statements and implication graph** — As a user, you can express what you care about by signing statements. (This is nice simply for finding out how much support there is for particular ideas.) People can attest that a particular project is aligned with a particular statement. (This is how the system knows which projects to show you in your funding portal.) Don't worry about coordinating on a popular statement; the system automatically connects related statements ("if you believe X, you probably also believe Y"), so this all works even if you sign slightly different variations of an idea.
 - **Content funding** — Any piece of content with a URL can be registered and funded through an assurance contract. Creators claim their channels to receive funds.
+- **Trust networks** — You choose who you trust. The system computes transitive trust (if you trust A and A trusts B, you see B's attestations). This is how the system filters noise without central gatekeepers.
 
 
 ## Why trust it? (why-trust-it.md)

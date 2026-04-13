@@ -4,7 +4,7 @@
 
 You want to support a good cause. But how do you know your money will actually help? The project might fail. It might be a scam. It might be well-intentioned but incompetent. Traditional philanthropy asks you to make this judgment *in advance* — read the proposal, evaluate the team, hope for the best. And traditional philanthropy selects for grant-writing skill and political connections, not project quality.
 
-Most people deal with this by donating to a big established name and hoping it works out. That's rational — but it means innovative new projects starve while brand-name charities absorb most of the money.
+Most people deal with this by donating to a big established name and hoping it works out... or simply not donating at all. That's rational — but it means innovative new projects starve while brand-name charities absorb most of the money.
 
 ## The simple answer
 
@@ -33,11 +33,18 @@ This is a virtuous cycle:
 You don't need to understand any of the underlying mechanics to participate. From your perspective as a retroactive funder:
 
   1. You browse projects that have already delivered results.
-  2. You see transparent evidence of what they accomplished (all onchain, all verifiable).
+  2. You see transparent evidence of what they accomplished (all onchain, all verifiable). (TODO: integrate the point that you may even recognize the project; the whole point of this is that you're funding projects that have already created value, meaning you may actually have heard of the project or even used it or personally interacted with it, you're not just evaluating onchain evidence.)
   3. You fund the ones you think created genuine value.
-  4. You appear on the project's leaderboard. You get a permanent, verifiable receipt of your contribution.
+  4. You appear on the project's leaderboard (unless you choose to remain anonymous). You get a permanent, verifiable receipt of your contribution.
 
 That's it. You're doing roughly the same thing you'd do with any donation — finding something good and supporting it — but with far more confidence that your money is going to something real, and with the knowledge that your donation also strengthens the incentive for scouts to find the *next* good project.
+
+## TODO: I dunno whether this belongs in the section above about what this looks like in practice, or in the section below about how it works under the hood
+
+I think I like the idea of the UI presenting a notion of "outstanding tokens" (though that's a bad name) or "unrewarded contributions" or something. It basically means "tokens that have been minted but not yet burned". That is, the expected flow is:
+  - Assurance contract is created; there are tokens available for minting. We expect that 'scouts' will do the minting (though 'donors' are of course allowed to do it too).
+  - The assurance contract reaches its funding threshold. All (or enough, anyway) of its tokens have been minted and are now visible in the "unrewarded contributions" (AKA "outstanding tokens", AKA "secondary market") page(s) in the funding portal UI and pubstarter UI.
+  - HERE'S MY POINT: The idea that we're trying to incept into the community is: your role, as an altruistic donor (rather than a scout), is to reward these unrewarded contributions, to buy-and-burn these outstanding tokens. If there's a *good project* whose tokens are *still out there*, your role is to snap them up and burn them ("fulfill" them? I don't know what terminology would feel right). That's what "releases" the "scouting money" so that it's available to fund more projects in the future. The health of the ecosystem depends on *not* having any outstanding tokens out there on the secondary market (at reasonable prices) for the projects that have proven genuinely valuable; if you want your movement to continue being able to fund good projects to support the cause, your role is to make sure that the outstanding tokens for all the good projects get "eaten up".
 
 ## How it works under the hood
 
