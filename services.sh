@@ -17,6 +17,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
+UI_IPFS_ARTIFACT_DIR="./data/ui-ipfs"
 cd "$SCRIPT_DIR"
 
 # Export UID/GID so docker-compose can run containers as the current user.
@@ -71,14 +72,64 @@ check_existing_containers() {
     fi
 }
 
+wait_for_ui_ipfs_publish() {
+    local container_name="commonality-ui-ipfs-publisher"
+    local cid_file="$UI_IPFS_ARTIFACT_DIR/cid.txt"
+    local gateway_file="$UI_IPFS_ARTIFACT_DIR/gateway-url.txt"
+
+    echo "Waiting for the IPFS-published UI bundle..."
+
+    while true; do
+        local status
+        status=$(docker inspect "$container_name" --format '{{.State.Status}}' 2>/dev/null || true)
+
+        case "$status" in
+            created|running|restarting)
+                sleep 2
+                ;;
+            exited)
+                local exit_code
+                exit_code=$(docker inspect "$container_name" --format '{{.State.ExitCode}}')
+                if [ "$exit_code" -ne 0 ]; then
+                    echo "Error: UI IPFS publish failed."
+                    echo "Showing recent logs from $container_name:"
+                    docker compose logs --tail=200 ui-ipfs-publisher || true
+                    exit 1
+                fi
+                break
+                ;;
+            "")
+                sleep 1
+                ;;
+            *)
+                echo "Warning: unexpected $container_name state: $status"
+                sleep 2
+                ;;
+        esac
+    done
+
+    if [ -f "$gateway_file" ]; then
+        local gateway_url
+        gateway_url=$(cat "$gateway_file")
+        echo "IPFS UI gateway URL: $gateway_url"
+    fi
+
+    if [ -f "$cid_file" ]; then
+        local cid
+        cid=$(cat "$cid_file")
+        echo "IPFS UI CID: $cid"
+    fi
+}
+
 start_services() {
     "$SCRIPT_DIR/scripts/check-prerequisites.sh"
     check_existing_containers
     echo "Starting services with data directory: $DATA_DIR"
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
-    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder"
+    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" "$UI_IPFS_ARTIFACT_DIR"
     docker-compose up -d
+    wait_for_ui_ipfs_publish
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"

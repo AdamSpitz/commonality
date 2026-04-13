@@ -11,7 +11,7 @@ npm run build
 ./data.sh --seed
 ```
 
-That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, the content-funding platform API service, and the UI, and populates the chain with fake data (10 users, 3 rounds). The UI will be at http://localhost:5173.
+That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, the content-funding platform API service, and the UI, and populates the chain with fake data (10 users, 3 rounds). The UI will be at http://localhost:5173, and `./services.sh --start` also publishes the SPA build to the local IPFS gateway and prints the resulting `http://localhost:8080/ipfs/<cid>/#/` URL. The latest CID and gateway URL are also written to `./data/ui-ipfs/`.
 
 No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEPLOYMENT.md) for testnet/mainnet deployment (which does require secrets).
 
