@@ -13,3 +13,23 @@ Some points about this:
   -   **More-objective success/alignment verification:** This is more of a vague future idea than a concrete feature, but if some particular project is capable of defining more-objective criteria by which its success/alignment can be verified, that opens up interesting possibilities for tying funding to its success, making decisions based on its predicted success (a la futarchy), etc.
 
   -   **Delegation:** A DelegatableNotes smart contract allows users to delegate their funding decisions to someone they trust, to eliminate the friction of the money-providers needing to make all those decisions themselves. There's also a NoteIntent smart contract, which the creator of a note can use to say "this note is intended to be put toward this particular purpose (i.e. statement ID)." The funding-portal UI should prominently display total available funding for this cause (from delegatable notes). See [delegation.md](delegation.md) for more details.
+
+## Smart contracts
+
+See `hardhat/contracts/alignment-attestations/`. The `AlignmentAttestations` contract emits `AlignmentAttestation` events with a required `topicStatementId` field for indexer filtering. Anyone can submit attestations of the form "subject S is aligned with statement T" (where the subject is typically a project address).
+
+Design decisions:
+  - **Assurance contracts: buying is always allowed**, even after the deadline. (TODO: wait, we may have changed our minds about this; check the actual code, and update this file to match what the code does.) A "failed" project can still succeed later if more people buy in. Refunds are only allowed when the deadline has passed *and* the threshold hasn't been reached.
+  - In the long run, DelegatableNotes should support various DEXes or DEX aggregators for spending; for now it's fine to use just the primary and secondary market capabilities of our own contracts.
+
+## Data flow
+
+The SDK computes all Funding Portal aggregations client-side:
+  - Fetches `AlignmentAttestation` events from the event cache to find which projects align with a statement.
+  - Fetches `ImplicationAttestation` events to find indirect alignments (same simple approach as Conceptspace — no transitive graph traversal).
+  - For each aligned project, reads on-chain state (totalReceived, threshold, deadline) and folds contribution/refund events to build contributor leaderboards.
+  - No federation between indexers — the single event cache serves all subsystems.
+
+## UI
+
+See [ui.md](ui.md).

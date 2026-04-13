@@ -27,3 +27,15 @@
   - **Unique-human verification:** At first it's fine for the system to count up all accounts who've signed a statement, but in the long run we'll probably want some way of counting up unique humans (i.e. combating Sybil attacks). One thing we can do is allow users to link their Commonality account with their unique-human identity (using whatever kinds of unique-human identity systems exist - Worldcoin, BrightID, anything else too). We can use zero-knowledge proofs to allow this to be done in a privacy-preserving way. (Don't bother implementing this yet, it's just a thought for later.)
   
   - **High-profile signers:** If people can link their account to (for example) their Twitter handle (in a verifiable way), we can have a statement's UI page show not only the total number of supporters, but also the Twitter handles of any high-profile supporters (e.g. supporters who have a verified Twitter account with more than 10k followers). That might help a lot in making this project go viral: if you support a cause, you might be motivated to find a way to spread the link to your cause "up the popularity hierarchy", in the hope of getting a high-profile signer.
+
+## Smart contracts
+
+See `hardhat/contracts/` for the actual contracts.
+
+**`Beliefs` contract:** Belief state must have three values: `noOpinion` (default), `believes`, `disbelieves`. Store beliefs in blockchain state (not just events) so other smart contracts can read belief state on-chain. Also emit `DirectSupport` events for indexer consumption.
+
+**`Implications` contract:** For attesters to publish `ImplicationAttestation` events of the form "if someone believes S1 he probably also believes S2".
+
+## UI
+
+See [ui.md](ui.md).
