@@ -6,13 +6,25 @@ This document describes how each component of the system is expected to scale.
 
 The system has a deliberate architecture: a thin event cache (no business logic) with client-side state computation in the SDK. This keeps complexity bounded and avoids a heavy indexer. Most queries are per-entity, not global — each entity's data is independent.
 
+Short version:
+  - smart contracts are fine
+  - indexer is a very simple thin event cache; I wish we didn't need it or had a more scalable version of it, but it'll be fine
+  - client-side folding: fine for queries about a single entity (which is most of them); even redoing the whole fold is probably fine, and we can also do cursors so clients can remember where they left off
+  - we'll need some other plan for cross-entity aggregation queries: leaderboards and funding portals
+  - IPFS is sorta fine, but we need a CDN
+  - UI can be hosted on IPFS, with ENS to point to the latest version; fine
+  - platform API service is stateless and can be elastic, but the limiting factor will probably be API rate limits
+  - attesters are stateless; let's just make them elastic from the start
+  - finders will probably be stateful, but they're more "open" and can be "sharded"; we (or anyone else) can just start finders focused on particular areas
+
+
 ## Components
 
 ### Blockchain (L2)
 
-- Scales naturally with the L2's throughput
-- No on-chain state that grows unboundedly — each project/note/statement is its own logical unit
-- Gas costs are the natural rate limiter
+Fine.
+
+(I'm curious about whether we could even move to L1; Ethereum has been encouraging that lately, with L1 scaling efforts.)
 
 ### Smart Contracts
 
