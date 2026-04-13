@@ -2,6 +2,10 @@
 
 This document describes the intended shape and reasoning behind user-facing documentation. The actual docs should be generated/regenerated from this plan. When the docs need updating, update this plan first, then regenerate.
 
+TODO: actually, maybe forget about the "generate the docs from the doc spec" and just generate them and then update them in the future.
+
+TODO: Once we've got something concrete generated, try having AIs read the user docs (but NOT any of the rest of this repo) and see whether it makes sense to them and whether they could walk a new user through what the system is and how to use it.
+
 
 ## Audience
 

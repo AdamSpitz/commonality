@@ -3,9 +3,12 @@
 ## Main thing I want to work on next
 
   - Remove GraphQL? I don't think we're using it, but there's someplace where we keep seeing a GraphQL URL (in the UI?).
-  - Work more on the user docs. See [here](specs/docs/user-docs.md).
+  - [User docs](specs/docs/user-docs.md):
+    - Generate them, then throw away the user-docs.md file.
+    - Try having an AI read *only* the docs and see whether the project makes sense.
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
     - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
+    - Deal with the nonscalable queries: basically funding portals.
   - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts haven't yet.
 
 ## Other things to do soon

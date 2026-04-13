@@ -27,13 +27,13 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 
 ## What can I do?
 
-- **Express what you care about** — Sign statements describing your values. This is the entry point: it's free, it commits you to nothing, and it's what connects you to everything else.
-- **Fund something you care about** — Find a project you like and pledge toward it. Your money is refunded if the goal isn't met.
-- **Pledge funds to a cause** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.
-- **Get your project funded** — Set up an assurance contract. No gatekeepers, no applications.
-- **Get your content funded** — Any piece of content with a URL can be registered and funded. Claim your channel to receive funds.
-- **Become a delegate** — Direct others' funds wisely. Build a transparent track record. No need to incorporate a nonprofit.
-- **Help connect things** — Vouch that projects align with causes. Your influence grows with followers.
+- **[Express what you care about](roles/express-what-you-care-about.md)** — Sign statements describing your values. This is the entry point: it's free, it commits you to nothing, and it's what connects you to everything else.
+- **[Fund something you care about](roles/fund-something.md)** — Find a project you like and pledge toward it. Your money is refunded if the goal isn't met.
+- **[Pledge funds to a cause](roles/pledge-to-a-cause.md)** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.
+- **[Get your project funded](roles/get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
+- **[Get your content funded](roles/get-your-content-funded.md)** — Any piece of content with a URL can be registered and funded. Claim your channel to receive funds.
+- **[Become a delegate](roles/become-a-delegate.md)** — Direct others' funds wisely. Build a transparent track record. No need to incorporate a nonprofit.
+- **[Help connect things](roles/help-connect-things.md)** — Vouch that projects align with causes. Your influence grows with followers.
 
 
 ## Key concepts
