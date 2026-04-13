@@ -6,7 +6,8 @@ import react from '@vitejs/plugin-react'
 // When running locally, it defaults to localhost.
 const indexerUrl = process.env.INDEXER_URL ?? 'http://localhost:42069';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === 'ipfs' ? './' : '/',
   plugins: [react()],
   worker: {
     format: 'es',
@@ -25,6 +26,9 @@ export default defineConfig({
     },
   },
   server: {
+    fs: {
+      allow: ['..'],
+    },
     proxy: {
       // Proxy GraphQL and Ponder API requests to avoid CORS issues in the browser.
       // The indexer runs at localhost:42069; the dev server runs at localhost:5173.
@@ -37,4 +41,4 @@ export default defineConfig({
       '/api/platform-api': 'http://localhost:3001',
     },
   },
-})
+}))

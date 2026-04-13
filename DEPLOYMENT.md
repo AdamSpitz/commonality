@@ -192,9 +192,11 @@ Since contract addresses are baked into the Vite build at compile time (`VITE_*`
 
 This script:
 1. Runs `setup-env.sh <network>` to populate `ui/.env` with contract addresses
-2. Builds the UI (`npm run build` in `ui/`)
+2. Builds the UI in IPFS mode (`npm run build:ipfs` in `ui/`), which uses hash routing and relative asset paths so the bundle works under a CID path
 3. Uploads `ui/dist/` to Pinata
 4. Prints the IPFS CID
+
+For non-local deployments, make sure `VITE_GRAPHQL_URL` points at the public indexer GraphQL endpoint. If you want event-cache reads or content-funding channel resolution/claim flows to work from the IPFS-hosted UI, also set `EVENT_CACHE_URL` and `PLATFORM_API_URL` in `.env.secrets` before running `setup-env.sh`; they will be copied into `ui/.env` as `VITE_EVENT_CACHE_URL` and `VITE_PLATFORM_API_URL`.
 
 Example:
 ```bash

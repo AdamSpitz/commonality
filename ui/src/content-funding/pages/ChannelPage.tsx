@@ -29,6 +29,7 @@ import {
 } from '@commonality/sdk'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { formatCurrencyAmount } from '../../shared/currency'
+import { getAppUrl } from '../../shared/routing'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
 import { ContentAttestationSummary } from '../components/ContentAttestationSummary'
 
@@ -326,7 +327,7 @@ export function ChannelPage() {
   const displayName = getChannelDisplayName(canonicalChannelId)
   const totalFunding = getTotalFunding(overview)
   const isUnclaimed = channel.state === 'unclaimed'
-  const claimUrl = `${window.location.origin}/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`
+  const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
 
   const suggestedMessage = [
     `Hey! Your supporters have pooled ${formatEther(escrow.balance)} ETH for your work on-chain.`,

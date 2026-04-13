@@ -49,7 +49,7 @@ echo "Setting up environment for $NETWORK..."
 # --- Build the UI ---
 echo ""
 echo "Building UI..."
-(cd "$ROOT/ui" && npm run build)
+(cd "$ROOT/ui" && npm run build:ipfs)
 
 # --- Upload dist/ to Pinata ---
 echo ""

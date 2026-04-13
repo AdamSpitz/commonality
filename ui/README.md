@@ -18,6 +18,9 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
     npm install
     npm run dev
     npm run build
+    npm run build:ipfs
+
+`npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path.
 
 ## Code organization
 

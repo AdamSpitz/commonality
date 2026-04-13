@@ -30,6 +30,7 @@ import {
 import { CreatorAssuranceContractFactoryAbi, createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
+import { getAppUrl } from '../../shared/routing'
 
 interface ContentItemRow {
   id: string
@@ -179,6 +180,10 @@ export function CreateContractPage() {
       return null
     }
   }, [state, canonicalChannelId, projects])
+
+  const claimUrl = canonicalChannelId && channelParsed
+    ? getAppUrl(`/content/${channelParsed.platform}/${encodeURIComponent(canonicalChannelId)}`)
+    : null
 
   useEffect(() => {
     if (!state) return
@@ -695,7 +700,7 @@ export function CreateContractPage() {
                         wordBreak: 'break-all',
                       }}
                     >
-                      {window.location.origin}/content/{channelParsed.platform}/{encodeURIComponent(canonicalChannelId)}
+                      {claimUrl}
                     </Box>
                   </Alert>
                 )}

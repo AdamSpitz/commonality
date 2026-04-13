@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom'
 import { AppShell } from './shared/components/AppShell'
 import { HomePage } from './conceptspace/pages/HomePage'
 import { BrowseStatementsPage } from './conceptspace/pages/BrowseStatementsPage'
@@ -15,10 +15,14 @@ import { BrowseCreatorsPage } from './content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from './content-funding/pages/ChannelPage'
 import { CreateContractPage } from './content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from './content-funding/pages/CreatorDashboardPage'
+import { DocsPage } from './docs/DocsPage'
+import { isHashRouting } from './shared/routing'
 
 function App() {
+  const Router = isHashRouting() ? HashRouter : BrowserRouter
+
   return (
-    <BrowserRouter>
+    <Router>
       <AppShell>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -40,9 +44,11 @@ function App() {
           <Route path="/content/:platform/:channelId" element={<ChannelPage />} />
           <Route path="/content/:platform/:channelId/new" element={<CreateContractPage />} />
           <Route path="/content/dashboard" element={<CreatorDashboardPage />} />
+          <Route path="/docs" element={<DocsPage />} />
+          <Route path="/docs/*" element={<DocsPage />} />
         </Routes>
       </AppShell>
-    </BrowserRouter>
+    </Router>
   )
 }
 
