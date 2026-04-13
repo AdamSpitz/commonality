@@ -6,9 +6,7 @@
   - Work more on the user docs. See [here](specs/docs/user-docs.md).
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
     - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
-  - [Support multiple currencies](./specs/currency.md). (Requiring funds to be escrowed as ETH is maybe not what we want.)
-    - Done: make the non-smart-contract layers explicit about currency while keeping behavior exactly the same. Queries, folds, SDK types, funding-portal aggregations, and the main funding/pubstarter UI displays now carry explicit currency metadata instead of silently assuming ETH. In practice this is still ETH-only for now.
-    - Then, once the off-chain model is currency-aware, generalize the smart contracts and transaction flows so that assurance contracts can settle in arbitrary ERC-20s without the rest of the stack still pretending everything is ETH.
+  - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts haven't yet.
 
 ## Other things to do soon
 
