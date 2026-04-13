@@ -112,6 +112,7 @@ wait_for_ui_ipfs_publish() {
         local gateway_url
         gateway_url=$(cat "$gateway_file")
         echo "IPFS UI gateway URL: $gateway_url"
+        echo "Open this URL in your browser to use the app."
     fi
 
     if [ -f "$cid_file" ]; then

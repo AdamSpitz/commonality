@@ -325,35 +325,6 @@ services:
     networks:
       - commonality
 
-  # =============================================================================
-  # Vite dev server for the UI
-  # =============================================================================
-  # Source is mounted from the host so hot-module replacement works.
-  # Accessible at http://localhost:5173.
-  ui:
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-    container_name: commonality-ui
-    user: "${UID:-1000}:${GID:-1000}"
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./ui:/workspace/ui
-      - ./sdk:/workspace/sdk
-      - ./.npmrc:/workspace/.npmrc:ro
-    environment:
-      # Proxy to indexer service by name instead of localhost
-      - INDEXER_URL=http://indexer:42069
-      - HOME=/tmp
-    depends_on:
-      hardhat-deploy:
-        condition: service_completed_successfully
-      indexer:
-        condition: service_healthy
-    networks:
-      - commonality
-
 networks:
   commonality:
     driver: bridge

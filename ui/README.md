@@ -22,7 +22,7 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
 
 `npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path.
 
-When you start the local docker-compose stack via `./services.sh --start`, a one-shot `ui-ipfs-publisher` service builds this IPFS-friendly bundle and adds it to the local IPFS node. The latest CID and gateway URL are written to `./data/ui-ipfs/`.
+When you start the local docker-compose stack via `./services.sh --start`, a one-shot `ui-ipfs-publisher` service builds this IPFS-friendly bundle and adds it to the local IPFS node. The latest CID and gateway URL are written to `./data/ui-ipfs/`, and that IPFS URL is now the primary local entry point for the app.
 
 ## Code organization
 
