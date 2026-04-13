@@ -1,6 +1,6 @@
 # Funding Portals
 
-Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are aligned with statement S"). Anyone can submit AlignmentAttestation events of the form "subject S is aligned with statement T" (where the subject is typically a project address). Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
+Each statement in the Concept Space has a link to its own Funding Portal (i.e. "here are a bunch of fundable projects that are (directly or indirectly) aligned with statement S"). Anyone can submit AlignmentAttestation events of the form "subject S is aligned with statement T" (where the subject is typically a project address). Each project is basically a crypto-based Kickstarter (e.g. an ERC-1155 contract where people can buy NFTs and the proceeds go towards funding the project).
 
 Some points about this:
 
@@ -12,4 +12,4 @@ Some points about this:
   
   -   **More-objective success/alignment verification:** This is more of a vague future idea than a concrete feature, but if some particular project is capable of defining more-objective criteria by which its success/alignment can be verified, that opens up interesting possibilities for tying funding to its success, making decisions based on its predicted success (a la futarchy), etc.
 
-  -   **Delegation:** A DelegatableNotes smart contract allows users to delegate their funding decisions to someone they trust, to eliminate the friction of the money-providers needing to make all those decisions themselves. There's also a NoteIntent smart contract, which the creator of a note can use to say "this note is intended to be put toward this particular purpose (i.e. statement ID)." See [delegation.md](delegation.md) for more details.
+  -   **Delegation:** A DelegatableNotes smart contract allows users to delegate their funding decisions to someone they trust, to eliminate the friction of the money-providers needing to make all those decisions themselves. There's also a NoteIntent smart contract, which the creator of a note can use to say "this note is intended to be put toward this particular purpose (i.e. statement ID)." The funding-portal UI should prominently display total available funding for this cause (from delegatable notes). See [delegation.md](delegation.md) for more details.

@@ -16,10 +16,7 @@ See [here](/docs/vision-and-strategy/README.md) for the full discussion of what 
 
 ## Key ideas
 
-  - **Assurance contracts address the free-rider problem:** This isn't *new* (e.g. Kickstarter already exists), but it's massively underused.
-  - **Alignment attestations allow connecting supply and demand:** Projects declare their purpose; donation pledges can be imbued with an intended-purpose; this allows supply of aligned projects to respond to demand for aligned projects, and vice versa. Crucially, AI-generated "S1 implies S2" attestations eliminate the need for everyone to coordinate to rally around a single canonical statement.
-  - **Retroactive funding via resellable NFTs:** Contribution NFTs are tradeable on secondary markets, separating the "good at identifying promising projects" skill (investors) from "willing to donate" (donors) - creating a nano-VC system for public goods.
-  - **Composable delegation addresses the laziness problem:** Contribute funds but delegate spending decisions to trusted individuals (who can further delegate). Donors don't have to put in much work, but still retain flexibility and revocability.
+See [here](/docs/key-ideas/README.md).
 
 ## Main components
 
@@ -111,18 +108,6 @@ Components:
 
 ### Subsystem Dependencies
 
-```
-Concept Space ──┐
-                │
-Pubstarter ────┼──> Funding Portal (SDK aggregates across subsystems)
-                │
-Marketplace ───┤
-                │
-Delegation ────┘
-
-(Arrows show data flow; Funding Portal SDK queries call other subsystems' SDK functions)
-```
-
 The four foundational subsystems (Concept Space, Pubstarter, Marketplace, Delegation) are independent and have no dependencies on each other. The Funding Portal subsystem's SDK orchestrates cross-cutting queries by calling the other subsystems' SDK query functions.
 
 ### Why This Structure?
@@ -136,18 +121,11 @@ The four foundational subsystems (Concept Space, Pubstarter, Marketplace, Delega
 
 When asking AI to generate mid-level specs and code, I've found that it sometimes gets some key details wrong. So let's pin down some points here:
 
-### General stuff
-
-In general, there's no need to put timestamps on emitted events; the block's timestamp is good enough.
-
-Which IPFS CID format do we use? How do we do CID → bytes32 conversion? AI recommendation (which is fine with me, I don't know much about it): use CIDv1 with SHA-256. For onchain storage, convert to bytes32 by extracting the 32-byte digest. Need helper functions cidToBytes32() and bytes32ToCid().
-
 ### Integration points between artifacts
 
-In the hardhat/ directory (in the root of the project), there should be some already-written smart contracts. We may still need to work on them, but feel free to just copy them as-is into our code base if appropriate. (It's useful to have them there so that other aspects of the code base know what the interface is.)
+In the hardhat/ directory (in the root of the project), there are some smart contracts. These are the primary integration point between pieces of the system; most user actions are done via onchain transactions which emit events.
 
 The indexer exposes a single REST API endpoint (`GET /api/events`) for fetching raw events by contract address, event name, and topic filters. The SDK's `eventCacheClient.ts` wraps this. All data shaping happens via SDK fold functions, not in the indexer.
-
 
 ### Modelling Statements
 
@@ -224,49 +202,24 @@ There's a page that shows a particular project (identified by its smart-contract
 
 (This isn't meant to be an exhaustive list. Include whatever else makes sense.)
 
-### Security & Abuse Prevention
-
-Thoughts on potential threats:
-  - **Standard web security**: Sanitize all markdown (use DOMPurify or equivalent), validate JSON strictly, use CSP headers, handle IPFS failures gracefully
-  - **Sybil/spam mitigation**: L2 gas costs + UI filtering (sort by trending/supporters) + eventual unique-human verification
-  - **Graph attacks**: No transitive graph traversal, so circular references aren't a concern; limit reference expansion depth to 3-5 levels for statement content display; users can switch attesters
-  - **Funding scams**: Accept as inevitable; rely on transparency + retroactive funding incentives + social reputation
-  - **Smart contract security**: Before mainnet, must implement comprehensive testing, have AI do a basic audit, and get professional audit
-
 ### User queries and actions
 
-See [subsystems/conceptspace/queries-and-actions.md](subsystems/conceptspace/queries-and-actions.md) and [subsystems/fundingportals/queries-and-actions.md](subsystems/fundingportals/queries-and-actions.md) for comprehensive lists of user queries and actions each subsystem must support.
+See [conceptspace queries and actions](subsystems/conceptspace/queries-and-actions.md) and [fundingportals queries and actions](subsystems/fundingportals/queries-and-actions.md) for comprehensive lists of user queries and actions each subsystem must support.
 
 ### Indexer
 
 See the [indexer](./indexer/README.md) directory for the thin event cache architecture and the [indexer redesign spec](./indexer/redesign.md) for the rationale behind the current design (single `events` table, SDK fold functions, no GraphQL, no federation).
 
-## Testing
-
-See [./testing/README.md](./testing/README.md).
-
-## More on the "why"
-
-[This](/docs/vision-and-strategy/README.md) goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
-
 ## Additional documentation
 
-- [scalability.md](scalability.md) - How each component is expected to scale, and potential bottlenecks
+- [Vision and strategy](/docs/vision-and-strategy/README.md) - Goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
+- [scalability](scalability.md) - How each component is expected to scale, and potential bottlenecks
+- [security and abuse-prevention](./security.md)
+- [testing](./testing/README.md)
 - [docs/](docs/README.md) - Structure and design decisions for user-facing documentation (the plan from which actual docs are generated)
 - [chats/](chats/) - Directory containing meeting notes and transcripts from planning sessions (preserved for historical context but not necessary for implementation)
 - [bridges.md](bridges.md) - Fiat bridge implementation: Stripe flow, ETH conversion options, licensed third-party services (Transak, Wert, Crossmint), refunds
 - [content.md](content.md) - Content bootstrapping: seed statements, AI-assisted discovery, handling the empty-field problem
-- [mvp.md](mvp.md) - MVP planning notes and entry-point descriptions (work in progress)
+- [mvp.md](mvp.md) - MVP planning notes and entry-point descriptions
+- [future.md](future.md) - post-MVP planning notes
 - [ai-assisted-development.md](ai-assisted-development.md) - Notes on the AI-assisted development process used to build this project
-
-
-## Future steps
-
-  - A few thoughts from our most recent chat:
-    - Sam wants me to set up the node and indexer to run in Docker, so that he can play around with extracting the info and feeding it into a graph database.
-  - Future chat sessions for us to have:
-    - Gaming/scamming/abuse prevention session: have a dedicated chat session to identify attack vectors and protections.
-    - Marketing session: Dedicated planning for exposure and promotion.
-      - Strategic outreach: Approaching Turning Point USA, Daily Wire, Jordan Peterson, etc. with a working prototype. It may not actually be that hard to get them to support this, if we've got something that basically works.
-    - [Currency](./currency.md): is ETH-only viable, or do we need to support stablecoins?
-
