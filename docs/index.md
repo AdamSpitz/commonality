@@ -54,3 +54,12 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 - **Nobody controls it** — no company, no admin, no single point of failure.
 - **Assurance contracts mean you risk nothing** — pledges refund if the goal isn't met.
 - **Delegation is revocable** — you can take back your funds at any time.
+
+[Full explanation →](why-trust-it.md)
+
+
+## For crypto-native users
+
+Details on the contract architecture, L2 choice, IPFS usage, indexer design, and how to interact directly with the contracts or run your own attester.
+
+[Technical details →](for-crypto-natives.md)

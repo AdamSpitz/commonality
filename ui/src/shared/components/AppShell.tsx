@@ -35,6 +35,7 @@ const navigationItems = [
   { label: 'Refs', path: '/refs' },
   { label: 'Creator Dashboard', path: '/content/dashboard' },
   { label: 'Creators (Twitter)', path: '/content/twitter' },
+  { label: 'Docs', path: '/docs' },
   { label: 'Creators (YouTube)', path: '/content/youtube' },
   { label: 'Creators (Substack)', path: '/content/substack' },
 ]
