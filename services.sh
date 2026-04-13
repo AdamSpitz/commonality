@@ -6,6 +6,7 @@
 #   ./services.sh --start   # Start services (preserves existing data)
 #   ./services.sh --stop    # Stop services (preserves existing data)
 #   ./services.sh --status  # Show whether services are running
+#   ./services.sh --url     # Print the current SPA URL
 #
 # Note: This script isn't much more than a thin wrapper around
 # docker-compose; it's fine to just use docker-compose directly
@@ -32,6 +33,7 @@ show_usage() {
     echo "  --start   Start services (preserves existing data)"
     echo "  --stop    Stop services (preserves existing data)"
     echo "  --status  Show whether services are running"
+    echo "  --url     Print the current SPA URL"
     echo "  --help    Show this help message"
     echo ""
     echo "Data is stored in $DATA_DIR/. Use data.sh to manage it."
@@ -72,10 +74,67 @@ check_existing_containers() {
     fi
 }
 
+print_spa_url() {
+    local spa_file="$UI_IPFS_ARTIFACT_DIR/spa-url.txt"
+    local gateway_file="$UI_IPFS_ARTIFACT_DIR/gateway-url.txt"
+    local raw_url
+
+    normalize_spa_url() {
+        local url="$1"
+        if [[ "$url" == */commonality-ui/#/ ]]; then
+            printf '%s\n' "$url"
+            return 0
+        fi
+
+        if [[ "$url" == */#/ ]]; then
+            printf '%scommonality-ui/#/\n' "${url%#*/}"
+            return 0
+        fi
+
+        printf '%s\n' "$url"
+    }
+
+    if [ -f "$spa_file" ]; then
+        raw_url=$(cat "$spa_file")
+        normalize_spa_url "$raw_url"
+        return 0
+    fi
+
+    if [ -f "$gateway_file" ]; then
+        raw_url=$(cat "$gateway_file")
+        normalize_spa_url "$raw_url"
+        return 0
+    fi
+
+    echo "Error: no SPA URL artifact found in $UI_IPFS_ARTIFACT_DIR." >&2
+    echo "Run './services.sh --start' first." >&2
+    return 1
+}
+
+wait_for_spa_gateway() {
+    local spa_url
+    spa_url=$(print_spa_url)
+    local entrypoint_url="${spa_url%#*}index.html"
+    local max_attempts=30
+    local attempt=1
+
+    echo "Waiting for the local IPFS gateway to serve the SPA entrypoint..."
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        if curl --silent --show-error --fail "$entrypoint_url" >/dev/null; then
+            return 0
+        fi
+        sleep 1
+        attempt=$((attempt + 1))
+    done
+
+    echo "Error: the SPA was published but never became reachable at $entrypoint_url" >&2
+    return 1
+}
+
 wait_for_ui_ipfs_publish() {
     local container_name="commonality-ui-ipfs-publisher"
     local cid_file="$UI_IPFS_ARTIFACT_DIR/cid.txt"
-    local gateway_file="$UI_IPFS_ARTIFACT_DIR/gateway-url.txt"
 
     echo "Waiting for the IPFS-published UI bundle..."
 
@@ -108,12 +167,12 @@ wait_for_ui_ipfs_publish() {
         esac
     done
 
-    if [ -f "$gateway_file" ]; then
-        local gateway_url
-        gateway_url=$(cat "$gateway_file")
-        echo "IPFS UI gateway URL: $gateway_url"
-        echo "Open this URL in your browser to use the app."
-    fi
+    wait_for_spa_gateway
+
+    local spa_url
+    spa_url=$(print_spa_url)
+    echo "SPA URL: $spa_url"
+    echo "Open this URL in your browser to use the app."
 
     if [ -f "$cid_file" ]; then
         local cid
@@ -134,6 +193,7 @@ start_services() {
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
+    echo "SPA URL: $(print_spa_url)"
 }
 
 stop_services() {
@@ -155,6 +215,9 @@ case "${1:-}" in
         ;;
     --status)
         show_status
+        ;;
+    --url)
+        print_spa_url
         ;;
     --help|-h|"")
         show_usage

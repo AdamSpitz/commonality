@@ -97,7 +97,8 @@ async function publishDirectoryToIpfs() {
   return {
     cid,
     files: files.map(normalizeRelativePath),
-    gatewayUrl: `${gatewayBaseUrl}/${cid}/#/`,
+    ipfsRootUrl: `${gatewayBaseUrl}/${cid}/`,
+    spaUrl: `${gatewayBaseUrl}/${cid}/commonality-ui/#/`,
   }
 }
 
@@ -105,7 +106,9 @@ async function writeArtifacts(result) {
   const metadata = `${JSON.stringify(
     {
       cid: result.cid,
-      gatewayUrl: result.gatewayUrl,
+      gatewayUrl: result.spaUrl,
+      ipfsRootUrl: result.ipfsRootUrl,
+      spaUrl: result.spaUrl,
       publishedAt: new Date().toISOString(),
       files: result.files,
     },
@@ -116,7 +119,8 @@ async function writeArtifacts(result) {
   const persistArtifacts = async () => {
     await fs.mkdir(artifactDir, { recursive: true })
     await fs.writeFile(path.join(artifactDir, 'cid.txt'), `${result.cid}\n`)
-    await fs.writeFile(path.join(artifactDir, 'gateway-url.txt'), `${result.gatewayUrl}\n`)
+    await fs.writeFile(path.join(artifactDir, 'gateway-url.txt'), `${result.spaUrl}\n`)
+    await fs.writeFile(path.join(artifactDir, 'spa-url.txt'), `${result.spaUrl}\n`)
     await fs.writeFile(path.join(artifactDir, 'metadata.json'), metadata)
   }
 
@@ -148,7 +152,8 @@ async function main() {
   console.log('')
   console.log('UI published to local IPFS.')
   console.log(`  CID: ${result.cid}`)
-  console.log(`  Gateway: ${result.gatewayUrl}`)
+  console.log(`  IPFS root: ${result.ipfsRootUrl}`)
+  console.log(`  SPA URL: ${result.spaUrl}`)
   console.log(`  Artifacts: ${artifactDir}`)
 }
 
