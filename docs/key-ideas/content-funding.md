@@ -1,0 +1,31 @@
+# Content funding
+
+## TL;DR for AI assistants
+
+**What it is:** Any piece of content with a URL (tweet, YouTube video, Substack post, etc.) can be registered and funded through an assurance contract. Creators claim their channels to receive funds. AI evaluators can assess content quality against specific criteria.
+
+**When a user encounters it:** When funding a specific piece of content; when claiming a channel as a creator; when submitting content for evaluation; when browsing a content-focused funding portal.
+
+**What they might want help with:** Claiming their channel; understanding how content evaluation works; finding content to fund; submitting their content for evaluation.
+
+---
+
+You read a blog post that changed how you think about something. Or a YouTube video that explained a complex topic better than anything you've seen. Or a tweet thread that laid out an argument you'd been struggling to articulate.
+
+You want to reward that. Not with a like — with money.
+
+Any piece of content with a URL can be registered on Commonality and funded through an assurance contract. The creator claims their channel (Twitter account, YouTube channel, Substack, etc.) to receive the funds.
+
+## AI evaluation
+
+For some categories of content — like noninflammatory political writing — AI evaluators can assess whether content meets specific quality criteria. A writer submits their piece, the evaluator assesses it (Does it steelman the opposing view? Does it avoid contempt? Could someone who disagrees engage without feeling attacked?), and if it passes, it's eligible for funding from the relevant pools.
+
+Different evaluators can have different standards. You choose which evaluators you trust — there's no single gatekeeper deciding what qualifies.
+
+## How this shows up in practice
+
+- **As a reader/donor:** You see a piece of content you value. You fund it directly, or it appears in your funding portal because it's aligned with causes you care about.
+- **As a creator:** You claim your channel. Content registered to your channel that gets funded flows money to you. You can also submit your work to evaluators to qualify for cause-specific funding pools.
+- **As a delegate:** You direct pooled funds toward content that serves the causes you're responsible for.
+
+Content funding turns "I wish there was more writing like this" into something actionable. The demand signal is real money, and creators can see it.

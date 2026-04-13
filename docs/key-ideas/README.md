@@ -1,11 +1,11 @@
 # Key ideas
 
-- **Assurance contracts address the free-rider problem:** — You pledge money toward a goal. If enough people pledge and the goal is met, the money goes to the project. If not, everyone gets refunded. You risk nothing. (Note that this not a new idea; e.g. Kickstarter does it. The point is that assurance contracts are a surprisingly-important mechanism, and we really ought to be using them for a lot more things.)
-- **Composable delegation addresses the laziness problem:** — Contribute funds but let someone you trust decide where they go. Revocable anytime. Composable (delegates can sub-delegate). This lets you be lazy (mostly you can just fire-and-forget - "here's $20 for this cause; Andrew, you decide what to do with it"), while still giving you fine-grained control and the ability to change your mind if you need to.
-- **Retroactive funding & secondary markets** — Early investors buy tokens in promising projects; later donors buy those tokens at higher prices. The price difference rewards foresight. A nano-VC system for public goods. Your role, as an altruistic donor who cares about furthering the cause but doesn't want to get overwhelmed with trying to evaluate the legitimacy and competence of a bunch of projects, is simply to find projects that have *already* done good and snap up their tokens.
-- **Credible threats** — Distinct from "pledges refund if not met." The idea that the *visible existence* of locked pledges changes the game even if the money is never spent. One of the most powerful ideas in the system.
-- **Statements and implication graph** — As a user, you can express what you care about by signing statements. (This is nice simply for finding out how much support there is for particular ideas.) People can attest that a particular project is aligned with a particular statement. (This is how the system knows which projects to show you in your funding portal.) Don't worry about coordinating on a popular statement; the system automatically connects related statements ("if you believe X, you probably also believe Y"), so this all works even if you sign slightly different variations of an idea.
-- **Alignment attestations allow connecting supply and demand:** Projects declare their purpose; donation pledges can be imbued with an intended-purpose; this allows supply of aligned projects to respond to demand for aligned projects, and vice versa. Crucially, AI-generated "S1 implies S2" attestations eliminate the need for everyone to coordinate to rally around a single canonical statement.
-- **Content funding** — Any piece of content with a URL can be registered and funded through an assurance contract. Creators claim their channels to receive funds.
-- **Trust networks** — You choose who you trust. The system computes transitive trust (if you trust A and A trusts B, you see B's attestations). This is how the system filters noise without central gatekeepers.
+The concepts behind Commonality. Each page is written in plain language for a general audience, with a structured "TL;DR for AI assistants" block at the top.
 
+- **[Statements and the implication graph](statements-and-implication-graph.md)** — Express what you care about; the system connects related causes automatically.
+- **[Assurance contracts](assurance-contracts.md)** — Pledges refund if the goal isn't met. You risk nothing.
+- **[Delegation](delegation.md)** — Contribute funds while being lazy. Let someone you trust decide where they go.
+- **[Retroactive funding](retroactive-funding.md)** — Fund things that already worked. Reward the people who believed in them early.
+- **[Credible threats](credible-threats.md)** — Visible pledges change the game even if the money is never spent.
+- **[Content funding](content-funding.md)** — Fund individual pieces of content. AI evaluators assess quality.
+- **[Trust networks](trust-networks.md)** — You choose who you trust. The system filters noise without central gatekeepers.
