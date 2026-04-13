@@ -42,6 +42,13 @@ const TX_HASH_5 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 
 const METADATA_CID = fakeIpfsCidV1('project-metadata');
 const METADATA_CID_2 = fakeIpfsCidV1('project-metadata-v2');
+const USDC_CURRENCY = {
+  kind: 'erc20' as const,
+  symbol: 'USDC',
+  decimals: 6,
+  tokenAddress: '0x1212121212121212121212121212121212121212',
+  tokenType: 0,
+};
 
 // ============================================================================
 // makeEvent helpers
@@ -176,6 +183,16 @@ describe('foldProject', () => {
     assert.strictEqual(result.marketplaceAddress, null);
   });
 
+  it('uses the provided funding currency instead of hardcoding ETH', () => {
+    const events: ProjectEvent[] = [
+      { type: 'created', event: makeCreatedEvent() },
+      { type: 'initialized', event: makeInitializedEvent() },
+    ];
+    const { project: result } = foldProject(events, undefined, USDC_CURRENCY);
+    assert.ok(result !== null);
+    assert.deepStrictEqual(result.fundingCurrency, USDC_CURRENCY);
+  });
+
   it('sets erc1155Address from first tokenOffered event', () => {
     const events: ProjectEvent[] = [
       { type: 'created', event: makeCreatedEvent() },
@@ -291,6 +308,20 @@ describe('foldProject', () => {
 // ============================================================================
 
 describe('foldContributionsFromEvents', () => {
+  it('uses the provided currency for contributions and refunds', () => {
+    const { contributions, refunds } = foldContributionsFromEvents(
+      [makeBoughtEvent()],
+      [makeSoldEvent()],
+      undefined,
+      USDC_CURRENCY,
+    );
+
+    assert.strictEqual(contributions.length, 1);
+    assert.deepStrictEqual(contributions[0].currency, USDC_CURRENCY);
+    assert.strictEqual(refunds.length, 1);
+    assert.deepStrictEqual(refunds[0].currency, USDC_CURRENCY);
+  });
+
   it('returns empty arrays for empty input', () => {
     const result = foldContributionsFromEvents([], []);
     assert.deepStrictEqual(result.contributions, []);

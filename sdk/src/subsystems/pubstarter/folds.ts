@@ -1,5 +1,5 @@
 import type { Project, ProjectToken, Contribution, Refund, SaleListing, BuyOrder, Trade, TokenBurn } from './types.js';
-import { ETH_CURRENCY } from '../../utils/currency.js';
+import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 import type {
   AssuranceContractCreatedEvent,
   AssuranceContractInitializedEvent,
@@ -62,6 +62,7 @@ export interface ProjectAccumulator {
 export function foldProject(
   events: ProjectEvent[],
   initialAccumulator?: ProjectAccumulator,
+  fundingCurrency: Currency = ETH_CURRENCY,
 ): { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator } {
   const acc: ProjectAccumulator = initialAccumulator
     ? { ...initialAccumulator }
@@ -104,7 +105,7 @@ export function foldProject(
         erc1155Address: acc.erc1155Address,
         marketplaceAddress: null,
         recipient: acc.recipient,
-        fundingCurrency: ETH_CURRENCY,
+        fundingCurrency,
         totalReceived: acc.totalReceived.toString(),
         conditionAddress: acc.conditionAddress,
         metadataCid: acc.metadataCid,
@@ -126,6 +127,7 @@ export function foldContributionsFromEvents(
   boughtEvents: ERC1155BoughtEvent[],
   soldEvents: ERC1155SoldEvent[],
   initialState?: { contributions: Contribution[]; refunds: Refund[] },
+  fundingCurrency: Currency = ETH_CURRENCY,
 ): {
   contributions: Contribution[];
   refunds: Refund[];
@@ -142,7 +144,7 @@ export function foldContributionsFromEvents(
       erc1155Address: event.erc1155Addr,
       tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
       tokenCounts: JSON.stringify(event.counts.map((c) => c.toString())),
-      currency: ETH_CURRENCY,
+      currency: fundingCurrency,
       totalCost: event.totalCost.toString(),
       createdAt: event.blockTimestamp.toString(),
       blockNumber: event.blockNumber.toString(),
@@ -159,7 +161,7 @@ export function foldContributionsFromEvents(
       erc1155Address: event.erc1155Addr,
       tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
       tokenCounts: JSON.stringify(event.counts.map((c) => c.toString())),
-      currency: ETH_CURRENCY,
+      currency: fundingCurrency,
       totalRefund: event.totalCost.toString(),
       createdAt: event.blockTimestamp.toString(),
       blockNumber: event.blockNumber.toString(),
@@ -172,12 +174,13 @@ export function foldContributionsFromEvents(
 
 export function foldContributions(
   boughtEvents: ERC1155BoughtEvent[],
-  soldEvents: ERC1155SoldEvent[]
+  soldEvents: ERC1155SoldEvent[],
+  fundingCurrency: Currency = ETH_CURRENCY,
 ): {
   contributions: Contribution[];
   refunds: Refund[];
 } {
-  return foldContributionsFromEvents(boughtEvents, soldEvents);
+  return foldContributionsFromEvents(boughtEvents, soldEvents, undefined, fundingCurrency);
 }
 
 /**
@@ -189,7 +192,10 @@ export function foldContributions(
  * Caller is responsible for filtering events to a single project if desired.
  * Events must arrive in block/logIndex order.
  */
-export function foldProjectTokens(events: ERC1155OfferedEvent[]): ProjectToken[] {
+export function foldProjectTokens(
+  events: ERC1155OfferedEvent[],
+  fundingCurrency: Currency = ETH_CURRENCY,
+): ProjectToken[] {
   const map = new Map<string, ProjectToken>();
 
   for (const event of events) {
@@ -198,7 +204,7 @@ export function foldProjectTokens(events: ERC1155OfferedEvent[]): ProjectToken[]
       projectAddress: event.contractAddress,
       erc1155Address: event.erc1155Addr,
       tokenId: event.id.toString(),
-      currency: ETH_CURRENCY,
+      currency: fundingCurrency,
       price: event.price.toString(),
       createdAt: event.blockTimestamp.toString(),
     });
@@ -237,6 +243,7 @@ export type SecondaryMarketEvent =
 export function foldSecondaryMarket(
   events: SecondaryMarketEvent[],
   initialState?: { saleListings: SaleListing[]; buyOrders: BuyOrder[]; trades: Trade[] },
+  fundingCurrency: Currency = ETH_CURRENCY,
 ): {
   saleListings: SaleListing[];
   buyOrders: BuyOrder[];
@@ -263,7 +270,7 @@ export function foldSecondaryMarket(
           tokenId: event.tokenId.toString(),
           originalCount: event.count.toString(),
           remainingCount: event.count.toString(),
-          currency: ETH_CURRENCY,
+          currency: fundingCurrency,
           pricePerToken: event.pricePerToken.toString(),
           status: 'active',
           createdAt: event.blockTimestamp.toString(),
@@ -320,7 +327,7 @@ export function foldSecondaryMarket(
           tokenId: event.tokenId.toString(),
           originalCount: event.count.toString(),
           remainingCount: event.count.toString(),
-          currency: ETH_CURRENCY,
+          currency: fundingCurrency,
           pricePerToken: event.pricePerToken.toString(),
           status: 'active',
           createdAt: event.blockTimestamp.toString(),

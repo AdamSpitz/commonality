@@ -21,7 +21,7 @@ import {
   type Note,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatNoteAmount, isDelegate, isEthNote, truncateAddress } from '../../delegation/utils'
+import { formatNoteAmount, isDelegate, truncateAddress } from '../../delegation/utils'
 
 interface Props {
   statementCid: string
@@ -50,7 +50,7 @@ export function DelegatableNotesSection({ statementCid }: Props) {
         )
         if (cancelled) return
 
-        setNotes(noteResults.filter((n): n is Note => n !== null && n.active && isEthNote(n)))
+        setNotes(noteResults.filter((n): n is Note => n !== null && n.active))
       } catch (err) {
         if (!cancelled) {
           console.error('Failed to load delegatable notes:', err)
@@ -79,8 +79,8 @@ export function DelegatableNotesSection({ statementCid }: Props) {
             Available Delegatable Notes
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Delegatable notes intended for this cause — committed funds waiting to be spent on
-            aligned projects.
+            Delegatable notes intended for this cause, grouped here regardless of which token
+            each note uses.
           </Typography>
 
           {loading ? (

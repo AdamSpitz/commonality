@@ -1,16 +1,17 @@
 import {
-  ETH_CURRENCY,
   getNoteIntentAttestationsByStatement,
   getNote,
   type SDKMachinery,
-  type Note,
   type CurrencyAmountBigInt,
+  getCurrencyForTokenValue,
+  addCurrencyAmount,
+  currencyTotalsToArray,
 } from '@commonality/sdk'
-import { isEthNote } from '../delegation/utils'
 
 /**
  * Computes the total available delegatable funding for a statement by summing
- * the amounts of all active ETH notes with NoteIntent attestations pointing to it.
+ * the amounts of all active notes with NoteIntent attestations pointing to it,
+ * grouped by funding currency.
  */
 export async function computeAvailableDelegatableFunding(
   machinery: SDKMachinery,
@@ -23,9 +24,11 @@ export async function computeAvailableDelegatableFunding(
     attests.map((a) => getNote(machinery, a.noteId).catch(() => null))
   )
 
-  const activeEthNotes = noteResults.filter(
-    (n): n is Note => n !== null && n.active && isEthNote(n)
-  )
-  const total = activeEthNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
-  return [{ currency: ETH_CURRENCY, amount: total }]
+  const totals = new Map<string, CurrencyAmountBigInt>()
+  for (const note of noteResults) {
+    if (!note?.active) continue
+    addCurrencyAmount(totals, getCurrencyForTokenValue(note), BigInt(note.amount))
+  }
+
+  return currencyTotalsToArray(totals)
 }

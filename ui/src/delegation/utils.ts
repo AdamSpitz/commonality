@@ -8,10 +8,7 @@ export function isEthNote(note: Note): boolean {
 }
 
 export function formatNoteAmount(note: Note): string {
-  if (isEthNote(note)) {
-    return formatCurrencyAmount(note.amount, getCurrencyForNote(note))
-  }
-  return `${note.amount} tokens`
+  return formatCurrencyAmount(note.amount, getCurrencyForNote(note))
 }
 
 export function truncateAddress(address: string): string {

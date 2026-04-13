@@ -165,7 +165,7 @@ describe('DelegatableNotesSection', () => {
       })
     })
 
-    it('shows empty message when all notes are non-ETH', async () => {
+    it('still shows notes when they use non-ETH currencies', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote({ id: '1', token: NON_ETH_TOKEN }))
 
@@ -174,7 +174,7 @@ describe('DelegatableNotesSection', () => {
       await user.click(screen.getByRole('button', { name: /show/i }))
 
       await waitFor(() => {
-        expect(screen.getByText('No delegatable notes intended for this cause.')).toBeInTheDocument()
+        expect(screen.getByText('#1')).toBeInTheDocument()
       })
     })
   })
@@ -201,7 +201,7 @@ describe('DelegatableNotesSection', () => {
       })
     })
 
-    it('excludes non-ETH notes from the table', async () => {
+    it('includes non-ETH notes in the table', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([
         makeAttestation('1'),
         makeAttestation('2'),
@@ -218,7 +218,7 @@ describe('DelegatableNotesSection', () => {
 
       await waitFor(() => {
         expect(screen.getByText('#1')).toBeInTheDocument()
-        expect(screen.queryByText('#2')).not.toBeInTheDocument()
+        expect(screen.getByText('#2')).toBeInTheDocument()
       })
     })
 
@@ -286,6 +286,25 @@ describe('DelegatableNotesSection', () => {
 
       await waitFor(() => {
         expect(screen.getByText('1.5 ETH')).toBeInTheDocument()
+      })
+    })
+
+    it('formats ERC-20 note amounts generically', async () => {
+      vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
+      vi.mocked(getNote).mockResolvedValue(
+        makeNote({
+          amount: '2500000000000000000',
+          token: NON_ETH_TOKEN,
+          tokenType: 0,
+        })
+      )
+
+      const user = userEvent.setup()
+      render(<DelegatableNotesSection statementCid="QmTest" />)
+      await user.click(screen.getByRole('button', { name: /show/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText('2.5 tokens')).toBeInTheDocument()
       })
     })
 

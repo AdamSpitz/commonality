@@ -56,8 +56,11 @@ describe('formatNoteAmount', () => {
     expect(formatNoteAmount(makeNote({ amount: '0' }))).toBe('0 ETH')
   })
 
-  it('formats non-ETH note as "<amount> tokens"', () => {
-    const note = makeNote({ token: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef', amount: '42' })
+  it('formats ERC-20 notes using generic currency formatting', () => {
+    const note = makeNote({
+      token: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+      amount: '42000000000000000000',
+    })
     expect(formatNoteAmount(note)).toBe('42 tokens')
   })
 

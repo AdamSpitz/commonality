@@ -40,6 +40,36 @@ function addAmountToCurrencyList(
   return currencyTotalsToArray(map);
 }
 
+function compareCurrencyTotals(
+  a: CurrencyAmountBigInt[],
+  b: CurrencyAmountBigInt[],
+): number | null {
+  const normalize = (totals: CurrencyAmountBigInt[]) =>
+    [...totals]
+      .map((entry) => ({ key: getCurrencyKey(entry.currency), amount: entry.amount }))
+      .sort((left, right) => left.key.localeCompare(right.key));
+
+  const normalizedA = normalize(a);
+  const normalizedB = normalize(b);
+
+  if (normalizedA.length !== normalizedB.length) {
+    return null;
+  }
+
+  for (let i = 0; i < normalizedA.length; i += 1) {
+    if (normalizedA[i].key !== normalizedB[i].key) {
+      return null;
+    }
+  }
+
+  for (let i = 0; i < normalizedA.length; i += 1) {
+    if (normalizedA[i].amount > normalizedB[i].amount) return -1;
+    if (normalizedA[i].amount < normalizedB[i].amount) return 1;
+  }
+
+  return 0;
+}
+
 type TrustedAddressInput = string | Iterable<string>;
 
 function normalizeTrustedAddresses(
@@ -537,11 +567,20 @@ export async function getTopContributorsForCause(
 
   return Array.from(participantMap.values())
     .sort((a, b) => {
-      const aNet = a.netContribution.reduce((sum, entry) => sum + entry.amount, 0n);
-      const bNet = b.netContribution.reduce((sum, entry) => sum + entry.amount, 0n);
-      if (aNet > bNet) return -1;
-      if (aNet < bNet) return 1;
-      return 0;
+      const comparableAmounts = compareCurrencyTotals(a.netContribution, b.netContribution);
+      if (comparableAmounts !== null) {
+        return comparableAmounts;
+      }
+
+      if (a.projectsContributedTo !== b.projectsContributedTo) {
+        return b.projectsContributedTo - a.projectsContributedTo;
+      }
+      if (a.contributionCount !== b.contributionCount) {
+        return b.contributionCount - a.contributionCount;
+      }
+      if ((a.lastContributionAt ?? 0n) > (b.lastContributionAt ?? 0n)) return -1;
+      if ((a.lastContributionAt ?? 0n) < (b.lastContributionAt ?? 0n)) return 1;
+      return a.participant.localeCompare(b.participant);
     })
     .slice(0, limit);
 }

@@ -44,12 +44,12 @@ const ADDR_C = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
 const ADDR_D = '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD'
 
 function makeFundingMetrics(overrides: Partial<{
-  totalRaisedAcrossProjects: bigint
+  totalRaisedAcrossProjects: Array<{ amount: bigint; currency: { symbol: string; decimals: number } }>
   projectCount: number
 }> = {}) {
   return {
-    totalRaisedAcrossProjects: 0n,
-    totalAvailableFromNotes: 0n,
+    totalRaisedAcrossProjects: [],
+    totalAvailableFromNotes: [],
     projectCount: 0,
     noteCount: 0,
     ...overrides,
@@ -79,7 +79,7 @@ describe('FundingPortalSummary', () => {
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(getProject).mockResolvedValue(null)
     vi.mocked(fetchFromIPFS).mockResolvedValue(null)
-    vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue(0n)
+    vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([])
   })
 
   describe('Loading state', () => {
@@ -143,7 +143,11 @@ describe('FundingPortalSummary', () => {
 
     it('shows total raised in ETH', async () => {
       vi.mocked(getTotalFundingForCause).mockResolvedValue(
-        makeFundingMetrics({ totalRaisedAcrossProjects: 500000000000000000n }) // 0.5 ETH
+        makeFundingMetrics({
+          totalRaisedAcrossProjects: [
+            { amount: 500000000000000000n, currency: { symbol: 'ETH', decimals: 18 } },
+          ],
+        })
       )
 
       render(<FundingPortalSummary statementCid="QmTest" />)
@@ -154,12 +158,27 @@ describe('FundingPortalSummary', () => {
     })
 
     it('shows available delegatable funding in ETH', async () => {
-      vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue(250000000000000000n) // 0.25 ETH
+      vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
+        { amount: 250000000000000000n, currency: { symbol: 'ETH', decimals: 18 } },
+      ])
 
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
         expect(screen.getByText('0.25 ETH')).toBeInTheDocument()
+      })
+    })
+
+    it('shows grouped mixed-currency delegatable funding', async () => {
+      vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
+        { amount: 250000000000000000n, currency: { symbol: 'ETH', decimals: 18 } },
+        { amount: 1500000000000000000n, currency: { symbol: 'tokens', decimals: 18 } },
+      ] as any)
+
+      render(<FundingPortalSummary statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('0.25 ETH + 1.5 tokens')).toBeInTheDocument()
       })
     })
 

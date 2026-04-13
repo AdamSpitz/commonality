@@ -61,18 +61,18 @@ describe('CauseLeaderboardPage', () => {
     vi.mocked(getTopContributorsForCause).mockResolvedValue([
       {
         participant: USER_ADDRESS,
-        totalContributed: 1000000000000000000n,
+        totalContributed: [{ amount: 1000000000000000000n, currency: { symbol: 'ETH', decimals: 18 } }],
         projectsContributedTo: 1,
-        netContribution: 1000000000000000000n,
+        netContribution: [{ amount: 1000000000000000000n, currency: { symbol: 'ETH', decimals: 18 } }],
       },
     ] as any)
     vi.mocked(getUserContributionRankForCause).mockResolvedValue({
       rank: 1,
       stats: {
         participant: USER_ADDRESS,
-        totalContributed: 1000000000000000000n,
+        totalContributed: [{ amount: 1000000000000000000n, currency: { symbol: 'ETH', decimals: 18 } }],
         projectsContributedTo: 1,
-        netContribution: 1000000000000000000n,
+        netContribution: [{ amount: 1000000000000000000n, currency: { symbol: 'ETH', decimals: 18 } }],
       },
       totalContributors: 1,
     } as any)
