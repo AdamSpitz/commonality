@@ -31,7 +31,7 @@ But that tradeoff is what makes the system work. Directing your own money with i
 None of this means individual actions in Commonality are world-changing. Adding one signature to a statement is a small thing. But it's a *real* thing — it happened, it's recorded, it's visible. And these small real things add up:
 
   - A few hundred signatures on a statement reveal an [organic coalition](../why-its-better/organic-coalitions.md) that nobody knew existed.
-  - A few thousand dollars in pledges create a [credible threat](../hard-to-stop/credible-threat.md) that shifts negotiations — potentially protecting millions in existing funding at zero cost. See the [walkthrough](../walkthrough.md) for how this plays out in practice.
+  - A few thousand dollars in pledges create a [credible threat](../hard-to-stop/credible-threat.md) that shifts negotiations — potentially protecting millions in existing funding at zero cost. See the [walkthrough](/docs/use-case-walkthroughs/defunding.md) for how this plays out in practice.
   - A delegate's track record of good decisions attracts more delegators, compounding their influence.
 
 The difference from legacy systems isn't that individual actions in Commonality are *large* — it's that they're *real*. Walking up a hill, not buying lottery tickets.

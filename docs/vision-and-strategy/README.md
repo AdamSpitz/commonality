@@ -45,7 +45,7 @@ Yes. [But](./getting-people-to-switch.md):
 
 It's [hard to stop](./hard-to-stop/README.md). No bank accounts to freeze, no platform to deplatform, no org to shut down. The system operates with after-tax money you already control. And neither side can stop the other side from using this system, nor can they count on the other side never regaining power, so both sides will want to use this system to prevent the other side from cutting off their funding.
 
-What's more, assurance contracts double as a [credible-threat mechanism](./hard-to-stop/credible-threat.md): a community that visibly demonstrates its ability to fund something independently shifts the negotiating power, even if the independent funding is never used. The threat is costless (pledges refund if never activated) but changes the calculus for anyone threatening to cut funding. See the [walkthrough](./walkthrough.md) for a concrete example.
+What's more, assurance contracts double as a [credible-threat mechanism](./hard-to-stop/credible-threat.md): a community that visibly demonstrates its ability to fund something independently shifts the negotiating power, even if the independent funding is never used. The threat is costless (pledges refund if never activated) but changes the calculus for anyone threatening to cut funding. See the [walkthrough](/docs/use-case-walkthroughs/defunding.md) for a concrete example.
 
 **"So what? Why does this actually matter?"**
 
@@ -53,4 +53,4 @@ It's not just a slightly better mousetrap. We are [remarkably bad at producing p
   - A [mundane incremental improvement](./so-what/enthusiastic-adoption.md) (existing orgs can adopt it to immediately achieve better transparency and lower overhead, and to open the door to the various other benefits mentioned above like coalition-building and retroactive-funding)
   - And as something [much easier than politics](./so-what/easier-than-politics.md) for people who want to fund public goods but are tired of fighting over government. The response to "the government is hostile, how do we fund our priorities?" isn't "organize a massive political movement" — it's "just start using this."
 
-For a concrete walkthrough of how this plays out, see the [walkthrough](./walkthrough.md). For tailored pitches to different types of users, see [pitches](./pitches.md). For the "won't this be used for evil?" question, see [ethics](./ethics.md).
+For a concrete walkthrough of how this plays out, see the [walkthrough](/docs/use-case-walkthroughs/defunding.mdwalkthrough.md). For tailored pitches to different types of users, see [pitches](./pitches.md). For the "won't this be used for evil?" question, see [ethics](./ethics.md).

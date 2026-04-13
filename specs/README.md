@@ -4,7 +4,7 @@ This is the top-level spec for a software project called Commonality. It's meant
 
 ## What is this?
 
-TODO: Read the stuff in the specs/motivation directory, then see if you can rewrite this section a bit better using the insights from there. 
+TODO: Read the stuff in the docs/vision-and-strategy directory, then see if you can rewrite this section a bit better using the insights from there. 
 
 Right now, if you want to fund public goods, your options are basically: hope the government does it, or donate to a charity. Both of these have serious problems - government is slow and expensive and captured, charities are opaque and overhead-heavy.
 
@@ -12,7 +12,7 @@ Commonality is a system for crowdfunding public goods without needing a central 
 
 The original motivating thought came from Balaji Srinivasan's "network state" idea: large numbers of aligned people coordinating online to get things done sounds great, except that Balaji seems to envision something like a big monolithic million-member Discord chat with a treasury, which sounds awful. Big groups (governments or corporations or whatever) don't really work all that well. So the goal is: make it possible for large numbers of aligned people to coordinate online and crowdfund projects aligned with their cause, but do it as a network of individuals rather than a big monolithic group.
 
-See [./motivation/README.md](./motivation/README.md) for the full discussion of what this is and why it might actually work.
+See [here](/docs/vision-and-strategy/README.md) for the full discussion of what this is and why it might actually work.
 
 ## Key ideas
 
@@ -247,7 +247,7 @@ See [./testing/README.md](./testing/README.md).
 
 ## More on the "why"
 
-[motivation/README.md](motivation/README.md) goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
+[This](/docs/vision-and-strategy/README.md) goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
 
 ## Additional documentation
 

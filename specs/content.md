@@ -30,7 +30,7 @@ This helps users see that there's real activity happening around a cause, even i
 
 Early users will inevitably see small numbers. The system should handle this gracefully rather than trying to hide it.
 
-The AI assistant's system prompt (written up as an [AI skill](ai-assistance.md)) should include the key points from [motivation/ease-of-adoption/](motivation/ease-of-adoption/) so it can make them naturally in conversation when relevant. The main points the AI needs to internalize:
+The AI assistant's system prompt (written up as an [AI skill](ai-assistance.md)) should include the key points from [ease-of-adoption/](/docs/vision-and-strategy/ease-of-adoption/) so it can make them naturally in conversation when relevant. The main points the AI needs to internalize:
 
 - **No need to compromise on wording.** Unlike rallying around a candidate or a petition, you don't need to find the most-popular statement that vaguely says what you want. Say exactly what you mean; implication attestations connect you with others saying similar things. So there's no penalty for being an early user — your statement doesn't need to already be popular to be useful.
 - **Costless to try.** Signing a statement is free. If nobody else signs it, you've lost nothing.

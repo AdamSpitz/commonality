@@ -157,7 +157,7 @@ That's the whole story. Nobody had to organize a meeting. Nobody had to chase do
 TODO: I want to think about this more. I think this type of use case is viable and mildly interesting, but it doesn't get me really fired up. Thoughts:
   - Can we come up with an argument along the lines of: "there are a LOT of little public goods like this that are just NOT getting produced; our civilization would have significantly more 'nice things' if it was just sorta common knowledge that there's a system like this and that funding public goods in this way is easy and normal"?
 
-TODO: We should put the writeup of this into the specs/motivation directory somewhere; if anything, that should be the "source of truth" for our writeup of these example use cases, and then this file can just say "put the block-party example into the user-facing docs".
+TODO: We should put the writeup of this into the docs/use-case-walkthroughs directory; if anything, that should be the "source of truth" for our writeup of these example use cases, and then this file can just say "put the block-party example into the user-facing docs".
 
 
 ## Longer-term possibilities
@@ -166,7 +166,7 @@ These scenarios illustrate directions the system could eventually go, but they'r
 
 ### A town transitions away from government funding (millbrook.md)
 
-Already written as [motivation/walkthrough.md](motivation/walkthrough.md). Adapt for user-facing docs (less spec-like, more narrative). A community's youth program gets defunded; they use Commonality to demonstrate they can fund it themselves, and the mere visibility of locked pledges is enough to make the government back down.
+Already written as [a use-case walkthrough](/docs/use-case-walkthroughs/defunding.md). Adapt for user-facing docs (less spec-like, more narrative). A community's youth program gets defunded; they use Commonality to demonstrate they can fund it themselves, and the mere visibility of locked pledges is enough to make the government back down.
 
 This is speculative as an immediate use case — "create a credible threat of replacing government funding with crowdfunding" requires a lot of existing trust in the platform and meaningful pledge volume. But it illustrates the game-theoretic potential of credible threats, and it's worth describing as a possibility the system is designed to eventually support.
 
@@ -239,10 +239,10 @@ One page covering:
 ## Source material
 
 The walkthroughs and pitches draw from existing spec material:
-- [motivation/walkthrough.md](motivation/walkthrough.md) — Millbrook story (already written)
-- [motivation/pitches.md](motivation/pitches.md) — Role-based pitches (adapt for role pages)
-- [motivation/ease-of-adoption/](motivation/ease-of-adoption/) — "why switching is easy" arguments (feed into why-trust-it and role pages)
-- [subsystems/content-funding/noninflammatory-content/README.md](subsystems/content-funding/noninflammatory-content/README.md) — Noninflammatory content use case (feed into walkthrough)
-- [motivation/hard-to-stop/credible-threat.md](motivation/hard-to-stop/credible-threat.md) — Credible threat mechanism (feed into concept page)
+- [Millbrook story](/docs/use-case-walkthroughs/defunding.md) — (already written)
+- [Role-based pitches](/docs/vision-and-strategy/pitches.md) — (adapt for role pages)
+- ["why switching is easy" arguments](/docs/vision-and-strategy/ease-of-adoption/) — (feed into why-trust-it and role pages)
+- [Noninflammatory content](subsystems/content-funding/noninflammatory-content/README.md) — (feed into walkthrough)
+- [Credible threat mechanism](/docs/vision-and-strategy/hard-to-stop/credible-threat.md) — (feed into concept page)
 
 When generating the actual docs, these specs are the source of truth for how the system works. The user docs should translate that into plain language and concrete stories.

@@ -19,7 +19,7 @@ No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEP
 
 Different roles need different parts of the spec:
 
-  - **Founder (vision/strategy):** [specs/motivation/](specs/motivation/) — why this project should exist, societal arguments, game theory.
+  - **Founder (vision/strategy):** [docs/vision-and-strategy/](docs/vision-and-strategy/) — why this project should exist, societal arguments, game theory.
   - **Product manager (what to build):** [specs/README.md](specs/README.md) for the system overview, then each subsystem's `README.md`, `queries-and-actions.md`, and `ui.md`.
   - **Tech lead (how to build it):** [specs/shared/tech.md](specs/shared/tech.md), [specs/indexer/](specs/indexer/), each subsystem's `indexer.md`, and [specs/shared/decoupling.md](specs/shared/decoupling.md).
   - **Dev (implementation):** This README plus code-level READMEs in each package directory (`hardhat/`, `sdk/`, `ui/`, etc.).

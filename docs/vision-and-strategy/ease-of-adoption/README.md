@@ -34,4 +34,4 @@ Every aspect of the system is designed so that getting started is trivial and sc
 
   - **[Bridges to traditional finance](./bridges.md):** Tradfi donors contribute via bridge operators, charities act as tax-deductible on-ramps, onchain records coexist with normal tax receipts and compliance reports.
 
-This bridging is especially important for the [credible-threat pattern](../hard-to-stop/credible-threat.md): communities can build their standby infrastructure using familiar tools (charity donations, bridge operators) so that the transition to independent funding — if it's ever needed — is seamless. See the [walkthrough](../walkthrough.md) for a concrete example of how bridging enables the preparation phase.
+This bridging is especially important for the [credible-threat pattern](../hard-to-stop/credible-threat.md): communities can build their standby infrastructure using familiar tools (charity donations, bridge operators) so that the transition to independent funding — if it's ever needed — is seamless. See the [walkthrough](/docs/use-case-walkthroughs/defunding.md) for a concrete example of how bridging enables the preparation phase.

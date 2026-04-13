@@ -15,7 +15,7 @@ This is not a minor inefficiency. It's arguably the central inadequacy of modern
 If Commonality works, the implication isn't "slightly more transparent charity." It's that we unlock a new level of civilizational competence — the ability to fund public goods with something closer to the efficiency, responsiveness, and innovation we take for granted in private markets.
 
 What that looks like concretely:
-  - **Communities that can fund their own priorities** without waiting for government permission or surviving an election cycle. See the [walkthrough](../walkthrough.md) for how a single town does this.
+  - **Communities that can fund their own priorities** without waiting for government permission or surviving an election cycle. See the [walkthrough](/docs/use-case-walkthroughs/defunding.md) for how a single town does this.
   - **Organic discovery of common ground** across political lines, because the system reveals what people actually agree on rather than sorting them into opposing camps. This is [why the system is named Commonality](../why-its-better/organic-coalitions.md).
   - **Credible independence from government funding**, which shifts negotiating power even when the independent funding is never used. The [credible-threat mechanism](../hard-to-stop/credible-threat.md) is one of the most powerful implications: communities don't need to *replace* government funding to benefit from Commonality — they just need to be *visibly able to*, which changes the entire dynamic.
   - **A funding landscape that rewards results**, not proposals. [Retroactive funding](../why-its-better/retroactive-funding.md) means the best projects get the most resources, which attracts more talent to public-goods work, which produces better projects, which attracts more funding. A virtuous cycle that doesn't exist today.
@@ -38,4 +38,4 @@ And a huge number of the things we care about — the things that determine whet
 
 I think a good system for funding public goods would represent a huge improvement in civilizational competence. Not gradually, over centuries — potentially within a decade, because the technology already exists and the adoption path is incremental. Commonality is my best attempt at building that system.
 
-For a concrete walkthrough of how this plays out, see the [walkthrough](../walkthrough.md). For tailored pitches to different types of users, see [pitches](../pitches.md). For the "won't this be used for evil?" question, see [ethics](../ethics.md).
+For a concrete walkthrough of how this plays out, see the [walkthrough](/docs/use-case-walkthroughs/defunding.md). For tailored pitches to different types of users, see [pitches](../pitches.md). For the "won't this be used for evil?" question, see [ethics](../ethics.md).

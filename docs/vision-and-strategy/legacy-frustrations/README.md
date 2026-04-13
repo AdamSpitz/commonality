@@ -19,4 +19,4 @@ Commonality propagates individuality much further down the pipeline. You sign yo
 
 The result: collective-scale outcomes without the [lossy](../why-its-better/individualization.md) and [frustrating](../ease-of-adoption/no-need-to-compromise.md) early-aggregation step. And as a bonus, the late-aggregation approach means the system can discover [organic coalitions](../why-its-better/organic-coalitions.md) — common ground that the early-aggregation approach would have destroyed by forcing people into opposing camps.
 
-For a concrete example of how this plays out — from tip jar to credible threat to fully-funded community program — see the [walkthrough](../walkthrough.md).
+For a concrete example of how this plays out — from tip jar to credible threat to fully-funded community program — see the [walkthrough](/docs/use-case-walkthroughs/defunding.md).
