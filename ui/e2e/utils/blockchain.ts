@@ -21,8 +21,16 @@ if (!process.env.IPFS_API) {
   process.env.IPFS_API = 'http://localhost:5001'
 }
 
-import { createTestClients, type TestClients } from '@commonality/sdk'
+import {
+  ChannelRegistryAbi,
+  createTestClients,
+  hashCanonicalId,
+  verifyChannel,
+  type TestClients,
+} from '@commonality/sdk'
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk'
+import { encodePacked, keccak256, toBytes, type Hex } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
 import type { AccountName } from '../fixtures/wallet'
 
 /**
@@ -40,6 +48,9 @@ const ACCOUNT_PRIVATE_KEYS = {
   ACCOUNT_8: TEST_PRIVATE_KEYS.ACCOUNT_8,
   ACCOUNT_9: TEST_PRIVATE_KEYS.ACCOUNT_9,
 } as const
+
+const DEFAULT_LOCAL_VERIFIER_PRIVATE_KEY =
+  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as const
 
 /**
  * Create viem test clients for a Hardhat account.
@@ -170,4 +181,62 @@ export function getContractAddresses() {
     creatorContractFactoryAddress: creatorContractFactoryAddress as `0x${string}` | undefined,
     graphqlUrl,
   }
+}
+
+async function signChannelClaimProof(
+  verifierPrivateKey: Hex,
+  channelId: `0x${string}`,
+  claimant: `0x${string}`,
+  nonce: `0x${string}`,
+  deadline: bigint,
+): Promise<`0x${string}`> {
+  const verifierAccount = privateKeyToAccount(verifierPrivateKey)
+  const digest = keccak256(
+    encodePacked(
+      ['bytes32', 'address', 'bytes32', 'uint256'],
+      [channelId, claimant, nonce, deadline]
+    )
+  )
+
+  return verifierAccount.signMessage({
+    message: { raw: toBytes(digest) },
+  })
+}
+
+export async function verifyE2EChannelOwnership(
+  clients: TestClients,
+  channelCanonicalId: string,
+): Promise<void> {
+  const { channelRegistryAddress } = getContractAddresses()
+
+  if (!channelRegistryAddress) {
+    throw new Error(
+      'Channel registry address not set in ui/.env. Expected VITE_CHANNEL_REGISTRY_ADDRESS.'
+    )
+  }
+
+  const verifierPrivateKey =
+    (process.env.VERIFIER_PRIVATE_KEY as Hex | undefined) ??
+    (envVars.VERIFIER_PRIVATE_KEY as Hex | undefined) ??
+    DEFAULT_LOCAL_VERIFIER_PRIVATE_KEY
+  const channelId = hashCanonicalId(channelCanonicalId)
+  const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600)
+  const nonce = keccak256(toBytes(`e2e-${channelCanonicalId}-${Date.now()}`))
+  const signature = await signChannelClaimProof(
+    verifierPrivateKey,
+    channelId,
+    clients.account,
+    nonce,
+    deadline
+  )
+
+  await verifyChannel(
+    clients,
+    { address: channelRegistryAddress, abi: ChannelRegistryAbi },
+    channelId,
+    clients.account,
+    nonce,
+    deadline,
+    signature
+  )
 }

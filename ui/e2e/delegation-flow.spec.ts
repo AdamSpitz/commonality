@@ -134,7 +134,11 @@ test.describe('Delegation Flow', () => {
 
     // Verify note appears in "Notes I Control" (ACCOUNT_1 is the leaf owner)
     await expect(page.getByText('Notes I Control')).toBeVisible({ timeout: 20000 })
-    await expect(page.locator('h5').filter({ hasText: '0.1 ETH' })).toBeVisible({ timeout: 20000 })
+    await expect(
+      page.getByRole('link', {
+        name: new RegExp(`Note #${delegatedNoteId}.*0\\.1 ETH`),
+      })
+    ).toBeVisible({ timeout: 20000 })
 
     // =========================================================================
     // Step 5: Navigate to note detail page and verify delegation chain

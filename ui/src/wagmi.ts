@@ -43,11 +43,11 @@ export function createMockConfig(
 
   return createConfig(
     getDefaultConfig({
-      chains: [mainnet, sepolia, hardhat],
+      chains: [hardhat, mainnet, sepolia],
       transports: {
+        [hardhat.id]: http('http://127.0.0.1:8545'),
         [mainnet.id]: http(),
         [sepolia.id]: http(),
-        [hardhat.id]: http('http://127.0.0.1:8545'),
       },
       walletConnectProjectId: '',
       appName: 'Commonality',

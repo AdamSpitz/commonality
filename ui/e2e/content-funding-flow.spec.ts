@@ -9,7 +9,11 @@ import {
 } from '@commonality/sdk'
 import { parseEther } from 'viem'
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import {
+  createE2ETestClients,
+  getContractAddresses,
+  verifyE2EChannelOwnership,
+} from './utils/blockchain'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -51,6 +55,9 @@ test.describe('Content Funding Flow', () => {
     console.log('\n=== CREATING CONTENT FUNDING CONTRACT ===')
     console.log(`  channelCanonicalId: ${channelCanonicalId}`)
     console.log(`  tweetId: ${tweetId}`)
+
+    console.log('\n=== VERIFYING CHANNEL OWNERSHIP ===')
+    await verifyE2EChannelOwnership(account0Clients, channelCanonicalId)
 
     const { hash } = await createContentFundingContract(
       account0Clients,
