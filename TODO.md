@@ -16,8 +16,8 @@
 
 ## Other things to do soon
 
-  - [Multiple UI domains](specs/multiple-ui-domains.md)?
-    - Let's think through the details of how to create a "noninflammatory content" site. e.g. What does the landing page look like?
+  - See [Multiple UI domains](specs/multiple-ui-domains.md).
+    - Let's think through the details of how to create a "noninflammatory content funding" (or maybe just "content funding"?) site. e.g. What does the landing page look like? What else does the site contain? (A way to create a content contract... does it also have a way to view a content contract, or do we just leave that as functionality provided by the more-general pubstarter site, where it checks to see if the contract is a content contract and then displays it accordingly? Etc.) What does it *not* contain?
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?
   - Fix the live Subjectiv Playwright path and rerun it. The old `/status`/indexer-sync blocker appears fixed now; the current failure is earlier in startup, where `ui/e2e/subjectiv-flow.spec.ts` times out waiting for `window._setupTestWallet` because the page never exposes it (blank-page / app-boot or test-wallet-harness issue). If that e2e passes after fixing the harness/startup problem, Subjectiv MVP is probably done.
   - Figure out the seed statements. (We've started, but then we realized that content-funding and in particular noninflammatory-content funding was a major use case, so we got sidetracked into that. Now that we have the content-funding system MVP built, go back to writing up seed statements.)
