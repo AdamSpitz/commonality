@@ -151,6 +151,39 @@ Great, I've got a solid picture of the codebase. Let me walk through your four T
 
   Bottom line: The statement browsing is the one to fix first. The funding aggregations are naturally bounded by the number of aligned projects per cause, which is likely to stay manageable.
 
+  ### Decision memo: what we should actually do
+
+  The "nonscalable queries" problem is really two different problems:
+
+  - global statement-browsing queries (`browseStatementsByMostSupporters`, `browseStatementsByNewest`, and the Finder's `getTopStatements()`)
+  - Funding Portal cross-project aggregations (`getTotalFundingForCause`, `getTopContributorsForCause`, `getUserContributionRankForCause`)
+
+  These should not be treated the same way.
+
+  #### Funding Portal decision
+
+  For Funding Portals, we should take a staged approach:
+
+  1. **Do not add heavy server-side aggregation yet.** The project is not deployed yet, and the number of projects aligned with any one cause is likely to stay in the "dozens" range for a long time.
+  2. **Optimize the funding-totals path first.** `getTotalFundingForCause` and the project-summary part of `getAllAlignedProjectsForCause` should stop depending on per-project event folding for `totalReceived` once we get around to optimizing them. Instead, use on-chain reads for the project totals and batch them with multicall. This keeps the thin-event-cache architecture intact while removing the most unnecessary work.
+  3. **Leave contributor leaderboards client-side for now.** `getTopContributorsForCause` really does need per-participant event history, so there is no equally clean "just read one on-chain total" shortcut. Keep the current approach until it proves too slow in practice.
+  4. **If leaderboards become a real bottleneck, add a narrow deterministic projection for them.** The first server-side aggregate to add should be something like a per-project participant-contributions table or cache, derived mechanically from events. This is much more targeted than bringing back a broad derived-table indexer design.
+  5. **Fix the worst pathological call if/when needed.** `getUserContributionRankForCause` currently gets rank by asking for effectively all contributors. If leaderboard performance becomes a problem, this call is one of the first places to revisit.
+
+  In other words: for Funding Portals, the current decision is **small targeted optimizations first, not a return to a heavy indexer**.
+
+  #### Statement-browsing decision
+
+  The statement-browsing queries are a different story. They really are global queries, and the current "fetch a giant pile of support events and sort client-side" approach does not scale well.
+
+  So for statement browsing, the likely long-term answer is the opposite of the Funding Portal answer:
+
+  - accept a small amount of server-side derived state here
+  - keep it narrow and mechanical (e.g. statement counts / newest ordering)
+  - do not generalize that into a broad "the indexer does all business logic again" move
+
+  Put differently: **if we add server-side derived query support anywhere first, statement browsing is the strongest candidate.** Funding Portal totals are more naturally handled by alignment data + chain reads; Funding Portal leaderboards can wait until there is evidence they are actually hurting.
+
   ---
   4. Platform API Caching and Rate Limits
 
@@ -189,4 +222,3 @@ About IPFS: is there anything custom/weird at all that we're doing with our Kubo
 I still need to think through the query stuff.
 
 About the X/Twitter API: just to make sure, you're looking at the most recent X API pricing and rate limits, right? They recently (February 2026, I think?) changed their pricing scheme.
-

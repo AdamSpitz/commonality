@@ -2,20 +2,22 @@
 
 ## Main thing I want to work on next
 
-  - Get the local dockerized deployment stuff to work properly on MacOS, not just Linux.
   - Remove GraphQL? I don't think we're using it, but there's someplace where we keep seeing a GraphQL URL (in the UI?).
-  - [User docs](specs/docs/user-docs.md):
-    - Try having an AI read *only* the docs and see whether the project makes sense.
-      - Prompt: "Do NOT read anything else in this repo. Use services.sh to start up a local deploy if one isn't already running, then take a look at the SPA (via the dockerized IPFS node; get the URL by looking at data/ui-ipfs/spa-url.txt) and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
+  - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Do NOT read anything else in this repo. Use services.sh to start up a local deploy if one isn't already running, then take a look at the SPA (via the dockerized IPFS node; get the URL by looking at data/ui-ipfs/spa-url.txt) and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
     - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
-    - Deal with the nonscalable queries: basically funding portals.
+    - Nonscalable queries:
+      - Funding Portal leaderboards: leave `getTopContributorsForCause` as-is for now; only add a narrow server-side participant-summary projection if it proves too slow in practice.
+      - Funding Portal ranking: if leaderboard work becomes necessary, revisit `getUserContributionRankForCause`, which currently effectively asks for all contributors.
+      - Statement browsing: add a small server-side derived query path for "most supporters" / "newest" instead of treating this like a Funding Portal problem.
+      - Funding Portal totals/aligned-project summaries: done in the SDK for current ETH-only contracts via on-chain reads, with multicall when available and a graceful fallback when the local chain lacks multicall3. Revisit this when smart contracts gain multi-currency support, since the fast path currently assumes ETH.
   - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts haven't yet.
 
 ## Other things to do soon
 
   - [Multiple UI domains](specs/multiple-ui-domains.md)?
+    - Let's think through the details of how to create a "noninflammatory content" site. e.g. What does the landing page look like?
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?
   - Fix the live Subjectiv Playwright path and rerun it. The old `/status`/indexer-sync blocker appears fixed now; the current failure is earlier in startup, where `ui/e2e/subjectiv-flow.spec.ts` times out waiting for `window._setupTestWallet` because the page never exposes it (blank-page / app-boot or test-wallet-harness issue). If that e2e passes after fixing the harness/startup problem, Subjectiv MVP is probably done.
   - Figure out the seed statements. (We've started, but then we realized that content-funding and in particular noninflammatory-content funding was a major use case, so we got sidetracked into that. Now that we have the content-funding system MVP built, go back to writing up seed statements.)

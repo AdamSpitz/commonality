@@ -5,7 +5,11 @@
  */
 
 import { fetchEvents } from '../../utils/eventCacheClient.js';
-import { decodeAlignmentAttestationEvent, decodeImplicationAttestationEvent } from '../../utils/eventDecoder.js';
+import {
+  decodeAlignmentAttestationEvent,
+  decodeAssuranceContractInitializedEvent,
+  decodeImplicationAttestationEvent,
+} from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
 import { getProject, getProjectContributions, getProjectRefunds } from '../pubstarter/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
@@ -21,11 +25,13 @@ import { SDKMachinery } from '../../machinery.js';
 import {
   addCurrencyAmount,
   currencyTotalsToArray,
+  ETH_CURRENCY,
   getCurrencyForTokenValue,
   getCurrencyKey,
   type Currency,
   type CurrencyAmountBigInt,
 } from '../../utils/currency.js';
+import { readProjectFundingSnapshots } from '../../utils/chain-reads.js';
 
 function addAmountToCurrencyList(
   totals: CurrencyAmountBigInt[],
@@ -87,6 +93,24 @@ function normalizeTrustedAddresses(
   }
 
   return normalized.size > 0 ? normalized : null;
+}
+
+function dedupeAlignedProjects<T extends {
+  projectAddress: string;
+  alignmentType: 'direct' | 'indirect';
+}>(projects: T[]): T[] {
+  const deduped = new Map<string, T>();
+
+  for (const project of projects) {
+    const key = project.projectAddress.toLowerCase();
+    const existing = deduped.get(key);
+
+    if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
+      deduped.set(key, project);
+    }
+  }
+
+  return [...deduped.values()];
 }
 
 // ============================================================================
@@ -438,25 +462,76 @@ export async function getAllAlignedProjectsForCause(
     }
   });
 
-  const results = [];
-  for (const [subjectId, alignmentType] of projectMap.entries()) {
+  const alignedProjects = [...projectMap.entries()].map(([subjectId, alignmentType]) => ({
     // subjectId is bytes32 (left-padded address); extract the last 20 bytes as an address
-    const projectAddress = `0x${subjectId.slice(-40)}`;
-    const project = await getProject(machinery, projectAddress);
+    projectAddress: `0x${subjectId.slice(-40)}` as `0x${string}`,
+    alignmentType,
+  }));
 
-    if (project) {
-      results.push({
+  if (alignedProjects.length === 0) {
+    return [];
+  }
+
+  if (machinery.publicClient) {
+    const initializedEvents = await Promise.all(
+      alignedProjects.map(async ({ projectAddress }) => {
+        const events = await fetchEvents(machinery, {
+          contractAddress: projectAddress,
+          eventName: 'AssuranceContractInitialized',
+          limit: 1,
+        });
+
+        const decoded = events
+          .map((event) => decodeAssuranceContractInitializedEvent(event))
+          .find((event): event is NonNullable<typeof event> => event !== null);
+
+        return decoded ? { projectAddress, conditionAddress: decoded.condition } : null;
+      }),
+    );
+
+    const projectsWithCondition = initializedEvents.filter(
+      (project): project is NonNullable<typeof project> => project !== null,
+    );
+
+    if (projectsWithCondition.length === 0) {
+      return [];
+    }
+
+    const projectAlignmentType = new Map(
+      alignedProjects.map((project) => [project.projectAddress.toLowerCase(), project.alignmentType]),
+    );
+    const snapshots = await readProjectFundingSnapshots(machinery, projectsWithCondition);
+
+    return dedupeAlignedProjects(snapshots.map((snapshot) => ({
+      projectAddress: snapshot.projectAddress,
+      alignmentType: projectAlignmentType.get(snapshot.projectAddress.toLowerCase()) ?? 'direct',
+      // Projects are ETH-only today; revisit when smart contracts support multiple currencies.
+      fundingCurrency: ETH_CURRENCY,
+      totalReceived: snapshot.totalReceived.toString(),
+      threshold: snapshot.threshold.toString(),
+      deadline: snapshot.deadline.toString(),
+    })));
+  }
+
+  const projects = await Promise.all(
+    alignedProjects.map(async ({ projectAddress, alignmentType }) => {
+      const project = await getProject(machinery, projectAddress);
+      if (!project) return null;
+
+      return {
         projectAddress: project.id,
         alignmentType,
         fundingCurrency: project.fundingCurrency,
         totalReceived: project.totalReceived,
         threshold: project.threshold,
         deadline: project.deadline,
-      });
-    }
-  }
+      };
+    }),
+  );
 
-  return results;
+  return dedupeAlignedProjects(
+    projects.filter((project): project is NonNullable<typeof project> => project !== null),
+  );
 }
 
 // ============================================================================
@@ -486,11 +561,18 @@ export async function getTopContributorsForCause(
 
   const participantMap = new Map<string, ContributorStats>();
 
-  for (const project of alignedProjects) {
-    const [contributions, refunds] = await Promise.all([
-      getProjectContributions(machinery, project.projectAddress),
-      getProjectRefunds(machinery, project.projectAddress),
-    ]);
+  const projectHistories = await Promise.all(
+    alignedProjects.map(async (project) => {
+      const [contributions, refunds] = await Promise.all([
+        getProjectContributions(machinery, project.projectAddress),
+        getProjectRefunds(machinery, project.projectAddress),
+      ]);
+
+      return { project, contributions, refunds };
+    }),
+  );
+
+  for (const { project, contributions, refunds } of projectHistories) {
 
     // Build per-participant refund totals for this project
     const refundsByParticipant = new Map<string, bigint>();

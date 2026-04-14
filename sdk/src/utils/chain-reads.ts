@@ -183,6 +183,13 @@ export interface ConditionStatus {
   hasFailed: boolean;
 }
 
+export interface ProjectFundingSnapshot {
+  projectAddress: Address;
+  totalReceived: bigint;
+  threshold: bigint;
+  deadline: bigint;
+}
+
 export interface NoteOnChainInfo {
   chainHash: `0x${string}`;
   amount: bigint;
@@ -494,6 +501,99 @@ export async function readTotalReceivedValue(
     return result as bigint;
   } catch {
     return 0n;
+  }
+}
+
+/**
+ * Read totalReceived/threshold/deadline for many projects in one multicall.
+ *
+ * Projects without a condition address get 0n threshold/deadline values.
+ * Failed calls are treated as zero values so callers can still render partial data.
+ */
+export async function readProjectFundingSnapshots(
+  machinery: SDKMachinery,
+  projects: Array<{ projectAddress: Address; conditionAddress: Address | null }>,
+): Promise<ProjectFundingSnapshot[]> {
+  if (projects.length === 0) return [];
+
+  const client = requirePublicClient(machinery);
+  try {
+    const requests: Array<
+      | { kind: 'totalReceived'; projectAddress: Address }
+      | { kind: 'threshold'; projectAddress: Address }
+      | { kind: 'deadline'; projectAddress: Address }
+    > = [];
+
+    const contracts = [];
+
+    for (const project of projects) {
+      requests.push({ kind: 'totalReceived', projectAddress: project.projectAddress });
+      contracts.push({
+        address: project.projectAddress,
+        abi: AssuranceContractReadAbi,
+        functionName: 'getAssuranceContractProgress',
+      });
+
+      if (project.conditionAddress) {
+        requests.push({ kind: 'threshold', projectAddress: project.projectAddress });
+        contracts.push({
+          address: project.conditionAddress,
+          abi: EthThresholdConditionReadAbi,
+          functionName: 'threshold',
+        });
+
+        requests.push({ kind: 'deadline', projectAddress: project.projectAddress });
+        contracts.push({
+          address: project.conditionAddress,
+          abi: EthThresholdConditionReadAbi,
+          functionName: 'deadline',
+        });
+      }
+    }
+
+    // @ts-expect-error - viem type inference struggles with mixed ABI multicalls
+    const results = await client.multicall({ allowFailure: true, contracts });
+
+    const snapshots = new Map<string, ProjectFundingSnapshot>();
+    for (const project of projects) {
+      snapshots.set(project.projectAddress.toLowerCase(), {
+        projectAddress: project.projectAddress,
+        totalReceived: 0n,
+        threshold: 0n,
+        deadline: 0n,
+      });
+    }
+
+    results.forEach((result, index) => {
+      const request = requests[index];
+      const snapshot = snapshots.get(request.projectAddress.toLowerCase());
+      if (!snapshot || result.status !== 'success') return;
+
+      const value = result.result as bigint;
+      if (request.kind === 'totalReceived') snapshot.totalReceived = value;
+      if (request.kind === 'threshold') snapshot.threshold = value;
+      if (request.kind === 'deadline') snapshot.deadline = value;
+    });
+
+    return projects
+      .map((project) => snapshots.get(project.projectAddress.toLowerCase()))
+      .filter((snapshot): snapshot is ProjectFundingSnapshot => snapshot !== undefined);
+  } catch {
+    return Promise.all(
+      projects.map(async (project) => {
+        const totalReceived = await readTotalReceivedValue(machinery, project.projectAddress);
+        const params = project.conditionAddress
+          ? await readConditionParams(machinery, project.conditionAddress)
+          : { threshold: 0n, deadline: 0n };
+
+        return {
+          projectAddress: project.projectAddress,
+          totalReceived,
+          threshold: params.threshold,
+          deadline: params.deadline,
+        };
+      }),
+    );
   }
 }
 

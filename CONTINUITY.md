@@ -30,3 +30,25 @@
 - Verification after the fix: `./scripts/run-integration-tests.sh` passed (`107 passing, 1 pending`).
 - Follow-up root-cause fix for full-system startup: `ui-ipfs-publisher` no longer bind-mounts the repo and no longer runs `npm ci` against the host workspace at runtime. Its dependencies are now baked into the image, artifacts are written through a dedicated `/artifacts` mount, and `./services.sh --start` now uses `docker-compose up -d --build` so the self-contained publisher image is rebuilt when needed.
 - Verification after the root-cause fix: `./services.sh --start` completed successfully, published the UI bundle to local IPFS, and `./services.sh --stop` cleanly brought the stack back down.
+
+## 2026-04-14: Funding-portal scalability follow-up
+
+- Implemented the first concrete funding-portal scalability optimization from `TODO.md` / `specs/scalability.md`.
+- In [sdk/src/subsystems/fundingportals/queries.ts](/home/adam/Projects/commonality/sdk/src/subsystems/fundingportals/queries.ts), `getAllAlignedProjectsForCause()` now takes a lighter path when `publicClient` is available:
+  it fetches only each project's `AssuranceContractInitialized` event to learn the condition address, then reads `totalReceived`, `threshold`, and `deadline` on-chain instead of folding each project's full event history just to build funding summaries.
+- Added [readProjectFundingSnapshots()` in `sdk/src/utils/chain-reads.ts`](/home/adam/Projects/commonality/sdk/src/utils/chain-reads.ts), which batches these reads with `multicall` when the chain supports it and falls back to individual reads when it does not.
+- This fallback mattered immediately in local testing: the Hardhat test setup here does not expose `multicall3`, so a graceful fallback was necessary for integration tests.
+- Also parallelized the per-project contribution/refund fetches inside `getTopContributorsForCause()`. No server-side leaderboard projection was added; that remains a future optimization only if needed.
+- Important caveat: the fast aligned-project summary path currently assumes ETH funding currency. That matches current smart-contract reality, but it will need revisiting once the multi-currency contract work happens.
+
+## If picking this up next
+
+- The funding-portal totals/aligned-project-summary optimization is done and verified; the next scalability task is the statement-browsing path (`browseStatementsByMostSupporters` / `browseStatementsByNewest`), which still does the global fetch-and-sort client-side pattern.
+- Clean-state verification for the funding-portal work:
+  1. `npm run build --workspace=sdk`
+  2. `./services.sh --stop`
+  3. `./data.sh --wipe`
+  4. `./services.sh --start`
+  5. `npm test --workspace=integration-tests -- --grep "Funding Portal"`
+- Result after the clean reset: funding-portal integration slice passed (`12 passing, 1 pending`).
+- Earlier failures before the reset were due to dirty accumulated local chain/indexer state, not the SDK change itself.
