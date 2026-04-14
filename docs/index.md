@@ -57,6 +57,8 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 - **Nobody controls it** — no company, no admin, no single point of failure.
 - **Assurance contracts mean you risk nothing** — pledges refund if the goal isn't met.
 - **Delegation is revocable** — you can take back your funds at any time.
+- **It's designed to work with traditional finance** *(coming)* — charities, credit cards, and tax receipts will all still work.
+- **It doesn't take a side** — both sides of most political divides have independent reasons to use it.
 
 [Full explanation →](why-trust-it.md)
 
