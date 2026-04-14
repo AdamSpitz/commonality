@@ -6,7 +6,7 @@
   - Remove GraphQL? I don't think we're using it, but there's someplace where we keep seeing a GraphQL URL (in the UI?).
   - [User docs](specs/docs/user-docs.md):
     - Try having an AI read *only* the docs and see whether the project makes sense.
-      - Prompt: "Do NOT read anything else in this repo. Start up a local deploy using services.sh, then take a look at the SPA (via the dockerized IPFS node) and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started?"
+      - Prompt: "Do NOT read anything else in this repo. Use services.sh to start up a local deploy if one isn't already running, then take a look at the SPA (via the dockerized IPFS node; get the URL by looking at data/ui-ipfs/spa-url.txt) and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 
   - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
     - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
