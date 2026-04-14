@@ -85,8 +85,10 @@ export function HomePage() {
         Fund projects and content around what people actually care about.
       </Typography>
       <Typography variant="h6" sx={{ maxWidth: 780, fontWeight: 500 }}>
-        Start by reading one example, then browse statements, then connect your
-        wallet only when you know what you want to do.
+        A conservative and a progressive can end up funding the same piece of writing — without ever coordinating. That's the core idea: shared values, discovered automatically.
+      </Typography>
+      <Typography variant="body1" sx={{ maxWidth: 680, mt: 1.5, opacity: 0.85 }}>
+        Start by reading one example, then browse statements, then connect your wallet only when you know what you want to do.
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 3 }}>
         <Button component={Link} to="/docs" variant="contained" color="primary">

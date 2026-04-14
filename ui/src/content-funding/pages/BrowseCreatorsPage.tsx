@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Link as RouterLink } from 'react-router-dom'
 import {
   Box,
@@ -15,6 +15,8 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   LinearProgress,
+  Tabs,
+  Tab,
 } from '@mui/material'
 import SortIcon from '@mui/icons-material/Sort'
 import { formatEther } from 'viem'
@@ -105,11 +107,18 @@ function sortChannels(channels: ChannelWithCanonicalId[], sortBy: SortOption): C
   })
 }
 
+const PLATFORM_ORDER: ContentFundingPlatform[] = ['twitter', 'youtube', 'substack']
+
 export function BrowseCreatorsPage() {
   const { platform } = useParams<{ platform: string }>()
+  const navigate = useNavigate()
   const { channels, loading, error } = useContentFundingState()
   const [sortBy, setSortBy] = useState<SortOption>('mostFunded')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
+  const activePlatform = (platform && platform in PLATFORM_LABELS)
+    ? platform as ContentFundingPlatform
+    : 'twitter'
 
   const filteredChannels = useMemo(() => {
     let result = channels
@@ -145,8 +154,22 @@ export function BrowseCreatorsPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Browse Creators — {platformLabel}
+        Creators
       </Typography>
+
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2, maxWidth: 680 }}>
+        Any piece of content with a URL can be registered and funded here. Browse by platform to find creators aligned with the causes you care about. If you're a creator, claim your channel to receive funds directly.
+      </Typography>
+
+      <Tabs
+        value={activePlatform}
+        onChange={(_, v) => navigate(`/content/${v}`)}
+        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+      >
+        {PLATFORM_ORDER.map((p) => (
+          <Tab key={p} label={PLATFORM_LABELS[p]} value={p} />
+        ))}
+      </Tabs>
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack spacing={2}>

@@ -35,18 +35,18 @@ const primaryNavigationItems = [
   { label: 'Start Here', path: '/docs' },
   { label: 'Statements', path: '/statements' },
   { label: 'Projects', path: '/projects' },
-  { label: 'Creators', path: '/content/twitter' },
+  { label: 'Creators', path: '/content' },
   { label: 'My Profile', path: '/profile' },
 ]
 
 const secondaryNavigationItems = [
-  { label: 'Delegated Funds', path: '/notes' },
-  { label: 'Trust Settings', path: '/settings' },
-  { label: 'Saved Refs', path: '/refs' },
+  { label: 'My Delegated Funds', path: '/notes' },
+  { label: 'My Trust Network', path: '/settings' },
   { label: 'Creator Dashboard', path: '/content/dashboard' },
   { label: 'Twitter Creators', path: '/content/twitter' },
   { label: 'YouTube Creators', path: '/content/youtube' },
   { label: 'Substack Creators', path: '/content/substack' },
+  { label: 'Saved Refs', path: '/refs' },
 ]
 
 function isPathSelected(currentPath: string, targetPath: string): boolean {

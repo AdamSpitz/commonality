@@ -74,6 +74,10 @@ export function BrowseStatementsPage() {
         Browse Statements
       </Typography>
 
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
+        A statement is a plain-English belief or value that anyone can sign. The system automatically connects related statements — even when worded differently — so people who care about the same things find each other without having to coordinate. Statements are also the entry point to funding portals for aligned projects and content.
+      </Typography>
+
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack direction="row" alignItems="center" spacing={2}>
           <Typography variant="body2" color="text.secondary">

@@ -12,6 +12,7 @@ import { MyNotesPage, NoteDetailPage, DepositPage } from './delegation/pages'
 import { StatementFundingPortalPage, CauseLeaderboardPage } from './fundingportal/pages'
 import { MyRefsPage } from './mutablerefs'
 import { BrowseCreatorsPage } from './content-funding/pages/BrowseCreatorsPage'
+import { CreatorsLandingPage } from './content-funding/pages/CreatorsLandingPage'
 import { ChannelPage } from './content-funding/pages/ChannelPage'
 import { CreateContractPage } from './content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from './content-funding/pages/CreatorDashboardPage'
@@ -40,6 +41,7 @@ function App() {
           <Route path="/portal/:statementCid" element={<StatementFundingPortalPage />} />
           <Route path="/portal/:statementCid/leaderboard" element={<CauseLeaderboardPage />} />
           <Route path="/refs" element={<MyRefsPage />} />
+          <Route path="/content" element={<CreatorsLandingPage />} />
           <Route path="/content/:platform" element={<BrowseCreatorsPage />} />
           <Route path="/content/:platform/:channelId" element={<ChannelPage />} />
           <Route path="/content/:platform/:channelId/new" element={<CreateContractPage />} />
