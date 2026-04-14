@@ -103,7 +103,7 @@ services:
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
-      - .:/workspace
+      - ./data/ui-ipfs:/artifacts
     depends_on:
       ipfs:
         condition: service_healthy
@@ -118,6 +118,7 @@ services:
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
+      - UI_IPFS_ARTIFACT_DIR=/artifacts
       - HOME=/tmp
     networks:
       - commonality

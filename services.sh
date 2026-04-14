@@ -129,7 +129,7 @@ start_services() {
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" "$UI_IPFS_ARTIFACT_DIR"
-    docker-compose up -d
+    docker-compose up -d --build
     wait_for_ui_ipfs_publish
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."

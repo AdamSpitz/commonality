@@ -2,9 +2,11 @@ FROM node:24-alpine
 
 RUN apk add --no-cache curl
 
-# Install deps on startup so node_modules stay on the host-mounted volume
-# (enables hot reload without rebuilding the image).
 WORKDIR /workspace
-CMD ["sh", "-c", "cd /workspace/ui && npm install --legacy-peer-deps && rm -f package-lock.json && npm run dev -- --host"]
+COPY . .
+RUN HUSKY=0 npm ci --legacy-peer-deps
+RUN chmod -R a+rwX /workspace
+
+CMD ["node", "scripts/publish-ui-to-ipfs.mjs"]
 
 EXPOSE 5173
