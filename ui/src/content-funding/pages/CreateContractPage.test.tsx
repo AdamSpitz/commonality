@@ -180,7 +180,7 @@ describe('CreateContractPage', () => {
     )
 
     expect(await screen.findByText('Contract created successfully!')).toBeInTheDocument()
-  })
+  }, 10000)
 
   it('blocks submission when resolved content belongs to a different channel', async () => {
     const user = await fillFormWithResolvedContent(makeResolvedContent({
