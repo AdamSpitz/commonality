@@ -17,6 +17,7 @@ COPY . .
 
 # Compile contracts
 RUN npm run build
+RUN chmod -R a+rwX /app
 
 # Expose Hardhat node port
 EXPOSE 8545

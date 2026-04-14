@@ -37,9 +37,20 @@ show_usage() {
     echo "Data is stored in $DATA_DIR/. Use data.sh to manage it."
 }
 
+resolve_path_allow_missing() {
+    local path="$1"
+    local dir
+    local base
+
+    dir="$(dirname "$path")"
+    base="$(basename "$path")"
+
+    echo "$(cd "$dir" && pwd)/$base"
+}
+
 check_existing_containers() {
     local abs_data_dir
-    abs_data_dir="$(realpath "$DATA_DIR")"
+    abs_data_dir="$(resolve_path_allow_missing "$DATA_DIR")"
 
     # If any managed containers are unhealthy, stop and tell the user rather
     # than letting compose fail with a cryptic dependency error.
@@ -129,7 +140,13 @@ start_services() {
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" "$UI_IPFS_ARTIFACT_DIR"
-    docker-compose up -d --build
+    docker-compose up -d --build \
+        hardhat-node \
+        hardhat-deploy \
+        ipfs \
+        indexer \
+        platform-api-service \
+        ui-ipfs-publisher
     wait_for_ui_ipfs_publish
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."

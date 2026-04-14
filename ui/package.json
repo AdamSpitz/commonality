@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "prebuild": "npm run build --workspace=@commonality/sdk",
     "build": "tsc -b && ../node_modules/.bin/vite build",
+    "prebuild:ipfs": "npm run build --workspace=@commonality/sdk",
     "build:ipfs": "tsc -b && ../node_modules/.bin/vite build --mode ipfs",
     "lint": "eslint .",
     "test": "vitest run",

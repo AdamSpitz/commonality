@@ -14,6 +14,10 @@ import { join } from 'path';
 
 const { ethers } = hre;
 
+function getRepoRoot() {
+  return process.env.COMMONALITY_ROOT_DIR || join(process.cwd(), '..');
+}
+
 /**
  * Parse a simple KEY=VALUE env file, ignoring comments and blank lines.
  */
@@ -46,7 +50,7 @@ async function main() {
   // For localhost: check if contracts are already deployed and skip if so.
   // This makes restart idempotent when chain data is persisted.
   if (isLocal) {
-    const rootDir = join(process.cwd(), '..');
+    const rootDir = getRepoRoot();
     const networkEnvPath = join(rootDir, 'deployments', `${network}.env`);
     try {
       const content = await fs.readFile(networkEnvPath, 'utf-8');
@@ -276,7 +280,7 @@ async function main() {
   }
 
   // Write deployments/<network>.env (committable contract addresses)
-  const rootDir = join(process.cwd(), '..');
+  const rootDir = getRepoRoot();
   const deploymentsDir = join(rootDir, 'deployments');
   await fs.mkdir(deploymentsDir, { recursive: true });
 

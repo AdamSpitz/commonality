@@ -42,14 +42,15 @@ services:
       - .:/workspace
       # Access chain data for deployment
       - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
-    working_dir: /workspace/hardhat
-    command: node ../node_modules/hardhat/internal/cli/bootstrap.js run scripts/deploy.js --network localhost
+    working_dir: /app
+    command: node node_modules/hardhat/internal/cli/bootstrap.js run scripts/deploy.js --network localhost
     depends_on:
       hardhat-node:
         condition: service_healthy
     environment:
       # Point to the hardhat-node service using Docker networking
       - HARDHAT_NETWORK_URL=http://hardhat-node:8545
+      - COMMONALITY_ROOT_DIR=/workspace
       - HOME=/tmp
     networks:
       - commonality
