@@ -47,25 +47,30 @@ describe('HomePage', () => {
     it('displays welcome heading when wallet is not connected', () => {
       render(<HomePage />)
 
-      expect(screen.getByRole('heading', { name: /welcome to commonality/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', {
+          name: /fund projects and content around what people actually care about/i,
+        })
+      ).toBeInTheDocument()
     })
 
     it('displays platform description text', () => {
       render(<HomePage />)
 
-      expect(screen.getByText(/coordination platform for aligned people/i)).toBeInTheDocument()
+      expect(screen.getByText(/start by reading one example/i)).toBeInTheDocument()
     })
 
-    it('displays connect wallet prompt', () => {
+    it('guides users to docs before wallet connection', () => {
       render(<HomePage />)
 
-      expect(screen.getByText(/connect your wallet to get started/i)).toBeInTheDocument()
+      expect(screen.getByText(/you do not need to connect a wallet just to understand the app/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /start with docs/i })).toHaveAttribute('href', '/docs')
     })
 
     it('does not display connected-only content', () => {
       render(<HomePage />)
 
-      expect(screen.queryByText(/welcome back/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/ready to take the next step/i)).not.toBeInTheDocument()
       expect(screen.queryByText(/connected as/i)).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /create and sign statement/i })).not.toBeInTheDocument()
     })
@@ -81,16 +86,20 @@ describe('HomePage', () => {
       } as any)
     })
 
-    it('displays "Welcome Back" heading', () => {
+    it('displays connected onboarding heading', () => {
       render(<HomePage />)
 
-      expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /ready to take the next step/i })).toBeInTheDocument()
     })
 
     it('does not display the disconnected welcome message', () => {
       render(<HomePage />)
 
-      expect(screen.queryByText(/welcome to commonality/i)).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', {
+          name: /fund projects and content around what people actually care about/i,
+        })
+      ).toBeInTheDocument()
     })
 
     it('displays connected address in an alert', () => {
@@ -106,14 +115,15 @@ describe('HomePage', () => {
 
       expect(screen.getByText('Quick Actions')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /create and sign statement/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /browse statements/i })).toBeInTheDocument()
+      expect(screen.getAllByRole('link', { name: /^browse statements$/i }).length).toBeGreaterThan(0)
+      expect(screen.getByRole('link', { name: /review the docs first/i })).toHaveAttribute('href', '/docs')
     })
 
     it('displays Your Activity section', () => {
       render(<HomePage />)
 
       expect(screen.getByText('Your Activity')).toBeInTheDocument()
-      expect(screen.getByText(/view your profile to see statements/i)).toBeInTheDocument()
+      expect(screen.getByText(/your profile shows the statements you have signed/i)).toBeInTheDocument()
     })
 
     it('links "View My Profile" button to user profile page', () => {
@@ -126,8 +136,8 @@ describe('HomePage', () => {
     it('links "Browse Statements" to /statements', () => {
       render(<HomePage />)
 
-      const browseLink = screen.getByRole('link', { name: /browse statements/i })
-      expect(browseLink).toHaveAttribute('href', '/statements')
+      const browseLinks = screen.getAllByRole('link', { name: /^browse statements$/i })
+      expect(browseLinks.some((link) => link.getAttribute('href') === '/statements')).toBe(true)
     })
 
     it('links "Go to My Profile" to user profile page', () => {

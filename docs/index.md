@@ -24,6 +24,9 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 - **[A town transitions away from government funding](use-case-walkthroughs/defunding.md)** — A community demonstrates it can fund its own youth program. The visible pledges are enough to make the government back down. Total cost: zero.
   *(Illustrates: assurance contracts, credible threats, delegation)*
 
+- **[Three towns fund shared water infrastructure without the province](use-case-walkthroughs/local-funding-shift.md)** — Three towns coordinate directly to fund regional infrastructure, bypassing the province as intermediary. The province ends up competing with local capacity rather than dictating terms.
+  *(Illustrates: horizontal coalitions, implication graph discovery, delegation, the ratchet effect, tax-competition dynamics)*
+
 
 ## What can I do?
 
@@ -54,6 +57,8 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 - **Nobody controls it** — no company, no admin, no single point of failure.
 - **Assurance contracts mean you risk nothing** — pledges refund if the goal isn't met.
 - **Delegation is revocable** — you can take back your funds at any time.
+- **It's designed to work with traditional finance** *(coming)* — charities, credit cards, and tax receipts will all still work.
+- **It doesn't take a side** — both sides of most political divides have independent reasons to use it.
 
 [Full explanation →](why-trust-it.md)
 

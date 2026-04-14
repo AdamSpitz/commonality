@@ -31,3 +31,9 @@ This is how the system builds coalitions without anyone having to build them. Yo
 - **Projects** connect to causes through alignment attestations: someone (or some AI) vouches that a project serves a particular cause. If that cause is connected to your statements through the implication graph, the project appears in your portal.
 
 The net effect: you express what you care about once, and the system continuously connects you to projects and content that serve your values — without you having to search for them and without anyone having to centrally decide what's "relevant."
+
+## Cross-partisan discovery
+
+The system surfaces common ground even between groups that would never coordinate directly. A progressive environmental organization and a conservative community group might each sign statements in their own language — "rural communities deserve access to clean drinking water regardless of economic status" vs. "local communities should control their own water infrastructure without federal interference." Different words, different politics. But an implication attester can notice that both statements support the same concrete project: a water filtration system for a specific county. The project appears in both groups' funding portals. Neither group needs to acknowledge the other, agree on framing, or join a coalition. They just both end up funding the same thing.
+
+Nobody had to agree on *why* clean water matters. The system found that they agreed on *what should happen*.
