@@ -17,7 +17,7 @@ export const config = createConfig(
     },
     walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '',
     appName: 'Commonality',
-    appDescription: 'Coordination platform for aligned people to track their numbers and crowdfund projects',
+    appDescription: 'Fund projects and content around shared values',
     appUrl: 'https://commonality.app',
   }),
 )

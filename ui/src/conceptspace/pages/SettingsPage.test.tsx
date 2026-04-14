@@ -21,16 +21,22 @@ describe('SettingsPage', () => {
   })
 
   describe('Initial rendering', () => {
-    it('displays "Settings" heading', () => {
+    it('displays "Trust Settings" heading', () => {
       render(<SettingsPage />)
 
-      expect(screen.getByRole('heading', { name: /settings/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /trust settings/i })).toBeInTheDocument()
     })
 
-    it('displays "Trusted Implication Attesters" section heading', () => {
+    it('displays "Trusted implication attesters" section heading', () => {
       render(<SettingsPage />)
 
-      expect(screen.getByText('Trusted Implication Attesters')).toBeInTheDocument()
+      expect(screen.getByText('Trusted implication attesters')).toBeInTheDocument()
+    })
+
+    it('explains that the page is advanced', () => {
+      render(<SettingsPage />)
+
+      expect(screen.getByText(/most new users can ignore this page at first/i)).toBeInTheDocument()
     })
 
     it('displays description text about implication attesters', () => {
