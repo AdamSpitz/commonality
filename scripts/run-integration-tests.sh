@@ -56,10 +56,16 @@ mkdir -p "$COMMONALITY_DATA_DIR/hardhat" "$COMMONALITY_DATA_DIR/ipfs" "$COMMONAL
 # before tests run (tests run on host, not in Docker)
 npm run build --workspace=@commonality/sdk
 
-# Start all services with forced rebuild to ensure we test against latest code
-# Docker's layer caching makes this fast when nothing has changed
-# Pass PONDER_EPHEMERAL=true to ensure fresh in-memory database for each run
-PONDER_EPHEMERAL=true docker-compose up -d --build
+# Start only the services the integration tests actually use.
+# Avoid starting ui-ipfs-publisher here: it bind-mounts the repo and runs
+# npm install/build against /workspace, which can race with the host-side
+# test process by mutating node_modules mid-run.
+PONDER_EPHEMERAL=true docker-compose up -d --build \
+    hardhat-node \
+    hardhat-deploy \
+    ipfs \
+    indexer \
+    platform-api-service
 
 # Wait for indexer to be ready by polling its GraphQL endpoint
 echo "Waiting for indexer to start..."
