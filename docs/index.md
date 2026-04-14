@@ -24,6 +24,9 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 - **[A town transitions away from government funding](use-case-walkthroughs/defunding.md)** — A community demonstrates it can fund its own youth program. The visible pledges are enough to make the government back down. Total cost: zero.
   *(Illustrates: assurance contracts, credible threats, delegation)*
 
+- **[Three towns fund shared water infrastructure without the province](use-case-walkthroughs/local-funding-shift.md)** — Three towns coordinate directly to fund regional infrastructure, bypassing the province as intermediary. The province ends up competing with local capacity rather than dictating terms.
+  *(Illustrates: horizontal coalitions, implication graph discovery, delegation, the ratchet effect, tax-competition dynamics)*
+
 
 ## What can I do?
 
