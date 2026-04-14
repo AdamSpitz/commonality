@@ -5,7 +5,6 @@
   - Get the local dockerized deployment stuff to work properly on MacOS, not just Linux.
   - Remove GraphQL? I don't think we're using it, but there's someplace where we keep seeing a GraphQL URL (in the UI?).
   - [User docs](specs/docs/user-docs.md):
-    - Go through the docs/vision-and-strategy stuff and see if there's anything in there that I'd like to make sure gets into the user-facing docs: not directly (docs/vision-and-strategy is written basically just for myself as founder, it's not written for users as an audience, and we don't want to assume that they care about what I care about or think in the terms that I think in), but just stuff like "maybe we might want to mention/emphasize this point in the user-facing docs, in a way that would make sense to them".
     - Try having an AI read *only* the docs and see whether the project makes sense.
       - Prompt: "Do NOT read anything else in this repo. Start up a local deploy using services.sh, then take a look at the SPA (via the dockerized IPFS node) and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started?"
 
