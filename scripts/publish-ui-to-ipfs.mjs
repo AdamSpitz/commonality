@@ -139,9 +139,6 @@ async function writeArtifacts(result) {
 }
 
 async function main() {
-  console.log('Installing workspace dependencies for UI IPFS build...')
-  runOrThrow('npm', ['ci', '--legacy-peer-deps'])
-
   console.log('Building UI in IPFS mode...')
   runOrThrow('npm', ['run', 'build:ipfs', '--workspace=ui'])
 

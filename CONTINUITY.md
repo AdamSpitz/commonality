@@ -19,3 +19,14 @@
 - The next intended step is still phase 2 from `specs/currency.md`: generalize smart contracts and transaction flows so assurance contracts / notes can settle in arbitrary ERC-20s.
 - Some UI copy and form labels still say `ETH` where the actual transaction flow is still ETH-specific by design in this phase, especially create/deposit flows and content-funding escrow displays. That is acceptable for now, but once contract/action support is generalized those strings and parse/submit paths will need another pass.
 - Current verification status: `npm run build` from repo root passed after these changes.
+
+## 2026-04-14: Fresh-clone development setup + pre-commit validation
+
+- Fresh clone setup completed from `README.md`: `npm install`, `npm run build`, `./services.sh --start`, and `./data.sh --seed`.
+- The first startup attempt exposed stale machine-level Docker state, not a repo dependency issue: fixed by removing old `commonality-*` containers that were colliding with this checkout's fixed `container_name` values in `docker-compose.yml`.
+- Current local stack came up cleanly after that cleanup, including IPFS UI publish and fake-data generation.
+- Reproduced the pre-commit failure in `./scripts/run-integration-tests.sh`: `mocha` sometimes started while `ui-ipfs-publisher` was still running `npm install` against the repo bind mount, which raced against the host `node_modules` tree and surfaced as `ERR_MODULE_NOT_FOUND` for `get-tsconfig/index.js` from `tsx`.
+- Fixed `scripts/run-integration-tests.sh` to start only the services integration tests actually need (`hardhat-node`, `hardhat-deploy`, `ipfs`, `indexer`, `platform-api-service`) instead of all services.
+- Verification after the fix: `./scripts/run-integration-tests.sh` passed (`107 passing, 1 pending`).
+- Follow-up root-cause fix for full-system startup: `ui-ipfs-publisher` no longer bind-mounts the repo and no longer runs `npm ci` against the host workspace at runtime. Its dependencies are now baked into the image, artifacts are written through a dedicated `/artifacts` mount, and `./services.sh --start` now uses `docker-compose up -d --build` so the self-contained publisher image is rebuilt when needed.
+- Verification after the root-cause fix: `./services.sh --start` completed successfully, published the UI bundle to local IPFS, and `./services.sh --stop` cleanly brought the stack back down.
