@@ -30,6 +30,8 @@ In practice, adoption will come from two directions:
 
 Both of these are individually compelling. But the bigger point is what they add up to: a gradual, voluntary migration of public-goods funding onto infrastructure that actually works — not because anyone planned a revolution, but because each individual participant finds it useful.
 
+And that migration has a direction: **[toward more-local government](./local-government.md).** Commonality's mechanisms — trust-based delegation, assurance contracts, onchain transparency — all work structurally better at smaller scales. Voluntary public-goods funding has a natural gravity toward localism that tax-funded government doesn't. Over time, this may gradually shift the balance of power toward more-local government, not through confrontation but by routing around the higher levels — replacing their coordination function with a protocol that doesn't require a central authority.
+
 ## Why I'm building this
 
 The government is awful. Not in the partisan sense — in the structural sense. The mechanisms we use for collective decision-making are legacy systems that haven't been fundamentally updated in centuries, and they show it. The polarization, the capture, the waste, the instability — these aren't bugs in an otherwise good system. They're the predictable consequences of early-aggregation architectures that destroy individual signal and force artificial coalitions.

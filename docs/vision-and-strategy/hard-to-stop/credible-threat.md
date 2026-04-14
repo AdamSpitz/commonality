@@ -53,7 +53,7 @@ Any situation where a higher-level entity uses funding as leverage over a lower-
 - **Large donors vs. organizations.** A foundation threatening to pull a grant if the org changes direction. A corporate sponsor threatening withdrawal over a controversy.
 - **International aid vs. recipient countries.** Development funding contingent on governance reforms or policy adoption.
 
-In all these cases, the pattern is the same: the recipient's ability to credibly say "we can do this without you" changes the negotiation, even if they'd prefer not to.
+In all these cases, the pattern is the same: the recipient's ability to credibly say "we can do this without you" changes the negotiation, even if they'd prefer not to. For the longer-term implications — how repeated use of this pattern at the local-vs-provincial level may gradually shift the balance of power toward more-local government — see [local government](../so-what/local-government.md).
 
 ## Interaction with other dynamics
 
