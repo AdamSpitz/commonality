@@ -177,11 +177,11 @@ async function main() {
   const delegatableNotesAddress = await delegatableNotes.getAddress();
   console.log(`✓ DelegatableNotes: ${delegatableNotesAddress}`);
 
-  const EthThresholdConditionFactory = await ethers.getContractFactory('EthThresholdConditionFactory');
-  const conditionFactory = await EthThresholdConditionFactory.deploy();
+  const ValueThresholdConditionFactory = await ethers.getContractFactory('ValueThresholdConditionFactory');
+  const conditionFactory = await ValueThresholdConditionFactory.deploy();
   await conditionFactory.waitForDeployment();
   const conditionFactoryAddress = await conditionFactory.getAddress();
-  console.log(`✓ EthThresholdConditionFactory: ${conditionFactoryAddress}`);
+  console.log(`✓ ValueThresholdConditionFactory: ${conditionFactoryAddress}`);
 
   console.log('Deploying payment token...');
   const PremintingERC20 = await ethers.getContractFactory('PremintingERC20');

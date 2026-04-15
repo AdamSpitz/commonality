@@ -209,7 +209,7 @@ All major work is done. Both the off-chain layers and the smart contracts have b
 
 ### Remaining items
 
-  - `thirdPartyMinPurchase` in `CreatorAssuranceContractFactory.sol` is hardcoded as `0.01 ether` (i.e. 10^16 wei). This will be wrong for tokens with non-18 decimals (e.g. USDC with 6 decimals). Needs to be made configurable or set in settlement-token units.
-  - `EthThresholdCondition` has not been renamed. The logic is already token-agnostic; renaming to `ValueThresholdCondition` is a cosmetic cleanup but easy to do, so let's just do it.
-  - No natspec documentation on the ERC-20 assumptions (vanilla token, no transfer fees, no rebasing). Worth adding but not blocking.
-  - Production stablecoin choice (USDC vs DAI) not yet finalized. (Let's use USDC.)
+- [x] `thirdPartyMinPurchase` in `CreatorAssuranceContractFactory.sol` - Changed from `0.01 ether` to `1` (1 unit of settlement token). Tests updated.
+- [x] `EthThresholdCondition` renamed to `ValueThresholdCondition`. Factory renamed to `ValueThresholdConditionFactory`. All references updated.
+- [x] Add natspec documentation on the ERC-20 assumptions (vanilla token, no transfer fees, no rebasing). Added to: CreatorAssuranceContractFactory, AssuranceContract, ERC1155SecondaryMarket, ChannelEscrow, DelegatableNotes, ValueThresholdCondition.
+- [x] Production stablecoin choice (USDC vs DAI). Using USDC for MVP.

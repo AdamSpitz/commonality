@@ -14,6 +14,14 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  * @dev Users can create sale listings (ask orders) and buy orders (bid orders).
  *      Supports partial fulfillment of orders. All trades settle in one ERC-20 token.
  *      Each marketplace instance is tied to a specific ERC1155 contract.
+ *
+ *      Token assumptions: The paymentToken must be a standard ERC-20 token with:
+ *      - No transfer fees or callbacks
+ *      - No rebasing behavior
+ *      - Standard transfer/transferFrom/approve interface
+ *
+ *      This contract uses SafeERC20 for all token transfers to handle non-standard
+ *      tokens that may not return boolean success values.
  */
 contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     using SafeERC20 for IERC20;

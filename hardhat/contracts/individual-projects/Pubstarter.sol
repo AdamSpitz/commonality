@@ -9,7 +9,7 @@ import {AssuranceContract} from "./AssuranceContract.sol";
 import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
 import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
-import {EthThresholdCondition} from "./EthThresholdCondition.sol";
+import {ValueThresholdCondition} from "./ValueThresholdCondition.sol";
 
 error InvalidOwnerAddress();
 error InvalidRecipientAddress();
@@ -134,16 +134,16 @@ contract AssuranceContractFactory {
 }
 
 /**
- * @title EthThresholdConditionFactory
- * @notice Factory contract for creating EthThresholdCondition contracts
+ * @title ValueThresholdConditionFactory
+ * @notice Factory contract for creating ValueThresholdCondition contracts
  */
-contract EthThresholdConditionFactory {
+contract ValueThresholdConditionFactory {
   mapping(address => bool) public isDeployedCondition;
 
-  event EthThresholdConditionCreated(address indexed condition);
+  event ValueThresholdConditionCreated(address indexed condition);
 
   /**
-   * @notice Creates a new EthThresholdCondition
+   * @notice Creates a new ValueThresholdCondition
    * @param progressSource The address of the contract to read progress from
    * @param threshold The funding threshold for success
    * @param deadline The deadline after which the project can fail
@@ -153,10 +153,10 @@ contract EthThresholdConditionFactory {
     address progressSource,
     uint256 threshold,
     uint256 deadline
-  ) public returns (EthThresholdCondition) {
-    EthThresholdCondition c = new EthThresholdCondition(progressSource, threshold, deadline);
+  ) public returns (ValueThresholdCondition) {
+    ValueThresholdCondition c = new ValueThresholdCondition(progressSource, threshold, deadline);
     isDeployedCondition[address(c)] = true;
-    emit EthThresholdConditionCreated(address(c));
+    emit ValueThresholdConditionCreated(address(c));
     return c;
   }
 }
@@ -171,14 +171,14 @@ contract Pubstarter {
   PremintingERC1155Factory public immutable _premintingERC1155Factory;
   MarketplaceFactory public immutable _marketplaceFactory;
   AssuranceContractFactory public immutable _assuranceFactory;
-  EthThresholdConditionFactory public immutable _conditionFactory;
+  ValueThresholdConditionFactory public immutable _conditionFactory;
 
   /**
    * @notice Initializes the Pubstarter contract with factory addresses
    * @param erc1155Factory The address of the PremintingERC1155Factory
    * @param marketplaceFactory The address of the MarketplaceFactory
    * @param assuranceFactory The address of the AssuranceContractFactory
-   * @param conditionFactory The address of the EthThresholdConditionFactory
+   * @param conditionFactory The address of the ValueThresholdConditionFactory
    */
   constructor(
     address erc1155Factory,
@@ -189,12 +189,12 @@ contract Pubstarter {
     _premintingERC1155Factory = PremintingERC1155Factory(erc1155Factory);
     _marketplaceFactory = MarketplaceFactory(marketplaceFactory);
     _assuranceFactory = AssuranceContractFactory(assuranceFactory);
-    _conditionFactory = EthThresholdConditionFactory(conditionFactory);
+    _conditionFactory = ValueThresholdConditionFactory(conditionFactory);
   }
 
   /**
-   * @notice Creates a complete project setup with EthThreshold condition (the common case)
-   * @dev Creates token, marketplace, assurance contract, and EthThresholdCondition;
+   * @notice Creates a complete project setup with ValueThreshold condition (the common case)
+   * @dev Creates token, marketplace, assurance contract, and ValueThresholdCondition;
    *      sets condition and prices; transfers ownership; mints tokens; renounces token ownership.
    * @param metadataURI The base URI for token metadata
    * @param contractURI The contract metadata URI
@@ -239,8 +239,8 @@ contract Pubstarter {
       projectMetadataCid
     );
 
-    // Deploy EthThresholdCondition pointing at the assurance contract
-    EthThresholdCondition condition = _conditionFactory.createCondition(
+    // Deploy ValueThresholdCondition pointing at the assurance contract
+    ValueThresholdCondition condition = _conditionFactory.createCondition(
       address(ac),
       threshold,
       deadline

@@ -65,8 +65,8 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     assuranceContract = MultiERC1155AssuranceContract.attach(acEvent.args[0]);
 
     // Deploy and set condition
-    const EthThresholdCondition = await ethers.getContractFactory("EthThresholdCondition");
-    const condition = await EthThresholdCondition.deploy(
+    const ValueThresholdCondition = await ethers.getContractFactory("ValueThresholdCondition");
+    const condition = await ValueThresholdCondition.deploy(
       acEvent.args[0],
       ethers.parseEther("10"),
       deadline

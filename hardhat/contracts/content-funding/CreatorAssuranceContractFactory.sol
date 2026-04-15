@@ -11,8 +11,8 @@ import {ChannelEscrow} from "./ChannelEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {PremintingERC1155Factory} from "../individual-projects/Pubstarter.sol";
 import {MarketplaceFactory, ERC1155SecondaryMarket} from "../individual-projects/Pubstarter.sol";
-import {EthThresholdCondition} from "../individual-projects/EthThresholdCondition.sol";
-import {EthThresholdConditionFactory} from "../individual-projects/Pubstarter.sol";
+import {ValueThresholdCondition} from "../individual-projects/ValueThresholdCondition.sol";
+import {ValueThresholdConditionFactory} from "../individual-projects/Pubstarter.sol";
 import {CancellableCondition} from "../individual-projects/CancellableCondition.sol";
 import {IAssuranceCondition} from "../individual-projects/IAssuranceCondition.sol";
 
@@ -62,6 +62,15 @@ interface IContentRegistry {
  *      contracts, and funding conditions in a single transaction. Supports both
  *      creator-initiated and third-party-initiated contracts. Third-party contracts
  *      use a CancellableCondition so the creator can veto them within a time window.
+ *
+ *      Token assumptions: The paymentToken must be a standard ERC-20 token with:
+ *      - 18 decimals (for MVP; multi-decimal support is a future enhancement)
+ *      - No transfer fees or callbacks
+ *      - No rebasing behavior
+ *      - Standard transfer/transferFrom/approve interface
+ *
+ *      This implementation uses SafeERC20 for all token transfers to handle
+ *      non-standard tokens that may not return boolean success values.
  */
 contract CreatorAssuranceContractFactory is Ownable {
     using SafeERC20 for IERC20;
@@ -99,7 +108,7 @@ contract CreatorAssuranceContractFactory is Ownable {
     /// @notice Factory for creating secondary marketplace contracts
     MarketplaceFactory public immutable marketplaceFactory;
     /// @notice Factory for creating ETH threshold condition contracts
-    EthThresholdConditionFactory public immutable conditionFactory;
+    ValueThresholdConditionFactory public immutable conditionFactory;
     /// @notice The separator character used in canonical content IDs (e.g. "/")
     string public contentIdSeparator;
     /// @notice The ERC-20 token used for all MVP content-funding contracts
@@ -115,7 +124,10 @@ contract CreatorAssuranceContractFactory is Ownable {
     mapping(address => address) public contractERC1155;
 
     /// @notice Minimum initial purchase required for third-party contract creation
-    uint256 public thirdPartyMinPurchase = 0.01 ether;
+    /// @dev Default is 1 unit of the settlement token (e.g., 1 USDC for 6-decimal tokens).
+    ///      This is intentionally small; the owner should configure this appropriately for the
+    ///      specific payment token being used via setThirdPartyMinPurchase().
+    uint256 public thirdPartyMinPurchase = 1;
 
     /**
      * @notice Initializes the factory with all required dependency addresses
@@ -145,7 +157,7 @@ contract CreatorAssuranceContractFactory is Ownable {
         channelEscrow = ChannelEscrow(_channelEscrow);
         erc1155Factory = PremintingERC1155Factory(_erc1155Factory);
         marketplaceFactory = MarketplaceFactory(_marketplaceFactory);
-        conditionFactory = EthThresholdConditionFactory(_conditionFactory);
+        conditionFactory = ValueThresholdConditionFactory(_conditionFactory);
         paymentToken = _paymentToken;
         contentIdSeparator = _contentIdSeparator;
     }
@@ -284,7 +296,7 @@ contract CreatorAssuranceContractFactory is Ownable {
 
         address conditionAddress;
         if (isThirdParty) {
-            EthThresholdCondition baseCondition = conditionFactory.createCondition(
+            ValueThresholdCondition baseCondition = conditionFactory.createCondition(
                 address(ac),
                 threshold,
                 deadline
@@ -295,7 +307,7 @@ contract CreatorAssuranceContractFactory is Ownable {
             );
             conditionAddress = address(cancellableCondition);
         } else {
-            EthThresholdCondition condition = conditionFactory.createCondition(
+            ValueThresholdCondition condition = conditionFactory.createCondition(
                 address(ac),
                 threshold,
                 deadline

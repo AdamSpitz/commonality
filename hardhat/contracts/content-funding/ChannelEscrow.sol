@@ -32,10 +32,18 @@ interface IChannelEscrow {
 
 /**
  * @title ChannelEscrow
- * @notice Holds ETH in escrow per channel until the channel owner is verified and withdraws
+ * @notice Holds settlement tokens in escrow per channel until the channel owner is verified and withdraws
  * @dev Funds are deposited by channel ID. Only the verified channel owner can withdraw.
  *      Used for channels that are unclaimed at the time funds are sent, so the creator
  *      can claim them later after verification.
+ *
+ *      Token assumptions: The paymentToken must be a standard ERC-20 token with:
+ *      - No transfer fees or callbacks
+ *      - No rebasing behavior
+ *      - Standard transfer/transferFrom/approve interface
+ *
+ *      This contract uses SafeERC20 for all token transfers to handle non-standard
+ *      tokens that may not return boolean success values.
  */
 contract ChannelEscrow is IChannelEscrow {
     using SafeERC20 for IERC20;

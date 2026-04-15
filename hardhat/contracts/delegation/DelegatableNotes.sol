@@ -22,6 +22,15 @@ import {AssuranceContractFactory, MarketplaceFactory} from "../individual-projec
  * This allows delegation chains without storing explicit link nodes. Operations
  * that need to verify chains (like revocation) pass the full owner array and the
  * contract verifies it hashes correctly.
+ *
+ * Token assumptions: For ERC-20 token operations (deposits, purchases), the token must be
+ * a standard ERC-20 with:
+ * - No transfer fees or callbacks
+ * - No rebasing behavior
+ * - Standard transfer/transferFrom/approve interface
+ *
+ * This contract uses SafeERC20 for all token transfers to handle non-standard
+ * tokens that may not return boolean success values.
  */
 contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   using SafeERC20 for IERC20;

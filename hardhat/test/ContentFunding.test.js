@@ -105,8 +105,8 @@ describe("ContentFunding", function () {
     const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
     marketplaceFactory = await MarketplaceFactory.deploy();
 
-    const EthThresholdConditionFactory = await ethers.getContractFactory("EthThresholdConditionFactory");
-    conditionFactory = await EthThresholdConditionFactory.deploy();
+    const ValueThresholdConditionFactory = await ethers.getContractFactory("ValueThresholdConditionFactory");
+    conditionFactory = await ValueThresholdConditionFactory.deploy();
 
     const CreatorAssuranceContractFactory = await ethers.getContractFactory("CreatorAssuranceContractFactory");
     factory = await CreatorAssuranceContractFactory.deploy(
@@ -872,7 +872,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should revert third-party creation when the initial purchase is below the minimum", async function () {
-      const insufficientAmount = ethers.parseEther("0.001");
+      const insufficientAmount = 0; // Less than minimum of 1 token unit
       const cheapContentSuffix = "3001";
 
       await expect(createContentFundingContract({
@@ -1036,14 +1036,14 @@ describe("ContentFunding", function () {
     });
 
     it("Should set third party min purchase (owner only)", async function () {
-      const newMin = ethers.parseEther("0.05");
+      const newMin = 100; // 100 units of the payment token (e.g., 100 USDC)
       await factory.setThirdPartyMinPurchase(newMin);
 
       expect(await factory.thirdPartyMinPurchase()).to.equal(newMin);
     });
 
     it("Should revert setThirdPartyMinPurchase from non-owner", async function () {
-      await expect(factory.connect(alice).setThirdPartyMinPurchase(ethers.parseEther("0.05")))
+      await expect(factory.connect(alice).setThirdPartyMinPurchase(100))
         .to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
     });
 

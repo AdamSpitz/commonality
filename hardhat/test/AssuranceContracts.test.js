@@ -11,8 +11,8 @@ describe("MultiERC1155AssuranceContract", function () {
   let threshold, deadline;
 
   async function deployCondition(progressSource, thresh, dl) {
-    const EthThresholdCondition = await ethers.getContractFactory("EthThresholdCondition");
-    return EthThresholdCondition.deploy(progressSource, thresh, dl);
+    const ValueThresholdCondition = await ethers.getContractFactory("ValueThresholdCondition");
+    return ValueThresholdCondition.deploy(progressSource, thresh, dl);
   }
 
   async function deployCancellableCondition(progressSource, thresh, dl, canceller) {

@@ -16,12 +16,14 @@ interface IProgressSource {
 }
 
 /**
- * @title EthThresholdCondition
+ * @title ValueThresholdCondition
  * @notice Assurance condition: succeeds when progress >= threshold,
  *         fails when deadline passes without reaching threshold
  * @dev Reads progress from an external contract via IProgressSource.
+ *      The progress value is denominated in the settlement token of the source contract
+ *      (typically an assurance contract with a paymentToken).
  */
-contract EthThresholdCondition is IAssuranceCondition {
+contract ValueThresholdCondition is IAssuranceCondition {
     error InvalidProgressSourceAddress();
 
     /// @notice The contract that reports funding progress

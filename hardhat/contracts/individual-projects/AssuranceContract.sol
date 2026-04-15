@@ -12,6 +12,15 @@ import {IAssuranceCondition} from "./IAssuranceCondition.sol";
  *      The condition is set once after construction (to solve the chicken-and-egg problem
  *      where the condition may need to reference this contract's address).
  *      This is an abstract contract that must be implemented by a concrete contract.
+ *
+ *      Token assumptions: The paymentToken must be a standard ERC-20 token with:
+ *      - No transfer fees or callbacks
+ *      - No rebasing behavior
+ *      - Standard transfer/transferFrom/approve interface
+ *
+ *      This contract uses SafeERC20 for all token transfers to handle non-standard
+ *      tokens that may not return boolean success values.
+ *
  * @author AdamSpitz
  */
 
