@@ -29,7 +29,7 @@ There are several distinct kinds of hidden-majority patterns, distinguished by *
 Sometimes there's an issue where the two sides genuinely have different preferences, but there's a middle ground that the moderates on each side would prefer to fighting.
 
 The natural phrasing for each category of statement is different:
-  - The moderate-from-each-side statements are probably "I'd prefer..." These are the statements that the moderates of each side actually believe; they just happen to be common-sense positions that have reasonable overlap with the other side's moderate position.
+  - The moderate-from-each-side statements are probably "I'd prefer..." These are the statements that the moderates of each side actually believe; they just happen to be common-sense positions that have reasonable overlap with the other side's moderate position. And these statements probably won't *say* "I'm open to (some compromise with the other side)" - they don't exactly *want* to proclaim that, that's not the natural phrasing that they'd use - but they do need to *leave room* for the compromise position. Maybe they make it clear what their primary concerns are (while implicitly leaving enough room for the other side's primary concerns to be satisfied too).
   - The commonality statement is probably more like "I'd be okay with it if..." These aren't necessarily the statements that each side's moderates would *prefer* if they could have everything they wanted, but there's enough overlap that they'd be fine with it.
 
 #### Examples
