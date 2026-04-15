@@ -82,11 +82,10 @@ Multi-currency selection or crypto wallet management — Keep the crypto as invi
 
 ### Open Questions for You
 
-Does the site show all content-funded content, or only content that has received noninflammatory attestations? I'd lean toward showing everything that's been submitted for content funding on the relevant platform deployments, but highlighting/prioritizing attested content. Otherwise you need a separate site for "content funding without the noninflammatory angle."
+Does the site show all content-funded content, or only content that has received noninflammatory attestations? I'd lean toward showing everything that's been submitted for content funding on the relevant platform deployments, but highlighting/prioritizing attested content. Otherwise you need a separate site for "content funding without the noninflammatory angle." (MY THOUGHT: yes, sounds good.)
 
-Who are the primary attesters on this site? The spec describes three personas (neutral, left-leaning, right-leaning). Are these all visible by default, or does the site start with one and expand?
+Who are the primary attesters on this site? The spec describes three personas (neutral, left-leaning, right-leaning). Are these all visible by default, or does the site start with one and expand? (MY THOUGHT: probably all three. I don't want this site to be just for one side.)
 
-Should the landing page lean into the political angle explicitly, or keep it softer? The spec is very clear that this is about political discourse. But "political" can scare people off. The alternative is leading with "content that bridges divides" and letting the political specifics emerge as people browse.
+Should the landing page lean into the political angle explicitly, or keep it softer? The spec is very clear that this is about political discourse. But "political" can scare people off. The alternative is leading with "content that bridges divides" and letting the political specifics emerge as people browse. (MY THOUGHT: "content that bridges divides" is fine, but I don't think we need to shy away from showcasing the politics / Culture War stuff; the whole point of this is "are you sick of the usual polarized bullshit? this is a site where we explicitly reward building bridges.")
 
-"Built on Commonality" — how prominent? A small footer link? A visible badge? This affects whether the site feels like its own thing vs. a subsection of a bigger platform.
-
+"Built on Commonality" — how prominent? A small footer link? A visible badge? This affects whether the site feels like its own thing vs. a subsection of a bigger platform. (MY THOUGHT: fairly prominent. I do want to draw attention to the more-general Commonality platform, even if this site is specifically for this more specific use case.)
