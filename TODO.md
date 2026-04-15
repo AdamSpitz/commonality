@@ -2,17 +2,11 @@
 
 ## Main thing I want to work on next
 
-  - Remove GraphQL? I don't think we're using it, but there's someplace where we keep seeing a GraphQL URL (in the UI?).
+  - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts haven't yet.
+  
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Do NOT read anything else in this repo. Use services.sh to start up a local deploy if one isn't already running, then take a look at the SPA (via the dockerized IPFS node; get the URL by looking at data/ui-ipfs/spa-url.txt) and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 
-  - Do a more thorough scalability analysis and fix any potential problems. (See [here](specs/scalability.md).)
-    - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
-    - Nonscalable queries:
-      - Funding Portal leaderboards: leave `getTopContributorsForCause` as-is for now; only add a narrow server-side participant-summary projection if it proves too slow in practice.
-      - Funding Portal ranking: if leaderboard work becomes necessary, revisit `getUserContributionRankForCause`, which currently effectively asks for all contributors.
-      - Statement browsing: add a small server-side derived query path for "most supporters" / "newest" instead of treating this like a Funding Portal problem.
-      - Funding Portal totals/aligned-project summaries: done in the SDK for current ETH-only contracts via on-chain reads, with multicall when available and a graceful fallback when the local chain lacks multicall3. Revisit this when smart contracts gain multi-currency support, since the fast path currently assumes ETH.
-  - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts haven't yet.
+  - Do the [scalability](specs/scalability.md) improvements we identified.
 
 ## Other things to do soon
 
@@ -27,19 +21,17 @@
   - The word "attester" appears in the UI. Put a little info bubble or something next to it. (And other stuff like that.)
   - Write the documentation and AI skills.
   - If the repeated SDK prebuild cost becomes annoying, consider a more monorepo-aware build setup so SDK-dependent workspaces don't redundantly rebuild the SDK.
-  - Do another smart-contract audit pass.
-  - Do I trust the UI? No.
   - In the UI, put a "post a GitHub issue" button.
   - Does the "finder" have any particular focus, like finding "commonality" statements (along the lines of the "coalition between the moderates on both sides" idea)? Maybe it should. (I'm not sure how necessary it'll be. Maybe a single finder can just keep on top of everything? But I kinda suspect that it might be valuable to have a "focus", like "watch for moderate statements on both sides and try to synthesize bridges between them".)
   - Implement the `foldVersion` idea described in our [indexer spec](specs/indexer/README.md). Then implement client-side storage (in localStorage?) of accumulators; blow away the accumulators when foldVersion changes.
   - How do we keep deployments (of all sorts of things: smart contracts, indexer, UI, various services like the attesters and finders and so on) from becoming unwieldy? It's probably not that big a deal - when deploying, just keep track of the info regarding where the code was deployed to and so on - but there are so many moving parts here that I'm starting to be intimidated.
-  - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
-  - Make sure that the UI contains the user docs, including API docs and so on.
+  - Make sure to include the API docs.
   - Point an AI at the UI and tell it "go use this."
-  
+  - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 
-  - (Not a task for AI.) Can I try out conceptspace manually? e.g. Start up docker-compose locally, maybe do some fake-data generation to populate the system with a bunch of data, and then look at the UI through my web browser?
-  - (Not a task for AI.) I need to do a big code review myself, of the whole thing. I don't trust it.
+  - Do another smart-contract audit pass.
+  - (Not a task for AI.) Try out the UI manually?
+  - (Not a task for AI.) Do a big code review myself, of the whole thing. I don't trust it.
 
 Founder-level stuff:
   - Think about orthogonal hierarchy dimensions for statements — geographic and topical. See [seed-content.md](./specs/subsystems/conceptspace/seed-content.md) for more detail.

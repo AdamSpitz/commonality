@@ -17,6 +17,16 @@ Short version:
   - attesters are stateless; let's just make them elastic from the start
   - finders will probably be stateful, but they're more "open" and can be "sharded"; we (or anyone else) can just start finders focused on particular areas
 
+## To Do
+
+Here's a list of stuff to do, or to maybe do, extracted from the conversation below:
+
+  - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
+  - Nonscalable queries:
+    - Funding Portal leaderboards: leave `getTopContributorsForCause` as-is for now; only add a narrow server-side participant-summary projection if it proves too slow in practice.
+    - Funding Portal ranking: if leaderboard work becomes necessary, revisit `getUserContributionRankForCause`, which currently effectively asks for all contributors.
+    - Statement browsing: add a small server-side derived query path for "most supporters" / "newest" instead of treating this like a Funding Portal problem.
+    - Funding Portal totals/aligned-project summaries: done in the SDK for current ETH-only contracts via on-chain reads, with multicall when available and a graceful fallback when the local chain lacks multicall3. Revisit this when smart contracts gain multi-currency support, since the fast path currently assumes ETH.
 
 ## Components
 
