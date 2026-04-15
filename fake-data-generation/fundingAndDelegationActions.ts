@@ -210,6 +210,11 @@ class FundingAndDelegationActions {
       parseEther('0.05'),
       parseEther('0.01')
     ];
+    const paymentToken = process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined
+
+    if (!paymentToken) {
+      throw new Error('PAYMENT_TOKEN_ADDRESS not configured');
+    }
 
     try {
       const { hash, projectDetails } = await sdkCreateProject(
@@ -220,6 +225,7 @@ class FundingAndDelegationActions {
           contractURI: 'https://example.com/contract.json',
           owner: user.address,
           recipient: user.address,
+          paymentToken,
           threshold,
           deadline,
           projectMetadataCid,

@@ -83,10 +83,11 @@ contract MarketplaceFactory {
   /**
    * @notice Creates a new ERC1155SecondaryMarket contract
    * @param erc1155Addr The address of the ERC1155 token contract to create a marketplace for
+   * @param paymentToken The ERC-20 token used to settle trades in the marketplace
    * @return The address of the created ERC1155SecondaryMarket contract
    */
-  function createMarketplace(address erc1155Addr) public returns (ERC1155SecondaryMarket) {
-    ERC1155SecondaryMarket m = new ERC1155SecondaryMarket(erc1155Addr);
+  function createMarketplace(address erc1155Addr, address paymentToken) public returns (ERC1155SecondaryMarket) {
+    ERC1155SecondaryMarket m = new ERC1155SecondaryMarket(erc1155Addr, paymentToken);
     isDeployedMarket[address(m)] = true;
     emit PubstarterERC1155SecondaryMarketCreated(address(m));
     return m;
@@ -107,20 +108,23 @@ contract AssuranceContractFactory {
   event PubstarterAssuranceContractCreated(address indexed assuranceContract);
 
    /**
-    * @notice Creates a new MultiERC1155AssuranceContract
+   * @notice Creates a new MultiERC1155AssuranceContract
    * @param owner The address that will own the assurance contract
    * @param recipient The address that will receive funds if project succeeds
+   * @param paymentToken The ERC-20 token used to settle purchases/refunds/withdrawals
    * @param projectMetadataCid The IPFS CID containing project metadata
    * @return The address of the created assurance contract
    */
   function createAssuranceContract(
     address owner,
     address recipient,
+    address paymentToken,
     string memory projectMetadataCid
   ) public returns (MultiERC1155AssuranceContract) {
     MultiERC1155AssuranceContract ac = new MultiERC1155AssuranceContract(
       owner,
       recipient,
+      paymentToken,
       projectMetadataCid
     );
     isDeployedMarket[address(ac)] = true;
@@ -196,6 +200,7 @@ contract Pubstarter {
    * @param contractURI The contract metadata URI
    * @param owner The address that will own the assurance contract
    * @param recipient The address that will receive funds if project succeeds
+   * @param paymentToken The ERC-20 token used to settle purchases/refunds/withdrawals
    * @param threshold The funding threshold for project success
    * @param deadline The deadline after which project can fail if threshold not reached
    * @param projectMetadataCid The IPFS CID containing project metadata
@@ -211,6 +216,7 @@ contract Pubstarter {
     string memory contractURI,
     address owner,
     address recipient,
+    address paymentToken,
     uint256 threshold,
     uint256 deadline,
     string memory projectMetadataCid,
@@ -223,12 +229,13 @@ contract Pubstarter {
 
     PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(address(this), metadataURI, contractURI);
 
-    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t));
+    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t), paymentToken);
 
     // Deploy assurance contract (owned by this contract initially for setup)
     MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
       address(this),
       recipient,
+      paymentToken,
       projectMetadataCid
     );
 
@@ -258,6 +265,7 @@ contract Pubstarter {
    * @param contractURI The contract metadata URI
    * @param owner The address that will own the assurance contract
    * @param recipient The address that will receive funds if project succeeds
+   * @param paymentToken The ERC-20 token used to settle purchases/refunds/withdrawals
    * @param condition The pre-deployed IAssuranceCondition contract
    * @param projectMetadataCid The IPFS CID containing project metadata
    * @param ids Array of token IDs to mint
@@ -272,6 +280,7 @@ contract Pubstarter {
     string memory contractURI,
     address owner,
     address recipient,
+    address paymentToken,
     IAssuranceCondition condition,
     string memory projectMetadataCid,
     uint256[] memory ids,
@@ -283,11 +292,12 @@ contract Pubstarter {
 
     PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(address(this), metadataURI, contractURI);
 
-    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t));
+    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t), paymentToken);
 
     MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
       address(this),
       recipient,
+      paymentToken,
       projectMetadataCid
     );
 

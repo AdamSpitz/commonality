@@ -33,27 +33,17 @@ async function createContentFundingContract({
   isThirdParty,
   initialPurchaseContentSuffixes = [],
   initialPurchaseCounts = [],
-  value,
+  initialPurchaseValue,
 }) {
   const channelId = channelIdFromCanonical(channelCanonicalId);
   const initialPurchaseIds = contentIdsFromSuffixes(channelCanonicalId, initialPurchaseContentSuffixes);
 
-  if (value === undefined) {
-    return factory.connect(signer).createContract(
-      channelId,
-      channelCanonicalId,
-      contentSuffixes,
-      supplies,
-      prices,
-      threshold,
-      deadline,
-      metadataCid,
-      erc1155MetadataUri,
-      erc1155ContractUri,
-      isThirdParty,
-      initialPurchaseIds,
-      initialPurchaseCounts
+  if (initialPurchaseValue !== undefined && initialPurchaseValue > 0n) {
+    const paymentToken = await ethers.getContractAt(
+      "PremintingERC20",
+      await factory.paymentToken()
     );
+    await paymentToken.connect(signer).approve(await factory.getAddress(), initialPurchaseValue);
   }
 
   return factory.connect(signer).createContract(
@@ -69,14 +59,14 @@ async function createContentFundingContract({
     erc1155ContractUri,
     isThirdParty,
     initialPurchaseIds,
-    initialPurchaseCounts,
-    { value }
+    initialPurchaseCounts
   );
 }
 
 describe("ContentFunding", function () {
   let contentRegistry, channelRegistry, channelEscrow;
   let factory, erc1155Factory, marketplaceFactory, conditionFactory;
+  let paymentToken;
   let mockVerifier;
   let owner, recipient, alice, bob, charlie, thirdParty;
 
@@ -92,8 +82,22 @@ describe("ContentFunding", function () {
     const ChannelRegistry = await ethers.getContractFactory("ChannelRegistry");
     channelRegistry = await ChannelRegistry.deploy(await mockVerifier.getAddress());
 
+    const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
+    paymentToken = await PremintingERC20.deploy(
+      owner.address,
+      "Content Funding Payment Token",
+      "CFPT",
+      "ipfs://QmContentFundingPaymentToken"
+    );
+    for (const signer of [owner, recipient, alice, bob, charlie, thirdParty]) {
+      await paymentToken.connect(owner).mint(signer.address, ethers.parseEther("1000"));
+    }
+
     const ChannelEscrow = await ethers.getContractFactory("ChannelEscrow");
-    channelEscrow = await ChannelEscrow.deploy(await channelRegistry.getAddress());
+    channelEscrow = await ChannelEscrow.deploy(
+      await channelRegistry.getAddress(),
+      await paymentToken.getAddress()
+    );
 
     const PremintingERC1155Factory = await ethers.getContractFactory("PremintingERC1155Factory");
     erc1155Factory = await PremintingERC1155Factory.deploy();
@@ -112,6 +116,7 @@ describe("ContentFunding", function () {
       await erc1155Factory.getAddress(),
       await marketplaceFactory.getAddress(),
       await conditionFactory.getAddress(),
+      await paymentToken.getAddress(),
       ":"
     );
 
@@ -120,6 +125,19 @@ describe("ContentFunding", function () {
 
     await channelRegistry.connect(owner).setFactory(await factory.getAddress());
   });
+
+  async function approveFactorySpend(signer, amount) {
+    await paymentToken.connect(signer).approve(await factory.getAddress(), amount);
+  }
+
+  async function approveAssuranceSpend(signer, assuranceContract, amount) {
+    await paymentToken.connect(signer).approve(await assuranceContract.getAddress(), amount);
+  }
+
+  async function depositIntoEscrow(signer, channelId, amount) {
+    await paymentToken.connect(signer).approve(await channelEscrow.getAddress(), amount);
+    return channelEscrow.connect(signer).deposit(channelId, amount);
+  }
 
   describe("ContentRegistry", function () {
     let channelCanonicalId, channelId, contentSuffix1, contentSuffix2, contentId1, contentId2;
@@ -389,22 +407,22 @@ describe("ContentFunding", function () {
       channelId = ethers.id("test-channel-escrow");
     });
 
-    it("Should deposit ETH successfully", async function () {
+    it("Should deposit settlement tokens successfully", async function () {
       const depositAmount = ethers.parseEther("1.0");
 
-      await expect(channelEscrow.connect(alice).deposit(channelId, { value: depositAmount }))
+      await expect(depositIntoEscrow(alice, channelId, depositAmount))
         .to.emit(channelEscrow, "Deposited")
         .withArgs(channelId, await alice.getAddress(), depositAmount);
 
       expect(await channelEscrow.balance(channelId)).to.equal(depositAmount);
     });
 
-    it("Should revert when depositing zero ETH", async function () {
-      await expect(channelEscrow.deposit(channelId, { value: 0 }))
-        .to.be.revertedWithCustomError(channelEscrow, "MustSendEth");
+    it("Should revert when depositing zero tokens", async function () {
+      await expect(channelEscrow.deposit(channelId, 0))
+        .to.be.revertedWithCustomError(channelEscrow, "MustSendTokens");
     });
 
-    it("Should withdraw ETH successfully", async function () {
+    it("Should withdraw settlement tokens successfully", async function () {
       const depositAmount = ethers.parseEther("2.0");
 
       await mockVerifier.setValid(true);
@@ -416,7 +434,7 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await channelEscrow.connect(bob).deposit(channelId, { value: depositAmount });
+      await depositIntoEscrow(bob, channelId, depositAmount);
 
       await expect(channelEscrow.connect(bob).withdraw(channelId))
         .to.emit(channelEscrow, "Withdrawn")
@@ -448,7 +466,8 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: ["9301"],
         initialPurchaseCounts: [1],
-        value: firstDepositAmount,
+        initialPurchaseValue: firstDepositAmount,
+        paymentToken,
       });
 
       const firstReceipt = await firstTx.wait();
@@ -473,7 +492,8 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: ["9302"],
         initialPurchaseCounts: [1],
-        value: secondDepositAmount,
+        initialPurchaseValue: secondDepositAmount,
+        paymentToken,
       });
 
       const secondReceipt = await secondTx.wait();
@@ -520,7 +540,7 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await channelEscrow.connect(bob).deposit(channelId, { value: ethers.parseEther("1.0") });
+      await depositIntoEscrow(bob, channelId, ethers.parseEther("1.0"));
 
       await expect(channelEscrow.connect(alice).withdraw(channelId))
         .to.be.revertedWithCustomError(channelEscrow, "OnlyChannelOwner");
@@ -710,7 +730,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [contentSuffixes[0]],
         initialPurchaseCounts: [1],
-        value: purchaseAmount,
+        initialPurchaseValue: purchaseAmount,
       });
 
       const receipt = await tx.wait();
@@ -752,7 +772,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [unclaimedContentSuffixes[0]],
         initialPurchaseCounts: [1],
-        value: purchaseAmount,
+        initialPurchaseValue: purchaseAmount,
       });
 
       const receipt = await tx.wait();
@@ -790,7 +810,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [unclaimedContentSuffix],
         initialPurchaseCounts: [1],
-        value: purchaseAmount,
+        initialPurchaseValue: purchaseAmount,
       });
 
       const receipt = await tx.wait();
@@ -846,7 +866,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: ["8001"],
         initialPurchaseCounts: [1],
-        value: ethers.parseEther("0.1"),
+        initialPurchaseValue: ethers.parseEther("0.1"),
       })).to.be.revertedWithCustomError(factory, "ChannelCreatorControlled")
         .withArgs(channelId);
     });
@@ -870,7 +890,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [cheapContentSuffix],
         initialPurchaseCounts: [1],
-        value: insufficientAmount,
+        initialPurchaseValue: insufficientAmount,
       })).to.be.revertedWithCustomError(factory, "InsufficientThirdPartyPurchase");
     });
 
@@ -906,7 +926,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [contentSuffix],
         initialPurchaseCounts: [1],
-        value: initialPurchaseValue,
+        initialPurchaseValue,
       })).to.be.revertedWithCustomError(factory, "ThresholdMustExceedInitialPurchase");
     });
 
@@ -941,7 +961,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [contentSuffixes[0]],
         initialPurchaseCounts: [1],
-        value: ethers.parseEther("0.1"),
+        initialPurchaseValue: ethers.parseEther("0.1"),
       })).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
         .withArgs(contentIds[0]);
     });
@@ -1141,7 +1161,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [contentSuffixes[0]],
         initialPurchaseCounts: [1],
-        value: purchaseAmount,
+        initialPurchaseValue: purchaseAmount,
       });
 
       const receipt = await tx.wait();
@@ -1198,7 +1218,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [contentSuffix],
         initialPurchaseCounts: [1],
-        value: ethers.parseEther("0.1"),
+        initialPurchaseValue: ethers.parseEther("0.1"),
       });
 
       const receipt = await tx.wait();
@@ -1252,7 +1272,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [vetoedContentSuffix],
         initialPurchaseCounts: [1],
-        value: ethers.parseEther("0.1"),
+        initialPurchaseValue: ethers.parseEther("0.1"),
       });
 
       const receipt = await tx.wait();
@@ -1305,7 +1325,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [contentSuffix],
         initialPurchaseCounts: [1],
-        value: ethers.parseEther("0.1"),
+        initialPurchaseValue: ethers.parseEther("0.1"),
       });
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
@@ -1524,7 +1544,7 @@ describe("ContentFunding", function () {
         isThirdParty: true,
         initialPurchaseContentSuffixes: [newContentSuffixes[0]],
         initialPurchaseCounts: [1],
-        value: purchaseAmount,
+        initialPurchaseValue: purchaseAmount,
       });
       const receipt = await tx.wait();
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");

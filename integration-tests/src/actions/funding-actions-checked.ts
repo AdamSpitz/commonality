@@ -97,6 +97,7 @@ export async function createProjectChecked(
     contractURI: string;
     owner: Address;
     recipient: Address;
+    paymentToken?: Address;
     threshold: bigint;
     deadline: bigint;
     projectMetadataCid: IpfsCidV1;
@@ -106,12 +107,23 @@ export async function createProjectChecked(
   },
   options?: ActionRunOptions
 ): Promise<{ hash: Hash; projectDetails: ProjectDetails }> {
+  const paymentToken =
+    params.paymentToken ??
+    (process.env.PAYMENT_TOKEN_ADDRESS as Address | undefined)
+
+  if (!paymentToken) {
+    throw new Error('PAYMENT_TOKEN_ADDRESS is required for createProjectChecked')
+  }
+
   // We don't know the project address yet, so we'll capture it after creation
   let projectDetails: ProjectDetails | null = null;
 
   const result = await runActionAndCheckProperties(
     async () => {
-      const result = await createProject(clients, pubstarterContract, params);
+      const result = await createProject(clients, pubstarterContract, {
+        ...params,
+        paymentToken,
+      });
       projectDetails = result.projectDetails;
       await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, result.hash);
       return result;

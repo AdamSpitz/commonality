@@ -25,7 +25,7 @@ import {
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import {
-  depositETHChecked,
+  depositPaymentTokenChecked,
   delegateNoteChecked,
   spendDelegatedNoteChecked,
 } from './delegation-actions-checked.js';
@@ -83,7 +83,7 @@ describe('Delegation Spending', () => {
 
     // User 1 deposits 5 ETH into a note (automatically verifies delegation chain integrity)
     const depositAmount = 5000000000000000000n; // 5 ETH
-    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
+    const { noteId } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 
@@ -166,7 +166,7 @@ describe('Delegation Spending', () => {
     await publishDocument(machinery.ipfsConfig, statementData);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
-    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
+    const { noteId: note1 } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 
@@ -260,7 +260,7 @@ describe('Delegation Spending', () => {
     await publishDocument(machinery.ipfsConfig, statementData);
 
     const depositAmount = 8000000000000000000n; // 8 ETH
-    const { noteId: note1 } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
+    const { noteId: note1 } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 
@@ -364,7 +364,7 @@ describe('Delegation Spending', () => {
     await publishDocument(machinery.ipfsConfig, statementData);
 
     const depositAmount = 10000000000000000000n; // 10 ETH
-    const { noteId } = await depositETHChecked(user1, delegatableNotesContract, machinery, {
+    const { noteId } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
 

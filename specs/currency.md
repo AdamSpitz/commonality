@@ -49,6 +49,19 @@ So the intended sequence is:
 
 Once the off-chain layers are currency-explicit, the smart-contract work should be done in roughly this order.
 
+### Safety checklist
+
+Before or during implementation, keep the following constraints in place:
+
+  - Do not special-case native ETH in the smart contracts. Keep the settlement path ERC-20-only, and use wrapped ETH or a mock ERC-20 for dev/testing.
+  - Treat "supports arbitrary ERC-20" as a code-shape goal, not as an MVP runtime policy. For MVP, production creation flows should use exactly one approved payment token.
+  - Do not rely on unusual token behavior. Assume the approved token is a vanilla ERC-20 with no transfer fees, no rebasing, no blacklist/pause surprises in normal operation, and no callback-based behavior.
+  - Store one immutable `paymentToken` per assurance contract / marketplace / escrow instance, so each contract still compares one scalar progress value against one scalar threshold.
+  - Prefer pull-based settlement (`transferFrom`) for purchases and explicit token transfers for withdrawals/refunds; do not leave the old `msg.value` / `address(this).balance` code paths around in parallel.
+  - Be careful with temporary approvals in factory and note-backed purchase flows. If a contract must approve another contract in order to move funds, grant only the exact amount needed for that call and clear the approval afterward when practical.
+  - Harden the implementation around standard ERC-20 safety assumptions by using OpenZeppelin `SafeERC20` everywhere funds move.
+  - Keep the MVP policy simple: one approved token in production, one ERC-20 code path everywhere, and postpone multi-token escrow complexity until we actually need per-project token choice in production.
+
 ### 1. Introduce a per-contract settlement token
 
 Generalize the assurance-contract stack so that one assurance contract uses exactly one settlement token.
@@ -58,7 +71,7 @@ For the smart contracts, the cleanest model is:
   - Each assurance contract stores an immutable `paymentToken`.
   - Prices and thresholds are denominated in units of that token.
   - Primary-market purchases, refunds, successful withdrawals, and escrow transfers all use that token.
-  - For now, production can still deploy all contracts with the same token.
+  - For MVP, production creation flows should still deploy all contracts with the same approved token.
   - Post-MVP, different assurance contracts can choose different tokens.
 
 Using one token per assurance contract keeps the accounting simple and preserves the current assumption that a single scalar threshold can be compared against a single scalar progress value.
@@ -82,7 +95,8 @@ These are the contracts that actually hold or move ETH today and therefore need 
     - It should route the configured settlement token into escrow instead.
   - `hardhat/contracts/content-funding/ChannelEscrow.sol`
     - It currently stores one ETH balance per channel and withdraws native ETH.
-    - It should become token-aware so unclaimed-channel funds can be held and later withdrawn in the same settlement token.
+    - For MVP it should hold one configured ERC-20 token and withdraw that token.
+    - Post-MVP, if different projects can really use different tokens in production, it will need balances keyed by both channel and token.
 
 ### 3. Change factory and creation flows
 
@@ -91,9 +105,9 @@ After the core settlement path works, thread the currency choice through the cre
 Contracts that need wiring changes:
 
   - `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol`
-    - Add a payment-token parameter to contract creation.
-    - Replace `msg.value`-based initial-purchase flow with ERC-20 transfer flow.
-    - Replace ETH-denominated `thirdPartyMinPurchase` with a value denominated in the chosen token, or else explicitly constrain MVP creation to one configured token.
+    - For MVP, give the factory one configured payment token rather than exposing an arbitrary token parameter in the UI flow.
+    - Replace `msg.value`-based initial-purchase flow with ERC-20 transfer / exact-approval flow.
+    - Replace ETH-denominated `thirdPartyMinPurchase` with a value denominated in that configured token.
     - Keep the threshold and initial purchase denominated in the same settlement token.
   - `hardhat/contracts/individual-projects/Pubstarter.sol`
     - Add a payment-token parameter to assurance-contract creation and plumb it into the assurance contract, primary market, and marketplace deployment.
@@ -124,7 +138,7 @@ The cleanest model is:
   - Each marketplace instance is tied to both one ERC1155 contract and one payment token.
   - Listings and buy orders settle only in that payment token.
 
-If we want to reduce scope, we could temporarily leave the secondary market ETH-only and treat that as an explicit limitation, but that would be an awkward mismatch once primary funding is token-based.
+Leaving the secondary market ETH-only would create an awkward and confusing mismatch once primary funding is token-based, so it should move in the same phase.
 
 ### 6. Decide whether DelegatableNotes must move in the same phase
 
@@ -138,7 +152,7 @@ If delegatable notes are expected to fund projects or buy contribution tokens in
 The likely model is:
 
   - Payment notes used for a purchase must all match the target market's payment token.
-  - The note contract should transfer ERC-20 funds to the market instead of forwarding ETH.
+  - The note contract should approve the market for the exact payment amount, let the market pull those ERC-20 funds, and then clear the approval.
   - Purchased ERC1155 tokens can still be wrapped back into notes exactly as before.
 
 ### 7. Contracts that probably do not need semantic changes
@@ -166,6 +180,6 @@ For MVP production, the simplest path is:
 
   - Implement the contracts in a token-general way.
   - Deploy production with exactly one approved stablecoin.
-  - Keep dev/testing on ETH only if that remains substantially easier, but preferably do that via a mock ERC-20 or wrapped ETH so the contract code path stays the same.
+  - Keep dev/testing on the same ERC-20 code path, using wrapped ETH or a mock ERC-20 rather than native ETH.
 
 Using wrapped ETH rather than special-casing native ETH would keep the contract design simpler.

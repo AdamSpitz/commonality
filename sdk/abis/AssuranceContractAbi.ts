@@ -15,6 +15,11 @@ export const MultiERC1155AssuranceContractAbi = [
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_paymentToken",
+        "type": "address"
+      },
+      {
         "internalType": "string",
         "name": "projectMetadataCid",
         "type": "string"
@@ -55,17 +60,7 @@ export const MultiERC1155AssuranceContractAbi = [
   },
   {
     "inputs": [],
-    "name": "ETHRefundFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ETHTransferFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "IncorrectAmountOfETHSent",
+    "name": "InvalidPaymentTokenAddress",
     "type": "error"
   },
   {
@@ -103,6 +98,17 @@ export const MultiERC1155AssuranceContractAbi = [
   {
     "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "SafeERC20FailedOperation",
     "type": "error"
   },
   {
@@ -309,7 +315,7 @@ export const MultiERC1155AssuranceContractAbi = [
     ],
     "name": "buyERC1155",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -406,6 +412,19 @@ export const MultiERC1155AssuranceContractAbi = [
   {
     "inputs": [],
     "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paymentToken",
     "outputs": [
       {
         "internalType": "address",

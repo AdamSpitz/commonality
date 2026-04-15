@@ -37,8 +37,9 @@ contract MultiERC1155AssuranceContract is
     constructor(
         address owner,
         address recipient,
+        address _paymentToken,
         string memory projectMetadataCid
-    ) Ownable(owner) AssuranceContract(recipient) {
+    ) Ownable(owner) AssuranceContract(recipient, _paymentToken) {
         // no reason to validate the CID, plus we can't really anyway
         emit ContractMetadataUpdated(projectMetadataCid);
     }
@@ -106,6 +107,10 @@ contract MultiERC1155AssuranceContract is
      */
     function getTotalReceivedValue() internal view override returns (uint256) {
         return _totalReceivedValue;
+    }
+
+    function settlementToken() internal view override returns (address) {
+        return paymentToken;
     }
 
     /**

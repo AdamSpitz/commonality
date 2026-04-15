@@ -28,6 +28,11 @@ export const AssuranceContractFactoryAbi = [
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
         "internalType": "string",
         "name": "projectMetadataCid",
         "type": "string"

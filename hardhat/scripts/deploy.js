@@ -68,6 +68,7 @@ async function main() {
         'ERC1155_FACTORY_ADDRESS',
         'MARKETPLACE_FACTORY_ADDRESS',
         'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS',
+        'PAYMENT_TOKEN_ADDRESS',
         'PUBSTARTER_ADDRESS',
         'CHANNEL_VERIFIER_ADDRESS',
         'CONTENT_REGISTRY_ADDRESS',
@@ -182,6 +183,22 @@ async function main() {
   const conditionFactoryAddress = await conditionFactory.getAddress();
   console.log(`✓ EthThresholdConditionFactory: ${conditionFactoryAddress}`);
 
+  console.log('Deploying payment token...');
+  const PremintingERC20 = await ethers.getContractFactory('PremintingERC20');
+  const paymentToken = await PremintingERC20.deploy(
+    deployer.address,
+    'Commonality Mock Dollar',
+    'CMD',
+    'ipfs://commonality/payment-token'
+  );
+  await paymentToken.waitForDeployment();
+  const paymentTokenAddress = await paymentToken.getAddress();
+  const signers = await ethers.getSigners();
+  for (const signer of signers) {
+    await paymentToken.mint(signer.address, ethers.parseUnits('1000000', 18));
+  }
+  console.log(`✓ PaymentToken: ${paymentTokenAddress}`);
+
   console.log('\nDeploying Content Funding contracts...');
 
   // Deploy the real ChannelVerifier with the deployer as the trusted verifier.
@@ -207,7 +224,7 @@ async function main() {
   console.log(`✓ ChannelRegistry: ${channelRegistryAddress}`);
 
   const ChannelEscrow = await ethers.getContractFactory('ChannelEscrow');
-  const channelEscrow = await ChannelEscrow.deploy(channelRegistryAddress);
+  const channelEscrow = await ChannelEscrow.deploy(channelRegistryAddress, paymentTokenAddress);
   await channelEscrow.waitForDeployment();
   const channelEscrowAddress = await channelEscrow.getAddress();
   console.log(`✓ ChannelEscrow: ${channelEscrowAddress}`);
@@ -220,6 +237,7 @@ async function main() {
     erc1155FactoryAddress,
     marketplaceFactoryAddress,
     conditionFactoryAddress,
+    paymentTokenAddress,
     ':'
   );
   await creatorContractFactory.waitForDeployment();
@@ -265,6 +283,7 @@ async function main() {
         PremintingERC1155Factory: erc1155FactoryAddress,
         MarketplaceFactory: marketplaceFactoryAddress,
         EthThresholdConditionFactory: conditionFactoryAddress,
+        PaymentToken: paymentTokenAddress,
         Pubstarter: pubstarterAddress,
         ChannelVerifier: channelVerifierAddress,
         ContentRegistry: contentRegistryAddress,
@@ -302,6 +321,7 @@ async function main() {
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
     'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS': conditionFactoryAddress,
+    'PAYMENT_TOKEN_ADDRESS': paymentTokenAddress,
     'PUBSTARTER_ADDRESS': pubstarterAddress,
     'CHANNEL_VERIFIER_ADDRESS': channelVerifierAddress,
     'CONTENT_REGISTRY_ADDRESS': contentRegistryAddress,
@@ -377,6 +397,7 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_REGISTRY_ADDRESS', channelRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_ESCROW_ADDRESS', channelEscrowAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS', creatorContractFactoryAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_PAYMENT_TOKEN_ADDRESS', paymentTokenAddress);
   if (isLocal) {
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_IPFS_GATEWAY', 'http://localhost:8080/ipfs');
@@ -411,6 +432,7 @@ async function main() {
   console.log(`  ERC1155Factory:          ${erc1155FactoryAddress}`);
   console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);
   console.log(`  ConditionFactory:        ${conditionFactoryAddress}`);
+  console.log(`  PaymentToken:            ${paymentTokenAddress}`);
   console.log(`  Pubstarter:              ${pubstarterAddress}`);
   console.log(`  ChannelVerifier:         ${channelVerifierAddress}`);
   console.log(`  ContentRegistry:         ${contentRegistryAddress}`);

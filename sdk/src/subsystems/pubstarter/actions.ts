@@ -31,6 +31,46 @@ export interface ProjectDetails {
   assuranceContractAddress: Address;
 }
 
+const erc20ApproveAbi = [
+  {
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+const paymentTokenGetterAbi = [
+  {
+    inputs: [],
+    name: 'paymentToken',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+async function approveERC20Spend(
+  clients: TestClients,
+  token: Address,
+  spender: Address,
+  amount: bigint,
+): Promise<void> {
+  const approvalHash = await clients.walletClient.writeContract({
+    address: token,
+    abi: erc20ApproveAbi,
+    functionName: 'approve',
+    args: [spender, amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
+}
+
 /**
  * Create a new crowdfunding project with ERC1155 tokens, marketplace, and assurance contract
  *
@@ -76,6 +116,7 @@ export async function createProject(
     contractURI: string;
     owner: Address;
     recipient: Address;
+    paymentToken?: Address;
     threshold: bigint;
     deadline: bigint;
     projectMetadataCid: IpfsCidV1;
@@ -84,6 +125,10 @@ export async function createProject(
     tokenPrices: bigint[];
   }
 ): Promise<{ hash: Hash; projectDetails: ProjectDetails }> {
+  if (!params.paymentToken) {
+    throw new Error('createProject requires a paymentToken address');
+  }
+
   const hash = await clients.walletClient.writeContract({
     address: pubstarterContract.address,
     abi: pubstarterContract.abi,
@@ -93,6 +138,7 @@ export async function createProject(
       params.contractURI,
       params.owner,
       params.recipient,
+      params.paymentToken,
       params.threshold,
       params.deadline,
       params.projectMetadataCid,
@@ -156,7 +202,7 @@ export async function createProject(
  * @param params.tokenAddress - Address of the project's ERC1155 token contract
  * @param params.tokenIds - Token IDs to purchase
  * @param params.tokenCounts - Quantity for each token ID
- * @param params.totalCost - Total cost in wei (sent as msg.value)
+ * @param params.totalCost - Total cost in payment-token units
  * @returns Transaction hash
  *
  * @example
@@ -181,6 +227,15 @@ export async function buyProjectTokens(
     totalCost: bigint;
   }
 ): Promise<Hash> {
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: assuranceContract.address,
+    abi: paymentTokenGetterAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
+
   const hash = await clients.walletClient.writeContract({
     address: assuranceContract.address,
     abi: assuranceContract.abi,
@@ -192,7 +247,6 @@ export async function buyProjectTokens(
       params.tokenCounts,
       '0x', // data parameter
     ],
-    value: params.totalCost,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -299,12 +353,20 @@ export async function fulfillSaleListing(
     totalCost: bigint;
   }
 ): Promise<Hash> {
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: marketplaceContract.address,
+    abi: paymentTokenGetterAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  await approveERC20Spend(clients, paymentToken, marketplaceContract.address, params.totalCost);
+
   const hash = await clients.walletClient.writeContract({
     address: marketplaceContract.address,
     abi: marketplaceContract.abi,
     functionName: 'fulfillSaleListing',
     args: [params.saleListingId, params.count],
-    value: params.totalCost,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -349,13 +411,20 @@ export async function createBuyOrder(
   }
 ): Promise<Hash> {
   const totalCost = params.count * params.pricePerToken;
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: marketplaceContract.address,
+    abi: paymentTokenGetterAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  await approveERC20Spend(clients, paymentToken, marketplaceContract.address, totalCost);
 
   const hash = await clients.walletClient.writeContract({
     address: marketplaceContract.address,
     abi: marketplaceContract.abi,
     functionName: 'createBuyOrder',
     args: [params.tokenId, params.count, params.pricePerToken],
-    value: totalCost,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

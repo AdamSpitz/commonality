@@ -25,6 +25,36 @@ export interface ContentFundingContractDetails {
   isThirdParty: boolean;
 }
 
+const erc20ApproveAbi = [
+  {
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+async function approveERC20Spend(
+  clients: TestClients,
+  token: Address,
+  spender: Address,
+  amount: bigint,
+): Promise<void> {
+  const approvalHash = await clients.walletClient.writeContract({
+    address: token,
+    abi: erc20ApproveAbi,
+    functionName: 'approve',
+    args: [spender, amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
+}
+
 /** Parameters for creating a new content-funding contract. */
 export interface CreateContentFundingContractParams {
   channelCanonicalId: string;
@@ -83,6 +113,17 @@ export async function createContentFundingContract(
     actualInitialPurchaseValue += params.contentPrices[i] * count;
   }
 
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: factoryContract.address,
+    abi: CreatorAssuranceContractFactoryAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  if (actualInitialPurchaseValue > 0n) {
+    await approveERC20Spend(clients, paymentToken, factoryContract.address, actualInitialPurchaseValue);
+  }
+
   const hash = await clients.walletClient.writeContract({
     address: factoryContract.address,
     abi: CreatorAssuranceContractFactoryAbi,
@@ -102,7 +143,6 @@ export async function createContentFundingContract(
       params.initialPurchaseTokenIds,
       params.initialPurchaseCounts,
     ],
-    value: actualInitialPurchaseValue,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

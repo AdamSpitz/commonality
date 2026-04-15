@@ -4,7 +4,7 @@ import { waitForIndexer } from './utils/indexer'
 import {
   DelegatableNotesAbi,
   PubstarterAbi,
-  depositETH,
+  depositERC20,
   delegateNote,
   purchaseFromPrimaryMarketWithNotes,
   createProject,
@@ -33,7 +33,7 @@ import { parseEther } from 'viem'
 
 test.describe('Delegation Flow', () => {
   test('deposit → delegate → spend on project', async ({ page, wallet }) => {
-    const { graphqlUrl, delegatableNotesAddress, pubstarterAddress } =
+    const { graphqlUrl, delegatableNotesAddress, pubstarterAddress, paymentTokenAddress } =
       getContractAddresses()
 
     if (!delegatableNotesAddress || !pubstarterAddress) {
@@ -81,6 +81,7 @@ test.describe('Delegation Flow', () => {
         contractURI: `ipfs://${projectMetadataCid}`,
         owner: account0Clients.account,
         recipient: account0Clients.account,
+        paymentToken: paymentTokenAddress!,
         threshold: parseEther('10'), // high threshold so project stays active
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30), // 30 days
         projectMetadataCid,
@@ -96,7 +97,8 @@ test.describe('Delegation Flow', () => {
     // Step 2: ACCOUNT_0 deposits ETH as a delegatable note
     // =========================================================================
     console.log('\n=== DEPOSITING ETH ===')
-    const { noteId } = await depositETH(account0Clients, delegatableNotesContract, {
+    const { noteId } = await depositERC20(account0Clients, delegatableNotesContract, {
+      token: paymentTokenAddress!,
       amount: depositAmount,
     })
     console.log('Deposited note ID:', noteId.toString())

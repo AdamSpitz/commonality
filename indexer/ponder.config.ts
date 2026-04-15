@@ -11,7 +11,7 @@ import {
   PremintingERC1155FactoryAbi,
   MarketplaceFactoryAbi,
 } from "./abis/PubstarterFactoriesAbi";
-import { AssuranceContractAbi } from "./abis/AssuranceContractAbi";
+import { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from "./abis/AssuranceContractAbi";
 import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
 import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
@@ -31,9 +31,16 @@ import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
 import { ChannelEscrowAbi } from "./abis/ChannelEscrowAbi";
 import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
 
-const creatorContractCreatedEvent = CreatorAssuranceContractFactoryAbi.find(
-  (entry) => entry.type === "event" && entry.name === "CreatorContractCreated",
-);
+const creatorContractCreatedEvent = {
+  type: "event",
+  name: "CreatorContractCreated",
+  inputs: [
+    { name: "contractAddress", type: "address", indexed: true },
+    { name: "channelId", type: "bytes32", indexed: true },
+    { name: "creator", type: "address", indexed: true },
+    { name: "isThirdParty", type: "bool", indexed: false },
+  ],
+} as const;
 
 // ============================================================================
 // CONCEPTSPACE CONTRACT ADDRESSES
@@ -80,6 +87,199 @@ const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || STAR
 const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
 const CONTENT_FUNDING_START_BLOCK = Number(process.env.CONTENT_FUNDING_START_BLOCK || START_BLOCK);
 
+const contracts = {
+  // ========================================================================
+  // CONCEPTSPACE INDEXER CONTRACTS
+  // ========================================================================
+
+  // Beliefs contract - tracks user beliefs about statements
+  Beliefs: {
+    abi: BeliefsAbi,
+    chain: "hardhat",
+    address: BELIEFS_ADDRESS,
+    startBlock: START_BLOCK,
+  },
+  // Implications contract - tracks implication attestations between statements
+  Implications: {
+    abi: ImplicationsAbi,
+    chain: "hardhat",
+    address: IMPLICATIONS_ADDRESS,
+    startBlock: START_BLOCK,
+  },
+
+  // ========================================================================
+  // PUBSTARTER INDEXER CONTRACTS
+  // ========================================================================
+  // These are logically separate from Conceptspace contracts.
+  // The Pubstarter indexer tracks crowdfunding projects and secondary markets.
+
+  // Factory contract for creating assurance contracts
+  AssuranceContractFactory: {
+    abi: AssuranceContractFactoryAbi,
+    chain: "hardhat",
+    address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
+    startBlock: PUBSTARTER_START_BLOCK,
+  },
+
+  // Factory contract for creating ERC1155 tokens
+  ERC1155Factory: {
+    abi: PremintingERC1155FactoryAbi,
+    chain: "hardhat",
+    address: ERC1155_FACTORY_ADDRESS,
+    startBlock: PUBSTARTER_START_BLOCK,
+  },
+
+  // Factory contract for creating secondary marketplaces
+  MarketplaceFactory: {
+    abi: MarketplaceFactoryAbi,
+    chain: "hardhat",
+    address: MARKETPLACE_FACTORY_ADDRESS,
+    startBlock: PUBSTARTER_START_BLOCK,
+  },
+
+  // Dynamically indexed assurance contracts (created by factory)
+  // Uses Ponder's factory pattern to index child contracts
+  // The factory() function returns addresses discovered from factory events
+  AssuranceContract: {
+    abi: AssuranceContractAbi,
+    chain: "hardhat",
+    address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+      ? factory({
+          address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
+          event: AssuranceContractFactoryAbi[0], // PubstarterAssuranceContractCreated
+          parameter: "assuranceContract",
+        })
+      : undefined,
+    startBlock: PUBSTARTER_START_BLOCK,
+  },
+
+  // Dynamically indexed secondary marketplaces (created by factory)
+  SecondaryMarket: {
+    abi: ERC1155SecondaryMarketAbi,
+    chain: "hardhat",
+    address: MARKETPLACE_FACTORY_ADDRESS
+      ? factory({
+          address: MARKETPLACE_FACTORY_ADDRESS,
+          event: MarketplaceFactoryAbi[0], // PubstarterERC1155SecondaryMarketCreated
+          parameter: "marketplace",
+        })
+      : undefined,
+    startBlock: PUBSTARTER_START_BLOCK,
+  },
+
+  // Dynamically indexed ERC1155 token contracts (created by factory)
+  // Used to track token burns (transfers to zero address)
+  PremintingERC1155: {
+    abi: PremintingERC1155Abi,
+    chain: "hardhat",
+    address: ERC1155_FACTORY_ADDRESS
+      ? factory({
+          address: ERC1155_FACTORY_ADDRESS,
+          event: PremintingERC1155FactoryAbi[0], // PubstarterERC1155ContractCreated
+          parameter: "erc1155",
+        })
+      : undefined,
+    startBlock: PUBSTARTER_START_BLOCK,
+  },
+
+  // ========================================================================
+  // DELEGATION INDEXER CONTRACTS
+  // ========================================================================
+  // These are logically separate from Conceptspace and Pubstarter contracts.
+  // The Delegation indexer tracks delegatable notes and delegation chains.
+
+  DelegatableNotes: {
+    abi: DelegatableNotesAbi,
+    chain: "hardhat",
+    address: DELEGATABLE_NOTES_ADDRESS,
+    startBlock: DELEGATION_START_BLOCK,
+  },
+
+  NoteIntent: {
+    abi: NoteIntentAbi,
+    chain: "hardhat",
+    address: NOTE_INTENT_ADDRESS,
+    startBlock: DELEGATION_START_BLOCK,
+  },
+
+  // ========================================================================
+  // FUNDING PORTAL INDEXER CONTRACTS
+  // ========================================================================
+  // These are logically separate from the foundational subsystems above.
+  // The Funding Portal indexer tracks alignment attestations and
+  // federates queries to other subsystems' APIs for cross-cutting views.
+
+  AlignmentAttestations: {
+    abi: AlignmentAttestationsAbi,
+    chain: "hardhat",
+    address: ALIGNMENT_ATTESTATIONS_ADDRESS,
+    startBlock: FUNDING_PORTAL_START_BLOCK,
+  },
+
+  // ========================================================================
+  // MUTABLE REFS INDEXER CONTRACTS
+  // ========================================================================
+  // This is a utility contract that can be used by any subsystem to track
+  // mutable references (pointers to IPFS content). Users can create named
+  // refs that point to IPFS CIDs or other string values.
+
+  MutableRefUpdater: {
+    abi: MutableRefUpdaterAbi,
+    chain: "hardhat",
+    address: MUTABLE_REF_UPDATER_ADDRESS,
+    startBlock: START_BLOCK,
+  },
+
+  // ========================================================================
+  // CONTENT FUNDING INDEXER CONTRACTS
+  // ========================================================================
+  // Content Registry - tracks registered content items and their contracts
+  ContentRegistry: {
+    abi: ContentRegistryAbi,
+    chain: "hardhat",
+    address: CONTENT_REGISTRY_ADDRESS,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
+  },
+
+  // Channel Registry - tracks channel verification and control states
+  ChannelRegistry: {
+    abi: ChannelRegistryAbi,
+    chain: "hardhat",
+    address: CHANNEL_REGISTRY_ADDRESS,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
+  },
+
+  // Channel Escrow - holds funds for unclaimed channels
+  ChannelEscrow: {
+    abi: ChannelEscrowAbi,
+    chain: "hardhat",
+    address: CHANNEL_ESCROW_ADDRESS,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
+  },
+
+  // Creator Assurance Contract Factory - creates content-funding contracts
+  CreatorAssuranceContractFactory: {
+    abi: CreatorAssuranceContractFactoryAbi,
+    chain: "hardhat",
+    address: CREATOR_CONTRACT_FACTORY_ADDRESS,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
+  },
+
+  // Dynamically indexed creator assurance contracts (created by factory)
+  CreatorAssuranceContract: {
+    abi: AssuranceContractAbi,
+    chain: "hardhat",
+    address: CREATOR_CONTRACT_FACTORY_ADDRESS
+      ? factory({
+          address: CREATOR_CONTRACT_FACTORY_ADDRESS,
+          event: creatorContractCreatedEvent as any,
+          parameter: "contractAddress",
+        })
+      : undefined,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
+  },
+} as const;
+
 export default createConfig({
   database: process.env.PONDER_EPHEMERAL === 'true'
     ? { kind: "pglite", directory: "/tmp/ponder-pglite" } // Writable ephemeral DB for Docker-based test runs
@@ -94,196 +294,5 @@ export default createConfig({
       pollingInterval: 100, // Poll every 100ms for faster test execution (default is 1000ms)
     },
   },
-  contracts: {
-    // ========================================================================
-    // CONCEPTSPACE INDEXER CONTRACTS
-    // ========================================================================
-
-    // Beliefs contract - tracks user beliefs about statements
-    Beliefs: {
-      abi: BeliefsAbi,
-      chain: "hardhat",
-      address: BELIEFS_ADDRESS,
-      startBlock: START_BLOCK,
-    },
-    // Implications contract - tracks implication attestations between statements
-    Implications: {
-      abi: ImplicationsAbi,
-      chain: "hardhat",
-      address: IMPLICATIONS_ADDRESS,
-      startBlock: START_BLOCK,
-    },
-
-    // ========================================================================
-    // PUBSTARTER INDEXER CONTRACTS
-    // ========================================================================
-    // These are logically separate from Conceptspace contracts.
-    // The Pubstarter indexer tracks crowdfunding projects and secondary markets.
-
-    // Factory contract for creating assurance contracts
-    AssuranceContractFactory: {
-      abi: AssuranceContractFactoryAbi,
-      chain: "hardhat",
-      address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
-      startBlock: PUBSTARTER_START_BLOCK,
-    },
-
-    // Factory contract for creating ERC1155 tokens
-    ERC1155Factory: {
-      abi: PremintingERC1155FactoryAbi,
-      chain: "hardhat",
-      address: ERC1155_FACTORY_ADDRESS,
-      startBlock: PUBSTARTER_START_BLOCK,
-    },
-
-    // Factory contract for creating secondary marketplaces
-    MarketplaceFactory: {
-      abi: MarketplaceFactoryAbi,
-      chain: "hardhat",
-      address: MARKETPLACE_FACTORY_ADDRESS,
-      startBlock: PUBSTARTER_START_BLOCK,
-    },
-
-    // Dynamically indexed assurance contracts (created by factory)
-    // Uses Ponder's factory pattern to index child contracts
-    // The factory() function returns addresses discovered from factory events
-    AssuranceContract: {
-      abi: AssuranceContractAbi,
-      chain: "hardhat",
-      address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
-        ? factory({
-            address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
-            event: AssuranceContractFactoryAbi[0], // PubstarterAssuranceContractCreated
-            parameter: "assuranceContract",
-          })
-        : undefined,
-      startBlock: PUBSTARTER_START_BLOCK,
-    },
-
-    // Dynamically indexed secondary marketplaces (created by factory)
-    SecondaryMarket: {
-      abi: ERC1155SecondaryMarketAbi,
-      chain: "hardhat",
-      address: MARKETPLACE_FACTORY_ADDRESS
-        ? factory({
-            address: MARKETPLACE_FACTORY_ADDRESS,
-            event: MarketplaceFactoryAbi[0], // PubstarterERC1155SecondaryMarketCreated
-            parameter: "marketplace",
-          })
-        : undefined,
-      startBlock: PUBSTARTER_START_BLOCK,
-    },
-
-    // Dynamically indexed ERC1155 token contracts (created by factory)
-    // Used to track token burns (transfers to zero address)
-    PremintingERC1155: {
-      abi: PremintingERC1155Abi,
-      chain: "hardhat",
-      address: ERC1155_FACTORY_ADDRESS
-        ? factory({
-            address: ERC1155_FACTORY_ADDRESS,
-            event: PremintingERC1155FactoryAbi[0], // PubstarterERC1155ContractCreated
-            parameter: "erc1155",
-          })
-        : undefined,
-      startBlock: PUBSTARTER_START_BLOCK,
-    },
-
-    // ========================================================================
-    // DELEGATION INDEXER CONTRACTS
-    // ========================================================================
-    // These are logically separate from Conceptspace and Pubstarter contracts.
-    // The Delegation indexer tracks delegatable notes and delegation chains.
-
-    DelegatableNotes: {
-      abi: DelegatableNotesAbi,
-      chain: "hardhat",
-      address: DELEGATABLE_NOTES_ADDRESS,
-      startBlock: DELEGATION_START_BLOCK,
-    },
-
-    NoteIntent: {
-      abi: NoteIntentAbi,
-      chain: "hardhat",
-      address: NOTE_INTENT_ADDRESS,
-      startBlock: DELEGATION_START_BLOCK,
-    },
-
-    // ========================================================================
-    // FUNDING PORTAL INDEXER CONTRACTS
-    // ========================================================================
-    // These are logically separate from the foundational subsystems above.
-    // The Funding Portal indexer tracks alignment attestations and
-    // federates queries to other subsystems' APIs for cross-cutting views.
-
-    AlignmentAttestations: {
-      abi: AlignmentAttestationsAbi,
-      chain: "hardhat",
-      address: ALIGNMENT_ATTESTATIONS_ADDRESS,
-      startBlock: FUNDING_PORTAL_START_BLOCK,
-    },
-
-    // ========================================================================
-    // MUTABLE REFS INDEXER CONTRACTS
-    // ========================================================================
-    // This is a utility contract that can be used by any subsystem to track
-    // mutable references (pointers to IPFS content). Users can create named
-    // refs that point to IPFS CIDs or other string values.
-
-    MutableRefUpdater: {
-      abi: MutableRefUpdaterAbi,
-      chain: "hardhat",
-      address: MUTABLE_REF_UPDATER_ADDRESS,
-      startBlock: START_BLOCK,
-    },
-
-    // ========================================================================
-    // CONTENT FUNDING INDEXER CONTRACTS
-    // ========================================================================
-    // Content Registry - tracks registered content items and their contracts
-    ContentRegistry: {
-      abi: ContentRegistryAbi,
-      chain: "hardhat",
-      address: CONTENT_REGISTRY_ADDRESS,
-      startBlock: CONTENT_FUNDING_START_BLOCK,
-    },
-
-    // Channel Registry - tracks channel verification and control states
-    ChannelRegistry: {
-      abi: ChannelRegistryAbi,
-      chain: "hardhat",
-      address: CHANNEL_REGISTRY_ADDRESS,
-      startBlock: CONTENT_FUNDING_START_BLOCK,
-    },
-
-    // Channel Escrow - holds funds for unclaimed channels
-    ChannelEscrow: {
-      abi: ChannelEscrowAbi,
-      chain: "hardhat",
-      address: CHANNEL_ESCROW_ADDRESS,
-      startBlock: CONTENT_FUNDING_START_BLOCK,
-    },
-
-    // Creator Assurance Contract Factory - creates content-funding contracts
-    CreatorAssuranceContractFactory: {
-      abi: CreatorAssuranceContractFactoryAbi,
-      chain: "hardhat",
-      address: CREATOR_CONTRACT_FACTORY_ADDRESS,
-      startBlock: CONTENT_FUNDING_START_BLOCK,
-    },
-
-    // Dynamically indexed creator assurance contracts (created by factory)
-    CreatorAssuranceContract: {
-      abi: AssuranceContractAbi,
-      chain: "hardhat",
-      address: CREATOR_CONTRACT_FACTORY_ADDRESS
-        ? factory({
-            address: CREATOR_CONTRACT_FACTORY_ADDRESS,
-            event: creatorContractCreatedEvent as any,
-            parameter: "contractAddress",
-          })
-        : undefined,
-      startBlock: CONTENT_FUNDING_START_BLOCK,
-    },
-  },
+  contracts,
 });

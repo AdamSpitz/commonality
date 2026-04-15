@@ -21,6 +21,11 @@ export const MarketplaceFactoryAbi = [
         "internalType": "address",
         "name": "erc1155Addr",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
       }
     ],
     "name": "createMarketplace",

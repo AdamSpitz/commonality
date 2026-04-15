@@ -26,6 +26,26 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 
 describe('Pubstarter Project Lifecycle Integration Tests', () => {
+  const paymentTokenGetterAbi = [
+    {
+      inputs: [],
+      name: 'paymentToken',
+      outputs: [{ name: '', type: 'address' }],
+      stateMutability: 'view',
+      type: 'function',
+    },
+  ] as const;
+
+  const erc20BalanceOfAbi = [
+    {
+      inputs: [{ name: 'account', type: 'address' }],
+      name: 'balanceOf',
+      outputs: [{ name: '', type: 'uint256' }],
+      stateMutability: 'view',
+      type: 'function',
+    },
+  ] as const;
+
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
@@ -113,9 +133,18 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     // Note: Money conservation, token conservation, and monotonic funding are automatically
     // verified by buyProjectTokensChecked()
 
-    // Get creator's balance before withdrawal
-    const balanceBefore = await creatorClients.publicClient.getBalance({
-      address: creatorClients.account,
+    const paymentToken = await creatorClients.publicClient.readContract({
+      address: assuranceContract.address,
+      abi: paymentTokenGetterAbi,
+      functionName: 'paymentToken',
+    });
+
+    // Get creator's payment-token balance before withdrawal
+    const balanceBefore = await creatorClients.publicClient.readContract({
+      address: paymentToken,
+      abi: erc20BalanceOfAbi,
+      functionName: 'balanceOf',
+      args: [creatorClients.account],
     });
     testLog(`  Creator balance before withdrawal: ${balanceBefore}`);
 
@@ -127,19 +156,19 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       machinery
     );
 
-    // Verify creator received funds (ETH balance check)
-    const balanceAfter = await creatorClients.publicClient.getBalance({
-      address: creatorClients.account,
+    // Verify creator received funds in the payment token
+    const balanceAfter = await creatorClients.publicClient.readContract({
+      address: paymentToken,
+      abi: erc20BalanceOfAbi,
+      functionName: 'balanceOf',
+      args: [creatorClients.account],
     });
     testLog(`  Creator balance after withdrawal: ${balanceAfter}`);
 
-    // Balance should increase by approximately 0.5 ETH (minus gas costs from withdrawal)
+    // Token balance should increase by the full 0.5 payment-token amount.
     const balanceIncrease = balanceAfter - balanceBefore;
     testLog(`  Balance increase: ${balanceIncrease}`);
-
-    // The increase should be close to 0.5 ETH, accounting for gas costs
-    // Gas costs should be much smaller than 0.1 ETH, so we check it's at least 0.4 ETH
-    assert.ok(balanceIncrease > parseEther('0.4'), 'Creator should have received funds (minus gas)');
+    assert.strictEqual(balanceIncrease, parseEther('0.5'), 'Creator should have received the full payment-token withdrawal');
 
     testLog('  ✓ Successful project workflow completed!');
   });
@@ -258,9 +287,18 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     await contributorClients.publicClient.waitForTransactionReceipt({ hash: approveHash });
     testLog('  Tokens approved for transfer');
 
-    // Get contributor's balance before refund
-    const balanceBefore = await contributorClients.publicClient.getBalance({
-      address: contributorClients.account,
+    const paymentToken = await contributorClients.publicClient.readContract({
+      address: assuranceContract.address,
+      abi: paymentTokenGetterAbi,
+      functionName: 'paymentToken',
+    });
+
+    // Get contributor's payment-token balance before refund
+    const balanceBefore = await contributorClients.publicClient.readContract({
+      address: paymentToken,
+      abi: erc20BalanceOfAbi,
+      functionName: 'balanceOf',
+      args: [contributorClients.account],
     });
     testLog(`  Contributor balance before refund: ${balanceBefore}`);
 
@@ -279,17 +317,19 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       }
     );
 
-    // Verify contributor received refund (ETH balance check)
-    const balanceAfter = await contributorClients.publicClient.getBalance({
-      address: contributorClients.account,
+    // Verify contributor received refund in the payment token
+    const balanceAfter = await contributorClients.publicClient.readContract({
+      address: paymentToken,
+      abi: erc20BalanceOfAbi,
+      functionName: 'balanceOf',
+      args: [contributorClients.account],
     });
     testLog(`  Contributor balance after refund: ${balanceAfter}`);
 
     const balanceIncrease = balanceAfter - balanceBefore;
     testLog(`  Balance increase: ${balanceIncrease}`);
 
-    // Balance should increase by approximately 0.1 ETH (minus gas costs)
-    assert.ok(balanceIncrease > parseEther('0.05'), 'Contributor should have received refund (minus gas)');
+    assert.strictEqual(balanceIncrease, parseEther('0.1'), 'Contributor should have received the full payment-token refund');
 
     testLog('  ✓ Failed project refund workflow completed!');
   });

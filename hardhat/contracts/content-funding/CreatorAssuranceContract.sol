@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceContracts.sol";
 
 /**
@@ -16,7 +18,7 @@ interface ICreatorAssuranceContract {
  * @notice Interface for depositing funds into channel escrow
  */
 interface IChannelEscrow {
-    function deposit(bytes32 channelId) external payable;
+    function deposit(bytes32 channelId, uint256 amount) external;
 }
 
 error OnlyOwnerOrSelf();
@@ -32,6 +34,8 @@ error RecipientNotEscrow();
  *      (for unclaimed channels where the creator hasn't verified yet).
  */
 contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssuranceContract {
+    using SafeERC20 for IERC20;
+
     /// @notice The channel ID this contract is associated with
     bytes32 public channelId;
     /// @notice The content IDs funded by this contract
@@ -58,10 +62,11 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
     constructor(
         address owner,
         address recipient,
+        address _paymentToken,
         string memory projectMetadataCid,
         bytes32 _channelId,
         bool _recipientIsEscrow
-    ) MultiERC1155AssuranceContract(owner, recipient, projectMetadataCid) {
+    ) MultiERC1155AssuranceContract(owner, recipient, _paymentToken, projectMetadataCid) {
         channelId = _channelId;
         recipientIsEscrow = _recipientIsEscrow;
     }
@@ -106,8 +111,10 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
     function withdrawToEscrow() external {
         if (!recipientIsEscrow) revert RecipientNotEscrow();
         requireAssuranceContractHasSucceeded();
-        uint256 value = address(this).balance;
+        uint256 value = IERC20(paymentToken).balanceOf(address(this));
         emit AssuranceContractWithdrawal(_recipient, value);
-        IChannelEscrow(_recipient).deposit{value: value}(channelId);
+        IERC20(paymentToken).forceApprove(_recipient, value);
+        IChannelEscrow(_recipient).deposit(channelId, value);
+        IERC20(paymentToken).forceApprove(_recipient, 0);
     }
 }

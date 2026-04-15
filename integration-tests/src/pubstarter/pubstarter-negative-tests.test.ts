@@ -98,7 +98,7 @@ describe('Pubstarter Negative Tests', () => {
         },
         {
           expectFailure: true,
-          expectedError: /incorrect.*amount|insufficient|price|payment/i,
+          expectedError: /incorrect.*amount|insufficient|price|payment|0xfb8f41b2/i,
         }
       );
 
@@ -164,7 +164,7 @@ describe('Pubstarter Negative Tests', () => {
         },
         {
           expectFailure: true,
-          expectedError: /incorrect.*amount|invalid.*token|not.*exist|unavailable/i,
+          expectedError: /incorrect.*amount|invalid.*token|not.*exist|unavailable|0x03dee4c5/i,
         }
       );
 

@@ -1,13 +1,15 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-error OnlyChannelOwnerCanWithdraw();
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 error InvalidRegistryAddress();
-error MustSendEth();
+error InvalidPaymentTokenAddress();
+error MustSendTokens();
 error ChannelNotVerified();
 error OnlyChannelOwner();
 error NoBalance();
-error TransferFailed();
 
 /**
  * @title IChannelRegistry
@@ -23,7 +25,7 @@ interface IChannelRegistry {
  * @notice Interface for the channel escrow contract
  */
 interface IChannelEscrow {
-    function deposit(bytes32 channelId) external payable;
+    function deposit(bytes32 channelId, uint256 amount) external;
     function withdraw(bytes32 channelId) external;
     function balance(bytes32 channelId) external view returns (uint256);
 }
@@ -36,10 +38,14 @@ interface IChannelEscrow {
  *      can claim them later after verification.
  */
 contract ChannelEscrow is IChannelEscrow {
+    using SafeERC20 for IERC20;
+
     mapping(bytes32 channelId => uint256 amount) private _balances;
 
     /// @notice The channel registry contract used to verify channel ownership
     address public channelRegistry;
+    /// @notice The ERC-20 token held in escrow
+    address public immutable paymentToken;
 
     /**
      * @notice Emitted when ETH is deposited into escrow for a channel
@@ -58,26 +64,31 @@ contract ChannelEscrow is IChannelEscrow {
     event Withdrawn(bytes32 indexed channelId, address indexed to, uint256 amount);
 
     /**
-     * @notice Initializes the escrow with a channel registry address
+     * @notice Initializes the escrow with a channel registry address and settlement token
      * @param _channelRegistry The address of the ChannelRegistry contract
+     * @param _paymentToken The ERC-20 token held in escrow
      */
-    constructor(address _channelRegistry) {
+    constructor(address _channelRegistry, address _paymentToken) {
         if (_channelRegistry == address(0)) revert InvalidRegistryAddress();
+        if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
         channelRegistry = _channelRegistry;
+        paymentToken = _paymentToken;
     }
 
     /**
-     * @notice Deposit ETH into escrow for a specific channel
+     * @notice Deposit settlement tokens into escrow for a specific channel
      * @param channelId The channel to deposit funds for
+     * @param amount The amount of tokens to deposit
      */
-    function deposit(bytes32 channelId) external payable {
-        if (msg.value == 0) revert MustSendEth();
-        _balances[channelId] += msg.value;
-        emit Deposited(channelId, msg.sender, msg.value);
+    function deposit(bytes32 channelId, uint256 amount) external {
+        if (amount == 0) revert MustSendTokens();
+        _balances[channelId] += amount;
+        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), amount);
+        emit Deposited(channelId, msg.sender, amount);
     }
 
     /**
-     * @notice Withdraw all escrowed ETH for a channel (only verified channel owner)
+     * @notice Withdraw all escrowed settlement tokens for a channel (only verified channel owner)
      * @param channelId The channel to withdraw funds from
      */
     function withdraw(bytes32 channelId) external {
@@ -92,14 +103,13 @@ contract ChannelEscrow is IChannelEscrow {
         delete _balances[channelId];
         emit Withdrawn(channelId, msg.sender, amount);
 
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
-        if (!success) revert TransferFailed();
+        IERC20(paymentToken).safeTransfer(msg.sender, amount);
     }
 
     /**
      * @notice Returns the escrowed balance for a channel
      * @param channelId The channel to query
-     * @return The amount of ETH held in escrow
+     * @return The amount of settlement-token value held in escrow
      */
     function balance(bytes32 channelId) external view returns (uint256) {
         return _balances[channelId];

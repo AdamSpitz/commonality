@@ -2,6 +2,8 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {CreatorAssuranceContract, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
 import {ChannelRegistry} from "./ChannelRegistry.sol";
@@ -17,6 +19,7 @@ import {IAssuranceCondition} from "../individual-projects/IAssuranceCondition.so
 error ArrayLengthMismatch();
 error InvalidChannelId();
 error InvalidContentIdSeparator();
+error InvalidPaymentTokenAddress();
 error ChannelCanonicalIdMismatch(bytes32 channelId, bytes32 canonicalChannelIdHash);
 error ChannelNotVerifiedOrControlled(bytes32 channelId);
 error ChannelCreatorControlled(bytes32 channelId);
@@ -61,6 +64,8 @@ interface IContentRegistry {
  *      use a CancellableCondition so the creator can veto them within a time window.
  */
 contract CreatorAssuranceContractFactory is Ownable {
+    using SafeERC20 for IERC20;
+
     /**
      * @notice Emitted when a new creator assurance contract is created
      * @param contractAddress The address of the created assurance contract
@@ -97,6 +102,8 @@ contract CreatorAssuranceContractFactory is Ownable {
     EthThresholdConditionFactory public immutable conditionFactory;
     /// @notice The separator character used in canonical content IDs (e.g. "/")
     string public contentIdSeparator;
+    /// @notice The ERC-20 token used for all MVP content-funding contracts
+    address public immutable paymentToken;
 
     /// @notice Maps contract address to the channel it belongs to
     mapping(address => bytes32) public channelIdByContract;
@@ -118,6 +125,7 @@ contract CreatorAssuranceContractFactory is Ownable {
      * @param _erc1155Factory The ERC1155 token factory
      * @param _marketplaceFactory The secondary marketplace factory
      * @param _conditionFactory The ETH threshold condition factory
+     * @param _paymentToken The ERC-20 token used to settle all MVP content-funding contracts
      * @param _contentIdSeparator The single-character separator for canonical content IDs
      */
     constructor(
@@ -127,15 +135,18 @@ contract CreatorAssuranceContractFactory is Ownable {
         address _erc1155Factory,
         address _marketplaceFactory,
         address _conditionFactory,
+        address _paymentToken,
         string memory _contentIdSeparator
     ) Ownable(msg.sender) {
         if (bytes(_contentIdSeparator).length != 1) revert InvalidContentIdSeparator();
+        if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
         contentRegistry = ContentRegistry(_contentRegistry);
         channelRegistry = ChannelRegistry(_channelRegistry);
         channelEscrow = ChannelEscrow(_channelEscrow);
         erc1155Factory = PremintingERC1155Factory(_erc1155Factory);
         marketplaceFactory = MarketplaceFactory(_marketplaceFactory);
         conditionFactory = EthThresholdConditionFactory(_conditionFactory);
+        paymentToken = _paymentToken;
         contentIdSeparator = _contentIdSeparator;
     }
 
@@ -184,7 +195,7 @@ contract CreatorAssuranceContractFactory is Ownable {
         bool isThirdParty,
         uint256[] memory initialPurchaseIds,
         uint256[] memory initialPurchaseCounts
-    ) external payable returns (address) {
+    ) external returns (address) {
         if (
             contentSuffixes.length != supplies.length
                 || contentSuffixes.length != prices.length
@@ -215,10 +226,6 @@ contract CreatorAssuranceContractFactory is Ownable {
             initialPurchaseIds,
             initialPurchaseCounts
         );
-        if (msg.value != initialPurchaseValue) {
-            revert InitialPurchaseValueMismatch();
-        }
-
         bool verified = IChannelRegistry(address(channelRegistry)).isVerified(channelId);
         bool creatorControlled = IChannelRegistry(address(channelRegistry)).isCreatorControlled(channelId);
         address channelOwner = verified
@@ -263,12 +270,13 @@ contract CreatorAssuranceContractFactory is Ownable {
             erc1155ContractUri
         );
 
-        ERC1155SecondaryMarket marketplace = marketplaceFactory.createMarketplace(address(erc1155));
+        ERC1155SecondaryMarket marketplace = marketplaceFactory.createMarketplace(address(erc1155), paymentToken);
         if (address(marketplace) == address(0)) revert MarketplaceCreationFailed();
 
         CreatorAssuranceContract ac = new CreatorAssuranceContract(
             address(this),
             recipient,
+            paymentToken,
             metadataCid,
             channelId,
             !verified
@@ -314,13 +322,16 @@ contract CreatorAssuranceContractFactory is Ownable {
         contractERC1155[address(ac)] = address(erc1155);
 
         if (initialPurchaseValue > 0) {
-            ac.buyERC1155{value: initialPurchaseValue}(
+            IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), initialPurchaseValue);
+            IERC20(paymentToken).forceApprove(address(ac), initialPurchaseValue);
+            ac.buyERC1155(
                 msg.sender,
                 address(erc1155),
                 initialPurchaseIds,
                 initialPurchaseCounts,
                 ""
             );
+            IERC20(paymentToken).forceApprove(address(ac), 0);
         }
 
         emit CreatorContractCreated(address(ac), channelId, msg.sender, isThirdParty);

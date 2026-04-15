@@ -27,6 +27,19 @@ import { AssuranceContractAbi } from '@commonality/sdk';
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';
 
+const erc20ApproveAbi = [
+  {
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
 // ---------------------------------------------------------------------------
 // Local chain definition (mirrors runSimulation.ts)
 // ---------------------------------------------------------------------------
@@ -210,7 +223,26 @@ async function createCreatorContract(
     }
   }
 
-  const hash = await clients.walletClient.writeContract({
+  const paymentToken = await clients.publicClient.readContract({
+    address: factoryAddress,
+    abi: CreatorAssuranceContractFactoryAbi,
+    functionName: 'paymentToken',
+    args: [],
+  }) as `0x${string}`;
+
+  if (initialPurchaseValue > 0n) {
+    const approvalHash = await clients.walletClient.writeContract({
+      address: paymentToken,
+      abi: erc20ApproveAbi,
+      functionName: 'approve',
+      args: [factoryAddress, initialPurchaseValue],
+      chain: hardhat,
+      account: clients.walletClient.account!,
+    });
+    await waitForTx(clients.publicClient, approvalHash);
+  }
+
+  const createHash = await clients.walletClient.writeContract({
     address: factoryAddress,
     abi: CreatorAssuranceContractFactoryAbi,
     functionName: 'createContract',
@@ -229,12 +261,11 @@ async function createCreatorContract(
       initialPurchaseIds,
       initialPurchaseCounts,
     ],
-    value: initialPurchaseValue,
     chain: hardhat,
     account: clients.walletClient.account!,
   });
 
-  const receipt = await waitForTx(clients.publicClient, hash);
+  const receipt = await waitForTx(clients.publicClient, createHash);
 
   // Parse the CreatorContractCreated event to extract the new contract address.
   for (const log of receipt.logs) {
@@ -254,7 +285,7 @@ async function createCreatorContract(
     }
   }
 
-  throw new Error(`CreatorContractCreated event not found in tx ${hash}`);
+  throw new Error(`CreatorContractCreated event not found in tx ${createHash}`);
 }
 
 /** Buy tokens on a creator assurance contract. */
@@ -271,12 +302,28 @@ async function buyTokens(
     0n,
   );
 
+  const paymentToken = await clients.publicClient.readContract({
+    address: contractAddress,
+    abi: AssuranceContractAbi,
+    functionName: 'paymentToken',
+    args: [],
+  }) as `0x${string}`;
+
+  const approvalHash = await clients.walletClient.writeContract({
+    address: paymentToken,
+    abi: erc20ApproveAbi,
+    functionName: 'approve',
+    args: [contractAddress, totalCost],
+    chain: hardhat,
+    account: clients.walletClient.account!,
+  });
+  await waitForTx(clients.publicClient, approvalHash);
+
   const hash = await clients.walletClient.writeContract({
     address: contractAddress,
     abi: AssuranceContractAbi,
     functionName: 'buyERC1155',
     args: [clients.account, erc1155Address, tokenIds, counts, '0x' as Hex],
-    value: totalCost,
     chain: hardhat,
     account: clients.walletClient.account!,
   });

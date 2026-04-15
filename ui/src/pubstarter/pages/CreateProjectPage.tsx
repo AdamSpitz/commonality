@@ -129,8 +129,12 @@ export function CreateProjectPage() {
       const metadataCid = await uploadToIPFS(ipfsConfig, projectMeta)
 
       const pubstarterAddress = import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS
+      const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
       if (!pubstarterAddress) {
         throw new Error('Pubstarter contract address not configured (VITE_PUBSTARTER_CONTRACT_ADDRESS)')
+      }
+      if (!paymentTokenAddress) {
+        throw new Error('Payment token address not configured (VITE_PAYMENT_TOKEN_ADDRESS)')
       }
 
       const pubstarterContract: PubstarterContract = {
@@ -151,6 +155,7 @@ export function CreateProjectPage() {
         contractURI: `ipfs://${metadataCid}/`,
         owner: address,
         recipient: recipientAddress,
+        paymentToken: paymentTokenAddress as `0x${string}`,
         threshold: parseEther(threshold),
         deadline: BigInt(deadlineTimestamp),
         projectMetadataCid: metadataCid,

@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
@@ -13,9 +15,8 @@ import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155
  *      This is an abstract contract that must be implemented by a concrete contract.
  */
 abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
-    
-    error IncorrectAmountOfETHSent();
-    error ETHRefundFailed();
+    using SafeERC20 for IERC20;
+
     error ZeroAddress();
 
     /**
@@ -78,7 +79,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
      * @notice Virtual function to get the price of a specific ERC1155 token
      * @param erc1155Addr The address of the ERC1155 token contract
      * @param id The token ID to get the price for
-     * @return The price per token in wei
+     * @return The price per token in units of the settlement token
      */
     function erc1155Price(
         address erc1155Addr,
@@ -86,8 +87,14 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
     ) internal view virtual returns (uint256);
 
     /**
+     * @notice Virtual function to get the settlement token used by this market
+     * @return The ERC-20 token address
+     */
+    function settlementToken() internal view virtual returns (address);
+
+    /**
      * @notice Virtual function to get the total value received so far
-     * @return The total amount of ETH received
+     * @return The total amount of settlement-token value received
      */
     function getTotalReceivedValue() internal view virtual returns (uint256);
 
@@ -102,7 +109,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
      * @param erc1155Addr The address of the ERC1155 token contract
      * @param ids Array of token IDs to calculate cost for
      * @param counts Array of token counts corresponding to each ID
-     * @return The total cost in wei for all tokens
+     * @return The total cost in units of the settlement token for all tokens
      */
     function erc1155TotalCost(
         address erc1155Addr,
@@ -132,11 +139,15 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         uint256[] calldata ids,
         uint256[] calldata counts,
         bytes calldata data
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         requireBuyingAllowed();
         uint256 requiredValue = erc1155TotalCost(erc1155Addr, ids, counts);
-        if (msg.value != requiredValue) revert IncorrectAmountOfETHSent();
-        setTotalReceivedValue(getTotalReceivedValue() + msg.value);
+        IERC20(settlementToken()).safeTransferFrom(
+            msg.sender,
+            address(this),
+            requiredValue
+        );
+        setTotalReceivedValue(getTotalReceivedValue() + requiredValue);
         IERC1155(erc1155Addr).safeBatchTransferFrom(
             address(this),
             buyer,
@@ -148,7 +159,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
     }
 
     /**
-     * @notice Refunds ERC1155 tokens back to this contract for ETH
+     * @notice Refunds ERC1155 tokens back to this contract for settlement tokens
      * @dev Refunds are only available once the contract has entered a failed state.
      * @param holder The address that currently holds the tokens to be refunded
      * @param erc1155Addr The address of the ERC1155 token contract
@@ -156,7 +167,6 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
      * @param counts Array of token counts to refund
      * @param data Additional data for the transfer
      */
-    // slither-disable-next-line arbitrary-send-eth
     function refundERC1155(
         address holder,
         address erc1155Addr,
@@ -168,9 +178,6 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         if (holder == address(0)) revert ZeroAddress();
         uint256 refundValue = erc1155TotalCost(erc1155Addr, ids, counts);
         setTotalReceivedValue(getTotalReceivedValue() - refundValue);
-        // slither-disable-next-line low-level-calls
-        (bool success, ) = payable(holder).call{value: refundValue}("");
-        if (!success) revert ETHRefundFailed();
         IERC1155(erc1155Addr).safeBatchTransferFrom(
             holder,
             address(this),
@@ -178,6 +185,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
             counts,
             data
         );
+        IERC20(settlementToken()).safeTransfer(holder, refundValue);
         emit ERC1155Sold(holder, erc1155Addr, refundValue, ids, counts);
     }
 }

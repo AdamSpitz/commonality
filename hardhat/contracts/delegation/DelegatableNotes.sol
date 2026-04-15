@@ -7,6 +7,7 @@ import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {AssuranceContract} from "../individual-projects/AssuranceContract.sol";
 import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
 import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
 import {AssuranceContractFactory, MarketplaceFactory} from "../individual-projects/Pubstarter.sol";
@@ -45,6 +46,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   error InsufficientBalance();
   error ZeroAddress();
   error UnauthorizedMarket();
+  error InvalidPaymentTokenForPurchase();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -411,14 +413,16 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    *      and returns data needed to create output notes.
    * @param noteIds Array of note IDs to use for payment
    * @param chains Array of delegation chains (one per note)
-   * @param paymentAmount Total amount to spend in ETH
+   * @param paymentAmount Total amount to spend in the settlement token
+   * @param paymentToken The ERC-20 token required by the target market
    * @return paymentChains The delegation chains of the payment notes
    * @return spentAmounts The amount spent from each note
    */
   function _executePurchase(
     uint256[] calldata noteIds,
     address[][] calldata chains,
-    uint256 paymentAmount
+    uint256 paymentAmount,
+    address paymentToken
   ) private returns (
     address[][] memory paymentChains,
     uint256[] memory spentAmounts
@@ -434,7 +438,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       noteIds,
       chains,
       caller,
-      paymentAmount
+      paymentAmount,
+      paymentToken
     );
 
     // Consume payment notes and cache data for output notes
@@ -447,7 +452,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @dev Purchase ERC1155 tokens from a primary market contract.
    * @param noteIds Array of note IDs to use for payment
    * @param chains Array of delegation chains (one per note)
-   * @param paymentAmount Total amount to spend in ETH
+   * @param paymentAmount Total amount to spend in the settlement token
    * @param primaryMarket Address of the primary market contract
    * @param erc1155Contract Address of the ERC1155 token contract
    * @param tokenIds Array of token IDs to purchase
@@ -467,12 +472,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     if (!primaryMarketFactory.isDeployedMarket(primaryMarket)) revert UnauthorizedMarket();
 
     address caller = _msgSender();
+    address paymentToken = AssuranceContract(primaryMarket).paymentToken();
 
     // Execute common purchase logic (consumes payment notes)
     (
       address[][] memory paymentChains,
       uint256[] memory spentAmounts
-    ) = _executePurchase(noteIds, chains, paymentAmount);
+    ) = _executePurchase(noteIds, chains, paymentAmount, paymentToken);
 
     // Create new notes with purchased tokens (state writes before external call - CEI pattern)
     uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
@@ -485,13 +491,15 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     );
 
     // Execute primary market purchase (external call last)
-    ERC1155PrimaryMarket(primaryMarket).buyERC1155{value: paymentAmount}(
+    IERC20(paymentToken).forceApprove(primaryMarket, paymentAmount);
+    ERC1155PrimaryMarket(primaryMarket).buyERC1155(
       address(this),
       erc1155Contract,
       tokenIds,
       counts,
       ""
     );
+    IERC20(paymentToken).forceApprove(primaryMarket, 0);
 
     emit ERC1155Purchased(
       caller,
@@ -508,7 +516,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
    * @dev Purchase ERC1155 tokens from a secondary market contract.
    * @param noteIds Array of note IDs to use for payment
    * @param chains Array of delegation chains (one per note)
-   * @param paymentAmount Total amount to spend in ETH
+   * @param paymentAmount Total amount to spend in the settlement token
    * @param secondaryMarket Address of the secondary market contract
    * @param saleListingId Sale listing ID in the secondary market
    * @param tokenCount Number of tokens to purchase
@@ -526,6 +534,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     if (!secondaryMarketFactory.isDeployedMarket(secondaryMarket)) revert UnauthorizedMarket();
 
     address caller = _msgSender();
+    address paymentToken = ERC1155SecondaryMarket(secondaryMarket).paymentToken();
 
     // Get the token details from the marketplace (view calls) before any state changes
     address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
@@ -535,7 +544,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     (
       address[][] memory paymentChains,
       uint256[] memory spentAmounts
-    ) = _executePurchase(noteIds, chains, paymentAmount);
+    ) = _executePurchase(noteIds, chains, paymentAmount, paymentToken);
 
     // Create arrays for single token type
     uint256[] memory tokenIds = new uint256[](1);
@@ -554,11 +563,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     );
 
     // Execute secondary market purchase (external call last)
-    ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo{value: paymentAmount}(
+    IERC20(paymentToken).forceApprove(secondaryMarket, paymentAmount);
+    ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo(
       saleListingId,
       tokenCount,
       address(this)
     );
+    IERC20(paymentToken).forceApprove(secondaryMarket, 0);
 
     emit ERC1155Purchased(
       caller,
@@ -577,7 +588,8 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] calldata noteIds,
     address[][] calldata chains,
     address caller,
-    uint256 requiredPayment
+    uint256 requiredPayment,
+    address requiredToken
   ) private view returns (uint256 totalAvailable) {
     for (uint256 i = 0; i < noteIds.length; i++) {
       Note storage note = notes[noteIds[i]];
@@ -586,7 +598,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
       bytes32 expectedHash = _verifyAndComputeChainHash(chains[i]);
       if (note.chainHash != expectedHash) revert InvalidChain();
       if (chains[i][0] != caller) revert NotNoteOwner();
-      if (note.token != address(0)) revert ZeroAddress();
+      if (note.tokenType != TokenType.ERC20 || note.token != requiredToken) {
+        revert InvalidPaymentTokenForPurchase();
+      }
 
       totalAvailable += note.amount;
     }

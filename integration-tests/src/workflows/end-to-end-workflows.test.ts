@@ -32,7 +32,7 @@ import {
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
-import { depositETHChecked, delegateNoteChecked } from '../delegation/delegation-actions-checked.js';
+import { depositPaymentTokenChecked, delegateNoteChecked } from '../delegation/delegation-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -142,7 +142,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       const depositAmount = BigInt('2000000000000000'); // 0.002 ETH
       testLog(`  User depositing ${depositAmount} ETH into delegatable note...`);
-      const depositResult = await depositETHChecked(userClients, delegatableNotesContract, machinery, {
+      const depositResult = await depositPaymentTokenChecked(userClients, delegatableNotesContract, machinery, {
         amount: depositAmount,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);
@@ -216,7 +216,7 @@ describe('End-to-End Workflow Integration Tests', () => {
 
       const depositAmount = BigInt('3000000000000000'); // 0.003 ETH
       testLog(`  Root user depositing ${depositAmount} ETH into delegatable note...`);
-      const depositResult = await depositETHChecked(rootUserClients, delegatableNotesContract, machinery, {
+      const depositResult = await depositPaymentTokenChecked(rootUserClients, delegatableNotesContract, machinery, {
         amount: depositAmount,
       });
       testLog(`  Deposit transaction: ${depositResult.hash} (note ID: ${depositResult.noteId})`);

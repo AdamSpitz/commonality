@@ -5,6 +5,7 @@ const { ethers } = hre;
 describe("MultiERC1155AssuranceContract", function () {
   let assuranceContract;
   let erc1155Token;
+  let paymentToken;
   let condition;
   let owner, recipient, alice, bob, charlie;
   let threshold, deadline;
@@ -26,6 +27,17 @@ describe("MultiERC1155AssuranceContract", function () {
 
   beforeEach(async function () {
     [owner, recipient, alice, bob, charlie] = await ethers.getSigners();
+
+    const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
+    paymentToken = await PremintingERC20.deploy(
+      owner.address,
+      "Test Payment Token",
+      "TPT",
+      "ipfs://QmPaymentToken"
+    );
+    for (const signer of [owner, recipient, alice, bob, charlie]) {
+      await paymentToken.connect(owner).mint(signer.address, ethers.parseEther("1000"));
+    }
 
     // Deploy a simple ERC1155 token for testing
     const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
@@ -53,6 +65,7 @@ describe("MultiERC1155AssuranceContract", function () {
     assuranceContract = await AssuranceContracts.deploy(
       owner.address,
       recipient.address,
+      await paymentToken.getAddress(),
       "ipfs://QmProjectMetadata"
     );
 
@@ -76,6 +89,11 @@ describe("MultiERC1155AssuranceContract", function () {
     );
   });
 
+  async function approveAndBuy(contract, signer, erc1155Addr, ids, counts, cost, buyer = signer.address) {
+    await paymentToken.connect(signer).approve(await contract.getAddress(), cost);
+    return contract.connect(signer).buyERC1155(buyer, erc1155Addr, ids, counts, "0x");
+  }
+
   describe("Deployment", function () {
     it("Should emit AssuranceContractInitialized event when condition is set", async function () {
       const AssuranceContracts = await ethers.getContractFactory(
@@ -85,6 +103,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const contract = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
+        await paymentToken.getAddress(),
         "ipfs://QmProjectMetadata"
       );
 
@@ -108,6 +127,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const contract = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
+        await paymentToken.getAddress(),
         metadataCid
       );
 
@@ -138,6 +158,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const contract = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
+        await paymentToken.getAddress(),
         "ipfs://QmProjectMetadata"
       );
 
@@ -244,11 +265,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const tokenAddr = await erc1155Token.getAddress();
       const cost = ethers.parseEther("1.0");
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
-          value: cost,
-        });
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [1], cost);
 
       expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(1);
     });
@@ -258,11 +275,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const cost = ethers.parseEther("1.0");
 
       await expect(
-        assuranceContract
-          .connect(alice)
-          .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
-            value: cost,
-          })
+        approveAndBuy(assuranceContract, alice, tokenAddr, [1], [1], cost)
       )
         .to.emit(assuranceContract, "ERC1155Bought")
         .withArgs(alice.address, tokenAddr, cost, [1], [1]);
@@ -271,17 +284,23 @@ describe("MultiERC1155AssuranceContract", function () {
     it("Should track total received value", async function () {
       const tokenAddr = await erc1155Token.getAddress();
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [2], "0x", {
-          value: ethers.parseEther("2.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [2],
+        ethers.parseEther("2.0")
+      );
 
-      await assuranceContract
-        .connect(bob)
-        .buyERC1155(bob.address, tokenAddr, [2], [1], "0x", {
-          value: ethers.parseEther("2.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        bob,
+        tokenAddr,
+        [2],
+        [1],
+        ethers.parseEther("2.0")
+      );
 
       const progress = await assuranceContract.getAssuranceContractProgress();
       expect(progress).to.equal(ethers.parseEther("4.0"));
@@ -292,23 +311,15 @@ describe("MultiERC1155AssuranceContract", function () {
       const incorrectAmount = ethers.parseEther("0.5");
 
       await expect(
-        assuranceContract
-          .connect(alice)
-          .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
-            value: incorrectAmount,
-          })
-      ).to.be.revertedWithCustomError(assuranceContract, "IncorrectAmountOfETHSent");
+        approveAndBuy(assuranceContract, alice, tokenAddr, [1], [1], incorrectAmount)
+      ).to.be.reverted;
     });
 
     it("Should handle buying multiple token types", async function () {
       const tokenAddr = await erc1155Token.getAddress();
       const cost = ethers.parseEther("6.0"); // 1 + 2 + 3
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1, 2, 3], [1, 1, 1], "0x", {
-          value: cost,
-        });
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1, 2, 3], [1, 1, 1], cost);
 
       expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(1);
       expect(await erc1155Token.balanceOf(alice.address, 2)).to.equal(1);
@@ -319,11 +330,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const tokenAddr = await erc1155Token.getAddress();
       const cost = ethers.parseEther("3.0"); // 1 * 3
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [3], "0x", {
-          value: cost,
-        });
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [3], cost);
 
       expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(3);
     });
@@ -350,11 +357,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const cost = ethers.parseEther("1.0");
 
       // Buy tokens
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
-          value: cost,
-        });
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [1], cost);
 
       // Fast forward past deadline
       await hre.network.provider.send("evm_increaseTime", [86400]);
@@ -365,30 +368,24 @@ describe("MultiERC1155AssuranceContract", function () {
         .connect(alice)
         .setApprovalForAll(await assuranceContract.getAddress(), true);
 
-      const balanceBefore = await ethers.provider.getBalance(alice.address);
+      const balanceBefore = await paymentToken.balanceOf(alice.address);
 
       // Sell back
       const tx = await assuranceContract
         .connect(alice)
         .refundERC1155(alice.address, tokenAddr, [1], [1], "0x");
-      const receipt = await tx.wait();
-      const gasCost = receipt.gasUsed * receipt.gasPrice;
-
-      const balanceAfter = await ethers.provider.getBalance(alice.address);
+      await tx.wait();
+      const balanceAfter = await paymentToken.balanceOf(alice.address);
 
       expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(0);
-      expect(balanceAfter - balanceBefore + gasCost).to.equal(cost);
+      expect(balanceAfter - balanceBefore).to.equal(cost);
     });
 
     it("Should emit ERC1155Sold event", async function () {
       const tokenAddr = await erc1155Token.getAddress();
       const cost = ethers.parseEther("1.0");
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
-          value: cost,
-        });
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [1], cost);
 
       await hre.network.provider.send("evm_increaseTime", [86400]);
       await hre.network.provider.send("evm_mine");
@@ -409,11 +406,14 @@ describe("MultiERC1155AssuranceContract", function () {
     it("Should reject refund before deadline", async function () {
       const tokenAddr = await erc1155Token.getAddress();
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
-          value: ethers.parseEther("1.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [1],
+        ethers.parseEther("1.0")
+      );
 
       await erc1155Token
         .connect(alice)
@@ -430,11 +430,14 @@ describe("MultiERC1155AssuranceContract", function () {
       const tokenAddr = await erc1155Token.getAddress();
 
       // Buy enough to meet threshold (10 ETH)
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [10], "0x", {
-          value: ethers.parseEther("10.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [10],
+        ethers.parseEther("10.0")
+      );
 
       await hre.network.provider.send("evm_increaseTime", [86400]);
       await hre.network.provider.send("evm_mine");
@@ -453,11 +456,14 @@ describe("MultiERC1155AssuranceContract", function () {
     it("Should decrease total received value on refund", async function () {
       const tokenAddr = await erc1155Token.getAddress();
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [2], "0x", {
-          value: ethers.parseEther("2.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [2],
+        ethers.parseEther("2.0")
+      );
 
       expect(await assuranceContract.getAssuranceContractProgress()).to.equal(
         ethers.parseEther("2.0")
@@ -496,34 +502,35 @@ describe("MultiERC1155AssuranceContract", function () {
       const tokenAddr = await erc1155Token.getAddress();
 
       // Buy tokens to meet threshold
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [10], "0x", {
-          value: ethers.parseEther("10.0"),
-        });
-
-      const recipientBalanceBefore = await ethers.provider.getBalance(
-        recipient.address
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [10],
+        ethers.parseEther("10.0")
       );
+
+      const recipientBalanceBefore = await paymentToken.balanceOf(recipient.address);
 
       await assuranceContract.connect(recipient).withdraw();
 
-      const recipientBalanceAfter = await ethers.provider.getBalance(
-        recipient.address
-      );
+      const recipientBalanceAfter = await paymentToken.balanceOf(recipient.address);
 
-      // Should have received approximately 10 ETH (minus gas)
-      expect(recipientBalanceAfter).to.be.gt(recipientBalanceBefore);
+      expect(recipientBalanceAfter - recipientBalanceBefore).to.equal(ethers.parseEther("10.0"));
     });
 
     it("Should emit AssuranceContractWithdrawal event", async function () {
       const tokenAddr = await erc1155Token.getAddress();
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [10], "0x", {
-          value: ethers.parseEther("10.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [10],
+        ethers.parseEther("10.0")
+      );
 
       await expect(assuranceContract.connect(recipient).withdraw())
         .to.emit(assuranceContract, "AssuranceContractWithdrawal")
@@ -533,11 +540,14 @@ describe("MultiERC1155AssuranceContract", function () {
     it("Should reject withdrawal when threshold not met", async function () {
       const tokenAddr = await erc1155Token.getAddress();
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [5], "0x", {
-          value: ethers.parseEther("5.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [5],
+        ethers.parseEther("5.0")
+      );
 
       await expect(
         assuranceContract.connect(recipient).withdraw()
@@ -547,11 +557,14 @@ describe("MultiERC1155AssuranceContract", function () {
     it("Should only allow recipient to trigger withdrawal when successful", async function () {
       const tokenAddr = await erc1155Token.getAddress();
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [10], "0x", {
-          value: ethers.parseEther("10.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [10],
+        ethers.parseEther("10.0")
+      );
 
       // Alice tries to trigger withdrawal (not recipient) - should fail
       await expect(
@@ -575,17 +588,23 @@ describe("MultiERC1155AssuranceContract", function () {
         .connect(owner)
         .setPricesERC1155(tokenAddr, [1], [ethers.parseEther("1.0")]);
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [2], "0x", {
-          value: ethers.parseEther("2.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [2],
+        ethers.parseEther("2.0")
+      );
 
-      await assuranceContract
-        .connect(alice)
-        .buyERC1155(alice.address, tokenAddr, [1], [3], "0x", {
-          value: ethers.parseEther("3.0"),
-        });
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [3],
+        ethers.parseEther("3.0")
+      );
 
       expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(5);
       expect(await assuranceContract.getAssuranceContractProgress()).to.equal(
@@ -604,11 +623,14 @@ describe("MultiERC1155AssuranceContract", function () {
       await hre.network.provider.send("evm_mine");
 
       await expect(
-        assuranceContract
-          .connect(alice)
-          .buyERC1155(alice.address, tokenAddr, [1], [1], "0x", {
-            value: ethers.parseEther("1.0"),
-          })
+        approveAndBuy(
+          assuranceContract,
+          alice,
+          tokenAddr,
+          [1],
+          [1],
+          ethers.parseEther("1.0")
+        )
       ).to.be.revertedWithCustomError(assuranceContract, "ConditionHasFailed");
     });
   });
@@ -634,6 +656,7 @@ describe("MultiERC1155AssuranceContract", function () {
       cancellableContract = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
+        await paymentToken.getAddress(),
         "ipfs://QmCancellableProject"
       );
 
@@ -666,13 +689,13 @@ describe("MultiERC1155AssuranceContract", function () {
     });
 
     it("Should allow the canceller to force early failure and refunds", async function () {
-      await cancellableContract.connect(alice).buyERC1155(
-        alice.address,
+      await approveAndBuy(
+        cancellableContract,
+        alice,
         await cancellableToken.getAddress(),
         [1],
         [1],
-        "0x",
-        { value: ethers.parseEther("1.0") }
+        ethers.parseEther("1.0")
       );
 
       await expect(wrappedCondition.connect(charlie).cancel())
@@ -708,25 +731,25 @@ describe("MultiERC1155AssuranceContract", function () {
       await wrappedCondition.connect(charlie).cancel();
 
       await expect(
-        cancellableContract.connect(alice).buyERC1155(
-          alice.address,
+        approveAndBuy(
+          cancellableContract,
+          alice,
           await cancellableToken.getAddress(),
           [1],
           [1],
-          "0x",
-          { value: ethers.parseEther("1.0") }
+          ethers.parseEther("1.0")
         )
       ).to.be.revertedWithCustomError(cancellableContract, "ConditionHasFailed");
     });
 
     it("Should reject cancellation after success", async function () {
-      await cancellableContract.connect(alice).buyERC1155(
-        alice.address,
+      await approveAndBuy(
+        cancellableContract,
+        alice,
         await cancellableToken.getAddress(),
         [1],
         [10],
-        "0x",
-        { value: ethers.parseEther("10.0") }
+        ethers.parseEther("10.0")
       );
 
       await expect(
@@ -762,6 +785,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const ac = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
+        await paymentToken.getAddress(),
         "ipfs://QmOracleProject"
       );
       await ac.connect(owner).setCondition(await oracleCondition.getAddress());
@@ -779,11 +803,13 @@ describe("MultiERC1155AssuranceContract", function () {
         [ethers.parseEther("1.0")]
       );
 
-      await ac.connect(alice).buyERC1155(
-        alice.address,
+      await approveAndBuy(
+        ac,
+        alice,
         await oracleToken.getAddress(),
-        [1], [1], "0x",
-        { value: ethers.parseEther("1.0") }
+        [1],
+        [1],
+        ethers.parseEther("1.0")
       );
 
       // Oracle says undecided — can't withdraw or refund
@@ -808,6 +834,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const ac = await AssuranceContracts.deploy(
         owner.address,
         recipient.address,
+        await paymentToken.getAddress(),
         "ipfs://QmOracleProject"
       );
       await ac.connect(owner).setCondition(await oracleCondition.getAddress());
@@ -825,11 +852,13 @@ describe("MultiERC1155AssuranceContract", function () {
         [ethers.parseEther("1.0")]
       );
 
-      await ac.connect(alice).buyERC1155(
-        alice.address,
+      await approveAndBuy(
+        ac,
+        alice,
         await oracleToken.getAddress(),
-        [1], [1], "0x",
-        { value: ethers.parseEther("1.0") }
+        [1],
+        [1],
+        ethers.parseEther("1.0")
       );
 
       // Oracle says failed

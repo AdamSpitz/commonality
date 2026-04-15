@@ -40,6 +40,7 @@ test.describe('Subjectiv Flow', () => {
       pubstarterAddress,
       trustRegistryAddress,
       graphqlUrl,
+      paymentTokenAddress,
     } = getContractAddresses()
 
     if (!alignmentAttestationsAddress || !pubstarterAddress || !trustRegistryAddress) {
@@ -130,6 +131,7 @@ test.describe('Subjectiv Flow', () => {
       contractURI: `ipfs://${trustedProjectMetadataCid}`,
       owner: account2Clients.account,
       recipient: account2Clients.account,
+      paymentToken: paymentTokenAddress!,
       threshold: parseEther('10'),
       deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
       projectMetadataCid: trustedProjectMetadataCid,
@@ -149,6 +151,7 @@ test.describe('Subjectiv Flow', () => {
       contractURI: `ipfs://${untrustedProjectMetadataCid}`,
       owner: account3Clients.account,
       recipient: account3Clients.account,
+      paymentToken: paymentTokenAddress!,
       threshold: parseEther('10'),
       deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
       projectMetadataCid: untrustedProjectMetadataCid,

@@ -16,6 +16,7 @@
 import type { Hash, Address } from 'viem';
 import {
   depositETH,
+  depositERC20,
   delegateNote,
   revokeNote,
   reclaimFunds,
@@ -93,6 +94,50 @@ export async function depositETHChecked(
       await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, actionResult.hash);
 
       // Update context with the note ID for invariant checking
+      context.entities.delegationNoteId = actionResult.noteId.toString();
+
+      return actionResult;
+    },
+    depositETHMetadata,
+    context,
+    options
+  );
+
+  return result;
+}
+
+export async function depositPaymentTokenChecked(
+  clients: TestClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  machinery: ActionTestingMachinery,
+  params: {
+    amount: bigint;
+  },
+  options?: ActionRunOptions
+): Promise<{ hash: Hash; noteId: bigint }> {
+  const paymentToken = process.env.PAYMENT_TOKEN_ADDRESS as Address | undefined;
+
+  if (!paymentToken) {
+    throw new Error('PAYMENT_TOKEN_ADDRESS is required for depositPaymentTokenChecked');
+  }
+
+  const context: ActionContext = {
+    machinery,
+    contracts: { delegation: delegatableNotesContract },
+    entities: {
+      delegationNoteId: '',
+      userAddress: clients.account,
+    },
+  };
+
+  const result = await runActionAndCheckProperties(
+    async () => {
+      const actionResult = await depositERC20(clients, delegatableNotesContract, {
+        token: paymentToken,
+        amount: params.amount,
+      });
+
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, actionResult.hash);
       context.entities.delegationNoteId = actionResult.noteId.toString();
 
       return actionResult;

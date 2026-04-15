@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 
 /**
@@ -14,14 +16,15 @@ import {IAssuranceCondition} from "./IAssuranceCondition.sol";
  */
 
 abstract contract AssuranceContract {
+    using SafeERC20 for IERC20;
 
     error OnlyRecipientCanWithdraw();
-    error ETHTransferFailed();
     error ConditionNotMet();
     error ConditionNotFailed();
     error ConditionHasFailed();
     error ConditionAlreadySet();
     error ConditionNotSet();
+    error InvalidPaymentTokenAddress();
 
     /**
      * @notice Emitted when the assurance contract's condition is set
@@ -41,16 +44,20 @@ abstract contract AssuranceContract {
     event AssuranceContractWithdrawal(address indexed recipient, uint256 value);
 
     address internal immutable _recipient;
+    address public immutable paymentToken;
 
     IAssuranceCondition internal _condition;
     bool private _conditionSet;
 
     /**
-     * @notice Initializes the assurance contract with the recipient
+     * @notice Initializes the assurance contract with the recipient and settlement token
      * @param recipient The address that will receive funds if the project succeeds
+     * @param _paymentToken The ERC-20 token used for settlement
      */
-    constructor(address recipient) {
+    constructor(address recipient, address _paymentToken) {
+        if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
         _recipient = recipient;
+        paymentToken = _paymentToken;
     }
 
     /**
@@ -83,11 +90,9 @@ abstract contract AssuranceContract {
     function withdraw() external {
         if (msg.sender != _recipient) revert OnlyRecipientCanWithdraw();
         requireAssuranceContractHasSucceeded();
-        uint256 value = address(this).balance;
+        uint256 value = IERC20(paymentToken).balanceOf(address(this));
         emit AssuranceContractWithdrawal(_recipient, value);
-        // slither-disable-next-line low-level-calls
-        (bool success, ) = payable(_recipient).call{value: value}("");
-        if (!success) revert ETHTransferFailed();
+        IERC20(paymentToken).safeTransfer(_recipient, value);
     }
 
     /**

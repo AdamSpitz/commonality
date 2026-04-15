@@ -20,6 +20,38 @@ export const TokenType = {
   ERC1155: 1,
 } as const;
 
+const erc20ApproveAbi = [
+  {
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+async function extractCreatedNoteId(
+  clients: TestClients,
+  hash: Hash,
+): Promise<{ hash: Hash; noteId: bigint }> {
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  const parsedLogs = parseEventLogs({
+    abi: DelegatableNotesAbi,
+    eventName: 'NoteCreated',
+    logs: receipt.logs,
+  });
+
+  if (parsedLogs.length === 0) {
+    throw new Error('Failed to find NoteCreated event in transaction logs');
+  }
+
+  return { hash, noteId: parsedLogs[0].args.noteId };
+}
+
 /**
  * Deposit ETH into a delegatable note
  *
@@ -61,22 +93,45 @@ export async function depositETH(
     account: clients.walletClient.account!,
   });
 
-  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  return extractCreatedNoteId(clients, hash);
+}
 
-  // Parse the NoteCreated event to get the noteId using viem's parseEventLogs
-  const parsedLogs = parseEventLogs({
-    abi: DelegatableNotesAbi,
-    eventName: 'NoteCreated',
-    logs: receipt.logs,
+/**
+ * Deposit ERC-20 payment tokens into a delegatable note.
+ */
+export async function depositERC20(
+  clients: TestClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    token: Address;
+    amount: bigint;
+  }
+): Promise<{ hash: Hash; noteId: bigint }> {
+  const approvalHash = await clients.walletClient.writeContract({
+    address: params.token,
+    abi: erc20ApproveAbi,
+    functionName: 'approve',
+    args: [delegatableNotesContract.address, params.amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
+
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'deposit',
+    args: [
+      params.token,
+      TokenType.ERC20,
+      0n,
+      params.amount,
+    ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
   });
 
-  if (parsedLogs.length === 0) {
-    throw new Error('Failed to find NoteCreated event in transaction logs');
-  }
-
-  const noteId = parsedLogs[0].args.noteId;
-
-  return { hash, noteId };
+  return extractCreatedNoteId(clients, hash);
 }
 
 /**

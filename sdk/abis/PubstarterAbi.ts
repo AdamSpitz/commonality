@@ -113,6 +113,11 @@ export const PubstarterAbi = [
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "threshold",
         "type": "uint256"
@@ -184,6 +189,11 @@ export const PubstarterAbi = [
       {
         "internalType": "address",
         "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
         "type": "address"
       },
       {

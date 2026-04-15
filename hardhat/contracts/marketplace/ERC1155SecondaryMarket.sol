@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -10,22 +12,21 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  * @title ERC1155SecondaryMarket
  * @notice A simple orderbook marketplace for ERC1155 tokens
  * @dev Users can create sale listings (ask orders) and buy orders (bid orders).
- *      Supports partial fulfillment of orders. All trades settle in ETH.
+ *      Supports partial fulfillment of orders. All trades settle in one ERC-20 token.
  *      Each marketplace instance is tied to a specific ERC1155 contract.
  */
 contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
+    using SafeERC20 for IERC20;
 
     error CountMustBeGreaterThanZero();
     error PriceMustBeGreaterThanZero();
     error InvalidRecipient();
     error ListingDoesNotExist();
     error InvalidCount();
-    error IncorrectPayment();
-    error ETHTransferFailed();
     error NotTheSeller();
     error NotTheBuyer();
-    error IncorrectAmountOfETHSent();
     error OrderDoesNotExist();
+    error InvalidPaymentTokenAddress();
 
     /**
      * @dev Structure representing a sale listing (ask order)
@@ -48,6 +49,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     }
 
     IERC1155 private immutable _erc1155;
+    address public immutable paymentToken;
     mapping(uint256 => SaleListing) private _saleListings;
     mapping(uint256 => BuyOrder) private _buyOrders;
     uint256 private _nextSaleListingId;
@@ -120,11 +122,14 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     event BuyOrderCancelled(uint256 indexed buyOrderId);
 
     /**
-     * @notice Initializes the marketplace for a specific ERC1155 token
+     * @notice Initializes the marketplace for a specific ERC1155 token and settlement token
      * @param erc1155Address The address of the ERC1155 token contract this marketplace will serve
+     * @param _paymentToken The ERC-20 token used to settle trades
      */
-    constructor(address erc1155Address) {
+    constructor(address erc1155Address, address _paymentToken) {
+        if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
         _erc1155 = IERC1155(erc1155Address);
+        paymentToken = _paymentToken;
         emit ERC1155SecondaryMarketCreated(erc1155Address);
     }
 
@@ -173,7 +178,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      * @param saleListingId The ID of the sale listing to buy from
      * @param count The number of tokens to buy
      */
-    function fulfillSaleListing(uint256 saleListingId, uint256 count) external payable nonReentrant {
+    function fulfillSaleListing(uint256 saleListingId, uint256 count) external nonReentrant {
         address buyer = _msgSender();
         _fulfillSaleListingInternal(saleListingId, count, buyer);
     }
@@ -190,7 +195,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 saleListingId,
         uint256 count,
         address recipient
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         if (recipient == address(0)) revert InvalidRecipient();
         _fulfillSaleListingInternal(saleListingId, count, recipient);
     }
@@ -208,7 +213,6 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 totalCost = count * pricePerToken;
         if (seller == address(0)) revert ListingDoesNotExist();
         if (count == 0 || count > listingCount) revert InvalidCount();
-        if (msg.value != totalCost) revert IncorrectPayment();
 
         address buyer = _msgSender();
 
@@ -219,9 +223,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             listing.count = remaining;
         }
 
-        // slither-disable-next-line low-level-calls
-        (bool success, ) = payable(seller).call{value: totalCost}("");
-        if (!success) revert ETHTransferFailed();
+        IERC20(paymentToken).safeTransferFrom(buyer, seller, totalCost);
 
         _erc1155.safeTransferFrom(
             address(this),
@@ -262,8 +264,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
 
     /**
      * @notice Create a buy order (bid) for ERC1155 tokens
-     * @dev ETH is held in escrow until the order is fulfilled or cancelled.
-     *      msg.value must equal count * pricePerToken.
+     * @dev Settlement tokens are held in escrow until the order is fulfilled or cancelled.
      * @param tokenId The ERC1155 token ID to buy
      * @param count The number of tokens wanted
      * @param pricePerToken The price per token in wei
@@ -272,12 +273,13 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 tokenId,
         uint256 count,
         uint256 pricePerToken
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         if (count == 0) revert CountMustBeGreaterThanZero();
         if (pricePerToken == 0) revert PriceMustBeGreaterThanZero();
-        if (msg.value != count * pricePerToken) revert IncorrectAmountOfETHSent();
 
         address buyer = _msgSender();
+        uint256 totalCost = count * pricePerToken;
+        IERC20(paymentToken).safeTransferFrom(buyer, address(this), totalCost);
 
         uint256 buyOrderId = _nextBuyOrderId;
         _nextBuyOrderId++;
@@ -298,7 +300,6 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      * @param buyOrderId The ID of the buy order to fulfill
      * @param count The number of tokens to sell
      */
-    // slither-disable-next-line arbitrary-send-eth
     function fulfillBuyOrder(uint256 buyOrderId, uint256 count) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
         address buyer = order.buyer;
@@ -327,15 +328,13 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             "0x"
         );
 
-        // slither-disable-next-line low-level-calls
-        (bool success, ) = payable(seller).call{value: totalCost}("");
-        if (!success) revert ETHTransferFailed();
+        IERC20(paymentToken).safeTransfer(seller, totalCost);
 
         emit BuyOrderFulfilled(buyOrderId, seller, count);
     }
 
     /**
-     * @notice Cancel a buy order and refund escrowed ETH to the buyer
+     * @notice Cancel a buy order and refund escrowed settlement tokens to the buyer
      * @dev Only the original buyer can cancel their order.
      * @param buyOrderId The ID of the buy order to cancel
      */
@@ -349,9 +348,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
 
         delete _buyOrders[buyOrderId];
 
-        // slither-disable-next-line low-level-calls
-        (bool success, ) = payable(buyer).call{value: refund}("");
-        if (!success) revert ETHTransferFailed();
+        IERC20(paymentToken).safeTransfer(buyer, refund);
 
         emit BuyOrderCancelled(buyOrderId);
     }

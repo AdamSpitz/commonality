@@ -23,7 +23,7 @@ import { parseEther } from 'viem'
 
 test.describe('Pubstarter Flow', () => {
   test('created project appears on browse page', async ({ page, wallet }) => {
-    const { graphqlUrl, pubstarterAddress } = getContractAddresses()
+    const { graphqlUrl, pubstarterAddress, paymentTokenAddress } = getContractAddresses()
 
     if (!pubstarterAddress) {
       throw new Error(
@@ -54,6 +54,7 @@ test.describe('Pubstarter Flow', () => {
       contractURI: `ipfs://${projectMetadataCid}`,
       owner: clients.account,
       recipient: clients.account,
+      paymentToken: paymentTokenAddress!,
       threshold: parseEther('10'),
       deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30), // 30 days
       projectMetadataCid,
@@ -83,7 +84,7 @@ test.describe('Pubstarter Flow', () => {
     page,
     wallet,
   }) => {
-    const { graphqlUrl, pubstarterAddress } = getContractAddresses()
+    const { graphqlUrl, pubstarterAddress, paymentTokenAddress } = getContractAddresses()
 
     if (!pubstarterAddress) {
       throw new Error(
@@ -121,6 +122,7 @@ test.describe('Pubstarter Flow', () => {
         contractURI: `ipfs://${projectMetadataCid}`,
         owner: account0Clients.account,
         recipient: account0Clients.account,
+        paymentToken: paymentTokenAddress!,
         threshold: parseEther('10'),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30), // 30 days
         projectMetadataCid,

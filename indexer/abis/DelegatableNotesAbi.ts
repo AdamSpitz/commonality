@@ -80,6 +80,11 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidPaymentTokenForPurchase",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "MustSendETH",
     "type": "error"
   },

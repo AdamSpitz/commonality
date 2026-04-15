@@ -8,6 +8,11 @@ export const ERC1155SecondaryMarketAbi = [
         "internalType": "address",
         "name": "erc1155Address",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_paymentToken",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -20,22 +25,12 @@ export const ERC1155SecondaryMarketAbi = [
   },
   {
     "inputs": [],
-    "name": "ETHTransferFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "IncorrectAmountOfETHSent",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "IncorrectPayment",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "InvalidCount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidPaymentTokenAddress",
     "type": "error"
   },
   {
@@ -71,6 +66,17 @@ export const ERC1155SecondaryMarketAbi = [
   {
     "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "SafeERC20FailedOperation",
     "type": "error"
   },
   {
@@ -282,7 +288,7 @@ export const ERC1155SecondaryMarketAbi = [
     ],
     "name": "createBuyOrder",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -354,7 +360,7 @@ export const ERC1155SecondaryMarketAbi = [
     ],
     "name": "fulfillSaleListing",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -377,7 +383,7 @@ export const ERC1155SecondaryMarketAbi = [
     ],
     "name": "fulfillSaleListingTo",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -531,6 +537,19 @@ export const ERC1155SecondaryMarketAbi = [
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paymentToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

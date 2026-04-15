@@ -1,7 +1,7 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const AssuranceContractAbi = [
+export const MultiERC1155AssuranceContractAbi = [
   {
     "inputs": [
       {
@@ -12,6 +12,11 @@ export const AssuranceContractAbi = [
       {
         "internalType": "address",
         "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_paymentToken",
         "type": "address"
       },
       {
@@ -35,6 +40,11 @@ export const AssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "ConditionHasFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ConditionNotFailed",
     "type": "error"
   },
@@ -50,17 +60,7 @@ export const AssuranceContractAbi = [
   },
   {
     "inputs": [],
-    "name": "ETHRefundFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ETHTransferFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "IncorrectAmountOfETHSent",
+    "name": "InvalidPaymentTokenAddress",
     "type": "error"
   },
   {
@@ -98,6 +98,17 @@ export const AssuranceContractAbi = [
   {
     "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "SafeERC20FailedOperation",
     "type": "error"
   },
   {
@@ -304,7 +315,7 @@ export const AssuranceContractAbi = [
     ],
     "name": "buyERC1155",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -401,6 +412,19 @@ export const AssuranceContractAbi = [
   {
     "inputs": [],
     "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paymentToken",
     "outputs": [
       {
         "internalType": "address",
