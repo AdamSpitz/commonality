@@ -183,3 +183,33 @@ For MVP production, the simplest path is:
   - Keep dev/testing on the same ERC-20 code path, using wrapped ETH or a mock ERC-20 rather than native ETH.
 
 Using wrapped ETH rather than special-casing native ETH would keep the contract design simpler.
+
+## Current status
+
+All major work is done. Both the off-chain layers and the smart contracts have been generalized to ERC-20 settlement tokens.
+
+### Off-chain (SDK, UI, queries, folds)
+
+  - `CurrencyAmount` / `CurrencyAmountBigInt` types tag every amount with its currency.
+  - Fold functions accept an explicit `fundingCurrency` parameter.
+  - Aggregation logic prevents accidental mixing of different currencies.
+  - UI formatting respects each token's decimals and symbol.
+
+### Smart contracts
+
+  - Every contract that previously held or moved native ETH now stores an immutable `paymentToken` (ERC-20 address) and uses `SafeERC20` for all fund transfers.
+  - No `msg.value` or `address(this).balance` patterns remain in the settlement path.
+  - `DelegatableNotes` validates that payment notes match the target market's settlement token, and uses `forceApprove()` with exact amounts for temporary approvals.
+  - Factory contracts thread the payment token through all child deployments.
+
+### Tests and deploy
+
+  - All contract test suites use a mock ERC-20 (`PremintingERC20`) instead of native ETH.
+  - The deploy script creates and distributes the mock token to test signers.
+
+### Remaining items
+
+  - `thirdPartyMinPurchase` in `CreatorAssuranceContractFactory.sol` is hardcoded as `0.01 ether` (i.e. 10^16 wei). This will be wrong for tokens with non-18 decimals (e.g. USDC with 6 decimals). Needs to be made configurable or set in settlement-token units.
+  - `EthThresholdCondition` has not been renamed. The logic is already token-agnostic; renaming to `ValueThresholdCondition` is a cosmetic cleanup but easy to do, so let's just do it.
+  - No natspec documentation on the ERC-20 assumptions (vanilla token, no transfer fees, no rebasing). Worth adding but not blocking.
+  - Production stablecoin choice (USDC vs DAI) not yet finalized. (Let's use USDC.)

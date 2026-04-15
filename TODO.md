@@ -2,8 +2,8 @@
 
 ## Main thing I want to work on next
 
-  - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts haven't yet.
-  
+  - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts have been updated... are we at "MVP functionality is ready" status?
+
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Do NOT read anything else in this repo. Use services.sh to start up a local deploy if one isn't already running, then take a look at the SPA (via the dockerized IPFS node; get the URL by looking at data/ui-ipfs/spa-url.txt) and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 
   - Do the [scalability](specs/scalability.md) improvements we identified.
