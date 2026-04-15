@@ -73,6 +73,23 @@ The demo that makes people get it: a left-wing post gets attested as noninflamma
 This is the [Millbrook water walkthrough](/docs/use-case-walkthroughs/defunding.md) but for something much bigger and more visible — and it directly demonstrates the "discovering commonality" thesis that the whole system is named for.
 
 
+## Surfacing misunderstood positions
+
+One specific use case for noninflammatory content funding: helping one side communicate what they *actually believe* to the other side, when the other side has a distorted picture.
+
+See the "misunderstandings of what the other side believes" sub-pattern in [hidden-majority.md](/specs/subsystems/conceptspace/content-patterns/hidden-majority.md#misunderstandings-of-what-the-other-side-believes). The challenge there is that one side (say, the left) may not even realize they'd agree with what the other side actually believes, because they've never encountered it stated clearly and non-antagonistically.
+
+The noninflammatory content system provides the mechanism:
+1. A right-winger writes a "clued-in left" statement — i.e., a statement expressing what they think left-leaning people *would* believe if they actually considered the right's real position. (e.g., "I like Western culture and I don't want mass immigration to erode it" — stated in terms a left-leaning person could engage with.)
+2. The right-winger also creates noninflammatory content (or funds its creation) that walks left-leaning readers through the reasoning, steelmanning the left's concerns along the way.
+3. If the content gets attested as genuinely noninflammatory, it becomes fundable and discoverable through the implication graph.
+4. Left-leaning readers encounter it, and some of them sign the "clued-in left" statement — which by implication supports the broader commonality statement that already has support from the moderate right.
+
+That is: a right-winger writes the "clued-in left" statement that he thinks the left *would* believe if they actually considered the issue, and also writes a noninflammatory post on social media saying, "Seriously, sane lefties, take a look at this statement; I honestly think you might find that you're willing to sign it. Notice that if you do, you'll also by-implication be supporting this common-ground statement that already has a whole bunch of support-by-implication from this moderate-right statement." (That is, this doesn't just open the left-wingers' eyes to the fact that here's a position they believe in, it also shows them that this position is - perhaps surprisingly to them - believed by a lot of right-wingers too.)
+
+This is the case where Commonality's job isn't just to *reveal* an existing hidden majority, but to help *create* one by getting ideas in front of people who haven't encountered them yet.
+
+
 ## Practical path
 
 1. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse.
