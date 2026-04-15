@@ -4,19 +4,17 @@ We have a [content-funding subsystem](../../content-funding/README.md), and one 
 
 See the dedicated [content-funding/noninflammatory-content/README.md](../../content-funding/noninflammatory-content/README.md) for the full analysis of this use case.
 
-**The core pattern:**
+## The core patterns
 
-1. **Statements describing what kind of content** — e.g., "I'm interested in content that communicates right-wing perspectives in a way that won't piss off left-wingers"
+1. **Meta-statements describing this kind of content**
 
-2. **Content attesters** that identify content matching these criteria
+Along the lines of the [hidden majority](./hidden-majority.md) idea, these meta-statements might follow the moderate-left/moderate-right/commonality pattern:
+  - "I lean left, and I'm interested in reading content that communicates right-wing perspectives as long as it doesn't piss me off."
+  - "I lean right, and I'd like to try to communicate right-wing perspectives to common-sense left-leaning people in a way that they'll actually hear."
+  - Commonality statement: "I'm interested in content that communicates right-wing perspectives in a way that won't piss off left-wingers."
 
-3. **Content contracts** that let people fund creators of such content
+2. **Specific common-sense statements** meant to appeal to one side or the other
 
-4. **Funding portals** that show these contracts to people who declared interest
+Here we have the actual concrete [hidden majority](./hidden-majority.md) statements on specific topics.
 
-**Why this is a natural fit:**
-- It's a textbook market failure. Inflammatory content generates engagement and ad revenue; noninflammatory content gets fewer clicks. Creators who want to communicate respectfully face financial pressure against it.
-- It benefits *both sides* directly — left-wing content that right-wingers can engage with benefits both audiences.
-- The implication graph naturally connects supporters from both sides to the same content, without either coordinating.
-
----
+That is, a major pattern I'm expecting to see in the usage of this noninflammatory-content system is that people on one side write content that says, "Here's a statement in conceptspace describing what I think the common-sense majority on the *other* side should believe, and here's why (in a respectful way)."
