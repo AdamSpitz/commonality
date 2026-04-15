@@ -24,7 +24,7 @@ We probably don't need hundreds of statements (although that's not out of the qu
 
 ## What to include
 
-See [content-patterns.md](./content-patterns.md) for the kinds of content we expect and hope to see. The seed set should include:
+See [content patterns](./content-patterns/README.md) for the kinds of content we expect and hope to see. The seed set should include:
 
 ### Top-level interest areas
 

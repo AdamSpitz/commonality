@@ -1,8 +1,8 @@
 # Content funding seed content
 
-Concrete seed statements for the content-funding use cases, particularly noninflammatory content.
+Here's the [seed content](../seed-content.md) for the [noninflammatory content](../content-patterns/noninflammatory-content.md) pattern.
 
-See [content-funding/noninflammatory-content/seed-statements.md](../content-funding/noninflammatory-content/seed-statements.md) for the concrete statements to seed the conceptspace.
+See also [here](../../content-funding/noninflammatory-content/seed-statements.md); what's the difference between these files?
 
 Key design principle: **don't write centrist statements that nobody would actually sign.** Write statements that people from specific communities would sign because it reflects something they genuinely want. The implication attester then discovers the connections between them.
 
