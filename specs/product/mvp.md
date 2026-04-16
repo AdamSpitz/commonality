@@ -1,38 +1,57 @@
 # What's in the MVP?
 
-> **Out of date.** This document contains March 2026 thinking-out-loud notes that haven't been updated to reflect the current state of the project. Treat it as historical context only. See also [future](./future.md) for post-MVP planning notes.
+The MVP is fully implemented. This document describes what's in scope, what was deliberately deferred, and a brief description of the user-facing entry points.
 
-## March 2026: thinking it through
-It's been a while since we started this project, and most of the code has been written by AI so I'm not really super-in-touch with it, and also I've just kinda gotten lost in the details of implementing and I've lost touch with the overall vision.
+## What's in scope
 
-So lemme try to think this all through and make sure the MVP makes sense to me.
+All seven subsystems are implemented:
 
-### Entry points
+- **Conceptspace** — Statements, beliefs, and implication relationships. Users sign statements on-chain; AI attesters publish "S1 implies S2" links; indirect support propagates through the implication graph.
+- **Pubstarter** — Kickstarter-style assurance contracts with ERC-1155 resellable tokens. Includes a secondary market for token trading.
+- **Delegation** — Composable, revocable delegation chains. Donors deposit funds into delegatable notes and delegate spending authority to trusted people (`DelegatableNotes.sol`, `NoteIntent.sol`).
+- **Funding Portals** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
+- **Content Funding** — Retroactive funding for individual pieces of online content via per-creator assurance contracts. Twitter, YouTube, and Substack all have complete creator verification flows.
+- **Subjectiv** — Trust-graph-mediated filtering. Users set direct trust scores on each other; transitive trust computation runs in a Web Worker and rehydrates from IndexedDB on startup; the funding portal filters alignment attestations by the trusted set.
+- **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK layer is complete; no UI yet (deliberately deferred).
 
-What are the types of roles/people/activities?
-  - You have a project you want to do.
-  - You have money you want to contribute to a cause you care about.
-    - You're feeling lazy and don't want to direct your money yourself.
-  - You care about the cause, and you're the kind of person who follows the projects in more detail, and you're willing to be responsible for directing other people's money.
-  - You're an investor.
-  - 
+## Multiple UI domains
 
-What do we tell people (of various types)?
-  - (For many kinds of people.) "You'll need a wallet; if you're not sure, try Coinbase's Base app."
-  - (Note that I'm not sure what the URLs will be.)
-  - Trying to raise funds for a project:
-    - "Go to pubstarter.xyz, it's easy to create a project (though you'll need a wallet): just need a name and description. You can make cute pictures or slogans, and each can cost a different amount. It's like Kickstarter: you set a target funding threshold, and a deadline; you can tell the potential contributors that they'll get refunds if the project doesn't reach its funding target."
-    - "Also, when people contribute, they get to keep those cute pictures ("donation receipts"), and they can even sell them if they want to. (There's also a way to revoke their ability to sell them, if they want to make it a straightforward donation.) The general mindset is that it's perfectly fine and good for people to buy the donation receipts from each other rather than directly from you; you actually really really *want* it to be possible for your contributors to sell their donation receipts, because that means you can go looking for investment from people who can see that your project is gonna produce value but aren't necessarily looking to altruistically donate to your cause."
-    - "Also TODO blah blah delegation system."
-    - "Also you can click the button saying that this project is aligned with cause C (see below for how to choose C), and you can get others to say so too, and for anyone who trusts you or them, the project will show up on the fundingportals.xyz site."
-    - "Even without any of those fancier features, though, it's useful just to not have to deal with any of the money-handling."
-  - Potential donor:
-    - "The link to our project is pubstarter.xyz/project/12345. (You'll need a wallet with some funds in it.) Just choose any of these cute pictures, one that's listed for an amount that you want to contribute. You'll get a Refund option if the project doesn't reach its overall funding goal."
-  - Wants to sign some statements (for various purposes: to declare himself part of the movement, to have it taken into account in his fundingportal page, etc.):
-    - "Just go to conceptspace.xyz, it'll walk you through finding statements you like. Or go to some particular one that someone has sent you the link to; you can sign it, or use that as a starting place to explore and find/create one that you like better. (Don't worry about whether the one you sign is popular or not, just make it express exactly what you believe, as best you can. It's the system's job to connect you with projects and people that align with you.)"
-      - NOTE: need to have the implication attester running, and have it actually be used.
-    - 
-  - Wants to see a funding portal for projects aligned with a cause he cares about:
-    - "
-  - Wants to attest to a project's alignment:
-    - (Assuming he has a link to the statement he wants.)
+The system is deployed as four focused branded sites built from one shared codebase:
+
+- **Commonality** — The full platform: conceptspace, pubstarter, funding portals, delegation, trust management.
+- **Content Funding** — Creator/fan site for funding online content.
+- **Noninflammatory Content** — Content Funding focused on the noninflammatory criteria (steelmanning, no contempt/tribal signaling).
+- **Common Sense Majority** — Movement site layered on top of Noninflammatory Content, adding organizing/advocacy project funding.
+
+Each domain is a separate build artifact. See [specs/tech/ui-domains.md](../tech/ui-domains.md) and [specs/product/ui-domains.md](ui-domains.md).
+
+## Currency
+
+The contracts and SDK are fully generalized to ERC-20 settlement tokens. USDC is used in production for MVP. See [currency.md](currency.md).
+
+## Entry points
+
+**Raising funds for a project:**
+Go to the Commonality or appropriate domain site, create a project on Pubstarter. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on funding portals. Delegation chains let supporters entrust their funding decisions to you.
+
+**Contributing to a cause:**
+Browse funding portals for statements you care about. The portal shows projects attested as aligned with that statement, filtered by your personal trust network (Subjectiv). You can fund directly or delegate to someone you trust.
+
+**Content creators (Twitter, YouTube, Substack):**
+Verify your channel on the Content Funding site. Fans can set up content-funding contracts on your behalf or you can create your own. The noninflammatory-content attester evaluates your content; high scores increase your earnings.
+
+**Expressing a position:**
+Visit the Commonality conceptspace, find or write a statement that expresses what you believe, and sign it. Implication attestations connect your statement to others saying similar things — so even if your exact wording is new, your support is counted alongside people who expressed the same idea differently.
+
+## What was deliberately deferred
+
+- **Fiat bridges** — Credit card / Apple Pay / Google Pay onramp. See [specs/tech/bridges.md](../tech/bridges.md) for the design.
+- **Embedded wallet provisioning** — Keeping crypto invisible to non-crypto-native users.
+- **Unique-human verification** — Worldcoin, BrightID, etc.
+- **Mutable Refs UI** — The SDK is done; the UI is deferred.
+- **Explorer AI / AI-assisted statement discovery** — Specced in [specs/product/content.md](content.md); not yet implemented.
+- **Seed content** — Curated real statements haven't been written yet. See [specs/tech/subsystems/conceptspace/seed-content.md](../tech/subsystems/conceptspace/seed-content.md).
+- **Per-contract token choice** — Contracts are token-general but the UI constrains to one token (USDC). Post-MVP each project can choose its own token.
+- **foldVersion + accumulator storage** — Client-side caching of fold accumulators in localStorage; see [specs/tech/indexer/README.md](../tech/indexer/README.md) for the design.
+- **Generative testing** — Infrastructure is prepped; the generative test suite itself isn't written.
+- **AI skills** — Formal SKILL.md files for the assistant roles described in [ai-assistance.md](ai-assistance.md).
