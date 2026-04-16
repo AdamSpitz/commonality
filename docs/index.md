@@ -63,6 +63,11 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 [Full explanation →](why-trust-it.md)
 
 
+## Technical reference
+
+- **[SDK API docs](sdk/docs/api/)** — TypeScript SDK reference.
+- **[Contract docs](hardhat/docs/)** — Solidity contract reference.
+
 ## For crypto-native users
 
 Details on the contract architecture, L2 choice, IPFS usage, indexer design, and how to interact directly with the contracts or run your own attester.

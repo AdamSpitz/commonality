@@ -4,12 +4,6 @@
 
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
 
-  - ✅ Make sure to include the API docs.
-    - Done: Added `npm run build:docs` which generates SDK docs via typedoc and contract docs via solidity-docgen. Warnings suppressed via externalSymbolLinkMappings in typedoc.json.
-    - ✅ Link the generated docs from UI user-facing docs (added section in for-crypto-natives.md)
-    - ✅ Copy generated docs to a location accessible from deployed UI (added to deploy-ui.sh)
-    - ✅ Add docs generation to CI/CD pipeline (added to deploy-ui.sh)
-
   - Can you come up with some short paragraphs or slogans or memes that might be catchy and capture some aspect of the spirit of this project? (Brainstorm first, then run your ideas through an "is this cringeworthy?" filter, then see if you can come up with non-cringeworthy versions.)
     - My brainstorming:
       - Disdain for the usual inflammatory polarized bullshit:
