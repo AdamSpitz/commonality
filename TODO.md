@@ -2,12 +2,26 @@
 
 ## Main thing I want to work on next
 
+  - Did we ever actually implement the trusted verifier service that's meant to work with the content-funding system's ChannelVerifier?
+
   - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts have been updated... are we at "MVP functionality is ready" status?
 
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
   - The word "attester" appears in the UI. Either eliminate it or put a little info bubble or something next to it. (And other stuff like that. We want as little jargon as possible, and if it does appear we want it to be something the user can easily understand.)
 
 ## Other things to do soon
+
+  - Unify the two Twitter↔Ethereum address association mechanisms. Currently there are two separate ways an address gets linked to a Twitter account:
+    1. **Channel registry** (content-funding): on-chain, via `ChannelRegistry.verifyChannel`. The user tweets a challenge code (coordinated by the platform-api-service), the platform signs a proof, and the association is stored in `ChannelVerified` events as `keccak256("twitter:uid:<UID>") → owner address`.
+    2. **ENS** (conceptspace): off-chain, via `getEnsText(address, 'com.twitter')`. Used in `getUserSocialData` in `sdk/src/subsystems/conceptspace/queries.ts`, which is called by `getHighProfileSigners` and `AddressDisplay`.
+    
+    The goal: a single association (via either mechanism) should work for both contexts.
+    
+    The channel registry is the more robust mechanism. The conceptspace UI should get a "Link your Twitter account" form that reuses the **existing** content-funding claim flow (platform-api-service challenge + `channelRegistry.verifyChannel`). Once linked, `getUserSocialData` can check the channel registry: the user provides their handle → platform-api resolves it to a UID → compute the channelId hash → look it up in the channel registry events → if found and owner matches, we have the association.
+    
+    Note: the hash reversal problem (can't go from channelId hash → canonical string without content items) doesn't apply to this active-lookup flow, since the user provides the handle upfront.
+
+
 
   - See [Multiple UI domains](specs/multiple-ui-domains.md).
   
