@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
+import { CommonalityLandingPage } from './LandingPage'
 import { HomePage } from '../../conceptspace/pages/HomePage'
 import { BrowseStatementsPage } from '../../conceptspace/pages/BrowseStatementsPage'
 import { StatementPage } from '../../conceptspace/pages/StatementPage'
@@ -21,7 +22,8 @@ import { DocsPage } from '../../docs/DocsPage'
 
 const routes: ReactNode = (
   <>
-    <Route path="/" element={<HomePage />} />
+    <Route path="/" element={<CommonalityLandingPage />} />
+    <Route path="/start" element={<HomePage />} />
     <Route path="/statements" element={<BrowseStatementsPage />} />
     <Route path="/statement/:statementCid" element={<StatementPage />} />
     <Route path="/profile" element={<UserProfilePage />} />
@@ -82,4 +84,5 @@ export const commonalityManifest: DomainManifest = {
   },
   basePath: '/',
   routes,
+  LandingPage: CommonalityLandingPage,
 }

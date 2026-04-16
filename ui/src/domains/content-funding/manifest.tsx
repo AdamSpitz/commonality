@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
+import { ContentFundingLandingPage } from './LandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
@@ -12,7 +13,7 @@ import { UserProfilePage } from '../../conceptspace/pages/UserProfilePage'
 
 const routes: ReactNode = (
   <>
-    <Route path="/" element={<CreatorsLandingPage />} />
+    <Route path="/" element={<ContentFundingLandingPage />} />
     <Route path="/statements" element={<BrowseStatementsPage />} />
     <Route path="/statement/:statementCid" element={<StatementPage />} />
     <Route path="/profile" element={<UserProfilePage />} />
@@ -57,4 +58,5 @@ export const contentFundingManifest: DomainManifest = {
   },
   basePath: '/',
   routes,
+  LandingPage: ContentFundingLandingPage,
 }

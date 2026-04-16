@@ -136,7 +136,7 @@ There is already a single router and shell in `ui/src/App.tsx`, and IPFS-specifi
 
 3. Keep the current shared modules and feature folders where they are; expose them through manifest-level composition before moving files around.
 
-#### Phase 2: Split landing pages from feature modules
+#### Phase 2: Split landing pages from feature modules ✓ DONE
 
 1. Add domain landing pages under `ui/src/domains/`:
    - `commonality`
