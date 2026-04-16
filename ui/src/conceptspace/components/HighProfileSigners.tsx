@@ -15,6 +15,11 @@ function formatFollowerCount(count: number): string {
   return String(count)
 }
 
+function formatFollowerCountShort(count: number): string {
+  if (count >= 1_000) return `${Math.round(count / 1_000)}K`
+  return String(count)
+}
+
 export function HighProfileSigners({ statementCid, minFollowers = 10000 }: HighProfileSignersProps) {
   const machinery = useMachinery()
   const navigate = useNavigate()
@@ -30,8 +35,24 @@ export function HighProfileSigners({ statementCid, minFollowers = 10000 }: HighP
       .catch(() => setLoaded(true))
   }, [machinery, statementCid, minFollowers])
 
-  // Don't render anything if no high-profile signers or still loading
-  if (!loaded || signers.length === 0) return null
+  // Show empty state message when loaded but no high-profile signers
+  if (loaded && signers.length === 0) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          High-Profile Supporters
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+          <Typography variant="body2" color="text.secondary">
+            No high-profile supporters yet. If you can get someone with {formatFollowerCountShort(minFollowers)}+ Twitter followers to sign this statement and link their account, they'll show up here!
+          </Typography>
+        </Paper>
+      </Box>
+    )
+  }
+
+  // Show nothing while loading
+  if (!loaded) return null
 
   return (
     <Box sx={{ mb: 3 }}>

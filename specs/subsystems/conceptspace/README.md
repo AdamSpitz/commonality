@@ -28,6 +28,8 @@
   
   - **High-profile signers:** If people can link their account to (for example) their Twitter handle (in a verifiable way), we can have a statement's UI page show not only the total number of supporters, but also the Twitter handles of any high-profile supporters (e.g. supporters who have a verified Twitter account with more than 10k followers). That might help a lot in making this project go viral: if you support a cause, you might be motivated to find a way to spread the link to your cause "up the popularity hierarchy", in the hope of getting a high-profile signer.
 
+    - **Empty state messaging:** When there are zero high-profile signers, the UI should display an encouraging message that explains the feature and motivates users to recruit high-profile supporters. For example: "No high-profile supporters yet. If you can get someone with a lot of Twitter followers to sign this statement and link their account, they'll show up here!" This helps drive viral growth by making the benefit of recruiting high-profile signers explicit.
+
 ## Smart contracts
 
 See `hardhat/contracts/` for the actual contracts.
