@@ -1,7 +1,5 @@
 # Generative testing plan
 
-(NOT AI-generated, or at least not completely; don't delete this.)
-
 Let's have some scripts for doing generative testing. The goal is to validate the entire system through automated simulation, finding bugs before production, validating scalability with 10,000+ users, and checking correctness of graph algorithms and economic incentives.
 
 We should be able to generate a bunch of user actions and run them through the sdk (using the same setup we're currently using for the integration-tests), just as a smoke test to see if anything catches fire.

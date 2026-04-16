@@ -74,7 +74,6 @@ See each subsystem's spec directory for implementation details. Key cross-cuttin
 
 **Dev:**
 - [dev/testing/](dev/testing/README.md) - Test strategy
-- [dev/ai-assisted-development.md](dev/ai-assisted-development.md) - Notes on the AI-assisted development process used to build this project
 
 **Other:**
 - [/ROLES.md](/ROLES.md) - Guide to which docs each role should read
