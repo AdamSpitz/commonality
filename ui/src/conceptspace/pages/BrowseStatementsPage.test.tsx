@@ -270,7 +270,7 @@ describe('BrowseStatementsPage', () => {
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('3 disbelievers')).toBeInTheDocument()
+        expect(screen.getByText('3 opposed')).toBeInTheDocument()
       })
     })
 
@@ -280,7 +280,7 @@ describe('BrowseStatementsPage', () => {
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('1 disbeliever')).toBeInTheDocument()
+        expect(screen.getByText('1 opposed')).toBeInTheDocument()
       })
     })
 
@@ -293,7 +293,7 @@ describe('BrowseStatementsPage', () => {
         expect(screen.getByText('Test Statement')).toBeInTheDocument()
       })
 
-      expect(screen.queryByText(/disbeliever/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/opposed/)).not.toBeInTheDocument()
     })
 
     it('displays "Untitled Statement" when title is null', async () => {

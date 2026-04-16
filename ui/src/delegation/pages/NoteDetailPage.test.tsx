@@ -124,7 +124,7 @@ describe('NoteDetailPage', () => {
       render(<NoteDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Note #42')).toBeInTheDocument()
+        expect(screen.getByText('Fund #42')).toBeInTheDocument()
       })
     })
 
@@ -178,7 +178,7 @@ describe('NoteDetailPage', () => {
       render(<NoteDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('ERC1155')).toBeInTheDocument()
+        expect(screen.getAllByText('Token')).toHaveLength(2)
       })
     })
 
@@ -201,7 +201,7 @@ describe('NoteDetailPage', () => {
       render(<NoteDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText(/back to my notes/i)).toBeInTheDocument()
+        expect(screen.getByText(/back to my delegated funds/i)).toBeInTheDocument()
       })
     })
   })
@@ -214,7 +214,7 @@ describe('NoteDetailPage', () => {
       render(<NoteDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText(/no delegation chain/i)).toBeInTheDocument()
+        expect(screen.getByText(/hasn't been delegated/i)).toBeInTheDocument()
       })
     })
 

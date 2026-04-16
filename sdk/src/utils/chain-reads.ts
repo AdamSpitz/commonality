@@ -10,7 +10,7 @@
 import { type Address, type PublicClient } from 'viem';
 import { SDKMachinery } from '../machinery.js';
 
-const EthThresholdConditionReadAbi = [
+const ValueThresholdConditionReadAbi = [
   {
     type: 'function',
     name: 'threshold',
@@ -223,10 +223,10 @@ function requirePublicClient(machinery: SDKMachinery): PublicClient {
 }
 
 /**
- * Read threshold and deadline from an EthThresholdCondition contract.
+ * Read threshold and deadline from an ValueThresholdCondition contract.
  *
  * Falls back to 0n values if the contract does not implement the
- * threshold/deadline view functions (non-EthThresholdCondition types).
+ * threshold/deadline view functions (non-ValueThresholdCondition types).
  *
  * @param machinery SDK machinery with publicClient
  * @param conditionAddress Address of the condition contract
@@ -242,13 +242,13 @@ export async function readConditionParams(
       // @ts-expect-error - viem type inference issue with generic Abi
       client.readContract({
         address: conditionAddress,
-        abi: EthThresholdConditionReadAbi,
+        abi: ValueThresholdConditionReadAbi,
         functionName: 'threshold',
       }),
       // @ts-expect-error - viem type inference issue with generic Abi
       client.readContract({
         address: conditionAddress,
-        abi: EthThresholdConditionReadAbi,
+        abi: ValueThresholdConditionReadAbi,
         functionName: 'deadline',
       }),
     ]);
@@ -538,14 +538,14 @@ export async function readProjectFundingSnapshots(
         requests.push({ kind: 'threshold', projectAddress: project.projectAddress });
         contracts.push({
           address: project.conditionAddress,
-          abi: EthThresholdConditionReadAbi,
+          abi: ValueThresholdConditionReadAbi,
           functionName: 'threshold',
         });
 
         requests.push({ kind: 'deadline', projectAddress: project.projectAddress });
         contracts.push({
           address: project.conditionAddress,
-          abi: EthThresholdConditionReadAbi,
+          abi: ValueThresholdConditionReadAbi,
           functionName: 'deadline',
         });
       }
@@ -598,7 +598,7 @@ export async function readProjectFundingSnapshots(
 }
 
 /**
- * Read the condition status (hasSucceeded/hasFailed) from an EthThresholdCondition contract.
+ * Read the condition status (hasSucceeded/hasFailed) from an ValueThresholdCondition contract.
  *
  * @param machinery SDK machinery with publicClient
  * @param conditionAddress Address of the condition contract
@@ -614,13 +614,13 @@ export async function readConditionStatus(
       // @ts-expect-error - viem type inference issue with generic Abi
       client.readContract({
         address: conditionAddress,
-        abi: EthThresholdConditionReadAbi,
+        abi: ValueThresholdConditionReadAbi,
         functionName: 'hasSucceeded',
       }),
       // @ts-expect-error - viem type inference issue with generic Abi
       client.readContract({
         address: conditionAddress,
-        abi: EthThresholdConditionReadAbi,
+        abi: ValueThresholdConditionReadAbi,
         functionName: 'hasFailed',
       }),
     ]);

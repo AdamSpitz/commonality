@@ -70,7 +70,7 @@ describe('MyNotesPage', () => {
 
       render(<MyNotesPage />)
 
-      expect(screen.getByText('My Notes')).toBeInTheDocument()
+      expect(screen.getByText('My Delegated Funds')).toBeInTheDocument()
       expect(screen.getByText(/connect your wallet/i)).toBeInTheDocument()
     })
 
@@ -79,8 +79,8 @@ describe('MyNotesPage', () => {
 
       render(<MyNotesPage />)
 
-      expect(screen.queryByText('Notes I Control')).not.toBeInTheDocument()
-      expect(screen.queryByText('Notes I Deposited')).not.toBeInTheDocument()
+      expect(screen.queryByText('Funds I Control')).not.toBeInTheDocument()
+      expect(screen.queryByText('Funds I Created')).not.toBeInTheDocument()
     })
   })
 
@@ -126,8 +126,8 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        expect(screen.getByText(/don't control any notes/i)).toBeInTheDocument()
-        expect(screen.getByText(/haven't deposited any notes/i)).toBeInTheDocument()
+        expect(screen.getByText(/don't control any funds/i)).toBeInTheDocument()
+        expect(screen.getByText(/haven't created any delegated funds/i)).toBeInTheDocument()
       })
     })
   })
@@ -147,9 +147,9 @@ describe('MyNotesPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Total Funds')).toBeInTheDocument()
-        expect(screen.getByText('Active Notes')).toBeInTheDocument()
+        expect(screen.getByText('Active Funds')).toBeInTheDocument()
         expect(screen.getByText('Acting as Delegate')).toBeInTheDocument()
-        expect(screen.getByText('Deposited & Delegated')).toBeInTheDocument()
+        expect(screen.getByText('Created & Delegated')).toBeInTheDocument()
       })
     })
 
@@ -175,8 +175,8 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Notes I Control')).toBeInTheDocument()
-        expect(screen.getByText('Note #42')).toBeInTheDocument()
+        expect(screen.getByText('Funds I Control')).toBeInTheDocument()
+        expect(screen.getByText('Fund #42')).toBeInTheDocument()
       })
     })
 
@@ -252,7 +252,7 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        const link = screen.getByText('Note #7').closest('a')
+        const link = screen.getByText('Fund #7').closest('a')
         expect(link).toHaveAttribute('href', '/notes/7')
       })
     })
@@ -264,7 +264,7 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        const depositLink = screen.getByRole('link', { name: /deposit new note/i })
+        const depositLink = screen.getByRole('link', { name: /add funds/i })
         expect(depositLink).toHaveAttribute('href', '/notes/new')
       })
     })
@@ -279,8 +279,8 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Note #1')).toBeInTheDocument()
-        expect(screen.queryByText('Note #2')).not.toBeInTheDocument()
+        expect(screen.getByText('Fund #1')).toBeInTheDocument()
+        expect(screen.queryByText('Fund #2')).not.toBeInTheDocument()
       })
     })
 

@@ -65,7 +65,7 @@ describe('DepositPage', () => {
 
       render(<DepositPage />)
 
-      expect(screen.getByText('Deposit New Note')).toBeInTheDocument()
+      expect(screen.getByText('Add Delegated Funds')).toBeInTheDocument()
     })
   })
 
@@ -130,7 +130,7 @@ describe('DepositPage', () => {
 
       fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: 'invalid' } })
 
-      expect(screen.getByText(/invalid ethereum address/i)).toBeInTheDocument()
+      expect(screen.getByText(/invalid wallet address/i)).toBeInTheDocument()
     })
 
     it('does not show invalid address error for a valid delegate address', () => {
@@ -180,60 +180,60 @@ describe('DepositPage', () => {
     })
 
     it('shows success heading after successful deposit', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 42n })
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 42n, hash: '0xabc' })
 
       render(<DepositPage />)
       fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Deposit Successful')).toBeInTheDocument()
+        expect(screen.getByText('Funds Added')).toBeInTheDocument()
       })
     })
 
-    it('shows the created note ID in the success state', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 42n })
+    it('shows the created fund ID in the success state', async () => {
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 42n, hash: '0xabc' })
 
       render(<DepositPage />)
       fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Note ID: 42')).toBeInTheDocument()
+        expect(screen.getByText('Fund ID: 42')).toBeInTheDocument()
       })
     })
   })
 
   describe('Success state', () => {
     async function depositAndWait() {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 5n })
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 5n, hash: '0xabc' })
       render(<DepositPage />)
       fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
       await waitFor(() => {
-        expect(screen.getByText('Deposit Successful')).toBeInTheDocument()
+        expect(screen.getByText('Funds Added')).toBeInTheDocument()
       })
     }
 
-    it('shows View Note Details button', async () => {
+    it('shows View Fund Details button', async () => {
       await depositAndWait()
-      expect(screen.getByRole('button', { name: 'View Note Details' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'View Fund Details' })).toBeInTheDocument()
     })
 
-    it('shows Back to My Notes button', async () => {
+    it('shows Back to My Delegated Funds button', async () => {
       await depositAndWait()
-      expect(screen.getByRole('button', { name: 'Back to My Notes' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Back to My Delegated Funds' })).toBeInTheDocument()
     })
 
-    it('navigates to the note detail page when View Note Details is clicked', async () => {
+    it('navigates to the note detail page when View Fund Details is clicked', async () => {
       await depositAndWait()
-      fireEvent.click(screen.getByRole('button', { name: 'View Note Details' }))
+      fireEvent.click(screen.getByRole('button', { name: 'View Fund Details' }))
       expect(mockNavigate).toHaveBeenCalledWith('/notes/5')
     })
 
-    it('navigates to /notes when Back to My Notes is clicked', async () => {
+    it('navigates to /notes when Back to My Delegated Funds is clicked', async () => {
       await depositAndWait()
-      fireEvent.click(screen.getByRole('button', { name: 'Back to My Notes' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Back to My Delegated Funds' }))
       expect(mockNavigate).toHaveBeenCalledWith('/notes')
     })
   })

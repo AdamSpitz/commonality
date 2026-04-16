@@ -36,7 +36,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   PremintingERC1155Factory: { artifactPath: "individual-projects/Pubstarter.sol/PremintingERC1155Factory.json", outputFile: "PremintingERC1155FactoryAbi.ts" },
   MarketplaceFactory: { artifactPath: "individual-projects/Pubstarter.sol/MarketplaceFactory.json", outputFile: "MarketplaceFactoryAbi.ts" },
   AssuranceContractFactory: { artifactPath: "individual-projects/Pubstarter.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts" },
-  EthThresholdConditionFactory: { artifactPath: "individual-projects/Pubstarter.sol/EthThresholdConditionFactory.json", outputFile: "EthThresholdConditionFactoryAbi.ts" },
+  ValueThresholdConditionFactory: { artifactPath: "individual-projects/Pubstarter.sol/ValueThresholdConditionFactory.json", outputFile: "ValueThresholdConditionFactoryAbi.ts" },
 };
 
 function main() {

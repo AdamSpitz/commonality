@@ -24,7 +24,7 @@ describe('SupportMetrics', () => {
       />,
     )
 
-    expect(screen.getByText('5 direct believers')).toBeInTheDocument()
+    expect(screen.getByText('5 signers')).toBeInTheDocument()
   })
 
   it('uses singular form when count is 1', () => {
@@ -36,7 +36,7 @@ describe('SupportMetrics', () => {
       />,
     )
 
-    expect(screen.getByText('1 direct believer')).toBeInTheDocument()
+    expect(screen.getByText('1 signer')).toBeInTheDocument()
     expect(screen.getByText('1 supporter')).toBeInTheDocument()
   })
 
@@ -49,7 +49,7 @@ describe('SupportMetrics', () => {
       />,
     )
 
-    expect(screen.queryByText(/disbeliever/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/opposing signer/)).not.toBeInTheDocument()
   })
 
   it('shows disbelievers section when count is greater than 0', () => {
@@ -61,6 +61,6 @@ describe('SupportMetrics', () => {
       />,
     )
 
-    expect(screen.getByText('2 disbelievers')).toBeInTheDocument()
+    expect(screen.getByText('2 opposing signers')).toBeInTheDocument()
   })
 })

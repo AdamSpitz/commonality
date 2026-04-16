@@ -1,7 +1,7 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const EthThresholdConditionFactoryAbi = [
+export const ValueThresholdConditionFactoryAbi = [
   {
     "anonymous": false,
     "inputs": [
@@ -12,7 +12,7 @@ export const EthThresholdConditionFactoryAbi = [
         "type": "address"
       }
     ],
-    "name": "EthThresholdConditionCreated",
+    "name": "ValueThresholdConditionCreated",
     "type": "event"
   },
   {
@@ -36,7 +36,7 @@ export const EthThresholdConditionFactoryAbi = [
     "name": "createCondition",
     "outputs": [
       {
-        "internalType": "contract EthThresholdCondition",
+        "internalType": "contract ValueThresholdCondition",
         "name": "",
         "type": "address"
       }

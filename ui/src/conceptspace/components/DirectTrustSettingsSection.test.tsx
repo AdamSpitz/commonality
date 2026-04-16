@@ -98,7 +98,7 @@ describe('DirectTrustSettingsSection', () => {
     expect(screen.getByText('Trust score: 40')).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Refreshing your transitive trust network. Currently using 2 accounts in your network.'
+        'Refreshing your trust network. Currently using 2 accounts in your network.'
       )
     ).toBeInTheDocument()
   })
@@ -112,7 +112,7 @@ describe('DirectTrustSettingsSection', () => {
 
     expect(
       screen.getByText(
-        'No direct trust scores yet. Until you add some, alignment pages will show all alignment attestations.'
+        'No direct trust scores yet. Until you add some, project pages will show all project endorsements.'
       )
     ).toBeInTheDocument()
   })
@@ -130,7 +130,7 @@ describe('DirectTrustSettingsSection', () => {
       expect(getDirectTrustMapping).toHaveBeenCalledTimes(1)
     })
 
-    await user.type(screen.getByLabelText(/trusted user address/i), TRUSTEE_ADDRESS)
+    await user.type(screen.getByLabelText(/wallet address/i), TRUSTEE_ADDRESS)
     await user.clear(screen.getByLabelText(/score/i))
     await user.type(screen.getByLabelText(/score/i), '75')
     await user.click(screen.getByRole('button', { name: /save/i }))

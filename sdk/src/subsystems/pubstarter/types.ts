@@ -25,7 +25,7 @@ export interface Project {
   deadline: string;
   /** Cumulative amount received (in wei), net of refunds. */
   totalReceived: string;
-  /** Address of the EthThresholdCondition contract, if configured. */
+  /** Address of the ValueThresholdCondition contract, if configured. */
   conditionAddress: string | null;
   /** IPFS CID of the project's metadata document. */
   metadataCid?: string;

@@ -56,7 +56,7 @@ export const PubstarterAbi = [
     "name": "_conditionFactory",
     "outputs": [
       {
-        "internalType": "contract EthThresholdConditionFactory",
+        "internalType": "contract ValueThresholdConditionFactory",
         "name": "",
         "type": "address"
       }

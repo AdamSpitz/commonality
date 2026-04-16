@@ -81,7 +81,7 @@ describe('CreateProjectPage', () => {
       expect(screen.getByLabelText(/project name/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/recipient address/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/funding threshold/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/funding goal/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/deadline/i)).toBeInTheDocument()
     })
 
@@ -157,7 +157,7 @@ describe('CreateProjectPage', () => {
       await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
-      expect(screen.getByText(/funding threshold must be positive/i)).toBeInTheDocument()
+      expect(screen.getByText(/funding goal must be positive/i)).toBeInTheDocument()
     })
 
     it('shows error when deadline is missing', async () => {
@@ -167,7 +167,7 @@ describe('CreateProjectPage', () => {
       await user.type(screen.getByLabelText(/project name/i), 'Test Project')
 
       // Set threshold
-      const thresholdInput = screen.getByLabelText(/funding threshold/i)
+      const thresholdInput = screen.getByLabelText(/funding goal/i)
       await user.type(thresholdInput, '10')
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
@@ -180,7 +180,7 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
 
       await user.type(screen.getByLabelText(/project name/i), 'Test Project')
-      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+      await user.type(screen.getByLabelText(/funding goal/i), '10')
 
       // Set a future deadline
       const deadlineInput = screen.getByLabelText(/deadline/i)
@@ -198,7 +198,7 @@ describe('CreateProjectPage', () => {
     async function fillForm(user: ReturnType<typeof userEvent.setup>) {
       await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       await user.type(screen.getByLabelText(/description/i), 'A test description')
-      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+      await user.type(screen.getByLabelText(/funding goal/i), '10')
 
       const deadlineInput = screen.getByLabelText(/deadline/i)
       const futureDate = new Date(Date.now() + 86400000 * 30)
@@ -288,7 +288,7 @@ describe('CreateProjectPage', () => {
   describe('Per-token images', () => {
     async function fillFormMinimal(user: ReturnType<typeof userEvent.setup>) {
       await user.type(screen.getByLabelText(/project name/i), 'Test Project')
-      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+      await user.type(screen.getByLabelText(/funding goal/i), '10')
       const futureDate = new Date(Date.now() + 86400000 * 30)
       await user.type(screen.getByLabelText(/deadline/i), futureDate.toISOString().slice(0, 16))
       await user.type(screen.getByLabelText(/supply/i), '100')
@@ -405,7 +405,7 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
 
       await user.type(screen.getByLabelText(/project name/i), 'Test')
-      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+      await user.type(screen.getByLabelText(/funding goal/i), '10')
 
       const deadlineInput = screen.getByLabelText(/deadline/i)
       const futureDate = new Date(Date.now() + 86400000 * 30)
@@ -429,7 +429,7 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
 
       await user.type(screen.getByLabelText(/project name/i), 'Test')
-      await user.type(screen.getByLabelText(/funding threshold/i), '10')
+      await user.type(screen.getByLabelText(/funding goal/i), '10')
 
       const deadlineInput = screen.getByLabelText(/deadline/i)
       const futureDate = new Date(Date.now() + 86400000 * 30)

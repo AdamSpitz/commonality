@@ -2,13 +2,17 @@
 
 ## Main thing I want to work on next
 
+  - Is there any way to speed up the tests? If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
+
+  - Continue cleaning up the "specs" directory, moving some of it into "docs", etc. Part of the point is to bring the spec up to date with the code and with the latest ideas (or just to delete the parts of the spec that are no longer needed and that are just confusing/redundant/wrong now that we have an actual implementation); some of the stuff in the spec is old and inconsistent with other parts of the spec or the code. I want to be able to tell an AI "go look at the whole system and make sure the whole thing looks complete", but if I tried that now it'd be confusing because the spec is so out of date.
+
   - We want to [use a stablecoin](./specs/currency.md) instead of ETH. Are we done implementing that?
 
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 
 ## Other things to do soon
 
-  - See [Multiple UI domains](specs/multiple-ui-domains.md).
+  - Organize our UI around our ideas about [multiple UI domains](specs/multiple-ui-domains.md).
   
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?
 
@@ -33,7 +37,7 @@
   - (Not a task for AI.) Do a big code review myself, of the whole thing. I don't trust it.
 
 Founder-level stuff:
-  - Think about orthogonal hierarchy dimensions for statements — geographic and topical. See [seed-content.md](./specs/subsystems/conceptspace/seed-content.md) for more detail.
+  - Think about orthogonal hierarchy dimensions for statements — geographic and topical. See [intersections.md](specs/subsystems/conceptspace/content-patterns/intersections.md) for more detail.
 
 Out of scope for the MVP, but I still want to remember that these are important and not done yet:
   - [Bridges](specs/bridges.md) to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.

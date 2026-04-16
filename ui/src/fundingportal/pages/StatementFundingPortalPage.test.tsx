@@ -146,11 +146,11 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all alignment attestations.'
-        )
-      ).toBeInTheDocument()
+expect(
+          screen.getByText(
+            'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all project endorsements.'
+          )
+        ).toBeInTheDocument()
     })
   })
 })

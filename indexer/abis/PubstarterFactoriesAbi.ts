@@ -45,10 +45,10 @@ export const AssuranceContractFactoryAbi = [
   },
 ] as const;
 
-export const EthThresholdConditionFactoryAbi = [
+export const ValueThresholdConditionFactoryAbi = [
   {
     type: "event",
-    name: "EthThresholdConditionCreated",
+    name: "ValueThresholdConditionCreated",
     inputs: [
       {
         name: "condition",

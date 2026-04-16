@@ -25,29 +25,29 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { ConnectKitButton } from 'connectkit'
 import { Link, useLocation } from 'react-router-dom'
 
+interface DomainBranding {
+  name: string
+  tagline: string
+}
+
+interface DomainNavigationItem {
+  label: string
+  path: string
+}
+
+interface DomainShellConfig {
+  primaryNavigation: DomainNavigationItem[]
+  secondaryNavigation: DomainNavigationItem[]
+  footerText: string
+}
+
 interface AppShellProps {
   children: ReactNode
+  branding?: DomainBranding
+  navigation?: DomainShellConfig
 }
 
 const drawerWidth = 240
-
-const primaryNavigationItems = [
-  { label: 'Start Here', path: '/docs' },
-  { label: 'Statements', path: '/statements' },
-  { label: 'Projects', path: '/projects' },
-  { label: 'Creators', path: '/content' },
-  { label: 'My Profile', path: '/profile' },
-]
-
-const secondaryNavigationItems = [
-  { label: 'My Delegated Funds', path: '/notes' },
-  { label: 'My Trust Network', path: '/settings' },
-  { label: 'Creator Dashboard', path: '/content/dashboard' },
-  { label: 'Twitter Creators', path: '/content/twitter' },
-  { label: 'YouTube Creators', path: '/content/youtube' },
-  { label: 'Substack Creators', path: '/content/substack' },
-  { label: 'Saved Refs', path: '/refs' },
-]
 
 function isPathSelected(currentPath: string, targetPath: string): boolean {
   if (targetPath === '/') {
@@ -57,12 +57,37 @@ function isPathSelected(currentPath: string, targetPath: string): boolean {
   return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`)
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, branding, navigation }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [moreAnchorEl, setMoreAnchorEl] = useState<null | HTMLElement>(null)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const location = useLocation()
+
+  const brand = branding ?? {
+    name: 'Commonality',
+    tagline: 'Find common ground and fund what matters.',
+  }
+
+  const nav = navigation ?? {
+    primaryNavigation: [
+      { label: 'Start Here', path: '/docs' },
+      { label: 'Statements', path: '/statements' },
+      { label: 'Projects', path: '/projects' },
+      { label: 'Creators', path: '/content' },
+      { label: 'My Profile', path: '/profile' },
+    ],
+    secondaryNavigation: [
+      { label: 'My Delegated Funds', path: '/notes' },
+      { label: 'My Trust Network', path: '/settings' },
+      { label: 'Creator Dashboard', path: '/content/dashboard' },
+      { label: 'Twitter Creators', path: '/content/twitter' },
+      { label: 'YouTube Creators', path: '/content/youtube' },
+      { label: 'Substack Creators', path: '/content/substack' },
+      { label: 'Saved Refs', path: '/refs' },
+    ],
+    footerText: 'Commonality helps people fund projects and content around shared values.',
+  }
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen)
@@ -79,11 +104,11 @@ export function AppShell({ children }: AppShellProps) {
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2, fontWeight: 700 }}>
-        Commonality
+        {brand.name}
       </Typography>
       <List>
         <ListSubheader>Start here</ListSubheader>
-        {primaryNavigationItems.map((item) => (
+        {nav.primaryNavigation.map((item) => (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
               component={Link}
@@ -96,7 +121,7 @@ export function AppShell({ children }: AppShellProps) {
         ))}
         <Divider sx={{ my: 1 }} />
         <ListSubheader>More</ListSubheader>
-        {secondaryNavigationItems.map((item) => (
+        {nav.secondaryNavigation.map((item) => (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
               component={Link}
@@ -138,11 +163,11 @@ export function AppShell({ children }: AppShellProps) {
               letterSpacing: '-0.02em',
             }}
           >
-            Commonality
+            {brand.name}
           </Typography>
           {!isMobile && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1 }}>
-              {primaryNavigationItems.map((item) => (
+              {nav.primaryNavigation.map((item) => (
                 <Button
                   key={item.path}
                   component={Link}
@@ -168,7 +193,7 @@ export function AppShell({ children }: AppShellProps) {
                 endIcon={<MoreHorizIcon />}
                 onClick={handleMoreOpen}
                 sx={{
-                  fontWeight: secondaryNavigationItems.some((item) =>
+                  fontWeight: nav.secondaryNavigation.some((item) =>
                     isPathSelected(location.pathname, item.path)
                   )
                     ? 700
@@ -182,7 +207,7 @@ export function AppShell({ children }: AppShellProps) {
                 open={Boolean(moreAnchorEl)}
                 onClose={handleMoreClose}
               >
-                {secondaryNavigationItems.map((item) => (
+                {nav.secondaryNavigation.map((item) => (
                   <MenuItem
                     key={item.path}
                     component={Link}
@@ -204,7 +229,7 @@ export function AppShell({ children }: AppShellProps) {
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better mobile performance
+          keepMounted: true,
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
@@ -234,7 +259,7 @@ export function AppShell({ children }: AppShellProps) {
       >
         <Container maxWidth="lg">
           <Typography variant="body2" color="text.secondary" align="center">
-            Commonality helps people fund projects and content around shared values.
+            {nav.footerText}
           </Typography>
         </Container>
       </Box>

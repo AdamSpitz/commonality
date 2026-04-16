@@ -154,8 +154,8 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => {
         // ATTESTER_A = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
         // truncateAddress: first 6 chars + '...' + last 4 chars → '0xBBBB...BBBB'
-        // The caption renders "Attester: 0xBBBB...BBBB" — use regex to match within element text
-        expect(screen.getByText(/Attester: 0xBBBB\.\.\.BBBB/)).toBeInTheDocument()
+        // The caption renders "Vouched by: 0xBBBB...BBBB" — use regex to match within element text
+        expect(screen.getByText(/Vouched by: 0xBBBB\.\.\.BBBB/)).toBeInTheDocument()
       })
     })
 
@@ -211,7 +211,7 @@ describe('AlignmentAttestationsSection', () => {
       render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
 
       await waitFor(() => screen.getByText('No alignment attestations yet.'))
-      expect(screen.queryByRole('button', { name: /attest alignment/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /vouch for this project/i })).not.toBeInTheDocument()
     })
 
     it('is visible when wallet is connected', async () => {
@@ -221,7 +221,7 @@ describe('AlignmentAttestationsSection', () => {
       render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
 
       await waitFor(() => screen.getByText('No alignment attestations yet.'))
-      expect(screen.getByRole('button', { name: /attest alignment/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /vouch for this project/i })).toBeInTheDocument()
     })
   })
 
@@ -237,7 +237,7 @@ describe('AlignmentAttestationsSection', () => {
       const user = userEvent.setup()
       render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
       await waitFor(() => screen.getByText('No alignment attestations yet.'))
-      await user.click(screen.getByRole('button', { name: /attest alignment/i }))
+      await user.click(screen.getByRole('button', { name: /vouch for this project/i }))
       return user
     }
 
@@ -278,7 +278,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit attestation/i }))
+      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
 
       await waitFor(() => {
         expect(screen.getByText(/wallet not connected/i)).toBeInTheDocument()
@@ -293,7 +293,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit attestation/i }))
+      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
 
       await waitFor(() => {
         expect(screen.getByText(/contract not configured/i)).toBeInTheDocument()
@@ -308,10 +308,10 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit attestation/i }))
+      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
 
       await waitFor(() => {
-        expect(screen.getByText('Alignment attested successfully!')).toBeInTheDocument()
+        expect(screen.getByText('Vouch submitted successfully!')).toBeInTheDocument()
       })
     })
 
@@ -323,7 +323,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit attestation/i }))
+      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
 
       await waitFor(() => {
         expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
@@ -338,10 +338,10 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit attestation/i }))
+      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
 
       await waitFor(() => {
-        expect(screen.getByText('Alignment attested successfully!')).toBeInTheDocument()
+        expect(screen.getByText('Vouch submitted successfully!')).toBeInTheDocument()
       })
       // getSubjectStatements called: once on mount + once after successful attestation (refreshKey++)
       expect(getSubjectStatements).toHaveBeenCalledTimes(2)

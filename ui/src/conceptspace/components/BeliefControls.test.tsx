@@ -38,7 +38,7 @@ describe('BeliefControls', () => {
       )
 
       expect(
-        screen.getByText(/connect your wallet to express your belief/i),
+        screen.getByText(/connect your wallet to share your view/i),
       ).toBeInTheDocument()
     })
 
@@ -77,8 +77,8 @@ describe('BeliefControls', () => {
         />,
       )
 
-      expect(screen.getByRole('button', { name: /^believe$/i })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /^disbelieve$/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^agree$/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^disagree$/i })).toBeInTheDocument()
     })
 
     it('shows "no opinion" state message when currentBeliefState is NO_OPINION', () => {
@@ -90,7 +90,7 @@ describe('BeliefControls', () => {
       )
 
       expect(
-        screen.getByText(/you have not expressed an opinion/i),
+        screen.getByText(/you haven't shared your view/i),
       ).toBeInTheDocument()
     })
 
@@ -116,7 +116,7 @@ describe('BeliefControls', () => {
       )
 
       expect(
-        screen.getByText(/you believe this statement is true/i),
+        screen.getByText(/you agree with this statement/i),
       ).toBeInTheDocument()
     })
 
@@ -139,7 +139,7 @@ describe('BeliefControls', () => {
         />,
       )
 
-      const believeButton = screen.getByRole('button', { name: /^believe$/i })
+      const believeButton = screen.getByRole('button', { name: /^agree$/i })
       // MUI applies color via props, we can check it's rendered without error
       expect(believeButton).toBeInTheDocument()
     })
@@ -153,7 +153,7 @@ describe('BeliefControls', () => {
       )
 
       expect(
-        screen.getByText(/you believe this statement is false/i),
+        screen.getByText(/you disagree with this statement/i),
       ).toBeInTheDocument()
     })
 
@@ -176,7 +176,7 @@ describe('BeliefControls', () => {
         />,
       )
 
-      const disbelieveButton = screen.getByRole('button', { name: /^disbelieve$/i })
+      const disbelieveButton = screen.getByRole('button', { name: /^disagree$/i })
       // MUI applies color via props, we can check it's rendered without error
       expect(disbelieveButton).toBeInTheDocument()
     })
