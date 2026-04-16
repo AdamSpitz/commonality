@@ -4,11 +4,11 @@
 
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
 
-  - ✅ Make sure to include the API docs. (Done: Added `npm run build:docs` which generates SDK docs via typedoc and contract docs via solidity-docgen. Warnings suppressed via externalSymbolLinkMappings in typedoc.json.)
-
-  - Link the generated docs from UI user-facing docs (add to `/docs/` folder or embed in relevant UI pages)
-  - Copy generated docs to a location accessible from deployed UI (e.g., include in IPFS deployment bundle)
-  - Add docs generation to CI/CD pipeline
+  - ✅ Make sure to include the API docs.
+    - Done: Added `npm run build:docs` which generates SDK docs via typedoc and contract docs via solidity-docgen. Warnings suppressed via externalSymbolLinkMappings in typedoc.json.
+    - Link the generated docs from UI user-facing docs (add to `/docs/` folder or embed in relevant UI pages)
+    - Copy generated docs to a location accessible from deployed UI (e.g., include in IPFS deployment bundle)
+    - Add docs generation to CI/CD pipeline
 
   - Can you come up with some short paragraphs or slogans or memes that might be catchy and capture some aspect of the spirit of this project? (Brainstorm first, then run your ideas through an "is this cringeworthy?" filter, then see if you can come up with non-cringeworthy versions.)
     - My brainstorming:
@@ -16,6 +16,7 @@
         - You're a tool of the politicians / corporate media.
       - Rolling eyes at the attempts to pit normal people against each other:
         - Have you ever stopped to consider that maybe most people are normal?
+        - Maybe the people trying to divide us are the enemy.
       - 
 
   - In the conceptspace UI, it'd be good to have hints to nudge people in the direction of better/related statements. Autocomplete, suggest related statements, suggest statements implying this one or implied by this one, show a map with related statements nearby, etc.
