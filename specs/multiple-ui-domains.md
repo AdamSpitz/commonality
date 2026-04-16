@@ -1,95 +1,91 @@
 # Multiple UI domains
 
-When people ask me "what have you been building?", or when trying to structure the [user-facing documentation](./docs/user-docs.md), it kinda seems like the right answer is NOT to describe this whole Commonality system in full generality, but rather to describe particular early use cases that feel compelling (and different ones will be compelling to different people).
+Rather than presenting the whole system as one big "Commonality" website, we present several focused sites, each compelling to a different audience. They share the same codebase (sdk, dependencies, lower-level UI primitives) but build separate artifacts with different branding, landing pages, and routes.
 
-So it may be that we're better off treating "Commonality" as backend infrastructure rather than "here's our big website called Commonality!" It can still have its own website, but the main thing we point people to should probably be sites like noninflammatory.xyz (or noninflammatory.eth.link) and common-sense-majority.eth.link, both of which say "built on top of commonality.eth.link".
+This fits the existing UI direction in [ui/README.md](/ui/README.md), which already treats the frontend as several logical apps rather than one undifferentiated surface.
 
-Can we make sure that our UI code is structured in such a way that it's easy for us to build several entry points like that?
+When someone asks "what have you been building?", the right answer isn't the general-purpose infrastructure — it's whichever specific use case will resonate with that person.
 
-(This fits the existing UI direction in [ui/README.md](/ui/README.md), which already treats the frontend as several logical apps rather than one undifferentiated surface.)
 
-Let's have the UI code build several different artifacts from the same code base. Different branding, different landing page, different routes, etc. (e.g. The noninflammatory-content site can focus just on content contracts, not on arbitrary pubstarter contracts.) But they can still use the same sdk code and dependencies and lower-level UI primitives and so on.
+## The domains
 
-## AI's thoughts
+There are four user-facing domains, each building on the ones below it:
 
-### Naming: "Content Funding" vs "Noninflammatory Content Funding"
+### 1. Commonality (commonality.xyz)
 
-I'd lean toward the site being "noninflammatory content funding" (at noninflammatory.xyz or similar), not generic "content funding." Reasons:
+The conceptspace site. You're looking at a page for a particular statement, with links to related statements (implication graph), who has signed it, and a link to the funding portal for projects aligned with that statement. "Commonality" is the right name for this — the whole point of the conceptspace is finding common ground.
 
-The whole point of multiple-ui-domains.md is that you show people a specific compelling use case, not the general infrastructure. "Content funding" is infrastructure-speak. "Noninflammatory content" is a thesis people can get excited about (or argue with — which is also fine).
-A generic "content funding" site would need to explain why content gets funded, which immediately leads to "well, it depends on the attester criteria..." — too abstract for a landing page. The noninflammatory framing gives you a concrete story: political content that doesn't antagonize deserves funding; here's how.
-If later you want a content-funding site for a different evaluation criterion (e.g. "educational content," "investigative journalism"), that becomes another domain — which is exactly the multiple-UI-domains vision.
-That said, the UI should still make it clear this is "content funding for noninflammatory political discourse" — not just "noninflammatory" with no context.
+This is also the home of the general-purpose public-goods funding infrastructure: pubstarter (crowdfunding), funding portals, delegation, and the other subsystems. But the primary thing a visitor sees is the statement/implication-graph UI.
 
-### What the Landing Page Looks Like
+Infrastructure-level features (delegation, mutable refs, trust graph management) live here rather than on the more focused sites.
 
-The landing page needs to accomplish three things fast: (1) explain the problem, (2) show the mechanism, (3) give a clear call to action. Rough structure:
+### 2. Content Funding
 
-Hero section:
+A user-facing site for creating and browsing content-funding contracts. Social media content is a public good; this site lets you fund it.
 
-"Political content that informs instead of inflames — funded by you."
+This is its own domain (not just an architectural layer) because people may want to fund content with arbitrary criteria — not just "noninflammatory" but "funny," "educational," "investigative," etc. A lightweight way to experiment: just make a statement (e.g. "this is funny") and fund content that gets attested against it, without needing a whole dedicated branded site for every criterion.
 
-Short paragraph: Inflammatory content gets clicks and ad revenue. Thoughtful content that takes opposing views seriously gets ignored. We fix that with crowdfunding.
+Content Funding is built on Commonality's pubstarter infrastructure. Content contracts are a specialized kind of pubstarter project.
 
-Two CTAs: "Browse Content" | "I'm a Creator"
+### 3. Noninflammatory Content (noninflammatory.xyz)
 
-How It Works section (3 steps, visual):
+Built on Content Funding, focused specifically on the noninflammatory evaluation criteria: content that communicates perspectives from one side in a way that's engaging rather than alienating to the other side.
 
-Creators publish. Writers, YouTubers, podcasters publish political content that communicates perspectives without antagonizing disagreers.
-AI attesters evaluate. Independent AI services score content on dimensions like steelmanning, contempt, tribal signaling — not on whether the ideas are "correct."
-People fund what they value. Buy tokens for specific pieces of content you think deserve support. If the funding threshold is met, the creator gets paid. Your tokens are tradeable.
-Featured content / recent activity section:
+This is separate from Common Sense Majority because some people are interested in producing/funding/promoting noninflammatory content without necessarily wanting to join a political movement. But the two are closely related — almost by definition, noninflammatory content is meant to function as a statement that the other side can sign, which implies a commonality statement. Writing noninflammatory content is the *mechanism* by which [hidden majorities](./subsystems/conceptspace/content-patterns/hidden-majority.md) get revealed.
 
-Show a few recently-funded or recently-attested pieces of content across platforms (Twitter, YouTube, Substack). This makes the site feel alive, not theoretical.
-"Why this matters" section (brief):
+**What the site contains:**
+- Landing page: "Are you sick of the usual polarized bullshit? This is a site where we explicitly reward building bridges." Lean into the political angle — that's the whole point. Two CTAs: "Browse Content" | "I'm a Creator."
+- Browse content by platform (Twitter, YouTube, Substack). Sort by recently funded, most funded, newest, highest attestation scores. Show all content submitted for content funding, but highlight/prioritize attested content.
+- Individual content/channel pages with attestation summaries and active contracts.
+- Contract creation flow, scoped to the noninflammatory framing.
+- Contract viewing (not redirecting to pubstarter — links shared on this domain should resolve here with the right branding).
+- Creator dashboard: verification, contracts, earnings.
+- Attestation transparency: which attesters scored what, on which dimensions (steelmanning, contempt, ad hominem, tribal signaling, emotional manipulation). All three attester personas (neutral, left-leaning, right-leaning) are visible by default.
+- "About" page explaining what "noninflammatory" means and how the attester model works.
+- Links to Commonality for conceptspace exploration (statement pages, implication graphs). Not embedded — just linked.
 
-The insight from seed-statements.md — people across the political spectrum can independently arrive at wanting this. A progressive and a conservative both benefit from content that doesn't demonize.
-Footer: "Built on Commonality" — link to the general infrastructure for people who want to understand the plumbing.
+**What the site does NOT contain:**
+- Full conceptspace/implication-graph explorer (that's the Commonality site).
+- Generic pubstarter browsing or project creation.
+- Funding portals / causes (the noninflammatory site *is* essentially one focused funding portal).
+- Crypto wallet management (keep crypto as invisible as possible; eventually use embedded wallets).
 
-### What the Site Contains
+**"Built on Commonality"** should be fairly prominent — we want to draw attention to the general platform.
 
-Beyond the landing page:
+### 4. Common Sense Majority (common-sense-majority.xyz)
 
-Browse content by platform — the existing /content/:platform routes. Twitter, YouTube, Substack tabs. Show attested content with attestation summaries. Sort by: recently funded, most funded, newest, "most noninflammatory" (highest attestation scores).
+The movement site. The [hidden majority](./subsystems/conceptspace/content-patterns/hidden-majority.md) thesis is that on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. This site is about making those hidden majorities visible and organizing around them.
 
-Individual content/channel pages — the existing /content/:platform/:channelId routes. Show the creator's attested content, active contracts, funding status.
+Noninflammatory Content is a major component — it's the primary mechanism for surfacing hidden-majority positions. But Common Sense Majority is broader: it also uses Commonality's funding infrastructure for the movement's own projects (organizing, advocacy, etc.), not just content funding.
 
-Create a contract — the existing /content/:platform/:channelId/new flow. But scoped: when creating a contract on this site, the implicit framing is "this content is noninflammatory and worth funding." The creation flow can surface relevant attestation data.
+Separate from Noninflammatory Content because it's "a movement" rather than "a tool for a specific kind of content."
 
-Creator dashboard — the existing /content/dashboard. Verification flow (claim your channel), see your contracts, earnings, etc.
 
-View a contract — Yes, I think the site should include contract viewing, not punt to pubstarter. Reason: if someone shares a link to a content contract on noninflammatory.xyz, it should resolve on that domain with the right branding and context. It would be jarring to redirect to a generic pubstarter site. The content contract view page is just a specialized version of the pubstarter project detail page anyway — show the content items, funding progress, attestation summaries, and the ability to contribute.
+## Architecture
 
-"About" / explainer page — What "noninflammatory" means (the evaluation criteria from the spec). Not about correctness or politeness — about whether people who disagree can engage without defensiveness. Explain the attester model (multiple perspectives, disagreement is informative).
+All four sites build from the same codebase. Different branding, different landing pages, different route sets, but shared:
+- SDK code and blockchain interactions
+- UI component library and design primitives
+- Authentication and wallet infrastructure
+- Attestation display components
 
-Attestation transparency — A way to see which attesters evaluated a piece of content and how they scored it on each dimension (steelmanning, contempt, ad hominem, tribal signaling, emotional manipulation). This is important for credibility. Maybe this is just part of the content/channel pages rather than a separate section.
+Each site is a separate build artifact that includes only the routes and features relevant to it.
 
-### What the Site Does NOT Contain
 
-Conceptspace / statements / implication graphs — This is the backbone of the broader Commonality system, but it's too abstract for this site. The noninflammatory site doesn't need to show you "statement S1 implies statement S2." If users want to explore the implication structure, they can go to the Commonality site.
+## How the sites relate to each other
 
-Pubstarter (generic crowdfunding) — No "browse all projects" or "create any project." This site is only about content funding.
+```
+Common Sense Majority
+  ├── uses Noninflammatory Content (as its primary content component)
+  └── uses Commonality (for funding movement projects)
 
-Funding portals / causes — The funding portal concept (projects aligned with causes) is a Commonality-level feature. The noninflammatory site is itself essentially one focused funding portal.
+Noninflammatory Content
+  ├── built on Content Funding (content contracts with noninflammatory criteria)
+  └── links to Commonality (for conceptspace exploration)
 
-Delegation / delegatable notes — Infrastructure-level feature, not relevant to the content-funding UX.
+Content Funding
+  └── built on Commonality (content contracts are specialized pubstarter projects)
 
-Mutable refs — Internal infrastructure.
-
-Subjectiv trust graph management — The trust graph operates underneath (filtering which attestations you see), but users shouldn't need to manually manage trust declarations on this site. If trust management UI is needed, it can be a lightweight "settings" thing, not a primary section.
-
-Multi-currency selection or crypto wallet management — Keep the crypto as invisible as possible. Ideally the site eventually uses embedded wallets so creators and funders don't need to think about Ethereum at all.
-
-### Open Questions for You
-
-Does the site show all content-funded content, or only content that has received noninflammatory attestations? I'd lean toward showing everything that's been submitted for content funding on the relevant platform deployments, but highlighting/prioritizing attested content. Otherwise you need a separate site for "content funding without the noninflammatory angle." (MY THOUGHT: yes, sounds good.)
-
-Who are the primary attesters on this site? The spec describes three personas (neutral, left-leaning, right-leaning). Are these all visible by default, or does the site start with one and expand? (MY THOUGHT: probably all three. I don't want this site to be just for one side.)
-
-Should the landing page lean into the political angle explicitly, or keep it softer? The spec is very clear that this is about political discourse. But "political" can scare people off. The alternative is leading with "content that bridges divides" and letting the political specifics emerge as people browse. (MY THOUGHT: "content that bridges divides" is fine, but I don't think we need to shy away from showcasing the politics / Culture War stuff; the whole point of this is "are you sick of the usual polarized bullshit? this is a site where we explicitly reward building bridges.")
-
-"Built on Commonality" — how prominent? A small footer link? A visible badge? This affects whether the site feels like its own thing vs. a subsection of a bigger platform. (MY THOUGHT: fairly prominent. I do want to draw attention to the more-general Commonality platform, even if this site is specifically for this more specific use case.)
-
-## More thoughts
-
-Take a look at specs/subsystems/conceptspace/content-patterns/hidden-majority.md and specs/subsystems/conceptspace/content-patterns/noninflammatory-content.md. I'm starting to feel like maybe noninflammatory-content and common-sense-majority are roughly the same app, not two different use cases. That’s the primary thing I’m building. (Almost by definition, the thing you’re writing as noninflammatory content is meant to function as a statement that can be signed by the other side and that implies the commonality statement.) Maybe not *quite* just a single app, but very closely related. So the picture is becoming clearer, about what separate domains we have: we have Commonality (the general-purpose public-goods funding platform), Content Funding (built using Commonality, since social media content is a public good), Noninflammatory Content (built using Content Funding) and Common Sense Majority (which has Noninflammatory Content as a major component of it, as well as also using Commonality for funding the movement's projects).
+Commonality
+  └── the foundation: conceptspace, pubstarter, funding portals, delegation, trust
+```
