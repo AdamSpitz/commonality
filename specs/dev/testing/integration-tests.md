@@ -1,18 +1,26 @@
-# Integration test specs
+# Integration tests
 
-We've got some tests intended to test the smart contracts and indexer together. See the top-level "integration-tests" directory.
+Integration tests live in the top-level `integration-tests/` directory. They test the full blockchain + indexer + SDK stack together.
 
-We've got a docker-compose setup with a few pieces: hardhat node, IPFS node, indexer.
+## What they test
 
-The tests are meant to be normal handcrafted-scenario tests - we're not generating random fake data yet, we're just writing down some basic scenarios and running them, then waiting for the indexer to catch up (I think Ponder has a way to check which block number it's up to, or something like that), and making sure that the indexer's API returns the correct data.
+The tests exercise real on-chain transactions (on a local Hardhat node), wait for Ponder to index the resulting events, then use the SDK's query/fold functions to verify the indexed state is correct. All user actions go through the same SDK functions that the UI uses, so these tests also serve as integration coverage for the SDK.
 
-The tests will run various user actions, involving:
-  - Writing data to IFPS. (Just use whatever IPFS system we're using for the app - Pinata, I think.)
-  - Executing onchain transactions using the system's smart contracts (see the top-level "hardhat" directory to find the contracts).
-  - Plus any other kind I've forgotten.
+## Test approach
 
-The tests will also need some way of accessing the indexer's API and running various kinds of queries.
+Tests are currently handcrafted-scenario tests: define a sequence of actions, run them, verify invariants and state-transition properties afterward. The goal is to move toward a more generic invariant-based model — "run this action, check whatever invariants are meaningful after an action of this type" — rather than ad-hoc per-test assertions. See `integration-tests/generative-test-prep.md` for the framework and `integration-tests/INVARIANT_IMPLEMENTATION.md` for implementation guidelines.
 
-Try to keep these actions and queries clearly specified in a separate file or whatever, so that the tests are working at a higher level of abstraction, and also so that maybe in the future we might be able to make use of them as part of the UI code or in other scripts.
+## Infrastructure
 
-Use TypeScript and viem.
+The test runner (`scripts/run-integration-tests.sh`) spins up Docker Compose with:
+- Local Hardhat node
+- Local IPFS node
+- Ponder event-cache indexer
+
+After transactions are submitted, the tests poll Ponder's `/status` endpoint to wait for the indexer to catch up before querying results.
+
+## Performance
+
+Tests are slow for two reasons:
+- **Docker startup**: full `docker-compose down -v` + `docker-compose up -d --build` cycle adds 15–30+ seconds.
+- **Indexer sync waits**: every transaction must be indexed by Ponder before results can be verified. Ponder polls Hardhat every 100ms; tests poll Ponder every 50–100ms. This overhead is architecturally unavoidable.

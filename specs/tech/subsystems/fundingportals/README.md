@@ -19,7 +19,7 @@ Some points about this:
 See `hardhat/contracts/alignment-attestations/`. The `AlignmentAttestations` contract emits `AlignmentAttestation` events with a required `topicStatementId` field for indexer filtering. Anyone can submit attestations of the form "subject S is aligned with statement T" (where the subject is typically a project address).
 
 Design decisions:
-  - **Assurance contracts: buying is always allowed**, even after the deadline. (TODO: wait, we may have changed our minds about this; check the actual code, and update this file to match what the code does.) A "failed" project can still succeed later if more people buy in. Refunds are only allowed when the deadline has passed *and* the threshold hasn't been reached.
+  - **Assurance contracts: buying is blocked only on failure.** A project "fails" when its deadline has passed *and* the threshold hasn't been reached — only then are new purchases rejected and refunds allowed. Before the deadline, and after a successful deadline (threshold already met), buying remains open. This means a successful project continues accepting contributions indefinitely.
   - In the long run, DelegatableNotes should support various DEXes or DEX aggregators for spending; for now it's fine to use just the primary and secondary market capabilities of our own contracts.
 
 ## Data flow

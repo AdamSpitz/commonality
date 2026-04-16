@@ -25,4 +25,6 @@ Here's what I'm imagining:
 
 ## Current progress
 
-There's an early attempt at fake-data generation in fake-data-generation/ (at the project root), but I don't know how well it works or how complete it is; it'd be reasonable to blow it away and start over.
+The fake-data generation system in `fake-data-generation/` (at the project root) is implemented. It includes user generation, statement generation, attester generation, LLM-based implication evaluation via OpenRouter, pre-generated attestations, and a simulation runner with funding and delegation actions. See `fake-data-generation/README.md` for the full documentation.
+
+Not yet done: scale testing (1000+ users), visualization of belief networks, deep per-event data validation, performance benchmarks.
