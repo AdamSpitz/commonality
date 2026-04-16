@@ -13,7 +13,8 @@
         - Maybe the people trying to divide us are the enemy.
       - 
 
-  - In the conceptspace UI, it'd be good to have hints to nudge people in the direction of better/related statements. Autocomplete, suggest related statements, suggest statements implying this one or implied by this one, show a map with related statements nearby, etc.
+  - In the conceptspace UI, it'd be good to have hints to nudge people in the direction of better/related statements. Autocomplete, suggest related statements, suggest statements implying this one or implied by this one, show a map with related statements nearby, etc. Do we have anything like that?
+    - We have partial coverage: There's a `StatementSuggestions` component (`ui/src/conceptspace/components/StatementSuggestions.tsx`) that shows statements that are implied by or imply the current statement, filtered to those with more supporters than the current one. The underlying SDK function `getStatementSuggestions` (`sdk/src/subsystems/conceptspace/queries.ts:754`) only finds related statements through on-chain implication attestations. Missing: autocomplete when creating/searching, broader relatedness beyond attested implications (semantic similarity, domain-based), and any graph/map visualization.
 
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
   - Point an AI at the UI and tell it "go use this."
