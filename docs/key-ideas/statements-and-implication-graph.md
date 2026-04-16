@@ -32,6 +32,18 @@ This is how the system builds coalitions without anyone having to build them. Yo
 
 The net effect: you express what you care about once, and the system continuously connects you to projects and content that serve your values — without you having to search for them and without anyone having to centrally decide what's "relevant."
 
+## Expected statement patterns
+
+On polarized issues, we expect statements to cluster into a recurring structure:
+
+- **Pole statements** — the loud, extreme positions that define the "two sides" in public discourse
+- **Normal-people-from-each-side statements** — what most people on each side actually think, more nuanced than the poles
+- **A commonality statement** — the position that both normal-people statements imply, which turns out to be a supermajority position that nobody knew existed
+
+The implication graph is what connects these layers. Two people signing different "normal-people" statements in their own words don't need to know about each other — the system discovers that their statements both imply the same commonality. That commonality statement's supporter count then reveals the hidden majority: far more people agree on this than anyone expected, because the political system was structured to make them invisible to each other.
+
+For a detailed look at the different shapes these patterns take, see the [common-sense majority walkthrough](../use-case-walkthroughs/common-sense-majority.md).
+
 ## Cross-partisan discovery
 
 The system surfaces common ground even between groups that would never coordinate directly. A progressive environmental organization and a conservative community group might each sign statements in their own language — "rural communities deserve access to clean drinking water regardless of economic status" vs. "local communities should control their own water infrastructure without federal interference." Different words, different politics. But an implication attester can notice that both statements support the same concrete project: a water filtration system for a specific county. The project appears in both groups' funding portals. Neither group needs to acknowledge the other, agree on framing, or join a coalition. They just both end up funding the same thing.

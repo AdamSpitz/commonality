@@ -7,6 +7,32 @@ What if there was a pool of money specifically dedicated to funding that kind of
 That's what this walkthrough is about. Not a single project, not a one-time campaign — an ongoing, self-sustaining flow of money toward political content that communicates perspectives without antagonizing people who disagree.
 
 
+## How this connects to the hidden majority
+
+Noninflammatory content isn't just "nicer political writing." It's the primary *mechanism* by which [hidden majorities](./common-sense-majority.md) get revealed.
+
+The [common-sense majority walkthrough](./common-sense-majority.md) describes the different shapes that hidden-majority statements take. For most of those sub-patterns — compromise, no-real-controversy, same-values-different-beliefs — the implication graph can discover the common ground on its own, because people on both sides are already willing to sign statements that imply the commonality.
+
+But there's one sub-pattern where that doesn't work: **misunderstandings of what the other side believes.** When one side holds a position that the other side would agree with *if they knew about it*, you can't just wait for the implication graph to connect them — the people who hold the misunderstanding won't spontaneously sign a statement they haven't seriously considered. Someone has to communicate the idea across the divide, sympathetically enough that people will actually consider it.
+
+That's exactly what noninflammatory content does. A writer on one side crafts a piece that says: "Here's a statement I think common-sense people on the *other* side might be willing to sign, and here's why" — written respectfully, without contempt, in a way that invites engagement rather than defensiveness. The content funding system provides the incentive; the AI evaluation system provides the quality filter; and the result is that ideas cross the divide in a form people can actually hear.
+
+Writing noninflammatory content is how you get a "clued-in" statement in front of people who haven't encountered it yet.
+
+
+## The meta-statements
+
+Before any specific issue comes up, there are meta-level statements that follow the same hidden-majority pattern:
+
+- **Left-leaning:** "I lean left, and I'm interested in reading content that communicates right-wing perspectives as long as it doesn't piss me off."
+- **Right-leaning:** "I lean right, and I'd like to try to communicate right-wing perspectives to common-sense left-leaning people in a way that they'll actually hear."
+- **Commonality:** "I'm interested in content that communicates right-wing perspectives in a way that won't piss off left-wingers."
+
+(And the mirror image for left-wing perspectives communicated to the right.)
+
+These meta-statements are themselves a hidden majority — most people *would* prefer to engage with the other side's ideas in a non-hostile form, but nobody knows how widespread that preference is until the system makes it visible.
+
+
 ## The setup
 
 Various people, independently, sign statements expressing what they care about:

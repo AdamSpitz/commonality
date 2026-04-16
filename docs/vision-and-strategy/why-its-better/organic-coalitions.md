@@ -21,6 +21,14 @@ What this looks like in practice:
 
 Nobody had to agree on *why* clean water matters. The system just surfaced that they agree on *what* should be done.
 
+## The hidden-majority thesis
+
+The prediction isn't just "some common ground exists." It's that on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system forces everyone into two coalitions dominated by their loudest members.
+
+These hidden majorities take [different shapes](../../use-case-walkthroughs/common-sense-majority.md): sometimes a compromise both sides' moderates would accept, sometimes a consensus that barely has any real opposition, sometimes shared values obscured by factual disagreements, sometimes simple misunderstandings of what the other side actually believes. In each case, the organic coalition already exists — it just can't see itself.
+
+The implication graph handles most of these by connecting statements that people are already willing to sign. But when the gap is caused by *misunderstandings* — when one side's position is something the other side would agree with if they knew about it — discovery alone isn't enough. That's where [noninflammatory content funding](../../use-case-walkthroughs/noninflammatory-content.md) comes in: it provides the incentive and mechanism for communicating across the divide, getting sympathetically-framed ideas in front of people who haven't encountered them.
+
 ## Why this matters
 
 This is the opposite of how politics works. Politics takes a population with messy, overlapping, nuanced views and sorts them into two opposing teams. Commonality takes the same population and finds the concrete outcomes they actually agree on — which may be far more numerous than the political landscape suggests.

@@ -28,4 +28,10 @@ Different evaluators can have different standards. You choose which evaluators y
 - **As a creator:** You claim your channel. Content registered to your channel that gets funded flows money to you. You can also submit your work to evaluators to qualify for cause-specific funding pools.
 - **As a delegate:** You direct pooled funds toward content that serves the causes you're responsible for.
 
+## Revealing hidden majorities
+
+Content funding's most powerful application may be [noninflammatory political content](../use-case-walkthroughs/noninflammatory-content.md) — writing that communicates one side's perspective in a way the other side can engage with. This isn't just "nicer writing." It's the mechanism by which [hidden common-sense majorities](../use-case-walkthroughs/common-sense-majority.md) get revealed.
+
+When a writer on one side crafts a piece that says "here's what we actually believe, and here's why reasonable people on the other side might agree" — and the AI evaluator confirms it meets the noninflammatory standard — the content crosses the divide in a form people can hear. The funding system provides the incentive for writers to do this work; the implication graph connects the resulting statements to the broader commonality.
+
 Content funding turns "I wish there was more writing like this" into something actionable. The demand signal is real money, and creators can see it.
