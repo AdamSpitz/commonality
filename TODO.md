@@ -4,7 +4,11 @@
 
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
 
-  - ✅ Make sure to include the API docs. (Done: Added `npm run build:docs` which generates SDK docs via typedoc and contract docs via solidity-docgen)
+  - ✅ Make sure to include the API docs. (Done: Added `npm run build:docs` which generates SDK docs via typedoc and contract docs via solidity-docgen. Warnings suppressed via externalSymbolLinkMappings in typedoc.json.)
+
+  - Link the generated docs from UI user-facing docs (add to `/docs/` folder or embed in relevant UI pages)
+  - Copy generated docs to a location accessible from deployed UI (e.g., include in IPFS deployment bundle)
+  - Add docs generation to CI/CD pipeline
 
   - Can you come up with some short paragraphs or slogans or memes that might be catchy and capture some aspect of the spirit of this project? (Brainstorm first, then run your ideas through an "is this cringeworthy?" filter, then see if you can come up with non-cringeworthy versions.)
     - My brainstorming:
@@ -14,7 +18,7 @@
         - Have you ever stopped to consider that maybe most people are normal?
       - 
 
-  - In the conceptspace UI, it'd be good to have hints to nudge people in the direction of better/related statements. Autocomplete, suggest related statements, suggest statements imply show a map with related statements nearby, etc.
+  - In the conceptspace UI, it'd be good to have hints to nudge people in the direction of better/related statements. Autocomplete, suggest related statements, suggest statements implying this one or implied by this one, show a map with related statements nearby, etc.
 
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
   - Point an AI at the UI and tell it "go use this."
