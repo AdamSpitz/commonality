@@ -12,7 +12,7 @@
 
 ## Other things to do soon
 
-  - Organize our UI around our ideas about [multiple UI domains](specs/multiple-ui-domains.md).
+  - Finish the remaining work on [multiple UI domains](specs/multiple-ui-domains.md): Phase 4 (Common Sense Majority surfaces) and Phase 5 (separate build outputs).
   
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?
 

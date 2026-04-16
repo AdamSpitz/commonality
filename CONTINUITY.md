@@ -59,12 +59,43 @@ npm run build --workspace=ui
 - Content Funding and Noninflammatory still share the same underlying content-funding route implementations below the landing page level
 - Phase 3 is the next real chunk: specialize those branded surfaces without duplicating the shared `content-funding` implementation
 
-### What's Left
+### Completed: Phase 3
 
-**Phase 3**: Specialize content-funding into two branded surfaces
-- Keep `content-funding` implementation as shared base
-- Add Content Funding domain surface (branded wrapper)
-- Layer Noninflammatory Content with attestation-focused views
+**Specialize content-funding into two branded surfaces** - Done ✓
+
+Key files created/modified:
+- `ui/src/content-funding/pages/CreatorsLandingPage.tsx` - shared landing page now accepts per-domain copy/CTA overrides
+- `ui/src/content-funding/pages/BrowseCreatorsPage.tsx` - shared browse page now accepts per-domain headline/description overrides
+- `ui/src/content-funding/pages/ChannelPage.tsx` - shared channel page now supports branded campaign copy plus domain-local contract links
+- `ui/src/content-funding/pages/CreateContractPage.tsx` - shared contract-creation flow now supports branded framing and branded post-create links
+- `ui/src/content-funding/pages/CreatorDashboardPage.tsx` - shared creator dashboard now supports branded headings/descriptions/empty states
+- `ui/src/domains/content-funding/ContentPages.tsx` - Content Funding wrappers and in-domain contract view
+- `ui/src/domains/noninflammatory/ContentPages.tsx` - Noninflammatory wrappers, in-domain contract view, and dedicated about page
+- `ui/src/domains/content-funding/manifest.tsx` - content-funding routes now use branded wrappers plus `/content/contracts/:projectAddress`
+- `ui/src/domains/noninflammatory/manifest.tsx` - noninflammatory routes now use branded wrappers plus `/content/contracts/:projectAddress` and `/about`
+- `ui/src/domains/domainRoutes.test.tsx` - route coverage now includes the noninflammatory about page
+- `ui/src/domains/content-funding/ContentPages.test.tsx` - wrapper-copy coverage for Content Funding
+- `ui/src/domains/noninflammatory/ContentPages.test.tsx` - wrapper-copy coverage for Noninflammatory
+- `specs/multiple-ui-domains.md` - Phase 3 marked done in the plan
+
+**What Phase 3 actually changed:**
+- Content Funding and Noninflammatory still reuse the same `content-funding` logic, but now route through domain-owned wrapper components instead of the same generic page instances
+- Both domains now have their own branded contract route at `/content/contracts/:projectAddress`, so contract links stay inside the focused surface instead of dropping users into generic `/projects/...`
+- Noninflammatory now has its own `/about` page rather than reusing the generic creators page
+- The specialization is still UI-level composition; no duplication of the underlying fetch/fold/contract logic was introduced
+
+**Validation run:**
+```bash
+npm test --workspace=ui -- domainRoutes.test.tsx ContentPages.test.tsx
+npm run build --workspace=ui
+```
+
+**Current state after Phase 3:**
+- Phase 1, Phase 2, and Phase 3 are complete
+- The content-focused domains now have distinct branded surfaces and canonical in-domain contract links
+- The remaining reorganization work is Phase 4 (movement layering) and Phase 5 (separate build outputs)
+
+### What's Left
 
 **Phase 4**: Add Common Sense Majority on top
 - Build movement landing page and basic organizing surfaces
@@ -86,5 +117,5 @@ npm run build --workspace=ui
 - Default domain is `commonality` if VITE_DOMAIN not set
 - Domain landing pages now exist at `ui/src/domains/<domain>/LandingPage.tsx` and are wired from each manifest's `/` route
 - `DomainLandingPage.tsx` is the shared primitive for hero copy, CTA buttons, and entry-point cards
-- Cross-domain builds/URLs are still not implemented; the current landing pages describe focused domains within the shared app, but there is not yet a domain-aware link abstraction
-- Phase 3 should focus on specialized content-funding and noninflammatory route surfaces, not on redoing the phase-2 landing-page work
+- Content Funding and Noninflammatory now each own wrapper components in `ui/src/domains/<domain>/ContentPages.tsx` while reusing the shared `ui/src/content-funding/pages/*` implementations underneath
+- Domain-local contract viewing currently uses `/content/contracts/:projectAddress` on the focused content domains; separate origins/build outputs are still phase-5 work

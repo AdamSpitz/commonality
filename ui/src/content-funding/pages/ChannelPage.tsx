@@ -103,7 +103,24 @@ function getTotalFunding(overview: ChannelOverview): bigint {
   return total
 }
 
-function ContractCard({ contract }: { contract: ContentFundingContractSummary }) {
+interface ChannelPageProps {
+  campaignHeading?: string
+  createCampaignLabel?: string
+  emptyCampaignState?: string
+  unclaimedHeroDescription?: string
+  shareHeading?: string
+  shareDescription?: string
+  suggestedMessagePrefix?: string
+  contractPathForAddress?: (address: string) => string
+}
+
+function ContractCard({
+  contract,
+  contractPathForAddress,
+}: {
+  contract: ContentFundingContractSummary
+  contractPathForAddress: (address: string) => string
+}) {
   const status = contract.status
   const progress = contract.fundingProgress
 
@@ -112,7 +129,7 @@ function ContractCard({ contract }: { contract: ContentFundingContractSummary })
       variant="outlined"
       sx={{ p: 2 }}
       component={RouterLink}
-      to={`/projects/${contract.contractAddress}`}
+      to={contractPathForAddress(contract.contractAddress)}
       style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -275,7 +292,16 @@ function CopyLinkButton({ url }: { url: string }) {
   )
 }
 
-export function ChannelPage() {
+export function ChannelPage({
+  campaignHeading = 'Funding Campaigns',
+  createCampaignLabel = 'Create Campaign',
+  emptyCampaignState = 'No funding campaigns yet for this channel.',
+  unclaimedHeroDescription = 'This channel hasn\'t been claimed yet. If you\'re the creator, you can verify your identity and withdraw these funds.',
+  shareHeading = 'Share with the creator',
+  shareDescription = 'Know this creator? Send them the link below so they can claim their funds.',
+  suggestedMessagePrefix = 'Hey! Your supporters have pooled',
+  contractPathForAddress = (address) => `/projects/${address}`,
+}: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { state, projects, loading, error, contentAttestations } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
@@ -330,7 +356,7 @@ export function ChannelPage() {
   const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
 
   const suggestedMessage = [
-    `Hey! Your supporters have pooled ${formatEther(escrow.balance)} ETH for your work on-chain.`,
+    `${suggestedMessagePrefix} ${formatEther(escrow.balance)} ETH for your work on-chain.`,
     `You can claim it here: ${claimUrl}`,
   ].join(' ')
 
@@ -389,8 +415,7 @@ export function ChannelPage() {
             Supporters have pooled {formatEther(escrow.balance)} ETH for {displayName}&apos;s work.
           </Typography>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            This channel hasn&apos;t been claimed yet. If you&apos;re the creator, you can verify your
-            identity and withdraw these funds.
+            {unclaimedHeroDescription}
           </Typography>
           <Button
             variant="contained"
@@ -407,10 +432,10 @@ export function ChannelPage() {
       {isUnclaimed && (
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Share with the creator
+            {shareHeading}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Know this creator? Send them the link below so they can claim their funds.
+            {shareDescription}
           </Typography>
           <Stack spacing={2}>
             <Box>
@@ -451,7 +476,7 @@ export function ChannelPage() {
         <Box sx={{ mb: 3 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
             <Typography variant="h5">
-              Funding Campaigns
+              {campaignHeading}
             </Typography>
             <Button
               variant="contained"
@@ -459,12 +484,16 @@ export function ChannelPage() {
               component={RouterLink}
               to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
             >
-              Create Campaign
+              {createCampaignLabel}
             </Button>
           </Stack>
           <Stack spacing={1.5}>
             {contracts.map((contract) => (
-              <ContractCard key={contract.contractAddress} contract={contract} />
+              <ContractCard
+                key={contract.contractAddress}
+                contract={contract}
+                contractPathForAddress={contractPathForAddress}
+              />
             ))}
           </Stack>
         </Box>
@@ -472,13 +501,13 @@ export function ChannelPage() {
 
       {contracts.length === 0 && (
         <Paper sx={{ p: 3, mb: 3, textAlign: 'center' }}>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>No funding campaigns yet for this channel.</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>{emptyCampaignState}</Typography>
           <Button
             variant="contained"
             component={RouterLink}
             to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
           >
-            Create Campaign
+            {createCampaignLabel}
           </Button>
         </Paper>
       )}

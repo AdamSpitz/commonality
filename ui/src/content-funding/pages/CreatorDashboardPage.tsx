@@ -248,7 +248,19 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
   )
 }
 
-export function CreatorDashboardPage() {
+interface CreatorDashboardPageProps {
+  title?: string
+  description?: string
+  connectPrompt?: string
+  emptyState?: string
+}
+
+export function CreatorDashboardPage({
+  title = 'Creator Dashboard',
+  description = 'Manage your verified channels, withdraw escrowed funds, and veto fan-created contracts during the 7-day window.',
+  connectPrompt = 'Connect your wallet to manage your channels.',
+  emptyState = 'You don\'t have any channels yet. Verify a channel to get started.',
+}: CreatorDashboardPageProps) {
   const { address, isConnected } = useAccount()
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
@@ -399,9 +411,9 @@ export function CreatorDashboardPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          Creator Dashboard
+          {title}
         </Typography>
-        <Alert severity="info">Connect your wallet to manage your channels.</Alert>
+        <Alert severity="info">{connectPrompt}</Alert>
       </Box>
     )
   }
@@ -409,11 +421,11 @@ export function CreatorDashboardPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Creator Dashboard
+        {title}
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Manage your verified channels, withdraw escrowed funds, and veto fan-created contracts during the 7-day window.
+        {description}
       </Typography>
 
       {(withdrawError || takeControlError || vetoError) && (
@@ -425,7 +437,7 @@ export function CreatorDashboardPage() {
       {myChannels.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
-            You don't have any channels yet. Verify a channel to get started.
+            {emptyState}
           </Typography>
         </Paper>
       ) : (

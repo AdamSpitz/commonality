@@ -150,7 +150,33 @@ function isContentAlreadyRegistered(
   return !!(existing && existing.status === 'active')
 }
 
-export function CreateContractPage() {
+interface CreateContractPageProps {
+  titlePrefix?: string
+  connectPrompt?: string
+  contentItemsDescription?: string
+  contractDetailsDescription?: string
+  createButtonLabel?: string
+  viewButtonLabel?: string
+  shareSuccessHeading?: string
+  unclaimedAlert?: string
+  verifiedAlert?: string
+  creatorControlledAlert?: string
+  contractPathForAddress?: (address: string) => string
+}
+
+export function CreateContractPage({
+  titlePrefix = 'Create Contract',
+  connectPrompt = 'Connect your wallet to create a content-funding contract.',
+  contentItemsDescription = 'Add the content you want to fund. Each item will become a separate token type.',
+  contractDetailsDescription = 'These details will be stored on IPFS and associated with the contract.',
+  createButtonLabel = 'Create Contract',
+  viewButtonLabel = 'View Project',
+  shareSuccessHeading = 'Share this link with the creator to claim their funds:',
+  unclaimedAlert = 'This channel is unclaimed. Creating a fan-funded contract. Funds will be held in escrow until the creator verifies and claims the channel.',
+  verifiedAlert = 'This channel is verified. Funds will go directly to the creator.',
+  creatorControlledAlert = 'You are the channel owner. Creating a creator contract. No minimum purchase required.',
+  contractPathForAddress = (address) => `/projects/${address}`,
+}: CreateContractPageProps) {
   const navigate = useNavigate()
   const { channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { address, isConnected } = useAccount()
@@ -452,9 +478,9 @@ export function CreateContractPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          Create Contract
+          {titlePrefix}
         </Typography>
-        <Alert severity="info">Connect your wallet to create a content-funding contract.</Alert>
+        <Alert severity="info">{connectPrompt}</Alert>
       </Box>
     )
   }
@@ -472,7 +498,7 @@ export function CreateContractPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Create Contract — {displayName}
+        {titlePrefix} — {displayName}
       </Typography>
 
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -501,7 +527,7 @@ export function CreateContractPage() {
                 Content Items
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Add the content you want to fund. Each item will become a separate token type.
+                {contentItemsDescription}
               </Typography>
 
               <Stack spacing={2}>
@@ -610,17 +636,17 @@ export function CreateContractPage() {
 
             {overview.channel.state === 'unclaimed' && (
               <Alert severity="info">
-                This channel is unclaimed. Creating a fan-funded contract. Funds will be held in escrow until the creator verifies and claims the channel.
+                {unclaimedAlert}
               </Alert>
             )}
             {overview.channel.state === 'verified' && (
               <Alert severity="info">
-                This channel is verified. Funds will go directly to the creator.
+                {verifiedAlert}
               </Alert>
             )}
             {overview.channel.state === 'creator-controlled' && canCreate && (
               <Alert severity="success">
-                You are the channel owner. Creating a creator contract. No minimum purchase required.
+                {creatorControlledAlert}
               </Alert>
             )}
 
@@ -631,7 +657,7 @@ export function CreateContractPage() {
                 Contract Details
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                These details will be stored on IPFS and associated with the contract.
+                {contractDetailsDescription}
               </Typography>
 
               <Stack spacing={2}>
@@ -667,7 +693,7 @@ export function CreateContractPage() {
                   <CircularProgress size={20} sx={{ mr: 1 }} />
                   Creating Contract...
                 </>
-              ) : 'Create Contract'}
+              ) : createButtonLabel}
             </Button>
 
             {submitError && <Alert severity="error">{submitError}</Alert>}
@@ -678,17 +704,17 @@ export function CreateContractPage() {
                   {createdContractAddress && (
                     <Button
                       size="small"
-                      onClick={() => navigate(`/projects/${createdContractAddress}`)}
+                      onClick={() => navigate(contractPathForAddress(createdContractAddress))}
                       sx={{ ml: 1 }}
                     >
-                      View Project
+                      {viewButtonLabel}
                     </Button>
                   )}
                 </Alert>
                 {canonicalChannelId && overview && channelParsed && (
                   <Alert severity="info">
                     <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                      Share this link with the creator to claim their funds:
+                      {shareSuccessHeading}
                     </Typography>
                     <Box
                       sx={{

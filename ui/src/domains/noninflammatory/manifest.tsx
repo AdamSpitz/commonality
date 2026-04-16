@@ -2,11 +2,15 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { NoninflammatoryLandingPage } from './LandingPage'
-import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
-import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
-import { ChannelPage } from '../../content-funding/pages/ChannelPage'
-import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
-import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
+import {
+  NoninflammatoryAboutPage,
+  NoninflammatoryBrowsePage,
+  NoninflammatoryChannelPage,
+  NoninflammatoryContractPage,
+  NoninflammatoryCreateContractPage,
+  NoninflammatoryCreatorDashboardPage,
+  NoninflammatoryCreatorsPage,
+} from './ContentPages'
 import { BrowseStatementsPage } from '../../conceptspace/pages/BrowseStatementsPage'
 import { StatementPage } from '../../conceptspace/pages/StatementPage'
 import { UserProfilePage } from '../../conceptspace/pages/UserProfilePage'
@@ -18,12 +22,13 @@ const routes: ReactNode = (
     <Route path="/statement/:statementCid" element={<StatementPage />} />
     <Route path="/profile" element={<UserProfilePage />} />
     <Route path="/user/:address" element={<UserProfilePage />} />
-    <Route path="/content" element={<CreatorsLandingPage />} />
-    <Route path="/content/:platform" element={<BrowseCreatorsPage />} />
-    <Route path="/content/:platform/:channelId" element={<ChannelPage />} />
-    <Route path="/content/:platform/:channelId/new" element={<CreateContractPage />} />
-    <Route path="/content/dashboard" element={<CreatorDashboardPage />} />
-    <Route path="/about" element={<CreatorsLandingPage />} />
+    <Route path="/content" element={<NoninflammatoryCreatorsPage />} />
+    <Route path="/content/dashboard" element={<NoninflammatoryCreatorDashboardPage />} />
+    <Route path="/content/contracts/:projectAddress" element={<NoninflammatoryContractPage />} />
+    <Route path="/content/:platform" element={<NoninflammatoryBrowsePage />} />
+    <Route path="/content/:platform/:channelId" element={<NoninflammatoryChannelPage />} />
+    <Route path="/content/:platform/:channelId/new" element={<NoninflammatoryCreateContractPage />} />
+    <Route path="/about" element={<NoninflammatoryAboutPage />} />
   </>
 )
 

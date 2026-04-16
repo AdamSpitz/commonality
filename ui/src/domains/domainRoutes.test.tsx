@@ -3,10 +3,13 @@ import { MemoryRouter, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { getDomainManifest } from './index'
 
-function renderDomainHome(domainId: 'commonality' | 'content-funding' | 'noninflammatory' | 'movement') {
+function renderDomainRoute(
+  domainId: 'commonality' | 'content-funding' | 'noninflammatory' | 'movement',
+  path = '/',
+) {
   const manifest = getDomainManifest(domainId)
   return render(
-    <MemoryRouter initialEntries={['/']}>
+    <MemoryRouter initialEntries={[path]}>
       <Routes>{manifest.routes}</Routes>
     </MemoryRouter>
   )
@@ -14,7 +17,7 @@ function renderDomainHome(domainId: 'commonality' | 'content-funding' | 'noninfl
 
 describe('domain manifest home routes', () => {
   it('renders the Commonality landing page at the root route', () => {
-    renderDomainHome('commonality')
+    renderDomainRoute('commonality')
 
     expect(
       screen.getByRole('heading', {
@@ -25,7 +28,7 @@ describe('domain manifest home routes', () => {
   })
 
   it('renders the Content Funding landing page at the root route', () => {
-    renderDomainHome('content-funding')
+    renderDomainRoute('content-funding')
 
     expect(
       screen.getByRole('heading', {
@@ -36,7 +39,7 @@ describe('domain manifest home routes', () => {
   })
 
   it('renders the Noninflammatory landing page at the root route', () => {
-    renderDomainHome('noninflammatory')
+    renderDomainRoute('noninflammatory')
 
     expect(
       screen.getByRole('heading', {
@@ -47,7 +50,7 @@ describe('domain manifest home routes', () => {
   })
 
   it('renders the Movement landing page at the root route', () => {
-    renderDomainHome('movement')
+    renderDomainRoute('movement')
 
     expect(
       screen.getByRole('heading', {
@@ -57,5 +60,16 @@ describe('domain manifest home routes', () => {
     expect(
       screen.getAllByRole('link', { name: /browse projects/i }).some((link) => link.getAttribute('href') === '/projects')
     ).toBe(true)
+  })
+
+  it('renders the Noninflammatory about page at /about', () => {
+    renderDomainRoute('noninflammatory', '/about')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /about noninflammatory content/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByText(/the point of this domain is not bland centrism/i)).toBeInTheDocument()
   })
 })

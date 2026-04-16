@@ -25,18 +25,32 @@ const platforms = [
   },
 ]
 
-export function CreatorsLandingPage() {
+interface CreatorsLandingPageProps {
+  title?: string
+  description?: string
+  secondaryDescription?: string
+  learnMoreLabel?: string
+  learnMorePath?: string
+}
+
+export function CreatorsLandingPage({
+  title = 'Creators',
+  description = 'Any piece of content with a URL — a tweet, a YouTube video, a Substack post — can be registered here and funded by people who find it valuable. AI evaluators assess whether content meets a cause\'s quality bar; money flows to creators who pass.',
+  secondaryDescription = 'If you\'re a creator, claim your channel to receive funds directly. If you\'re a supporter, browse below to find creators aligned with the causes you care about.',
+  learnMoreLabel = 'Learn how content funding works',
+  learnMorePath = '/docs/key-ideas/content-funding',
+}: CreatorsLandingPageProps) {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Creators
+        {title}
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 1, maxWidth: 680 }}>
-        Any piece of content with a URL — a tweet, a YouTube video, a Substack post — can be registered here and funded by people who find it valuable. AI evaluators assess whether content meets a cause's quality bar; money flows to creators who pass.
+        {description}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
-        If you're a creator, claim your channel to receive funds directly. If you're a supporter, browse below to find creators aligned with the causes you care about.
+        {secondaryDescription}
       </Typography>
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 4 }}>
@@ -57,8 +71,8 @@ export function CreatorsLandingPage() {
         ))}
       </Stack>
 
-      <Button component={RouterLink} to="/docs/key-ideas/content-funding" variant="text" size="small">
-        Learn how content funding works
+      <Button component={RouterLink} to={learnMorePath} variant="text" size="small">
+        {learnMoreLabel}
       </Button>
     </Box>
   )

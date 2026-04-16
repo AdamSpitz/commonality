@@ -109,7 +109,15 @@ function sortChannels(channels: ChannelWithCanonicalId[], sortBy: SortOption): C
 
 const PLATFORM_ORDER: ContentFundingPlatform[] = ['twitter', 'youtube', 'substack']
 
-export function BrowseCreatorsPage() {
+interface BrowseCreatorsPageProps {
+  title?: string
+  description?: string
+}
+
+export function BrowseCreatorsPage({
+  title = 'Creators',
+  description = 'Any piece of content with a URL can be registered and funded here. Browse by platform to find creators aligned with the causes you care about. If you\'re a creator, claim your channel to receive funds directly.',
+}: BrowseCreatorsPageProps) {
   const { platform } = useParams<{ platform: string }>()
   const navigate = useNavigate()
   const { channels, loading, error } = useContentFundingState()
@@ -154,11 +162,11 @@ export function BrowseCreatorsPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Creators
+        {title}
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2, maxWidth: 680 }}>
-        Any piece of content with a URL can be registered and funded here. Browse by platform to find creators aligned with the causes you care about. If you're a creator, claim your channel to receive funds directly.
+        {description}
       </Typography>
 
       <Tabs

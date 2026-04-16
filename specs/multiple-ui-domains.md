@@ -148,7 +148,7 @@ There is already a single router and shell in `ui/src/App.tsx`, and IPFS-specifi
 
 3. Make the Commonality landing page the default home for the full platform, with clear links into the more focused domains.
 
-#### Phase 3: Specialize content-funding into two branded surfaces
+#### Phase 3: Specialize content-funding into two branded surfaces ✓ DONE
 
 1. Keep the underlying `content-funding` implementation as the shared base.
 
