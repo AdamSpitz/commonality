@@ -4,7 +4,7 @@
 
   - Is there any way to speed up the tests? If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
 
-  - Continue cleaning up the "specs" directory, moving some of it into "docs", etc. Part of the point is to bring the spec up to date with the code and with the latest ideas (or just to delete the parts of the spec that are no longer needed and that are just confusing/redundant/wrong now that we have an actual implementation); some of the stuff in the spec is old and inconsistent with other parts of the spec or the code. I want to be able to tell an AI "go look at the whole system and make sure the whole thing looks complete", but if I tried that now it'd be confusing because the spec is so out of date.
+  - (This might be a big job, so feel free to break it up into chunks if necessary.) Take a look at the "docs" and "specs" directories, and then do a full pass through the code base, checking to see what's implemented and what's not and whether the implementation matches the specs. This might be tricky, because I suspect some parts of the spec are out of date, so part of the point of this is to bring the spec up to date with the code and with the latest ideas (or just to delete the parts of the spec that are no longer needed and that are just confusing/redundant/wrong now that we have an actual implementation); some of the stuff in the spec is old and inconsistent with other parts of the spec or the code.
 
   - We want to [use a stablecoin](./specs/currency.md) instead of ETH. Are we done implementing that?
 
