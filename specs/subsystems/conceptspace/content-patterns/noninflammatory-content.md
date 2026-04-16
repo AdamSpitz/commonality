@@ -17,4 +17,10 @@ Along the lines of the [hidden majority](./hidden-majority.md) idea, these meta-
 
 Here we have the actual concrete [hidden majority](./hidden-majority.md) statements on specific topics.
 
-That is, a major pattern I'm expecting to see in the usage of this noninflammatory-content system is that people on one side write content that says, "Here's a statement in conceptspace describing what I think the common-sense majority on the *other* side should believe, and here's why (in a respectful way)."
+That is, a major pattern I'm expecting to see in the usage of this noninflammatory-content system is that people on one side write content that says, "Here's a statement in conceptspace that I think the common-sense majority on the *other* side might be willing to sign, and here's why (in a respectful way)."
+
+## Noticing the connection between hidden-majority and noninflammatory-content
+
+In fact, now that I think about it, the "noninflammatory content" idea might almost be *part of* the "hidden majority" idea. Maybe not quite. But they're very closely related, anyway.
+
+At any rate, there probably isn't that much [seed content specifically around noninflammatory content](../seed-content/content-funding.md), *other than* the meta-statements described above; the rest of the seed content is simply the [hidden-majority seed content](../seed-content/hidden-majority.md).
