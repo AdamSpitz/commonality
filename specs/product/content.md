@@ -4,11 +4,11 @@ How does content get into the system? Especially early on, when there aren't man
 
 ## Seed statements
 
-See [seed content](./subsystems/conceptspace/seed-content.md).
+See [seed content](../tech/subsystems/conceptspace/seed-content.md).
 
 ## AI-assisted statement discovery
 
-The [conceptspace explorer](subsystems/conceptspace/explorer.md) is the main tool for helping users find, create, and sign statements. Rather than requiring users to browse an empty-looking directory, the AI dynamically suggests statements from the existing set that the user is most likely to agree with.
+The [conceptspace explorer](../tech/subsystems/conceptspace/explorer.md) is the main tool for helping users find, create, and sign statements. Rather than requiring users to browse an empty-looking directory, the AI dynamically suggests statements from the existing set that the user is most likely to agree with.
 
 This doesn't need a static decision tree ("user signed S1, now suggest S2 and S3"). An LLM can look at the full list of existing statements (via the indexer's popular-statements queries), consider what it knows about the user's expressed interests so far, and pick the most relevant ones to surface. As the user signs statements and the LLM learns more about their views, the suggestions get more targeted.
 

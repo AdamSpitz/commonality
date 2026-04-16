@@ -31,7 +31,7 @@ Content Funding is built on Commonality's pubstarter infrastructure. Content con
 
 Built on Content Funding, focused specifically on the noninflammatory evaluation criteria: content that communicates perspectives from one side in a way that's engaging rather than alienating to the other side.
 
-This is separate from Common Sense Majority because some people are interested in producing/funding/promoting noninflammatory content without necessarily wanting to join a political movement. But the two are closely related — almost by definition, noninflammatory content is meant to function as a statement that the other side can sign, which implies a commonality statement. Writing noninflammatory content is the *mechanism* by which [hidden majorities](./subsystems/conceptspace/content-patterns/hidden-majority.md) get revealed.
+This is separate from Common Sense Majority because some people are interested in producing/funding/promoting noninflammatory content without necessarily wanting to join a political movement. But the two are closely related — almost by definition, noninflammatory content is meant to function as a statement that the other side can sign, which implies a commonality statement. Writing noninflammatory content is the *mechanism* by which [hidden majorities](./tech/subsystems/conceptspace/content-patterns/hidden-majority.md) get revealed.
 
 **What the site contains:**
 - Landing page: "Are you sick of the usual polarized bullshit? This is a site where we explicitly reward building bridges." Lean into the political angle — that's the whole point. Two CTAs: "Browse Content" | "I'm a Creator."
@@ -54,7 +54,7 @@ This is separate from Common Sense Majority because some people are interested i
 
 ### 4. Common Sense Majority
 
-The movement site. The [hidden majority](./subsystems/conceptspace/content-patterns/hidden-majority.md) thesis is that on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. This site is about making those hidden majorities visible and organizing around them.
+The movement site. The [hidden majority](./tech/subsystems/conceptspace/content-patterns/hidden-majority.md) thesis is that on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. This site is about making those hidden majorities visible and organizing around them.
 
 Noninflammatory Content is a major component — it's the primary mechanism for surfacing hidden-majority positions. But Common Sense Majority is broader: it also uses Commonality's funding infrastructure for the movement's own projects (organizing, advocacy, etc.), not just content funding.
 

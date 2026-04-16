@@ -21,26 +21,26 @@ See [here](/docs/key-ideas/README.md).
 ## Main components
 
 The overall system can be broken down into subsystems:
-  - [pubstarter](subsystems/pubstarter/README.md): individual "projects" (Kickstarter-style assurance contracts, implemeneted as ERC-1155 tokens; importantly, these tokens can be resold on secondary markets, enabling profit-seeking investors to supply early funds and then exit by selling to altruistic donors later).
-  - [delegation](subsystems/delegation/README.md): donors can create "delegatable notes" to let trusted individuals make funding decisions on their behalf (with composable, revocable delegation chains).
-  - [conceptspace](subsystems/conceptspace/README.md): statements, beliefs, and AI-generated implication relationships. Used for declaring a project's alignment ("project P is aligned with statement S") and for declaring a delegatable-note's intended purpose ("this note is intended to be donated to projects aligned with statement S").
+  - [pubstarter](tech/subsystems/pubstarter/README.md): individual "projects" (Kickstarter-style assurance contracts, implemeneted as ERC-1155 tokens; importantly, these tokens can be resold on secondary markets, enabling profit-seeking investors to supply early funds and then exit by selling to altruistic donors later).
+  - [delegation](tech/subsystems/delegation/README.md): donors can create "delegatable notes" to let trusted individuals make funding decisions on their behalf (with composable, revocable delegation chains).
+  - [conceptspace](tech/subsystems/conceptspace/README.md): statements, beliefs, and AI-generated implication relationships. Used for declaring a project's alignment ("project P is aligned with statement S") and for declaring a delegatable-note's intended purpose ("this note is intended to be donated to projects aligned with statement S").
     - Importantly, the system allows the (probably AI-assisted) creation of a web of implication arrows, so that a project can be attested to be aligned with S1 and a note can be intended for S2 and the system can notice that S1 -> S2 and so the project is a suitable candidate for that note.
     - As a somewhat-unrelated purpose, individuals can also "sign" statement S, so the statement's page can show the number of supporters (of S or any other statement S2 such that S2 -> S). Not directly related to funding, but a useful other purpose of the conceptspace system.
-  - [fundingportals](subsystems/fundingportals/README.md): Each statement has a funding portal showing projects aligned with that statement. (Projects inherit alignment through the implication graph, so submitters don't need to worry about exact statement matching.) The system provides transparency and social recognition by displaying contributor leaderboards and full delegation chains.
+  - [fundingportals](tech/subsystems/fundingportals/README.md): Each statement has a funding portal showing projects aligned with that statement. (Projects inherit alignment through the implication graph, so submitters don't need to worry about exact statement matching.) The system provides transparency and social recognition by displaying contributor leaderboards and full delegation chains.
 
 ## Tech choices
 
-See [shared/tech.md](shared/tech.md) for details on tech choices and rationale, but the basic idea is that this is a decentralized app: Ethereum L2, IPFS, very thin indexer (no business logic, a bit unusual) built using Ponder, UI served via IPFS.
+See [tech/shared/tech.md](tech/shared/tech.md) for details on tech choices and rationale, but the basic idea is that this is a decentralized app: Ethereum L2, IPFS, very thin indexer (no business logic, a bit unusual) built using Ponder, UI served via IPFS.
 
 ## AI skills
 
 There can be various AI skills to aid in (or partially automate) using various aspects of the system.
 
-See [ai-assistance.md](ai-assistance.md) for more info.
+See [product/ai-assistance.md](product/ai-assistance.md) for more info.
 
 ## Artifacts
 
-See [artifacts](./artifacts.md), but:
+See [artifacts](tech/artifacts.md), but:
   - four subsystems are independent of each other: Concept Space, Pubstarter, Marketplace, Delegation
   - and then there's a fundingportals subsystem that integrates them
   - plus there are some services deployed separately
@@ -50,24 +50,32 @@ See [artifacts](./artifacts.md), but:
 The primary integration point between subsystems is the smart contracts in `hardhat/`. Most user actions are onchain transactions that emit events. The indexer exposes `GET /api/events` (filtered by contract address, event name, topic); the SDK's `eventCacheClient.ts` wraps this. All data shaping happens via SDK fold functions, not in the indexer.
 
 See each subsystem's spec directory for implementation details. Key cross-cutting docs:
-  - [Conceptspace smart contracts, data flow, and UI](subsystems/conceptspace/README.md)
-  - [Funding Portal smart contracts and data flow](subsystems/fundingportals/README.md)
-  - [Implication Attester AI](subsystems/conceptspace/implication-attester-ai.md)
-  - [Statements](subsystems/conceptspace/statements.md)
-  - [Indexer](./indexer/README.md)
-  - [Conceptspace queries and actions](subsystems/conceptspace/queries-and-actions.md)
-  - [Funding Portal queries and actions](subsystems/fundingportals/queries-and-actions.md)
+  - [Conceptspace smart contracts, data flow, and UI](tech/subsystems/conceptspace/README.md)
+  - [Funding Portal smart contracts and data flow](tech/subsystems/fundingportals/README.md)
+  - [Implication Attester AI](tech/subsystems/conceptspace/implication-attester-ai.md)
+  - [Statements](tech/subsystems/conceptspace/statements.md)
+  - [Indexer](tech/indexer/README.md)
+  - [Conceptspace queries and actions](tech/subsystems/conceptspace/queries-and-actions.md)
+  - [Funding Portal queries and actions](tech/subsystems/fundingportals/queries-and-actions.md)
 
 ## Additional documentation
 
 - [Vision and strategy](/docs/vision-and-strategy/README.md) - Goes deeper on the motivation: detailed comparison with government and private charity, why every piece of the system avoids requiring coordination, concrete pitches to different types of users (donors, project creators, delegates), censorship resistance, and the "won't this be used for evil?" question. If you're an AI whose job is just to implement the spec, you probably don't need to read it. But it's there if you're thinking about the big picture.
-- [scalability](scalability.md) - How each component is expected to scale, and potential bottlenecks
-- [security and abuse-prevention](./security.md)
-- [testing](./testing/README.md)
-- [docs/](docs/README.md) - Structure and design decisions for user-facing documentation (the plan from which actual docs are generated)
-- [chats/](chats/) - Directory containing meeting notes and transcripts from planning sessions (preserved for historical context but not necessary for implementation)
-- [bridges.md](bridges.md) - Fiat bridge implementation: Stripe flow, ETH conversion options, licensed third-party services (Transak, Wert, Crossmint), refunds
-- [content.md](content.md) - Content bootstrapping: seed statements, AI-assisted discovery, handling the empty-field problem
-- [mvp.md](mvp.md) - MVP planning notes and entry-point descriptions
-- [future.md](future.md) - post-MVP planning notes
-- [ai-assisted-development.md](ai-assisted-development.md) - Notes on the AI-assisted development process used to build this project
+**Technical:**
+- [tech/scalability.md](tech/scalability.md) - How each component is expected to scale, and potential bottlenecks
+- [tech/security.md](tech/security.md) - Security and abuse prevention
+- [tech/bridges.md](tech/bridges.md) - Fiat bridge implementation: Stripe flow, ETH conversion options, licensed third-party services (Transak, Wert, Crossmint), refunds
+
+**Product:**
+- [product/mvp.md](product/mvp.md) - MVP planning notes and entry-point descriptions
+- [product/future.md](product/future.md) - Post-MVP planning notes
+- [product/content.md](product/content.md) - Content bootstrapping: seed statements, AI-assisted discovery, handling the empty-field problem
+- [product/ai-assistance.md](product/ai-assistance.md) - AI skills for helping users navigate the system
+
+**Dev:**
+- [dev/testing/](dev/testing/README.md) - Test strategy
+- [dev/ai-assisted-development.md](dev/ai-assisted-development.md) - Notes on the AI-assisted development process used to build this project
+
+**Other:**
+- [/ROLES.md](/ROLES.md) - Guide to which docs each role should read
+- [/docs/chats/](/docs/chats/) - Meeting notes and transcripts from planning sessions (historical context, not needed for implementation)

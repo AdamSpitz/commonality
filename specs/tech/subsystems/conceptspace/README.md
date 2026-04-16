@@ -1,6 +1,8 @@
 # Concept Space
 
-## The core idea
+For the user-facing explanation of what Concept Space is and why it exists, see [docs/key-ideas/statements-and-implication-graph.md](/docs/key-ideas/statements-and-implication-graph.md).
+
+## The core idea (technical)
 
   - Users can create (by uploading to IPFS) immutable "statements" representing concepts/ideas/causes.
   - Each statement is a displayable document, as described in displayable-documents.md.

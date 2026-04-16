@@ -1,6 +1,6 @@
 # What's in the MVP?
 
-See also [future](./future.md), for stuff to do after the MVP.
+> **Out of date.** This document contains March 2026 thinking-out-loud notes that haven't been updated to reflect the current state of the project. Treat it as historical context only. See also [future](./future.md) for post-MVP planning notes.
 
 ## March 2026: thinking it through
 It's been a while since we started this project, and most of the code has been written by AI so I'm not really super-in-touch with it, and also I've just kinda gotten lost in the details of implementing and I've lost touch with the overall vision.
