@@ -26,6 +26,7 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { AddressDisplay } from '../../shared/components/AddressDisplay'
 import AddIcon from '@mui/icons-material/Add'
+import { loadTwitterHandleHint } from '../twitterHandleHints'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -55,6 +56,7 @@ export function UserProfilePage() {
 
   const displayAddress = address || connectedAddress
   const isOwnProfile = !address || address === connectedAddress
+  const twitterHandleHint = displayAddress ? loadTwitterHandleHint(displayAddress) ?? undefined : undefined
 
   const [tabValue, setTabValue] = useState(0)
   const [beliefs, setBeliefs] = useState<StatementListItem[]>([])
@@ -259,7 +261,12 @@ export function UserProfilePage() {
       </Box>
 
       <Paper sx={{ p: 2, mb: 3 }}>
-        <AddressDisplay address={displayAddress} showFullAddress variant="h6" />
+        <AddressDisplay
+          address={displayAddress}
+          showFullAddress
+          variant="h6"
+          twitterHandleHint={isOwnProfile ? twitterHandleHint : undefined}
+        />
       </Paper>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

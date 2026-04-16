@@ -1,23 +1,68 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SettingsPage } from './SettingsPage'
 
 vi.mock('wagmi', () => ({
-  useAccount: () => ({ address: undefined, isConnected: false }),
+  useAccount: vi.fn(() => ({ address: undefined, isConnected: false })),
   useWalletClient: () => ({ data: undefined }),
   usePublicClient: () => undefined,
 }))
 
+vi.mock('@commonality/sdk', async () => {
+  const actual = await vi.importActual('@commonality/sdk')
+  return {
+    ...actual,
+    getUserSocialData: vi.fn().mockResolvedValue({
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+      isTwitterVerified: false,
+      socialDataFetched: true,
+    }),
+  }
+})
+
+vi.mock('../../content-funding/hooks/useClaimFlow', () => ({
+  useClaimFlow: vi.fn(() => ({
+    getChallenge: vi.fn(),
+    confirmVerification: vi.fn(),
+    loading: false,
+    error: null,
+    clearError: vi.fn(),
+  })),
+}))
+
+vi.mock('../../shared/hooks/useMachinery', () => ({
+  useMachinery: vi.fn(() => MOCK_MACHINERY),
+}))
+
+import { useAccount } from 'wagmi'
+import { getUserSocialData } from '@commonality/sdk'
+import { useClaimFlow } from '../../content-funding/hooks/useClaimFlow'
+
 const TRUSTED_ATTESTERS_KEY = 'commonality:trustedAttesters'
+const TWITTER_HANDLE_HINTS_KEY = 'commonality:twitterHandleHints'
 const VALID_ADDRESS_1 = '0x1234567890abcdef1234567890abcdef12345678'
 const VALID_ADDRESS_2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
 const VALID_ADDRESS_MIXED_CASE = '0xABCDEF1234567890abcdef1234567890ABCDEF12'
+const MOCK_MACHINERY = {}
 
 describe('SettingsPage', () => {
   beforeEach(() => {
     localStorage.clear()
     vi.restoreAllMocks()
+    vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
+    vi.mocked(getUserSocialData).mockResolvedValue({
+      address: VALID_ADDRESS_1,
+      isTwitterVerified: false,
+      socialDataFetched: true,
+    } as any)
+    vi.mocked(useClaimFlow).mockReturnValue({
+      getChallenge: vi.fn(),
+      confirmVerification: vi.fn(),
+      loading: false,
+      error: null,
+      clearError: vi.fn(),
+    } as any)
   })
 
   describe('Initial rendering', () => {
@@ -61,6 +106,69 @@ describe('SettingsPage', () => {
       render(<SettingsPage />)
 
       expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('Twitter linking', () => {
+    it('prompts the user to connect a wallet before linking Twitter', () => {
+      render(<SettingsPage />)
+
+      expect(screen.getByText(/connect your wallet to link your twitter/i)).toBeInTheDocument()
+    })
+
+    it('loads a saved Twitter handle hint for the connected wallet', async () => {
+      localStorage.setItem(TWITTER_HANDLE_HINTS_KEY, JSON.stringify({
+        [VALID_ADDRESS_1.toLowerCase()]: '@alice',
+      }))
+      vi.mocked(useAccount).mockReturnValue({ address: VALID_ADDRESS_1, isConnected: true } as any)
+
+      render(<SettingsPage />)
+
+      expect(await screen.findByDisplayValue('@alice')).toBeInTheDocument()
+    })
+
+    it('requests a verification challenge and confirms the Twitter link', async () => {
+      const user = userEvent.setup()
+      const getChallenge = vi.fn().mockResolvedValue({
+        nonce: 'nonce-123',
+        verificationPostTemplate: 'Claiming my funded content #commonality-nonce-123',
+      })
+      const confirmVerification = vi.fn().mockResolvedValue({ txHash: '0xtx', observedPostId: '1' })
+
+      vi.mocked(useAccount).mockReturnValue({ address: VALID_ADDRESS_1, isConnected: true } as any)
+      vi.mocked(useClaimFlow).mockReturnValue({
+        getChallenge,
+        confirmVerification,
+        loading: false,
+        error: null,
+        clearError: vi.fn(),
+      } as any)
+      vi.mocked(getUserSocialData)
+        .mockResolvedValueOnce({
+          address: VALID_ADDRESS_1,
+          twitterHandle: '@alice',
+          isTwitterVerified: true,
+          twitterAssociationSource: 'channel-registry',
+          socialDataFetched: true,
+        } as any)
+
+      render(<SettingsPage />)
+
+      await user.type(screen.getByLabelText(/twitter \/ x handle/i), '@alice')
+      await user.click(screen.getByRole('button', { name: /get verification tweet/i }))
+
+      expect(getChallenge).toHaveBeenCalledWith('twitter', '@alice', VALID_ADDRESS_1)
+      expect(await screen.findByDisplayValue(/claiming my funded content/i)).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: /i tweeted it/i }))
+
+      await waitFor(() => {
+        expect(confirmVerification).toHaveBeenCalledWith('nonce-123')
+      })
+      expect(await screen.findByText(/linked via channel registry as @alice/i)).toBeInTheDocument()
+
+      const storedHints = JSON.parse(localStorage.getItem(TWITTER_HANDLE_HINTS_KEY)!)
+      expect(storedHints[VALID_ADDRESS_1.toLowerCase()]).toBe('@alice')
     })
   })
 

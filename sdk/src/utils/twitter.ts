@@ -6,6 +6,7 @@ export type TwitterApiConfig = {
   // Uses twitterapi.io (not the official Twitter API, which is very expensive)
   // TODO: we're gonna switch to using the real Twitter API; it's not expensive anymore.
   twitterApiDotIoApiKey: string; // API key for twitterapi.io
+  platformApiBaseUrl?: string;
 }
 
 // ENS is always on Ethereum mainnet
@@ -19,6 +20,14 @@ export interface AddressSocialData {
   twitterHandle?: string;
   twitterFollowerCount?: number;
   isTwitterVerified: boolean;
+}
+
+function normalizeTwitterHandle(handle: string): string | undefined {
+  const trimmed = handle.trim();
+  if (!trimmed) return undefined;
+
+  const prefixed = trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+  return /^@[A-Za-z0-9_]{1,15}$/.test(prefixed) ? prefixed : undefined;
 }
 
 async function resolveEnsName(address: string): Promise<string | null> {
@@ -35,21 +44,30 @@ async function fetchTwitterHandleFromEns(ensName: string): Promise<string | unde
   try {
     // @ts-expect-error - viem type inference issue with publicClient
     const handle = await getEnsText(mainnetClient, { name: ensName, key: 'com.twitter' });
-    return handle || undefined;
+    return handle ? normalizeTwitterHandle(handle) : undefined;
   } catch (error) {
     console.warn(`Failed to get ENS text records for ${ensName}:`, error);
     return undefined;
   }
 }
 
-async function fetchFollowerCount(config: TwitterApiConfig, handle: string): Promise<number | undefined> {
+export async function fetchFollowerCountForTwitterHandle(
+  config: TwitterApiConfig,
+  handle: string,
+): Promise<number | undefined> {
   if (!config.twitterApiDotIoApiKey) {
     console.warn('X_API_KEY not set; skipping Twitter follower count fetch');
     return undefined;
   }
+
+  const normalizedHandle = normalizeTwitterHandle(handle);
+  if (!normalizedHandle) {
+    return undefined;
+  }
+
   try {
     // Uses twitterapi.io (not the official Twitter API, which is very expensive)
-    const response = await fetch(`https://api.twitterapi.io/twitter/user/info?userName=${handle}`, {
+    const response = await fetch(`https://api.twitterapi.io/twitter/user/info?userName=${normalizedHandle.slice(1)}`, {
       headers: { 'X-API-Key': config.twitterApiDotIoApiKey, 'Content-Type': 'application/json' },
     });
     const data = await response.json() as { data?: { followers?: number } };
@@ -66,7 +84,9 @@ export async function fetchAddressSocialData(config: TwitterApiConfig, address: 
   if (!ensName) return { isTwitterVerified: false };
 
   const twitterHandle = await fetchTwitterHandleFromEns(ensName);
-  const twitterFollowerCount = twitterHandle ? await fetchFollowerCount(config, twitterHandle) : undefined;
+  const twitterFollowerCount = twitterHandle
+    ? await fetchFollowerCountForTwitterHandle(config, twitterHandle)
+    : undefined;
 
   // TODO: check ENS verification status
   // see https://support.ens.domains/en/articles/9626402-profile-verification

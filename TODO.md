@@ -11,18 +11,6 @@
 
 ## Other things to do soon
 
-  - Unify the two Twitter↔Ethereum address association mechanisms. Currently there are two separate ways an address gets linked to a Twitter account:
-    1. **Channel registry** (content-funding): on-chain, via `ChannelRegistry.verifyChannel`. The user tweets a challenge code (coordinated by the platform-api-service), the platform signs a proof, and the association is stored in `ChannelVerified` events as `keccak256("twitter:uid:<UID>") → owner address`.
-    2. **ENS** (conceptspace): off-chain, via `getEnsText(address, 'com.twitter')`. Used in `getUserSocialData` in `sdk/src/subsystems/conceptspace/queries.ts`, which is called by `getHighProfileSigners` and `AddressDisplay`.
-    
-    The goal: a single association (via either mechanism) should work for both contexts.
-    
-    The channel registry is the more robust mechanism. The conceptspace UI should get a "Link your Twitter account" form that reuses the **existing** content-funding claim flow (platform-api-service challenge + `channelRegistry.verifyChannel`). Once linked, `getUserSocialData` can check the channel registry: the user provides their handle → platform-api resolves it to a UID → compute the channelId hash → look it up in the channel registry events → if found and owner matches, we have the association.
-    
-    Note: the hash reversal problem (can't go from channelId hash → canonical string without content items) doesn't apply to this active-lookup flow, since the user provides the handle upfront.
-
-
-
   - See [Multiple UI domains](specs/multiple-ui-domains.md).
   
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?

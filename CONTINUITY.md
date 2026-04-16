@@ -52,3 +52,34 @@
   5. `npm test --workspace=integration-tests -- --grep "Funding Portal"`
 - Result after the clean reset: funding-portal integration slice passed (`12 passing, 1 pending`).
 - Earlier failures before the reset were due to dirty accumulated local chain/indexer state, not the SDK change itself.
+
+## 2026-04-16: Twitter / Ethereum association unification completed
+
+- Completed the `TODO.md` task to unify the Twitter↔Ethereum association mechanisms between conceptspace and content-funding.
+- Key decisions:
+  - Kept ENS lookup support in `getUserSocialData`, but added an active channel-registry lookup path that uses a user-provided Twitter handle plus the existing platform API `/resolve/channel` endpoint.
+  - Reused the existing content-funding verification flow in conceptspace Settings rather than inventing a second linking mechanism.
+  - Persisted per-address Twitter handle hints in UI localStorage so a connected user's own conceptspace profile can continue to resolve the channel-registry association after linking.
+- Files changed:
+  - `sdk/src/utils/twitter.ts`
+  - `sdk/src/config-node.ts`
+  - `sdk/src/subsystems/conceptspace/queries.ts`
+  - `sdk/src/subsystems/conceptspace/types.ts`
+  - `sdk/src/subsystems/content-funding/queries.ts`
+  - `sdk/src/subsystems/content-funding/queries.test.ts`
+  - `ui/src/shared/hooks/useMachinery.ts`
+  - `ui/src/shared/components/AddressDisplay.tsx`
+  - `ui/src/conceptspace/pages/SettingsPage.tsx`
+  - `ui/src/conceptspace/pages/SettingsPage.test.tsx`
+  - `ui/src/conceptspace/pages/UserProfilePage.tsx`
+  - `ui/src/conceptspace/twitterHandleHints.ts`
+  - `README.md`
+  - `TODO.md`
+- Verification:
+  - `npm run test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`
+  - `npm run test --workspace=ui -- src/conceptspace/pages/SettingsPage.test.tsx`
+  - `npm run build --workspace=ui`
+- Notes for the next iteration:
+  - The channel-registry path is still an active lookup, not a reverse lookup. It works when conceptspace has a Twitter handle hint (for example from Settings/localStorage), but it still cannot derive arbitrary third-party handles from the on-chain channel hash alone.
+- Interrupt point:
+  - Yes. This is a clean stopping point after a coherent feature slice, so a broader review or another TODO task would fit well next.

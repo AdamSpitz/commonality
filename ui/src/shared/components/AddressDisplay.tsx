@@ -8,6 +8,7 @@ interface AddressDisplayProps {
   /** Show the full address below the ENS name */
   showFullAddress?: boolean
   variant?: 'body1' | 'body2' | 'h6' | 'subtitle1'
+  twitterHandleHint?: string
 }
 
 /**
@@ -15,17 +16,23 @@ interface AddressDisplayProps {
  * Shows "ensname.eth" as the primary display with the address in a tooltip.
  * Falls back to the raw address if no ENS name is found.
  */
-export function AddressDisplay({ address, showFullAddress = false, variant = 'body2' }: AddressDisplayProps) {
+export function AddressDisplay({
+  address,
+  showFullAddress = false,
+  variant = 'body2',
+  twitterHandleHint,
+}: AddressDisplayProps) {
   const machinery = useMachinery()
   const [socialData, setSocialData] = useState<UserSocialData | null>(null)
 
   useEffect(() => {
-    getUserSocialData(machinery, address)
+    getUserSocialData(machinery, address, { twitterHandleHint })
       .then(setSocialData)
       .catch(() => {}) // silently fail — just show the address
-  }, [machinery, address])
+  }, [machinery, address, twitterHandleHint])
 
   const ensName = socialData?.ensName
+  const twitterHandle = socialData?.twitterHandle
 
   if (ensName) {
     return (
@@ -33,6 +40,23 @@ export function AddressDisplay({ address, showFullAddress = false, variant = 'bo
         <Tooltip title={address} arrow>
           <Typography variant={variant} sx={{ fontWeight: 500 }}>
             {ensName}
+          </Typography>
+        </Tooltip>
+        {showFullAddress && (
+          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+            {address}
+          </Typography>
+        )}
+      </Box>
+    )
+  }
+
+  if (twitterHandle) {
+    return (
+      <Box>
+        <Tooltip title={address} arrow>
+          <Typography variant={variant} sx={{ fontWeight: 500 }}>
+            {twitterHandle}
           </Typography>
         </Tooltip>
         {showFullAddress && (

@@ -14,6 +14,7 @@ import {
   selectLatestContentAttestations,
   getContentItemStatus,
   getContractsForChannel,
+  getOwnerForCanonicalChannelId,
   getVetoableContracts,
 } from './queries.js';
 import type { Project } from '../pubstarter/types.js';
@@ -239,6 +240,12 @@ describe('content-funding query helpers', () => {
     const vetoed = contracts.find((contract) => contract.contractAddress === CONTRACT_C);
     assert.ok(vetoed);
     assert.strictEqual(vetoed.status, 'vetoed');
+  });
+
+  it('looks up the current owner from a canonical channel ID', () => {
+    assert.strictEqual(getOwnerForCanonicalChannelId(state, CHANNEL_A), OWNER_A);
+    assert.strictEqual(getOwnerForCanonicalChannelId(state, CHANNEL_B), OWNER_B);
+    assert.strictEqual(getOwnerForCanonicalChannelId(state, 'twitter:uid:missing'), null);
   });
 
   it('builds a channel overview from folded state', () => {

@@ -22,8 +22,9 @@ import {
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
-import { fetchAddressSocialData } from '../../utils/twitter.js';
+import { fetchAddressSocialData, fetchFollowerCountForTwitterHandle } from '../../utils/twitter.js';
 import { SDKMachinery } from '../../machinery.js';
+import { fetchAndFoldContentFundingState, getOwnerForCanonicalChannelId } from '../content-funding/queries.js';
 
 // ============================================================================
 // Type Definitions
@@ -1047,18 +1048,100 @@ export async function getHighProfileSigners(
  */
 export async function getUserSocialData(
   _machinery: SDKMachinery,
-  address: string
+  address: string,
+  options: {
+    twitterHandleHint?: string;
+  } = {},
 ): Promise<UserSocialData | null> {
   const data = await fetchAddressSocialData(_machinery.twitterApiConfig, address);
+  const verifiedAssociation = await resolveTwitterAssociationViaChannelRegistry(
+    _machinery,
+    address,
+    options.twitterHandleHint ?? data.twitterHandle,
+  );
+  const twitterHandle = verifiedAssociation?.twitterHandle ?? data.twitterHandle;
+  const twitterFollowerCount = verifiedAssociation && data.twitterFollowerCount === undefined
+    ? await fetchFollowerCountForTwitterHandle(_machinery.twitterApiConfig, verifiedAssociation.twitterHandle)
+    : data.twitterFollowerCount;
+
   return {
     address,
     ensName: data.ensName,
-    twitterHandle: data.twitterHandle,
-    twitterFollowerCount: data.twitterFollowerCount,
-    isTwitterVerified: data.isTwitterVerified,
+    twitterHandle,
+    twitterFollowerCount,
+    isTwitterVerified: verifiedAssociation !== null || data.isTwitterVerified,
+    twitterAssociationSource: verifiedAssociation !== null
+      ? 'channel-registry'
+      : data.twitterHandle
+        ? 'ens'
+        : undefined,
     socialDataFetched: true,
     fetchedAt: new Date().toISOString(),
   };
 }
 
+function normalizeTwitterHandleHint(handle: string): string {
+  const trimmed = handle.trim();
+  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+}
+
+interface ResolvedTwitterChannel {
+  channelId: string;
+  handle?: string;
+}
+
+async function resolveTwitterChannelAssociation(
+  machinery: SDKMachinery,
+  handle: string,
+): Promise<ResolvedTwitterChannel | null> {
+  const baseUrl = machinery.twitterApiConfig.platformApiBaseUrl;
+  if (!baseUrl) {
+    return null;
+  }
+
+  const response = await fetch(`${baseUrl}/resolve/channel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      platform: 'twitter',
+      handle: normalizeTwitterHandleHint(handle),
+    }),
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const resolved = await response.json() as ResolvedTwitterChannel;
+  return typeof resolved.channelId === 'string' ? resolved : null;
+}
+
+async function resolveTwitterAssociationViaChannelRegistry(
+  machinery: SDKMachinery,
+  address: string,
+  handleHint?: string,
+): Promise<{ twitterHandle: string } | null> {
+  if (!handleHint) {
+    return null;
+  }
+
+  const contentFunding = await fetchAndFoldContentFundingState(machinery);
+  if (!contentFunding) {
+    return null;
+  }
+
+  const resolvedChannel = await resolveTwitterChannelAssociation(machinery, handleHint);
+  if (!resolvedChannel?.channelId) {
+    return null;
+  }
+
+  const owner = getOwnerForCanonicalChannelId(contentFunding.state, resolvedChannel.channelId);
+  if (!owner || owner.toLowerCase() !== address.toLowerCase()) {
+    return null;
+  }
+
+  return {
+    twitterHandle: normalizeTwitterHandleHint(resolvedChannel.handle ?? handleHint),
+  };
+}
 

@@ -158,6 +158,8 @@ export interface UserSocialData {
   twitterFollowerCount?: number;
   /** Whether the linked Twitter account is verified. */
   isTwitterVerified: boolean;
+  /** Which association mechanism produced the Twitter link, if any. */
+  twitterAssociationSource?: 'ens' | 'channel-registry';
   /** Whether social data has been fetched (always true in query results). */
   socialDataFetched: boolean;
   /** ISO 8601 timestamp of when the data was fetched. */

@@ -30,6 +30,7 @@ import {
   decodeWithdrawnEvent,
   decodeCreatorContractCreatedEvent,
 } from '../../utils/eventDecoder.js';
+import { hashCanonicalId } from './canonicalization.js';
 
 /** Default veto window: 7 days in seconds. */
 export const DEFAULT_VETO_WINDOW_SECONDS = 7n * 24n * 60n * 60n;
@@ -415,6 +416,25 @@ export function buildChannelCanonicalIdMap(state: ContentFundingState): Map<stri
     }
   }
   return map;
+}
+
+/**
+ * Return the current owner for a human-readable canonical channel ID.
+ *
+ * This works for both `verified` and `creator-controlled` channels because the
+ * folded registry state always keeps the current owner address.
+ *
+ * @param state - Pre-folded ContentFundingState
+ * @param canonicalChannelId - Human-readable channel ID (e.g. `"twitter:uid:12345"`)
+ * @returns Owner address, or null if the channel is unclaimed
+ */
+export function getOwnerForCanonicalChannelId(
+  state: ContentFundingState,
+  canonicalChannelId: string,
+): string | null {
+  const channel = state.channelRegistry.channels.get(hashCanonicalId(canonicalChannelId))
+    ?? state.channelRegistry.channels.get(canonicalChannelId);
+  return channel?.owner ?? null;
 }
 
 // ============================================================================
