@@ -31,15 +31,13 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
 - `dist/noninflammatory/`
 - `dist/movement/`
 
-When you start the local docker-compose stack via `./services.sh --start`, a one-shot `ui-ipfs-publisher` service builds this IPFS-friendly bundle inside its own container image and adds it to the local IPFS node. The latest CID and gateway URL are written to `./data/ui-ipfs/`, and that IPFS URL is now the primary local entry point for the app.
+When you start the local docker-compose stack via `./services.sh --start`, four one-shot `ui-ipfs-publisher-<domain>` services build each domain's IPFS-friendly bundle in parallel and add them to the local IPFS node. The CIDs and gateway URLs are written to `./data/ui-ipfs/<domain>/`, and those IPFS URLs are the primary local entry points for the app.
 
 ## Code organization
 
 We use the "sdk" code at the root of this Git repo, for user actions and queries. (See sdk/README.md.) The idea is to share code with the integration tests and any other client code we may eventually have. (If you find yourself implementing any significant complexity in the UI code regarding queries or user actions, please make those changes in the UI code instead, and write integration-tests for your changes too.)
 
-This UI code should be structured into four "logical" UI apps (which may eventually be split into separate physical apps): conceptspace, pubstarter, delegation, fundingportal. So let's have src/conceptspace, src/pubstarter, etc. Put shared stuff into src/shared.
-
- (The code may not yet be structured this way; AI, please just reorganize it in this way if you see that it needs to be done.)
+The UI is structured into feature modules (conceptspace, pubstarter, delegation, fundingportal, content-funding) plus per-domain manifests under `src/domains/`. Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the full picture.
 
 
 ## UI components that have been implemented

@@ -6,7 +6,7 @@
 #   ./services.sh --start   # Start services (preserves existing data)
 #   ./services.sh --stop    # Stop services (preserves existing data)
 #   ./services.sh --status  # Show whether services are running
-#   ./services.sh --url     # Print the current SPA URL
+#   ./services.sh --url     # Print the current SPA URLs for all domains
 #
 # Note: This script isn't much more than a thin wrapper around
 # docker-compose; it's fine to just use docker-compose directly
@@ -33,7 +33,7 @@ show_usage() {
     echo "  --start   Start services (preserves existing data)"
     echo "  --stop    Stop services (preserves existing data)"
     echo "  --status  Show whether services are running"
-    echo "  --url     Print the current SPA URL"
+    echo "  --url     Print the current SPA URLs for all domains"
     echo "  --help    Show this help message"
     echo ""
     echo "Data is stored in $DATA_DIR/. Use data.sh to manage it."
@@ -85,111 +85,99 @@ check_existing_containers() {
     fi
 }
 
-print_spa_url() {
-    local spa_file="$UI_IPFS_ARTIFACT_DIR/spa-url.txt"
-    local gateway_file="$UI_IPFS_ARTIFACT_DIR/gateway-url.txt"
-    local raw_url
-
-    normalize_spa_url() {
-        local url="$1"
-        if [[ "$url" == */commonality-ui/#/ ]]; then
-            printf '%s\n' "$url"
-            return 0
+print_spa_urls() {
+    local found=false
+    for domain in commonality content-funding noninflammatory movement; do
+        local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
+        if [ -f "$spa_file" ]; then
+            printf "  %-22s %s\n" "$domain" "$(cat "$spa_file")"
+            found=true
         fi
+    done
 
-        if [[ "$url" == */#/ ]]; then
-            printf '%scommonality-ui/#/\n' "${url%#*/}"
-            return 0
-        fi
-
-        printf '%s\n' "$url"
-    }
-
-    if [ -f "$spa_file" ]; then
-        raw_url=$(cat "$spa_file")
-        normalize_spa_url "$raw_url"
-        return 0
+    if ! $found; then
+        echo "Error: no SPA URL artifacts found in $UI_IPFS_ARTIFACT_DIR/." >&2
+        echo "Run './services.sh --start' first." >&2
+        return 1
     fi
-
-    if [ -f "$gateway_file" ]; then
-        raw_url=$(cat "$gateway_file")
-        normalize_spa_url "$raw_url"
-        return 0
-    fi
-
-    echo "Error: no SPA URL artifact found in $UI_IPFS_ARTIFACT_DIR." >&2
-    echo "Run './services.sh --start' first." >&2
-    return 1
 }
 
 wait_for_spa_gateway() {
-    local spa_url
-    spa_url=$(print_spa_url)
-    local entrypoint_url="${spa_url%#*}index.html"
+    echo "Waiting for the local IPFS gateway to serve all domain SPAs..."
     local max_attempts=30
-    local attempt=1
 
-    echo "Waiting for the local IPFS gateway to serve the SPA entrypoint..."
+    for domain in commonality content-funding noninflammatory movement; do
+        local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
+        [ -f "$spa_file" ] || continue
 
-    while [ "$attempt" -le "$max_attempts" ]; do
-        if curl --silent --show-error --fail "$entrypoint_url" >/dev/null; then
-            return 0
+        local spa_url entrypoint_url attempt
+        spa_url=$(cat "$spa_file")
+        entrypoint_url="${spa_url%#*}index.html"
+        attempt=1
+
+        while [ "$attempt" -le "$max_attempts" ]; do
+            if curl --silent --show-error --fail "$entrypoint_url" >/dev/null; then
+                break
+            fi
+            sleep 1
+            attempt=$((attempt + 1))
+        done
+
+        if [ "$attempt" -gt "$max_attempts" ]; then
+            echo "Error: $domain SPA was published but never became reachable at $entrypoint_url" >&2
+            return 1
         fi
-        sleep 1
-        attempt=$((attempt + 1))
     done
-
-    echo "Error: the SPA was published but never became reachable at $entrypoint_url" >&2
-    return 1
 }
 
 wait_for_ui_ipfs_publish() {
-    local container_name="commonality-ui-ipfs-publisher"
-    local cid_file="$UI_IPFS_ARTIFACT_DIR/cid.txt"
+    echo "Waiting for all domain UI builds to publish to IPFS..."
 
-    echo "Waiting for the IPFS-published UI bundle..."
+    local -a pending=(commonality content-funding noninflammatory movement)
 
-    while true; do
-        local status
-        status=$(docker inspect "$container_name" --format '{{.State.Status}}' 2>/dev/null || true)
+    while [ "${#pending[@]}" -gt 0 ]; do
+        local -a still_pending=()
+        for domain in "${pending[@]}"; do
+            local container_name="commonality-ui-ipfs-publisher-${domain}"
+            local status
+            status=$(docker inspect "$container_name" --format '{{.State.Status}}' 2>/dev/null || true)
 
-        case "$status" in
-            created|running|restarting)
-                sleep 2
-                ;;
-            exited)
-                local exit_code
-                exit_code=$(docker inspect "$container_name" --format '{{.State.ExitCode}}')
-                if [ "$exit_code" -ne 0 ]; then
-                    echo "Error: UI IPFS publish failed."
-                    echo "Showing recent logs from $container_name:"
-                    docker compose logs --tail=200 ui-ipfs-publisher || true
-                    exit 1
-                fi
-                break
-                ;;
-            "")
-                sleep 1
-                ;;
-            *)
-                echo "Warning: unexpected $container_name state: $status"
-                sleep 2
-                ;;
-        esac
+            case "$status" in
+                created|running|restarting)
+                    still_pending+=("$domain")
+                    ;;
+                exited)
+                    local exit_code
+                    exit_code=$(docker inspect "$container_name" --format '{{.State.ExitCode}}')
+                    if [ "$exit_code" -ne 0 ]; then
+                        echo "Error: UI IPFS publish failed for domain: $domain"
+                        echo "Showing recent logs from $container_name:"
+                        docker compose logs --tail=200 "ui-ipfs-publisher-${domain}" || true
+                        exit 1
+                    fi
+                    echo "  $domain: published"
+                    ;;
+                "")
+                    still_pending+=("$domain")
+                    ;;
+                *)
+                    echo "Warning: unexpected $container_name state: $status"
+                    still_pending+=("$domain")
+                    ;;
+            esac
+        done
+
+        pending=("${still_pending[@]}")
+        if [ "${#pending[@]}" -gt 0 ]; then
+            sleep 2
+        fi
     done
 
     wait_for_spa_gateway
 
-    local spa_url
-    spa_url=$(print_spa_url)
-    echo "SPA URL: $spa_url"
-    echo "Open this URL in your browser to use the app."
-
-    if [ -f "$cid_file" ]; then
-        local cid
-        cid=$(cat "$cid_file")
-        echo "IPFS UI CID: $cid"
-    fi
+    echo ""
+    echo "All domains published to IPFS:"
+    print_spa_urls
 }
 
 start_services() {
@@ -198,19 +186,25 @@ start_services() {
     echo "Starting services with data directory: $DATA_DIR"
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
-    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" "$UI_IPFS_ARTIFACT_DIR"
+    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" \
+        "$UI_IPFS_ARTIFACT_DIR/commonality" \
+        "$UI_IPFS_ARTIFACT_DIR/content-funding" \
+        "$UI_IPFS_ARTIFACT_DIR/noninflammatory" \
+        "$UI_IPFS_ARTIFACT_DIR/movement"
     docker-compose up -d --build \
         hardhat-node \
         hardhat-deploy \
         ipfs \
         indexer \
         platform-api-service \
-        ui-ipfs-publisher
+        ui-ipfs-publisher-commonality \
+        ui-ipfs-publisher-content-funding \
+        ui-ipfs-publisher-noninflammatory \
+        ui-ipfs-publisher-movement
     wait_for_ui_ipfs_publish
     echo ""
     echo "Services started. Use 'docker-compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
-    echo "SPA URL: $(print_spa_url)"
 }
 
 stop_services() {
@@ -234,7 +228,7 @@ case "${1:-}" in
         show_status
         ;;
     --url)
-        print_spa_url
+        print_spa_urls
         ;;
     --help|-h|"")
         show_usage
