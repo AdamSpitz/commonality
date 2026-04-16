@@ -95,11 +95,36 @@ npm run build --workspace=ui
 - The content-focused domains now have distinct branded surfaces and canonical in-domain contract links
 - The remaining reorganization work is Phase 4 (movement layering) and Phase 5 (separate build outputs)
 
-### What's Left
+### Completed: Phase 4
 
-**Phase 4**: Add Common Sense Majority on top
-- Build movement landing page and basic organizing surfaces
-- Reuse Noninflammatory Content + Commonality funding
+**Add Common Sense Majority on top of the Noninflammatory foundation** - Done ✓
+
+Key files created/modified:
+- `ui/src/domains/movement/MovementPages.tsx` - movement-owned wrappers for content, contracts, organizing playbook, and project funding surfaces
+- `ui/src/domains/movement/manifest.tsx` - movement routes now point at movement-owned wrappers plus `/about` and `/organize`
+- `ui/src/domains/movement/LandingPage.tsx` - landing page now pushes users into a dedicated organizing playbook
+- `ui/src/domains/movement/MovementPages.test.tsx` - wrapper-copy coverage for movement content surfaces
+- `ui/src/domains/domainRoutes.test.tsx` - route coverage for movement `/about` and `/organize`
+- `specs/multiple-ui-domains.md` - Phase 4 marked done in the plan
+
+**What Phase 4 actually changed:**
+- The movement domain is no longer just a landing page plus generic shared routes; it now owns wrapper surfaces for its content and project flows
+- Movement content reuses the content-funding base, but contract links now stay inside the movement domain at `/content/contracts/:projectAddress`
+- Movement project browsing/creation/detail views now layer organizing-specific framing on top of the shared pubstarter implementation
+- The movement domain now has two static movement-specific pages: `/about` and `/organize`
+
+**Validation run:**
+```bash
+npm test --workspace=ui -- domainRoutes.test.tsx MovementPages.test.tsx
+npm run build --workspace=ui
+```
+
+**Current state after Phase 4:**
+- Phase 1, Phase 2, Phase 3, and Phase 4 are complete
+- All four domains now have domain-owned landing/surface composition while still reusing shared feature implementations underneath
+- Remaining reorganization work is Phase 5: separate build outputs from the manifests
+
+### What's Left
 
 **Phase 5**: Package separate builds from manifests
 - Parameterize Vite build output by domain
@@ -118,4 +143,5 @@ npm run build --workspace=ui
 - Domain landing pages now exist at `ui/src/domains/<domain>/LandingPage.tsx` and are wired from each manifest's `/` route
 - `DomainLandingPage.tsx` is the shared primitive for hero copy, CTA buttons, and entry-point cards
 - Content Funding and Noninflammatory now each own wrapper components in `ui/src/domains/<domain>/ContentPages.tsx` while reusing the shared `ui/src/content-funding/pages/*` implementations underneath
-- Domain-local contract viewing currently uses `/content/contracts/:projectAddress` on the focused content domains; separate origins/build outputs are still phase-5 work
+- Movement now owns wrapper components in `ui/src/domains/movement/MovementPages.tsx` for both the content layer and the organizing/project layer
+- Domain-local contract viewing currently uses `/content/contracts/:projectAddress` on the focused content domains, including movement; separate origins/build outputs are still phase-5 work

@@ -158,7 +158,7 @@ There is already a single router and shell in `ui/src/App.tsx`, and IPFS-specifi
 
 4. Make links shared on the Noninflammatory site resolve back to the Noninflammatory brand rather than redirecting users into a generic pubstarter flow.
 
-#### Phase 4: Add Common Sense Majority on top of the Noninflammatory foundation
+#### Phase 4: Add Common Sense Majority on top of the Noninflammatory foundation ✓ DONE
 
 1. Build the movement landing page and basic organizing surfaces.
 

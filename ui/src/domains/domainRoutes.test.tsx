@@ -58,7 +58,7 @@ describe('domain manifest home routes', () => {
       })
     ).toBeInTheDocument()
     expect(
-      screen.getAllByRole('link', { name: /browse projects/i }).some((link) => link.getAttribute('href') === '/projects')
+      screen.getAllByRole('link', { name: /open organizing playbook/i }).some((link) => link.getAttribute('href') === '/organize')
     ).toBe(true)
   })
 
@@ -71,5 +71,27 @@ describe('domain manifest home routes', () => {
       })
     ).toBeInTheDocument()
     expect(screen.getByText(/the point of this domain is not bland centrism/i)).toBeInTheDocument()
+  })
+
+  it('renders the Movement about page at /about', () => {
+    renderDomainRoute('movement', '/about')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /about common sense majority/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByText(/movement layer in the multiple-domain ui plan/i)).toBeInTheDocument()
+  })
+
+  it('renders the organizing playbook at /organize', () => {
+    renderDomainRoute('movement', '/organize')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /turn bridge-building content into visible, fundable political coordination/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /browse organizing projects/i })).toHaveAttribute('href', '/projects')
   })
 })
