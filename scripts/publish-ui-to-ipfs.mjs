@@ -6,10 +6,12 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
-const distDir = path.join(rootDir, 'ui', 'dist')
+const buildDomain = resolveDomain(process.env.VITE_DOMAIN)
+const distDir = path.join(rootDir, 'ui', 'dist', buildDomain)
 const artifactDir = process.env.UI_IPFS_ARTIFACT_DIR || path.join(rootDir, 'data', 'ui-ipfs')
 const ipfsApiBaseUrl = (process.env.UI_IPFS_API_URL || 'http://ipfs:5001').replace(/\/$/, '')
 const gatewayBaseUrl = (process.env.UI_IPFS_GATEWAY_URL || 'http://localhost:8080/ipfs').replace(/\/$/, '')
+const publishDirName = `${buildDomain}-ui`
 
 function runOrThrow(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -18,6 +20,7 @@ function runOrThrow(command, args, options = {}) {
     env: {
       ...process.env,
       HUSKY: process.env.HUSKY || '0',
+      VITE_DOMAIN: buildDomain,
       VITE_ROUTER_MODE: process.env.VITE_ROUTER_MODE || 'hash',
       VITE_GRAPHQL_URL: process.env.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql',
       VITE_IPFS_GATEWAY: process.env.VITE_IPFS_GATEWAY || 'http://localhost:8080/ipfs',
@@ -65,7 +68,7 @@ async function publishDirectoryToIpfs() {
   for (const filePath of files) {
     const relativePath = normalizeRelativePath(filePath)
     const buffer = await fs.readFile(filePath)
-    form.append('file', new File([buffer], `commonality-ui/${relativePath}`))
+    form.append('file', new File([buffer], `${publishDirName}/${relativePath}`))
   }
 
   const response = await fetch(`${ipfsApiBaseUrl}/api/v0/add?recursive=true&wrap-with-directory=true&pin=true`, {
@@ -95,16 +98,18 @@ async function publishDirectoryToIpfs() {
   }
 
   return {
+    domain: buildDomain,
     cid,
     files: files.map(normalizeRelativePath),
     ipfsRootUrl: `${gatewayBaseUrl}/${cid}/`,
-    spaUrl: `${gatewayBaseUrl}/${cid}/commonality-ui/#/`,
+    spaUrl: `${gatewayBaseUrl}/${cid}/${publishDirName}/#/`,
   }
 }
 
 async function writeArtifacts(result) {
   const metadata = `${JSON.stringify(
     {
+      domain: result.domain,
       cid: result.cid,
       gatewayUrl: result.spaUrl,
       ipfsRootUrl: result.ipfsRootUrl,
@@ -139,7 +144,7 @@ async function writeArtifacts(result) {
 }
 
 async function main() {
-  console.log('Building UI in IPFS mode...')
+  console.log(`Building ${buildDomain} UI in IPFS mode...`)
   runOrThrow('npm', ['run', 'build:ipfs', '--workspace=ui'])
 
   console.log(`Publishing ${distDir} to ${ipfsApiBaseUrl}...`)
@@ -152,6 +157,18 @@ async function main() {
   console.log(`  IPFS root: ${result.ipfsRootUrl}`)
   console.log(`  SPA URL: ${result.spaUrl}`)
   console.log(`  Artifacts: ${artifactDir}`)
+}
+
+function resolveDomain(value) {
+  switch (value) {
+    case 'commonality':
+    case 'content-funding':
+    case 'noninflammatory':
+    case 'movement':
+      return value
+    default:
+      return 'commonality'
+  }
 }
 
 main().catch(error => {

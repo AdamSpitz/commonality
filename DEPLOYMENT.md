@@ -187,14 +187,16 @@ Since contract addresses are baked into the Vite build at compile time (`VITE_*`
 ### Deploy UI to IPFS
 
 ```bash
-./scripts/deploy-ui.sh <network>
+./scripts/deploy-ui.sh <network> [domain]
 ```
 
 This script:
 1. Runs `setup-env.sh <network>` to populate `ui/.env` with contract addresses
-2. Builds the UI in IPFS mode (`npm run build:ipfs` in `ui/`), which uses hash routing and relative asset paths so the bundle works under a CID path
-3. Uploads `ui/dist/` to Pinata
+2. Builds the selected UI domain in IPFS mode (`npm run build:ipfs` in `ui/`), which uses hash routing and relative asset paths so the bundle works under a CID path
+3. Uploads `ui/dist/<domain>/` to Pinata
 4. Prints the IPFS CID
+
+If you omit `domain`, it defaults to `commonality`. Supported values are `commonality`, `content-funding`, `noninflammatory`, and `movement`.
 
 For non-local deployments, make sure `VITE_GRAPHQL_URL` points at the public indexer GraphQL endpoint. If you want event-cache reads or content-funding channel resolution/claim flows to work from the IPFS-hosted UI, also set `EVENT_CACHE_URL` and `PLATFORM_API_URL` in `.env.secrets` before running `setup-env.sh`; they will be copied into `ui/.env` as `VITE_EVENT_CACHE_URL` and `VITE_PLATFORM_API_URL`.
 
@@ -202,8 +204,8 @@ Example:
 ```bash
 ./scripts/deploy-ui.sh sepolia
 # Setting up environment for sepolia...
-# Building UI...
-# Uploading ui/dist/ to Pinata...
+# Building UI for domain: commonality...
+# Uploading ui/dist/commonality/ to Pinata...
 #
 # Upload complete!
 #   CID:     QmXyz...

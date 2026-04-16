@@ -12,8 +12,6 @@
 
 ## Other things to do soon
 
-  - Finish the remaining work on [multiple UI domains](specs/multiple-ui-domains.md): Phase 4 (Common Sense Majority surfaces) and Phase 5 (separate build outputs).
-  
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?
 
   - Fix the live Subjectiv Playwright path and rerun it. The old `/status`/indexer-sync blocker appears fixed now; the current failure is earlier in startup, where `ui/e2e/subjectiv-flow.spec.ts` times out waiting for `window._setupTestWallet` because the page never exposes it (blank-page / app-boot or test-wallet-harness issue). If that e2e passes after fixing the harness/startup problem, Subjectiv MVP is probably done.

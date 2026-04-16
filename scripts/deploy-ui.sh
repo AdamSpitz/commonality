@@ -13,11 +13,13 @@
 set -euo pipefail
 
 NETWORK="${1:-}"
+DOMAIN="${2:-commonality}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 if [ -z "$NETWORK" ]; then
-  echo "Usage: $0 <network>"
+  echo "Usage: $0 <network> [domain]"
   echo "  network: sepolia, mainnet"
+  echo "  domain: commonality, content-funding, noninflammatory, movement"
   exit 1
 fi
 
@@ -26,6 +28,16 @@ if [ "$NETWORK" = "localhost" ]; then
   echo "Use sepolia or mainnet."
   exit 1
 fi
+
+case "$DOMAIN" in
+  commonality|content-funding|noninflammatory|movement)
+    ;;
+  *)
+    echo "Error: unknown UI domain '$DOMAIN'."
+    echo "Expected one of: commonality, content-funding, noninflammatory, movement."
+    exit 1
+    ;;
+esac
 
 # --- Load PINATA_JWT from .env.secrets ---
 SECRETS_FILE="$ROOT/.env.secrets"
@@ -48,18 +60,19 @@ echo "Setting up environment for $NETWORK..."
 
 # --- Build the UI ---
 echo ""
-echo "Building UI..."
-(cd "$ROOT/ui" && npm run build:ipfs)
+echo "Building UI for domain: $DOMAIN..."
+(cd "$ROOT/ui" && VITE_DOMAIN="$DOMAIN" VITE_ROUTER_MODE=hash npm run build:ipfs)
 
 # --- Upload dist/ to Pinata ---
 echo ""
-echo "Uploading ui/dist/ to Pinata..."
+echo "Uploading ui/dist/$DOMAIN/ to Pinata..."
 
 CURL_ARGS=()
+UPLOAD_ROOT="$ROOT/ui/dist/$DOMAIN"
 while IFS= read -r -d '' file; do
-  rel="${file#$ROOT/ui/dist/}"
-  CURL_ARGS+=(-F "file=@${file};filename=commonality-ui/${rel}")
-done < <(find "$ROOT/ui/dist" -type f -print0)
+  rel="${file#$UPLOAD_ROOT/}"
+  CURL_ARGS+=(-F "file=@${file};filename=${DOMAIN}-ui/${rel}")
+done < <(find "$UPLOAD_ROOT" -type f -print0)
 
 RESPONSE=$(curl -s -w "\n%{http_code}" \
   -X POST \

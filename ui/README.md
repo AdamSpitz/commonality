@@ -18,9 +18,18 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
     npm install
     npm run dev
     npm run build
+    npm run build:domains
     npm run build:ipfs
+    npm run build:ipfs:domains
 
 `npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path.
+
+`npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). `npm run build:domains` emits all four domain artifacts in one pass:
+
+- `dist/commonality/`
+- `dist/content-funding/`
+- `dist/noninflammatory/`
+- `dist/movement/`
 
 When you start the local docker-compose stack via `./services.sh --start`, a one-shot `ui-ipfs-publisher` service builds this IPFS-friendly bundle inside its own container image and adds it to the local IPFS node. The latest CID and gateway URL are written to `./data/ui-ipfs/`, and that IPFS URL is now the primary local entry point for the app.
 

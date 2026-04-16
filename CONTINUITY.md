@@ -124,10 +124,47 @@ npm run build --workspace=ui
 - All four domains now have domain-owned landing/surface composition while still reusing shared feature implementations underneath
 - Remaining reorganization work is Phase 5: separate build outputs from the manifests
 
+### Completed: Phase 5
+
+**Package separate builds from the manifests** - Done ✓
+
+Key files created/modified:
+- `ui/vite.config.ts` - build output now resolves to `dist/<domain>/` based on `VITE_DOMAIN`
+- `ui/scripts/build-domains.mjs` - build orchestrator that emits all four domain artifacts in one pass for both production and IPFS modes
+- `ui/package.json` - added `build:domains` and `build:ipfs:domains`
+- `package.json` - added root shortcuts for the multi-domain UI build commands
+- `scripts/publish-ui-to-ipfs.mjs` - IPFS publishing now reads from `ui/dist/<domain>/` and records the published domain in metadata
+- `scripts/deploy-ui.sh` - deployment now accepts an optional domain and uploads `ui/dist/<domain>/`
+- `ui/src/shared/routing.ts` - IPFS builds now fall back to hash routing based on build mode, so `build:ipfs:domains` does not depend on extra env wiring
+- `ui/src/shared/routing.test.ts` - coverage for the IPFS-mode routing fallback
+- `ui/README.md` - build output/docs updated for per-domain artifacts
+- `DEPLOYMENT.md` - deploy instructions updated for domain-specific bundles
+- `README.md` - high-level status now reflects that the UI-domain reorganization is complete
+- `TODO.md` - removed the now-completed multiple-ui-domains follow-up
+- `specs/multiple-ui-domains.md` - Phase 5 marked done in the plan
+
+**What Phase 5 actually changed:**
+- A single-domain build now emits to `ui/dist/<domain>/` instead of collapsing everything into one `ui/dist/` bundle
+- `npm run build:domains --workspace=ui` emits all four domain artifacts from the existing manifests without introducing separate Vite config files
+- `npm run build:ipfs:domains --workspace=ui` does the same in IPFS/hash-routing mode
+- The existing local IPFS publisher and deployment script still default to Commonality, but now target the new per-domain output layout and can publish another domain when `VITE_DOMAIN` or the deploy script argument is set
+
+**Validation run:**
+```bash
+npm test --workspace=ui -- domainRoutes.test.tsx routing.test.ts
+npm run build --workspace=ui
+npm run build:domains --workspace=ui
+npm run build:ipfs:domains --workspace=ui
+```
+
+**Current state after Phase 5:**
+- The multiple-ui-domains reorganization plan is complete through all five phases
+- Domain composition still lives in the manifests; build separation is now a packaging concern on top of that composition
+- The main residual frontend build concern is unchanged from before this task: Vite still warns about a very large main chunk in each domain build
+
 ### What's Left
 
-**Phase 5**: Package separate builds from manifests
-- Parameterize Vite build output by domain
+- No remaining work is tracked for the multiple-ui-domains reorganization plan
 
 ### Architecture Notes
 

@@ -5,9 +5,13 @@ import react from '@vitejs/plugin-react'
 // When running inside Docker, INDEXER_URL is set to the service name (http://indexer:42069).
 // When running locally, it defaults to localhost.
 const indexerUrl = process.env.INDEXER_URL ?? 'http://localhost:42069';
+const domain = resolveDomain(process.env.VITE_DOMAIN)
 
 export default defineConfig(({ mode }) => ({
   base: mode === 'ipfs' ? './' : '/',
+  build: {
+    outDir: `dist/${domain}`,
+  },
   plugins: [react()],
   worker: {
     format: 'es',
@@ -42,3 +46,15 @@ export default defineConfig(({ mode }) => ({
     },
   },
 }))
+
+function resolveDomain(value: string | undefined) {
+  switch (value) {
+    case 'commonality':
+    case 'content-funding':
+    case 'noninflammatory':
+    case 'movement':
+      return value
+    default:
+      return 'commonality'
+  }
+}

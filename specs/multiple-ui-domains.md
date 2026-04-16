@@ -166,7 +166,7 @@ There is already a single router and shell in `ui/src/App.tsx`, and IPFS-specifi
 
 3. Keep this domain intentionally narrower than Commonality and broader than a single content tool.
 
-#### Phase 5: Package separate builds from the manifests
+#### Phase 5: Package separate builds from the manifests ✓ DONE
 
 1. Parameterize Vite build output by domain instead of creating one-off config files per site.
 

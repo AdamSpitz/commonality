@@ -30,6 +30,8 @@
     "build": "npm run build --workspaces --if-present",
     "attester:build": "npm run build --workspace=implication-attester",
     "ui:build": "npm run build --workspace=ui",
+    "ui:build:domains": "npm run build:domains --workspace=ui",
+    "ui:build:ipfs:domains": "npm run build:ipfs:domains --workspace=ui",
     "test": "npm run sdk:test && npm run hardhat:test && npm run integration-tests && npm run ui:test",
     "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",
     "integration-tests": "./scripts/run-integration-tests.sh",

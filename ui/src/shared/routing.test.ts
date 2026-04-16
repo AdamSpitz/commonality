@@ -28,6 +28,21 @@ describe('routing helpers', () => {
     expect(getAppUrl('/docs')).toBe('https://gateway.pinata.cloud/ipfs/bafy123/#/docs')
   })
 
+  it('falls back to hash routing when the build mode is ipfs', async () => {
+    vi.stubEnv('MODE', 'ipfs')
+    vi.stubGlobal('window', {
+      location: {
+        origin: 'https://gateway.pinata.cloud',
+        pathname: '/ipfs/bafy123/',
+        search: '',
+      },
+    })
+
+    const { getAppUrl } = await import('./routing')
+
+    expect(getAppUrl('/docs')).toBe('https://gateway.pinata.cloud/ipfs/bafy123/#/docs')
+  })
+
   it('builds origin-relative urls in browser mode', async () => {
     vi.stubEnv('VITE_ROUTER_MODE', 'browser')
     vi.stubGlobal('window', {

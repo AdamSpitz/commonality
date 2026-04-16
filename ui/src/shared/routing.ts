@@ -1,4 +1,16 @@
-const routerMode = import.meta.env.VITE_ROUTER_MODE === 'hash' ? 'hash' : 'browser'
+const routerMode = resolveRouterMode()
+
+function resolveRouterMode(): 'hash' | 'browser' {
+  if (import.meta.env.VITE_ROUTER_MODE === 'hash') {
+    return 'hash'
+  }
+
+  if (import.meta.env.VITE_ROUTER_MODE === 'browser') {
+    return 'browser'
+  }
+
+  return import.meta.env.MODE === 'ipfs' ? 'hash' : 'browser'
+}
 
 function normalizeAppPath(path: string): string {
   if (!path) {
