@@ -11,3 +11,5 @@ hardhat/deployments/
 deployments/localhost.env
 /data
 sdk/src/generated/
+sdk/docs/
+hardhat/docs/

@@ -1,5 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-solhint");
+require("solidity-docgen");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 const config = {
@@ -13,6 +14,10 @@ const config = {
       viaIR: true,
       evmVersion: "cancun"
     }
+  },
+  docgen: {
+    output: "./docs/contracts",
+    clear: true,
   },
   networks: {
     localhost: {

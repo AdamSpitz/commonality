@@ -8,6 +8,7 @@
     "clean": "npx hardhat clean",
     "test": "npx hardhat test",
     "deploy-local": "npx hardhat run scripts/deploy.js --network localhost",
+    "docs": "npx hardhat docgen",
     "lint": "npm run lint:sol && npm run lint:slither",
     "lint:js": "eslint .",
     "lint:sol": "npx hardhat check",
@@ -34,6 +35,7 @@
     "hardhat-gas-reporter": "^2.3.0",
     "solhint": "^5.0.5",
     "solidity-coverage": "^0.8.1",
+    "solidity-docgen": "^0.6.0-beta.36",
     "typechain": "^8.3.0"
   },
   "dependencies": {

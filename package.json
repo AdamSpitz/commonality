@@ -28,6 +28,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
+    "build:docs": "npm run docs --workspace=sdk && npm run docs --workspace=hardhat",
     "attester:build": "npm run build --workspace=implication-attester",
     "ui:build": "npm run build --workspace=ui",
     "ui:build:domains": "npm run build:domains --workspace=ui",
