@@ -36,6 +36,15 @@ All state reconstruction happens **client-side** in the SDK, via fold functions:
 
 The SDK also fetches IPFS content directly from a gateway, so statement content is not routed through the indexer at all.
 
+## Generated API documentation
+
+The SDK and smart contract documentation is auto-generated:
+
+- **[SDK API docs](sdk/docs/api/)** — TypeScript SDK reference, auto-generated via typedoc from the SDK source.
+- **[Contract docs](hardhat/docs/)** — Solidity contract reference, auto-generated via solc doc.
+
+Run `npm run build:docs` to regenerate these.
+
 ## Interacting directly with the contracts
 
 The contracts are standard Solidity/EVM. You can interact with them directly via any tool that speaks JSON-RPC: `cast` (Foundry), `ethers.js`, `viem`, etc. Contract addresses for deployed instances are available in the app's settings page.

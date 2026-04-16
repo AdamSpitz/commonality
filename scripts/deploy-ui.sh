@@ -63,6 +63,27 @@ echo ""
 echo "Building UI for domain: $DOMAIN..."
 (cd "$ROOT/ui" && VITE_DOMAIN="$DOMAIN" VITE_ROUTER_MODE=hash npm run build:ipfs)
 
+# --- Generate and copy API docs ---
+echo ""
+echo "Generating API documentation..."
+npm run build:docs
+
+SDK_DOCS="$ROOT/sdk/docs/api"
+HARDHAT_DOCS="$ROOT/hardhat/docs"
+TARGET_DOCS="$UPLOAD_ROOT/api-docs"
+
+mkdir -p "$TARGET_DOCS"
+
+if [ -d "$SDK_DOCS" ]; then
+  cp -r "$SDK_DOCS" "$TARGET_DOCS/sdk"
+fi
+
+if [ -d "$HARDHAT_DOCS" ]; then
+  cp -r "$HARDHAT_DOCS" "$TARGET_DOCS/contracts"
+fi
+
+echo "API docs copied to $TARGET_DOCS"
+
 # --- Upload dist/ to Pinata ---
 echo ""
 echo "Uploading ui/dist/$DOMAIN/ to Pinata..."
