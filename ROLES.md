@@ -39,10 +39,8 @@ Not about thinking through societal implications (that's the founder role) — j
 Making architecture decisions, defining data flows, thinking through trade-offs.
 
 **Start with:**
-- [specs/README.md](specs/README.md) — system overview and tech choices
-- [specs/tech/shared/tech.md](specs/tech/shared/tech.md) — technology rationale
-- [specs/tech/indexer/](specs/tech/indexer/) — indexer architecture (Client-Side Folding)
-- [specs/tech/shared/decoupling.md](specs/tech/shared/decoupling.md) — subsystem decoupling
+- [specs/README.md](specs/README.md) — system overview
+- [specs/tech/README.md](specs/tech/README.md) — architecture overview and index of all tech docs
 - Each subsystem's `README.md`, `indexer.md`, and `queries-and-actions.md` under [specs/tech/subsystems/](specs/tech/subsystems/)
 
 ---
