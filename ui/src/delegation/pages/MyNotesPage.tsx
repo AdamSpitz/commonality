@@ -43,9 +43,9 @@ function SummaryCards({ ownedNotes, depositedNotes }: { ownedNotes: Note[]; depo
 
   const cards = [
     { label: 'Total Funds', value: `${formatEther(totalFunds)} ETH` },
-    { label: 'Active Notes', value: String(activeCount) },
+    { label: 'Active Funds', value: String(activeCount) },
     { label: 'Acting as Delegate', value: String(actingAsDelegate) },
-    { label: 'Deposited & Delegated', value: String(depositedAndDelegated) },
+    { label: 'Created & Delegated', value: String(depositedAndDelegated) },
   ]
 
   return (
@@ -90,7 +90,7 @@ function NoteCard({
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>
               <Typography variant="subtitle1">
-                Note #{note.id}
+                Fund #{note.id}
               </Typography>
               <Typography variant="h6">{formatNoteAmount(note)}</Typography>
               {!isEthNote(note) && (
@@ -184,7 +184,7 @@ function DelegateDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delegate Note #{note?.id}</DialogTitle>
+      <DialogTitle>Delegate Fund #{note?.id}</DialogTitle>
       <DialogContent>
         <TextField
           label="Delegate to address"
@@ -344,11 +344,11 @@ export function MyNotesPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          My Notes
+          My Delegated Funds
         </Typography>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
-            Connect your wallet to view and manage your delegatable notes.
+            Connect your wallet to view and manage your delegated funds.
           </Typography>
         </Paper>
       </Box>
@@ -359,10 +359,10 @@ export function MyNotesPage() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          My Notes
+          My Delegated Funds
         </Typography>
         <Button variant="contained" component={RouterLink} to="/notes/new">
-          Deposit New Note
+          Add Funds
         </Button>
       </Box>
 
@@ -395,12 +395,12 @@ export function MyNotesPage() {
           <SummaryCards ownedNotes={ownedNotes} depositedNotes={depositedNotes} />
 
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Notes I Control
+            Funds I Control
           </Typography>
           {ownedNotes.length === 0 ? (
             <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
               <Typography variant="body1" color="text.secondary">
-                You don't control any notes yet. Deposit to create one, or ask someone to delegate to you.
+                You don't control any funds yet. Add funds to create one, or ask someone to delegate to you.
               </Typography>
             </Paper>
           ) : (
@@ -418,12 +418,12 @@ export function MyNotesPage() {
           )}
 
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Notes I Deposited
+            Funds I Created
           </Typography>
           {depositedNotes.length === 0 ? (
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <Typography variant="body1" color="text.secondary">
-                You haven't deposited any notes yet.
+                You haven't created any delegated funds yet.
               </Typography>
             </Paper>
           ) : (

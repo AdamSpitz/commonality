@@ -172,7 +172,7 @@ export function BrowseStatementsPage() {
                     </Typography>
                     {statement.disbelieverCount > 0 && (
                       <Typography variant="caption" color="text.secondary">
-                        {statement.disbelieverCount} disbeliever{statement.disbelieverCount !== 1 ? 's' : ''}
+                        {statement.disbelieverCount} opposed
                       </Typography>
                     )}
                   </Stack>

@@ -141,7 +141,7 @@ function ContractCard({ contract }: { contract: ContentFundingContractSummary })
               </Typography>
             </Box>
             <Box>
-              <Typography variant="caption" color="text.secondary">Threshold</Typography>
+              <Typography variant="caption" color="text.secondary">Goal</Typography>
               <Typography variant="body2">
                 {formatCurrencyAmount(contract.project.threshold, contract.project.fundingCurrency)}
               </Typography>
@@ -362,7 +362,7 @@ export function ChannelPage() {
           </Box>
           {escrow.balance > 0n && (
             <Box>
-              <Typography variant="body2" color="text.secondary">Escrowed (awaiting claim)</Typography>
+              <Typography variant="body2" color="text.secondary">Waiting to be claimed</Typography>
               <Typography variant="h6" color="warning.main">
                 {formatEther(escrow.balance)} ETH
               </Typography>
@@ -451,7 +451,7 @@ export function ChannelPage() {
         <Box sx={{ mb: 3 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
             <Typography variant="h5">
-              Contracts
+              Funding Campaigns
             </Typography>
             <Button
               variant="contained"
@@ -459,7 +459,7 @@ export function ChannelPage() {
               component={RouterLink}
               to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
             >
-              Create Contract
+              Create Campaign
             </Button>
           </Stack>
           <Stack spacing={1.5}>
@@ -472,13 +472,13 @@ export function ChannelPage() {
 
       {contracts.length === 0 && (
         <Paper sx={{ p: 3, mb: 3, textAlign: 'center' }}>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>No contracts yet for this channel.</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>No funding campaigns yet for this channel.</Typography>
           <Button
             variant="contained"
             component={RouterLink}
             to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
           >
-            Create Contract
+            Create Campaign
           </Button>
         </Paper>
       )}

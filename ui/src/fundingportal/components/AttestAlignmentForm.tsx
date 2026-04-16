@@ -111,21 +111,21 @@ export function AttestAlignmentForm({ statementCid }: Props) {
   return (
     <Box sx={{ mb: 3 }}>
       <Button variant="outlined" onClick={handleToggle}>
-        {open ? 'Cancel' : 'Attest Alignment'}
+        {open ? 'Cancel' : 'Vouch for a Project'}
       </Button>
 
       <Collapse in={open}>
         <Paper sx={{ p: 3, mt: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Attest Project Alignment
+            Vouch for a Project
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Attest that a project is aligned with this cause.
+            Vouch that a project serves this cause.
           </Typography>
 
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              Alignment attested successfully!
+              Vouch submitted successfully!
             </Alert>
           )}
 
@@ -194,7 +194,7 @@ export function AttestAlignmentForm({ statementCid }: Props) {
                   submitting || !projectAddress || !isAddress(projectAddress)
                 }
               >
-                {submitting ? 'Attesting...' : 'Submit Attestation'}
+                {submitting ? 'Submitting...' : 'Submit Vouch'}
               </Button>
             </Stack>
           </form>

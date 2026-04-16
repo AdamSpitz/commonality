@@ -140,11 +140,11 @@ export function DepositPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          Deposit New Note
+          Add Delegated Funds
         </Typography>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
-            Connect your wallet to deposit a new delegatable note.
+            Connect your wallet to add delegated funds.
           </Typography>
         </Paper>
       </Box>
@@ -155,25 +155,25 @@ export function DepositPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          Deposit Successful
+          Funds Added
         </Typography>
         <Alert severity="success" sx={{ mb: 3 }}>
-          Your note has been created successfully!
+          Your delegated fund has been created successfully!
         </Alert>
         <Card>
           <CardContent>
             <Typography variant="body1" gutterBottom>
-              Note ID: {successNoteId.toString()}
+              Fund ID: {successNoteId.toString()}
             </Typography>
             <Stack direction="row" spacing={2}>
               <Button
                 variant="contained"
                 onClick={() => navigate(`/notes/${successNoteId}`)}
               >
-                View Note Details
+                View Fund Details
               </Button>
               <Button variant="outlined" onClick={() => navigate('/notes')}>
-                Back to My Notes
+                Back to My Delegated Funds
               </Button>
             </Stack>
           </CardContent>
@@ -185,14 +185,14 @@ export function DepositPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Deposit New Note
+        Add Delegated Funds
       </Typography>
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Depositing creates a delegatable note — a pool of funds that you or a trusted delegate
-          can use to fund aligned projects. You can delegate decision-making to someone you trust,
-          or browse projects yourself.
+          This creates a delegatable fund — a pool of money that you or a trusted delegate
+          can use to fund projects aligned with a cause. You can delegate the decision to
+          someone you trust, or direct it yourself.
         </Typography>
 
         {error && (
@@ -218,7 +218,7 @@ export function DepositPage() {
               fullWidth
               required
               disabled={submitting}
-              helperText="Amount of ETH to deposit"
+              helperText="How much ETH to put in"
             />
 
             <TextField
@@ -231,8 +231,8 @@ export function DepositPage() {
               error={!!delegateTo && !isAddress(delegateTo)}
               helperText={
                 delegateTo && !isAddress(delegateTo)
-                  ? 'Invalid Ethereum address'
-                  : 'Address to delegate this note to after deposit'
+                  ? 'Invalid wallet address'
+                  : 'Wallet address of the person you want to let manage this fund'
               }
             />
 

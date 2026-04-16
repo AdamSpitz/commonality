@@ -52,10 +52,10 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
     return (
       <Paper sx={{ p: 2 }}>
         <Typography variant="subtitle2" gutterBottom>
-          Delegation Chain
+          Who Has Access
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          No delegation chain - note is undelegated
+          This fund hasn't been delegated — only you control it.
         </Typography>
       </Paper>
     )
@@ -68,7 +68,7 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
   return (
     <Paper sx={{ p: 2 }}>
       <Typography variant="subtitle2" gutterBottom>
-        Delegation Chain
+        Who Has Access
       </Typography>
       <Stack spacing={0} divider={<Divider sx={{ my: 1 }} />}>
         {sortedChain.map((link, index) => (
@@ -156,7 +156,7 @@ function IntendedPurpose({ attestations }: IntendedPurposeProps) {
               </Typography>
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Attested by {truncateAddress(attestation.attester)} on{' '}
+              Set by {truncateAddress(attestation.attester)} on{' '}
               {new Date(Number(attestation.createdAt) * 1000).toLocaleDateString()}
             </Typography>
           </Box>
@@ -192,7 +192,7 @@ function DelegateDialog({ open, note, onClose, onSubmit }: DelegateDialogProps) 
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delegate Note #{note?.id}</DialogTitle>
+      <DialogTitle>Delegate Fund #{note?.id}</DialogTitle>
       <DialogContent>
         <TextField
           label="Delegate to address"
@@ -285,7 +285,7 @@ function SpendDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Spend Note on Project</DialogTitle>
+      <DialogTitle>Spend Fund on Project</DialogTitle>
       <DialogContent>
         {note && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -535,7 +535,7 @@ export function NoteDetailPage() {
 
     const totalCost = BigInt(token.price) * BigInt(quantity)
     if (totalCost > BigInt(note.amount)) {
-      setActionError('Insufficient note balance')
+      setActionError('Insufficient balance')
       return
     }
 
@@ -595,7 +595,7 @@ export function NoteDetailPage() {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <Button component={RouterLink} to="/notes" size="small">
-          ← Back to My Notes
+          ← Back to My Delegated Funds
         </Button>
       </Box>
 
@@ -615,13 +615,13 @@ export function NoteDetailPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box>
             <Typography variant="h4" component="h1">
-              Note #{note.id}
+              Fund #{note.id}
             </Typography>
             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
               <Chip label={note.active ? 'Active' : 'Inactive'} color={note.active ? 'success' : 'default'} size="small" />
               {isDelegate(note) && <Chip label="Delegated" color="warning" size="small" />}
               {isEthNote(note) && <Chip label="ETH" size="small" variant="outlined" />}
-              {!isEthNote(note) && <Chip label="ERC1155" size="small" variant="outlined" />}
+              {!isEthNote(note) && <Chip label="Token" size="small" variant="outlined" />}
             </Stack>
           </Box>
           <Typography variant="h4">{formatNoteAmount(note)}</Typography>
@@ -632,7 +632,7 @@ export function NoteDetailPage() {
         <Stack spacing={2}>
           <Box sx={{ display: 'flex', gap: 4 }}>
             <Box>
-              <Typography variant="caption" color="text.secondary">Root Owner (Depositor)</Typography>
+              <Typography variant="caption" color="text.secondary">Created by</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                 {truncateAddress(note.rootOwner)}
               </Typography>

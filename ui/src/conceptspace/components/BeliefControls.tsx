@@ -80,11 +80,11 @@ export function BeliefControls({
       switch (action) {
         case 'believe':
           txHash = await believeStatement(clients, beliefsContract, statementCid)
-          actionText = 'Belief recorded'
+          actionText = 'Agreement recorded'
           break
         case 'disbelieve':
           txHash = await disbelieveStatement(clients, beliefsContract, statementCid)
-          actionText = 'Disbelief recorded'
+          actionText = 'Disagreement recorded'
           break
         case 'clear':
           txHash = await clearOpinion(clients, beliefsContract, statementCid)
@@ -111,7 +111,7 @@ export function BeliefControls({
   if (!isConnected) {
     return (
       <Alert severity="info">
-        Connect your wallet to express your belief about this statement.
+        Connect your wallet to share your view on this statement.
       </Alert>
     )
   }
@@ -125,7 +125,7 @@ export function BeliefControls({
           startIcon={isProcessing ? <CircularProgress size={16} /> : <ThumbUp />}
           disabled={isProcessing}
         >
-          Believe
+          Agree
         </Button>
         <Button
           onClick={() => handleBeliefAction('disbelieve')}
@@ -133,7 +133,7 @@ export function BeliefControls({
           startIcon={isProcessing ? <CircularProgress size={16} /> : <ThumbDown />}
           disabled={isProcessing}
         >
-          Disbelieve
+          Disagree
         </Button>
         {currentBeliefState !== NO_OPINION && (
           <Button
@@ -160,17 +160,17 @@ export function BeliefControls({
 
       {currentBeliefState === BELIEVES && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          You believe this statement is true.
+          You agree with this statement.
         </Alert>
       )}
       {currentBeliefState === DISBELIEVES && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          You believe this statement is false.
+          You disagree with this statement.
         </Alert>
       )}
       {currentBeliefState === NO_OPINION && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          You have not expressed an opinion on this statement.
+          You haven't shared your view on this statement yet.
         </Alert>
       )}
     </Box>

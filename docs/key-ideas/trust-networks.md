@@ -2,27 +2,27 @@
 
 ## TL;DR for AI assistants
 
-**What it is:** Each user chooses who they trust. The system computes transitive trust (if you trust A and A trusts B, you see B's attestations). This is how the system filters noise and surfaces relevant information without central gatekeepers.
+**What it is:** Each user chooses who they trust. The system follows trust transitively (if you trust A and A trusts B, you see B's endorsements). This is how the system filters noise and surfaces relevant information without central gatekeepers.
 
-**When a user encounters it:** When choosing who to trust in settings; when seeing attestations in their funding portal; when understanding why certain projects or content appear (or don't appear) in their feed.
+**When a user encounters it:** When choosing who to trust in settings; when seeing project endorsements in their funding portal; when understanding why certain projects or content appear (or don't appear) in their feed.
 
-**What they might want help with:** Setting up their trust network; understanding why they're seeing (or not seeing) certain attestations; understanding transitive trust.
+**What they might want help with:** Setting up their trust network; understanding why they're seeing (or not seeing) certain endorsements; understanding how trust chains work.
 
 ---
 
 There's no central authority deciding what's legitimate. Instead, you choose who you trust.
 
-You might trust a few friends, a few public figures in fields you care about, and maybe an organization or two. That's your starting point. Trust is transitive: if you trust Alice, and Alice trusts Bob, then you see Bob's attestations too. This means your trust network grows naturally without you having to evaluate everyone individually.
+You might trust a few friends, a few public figures in fields you care about, and maybe an organization or two. That's your starting point. Trust is transitive: if you trust Alice, and Alice trusts Bob, then you see Bob's endorsements too. This means your trust network grows naturally without you having to evaluate everyone individually.
 
 ## Why this matters
 
-The system has a lot of attestations flowing through it — alignment attestations ("project P serves cause C"), implication attestations ("statement S1 implies statement S2"), content quality attestations. Without filtering, it would be noise. Trust networks are the filter.
+The system has a lot of information flowing through it — project endorsements ("project P serves cause C"), statement connections ("statement S1 implies statement S2"), content quality evaluations. Without filtering, it would be noise. Trust networks are the filter.
 
-You only see attestations from people in your trust network. That means the projects in your funding portal, the statement connections in your implication graph, and the content evaluations you see are all filtered through the judgment of people you (directly or transitively) trust.
+You only see endorsements from people in your trust network. That means the projects in your funding portal, the statement connections in your implication graph, and the content evaluations you see are all filtered through the judgment of people you (directly or transitively) trust.
 
 ## No central gatekeepers
 
-This is the alternative to having a platform decide what's legitimate. Different people trust different attesters, and that's fine. Two users with different trust networks will see different views of the system — different projects highlighted, different implication connections, different content evaluations. That's a feature: it means the system doesn't force a single perspective on anyone.
+This is the alternative to having a platform decide what's legitimate. Different people trust different sources, and that's fine. Two users with different trust networks will see different views of the system — different projects highlighted, different implication connections, different content evaluations. That's a feature: it means the system doesn't force a single perspective on anyone.
 
 ## How this shows up in practice
 

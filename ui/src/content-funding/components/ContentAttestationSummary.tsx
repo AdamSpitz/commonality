@@ -20,7 +20,7 @@ export function ContentAttestationSummary({ attestations }: ContentAttestationSu
       {sortedAttestations.map((attestation) => (
         <Tooltip
           key={`${attestation.attester}-${attestation.statementCid}`}
-          title={`Attested by ${attestation.attester}`}
+          title={`Verified by ${attestation.attester}`}
         >
           <Chip
             label={truncateAddress(attestation.attester)}

@@ -153,10 +153,10 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
     <Box sx={{ mb: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">Alignment Attestations</Typography>
+          <Typography variant="h6">Project Endorsements</Typography>
           {isConnected && (
             <Button variant="outlined" size="small" onClick={handleOpenDialog}>
-              Attest Alignment
+              Vouch for This Project
             </Button>
           )}
         </Stack>
@@ -198,7 +198,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
                     {a.statementTitle || `Statement ${a.statementCid.slice(0, 12)}...`}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Attester: {truncateAddress(a.attester)}
+                    Vouched by: {truncateAddress(a.attester)}
                   </Typography>
                 </Box>
                 <Chip label="Direct" size="small" color="primary" variant="outlined" />
@@ -209,15 +209,15 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
       </Paper>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Attest Alignment</DialogTitle>
+        <DialogTitle>Vouch for This Project</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: 1 }}>
-            Attest that this project is aligned with a statement/cause.
+            Vouch that this project serves a particular cause.
           </Typography>
 
           {submitSuccess && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              Alignment attested successfully!
+              Vouch submitted successfully!
             </Alert>
           )}
 
@@ -241,7 +241,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
               <TextField
                 {...params}
                 label="Statement"
-                placeholder="Search or enter a statement CID"
+                placeholder="Search for a cause statement"
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -278,7 +278,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
             onClick={handleSubmit}
             disabled={submitting || !statementCid}
           >
-            {submitting ? 'Attesting...' : 'Submit Attestation'}
+            {submitting ? 'Submitting...' : 'Submit Vouch'}
           </Button>
         </DialogActions>
       </Dialog>

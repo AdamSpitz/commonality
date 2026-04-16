@@ -2,12 +2,9 @@
 
 ## Main thing I want to work on next
 
-  - Did we ever actually implement the trusted verifier service that's meant to work with the content-funding system's ChannelVerifier?
-
-  - [Support multiple currencies](./specs/currency.md). Offchain code has been generalized, smart contracts have been updated... are we at "MVP functionality is ready" status?
+  - We want to [use a stablecoin](./specs/currency.md) instead of ETH. Are we done implementing that?
 
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
-  - The word "attester" appears in the UI. Either eliminate it or put a little info bubble or something next to it. (And other stuff like that. We want as little jargon as possible, and if it does appear we want it to be something the user can easily understand.)
 
 ## Other things to do soon
 

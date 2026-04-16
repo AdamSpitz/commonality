@@ -72,7 +72,7 @@ export function CreateProjectPage() {
 
     // Validation
     if (!name.trim()) { setError('Project name is required'); return }
-    if (!threshold || parseFloat(threshold) <= 0) { setError('Funding threshold must be positive'); return }
+    if (!threshold || parseFloat(threshold) <= 0) { setError('Funding goal must be positive'); return }
     if (!deadline) { setError('Deadline is required'); return }
 
     const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000)
@@ -220,7 +220,7 @@ export function CreateProjectPage() {
           />
 
           <TextField
-            label="Funding Threshold (ETH)"
+            label="Funding Goal (ETH)"
             type="number"
             value={threshold}
             onChange={(e) => setThreshold(e.target.value)}

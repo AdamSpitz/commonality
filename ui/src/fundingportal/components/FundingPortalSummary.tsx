@@ -146,14 +146,14 @@ export function FundingPortalSummary({
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
-              Available Delegatable Funding
+              Funds from Delegates
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(availableDelegatable)}</Typography>
           </Box>
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
-              Aligned Projects
+              Projects
             </Typography>
             <Typography variant="h6">{projectCount}</Typography>
           </Box>

@@ -123,7 +123,7 @@ export function DirectTrustSettingsSection() {
     }
 
     if (!isAddress(trustee)) {
-      setError('Please enter a valid Ethereum address')
+      setError('Please enter a valid wallet address')
       return
     }
 
@@ -178,18 +178,18 @@ export function DirectTrustSettingsSection() {
   return (
     <Paper sx={{ p: 3, mt: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Alignment Trust Network
+        Your Trust Network
       </Typography>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Alignment attestations use your personal trust network rather than a single
-        approved attester. Add direct trust scores here, and alignment pages will
-        follow those links transitively and filter with the accounts discovered so far.
+        Project endorsements are filtered through your personal trust network rather than
+        a single approved source. Add trust scores here, and project pages will
+        follow those trust links and filter based on the accounts discovered so far.
       </Typography>
 
       {!isConnected ? (
         <Alert severity="info">
-          Connect your wallet to manage direct trust scores for alignment filtering.
+          Connect your wallet to manage trust scores for filtering project endorsements.
         </Alert>
       ) : (
         <>
@@ -215,7 +215,7 @@ export function DirectTrustSettingsSection() {
             <TextField
               fullWidth
               size="small"
-              label="Trusted User Address"
+              label="Wallet Address"
               placeholder="0x..."
               value={newTrustee}
               onChange={(e) => setNewTrustee(e.target.value)}
@@ -256,8 +256,8 @@ export function DirectTrustSettingsSection() {
             </Box>
           ) : entries.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-              No direct trust scores yet. Until you add some, alignment pages will show
-              all alignment attestations.
+              No direct trust scores yet. Until you add some, project pages will show
+              all project endorsements.
             </Typography>
           ) : (
             <List>
@@ -294,8 +294,8 @@ export function DirectTrustSettingsSection() {
           {trustedSetLoading ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
               {trustedSet
-                ? `Refreshing your transitive trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
-                : 'Refreshing your transitive trust network. Until any trusted accounts are found, alignment pages still show all alignment attestations.'}
+                ? `Refreshing your trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
+                : 'Refreshing your trust network. Until any trusted accounts are found, project pages still show all project endorsements.'}
             </Typography>
           ) : trustedSet ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>

@@ -106,7 +106,7 @@ export function SettingsPage() {
     const normalizedAddress = address.toLowerCase()
 
     if (trustedAttesters.some(a => a.toLowerCase() === normalizedAddress)) {
-      setError('This attester is already in your trusted list')
+      setError('This address is already in your trusted list')
       return
     }
 
@@ -114,14 +114,14 @@ export function SettingsPage() {
     setTrustedAttesters(updated)
     saveTrustedAttesters(updated)
     setNewAttester('')
-    setSuccessMessage('Attester added successfully')
+    setSuccessMessage('Added successfully')
   }
 
   const handleRemoveAttester = (address: string) => {
     const updated = trustedAttesters.filter(a => a !== address)
     setTrustedAttesters(updated)
     saveTrustedAttesters(updated)
-    setSuccessMessage('Attester removed')
+    setSuccessMessage('Removed')
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -196,7 +196,7 @@ export function SettingsPage() {
         </Typography>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Link your Twitter / X account to your Ethereum address using the same
+          Link your Twitter / X account to your wallet using the same
           verification flow the content-funding claim page already uses.
         </Typography>
 
@@ -273,19 +273,20 @@ export function SettingsPage() {
 
       <Paper sx={{ p: 3, mt: 2 }}>
         <Typography variant="h6" gutterBottom>
-          Trusted implication attesters
+          Trusted statement-connection sources
         </Typography>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Implication attesters evaluate whether believing one statement implies
-          believing another. Add addresses of attesters you trust to include
-          their attestations when calculating indirect support for statements.
+          Statement-connection sources are AI services (or human curators) that
+          evaluate whether agreeing with one statement likely means you'd also
+          agree with another. Add wallet addresses of sources you trust to
+          include their connections when calculating indirect support for statements.
         </Typography>
 
         <Alert severity="info" sx={{ mb: 3 }}>
-          The official Commonality implication attester AI is not yet deployed.
-          For now, you can add any Ethereum address that has published
-          implication attestations to the Implications contract.
+          The official Commonality statement-connection AI is not yet deployed.
+          For now, you can add any wallet address that has published
+          statement connections to the Implications contract.
         </Alert>
 
         {error && (
@@ -304,7 +305,7 @@ export function SettingsPage() {
           <TextField
             fullWidth
             size="small"
-            label="Attester Address"
+            label="Wallet Address"
             placeholder="0x..."
             value={newAttester}
             onChange={(e) => setNewAttester(e.target.value)}
@@ -324,7 +325,7 @@ export function SettingsPage() {
 
         {trustedAttesters.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-            No trusted attesters configured. Add an attester address above to see
+            No sources configured yet. Add a wallet address above to see
             indirect support calculations.
           </Typography>
         ) : (
@@ -354,7 +355,7 @@ export function SettingsPage() {
         )}
 
         <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-          {trustedAttesters.length} trusted attester{trustedAttesters.length !== 1 ? 's' : ''} configured
+          {trustedAttesters.length} source{trustedAttesters.length !== 1 ? 's' : ''} configured
         </Typography>
       </Paper>
 

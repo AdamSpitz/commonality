@@ -68,7 +68,7 @@ export function AvailableDelegatableFunding({ statementCid }: Props) {
     return (
       <Paper sx={{ p: 3, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
         <CircularProgress size={16} />
-        <Typography variant="body2">Loading available delegatable funding…</Typography>
+        <Typography variant="body2">Loading funds from delegates…</Typography>
       </Paper>
     )
   }
@@ -81,18 +81,18 @@ export function AvailableDelegatableFunding({ statementCid }: Props) {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Available Delegatable Funding
+        Funds from Delegates
       </Typography>
 
       <Typography variant="body1" gutterBottom>
-        {formatEther(totalEth)} ETH available in delegatable notes for this cause
+        {formatEther(totalEth)} ETH pledged by delegates for this cause
       </Typography>
 
       <TableContainer sx={{ mt: 2 }}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Note</TableCell>
+              <TableCell>Fund</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell>Depositor</TableCell>
               <TableCell>Current Controller</TableCell>

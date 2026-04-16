@@ -37,14 +37,14 @@ export function SupportMetrics({
 
         <Divider />
 
-        {/* Direct Believers */}
+        {/* Direct Signers */}
         <Box>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Direct Believers
+            Signed this statement
           </Typography>
           <Chip
             icon={<ThumbUp />}
-            label={`${directBelievers} direct believer${directBelievers !== 1 ? 's' : ''}`}
+            label={`${directBelievers} signer${directBelievers !== 1 ? 's' : ''}`}
             color="success"
             variant="outlined"
           />
@@ -53,7 +53,7 @@ export function SupportMetrics({
         {/* Indirect Supporters */}
         <Box>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Indirect Supporters
+            Also support this (via related statements)
           </Typography>
           <Chip
             icon={<PersonAdd />}
@@ -62,21 +62,21 @@ export function SupportMetrics({
             variant="outlined"
           />
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-            People who believe statements that imply this one
+            People who signed related statements that imply this one
           </Typography>
         </Box>
 
-        {/* Direct Disbelievers */}
+        {/* Opposing Signers */}
         {directDisbelievers > 0 && (
           <>
             <Divider />
             <Box>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Direct Disbelievers
+                Opposed this statement
               </Typography>
               <Chip
                 icon={<ThumbDown />}
-                label={`${directDisbelievers} disbeliever${directDisbelievers !== 1 ? 's' : ''}`}
+                label={`${directDisbelievers} opposing signer${directDisbelievers !== 1 ? 's' : ''}`}
                 color="error"
                 variant="outlined"
               />

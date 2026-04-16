@@ -145,14 +145,14 @@ export function StatementFundingPortalPage() {
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
-              Available Delegatable Funding
+              Funds from Delegates
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(availableDelegatable)}</Typography>
           </Box>
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
-              Aligned Projects
+              Projects
             </Typography>
             <Typography variant="h6">{projectCount}</Typography>
           </Box>
@@ -163,7 +163,7 @@ export function StatementFundingPortalPage() {
         <Alert severity="info" sx={{ mb: 2 }}>
           {trustedSet
             ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-            : 'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all alignment attestations.'}
+            : 'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all project endorsements.'}
         </Alert>
       )}
 

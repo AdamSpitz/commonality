@@ -8,7 +8,7 @@ Anyone can read the smart contracts that govern how pledges are held, released, 
 
 ## All transactions are public
 
-Every pledge, every refund, every funding decision, every attestation — all of it is recorded on a public blockchain. You can verify any claim the system makes. If a project says it received $50,000, you can check. If a delegate says they directed funds toward education, you can see exactly where each dollar went. Nobody can falsify the record after the fact.
+Every pledge, every refund, every funding decision, every endorsement — all of it is recorded on a public blockchain. You can verify any claim the system makes. If a project says it received $50,000, you can check. If a delegate says they directed funds toward education, you can see exactly where each dollar went. Nobody can falsify the record after the fact.
 
 ## Nobody controls it
 
