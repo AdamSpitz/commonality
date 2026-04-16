@@ -17,13 +17,12 @@ No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEP
 
 ## Finding relevant specs
 
-Different roles need different parts of the spec:
+See [ROLES.md](ROLES.md) for the full guide. Quick version:
 
-  - **Founder (vision/strategy):** [docs/vision-and-strategy/](docs/vision-and-strategy/) — why this project should exist, societal arguments, game theory.
-  - **Product manager (what to build):** [specs/README.md](specs/README.md) for the system overview, then each subsystem's `README.md`, `queries-and-actions.md`, and `ui.md`.
-  - **Tech lead (how to build it):** [specs/tech/shared/tech.md](specs/tech/shared/tech.md), [specs/tech/indexer/](specs/tech/indexer/), each subsystem's `indexer.md`, and [specs/tech/shared/decoupling.md](specs/tech/shared/decoupling.md).
-  - **Dev (implementation):** This README plus code-level READMEs in each package directory (`hardhat/`, `sdk/`, `ui/`, etc.).
-  - **User docs:** [ROLES.md](ROLES.md) — guide to which docs each role should read, including the plan for user-facing documentation.
+  - **Founder (vision/strategy):** [docs/vision-and-strategy/](docs/vision-and-strategy/) + [specs/README.md](specs/README.md)
+  - **Product manager (what to build):** [specs/README.md](specs/README.md) + [specs/product/](specs/product/README.md)
+  - **Tech lead (how to build it):** [specs/README.md](specs/README.md) + [specs/tech/README.md](specs/tech/README.md)
+  - **Dev (implementation):** This README + code-level READMEs in each package (`hardhat/`, `sdk/`, `ui/`, etc.) + [specs/tech/subsystems/](specs/tech/subsystems/) for your subsystem
 
 ## Where to find other files
 
