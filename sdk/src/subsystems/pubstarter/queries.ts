@@ -48,6 +48,7 @@ import {
   foldSecondaryMarket,
   foldTokenBurns,
   type ProjectEvent,
+  type ProjectAccumulator,
   type SecondaryMarketEvent,
 } from './folds.js';
 import type { TransferSingleEvent, TransferBatchEvent } from './events.js';
@@ -180,14 +181,23 @@ function decodeTransferEvents(rawEvents: Awaited<ReturnType<typeof fetchERC1155T
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param assuranceContractAddress - Address of the project's assurance contract
+ * @param options - Optional configuration for resumable folding
+ * @param options.initialAccumulator - Previously saved accumulator to resume from (enables incremental fetching)
+ * @param options.blockNumber_gte - Only fetch events at or after this block number (used with initialAccumulator)
  * @returns The project, or null if no creation event exists
  */
 export async function getProject(
   machinery: SDKMachinery,
-  assuranceContractAddress: string
+  assuranceContractAddress: string,
+  options?: {
+    initialAccumulator?: ProjectAccumulator;
+    blockNumber_gte?: string;
+  }
 ): Promise<Project | null> {
-  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress);
-  const { project: partial } = foldProject(projectEvents);
+  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
+    blockNumber_gte: options?.blockNumber_gte,
+  });
+  const { project: partial } = foldProject(projectEvents, options?.initialAccumulator);
   if (!partial) return null;
 
   let threshold = '0';

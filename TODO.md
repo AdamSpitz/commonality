@@ -40,15 +40,8 @@
   - Implement the `foldVersion` idea described in our [indexer spec](specs/tech/indexer/README.md).
     - Done for the resumable pubstarter folds. If fold logic changes later in a way that invalidates saved accumulators, bump the relevant foldVersion constant.
   - Implement client-side storage of fold accumulators.
-    - Prefer IndexedDB over localStorage; follow the pattern used by the cached Subjectiv trust network in the UI.
-    - Keep the persistence layer in the UI/browser side rather than the SDK, since the SDK is used in non-browser contexts too.
-    - Store, per cache entry: accumulator, foldVersion, and the block number the fold is current through.
-    - Include enough in the cache key to avoid cross-contamination: eventCacheUrl, relevant contract addresses, fold type, and entity id.
-    - On load: if the cache is missing, corrupt, or foldVersion mismatches, discard it and re-fold from scratch.
-    - Add incremental fetching support so queries can fetch only events after the stored block number; without this, persisted accumulators don't buy much.
-    - Do the first vertical slice on one query path (`getProject` is the obvious starting point), then extend the pattern to contributions / secondary market / burns if it seems worthwhile.
-    - Make sure bigint-containing accumulators serialize/deserialize cleanly.
-    - Add tests for cache hits, cache misses, stale foldVersion invalidation, and incremental resume producing the same result as a full refold.
+    - DONE for project fold (2026-04-17): IndexedDB persistence layer, cache key with eventCacheUrl/contract address/project address/foldType, foldVersion validation, bigint serialization, blockNumber tracking, incremental fetching via blockNumber_gte option, getProject integration, useCachedProject hook, 3 passing tests.
+    - Remaining: extend to contributions/secondary market/burns if performance warrants, wire up specific UI pages.
 
   - How do we keep deployments (of all sorts of things: smart contracts, indexer, UI, various services like the attesters and finders and so on) from becoming unwieldy? It's probably not that big a deal - when deploying, just keep track of the info regarding where the code was deployed to and so on - but there are so many moving parts here that I'm starting to be intimidated.
 

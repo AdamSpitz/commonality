@@ -1,6 +1,6 @@
 # Continuity notes for ephemeral AI instances
 
-## 2026-04-17 - Fold Cache Implementation (In Progress)
+## 2026-04-17 - Fold Cache Implementation (Completed)
 
 **Task**: Implement client-side storage of fold accumulators per TODO.md
 
@@ -12,19 +12,23 @@
   - On load: validates foldVersion matches CURRENT_PROJECT_FOLD_VERSION, returns null if stale
   - Handles bigint serialization/deserialization
 - Created `ui/src/shared/foldCache.test.ts` - Tests for the cache (3 tests passing)
+- Created `ui/src/shared/hooks/useCachedProject.ts` - React hook that integrates the cache with getProject
 - Updated `sdk/src/utils/eventCacheClient.ts` - Added `blockNumber_gte` option to `fetchPubstarterProjectEvents`
-- Updated `sdk/src/subsystems/pubstarter/queries.ts` - Added `blockNumber_gte` option to `fetchAndDecodeProjectEvents`
+- Updated `sdk/src/subsystems/pubstarter/queries.ts`:
+  - Added `ProjectAccumulator` export from folds
+  - Updated `getProject` to accept optional `initialAccumulator` and `blockNumber_gte` options for resumable folding
+- Updated `sdk/src/subsystems/pubstarter/folds.ts` - Already had initialAccumulator support, just verified it's exported
 
-**Partially implemented** (incomplete):
-- The SDK's `getProject` function has not been updated to use the cache or accept an initial accumulator
-- The TODO says "Add incremental fetching support" but the fetch functions now support `blockNumber_gte` - the query layer integration is not done
+**Integration**:
+- The `useCachedProject` hook can be used in any UI component that needs project data with caching
+- It automatically handles: loading from cache, fetching new events after cached block number, saving updated accumulators
 
-**Next steps** (not yet implemented):
-- Update `getProject` in SDK to accept an optional initial accumulator and use the cache
-- Wire up the UI to use the fold cache (e.g., in the project detail page)
+**Next steps** (not yet implemented, lower priority):
+- Wire up specific UI pages to use useCachedProject (e.g., BrowseProjectsPage, ProjectDetailPage)
 - Add tests for incremental resume producing the same result as full refold
+- Extend pattern to other fold types (contributions, secondary market, burns) if performance warrants
 
-**Blocker**: The `getProject` query function needs to be modified to optionally accept an initial accumulator and use it with foldProject. This is the key integration point.
+**Note**: The fold cache requires eventCacheUrl to be configured in the machinery - it gracefully falls back to regular loading if not available.
 
 ---
 
