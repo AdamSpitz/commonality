@@ -4,14 +4,7 @@
 
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
 
-  - Can you come up with some short paragraphs or slogans or memes that might be catchy and capture some aspect of the spirit of this project? (Brainstorm first, then run your ideas through an "is this cringeworthy?" filter, then see if you can come up with non-cringeworthy versions.)
-    - My brainstorming:
-      - Disdain for the usual inflammatory polarized bullshit:
-        - You're a tool of the politicians / corporate media.
-      - Rolling eyes at the attempts to pit normal people against each other:
-        - Have you ever stopped to consider that maybe most people are normal?
-        - Maybe the people trying to divide us are the enemy.
-      - 
+  - Keep working on [memes](specs/product/memes.md).
 
   - In the conceptspace UI, it'd be good to have hints to nudge people in the direction of better/related statements. Autocomplete, suggest related statements, suggest statements implying this one or implied by this one, show a map with related statements nearby, etc. Do we have anything like that?
     - We have partial coverage: There's a `StatementSuggestions` component (`ui/src/conceptspace/components/StatementSuggestions.tsx`) that shows statements that are implied by or imply the current statement, filtered to those with more supporters than the current one. The underlying SDK function `getStatementSuggestions` (`sdk/src/subsystems/conceptspace/queries.ts:754`) only finds related statements through on-chain implication attestations. Missing: autocomplete when creating/searching, broader relatedness beyond attested implications (semantic similarity, domain-based), and any graph/map visualization.
