@@ -101,3 +101,4 @@ The general finder still catches all the "ordinary" implications.
 See also:
 - [Implication Discovery](../tech/subsystems/conceptspace/implication-discovery.md) — current finder spec
 - [Hidden Majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) — the patterns we're trying to find
+- [Bridge Creator](./bridge-creator.md) — actively tries to find common ground
