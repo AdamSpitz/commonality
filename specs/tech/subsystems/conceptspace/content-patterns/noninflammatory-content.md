@@ -19,6 +19,8 @@ Here we have the actual concrete [hidden majority](./hidden-majority.md) stateme
 
 That is, a major pattern I'm expecting to see in the usage of this noninflammatory-content system is that people on one side write content that says, "Here's a statement in conceptspace that I think the common-sense majority on the *other* side might be willing to sign, and here's why (in a respectful way)."
 
+The [bridge creator](/specs/product/bridge-creator.md) is an AI system designed to do this systematically — synthesizing modified statements and commonality statements, then using the noninflammatory content system as the delivery mechanism.
+
 ## Noticing the connection between hidden-majority and noninflammatory-content
 
 In fact, now that I think about it, the "noninflammatory content" idea might almost be *part of* the "hidden majority" idea. Maybe not quite. But they're very closely related, anyway.

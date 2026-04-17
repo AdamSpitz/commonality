@@ -13,3 +13,5 @@ After the [MVP](./mvp.md), what else might we want to do?
 - **Mutable Refs UI** — The SDK layer is done; building the UI is deferred.
 - **AI skills** — Formal SKILL.md files for the assistant roles described in [ai-assistance.md](ai-assistance.md).
 - **Generative testing** — Infrastructure is prepped; the generative test suite itself isn't written.
+- **Bridge finder** — A focused implication finder that specifically hunts for hidden-majority patterns. See [bridge-finder.md](bridge-finder.md).
+- **Bridge creator** — An AI/human system that actively synthesizes common-ground statements and gets them in front of people, rather than just passively discovering existing commonality. Builds on three layers: implication attestations (rigorous), nudges (probabilistic), and noninflammatory-content-backed persuasion (making the case). See [bridge-creator.md](bridge-creator.md).

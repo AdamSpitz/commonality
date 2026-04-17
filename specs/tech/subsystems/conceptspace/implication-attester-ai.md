@@ -21,6 +21,15 @@ AI recommendations for implementation approach:
 
 Later enhancements: add batch processing (cron job to evaluate new statements against top N statements), event-driven automation (watch for new DirectSupport events), and admin UI for reviewing attestations.
 
+### Bridge-creator implications
+
+The [bridge creator](/specs/product/bridge-creator.md) generates modified statements and commonality statements. When the attester evaluates these, note the directionality:
+
+- **Modified statement → commonality statement:** These are legitimate implication attestations. If a modified-left statement and a modified-right statement both imply a commonality statement, that's a genuine logical relationship — the attester should evaluate and attest these normally.
+- **Original statement → modified statement:** These should generally *not* be attested as implications. The modified statement may add concessions or framings that the original signer didn't intend. Instead, the connection between original and modified statements should go through the [nudge system](hints.md) — "you might also believe this" — rather than "you logically already believe this." The bridge-creator publishes these as signed off-chain nudge messages (see the nudger architecture in [hints.md](hints.md)), not as on-chain attestation requests.
+
+The attester's prompt should be set up to make this distinction clear when evaluating bridge-creator-generated pairs.
+
 
 ## More detail
 

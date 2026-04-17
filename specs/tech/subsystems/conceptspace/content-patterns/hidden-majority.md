@@ -95,6 +95,8 @@ Here, Commonality's job isn't just to highlight an already-existing common-sense
 
 This is where the [noninflammatory content funding](./noninflammatory-content.md) system comes in — it provides both the incentive and the mechanism for communicating across the divide. (See [that spec's section on surfacing misunderstood positions](../../content-funding/noninflammatory-content/README.md#surfacing-misunderstood-positions) for the mechanism.)
 
+And the [bridge creator](/specs/product/bridge-creator.md) is the systematic approach to this: rather than waiting for humans to happen to write "clued-in" statements, the bridge-creator AI actively synthesizes them — taking moderate statements from each side, identifying where the positions are compatible, and proposing modified statements and commonality statements. The modified statements are offered as [nudges](../hints.md) ("you might also believe..."), not as implication attestations, and the noninflammatory content system provides the mechanism for getting them in front of people across the divide.
+
 ### Different problems, same solution
 
 The two sides arrive at the same policy prescription from completely different motivations. There's no value alignment being revealed, no factual misunderstanding being corrected, no compromise being struck — they just happen to converge on the same answer for different reasons. The commonality statement is the policy itself, stated without either side's justification attached.

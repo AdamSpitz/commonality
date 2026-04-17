@@ -19,3 +19,16 @@ This is starting to feel interesting to me. I'm starting to get a clearer sense 
   - Implication attestations: Should be very straightforward and incontrovertible - this is about restating the same idea in a different way, or about logically-required implications. We're using AI to give people the freedom to say what they want in their own words; we're not trying to persuade them and we really don't want to misrepresent them.
   - Nudges: The system isn't going to put words in the user's mouth, but it thinks he *might* also believe this other statement.
   - Social media persuasion backed by noninflammatory-content attestations: Longer than a statement; this is about making the case for the nudge statement. We're using AI (an AI trusted by the person we're trying to persuade! its prompt is openly visible and the user has the ability to configure his system to trust or not-trust whichever ones of these attesters he wants) to say that reading the post isn't going to piss him off.
+
+## How the bridge-creator fits into the system architecture
+
+The bridge-creator is a **nudger** — an off-chain service identified by its Ethereum address that publishes signed nudge messages. See [hints.md](specs/tech/subsystems/conceptspace/hints.md) for the full nudger architecture.
+
+Concretely, the bridge-creator:
+1. Watches for new statements via the indexer.
+2. Identifies pairs that look like they *almost* bridge (moderate statements from opposing sides with compatible positions).
+3. Synthesizes modified statements and commonality statements, publishing them to IPFS.
+4. Publishes signed nudge messages connecting original statements to the synthesized ones ("you signed S1; you might also want to sign this modified version").
+5. Separately, submits the modified→commonality pairs to the implication attester for evaluation (those *are* legitimate implication attestations — the modified statements really do imply the commonality statement).
+
+Users configure whether they trust this nudger in Settings, same as they configure trusted attesters. The bridge-creator's nudges are off-chain (signed messages, no gas cost, no permanent on-chain record), while the implication attestations it triggers are on-chain as usual.

@@ -74,6 +74,8 @@ When using refs to store lists (e.g., `created-statements`), the ref value is an
 
 Other ref names are possible (bookmarks, drafts, etc.) — the system is fully generic.
 
+**Considered but rejected: nudger feeds.** We considered having [nudgers](../conceptspace/hints.md) maintain mutable refs pointing to their current nudge sets, but decided nudges should be fully off-chain (signed messages served via API). Nudges don't affect on-chain state and benefit from *not* having permanent on-chain history — a nudger should be able to retract bad suggestions without a permanent record. See [hints.md](../conceptspace/hints.md) for the nudger architecture.
+
 ## UI
 
 Not yet implemented.

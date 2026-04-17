@@ -100,6 +100,21 @@ I'll write up the basics here, and then probably ask AI to generate a more flesh
   - **Autonomous use cases:** Identify when statements user signed both imply a higher-support commonality statement, detect trending causes aligned with user's beliefs, alert when high-profile signers join user's causes.
   - **Interactive use cases:** "Help me find commonality between these groups", strategic coalition planning, crafting umbrella statements.
 
+### Bridge creator / statement synthesis
+
+**Mode: Hybrid - autonomous synthesis with interactive refinement**
+
+  - This skill is the AI side of the [bridge-creator](bridge-creator.md) system. Rather than just *discovering* existing common ground (which the cause-discovery skill above does), this skill actively *synthesizes* new common-ground statements and helps get them in front of people.
+  - You may be called upon to:
+    - Given statements from opposing sides, identify what common ground *could* look like — even if nobody has written it yet. Propose a commonality statement and modified versions of each side's statement that make the compatibility explicit.
+    - Help users on one side write a "clued-in" version of the other side's position — a statement that the other side would likely agree with, phrased sympathetically.
+    - Generate nudge candidates: "you signed S1, and here's a new statement S2 that's compatible with yours and also compatible with what the other side is saying."
+    - Coordinate with the noninflammatory content system: help draft social-media posts that make the case for a bridge statement, written to pass the noninflammatory attester.
+    - Help users understand the three-layer model: implication attestations (rigorous logical links), nudges (probabilistic suggestions), and noninflammatory-content-backed persuasion (making the case across the divide).
+  - This skill needs to be careful about *not* misrepresenting what people believe. Modified statements should be offered as nudges ("you *might* also believe..."), not as implication attestations ("you *said*..."). The bridge-creator proposes; the user decides.
+  - **Autonomous use cases:** Scan the statement graph for pairs that look like they *almost* bridge but nobody has written the connecting statement yet. Propose bridge candidates to users who've signed relevant statements.
+  - **Interactive use cases:** "Help me write a statement that could appeal to both sides on immigration," "What would a moderate-right person need to hear to consider signing this?", refinement dialogue to get the bridge statement right.
+
 ### Attester management and trust configuration
 
 **Mode: Primarily interactive, with autonomous quality alerts**

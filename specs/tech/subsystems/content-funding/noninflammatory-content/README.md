@@ -89,6 +89,8 @@ That is: a right-winger writes the "clued-in left" statement that he thinks the 
 
 This is the case where Commonality's job isn't just to *reveal* an existing hidden majority, but to help *create* one by getting ideas in front of people who haven't encountered them yet.
 
+The [bridge creator](/specs/product/bridge-creator.md) is the systematic version of this process: an AI that takes moderate statements from each side, identifies compatibility, and proposes modified statements and commonality statements. Rather than waiting for humans to happen to write the "clued-in left" statement in the example above, the bridge-creator synthesizes it — and the noninflammatory content system here provides the distribution mechanism for getting it in front of people.
+
 
 ## Practical path
 
