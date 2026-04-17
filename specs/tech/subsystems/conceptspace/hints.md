@@ -57,7 +57,6 @@ type NudgeMessage = {
   targetStatementCid: string; // "You signed this..."
   suggestedStatementCid: string; // "...you might also want to sign this"
   reason: string;             // Human-readable explanation
-  source: "bridge-creator" | "implication-graph" | "semantic-similarity" | string;
   confidence: number;         // 0-1
   timestamp: number;          // Unix timestamp
   signature: string;          // EIP-191 signature over the above fields
