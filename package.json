@@ -17,6 +17,7 @@
     "content-finder",
     "platform-api-service",
     "fake-data-generation",
+    "nudger",
     "ui"
   ],
   "engines": {
