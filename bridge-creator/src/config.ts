@@ -41,8 +41,7 @@ export function loadConfig(): BridgeCreatorConfig {
     description: readStringEnv('NUDGER_DESCRIPTION', 'Creates synthesized bridge statements from moderate positions'),
     sourceType: readStringEnv('NUDGER_SOURCE_TYPE', 'bridge-creator'),
     version: readStringEnv('NUDGER_VERSION', '0.1.0'),
-    rateLimitWindowMs: readNumberEnv('RATE_LIMIT_WINDOW_MS', 60000),
-    rateLimitMaxRequests: readNumberEnv('RATE_LIMIT_MAX_REQUESTS', 100),
+    nudgePublicationsContractAddress: requireEnv('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS),
     commonalityStatements: readStringEnv('COMMONALITY_STATEMENTS', '').split(',').filter(Boolean),
   };
 }

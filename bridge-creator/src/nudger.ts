@@ -3,12 +3,10 @@ import {
   type IpfsCidV1,
   getStatement,
   getStatementWithContent,
-  fetchFromIPFS,
   uploadToIPFS,
 } from '@commonality/sdk';
 import { type DisplayableDocument } from '@commonality/sdk';
 import type { NudgerConfig, NudgeMessage } from '@commonality/nudger-core';
-import { signNudgeMessage } from '@commonality/nudger-core';
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 
 export interface BridgeCandidate {
@@ -34,8 +32,6 @@ export class BridgeCreatorNudger {
     targetStatementCid: IpfsCidV1,
     config: NudgerConfig
   ): Promise<NudgeMessage[]> {
-    const timestamp = Math.floor(Date.now() / 1000);
-
     const sourceStatement = await getStatement(machinery, targetStatementCid);
     if (!sourceStatement) {
       return [];
@@ -72,15 +68,12 @@ export class BridgeCreatorNudger {
 
       const confidence = this.calculateConfidence(candidate);
 
-      const nudge = await signNudgeMessage({
+      nudges.push({
         targetStatementCid,
         suggestedStatementCid: modifiedCid,
         reason: `Modified version compatible with opposing side: "${modifiedStatement.substring(0, 100)}..."`,
         confidence,
-        timestamp,
       });
-
-      nudges.push(nudge);
 
       const commonalityStatement = await this.createCommonalityStatement(
         candidate,
@@ -90,15 +83,12 @@ export class BridgeCreatorNudger {
       if (commonalityStatement) {
         const commonalityCid = await this.publishStatement(machinery, commonalityStatement);
 
-        const commonalityNudge = await signNudgeMessage({
+        nudges.push({
           targetStatementCid: modifiedCid,
           suggestedStatementCid: commonalityCid,
           reason: `This modified statement implies common ground: "${commonalityStatement.substring(0, 100)}..."`,
           confidence,
-          timestamp,
         });
-
-        nudges.push(commonalityNudge);
       }
     }
 

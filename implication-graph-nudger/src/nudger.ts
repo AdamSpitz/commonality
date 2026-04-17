@@ -5,8 +5,7 @@ import {
   getImplicationsFrom,
   getImplicationsTo,
 } from '@commonality/sdk';
-import type { NudgerConfig } from '@commonality/nudger-core';
-import { type NudgeMessage, signNudgeMessage } from '@commonality/nudger-core';
+import type { NudgerConfig, NudgeMessage } from '@commonality/nudger-core';
 
 export class ImplicationGraphNudger {
   name = 'implication-graph';
@@ -17,7 +16,6 @@ export class ImplicationGraphNudger {
     _config: NudgerConfig
   ): Promise<NudgeMessage[]> {
     const nudges: NudgeMessage[] = [];
-    const timestamp = Math.floor(Date.now() / 1000);
 
     const sourceStatement = await getStatement(machinery, targetStatementCid);
     if (!sourceStatement) {
@@ -32,19 +30,15 @@ export class ImplicationGraphNudger {
       }
 
       if (targetStatement.believerCount > sourceStatement.believerCount) {
-        const confidence = this.calculateConfidence(
-          sourceStatement.believerCount,
-          targetStatement.believerCount
-        );
-
-        const nudge = await signNudgeMessage({
+        nudges.push({
           targetStatementCid,
           suggestedStatementCid: implication.toStatementCid,
           reason: `This statement is implied by the current statement and has ${targetStatement.believerCount} supporters (more than the current statement's ${sourceStatement.believerCount})`,
-          confidence,
-          timestamp,
+          confidence: this.calculateConfidence(
+            sourceStatement.believerCount,
+            targetStatement.believerCount
+          ),
         });
-        nudges.push(nudge);
       }
     }
 
@@ -56,19 +50,15 @@ export class ImplicationGraphNudger {
       }
 
       if (sourceOfImplication.believerCount > sourceStatement.believerCount) {
-        const confidence = this.calculateConfidence(
-          sourceStatement.believerCount,
-          sourceOfImplication.believerCount
-        );
-
-        const nudge = await signNudgeMessage({
+        nudges.push({
           targetStatementCid,
           suggestedStatementCid: implication.fromStatementCid,
           reason: `This statement implies the current statement and has ${sourceOfImplication.believerCount} supporters (more than the current statement's ${sourceStatement.believerCount})`,
-          confidence,
-          timestamp,
+          confidence: this.calculateConfidence(
+            sourceStatement.believerCount,
+            sourceOfImplication.believerCount
+          ),
         });
-        nudges.push(nudge);
       }
     }
 

@@ -75,6 +75,7 @@ async function main() {
         'CHANNEL_REGISTRY_ADDRESS',
         'CHANNEL_ESCROW_ADDRESS',
         'CREATOR_CONTRACT_FACTORY_ADDRESS',
+        'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS',
       ];
       const checks = await Promise.all(addressKeys.map(k => hasCode(existing[k])));
       if (checks.every(Boolean)) {
@@ -248,6 +249,14 @@ async function main() {
   await channelRegistry.setFactory(creatorContractFactoryAddress);
   console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory)');
 
+  // Deploy NudgePublications contract
+  console.log('Deploying NudgePublications...');
+  const NudgePublications = await ethers.getContractFactory('NudgePublications');
+  const nudgePublications = await NudgePublications.deploy();
+  await nudgePublications.waitForDeployment();
+  const nudgePublicationsAddress = await nudgePublications.getAddress();
+  console.log(`✓ NudgePublications: ${nudgePublicationsAddress}`);
+
   // Deploy Pubstarter main contract
   console.log('Deploying Pubstarter...');
   const Pubstarter = await ethers.getContractFactory('Pubstarter');
@@ -284,6 +293,7 @@ async function main() {
         MarketplaceFactory: marketplaceFactoryAddress,
         EthThresholdConditionFactory: conditionFactoryAddress,
         PaymentToken: paymentTokenAddress,
+        NudgePublications: nudgePublicationsAddress,
         Pubstarter: pubstarterAddress,
         ChannelVerifier: channelVerifierAddress,
         ContentRegistry: contentRegistryAddress,
@@ -328,6 +338,7 @@ async function main() {
     'CHANNEL_REGISTRY_ADDRESS': channelRegistryAddress,
     'CHANNEL_ESCROW_ADDRESS': channelEscrowAddress,
     'CREATOR_CONTRACT_FACTORY_ADDRESS': creatorContractFactoryAddress,
+    'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS': nudgePublicationsAddress,
     'CONTENT_FUNDING_START_BLOCK': '1',
     'START_BLOCK': '1',
   };
@@ -439,6 +450,7 @@ async function main() {
   console.log(`  ChannelRegistry:         ${channelRegistryAddress}`);
   console.log(`  ChannelEscrow:           ${channelEscrowAddress}`);
   console.log(`  CreatorContractFactory:  ${creatorContractFactoryAddress}`);
+  console.log(`  NudgePublications:       ${nudgePublicationsAddress}`);
 
   console.log('\nNext steps:');
   if (isLocal) {

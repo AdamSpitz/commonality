@@ -37,7 +37,6 @@ export function loadConfig(): NudgerConfig {
     description: readStringEnv('NUDGER_DESCRIPTION', 'Suggests statements based on the implication graph'),
     sourceType: readStringEnv('NUDGER_SOURCE_TYPE', 'implication-graph'),
     version: readStringEnv('NUDGER_VERSION', '0.1.0'),
-    rateLimitWindowMs: readNumberEnv('RATE_LIMIT_WINDOW_MS', 60000),
-    rateLimitMaxRequests: readNumberEnv('RATE_LIMIT_MAX_REQUESTS', 100),
+    nudgePublicationsContractAddress: requireEnv('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS),
   };
 }

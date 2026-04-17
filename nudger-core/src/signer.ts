@@ -1,4 +1,11 @@
 import { privateKeyToAccount } from 'viem/accounts';
+import {
+  createTestClients,
+  uploadToIPFS,
+  cidToBytes32,
+  NudgePublicationsAbi,
+  type IpfsCidV1,
+} from '@commonality/sdk';
 
 let account: ReturnType<typeof privateKeyToAccount> | null = null;
 
@@ -15,8 +22,7 @@ export interface NudgerConfig {
   description: string;
   sourceType: string;
   version: string;
-  rateLimitWindowMs: number;
-  rateLimitMaxRequests: number;
+  nudgePublicationsContractAddress: string;
 }
 
 export function initializeSigner(config: NudgerConfig) {
@@ -32,43 +38,61 @@ export function getSignerAddress(): string {
 }
 
 export interface NudgeMessage {
-  nudger: string;
   targetStatementCid: string;
   suggestedStatementCid: string;
   reason: string;
   confidence: number;
-  timestamp: number;
-  signature: string;
 }
 
-export async function signNudgeMessage(message: Omit<NudgeMessage, 'nudger' | 'signature'>): Promise<NudgeMessage> {
+export interface NudgeRevocation {
+  targetStatementCid: string;
+  suggestedStatementCid: string;
+}
+
+export interface NudgeBatch {
+  nudger: string;                  // Ethereum address of the nudger
+  publishedAt: number;             // Unix timestamp
+  nudges: NudgeMessage[];
+  revocations: NudgeRevocation[];  // per-nudge revocations of entries from previous batches
+}
+
+export async function publishNudgeBatch(
+  nudges: NudgeMessage[],
+  config: NudgerConfig,
+  revocations: NudgeRevocation[] = []
+): Promise<{ txHash: string; batchCid: IpfsCidV1 }> {
   if (!account) {
     throw new Error('Signer not initialized. Call initializeSigner first.');
   }
 
-  const messageString = JSON.stringify({
-    targetStatementCid: message.targetStatementCid,
-    suggestedStatementCid: message.suggestedStatementCid,
-    reason: message.reason,
-    confidence: message.confidence,
-    timestamp: message.timestamp,
-  });
-
-  const signature = await account.signMessage({
-    message: messageString,
-  });
-
-  return {
+  const batch: NudgeBatch = {
     nudger: account.address,
-    targetStatementCid: message.targetStatementCid,
-    suggestedStatementCid: message.suggestedStatementCid,
-    reason: message.reason,
-    confidence: message.confidence,
-    timestamp: message.timestamp,
-    signature,
+    publishedAt: Math.floor(Date.now() / 1000),
+    nudges,
+    revocations,
   };
+
+  const batchCid = await uploadToIPFS(
+    { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
+    batch
+  );
+
+  const clients = createTestClients(
+    config.nudgerPrivateKey as `0x${string}`,
+    config.ethereumRpcUrl
+  );
+
+  const txHash = await clients.walletClient.writeContract({
+    address: config.nudgePublicationsContractAddress as `0x${string}`,
+    abi: NudgePublicationsAbi,
+    functionName: 'publishNudgeBatch',
+    args: [cidToBytes32(batchCid)],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+
+  return { txHash, batchCid };
 }
 
-export function recoverSignerAddress(message: NudgeMessage): string {
-  return message.nudger;
-}

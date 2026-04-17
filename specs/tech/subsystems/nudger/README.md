@@ -10,8 +10,8 @@ Nudges and implication attestations are fundamentally different things:
 |---|---|---|
 | Claim | "If you believe S1, you logically also believe S2" | "You signed S1; you might also want to sign S2" |
 | Rigor | Rigorous, incontrovertible | Exploratory, user decides |
-| Storage | On-chain (permanent, affects support counts) | Off-chain (signed message, no gas, no permanence) |
-| Bad suggestion | Costs gas to correct; misleads support counts | Nudger just stops serving it |
+| Storage | On-chain (permanent, affects support counts) | On-chain event → IPFS batch |
+| Bad suggestion | Costs gas to correct; misleads support counts | Nudger revokes the batch |
 
 This distinction matters most for [bridge-creator](../../../product/bridge-creator.md) output: the modified statements it synthesizes are plausible extensions of a user's position, not logical entailments. Putting them through the attestation system would misrepresent users' beliefs. Nudges are exactly the right fit.
 
@@ -20,47 +20,66 @@ See [hints.md](../conceptspace/hints.md) for the full rationale.
 ## Architecture
 
 A nudger is:
-- An off-chain HTTP service
-- Identified by its Ethereum address (used to verify signatures)
+- An off-chain background service
+- Identified by its Ethereum address (the address that signs its onchain publish transactions)
 - Anyone can run one, just as anyone can run an implication attester
 - Users configure which nudgers they trust in Settings
 
-### NudgeMessage format
+### Publication model
+
+Nudgers publish their nudges in **batches**. Each batch is a JSON document uploaded to IPFS. The nudger then calls `NudgePublications.publishNudgeBatch(batchCid)` on-chain, emitting a `NudgesPublished` event that ties the batch to the nudger's Ethereum address. Old batches remain valid until the nudger explicitly calls `revokeNudgeBatch`.
+
+This gives:
+- **Verifiability**: the onchain event proves a batch came from a specific nudger (no per-nudge signatures needed)
+- **Revocability**: a nudger can revoke a batch if a bug or bad AI output was published
+- **Discoverability**: clients query the indexer for all `NudgesPublished` events from trusted nudger addresses
+
+### NudgeBatch format (IPFS document)
 
 ```typescript
 type NudgeMessage = {
-  nudger: string;                  // Ethereum address of the nudger
   targetStatementCid: string;      // "You signed this..."
   suggestedStatementCid: string;   // "...you might also want to sign this"
   reason: string;                  // Human-readable explanation
   confidence: number;              // 0-1
-  timestamp: number;               // Unix timestamp
-  signature: string;               // EIP-191 signature over the above fields
+};
+
+type NudgeRevocation = {
+  targetStatementCid: string;
+  suggestedStatementCid: string;
+};
+
+type NudgeBatch = {
+  nudger: string;                  // Ethereum address of the nudger (matches onchain event)
+  publishedAt: number;             // Unix timestamp
+  nudges: NudgeMessage[];
+  revocations: NudgeRevocation[];  // per-nudge revocations of entries from previous batches
 };
 ```
 
-The signature lets anyone verify a nudge came from a particular nudger, without on-chain transactions. The nudger signs over all fields except `signature` itself.
+New batches are additive. To retract a specific nudge, publish a new batch whose `revocations` array includes that `(targetStatementCid, suggestedStatementCid)` pair. This lets a nudger correct a single bad suggestion without re-publishing or invalidating the rest of its history.
 
-### Nudger HTTP API
+### NudgePublications smart contract
 
-Every nudger exposes the same interface, so the SDK can talk to any nudger uniformly:
+A single shared contract. Any nudger can call it. No on-chain state — the event log is the complete canonical record.
 
-**`GET /nudges?targetStatementCid=<cid>`**
-Given a statement the user has signed, return nudge candidates. Response:
-```typescript
-{
-  nudges: NudgeMessage[];
-}
+```solidity
+event NudgesPublished(address indexed nudger, bytes32 indexed batchCid);
+
+function publishNudgeBatch(bytes32 batchCid) external;
 ```
 
-**`GET /nudges/bulk?targetStatementCids=<cid1>,<cid2>,...`**
-Batch version, for when the SDK needs to fetch nudges for multiple signed statements at once.
+`batchCid` is the IPFS CID of the `NudgeBatch` JSON document, encoded as bytes32 (same convention as statement CIDs throughout the system).
+
+### Nudger HTTP endpoints
+
+Every nudger exposes a minimal HTTP interface for discovery and health monitoring (but not for serving nudges — the canonical source is the chain):
 
 **`GET /.well-known/nudger.json`**
-Metadata the UI uses to display the nudger to the user when they're configuring trusted nudgers:
+Metadata the UI uses to display the nudger when users configure trusted nudgers:
 ```typescript
 {
-  address: string;        // Ethereum address (matches signatures)
+  address: string;        // Ethereum address (matches onchain events)
   name: string;           // e.g. "Commonality Bridge Creator"
   description: string;    // What strategy this nudger uses
   sourceType: string;     // "bridge-creator" | "implication-graph" | etc.
@@ -73,25 +92,23 @@ Standard health endpoint.
 
 ## SDK integration
 
-The SDK holds the user's list of trusted nudger URLs (from settings). When displaying statement suggestions for a given statement, it:
+The SDK holds the user's list of trusted nudger Ethereum addresses (from settings). When the user views statement suggestions, the SDK:
 
-1. Polls each trusted nudger's `/nudges?targetStatementCid=...` endpoint.
-2. Verifies each NudgeMessage's signature against the nudger's Ethereum address.
-3. Discards messages with invalid signatures or from addresses not matching the configured nudger.
-4. Merges results with the existing implication-graph suggestions (from `getStatementSuggestions`).
-5. Deduplicates (a statement might be suggested by multiple nudgers or by the implication graph).
+1. Queries the indexer for all `NudgesPublished` events from trusted nudger addresses.
+2. Fetches each batch from IPFS, ordered by `publishedAt`.
+3. Folds the batches in order: accumulates `nudges`, then applies `revocations` (removing any matching `(targetStatementCid, suggestedStatementCid)` pair seen so far from this nudger).
+4. Deduplicates any remaining nudges by `(targetStatementCid, suggestedStatementCid)` across nudgers.
+5. Merges results with the existing implication-graph suggestions (from `getStatementSuggestions`).
 6. Returns a combined, ranked list to the UI.
-
-Fetching can be done lazily (when the user views a statement) or proactively (background prefetch for recently-signed statements).
 
 ## Trust configuration
 
-In the Settings UI, alongside trusted implication attesters, users see a "Trusted Nudgers" section. For each nudger they've added:
-- The nudger's name and description (fetched from `/.well-known/nudger.json`)
+In the Settings UI, alongside trusted implication attesters, users see a "Trusted Nudgers" section. Users add a nudger by its Ethereum address (or optionally by a URL to fetch `/.well-known/nudger.json` to pre-fill the name and description). For each trusted nudger:
+- The nudger's name and description
 - Its Ethereum address
 - Option to remove it
 
-The UI shows which nudger produced each suggestion, so users can evaluate whether they want to keep trusting it. A nudger's track record is visible — users can see what it's been suggesting.
+The UI shows which nudger produced each suggestion, so users can evaluate whether they want to keep trusting it.
 
 ## Built-in nudger strategies
 
@@ -103,6 +120,8 @@ The simple case: watch the implication graph for statements that are implied by 
 
 This is essentially what `getStatementSuggestions` ([sdk/src/subsystems/conceptspace/queries.ts:754](../../../../../sdk/src/subsystems/conceptspace/queries.ts)) and the `StatementSuggestions` component ([ui/src/conceptspace/components/StatementSuggestions.tsx](../../../../../ui/src/conceptspace/components/StatementSuggestions.tsx)) already do — but currently embedded in the SDK/UI rather than running as an off-chain service. This strategy can be extracted into a proper nudger service and serve as the reference implementation.
 
+The implication-graph nudger runs as a background worker: it scans all statements periodically, generates nudges for each, and publishes them as a batch via `NudgePublications.publishNudgeBatch`.
+
 ### 2. Bridge-creator nudger
 
 The more sophisticated case: an AI service that synthesizes *new* statements designed to surface hidden common ground. See [bridge-creator.md](../../../product/bridge-creator.md) for full details.
@@ -111,7 +130,7 @@ Concretely:
 1. Watches for new statements via the indexer.
 2. Identifies pairs that look like they almost bridge (moderate statements from opposing sides with compatible positions).
 3. Synthesizes modified statements and commonality statements, publishing them to IPFS.
-4. Publishes signed NudgeMessages connecting original statements to the synthesized ones.
+4. Collects the resulting nudges and publishes them as a `NudgeBatch` via `NudgePublications`.
 5. Separately, submits the modified→commonality pairs to the implication attester (those *are* genuine logical implications).
 
 ### Future strategies
@@ -126,22 +145,23 @@ Concretely:
 |-----------|--------|
 | `getStatementSuggestions` (implication-graph queries) | ✅ Implemented |
 | `StatementSuggestions` UI component | ✅ Implemented |
-| NudgeMessage format specification | ✅ Specified (in hints.md) |
-| Nudger service framework (Express app, signing, API endpoints) | ❌ Not built |
-| SDK: fetch + verify nudges from trusted nudger URLs | ❌ Not built |
+| NudgeBatch format specification | ✅ Specified (this file) |
+| `NudgePublications` smart contract | ✅ Implemented |
+| Nudger service framework (background worker, publishing) | ✅ Implemented (`nudger-core`) |
+| Implication-graph nudger (as standalone service) | ✅ Implemented (background worker) |
+| SDK: fetch + verify nudge batches from indexer | ❌ Not built |
 | Settings UI: add/configure trusted nudgers | ❌ Not built |
 | UI: display nudges alongside implication-graph suggestions | ❌ Not built |
-| Implication-graph nudger (as standalone service) | ❌ Not built |
 | Bridge-creator nudger | ❌ Not built |
 
-The existing `StatementSuggestions` / `getStatementSuggestions` is a proto-nudger — it implements one nudging strategy but is tightly coupled into the SDK rather than running as an off-chain service. The migration path is: extract that logic into the implication-graph nudger service, then update the SDK to fetch from nudger APIs instead of querying the implication graph directly. The UI component can remain structurally similar while its data source changes.
+The existing `StatementSuggestions` / `getStatementSuggestions` is a proto-nudger — it implements one nudging strategy but is tightly coupled into the SDK rather than reading from the nudger system. The migration path is: update the SDK to fetch nudge batches from the indexer (querying `NudgesPublished` events from trusted nudgers), then update the UI component to use that data source instead of querying the implication graph directly.
 
 ## Implementation notes
 
 The nudger service pattern mirrors the implication attester:
-- Node.js/TypeScript/Express
-- Holds an Ethereum key for signing nudge messages (env var)
-- Uses the SDK for reading statements and beliefs
+- Node.js/TypeScript/Express (minimal HTTP for health/metadata; background worker does the real work)
+- Holds an Ethereum key for signing publish transactions (env var)
+- Uses the SDK for reading statements and writing to IPFS + chain
 - Deployed to Render or similar
 
-Unlike the attester, nudgers don't write on-chain transactions, so gas management is not a concern. Payment (via x402) is optional — a nudger that wants to sustain itself could require it, but the implication-graph nudger and bridge-creator nudger can start without it.
+Unlike the attester, nudgers publish in batches rather than per-item. Payment (via x402) is optional.

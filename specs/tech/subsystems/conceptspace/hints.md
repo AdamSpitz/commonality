@@ -29,53 +29,26 @@ On top of nudges, the bridge-creator also uses the [noninflammatory content](/sp
 
 ## Nudger architecture
 
-Unlike implication attestations (which are on-chain events because they affect support counting), nudges are **fully off-chain**. A nudge is just a suggestion — if you ignore it, nothing changes in the system. There's no need to pay gas for that.
+A nudger is an off-chain service identified by its Ethereum address. It periodically publishes **batches** of nudges: the batch content is a JSON document on IPFS, and the nudger calls `NudgePublications.publishNudgeBatch(batchCid)` on-chain to record it. The onchain event (signed by the nudger's Ethereum address) is what establishes authenticity — no per-nudge signatures are needed.
 
-### Nudgers as off-chain services with signed messages
-
-A nudger is an off-chain service identified by its Ethereum address. It publishes signed nudge messages — the signature lets anyone verify that a particular nudge came from a particular nudger, without requiring on-chain transactions.
-
-This mirrors the trust model for implication attesters: users configure which nudgers they trust (in the same Settings section where they configure trusted attesters), and the SDK/UI only shows nudges from trusted nudgers. Anyone can run a nudger, just as anyone can run an attester.
+This mirrors the trust model for implication attesters: users configure which nudger addresses they trust (in the same Settings section), and the SDK only shows nudges from trusted nudgers. A nudger corrects a bad suggestion by publishing a new batch whose `revocations` array names the specific `(targetStatementCid, suggestedStatementCid)` pair to retract — no need to invalidate the rest of the batch's nudges.
 
 The bridge-creator is just one type of nudger. Others might use different strategies: semantic similarity, trending statements, domain-based suggestions, etc.
 
-### Why off-chain rather than on-chain
-
-We considered using [mutable refs](../mutable-refs/README.md) (on-chain pointers to IPFS content) or on-chain nudge events, but:
-
-- Nudges don't affect any on-chain state — no contract reads them, no support counts change.
-- Nudgers may need to be high-volume and fast-iterating; gas costs would be a pointless drag.
-- On-chain permanence is actively undesirable here — a nudger that makes a bad suggestion (due to a bug, a bad prompt, whatever) shouldn't have that mistake permanently enshrined on-chain. Signed messages provide verifiability when you want it (the signature is checkable) without permanence you don't want (the nudger can stop serving old nudges).
-
-### Nudge message format
-
-A nudge is a signed JSON message:
-
-```typescript
-type NudgeMessage = {
-  nudger: string;             // Ethereum address of the nudger
-  targetStatementCid: string; // "You signed this..."
-  suggestedStatementCid: string; // "...you might also want to sign this"
-  reason: string;             // Human-readable explanation
-  confidence: number;         // 0-1
-  timestamp: number;          // Unix timestamp
-  signature: string;          // EIP-191 signature over the above fields
-};
-```
+See the [nudger README](../nudger/README.md) for the full technical spec including the `NudgeBatch` format, smart contract interface, and SDK integration.
 
 ### How it flows
 
 1. A nudger service watches for new statements and new beliefs (via the indexer).
-2. It identifies nudge candidates using its strategy (bridge-creator synthesis, semantic similarity, etc.).
-3. It publishes signed nudge messages via an API endpoint.
-4. The SDK polls trusted nudgers' APIs and merges the results into the UI's suggestion system.
-5. The user sees nudges from their trusted nudgers alongside the existing implication-graph-based suggestions.
+2. It identifies nudge candidates using its strategy (implication graph, bridge-creator synthesis, semantic similarity, etc.).
+3. It assembles a `NudgeBatch` JSON document and uploads it to IPFS.
+4. It calls `NudgePublications.publishNudgeBatch(batchCid)` on-chain.
+5. The SDK queries the indexer for `NudgesPublished` events from trusted nudgers, fetches the IPFS batches, and merges the results into the UI's suggestion system.
+6. The user sees nudges from their trusted nudgers alongside the existing implication-graph-based suggestions.
 
 ### Trust configuration
 
 Users configure trusted nudgers in Settings, the same way they configure trusted attesters. The UI shows which nudger produced each suggestion, so the user can evaluate whether they want to keep trusting it.
-
-A nudger's track record is visible: users can see what it's been suggesting and decide for themselves. But unlike on-chain attestations, the nudger controls what it serves — it can stop suggesting things that turned out to be bad ideas, without a permanent record of the mistake.
 
 
 ## Current state
