@@ -19,7 +19,7 @@
   - See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) and do some enhancements to the implication attester and finder prompts (make the patterns clear), and maybe even put some "write a new statement" capabilities into the finder (or make a separate service, but probably just using the finder is fine).
   
   - Think about the [bridge-finder](specs/product/bridge-finder.md) idea. Either modify the implication-finder to be that, or make it as a separate finder service.
-    - Or even [bridge-creator](specs/product/bridge-creator.md).
+  - Or even [bridge-creator](specs/product/bridge-creator.md). Yeah, let's make the general nudger service (general, can plug in whatever AI heuristics/prompts you want) and then a specific one that is trying to be a bridge-creator.
 
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?
     - No, not yet implemented. The content finder reads submissions from a JSON file (`SUBMISSIONS_FILE_PATH`), but there's no user-facing way to submit content. Current state:
