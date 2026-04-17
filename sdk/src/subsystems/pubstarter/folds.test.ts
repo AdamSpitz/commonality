@@ -1,5 +1,15 @@
 import assert from 'assert';
-import { foldProject, foldContributionsFromEvents, foldProjectTokens, foldSecondaryMarket, foldTokenBurns } from './folds.js';
+import {
+  foldProject,
+  foldContributionsFromEvents,
+  foldProjectTokens,
+  foldSecondaryMarket,
+  foldTokenBurns,
+  PROJECT_FOLD_VERSION,
+  CONTRIBUTIONS_FOLD_VERSION,
+  SECONDARY_MARKET_FOLD_VERSION,
+  TOKEN_BURNS_FOLD_VERSION,
+} from './folds.js';
 import type {
   AssuranceContractCreatedEvent,
   AssuranceContractInitializedEvent,
@@ -165,7 +175,9 @@ function wrap(created?: boolean, initialized?: boolean): ProjectEvent[] {
 
 describe('foldProject', () => {
   it('returns null for empty events', () => {
-    assert.strictEqual(foldProject([]).project, null);
+    const { project, accumulator } = foldProject([]);
+    assert.strictEqual(project, null);
+    assert.strictEqual(accumulator.foldVersion, PROJECT_FOLD_VERSION);
   });
 
   it('returns basic project from created + initialized events', () => {
@@ -299,7 +311,31 @@ describe('foldProject', () => {
     const { accumulator } = foldProject(allEvents.slice(0, half));
     const { project: resumedResult } = foldProject(allEvents.slice(half), accumulator);
     const { project: fullResult } = foldProject(allEvents);
+    assert.strictEqual(accumulator.foldVersion, PROJECT_FOLD_VERSION);
     assert.deepStrictEqual(resumedResult, fullResult);
+  });
+
+  it('ignores a stale project accumulator version', () => {
+    const fullEvents: ProjectEvent[] = [
+      ...wrap(true, true),
+      { type: 'bought', event: makeBoughtEvent({ totalCost: 200000000000000000n }) },
+    ];
+    const staleAccumulator = {
+      foldVersion: 999 as typeof PROJECT_FOLD_VERSION,
+      id: 'stale',
+      erc1155Address: 'stale',
+      recipient: 'stale',
+      conditionAddress: null,
+      metadataCid: 'stale',
+      createdAt: '1',
+      blockNumber: '1',
+      totalReceived: 999n,
+    };
+
+    const { project } = foldProject(fullEvents, staleAccumulator);
+    assert.ok(project !== null);
+    assert.strictEqual(project.id, PROJECT_ADDR);
+    assert.strictEqual(project.totalReceived, '200000000000000000');
   });
 });
 
@@ -326,6 +362,7 @@ describe('foldContributionsFromEvents', () => {
     const result = foldContributionsFromEvents([], []);
     assert.deepStrictEqual(result.contributions, []);
     assert.deepStrictEqual(result.refunds, []);
+    assert.strictEqual(result.accumulator.foldVersion, CONTRIBUTIONS_FOLD_VERSION);
   });
 
   it('maps a single bought event to a contribution', () => {
@@ -408,6 +445,52 @@ describe('foldContributionsFromEvents', () => {
     foldContributionsFromEvents(boughtEvents, soldEvents);
     assert.deepStrictEqual(boughtEvents, boughtCopy);
     assert.deepStrictEqual(soldEvents, soldCopy);
+  });
+
+  it('resumable state carries foldVersion and resumes correctly', () => {
+    const allBought = [
+      makeBoughtEvent({ transactionHash: TX_HASH_2, logIndex: 0 }),
+      makeBoughtEvent({ participant: PARTICIPANT_B, transactionHash: TX_HASH_4, logIndex: 1 }),
+    ];
+    const allSold = [
+      makeSoldEvent({ transactionHash: TX_HASH_3, logIndex: 0 }),
+      makeSoldEvent({ participant: PARTICIPANT_B, transactionHash: TX_HASH_5, logIndex: 1 }),
+    ];
+
+    const partial = foldContributionsFromEvents(allBought.slice(0, 1), allSold.slice(0, 1));
+    const resumed = foldContributionsFromEvents(allBought.slice(1), allSold.slice(1), partial.accumulator);
+    const full = foldContributionsFromEvents(allBought, allSold);
+
+    assert.strictEqual(partial.accumulator.foldVersion, CONTRIBUTIONS_FOLD_VERSION);
+    assert.deepStrictEqual(resumed.contributions, full.contributions);
+    assert.deepStrictEqual(resumed.refunds, full.refunds);
+  });
+
+  it('ignores stale contributions accumulator versions', () => {
+    const result = foldContributionsFromEvents(
+      [makeBoughtEvent()],
+      [],
+      {
+        foldVersion: 999 as typeof CONTRIBUTIONS_FOLD_VERSION,
+        contributions: [{
+          id: 'stale',
+          participant: PARTICIPANT_B,
+          projectAddress: PROJECT_ADDR,
+          erc1155Address: ERC1155,
+          tokenIds: JSON.stringify(['9']),
+          tokenCounts: JSON.stringify(['9']),
+          currency: USDC_CURRENCY,
+          totalCost: '9',
+          createdAt: '9',
+          blockNumber: '9',
+          transactionHash: TX_HASH,
+        }],
+        refunds: [],
+      },
+    );
+
+    assert.strictEqual(result.contributions.length, 1);
+    assert.strictEqual(result.contributions[0]!.id, `${TX_HASH_2}-0`);
   });
 });
 
@@ -604,6 +687,7 @@ describe('foldSecondaryMarket', () => {
     assert.deepStrictEqual(result.saleListings, []);
     assert.deepStrictEqual(result.buyOrders, []);
     assert.deepStrictEqual(result.trades, []);
+    assert.strictEqual(result.accumulator.foldVersion, SECONDARY_MARKET_FOLD_VERSION);
   });
 
   // --- Sale listings ---
@@ -798,6 +882,51 @@ describe('foldSecondaryMarket', () => {
     foldSecondaryMarket(events);
     assert.deepStrictEqual(events, copy);
   });
+
+  it('resumable state carries foldVersion and resumes correctly', () => {
+    const allEvents: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ saleListingId: 0n, count: 10n }) },
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ saleListingId: 0n, count: 3n, logIndex: 1 }) },
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent({ buyOrderId: 1n, count: 8n, logIndex: 2 }) },
+      { type: 'buyOrderFulfilled', event: makeBuyOrderFulfilledEvent({ buyOrderId: 1n, count: 2n, logIndex: 3 }) },
+    ];
+
+    const partial = foldSecondaryMarket(allEvents.slice(0, 2));
+    const resumed = foldSecondaryMarket(allEvents.slice(2), partial.accumulator);
+    const full = foldSecondaryMarket(allEvents);
+
+    assert.strictEqual(partial.accumulator.foldVersion, SECONDARY_MARKET_FOLD_VERSION);
+    assert.deepStrictEqual(resumed.saleListings, full.saleListings);
+    assert.deepStrictEqual(resumed.buyOrders, full.buyOrders);
+    assert.deepStrictEqual(resumed.trades, full.trades);
+  });
+
+  it('ignores stale secondary market accumulator versions', () => {
+    const result = foldSecondaryMarket(
+      [{ type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ saleListingId: 3n }) }],
+      {
+        foldVersion: 999 as typeof SECONDARY_MARKET_FOLD_VERSION,
+        saleListings: [{
+          marketplaceAddress: MARKETPLACE,
+          listingId: '999',
+          seller: SELLER_A,
+          tokenId: '9',
+          originalCount: '9',
+          remainingCount: '9',
+          currency: USDC_CURRENCY,
+          pricePerToken: '9',
+          status: 'active',
+          createdAt: '9',
+          updatedAt: '9',
+        }],
+        buyOrders: [],
+        trades: [],
+      },
+    );
+
+    assert.strictEqual(result.saleListings.length, 1);
+    assert.strictEqual(result.saleListings[0]!.listingId, '3');
+  });
 });
 
 // ============================================================================
@@ -806,14 +935,16 @@ describe('foldSecondaryMarket', () => {
 
 describe('foldTokenBurns', () => {
   it('returns empty array for empty input', () => {
-    assert.deepStrictEqual(foldTokenBurns([]), []);
+    const result = foldTokenBurns([]);
+    assert.deepStrictEqual(result.burns, []);
+    assert.strictEqual(result.accumulator.foldVersion, TOKEN_BURNS_FOLD_VERSION);
   });
 
   it('maps a TransferSingle burn to a TokenBurn', () => {
     const event = makeTransferSingleEvent();
     const result = foldTokenBurns([event]);
-    assert.strictEqual(result.length, 1);
-    const burn = result[0]!;
+    assert.strictEqual(result.burns.length, 1);
+    const burn = result.burns[0]!;
     assert.strictEqual(burn.id, `${TX_HASH_5}-0`);
     assert.strictEqual(burn.erc1155Address, ERC1155);
     assert.strictEqual(burn.burner, BURNER);
@@ -827,8 +958,8 @@ describe('foldTokenBurns', () => {
   it('maps a TransferBatch burn to a TokenBurn', () => {
     const event = makeTransferBatchEvent();
     const result = foldTokenBurns([event]);
-    assert.strictEqual(result.length, 1);
-    const burn = result[0]!;
+    assert.strictEqual(result.burns.length, 1);
+    const burn = result.burns[0]!;
     assert.strictEqual(burn.tokenIds, JSON.stringify(['1', '2']));
     assert.strictEqual(burn.tokenCounts, JSON.stringify(['5', '3']));
   });
@@ -836,13 +967,13 @@ describe('foldTokenBurns', () => {
   it('ignores non-burn TransferSingle events (to != zero address)', () => {
     const event = makeTransferSingleEvent({ to: BUYER_A });
     const result = foldTokenBurns([event]);
-    assert.strictEqual(result.length, 0);
+    assert.strictEqual(result.burns.length, 0);
   });
 
   it('ignores non-burn TransferBatch events (to != zero address)', () => {
     const event = makeTransferBatchEvent({ to: BUYER_A });
     const result = foldTokenBurns([event]);
-    assert.strictEqual(result.length, 0);
+    assert.strictEqual(result.burns.length, 0);
   });
 
   it('processes mix of burn and non-burn events', () => {
@@ -853,7 +984,7 @@ describe('foldTokenBurns', () => {
       makeTransferBatchEvent({ to: BUYER_B, logIndex: 3 }),
     ];
     const result = foldTokenBurns(events);
-    assert.strictEqual(result.length, 2);
+    assert.strictEqual(result.burns.length, 2);
   });
 
   it('handles multiple single burns', () => {
@@ -862,18 +993,18 @@ describe('foldTokenBurns', () => {
       makeTransferSingleEvent({ id: 3n, value: 7n, logIndex: 1, transactionHash: TX_HASH_5 }),
     ];
     const result = foldTokenBurns(events);
-    assert.strictEqual(result.length, 2);
-    assert.strictEqual(result[0]!.tokenIds, JSON.stringify(['1']));
-    assert.strictEqual(result[0]!.tokenCounts, JSON.stringify(['2']));
-    assert.strictEqual(result[1]!.tokenIds, JSON.stringify(['3']));
-    assert.strictEqual(result[1]!.tokenCounts, JSON.stringify(['7']));
+    assert.strictEqual(result.burns.length, 2);
+    assert.strictEqual(result.burns[0]!.tokenIds, JSON.stringify(['1']));
+    assert.strictEqual(result.burns[0]!.tokenCounts, JSON.stringify(['2']));
+    assert.strictEqual(result.burns[1]!.tokenIds, JSON.stringify(['3']));
+    assert.strictEqual(result.burns[1]!.tokenCounts, JSON.stringify(['7']));
   });
 
   it('zero-address comparison is case-insensitive', () => {
     // Even if to is checksummed differently, should still match zero address
     const event = makeTransferSingleEvent({ to: '0x0000000000000000000000000000000000000000' as `0x${string}` });
     const result = foldTokenBurns([event]);
-    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result.burns.length, 1);
   });
 
   it('does not mutate the input array', () => {
@@ -881,5 +1012,41 @@ describe('foldTokenBurns', () => {
     const copy = [...events];
     foldTokenBurns(events);
     assert.deepStrictEqual(events, copy);
+  });
+
+  it('resumable state carries foldVersion and resumes correctly', () => {
+    const allEvents = [
+      makeTransferSingleEvent({ id: 1n, value: 2n, logIndex: 0, transactionHash: TX_HASH_4 }),
+      makeTransferBatchEvent({ ids: [3n], values: [4n], logIndex: 1, transactionHash: TX_HASH_5 }),
+    ];
+
+    const partial = foldTokenBurns(allEvents.slice(0, 1));
+    const resumed = foldTokenBurns(allEvents.slice(1), partial.accumulator);
+    const full = foldTokenBurns(allEvents);
+
+    assert.strictEqual(partial.accumulator.foldVersion, TOKEN_BURNS_FOLD_VERSION);
+    assert.deepStrictEqual(resumed.burns, full.burns);
+  });
+
+  it('ignores stale token burn accumulator versions', () => {
+    const result = foldTokenBurns(
+      [makeTransferSingleEvent()],
+      {
+        foldVersion: 999 as typeof TOKEN_BURNS_FOLD_VERSION,
+        burns: [{
+          id: 'stale',
+          erc1155Address: ERC1155,
+          burner: BURNER,
+          tokenIds: JSON.stringify(['9']),
+          tokenCounts: JSON.stringify(['9']),
+          createdAt: '9',
+          blockNumber: '9',
+          transactionHash: TX_HASH,
+        }],
+      },
+    );
+
+    assert.strictEqual(result.burns.length, 1);
+    assert.strictEqual(result.burns[0]!.id, `${TX_HASH_5}-0`);
   });
 });

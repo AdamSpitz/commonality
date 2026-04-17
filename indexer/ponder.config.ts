@@ -272,7 +272,7 @@ const contracts = {
     address: CREATOR_CONTRACT_FACTORY_ADDRESS
       ? factory({
           address: CREATOR_CONTRACT_FACTORY_ADDRESS,
-          event: creatorContractCreatedEvent as any,
+          event: creatorContractCreatedEvent,
           parameter: "contractAddress",
         })
       : undefined,

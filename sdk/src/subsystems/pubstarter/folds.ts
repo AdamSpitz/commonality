@@ -29,11 +29,17 @@ export type ProjectEvent =
   | { type: 'sold'; event: ERC1155SoldEvent }
   | { type: 'withdrawal'; event: AssuranceContractWithdrawalEvent };
 
+export const PROJECT_FOLD_VERSION = 1;
+export const CONTRIBUTIONS_FOLD_VERSION = 1;
+export const SECONDARY_MARKET_FOLD_VERSION = 1;
+export const TOKEN_BURNS_FOLD_VERSION = 1;
+
 /**
  * Mutable accumulator for foldProject — holds the raw (pre-serialized) state
  * so it can be stored and passed back in for incremental/resumable folding.
  */
 export interface ProjectAccumulator {
+  foldVersion: typeof PROJECT_FOLD_VERSION;
   id: string;
   erc1155Address: string;
   recipient: string;
@@ -42,6 +48,24 @@ export interface ProjectAccumulator {
   createdAt: string | undefined;
   blockNumber: string | undefined;
   totalReceived: bigint;
+}
+
+export interface ContributionsAccumulator {
+  foldVersion: typeof CONTRIBUTIONS_FOLD_VERSION;
+  contributions: Contribution[];
+  refunds: Refund[];
+}
+
+export interface SecondaryMarketAccumulator {
+  foldVersion: typeof SECONDARY_MARKET_FOLD_VERSION;
+  saleListings: SaleListing[];
+  buyOrders: BuyOrder[];
+  trades: Trade[];
+}
+
+export interface TokenBurnAccumulator {
+  foldVersion: typeof TOKEN_BURNS_FOLD_VERSION;
+  burns: TokenBurn[];
 }
 
 /**
@@ -64,9 +88,19 @@ export function foldProject(
   initialAccumulator?: ProjectAccumulator,
   fundingCurrency: Currency = ETH_CURRENCY,
 ): { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator } {
-  const acc: ProjectAccumulator = initialAccumulator
+  const acc: ProjectAccumulator = initialAccumulator?.foldVersion === PROJECT_FOLD_VERSION
     ? { ...initialAccumulator }
-    : { id: '', erc1155Address: '', recipient: '', conditionAddress: null, metadataCid: undefined, createdAt: undefined, blockNumber: undefined, totalReceived: 0n };
+    : {
+        foldVersion: PROJECT_FOLD_VERSION,
+        id: '',
+        erc1155Address: '',
+        recipient: '',
+        conditionAddress: null,
+        metadataCid: undefined,
+        createdAt: undefined,
+        blockNumber: undefined,
+        totalReceived: 0n,
+      };
 
   for (const { type, event } of events) {
     switch (type) {
@@ -126,14 +160,25 @@ export function foldProject(
 export function foldContributionsFromEvents(
   boughtEvents: ERC1155BoughtEvent[],
   soldEvents: ERC1155SoldEvent[],
-  initialState?: { contributions: Contribution[]; refunds: Refund[] },
+  initialState?: ContributionsAccumulator,
   fundingCurrency: Currency = ETH_CURRENCY,
 ): {
   contributions: Contribution[];
   refunds: Refund[];
+  accumulator: ContributionsAccumulator;
 } {
-  const contributions: Contribution[] = initialState ? [...initialState.contributions] : [];
-  const refunds: Refund[] = initialState ? [...initialState.refunds] : [];
+  const accumulator: ContributionsAccumulator = initialState?.foldVersion === CONTRIBUTIONS_FOLD_VERSION
+    ? {
+        foldVersion: CONTRIBUTIONS_FOLD_VERSION,
+        contributions: [...initialState.contributions],
+        refunds: [...initialState.refunds],
+      }
+    : {
+        foldVersion: CONTRIBUTIONS_FOLD_VERSION,
+        contributions: [],
+        refunds: [],
+      };
+  const { contributions, refunds } = accumulator;
 
   for (const event of boughtEvents) {
     const id = `${event.transactionHash}-${event.logIndex}`;
@@ -169,7 +214,7 @@ export function foldContributionsFromEvents(
     });
   }
 
-  return { contributions, refunds };
+  return { contributions, refunds, accumulator };
 }
 
 export function foldContributions(
@@ -242,20 +287,34 @@ export type SecondaryMarketEvent =
  */
 export function foldSecondaryMarket(
   events: SecondaryMarketEvent[],
-  initialState?: { saleListings: SaleListing[]; buyOrders: BuyOrder[]; trades: Trade[] },
+  initialState?: SecondaryMarketAccumulator,
   fundingCurrency: Currency = ETH_CURRENCY,
 ): {
   saleListings: SaleListing[];
   buyOrders: BuyOrder[];
   trades: Trade[];
+  accumulator: SecondaryMarketAccumulator;
 } {
+  const accumulator: SecondaryMarketAccumulator = initialState?.foldVersion === SECONDARY_MARKET_FOLD_VERSION
+    ? {
+        foldVersion: SECONDARY_MARKET_FOLD_VERSION,
+        saleListings: initialState.saleListings.map(l => ({ ...l })),
+        buyOrders: initialState.buyOrders.map(o => ({ ...o })),
+        trades: [...initialState.trades],
+      }
+    : {
+        foldVersion: SECONDARY_MARKET_FOLD_VERSION,
+        saleListings: [],
+        buyOrders: [],
+        trades: [],
+      };
   const saleListingsMap = new Map<string, SaleListing>(
-    initialState?.saleListings.map(l => [l.listingId, { ...l }]) ?? [],
+    accumulator.saleListings.map(l => [l.listingId, { ...l }]),
   );
   const buyOrdersMap = new Map<string, BuyOrder>(
-    initialState?.buyOrders.map(o => [o.orderId, { ...o }]) ?? [],
+    accumulator.buyOrders.map(o => [o.orderId, { ...o }]),
   );
-  const trades: Trade[] = initialState ? [...initialState.trades] : [];
+  const trades: Trade[] = [...accumulator.trades];
 
   for (const { type, event } of events) {
     const marketplaceAddress = event.contractAddress;
@@ -377,10 +436,15 @@ export function foldSecondaryMarket(
     }
   }
 
+  accumulator.saleListings = [...saleListingsMap.values()];
+  accumulator.buyOrders = [...buyOrdersMap.values()];
+  accumulator.trades = trades;
+
   return {
-    saleListings: [...saleListingsMap.values()],
-    buyOrders: [...buyOrdersMap.values()],
-    trades,
+    saleListings: accumulator.saleListings,
+    buyOrders: accumulator.buyOrders,
+    trades: accumulator.trades,
+    accumulator,
   };
 }
 
@@ -399,10 +463,19 @@ export function foldSecondaryMarket(
  */
 export function foldTokenBurns(
   events: (TransferSingleEvent | TransferBatchEvent)[],
-  initialBurns?: TokenBurn[],
-): TokenBurn[] {
+  initialState?: TokenBurnAccumulator,
+): { burns: TokenBurn[]; accumulator: TokenBurnAccumulator } {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-  const burns: TokenBurn[] = initialBurns ? [...initialBurns] : [];
+  const accumulator: TokenBurnAccumulator = initialState?.foldVersion === TOKEN_BURNS_FOLD_VERSION
+    ? {
+        foldVersion: TOKEN_BURNS_FOLD_VERSION,
+        burns: [...initialState.burns],
+      }
+    : {
+        foldVersion: TOKEN_BURNS_FOLD_VERSION,
+        burns: [],
+      };
+  const { burns } = accumulator;
 
   for (const event of events) {
     if (event.to.toLowerCase() !== ZERO_ADDRESS) continue;
@@ -438,5 +511,5 @@ export function foldTokenBurns(
     }
   }
 
-  return burns;
+  return { burns, accumulator };
 }

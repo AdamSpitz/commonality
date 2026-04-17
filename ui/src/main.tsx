@@ -23,7 +23,7 @@ declare global {
   }
 }
 
-function Root() {
+export function Root() {
   const [wagmiConfig, setWagmiConfig] = useState(config)
 
   // Expose wallet setup function for E2E tests

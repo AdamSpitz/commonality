@@ -585,7 +585,7 @@ export async function getTokenBurns(
 ): Promise<TokenBurn[]> {
   const rawEvents = await fetchERC1155TransferEvents(machinery, erc1155Address);
   const events = decodeTransferEvents(rawEvents);
-  return foldTokenBurns(events);
+  return foldTokenBurns(events).burns;
 }
 
 /**
@@ -627,7 +627,7 @@ export async function getUserTokenBurns(
     for (const addr of erc1155Addresses) {
       const rawEvents = await fetchERC1155TransferEvents(machinery, addr);
       const events = decodeTransferEvents(rawEvents);
-      const burns = foldTokenBurns(events);
+      const { burns } = foldTokenBurns(events);
       allBurns.push(...burns.filter(b => b.burner.toLowerCase() === userLower));
     }
   }

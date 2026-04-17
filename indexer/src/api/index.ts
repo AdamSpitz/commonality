@@ -53,6 +53,7 @@ app.get("/api/events", async (c) => {
     const blockNumber_lte = c.req.query("blockNumber_lte");
     const limit = Math.min(parseInt(c.req.query("limit") ?? "1000", 10) || 1000, 10000);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const conditions: any[] = [];
     if (contractAddress) conditions.push(eq(schema.events.contractAddress, contractAddress as `0x${string}`));
     if (eventName) conditions.push(eq(schema.events.eventName, eventName));

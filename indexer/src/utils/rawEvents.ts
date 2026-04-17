@@ -10,6 +10,7 @@
  * @param event - The event object from ponder.on() handler
  * @param eventName - The event name (e.g. "DirectSupport"), since event.name is not available in Ponder handlers
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function captureRawEvent(event: any, eventName: string) {
   const log = event.log;
   const block = event.block;
