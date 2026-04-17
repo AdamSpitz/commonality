@@ -420,6 +420,39 @@ services:
     networks:
       - commonality
 
+  # =============================================================================
+  # Implication Graph Nudger service
+  # =============================================================================
+  # Provides statement suggestions based on the implication graph.
+  # Uses the default hardhat account for local development.
+  implication-graph-nudger:
+    build:
+      context: .
+      dockerfile: implication-graph-nudger/Dockerfile
+    container_name: commonality-implication-graph-nudger
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "3005:3000"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+      indexer:
+        condition: service_healthy
+    environment:
+      - PORT=3000
+      - NUDGER_PRIVATE_KEY=${NUDGER_PRIVATE_KEY:-0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e}
+      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - INDEXER_URL=http://indexer:42069
+      - IPFS_API=http://ipfs:5001
+      - IPFS_GATEWAY=http://ipfs:8080
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - HOME=/tmp
+    networks:
+      - commonality
+
 networks:
   commonality:
     driver: bridge
