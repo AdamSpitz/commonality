@@ -91,7 +91,7 @@ test.describe('Belief Expression Workflow', () => {
     // Connect wallet for UI display
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     console.log('\n=== CREATING STATEMENT FOR BELIEF TEST ===')
 
@@ -162,7 +162,7 @@ test.describe('Belief Expression Workflow', () => {
     // Connect wallet
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     console.log('\n=== CREATING STATEMENT FOR DISBELIEF TEST ===')
 

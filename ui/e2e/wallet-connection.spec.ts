@@ -68,7 +68,7 @@ test.describe('Wallet Connection', () => {
 
     // The home page should show connected state
     // Based on HomePage.tsx, it shows "Welcome back!" when connected
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     // It should show the connected address in an alert
     await expect(page.getByText(/connected as/i)).toBeVisible()

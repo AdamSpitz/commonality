@@ -70,7 +70,7 @@ test.describe('Pubstarter Flow', () => {
     // Connect wallet and navigate to browse projects page
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     await page.goto('/projects')
 
@@ -160,7 +160,7 @@ test.describe('Pubstarter Flow', () => {
     console.log('\n=== VERIFYING PROJECT DETAIL PAGE ===')
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     await page.goto(`/projects/${projectDetails.assuranceContractAddress}`)
 

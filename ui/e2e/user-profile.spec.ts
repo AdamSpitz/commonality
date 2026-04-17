@@ -82,7 +82,7 @@ test.describe('User Profile Workflow', () => {
     // Connect wallet first (before any navigation)
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     console.log('\n=== CREATING STATEMENT FOR PROFILE TEST ===')
 
@@ -152,7 +152,7 @@ test.describe('User Profile Workflow', () => {
     // Connect wallet first
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     console.log('\n=== CREATING STATEMENTS FOR TAB TEST ===')
 
@@ -226,7 +226,7 @@ test.describe('User Profile Workflow', () => {
     // Connect wallet first
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     console.log('\n=== CREATING STATEMENT FOR OTHER USER PROFILE TEST ===')
 

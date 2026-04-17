@@ -129,7 +129,7 @@ test.describe('Delegation Flow', () => {
     console.log('\n=== VERIFYING DELEGATION IN UI ===')
     await page.goto('/')
     await wallet.connect('ACCOUNT_1')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     // Navigate to My Notes via header link (client-side nav preserves wallet state)
     await page.locator('header').getByRole('link', { name: 'My Notes' }).click()

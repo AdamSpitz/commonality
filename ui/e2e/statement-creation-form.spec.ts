@@ -25,7 +25,7 @@ test.describe('Statement Creation Form (UI Only)', () => {
     await wallet.connect('ACCOUNT_0')
 
     // Wait for connected state
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     // Click the "Create and Sign Statement" button
     await page
@@ -56,7 +56,7 @@ test.describe('Statement Creation Form (UI Only)', () => {
   }) => {
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     // Show the form
     await page
@@ -90,7 +90,7 @@ test.describe('Statement Creation Form (UI Only)', () => {
   }) => {
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     // Show the form
     await page
@@ -122,7 +122,7 @@ test.describe('Statement Creation Form (UI Only)', () => {
   }) => {
     await page.goto('/')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/welcome back/i)).toBeVisible()
+    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     // Show the form
     await page
