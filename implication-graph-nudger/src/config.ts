@@ -1,8 +1,9 @@
+import type { NudgerConfig } from '@commonality/nudger-core';
+
 function requireEnv(name: string, value: string | undefined = process.env[name]): string {
   if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+    throw new Error(`Missing environment variable: ${name}`);
   }
-
   return value;
 }
 
@@ -15,30 +16,11 @@ function readNumberEnv(name: string, fallback: number): number {
   if (!rawValue) {
     return fallback;
   }
-
   const parsed = Number(rawValue);
   if (!Number.isFinite(parsed)) {
     throw new Error(`Invalid numeric environment variable: ${name}`);
   }
-
   return parsed;
-}
-
-export interface NudgerConfig {
-  nudgerPrivateKey: string;
-  ethereumRpcUrl: string;
-  indexerUrl: string;
-  ipfsApiUrl: string;
-  ipfsGatewayUrl: string;
-  openRouterApiKey: string;
-  openRouterModel: string;
-  port: number;
-  name: string;
-  description: string;
-  sourceType: string;
-  version: string;
-  rateLimitWindowMs: number;
-  rateLimitMaxRequests: number;
 }
 
 export function loadConfig(): NudgerConfig {
@@ -57,18 +39,5 @@ export function loadConfig(): NudgerConfig {
     version: readStringEnv('NUDGER_VERSION', '0.1.0'),
     rateLimitWindowMs: readNumberEnv('RATE_LIMIT_WINDOW_MS', 60000),
     rateLimitMaxRequests: readNumberEnv('RATE_LIMIT_MAX_REQUESTS', 100),
-  };
-}
-
-export function getIpfsConfig(config: NudgerConfig = loadConfig()) {
-  return {
-    apiUrl: config.ipfsApiUrl,
-    gatewayUrl: config.ipfsGatewayUrl,
-  };
-}
-
-export function getIndexerConfig(config: NudgerConfig = loadConfig()) {
-  return {
-    url: config.indexerUrl,
   };
 }

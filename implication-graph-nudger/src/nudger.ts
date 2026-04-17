@@ -5,19 +5,10 @@ import {
   getImplicationsFrom,
   getImplicationsTo,
 } from '@commonality/sdk';
-import type { NudgerConfig } from './config.js';
-import { type NudgeMessage, signNudgeMessage } from './signer.js';
+import type { NudgerConfig } from '@commonality/nudger-core';
+import { type NudgeMessage, signNudgeMessage } from '@commonality/nudger-core';
 
-export interface NudgerStrategy {
-  name: string;
-  generateNudges(
-    machinery: SDKMachinery,
-    targetStatementCid: IpfsCidV1,
-    config: NudgerConfig
-  ): Promise<NudgeMessage[]>;
-}
-
-export class ImplicationGraphNudger implements NudgerStrategy {
+export class ImplicationGraphNudger {
   name = 'implication-graph';
 
   async generateNudges(
@@ -103,11 +94,6 @@ export class ImplicationGraphNudger implements NudgerStrategy {
   }
 }
 
-export function createNudgerStrategy(sourceType: string): NudgerStrategy {
-  switch (sourceType) {
-    case 'implication-graph':
-      return new ImplicationGraphNudger();
-    default:
-      return new ImplicationGraphNudger();
-  }
+export function createNudgerStrategy(): ImplicationGraphNudger {
+  return new ImplicationGraphNudger();
 }

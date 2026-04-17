@@ -1,7 +1,23 @@
 import { privateKeyToAccount } from 'viem/accounts';
-import type { NudgerConfig } from './config.js';
 
 let account: ReturnType<typeof privateKeyToAccount> | null = null;
+
+export interface NudgerConfig {
+  nudgerPrivateKey: string;
+  ethereumRpcUrl: string;
+  indexerUrl: string;
+  ipfsApiUrl: string;
+  ipfsGatewayUrl: string;
+  openRouterApiKey: string;
+  openRouterModel: string;
+  port: number;
+  name: string;
+  description: string;
+  sourceType: string;
+  version: string;
+  rateLimitWindowMs: number;
+  rateLimitMaxRequests: number;
+}
 
 export function initializeSigner(config: NudgerConfig) {
   account = privateKeyToAccount(config.nudgerPrivateKey as `0x${string}`);

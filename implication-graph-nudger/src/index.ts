@@ -6,7 +6,7 @@ import {
   type ContractAddresses,
 } from '@commonality/sdk';
 import { loadConfig } from './config.js';
-import { initializeSigner, getSignerAddress, type NudgeMessage } from './signer.js';
+import { initializeSigner, getSignerAddress, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 
 const app = express();
@@ -38,7 +38,7 @@ const machinery = createSDKMachinery(
   contractAddresses
 );
 
-const nudgerStrategy = createNudgerStrategy(config.sourceType);
+const nudgerStrategy = createNudgerStrategy();
 
 interface NudgesResponse {
   nudges: NudgeMessage[];
