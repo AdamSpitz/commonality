@@ -2,7 +2,7 @@
 
 This document describes the kinds of content we expect and hope to see in the system — our hypotheses and predictions, not just observations of what's already there.
 
-See [seed-content](../seed-content.md) for our approach to creating the initial "seed" content using these patterns.
+See [seed-content](../seed-content/README.md) for our approach to creating the initial "seed" content using these patterns.
 
 ## Hidden majority
 

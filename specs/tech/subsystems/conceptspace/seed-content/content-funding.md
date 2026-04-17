@@ -1,6 +1,6 @@
 # Content funding seed content
 
-Here's the [seed content](../seed-content.md) for the [noninflammatory content](../content-patterns/noninflammatory-content.md) pattern.
+Here's the [seed content](../seed-content/README.md) for the [noninflammatory content](../content-patterns/noninflammatory-content.md) pattern.
 
 (See also [here](../../content-funding/noninflammatory-content/seed-statements.md); what's the difference between these files?)
 

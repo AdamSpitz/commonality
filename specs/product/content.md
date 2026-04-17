@@ -4,7 +4,7 @@ How does content get into the system? Especially early on, when there aren't man
 
 ## Seed statements
 
-See [seed content](../tech/subsystems/conceptspace/seed-content.md).
+See [seed content](../tech/subsystems/conceptspace/seed-content/README.md).
 
 ## AI-assisted statement discovery
 

@@ -50,7 +50,7 @@ Visit the Commonality conceptspace, find or write a statement that expresses wha
 - **Unique-human verification** — Worldcoin, BrightID, etc.
 - **Mutable Refs UI** — The SDK is done; the UI is deferred.
 - **Explorer AI / AI-assisted statement discovery** — Specced in [specs/product/content.md](content.md); not yet implemented.
-- **Seed content** — Curated real statements haven't been written yet. See [specs/tech/subsystems/conceptspace/seed-content.md](../tech/subsystems/conceptspace/seed-content.md).
+- **Seed content** — Curated real statements haven't been written yet. See [specs/tech/subsystems/conceptspace/seed-content/README.md](../tech/subsystems/conceptspace/seed-content/README.md).
 - **Per-contract token choice** — Contracts are token-general but the UI constrains to one token (USDC). Post-MVP each project can choose its own token.
 - **foldVersion + accumulator storage** — Client-side caching of fold accumulators in localStorage; see [specs/tech/indexer/README.md](../tech/indexer/README.md) for the design.
 - **Generative testing** — Infrastructure is prepped; the generative test suite itself isn't written.
