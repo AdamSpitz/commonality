@@ -1,0 +1,35 @@
+{
+  "name": "@commonality/bridge-creator",
+  "version": "0.1.0",
+  "description": "Nudger service that creates synthesized bridge statements",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "predev": "npm run build --workspace=@commonality/sdk && npm run build --workspace=@commonality/nudger-core",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "prebuild": "npm run build --workspace=@commonality/sdk && npm run build --workspace=@commonality/nudger-core",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "pretypecheck": "npm run build --workspace=@commonality/sdk && npm run build --workspace=@commonality/nudger-core",
+    "typecheck": "tsc --noEmit",
+    "test": "mocha",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@commonality/sdk": "1.0.0",
+    "@commonality/nudger-core": "*",
+    "@commonality/attester-core": "*",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.10.0",
+    "mocha": "^10.8.2",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "eslint": "^9.39.1",
+    "typescript-eslint": "^8.46.4"
+  }
+}

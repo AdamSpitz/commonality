@@ -1,0 +1,48 @@
+import type { NudgerConfig } from '@commonality/nudger-core';
+
+function requireEnv(name: string, value: string | undefined = process.env[name]): string {
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`);
+  }
+  return value;
+}
+
+function readStringEnv(name: string, fallback: string): string {
+  return process.env[name] || fallback;
+}
+
+function readNumberEnv(name: string, fallback: number): number {
+  const rawValue = process.env[name];
+  if (!rawValue) {
+    return fallback;
+  }
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`Invalid numeric environment variable: ${name}`);
+  }
+  return parsed;
+}
+
+export interface BridgeCreatorConfig extends NudgerConfig {
+  commonalityStatements: string[];
+}
+
+export function loadConfig(): BridgeCreatorConfig {
+  return {
+    nudgerPrivateKey: requireEnv('NUDGER_PRIVATE_KEY', process.env.NUDGER_PRIVATE_KEY) as `0x${string}`,
+    ethereumRpcUrl: requireEnv('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL),
+    indexerUrl: readStringEnv('INDEXER_URL', 'http://localhost:3001'),
+    ipfsApiUrl: readStringEnv('IPFS_API', 'http://localhost:5001'),
+    ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),
+    openRouterApiKey: requireEnv('OPENROUTER_API_KEY', process.env.OPENROUTER_API_KEY),
+    openRouterModel: readStringEnv('OPENROUTER_MODEL', 'anthropic/claude-3.5-haiku'),
+    port: readNumberEnv('PORT', 3003),
+    name: readStringEnv('NUDGER_NAME', 'Bridge Creator'),
+    description: readStringEnv('NUDGER_DESCRIPTION', 'Creates synthesized bridge statements from moderate positions'),
+    sourceType: readStringEnv('NUDGER_SOURCE_TYPE', 'bridge-creator'),
+    version: readStringEnv('NUDGER_VERSION', '0.1.0'),
+    rateLimitWindowMs: readNumberEnv('RATE_LIMIT_WINDOW_MS', 60000),
+    rateLimitMaxRequests: readNumberEnv('RATE_LIMIT_MAX_REQUESTS', 100),
+    commonalityStatements: readStringEnv('COMMONALITY_STATEMENTS', '').split(',').filter(Boolean),
+  };
+}
