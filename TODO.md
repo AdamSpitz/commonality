@@ -54,7 +54,7 @@
   - (This is a big job, so feel free to break it up into chunks if necessary.) Take a look at the "docs" and "specs" directories and the general structure of the code base, and then make a plan for doing a full review of everything. I want to know whether we're close to being ready to deploy.
 
 Founder-level stuff:
-  - Think about orthogonal hierarchy dimensions for statements — geographic and topical. See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) for more detail.
+  - Think about orthogonal hierarchy dimensions for statements — geographic and topical. See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) for more detail. I think this might require some enhancements to the implication attester and finder prompts (make the patterns clear), and maybe even put some "write a new statement" capabilities into the finder (or make a separate service, but probably just using the finder is fine).
 
 Out of scope for the MVP, but I still want to remember that these are important and not done yet:
   - [Bridges](specs/tech/bridges.md) to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.
