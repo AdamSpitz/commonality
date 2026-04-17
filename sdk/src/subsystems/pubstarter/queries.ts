@@ -55,9 +55,12 @@ import { readConditionParams } from '../../utils/chain-reads.js';
 
 async function fetchAndDecodeProjectEvents(
   machinery: SDKMachinery,
-  assuranceContractAddress: string
+  assuranceContractAddress: string,
+  options?: { blockNumber_gte?: string }
 ): Promise<ProjectEvent[]> {
-  const rawEvents = await fetchPubstarterProjectEvents(machinery, assuranceContractAddress);
+  const rawEvents = await fetchPubstarterProjectEvents(machinery, assuranceContractAddress, {
+    blockNumber_gte: options?.blockNumber_gte,
+  });
   const projectEvents: ProjectEvent[] = [];
   for (const raw of rawEvents) {
     switch (raw.eventName) {

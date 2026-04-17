@@ -153,7 +153,7 @@ export function padAddressAsTopic(address: string): string {
 export async function fetchPubstarterProjectEvents(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
-  options: { limit?: number } = {}
+  options: { limit?: number; blockNumber_gte?: string } = {}
 ): Promise<RawEventFromCache[]> {
   const contracts = machinery.contractAddresses!;
   const paddedAddress = padAddressAsTopic(assuranceContractAddress);
@@ -167,6 +167,7 @@ export async function fetchPubstarterProjectEvents(
     }),
     fetchEvents(machinery, {
       contractAddress: assuranceContractAddress,
+      blockNumber_gte: options.blockNumber_gte,
       limit: options.limit ?? 10000,
     }),
   ]);
