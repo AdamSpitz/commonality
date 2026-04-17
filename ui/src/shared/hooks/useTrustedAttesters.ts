@@ -16,6 +16,15 @@ export function loadTrustedAttesters(): string[] {
   } catch {
     // Ignore parse errors
   }
+
+  const envDefault = import.meta.env.VITE_DEFAULT_TRUSTED_ATTESTERS
+  if (typeof envDefault === 'string' && envDefault.trim()) {
+    return envDefault
+      .split(',')
+      .map((addr) => addr.trim())
+      .filter(isValidAddress)
+  }
+
   return []
 }
 
@@ -26,4 +35,8 @@ export function loadTrustedAttesters(): string[] {
 export function useTrustedAttesters(): string[] {
   const [attesters] = useState<string[]>(loadTrustedAttesters)
   return attesters
+}
+
+export function saveTrustedAttesters(attesters: string[]): void {
+  localStorage.setItem(TRUSTED_ATTESTERS_KEY, JSON.stringify(attesters))
 }

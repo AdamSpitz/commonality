@@ -13,12 +13,15 @@ import {
   Alert,
   Divider,
   CircularProgress,
+  Chip,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import { useAccount } from 'wagmi'
 import { getUserSocialData } from '@commonality/sdk'
-import { TRUSTED_ATTESTERS_KEY, loadTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
+import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
+import { loadTrustedNudgers, saveTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
 import { useClaimFlow } from '../../content-funding/hooks/useClaimFlow'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -28,8 +31,26 @@ function isValidAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address)
 }
 
-function saveTrustedAttesters(attesters: string[]): void {
-  localStorage.setItem(TRUSTED_ATTESTERS_KEY, JSON.stringify(attesters))
+function getDefaultAttesters(): string[] {
+  const envDefault = import.meta.env.VITE_DEFAULT_TRUSTED_ATTESTERS
+  if (typeof envDefault === 'string' && envDefault.trim()) {
+    return envDefault
+      .split(',')
+      .map((addr) => addr.trim())
+      .filter(isValidAddress)
+  }
+  return []
+}
+
+function getDefaultNudgers(): string[] {
+  const envDefault = import.meta.env.VITE_DEFAULT_NUDGERS
+  if (typeof envDefault === 'string' && envDefault.trim()) {
+    return envDefault
+      .split(',')
+      .map((addr) => addr.trim())
+      .filter(isValidAddress)
+  }
+  return []
 }
 
 export function SettingsPage() {
@@ -39,8 +60,12 @@ export function SettingsPage() {
 
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')
+  const [trustedNudgers, setTrustedNudgers] = useState<string[]>([])
+  const [newNudger, setNewNudger] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [nudgerError, setNudgerError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [nudgerSuccess, setNudgerSuccess] = useState<string | null>(null)
   const [twitterHandle, setTwitterHandle] = useState('')
   const [twitterAssociationStatus, setTwitterAssociationStatus] = useState<string | null>(null)
   const [twitterAssociationError, setTwitterAssociationError] = useState<string | null>(null)
@@ -49,6 +74,10 @@ export function SettingsPage() {
 
   useEffect(() => {
     setTrustedAttesters(loadTrustedAttesters())
+  }, [])
+
+  useEffect(() => {
+    setTrustedNudgers(loadTrustedNudgers())
   }, [])
 
   useEffect(() => {
@@ -122,6 +151,43 @@ export function SettingsPage() {
     setTrustedAttesters(updated)
     saveTrustedAttesters(updated)
     setSuccessMessage('Removed')
+  }
+
+  const handleAddNudger = () => {
+    setNudgerError(null)
+    setNudgerSuccess(null)
+
+    const address = newNudger.trim()
+
+    if (!address) {
+      setNudgerError('Please enter an address')
+      return
+    }
+
+    if (!isValidAddress(address)) {
+      setNudgerError('Invalid Ethereum address format. Must be 0x followed by 40 hex characters.')
+      return
+    }
+
+    const normalizedAddress = address.toLowerCase()
+
+    if (trustedNudgers.some(n => n.toLowerCase() === normalizedAddress)) {
+      setNudgerError('This address is already in your nudger list')
+      return
+    }
+
+    const updated = [...trustedNudgers, address]
+    setTrustedNudgers(updated)
+    saveTrustedNudgers(updated)
+    setNewNudger('')
+    setNudgerSuccess('Added successfully')
+  }
+
+  const handleRemoveNudger = (address: string) => {
+    const updated = trustedNudgers.filter(n => n !== address)
+    setTrustedNudgers(updated)
+    saveTrustedNudgers(updated)
+    setNudgerSuccess('Removed')
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -357,6 +423,122 @@ export function SettingsPage() {
         <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
           {trustedAttesters.length} source{trustedAttesters.length !== 1 ? 's' : ''} configured
         </Typography>
+
+        {getDefaultAttesters().length > 0 && trustedAttesters.length === 0 && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Using default attester addresses from environment: {getDefaultAttesters().join(', ')}
+          </Alert>
+        )}
+      </Paper>
+
+      <Paper sx={{ p: 3, mt: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <Typography variant="h6">
+            Nudger addresses
+          </Typography>
+          <Chip icon={<AutoFixHighIcon />} label="Nudgers" size="small" variant="outlined" />
+        </Box>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Nudgers are services that suggest statements you might want to believe
+          based on your current beliefs. Add wallet addresses of nudgers you trust
+          to receive personalized suggestions.
+        </Typography>
+
+        {getDefaultNudgers().length > 0 && trustedNudgers.length === 0 && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+              Default nudgers from environment:
+            </Typography>
+            <Typography variant="body2" component="div" sx={{ mt: 1 }}>
+              {getDefaultNudgers().map((addr) => (
+                <Chip
+                  key={addr}
+                  label={addr}
+                  size="small"
+                  sx={{ mr: 1, mb: 1, fontFamily: 'monospace', fontSize: '0.75rem' }}
+                />
+              ))}
+            </Typography>
+          </Alert>
+        )}
+
+        {nudgerError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setNudgerError(null)}>
+            {nudgerError}
+          </Alert>
+        )}
+
+        {nudgerSuccess && (
+          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNudgerSuccess(null)}>
+            {nudgerSuccess}
+          </Alert>
+        )}
+
+        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Wallet Address"
+            placeholder="0x..."
+            value={newNudger}
+            onChange={(e) => setNewNudger(e.target.value)}
+            onKeyPress={(e: React.KeyboardEvent) => {
+              if (e.key === 'Enter') handleAddNudger()
+            }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddNudger}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Add
+          </Button>
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        {trustedNudgers.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+            No nudgers configured yet. Add a wallet address above to receive
+            personalized statement suggestions.
+          </Typography>
+        ) : (
+          <List>
+            {trustedNudgers.map((address) => (
+              <ListItem key={address} divider>
+                <ListItemText
+                  primary={address}
+                  primaryTypographyProps={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.875rem',
+                  }}
+                />
+                <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    aria-label="remove"
+                    onClick={() => handleRemoveNudger(address)}
+                    size="small"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
+        )}
+
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+          {trustedNudgers.length} nudger{trustedNudgers.length !== 1 ? 's' : ''} configured
+        </Typography>
+
+        {getDefaultNudgers().length > 0 && trustedNudgers.length > 0 && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Also using {getDefaultNudgers().length} default nudger{getDefaultNudgers().length !== 1 ? 's' : ''} from environment.
+          </Alert>
+        )}
       </Paper>
 
       <DirectTrustSettingsSection />
