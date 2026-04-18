@@ -16,7 +16,7 @@ Escalating pitches for [Common Sense Majority](../README.md): 10 seconds buys yo
 
   - **Crowdfunding an *adjective*, not a person.** You can fund "noninflammatory content" as a category. Legacy systems can't do this — you'd have to pick a specific creator and hope they don't sell out. Here, you fund content *that meets a standard*, as evaluated by attesters you choose.
   - **AI that actively synthesizes common ground.** Not just moderating — reading what moderate people on opposite sides wrote and noticing they don't actually conflict. Then proposing bridge statements where each side signs their own version (still clearly their side), and the common ground is *implied* without anyone betraying their tribe.
-  - **Indirect supporter counts.** Nobody signs the same petition. People write in their own words. The implication graph connects them and produces a number no existing system can: "50,000 direct signers, 2 million indirect supporters." That number is itself the news.
+  - **Indirect supporter counts.** Nobody signs the same petition. People write in their own words. The implication graph (made possible by AI that's patient enough to handle a high volume of legwork) connects them and produces a number no existing system can: "50,000 direct signers, 2 million indirect supporters." That number is itself the news.
 
 ### Game theory that forces adoption
 
