@@ -20,6 +20,14 @@
   
   - Think about the [bridge-finder](specs/product/bridge-finder.md) idea. Either modify the implication-finder to be that, or make it as a separate finder service.
   - Or even [bridge-creator](specs/product/bridge-creator.md). Yeah, let's make the general [nudger](specs/tech/subsystems/nudger/README.md) service (general, can plug in whatever AI heuristics/prompts you want) and then a specific one that is trying to be a bridge-creator.
+  - How do we deal with evil nudgers? Can we make an anti-evil-nudger immune system?
+    - First, minor fix to the underlying system: have the nudgers put the CIDs onchain after all, so their decisions are nonrepudiable (but maybe revocable - let them explicitly change their minds, I think that's probably important, but the point is that it's public).
+    - And then maybe the general idea with *all* of these attesters (implication attesters and noninflammatory-content attesters) and nudgers, all the things that you can configure your UI to trust, is that you can also subscribe to an immune system that will publish "hey, we think this nudger is a bad one; it's up to you to decide, but here's some stuff it just did that we think is bad; here's the receipts. And maybe here's a suggestion for an alternative one to use instead." That might be the best we can do, right? This is all subjective, so there's no objective correct answer. But we can publish the bad stuff they do and then let the individuals decide.
+  - One idea that might be worth incorporating into any of the subjective AI-based services: either have the AI give its reasoning as well as the final judgment, or (if it's *really* necessary to make sure the system represents both sides) structure the service as "three AIs, pro argues with con, then judge decides", record all of that transparently. (I wonder whether there could be an "appeals" process that escalates. It's probably expensive enough to do the full adversarial thing that we wouldn't want to do it for every one.)
+  - In a sense this is X Community Notes to the next level. The idea is to publish/highlight the stuff where both sides agree.
+    - It'd be really interesting to have a noninflammatory-content feed that consists only of stuff that *both* sides' noninflammatory-content attesters have attested to.
+    - It'd be neat if there was a slider, to let you turn the noninflammatory filter up or down. The noninflammatory-content attesters are publishing scores between 0 and 1, right, not just yes or no? So this might be easy.
+
 
   - Have we implemented some way for content writers, or fans of content writers, to submit their channel (or at least particular posts) to the content finder services?
     - No, not yet implemented. The content finder reads submissions from a JSON file (`SUBMISSIONS_FILE_PATH`), but there's no user-facing way to submit content. Current state:
@@ -64,3 +72,21 @@
 
 Out of scope for the MVP, but I still want to remember that these are important and not done yet:
   - [Bridges](specs/tech/bridges.md) to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.
+
+
+
+## Notes from chat with Sam
+
+  - Work on the [elevator pitch](docs/common-sense-majority/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
+
+
+
+
+  - facebook etc have things that are sorta analogous to "nudgers" (in the sense of biasing/shaping/directing the discussion), ask AI about it
+  - ways of thinking about this moderate/common-sense majority stuff:
+
+  - "how did I get here?" maybe there's a record of all the stuff you signed before, and then you interacted with this guy 
+  - meme: bridges vs wedges (extremists are trying mitosis, we want to hang on to each other)
+    - increase the gravity of the common middle
+    - we do good in the world, we can have civil conversations
+  - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.

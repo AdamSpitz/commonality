@@ -62,3 +62,16 @@ Cringe or weak: "Making the other side seem human since..." (condescending), "yo
 ### Notes on tone
 
 The hidden-majority angle resonates because it's *validating* rather than *preachy*. Adam's brainstorm is mostly about calling out the manipulation ("they told me you were evil"), which is cathartic but risks coming across as self-congratulatory. The "loud vs quiet" framing sidesteps that — it's descriptive rather than accusatory, which makes it easier for someone who *has* been caught up in the polarization to receive without feeling called out.
+
+## My thoughts
+
+Yes, that's a good principle to follow in this meme stuff. Don't accuse, but frame the positives in such a way that it creates the polarity you want (e.g. quiet vs loud, not exactly *attacking* the loud, just framing it as "we are the quiet" and letting people's brain fill in the "the loud people are the ones we're setting ourselves against" on their own).
+
+Quiet vs loud is a good framing.
+
+Giving the quiet middle a voice. Making it easier for them to express themselves, in a context that's NOT in a direct argument with an ideologue (because they'll just walk away from that).
+
+Could show the quiet middle in a picture.
+
+Format: meme, then at the bottom: commonality.works (nothing else)
+
