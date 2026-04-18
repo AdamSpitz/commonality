@@ -2,18 +2,7 @@
 
 [Common Sense Majority](../README.md) (CSM) is a movement built on the [Commonality](/docs/vision-and-strategy/README.md) platform. It's an attempt to give a voice and funding power to the hidden moderate majority that's currently invisible because the political system is structured around two coalitions dominated by their loudest members.
 
-**The short version:** Moderate-majority movements always fail because both sides suspect the organizer is captured by the other side. CSM solves this by being a protocol, not an organization — money onchain, AI refereeing with open-source prompts, everything configurable. The AI finds common ground between what moderate people on opposite sides actually wrote and reveals that a supermajority already agrees on most things. Nobody joins anything or compromises their identity; the system just makes visible what was always true but invisible.
-
-TODO: Getting closer. I want something that focuses more on "why is this just now becoming fixable?"
-  - Blockchains are important for credible neutrality: funds aren't in a (capturable) organization made of humans. Same with the other mechanisms like assurance contracts and the delegation system and the retroactive-funding secondary-markets.
-  - AI is important:
-    - Credibly-neutral (even if not quite at ZK-proof levels of verifiability): open-source prompts plus configurability is close enough. Point is that we can outsource various kinds of subjective work to this mechanism; we couldn't do that before.
-    - And it can handle a lot of volume without getting bored or annoyed or corrupted or generally going off-script the way a human would. So we can use it for the implication graph (important because eliminates one kind of coordination and also annoyance that is otherwise prohibitive - we can simply rely on AI to do all the legwork, which there's a lot of) and also nudges (very annoying work for humans to do, because it requires being sensitive to both sides, and because again there's a lot of volume) and also noninflammatory-content attestations (ditto).
-      - Like... what would be possible if you had an infinitely-patient intelligent agent:
-        - Going through everybody's idiosyncratic beliefs and figuring out who's just saying the same stuff in different ways and connecting them.
-        - Going through everybody's polarized statements of beliefs and being like "is *that* particular detail really something you care all that much about, because that's a major sticking point for a lot of people on the other side and if you just budged a bit on that you'd find that suddenly you have a lot more common ground" and "you know, you and the other side actually totally agree on points A and B, even though you care more about A and they care more about B, and if you just admitted that you're fine with B as long as they're fine with A they'd happily go along with that" and so on.
-        - Read every social-media post and saying "okay, here are a bunch that are actually written respectfully and that show a genuine understanding of the other side's points".
-  - Plus also honestly I just kinda feel like there are various good ideas that aren't exactly *new* but we haven't really made use of them as much as we ought to: assurance contracts (we've had these for a while), fine-grained computerized delegation (I've heard people talking about ideas like liquid democracy a long time ago), retroactive funding (a bit of a weird framing but it's not like secondary markets are a new idea). See the docs for the more-general Commonality platform for the full case for this stuff, but the point is that a movement like this is public goods built on public goods and our legacy public-goods-funding systems (government and big charities) suck and are way overdue for an update.
+**The short version:** The trust problem that kills every moderate-majority movement — both sides suspecting the organizer is captured by the other side — is finally solvable. Blockchains put the money outside any capturable organization. AI handles the high-volume subjective work (evaluating content, connecting statements, synthesizing bridge positions) with open-source prompts you can read yourself. That combination — trustless infrastructure plus verifiable AI — makes credible neutrality achievable for the first time. The common ground was always there; the tools to reveal it without a trusted intermediary weren't. (See [why this is fixable now](./why-now.md).)
 
 
 ## The argument
@@ -27,6 +16,10 @@ This polarization wasn't inevitable, but it is structural: first-past-the-post e
 ### Previous attempts fail for structural reasons
 
 Centrist takes, petitions, third parties — [they all fail](./why-previous-attempts-fail.md) for three overlapping reasons: (a) a healthy political atmosphere is a public good that normal markets can't produce, (b) moderates are hard to mobilize because wading into politics is miserable, and (c) the political system is structured to block new parties. Any approach that doesn't address all three is dead on arrival.
+
+### Why this is fixable now
+
+Two recent developments change the picture. **Blockchains** make it possible to hold money outside any human organization — no account to freeze, no board to capture, no operator to bribe. **AI** makes it possible to do high-volume subjective work (connecting statements, evaluating content, synthesizing bridge positions) with open-source prompts that anyone can inspect, at a scale and consistency no human organization could match. Together they enable the credibly-neutral protocol that previous moderate movements couldn't build. A handful of other underused ideas — assurance contracts, fine-grained delegation, retroactive funding — complete the picture. (See [why this is fixable now](./why-now.md).)
 
 ### Cross-partisan trust requires credible neutrality
 
