@@ -1,6 +1,6 @@
 # The conditional-support problem
 
-Across many of the [hidden-majority patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) (TODO: would it make sense to move some/all of that content here into this directory?), people are unwilling to concede anything unless they're confident the other side is also conceding in good faith. A left-leaning person might think: "If I admit I don't want to defund the police, the right will use my admission as an excuse to ignore actual abuses of police power." And vice versa.
+Across many of the [hidden-majority patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md), people are unwilling to concede anything unless they're confident the other side is also conceding in good faith. A left-leaning person might think: "If I admit I don't want to defund the police, the right will use my admission as an excuse to ignore actual abuses of police power." And vice versa.
 
 So commonality statements may need to be structured as mutual assurances:
   - **Left-leaning:** "I'm especially concerned with abuses of police power, but I don't actually want to defund the police, and as long as the right is taking the abuse problem seriously, I'm happy to stand up against the left-wing extremists."

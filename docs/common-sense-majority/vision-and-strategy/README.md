@@ -2,22 +2,27 @@
 
 [Common Sense Majority](../README.md) (CSM) is a movement built on the [Commonality](/docs/vision-and-strategy/README.md) platform. It's an attempt to give a voice and funding power to the hidden moderate majority that's currently invisible because the political system is structured around two coalitions dominated by their loudest members.
 
-(TODO: and which has successfully managed to split the moderates into separate camps even though they probably have a lot more in common with each other than with the radicals on either side. That is, it's on-reflection kinda weird and in some sense wasn't exactly inevitable that we've ended up in this weird polarized situation. But OTOH it was *kinda* structural, because of the way first-past-the-post elections work and the way the loudest tend to dominate the discourse and various other reasons. So this project is an attempt to introduce some new structural elements that might counteract that... although the job is harder because we have to *start* from this polarized place.) (I'm not saying we need to put all of that into this intro paragraph right here, I'm just thinking out loud.)
+**The short version:** Moderate-majority movements always fail because both sides suspect the organizer is captured by the other side. CSM solves this by being a protocol, not an organization — money onchain, AI refereeing with open-source prompts, everything configurable. The AI finds common ground between what moderate people on opposite sides actually wrote and reveals that a supermajority already agrees on most things. Nobody joins anything or compromises their identity; the system just makes visible what was always true but invisible.
 
-CSM does three specific things on top of Commonality's general infrastructure:
-
-1. **Fund noninflammatory content.** Crowdfund social-media content that communicates perspectives across the political divide without being inflammatory. (See [noninflammatory content walkthrough](/docs/use-case-walkthroughs/noninflammatory-content.md).)
-2. **Find common ground.** Use AI ([bridge creator](/specs/product/bridge-creator.md)) and the [implication graph](/docs/key-ideas/statements-and-implication-graph.md) to discover and synthesize positions that moderate people from opposing sides can both support. (See [hidden-majority content patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md).) (TODO: Maybe try to mention here that this is trickier than it sounds and requires some fairly-nuanced psychology in order to find the pathway to the common ground. It's not just "yay lalala let's write up the obvious middle-ground position and then almost everyone will agree on it!" This is tricky enough to require some sophistication, and also it's hard to get anyone to look at stuff from "the other side" at all, etc. Requires credibly-neutral mechanisms... I'm starting to feel like this whole "CSM does three specific things" section needs to come *after* the "The argument" section.)
-3. **Make the majority visible.** Count supporters and funding flow to demonstrate that common-sense positions have massive cross-partisan support that nobody knew about. (See [CSM walkthrough](/docs/use-case-walkthroughs/common-sense-majority.md).)
-
-These three work together: noninflammatory content is the *mechanism* for getting bridge statements in front of people; the implication graph is the *structure* that connects independently-authored statements into visible common ground; and the supporter counts and funding portals are the *evidence* that a movement exists.
-
-For how these relate to the other Commonality UI surfaces, see [UI domains](/specs/product/ui-domains.md).
+TODO: Getting closer. I want something that focuses more on "why is this just now becoming fixable?"
+  - Blockchains are important for credible neutrality: funds aren't in a (capturable) organization made of humans. Same with the other mechanisms like assurance contracts and the delegation system and the retroactive-funding secondary-markets.
+  - AI is important:
+    - Credibly-neutral (even if not quite at ZK-proof levels of verifiability): open-source prompts plus configurability is close enough. Point is that we can outsource various kinds of subjective work to this mechanism; we couldn't do that before.
+    - And it can handle a lot of volume without getting bored or annoyed or corrupted or generally going off-script the way a human would. So we can use it for the implication graph (important because eliminates one kind of coordination and also annoyance that is otherwise prohibitive - we can simply rely on AI to do all the legwork, which there's a lot of) and also nudges (very annoying work for humans to do, because it requires being sensitive to both sides, and because again there's a lot of volume) and also noninflammatory-content attestations (ditto).
+      - Like... what would be possible if you had an infinitely-patient intelligent agent:
+        - Going through everybody's idiosyncratic beliefs and figuring out who's just saying the same stuff in different ways and connecting them.
+        - Going through everybody's polarized statements of beliefs and being like "is *that* particular detail really something you care all that much about, because that's a major sticking point for a lot of people on the other side and if you just budged a bit on that you'd find that suddenly you have a lot more common ground" and "you know, you and the other side actually totally agree on points A and B, even though you care more about A and they care more about B, and if you just admitted that you're fine with B as long as they're fine with A they'd happily go along with that" and so on.
+        - Read every social-media post and saying "okay, here are a bunch that are actually written respectfully and that show a genuine understanding of the other side's points".
+  - Plus also honestly I just kinda feel like there are various good ideas that aren't exactly *new* but we haven't really made use of them as much as we ought to: assurance contracts (we've had these for a while), fine-grained computerized delegation (I've heard people talking about ideas like liquid democracy a long time ago), retroactive funding (a bit of a weird framing but it's not like secondary markets are a new idea). See the docs for the more-general Commonality platform for the full case for this stuff, but the point is that a movement like this is public goods built on public goods and our legacy public-goods-funding systems (government and big charities) suck and are way overdue for an update.
 
 
 ## The argument
 
 "I'm making a movement for moderates" sounds like something lame that's been tried a dozen times. I think this system is genuinely different. But it's hard to explain why, so let me walk through it.
+
+### How we ended up here
+
+This polarization wasn't inevitable, but it is structural: first-past-the-post elections push parties toward their extremes, media dynamics amplify the loudest voices, and the result is that moderates on each side get sorted into opposing camps even though they probably have more in common with each other than with the radicals leading their coalitions. This project introduces new structural elements designed to counteract that — though starting from this already-polarized place makes the job harder.
 
 ### Previous attempts fail for structural reasons
 
@@ -44,6 +49,19 @@ Everything above depends on people on both sides actually trusting the system. T
 ### What success looks like
 
 The [emotional core](./what-success-looks-like.md): a person who's been feeling isolated visits a statement page and sees *two million people feel the same way* — not because they joined a movement, but because the system revealed that they were all independently saying versions of the same thing. The practical core: funding portals attract cross-partisan money, content creators see demand for thoughtful writing. The political core: a demonstrated cross-partisan constituency with countable supporters and visible funding capacity that changes political calculations without being a party.
+
+
+## What CSM does
+
+Three specific things, built on top of Commonality's general infrastructure:
+
+1. **Fund noninflammatory content.** Crowdfund social-media content that communicates perspectives across the political divide without being inflammatory. (See [noninflammatory content walkthrough](/docs/use-case-walkthroughs/noninflammatory-content.md).)
+2. **Find common ground.** Use AI ([bridge creator](/specs/product/bridge-creator.md)) and the [implication graph](/docs/key-ideas/statements-and-implication-graph.md) to discover and synthesize positions that moderate people from opposing sides can both support. This is harder than just writing up an obvious compromise: people won't engage with content from the other side unless it arrives through trusted, noninflammatory channels, and the common ground often requires active AI synthesis rather than simple averaging. Credible neutrality isn't optional here — it's structurally necessary. (See [hidden-majority content patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md).)
+3. **Make the majority visible.** Count supporters and funding flow to demonstrate that common-sense positions have massive cross-partisan support that nobody knew about. (See [CSM walkthrough](/docs/use-case-walkthroughs/common-sense-majority.md).)
+
+These three work together: noninflammatory content is the *mechanism* for getting bridge statements in front of people; the implication graph is the *structure* that connects independently-authored statements into visible common ground; and the supporter counts and funding portals are the *evidence* that a movement exists.
+
+For how these relate to the other Commonality UI surfaces, see [UI domains](/specs/product/ui-domains.md).
 
 
 ## What this is not

@@ -1,9 +1,5 @@
 # Hidden majorities
 
-TODO: would it make sense to move some/all of the specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md material into [the CSM docs](/docs/common-sense-majority/)? Treat it as documentation for the expected usage of the common-sense-majority system rather than "content patterns" that we expect to see in the more-general conceptspace system?
-
-
-
 Commonality has the ability to **reveal hidden majorities** that the current polarized (e.g. left/right) coalition structure obscures.
 
 The pattern: on many polarized issues, the two "sides" that dominate public discourse are actually minority positions. There's a majority, probably even a supermajority, that holds an ordinary common-sense view — but nobody knows it, because the current system forces everyone to pick a team, and each team's position is defined by its loudest members. The implication graph can make these hidden majorities visible.
