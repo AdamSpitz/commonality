@@ -21,6 +21,7 @@ There are several distinct kinds of hidden-majority patterns, distinguished by *
 | No major controversy | Extremist noise drowning out actual consensus | "Obviously [the thing everyone already agrees on]" |
 | Same values, different beliefs | Factual disagreement, not value disagreement | "If X is true, then Y" (conditional) |
 | Misunderstandings | One side doesn't know what the other actually thinks | "Here's what I actually believe, and here's what I think *you* would believe if you thought about it for a minute" (corrective) |
+| Coalition unbundling | Issues glommed together by coalition identity | Atomized per-issue statements + reaffirmation of the rest |
 | Different problems, same solution | Different motivations converge on the same policy | The policy itself, stated without either side's justification |
 
 
@@ -96,6 +97,33 @@ Here, Commonality's job isn't just to highlight an already-existing common-sense
 This is where the [noninflammatory content funding](./noninflammatory-content.md) system comes in — it provides both the incentive and the mechanism for communicating across the divide. (See [that spec's section on surfacing misunderstood positions](../../content-funding/noninflammatory-content/README.md#surfacing-misunderstood-positions) for the mechanism.)
 
 And the [bridge creator](/specs/product/bridge-creator.md) is the systematic approach to this: rather than waiting for humans to happen to write "clued-in" statements, the bridge-creator AI actively synthesizes them — taking moderate statements from each side, identifying where the positions are compatible, and proposing modified statements and commonality statements. The modified statements are offered as [nudges](../hints.md) ("you might also believe..."), not as implication attestations, and the noninflammatory content system provides the mechanism for getting them in front of people across the divide.
+
+### Coalition unbundling
+
+Political coalitions package multiple issues into a single identity bundle: "I support LGBT people," "I'm pro-life," "I'm an environmentalist." People sign the bundle because they agree with *most* of it and because rejecting any piece feels like betraying their side. The result is that the bundle's popularity overstates support for each individual component — and understates the cross-partisan common ground that exists on specific issues within the bundle.
+
+The mechanism is **atomization and re-aggregation**:
+
+1. **Atomize**: Break the bundle into its individual claims. Instead of "I support LGBT people," offer separate statements for same-sex marriage, adoption rights, anti-discrimination protections, the medical model of gender dysphoria, puberty blockers for minors, etc.
+2. **Reaffirm**: Crucially, let the person reaffirm their support for the parts of the bundle they *do* agree with. This is what makes it safe to break from one piece — they're not betraying their side, they're being *more precise* about what their side believes. The atomized statement needs to make clear that the signer is still on their team regarding the other issues.
+3. **Re-aggregate**: Offer new groupings that cut across traditional coalition lines. The person who supports same-sex marriage but has doubts about the transgender movement can now find common ground with people from the *other* side who have arrived at the same per-issue conclusions.
+
+#### Example: LGBT as a bundle
+
+A left-leaning person would automatically click Like on "I support LGBT people." But if encouraged to give their position on each individual issue — in a sympathetic way that makes clear they're not betraying their side — they might sign both "I support same-sex marriage" and something much more carefully worded like: "I'm generally in favor of being kind to minorities, and I support same-sex marriage, and AFAICT being homosexual is a real biological condition that is quite common, but it also looks to me like most of the members of the modern transgender movement don't actually have a biological gender dysphoria condition, so I think it makes more sense to treat them the way I'd treat someone with anorexia rather than the way I treat someone who's gay: I care about you, but this looks to me like a self-destructive life choice rather than an innate characteristic of who you are."
+
+Notice the structure of that second statement: it's designed to be signed by someone who thinks of themselves as being on the left. It reaffirms their commitment to the rest of the issues that the left considers a package deal with transgender issues (they still support LGB), and it's only making a break with the left's stance on T. The verbose, careful wording is intentional — it needs to be worded so that signing it doesn't feel like a betrayal.
+
+#### Finding the seams
+
+There's a vast combinatorial explosion of *possible* atomizations and re-aggregations. Which ones should the nudger suggest? This requires judgment:
+
+- **Look for issues that fit with the other side's positions.** A lot of conservatives have gotten on board with gay people and same-sex marriage but are still pushing back hard against the trans movement. That's a signal that "LGB separate from T" is a seam worth atomizing along — there's potential cross-partisan common ground on each piece individually, even though the bundle obscures it.
+- **Observe patterns in what people actually believe.** If the system notices that many people who signed a bundle statement *also* independently signed statements that are in tension with part of the bundle, that's a signal that the bundle is hiding a seam.
+- **Use the bridge creator.** This is a natural extension of the bridge creator's job: instead of just synthesizing bridge statements between two sides, it can also identify where a single side's bundled position contains internal seams that, if atomized, would reveal common ground with the other side.
+
+This sub-pattern interacts with several others: the atomized per-issue statements might themselves fall into the "same values, different beliefs" pattern (conditional on facts about gender dysphoria), the "misunderstandings" pattern (neither side knows how many people on the other side agree with them on the individual issue), or the "compromise in the middle" pattern (on some of the atomized issues there's a middle ground).
+
 
 ### Different problems, same solution
 
