@@ -1,6 +1,6 @@
 # Elevator pitch
 
-Come up with an elevator pitch, then two more levels of pitches (a bit longer each time - e.g. first 30 seconds buys you the next two minutes, which buys you the next five minutes). e.g. You find yourself alone in an elevator for 30 seconds with Elon Musk... what do you say? Generate a bunch of these, for different kinds of people; then generate a general one along those lines.
+Come up with an elevator pitch for [common sense majority](../README.md), then two more levels of pitches (a bit longer each time - e.g. first 30 seconds buys you the next two minutes, which buys you the next five minutes). e.g. You find yourself alone in an elevator for 30 seconds with Elon Musk... what do you say? Generate a bunch of these, for different kinds of people; then generate a general one along those lines.
 
 ## Common Sense Majority
 

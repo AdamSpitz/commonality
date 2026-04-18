@@ -80,6 +80,7 @@ Out of scope for the MVP, but I still want to remember that these are important 
   - Work on the [elevator pitch](docs/common-sense-majority/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
 
 
+  - breaking down positions into atomized positions; also accreting them into synthesized larger positions
 
 
   - facebook etc have things that are sorta analogous to "nudgers" (in the sense of biasing/shaping/directing the discussion), ask AI about it
