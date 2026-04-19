@@ -18,16 +18,9 @@
     - Remaining: extend to contributions/secondary market/burns if performance warrants, wire up specific UI pages.
 
   - Is it possible to make a build/test setup that's smarter about not rebuilding things that don't need to be rebuilt? We have many different workspaces, and some depend on others. And then we also have a bunch of docker images (see docker-compose.yml) that we use for some tests and for local-deployment in general, and it's annoying and slow to keep rebuilding them unnecessarily. (But OTOH we *have* frequently had problems in the past with docker images *not* being rebuilt when they *should* have been, so I don't want to end up back in that hell again.) I miss the old days of Makefiles when we just specified what depended on what and it all worked pretty well. Is there any way to make this smarter and faster without causing problems?
-    - DONE 2026-04-19 first pass:
-      - Root workspace `build` / `typecheck` / `lint` / `clean` now run through `turbo`, with explicit dependency ordering instead of `npm run ... --workspaces`.
-      - Removed redundant `prebuild` / `pretypecheck` SDK rebuild hooks from the SDK-dependent leaf workspaces that were repeatedly rebuilding the same upstream packages.
-      - `services.sh --start` and `scripts/run-integration-tests.sh` now consult `scripts/docker-build-plan.mjs`, which hashes each image's declared inputs and only rebuilds the services whose inputs changed or whose image is missing.
-      - The root-context Dockerfiles now copy only the workspace manifests and source trees they actually need, so unrelated repo changes stop invalidating `ui` / `platform-api-service` / `content-attester` / `implication-graph-nudger` image builds.
-      - Compose services now use explicit image names so identical build definitions (notably the four UI IPFS publishers and the three content-attester services) can share one built image.
-    - Remaining follow-up:
-      - DONE 2026-04-19 follow-up: the UI and hardhat images now grant write access only to the specific runtime output paths instead of `chmod -R` across `/workspace` or `/app`.
-      - DONE 2026-04-19 follow-up: the compose-built Node images now use BuildKit cache mounts for npm caches on their dependency-install layers (`ui`, `hardhat`, `indexer`, `platform-api-service`, `content-attester`, `implication-graph-nudger`).
-      - If we start commonly launching the attesters/nudger directly outside `services.sh`, either wire those flows through the same planner or document a `docker compose build <service>` convention clearly.
+    - Permanent notes moved to [BUILD.md](BUILD.md).
+    - Status: first pass is done, including Turbo-based workspace orchestration, planner-based Docker rebuild decisions for `services.sh` and integration tests, narrower Docker build inputs, explicit shared image names, narrower runtime write permissions, and BuildKit npm cache mounts on the compose-built Node images.
+    - Remaining follow-up: if we start commonly launching the attesters/nudger directly outside `services.sh`, either wire those flows through the same planner or document a `docker compose build <service>` convention clearly.
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
     - 2026-04-19 note: the repaired delegation e2e flow is now green, but it still logs long waits while the indexer catches up to the delegation transaction. Investigate test-stack startup/indexer-sync performance separately.
 

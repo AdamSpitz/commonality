@@ -27,6 +27,7 @@ See [ROLES.md](ROLES.md) for the full guide. Quick version:
 ## Where to find other files
 
   - AI continuity notes: [CONTINUITY.md](CONTINUITY.md)
+  - Build-process documentation: [BUILD.md](BUILD.md)
   - Reviews: [REVIEWS.md](REVIEWS.md)
   - Deployment instructions (including how to run locally): [DEPLOYMENT.md](DEPLOYMENT.md)
   - To-do list: [TODO.md](TODO.md)
