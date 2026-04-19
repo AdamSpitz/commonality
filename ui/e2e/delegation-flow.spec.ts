@@ -1,19 +1,22 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
-import { waitForIndexer } from './utils/indexer'
 import {
   DelegatableNotesAbi,
   PubstarterAbi,
+  createSDKMachinery,
   depositERC20,
   delegateNote,
   purchaseFromPrimaryMarketWithNotes,
   createProject,
   uploadToIPFS,
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
+  waitForIndexerToSyncToTxHash,
   type DelegatableNotesContract,
   type PubstarterContract,
 } from '@commonality/sdk'
 import { parseEther } from 'viem'
+
+const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
 /**
  * E2E test for the deposit → delegate → spend flow.
@@ -44,6 +47,10 @@ test.describe('Delegation Flow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
+    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {
+      areWeJustRunningTests: true,
+      shouldTestsBeVerbose: false,
+    })
     const account0Clients = createE2ETestClients('ACCOUNT_0')
     const account1Clients = createE2ETestClients('ACCOUNT_1')
 
@@ -107,7 +114,7 @@ test.describe('Delegation Flow', () => {
     // Step 3: ACCOUNT_0 delegates the full note to ACCOUNT_1
     // =========================================================================
     console.log('\n=== DELEGATING NOTE ===')
-    const { delegatedNoteId } = await delegateNote(
+    const { hash: delegationHash, delegatedNoteId } = await delegateNote(
       account0Clients,
       delegatableNotesContract,
       {
@@ -120,8 +127,12 @@ test.describe('Delegation Flow', () => {
     console.log('Delegated note ID:', delegatedNoteId.toString())
 
     // Wait for indexer to process the deposit + delegation events
-    await waitForIndexer(graphqlUrl)
-    await new Promise((r) => setTimeout(r, 2000))
+    await waitForIndexerToSyncToTxHash(
+      machinery,
+      account0Clients.publicClient,
+      delegationHash,
+      INDEXER_SYNC_TIMEOUT_MS
+    )
 
     // =========================================================================
     // Step 4: Connect as ACCOUNT_1 and verify delegation in UI
@@ -131,15 +142,16 @@ test.describe('Delegation Flow', () => {
     await wallet.connect('ACCOUNT_1')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
-    // Navigate to My Notes via header link (client-side nav preserves wallet state)
-    await page.locator('header').getByRole('link', { name: 'My Notes' }).click()
+    // Navigate via the header overflow menu so we preserve the connected wallet state.
+    await page.locator('header').getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'My Delegated Funds' }).click()
 
-    // Verify note appears in "Notes I Control" (ACCOUNT_1 is the leaf owner)
-    await expect(page.getByText('Notes I Control')).toBeVisible({ timeout: 20000 })
+    // Verify the delegated fund appears in the current controlled-funds section.
+    await expect(page.getByText('Funds I Control')).toBeVisible({ timeout: 20000 })
     await expect(
       page.getByRole('link', {
-        name: new RegExp(`Note #${delegatedNoteId}.*0\\.1 ETH`),
-      })
+        name: /Fund #\d+.*Delegated from 0xf39F/i,
+      }).first()
     ).toBeVisible({ timeout: 20000 })
 
     // =========================================================================
@@ -149,8 +161,8 @@ test.describe('Delegation Flow', () => {
     // Navigate directly to note detail (wallet state may reset but chain is shown regardless)
     await page.goto(`/notes/${delegatedNoteId}`)
 
-    // Delegation chain visualization should show root and leaf
-    await expect(page.getByText('Delegation Chain')).toBeVisible({ timeout: 20000 })
+    // Delegation access visualization should show root and leaf.
+    await expect(page.getByText('Who Has Access')).toBeVisible({ timeout: 20000 })
     await expect(page.getByText('Root', { exact: true })).toBeVisible()
     await expect(page.getByText('Leaf')).toBeVisible()
 
@@ -161,7 +173,7 @@ test.describe('Delegation Flow', () => {
     // Step 6: ACCOUNT_1 spends the delegated note on the project via SDK
     // =========================================================================
     console.log('\n=== SPENDING NOTE ON PROJECT ===')
-    await purchaseFromPrimaryMarketWithNotes(
+    const purchaseHash = await purchaseFromPrimaryMarketWithNotes(
       account1Clients,
       delegatableNotesContract,
       {
@@ -179,7 +191,12 @@ test.describe('Delegation Flow', () => {
     console.log('Note spent on project')
 
     // Wait for indexer to process the purchase event
-    await new Promise((r) => setTimeout(r, 2000))
+    await waitForIndexerToSyncToTxHash(
+      machinery,
+      account1Clients.publicClient,
+      purchaseHash,
+      INDEXER_SYNC_TIMEOUT_MS
+    )
 
     // =========================================================================
     // Step 7: Verify the note is now inactive after being spent

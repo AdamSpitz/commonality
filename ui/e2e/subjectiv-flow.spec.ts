@@ -223,12 +223,14 @@ test.describe('Subjectiv Flow', () => {
     })
 
     console.log('\n=== ADDING DIRECT TRUST IN SETTINGS ===')
-    await page.locator('header').getByRole('link', { name: 'Settings' }).click()
-    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+    await page.locator('header').getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'My Trust Network' }).click()
+    await expect(page.getByRole('heading', { name: 'Trust Settings' })).toBeVisible()
+    const trustSection = page.getByRole('heading', { name: 'Your Trust Network' }).locator('..')
 
-    await page.getByRole('textbox', { name: 'Trusted User Address' }).fill(account1Clients.account)
-    await page.getByRole('spinbutton', { name: 'Score' }).fill('100')
-    await page.getByRole('button', { name: 'Save' }).click()
+    await trustSection.getByRole('textbox', { name: 'Wallet Address' }).fill(account1Clients.account)
+    await trustSection.getByRole('spinbutton', { name: 'Score' }).fill('100')
+    await trustSection.getByRole('button', { name: 'Save' }).click()
     await expect(page.getByText('Direct trust updated')).toBeVisible()
     const latestBlockNumber = await account0Clients.publicClient.getBlockNumber()
     await waitForIndexerToSyncToBlockNumber(
@@ -237,7 +239,7 @@ test.describe('Subjectiv Flow', () => {
       INDEXER_SYNC_TIMEOUT_MS
     )
 
-    await page.getByRole('button', { name: 'Refresh Network' }).click()
+    await trustSection.getByRole('button', { name: 'Refresh Network' }).click()
 
     console.log('\n=== VERIFYING PORTAL RELOAD AFTER TRUST UPDATE ===')
     await page.goto(`/portal/${causeResult.cid}`)

@@ -7,11 +7,9 @@
 ## Other things to do soon
 
   - Fix the e2e tests.
-    - 2026-04-19 handoff: several stale Playwright assumptions have already been fixed.
-      - Updated specs that still assumed the connected conceptspace home lived at `/`; those now use `/start`.
-      - Updated stale support-metrics assertions from `direct believer/disbeliever` to current `signer/opposing signer` wording.
-      - Fixed a real SDK/content-funding bug in `sdk/src/subsystems/content-funding/actions.ts` caused by stale creator-factory ABI usage; `e2e/content-funding-flow.spec.ts` now passes again.
-      - Remaining blocker from the last full run: `ui/e2e/delegation-flow.spec.ts` times out at the header navigation step looking for a `My Notes` link. Start by checking the current shell/header navigation labels and routes rather than redoing the earlier route/SDK work.
+    - DONE 2026-04-19: stale Playwright assumptions in the remaining failing flows were repaired.
+    - Delegation flow now follows the current `More` menu/navigation copy and waits for specific delegation/spend tx hashes to reach the indexer before asserting note detail state.
+    - Subjectiv flow now follows the current `More` menu/navigation copy and scopes trust-form interactions to the `Your Trust Network` section.
 
   - Implement the `foldVersion` idea described in our [indexer spec](specs/tech/indexer/README.md).
     - Done for the resumable pubstarter folds. If fold logic changes later in a way that invalidates saved accumulators, bump the relevant foldVersion constant.
@@ -20,6 +18,7 @@
     - Remaining: extend to contributions/secondary market/burns if performance warrants, wire up specific UI pages.
 
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
+    - 2026-04-19 note: the repaired delegation e2e flow is now green, but it still logs long waits while the indexer catches up to the delegation transaction. Investigate test-stack startup/indexer-sync performance separately.
 
   - See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) and do some enhancements to the implication attester and finder prompts (make the patterns clear), and maybe even put some "write a new statement" capabilities into the finder (or make a separate service, but probably just using the finder is fine).
   

@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-19 - E2E Test Triage (Completed)
+
+**Task**: Fix the remaining failing Playwright e2e tests.
+
+**Changes made**:
+- Updated [ui/e2e/delegation-flow.spec.ts](/home/adam/Projects/commonality/ui/e2e/delegation-flow.spec.ts) to follow the current `More` menu navigation and current delegation UI copy (`My Delegated Funds`, `Funds I Control`, `Who Has Access`).
+- Tightened the delegation test's synchronization to wait for the specific delegation and note-spend transaction hashes to reach the indexer, instead of only checking that the indexer service was up.
+- Updated [ui/e2e/subjectiv-flow.spec.ts](/home/adam/Projects/commonality/ui/e2e/subjectiv-flow.spec.ts) to follow the current `More` menu navigation, current trust-settings copy, and scope form interactions to the `Your Trust Network` section so they do not collide with other settings forms.
+
+**Verified passing**:
+- `npm run test:e2e --workspace=ui -- e2e/delegation-flow.spec.ts`
+- `npm run test:e2e --workspace=ui -- e2e/delegation-flow.spec.ts e2e/subjectiv-flow.spec.ts`
+
+**Key decisions**:
+- Treat the shell/menu copy drift as stale-test fixes, not UI regressions.
+- Treat the delegation note-detail flake as a synchronization problem and fix it with tx-hash-based indexer waits rather than weakening the note-detail assertions away.
+
+**Files changed**:
+- `ui/e2e/delegation-flow.spec.ts`
+- `ui/e2e/subjectiv-flow.spec.ts`
+
+**Blockers / follow-up notes**:
+- The delegation test still prints long `waitForIndexerToSyncToTxHash` "indexer appears stuck" warnings before the indexer catches up; the flow passes, but there is probably still low-hanging fruit in test-stack startup/indexer sync speed.
+
+**Interrupt point**:
+- Yes. The broken e2e triage task is complete and this is a reasonable point for broader test-speed or e2e-maintenance work if desired.
+
 ## 2026-04-19 - E2E Test Triage (Partially Completed)
 
 **Task**: Fix failing Playwright e2e tests.
