@@ -1,5 +1,44 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-19 - Docker BuildKit Cache Mounts For Compose Images (Completed)
+
+**Task**: Continue the build-improvement thread from [TODO.md](/home/adam/Projects/commonality/TODO.md) by adding package-manager cache mounts where they speed up local image rebuilds without changing correctness.
+
+**Changes made**:
+- Added `# syntax=docker/dockerfile:1.7` plus `RUN --mount=type=cache,target=/root/.npm ...` to the dependency-install layers in the compose-built Node images:
+  - [ui/Dockerfile](/home/adam/Projects/commonality/ui/Dockerfile)
+  - [hardhat/Dockerfile](/home/adam/Projects/commonality/hardhat/Dockerfile)
+  - [indexer/Dockerfile](/home/adam/Projects/commonality/indexer/Dockerfile)
+  - [platform-api-service/Dockerfile](/home/adam/Projects/commonality/platform-api-service/Dockerfile)
+  - [content-attester/Dockerfile](/home/adam/Projects/commonality/content-attester/Dockerfile)
+  - [implication-graph-nudger/Dockerfile](/home/adam/Projects/commonality/implication-graph-nudger/Dockerfile)
+- Updated [TODO.md](/home/adam/Projects/commonality/TODO.md) to mark this build follow-up done.
+- Updated [README.md](/home/adam/Projects/commonality/README.md) high-level status to mention the new Docker cache layer improvement.
+
+**Verified**:
+- `docker compose build hardhat-deploy ui-ipfs-publisher-commonality platform-api-service indexer implication-graph-nudger content-attester-neutral`
+
+**Key decisions**:
+- Keep the scope to the Dockerfiles actually built through the repo's compose/local-development path, because this environment's plain `docker build` still uses the legacy builder unless `buildx` is installed.
+- Only cache the package-manager download directories; do not cache build outputs or `node_modules`, so correctness still depends on the image layer inputs and not on mutable shared state.
+
+**Files changed**:
+- `ui/Dockerfile`
+- `hardhat/Dockerfile`
+- `indexer/Dockerfile`
+- `platform-api-service/Dockerfile`
+- `content-attester/Dockerfile`
+- `implication-graph-nudger/Dockerfile`
+- `TODO.md`
+- `README.md`
+
+**Blockers / notes for next iteration**:
+- `docker compose build` works with these cache mounts in the current environment even though it warns that Bake/buildx is missing; plain `docker build` with BuildKit syntax still fails here, so any future expansion to standalone Dockerfiles should either assume `buildx` or add a documented requirement.
+- The remaining build-thread follow-up in `TODO.md` is still the direct attester/nudger workflow question: either route those entrypoints through the same planner or document the intended manual build convention.
+
+**Interrupt point**:
+- Yes. This is another clean stopping point inside the build-improvement thread.
+
 ## 2026-04-19 - Restore Pre-commit Lint Path (Completed)
 
 **Task**: Fix the lint issue blocking the pre-commit hook.

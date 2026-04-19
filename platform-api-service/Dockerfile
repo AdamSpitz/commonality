@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 FROM node:24-alpine
 
 RUN apk add --no-cache curl
@@ -7,7 +9,7 @@ WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 COPY sdk/package.json ./sdk/package.json
 COPY platform-api-service/package.json ./platform-api-service/package.json
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY sdk ./sdk
 COPY platform-api-service ./platform-api-service
 RUN npm run build --workspace=@commonality/sdk

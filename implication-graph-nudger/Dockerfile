@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 # Dockerfile for Implication Graph Nudger service
 FROM node:24-alpine
 
@@ -9,7 +11,7 @@ COPY package.json package-lock.json .npmrc ./
 COPY sdk/package.json ./sdk/package.json
 COPY nudger-core/package.json ./nudger-core/package.json
 COPY implication-graph-nudger/package.json ./implication-graph-nudger/package.json
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY sdk ./sdk
 COPY nudger-core ./nudger-core
 COPY implication-graph-nudger ./implication-graph-nudger

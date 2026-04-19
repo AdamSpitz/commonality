@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 # Dockerfile for Content Attester service
 FROM node:24-alpine
 
@@ -9,7 +11,7 @@ COPY package.json package-lock.json .npmrc ./
 COPY sdk/package.json ./sdk/package.json
 COPY attester-core/package.json ./attester-core/package.json
 COPY content-attester/package.json ./content-attester/package.json
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY sdk ./sdk
 COPY attester-core ./attester-core
 COPY content-attester ./content-attester

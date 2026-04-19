@@ -26,14 +26,25 @@
       - Compose services now use explicit image names so identical build definitions (notably the four UI IPFS publishers and the three content-attester services) can share one built image.
     - Remaining follow-up:
       - DONE 2026-04-19 follow-up: the UI and hardhat images now grant write access only to the specific runtime output paths instead of `chmod -R` across `/workspace` or `/app`.
-      - Consider adding BuildKit cache mounts for npm caches if Docker build speed is still annoying after the invalidation fixes.
+      - DONE 2026-04-19 follow-up: the compose-built Node images now use BuildKit cache mounts for npm caches on their dependency-install layers (`ui`, `hardhat`, `indexer`, `platform-api-service`, `content-attester`, `implication-graph-nudger`).
       - If we start commonly launching the attesters/nudger directly outside `services.sh`, either wire those flows through the same planner or document a `docker compose build <service>` convention clearly.
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
     - 2026-04-19 note: the repaired delegation e2e flow is now green, but it still logs long waits while the indexer catches up to the delegation transaction. Investigate test-stack startup/indexer-sync performance separately.
 
   - See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) and do some enhancements to the implication attester and finder prompts (make the patterns clear), and maybe even put some "write a new statement" capabilities into the finder (or make a separate service, but probably just using the finder is fine).
-  - Remind me, what was the "explorer" idea? What's the new-user experience, in terms of feeling like the system is populated with content and they can just find the areas that interest them?
-  - Write the AI skills. Make them "thin", with pointers to the docs. That'd make updates cleaner: don't need to keep asking people to download new skills when the docs change.
+  - Remind me, what was the "explorer" idea?
+    - Huh, the explorer is a nudger, huh? Its job is to help you start at the "top" of the hierarchy (e.g. nothing at all -> suggest some things like "I am interested in American politics". Then from there to "I am left-leaning and interested in American politics", etc.)
+    - Oh, and notice that this is *not* per-user! We don't need to run some LLM for each new user (which would be expensive); we just need an LLM creating these nudge links between statements.
+    - Although honestly there's probably *some* user-specific decision-making to do, in the sense that it'll be annoying if the user has already signed some and that's enough - he doesn't want to be inundated with nudges toward a whole bunch of different topics or toward minor variations of statements he's signed or down into the weeds of minor details or whatever. But maybe that's the job of a different system: maybe the UI is wired to only show you the top 5 nudges, or maybe there's a cheaper LLM that you can use to filter the flood of nudges, or whatever.
+  - What's the new-user experience, in terms of feeling like the system is populated with content and they can just find the areas that interest them?
+    - Interesting, maybe this is primarily a job for the nudgers.
+  - Think through what [AI skills](specs/product/ai-assistance.md) we need, in light of the new ecosystem of services.
+    - attesters (for implications and noninflammatory content) are purely reactive.
+    - implication-finder is out there looking for S1 -> S2 implications to make.
+    - nudgers are out there finding/creating statements and suggesting S1 -> S2 nudges.
+      - bridge-creator is out there trying to create bridges between "opposite sides".
+    - content-finders are out there either taking suggestions or just following people on social media, looking for content to suggest to the attester.
+    - But none of this helps the user get started or whatever.
 
   - Think about the [bridge-finder](specs/product/bridge-finder.md) idea. Either modify the implication-finder to be that, or make it as a separate finder service.
   - Or even [bridge-creator](specs/product/bridge-creator.md). Yeah, let's make the general [nudger](specs/tech/subsystems/nudger/README.md) service (general, can plug in whatever AI heuristics/prompts you want) and then a specific one that is trying to be a bridge-creator.
