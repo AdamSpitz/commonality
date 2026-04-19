@@ -1,5 +1,43 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-19 - Restore Pre-commit Lint Path (Completed)
+
+**Task**: Fix the lint issue blocking the pre-commit hook.
+
+**Changes made**:
+- Updated [indexer/package.json](/home/adam/Projects/commonality/indexer/package.json) so the lint script uses `eslint .` instead of the deprecated `--ext` flag, which flat-config ESLint no longer accepts.
+- Aligned the `indexer` workspace's ESLint dependency with the rest of the repo by upgrading it to ESLint 9, removing the stale `eslint-config-ponder` dependency that still enforced ESLint 7/8-era peers during isolated installs, and adding the flat-config packages that `indexer/eslint.config.js` actually imports.
+- Refreshed [package-lock.json](/home/adam/Projects/commonality/package-lock.json) via `npm install --workspace indexer`.
+- Added [nudger-core/eslint.config.js](/home/adam/Projects/commonality/nudger-core/eslint.config.js) by matching the existing flat-config setup used by the other shared TypeScript service libraries, so repo-wide Turbo lint can include `@commonality/nudger-core`.
+- Updated [ui/src/conceptspace/pages/SettingsPage.test.tsx](/home/adam/Projects/commonality/ui/src/conceptspace/pages/SettingsPage.test.tsx) so the attester-management tests scope their queries to the correct settings section now that the page renders separate attester and nudger address forms.
+- Updated [ui/src/conceptspace/components/StatementSuggestions.test.tsx](/home/adam/Projects/commonality/ui/src/conceptspace/components/StatementSuggestions.test.tsx) so it mocks `useTrustedNudgers()` directly instead of assuming there are no default trusted addresses in the environment.
+
+**Verified**:
+- `npm run lint --workspace indexer`
+- `npm run lint --workspace sdk`
+- `npm run lint --workspace nudger-core`
+- `npm run lint-precommit`
+- `docker compose build indexer`
+- `npm run test --workspace=ui`
+
+**Key decisions**:
+- Fix the actual workspace mismatch instead of downgrading the config: `indexer/eslint.config.js` was already written against ESLint 9's flat-config entrypoints.
+- Keep the change minimal and limited to the ESLint migration issues directly blocking the current pre-commit hook path.
+
+**Files changed**:
+- `indexer/package.json`
+- `package-lock.json`
+- `nudger-core/eslint.config.js`
+- `ui/src/conceptspace/pages/SettingsPage.test.tsx`
+- `ui/src/conceptspace/components/StatementSuggestions.test.tsx`
+
+**Blockers / notes for next iteration**:
+- `TODO.md` already had unrelated in-progress user edits, so I left it untouched rather than mixing those changes into this maintenance commit.
+- The initial narrow `lint-precommit` reproduction was not sufficient because the actual Git hook runs repo-wide `turbo run lint`, then repo-wide build/tests. Once the lint blockers were fixed, the hook also exposed two stale UI test files that needed to be updated to current app behavior before the commit could land.
+
+**Interrupt point**:
+- Yes. The pre-commit lint path is green again.
+
 ## 2026-04-19 - Docker Permission Layer Trim (Completed)
 
 **Task**: Finish one build-follow-up item from TODO.md by removing the broad `chmod -R` layers from the UI and hardhat Docker images.

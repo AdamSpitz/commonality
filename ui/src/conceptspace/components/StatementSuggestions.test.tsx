@@ -24,12 +24,16 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
+vi.mock('../../shared/hooks/useTrustedNudgers', () => ({
+  useTrustedNudgers: vi.fn(() => []),
+}))
+
 import { createSDKMachinery, getStatementSuggestions } from '@commonality/sdk'
 import { useNavigate } from 'react-router-dom'
+import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 
-const TRUSTED_ATTESTERS_KEY = 'commonality:trustedAttesters'
-const VALID_ATTESTER_1 = '0xaabbccddaabbccddaabbccddaabbccddaabbccdd'
-const VALID_ATTESTER_2 = '0x1234567890123456789012345678901234567890'
+const VALID_NUDGER_1 = '0xaabbccddaabbccddaabbccddaabbccddaabbccdd'
+const VALID_NUDGER_2 = '0x1234567890123456789012345678901234567890'
 
 // Helper to wrap components with BrowserRouter
 const renderWithRouter = (ui: React.ReactElement) => {
@@ -45,6 +49,7 @@ describe('StatementSuggestions', () => {
     localStorage.clear()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
+    vi.mocked(useTrustedNudgers).mockReturnValue([])
   })
 
   describe('Loading state', () => {
@@ -328,7 +333,7 @@ describe('StatementSuggestions', () => {
       })
     })
 
-    it('calls getStatementSuggestions with undefined trustedAttesters when none configured', async () => {
+    it('calls getStatementSuggestions with undefined trustedNudgers when none configured', async () => {
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(
@@ -344,8 +349,8 @@ describe('StatementSuggestions', () => {
       })
     })
 
-    it('passes trustedAttesters from localStorage to getStatementSuggestions', async () => {
-      localStorage.setItem(TRUSTED_ATTESTERS_KEY, JSON.stringify([VALID_ATTESTER_1, VALID_ATTESTER_2]))
+    it('passes trustedNudgers from the hook to getStatementSuggestions', async () => {
+      vi.mocked(useTrustedNudgers).mockReturnValue([VALID_NUDGER_1, VALID_NUDGER_2])
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(
@@ -356,13 +361,13 @@ describe('StatementSuggestions', () => {
         expect(getStatementSuggestions).toHaveBeenCalledWith(
           mockMachinery,
           'bafyTest123',
-          [VALID_ATTESTER_1, VALID_ATTESTER_2]
+          [VALID_NUDGER_1, VALID_NUDGER_2]
         )
       })
     })
 
-    it('passes undefined when trustedAttesters list is empty', async () => {
-      localStorage.setItem(TRUSTED_ATTESTERS_KEY, JSON.stringify([]))
+    it('passes undefined when trustedNudgers list is empty', async () => {
+      vi.mocked(useTrustedNudgers).mockReturnValue([])
       vi.mocked(getStatementSuggestions).mockResolvedValue([])
 
       renderWithRouter(

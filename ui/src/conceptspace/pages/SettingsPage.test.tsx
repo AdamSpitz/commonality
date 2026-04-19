@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SettingsPage } from './SettingsPage'
@@ -45,6 +45,18 @@ const VALID_ADDRESS_1 = '0x1234567890abcdef1234567890abcdef12345678'
 const VALID_ADDRESS_2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
 const VALID_ADDRESS_MIXED_CASE = '0xABCDEF1234567890abcdef1234567890ABCDEF12'
 const MOCK_MACHINERY = {}
+
+function getTrustedSourcesSection() {
+  return screen.getByRole('heading', { name: /trusted statement-connection sources/i }).closest('.MuiPaper-root') as HTMLElement
+}
+
+function getTrustedSourcesInput() {
+  return within(getTrustedSourcesSection()).getByLabelText(/wallet address/i)
+}
+
+function getTrustedSourcesAddButton() {
+  return within(getTrustedSourcesSection()).getByRole('button', { name: /add/i })
+}
 
 describe('SettingsPage', () => {
   beforeEach(() => {
@@ -99,13 +111,13 @@ describe('SettingsPage', () => {
     it('displays the address input field', () => {
       render(<SettingsPage />)
 
-      expect(screen.getByLabelText(/wallet address/i)).toBeInTheDocument()
+      expect(getTrustedSourcesInput()).toBeInTheDocument()
     })
 
     it('displays the Add button', () => {
       render(<SettingsPage />)
 
-      expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument()
+      expect(getTrustedSourcesAddButton()).toBeInTheDocument()
     })
   })
 
@@ -236,8 +248,8 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(VALID_ADDRESS_1)).toBeInTheDocument()
     })
@@ -246,9 +258,9 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      const input = screen.getByLabelText(/wallet address/i)
+      const input = getTrustedSourcesInput()
       await user.type(input, VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.click(getTrustedSourcesAddButton())
 
       expect(input).toHaveValue('')
     })
@@ -257,8 +269,8 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(/added successfully/i)).toBeInTheDocument()
     })
@@ -267,8 +279,8 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
 
       const stored = JSON.parse(localStorage.getItem(TRUSTED_ATTESTERS_KEY)!)
       expect(stored).toContain(VALID_ADDRESS_1)
@@ -278,8 +290,8 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText('1 source configured')).toBeInTheDocument()
     })
@@ -290,8 +302,8 @@ describe('SettingsPage', () => {
 
       expect(screen.getByText(/no sources configured/i)).toBeInTheDocument()
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.queryByText(/no sources configured/i)).not.toBeInTheDocument()
     })
@@ -300,7 +312,7 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      const input = screen.getByLabelText(/wallet address/i)
+      const input = getTrustedSourcesInput()
       await user.type(input, VALID_ADDRESS_1)
       await user.keyboard('{Enter}')
 
@@ -313,7 +325,7 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(/please enter an address/i)).toBeInTheDocument()
     })
@@ -322,8 +334,8 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), 'not-valid')
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), 'not-valid')
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(/invalid ethereum address format/i)).toBeInTheDocument()
     })
@@ -332,8 +344,8 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), '0x1234')
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), '0x1234')
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(/invalid ethereum address format/i)).toBeInTheDocument()
     })
@@ -343,8 +355,8 @@ describe('SettingsPage', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1.toUpperCase().replace('0X', '0x'))
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1.toUpperCase().replace('0X', '0x'))
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(/already in your trusted list/i)).toBeInTheDocument()
     })
@@ -354,12 +366,12 @@ describe('SettingsPage', () => {
       render(<SettingsPage />)
 
       // Trigger error
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.click(getTrustedSourcesAddButton())
       expect(screen.getByText(/please enter an address/i)).toBeInTheDocument()
 
       // Add valid address
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.queryByText(/please enter an address/i)).not.toBeInTheDocument()
     })
@@ -369,7 +381,7 @@ describe('SettingsPage', () => {
       render(<SettingsPage />)
 
       // Trigger error
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.click(getTrustedSourcesAddButton())
       const errorAlert = screen.getByText(/please enter an address/i).closest('[role="alert"]')!
       expect(errorAlert).toBeInTheDocument()
 
@@ -387,7 +399,7 @@ describe('Removing a source', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      const deleteButtons = await screen.findAllByRole('button', { name: /remove/i })
+      const deleteButtons = await within(getTrustedSourcesSection()).findAllByRole('button', { name: /remove/i })
       await user.click(deleteButtons[0])
 
       const stored = JSON.parse(localStorage.getItem(TRUSTED_ATTESTERS_KEY)!)
@@ -399,7 +411,7 @@ describe('Removing a source', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      const deleteButtons = await screen.findAllByRole('button', { name: /remove/i })
+      const deleteButtons = await within(getTrustedSourcesSection()).findAllByRole('button', { name: /remove/i })
       await user.click(deleteButtons[0])
 
       expect(screen.getByText(/removed/i)).toBeInTheDocument()
@@ -410,7 +422,7 @@ describe('Removing a source', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      const deleteButtons = await screen.findAllByRole('button', { name: /remove/i })
+      const deleteButtons = await within(getTrustedSourcesSection()).findAllByRole('button', { name: /remove/i })
       await user.click(deleteButtons[0])
 
       expect(screen.getByText(/no sources configured/i)).toBeInTheDocument()
@@ -423,7 +435,7 @@ describe('Removing a source', () => {
 
       expect(screen.getByText('2 sources configured')).toBeInTheDocument()
 
-      const deleteButtons = await screen.findAllByRole('button', { name: /remove/i })
+      const deleteButtons = await within(getTrustedSourcesSection()).findAllByRole('button', { name: /remove/i })
       await user.click(deleteButtons[0])
 
       expect(screen.getByText('1 source configured')).toBeInTheDocument()
@@ -434,7 +446,7 @@ describe('Removing a source', () => {
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.click(screen.getByRole('button', { name: /remove/i }))
+      await user.click(within(getTrustedSourcesSection()).getByRole('button', { name: /remove/i }))
 
 expect(screen.getByText(/removed/i)).toBeInTheDocument()
     })
@@ -444,7 +456,7 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      const deleteButtons = await screen.findAllByRole('button', { name: /remove/i })
+      const deleteButtons = await within(getTrustedSourcesSection()).findAllByRole('button', { name: /remove/i })
       await user.click(deleteButtons[0])
 
       expect(screen.getByText(/no sources configured/i)).toBeInTheDocument()
@@ -457,7 +469,7 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
 
       expect(screen.getByText('2 sources configured')).toBeInTheDocument()
 
-      const deleteButtons = await screen.findAllByRole('button', { name: /remove/i })
+      const deleteButtons = await within(getTrustedSourcesSection()).findAllByRole('button', { name: /remove/i })
       await user.click(deleteButtons[0])
 
       expect(screen.getByText('1 source configured')).toBeInTheDocument()
@@ -469,8 +481,8 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
 
       const successAlert = screen.getByText(/added successfully/i).closest('[role="alert"]')!
       const closeButton = successAlert.querySelector('button[aria-label="Close"]') as HTMLElement
@@ -484,12 +496,12 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
       render(<SettingsPage />)
 
       // Add first source
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_1)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_1)
+      await user.click(getTrustedSourcesAddButton())
       expect(screen.getByText(/added successfully/i)).toBeInTheDocument()
 
       // Trigger an error - should clear success message
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.click(getTrustedSourcesAddButton())
       expect(screen.queryByText(/added successfully/i)).not.toBeInTheDocument()
     })
   })
@@ -534,8 +546,8 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), `  ${VALID_ADDRESS_1}  `)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), `  ${VALID_ADDRESS_1}  `)
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(VALID_ADDRESS_1)).toBeInTheDocument()
     })
@@ -544,8 +556,8 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), '   ')
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), '   ')
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(/please enter an address/i)).toBeInTheDocument()
     })
@@ -556,8 +568,8 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
       const user = userEvent.setup()
       render(<SettingsPage />)
 
-      await user.type(screen.getByLabelText(/wallet address/i), VALID_ADDRESS_MIXED_CASE)
-      await user.click(screen.getByRole('button', { name: /add/i }))
+      await user.type(getTrustedSourcesInput(), VALID_ADDRESS_MIXED_CASE)
+      await user.click(getTrustedSourcesAddButton())
 
       expect(screen.getByText(VALID_ADDRESS_MIXED_CASE)).toBeInTheDocument()
     })
