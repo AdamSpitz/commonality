@@ -17,20 +17,12 @@
     - DONE for project fold (2026-04-17): IndexedDB persistence layer, cache key with eventCacheUrl/contract address/project address/foldType, foldVersion validation, bigint serialization, blockNumber tracking, incremental fetching via blockNumber_gte option, getProject integration, useCachedProject hook, 3 passing tests.
     - Remaining: extend to contributions/secondary market/burns if performance warrants, wire up specific UI pages.
 
-  - Is it possible to make a build/test setup that's smarter about not rebuilding things that don't need to be rebuilt? We have many different workspaces, and some depend on others. And then we also have a bunch of docker images (see docker-compose.yml) that we use for some tests and for local-deployment in general, and it's annoying and slow to keep rebuilding them unnecessarily. (But OTOH we *have* frequently had problems in the past with docker images *not* being rebuilt when they *should* have been, so I don't want to end up back in that hell again.) I miss the old days of Makefiles when we just specified what depended on what and it all worked pretty well. Is there any way to make this smarter and faster without causing problems?
-    - Permanent notes moved to [BUILD.md](BUILD.md).
-    - Status: first pass is done, including Turbo-based workspace orchestration, planner-based Docker rebuild decisions for `services.sh` and integration tests, narrower Docker build inputs, explicit shared image names, narrower runtime write permissions, and BuildKit npm cache mounts on the compose-built Node images.
-    - Remaining follow-up: if we start commonly launching the attesters/nudger directly outside `services.sh`, either wire those flows through the same planner or document a `docker compose build <service>` convention clearly.
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
     - 2026-04-19 note: the repaired delegation e2e flow is now green, but it still logs long waits while the indexer catches up to the delegation transaction. Investigate test-stack startup/indexer-sync performance separately.
 
   - See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) and do some enhancements to the implication attester and finder prompts (make the patterns clear), and maybe even put some "write a new statement" capabilities into the finder (or make a separate service, but probably just using the finder is fine).
-  - Remind me, what was the "explorer" idea?
-    - Huh, the explorer is a nudger, huh? Its job is to help you start at the "top" of the hierarchy (e.g. nothing at all -> suggest some things like "I am interested in American politics". Then from there to "I am left-leaning and interested in American politics", etc.)
-    - Oh, and notice that this is *not* per-user! We don't need to run some LLM for each new user (which would be expensive); we just need an LLM creating these nudge links between statements.
-    - Although honestly there's probably *some* user-specific decision-making to do, in the sense that it'll be annoying if the user has already signed some and that's enough - he doesn't want to be inundated with nudges toward a whole bunch of different topics or toward minor variations of statements he's signed or down into the weeds of minor details or whatever. But maybe that's the job of a different system: maybe the UI is wired to only show you the top 5 nudges, or maybe there's a cheaper LLM that you can use to filter the flood of nudges, or whatever.
-  - What's the new-user experience, in terms of feeling like the system is populated with content and they can just find the areas that interest them?
-    - Interesting, maybe this is primarily a job for the nudgers.
+  - Think about [new-user-experience](/specs/product/new-user-experience.md).
+  - Think about [nudge-ux](/specs/product/nudge-ux.md).
   - Think through what [AI skills](specs/product/ai-assistance.md) we need, in light of the new ecosystem of services.
     - attesters (for implications and noninflammatory content) are purely reactive.
     - implication-finder is out there looking for S1 -> S2 implications to make.
@@ -83,7 +75,7 @@
   - Keep working on [memes](specs/product/memes.md).
   - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 
-  - Using `cofounder` skill: (This is a big job, so feel free to break it up into chunks if necessary.) Take a look at the "docs" and "specs" directories and the general structure of the code base, and then make a plan for doing a full review of everything. I want to know whether we're close to being ready to deploy.
+  - Using `cofounder` skill: Are we ready to launch?
 
 
 Out of scope for the MVP, but I still want to remember that these are important and not done yet:
