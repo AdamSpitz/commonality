@@ -12,9 +12,32 @@ See each subsystem's directory for details:
 
 ## Services
 
-There are various services deployed separately:
-  - implication attester
-  - implication finder (explores and submits potential implications to the attester)
-  - content attesters
-  - content finders
-  - platform API service
+The AI services follow a three-family pattern. Each family has a shared core library and one or more concrete service implementations built on top of it.
+
+### Attester family
+
+Attesters evaluate claims and publish signed attestations on-chain. They are purely reactive: they wait for requests, evaluate them using an LLM, and write the result to the blockchain. They do not proactively go looking for things to evaluate.
+
+- **[attester-core](../../attester-core/README.md)** — shared library: config/env helpers, blockchain error handling, OpenRouter JSON completion wrapper, IPFS read/write, x402-style payment flow, Express scaffolding with `/health`, `/quote`, and `/status` routes.
+- **[implication-attester](../../implication-attester/README.md)** — given two statement CIDs, evaluates whether S1 implies S2 and writes an `ImplicationAttestation` on-chain.
+- **[content-attester](../../content-attester/README.md)** — given a content item and a statement CID, evaluates whether the content aligns with the statement and writes an `AlignmentAttestation` on-chain.
+
+### Finder family
+
+Finders are the proactive counterpart to attesters. They watch existing data (on-chain events, submission queues, feeds) to discover candidate pairs that should be evaluated, then submit those candidates to the appropriate attester.
+
+- **[finder-core](../../finder-core/README.md)** — shared library: file-backed JSON state (to track what's already been processed), a generic polling-loop runner, and a batched JSON POST helper for attester APIs.
+- **[implication-finder](../../implication-finder/README.md)** — polls on-chain belief events, pairs newly-believed statements with popular statements, and submits candidate pairs to the implication attester.
+- **[content-finder](../../content-finder/README.md)** — reads a submission queue file, resolves each content URL through the platform API service, and submits to the content attester.
+
+### Nudger family
+
+Nudgers suggest statements to users: "you signed S1 — you might also want to sign S2." They sit between the attester layer (which produces the implication graph) and the UI (which shows nudge suggestions).
+
+- **[nudger-core](../../nudger-core/README.md)** — shared library: `NudgerStrategy` interface, `NudgeMessage` type, EIP-191 signing helpers.
+- **[implication-graph-nudger](../../implication-graph-nudger/README.md)** — queries the implication graph to find statements implied by (or implying) a target statement, ranked by supporter count.
+- **[bridge-creator](../../bridge-creator/README.md)** — uses an LLM to synthesize modified or common-ground statements that make opposing views more compatible. Early/stub: scaffolding and LLM helpers are in place, but candidate discovery is not yet implemented.
+
+### Platform API Service
+
+**[platform-api-service](../../platform-api-service/README.md)** — the platform-dependent backend: resolves creator handles to stable channel IDs, resolves content URLs to canonical content IDs, and handles channel-claim verification challenges (currently Twitter and YouTube). Used by the content finder and by the UI's verification flows.

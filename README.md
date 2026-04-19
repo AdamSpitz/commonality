@@ -41,21 +41,31 @@ Note that the build and tests are run by the Git pre-commit hook, and the whole 
 
 ## Artifacts
 
-TODO: make these real markdown links
+**Core platform:**
+  - [Smart contracts](hardhat/README.md) (`hardhat/`)
+  - [SDK](sdk/README.md) — used by integration-tests, ui, and AI services
+  - [Indexer](indexer/README.md) — thin Ponder event cache; no business logic
+  - [UI](ui/README.md) — four branded surfaces from one Vite/React codebase
+  - [Integration tests](integration-tests/README.md)
+  - [Fake-data generation](fake-data-generation/README.md)
 
-  - Smart contracts: `hardhat/README.md`
-  - Content-funding contracts: `hardhat/contracts/content-funding/`
-  - Fake-data generation: `fake-data-generation/README.md`
-  - Indexer: `indexer/README.md`
-  - SDK (used by both integration-tests and ui): `sdk/README.md`
-  - Integration tests: `integration-tests/README.md`
-  - UI: `ui/README.md`
-  - Platform API service: `platform-api-service/README.md`
-  - Implication Attester AI: `implication-attester/README.md`
-  - Content Attester AI: `content-attester/README.md`
-  - Finder Core: `finder-core/README.md`
-  - Implication Finder AI: `implication-finder/README.md`
-  - Content Finder AI: `content-finder/README.md`
+**AI services — attesters** (evaluate claims and publish on-chain attestations):
+  - [Attester Core](attester-core/README.md) — shared library for all attester services
+  - [Implication Attester](implication-attester/README.md) — evaluates whether S1 implies S2
+  - [Content Attester](content-attester/README.md) — evaluates whether a content item aligns with a statement
+
+**AI services — finders** (proactively discover candidates for attestation):
+  - [Finder Core](finder-core/README.md) — shared library for all finder services
+  - [Implication Finder](implication-finder/README.md) — discovers statement pairs for the implication attester
+  - [Content Finder](content-finder/README.md) — processes a submission queue for the content attester
+
+**AI services — nudgers** (suggest statements to users based on what they already believe):
+  - [Nudger Core](nudger-core/README.md) — shared library for all nudger services
+  - [Implication Graph Nudger](implication-graph-nudger/README.md) — suggests statements implied by ones you already signed
+  - [Bridge Creator](bridge-creator/README.md) — synthesizes common-ground statements between opposing views (early/stub)
+
+**Platform API service:**
+  - [Platform API Service](platform-api-service/README.md) — resolves creator handles and content URLs; handles channel verification (Twitter, YouTube)
 
 ## Other things worth noting
 
