@@ -1,5 +1,41 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-19 - Docker Permission Layer Trim (Completed)
+
+**Task**: Finish one build-follow-up item from TODO.md by removing the broad `chmod -R` layers from the UI and hardhat Docker images.
+
+**Changes made**:
+- Updated [ui/Dockerfile](/home/adam/Projects/commonality/ui/Dockerfile) so the image now creates and relaxes permissions only for the paths the non-root publisher actually writes at runtime: `ui/dist` and `ui/node_modules/.tmp`.
+- Updated [hardhat/Dockerfile](/home/adam/Projects/commonality/hardhat/Dockerfile) so the image now relaxes permissions only on the Hardhat output directories (`artifacts`, `cache`, `typechain-types`, `deployments`) instead of the entire `/app` tree.
+
+**Verified**:
+- `docker compose build hardhat-deploy`
+- `docker compose build ui-ipfs-publisher-commonality`
+- `bash -n services.sh scripts/run-integration-tests.sh`
+- `docker run --rm --user 1000:1000 commonality-ui-ipfs-publisher:dev sh -lc 'test -w /workspace/ui/dist && test -w /workspace/ui/node_modules/.tmp'`
+- `docker run --rm --user 1000:1000 commonality-hardhat-deploy:dev sh -lc 'test -w /app/artifacts && test -w /app/cache && test -w /app/typechain-types && test -w /app/deployments'`
+- `git commit` pre-commit hook was attempted and failed for unrelated existing lint issues:
+  - `commonality-indexer` still invokes ESLint with the now-invalid `--ext` flag under ESLint 9
+  - `@commonality/nudger-core` currently has no `eslint.config.*`, so `eslint .` fails before reaching this task's files
+
+**Key decisions**:
+- Keep the images runnable as the host UID/GID, but only open the directories that actually need runtime writes.
+- Do not broaden the scope again unless a concrete runtime failure shows another path really needs to be writable.
+
+**Files changed**:
+- `ui/Dockerfile`
+- `hardhat/Dockerfile`
+- `TODO.md`
+- `README.md`
+
+**Blockers / notes for next iteration**:
+- The broader Docker-build follow-up list still has two open items: BuildKit cache mounts and planner/documentation coverage for direct attester/nudger compose workflows.
+- I did not run a full `./services.sh --start`; verification here stayed focused on the two rebuilt images and runtime writability under UID `1000`.
+- If someone wants pre-commit to succeed again repo-wide, fix the existing ESLint 9 migration issues in `indexer/` and `nudger-core/`.
+
+**Interrupt point**:
+- Yes. This is a clean stopping point inside the build-improvement thread.
+
 ## 2026-04-19 - Build/Test/Docker Incrementality (Completed First Pass)
 
 **Task**: Make builds/tests/docker startup smarter about only rebuilding what changed, without reintroducing stale-image/stale-build bugs.

@@ -25,7 +25,7 @@
       - The root-context Dockerfiles now copy only the workspace manifests and source trees they actually need, so unrelated repo changes stop invalidating `ui` / `platform-api-service` / `content-attester` / `implication-graph-nudger` image builds.
       - Compose services now use explicit image names so identical build definitions (notably the four UI IPFS publishers and the three content-attester services) can share one built image.
     - Remaining follow-up:
-      - The UI and hardhat images still spend a lot of time in `chmod -R`; trim those permission fixes to only the paths that truly need runtime writes.
+      - DONE 2026-04-19 follow-up: the UI and hardhat images now grant write access only to the specific runtime output paths instead of `chmod -R` across `/workspace` or `/app`.
       - Consider adding BuildKit cache mounts for npm caches if Docker build speed is still annoying after the invalidation fixes.
       - If we start commonly launching the attesters/nudger directly outside `services.sh`, either wire those flows through the same planner or document a `docker compose build <service>` convention clearly.
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.

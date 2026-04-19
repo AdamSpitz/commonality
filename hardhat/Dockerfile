@@ -17,7 +17,8 @@ COPY . .
 
 # Compile contracts
 RUN npm run build
-RUN chmod -R a+rwX /app
+RUN mkdir -p /app/artifacts /app/cache /app/typechain-types /app/deployments \
+  && chmod -R a+rwX /app/artifacts /app/cache /app/typechain-types /app/deployments
 
 # Expose Hardhat node port
 EXPOSE 8545

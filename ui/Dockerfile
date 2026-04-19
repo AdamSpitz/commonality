@@ -10,7 +10,8 @@ RUN HUSKY=0 npm ci --legacy-peer-deps
 COPY sdk ./sdk
 COPY ui ./ui
 COPY scripts ./scripts
-RUN chmod -R a+rwX /workspace
+RUN mkdir -p /workspace/ui/dist /workspace/ui/node_modules/.tmp \
+  && chmod -R a+rwX /workspace/ui/dist /workspace/ui/node_modules/.tmp
 
 CMD ["node", "scripts/publish-ui-to-ipfs.mjs"]
 
