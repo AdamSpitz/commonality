@@ -10,11 +10,15 @@ Think of the system as having two layers:
 
 The AI skill layer isn't anything esoteric; it's basically just the normal documentation for the system (maybe in .md format), but with special effort made to have good tutorials and examples and "what the heck is this system and why might I want to use it and what are the different roles I might want to play within the system" and so on. Plus some "skills" to make it really explicit to the AI what its roles are in helping the user use the system.
 
+In fact, it might be a good idea to make the AI skills "thin", with pointers to the docs (rather than duplicating the content of the docs). Enough of a high-level summary to help the AI skill understand what it's for and when to go looking at the docs for more detail, but not so much that it's just a copy of the docs. That'd make updates cleaner: we won't need to keep asking people to download new skills when the docs change.
+
 These skills can be loaded into systems like OpenClaw, or Claude Code, or some hosted Commonality-specific AI assistant service that we provide for convenience, or whatever, to give people's personal AI assistants the ability to navigate our system and explain to the user how the system is meant to be used. e.g. The AI's job might be to find or write up a statement in conceptspace, after an interactive dialogue with the user to figure out what concept the user wants a statement for.
 
-We'll write the skills ourselves and publish them (on clawdhub or wherever AI skills are published), although of course third parties can write their own and that's fine too.
+We'll write the skills ourselves and publish them (on [clawhub](https://clawhub.ai/) or wherever AI skills are published), although of course third parties can write their own and that's fine too.
 
 The point is that this might be a good/easy answer to "how do we get [content](./content.md) into the system?" AI can help the user understand what this system is for, help generate statements that the user might want to sign, etc.
+
+(TODO: rewrite this page in light of our new ecosystem of attesters and finders and nudgers and so on. Those will probably be doing some of the jobs that we were originally imagining these AI skills would do. Or they'll be *using* these AI skills or something.)
 
 ## Skills we want to provide
 

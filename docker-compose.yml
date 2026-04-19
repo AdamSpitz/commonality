@@ -32,6 +32,7 @@ services:
   # One-shot service to deploy contracts
   # =============================================================================
   hardhat-deploy:
+    image: commonality-hardhat-deploy:dev
     build:
       context: ./hardhat
       dockerfile: Dockerfile
@@ -98,6 +99,7 @@ services:
   # in the repo workspace so services.sh can surface them.
 
   ui-ipfs-publisher-commonality:
+    image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
       dockerfile: ui/Dockerfile
@@ -128,6 +130,7 @@ services:
       - commonality
 
   ui-ipfs-publisher-content-funding:
+    image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
       dockerfile: ui/Dockerfile
@@ -158,6 +161,7 @@ services:
       - commonality
 
   ui-ipfs-publisher-noninflammatory:
+    image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
       dockerfile: ui/Dockerfile
@@ -188,6 +192,7 @@ services:
       - commonality
 
   ui-ipfs-publisher-movement:
+    image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
       dockerfile: ui/Dockerfile
@@ -223,6 +228,7 @@ services:
   # Persists indexer sync state to the configured COMMONALITY_DATA_DIR.
   # Wipe this directory if you want to reindex from scratch.
   indexer:
+    image: commonality-indexer:dev
     build:
       context: ./indexer
       dockerfile: Dockerfile
@@ -270,6 +276,7 @@ services:
   # Exposes the channel-resolution/content-validation/challenge API on
   # http://localhost:3001 for local content-funding development.
   platform-api-service:
+    image: commonality-platform-api-service:dev
     build:
       context: .
       dockerfile: platform-api-service/Dockerfile
@@ -307,6 +314,7 @@ services:
   # Content attester services for noninflammatory content evaluation
   # =============================================================================
   content-attester-neutral:
+    image: commonality-content-attester:dev
     build:
       context: .
       dockerfile: content-attester/Dockerfile
@@ -345,6 +353,7 @@ services:
       - commonality
 
   content-attester-left-eval-right:
+    image: commonality-content-attester:dev
     build:
       context: .
       dockerfile: content-attester/Dockerfile
@@ -383,6 +392,7 @@ services:
       - commonality
 
   content-attester-right-eval-left:
+    image: commonality-content-attester:dev
     build:
       context: .
       dockerfile: content-attester/Dockerfile
@@ -426,6 +436,7 @@ services:
   # Provides statement suggestions based on the implication graph.
   # Uses the default hardhat account for local development.
   implication-graph-nudger:
+    image: commonality-implication-graph-nudger:dev
     build:
       context: .
       dockerfile: implication-graph-nudger/Dockerfile

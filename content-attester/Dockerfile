@@ -5,14 +5,17 @@ RUN apk add --no-cache curl
 
 WORKDIR /app
 
-COPY . .
-
+COPY package.json package-lock.json .npmrc ./
+COPY sdk/package.json ./sdk/package.json
+COPY attester-core/package.json ./attester-core/package.json
+COPY content-attester/package.json ./content-attester/package.json
 RUN npm ci
-
-RUN cd sdk && npm run build
-RUN cd attester-core && npm run build
-
-RUN cd content-attester && npm run build
+COPY sdk ./sdk
+COPY attester-core ./attester-core
+COPY content-attester ./content-attester
+RUN npm run build --workspace=@commonality/sdk
+RUN npm run build --workspace=@commonality/attester-core
+RUN npm run build --workspace=@commonality/content-attester
 
 EXPOSE 3000
 

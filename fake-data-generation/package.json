@@ -12,9 +12,7 @@
     "gen:medium": "tsx runSimulation.ts 50 5",
     "gen:large": "tsx runSimulation.ts 100 10",
     "gen:clean": "rm -f data/users.json data/statements.json output/actions.json output/metrics.json",
-    "pretypecheck": "npm run build --workspace=@commonality/sdk",
     "typecheck": "tsc --noEmit",
-    "prebuild": "npm run build --workspace=@commonality/sdk",
     "build": "tsc",
     "clean": "rm -rf dist",
     "lint": "eslint ."

@@ -8,10 +8,8 @@
     "predev": "npm run build --workspace=@commonality/sdk",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "prebuild": "npm run build --workspace=@commonality/sdk",
     "build": "tsc",
     "clean": "rm -rf dist",
-    "pretypecheck": "npm run build --workspace=@commonality/sdk",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && mocha \"dist/**/*.test.js\"",
     "lint": "eslint ."

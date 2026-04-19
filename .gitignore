@@ -13,3 +13,5 @@ deployments/localhost.env
 sdk/src/generated/
 sdk/docs/
 hardhat/docs/
+.cache/
+.turbo/

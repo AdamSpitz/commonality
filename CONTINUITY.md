@@ -1,5 +1,73 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-19 - Build/Test/Docker Incrementality (Completed First Pass)
+
+**Task**: Make builds/tests/docker startup smarter about only rebuilding what changed, without reintroducing stale-image/stale-build bugs.
+
+**Changes made**:
+- Added `turbo` at the repo root and switched root `build` / `typecheck` / `lint` / `clean` scripts in [package.json](/home/adam/Projects/commonality/package.json) to use an explicit workspace task graph defined in [turbo.json](/home/adam/Projects/commonality/turbo.json).
+- Removed the redundant `prebuild` / `pretypecheck` hooks from the SDK-dependent leaf workspaces that were repeatedly rebuilding `sdk` (and in a few cases `nudger-core`) even when the root command had already built them.
+- Added [scripts/docker-build-plan.mjs](/home/adam/Projects/commonality/scripts/docker-build-plan.mjs), which hashes each managed image's declared inputs, checks whether the tagged image exists locally, and tells the shell scripts whether a rebuild is actually needed.
+- Updated [services.sh](/home/adam/Projects/commonality/services.sh) and [scripts/run-integration-tests.sh](/home/adam/Projects/commonality/scripts/run-integration-tests.sh) to:
+  - rebuild only the Docker services whose declared inputs changed or whose images are missing
+  - do plain `docker compose up -d` afterward instead of unconditional `--build`
+  - work with either `docker-compose` or `docker compose`
+- Added explicit image names in [docker-compose.yml](/home/adam/Projects/commonality/docker-compose.yml) so identical build definitions can share one built image (`commonality-ui-ipfs-publisher:dev`, `commonality-content-attester:dev`, etc.).
+- Narrowed the root-context Dockerfiles so they copy only the manifests and source trees they actually need before building:
+  - [ui/Dockerfile](/home/adam/Projects/commonality/ui/Dockerfile)
+  - [platform-api-service/Dockerfile](/home/adam/Projects/commonality/platform-api-service/Dockerfile)
+  - [content-attester/Dockerfile](/home/adam/Projects/commonality/content-attester/Dockerfile)
+  - [implication-graph-nudger/Dockerfile](/home/adam/Projects/commonality/implication-graph-nudger/Dockerfile)
+- Updated [scripts/publish-ui-to-ipfs.mjs](/home/adam/Projects/commonality/scripts/publish-ui-to-ipfs.mjs) to use the root `ui:build:ipfs` command so the UI IPFS build also goes through the new task graph.
+
+**Verified**:
+- `npm install`
+- `npm run build -- --filter=ui`
+  - Verified that `turbo` built `@commonality/sdk` first, then `ui`, and did not fan out to unrelated workspaces.
+- `bash -n services.sh scripts/run-integration-tests.sh`
+- `node scripts/docker-build-plan.mjs list hardhat-deploy indexer platform-api-service ui-ipfs-publisher-commonality ui-ipfs-publisher-content-funding`
+  - Before building images, it reported the expected missing-image rebuild set.
+  - After building/tagging those images, it returned an empty list.
+- `docker compose build platform-api-service ui-ipfs-publisher-commonality`
+- `docker compose build hardhat-deploy indexer`
+
+**Key decisions**:
+- Use explicit declared inputs plus hashing for Docker rebuild decisions rather than trusting `docker compose up --build` or trusting stale local images.
+- Keep Docker Compose as the orchestrator, but move rebuild policy into repo-owned scripts so it behaves more like a Makefile dependency graph.
+- Share image tags across identical build definitions so Compose does not keep materializing equivalent images under separate service-local names.
+
+**Known limitations / next likely improvements**:
+- The `chmod -R` steps in `ui/Dockerfile` and `hardhat/Dockerfile` are still expensive. If startup/build speed is still annoying, trim those to the specific writable paths instead of the whole image tree.
+- The Docker planner currently governs the flows used by `services.sh` and `scripts/run-integration-tests.sh`. If local workflows start commonly launching the content attesters or nudger directly, extend the same planner coverage to those entrypoints too.
+- I did not run the full multi-minute test suite or a full `./services.sh --start` end-to-end after the refactor; verification was targeted at the task graph, script parsing, and representative image builds.
+
+**Files changed**:
+- `package.json`
+- `package-lock.json`
+- `turbo.json`
+- `services.sh`
+- `scripts/run-integration-tests.sh`
+- `scripts/docker-build-plan.mjs`
+- `docker-compose.yml`
+- `scripts/publish-ui-to-ipfs.mjs`
+- `ui/Dockerfile`
+- `platform-api-service/Dockerfile`
+- `content-attester/Dockerfile`
+- `implication-graph-nudger/Dockerfile`
+- `ui/package.json`
+- `platform-api-service/package.json`
+- `content-attester/package.json`
+- `implication-graph-nudger/package.json`
+- `implication-attester/package.json`
+- `implication-finder/package.json`
+- `bridge-creator/package.json`
+- `fake-data-generation/package.json`
+- `.gitignore`
+- `TODO.md`
+
+**Interrupt point**:
+- Yes. The first pass is in place and verified enough for handoff. The next fresh LLM can either do cleanup/perf follow-up on the slow `chmod -R` layers, extend planner coverage to more compose-driven services, or run a broader end-to-end validation pass.
+
 ## 2026-04-19 - E2E Test Triage (Completed)
 
 **Task**: Fix the remaining failing Playwright e2e tests.

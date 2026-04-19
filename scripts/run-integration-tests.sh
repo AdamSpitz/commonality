@@ -33,13 +33,21 @@ export COMMONALITY_DATA_DIR="/tmp/commonality-it"
 export UID
 export GID=$(id -g)
 
+docker_compose() {
+    if command -v docker-compose >/dev/null 2>&1; then
+        docker-compose "$@"
+    else
+        docker compose "$@"
+    fi
+}
+
 # Use ephemeral database for integration tests - fresh in-memory state each run
 # This avoids issues with stale indexer state when hardhat restarts fresh
 export PONDER_EPHEMERAL=true
 
 # Stop any existing containers and clean up any old test data
 # This ensures we start fresh with no stale container state
-docker-compose down 2>/dev/null || true
+docker_compose down 2>/dev/null || true
 
 # Wipe old test data. Files are user-owned so plain rm works; fall back to
 # docker if there are stale root-owned files from a pre-fix run.
@@ -54,13 +62,29 @@ mkdir -p "$COMMONALITY_DATA_DIR/hardhat" "$COMMONALITY_DATA_DIR/ipfs" "$COMMONAL
 # Build the SDK to ensure integration tests use latest code
 # The SDK is a workspace dependency used by integration-tests, so it must be built
 # before tests run (tests run on host, not in Docker)
-npm run build --workspace=@commonality/sdk
+npm run build -- --filter=@commonality/sdk
 
 # Start only the services the integration tests actually use.
 # Avoid starting ui-ipfs-publisher here: it bind-mounts the repo and runs
 # npm install/build against /workspace, which can race with the host-side
 # test process by mutating node_modules mid-run.
-PONDER_EPHEMERAL=true docker-compose up -d --build \
+BUILDABLE_SERVICES=(
+    hardhat-deploy
+    indexer
+    platform-api-service
+)
+
+mapfile -t SERVICES_TO_BUILD < <(node "$SCRIPT_DIR/docker-build-plan.mjs" list "${BUILDABLE_SERVICES[@]}")
+if [ "${#SERVICES_TO_BUILD[@]}" -gt 0 ]; then
+    echo "Rebuilding Docker images whose declared inputs changed:"
+    printf '  %s\n' "${SERVICES_TO_BUILD[@]}"
+    docker_compose build "${SERVICES_TO_BUILD[@]}"
+    node "$SCRIPT_DIR/docker-build-plan.mjs" record "${SERVICES_TO_BUILD[@]}"
+else
+    echo "Reusing existing Docker images; no declared build inputs changed."
+fi
+
+PONDER_EPHEMERAL=true docker_compose up -d \
     hardhat-node \
     hardhat-deploy \
     ipfs \
@@ -78,7 +102,7 @@ for i in $(seq 1 90); do
     fi
     if [ "$i" -eq 90 ]; then
         echo "Timeout waiting for indexer to start"
-        docker-compose logs indexer | tail -50
+        docker_compose logs indexer | tail -50
         exit 1
     fi
     sleep 2
@@ -96,7 +120,7 @@ else
 fi
 
 cd "$SCRIPT_DIR/.."
-docker-compose down
+docker_compose down
 rm -rf "$COMMONALITY_DATA_DIR" 2>/dev/null || docker run --rm -v "/tmp:/tmp" alpine rm -rf "$COMMONALITY_DATA_DIR"
 
 exit $EXIT_CODE

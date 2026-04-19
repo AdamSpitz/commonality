@@ -145,7 +145,7 @@ async function writeArtifacts(result) {
 
 async function main() {
   console.log(`Building ${buildDomain} UI in IPFS mode...`)
-  runOrThrow('npm', ['run', 'build:ipfs', '--workspace=ui'])
+  runOrThrow('npm', ['run', 'ui:build:ipfs'])
 
   console.log(`Publishing ${distDir} to ${ipfsApiBaseUrl}...`)
   const result = await publishDirectoryToIpfs()

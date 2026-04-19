@@ -8,10 +8,8 @@
     "predev": "npm run build --workspace=@commonality/sdk && npm run build --workspace=@commonality/nudger-core",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "prebuild": "npm run build --workspace=@commonality/sdk && npm run build --workspace=@commonality/nudger-core",
     "build": "tsc",
     "clean": "rm -rf dist",
-    "pretypecheck": "npm run build --workspace=@commonality/sdk && npm run build --workspace=@commonality/nudger-core",
     "typecheck": "tsc --noEmit",
     "test": "mocha",
     "lint": "eslint ."

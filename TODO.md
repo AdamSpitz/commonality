@@ -17,11 +17,24 @@
     - DONE for project fold (2026-04-17): IndexedDB persistence layer, cache key with eventCacheUrl/contract address/project address/foldType, foldVersion validation, bigint serialization, blockNumber tracking, incremental fetching via blockNumber_gte option, getProject integration, useCachedProject hook, 3 passing tests.
     - Remaining: extend to contributions/secondary market/burns if performance warrants, wire up specific UI pages.
 
+  - Is it possible to make a build/test setup that's smarter about not rebuilding things that don't need to be rebuilt? We have many different workspaces, and some depend on others. And then we also have a bunch of docker images (see docker-compose.yml) that we use for some tests and for local-deployment in general, and it's annoying and slow to keep rebuilding them unnecessarily. (But OTOH we *have* frequently had problems in the past with docker images *not* being rebuilt when they *should* have been, so I don't want to end up back in that hell again.) I miss the old days of Makefiles when we just specified what depended on what and it all worked pretty well. Is there any way to make this smarter and faster without causing problems?
+    - DONE 2026-04-19 first pass:
+      - Root workspace `build` / `typecheck` / `lint` / `clean` now run through `turbo`, with explicit dependency ordering instead of `npm run ... --workspaces`.
+      - Removed redundant `prebuild` / `pretypecheck` SDK rebuild hooks from the SDK-dependent leaf workspaces that were repeatedly rebuilding the same upstream packages.
+      - `services.sh --start` and `scripts/run-integration-tests.sh` now consult `scripts/docker-build-plan.mjs`, which hashes each image's declared inputs and only rebuilds the services whose inputs changed or whose image is missing.
+      - The root-context Dockerfiles now copy only the workspace manifests and source trees they actually need, so unrelated repo changes stop invalidating `ui` / `platform-api-service` / `content-attester` / `implication-graph-nudger` image builds.
+      - Compose services now use explicit image names so identical build definitions (notably the four UI IPFS publishers and the three content-attester services) can share one built image.
+    - Remaining follow-up:
+      - The UI and hardhat images still spend a lot of time in `chmod -R`; trim those permission fixes to only the paths that truly need runtime writes.
+      - Consider adding BuildKit cache mounts for npm caches if Docker build speed is still annoying after the invalidation fixes.
+      - If we start commonly launching the attesters/nudger directly outside `services.sh`, either wire those flows through the same planner or document a `docker compose build <service>` convention clearly.
   - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
     - 2026-04-19 note: the repaired delegation e2e flow is now green, but it still logs long waits while the indexer catches up to the delegation transaction. Investigate test-stack startup/indexer-sync performance separately.
 
   - See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) and do some enhancements to the implication attester and finder prompts (make the patterns clear), and maybe even put some "write a new statement" capabilities into the finder (or make a separate service, but probably just using the finder is fine).
-  
+  - Remind me, what was the "explorer" idea? What's the new-user experience, in terms of feeling like the system is populated with content and they can just find the areas that interest them?
+  - Write the AI skills. Make them "thin", with pointers to the docs. That'd make updates cleaner: don't need to keep asking people to download new skills when the docs change.
+
   - Think about the [bridge-finder](specs/product/bridge-finder.md) idea. Either modify the implication-finder to be that, or make it as a separate finder service.
   - Or even [bridge-creator](specs/product/bridge-creator.md). Yeah, let's make the general [nudger](specs/tech/subsystems/nudger/README.md) service (general, can plug in whatever AI heuristics/prompts you want) and then a specific one that is trying to be a bridge-creator.
   - How do we deal with evil nudgers? Can we make an anti-evil-nudger immune system?
@@ -49,13 +62,8 @@
   - For the purpose of the fake-data simulations, use an LLM *once* to generate a proliferation of similar statements around the seed statements, as well as to pre-generate evaluations of all the S1 -> S2 implication candidates, then store those statements and those evaluations as another pre-generated data to be used in the fake-data simulations.
   - Switch the fake-data-simulation stuff so that it uses the seed statements and the proliferation of similar stuff, so that even when I'm looking locally at the fake-data-generation simulation, I'm seeing the seed stuff, not those less-sophisticated statements I generated and put into universe.json a long time ago - those can be deleted once we're using the real seed content.
 
-  - Remind me, what was the "explorer" idea? What's the new-user experience, in terms of feeling like the system is populated with content and they can just find the areas that interest them?
-
-  - Write the AI skills.
-
-  - If the repeated SDK prebuild cost becomes annoying, consider a more monorepo-aware build setup so SDK-dependent workspaces don't redundantly rebuild the SDK.
-
   - Move this repo to GitHub.
+  - Switch from using this TODO.md file to using GitHub issues.
   - In the UI, put a "post a GitHub issue" button.
 
   - Get DNS names and ENS names.
@@ -71,7 +79,7 @@
   - Keep working on [memes](specs/product/memes.md).
   - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 
-  - (This is a big job, so feel free to break it up into chunks if necessary.) Take a look at the "docs" and "specs" directories and the general structure of the code base, and then make a plan for doing a full review of everything. I want to know whether we're close to being ready to deploy.
+  - Using `cofounder` skill: (This is a big job, so feel free to break it up into chunks if necessary.) Take a look at the "docs" and "specs" directories and the general structure of the code base, and then make a plan for doing a full review of everything. I want to know whether we're close to being ready to deploy.
 
 
 Out of scope for the MVP, but I still want to remember that these are important and not done yet:

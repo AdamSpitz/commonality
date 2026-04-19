@@ -26,6 +26,14 @@ cd "$SCRIPT_DIR"
 export UID
 export GID=$(id -g)
 
+docker_compose() {
+    if command -v docker-compose >/dev/null 2>&1; then
+        docker-compose "$@"
+    else
+        docker compose "$@"
+    fi
+}
+
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -57,7 +65,7 @@ check_existing_containers() {
     # If any managed containers are unhealthy, stop and tell the user rather
     # than letting compose fail with a cryptic dependency error.
     local unhealthy
-    unhealthy=$(docker compose ps --format '{{.Name}} {{.Health}}' 2>/dev/null \
+    unhealthy=$(docker_compose ps --format '{{.Name}} {{.Health}}' 2>/dev/null \
         | awk '$2 == "unhealthy" {print $1}' || true)
     if [ -n "$unhealthy" ]; then
         echo "Error: the following containers are running but unhealthy:"
@@ -152,7 +160,7 @@ wait_for_ui_ipfs_publish() {
                     if [ "$exit_code" -ne 0 ]; then
                         echo "Error: UI IPFS publish failed for domain: $domain"
                         echo "Showing recent logs from $container_name:"
-                        docker compose logs --tail=200 "ui-ipfs-publisher-${domain}" || true
+                        docker_compose logs --tail=200 "ui-ipfs-publisher-${domain}" || true
                         exit 1
                     fi
                     echo "  $domain: published"
@@ -181,6 +189,28 @@ wait_for_ui_ipfs_publish() {
 }
 
 start_services() {
+    local -a compose_services=(
+        hardhat-node
+        hardhat-deploy
+        ipfs
+        indexer
+        platform-api-service
+        ui-ipfs-publisher-commonality
+        ui-ipfs-publisher-content-funding
+        ui-ipfs-publisher-noninflammatory
+        ui-ipfs-publisher-movement
+    )
+    local -a buildable_services=(
+        hardhat-deploy
+        indexer
+        platform-api-service
+        ui-ipfs-publisher-commonality
+        ui-ipfs-publisher-content-funding
+        ui-ipfs-publisher-noninflammatory
+        ui-ipfs-publisher-movement
+    )
+    local -a services_to_build=()
+
     "$SCRIPT_DIR/scripts/check-prerequisites.sh"
     check_existing_containers
     echo "Starting services with data directory: $DATA_DIR"
@@ -191,30 +221,30 @@ start_services() {
         "$UI_IPFS_ARTIFACT_DIR/content-funding" \
         "$UI_IPFS_ARTIFACT_DIR/noninflammatory" \
         "$UI_IPFS_ARTIFACT_DIR/movement"
-    docker-compose up -d --build \
-        hardhat-node \
-        hardhat-deploy \
-        ipfs \
-        indexer \
-        platform-api-service \
-        ui-ipfs-publisher-commonality \
-        ui-ipfs-publisher-content-funding \
-        ui-ipfs-publisher-noninflammatory \
-        ui-ipfs-publisher-movement
+    mapfile -t services_to_build < <(node "$SCRIPT_DIR/scripts/docker-build-plan.mjs" list "${buildable_services[@]}")
+    if [ "${#services_to_build[@]}" -gt 0 ]; then
+        echo "Rebuilding Docker images whose declared inputs changed:"
+        printf '  %s\n' "${services_to_build[@]}"
+        docker_compose build "${services_to_build[@]}"
+        node "$SCRIPT_DIR/scripts/docker-build-plan.mjs" record "${services_to_build[@]}"
+    else
+        echo "Reusing existing Docker images; no declared build inputs changed."
+    fi
+    docker_compose up -d "${compose_services[@]}"
     wait_for_ui_ipfs_publish
     echo ""
-    echo "Services started. Use 'docker-compose logs -f' to view logs."
+    echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
 }
 
 stop_services() {
     echo "Stopping services..."
-    docker-compose down
+    docker_compose down
     echo "Services stopped (data preserved in $DATA_DIR)."
 }
 
 show_status() {
-    docker-compose ps
+    docker_compose ps
 }
 
 case "${1:-}" in

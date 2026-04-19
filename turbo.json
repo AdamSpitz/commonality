@@ -1,0 +1,76 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "package-lock.json"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "ui/dist/**",
+        "artifacts/**",
+        "typechain-types/**",
+        ".ponder/**",
+        "src/generated/**"
+      ]
+    },
+    "build:domains": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "ui/dist/**"
+      ]
+    },
+    "build:ipfs": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "ui/dist/**"
+      ]
+    },
+    "build:ipfs:domains": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "ui/dist/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": [
+        "build",
+        "^build"
+      ],
+      "outputs": [
+        "coverage/**",
+        "playwright-report/**",
+        "test-results/**"
+      ]
+    },
+    "docs": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "docs/**"
+      ]
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
