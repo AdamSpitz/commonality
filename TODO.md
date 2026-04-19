@@ -84,10 +84,6 @@ Out of scope for the MVP, but I still want to remember that these are important 
 
 
   - facebook etc have things that are sorta analogous to "nudgers" (in the sense of biasing/shaping/directing the discussion), ask AI about it
-  - ways of thinking about this moderate/common-sense majority stuff:
 
   - "how did I get here?" maybe there's a record of all the stuff you signed before, and then you interacted with this guy 
-  - meme: bridges vs wedges (extremists are trying mitosis, we want to hang on to each other)
-    - increase the gravity of the common middle
-    - we do good in the world, we can have civil conversations
   - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.

@@ -75,3 +75,9 @@ Could show the quiet middle in a picture.
 
 Format: meme, then at the bottom: commonality.works (nothing else)
 
+
+
+Another meme to try: bridges vs wedges (extremists are trying something like mitosis, pulling us apart; we want to hang on to each other)
+
+Another metaphor: increase the gravity of the common middle.
+
