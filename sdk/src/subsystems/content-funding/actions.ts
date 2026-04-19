@@ -4,7 +4,6 @@
 
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type TestClients } from '../../utils/ethereum.js';
-import { CreatorAssuranceContractFactoryAbi } from '../../abis.js';
 import { hashCanonicalId, parseContentFundingUrl } from './canonicalization.js';
 
 /** Contract instance for the CreatorAssuranceContractFactory. */
@@ -35,6 +34,61 @@ const erc20ApproveAbi = [
     outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'nonpayable',
     type: 'function',
+  },
+] as const;
+
+const creatorAssuranceFactoryActionAbi = [
+  {
+    type: 'function',
+    name: 'paymentToken',
+    inputs: [],
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'createContract',
+    inputs: [
+      { name: 'channelId', type: 'bytes32' },
+      { name: 'channelCanonicalId', type: 'string' },
+      { name: 'contentSuffixes', type: 'string[]' },
+      { name: 'supplies', type: 'uint256[]' },
+      { name: 'prices', type: 'uint256[]' },
+      { name: 'threshold', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'metadataCid', type: 'string' },
+      { name: 'erc1155MetadataUri', type: 'string' },
+      { name: 'erc1155ContractUri', type: 'string' },
+      { name: 'isThirdParty', type: 'bool' },
+      { name: 'initialPurchaseIds', type: 'uint256[]' },
+      { name: 'initialPurchaseCounts', type: 'uint256[]' },
+    ],
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'contractERC1155',
+    inputs: [{ name: '', type: 'address' }],
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'thirdPartyMinPurchase',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'event',
+    name: 'CreatorContractCreated',
+    inputs: [
+      { name: 'contractAddress', type: 'address', indexed: true },
+      { name: 'channelId', type: 'bytes32', indexed: true },
+      { name: 'creator', type: 'address', indexed: true },
+      { name: 'isThirdParty', type: 'bool', indexed: false },
+    ],
   },
 ] as const;
 
@@ -116,7 +170,7 @@ export async function createContentFundingContract(
   // @ts-expect-error - viem type inference issue with readContract
   const paymentToken = await clients.publicClient.readContract({
     address: factoryContract.address,
-    abi: CreatorAssuranceContractFactoryAbi,
+    abi: creatorAssuranceFactoryActionAbi,
     functionName: 'paymentToken',
   }) as Address;
 
@@ -126,7 +180,7 @@ export async function createContentFundingContract(
 
   const hash = await clients.walletClient.writeContract({
     address: factoryContract.address,
-    abi: CreatorAssuranceContractFactoryAbi,
+    abi: creatorAssuranceFactoryActionAbi,
     functionName: 'createContract',
     args: [
       channelId,
@@ -150,7 +204,7 @@ export async function createContentFundingContract(
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
   const events = parseEventLogs({
-    abi: CreatorAssuranceContractFactoryAbi,
+    abi: creatorAssuranceFactoryActionAbi,
     eventName: 'CreatorContractCreated',
     logs: receipt.logs,
   });
@@ -167,11 +221,19 @@ export async function createContentFundingContract(
     isThirdParty: boolean;
   };
 
+  // @ts-expect-error - viem type inference issue with readContract
+  const erc1155Address = await clients.publicClient.readContract({
+    address: factoryContract.address,
+    abi: creatorAssuranceFactoryActionAbi,
+    functionName: 'contractERC1155',
+    args: [args.contractAddress],
+  }) as Address;
+
   return {
     hash,
     contractDetails: {
       contractAddress: args.contractAddress,
-      erc1155Address: args.creator,
+      erc1155Address,
       channelId: args.channelId,
       isThirdParty: args.isThirdParty,
     },
@@ -192,7 +254,7 @@ export async function getThirdPartyMinPurchase(
   // @ts-expect-error - viem type inference issue with readContract
   const value = await clients.publicClient.readContract({
     address: factoryContract.address,
-    abi: CreatorAssuranceContractFactoryAbi,
+    abi: creatorAssuranceFactoryActionAbi,
     functionName: 'thirdPartyMinPurchase',
   });
 

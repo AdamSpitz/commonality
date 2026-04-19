@@ -1,5 +1,31 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-19 - E2E Test Triage (Partially Completed)
+
+**Task**: Fix failing Playwright e2e tests.
+
+**Changes made**:
+- Updated multiple Playwright specs that still assumed the connected conceptspace home route was `/`; the current route is `/start`.
+- Updated belief-expression assertions to match current `SupportMetrics` UI copy (`signer` / `opposing signer` instead of `direct believer` / `disbeliever`).
+- Fixed a real SDK bug in [sdk/src/subsystems/content-funding/actions.ts](/home/adam/Projects/commonality/sdk/src/subsystems/content-funding/actions.ts):
+  - Stale `CreatorAssuranceContractFactoryAbi` usage was missing `paymentToken`, breaking `createContentFundingContract`.
+  - Replaced that dependency in the action with a minimal local ABI for the functions/events the action actually needs.
+  - Corrected `erc1155Address` to be read from `contractERC1155(contractAddress)` instead of incorrectly using the event's `creator` field.
+- Rebuilt the SDK after the action change.
+
+**Verified passing**:
+- `ui/e2e/wallet-connection.spec.ts`
+- `ui/e2e/belief-expression.spec.ts`
+- `ui/e2e/content-funding-flow.spec.ts`
+
+**Current remaining blocker from the last full run**:
+- `ui/e2e/delegation-flow.spec.ts` timed out at the step that clicks a header link named `My Notes`.
+- The failure happened at the navigation/UI layer after the earlier route and content-funding issues were already fixed, so this is a good fresh handoff point.
+
+**Recommended next step**:
+- Inspect the current shell/header navigation labels and routes used by the delegation flow.
+- Update the spec to follow the current navigation structure, or patch the shell if `My Notes` is supposed to be directly accessible there.
+
 ## 2026-04-17 - Fold Cache Implementation (Completed)
 
 **Task**: Implement client-side storage of fold accumulators per TODO.md

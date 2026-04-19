@@ -80,7 +80,7 @@ test.describe('User Profile Workflow', () => {
     }
 
     // Connect wallet first (before any navigation)
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
@@ -150,7 +150,7 @@ test.describe('User Profile Workflow', () => {
     }
 
     // Connect wallet first
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
@@ -224,7 +224,7 @@ test.describe('User Profile Workflow', () => {
     }
 
     // Connect wallet first
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 

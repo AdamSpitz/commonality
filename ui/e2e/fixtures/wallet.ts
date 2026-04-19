@@ -104,7 +104,7 @@ export class WalletFixture {
  * import { test, expect } from './fixtures/wallet'
  *
  * test('connect wallet', async ({ page, wallet }) => {
- *   await page.goto('/')
+ *   await page.goto('/start')
  *   await wallet.connect('ACCOUNT_0')
  *   await expect(page.getByText(wallet.address!)).toBeVisible()
  * })

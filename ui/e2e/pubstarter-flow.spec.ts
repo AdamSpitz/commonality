@@ -68,7 +68,7 @@ test.describe('Pubstarter Flow', () => {
     await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)
 
     // Connect wallet and navigate to browse projects page
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
@@ -158,7 +158,7 @@ test.describe('Pubstarter Flow', () => {
     // Step 3: Navigate to project detail page and verify funding progress
     // =========================================================================
     console.log('\n=== VERIFYING PROJECT DETAIL PAGE ===')
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 

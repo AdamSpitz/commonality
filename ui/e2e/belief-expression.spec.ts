@@ -89,7 +89,7 @@ test.describe('Belief Expression Workflow', () => {
     }
 
     // Connect wallet for UI display
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
@@ -108,14 +108,14 @@ test.describe('Belief Expression Workflow', () => {
     // Navigate to statement detail page
     await page.goto(`/statement/${cid}`)
 
-    // Verify the page loaded by checking support metrics
-    // createAndSignStatement calls believeStatement internally, so creator = 1 believer
-    await expect(page.getByText(/1 direct believer\b/)).toBeVisible({
+    // Verify the page loaded by checking support metrics.
+    // createAndSignStatement calls believeStatement internally, so creator = 1 signer.
+    await expect(page.getByText(/1 signer\b/)).toBeVisible({
       timeout: 20000,
     })
     await expect(page.getByText(/1 supporter\b/)).toBeVisible()
 
-    console.log('Initial metrics verified: 1 direct believer')
+    console.log('Initial metrics verified: 1 signer')
 
     console.log('\n=== EXPRESSING BELIEF FROM ACCOUNT_1 ===')
 
@@ -134,13 +134,13 @@ test.describe('Belief Expression Workflow', () => {
     // Reload the page to see updated metrics
     await page.reload()
 
-    // Verify believer count increased to 2 (creator + ACCOUNT_1)
-    await expect(page.getByText(/2 direct believers/)).toBeVisible({
+    // Verify signer count increased to 2 (creator + ACCOUNT_1)
+    await expect(page.getByText(/2 signers/)).toBeVisible({
       timeout: 20000,
     })
     await expect(page.getByText(/2 supporters/)).toBeVisible()
 
-    console.log('Belief expression verified: 2 direct believers!')
+    console.log('Belief expression verified: 2 signers!')
   })
 
   test('should express disbelief and see disbeliever count on statement page', async ({
@@ -160,7 +160,7 @@ test.describe('Belief Expression Workflow', () => {
     }
 
     // Connect wallet
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
@@ -192,16 +192,16 @@ test.describe('Belief Expression Workflow', () => {
     // Navigate to statement page
     await page.goto(`/statement/${cid}`)
 
-    // Verify creator's belief shows
-    await expect(page.getByText(/1 direct believer\b/)).toBeVisible({
+    // Verify creator's signature shows
+    await expect(page.getByText(/1 signer\b/)).toBeVisible({
       timeout: 20000,
     })
 
-    // Verify disbeliever count shows (SupportMetrics only renders this section when > 0)
-    await expect(page.getByText(/1 disbeliever\b/)).toBeVisible({
+    // Verify the opposing signer count shows (SupportMetrics only renders this section when > 0)
+    await expect(page.getByText(/1 opposing signer\b/)).toBeVisible({
       timeout: 5000,
     })
 
-    console.log('Disbelief expression verified: 1 disbeliever!')
+    console.log('Disbelief expression verified: 1 opposing signer!')
   })
 })

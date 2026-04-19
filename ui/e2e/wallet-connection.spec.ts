@@ -19,7 +19,7 @@ test.describe('Wallet Connection', () => {
     wallet,
   }) => {
     // Navigate to home page
-    await page.goto('/')
+    await page.goto('/start')
 
     // Initially, no wallet should be connected
     // The Connect Wallet button should be visible
@@ -42,7 +42,7 @@ test.describe('Wallet Connection', () => {
     page,
     wallet,
   }) => {
-    await page.goto('/')
+    await page.goto('/start')
 
     // Connect ACCOUNT_1 (0x70997970C51812dc3A010C7d01b50e0d17dc79C8)
     await wallet.connect('ACCOUNT_1')
@@ -61,7 +61,7 @@ test.describe('Wallet Connection', () => {
     page,
     wallet,
   }) => {
-    await page.goto('/')
+    await page.goto('/start')
 
     // Connect wallet
     await wallet.connect('ACCOUNT_0')

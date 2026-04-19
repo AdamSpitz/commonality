@@ -7,6 +7,11 @@
 ## Other things to do soon
 
   - Fix the e2e tests.
+    - 2026-04-19 handoff: several stale Playwright assumptions have already been fixed.
+      - Updated specs that still assumed the connected conceptspace home lived at `/`; those now use `/start`.
+      - Updated stale support-metrics assertions from `direct believer/disbeliever` to current `signer/opposing signer` wording.
+      - Fixed a real SDK/content-funding bug in `sdk/src/subsystems/content-funding/actions.ts` caused by stale creator-factory ABI usage; `e2e/content-funding-flow.spec.ts` now passes again.
+      - Remaining blocker from the last full run: `ui/e2e/delegation-flow.spec.ts` times out at the header navigation step looking for a `My Notes` link. Start by checking the current shell/header navigation labels and routes rather than redoing the earlier route/SDK work.
 
   - Implement the `foldVersion` idea described in our [indexer spec](specs/tech/indexer/README.md).
     - Done for the resumable pubstarter folds. If fold logic changes later in a way that invalidates saved accumulators, bump the relevant foldVersion constant.

@@ -208,7 +208,7 @@ test.describe('Subjectiv Flow', () => {
     )
 
     console.log('\n=== VERIFYING FUNDING PORTAL BEFORE TRUST ===')
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 

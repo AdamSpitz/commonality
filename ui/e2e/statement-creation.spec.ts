@@ -42,7 +42,7 @@ test.describe('Statement Creation Workflow', () => {
       getContractAddresses()
 
     // Navigate to home page and connect wallet (for UI display)
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
@@ -124,7 +124,7 @@ test.describe('Statement Creation Workflow', () => {
     page,
     wallet,
   }) => {
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 

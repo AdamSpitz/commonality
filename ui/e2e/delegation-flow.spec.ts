@@ -127,7 +127,7 @@ test.describe('Delegation Flow', () => {
     // Step 4: Connect as ACCOUNT_1 and verify delegation in UI
     // =========================================================================
     console.log('\n=== VERIFYING DELEGATION IN UI ===')
-    await page.goto('/')
+    await page.goto('/start')
     await wallet.connect('ACCOUNT_1')
     await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
