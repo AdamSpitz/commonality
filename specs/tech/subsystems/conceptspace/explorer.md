@@ -14,7 +14,15 @@ The background LLM:
 - Follows new statements being posted to the graph.
 - When it finds one that better represents an area, or that genuinely fills in a new part of the map (not idiosyncratic — something other users will also find useful), it adds it to the collection, replacing the old one if any.
 - Curates for non-redundancy: no five ways of saying the same thing.
-- Publishes its curated collection as a standalone IPFS document — see [Publication model](#publication-model).
+- Publishes its curated collection as a nudger `curated-collection` publication — see [Publication model](#publication-model).
+
+For v1, the curator should reevaluate the map periodically, but only publish a new snapshot when the proposed map has changed materially. This is meant to be a curated resource, not a twitchy event stream. "Materially" does not need a rigid formal definition yet; the intended cases are things like:
+
+- a genuinely new area that deserves inclusion
+- a clearly better representative statement replacing an old one
+- a meaningful reorganization of the map
+
+If nothing important has changed, the curator should keep the existing snapshot rather than republishing equivalent data.
 
 The curated collection is the explorer's "map of the territory" for its specific goal. Different explorers have different maps — a funding explorer maps funding areas, a CSM explorer maps the political positions needed for bridge-building.
 
@@ -32,23 +40,34 @@ This is cheaper and more accurate than trying to encode these judgments as graph
 
 ## Publication model
 
-The curated collection is published as a standalone IPFS document — not through the standard NudgeBatch format. NudgeBatch is pairwise (`target → suggested`) and is the right format for contextual nudges; the explorer's curated map is a different artifact: a shared resource that the explorer page reads directly.
+The explorer publishes its map as a nudger `curated-collection` publication. This uses the same trust/discovery path as other nudgers — the publication is uploaded to IPFS and its CID is published on-chain by the nudger address — but it has different fold semantics from ordinary pairwise nudges.
 
 ```typescript
 type CuratedCollectionEntry = {
   cid: string;        // Statement CID
   label: string;      // Short human-readable label for this area
-  topicArea: string;  // Broad topic grouping
+  topicArea: string;  // Broad topic grouping used by this version of the map
+  parentCid?: string; // Optional parent entry in this version of the map
 };
 
-type CuratedCollection = {
-  explorer: string;           // Ethereum address of the explorer nudger
+type CuratedCollectionPublication = {
+  kind: 'curated-collection';
+  schemaVersion: 1;
+  nudger: string;             // Ethereum address of the explorer nudger
   publishedAt: number;        // Unix timestamp
+  stream: string;             // e.g. "fundable-project-explorer"
   entries: CuratedCollectionEntry[];
 };
 ```
 
-The explorer uses the standard nudger identity (Ethereum address, `NudgePublications` contract, `/.well-known/nudger.json`) for trust and discovery, but publishes its curated collection separately. The onchain event points to the collection CID the same way it would point to a NudgeBatch CID — the trust model is the same; only the document format differs.
+The client treats this as a snapshot resource: for a given explorer stream, the latest valid publication from that nudger wins. This is different from `nudge-batch`, where publications accumulate and can revoke individual pairwise suggestions.
+
+The important thing about `topicArea` and `parentCid` is that they are **map-local structure**, not canonical facts about the statement itself. They are there to help this particular explorer version feel navigable:
+
+- `topicArea` is just a rough clustering label chosen by the curator for this snapshot.
+- `parentCid` is an optional lightweight "this sits under that" hint within this snapshot.
+
+Neither field is meant to be formal, permanent, or globally authoritative. If a later version of the explorer reorganizes the terrain differently, it simply publishes a new `curated-collection` snapshot with different groupings and parent links.
 
 ## The explorer page
 
@@ -56,9 +75,13 @@ The explorer is a dedicated page that shows suggested statements from the curate
 
 - The statement content
 - Direct and indirect signer counts
-- Funding numbers for the associated cause: **money available** (delegatable funds seeking projects) and **money being requested** (projects seeking funding) — both visible, so the user can see both sides of the market
+- Funding/activity numbers for the associated cause. The explorer should keep track of the underlying quantities separately — for example:
+  - delegatable funding available for aligned projects
+  - additional funding demand from aligned projects
+  - number of aligned projects
+  - money already raised by aligned projects
+  The UI may later choose to combine or summarize these in different ways, but the underlying numbers should remain available rather than being prematurely collapsed into a single metric.
 - A **sign** button (to express belief)
-- A **save** button (to add to the user's [saved statements list](statements-list.md) without signing)
 - A **navigate** link (to explore that statement's full page, implication graph, or funding portal)
 
 The page does not prompt the user to declare whether they are a donor or a doer. The funding numbers are informational — they let the user steer in whichever direction draws them, without any explicit choice being asked for.
@@ -66,9 +89,31 @@ The page does not prompt the user to declare whether they are a donor or a doer.
 ### How suggestions are generated
 
 On page load, the page:
-1. Fetches the explorer's curated collection from IPFS.
+1. Fetches the explorer's latest `curated-collection` publication.
 2. Makes a per-user LLM call: given the user's signed statements and the curated collection, which statements should be surfaced?
-3. Displays the returned CIDs as statement cards.
+3. Displays the returned statements as cards, along with a short reason for each one.
+
+For v1, the per-user call should return a small structured result for each surfaced statement — not just the statement CID, but also a brief human-readable reason explaining why it was shown. For example:
+
+```typescript
+type ExplorerSuggestion = {
+  cid: string;
+  reason: string; // e.g. "Broad entry point into housing-related causes" or "Fits with statements you've already signed about local government"
+};
+```
+
+The goal is not to expose the full chain-of-thought of the model. It is simply to give the user a lightweight explanation of why this statement is appearing, since the model is already doing that reasoning anyway.
+
+For v1, this personalization call should be statement-context-based rather than identity-based. The client sends the user's signed statement CIDs; the explorer service does not need the user's wallet address in order to personalize the result.
+
+```typescript
+type ExplorerSuggestRequest = {
+  stream: string;
+  signedStatementCids: string[];
+};
+```
+
+This keeps the interface simple and privacy-preserving, while leaving open the option of a richer request format later if we ever want to support draft or hypothetical statements.
 
 ### Trust model
 
@@ -76,20 +121,21 @@ The Fundable Project Explorer is included in every user's trusted nudgers list b
 
 ## Two modes of suggestion
 
-When suggesting statements, there are two different bases, and the UI should be clear about which applies:
+There are two different bases for suggestion in the broader product:
 
 - **Bottom-up (implication-based):** "You signed S1. There's an implication attestation from S1 to S2 — you may want to sign S2 as well." This is based on the implication graph and is a strong, logical basis for suggestion.
 - **Top-down (exploration-based):** "You said you're interested in politics. Here are some more specific positions — which ones resonate?" This is the explorer using its curated collection to suggest areas to explore, without any specific implication link.
 
-Both are valid, but the distinction matters for user trust. Bottom-up suggestions should reference the implication link. Top-down suggestions are the explorer helping the user navigate the landscape.
+Both are valid, and the distinction matters for user trust.
+
+For the narrow v1 described here, the explorer page should be **top-down only**: it reads from the explorer's curated map and uses the per-user LLM call to decide what parts of that map to surface. Implication-based suggestions belong on their own existing surfaces (such as statement detail pages), where the implication link can be shown explicitly.
 
 ## Exploring without signing
 
 There's no pressure to sign anything. A user can:
 
 - Click "navigate" on any statement to explore its implications and related statements, without signing it.
-- Browse funding portals for causes they haven't signed (the funding portal is at `fundingportals/statement/${statementId}` and works for any statement).
-- Save statements to their [saved statements list](statements-list.md) for later consideration.
+- Browse funding portals for causes they haven't signed (the funding portal is at `/portal/${statementCid}` and works for any statement).
 
 The explorer is as much a tool for understanding the landscape as it is for declaring beliefs.
 
@@ -98,7 +144,17 @@ The explorer is as much a tool for understanding the landscape as it is for decl
 The explorer is a standalone page, but it links out to the rest of the system:
 
 - Clicking a statement's "navigate" link goes to that statement's full page (with detailed signer lists, implication graph, etc.) or its funding portal.
-- Statements the user signs or saves show up on their user profile page and saved statements list, same as if they'd signed/saved them through any other UI.
+- Statements the user signs show up on their user profile page the same as if they'd signed them through any other UI.
+
+## Still needed
+
+The architecture in this document is now fairly well-defined, but one major product input is still missing: the initial curated map itself. Before the Fundable Project Explorer can exist, we still need to decide what its first published `curated-collection` should contain:
+
+- which broad funding/cause areas belong in the initial map
+- which entries should serve as onboarding entry points
+- how much depth or parent/child structure the first version should have
+
+This is a seed-content / product-curation task, not just an implementation task.
 
 ## Future: conversational UI
 
