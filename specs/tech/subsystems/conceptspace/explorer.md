@@ -1,6 +1,6 @@
 # Conceptspace Explorer
 
-A goal-oriented nudger that helps users discover and sign statements relevant to a specific purpose — finding fundable projects, participating in a movement, or onboarding to the system for the first time.
+A goal-oriented nudger that helps users discover and sign statements relevant to a specific purpose — finding fundable projects, participating in a movement, or onboarding to the system [for the first time](/specs/product/new-user-experience.md).
 
 ## Architecture: two-tier LLM
 
