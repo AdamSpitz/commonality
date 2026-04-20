@@ -95,3 +95,10 @@ Out of scope for the MVP, but I still want to remember that these are important 
 
   - "how did I get here?" maybe there's a record of all the stuff you signed before, and then you interacted with this guy 
   - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.
+
+
+
+
+https://x.com/mattvanswol/status/2045936225198956559
+
+(Commonality might be useful in solving this problem - can donate more directly rather than through big charity orgs, and also can retroactively fund stuff that's already done good.)
