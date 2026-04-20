@@ -1,19 +1,38 @@
 # Conceptspace Explorer
 
-An AI-assisted UI for helping users discover and articulate their beliefs, explore the statement graph, and find causes worth funding.
+A goal-oriented nudger that helps users discover and sign statements relevant to a specific purpose — finding fundable projects, participating in a movement, or onboarding to the system for the first time.
 
-## Motivation
+## Architecture: two-tier LLM
 
-The rest of the Conceptspace UI (statement pages, browse/search, user pages) lets users navigate the statement graph manually. The explorer is different: it's a conversational interface where an LLM guides the user through the space of statements, helping them:
+The explorer is a [nudger](../nudger/README.md) — it publishes suggestions through the standard nudger framework. What makes it different from other nudgers is its two-tier architecture:
 
-- **Onboard:** A new user says "what is this?" and the LLM walks them through the system, suggests areas of interest, and helps them sign their first statements.
-- **Articulate beliefs:** A user has a vague intuition ("I'm conservative but not religious") and the LLM helps them find or compose a precise statement capturing that.
-- **Discover:** A user wants to see what's out there — what causes exist, what projects are being funded, what statements are trending — without having to manually browse.
-- **Explore without committing:** A user can navigate into statements and their implications without signing anything, just to understand the landscape. They can also save statements for later (via the [saved statements list](statements-list.md)) without signing them.
+### Background LLM (expensive, periodic)
 
-The explorer is not the only way to interact with Conceptspace. Users who prefer to browse manually can use the existing statement pages, search, and implication links. The explorer is an alternative for users who prefer a guided or conversational experience.
+A background process where an LLM maintains a **curated collection** of statements oriented toward the explorer's goal. For example, the Fundable Project Explorer watches for projects and their alignment attestations, delegatable-notes, and builds a decision tree: a small, non-redundant set of statements (dozens to low hundreds) that routes users from broad interests to specific funding areas.
 
-## High-level design
+The background LLM:
+- Follows new statements being posted to the graph.
+- When it finds one that's better than its current pick for an area, or that genuinely fleshes out its map in a new direction (not idiosyncratic — something other users will also find useful), it adds it to the collection, replacing the old one if any.
+- Curates for non-redundancy: no five ways of saying "I lean right."
+- Publishes its curated collection as nudge batches through the standard `NudgePublications` contract.
+
+The curated collection is the explorer's "map of the territory" for its specific goal. Different explorers have different maps — a funding explorer maps funding areas, a CSM explorer maps the political positions needed for bridge-building.
+
+### Per-user LLM (cheap, on demand)
+
+When a user opens the explorer, the system makes a per-user LLM call: "given this user's signed statements and this explorer's curated collection, which branches are already covered and what should we suggest next?"
+
+This call is cheap because both inputs are small — the user's portfolio (tens to low hundreds of signatures) plus the explorer's curated collection (dozens to low hundreds of statements). The LLM handles all the judgment calls that would otherwise require formalized relations:
+
+- **Anti-correlations:** Don't suggest "I'm pro-life" when the user signed "I'm pro-choice."
+- **Redundancy:** Don't suggest things the user has already effectively covered.
+- **Prioritization:** Suggest the branches most likely to be useful for this user given what they've already expressed.
+
+This is cheaper and more accurate than trying to encode these judgments as graph relations (see [lean-on-ai.md](../../../product/lean-on-ai.md)).
+
+## Conversational UI
+
+The explorer can also be presented as a conversational interface — a chat panel alongside a statement panel. This is optional (the explorer works as a standard nudger even without it), but it's the best experience for new users who want guided exploration.
 
 ### Layout: chat panel + statement panel
 
@@ -81,9 +100,9 @@ The LLM receives a system prompt describing the Commonality system, the tools av
 When the LLM suggests statements, there are two different bases for suggestion, and the UI/LLM should be clear about which one applies:
 
 - **Bottom-up (implication-based):** "You signed S1. There's an implication attestation from S1 to S2, meaning S1 essentially implies S2. You may want to sign S2 as well." This is based on the implication graph and is a strong, logical basis for suggestion.
-- **Top-down (exploration-based):** "You said you're interested in politics. Here are some more specific political positions — which ones resonate with you?" This is the LLM using its general knowledge to suggest areas to explore, without any specific implication link.
+- **Top-down (exploration-based):** "You said you're interested in politics. Here are some more specific political positions — which ones resonate with you?" This is the LLM using the explorer's curated collection (and its own general knowledge) to suggest areas to explore, without any specific implication link.
 
-Both are valid, but the distinction matters for user trust. Bottom-up suggestions should reference the implication link. Top-down suggestions are just the LLM helping the user explore.
+Both are valid, but the distinction matters for user trust. Bottom-up suggestions should reference the implication link. Top-down suggestions are the explorer helping the user navigate.
 
 ## Exploring without signing
 
