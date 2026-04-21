@@ -171,8 +171,8 @@ Each chunk below is designed to be completed by a single fresh LLM instance. Do 
 - [x] Read `specs/tech/subsystems/conceptspace/content-patterns/intersections.md`
 - [x] Write a brief note about where the "statement-creator / lattice-completion" idea fits in the architecture. It's probably a specialized finder that creates intermediate statements and submits them to the implication attester. Add this to the intersections spec or as a new brief spec.
 
-### Chunk 7: Update TODO.md
-- [ ] Read the current TODO.md
+### Chunk 7: Update TODO.md ✅ Done
+- [x] Read the current TODO.md
 - [ ] Read this plan file for context on what's been analyzed
 - [ ] Consolidate the scattered AI-services items into a clear, organized section with:
   - A brief summary of the ecosystem (or pointer to the specs)
@@ -180,8 +180,8 @@ Each chunk below is designed to be completed by a single fresh LLM instance. Do 
   - Items that are spec work vs. implementation work, clearly distinguished
   - Remove items that have been completed or are now covered by specs
   - Keep non-AI-services items (e2e tests, deployment, seed content, etc.) in their own section
-- [ ] Remove duplicated/scattered items that are now consolidated
-- [ ] The TODO.md should be a clean, actionable task list — not a notebook of ideas (ideas belong in specs)
+- [x] Remove duplicated/scattered items that are now consolidated
+- [x] The TODO.md should be a clean, actionable task list — not a notebook of ideas (ideas belong in specs)
 
 ---
 

@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services Review Plan: Chunk 7 (Completed)
+
+**Task**: Chunk 7 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — rewrite TODO.md to consolidate AI-services items into a clean, prioritized list.
+
+**What was done**:
+- Rewrote TODO.md with a dedicated **AI Services** section organized into:
+  - **Critical path** (3 items: SDK nudger publication fetching, two nudger-core code gap fixes)
+  - **UI — nudge display** (3 items: nudge display, nudge UX, nudger metadata)
+  - **UI — explorer** (2 items: explorer pages, explorer nudger strategy)
+  - **Enhancements and new services** (5 items: content submission, bridge-creator, bridge-priority, intersection prompts, immune system)
+- Removed all completed DONE items (e2e tests, fold cache, AI skills spec rewrite) — those are documented in CONTINUITY.md and git history.
+- Removed notebook-of-ideas content that is now covered by specs (bridge-finder thinking, evil-nudger thinking, adversarial AI, content submission question) — replaced with brief pointers to the relevant specs.
+- Kept non-AI-services items (seed content, fake-data simulation, GitHub migration, DNS/ENS, deployment, smart contract audit, Sam's chat notes, etc.) intact.
+- Marked Chunk 7 complete in AI-SERVICES-REVIEW-PLAN.md.
+
+**Key decisions**:
+- Organized AI-services items by dependency order (critical path first), not by domain.
+- Left the author's thinking-out-loud voice in the non-AI-services sections (seed content, Sam notes, etc.) — it's useful context, not noise.
+- Did not create a "recently completed" section — completed items belong in CONTINUITY.md/git log, not TODO.md.
+
+**Files changed**:
+- `TODO.md`
+- `AI-SERVICES-REVIEW-PLAN.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. All 7 chunks of AI-SERVICES-REVIEW-PLAN.md are now complete. The ecosystem review is done. A good next step would be to start implementation work on the critical-path items in TODO.md (SDK nudger publication fetching), or use the `project-wide-reviewer` skill for a broader health check now that the specs are cleaned up.
+
 ## 2026-04-21 - AI Services Review Plan: Chunk 6 (Completed)
 
 **Task**: Chunk 6 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — clarify the noninflammatory-content attester and the statement-creator / lattice-completion service.
