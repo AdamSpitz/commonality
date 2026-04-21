@@ -1,5 +1,38 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Per-Nudger Mute (Completed)
+
+**Task**: Implement per-nudger mute from the nudge-ux spec — let users temporarily hide nudges from a specific nudger without fully removing trust.
+
+**What was done**:
+- Created `ui/src/shared/hooks/useMutedNudgers.ts` — localStorage-backed hook for managing muted nudger addresses. Addresses are normalized to lowercase, deduplicated, and trimmed. Provides `mutedNudgers`, `muteNudger`, `unmuteNudger`, and `isMuted`.
+- Updated `StatementSuggestions.tsx` to filter out nudges from muted nudgers (in addition to existing dismissal and topic filtering).
+- Updated `SettingsPage.tsx` to add a mute/unmute toggle button next to each nudger entry:
+  - Shows 🔊 when unmuted, 🔇 when muted
+  - Muted nudgers are displayed at 50% opacity with a red "Muted" chip
+- Added `useMutedNudgers.test.ts` (15 tests) covering load/save, normalization, dedup, empty address handling, and case-insensitive `isMuted`.
+- Added 3 per-nudger mute tests to `StatementSuggestions.test.tsx` covering: no mute, single mute filter, and mute+dismissal combined filter.
+
+**Key decisions**:
+- Used localStorage (not IndexedDB) for muted nudgers — this is a small preference list, consistent with the muted-topics and intensity patterns.
+- The mute filter is applied at the same point as the dismissal filter in `StatementSuggestions`, keeping all filtering in one place.
+- Muting is reversible (unlike dismissal), which is the key product distinction — users can temporarily silence a nudger and re-enable later.
+
+**Verified**:
+- `npm run typecheck --workspace=ui` ✓
+- `npm run test --workspace=ui -- --run` (731 tests passing) ✓
+
+**Files changed**:
+- `ui/src/shared/hooks/useMutedNudgers.ts` (new)
+- `ui/src/shared/hooks/useMutedNudgers.test.ts` (new — 15 tests)
+- `ui/src/conceptspace/components/StatementSuggestions.tsx` (added muted nudger filtering)
+- `ui/src/conceptspace/components/StatementSuggestions.test.tsx` (3 new mute tests)
+- `ui/src/conceptspace/pages/SettingsPage.tsx` (added mute/unmute toggle per nudger)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Per-nudger mute is complete. The remaining AI Services items in TODO.md are staleness decay (lower priority), bridge-priority scoring (not blocking), and anti-evil-nudger immune system (only useful with real activity).
+
 ## 2026-04-21 - AI Services: Default Nudger Service URLs (Completed)
 
 **Task**: Address the `TODO.md` "Suggestions from AI" item — allow operators to provide default nudger service URLs in `VITE_DEFAULT_NUDGERS` so explorer personalization works out of the box.

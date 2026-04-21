@@ -26,6 +26,7 @@ import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/u
 import { loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
+import { useMutedNudgers } from '../../shared/hooks/useMutedNudgers'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
 import { useClaimFlow } from '../../content-funding/hooks/useClaimFlow'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -53,6 +54,7 @@ export function SettingsPage() {
   const { getChallenge, confirmVerification, loading: verificationLoading, error: verificationError, clearError } = useClaimFlow()
   const { intensity, setIntensity } = useNudgeIntensity()
   const { mutedTopics, addTopic, removeTopic } = useMutedTopics()
+  const { mutedNudgers, muteNudger, unmuteNudger, isMuted } = useMutedNudgers()
 
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')
@@ -612,7 +614,7 @@ export function SettingsPage() {
         ) : (
           <List>
             {trustedNudgers.map((entry) => (
-              <ListItem key={entry.address} divider>
+              <ListItem key={entry.address} divider sx={isMuted(entry.address) ? { opacity: 0.5 } : {}}>
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
@@ -631,6 +633,9 @@ export function SettingsPage() {
                       {entry.sourceType && (
                         <Chip label={entry.sourceType} size="small" variant="outlined" />
                       )}
+                      {isMuted(entry.address) && (
+                        <Chip label="Muted" size="small" color="error" variant="outlined" />
+                      )}
                     </Box>
                   }
                   secondary={
@@ -642,6 +647,25 @@ export function SettingsPage() {
                   }
                 />
                 <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    aria-label={isMuted(entry.address) ? 'unmute nudger' : 'mute nudger'}
+                    onClick={() => {
+                      if (isMuted(entry.address)) {
+                        unmuteNudger(entry.address)
+                      } else {
+                        muteNudger(entry.address)
+                      }
+                    }}
+                    size="small"
+                    sx={{ mr: 1 }}
+                  >
+                    {isMuted(entry.address) ? (
+                      <span style={{ fontSize: '1rem' }}>🔇</span>
+                    ) : (
+                      <span style={{ fontSize: '1rem' }}>🔊</span>
+                    )}
+                  </IconButton>
                   <IconButton
                     edge="end"
                     aria-label="remove"

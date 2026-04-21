@@ -12,6 +12,7 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
+import { useMutedNudgers } from '../../shared/hooks/useMutedNudgers'
 import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
 
 interface StatementSuggestionsProps {
@@ -93,6 +94,7 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
   const trustedNudgers = useTrustedNudgers()
   const { intensity } = useNudgeIntensity()
   const { mutedTopics } = useMutedTopics()
+  const { isMuted } = useMutedNudgers()
 
   const loadSuggestions = useCallback(async () => {
     try {
@@ -108,7 +110,9 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
       const allNudges = await getStatementNudges(machinery, statementCid, nudgers)
 
       const filteredNudges = allNudges.filter(
-        (nudge) => !dismissedSet.has(`${nudge.targetStatementCid}::${nudge.suggestedStatementCid}::${nudge.nudger.toLowerCase()}`),
+        (nudge) =>
+          !dismissedSet.has(`${nudge.targetStatementCid}::${nudge.suggestedStatementCid}::${nudge.nudger.toLowerCase()}`) &&
+          !isMuted(nudge.nudger),
       )
 
       setNudges(filteredNudges)
@@ -127,7 +131,7 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
     } finally {
       setLoading(false)
     }
-  }, [statementCid, machinery, trustedNudgers, mutedTopics])
+  }, [statementCid, machinery, trustedNudgers, mutedTopics, isMuted])
 
   useEffect(() => {
     void loadSuggestions()

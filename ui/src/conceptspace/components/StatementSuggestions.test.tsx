@@ -40,6 +40,17 @@ vi.mock('../../shared/hooks/useMutedTopics', () => ({
   useMutedTopics: vi.fn(() => MUTED_TOPICS_MOCK),
 }))
 
+const MUTED_NUDGERS_MOCK = {
+  mutedNudgers: [] as string[],
+  muteNudger: vi.fn(),
+  unmuteNudger: vi.fn(),
+  isMuted: vi.fn(() => false),
+}
+
+vi.mock('../../shared/hooks/useMutedNudgers', () => ({
+  useMutedNudgers: vi.fn(() => MUTED_NUDGERS_MOCK),
+}))
+
 vi.mock('../../shared/nudgeStore', () => ({
   dismissNudge: vi.fn().mockResolvedValue(undefined),
   getDismissedNudges: vi.fn().mockResolvedValue([]),
@@ -51,6 +62,7 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
+import { useMutedNudgers } from '../../shared/hooks/useMutedNudgers'
 import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
 
 const VALID_NUDGER_1 = '0xaabbccddaabbccddaabbccddaabbccdd'
@@ -128,6 +140,8 @@ describe('StatementSuggestions', () => {
     vi.mocked(getStatementWithContent).mockResolvedValue(TEST_STATEMENT)
     vi.mocked(getDismissedNudges).mockResolvedValue([])
     MUTED_TOPICS_MOCK.mutedTopics = []
+    MUTED_NUDGERS_MOCK.mutedNudgers = []
+    MUTED_NUDGERS_MOCK.isMuted.mockReturnValue(false)
   })
 
   describe('Loading state', () => {
@@ -630,6 +644,67 @@ describe('StatementSuggestions', () => {
 
       await waitFor(() => {
         expect(screen.queryByRole('heading', { name: 'Crypto Statement' })).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Per-nudger mute', () => {
+    it('shows all suggestions when no nudgers are muted', async () => {
+      MUTED_NUDGERS_MOCK.isMuted.mockReturnValue(false)
+
+      mockSuggestionData()
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Related Statement 1' })).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Related Statement 2' })).toBeInTheDocument()
+      })
+    })
+
+    it('filters out nudges from muted nudgers', async () => {
+      MUTED_NUDGERS_MOCK.isMuted.mockImplementation(
+        (addr) => addr.toLowerCase() === VALID_NUDGER_1.toLowerCase(),
+      )
+
+      mockSuggestionData()
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('heading', { name: 'Related Statement 1' })).not.toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Related Statement 2' })).toBeInTheDocument()
+      })
+    })
+
+    it('applies mute filter in addition to dismissal filter', async () => {
+      vi.mocked(getDismissedNudges).mockResolvedValue([
+        {
+          key: 'bafyTest123::bafySuggested1::0xaabbccddaabbccddaabbccddaabbccdd',
+          targetStatementCid: 'bafyTest123',
+          suggestedStatementCid: 'bafySuggested1',
+          nudger: VALID_NUDGER_1.toLowerCase(),
+          state: 'dismissed',
+          timestamp: Date.now(),
+        },
+      ])
+      MUTED_NUDGERS_MOCK.isMuted.mockImplementation(
+        (addr) => addr.toLowerCase() === VALID_NUDGER_2.toLowerCase(),
+      )
+
+      mockSuggestionData()
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('heading', { name: 'Related Statement 1' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('heading', { name: 'Related Statement 2' })).not.toBeInTheDocument()
       })
     })
   })

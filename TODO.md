@@ -6,7 +6,8 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 
 The core pipeline (attesters, finders, nudgers, explorer) is functional. Remaining work:
 
-- **Staleness decay and per-nudger mute.** Deferred from the nudge UX work. Lower priority.
+- **Staleness decay.** Deferred from the nudge UX work. Lower priority.
+- ~~**Per-nudger mute.**~~ Done: SettingsPage now has a mute/unmute toggle per nudger; muted nudgers' suggestions are filtered out in StatementSuggestions.
 - **Bridge-priority scoring as a mode of the implication finder.** Not a new service — a priority-scoring enhancement. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
 - **Anti-evil-nudger immune system.** Only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
 
