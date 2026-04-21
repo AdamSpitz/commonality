@@ -25,8 +25,7 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 6. **Bridge-priority scoring as a mode of the implication finder.**
     Not a new service — a priority-scoring enhancement to the existing implication finder. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
 
-7. **Implication attester / finder prompt enhancements for intersection patterns.**
-    See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md). Make the geographic × topical intersection patterns explicit in the prompts. The statement-creator (lattice-completion) finder idea is also sketched there.
+7. ~~**Implication attester / finder prompt enhancements for intersection patterns.**~~ **Done.** The attester's LLM prompt now includes explicit guidance on geographic × topical intersection patterns (conjunction → parent implications are one-way, geographic hierarchy implications are one-way). The finder now filters candidate pairs to same-domain only (with graceful fallback when domain is unknown), preventing O(N²) explosion. Spec updated: `specs/tech/subsystems/conceptspace/implication-discovery.md`.
 
 8. **Anti-evil-nudger immune system.**
     Low priority — only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.

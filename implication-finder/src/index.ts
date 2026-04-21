@@ -6,6 +6,7 @@ import { fetchDirectSupportEvents, fetchExistingImplications } from './poller.js
 import { getTopStatements, allStatementCids } from './popularity.js';
 import { selectCandidatePairs } from './candidates.js';
 import { evaluatePairs } from './attesterClient.js';
+import { fetchStatementDomains } from './domainFetcher.js';
 
 const config = loadConfig();
 
@@ -90,15 +91,19 @@ async function runOnce(stateFilePath: string): Promise<void> {
 
   console.log(`Top ${popular.length} popular statement(s): ${popular.map(s => `${s.cid.slice(0, 12)}…(${s.believerCount})`).join(', ')}`);
 
-  // 5. Select candidate pairs.
-  const candidates = selectCandidatePairs(newCids, popular, evaluatedSet);
+  // 5. Fetch domains for all statements involved in candidate pairing.
+  const allCidsForDomains = [...newCids, ...popular.map(s => s.cid)];
+  const domainMap = await fetchStatementDomains(config.ipfsGatewayUrl, allCidsForDomains);
+
+  // 6. Select candidate pairs (filtered to same-domain).
+  const candidates = selectCandidatePairs(newCids, popular, evaluatedSet, domainMap);
 
   if (candidates.length === 0) {
-    console.log('All candidate pairs already evaluated.');
+    console.log('All candidate pairs already evaluated or filtered by domain.');
   } else {
     console.log(`Evaluating ${candidates.length} candidate pair(s)...`);
 
-    // 6. Send to attester.
+    // 7. Send to attester.
     const results = await evaluatePairs(candidates, config.attesterUrl, config.attesterFinderKey);
 
     let attested = 0;
@@ -118,13 +123,13 @@ async function runOnce(stateFilePath: string): Promise<void> {
 
     console.log(`Results: ${attested} attested, ${noImplication} no implication, ${failed} failed.`);
 
-    // 7. Record evaluated pairs (even failed ones, to avoid retrying immediately).
+    // 8. Record evaluated pairs (even failed ones, to avoid retrying immediately).
     for (const c of candidates) {
       evaluatedSet.add(pairKey(c.fromCid, c.toCid));
     }
   }
 
-  // 8. Update lastBlockSeen.
+  // 9. Update lastBlockSeen.
   const maxBlock = allEvents.reduce(
     (max, e) => (BigInt(e.blockNumber) > BigInt(max) ? e.blockNumber.toString() : max),
     state.lastBlockSeen,
@@ -141,6 +146,7 @@ async function runOnce(stateFilePath: string): Promise<void> {
 async function main() {
   console.log(`  Event cache: ${config.eventCacheUrl}`);
   console.log(`  Attester: ${config.attesterUrl}`);
+  console.log(`  IPFS gateway: ${config.ipfsGatewayUrl}`);
   console.log(`  Top N statements: ${config.topNStatements}`);
   console.log(`  Min believer threshold: ${config.minBelieverThreshold}`);
 

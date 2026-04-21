@@ -18,7 +18,11 @@ export async function evaluateImplicationWithLLM(
     result = await requestJsonCompletion<Record<string, unknown>>({
       apiKey,
       model,
-      systemPrompt: 'You are an expert in logical reasoning and statement analysis. Your job is to evaluate whether one statement logically implies another. Be conservative - only say "yes" if the implication is clear and direct.',
+      systemPrompt:
+        'You are an expert in logical reasoning and statement analysis for Commonality, a platform for collective funding of public goods. ' +
+        'Your job is to evaluate whether one statement logically implies another. ' +
+        'Be conservative — only say "yes" if the implication is clear and direct. ' +
+        'Statements often describe interests in topics, geographic regions, or combinations of both.',
       userPrompt: prompt,
       title: 'Commonality Implication Attester',
     });
@@ -53,6 +57,23 @@ Consider:
 - Is Statement 2 a subset, consequence, or logical entailment of Statement 1?
 - Would someone who agrees with Statement 1 necessarily agree with Statement 2?
 - Are there cases where someone could support Statement 1 but not Statement 2?
+
+Geographic × topical intersection patterns:
+Statements may combine a geographic interest with a topical interest (e.g., "I'm interested in crypto in Ontario").
+A conjunction statement like this implies BOTH of its parents:
+  - "I'm interested in crypto in Ontario" → "I'm interested in crypto" (topical parent)
+  - "I'm interested in crypto in Ontario" → "I care about improving Ontario" (geographic parent)
+The reverse implications do NOT hold:
+  - "I'm interested in crypto" does NOT imply "I'm interested in crypto in Ontario"
+  - "I care about improving Ontario" does NOT imply "I'm interested in crypto in Ontario"
+A person interested in crypto generally should not be nudged toward crypto-in-Ontario projects, and a person interested in Ontario generally should not be nudged toward crypto-in-Ontario projects. They only care about the intersection if they signed the conjunction.
+
+Geographic hierarchy patterns:
+Statements at different geographic levels form a hierarchy (town → county → province → country).
+A narrower geographic statement implies a broader one:
+  - "I care about improving Grey County" → "I care about improving Ontario"
+  - "I care about improving Ontario" → "I care about improving Canada"
+The reverse does NOT hold — caring about Canada does not imply caring about any specific province.
 
 Respond in JSON format with this structure:
 {

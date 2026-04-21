@@ -1,5 +1,48 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Intersection Patterns + Same-Domain Restriction (Completed)
+
+**Task**: Complete TODO.md item 7 — implication attester/finder prompt enhancements for intersection patterns.
+Spec: `specs/tech/subsystems/conceptspace/content-patterns/intersections.md` + `specs/tech/subsystems/conceptspace/implication-discovery.md`.
+
+**What was done**:
+- Updated `implication-attester/src/evaluator.ts` to include explicit guidance in the LLM prompt about:
+  - Geographic × topical conjunction statements implying their parents (one-way only)
+  - Geographic hierarchy implications (narrower → broader, one-way only)
+  - The critical insight that parent → child reverse implications must NOT hold
+- Added same-domain restriction to `implication-finder/`:
+  - New `domainFetcher.ts` module that fetches `domain` fields from IPFS content in parallel
+  - Updated `candidates.ts` to filter out cross-domain pairs (with graceful fallback when domain is unknown)
+  - Added `IPFS_GATEWAY_URL` env var to finder config
+  - Updated `index.ts` to wire domain fetching into the candidate selection pipeline
+- Updated `specs/tech/subsystems/conceptspace/implication-discovery.md` to document the implemented features
+- Added tests for domain filtering in `candidates.test.ts` (3 new test cases) and `domainFetcher.test.ts`
+
+**Key decisions**:
+- Graceful fallback: if a statement's domain cannot be fetched, the pair is allowed through rather than blocked. This prevents the finder from silently dropping valid pairs when IPFS is unavailable.
+- Domain fetching happens in parallel for all CIDs involved in candidate pairing, minimizing latency.
+- The attester prompt changes are additive — the existing conservative evaluation logic remains unchanged.
+
+**Verified**:
+- `npm run typecheck --workspace=@commonality/implication-finder`
+- `npm run lint --workspace=@commonality/implication-finder`
+- `npm run typecheck --workspace=@commonality/implication-attester`
+- `npm run test --workspace=@commonality/implication-finder` (22 tests passing)
+
+**Files changed**:
+- `implication-attester/src/evaluator.ts` (enhanced LLM prompt with intersection pattern guidance)
+- `implication-finder/src/config.ts` (added `ipfsGatewayUrl` config)
+- `implication-finder/src/domainFetcher.ts` (new — fetches domain fields from IPFS)
+- `implication-finder/src/candidates.ts` (added same-domain filtering)
+- `implication-finder/src/index.ts` (wired domain fetching into pipeline)
+- `implication-finder/test/candidates.test.ts` (3 new test cases for domain filtering)
+- `implication-finder/test/domainFetcher.test.ts` (new)
+- `specs/tech/subsystems/conceptspace/implication-discovery.md` (updated to reflect implemented features)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The intersection pattern prompt enhancements and same-domain restriction are complete. The next logical step from TODO.md would be item 6 (bridge-priority scoring as a mode of the implication finder) or item 1 (nudger metadata discovery).
+
 ## 2026-04-21 - AI Services: Bridge Creator `findBridgeCandidates` Implementation (Completed)
 
 **Task**: Complete TODO.md item 5 — implement `findBridgeCandidates` in the bridge-creator nudger.
