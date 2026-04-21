@@ -1,5 +1,49 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Nudger Metadata Discovery + Stale Doc Cleanup (Completed)
+
+**Task**: Complete TODO.md item 1 — UI nudger metadata discovery (`.well-known/nudger.json`) for the trust-configuration flow. Also cleaned up stale "code gap" notes in READMEs and the nudger spec's status table.
+
+**What was done**:
+- Created `ui/src/shared/hooks/useNudgerMetadata.ts` — hook for fetching nudger metadata from a service URL.
+- Updated `ui/src/shared/hooks/useTrustedNudgers.ts` — changed storage format from `string[]` to `TrustedNudgerEntry[]` (with `address`, optional `serviceUrl`, `name`, `description`, `sourceType`, `version` fields). Backward-compatible with existing string-array localStorage data.
+- Updated `SettingsPage.tsx` to:
+  - Add an optional "Service URL" input field below the nudger address input.
+  - When a service URL is provided, fetch `/.well-known/nudger.json` from that URL on add.
+  - Display nudger name (as a primary-colored chip) and source type (as a regular chip) alongside the address in the list.
+  - Show the nudger description as secondary text below the address.
+- Updated `StatementSuggestions.tsx` and `ExplorerPage.tsx` to map `TrustedNudgerEntry[]` to `string[]` (addresses) when calling SDK functions.
+- Removed stale "code gap" notes from `implication-graph-nudger/README.md` and `nudger-core/README.md` (the typed `NudgeBatch` envelope fields were already added in a prior session).
+- Updated `specs/tech/subsystems/nudger/README.md` "What exists vs. what needs to be built" table to reflect all implemented items (SDK nudger fetching, UI nudge display, explorer page, bridge-creator, explorer-curator, metadata discovery, dismissal/intensity/filtering).
+
+**Key decisions**:
+- The metadata fetch happens synchronously during `handleAddNudger` rather than using a separate hook — this keeps the SettingsPage simple and avoids race conditions with the save operation.
+- The `useNudgerMetadata` hook exists as a standalone utility but is not currently used by the SettingsPage (the inline fetch is simpler for this use case). It's available for future use if needed.
+- Backward compatibility: existing localStorage entries stored as plain strings are normalized to `TrustedNudgerEntry` objects on load.
+
+**Verified**:
+- `npm run typecheck --workspace=ui`
+- `npm run lint --workspace=ui`
+- `npm run test --workspace=ui -- --run SettingsPage` (46 tests passing)
+
+**Files changed**:
+- `ui/src/shared/hooks/useNudgerMetadata.ts` (new)
+- `ui/src/shared/hooks/useTrustedNudgers.ts` (updated to `TrustedNudgerEntry[]` format)
+- `ui/src/conceptspace/pages/SettingsPage.tsx` (added service URL input, metadata display)
+- `ui/src/conceptspace/components/StatementSuggestions.tsx` (map entries to addresses)
+- `ui/src/conceptspace/pages/ExplorerPage.tsx` (map entries to addresses)
+- `implication-graph-nudger/README.md` (removed stale code gap note)
+- `nudger-core/README.md` (removed stale code gap note, updated `NudgeBatch` type example)
+- `specs/tech/subsystems/nudger/README.md` (updated status table to reflect reality)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Nudger metadata discovery is complete. The remaining AI Services items from TODO.md are:
+- Item 6: Bridge-priority scoring — not blocking, needs polarity metadata first
+- Item 8: Anti-evil-nudger immune system — low priority, spec exists at `specs/product/nudger-immune-system.md`
+
+The nudger ecosystem (attesters, finders, nudgers, explorers) is now fully implemented across all major components. The next worthwhile effort would be either implementing bridge-priority scoring (once polarity metadata is available) or building out the anti-evil-nudger immune system.
+
 ## 2026-04-21 - AI Services: Explorer Curator Service (Completed)
 
 **Task**: Complete TODO.md item 4 — Explorer nudger strategy (background LLM + per-user LLM personalization).

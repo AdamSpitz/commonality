@@ -442,7 +442,10 @@ describe('StatementSuggestions', () => {
     })
 
     it('passes trustedNudgers from the hook to getStatementNudges', async () => {
-      vi.mocked(useTrustedNudgers).mockReturnValue([VALID_NUDGER_1, VALID_NUDGER_2])
+      vi.mocked(useTrustedNudgers).mockReturnValue([
+        { address: VALID_NUDGER_1 },
+        { address: VALID_NUDGER_2 },
+      ])
 
       renderWithRouter(
         <StatementSuggestions statementCid="bafyTest123" />

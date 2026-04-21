@@ -202,19 +202,21 @@ This strategy publishes `curated-collection` publications rather than `nudge-bat
 
 | Component | Status |
 |-----------|--------|
-| `getStatementSuggestions` (implication-graph queries) | ✅ Implemented |
-| `StatementSuggestions` UI component | ✅ Implemented |
-| Typed nudger publication model | ✅ Specified (this file) |
+| `getStatementSuggestions` (implication-graph queries) | ✅ Implemented (legacy proto-nudger, kept for backward compatibility) |
+| `getStatementNudges` (typed publication queries) | ✅ Implemented (`sdk/src/subsystems/conceptspace/queries.ts`) |
+| `StatementSuggestions` UI component | ✅ Implemented (reads from folded `nudge-batch` publications) |
+| Typed nudger publication model | ✅ Specified and implemented |
 | `NudgePublications` smart contract | ✅ Implemented |
 | Nudger service framework (background worker, publishing) | ✅ Implemented (`nudger-core`) |
 | Implication-graph nudger (as standalone service) | ✅ Implemented (background worker) |
-| SDK: fetch + fold typed nudger publications from indexer | ❌ Not built |
+| SDK: fetch + fold typed nudger publications from indexer | ✅ Implemented |
 | Settings UI: add/configure trusted nudgers by address | ✅ Implemented |
-| Settings UI: nudger metadata discovery (`/.well-known/nudger.json`) | ❌ Not built |
-| UI: display `nudge-batch` suggestions | ❌ Not built |
-| UI: explorer pages backed by `curated-collection` publications | ❌ Not built |
-| Bridge-creator nudger | ❌ Not built |
-| Explorer nudger strategy | ❌ Not built |
+| Settings UI: nudger metadata discovery (`/.well-known/nudger.json`) | ✅ Implemented (optional service URL on add) |
+| UI: display `nudge-batch` suggestions | ✅ Implemented |
+| UI: nudge dismissal / intensity / topic filtering | ✅ Implemented |
+| UI: explorer pages backed by `curated-collection` publications | ✅ Implemented (`ExplorerPage` at `/explore`) |
+| Bridge-creator nudger | ✅ Implemented (`bridge-creator/`) |
+| Explorer nudger strategy (background curator + per-user personalizer) | ✅ Implemented (`explorer-curator/`) |
 
 The existing `StatementSuggestions` / `getStatementSuggestions` is a proto-nudger — it implements one nudging strategy but is tightly coupled into the SDK rather than reading from the nudger publication system. The migration path is: update the SDK to fetch typed publications from the indexer (querying `NudgesPublished` events from trusted nudgers), then have each UI surface consume the publication kinds it cares about.
 

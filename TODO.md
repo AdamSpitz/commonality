@@ -6,8 +6,7 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 
 ### UI — nudge display
 
-1. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
-   Nice-to-have for the trust-configuration flow. Spec: nudger spec.
+1. ~~**UI: nudger metadata discovery** (`.well-known/nudger.json`).~~ **Done.** When adding a nudger in Settings, users can optionally provide the nudger service URL. The UI fetches `/.well-known/nudger.json` from that URL and displays the nudger's name, description, and source type as chips alongside the address.
 
 2. ~~**Nudge UX: staleness decay, per-nudger mute, topic filtering.**~~ **Done.** Topic filtering is implemented — users can mute topics in Settings and nudges about muted topics are filtered out. Staleness decay and per-nudger mute remain as lower-priority follow-ups.
 

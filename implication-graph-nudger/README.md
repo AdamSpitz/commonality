@@ -52,8 +52,6 @@ The service exposes a minimal HTTP interface for discovery and health monitoring
 
 These messages are collected into a `NudgeBatch` document, uploaded to IPFS, and recorded on-chain. They are not served directly over HTTP.
 
-> **Code gap:** `NudgeBatch` documents are missing `kind: 'nudge-batch'` and `schemaVersion: 1` fields required by the typed publication envelope in the nudger spec. The SDK cannot dispatch by type without these. See [`nudger-core/README.md`](../nudger-core/README.md) for details.
-
 ## Strategies
 
 This service implements the implication-graph strategy. Additional strategies can be added to separate nudger services (e.g., `bridge-creator/`) following the same `NudgerStrategy` interface from `nudger-core`.

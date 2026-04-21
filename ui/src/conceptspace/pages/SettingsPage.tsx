@@ -23,7 +23,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import { useAccount } from 'wagmi'
 import { getUserSocialData } from '@commonality/sdk'
 import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
-import { loadTrustedNudgers, saveTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
+import { loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
@@ -66,8 +66,9 @@ export function SettingsPage() {
 
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')
-  const [trustedNudgers, setTrustedNudgers] = useState<string[]>([])
+  const [trustedNudgers, setTrustedNudgers] = useState<TrustedNudgerEntry[]>([])
   const [newNudger, setNewNudger] = useState('')
+  const [newNudgerUrl, setNewNudgerUrl] = useState('')
   const [newMutedTopic, setNewMutedTopic] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [nudgerError, setNudgerError] = useState<string | null>(null)
@@ -160,7 +161,7 @@ export function SettingsPage() {
     setSuccessMessage('Removed')
   }
 
-  const handleAddNudger = () => {
+  const handleAddNudger = async () => {
     setNudgerError(null)
     setNudgerSuccess(null)
 
@@ -178,20 +179,38 @@ export function SettingsPage() {
 
     const normalizedAddress = address.toLowerCase()
 
-    if (trustedNudgers.some(n => n.toLowerCase() === normalizedAddress)) {
+    if (trustedNudgers.some(n => n.address.toLowerCase() === normalizedAddress)) {
       setNudgerError('This address is already in your nudger list')
       return
     }
 
-    const updated = [...trustedNudgers, address]
+    const serviceUrl = newNudgerUrl.trim() || undefined
+
+    const entry: TrustedNudgerEntry = { address, serviceUrl }
+
+    if (serviceUrl) {
+      const meta = await fetch(`${serviceUrl.replace(/\/+$/, '')}/.well-known/nudger.json`).catch(() => null)
+      if (meta && meta.ok) {
+        const data = await meta.json().catch(() => null)
+        if (data) {
+          entry.name = data.name
+          entry.description = data.description
+          entry.sourceType = data.sourceType
+          entry.version = data.version
+        }
+      }
+    }
+
+    const updated = [...trustedNudgers, entry]
     setTrustedNudgers(updated)
     saveTrustedNudgers(updated)
     setNewNudger('')
-    setNudgerSuccess('Added successfully')
+    setNewNudgerUrl('')
+    setNudgerSuccess(entry.name ? `Added ${entry.name}` : 'Added successfully')
   }
 
-  const handleRemoveNudger = (address: string) => {
-    const updated = trustedNudgers.filter(n => n !== address)
+  const handleRemoveNudger = (entry: TrustedNudgerEntry) => {
+    const updated = trustedNudgers.filter(n => n.address !== entry.address)
     setTrustedNudgers(updated)
     saveTrustedNudgers(updated)
     setNudgerSuccess('Removed')
@@ -553,7 +572,7 @@ export function SettingsPage() {
           </Alert>
         )}
 
-        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
           <TextField
             fullWidth
             size="small"
@@ -575,6 +594,24 @@ export function SettingsPage() {
           </Button>
         </Box>
 
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Optionally provide the nudger service URL to discover its name and description.
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Service URL (optional)"
+            placeholder="http://localhost:3002"
+            value={newNudgerUrl}
+            onChange={(e) => setNewNudgerUrl(e.target.value)}
+            onKeyPress={(e: React.KeyboardEvent) => {
+              if (e.key === 'Enter') handleAddNudger()
+            }}
+          />
+        </Box>
+
         <Divider sx={{ mb: 2 }} />
 
         {trustedNudgers.length === 0 ? (
@@ -584,20 +621,41 @@ export function SettingsPage() {
           </Typography>
         ) : (
           <List>
-            {trustedNudgers.map((address) => (
-              <ListItem key={address} divider>
+            {trustedNudgers.map((entry) => (
+              <ListItem key={entry.address} divider>
                 <ListItemText
-                  primary={address}
-                  primaryTypographyProps={{
-                    fontFamily: 'monospace',
-                    fontSize: '0.875rem',
-                  }}
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        {entry.address}
+                      </Typography>
+                      {entry.name && (
+                        <Chip label={entry.name} size="small" color="primary" variant="outlined" />
+                      )}
+                      {entry.sourceType && (
+                        <Chip label={entry.sourceType} size="small" variant="outlined" />
+                      )}
+                    </Box>
+                  }
+                  secondary={
+                    entry.description ? (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {entry.description}
+                      </Typography>
+                    ) : null
+                  }
                 />
                 <ListItemSecondaryAction>
                   <IconButton
                     edge="end"
                     aria-label="remove"
-                    onClick={() => handleRemoveNudger(address)}
+                    onClick={() => handleRemoveNudger(entry)}
                     size="small"
                   >
                     <DeleteIcon />

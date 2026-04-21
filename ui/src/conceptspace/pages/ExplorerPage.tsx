@@ -67,7 +67,7 @@ export function ExplorerPage() {
 
       const collections = await getCuratedCollections(
         machinery,
-        trustedNudgers,
+        trustedNudgers.map((e) => e.address),
         EXPLORER_STREAM,
       )
 

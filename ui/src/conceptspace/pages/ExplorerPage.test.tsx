@@ -122,7 +122,7 @@ describe('ExplorerPage', () => {
     vi.clearAllMocks()
     localStorage.clear()
     vi.mocked(useMachinery).mockReturnValue(mockMachinery)
-    vi.mocked(useTrustedNudgers).mockReturnValue([VALID_NUDGER])
+    vi.mocked(useTrustedNudgers).mockReturnValue([{ address: VALID_NUDGER }])
     vi.mocked(useAccount).mockReturnValue({ address: VALID_ADDRESS, isConnected: true })
     vi.mocked(getCuratedCollections).mockResolvedValue([])
     vi.mocked(getStatement).mockResolvedValue(null)

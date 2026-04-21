@@ -39,14 +39,14 @@ interface NudgeRevocation {
 
 // The IPFS document uploaded per publish cycle
 interface NudgeBatch {
-  nudger: string;         // Ethereum address of the nudger (matches onchain event)
-  publishedAt: number;   // Unix timestamp
+  kind: 'nudge-batch';          // Publication type discriminator
+  schemaVersion: 1;             // Schema version for nudge-batch publications
+  nudger: string;               // Ethereum address of the nudger
+  publishedAt: number;          // Unix timestamp
   nudges: NudgeMessage[];
-  revocations: NudgeRevocation[];
+  revocations: NudgeRevocation[];  // per-nudge revocations of entries from previous batches
 }
 ```
-
-> **Code gap:** The spec's publication envelope requires `kind: 'nudge-batch'` and `schemaVersion: 1` fields on every `NudgeBatch` document so the SDK can dispatch by type. The current `NudgeBatch` type and `publishNudgeBatch` implementation omit these fields. They need to be added before the SDK can fold `nudge-batch` publications alongside future `curated-collection` publications.
 
 ## Strategy interface
 

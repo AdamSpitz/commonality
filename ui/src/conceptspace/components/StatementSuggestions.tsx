@@ -104,7 +104,7 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
         dismissed.map((d) => `${d.targetStatementCid}::${d.suggestedStatementCid}::${d.nudger.toLowerCase()}`),
       )
 
-      const nudgers = trustedNudgers.length > 0 ? trustedNudgers : undefined
+      const nudgers = trustedNudgers.length > 0 ? trustedNudgers.map((e) => e.address) : undefined
       const allNudges = await getStatementNudges(machinery, statementCid, nudgers)
 
       const filteredNudges = allNudges.filter(
