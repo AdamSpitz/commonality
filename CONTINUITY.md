@@ -1,5 +1,31 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services Review Plan: Chunk 1 (Completed)
+
+**Task**: Chunk 1 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — rewrite `specs/product/ai-assistance.md`.
+
+**What was done**:
+- Rewrote [specs/product/ai-assistance.md](specs/product/ai-assistance.md) from scratch.
+- The old file mixed autonomous AI services with user-facing interactive skills, and had an outstanding TODO note to reconcile it with the new attester/finder/nudger ecosystem.
+- New structure:
+  1. A "three layers" intro (primitives → services → user-facing skills) replacing the old "two layers" framing.
+  2. A **Services** section covering attesters, finders, nudgers, and explorers — each with a brief description and pointer to the relevant spec.
+  3. A **User-facing AI skills** section with only genuinely interactive skills: onboarding/education, delegation advisor, funding strategy advisor, project creation assistant, analytics and insights, attester/nudger trust configuration.
+  4. Removed skills now handled by services: statement finder/writer (→ explorer+nudger), cause discovery/coalition building (→ bridge-creator+explorer), bridge creator/statement synthesis (→ bridge-creator nudger service), watchdog (→ nudger pipeline).
+- Updated TODO.md to mark the "Think through AI skills" item as done.
+
+**Key decisions**:
+- Preserved the author's thinking-out-loud voice and kept descriptions concise.
+- Kept "attester management" as a user-facing skill (it's about trust configuration choices, which are genuinely interactive) but renamed it to "Attester and nudger trust configuration" to reflect the full settings surface.
+- Removed "social verification and identity linking" — it's a one-time setup task, not really an AI skill, and didn't fit cleanly in either layer. (Worth reconsidering if/when verification gets more complex.)
+
+**Files changed**:
+- `specs/product/ai-assistance.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Chunk 1 is complete. Continue with chunks 2–7 of AI-SERVICES-REVIEW-PLAN.md, each as a separate fresh LLM instance.
+
 ## 2026-04-19 - Docker BuildKit Cache Mounts For Compose Images (Completed)
 
 **Task**: Continue the build-improvement thread from [TODO.md](/home/adam/Projects/commonality/TODO.md) by adding package-manager cache mounts where they speed up local image rebuilds without changing correctness.

@@ -2,7 +2,7 @@
 
 ## Main thing I want to work on next
 
-  - ?
+  - Work through the [AI Services Ecosystem Review Plan](AI-SERVICES-REVIEW-PLAN.md) — a chunked plan for reviewing and cleaning up the attester/finder/nudger/explorer specs, identifying gaps, and then rewriting this TODO.md with a cleaner task list. (Chunk 7 of that plan rewrites this file.)
 
 ## Other things to do soon
 
@@ -17,19 +17,11 @@
     - DONE for project fold (2026-04-17): IndexedDB persistence layer, cache key with eventCacheUrl/contract address/project address/foldType, foldVersion validation, bigint serialization, blockNumber tracking, incremental fetching via blockNumber_gte option, getProject integration, useCachedProject hook, 3 passing tests.
     - Remaining: extend to contributions/secondary market/burns if performance warrants, wire up specific UI pages.
 
-  - Is there any way to speed up the tests? (Might mean: speed up the docker-compose stuff.) If there's no low-hanging fruit, don't worry about it, but it's annoying that they take so long.
-    - 2026-04-19 note: the repaired delegation e2e flow is now green, but it still logs long waits while the indexer catches up to the delegation transaction. Investigate test-stack startup/indexer-sync performance separately.
-
   - See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md) and do some enhancements to the implication attester and finder prompts (make the patterns clear), and maybe even put some "write a new statement" capabilities into the finder (or make a separate service, but probably just using the finder is fine).
   - Think about [new-user-experience](/specs/product/new-user-experience.md).
+  - Make a better [hints](specs/tech/subsystems/conceptspace/hints.md) UI.
   - Think about [nudge-ux](/specs/product/nudge-ux.md).
-  - Think through what [AI skills](specs/product/ai-assistance.md) we need, in light of the new ecosystem of services.
-    - attesters (for implications and noninflammatory content) are purely reactive.
-    - implication-finder is out there looking for S1 -> S2 implications to make.
-    - nudgers are out there finding/creating statements and suggesting S1 -> S2 nudges.
-      - bridge-creator is out there trying to create bridges between "opposite sides".
-    - content-finders are out there either taking suggestions or just following people on social media, looking for content to suggest to the attester.
-    - But none of this helps the user get started or whatever.
+  - DONE 2026-04-21: Rewrote [AI skills spec](specs/product/ai-assistance.md) to distinguish services (attesters, finders, nudgers, explorers) from user-facing interactive AI skills (onboarding, delegation advisor, funding strategy, project creation, analytics, trust configuration). Removed skills now covered by services; removed TODO note. See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) chunks 2–7 for remaining work.
 
   - Think about the [bridge-finder](specs/product/bridge-finder.md) idea. Either modify the implication-finder to be that, or make it as a separate finder service.
   - Or even [bridge-creator](specs/product/bridge-creator.md). Yeah, let's make the general [nudger](specs/tech/subsystems/nudger/README.md) service (general, can plug in whatever AI heuristics/prompts you want) and then a specific one that is trying to be a bridge-creator.
@@ -48,8 +40,6 @@
       - The submission file is manually maintained/edited
       - No UI/API for users to submit their channels or posts
     - The README mentions "future extensions" for channel-watch adapters, paid APIs, and ranking/filtering stages, but none of those have been built yet.
-
-  - Make a better [hints](specs/tech/subsystems/conceptspace/hints.md) UI.
 
   - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
   - Point an AI at the UI and tell it "go use this."
