@@ -51,7 +51,7 @@ Here's a list of what's done (please keep this list concise):
   - BeliefControls: Component for expressing belief/disbelief/clearing opinion on statements
   - SupportMetrics: Component displaying direct believers, indirect supporters, and disbelievers
   - StatementRenderer: Component for rendering statement content with markdown support, reference handling, and metadata display
-  - StatementSuggestions: Component displaying related statements that are more popular (via implication relationships)
+  - StatementSuggestions: Component displaying trusted nudger suggestions for the current statement, sourced from folded `nudge-batch` publications
   - UserProfilePage: Displays user's beliefs, disbeliefs, and indirectly supported statements in tabs with clickable statement cards; shows "Create Statement" button for connected user's own profile
   - Placeholder pages: BrowseStatementsPage, SettingsPage
   - Directory structure: Organized into src/shared, src/conceptspace, src/pubstarter, src/delegation, src/fundingportal

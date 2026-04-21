@@ -1,5 +1,35 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: UI Nudge-Batch Statement Suggestions (Completed)
+
+**Task**: Complete the first UI nudge-display item from [TODO.md](TODO.md) by replacing the old proto-nudger statement suggestion flow with real `nudge-batch` publications.
+
+**What was done**:
+- Updated `StatementSuggestions` to query folded nudger publications via `getStatementNudges(...)` instead of the old `getStatementSuggestions(...)` implication-graph heuristic.
+- Enriched each nudge with statement content via `getStatementWithContent(...)` so the UI still shows a readable title/excerpt card rather than raw CIDs.
+- Updated the UI copy and chips to reflect the real data model: confidence, supporter count, and source nudger address now display on each suggestion card.
+- Rewrote the component test suite around the new nudger-publication behavior, including trusted-nudger filtering, navigation, loading/error states, and the case where a suggested statement no longer resolves.
+- Updated [TODO.md](TODO.md) to remove the completed nudge-display item and renumber the remaining AI-services tasks.
+
+**Key decisions**:
+- Kept the existing `StatementSuggestions` component entry point so the statement page wiring did not need to change; only the data source and presentation changed.
+- Scoped this pass strictly to TODO item 1. Dismissal/seen tracking, intensity controls, and client-side filtering are still separate follow-up work.
+- If a nudged statement can no longer be fetched, the component quietly skips that card instead of failing the whole suggestions area.
+
+**Verified**:
+- `npm run test --workspace=ui -- StatementSuggestions`
+- `npm run lint --workspace=ui`
+- `npm run build --workspace=ui`
+
+**Files changed**:
+- `ui/src/conceptspace/components/StatementSuggestions.tsx`
+- `ui/src/conceptspace/components/StatementSuggestions.test.tsx`
+- `ui/README.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The natural next AI-services task is TODO item 1: add nudge dismissal / seen tracking, intensity settings, and client-side filtering on top of this new publication-backed display.
+
 ## 2026-04-21 - AI Services: SDK Typed Nudger Publication Fetch/Fold (Completed)
 
 **Task**: Complete the AI-services blocker from [TODO.md](TODO.md) by teaching the SDK to fetch and fold typed nudger publications (`nudge-batch` and `curated-collection`) from indexer `NudgesPublished` events.
