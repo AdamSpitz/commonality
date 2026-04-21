@@ -1,4 +1,7 @@
 import assert from 'assert';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import {
   encodePacked,
   hexToBytes,
@@ -10,6 +13,7 @@ import { hashCanonicalId } from '@commonality/sdk';
 import type { PlatformApiServiceConfig } from './config.js';
 import { HttpError } from './errors.js';
 import { PlatformApiService } from './service.js';
+import { FileContentSubmissionStore, type ContentSubmissionStore } from './submissions.js';
 import type {
   ResolvedChannel,
   ResolvedContent,
@@ -20,6 +24,7 @@ import type {
 
 const verifierPrivateKey = '0x59c6995e998f97a5a0044966f0945388cf9af40f3c81d1dc0f1d5d5d9ecf594f' as const;
 const verifierAddress = privateKeyToAccount(verifierPrivateKey).address;
+const VALID_STATEMENT_CID = 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as const;
 
 describe('PlatformApiService', () => {
   it('resolves Substack content client-side without platform credentials', async () => {
@@ -361,6 +366,62 @@ describe('PlatformApiService', () => {
     assert.strictEqual(challenge.deadline, 1_700_003_600);
   });
 
+  it('queues and lists content submissions', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'commonality-platform-api-'));
+    const filePath = join(tempDir, 'submissions.json');
+    const service = createService({
+      contentSubmissionStore: new FileContentSubmissionStore(filePath),
+    });
+
+    try {
+      const created = await service.submitContent({
+        contentUrl: 'https://x.com/alice/status/18347',
+        statementCid: VALID_STATEMENT_CID,
+        declaredPerspective: 'supportive',
+      });
+
+      assert.deepStrictEqual(created, {
+        contentUrl: 'https://x.com/alice/status/18347',
+        statementCid: VALID_STATEMENT_CID,
+        declaredPerspective: 'supportive',
+      });
+
+      assert.deepStrictEqual(await service.listContentSubmissions(), [created]);
+
+      const written = JSON.parse(await readFile(filePath, 'utf-8')) as unknown;
+      assert.deepStrictEqual(written, [created]);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('deduplicates identical content submissions', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'commonality-platform-api-'));
+    const service = createService({
+      contentSubmissionStore: new FileContentSubmissionStore(join(tempDir, 'submissions.json')),
+    });
+
+    try {
+      const submission = {
+        contentUrl: 'https://x.com/alice/status/18347',
+        statementCid: VALID_STATEMENT_CID,
+      };
+
+      await service.submitContent(submission);
+
+      await assert.rejects(
+        () => service.submitContent(submission),
+        (error: unknown) =>
+          error instanceof HttpError &&
+          error.status === 409 &&
+          error.code === 'content_submission_exists' &&
+          error.message === 'This content submission is already queued',
+      );
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it('confirms Substack verification from the RSS feed', async () => {
     const observedUrls: string[] = [];
     const feedXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -483,6 +544,7 @@ function createService(overrides: Partial<{
   configOverrides: Partial<PlatformApiServiceConfig>;
   twitterClient: TwitterClientLike;
   youtubeClient: YouTubeClientLike;
+  contentSubmissionStore: ContentSubmissionStore;
   createChallengeCode: () => string;
   now: () => number;
   fetch: typeof fetch;
@@ -492,6 +554,7 @@ function createService(overrides: Partial<{
     corsAllowedOrigins: '*',
     commonalityTwitterHandle: '@commonality',
     claimPageBaseUrl: 'https://commonality.example',
+    contentSubmissionsFilePath: './platform-api-content-submissions.json',
     xApiBearerToken: 'token',
     xApiBaseUrl: 'https://api.x.com',
     youtubeApiKey: 'key',
@@ -506,6 +569,8 @@ function createService(overrides: Partial<{
     resolveRateLimitMaxRequests: 60,
     verifyRateLimitWindowMs: 60_000,
     verifyRateLimitMaxRequests: 5,
+    submissionRateLimitWindowMs: 60_000,
+    submissionRateLimitMaxRequests: 10,
     ...overrides.configOverrides,
   };
 
@@ -513,6 +578,7 @@ function createService(overrides: Partial<{
     config,
     twitterClient: overrides.twitterClient ?? createTwitterClient(),
     youtubeClient: overrides.youtubeClient ?? createYouTubeClient(),
+    contentSubmissionStore: overrides.contentSubmissionStore ?? new FileContentSubmissionStore(config.contentSubmissionsFilePath),
     createChallengeCode: overrides.createChallengeCode,
     now: overrides.now,
     fetch: overrides.fetch,

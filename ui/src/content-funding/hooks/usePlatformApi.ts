@@ -19,9 +19,16 @@ interface PlatformApiError {
   message: string
 }
 
+interface ContentSubmission {
+  contentUrl: string
+  statementCid: string
+  declaredPerspective?: string
+}
+
 interface UsePlatformApiResult {
   resolveChannel: (platform: string, handle: string) => Promise<ResolvedChannel>
   resolveContent: (url: string) => Promise<ResolvedContent>
+  submitContentSubmission: (submission: ContentSubmission) => Promise<ContentSubmission>
   isLoading: boolean
   error: PlatformApiError | null
   clearError: () => void
@@ -83,9 +90,31 @@ export function usePlatformApi(): UsePlatformApiResult {
     }
   }, [getBaseUrl, handleResponse])
 
+  const submitContentSubmission = useCallback(async (
+    submission: ContentSubmission,
+  ): Promise<ContentSubmission> => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`${getBaseUrl()}/content-submission`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submission),
+      })
+      const result = await handleResponse<ContentSubmission>(response)
+      return result
+    } catch (err) {
+      const error = err as PlatformApiError
+      setError(error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [getBaseUrl, handleResponse])
+
   const clearError = useCallback(() => {
     setError(null)
   }, [])
 
-  return { resolveChannel, resolveContent, isLoading, error, clearError }
+  return { resolveChannel, resolveContent, submitContentSubmission, isLoading, error, clearError }
 }

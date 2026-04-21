@@ -8,7 +8,7 @@ It is the first content-specific implementation on top of [finder-core](../finde
 
 Each poll cycle:
 
-1. Loads the submission queue from `SUBMISSIONS_FILE_PATH`.
+1. Loads the submission queue from `SUBMISSIONS_API_URL` when configured, otherwise from `SUBMISSIONS_FILE_PATH`.
 2. Skips items already processed in the persisted state file.
 3. Resolves each content URL through the platform API to get a stable canonical content ID.
 4. Submits the resolved content to the content attester in batches.
@@ -35,9 +35,12 @@ Each poll cycle:
 | `PLATFORM_API_URL` | Yes | — | Base URL of the platform API service |
 | `ATTESTER_URL` | Yes | — | Base URL of the content attester |
 | `ATTESTER_FINDER_KEY` | Yes | — | Finder API key sent as `X-Finder-Key` |
+| `SUBMISSIONS_API_URL` | No | — | Queue endpoint to poll (typically `http://localhost:3001/content-submission`) |
 | `SUBMISSIONS_FILE_PATH` | No | `./content-finder-submissions.json` | JSON file containing candidate submissions |
 | `STATE_FILE_PATH` | No | `./content-finder-state.json` | JSON file containing processed submissions |
 | `POLL_INTERVAL_MS` | No | `30000` | Poll interval in milliseconds |
+
+If `SUBMISSIONS_API_URL` is set, the content finder polls that endpoint and ignores `SUBMISSIONS_FILE_PATH`. The file path remains the fallback for operator-managed or offline setups.
 
 ## Future extensions
 

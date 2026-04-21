@@ -4,6 +4,7 @@ import {
   buildCanonicalContentId,
   hashCanonicalId,
   parseContentFundingUrl,
+  type IpfsCidV1,
   type ParsedContentFundingUrl,
 } from '@commonality/sdk';
 import {
@@ -22,6 +23,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { MemoryCache } from './cache.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import { HttpError } from './errors.js';
+import type { ContentSubmissionStore } from './submissions.js';
 import type {
   PendingVerificationChallenge,
   ResolvedChannel,
@@ -53,6 +55,7 @@ export interface PlatformApiServiceDependencies {
   config: PlatformApiServiceConfig;
   twitterClient: TwitterClientLike;
   youtubeClient: YouTubeClientLike;
+  contentSubmissionStore: ContentSubmissionStore;
   now?: () => number;
   createChallengeCode?: () => string;
   fetch?: typeof fetch;
@@ -301,6 +304,22 @@ export class PlatformApiService {
     };
   }
 
+  async listContentSubmissions() {
+    return await this.deps.contentSubmissionStore.list();
+  }
+
+  async submitContent(submission: {
+    contentUrl: string;
+    statementCid: IpfsCidV1;
+    declaredPerspective?: string;
+  }) {
+    return await this.deps.contentSubmissionStore.enqueue({
+      contentUrl: submission.contentUrl,
+      statementCid: submission.statementCid,
+      declaredPerspective: submission.declaredPerspective,
+    });
+  }
+
   health(): Record<string, unknown> {
     return {
       ok: true,
@@ -323,6 +342,9 @@ export class PlatformApiService {
         submitVerificationTx: this.deps.config.submitVerificationTx,
         channelRegistryConfigured: Boolean(this.deps.config.channelRegistryAddress),
         ethereumRpcConfigured: Boolean(this.deps.config.ethereumRpcUrl),
+      },
+      contentSubmissions: {
+        enabled: true,
       },
       cache: {
         channelEntries: this.channelCache.size(),

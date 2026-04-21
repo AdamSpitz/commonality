@@ -22,19 +22,16 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 
 ### Enhancements and new services
 
-5. **Content submission UI/API.**
-   No user-facing way to submit content to the content finder yet. Spec: `specs/product/content-submission.md`. Simple CRUD — a `POST /content-submission` endpoint in platform-api-service plus a minimal form in the content-funding UI.
-
-6. **Bridge-creator nudger: implement `findBridgeCandidates`.**
+5. **Bridge-creator nudger: implement `findBridgeCandidates`.**
     `bridge-creator/` has scaffolding but the strategy is not implemented. Spec: `specs/product/bridge-creator.md`. Not on the critical path.
 
-7. **Bridge-priority scoring as a mode of the implication finder.**
+6. **Bridge-priority scoring as a mode of the implication finder.**
     Not a new service — a priority-scoring enhancement to the existing implication finder. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
 
-8. **Implication attester / finder prompt enhancements for intersection patterns.**
+7. **Implication attester / finder prompt enhancements for intersection patterns.**
     See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md). Make the geographic × topical intersection patterns explicit in the prompts. The statement-creator (lattice-completion) finder idea is also sketched there.
 
-9. **Anti-evil-nudger immune system.**
+8. **Anti-evil-nudger immune system.**
     Low priority — only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
 
 ## Suggestions from AI

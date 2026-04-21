@@ -6,6 +6,8 @@ import type { PlatformApiServiceConfig } from './config.js';
 import { HttpError } from './errors.js';
 import type { PlatformApiService } from './service.js';
 
+const VALID_STATEMENT_CID = 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as const;
+
 describe('createApp CORS', () => {
   it('allows wildcard cross-origin health requests by default', async () => {
     const server = await startTestServer({
@@ -175,6 +177,60 @@ describe('createApp routes', () => {
     }
   });
 
+  it('lists queued content submissions', async () => {
+    const submissions = [
+      {
+        contentUrl: 'https://x.com/alice/status/18347',
+        statementCid: VALID_STATEMENT_CID,
+      },
+    ];
+    const server = await startTestServer({
+      service: createStubService({
+        listContentSubmissions: async () => submissions,
+      }),
+    });
+
+    try {
+      const response = await fetch(`${server.baseUrl}/content-submission`);
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), submissions);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('forwards content-submission requests to the service', async () => {
+    const seenRequests: Array<{
+      contentUrl: string;
+      statementCid: string;
+      declaredPerspective?: string;
+    }> = [];
+    const submission = {
+      contentUrl: 'https://x.com/alice/status/18347',
+      statementCid: VALID_STATEMENT_CID,
+      declaredPerspective: 'supportive',
+    };
+    const server = await startTestServer({
+      service: createStubService({
+        submitContent: async (request) => {
+          seenRequests.push(request);
+          return request;
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/content-submission`, submission);
+
+      assert.strictEqual(response.status, 201);
+      assert.deepStrictEqual(await response.json(), submission);
+      assert.deepStrictEqual(seenRequests, [submission]);
+    } finally {
+      await server.close();
+    }
+  });
+
   it('forwards verify/challenge requests to the service', async () => {
     const seenRequests: Array<{
       platform: string;
@@ -288,6 +344,15 @@ describe('createApp routes', () => {
         message: 'Missing required field: url',
       });
 
+      const submissionResponse = await postJson(`${server.baseUrl}/content-submission`, {
+        contentUrl: 'https://x.com/alice/status/18347',
+      });
+      assert.strictEqual(submissionResponse.status, 400);
+      assert.deepStrictEqual(await submissionResponse.json(), {
+        error: 'invalid_request',
+        message: 'Missing required field: statementCid',
+      });
+
       const challengeResponse = await postJson(`${server.baseUrl}/verify/challenge`, {
         platform: 'twitter',
         handle: '@alice',
@@ -367,8 +432,10 @@ describe('createApp routes', () => {
       configOverrides: {
         resolveRateLimitMaxRequests: 1,
         verifyRateLimitMaxRequests: 1,
+        submissionRateLimitMaxRequests: 1,
         resolveRateLimitWindowMs: 60_000,
         verifyRateLimitWindowMs: 60_000,
+        submissionRateLimitWindowMs: 60_000,
       },
     });
 
@@ -405,6 +472,20 @@ describe('createApp routes', () => {
         message: 'Too many verification requests. Please wait before trying again.',
         retryAfter: 60,
       });
+
+      const firstSubmission = await fetch(`${server.baseUrl}/content-submission`);
+      assert.strictEqual(firstSubmission.status, 200);
+
+      const secondSubmission = await postJson(`${server.baseUrl}/content-submission`, {
+        contentUrl: 'https://x.com/alice/status/18347',
+        statementCid: VALID_STATEMENT_CID,
+      });
+      assert.strictEqual(secondSubmission.status, 429);
+      assert.deepStrictEqual(await secondSubmission.json(), {
+        error: 'rate_limit_exceeded',
+        message: 'Too many content submission requests. Please wait before trying again.',
+        retryAfter: 60,
+      });
     } finally {
       await server.close();
     }
@@ -420,6 +501,7 @@ async function startTestServer(options: {
     corsAllowedOrigins: '*',
     commonalityTwitterHandle: '@commonality',
     claimPageBaseUrl: undefined,
+    contentSubmissionsFilePath: './platform-api-content-submissions.json',
     xApiBearerToken: 'token',
     xApiBaseUrl: 'https://api.x.com',
     youtubeApiKey: 'key',
@@ -434,6 +516,8 @@ async function startTestServer(options: {
     resolveRateLimitMaxRequests: 60,
     verifyRateLimitWindowMs: 60_000,
     verifyRateLimitMaxRequests: 5,
+    submissionRateLimitWindowMs: 60_000,
+    submissionRateLimitMaxRequests: 5,
     ...options.configOverrides,
   });
 
@@ -482,6 +566,10 @@ function postJson(url: string, body: unknown): Promise<Response> {
 function createStubService(overrides: Partial<{
   resolveChannel: (platform: string, handle: string) => ReturnType<PlatformApiService['resolveChannel']>;
   resolveContent: (url: string) => ReturnType<PlatformApiService['resolveContent']>;
+  listContentSubmissions: () => ReturnType<PlatformApiService['listContentSubmissions']>;
+  submitContent: (
+    request: Parameters<PlatformApiService['submitContent']>[0],
+  ) => ReturnType<PlatformApiService['submitContent']>;
   createVerificationChallenge: (
     request: {
       platform: string;
@@ -508,6 +596,8 @@ function createStubService(overrides: Partial<{
       canonicalId: 'twitter:uid:12345678:18347',
       metadata: {},
     })),
+    listContentSubmissions: overrides.listContentSubmissions ?? (async () => []),
+    submitContent: overrides.submitContent ?? (async (request) => request),
     createVerificationChallenge: overrides.createVerificationChallenge ?? (async () => ({
       nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
       challengeCode: 'challenge',

@@ -24,6 +24,20 @@ export async function loadSubmissions(filePath: string): Promise<ContentSubmissi
   }
 }
 
+export async function loadSubmissionsFromApi(apiUrl: string): Promise<ContentSubmission[]> {
+  const response = await fetch(apiUrl);
+  if (!response.ok) {
+    throw new Error(`Submission API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  const parsed = await response.json() as unknown;
+  if (!Array.isArray(parsed)) {
+    throw new Error('Submission API response must contain a JSON array');
+  }
+
+  return parsed.map((entry, index) => parseSubmission(entry, index));
+}
+
 function parseSubmission(value: unknown, index: number): ContentSubmission {
   const entry = value as Partial<ContentSubmission>;
   if (!entry || typeof entry.contentUrl !== 'string' || typeof entry.statementCid !== 'string') {

@@ -19,6 +19,7 @@ import { StatementSuggestions } from '../components/StatementSuggestions'
 import { HighProfileSigners } from '../components/HighProfileSigners'
 import { AvailableDelegatableFunding } from '../../delegation/components'
 import { FundingPortalSummary } from '../../fundingportal/components'
+import { ContentSubmissionForm } from '../../content-funding/components/ContentSubmissionForm'
 
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: IpfsCidV1 }>()
@@ -168,6 +169,8 @@ export function StatementPage() {
         statementCid={statementCid || ''}
         trustedAlignmentAttesters={trustedAlignmentAttesters}
       />
+
+      <ContentSubmissionForm statementCid={statementCid as IpfsCidV1} />
     </Box>
   )
 }

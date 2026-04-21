@@ -5,6 +5,7 @@ Backend service for the content-funding system's platform-dependent work:
 1. Resolve creator handles to stable channel IDs
 2. Resolve content URLs to canonical content IDs and validate ownership
 3. Issue and confirm Twitter-based channel-claim verification challenges
+4. Accept and serve queued content-attester submissions
 
 ## Current scope
 
@@ -36,6 +37,7 @@ All configuration is via environment variables.
 - `CORS_ALLOWED_ORIGINS` default `*`; either `*` for wildcard CORS or a comma-separated list of bare origins like `https://app.example.com,http://localhost:5173`
 - `COMMONALITY_TWITTER_HANDLE` default `@commonality`
 - `CLAIM_PAGE_BASE_URL` optional public base URL used in challenge tweet templates
+- `CONTENT_SUBMISSIONS_FILE_PATH` default `./platform-api-content-submissions.json`
 
 ### Twitter/X
 
@@ -62,6 +64,8 @@ All configuration is via environment variables.
 - `RESOLVE_RATE_LIMIT_MAX_REQUESTS` default `60`
 - `VERIFY_RATE_LIMIT_WINDOW_MS` default `60000`
 - `VERIFY_RATE_LIMIT_MAX_REQUESTS` default `5`
+- `SUBMISSION_RATE_LIMIT_WINDOW_MS` default `60000`
+- `SUBMISSION_RATE_LIMIT_MAX_REQUESTS` default `10`
 
 ## Running
 
@@ -139,6 +143,24 @@ Currently supports `platform: "twitter"` only.
 ### `POST /verify/confirm`
 
 Confirms the verification post, signs the proof, and optionally submits the on-chain transaction if configured.
+
+### `GET /content-submission`
+
+Returns the current queued content submissions as JSON.
+
+### `POST /content-submission`
+
+Queues a content item for the content finder to process:
+
+```json
+{
+  "contentUrl": "https://x.com/alice/status/18347",
+  "statementCid": "bafy...",
+  "declaredPerspective": "optional perspective string"
+}
+```
+
+The service validates the URL/CID pair, deduplicates exact repeats, persists the queue to `CONTENT_SUBMISSIONS_FILE_PATH`, and returns `201 Created`.
 
 ### `GET /health`
 

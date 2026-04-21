@@ -3,14 +3,20 @@ import { loadConfig } from './config.js';
 import { evaluateContentBatch, type ContentAttesterRequest } from './attesterClient.js';
 import { resolveContentCandidate } from './platformApiClient.js';
 import { loadState, saveState } from './state.js';
-import { loadSubmissions, submissionKey } from './submissions.js';
+import {
+  loadSubmissions,
+  loadSubmissionsFromApi,
+  submissionKey,
+} from './submissions.js';
 
 const config = loadConfig();
 
 async function runOnce(): Promise<void> {
   const [state, submissions] = await Promise.all([
     loadState(config.stateFilePath),
-    loadSubmissions(config.submissionsFilePath),
+    config.submissionsApiUrl
+      ? loadSubmissionsFromApi(config.submissionsApiUrl)
+      : loadSubmissions(config.submissionsFilePath),
   ]);
 
   const processedKeys = new Set(state.processedSubmissionKeys);
@@ -96,7 +102,11 @@ async function runOnce(): Promise<void> {
 async function main() {
   console.log(`  Platform API: ${config.platformApiUrl}`);
   console.log(`  Attester: ${config.attesterUrl}`);
-  console.log(`  Submission file: ${config.submissionsFilePath}`);
+  console.log(
+    config.submissionsApiUrl
+      ? `  Submission API: ${config.submissionsApiUrl}`
+      : `  Submission file: ${config.submissionsFilePath}`,
+  );
 
   await runPollingFinder({
     serviceName: 'Content Finder',

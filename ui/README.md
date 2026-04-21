@@ -48,6 +48,7 @@ Here's a list of what's done (please keep this list concise):
   - HomePage: Shows CreateStatementForm when logged in, link to user profile, quick actions
   - CreateStatementForm: Component for creating statements (uploads to IPFS, signs via Beliefs contract, updates MutableRefUpdater with created statements list)
   - StatementPage: Full page displaying statement content (rendered markdown), direct/indirect support metrics, belief controls for believe/disbelieve/clear opinion
+  - ContentSubmissionForm: Statement-scoped form for queueing posts/videos/articles for content-attester review through the platform API
   - BeliefControls: Component for expressing belief/disbelief/clearing opinion on statements
   - SupportMetrics: Component displaying direct believers, indirect supporters, and disbelievers
   - StatementRenderer: Component for rendering statement content with markdown support, reference handling, and metadata display

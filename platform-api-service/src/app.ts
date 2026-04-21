@@ -7,6 +7,7 @@ import { createRateLimiter } from './rateLimit.js';
 import { toErrorResponse } from './errors.js';
 import type { PlatformApiService } from './service.js';
 import type { PlatformApiServiceConfig } from './config.js';
+import { parseContentSubmission } from './submissions.js';
 
 export function createApp(
   service: PlatformApiService,
@@ -26,6 +27,12 @@ export function createApp(
     windowMs: config.verifyRateLimitWindowMs,
     maxRequests: config.verifyRateLimitMaxRequests,
     message: 'Too many verification requests. Please wait before trying again.',
+  });
+
+  const submissionLimiter = createRateLimiter({
+    windowMs: config.submissionRateLimitWindowMs,
+    maxRequests: config.submissionRateLimitMaxRequests,
+    message: 'Too many content submission requests. Please wait before trying again.',
   });
 
   app.post('/resolve/channel', resolveLimiter, handleRoute(async (req: Request, res: Response) => {
@@ -56,6 +63,16 @@ export function createApp(
     }
 
     res.json(await service.resolveContent(url));
+  }));
+
+  app.get('/content-submission', submissionLimiter, handleRoute(async (_req: Request, res: Response) => {
+    res.json(await service.listContentSubmissions());
+  }));
+
+  app.post('/content-submission', submissionLimiter, handleRoute(async (req: Request, res: Response) => {
+    const submission = parseContentSubmission(req.body);
+    const created = await service.submitContent(submission);
+    res.status(201).json(created);
   }));
 
   app.post('/verify/challenge', verifyLimiter, handleRoute(async (req: Request, res: Response) => {

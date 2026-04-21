@@ -1,6 +1,7 @@
 import { loadConfig } from './config.js';
 import { createApp } from './app.js';
 import { PlatformApiService } from './service.js';
+import { FileContentSubmissionStore } from './submissions.js';
 import { TwitterClient } from './twitterClient.js';
 import { YouTubeClient } from './youtubeClient.js';
 
@@ -9,6 +10,7 @@ const service = new PlatformApiService({
   config,
   twitterClient: new TwitterClient(config),
   youtubeClient: new YouTubeClient(config),
+  contentSubmissionStore: new FileContentSubmissionStore(config.contentSubmissionsFilePath),
 });
 const app = createApp(service, config);
 

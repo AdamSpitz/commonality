@@ -7,6 +7,7 @@ export interface PlatformApiServiceConfig {
   corsAllowedOrigins: CorsAllowedOrigins;
   commonalityTwitterHandle: string;
   claimPageBaseUrl?: string;
+  contentSubmissionsFilePath: string;
   xApiBearerToken?: string;
   xApiBaseUrl: string;
   youtubeApiKey?: string;
@@ -21,6 +22,8 @@ export interface PlatformApiServiceConfig {
   resolveRateLimitMaxRequests: number;
   verifyRateLimitWindowMs: number;
   verifyRateLimitMaxRequests: number;
+  submissionRateLimitWindowMs: number;
+  submissionRateLimitMaxRequests: number;
 }
 
 export function loadConfig(): PlatformApiServiceConfig {
@@ -31,6 +34,7 @@ export function loadConfig(): PlatformApiServiceConfig {
       process.env.COMMONALITY_TWITTER_HANDLE ?? '@commonality',
     ),
     claimPageBaseUrl: normalizeOptionalUrl(process.env.CLAIM_PAGE_BASE_URL),
+    contentSubmissionsFilePath: process.env.CONTENT_SUBMISSIONS_FILE_PATH || './platform-api-content-submissions.json',
     xApiBearerToken: normalizeOptionalString(process.env.X_API_BEARER_TOKEN),
     xApiBaseUrl: normalizeRequiredUrlBase(process.env.X_API_BASE_URL ?? 'https://api.x.com'),
     youtubeApiKey: normalizeOptionalString(process.env.YOUTUBE_API_KEY),
@@ -66,6 +70,16 @@ export function loadConfig(): PlatformApiServiceConfig {
       'VERIFY_RATE_LIMIT_MAX_REQUESTS',
       process.env.VERIFY_RATE_LIMIT_MAX_REQUESTS,
       5,
+    ),
+    submissionRateLimitWindowMs: parseInteger(
+      'SUBMISSION_RATE_LIMIT_WINDOW_MS',
+      process.env.SUBMISSION_RATE_LIMIT_WINDOW_MS,
+      60_000,
+    ),
+    submissionRateLimitMaxRequests: parseInteger(
+      'SUBMISSION_RATE_LIMIT_MAX_REQUESTS',
+      process.env.SUBMISSION_RATE_LIMIT_MAX_REQUESTS,
+      10,
     ),
   };
 }

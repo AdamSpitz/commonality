@@ -1,5 +1,53 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Content Submission UI/API (Completed)
+
+**Task**: Complete the content-submission item from [TODO.md](TODO.md) by adding the queue API, teaching the content finder to poll it, and exposing a minimal UI entry point.
+
+**What was done**:
+- Added persistent `GET /content-submission` and `POST /content-submission` endpoints to `platform-api-service`, backed by a JSON queue file with CID/content-url validation, deduplication, and dedicated rate limiting.
+- Wired `content-finder` to poll `SUBMISSIONS_API_URL` when configured, while preserving the existing `SUBMISSIONS_FILE_PATH` fallback for operator-managed workflows.
+- Added a minimal `ContentSubmissionForm` to the statement page so users can queue a post/video/article for the current statement without needing an admin-only path.
+- Updated package READMEs so the new queue file/env vars/endpoints are discoverable.
+- Updated [TODO.md](TODO.md) to remove the completed AI-services item.
+
+**Key decisions**:
+- Kept storage intentionally simple: JSON file on the platform-api-service filesystem, matching the spec and the repo's existing lightweight service patterns.
+- Put the UI entry point on the shared statement page rather than inventing a separate navigation flow first. That keeps the feature usable immediately across domains that expose statements.
+- Preserved the content-finder file queue as a fallback instead of forcing every deployment onto the API on day one.
+
+**Verified**:
+- `npm run test --workspace=@commonality/platform-api-service`
+- `npm run test --workspace=@commonality/content-finder`
+- `npm run test --workspace=ui -- ContentSubmissionForm StatementPage`
+- `npm run build --workspace=@commonality/content-finder`
+- `npm run build --workspace=ui`
+
+**Files changed**:
+- `platform-api-service/src/submissions.ts`
+- `platform-api-service/src/app.ts`
+- `platform-api-service/src/config.ts`
+- `platform-api-service/src/index.ts`
+- `platform-api-service/src/service.ts`
+- `platform-api-service/src/app.test.ts`
+- `platform-api-service/src/service.test.ts`
+- `platform-api-service/README.md`
+- `content-finder/src/config.ts`
+- `content-finder/src/index.ts`
+- `content-finder/src/submissions.ts`
+- `content-finder/test/submissions.test.ts`
+- `content-finder/README.md`
+- `ui/src/content-funding/components/ContentSubmissionForm.tsx`
+- `ui/src/content-funding/components/ContentSubmissionForm.test.tsx`
+- `ui/src/content-funding/hooks/usePlatformApi.ts`
+- `ui/src/conceptspace/pages/StatementPage.tsx`
+- `ui/src/conceptspace/pages/StatementPage.test.tsx`
+- `ui/README.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The content-submission pipeline now exists end-to-end. A natural next step would be operator tooling for queue inspection/cleanup or moving the statement-scoped form into a more explicitly content-funding-branded surface if that product distinction matters later.
+
 ## 2026-04-21 - AI Services: UI Nudge-Batch Statement Suggestions (Completed)
 
 **Task**: Complete the first UI nudge-display item from [TODO.md](TODO.md) by replacing the old proto-nudger statement suggestion flow with real `nudge-batch` publications.
