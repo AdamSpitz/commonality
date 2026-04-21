@@ -42,6 +42,8 @@ export interface ContractAddresses {
   mutableRefUpdater: `0x${string}`;
   /** TrustRegistry.sol -- stores direct trust scores between addresses. */
   trustRegistry: `0x${string}`;
+  /** NudgePublications.sol -- records nudger publication CIDs. */
+  nudgePublications?: `0x${string}`;
   /** ContentRegistry.sol -- registers content for the content-funding subsystem. */
   contentRegistry?: `0x${string}`;
   /** ChannelRegistry.sol -- registers funding channels. */

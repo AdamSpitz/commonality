@@ -12,3 +12,8 @@ export interface ImplicationAttestationEvent extends RawEvent {
   toStatementCid: string;    // CIDv1
   explanationCid: string;    // CIDv1
 }
+
+export interface NudgesPublishedEvent extends RawEvent {
+  nudger: `0x${string}`;
+  publicationCid: string;  // CIDv1
+}

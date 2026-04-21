@@ -29,6 +29,7 @@ export function useMachinery(): SDKMachinery {
       alignmentAttestations: import.meta.env.VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS as `0x${string}`,
       mutableRefUpdater: import.meta.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`,
       trustRegistry: import.meta.env.VITE_TRUST_REGISTRY_CONTRACT_ADDRESS as `0x${string}`,
+      nudgePublications: import.meta.env.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined,
       contentRegistry: import.meta.env.VITE_CONTENT_REGISTRY_ADDRESS as `0x${string}` | undefined,
       channelRegistry: import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS as `0x${string}` | undefined,
       channelEscrow: import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS as `0x${string}` | undefined,

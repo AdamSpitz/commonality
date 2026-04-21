@@ -18,6 +18,7 @@ import {
   ChannelRegistryAbi,
   ChannelEscrowAbi,
   CreatorAssuranceContractFactoryAbi,
+  NudgePublicationsAbi,
 } from '../abis.js';
 
 const ABI_MAP: Record<string, readonly unknown[]> = {
@@ -36,6 +37,7 @@ const ABI_MAP: Record<string, readonly unknown[]> = {
   ChannelRegistry: ChannelRegistryAbi,
   ChannelEscrow: ChannelEscrowAbi,
   CreatorAssuranceContractFactory: CreatorAssuranceContractFactoryAbi,
+  NudgePublications: NudgePublicationsAbi,
 };
 
 function decodeRawEventLog(rawEvent: RawEventFromCache): Record<string, unknown> | null {
@@ -97,6 +99,16 @@ export interface DecodedImplicationAttestationEvent {
   logIndex: number;
 }
 
+export interface DecodedNudgesPublishedEvent {
+  nudger: `0x${string}`;
+  publicationCid: string;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+}
+
 export function decodeDirectSupportEvent(rawEvent: RawEventFromCache): DecodedDirectSupportEvent | null {
   if (rawEvent.eventName !== 'DirectSupport') return null;
   
@@ -126,6 +138,23 @@ export function decodeImplicationAttestationEvent(rawEvent: RawEventFromCache): 
     fromStatementCid: bytes32ToCid(args.fromStatementCid as `0x${string}`),
     toStatementCid: bytes32ToCid(args.toStatementCid as `0x${string}`),
     explanationCid: args.explanationCid ? bytes32ToCid(args.explanationCid as `0x${string}`) : '',
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeNudgesPublishedEvent(rawEvent: RawEventFromCache): DecodedNudgesPublishedEvent | null {
+  if (rawEvent.eventName !== 'NudgesPublished') return null;
+
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+
+  return {
+    nudger: args.nudger as `0x${string}`,
+    publicationCid: bytes32ToCid(args.batchCid as `0x${string}`),
     contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),

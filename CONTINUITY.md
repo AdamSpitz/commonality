@@ -1,5 +1,54 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: SDK Typed Nudger Publication Fetch/Fold (Completed)
+
+**Task**: Complete the AI-services blocker from [TODO.md](TODO.md) by teaching the SDK to fetch and fold typed nudger publications (`nudge-batch` and `curated-collection`) from indexer `NudgesPublished` events.
+
+**What was done**:
+- Added `nudgePublications` to `ContractAddresses` and threaded it through the UI machinery hook, integration-test machinery, and local deploy env propagation so future nudger/explorer UI work has the contract address available.
+- Extended the SDK event decoder with `decodeNudgesPublishedEvent`, plus conceptspace event/type definitions for typed nudger publications, folded nudges, and folded curated collections.
+- Added conceptspace fold/query support for:
+  - fetching typed nudger publications from trusted nudger addresses
+  - folding additive/revocable `nudge-batch` publications
+  - folding latest-wins `curated-collection` publications per `(nudger, stream)`
+- Added SDK tests covering the new event decoder and the end-to-end query/fold behavior.
+- Fixed the mock IPFS JSON upload helper to use dag-pb CIDs, matching the bytes32 CID roundtrip used by on-chain publication events.
+- Updated [TODO.md](TODO.md) to remove the completed SDK blocker and promote the UI work that it unblocks.
+
+**Key decisions**:
+- Kept the new SDK API additive rather than replacing the old proto-nudger path immediately. The existing `getStatementSuggestions` helper remains untouched; new callers should use the nudger-publication queries.
+- Made `contractAddresses.nudgePublications` optional at the type level for backward compatibility, but nudger-publication queries fail fast if it is missing.
+- Treated trusted nudgers as explicit allowlists: if no trusted nudger list is provided, the nudger-publication queries return no publications rather than falling back to "all nudgers."
+
+**Verified**:
+- `npm run typecheck --workspace=sdk`
+- `npm run lint --workspace=sdk`
+- `npm run test --workspace=sdk -- --require tsx/cjs "src/**/*.test.ts"`
+- `npm run build --workspace=sdk`
+- `npm run build --workspace=ui`
+- `npm run typecheck --workspace=integration-tests`
+- `npm run integration-tests`
+  - Result: all relevant work passed, but the suite still has one unrelated failing test: `Pubstarter Edge Cases -> should allow refund after project fails to meet threshold by deadline`. The failure reproduces on targeted rerun and appears to be an existing timing issue with the test's ~2-second deadline, not with this SDK change.
+
+**Files changed**:
+- `sdk/src/machinery.ts`
+- `sdk/src/utils/eventDecoder.ts`
+- `sdk/src/utils/eventDecoder.test.ts`
+- `sdk/src/utils/mock-ipfs.ts`
+- `sdk/src/subsystems/conceptspace/events.ts`
+- `sdk/src/subsystems/conceptspace/types.ts`
+- `sdk/src/subsystems/conceptspace/folds.ts`
+- `sdk/src/subsystems/conceptspace/queries.ts`
+- `sdk/src/subsystems/conceptspace/queries.test.ts`
+- `ui/src/shared/hooks/useMachinery.ts`
+- `ui/.env.example`
+- `integration-tests/src/actions/action-machinery.ts`
+- `hardhat/scripts/deploy.js`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The SDK blocker is now removed. The natural next task is the UI work in TODO item 1: replace `StatementSuggestions` / `getStatementSuggestions` with a real nudge-display flow that reads folded `nudge-batch` publications.
+
 ## 2026-04-21 - AI Services: Typed NudgeBatch Envelope Fields (Completed)
 
 **Task**: Complete the nudger-core code gap from [TODO.md](TODO.md) / [nudger-core/README.md](nudger-core/README.md) by adding the typed publication envelope fields to `NudgeBatch`.

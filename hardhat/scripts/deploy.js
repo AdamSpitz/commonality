@@ -402,12 +402,18 @@ async function main() {
     console.log('  No existing ui/.env, creating new one');
   }
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_BELIEFS_CONTRACT_ADDRESS', beliefsAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_IMPLICATIONS_CONTRACT_ADDRESS', implicationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', delegatableNotesAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_NOTE_INTENT_CONTRACT_ADDRESS', noteIntentAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', alignmentAttestationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS', trustRegistryAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', nudgePublicationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CONTENT_REGISTRY_ADDRESS', contentRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_REGISTRY_ADDRESS', channelRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_ESCROW_ADDRESS', channelEscrowAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS', creatorContractFactoryAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_PUBSTARTER_CONTRACT_ADDRESS', pubstarterAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_PAYMENT_TOKEN_ADDRESS', paymentTokenAddress);
   if (isLocal) {
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');

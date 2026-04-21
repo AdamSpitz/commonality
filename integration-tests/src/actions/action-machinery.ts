@@ -29,6 +29,7 @@ export function createActionTestingMachinery(indexerUrl: string): ActionTestingM
     alignmentAttestations: process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as `0x${string}`,
     mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`,
     trustRegistry: process.env.TRUST_REGISTRY_ADDRESS as `0x${string}`,
+    nudgePublications: process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined,
   };
 
   return createSDKMachinery(indexerUrl, ipfsConfig, createTwitterApiConfigInNodeJSFromTheUsualEnvVars(), testConfig, publicClient, eventCacheUrl, contractAddresses);
