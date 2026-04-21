@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services Review Plan: Chunk 2 (Completed)
+
+**Task**: Chunk 2 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — reconcile `specs/product/bridge-finder.md` with the current architecture.
+
+**What was done**:
+- Rewrote [specs/product/bridge-finder.md](specs/product/bridge-finder.md) to resolve the architecture confusion. The old file was a pre-architecture sketch asking "should we build a separate bridge-finder service?" The answer is now clear: no. The two bridge problems are:
+  1. **Active synthesis** (creating new statements) → handled by the bridge-creator nudger (already specced)
+  2. **Priority discovery** (finding cross-side moderate pairs worth evaluating) → a scoring enhancement to the existing implication finder, not a new service
+- The new bridge-finder.md explains the distinction, recommends implementing bridge-priority scoring as a mode of the implication finder, describes what metadata would be needed (polarity, isModerate, hasConditionalClauses), and notes that this is not blocking anything.
+- Updated [specs/product/bridge-creator.md](specs/product/bridge-creator.md):
+  - Fixed two broken relative paths (`specs/tech/...` → `../tech/...`)
+  - Updated "signed nudge messages" language to match the current nudger publication model (`nudge-batch` publications, IPFS CID on-chain)
+  - Replaced the hints.md reference with a direct link to the nudger spec (`../tech/subsystems/nudger/README.md`)
+- Marked Chunk 2 complete in AI-SERVICES-REVIEW-PLAN.md.
+
+**Key decisions**:
+- Did not change the bridge-creator.md's thinking-out-loud voice or the worked abortion example — that's still the clearest illustration of what the bridge-creator does.
+- The bridge-finder.md path fixes were needed because the file was using repo-root-relative paths in markdown links (e.g. `specs/tech/...`) rather than relative paths from `specs/product/` (e.g. `../tech/...`).
+
+**Files changed**:
+- `specs/product/bridge-finder.md`
+- `specs/product/bridge-creator.md`
+- `AI-SERVICES-REVIEW-PLAN.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Chunk 2 is complete. Continue with Chunk 3 (check nudger-core and implication-graph-nudger code against the publication-model spec).
+
 ## 2026-04-21 - AI Services Review Plan: Chunk 1 (Completed)
 
 **Task**: Chunk 1 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — rewrite `specs/product/ai-assistance.md`.

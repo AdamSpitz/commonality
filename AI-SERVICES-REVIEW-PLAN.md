@@ -129,13 +129,13 @@ Each chunk below is designed to be completed by a single fresh LLM instance. Do 
 - [ ] Keep the "two layers" framing at the top — it's good. Just make it clear which layer each thing is in.
 
 ### Chunk 2: Reconcile `specs/product/bridge-finder.md` with the current architecture
-- [ ] Read `specs/product/bridge-finder.md` and `specs/product/bridge-creator.md`
-- [ ] Read the nudger spec and implication-finder code/spec
-- [ ] Rewrite `bridge-finder.md` to clarify:
+- [x] Read `specs/product/bridge-finder.md` and `specs/product/bridge-creator.md`
+- [x] Read the nudger spec and implication-finder code/spec
+- [x] Rewrite `bridge-finder.md` to clarify:
   - The "bridge-creator nudger" handles the *active synthesis* case (creating new statements)
   - The "bridge-finder" idea (prioritizing cross-side moderate pairs for the implication attester) could be a mode/configuration of the existing implication finder, not a separate service
   - Resolve the open questions in the spec (is it premature? is it necessary? etc.) — recommend making it a priority-scoring enhancement to the implication finder
-- [ ] Update `bridge-creator.md` if needed to ensure it clearly cross-references the nudger spec and doesn't repeat outdated information
+- [x] Update `bridge-creator.md` if needed to ensure it clearly cross-references the nudger spec and doesn't repeat outdated information
 
 ### Chunk 3: Check nudger-core and implication-graph-nudger code against the publication-model spec
 - [ ] Read the nudger spec's publication model (`specs/tech/subsystems/nudger/README.md`)

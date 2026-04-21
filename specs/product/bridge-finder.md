@@ -1,104 +1,57 @@
-# Bridge Finder: A Focused Implication Discovery Approach
+# Bridge Finder: Priority Scoring for the Implication Finder
 
-*(not a finished spec — just sketching ideas)*
+*(architecture note — not a standalone service)*
 
-## The Question
+## The Distinction That Matters
 
-The current implication-finder is deliberately simple: it watches for new statements, finds popular ones, and pairs them in both directions. No domain awareness, no polarity detection, no sense of whether a pair represents "common ground" vs just any implication.
+There are two different "bridge" problems, and they belong to different tiers of the architecture:
 
-Is that enough? Maybe. But there's a case for a **focused** finder that specifically hunts for hidden-majority patterns.
+1. **Active synthesis** — creating new statements that bridge opposing positions. This is the [bridge-creator nudger](./bridge-creator.md)'s job. It synthesizes modified statements and commonality statements, then nudges users toward them. This is specced and stubbed.
 
-## The Hidden-Majority Angle
+2. **Priority discovery** — finding existing statement pairs where a hidden-majority pattern is *already latent* in what users have written. This is an implication finder problem: instead of treating all candidate pairs equally, score them by how likely they are to represent cross-side common ground.
 
-The [hidden-majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) spec describes several patterns where moderate statements on both sides imply a shared conclusion:
+This doc is about the second problem. The first problem is solved. Don't confuse them.
 
-- **Compromise in the middle**: "I'd accept 14 weeks" + "I'd accept 16 weeks" → "12-18 weeks is fine"
-- **Same values, different beliefs**: "If X is true, then Y" from both sides
-- **Different problems, same solution**: Both sides arrive at the same policy for different reasons
+## Why Priority Scoring Belongs in the Implication Finder
 
-These aren't just any implications — they're the ones that make the system *useful* for coalition-building. A finder that prioritizes finding these could be valuable even if it submits fewer pairs.
+The implication finder already:
+- Has visibility into the full set of statements
+- Selects pairs and submits them to the attester for evaluation
+- Can be tuned independently of the attester
 
-## What It Would Look Like
+Adding bridge-priority scoring to the finder means the same service that finds "ordinary" implications can *also* prioritize the pairs most likely to surface hidden-majority patterns. There's no need for a separate bridge-finder service.
 
-A **bridge-finder** (name TBD) that runs alongside the general one, with different heuristics:
+The earlier open question "Is it necessary to have a separate service?" is resolved: **no**. Implement it as a scoring mode or heuristic within the existing implication finder.
 
-### Candidate Selection
+## What Bridge Priority Scoring Would Look Like
 
-Instead of "new + popular", it would look for:
+The core idea: when the finder selects pairs, give a higher submission priority to cross-side pairs where both statements contain moderate or conditional language — because those are the ones that fit the [hidden-majority patterns](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md).
 
-1. **Cross-side moderate pairs** — statements from opposing polarities (left/right) that both contain moderate/conditional language ("I'm okay with...", "as long as...", "obviously...")
+Candidate signals (for a future implementation pass):
+- **Cross-polarity** — statements from opposing sides (left vs. right, not both center) that might converge
+- **Moderate/conditional language** — "I'd accept...", "as long as...", "I'd rather..."
+- **Transitive bridges** — if A→B and C→B are both attested and A & C are from different sides, A↔C is a high-value pair to evaluate
 
-2. **Transitive bridges** — If A→B and C→B are both attested, and A & C are from different sides, flag A↔C as a potential bridge
+The attester doesn't need to know about priority scores; it evaluates whatever pairs it receives. Priority scoring just changes which pairs the finder submits first when volume is high.
 
-3. **Same-domain, same-values** — Statements in the same domain that express similar values but different beliefs
+## What's Missing Before This Can Be Built
 
-### Priority Scoring
+The main blocker is that statements don't currently carry polarity metadata:
+- `polarity` — left/right/center/unknown
+- `isModerate` — boolean
+- `hasConditionalClauses`
 
-Pairs would get a "bridge score" that the attester could use to prioritize evaluation:
+Where this comes from is still an open question. Options: AI-tagged at finder-time (most flexible), inferred from statement content, or added by statement writers. Finder-time AI tagging is probably the right first pass — it keeps the statement schema simple and doesn't add writer burden.
 
-```typescript
-function bridgeScore(a: Statement, b: Statement): number {
-  let score = 0;
-  
-  // Core heuristic: cross-side moderate statements
-  if (a.polarity !== b.polarity && 
-      a.polarity !== 'center' && 
-      b.polarity !== 'center') {
-    score += 50;
-  }
-  
-  // Moderate/conditional language
-  if (a.hasConditionalClauses || a.isModerate) score += 20;
-  if (b.hasConditionalClauses || b.isModerate) score += 20;
-  
-  return score;
-}
-```
+The same-domain restriction discussed in the [implication discovery spec](../tech/subsystems/conceptspace/implication-discovery.md) should land first; bridge priority scoring is a follow-on enhancement once the basic finder is tuned.
 
-### Statement Metadata
+## Status
 
-This requires statements to carry metadata beyond just content — things like:
-- `domain` (already planned)
-- `polarity` — left/right/center/unknown (who wrote it or how they self-identify)
-- `isModerate` — boolean (does the statement contain "moderate" language?)
-- `hasConditionalClauses` — string[] ("as long as...", "if...")
-
-Where does this metadata come from? Options:
-- AI-tagged by the attester when it evaluates
-- Added by the statement writer
-- Inferred from statement content at finder-time
-
-## Why Not Just One Finder?
-
-The spec already mentions finders can be sharded:
-> "finders will probably be stateful, but they're more 'open' and can be 'sharded'; we (or anyone else) can just start finders focused on particular areas"
-
-A focused bridge-finder could:
-- Run less frequently (fewer pairs = less compute)
-- Have stricter submission criteria (higher signal, lower noise)
-- Be tuned independently for the hidden-majority use case
-
-The general finder still catches all the "ordinary" implications.
-
-## Open Questions
-
-1. **Is this premature?** The system doesn't even have the basic finder running yet. Maybe build that first and see what patterns emerge before adding specialized finders.
-
-2. **Where does polarity come from?** We don't currently track who believes what by polarity. Would we need a separate "user polarity" dimension on beliefs?
-
-3. **Is it necessary?** Maybe a single finder that weights cross-side moderate pairs higher is simpler than two separate finders. The priority scoring idea above could just be added to the existing finder.
-
-4. **What about the attester?** If the finder submits priority-ranked pairs, does the attester need to know about priority? Or does it just evaluate everything it receives equally?
-
-## Next Steps
-
-- Maybe prototype this as a "mode" flag on the existing finder rather than a separate service
-- Wait until we have real statement data to see what patterns actually look like
-- Discuss: is this worth building, or is the "dumb" finder + attester enough to surface hidden majorities anyway?
+Not yet implemented. Not blocking. The right time to implement is after the basic implication finder is running in production and we have real statement data to see what patterns emerge. Bridge priority scoring is an optimization, not a prerequisite.
 
 ---
 
 See also:
 - [Implication Discovery](../tech/subsystems/conceptspace/implication-discovery.md) — current finder spec
-- [Hidden Majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) — the patterns we're trying to find
-- [Bridge Creator](./bridge-creator.md) — actively tries to find common ground
+- [Hidden Majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) — the patterns we're trying to surface
+- [Bridge Creator](./bridge-creator.md) — handles active synthesis (the other bridge problem)

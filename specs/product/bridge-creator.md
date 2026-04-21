@@ -11,7 +11,7 @@ More than just a [bridge finder](./bridge-finder.md), I feel like there's some A
         - Modified statement, intended to appeal to moderate left: "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I don't mind forbidding abortions after maybe the first trimester or so - that would give women enough time to make a decision. I'd rather get this settled than keep fighting over it forever."
         - Modified statement, intended to appeal to moderate right: "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. I'd rather get this settled than keep fighting over it forever."
         - Common ground: "I'd be okay with it if abortion were allowed during the first 12-16 weeks, and forbidden after that. I'd rather get this settled than keep fighting over it forever."
-  - The implication attester should be set up with a prompt that will make it clear to it that it should NOT just create implication links from the actual moderate-left statement to the modified moderate-left statement. But the [nudging](specs/tech/subsystems/conceptspace/hints.md) system should suggest it.
+  - The implication attester should be set up with a prompt that will make it clear to it that it should NOT just create implication links from the actual moderate-left statement to the modified moderate-left statement. But the [nudging](../tech/subsystems/conceptspace/hints.md) system should suggest it.
   - And it's fine for the implication attester to create implication links from the modified moderate statements to the common ground statement - those really do imply that.
   - And then on top of the nudging system, we also have the [noninflammatory content](specs/tech/subsystems/conceptspace/content-patterns/noninflammatory-content.md) system to let people on the right suggest to people on the left (and vice versa): "Hey, take a look at this modified statement; I think you might be willing to sign it, and notice that it'd imply that you're okay with this common-ground statement that we on 'the other side' are also okay with."
 
@@ -22,13 +22,13 @@ This is starting to feel interesting to me. I'm starting to get a clearer sense 
 
 ## How the bridge-creator fits into the system architecture
 
-The bridge-creator is a **nudger** — an off-chain service identified by its Ethereum address that publishes signed nudge messages. See [hints.md](specs/tech/subsystems/conceptspace/hints.md) for the full nudger architecture.
+The bridge-creator is a **nudger** — an off-chain service identified by its Ethereum address that publishes typed nudger publications to IPFS with CIDs recorded on-chain. See the [nudger spec](../tech/subsystems/nudger/README.md) for the full nudger architecture.
 
 Concretely, the bridge-creator:
 1. Watches for new statements via the indexer.
 2. Identifies pairs that look like they *almost* bridge (moderate statements from opposing sides with compatible positions).
 3. Synthesizes modified statements and commonality statements, publishing them to IPFS.
-4. Publishes signed nudge messages connecting original statements to the synthesized ones ("you signed S1; you might also want to sign this modified version").
+4. Collects the resulting nudges and publishes them as a `nudge-batch` publication (IPFS document, CID recorded on-chain via `NudgePublications`).
 5. Separately, submits the modified→commonality pairs to the implication attester for evaluation (those *are* legitimate implication attestations — the modified statements really do imply the commonality statement).
 
-Users configure whether they trust this nudger in Settings, same as they configure trusted attesters. The bridge-creator's nudges are off-chain (signed messages, no gas cost, no permanent on-chain record), while the implication attestations it triggers are on-chain as usual.
+Users configure whether they trust this nudger in Settings, same as they configure trusted attesters. The bridge-creator's nudge publications are discovered via on-chain `NudgesPublished` events (cheap, no permanent per-nudge state), while the implication attestations it triggers are stored on-chain as usual.
