@@ -1,4 +1,6 @@
-import { OpenRouterInvalidJsonError, requestJsonCompletion } from '@commonality/attester-core';
+import { OpenRouterInvalidJsonError, requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
+
+export type RequestJsonCompletionFn = <T>(request: OpenRouterJsonRequest) => Promise<T>;
 
 export interface LlmEvaluationResult {
   implies: boolean;
@@ -10,12 +12,13 @@ export async function evaluateImplicationWithLLM(
   statement1Content: string,
   statement2Content: string,
   apiKey: string,
-  model: string = 'anthropic/claude-3.5-haiku'
+  model: string = 'anthropic/claude-3.5-haiku',
+  requestJsonCompletionFn: RequestJsonCompletionFn = requestJsonCompletion
 ): Promise<LlmEvaluationResult> {
   const prompt = buildImplicationPrompt(statement1Content, statement2Content);
   let result: Record<string, unknown>;
   try {
-    result = await requestJsonCompletion<Record<string, unknown>>({
+    result = await requestJsonCompletionFn<Record<string, unknown>>({
       apiKey,
       model,
       systemPrompt:

@@ -1,5 +1,68 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Test Coverage — Evaluator + Explorer Curator (Completed)
+
+**Task**: Address the remaining `TODO.md` AI Services test-coverage gaps: implication-attester evaluation logic and explorer-curator curator/personalizer logic.
+
+**What was done**:
+- Refactored `implication-attester/src/evaluator.ts` to accept an optional injected `requestJsonCompletionFn` parameter (defaulting to the real implementation), enabling unit testing without live API calls.
+- Added `implication-attester/test/evaluator.test.ts` with 13 tests covering:
+  - Correct return shape for clear implications and non-implications
+  - `implies="true"` string coercion
+  - Numeric confidence normalization (0.9→high, 0.6→medium, 0.3→low)
+  - String confidence alias normalization (strong/certain/definite→high, moderate/somewhat/partial→medium)
+  - Fallback to text extraction on `OpenRouterInvalidJsonError` (implies=true and implies=false cases)
+  - Re-throwing non-JSON errors
+  - Prompt content verification (statement text and geographic/intersection pattern guidance)
+  - `explanation` field fallback for reasoning
+  - "No reasoning provided" default
+- Refactored `explorer-curator/src/curator.ts` to accept `ExplorerCuratorDependencies` injection (getAllStatements, getStatementWithContent, requestJsonCompletion, publishCuratedCollection).
+- Refactored `explorer-curator/src/personalizer.ts` to accept `PersonalizerDependencies` injection (getCuratedCollections, getStatement, requestJsonCompletion).
+- Also fixed a bug in `personalizer.ts`: `JSON.stringify([])` returns `"[]"` (truthy), so the "first-time user" fallback text was never reached. Fixed by checking `resolvedSigned.length > 0`.
+- Added `explorer-curator/test/curator.test.ts` with 7 tests covering:
+  - Empty statements list → no publish
+  - Statements with no resolvable content → no publish
+  - First run → publishes collection with correct entries
+  - `changed=false` after first cycle → skips publish
+  - LLM error → returns false + preserves previous entry count
+  - `publishCuratedCollection` error → returns false
+  - Inaccessible statements are skipped and only resolvable ones go to the LLM
+- Added `explorer-curator/test/personalizer.test.ts` with 6 tests covering:
+  - No collections → empty result
+  - Empty collection entries → empty result
+  - LLM suggestions filtered to entries in the collection (unknown CIDs removed)
+  - Signed CIDs passed to LLM prompt
+  - LLM error → fallback suggestions
+  - Suggestions with missing cid/reason filtered out
+  - First-time-user hint appears in prompt when signedStatementCids is empty
+
+**Key decisions**:
+- Followed the bridge-creator dependency-injection pattern (partial overrides via object spread) rather than class-level mocking.
+- Kept runtime call sites unchanged: the `ExplorerCurator` constructor and `suggestForUser` call signatures are backward-compatible (deps are optional).
+
+**Verified**:
+- `npm run typecheck --workspace=@commonality/implication-attester` ✓
+- `npm run lint --workspace=@commonality/implication-attester` ✓
+- `npm run test --workspace=@commonality/implication-attester` (13 passing) ✓
+- `npm run typecheck --workspace=@commonality/explorer-curator` ✓
+- `npm run lint --workspace=@commonality/explorer-curator` ✓
+- `npm run test --workspace=@commonality/explorer-curator` (19 passing) ✓
+
+**Files changed**:
+- `implication-attester/src/evaluator.ts` (added optional requestJsonCompletionFn param)
+- `implication-attester/test/evaluator.test.ts` (new — 13 tests)
+- `explorer-curator/src/curator.ts` (ExplorerCuratorDependencies injection)
+- `explorer-curator/src/personalizer.ts` (PersonalizerDependencies injection + bug fix)
+- `explorer-curator/test/curator.test.ts` (new — 7 tests)
+- `explorer-curator/test/personalizer.test.ts` (new — 6 tests)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- All launch-facing AI Services test coverage gaps are now closed. Remaining AI Services items are deferred (staleness decay / per-nudger mute) or speculative (bridge-priority scoring, anti-evil-nudger immune system).
+
+**Interrupt point**: Yes. This is a clean stopping point — all test coverage gaps flagged as launch-critical in `TODO.md` are now addressed.
+
 ## 2026-04-21 - AI Services: Bridge Creator Test Coverage (Completed)
 
 **Task**: Address the `TODO.md` bridge-creator portion of the AI Services test-coverage gap.

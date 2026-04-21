@@ -30,8 +30,29 @@ interface CuratorResponse {
   summary: string;
 }
 
+export interface ExplorerCuratorDependencies {
+  getAllStatements: typeof getAllStatements;
+  getStatementWithContent: typeof getStatementWithContent;
+  requestJsonCompletion: <T>(request: OpenRouterJsonRequest) => Promise<T>;
+  publishCuratedCollection: typeof publishCuratedCollection;
+}
+
+function defaultDependencies(): ExplorerCuratorDependencies {
+  return {
+    getAllStatements,
+    getStatementWithContent,
+    requestJsonCompletion,
+    publishCuratedCollection,
+  };
+}
+
 export class ExplorerCurator {
   private previousEntries: CuratedMapEntry[] = [];
+  private deps: ExplorerCuratorDependencies;
+
+  constructor(deps?: Partial<ExplorerCuratorDependencies>) {
+    this.deps = { ...defaultDependencies(), ...deps };
+  }
 
   async runCuratorCycle(
     machinery: SDKMachinery,
@@ -39,7 +60,7 @@ export class ExplorerCurator {
   ): Promise<{ published: boolean; entryCount: number; txHash?: string }> {
     console.log(`[${config.stream}] Starting curator cycle...`);
 
-    const statements = await getAllStatements(machinery, { limit: 100 });
+    const statements = await this.deps.getAllStatements(machinery, { limit: 100 });
     console.log(`[${config.stream}] Found ${statements.length} statements to evaluate.`);
 
     if (statements.length === 0) {
@@ -50,7 +71,7 @@ export class ExplorerCurator {
     const statementsWithContent = await Promise.all(
       statements.map(async (stmt) => {
         try {
-          const withContent = await getStatementWithContent(machinery, stmt.cid);
+          const withContent = await this.deps.getStatementWithContent(machinery, stmt.cid);
           return {
             cid: stmt.cid,
             believerCount: stmt.believerCount,
@@ -116,7 +137,7 @@ Respond with a JSON object containing:
 
     let response: CuratorResponse;
     try {
-      response = await requestJsonCompletion<CuratorResponse>(request);
+      response = await this.deps.requestJsonCompletion<CuratorResponse>(request);
     } catch (error) {
       console.error(`[${config.stream}] Error from LLM:`, error);
       return { published: false, entryCount: this.previousEntries.length };
@@ -137,7 +158,7 @@ Respond with a JSON object containing:
     console.log(`[${config.stream}] Publishing collection with ${entries.length} entries. Summary: ${response.summary}`);
 
     try {
-      const { txHash } = await publishCuratedCollection(config.stream, entries, config);
+      const { txHash } = await this.deps.publishCuratedCollection(config.stream, entries, config);
       console.log(`[${config.stream}] Published. tx: ${txHash}`);
 
       this.previousEntries = response.entries.map((e) => ({

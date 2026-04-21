@@ -16,12 +16,29 @@ export interface ExplorerSuggestRequest {
   signedStatementCids: string[];
 }
 
+export interface PersonalizerDependencies {
+  getCuratedCollections: typeof getCuratedCollections;
+  getStatement: typeof getStatement;
+  requestJsonCompletion: <T>(request: OpenRouterJsonRequest) => Promise<T>;
+}
+
+function defaultPersonalizerDependencies(): PersonalizerDependencies {
+  return {
+    getCuratedCollections,
+    getStatement,
+    requestJsonCompletion,
+  };
+}
+
 export async function suggestForUser(
   machinery: SDKMachinery,
   request: ExplorerSuggestRequest,
-  config: ExplorerCuratorConfig
+  config: ExplorerCuratorConfig,
+  deps?: Partial<PersonalizerDependencies>
 ): Promise<ExplorerSuggestion[]> {
-  const collections = await getCuratedCollections(machinery, undefined, request.stream);
+  const resolvedDeps = { ...defaultPersonalizerDependencies(), ...deps };
+
+  const collections = await resolvedDeps.getCuratedCollections(machinery, undefined, request.stream);
 
   if (collections.length === 0) {
     return [];
@@ -37,7 +54,7 @@ export async function suggestForUser(
   const signedStatements: Array<{ cid: string; text: string | null }> = await Promise.all(
     request.signedStatementCids.slice(0, 200).map(async (cid) => {
       try {
-        const stmt = await getStatement(machinery, cid as any);
+        const stmt = await resolvedDeps.getStatement(machinery, cid as any);
         return { cid, text: stmt ? 'signed' : null };
       } catch {
         return { cid, text: null };
@@ -53,7 +70,8 @@ export async function suggestForUser(
     }))
   );
 
-  const signedJson = JSON.stringify(signedStatements.filter((s) => s.text !== null));
+  const resolvedSigned = signedStatements.filter((s) => s.text !== null);
+  const signedJson = resolvedSigned.length > 0 ? JSON.stringify(resolvedSigned) : null;
 
   const prompt = `A user is exploring causes on a civic engagement platform. They have already signed certain statements (expressing their beliefs). Given the curated collection of funding areas, suggest which ones to surface to this user.
 
@@ -83,7 +101,7 @@ Respond with a JSON array only.`;
   };
 
   try {
-    const suggestions = await requestJsonCompletion<ExplorerSuggestion[]>(req);
+    const suggestions = await resolvedDeps.requestJsonCompletion<ExplorerSuggestion[]>(req);
     return suggestions.filter(
       (s) => entries.some((e) => e.cid === s.cid) && s.reason && s.cid
     );
