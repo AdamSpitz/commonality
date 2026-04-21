@@ -109,6 +109,3 @@ https://x.com/mattvanswol/status/2045936225198956559
 
 https://x.com/elonmusk/status/2046327719231705207
 
-## Suggestions from AI
-
-- Add an `eslint.config.js` to `bridge-creator/` (or bring it into the same shared lint setup as the other AI-service packages). Verifying this task was slightly harder than it needed to be because `npm run lint` works for `nudger-core` and `implication-graph-nudger` but fails immediately in `bridge-creator/` due to missing ESLint config, even though the package has a lint script.
