@@ -7,6 +7,13 @@ import type { IpfsCidV1 } from '@commonality/sdk'
 
 const gettingStartedSteps = [
   {
+    title: 'Explore causes',
+    description:
+      'Discover funding areas and causes that match your values. Sign statements to express what you care about.',
+    cta: 'Start exploring',
+    to: '/explore',
+  },
+  {
     title: 'Start with one walkthrough',
     description:
       'See a concrete example before touching wallet settings or advanced tools.',
@@ -19,13 +26,6 @@ const gettingStartedSteps = [
       'Statements are the entry point. They show what people care about and what ideas connect.',
     cta: 'Browse statements',
     to: '/statements',
-  },
-  {
-    title: 'Connect only when ready',
-    description:
-      'Connect your wallet once you know why you want to sign a statement, pledge, or claim something.',
-    cta: 'See all getting-started docs',
-    to: '/docs',
   },
 ]
 

@@ -7,6 +7,7 @@ import { BrowseStatementsPage } from '../../conceptspace/pages/BrowseStatementsP
 import { StatementPage } from '../../conceptspace/pages/StatementPage'
 import { UserProfilePage } from '../../conceptspace/pages/UserProfilePage'
 import { SettingsPage } from '../../conceptspace/pages/SettingsPage'
+import { ExplorerPage } from '../../conceptspace/pages/ExplorerPage'
 import { BrowseProjectsPage } from '../../pubstarter/pages/BrowseProjectsPage'
 import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
 import { CreateProjectPage } from '../../pubstarter/pages/CreateProjectPage'
@@ -24,6 +25,7 @@ const routes: ReactNode = (
   <>
     <Route path="/" element={<CommonalityLandingPage />} />
     <Route path="/start" element={<HomePage />} />
+    <Route path="/explore" element={<ExplorerPage />} />
     <Route path="/statements" element={<BrowseStatementsPage />} />
     <Route path="/statement/:statementCid" element={<StatementPage />} />
     <Route path="/profile" element={<UserProfilePage />} />
@@ -57,6 +59,7 @@ export const commonalityManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Start Here', path: '/docs' },
+      { label: 'Explore', path: '/explore' },
       { label: 'Statements', path: '/statements' },
       { label: 'Projects', path: '/projects' },
       { label: 'Creators', path: '/content' },

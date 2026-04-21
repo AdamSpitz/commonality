@@ -6,22 +6,17 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 
 ### UI — nudge display
 
-1. ~~**UI: nudge dismissal / "seen" tracking, intensity settings, client-side filtering.**~~
-   Done. Dismissal is permanent (IndexedDB), intensity caps at 3/5/10, SettingsPage has a Low/Medium/High toggle.
-
-2. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
+1. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
    Nice-to-have for the trust-configuration flow. Spec: nudger spec.
 
-3. **Nudge UX: staleness decay, per-nudger mute, topic filtering.**
+2. **Nudge UX: staleness decay, per-nudger mute, topic filtering.**
    Remaining items from `specs/product/nudge-ux.md`. Lower priority than dismissal/intensity.
 
 ### UI — explorer
 
-3. **UI: explorer pages backed by `curated-collection` publications.**
-   The new-user entry point. Replaces the hardcoded statement list with a folded `curated-collection` from a trusted nudger. Spec: `specs/tech/subsystems/conceptspace/explorer.md` + `specs/product/new-user-experience.md`.
+3. ~~**UI: explorer pages backed by `curated-collection` publications`.~~ **Done.** Explorer page at `/explore` reads folded `curated-collection` publications from trusted nudgers, groups entries by `topicArea`, and renders cards with sign/navigate/funding-portal actions. Per-user LLM personalization and the background curator service are still needed (backend work).
 
-4. **Explorer nudger strategy (background LLM + per-user LLM).**
-   The fundable-project explorer. Spec: `specs/tech/subsystems/conceptspace/explorer.md`.
+4. ~~**Explorer nudger strategy (background LLM + per-user LLM).**~~ Not yet — requires backend service work. The UI is ready to consume the output once the curator publishes a collection.
 
 ### Enhancements and new services
 
