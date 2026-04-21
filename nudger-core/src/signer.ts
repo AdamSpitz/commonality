@@ -50,10 +50,28 @@ export interface NudgeRevocation {
 }
 
 export interface NudgeBatch {
+  kind: 'nudge-batch';            // Publication type discriminator
+  schemaVersion: 1;               // Schema version for nudge-batch publications
   nudger: string;                  // Ethereum address of the nudger
   publishedAt: number;             // Unix timestamp
   nudges: NudgeMessage[];
   revocations: NudgeRevocation[];  // per-nudge revocations of entries from previous batches
+}
+
+export function createNudgeBatch(
+  nudger: string,
+  nudges: NudgeMessage[],
+  revocations: NudgeRevocation[] = [],
+  publishedAt: number = Math.floor(Date.now() / 1000)
+): NudgeBatch {
+  return {
+    kind: 'nudge-batch',
+    schemaVersion: 1,
+    nudger,
+    publishedAt,
+    nudges,
+    revocations,
+  };
 }
 
 export async function publishNudgeBatch(
@@ -65,12 +83,7 @@ export async function publishNudgeBatch(
     throw new Error('Signer not initialized. Call initializeSigner first.');
   }
 
-  const batch: NudgeBatch = {
-    nudger: account.address,
-    publishedAt: Math.floor(Date.now() / 1000),
-    nudges,
-    revocations,
-  };
+  const batch = createNudgeBatch(account.address, nudges, revocations);
 
   const batchCid = await uploadToIPFS(
     { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
@@ -95,4 +108,3 @@ export async function publishNudgeBatch(
 
   return { txHash, batchCid };
 }
-
