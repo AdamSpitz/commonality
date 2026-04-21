@@ -25,6 +25,7 @@ import { getUserSocialData } from '@commonality/sdk'
 import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { loadTrustedNudgers, saveTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
+import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
 import { useClaimFlow } from '../../content-funding/hooks/useClaimFlow'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -61,11 +62,13 @@ export function SettingsPage() {
   const machinery = useMachinery()
   const { getChallenge, confirmVerification, loading: verificationLoading, error: verificationError, clearError } = useClaimFlow()
   const { intensity, setIntensity } = useNudgeIntensity()
+  const { mutedTopics, addTopic, removeTopic } = useMutedTopics()
 
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')
   const [trustedNudgers, setTrustedNudgers] = useState<string[]>([])
   const [newNudger, setNewNudger] = useState('')
+  const [newMutedTopic, setNewMutedTopic] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [nudgerError, setNudgerError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -469,6 +472,56 @@ export function SettingsPage() {
           <ToggleButton value="medium">Medium</ToggleButton>
           <ToggleButton value="high">High</ToggleButton>
         </ToggleButtonGroup>
+
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          Muted topics
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Nudges about these topics will not be shown. Add topics you are not interested in.
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Topic"
+            placeholder="e.g., crypto, education, healthcare"
+            value={newMutedTopic}
+            onChange={(e) => setNewMutedTopic(e.target.value)}
+            onKeyPress={(e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' && newMutedTopic.trim()) {
+                addTopic(newMutedTopic)
+                setNewMutedTopic('')
+              }
+            }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              if (newMutedTopic.trim()) {
+                addTopic(newMutedTopic)
+                setNewMutedTopic('')
+              }
+            }}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Add
+          </Button>
+        </Box>
+
+        {mutedTopics.length > 0 && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+            {mutedTopics.map((topic) => (
+              <Chip
+                key={topic}
+                label={topic}
+                onDelete={() => removeTopic(topic)}
+                size="small"
+              />
+            ))}
+          </Box>
+        )}
 
         {getDefaultNudgers().length > 0 && trustedNudgers.length === 0 && (
           <Alert severity="info" sx={{ mb: 3 }}>

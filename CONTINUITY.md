@@ -1,5 +1,43 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Nudge Topic Filtering (Completed)
+
+**Task**: Implement topic filtering from `specs/product/nudge-ux.md` — let users specify topics they don't want nudges about.
+
+**What was done**:
+- Created `ui/src/shared/hooks/useMutedTopics.ts` — localStorage-backed hook for managing muted topics list. Topics are normalized to lowercase, deduplicated, and trimmed. Provides `mutedTopics`, `addTopic`, and `removeTopic`.
+- Updated `StatementSuggestions` component to:
+  - Extract topic from suggested statement's `content.extras.topic` field
+  - Filter out nudges whose suggested statement's topic matches any muted topic
+  - Case-insensitive matching (both muted topics and statement topics are lowercased)
+- Updated `SettingsPage` to include a "Muted topics" section in the nudger addresses area:
+  - Text input + Add button for new topics
+  - Chip-based display of current muted topics with delete capability
+  - Enter key support for quick adding
+- Added tests: `useMutedTopics.test.ts` (8 tests) and `StatementSuggestions.test.tsx` (4 new topic filtering tests)
+
+**Key decisions**:
+- Used localStorage (not IndexedDB) for muted topics — this is a small, simple preference list that doesn't need the complexity of IndexedDB.
+- Topic filtering happens client-side after fetching nudges, consistent with the spec's guidance that "most nudge filtering should be deterministic and client-side, not AI-based."
+- Statements without a topic field are still shown even when topics are muted — the filter only excludes statements whose topic explicitly matches a muted topic.
+- The topic comes from `statement.content.extras.topic`, which is already part of the `createStatement` SDK helper.
+
+**Verified**:
+- `npm run typecheck --workspace=ui`
+- `npm run lint --workspace=ui`
+- `npm run test --workspace=ui -- --run useMutedTopics StatementSuggestions` (29 tests passing)
+
+**Files changed**:
+- `ui/src/shared/hooks/useMutedTopics.ts` (new)
+- `ui/src/shared/hooks/useMutedTopics.test.ts` (new)
+- `ui/src/conceptspace/components/StatementSuggestions.tsx` (added topic extraction and filtering)
+- `ui/src/conceptspace/components/StatementSuggestions.test.tsx` (4 new topic filtering tests)
+- `ui/src/conceptspace/pages/SettingsPage.tsx` (added muted topics UI section)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Topic filtering is complete per the spec. Remaining nudge-ux items from `nudge-ux.md`: staleness decay and per-nudger mute — these are lower-priority follow-ups that could be implemented next if desired.
+
 ## 2026-04-21 - AI Services: Intersection Patterns + Same-Domain Restriction (Completed)
 
 **Task**: Complete TODO.md item 7 — implication attester/finder prompt enhancements for intersection patterns.

@@ -11,6 +11,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
+import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
 import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
 
 interface StatementSuggestionsProps {
@@ -25,6 +26,7 @@ interface NudgeSuggestionCard {
   reason: string;
   confidence: number;
   nudger: `0x${string}`;
+  topic?: string;
 }
 
 const MAX_NUDGES_BY_INTENSITY: Record<string, number> = {
@@ -67,6 +69,7 @@ async function buildSuggestionCard(
   }
 
   const preview = getStatementPreview(suggestion.content?.content)
+  const topic = suggestion.content?.extras?.topic as string | undefined
   return {
     statementCid: nudge.suggestedStatementCid,
     title: preview.title,
@@ -75,6 +78,7 @@ async function buildSuggestionCard(
     reason: nudge.reason,
     confidence: nudge.confidence,
     nudger: nudge.nudger,
+    topic: topic?.toLowerCase(),
   }
 }
 
@@ -88,6 +92,7 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
   const machinery = useMachinery()
   const trustedNudgers = useTrustedNudgers()
   const { intensity } = useNudgeIntensity()
+  const { mutedTopics } = useMutedTopics()
 
   const loadSuggestions = useCallback(async () => {
     try {
@@ -109,14 +114,20 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
       setNudges(filteredNudges)
 
       const cards = await Promise.all(filteredNudges.map((nudge) => buildSuggestionCard(machinery, nudge)))
-      setSuggestions(cards.filter((card): card is NudgeSuggestionCard => card !== null))
+      const allCards = cards.filter((card): card is NudgeSuggestionCard => card !== null)
+
+      const topicFiltered = mutedTopics.length > 0
+        ? allCards.filter((card) => !card.topic || !mutedTopics.includes(card.topic))
+        : allCards
+
+      setSuggestions(topicFiltered)
     } catch (err) {
       console.error('Error loading statement nudges:', err)
       setError(err instanceof Error ? err.message : 'Failed to load suggestions')
     } finally {
       setLoading(false)
     }
-  }, [statementCid, machinery, trustedNudgers])
+  }, [statementCid, machinery, trustedNudgers, mutedTopics])
 
   useEffect(() => {
     void loadSuggestions()

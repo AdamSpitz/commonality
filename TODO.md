@@ -9,14 +9,13 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 1. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
    Nice-to-have for the trust-configuration flow. Spec: nudger spec.
 
-2. **Nudge UX: staleness decay, per-nudger mute, topic filtering.**
-   Remaining items from `specs/product/nudge-ux.md`. Lower priority than dismissal/intensity.
+2. ~~**Nudge UX: staleness decay, per-nudger mute, topic filtering.**~~ **Done.** Topic filtering is implemented — users can mute topics in Settings and nudges about muted topics are filtered out. Staleness decay and per-nudger mute remain as lower-priority follow-ups.
 
 ### UI — explorer
 
 3. ~~**UI: explorer pages backed by `curated-collection` publications`.~~ **Done.** Explorer page at `/explore` reads folded `curated-collection` publications from trusted nudgers, groups entries by `topicArea`, and renders cards with sign/navigate/funding-portal actions. Per-user LLM personalization and the background curator service are still needed (backend work).
 
-4. ~~**Explorer nudger strategy (background LLM + per-user LLM).**~~ Not yet — requires backend service work. The UI is ready to consume the output once the curator publishes a collection.
+4. **Explorer nudger strategy (background LLM + per-user LLM).** Requires backend service work. (Ready now?) The UI is ready to consume the output once the curator publishes a collection.
 
 ### Enhancements and new services
 

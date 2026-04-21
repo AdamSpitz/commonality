@@ -34,6 +34,12 @@ vi.mock('../../shared/hooks/useNudgeIntensity', () => ({
   useNudgeIntensity: vi.fn(() => ({ intensity: 'low', setIntensity: vi.fn() })),
 }))
 
+const MUTED_TOPICS_MOCK = { mutedTopics: [] as string[], addTopic: vi.fn(), removeTopic: vi.fn() }
+
+vi.mock('../../shared/hooks/useMutedTopics', () => ({
+  useMutedTopics: vi.fn(() => MUTED_TOPICS_MOCK),
+}))
+
 vi.mock('../../shared/nudgeStore', () => ({
   dismissNudge: vi.fn().mockResolvedValue(undefined),
   getDismissedNudges: vi.fn().mockResolvedValue([]),
@@ -44,6 +50,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
+import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
 import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
 
 const VALID_NUDGER_1 = '0xaabbccddaabbccddaabbccddaabbccdd'
@@ -120,6 +127,7 @@ describe('StatementSuggestions', () => {
     vi.mocked(getStatementNudges).mockResolvedValue([])
     vi.mocked(getStatementWithContent).mockResolvedValue(TEST_STATEMENT)
     vi.mocked(getDismissedNudges).mockResolvedValue([])
+    MUTED_TOPICS_MOCK.mutedTopics = []
   })
 
   describe('Loading state', () => {
@@ -471,6 +479,154 @@ describe('StatementSuggestions', () => {
           'bafyTest456',
           undefined
         )
+      })
+    })
+  })
+
+  describe('Topic filtering', () => {
+    it('shows all suggestions when no topics are muted', async () => {
+      vi.mocked(useMutedTopics).mockReturnValue({ mutedTopics: [], addTopic: vi.fn(), removeTopic: vi.fn() })
+
+      const cryptoStatement: StatementWithContent = {
+        statement: {
+          id: 'stmtCrypto',
+          cid: 'bafyCrypto1',
+          believerCount: 20,
+          disbelieverCount: 3,
+          createdAt: '2024-01-01T00:00:00Z',
+        },
+        content: {
+          format: 'text/plain',
+          content: 'Crypto Statement',
+          extras: { topic: 'crypto' },
+        },
+      }
+
+      mockSuggestionData(
+        [{ ...TEST_NUDGE, suggestedStatementCid: 'bafyCrypto1' }],
+        { bafyCrypto1: cryptoStatement },
+      )
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Crypto Statement' })).toBeInTheDocument()
+      })
+    })
+
+    it('filters out nudges whose statement has a muted topic', async () => {
+      vi.mocked(useMutedTopics).mockReturnValue({ mutedTopics: ['crypto'], addTopic: vi.fn(), removeTopic: vi.fn() })
+
+      const cryptoStatement: StatementWithContent = {
+        statement: {
+          id: 'stmtCrypto',
+          cid: 'bafyCrypto1',
+          believerCount: 20,
+          disbelieverCount: 3,
+          createdAt: '2024-01-01T00:00:00Z',
+        },
+        content: {
+          format: 'text/plain',
+          content: 'Crypto Statement',
+          extras: { topic: 'crypto' },
+        },
+      }
+
+      const politicsStatement: StatementWithContent = {
+        statement: {
+          id: 'stmtPolitics',
+          cid: 'bafyPolitics1',
+          believerCount: 30,
+          disbelieverCount: 5,
+          createdAt: '2024-01-01T00:00:00Z',
+        },
+        content: {
+          format: 'text/plain',
+          content: 'Politics Statement',
+          extras: { topic: 'politics' },
+        },
+      }
+
+      mockSuggestionData(
+        [
+          { ...TEST_NUDGE, suggestedStatementCid: 'bafyCrypto1' },
+          { ...SECOND_NUDGE, suggestedStatementCid: 'bafyPolitics1' },
+        ],
+        { bafyCrypto1: cryptoStatement, bafyPolitics1: politicsStatement },
+      )
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('heading', { name: 'Crypto Statement' })).not.toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Politics Statement' })).toBeInTheDocument()
+      })
+    })
+
+    it('shows nudges whose statement has no topic when topics are muted', async () => {
+      vi.mocked(useMutedTopics).mockReturnValue({ mutedTopics: ['crypto'], addTopic: vi.fn(), removeTopic: vi.fn() })
+
+      const noTopicStatement: StatementWithContent = {
+        statement: {
+          id: 'stmtNoTopic',
+          cid: 'bafyNoTopic1',
+          believerCount: 10,
+          disbelieverCount: 1,
+          createdAt: '2024-01-01T00:00:00Z',
+        },
+        content: {
+          format: 'text/plain',
+          content: 'No Topic Statement',
+        },
+      }
+
+      mockSuggestionData(
+        [{ ...TEST_NUDGE, suggestedStatementCid: 'bafyNoTopic1' }],
+        { bafyNoTopic1: noTopicStatement },
+      )
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'No Topic Statement' })).toBeInTheDocument()
+      })
+    })
+
+    it('filters case-insensitively', async () => {
+      vi.mocked(useMutedTopics).mockReturnValue({ mutedTopics: ['crypto'], addTopic: vi.fn(), removeTopic: vi.fn() })
+
+      const cryptoStatement: StatementWithContent = {
+        statement: {
+          id: 'stmtCrypto',
+          cid: 'bafyCrypto1',
+          believerCount: 20,
+          disbelieverCount: 3,
+          createdAt: '2024-01-01T00:00:00Z',
+        },
+        content: {
+          format: 'text/plain',
+          content: 'Crypto Statement',
+          extras: { topic: 'Crypto' },
+        },
+      }
+
+      mockSuggestionData(
+        [{ ...TEST_NUDGE, suggestedStatementCid: 'bafyCrypto1' }],
+        { bafyCrypto1: cryptoStatement },
+      )
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('heading', { name: 'Crypto Statement' })).not.toBeInTheDocument()
       })
     })
   })
