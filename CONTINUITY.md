@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services Review Plan: Chunk 4 (Completed)
+
+**Task**: Chunk 4 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — write a brief spec for the anti-evil-nudger immune system.
+
+**What was done**:
+- Read the nudger spec's trust model and publication model sections.
+- Created `specs/product/nudger-immune-system.md` — a sketch spec covering:
+  - The problem: anyone can run a nudger, so bad actors could abuse the system
+  - Key insight: nonrepudiability is already solved by the `NudgePublications` contract (the TODO.md item about "putting CIDs on-chain" is already done). The immune system just reads those receipts.
+  - Architecture: the immune system service is itself a nudger — it publishes `nudger-assessment` publications via the same infrastructure. Users subscribe by adding it to their trusted nudgers in Settings.
+  - New publication kind: `nudger-assessment` (with fields for assessed nudger, specific publication CID, assessment level, reasoning, evidence, optional alternative nudger recommendation).
+  - Evaluation methodology options: statistical signals, contradiction patterns, gradient bias detection, and the adversarial AI approach (pro/con/judge) for deeper review of flagged cases.
+  - Build priority: low — only useful once nudger ecosystem has real traction.
+- Marked Chunk 4 complete in AI-SERVICES-REVIEW-PLAN.md.
+
+**Key decisions**:
+- Made the immune system a first-class nudger (same `NudgePublications` infrastructure, same trust model) rather than a separate attestation/signaling system. This is cleaner and requires zero new infrastructure.
+- Preserved the author's thinking-out-loud voice.
+- Kept the spec brief — it's a sketch, not a full design.
+
+**Files changed**:
+- `specs/product/nudger-immune-system.md` (new)
+- `AI-SERVICES-REVIEW-PLAN.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Chunk 4 is complete. Continue with Chunk 5 (write a brief spec for user-facing content submission) or Chunk 6 (clarify the noninflammatory-content attester and the statement-creator service).
+
 ## 2026-04-21 - AI Services Review Plan: Chunk 3 (Completed)
 
 **Task**: Chunk 3 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — check nudger-core and implication-graph-nudger code against the publication-model spec.

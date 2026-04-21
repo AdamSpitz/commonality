@@ -143,17 +143,17 @@ Each chunk below is designed to be completed by a single fresh LLM instance. Do 
 - [x] Write a summary of what needs to change in the code (do NOT implement changes — just document)
 - [x] Update the READMEs for both packages to reflect the current spec, noting any code that doesn't yet match
 
-### Chunk 4: Write a brief spec for the anti-evil-nudger immune system
-- [ ] Read the relevant TODO.md notes about evil nudgers and the immune-system idea
-- [ ] Read the nudger spec's trust model section
-- [ ] Write a new spec file at `specs/product/nudger-immune-system.md` (or similar) covering:
+### Chunk 4: Write a brief spec for the anti-evil-nudger immune system ✅ Done
+- [x] Read the relevant TODO.md notes about evil nudgers and the immune-system idea
+- [x] Read the nudger spec's trust model section
+- [x] Write a new spec file at `specs/product/nudger-immune-system.md` covering:
   - What it is: a monitoring service that watches nudger behavior and publishes assessments
-  - How it works: subscribes to `NudgesPublished` events, evaluates nudge quality, publishes "reputation reports" (a new publication kind? or just a separate system?)
+  - How it works: subscribes to `NudgesPublished` events, evaluates nudge quality, publishes "reputation reports" (new `nudger-assessment` publication kind — fits within the existing NudgePublications infrastructure)
   - The key insight from TODO.md: "publish the bad stuff they do and let individuals decide" — this is consistent with the subjective trust model
-  - How users subscribe to it (probably just another trusted service in Settings?)
-  - Relationship to the "adversarial AI" idea (pro/con/judge) — this could be the evaluation methodology used by the immune system
-  - Keep it brief — this is a sketch spec, not a full design
-- [ ] Also note the TODO.md idea about making nudger decisions nonrepudiable (CIDs on-chain) — this is ALREADY part of the spec (the `NudgePublications` contract does exactly this). Note that the spec already solves this.
+  - How users subscribe to it: same as any nudger — add it as a trusted service in Settings, `sourceType: "nudger-assessment"` lets the UI display it differently
+  - Relationship to the "adversarial AI" idea (pro/con/judge) — noted as a good evaluation methodology for suspected cases, but too expensive to run on every nudge
+  - Noted that the nonrepudiability problem is already solved by the `NudgePublications` contract
+- [x] Noted that nudger decisions are already nonrepudiable (NudgePublications contract creates a permanent public log)
 
 ### Chunk 5: Write a brief spec for user-facing content submission
 - [ ] Read the content finder code/spec (`content-finder/`)
