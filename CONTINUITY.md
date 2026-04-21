@@ -1,5 +1,30 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services Review Plan: Chunk 3 (Completed)
+
+**Task**: Chunk 3 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — check nudger-core and implication-graph-nudger code against the publication-model spec.
+
+**What was done**:
+- Read the nudger spec, then audited all source files in `nudger-core/src/` and `implication-graph-nudger/src/`.
+- Finding: the code mostly **already matches the spec**. Both packages use the batch publication model (upload to IPFS, write CID on-chain). Neither implements the per-message HTTP API that the old READMEs described.
+- Identified two remaining code gaps (documented in updated READMEs, not fixed):
+  1. `NudgeBatch` type (in `nudger-core/src/signer.ts`) is missing `kind: 'nudge-batch'` and `schemaVersion: 1` — the spec's typed publication envelope requires these so the SDK can dispatch by type.
+  2. `NudgerConfig` (and therefore `implication-graph-nudger/src/config.ts`) requires `OPENROUTER_API_KEY` even though the implication-graph strategy is purely graph-based and never calls an LLM. These fields should be moved to strategy-specific config types.
+- Rewrote both READMEs to describe the actual current architecture.
+- Marked Chunk 3 complete in AI-SERVICES-REVIEW-PLAN.md; also checked off the Chunk 1 items that were still shown as `[ ]`.
+
+**Key decisions**:
+- Did not fix the code gaps (task says "document, do NOT implement"). Both gaps are captured in the README "Code gap" callouts and in the updated reconciliation table in AI-SERVICES-REVIEW-PLAN.md.
+- implication-graph-nudger README previously described `/nudges?targetStatementCid=` and `/nudges/bulk` endpoints that were never in the code. Removed completely.
+
+**Files changed**:
+- `nudger-core/README.md`
+- `implication-graph-nudger/README.md`
+- `AI-SERVICES-REVIEW-PLAN.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Chunk 3 is complete. Continue with Chunk 4 (write a brief spec for the anti-evil-nudger immune system).
+
 ## 2026-04-21 - AI Services Review Plan: Chunk 2 (Completed)
 
 **Task**: Chunk 2 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — reconcile `specs/product/bridge-finder.md` with the current architecture.

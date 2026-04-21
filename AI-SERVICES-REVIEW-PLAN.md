@@ -110,8 +110,7 @@ This three-level model is well-articulated across the bridge-creator spec, the h
 ### Needs reconciliation (spec says one thing, code may say another)
 | Component | Issue |
 |-----------|-------|
-| `implication-graph-nudger/` | README describes HTTP API; spec says batch publication model |
-| `nudger-core/` | README mentions per-message EIP-191 signing; spec uses batch CID publication |
+| `nudger-core/` and `implication-graph-nudger/` | Both READMEs were stale (updated in Chunk 3). Two code gaps remain: (1) `NudgeBatch` is missing `kind: 'nudge-batch'` and `schemaVersion: 1` fields required by the typed publication envelope — the SDK cannot dispatch by type without these; (2) `NudgerConfig` (and therefore `implication-graph-nudger`) requires `OPENROUTER_API_KEY` even though the implication-graph strategy is purely graph-based and doesn't use an LLM — these fields should be moved to a strategy-specific config type. |
 
 ---
 
@@ -119,14 +118,14 @@ This three-level model is well-articulated across the bridge-creator spec, the h
 
 Each chunk below is designed to be completed by a single fresh LLM instance. Do them in order.
 
-### Chunk 1: Rewrite `specs/product/ai-assistance.md`
-- [ ] Read the current `specs/product/ai-assistance.md`
-- [ ] Read the nudger spec (`specs/tech/subsystems/nudger/README.md`), explorer spec (`specs/tech/subsystems/conceptspace/explorer.md`), and new-user-experience spec (`specs/product/new-user-experience.md`) to understand what services now handle
-- [ ] Rewrite `ai-assistance.md` with two clear sections:
+### Chunk 1: Rewrite `specs/product/ai-assistance.md` ✅ Done
+- [x] Read the current `specs/product/ai-assistance.md`
+- [x] Read the nudger spec (`specs/tech/subsystems/nudger/README.md`), explorer spec (`specs/tech/subsystems/conceptspace/explorer.md`), and new-user-experience spec (`specs/product/new-user-experience.md`) to understand what services now handle
+- [x] Rewrite `ai-assistance.md` with two clear sections:
   1. **Services** (autonomous background processes): attesters, finders, nudgers/explorers — briefly describe each, point to the relevant spec, note that these handle what was previously imagined as autonomous AI skill work
   2. **User-facing AI skills** (interactive assistants): the skills that are genuinely about helping a human in a conversation — onboarding/education, delegation advice, funding strategy, project creation, analytics. These are the ones that would be loaded into Claude Code / OpenClaw / a hosted assistant.
-- [ ] Remove the TODO note at the top. Remove or consolidate skills that are now covered by services (statement finder/writer is largely the explorer + nudger; cause discovery / coalition building overlaps with bridge-creator + explorer; bridge creator / statement synthesis IS the bridge-creator nudger; watchdog / notification is the nudger pipeline).
-- [ ] Keep the "two layers" framing at the top — it's good. Just make it clear which layer each thing is in.
+- [x] Remove the TODO note at the top. Remove or consolidate skills that are now covered by services (statement finder/writer is largely the explorer + nudger; cause discovery / coalition building overlaps with bridge-creator + explorer; bridge creator / statement synthesis IS the bridge-creator nudger; watchdog / notification is the nudger pipeline).
+- [x] Keep the "two layers" framing at the top — it's good. Just make it clear which layer each thing is in.
 
 ### Chunk 2: Reconcile `specs/product/bridge-finder.md` with the current architecture
 - [x] Read `specs/product/bridge-finder.md` and `specs/product/bridge-creator.md`
@@ -138,11 +137,11 @@ Each chunk below is designed to be completed by a single fresh LLM instance. Do 
 - [x] Update `bridge-creator.md` if needed to ensure it clearly cross-references the nudger spec and doesn't repeat outdated information
 
 ### Chunk 3: Check nudger-core and implication-graph-nudger code against the publication-model spec
-- [ ] Read the nudger spec's publication model (`specs/tech/subsystems/nudger/README.md`)
-- [ ] Read the actual code in `nudger-core/` and `implication-graph-nudger/`
-- [ ] Identify discrepancies: does the code use the batch publication model or the older per-message HTTP model?
-- [ ] Write a summary of what needs to change in the code (do NOT implement changes — just document)
-- [ ] Update the READMEs for both packages to reflect the current spec, noting any code that doesn't yet match
+- [x] Read the nudger spec's publication model (`specs/tech/subsystems/nudger/README.md`)
+- [x] Read the actual code in `nudger-core/` and `implication-graph-nudger/`
+- [x] Identify discrepancies: does the code use the batch publication model or the older per-message HTTP model?
+- [x] Write a summary of what needs to change in the code (do NOT implement changes — just document)
+- [x] Update the READMEs for both packages to reflect the current spec, noting any code that doesn't yet match
 
 ### Chunk 4: Write a brief spec for the anti-evil-nudger immune system
 - [ ] Read the relevant TODO.md notes about evil nudgers and the immune-system idea
