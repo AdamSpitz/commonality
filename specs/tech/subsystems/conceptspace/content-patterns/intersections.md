@@ -40,3 +40,22 @@ Concrete examples:
       - This process can recurse. If "interested in DeFi in Grey County" and "interested in crypto payments in Grey County" both get signed, something might create A as an intermediate node between those and D. Conjunctions can themselves become internal nodes as the graph fills in. The whole thing naturally forms a lattice — most specific conjunctions at the bottom, fully general statements at the top, with intermediate abstraction nodes at every useful level in between.
       - The statement-creator service is essentially a *lattice completion* service: given a set of signed statements, find missing intermediate nodes that would make the implication graph more useful.
       - No need to get this perfect upfront. If the system creates too many intermediate nodes, they can be pruned by filtering on number of direct signers. If useful nodes are missing, someone (human or AI) will eventually notice and add them, and they can be hooked into the implication graph at that point. The system degrades gracefully in both directions.
+
+## Where the statement-creator service fits in the architecture
+
+The statement-creator service is a **specialized finder** — not a new tier.
+
+Like the implication finder and content finder, it is a background service that discovers candidates and submits them to an attester. The difference is that the implication and content finders only *find* existing pairs; the statement-creator *creates new statement text* (the intermediate conjunction node) before submitting. Once it has created a candidate statement, it calls the implication attester twice: once to create the upward implication (conjunction → parent A) and once to create the other (conjunction → parent B).
+
+Concretely, the loop is:
+1. Observe that two statements S1 and S2 are both accumulating signers.
+2. Determine that a useful conjunction C ("both S1 and S2") is missing from the graph.
+3. Use an LLM to generate natural-language text for C that is clear and specific enough to be signed.
+4. Submit (C, S1) and (C, S2) to the implication attester.
+
+This fits cleanly into the finder tier:
+- **Finder core** (`finder-core/`) provides the polling loop and batch-submission helpers.
+- The statement-creator adds an LLM generation step before the submission step.
+- No new service tier is needed.
+
+This service is **not yet implemented and not on the critical path**. It only becomes useful once the implication graph has enough naturally-signed statements that useful intermediate nodes are visibly missing. A human can do this manually in the meantime. Add it to the backlog when the graph starts having enough activity to make lattice gaps obvious.

@@ -1,5 +1,38 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services Review Plan: Chunk 6 (Completed)
+
+**Task**: Chunk 6 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — clarify the noninflammatory-content attester and the statement-creator / lattice-completion service.
+
+**What was done**:
+
+1. **Noninflammatory content attester clarification** — added a prominent "Architecture note" block near the top of `specs/tech/subsystems/content-funding/noninflammatory-content/README.md`:
+   - Explains that the "noninflammatory content attester" is NOT a separate service type.
+   - It is the `content-attester/` service deployed with different config (prompt template, topic statement CID, attester name, Ethereum key).
+   - Multiple personas (neutral, left-evaluates-right, right-evaluates-left) are separate deployments of the same code.
+   - Also updated step 3 of "Practical path" which previously said "fork the implication attester architecture" — replaced with correct pointer to `content-attester/` and `content-attesters.md`.
+   - `content-attesters.md` already stated this clearly; the fix ensures the use-case README (the most likely entry point) says it too.
+
+2. **Statement-creator / lattice-completion architecture note** — added a "Where the statement-creator service fits in the architecture" section to `specs/tech/subsystems/conceptspace/content-patterns/intersections.md`:
+   - It's a **specialized finder** (not a new tier).
+   - The loop: observe two statements accumulating signers → detect missing conjunction → use LLM to generate natural-language text for it → submit (C, S1) and (C, S2) to the implication attester.
+   - Builds on `finder-core/` (polling loop, batch submission helpers) with an added LLM generation step.
+   - Not on the critical path; only useful once the graph has enough activity for lattice gaps to be obvious.
+
+- Marked Chunk 6 complete in AI-SERVICES-REVIEW-PLAN.md.
+
+**Key decisions**:
+- Added the architecture note near the top of the noninflammatory README rather than only in `content-attesters.md`, because the use-case README is the most likely entry point for someone who hasn't read the architecture specs.
+- Kept the lattice-completion note inside `intersections.md` rather than creating a new file — the idea is closely tied to the geo×topical example there, and it's a sketch note not a full spec.
+
+**Files changed**:
+- `specs/tech/subsystems/content-funding/noninflammatory-content/README.md`
+- `specs/tech/subsystems/conceptspace/content-patterns/intersections.md`
+- `AI-SERVICES-REVIEW-PLAN.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Chunk 6 is complete. Only Chunk 7 remains: update TODO.md to consolidate AI-services items into a clean, prioritized list.
+
 ## 2026-04-21 - AI Services Review Plan: Chunk 5 (Completed)
 
 **Task**: Chunk 5 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — write a brief spec for user-facing content submission.

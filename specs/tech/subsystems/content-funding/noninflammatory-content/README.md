@@ -9,6 +9,15 @@ For the general content-funding mechanics (contracts, registry, tokens, channel 
 **See also:**
 - [seed-statements.md](seed-statements.md) — concrete statements to seed the conceptspace
 - [attester-prompts.md](attester-prompts.md) — LLM prompts for different attester personas
+- [../content-attesters.md](../content-attesters.md) — attester architecture (shared `attester-core/` library, `content-attester/` service)
+
+## Architecture note
+
+A "noninflammatory content attester" is **not a separate service type** — it is the general `content-attester/` service deployed with noninflammatory-specific config: a different `CONTENT_ATTESTER_PROMPT_TEMPLATE` (from [attester-prompts.md](attester-prompts.md)) and a different `ALIGNMENT_TOPIC_STATEMENT_CID` (pointing to the relevant meta-statement in conceptspace). The attester's `CONTENT_ATTESTER_NAME` (e.g. `noninflammatory-neutral`, `noninflammatory-left-evaluates-right`) identifies which persona it represents.
+
+Multiple noninflammatory content attester instances can coexist — neutral, left-evaluates-right, right-evaluates-left — each running the same code with different config and a different Ethereum key. Users pick which ones they trust in Settings, exactly as they do with implication attesters.
+
+This means "build the noninflammatory content attester" is really just "deploy the content-attester service with the prompts from attester-prompts.md." No forking, no new service type.
 
 
 ## Why this is a natural fit for Commonality
@@ -96,7 +105,7 @@ The [bridge creator](/specs/product/bridge-creator.md) is the systematic version
 
 1. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse.
 2. **Build the content-funding subsystem** — the content registry, factory modifications, and channel claiming (see other files in this directory).
-3. **Build the AI content evaluator** — fork the implication attester architecture, swap the prompt (see [attester-prompts.md](attester-prompts.md)).
+3. **Deploy the content attester** — the `content-attester/` service is the general-purpose evaluator; deploy it with the noninflammatory prompts from [attester-prompts.md](attester-prompts.md) and a `ALIGNMENT_TOPIC_STATEMENT_CID` pointing to the relevant meta-statement. See [../content-attesters.md](../content-attesters.md) for the architecture.
 4. **Start with retroactive funding** of existing noninflammatory content. This validates whether people actually want to fund this.
 5. **Build a specialized showcase funding portal** for noninflammatory content.
 6. **Build the notification service** (see [../indexer.md](../indexer.md)) to reach creators whose content has been registered.

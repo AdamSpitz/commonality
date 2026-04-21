@@ -165,11 +165,11 @@ Each chunk below is designed to be completed by a single fresh LLM instance. Do 
 - [x] Write the spec to `specs/product/content-submission.md` or add a section to the content finder spec
 - [x] Keep it simple — this is a straightforward CRUD feature
 
-### Chunk 6: Clarify the noninflammatory-content attester and the "statement-creator / lattice-completion" service
-- [ ] Read `specs/tech/subsystems/conceptspace/content-patterns/noninflammatory-content.md` and the content attester code
-- [ ] Clarify in the spec: is a "noninflammatory content attester" a separate service from the content attester, or just the content attester with a specific prompt? Write a brief clarifying note.
-- [ ] Read `specs/tech/subsystems/conceptspace/content-patterns/intersections.md`
-- [ ] Write a brief note about where the "statement-creator / lattice-completion" idea fits in the architecture. It's probably a specialized finder that creates intermediate statements and submits them to the implication attester. Add this to the intersections spec or as a new brief spec.
+### Chunk 6: Clarify the noninflammatory-content attester and the "statement-creator / lattice-completion" service ✅ Done
+- [x] Read `specs/tech/subsystems/conceptspace/content-patterns/noninflammatory-content.md` and the content attester code
+- [x] Clarify in the spec: is a "noninflammatory content attester" a separate service from the content attester, or just the content attester with a specific prompt? Write a brief clarifying note.
+- [x] Read `specs/tech/subsystems/conceptspace/content-patterns/intersections.md`
+- [x] Write a brief note about where the "statement-creator / lattice-completion" idea fits in the architecture. It's probably a specialized finder that creates intermediate statements and submits them to the implication attester. Add this to the intersections spec or as a new brief spec.
 
 ### Chunk 7: Update TODO.md
 - [ ] Read the current TODO.md
