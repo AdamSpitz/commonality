@@ -513,3 +513,47 @@ npm run docs --workspace=hardhat
 **Note**: The typedoc generates many warnings about viem types - these are noise from the SDK exposing viem clients. Could be suppressed with externalSymbolLinkMappings config.
 
 No ongoing work in progress. See [TODO.md](TODO.md) for the next tasks.
+
+## 2026-04-21 - AI Services: Split LLM config out of base NudgerConfig (Completed)
+
+**Task**: Complete the remaining nudger-core configuration cleanup from [TODO.md](TODO.md) by moving OpenRouter-only fields out of the base `NudgerConfig`.
+
+**What was done**:
+- Updated `nudger-core/src/signer.ts` so `NudgerConfig` now contains only shared signer/IPFS/service settings, and added `LlmNudgerConfig` for strategies that actually call an LLM.
+- Made `NudgerStrategy` generic over its config type, then exported the new config type from `nudger-core/src/index.ts`.
+- Updated `implication-graph-nudger/src/config.ts` so the graph-based nudger no longer requires `OPENROUTER_API_KEY` / `OPENROUTER_MODEL`.
+- Tightened `bridge-creator/src/config.ts` and `bridge-creator/src/nudger.ts` to use the LLM-specific config explicitly.
+- Added `implication-graph-nudger/src/config.test.ts` covering the intended behavior: implication-graph nudgers can load config without any OpenRouter env vars.
+- Updated `nudger-core/README.md`, `implication-graph-nudger/README.md`, [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md), and [TODO.md](TODO.md) to reflect that this code gap is now closed.
+
+**Key decisions**:
+- Kept the shared base config narrow rather than making LLM fields optional on every nudger. That preserves a clean type signal: non-LLM strategies do not know about OpenRouter at all, while LLM-based strategies still require those fields.
+- Made `NudgerStrategy` generic instead of relying on repeated casts in each nudger implementation.
+
+**Verified**:
+- `npm run typecheck --workspace=nudger-core`
+- `npm run lint --workspace=nudger-core`
+- `npm run build --workspace=nudger-core`
+- `npm test --workspace=nudger-core -- --require tsx/cjs "src/**/*.test.ts"`
+- `npm run typecheck --workspace=implication-graph-nudger`
+- `npm run lint --workspace=implication-graph-nudger`
+- `npm run build --workspace=implication-graph-nudger`
+- `npm test --workspace=implication-graph-nudger -- --require tsx/cjs "src/**/*.test.ts"`
+- `npm run typecheck` (in `bridge-creator/`)
+- `npm run lint` in `bridge-creator/` still fails because that package has no `eslint.config.js`; added a follow-up note to `TODO.md` under "Suggestions from AI".
+
+**Files changed**:
+- `nudger-core/src/signer.ts`
+- `nudger-core/src/nudger-strategy.ts`
+- `nudger-core/src/index.ts`
+- `nudger-core/README.md`
+- `implication-graph-nudger/src/config.ts`
+- `implication-graph-nudger/src/config.test.ts`
+- `implication-graph-nudger/README.md`
+- `bridge-creator/src/config.ts`
+- `bridge-creator/src/nudger.ts`
+- `AI-SERVICES-REVIEW-PLAN.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The nudger-core code gaps called out in the AI-services review are now both closed. The next meaningful AI-services task is still the SDK work to fetch and fold typed nudger publications from the indexer.

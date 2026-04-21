@@ -9,43 +9,40 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 1. **SDK: fetch + fold typed nudger publications from indexer.**
    The `nudge-batch` and `curated-collection` publication kinds are fully specced (nudger spec, `specs/tech/subsystems/nudger/README.md`) but the SDK has no code to fetch or fold them. This is the blocker for all nudger UI work.
 
-2. **Fix nudger-core code gap: LLM config leaking into base type.**
-   `NudgerConfig` currently requires `OPENROUTER_API_KEY` even for strategies (like the implication-graph nudger) that never call an LLM. Move those fields to a strategy-specific config type. See `nudger-core/README.md`.
-
 ### UI — nudge display
 
-3. **UI: display `nudge-batch` suggestions.**
+2. **UI: display `nudge-batch` suggestions.**
    Replace the current proto-nudger (`StatementSuggestions` / `getStatementSuggestions`) with a real nudge-display component that reads from folded `nudge-batch` publications. Spec: nudger spec + `specs/product/nudge-ux.md`.
 
-4. **UI: nudge dismissal / "seen" tracking, intensity settings, client-side filtering.**
+3. **UI: nudge dismissal / "seen" tracking, intensity settings, client-side filtering.**
    Spec: `specs/product/nudge-ux.md` covers all three. Important for not being annoying.
 
-5. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
+4. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
    Nice-to-have for the trust-configuration flow. Spec: nudger spec.
 
 ### UI — explorer
 
-6. **UI: explorer pages backed by `curated-collection` publications.**
+5. **UI: explorer pages backed by `curated-collection` publications.**
    The new-user entry point. Replaces the hardcoded statement list with a folded `curated-collection` from a trusted nudger. Spec: `specs/tech/subsystems/conceptspace/explorer.md` + `specs/product/new-user-experience.md`.
 
-7. **Explorer nudger strategy (background LLM + per-user LLM).**
+6. **Explorer nudger strategy (background LLM + per-user LLM).**
    The fundable-project explorer. Spec: `specs/tech/subsystems/conceptspace/explorer.md`.
 
 ### Enhancements and new services
 
-8. **Content submission UI/API.**
+7. **Content submission UI/API.**
    No user-facing way to submit content to the content finder yet. Spec: `specs/product/content-submission.md`. Simple CRUD — a `POST /content-submission` endpoint in platform-api-service plus a minimal form in the content-funding UI.
 
-9. **Bridge-creator nudger: implement `findBridgeCandidates`.**
+8. **Bridge-creator nudger: implement `findBridgeCandidates`.**
     `bridge-creator/` has scaffolding but the strategy is not implemented. Spec: `specs/product/bridge-creator.md`. Not on the critical path.
 
-10. **Bridge-priority scoring as a mode of the implication finder.**
+9. **Bridge-priority scoring as a mode of the implication finder.**
     Not a new service — a priority-scoring enhancement to the existing implication finder. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
 
-11. **Implication attester / finder prompt enhancements for intersection patterns.**
+10. **Implication attester / finder prompt enhancements for intersection patterns.**
     See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md). Make the geographic × topical intersection patterns explicit in the prompts. The statement-creator (lattice-completion) finder idea is also sketched there.
 
-12. **Anti-evil-nudger immune system.**
+11. **Anti-evil-nudger immune system.**
     Low priority — only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
 
 ---
@@ -111,3 +108,7 @@ https://x.com/mattvanswol/status/2045936225198956559
 
 
 https://x.com/elonmusk/status/2046327719231705207
+
+## Suggestions from AI
+
+- Add an `eslint.config.js` to `bridge-creator/` (or bring it into the same shared lint setup as the other AI-service packages). Verifying this task was slightly harder than it needed to be because `npm run lint` works for `nudger-core` and `implication-graph-nudger` but fails immediately in `bridge-creator/` due to missing ESLint config, even though the package has a lint script.

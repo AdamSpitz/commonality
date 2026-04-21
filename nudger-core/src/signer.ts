@@ -15,14 +15,17 @@ export interface NudgerConfig {
   indexerUrl: string;
   ipfsApiUrl: string;
   ipfsGatewayUrl: string;
-  openRouterApiKey: string;
-  openRouterModel: string;
   port: number;
   name: string;
   description: string;
   sourceType: string;
   version: string;
   nudgePublicationsContractAddress: string;
+}
+
+export interface LlmNudgerConfig extends NudgerConfig {
+  openRouterApiKey: string;
+  openRouterModel: string;
 }
 
 export function initializeSigner(config: NudgerConfig) {

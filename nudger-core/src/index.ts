@@ -1,4 +1,10 @@
-export type { NudgerConfig, NudgeMessage, NudgeRevocation, NudgeBatch } from './signer.js';
+export type {
+  NudgerConfig,
+  LlmNudgerConfig,
+  NudgeMessage,
+  NudgeRevocation,
+  NudgeBatch,
+} from './signer.js';
 export {
   initializeSigner,
   getSignerAddress,

@@ -30,8 +30,6 @@ export function loadConfig(): NudgerConfig {
     indexerUrl: readStringEnv('INDEXER_URL', 'http://localhost:3001'),
     ipfsApiUrl: readStringEnv('IPFS_API', 'http://localhost:5001'),
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),
-    openRouterApiKey: requireEnv('OPENROUTER_API_KEY', process.env.OPENROUTER_API_KEY),
-    openRouterModel: readStringEnv('OPENROUTER_MODEL', 'anthropic/claude-3.5-haiku'),
     port: readNumberEnv('PORT', 3002),
     name: readStringEnv('NUDGER_NAME', 'Implication Graph Nudger'),
     description: readStringEnv('NUDGER_DESCRIPTION', 'Suggests statements based on the implication graph'),

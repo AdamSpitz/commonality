@@ -7,6 +7,7 @@ This package contains the reusable pieces that do not depend on a specific nudge
 - `NudgerStrategy` interface — the contract every nudger strategy must implement
 - `NudgeMessage`, `NudgeRevocation`, `NudgeBatch` types — the payload shapes for `nudge-batch` publications
 - `NudgerConfig` base configuration type
+- `LlmNudgerConfig` strategy-specific extension for nudgers that call an LLM
 - `initializeSigner`, `getSignerAddress`, `publishNudgeBatch` — helpers for signing transactions and publishing batches to IPFS + chain
 
 Nudger-specific services such as `implication-graph-nudger/` and `bridge-creator/` keep their strategy logic local, and import the shared pieces from this package.
@@ -61,3 +62,30 @@ interface NudgerStrategy {
 ```
 
 The background worker in each nudger service calls `generateNudges` for every statement in the graph, collects the results, and then calls `publishNudgeBatch` once to publish the full batch.
+
+## Configuration types
+
+`NudgerConfig` now contains only the chain/IPFS/service fields required by every nudger. Strategies that actually call an LLM should extend `LlmNudgerConfig`:
+
+```typescript
+interface NudgerConfig {
+  nudgerPrivateKey: string;
+  ethereumRpcUrl: string;
+  indexerUrl: string;
+  ipfsApiUrl: string;
+  ipfsGatewayUrl: string;
+  port: number;
+  name: string;
+  description: string;
+  sourceType: string;
+  version: string;
+  nudgePublicationsContractAddress: string;
+}
+
+interface LlmNudgerConfig extends NudgerConfig {
+  openRouterApiKey: string;
+  openRouterModel: string;
+}
+```
+
+This keeps purely graph-based strategies such as `implication-graph-nudger/` from requiring unrelated OpenRouter environment variables, while still letting AI-based nudgers like `bridge-creator/` declare their extra requirements explicitly.

@@ -1,4 +1,4 @@
-import type { NudgerConfig } from '@commonality/nudger-core';
+import type { LlmNudgerConfig } from '@commonality/nudger-core';
 
 function requireEnv(name: string, value: string | undefined = process.env[name]): string {
   if (!value) {
@@ -23,7 +23,7 @@ function readNumberEnv(name: string, fallback: number): number {
   return parsed;
 }
 
-export interface BridgeCreatorConfig extends NudgerConfig {
+export interface BridgeCreatorConfig extends LlmNudgerConfig {
   commonalityStatements: string[];
 }
 

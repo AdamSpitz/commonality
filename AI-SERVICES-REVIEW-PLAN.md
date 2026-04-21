@@ -110,7 +110,7 @@ This three-level model is well-articulated across the bridge-creator spec, the h
 ### Needs reconciliation (spec says one thing, code may say another)
 | Component | Issue |
 |-----------|-------|
-| `nudger-core/` and `implication-graph-nudger/` | Both READMEs were stale (updated in Chunk 3). Two code gaps remain: (1) `NudgeBatch` is missing `kind: 'nudge-batch'` and `schemaVersion: 1` fields required by the typed publication envelope — the SDK cannot dispatch by type without these; (2) `NudgerConfig` (and therefore `implication-graph-nudger`) requires `OPENROUTER_API_KEY` even though the implication-graph strategy is purely graph-based and doesn't use an LLM — these fields should be moved to a strategy-specific config type. |
+| `nudger-core/` and `implication-graph-nudger/` | Both READMEs were stale (updated in Chunk 3). The typed `NudgeBatch` envelope gap is now fixed, and `NudgerConfig` has been narrowed so non-LLM nudgers no longer require OpenRouter env vars. The remaining downstream blocker is still SDK support for fetching and folding typed nudger publications. |
 
 ---
 

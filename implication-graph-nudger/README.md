@@ -39,8 +39,6 @@ The service exposes a minimal HTTP interface for discovery and health monitoring
 | `NUDGER_SOURCE_TYPE` | Strategy type | `implication-graph` |
 | `NUDGER_VERSION` | Version | `0.1.0` |
 
-> **Code gap:** `config.ts` currently requires `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`, but the implication-graph strategy doesn't use an LLM. These env vars should be made optional (or removed from the base `NudgerConfig` type and moved to strategy-specific config types used only by AI-based nudgers like `bridge-creator`).
-
 ## NudgeMessage format
 
 ```typescript

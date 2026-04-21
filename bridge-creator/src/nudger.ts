@@ -6,8 +6,9 @@ import {
   uploadToIPFS,
 } from '@commonality/sdk';
 import { type DisplayableDocument } from '@commonality/sdk';
-import type { NudgerConfig, NudgeMessage } from '@commonality/nudger-core';
+import type { NudgeMessage, NudgerStrategy } from '@commonality/nudger-core';
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
+import type { BridgeCreatorConfig } from './config.js';
 
 export interface BridgeCandidate {
   leftStatement: {
@@ -24,13 +25,13 @@ export interface BridgeCandidate {
   };
 }
 
-export class BridgeCreatorNudger {
+export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> {
   name = 'bridge-creator';
 
   async generateNudges(
     machinery: SDKMachinery,
     targetStatementCid: IpfsCidV1,
-    config: NudgerConfig
+    config: BridgeCreatorConfig
   ): Promise<NudgeMessage[]> {
     const sourceStatement = await getStatement(machinery, targetStatementCid);
     if (!sourceStatement) {
@@ -48,7 +49,7 @@ export class BridgeCreatorNudger {
       machinery,
       targetStatementCid,
       sourceContent,
-      config as BridgeCreatorConfig
+      config
     );
 
     const nudges: NudgeMessage[] = [];
@@ -57,7 +58,7 @@ export class BridgeCreatorNudger {
       const modifiedStatement = await this.createModifiedVersion(
         candidate,
         sourceContent,
-        config as BridgeCreatorConfig
+        config
       );
 
       if (!modifiedStatement) {
@@ -77,7 +78,7 @@ export class BridgeCreatorNudger {
 
       const commonalityStatement = await this.createCommonalityStatement(
         candidate,
-        config as BridgeCreatorConfig
+        config
       );
 
       if (commonalityStatement) {
@@ -281,8 +282,4 @@ Keep it concise (2-3 sentences).`;
 
 export function createNudgerStrategy(): BridgeCreatorNudger {
   return new BridgeCreatorNudger();
-}
-
-interface BridgeCreatorConfig extends NudgerConfig {
-  commonalityStatements: string[];
 }
