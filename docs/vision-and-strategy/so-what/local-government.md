@@ -2,25 +2,29 @@
 
 Commonality's mechanisms — trust-based delegation, assurance contracts, onchain transparency — all work better at smaller scales. This isn't a design choice; it's structural. The result is a natural gravitational pull toward localism: communities that use Commonality will find it easiest and most rewarding to fund local public goods, and over time this may shift the balance of power toward more-local government — not through confrontation, but by routing around the higher levels.
 
-TODO: try to improve, because the above doesn't quite feel compelling. I think maybe the argument is something like:
-  - Local government works better.
-  - People are going to notice that.
-  - People are going to notice that they have a better alternative now. (Not just Commonality in particular, but internet-age mechanisms in general.)
-  - There's a pathway (credible-threat, etc.) to get there from here.
-  - So people might push for that.
-  - (I'm not arguing that I think this is a slam dunk or whatever. Obviously this is all very speculative and there are lots of forces pushing in the opposite direction and so on. I'm just wondering whether this might tip the scales a bit in that direction.)
+This is all speculative, obviously, and there are plenty of forces pushing in the opposite direction. The argument isn't "this is inevitable." It's that voluntary public-goods funding has a structural bias toward localism, and that bias might tip the scales — gradually, through a thousand small choices that each make sense on their own.
 
 ## Why localism is better (briefly)
 
-The standard subsidiarity argument: local government has better information about local needs, tighter feedback loops, and is harder for special interests to capture (it's easier to hold your town council accountable than your federal representative). (TODO: the point here isn't "it works better, so it's gonna win!" But I do think that (a) it would be *good* if more stuff were pushed down to local government, and (b) people *notice* that the stuff done by the larger-scale governments is bizarrely expensive or nonexistent or weirdly corrupt and they're like "wait a minute, it seems like we should be able to do this ourselves more effectively than this." That is, I'm expecting it to be an easy sell to persuade people to want to run stuff locally, especially once they've gotten more familiar with the Commonality system and they're like "wait why can't we just do a pubstarter for that?")
+The standard subsidiarity argument: local government has better information about local needs, tighter feedback loops, and more accountability (it's easier to hold your town council accountable than your federal representative).
 
-The main reason we centralized so many government functions was that *coordination at scale was hard*. (TODO: I dunno about that, maybe say "one of the main reasons"; honestly, I feel like there's ideological/political stuff that's more of a factor.) Provincial and federal governments served as coordination layers — pooling resources, standardizing services, managing inter-community dependencies. But "coordination at scale is hard" is exactly the kind of problem that internet-era protocols are good at solving. Much of the centralization we take for granted may be a legacy of pre-internet coordination costs rather than a reflection of where decisions are best made. (TODO: Point probably still stands, more or less. The ability to do internet-era coordination shifts the balance, even if this wasn't the only factor pushing towards centralization. What do you think, AI?)
+This deserves a caveat. Local government can also be *more* captured, not less — small-town corruption, local elites dominating meetings with no press scrutiny, HOA-style petty tyranny. The subsidiarity case depends on people actually paying attention and participating. Commonality's mechanisms — onchain transparency, direct donor control, revocable delegation — help ensure that they do. And there's a competitive dynamic: it's much easier to move to the next town than to the next province or country, which puts pressure on local governments to perform in a way that higher-level governments don't face.
+
+Beyond the generic subsidiarity argument, there's the more visceral version: people *notice* that things done by larger-scale governments are bizarrely expensive, or nonexistent, or weirdly corrupt. The intuition "we should be able to do this ourselves more effectively" is widespread and, frankly, usually correct. Once people are familiar with Commonality's tools — once they've successfully used an assurance contract to fund a local project — the question "wait, why can't we just do a pubstarter for that?" becomes natural.
+
+## Why the balance is shifting
+
+One of the reasons we centralized so many government functions was that *coordination at scale was hard*. Provincial and federal governments served as coordination layers — pooling resources, standardizing services, managing inter-community dependencies. That wasn't the only reason for centralization (there's ideology, path dependence, economies of scale, and the desire for wealth redistribution), but coordination costs were a big part of it.
+
+"Coordination at scale is hard" is exactly the kind of problem that internet-era tools are good at solving. We can transfer data instantly, create interoperability standards, build market-based systems where separate entities cooperate and pay each other, and use smart contracts to create trustless coordination between towns without a single entity overseeing them.
+
+This doesn't eliminate all justifications for centralization. But it removes one of the major ones, which shifts the balance. Consider education: even if we want publicly-funded schools, why does the *province* need to manage the system? Standards can be created and shared online. Funding can come from local sources. The coordination function that justified provincial control is increasingly something a protocol can handle.
 
 ## Why Commonality naturally favors the local level
 
 Three structural reasons:
 
-**Denser trust networks.** Commonality's delegation system works better when people know their delegates personally. A retired teacher attesting alignment for youth programs is genuinely trusted in a small town in a way that no provincial bureaucrat can be. Delegation — one of Commonality's core advantages over both government and traditional charity — has a natural gravity toward the local.
+**Denser trust networks.** Commonality's delegation system works better when people know their delegates personally. A retired teacher attesting alignment for youth programs is genuinely trusted in a small town in a way that no provincial bureaucrat can be. Delegation — one of Commonality's core advantages over both government and traditional charity — has a natural gravity toward the local. And the information advantage is qualitative: your local delegate can literally walk to the project and see whether it's working.
 
 **Lower coordination thresholds.** Reaching an assurance-contract pledge threshold is easier when the community is smaller and more cohesive. 200 families in a town can coordinate around a $120K/year contract. Getting equivalent per-capita participation for a provincial-scale initiative is much harder. Assurance contracts inherently favor the more-local level.
 
@@ -28,26 +32,35 @@ Three structural reasons:
 
 Together, these say: *voluntary public-goods funding has a structural bias toward localism that tax-funded government doesn't.* Tax revenue flows up to higher levels and then back down with strings attached. Voluntary funding stays local by default.
 
+This isn't an accident, but it also isn't an ideological design choice. Commonality is designed to be a system people will actually use voluntarily — which means minimizing friction. The delegation system is composable and revocable because I want people to feel comfortable delegating, and that means delegating to people they know. Users donate their own money because that's the only money I have the ability to enable them to donate. They donate toward local projects because those are the projects they personally care about. The localism bias isn't something I aimed for; it's what falls out of designing a public-goods-funding system that people will actually use. "Put your own money in the hands of people you know, to be used for projects you care about" just turns out to be more naturally suited to local government than to higher-level government.
+
 ## Rails for local government, substitute for higher-level government
 
 This is perhaps the most important distinction.
 
-When a town uses Commonality for local projects, it's basically just local experts (project doers, funding-decision delegates) doing local work with locals' money, using better coordination tools. This is *rails for local government* — augmenting it, making it more effective, possibly even making it more legitimate by giving residents more direct control over funding.
-
-(TODO: And that's not coincidence. Commonality is designed to be a system that people will actually use voluntarily, not because I have some ideological bias towards voluntariness - although I do - but because I was like "I think I see an opportunity to use new tech to make humanity better at funding public goods, and if I want to pursue that goal I can either try to somehow improve the existing system of government or I can completely avoid the government and instead just make a thing try to get people to use this system like a normal product", and obviously "improve the government" would have been a miserable way to waste my life. So I'm basically building a startup and so I want people to use the thing I'm building and so I'm designing it to have as little friction as possible. The delegation system is composable and revocable specifically because I want people to feel comfortable delegating, and that means delegating to people they know. Users donate their own money because that's the only money I have the ability to enable them to donate. They probably donate it towards local projects because those are the projects they personally care about. Commonality isn't designed to be rails for local government, it's designed to be an effective public-goods-funding system that people will actually use, and that meant it ended up being more-suitable as rails for local government rather than higher-level government because it's all about putting your own money in the hands of people you know to be used for projects you care about.)
+When a town uses Commonality for local projects, it's basically just local experts (project doers, funding-decision delegates) doing local work with locals' money, using better coordination tools. This is *rails for local government* — augmenting it, making it more effective, possibly even making it more legitimate by giving residents more direct control over funding. There are existing real-world parallels: Business Improvement Districts, special assessment districts, school districts with local levies. These already work in limited forms. Commonality generalizes them.
 
 But when Commonality is used for the kinds of things provincial or federal governments currently do — say, ten small towns pooling resources for shared water infrastructure — it feels different. It's not "rails for the province." It's a *coordination protocol that replaces the province's coordination function*. The towns cooperate directly. They don't need a higher-level entity to aggregate their needs, allocate funds, and attach conditions. The delegation chain still goes through each town's local trusted people, so even when you're participating in something larger-scale, you (or your local delegate) can always revoke if you don't like what's happening.
 
-TODO: Right, so I think there are two points here:
-  - First, totally apart from anything Commonality does, computers and the Internet and blockchains have improved our ability to coordinate. We can transfer data instantly to anywhere it's needed, we can make standards so that different things can interoperate, we can make market-based systems in which separate entities cooperate and pay each other, we can use smart contracts to create trustless ways for different towns to coordinate without needing a single entity overseeing them, etc.
-    - e.g. What exactly is the point of having provicial governments manage the education system? Even if we want a publically-funded education system, why can't the local municipalities do the funding? Setting standards? We can make and share whatever standards we want online. Etc.
-  - Second, Commonality itself has mechanisms that *can* scale up to larger scales, even though they don't work as well there as they do at smaller scales.
-    - Composable delegation lets us have delegation chains that reach people who are in touch with the larger-scale issues, even though the chains still go through your personal trusted friends and each town's local trusted people.
-    - Assurance contracts can be for big projects, even though they're easier to make successful with smaller projects. And those can be composable too (i.e. the town itself runs an assurance contract to determine whether or not to participate in the larger-scale assurance contract between towns).
-    - Social recognition via the donation leaderboards doesn't mean as much if the people seeing your name aren't your local townspeople, but it's not nothing. And maybe those too could be composable: show which towns (rather than just which individuals) have contributed how much?
+This is a genuinely new capability. It's not just "push things down to the local level" — it's *ad hoc regional cooperation without permanent regional government*. Ten towns that need shared water infrastructure form a temporary cooperation, fund it collectively via a shared assurance contract, and dissolve the arrangement when the project is done. No new bureaucracy created. Neither purely local government nor provincial government currently offers this.
 
+Two things make this possible:
 
-This means Commonality doesn't just shift *funding* downward — it undermines the *justification* for higher-level government. The province's role was "we coordinate things that individual towns can't coordinate alone." If a protocol can do that coordination without a central authority, the province's remaining role shrinks to the genuinely provincial-scale functions (interprovincial infrastructure, courts, standards, TODO: I don't know, specifics don't matter here) — which is arguably where it should be.
+First, quite apart from Commonality, internet-era tools have improved our ability to coordinate across boundaries — data transfer, interoperability standards, smart contracts for trustless cooperation. The raw infrastructure for inter-community coordination without a central authority already exists.
+
+Second, Commonality's own mechanisms *can* scale up, even though they work best locally. Composable delegation lets chains reach people in touch with larger-scale issues while still going through your personal trusted contacts. Assurance contracts can be for big projects (and can themselves be composable — the town runs an assurance contract to determine whether to participate in the larger inter-town contract). Social recognition via donation leaderboards means less when the people seeing your name aren't your neighbors, but it's not nothing — and it too can be composable, showing which *towns* have contributed how much.
+
+This means Commonality doesn't just shift *funding* downward — it undermines the *justification* for higher-level government. The province's role was "we coordinate things that individual towns can't coordinate alone." If a protocol can do that coordination without a central authority, the province's remaining role shrinks to the genuinely provincial-scale functions — which is arguably where it should be.
+
+## What about redistribution?
+
+One objection to localism is redistribution: if wealthy communities fund their own stuff beautifully, what happens to poor communities that can't? This is the main reason higher-level governments collect taxes centrally and distribute downward.
+
+But redistribution is a separable problem. You don't need a wasteful, corrupt, strings-attached provincial funding apparatus just to move money from richer areas to poorer ones. You can do redistribution directly — a UBI, for example. The crypto world already has experiments with this (e.g. Proof of Humanity identities each receiving equal token distributions, backed by external funding). Whether those particular attempts work is beside the point; the point is that "we need redistribution" doesn't require "we need a provincial bureaucracy managing everything."
+
+The current system bundles redistribution with control. Money flows up to the province, the province skims overhead and attaches conditions, then money flows back down. The redistribution function is real and important, but the control function that comes bundled with it is not. Commonality's localism argument is about unbundling these: keep the redistribution (via direct mechanisms), lose the strings.
+
+This doesn't fully solve the problem — poor communities with less discretionary income will still find it harder to fund local public goods voluntarily. But they're already underserved by the current system, and a world where redistribution is direct and local funding is effective seems better than one where both are mediated by a dysfunctional province.
 
 ## How the shift happens
 
@@ -67,7 +80,9 @@ Critically, this ratchet is harder to reverse than political victories. You can'
 
 ### Asymmetric costs
 
-For a local community, setting up Commonality infrastructure is cheap — [costless to try](../ease-of-adoption/costless-to-try.md). For the higher-level government, trying to suppress it is expensive (censorship resistance is the whole design) and creates local resentment ("we're stopping people from voluntarily funding their own community programs"). The higher level would need to spend political capital with local voters and independents to suppress something that costs the local side almost nothing to maintain. And each act of suppression validates the case for independent infrastructure.
+For a local community, setting up Commonality infrastructure is cheap — [costless to try](../ease-of-adoption/costless-to-try.md). For the higher-level government, trying to suppress it is politically expensive. A government telling people "you may not voluntarily fund your own community programs" has to spend political capital with local voters and independents to suppress something that costs the local side almost nothing to maintain. And each act of suppression validates the case for independent infrastructure.
+
+Governments don't need to attack the protocol itself — they can regulate fiat on-ramps or decline to recognize Commonality spending for tax purposes. But the core asymmetry isn't technical; it's that suppression *looks bad*. The optics of "we're stopping people from voluntarily funding their own parks" are terrible, and the political cost scales with the number of communities doing it.
 
 ### Contagion
 
@@ -79,11 +94,11 @@ In theory, higher-level governments are agents of local populations. In practice
 
 ### The tax-competition angle
 
-This is where voluntary action connects to actual structural change in government. If municipalities are already funding public goods effectively via Commonality using after-tax dollars, the argument for sending tax revenue up to the province (only to get it back with conditions) becomes harder to defend. A municipality that can say "we're already funding this ourselves with after-tax dollars; if you'd just let us keep those tax dollars locally, we could do it more efficiently" has a strong position.
+This is where the apolitical strategy meets political reality. If municipalities are already funding public goods effectively via Commonality using after-tax dollars, the argument for sending tax revenue up to the province (only to get it back with conditions) becomes harder to defend. A municipality that can say "we're already funding this ourselves with after-tax dollars; if you'd just let us keep those tax dollars locally, we could do it more efficiently" has a strong position.
+
+Actually achieving lower provincial taxes still requires politics — elections, legislation, the whole thing. But Commonality changes the political landscape in which those fights happen. It's one thing to argue for tax devolution in the abstract; it's another to point to a concrete track record of effective local funding and say "we're literally already doing this, just less efficiently because we're paying twice."
 
 This creates political pressure for either (a) lower provincial taxes with compensating municipal tax increases, shifting the tax base downward, or (b) unconditional block grants rather than conditional ones, loosening the strings even if money still flows through the province. Either outcome shifts effective power toward the local level.
-
-This isn't tax evasion — it's a concrete demonstration that local funding works, which makes the case for letting people fund public goods with before-tax money in a more effective way than the legacy system currently allows.
 
 ## A possible strategic sequence
 
@@ -107,7 +122,7 @@ It's worth being explicit: this argument does *not* require:
 
 - **Persuading political opponents.** Nobody needs to be convinced that localism is good. People just use Commonality because it's useful, and the structural bias toward localism does the rest.
 - **Facts mattering in the media.** The mechanisms don't work by proving anything to a hostile audience. They work by giving communities the ability to act independently, regardless of what anyone else believes.
-- **Winning elections.** Every step is achievable unilaterally by a single community. No majority required.
+- **Winning elections.** Every step is achievable unilaterally by a single community. No majority required. (The tax-competition angle eventually involves politics, but the value of every prior step is independent of whether that ever happens.)
 - **A grand ideological shift.** People don't need to want to "devolve power." They just need to want to fund their local park, and the cumulative effect of many communities doing this is a gradual, voluntary migration of public-goods funding to the local level.
 
 The gravitational pull toward localism is a structural feature of voluntary public-goods funding, not a political program anyone needs to sign up for.
