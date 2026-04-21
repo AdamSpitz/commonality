@@ -1,5 +1,37 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Bridge Creator `findBridgeCandidates` Implementation (Completed)
+
+**Task**: Complete TODO.md item 5 — implement `findBridgeCandidates` in the bridge-creator nudger.
+Spec: `specs/product/bridge-creator.md`.
+
+**What was done**:
+- Implemented `findBridgeCandidates` to fetch candidate statements from the chain via `getAllStatements` (limit 20), then use the existing `analyzeCompatibility` LLM helper to check each pair. Returns candidates where at least one direction shows compatibility.
+- Also checks pre-configured `COMMONALITY_STATEMENTS` (from env var) against each target statement, enabling operators to seed known common-ground positions.
+- Wired up `createModifiedVersion` to call `generateModifiedStatement` (existing LLM helper).
+- Wired up `createCommonalityStatement` to call `generateCommonalityStatement` (existing LLM helper).
+- Added `bridge-creator` to the root `package.json` workspaces list so it can be typechecked/linted via the monorepo tooling.
+- Updated `bridge-creator/README.md` to reflect the implemented status and document the `COMMONALITY_STATEMENTS` env var.
+
+**Key decisions**:
+- Used `getAllStatements` with a limit of 20 rather than scanning the entire chain — this keeps the service responsive and avoids excessive LLM calls. The limit can be tuned via config later if needed.
+- Pre-configured commonality statements use `'preconfigured'` as a placeholder CID since they aren't on-chain statements. This is fine for nudge generation; the generated statements get real CIDs when published to IPFS.
+- The `fetchCandidateStatements` uses a dynamic import for `getAllStatements` to avoid circular dependency issues with the SDK imports.
+
+**Verified**:
+- `npm run typecheck --workspace=@commonality/bridge-creator`
+- `npm run lint --workspace=@commonality/bridge-creator`
+
+**Files changed**:
+- `bridge-creator/src/nudger.ts` (implemented findBridgeCandidates, createModifiedVersion, createCommonalityStatement)
+- `bridge-creator/README.md` (updated status and config docs)
+- `package.json` (added bridge-creator to workspaces)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The bridge-creator nudger is now functional. The next logical step would be to test it end-to-end with a running chain and seed data, or to work on the remaining AI services items (nudge metadata discovery, staleness decay, etc.).
+
+
 ## 2026-04-21 - AI Services: Explorer Page UI (Completed)
 
 **Task**: Complete TODO.md item 3 — UI explorer pages backed by `curated-collection` publications.

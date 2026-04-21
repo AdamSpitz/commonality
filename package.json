@@ -19,6 +19,7 @@
     "fake-data-generation",
     "nudger-core",
     "implication-graph-nudger",
+    "bridge-creator",
     "ui"
   ],
   "engines": {

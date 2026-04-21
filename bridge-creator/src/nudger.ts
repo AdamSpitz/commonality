@@ -119,27 +119,99 @@ export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> 
   }
 
   private async findBridgeCandidates(
-    _machinery: SDKMachinery,
-    _targetStatementCid: IpfsCidV1,
-    _sourceContent: string,
-    _config: BridgeCreatorConfig
+    machinery: SDKMachinery,
+    targetStatementCid: IpfsCidV1,
+    sourceContent: string,
+    config: BridgeCreatorConfig
   ): Promise<BridgeCandidate[]> {
-    return [];
+    const statements = await this.fetchCandidateStatements(machinery, targetStatementCid);
+    const candidates: BridgeCandidate[] = [];
+
+    for (const stmt of statements) {
+      if (!stmt.content) continue;
+
+      const content = this.extractContent(stmt.content);
+      if (!content || content === sourceContent) continue;
+
+      const compatibility = await this.analyzeCompatibility(
+        sourceContent,
+        content,
+        config
+      );
+
+      if (compatibility.leftCompatibleWithRight || compatibility.rightCompatibleWithLeft) {
+        candidates.push({
+          leftStatement: { cid: targetStatementCid, content: sourceContent },
+          rightStatement: { cid: stmt.cid, content },
+          compatibility,
+        });
+      }
+    }
+
+    for (const commonalityText of config.commonalityStatements) {
+      if (!commonalityText.trim()) continue;
+
+      const compatibility = await this.analyzeCompatibility(
+        sourceContent,
+        commonalityText.trim(),
+        config
+      );
+
+      if (compatibility.leftCompatibleWithRight || compatibility.rightCompatibleWithLeft) {
+        candidates.push({
+          leftStatement: { cid: targetStatementCid, content: sourceContent },
+          rightStatement: { cid: 'preconfigured' as IpfsCidV1, content: commonalityText.trim() },
+          compatibility,
+        });
+      }
+    }
+
+    return candidates;
+  }
+
+  private async fetchCandidateStatements(
+    machinery: SDKMachinery,
+    excludeCid: IpfsCidV1,
+  ): Promise<Array<{ cid: IpfsCidV1; content: DisplayableDocument | null }>> {
+    const { getAllStatements } = await import('@commonality/sdk');
+    const statements = await getAllStatements(machinery, { limit: 20 });
+    const results: Array<{ cid: IpfsCidV1; content: DisplayableDocument | null }> = [];
+
+    for (const stmt of statements) {
+      if (stmt.cid === excludeCid) continue;
+      try {
+        const withContent = await getStatementWithContent(machinery, stmt.cid);
+        results.push({ cid: stmt.cid, content: withContent?.content ?? null });
+      } catch {
+        results.push({ cid: stmt.cid, content: null });
+      }
+    }
+
+    return results;
   }
 
   private async createModifiedVersion(
-    _candidate: BridgeCandidate,
-    _originalContent: string,
-    _config: BridgeCreatorConfig
+    candidate: BridgeCandidate,
+    originalContent: string,
+    config: BridgeCreatorConfig
   ): Promise<string | null> {
-    return null;
+    return this.generateModifiedStatement(
+      originalContent,
+      'left',
+      candidate.rightStatement.content,
+      config
+    );
   }
 
   private async createCommonalityStatement(
-    _candidate: BridgeCandidate,
-    _config: BridgeCreatorConfig
+    candidate: BridgeCandidate,
+    config: BridgeCreatorConfig
   ): Promise<string | null> {
-    return null;
+    return this.generateCommonalityStatement(
+      candidate.leftStatement.content,
+      candidate.rightStatement.content,
+      config
+    );
   }
 
   private calculateConfidence(candidate: BridgeCandidate): number {

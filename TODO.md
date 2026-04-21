@@ -20,8 +20,7 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 
 ### Enhancements and new services
 
-5. **Bridge-creator nudger: implement `findBridgeCandidates`.**
-    `bridge-creator/` has scaffolding but the strategy is not implemented. Spec: `specs/product/bridge-creator.md`. Not on the critical path.
+5. ~~**Bridge-creator nudger: implement `findBridgeCandidates`.**~~ **Done.** `findBridgeCandidates` now fetches candidate statements from the chain, uses the LLM to analyze compatibility, and returns pairs where at least one side is compatible. Also checks pre-configured `COMMONALITY_STATEMENTS` against each target. Modified versions and common-ground statements are generated via the existing LLM helpers and published as nudges.
 
 6. **Bridge-priority scoring as a mode of the implication finder.**
     Not a new service — a priority-scoring enhancement to the existing implication finder. Spec: `specs/product/bridge-finder.md`. Not blocking anything.

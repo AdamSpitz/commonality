@@ -16,7 +16,7 @@ When asked for nudges for a statement S:
 
 ## Status
 
-Early / stub implementation. The `findBridgeCandidates` step (finding opposing statements) is not yet implemented; the service scaffolding and LLM helpers are in place but it does not yet produce live nudges.
+Implemented. The service fetches candidate statements from the chain, uses an LLM to analyze compatibility, and generates modified + common-ground statements as nudges. Pre-configured commonality statements (via `COMMONALITY_STATEMENTS` env var) are also checked against each target statement.
 
 ## Configuration
 
@@ -28,3 +28,4 @@ Early / stub implementation. The `findBridgeCandidates` step (finding opposing s
 | `ETHEREUM_RPC_URL` | Yes | — | RPC URL for blockchain access |
 | `INDEXER_URL` | No | `http://localhost:3001` | URL of the Ponder event cache |
 | `PORT` | No | `3002` | HTTP server port |
+| `COMMONALITY_STATEMENTS` | No | (empty) | Comma-separated list of pre-configured common-ground statement texts to check against each target |
