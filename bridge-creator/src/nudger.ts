@@ -2,6 +2,7 @@ import {
   type SDKMachinery,
   type IpfsCidV1,
   getStatement,
+  getAllStatements,
   getStatementWithContent,
   uploadToIPFS,
 } from '@commonality/sdk';
@@ -25,20 +26,43 @@ export interface BridgeCandidate {
   };
 }
 
+export interface BridgeCreatorDependencies {
+  getStatement: typeof getStatement;
+  getAllStatements: typeof getAllStatements;
+  getStatementWithContent: typeof getStatementWithContent;
+  uploadToIPFS: typeof uploadToIPFS;
+  requestJsonCompletion: typeof requestJsonCompletion;
+}
+
+const defaultDependencies: BridgeCreatorDependencies = {
+  getStatement,
+  getAllStatements,
+  getStatementWithContent,
+  uploadToIPFS,
+  requestJsonCompletion,
+};
+
 export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> {
   name = 'bridge-creator';
+
+  constructor(
+    private readonly dependencies: BridgeCreatorDependencies = defaultDependencies,
+  ) {}
 
   async generateNudges(
     machinery: SDKMachinery,
     targetStatementCid: IpfsCidV1,
     config: BridgeCreatorConfig
   ): Promise<NudgeMessage[]> {
-    const sourceStatement = await getStatement(machinery, targetStatementCid);
+    const sourceStatement = await this.dependencies.getStatement(machinery, targetStatementCid);
     if (!sourceStatement) {
       return [];
     }
 
-    const sourceStatementWithContent = await getStatementWithContent(machinery, targetStatementCid);
+    const sourceStatementWithContent = await this.dependencies.getStatementWithContent(
+      machinery,
+      targetStatementCid
+    );
     if (!sourceStatementWithContent || !sourceStatementWithContent.content) {
       return [];
     }
@@ -115,7 +139,7 @@ export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> 
         createdBy: 'bridge-creator',
       },
     };
-    return uploadToIPFS(machinery.ipfsConfig as any, doc);
+    return this.dependencies.uploadToIPFS(machinery.ipfsConfig as any, doc);
   }
 
   private async findBridgeCandidates(
@@ -173,14 +197,13 @@ export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> 
     machinery: SDKMachinery,
     excludeCid: IpfsCidV1,
   ): Promise<Array<{ cid: IpfsCidV1; content: DisplayableDocument | null }>> {
-    const { getAllStatements } = await import('@commonality/sdk');
-    const statements = await getAllStatements(machinery, { limit: 20 });
+    const statements = await this.dependencies.getAllStatements(machinery, { limit: 20 });
     const results: Array<{ cid: IpfsCidV1; content: DisplayableDocument | null }> = [];
 
     for (const stmt of statements) {
       if (stmt.cid === excludeCid) continue;
       try {
-        const withContent = await getStatementWithContent(machinery, stmt.cid);
+        const withContent = await this.dependencies.getStatementWithContent(machinery, stmt.cid);
         results.push({ cid: stmt.cid, content: withContent?.content ?? null });
       } catch {
         results.push({ cid: stmt.cid, content: null });
@@ -253,7 +276,7 @@ Respond with a JSON object indicating compatibility in either direction.`;
     }
 
     try {
-      const response = await requestJsonCompletion<CompatibilityResponse>(request);
+      const response = await this.dependencies.requestJsonCompletion<CompatibilityResponse>(request);
       return {
         leftCompatibleWithRight: response.leftCompatibleWithRight,
         rightCompatibleWithLeft: response.rightCompatibleWithLeft,
@@ -305,7 +328,7 @@ Generate a modified statement that the original author would likely be willing t
     }
 
     try {
-      const response = await requestJsonCompletion<ModifiedResponse>(request);
+      const response = await this.dependencies.requestJsonCompletion<ModifiedResponse>(request);
       return response.modified_statement;
     } catch (error) {
       console.error('Error generating modified statement:', error);
@@ -343,7 +366,7 @@ Keep it concise (2-3 sentences).`;
     }
 
     try {
-      const response = await requestJsonCompletion<CommonalityResponse>(request);
+      const response = await this.dependencies.requestJsonCompletion<CommonalityResponse>(request);
       return response.commonality_statement;
     } catch (error) {
       console.error('Error generating commonality statement:', error);

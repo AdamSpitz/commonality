@@ -1,5 +1,43 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Bridge Creator Test Coverage (Completed)
+
+**Task**: Address the `TODO.md` bridge-creator portion of the AI Services test-coverage gap.
+Spec: `specs/product/bridge-creator.md`.
+
+**What was done**:
+- Added a real `bridge-creator` mocha setup via `bridge-creator/.mocharc.json` so the workspace test script discovers TypeScript tests consistently.
+- Refactored `bridge-creator/src/nudger.ts` to accept injected SDK/LLM dependencies. Runtime behavior is unchanged, but the nudger is now unit-testable without monkey-patching imported modules.
+- Added `bridge-creator/test/nudger.test.ts` coverage for:
+  - end-to-end nudge generation across on-chain candidates plus preconfigured commonality statements
+  - publication ordering/confidence sorting
+  - statement publication payloads uploaded to IPFS
+  - graceful early return when the source statement content is unavailable
+  - conservative fallback when compatibility evaluation throws
+  - prompt wiring for the compatibility, modified-statement, and common-ground LLM helpers
+
+**Key decisions**:
+- Kept the refactor narrow by injecting only the external side-effecting helpers (`sdk` fetch/upload helpers plus `requestJsonCompletion`) instead of introducing a larger abstraction layer.
+- Tested the higher-level `generateNudges(...)` flow directly, since that is where candidate filtering, publication creation, and confidence ordering come together.
+- Left the existing error logging in place for LLM failures; the tests assert the fallback behavior rather than silencing the log.
+
+**Verified**:
+- `npm run typecheck --workspace=@commonality/bridge-creator`
+- `npm run lint --workspace=@commonality/bridge-creator`
+- `npm run test --workspace=@commonality/bridge-creator` (4 tests passing)
+
+**Files changed**:
+- `bridge-creator/src/nudger.ts`
+- `bridge-creator/.mocharc.json`
+- `bridge-creator/test/nudger.test.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- The AI Services test-coverage umbrella item is not fully done yet. The remaining launch-facing gaps are explorer-curator depth and implication-attester evaluation tests.
+
+**Interrupt point**: Yes. This is a clean stopping point: one concrete AI Services test gap is now closed, and the next fresh task can focus on one of the remaining coverage gaps without carrying partial implementation state.
+
 ## 2026-04-21 - AI Services: Explorer Personalization Wiring (Completed)
 
 **Task**: Complete TODO.md item 2 — wire `ExplorerPage` to the explorer-curator per-user personalization endpoint.
