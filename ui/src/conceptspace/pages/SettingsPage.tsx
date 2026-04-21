@@ -23,7 +23,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import { useAccount } from 'wagmi'
 import { getUserSocialData } from '@commonality/sdk'
 import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
-import { loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
+import { loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
@@ -46,16 +46,6 @@ function getDefaultAttesters(): string[] {
   return []
 }
 
-function getDefaultNudgers(): string[] {
-  const envDefault = import.meta.env.VITE_DEFAULT_NUDGERS
-  if (typeof envDefault === 'string' && envDefault.trim()) {
-    return envDefault
-      .split(',')
-      .map((addr) => addr.trim())
-      .filter(isValidAddress)
-  }
-  return []
-}
 
 export function SettingsPage() {
   const { address, isConnected } = useAccount()
@@ -542,16 +532,16 @@ export function SettingsPage() {
           </Box>
         )}
 
-        {getDefaultNudgers().length > 0 && trustedNudgers.length === 0 && (
+        {loadDefaultNudgers().length > 0 && trustedNudgers.length === 0 && (
           <Alert severity="info" sx={{ mb: 3 }}>
             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
               Default nudgers from environment:
             </Typography>
             <Typography variant="body2" component="div" sx={{ mt: 1 }}>
-              {getDefaultNudgers().map((addr) => (
+              {loadDefaultNudgers().map((entry) => (
                 <Chip
-                  key={addr}
-                  label={addr}
+                  key={entry.address}
+                  label={entry.name ?? entry.address}
                   size="small"
                   sx={{ mr: 1, mb: 1, fontFamily: 'monospace', fontSize: '0.75rem' }}
                 />
@@ -670,9 +660,9 @@ export function SettingsPage() {
           {trustedNudgers.length} nudger{trustedNudgers.length !== 1 ? 's' : ''} configured
         </Typography>
 
-        {getDefaultNudgers().length > 0 && trustedNudgers.length > 0 && (
+        {loadDefaultNudgers().length > 0 && trustedNudgers.length > 0 && (
           <Alert severity="info" sx={{ mt: 2 }}>
-            Also using {getDefaultNudgers().length} default nudger{getDefaultNudgers().length !== 1 ? 's' : ''} from environment.
+            Also using {loadDefaultNudgers().length} default nudger{loadDefaultNudgers().length !== 1 ? 's' : ''} from environment.
           </Alert>
         )}
       </Paper>

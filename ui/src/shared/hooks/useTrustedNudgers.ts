@@ -22,6 +22,41 @@ function normalizeEntry(entry: string | TrustedNudgerEntry): TrustedNudgerEntry 
   return entry
 }
 
+/**
+ * Parses the VITE_DEFAULT_NUDGERS environment variable into TrustedNudgerEntry objects.
+ *
+ * Supports two formats:
+ *   - Comma-separated addresses: "0x1234...,0x5678..."
+ *   - JSON array: '[{"address":"0x1234...","serviceUrl":"http://..."},...]'
+ *     Entries may be address strings or TrustedNudgerEntry objects.
+ */
+export function loadDefaultNudgers(): TrustedNudgerEntry[] {
+  const envDefault = import.meta.env.VITE_DEFAULT_NUDGERS
+  if (typeof envDefault !== 'string' || !envDefault.trim()) {
+    return []
+  }
+
+  const trimmed = envDefault.trim()
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map(normalizeEntry)
+          .filter((e) => isValidAddress(e.address))
+      }
+    } catch {
+      // Fall through to comma-separated parsing
+    }
+  }
+
+  return trimmed
+    .split(',')
+    .map((addr) => addr.trim())
+    .filter(isValidAddress)
+    .map((addr) => ({ address: addr }))
+}
+
 export function loadTrustedNudgers(): TrustedNudgerEntry[] {
   try {
     const stored = localStorage.getItem(TRUSTED_NUDGERS_KEY)
@@ -37,16 +72,7 @@ export function loadTrustedNudgers(): TrustedNudgerEntry[] {
     // Ignore parse errors
   }
 
-  const envDefault = import.meta.env.VITE_DEFAULT_NUDGERS
-  if (typeof envDefault === 'string' && envDefault.trim()) {
-    return envDefault
-      .split(',')
-      .map((addr) => addr.trim())
-      .filter(isValidAddress)
-      .map((addr) => ({ address: addr }))
-  }
-
-  return []
+  return loadDefaultNudgers()
 }
 
 export function saveTrustedNudgers(entries: TrustedNudgerEntry[]): void {

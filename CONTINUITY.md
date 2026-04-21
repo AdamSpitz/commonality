@@ -1,5 +1,53 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Default Nudger Service URLs (Completed)
+
+**Task**: Address the `TODO.md` "Suggestions from AI" item — allow operators to provide default nudger service URLs in `VITE_DEFAULT_NUDGERS` so explorer personalization works out of the box.
+
+**What was done**:
+- Updated `useTrustedNudgers.ts`:
+  - Added exported `loadDefaultNudgers()` function that parses `VITE_DEFAULT_NUDGERS` as either:
+    - Comma-separated addresses (existing format, unchanged behavior)
+    - JSON array of `TrustedNudgerEntry` objects or address strings (new format, supports `serviceUrl`)
+  - Updated `loadTrustedNudgers()` to delegate its env-fallback logic to `loadDefaultNudgers()` (avoids duplication)
+- Updated `SettingsPage.tsx`:
+  - Removed the duplicate local `getDefaultNudgers()` function
+  - Replaced all call sites with `loadDefaultNudgers()` from the hook
+  - Updated the default-nudger display chip to show `entry.name ?? entry.address` so named nudgers show their name
+- Created `useTrustedNudgers.test.ts` (12 tests) covering:
+  - Empty/unset env var
+  - Comma-separated address format
+  - JSON array of address strings
+  - JSON array of TrustedNudgerEntry objects with serviceUrl/name
+  - Mixed JSON arrays (strings + objects)
+  - Invalid address filtering
+  - Malformed JSON fallback
+  - localStorage override behavior
+  - Legacy string-entry normalization
+- Updated `.env.example` to document both formats with examples
+
+**Key decisions**:
+- JSON format is detected by checking if the trimmed value starts with `[`. This avoids ambiguity with comma-separated values.
+- Malformed JSON falls through to comma-separated parsing, providing graceful degradation.
+- The SettingsPage default-nudger display now shows `entry.name` if available, improving UX when a named default nudger is configured via JSON.
+
+**Verified**:
+- `npm run typecheck --workspace=ui` ✓
+- `npm run lint --workspace=ui` ✓
+- `npm run test` (useTrustedNudgers: 12 passing, SettingsPage: 46 passing) ✓
+
+**Files changed**:
+- `ui/src/shared/hooks/useTrustedNudgers.ts`
+- `ui/src/shared/hooks/useTrustedNudgers.test.ts` (new — 12 tests)
+- `ui/src/conceptspace/pages/SettingsPage.tsx`
+- `ui/.env.example`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. This is a clean, self-contained change. The remaining AI Services items in TODO.md are lower-priority deferred work (staleness decay/per-nudger mute, bridge-priority scoring, anti-evil-nudger immune system).
+
+
+
 ## 2026-04-21 - AI Services: Test Coverage — Evaluator + Explorer Curator (Completed)
 
 **Task**: Address the remaining `TODO.md` AI Services test-coverage gaps: implication-attester evaluation logic and explorer-curator curator/personalizer logic.
