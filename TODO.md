@@ -1,36 +1,20 @@
-# What we've been working on lately
+# TODO
 
-## AI Services (attesters / finders / nudgers / explorers)
+## AI Services
 
 See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosystem assessment. Specs live in `specs/product/` and `specs/tech/subsystems/`.
 
-### UI — nudge display
+The core pipeline (attesters, finders, nudgers, explorer) is functional. Remaining work:
 
-1. ~~**UI: nudger metadata discovery** (`.well-known/nudger.json`).~~ **Done.** When adding a nudger in Settings, users can optionally provide the nudger service URL. The UI fetches `/.well-known/nudger.json` from that URL and displays the nudger's name, description, and source type as chips alongside the address.
+- **Test coverage gaps.** Bridge creator has zero tests. Explorer curator has minimal tests (only publication creation). Implication attester has no tests for evaluation logic. These should be addressed before launch.
+- **Wire ExplorerPage to per-user personalization.** The `/suggest` endpoint in `explorer-curator/` exists but the UI still uses the non-personalized path.
+- **Staleness decay and per-nudger mute.** Deferred from the nudge UX work. Lower priority.
+- **Bridge-priority scoring as a mode of the implication finder.** Not a new service — a priority-scoring enhancement. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
+- **Anti-evil-nudger immune system.** Only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
 
-2. ~~**Nudge UX: staleness decay, per-nudger mute, topic filtering.**~~ **Done.** Topic filtering is implemented — users can mute topics in Settings and nudges about muted topics are filtered out. Staleness decay and per-nudger mute remain as lower-priority follow-ups.
+## Bugs / test stability
 
-### UI — explorer
-
-3. ~~**UI: explorer pages backed by `curated-collection` publications`.~~ **Done.** Explorer page at `/explore` reads folded `curated-collection` publications from trusted nudgers, groups entries by `topicArea`, and renders cards with sign/navigate/funding-portal actions. Per-user LLM personalization and the background curator service are still needed (backend work).
-
-4. ~~**Explorer nudger strategy (background LLM + per-user LLM).**~~ **Done.** Created `explorer-curator/` package with: (a) background LLM curator that periodically evaluates statements and publishes `curated-collection` snapshots to IPFS/on-chain, only when materially changed; (b) per-user LLM personalization via `POST /suggest` endpoint that returns personalized suggestions based on the user's signed statements. The existing ExplorerPage UI can be wired to the `/suggest` endpoint as a follow-up to add personalization.
-
-### Enhancements and new services
-
-5. ~~**Bridge-creator nudger: implement `findBridgeCandidates`.**~~ **Done.** `findBridgeCandidates` now fetches candidate statements from the chain, uses the LLM to analyze compatibility, and returns pairs where at least one side is compatible. Also checks pre-configured `COMMONALITY_STATEMENTS` against each target. Modified versions and common-ground statements are generated via the existing LLM helpers and published as nudges.
-
-6. **Bridge-priority scoring as a mode of the implication finder.**
-    Not a new service — a priority-scoring enhancement to the existing implication finder. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
-
-7. ~~**Implication attester / finder prompt enhancements for intersection patterns.**~~ **Done.** The attester's LLM prompt now includes explicit guidance on geographic × topical intersection patterns (conjunction → parent implications are one-way, geographic hierarchy implications are one-way). The finder now filters candidate pairs to same-domain only (with graceful fallback when domain is unknown), preventing O(N²) explosion. Spec updated: `specs/tech/subsystems/conceptspace/implication-discovery.md`.
-
-8. **Anti-evil-nudger immune system.**
-    Low priority — only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
-
-## Suggestions from AI
-
-- Stabilize the integration test `Pubstarter Edge Cases → should allow refund after project fails to meet threshold by deadline`. It currently creates a project whose deadline is only ~2 seconds out, which appears too short for this environment; the purchase step can revert with `ConditionHasFailed()` before the test reaches the explicit time advance.
+- Stabilize the integration test `Pubstarter Edge Cases → should allow refund after project fails to meet threshold by deadline`. The deadline is only ~2 seconds out, which is too short; the purchase step can revert with `ConditionHasFailed()` before the test reaches the time advance.
 
 ---
 
@@ -39,8 +23,6 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 - Implement the `foldVersion` idea described in our [indexer spec](specs/tech/indexer/README.md).
   - Done for the resumable pubstarter folds. Extend to other fold types as needed.
   - IndexedDB persistence for the project fold is done. Remaining: wire up specific UI pages (BrowseProjectsPage, ProjectDetailPage etc.) and extend to contributions/secondary market/burns if performance warrants.
-
-- Think about [nudge-ux](/specs/product/nudge-ux.md).
 
 - Think about [new-user-experience](/specs/product/new-user-experience.md).
 
