@@ -1,5 +1,32 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services Review Plan: Chunk 5 (Completed)
+
+**Task**: Chunk 5 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — write a brief spec for user-facing content submission.
+
+**What was done**:
+- Read the content finder source (`content-finder/src/submissions.ts`, `config.ts`, `README.md`) and the platform-api-service README to understand the current architecture.
+- Created `specs/product/content-submission.md` covering:
+  - Current state: content finder reads from a local JSON file; no user-facing submission path exists.
+  - Recommended approach: a `POST /content-submission` + `GET /content-submission` endpoint pair in the platform-api-service (already handles content-related work; right home for this).
+  - Content finder change: add a `submissionsApiUrl` config option; poll the API when set, fall back to the local file otherwise.
+  - Storage: JSON file on the platform-api-service filesystem for now, proper DB later if needed.
+  - Minimal UI form in the content-funding surface (URL + statement selector + optional perspective).
+  - Spam/abuse: deduplication + IP rate limiting; no auth for now; content attester is the real gatekeeper.
+- Marked Chunk 5 complete in AI-SERVICES-REVIEW-PLAN.md.
+
+**Key decisions**:
+- Kept the spec short and practical — this is genuinely a simple CRUD feature.
+- Chose platform-api-service as the host (not a new service) because it already owns content URL resolution.
+- Did not over-engineer spam handling — the content attester's evaluation cost is low and the content of a bad attestation is harmless.
+
+**Files changed**:
+- `specs/product/content-submission.md` (new)
+- `AI-SERVICES-REVIEW-PLAN.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Chunk 5 is complete. Continue with Chunk 6 (clarify the noninflammatory-content attester and the statement-creator service) or Chunk 7 (update TODO.md).
+
 ## 2026-04-21 - AI Services Review Plan: Chunk 4 (Completed)
 
 **Task**: Chunk 4 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — write a brief spec for the anti-evil-nudger immune system.

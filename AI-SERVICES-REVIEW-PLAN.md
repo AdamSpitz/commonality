@@ -155,15 +155,15 @@ Each chunk below is designed to be completed by a single fresh LLM instance. Do 
   - Noted that the nonrepudiability problem is already solved by the `NudgePublications` contract
 - [x] Noted that nudger decisions are already nonrepudiable (NudgePublications contract creates a permanent public log)
 
-### Chunk 5: Write a brief spec for user-facing content submission
-- [ ] Read the content finder code/spec (`content-finder/`)
-- [ ] Spec out how users (or fans of content writers) can submit channels/posts for the content finder to process
-- [ ] This could be:
+### Chunk 5: Write a brief spec for user-facing content submission ✅ Done
+- [x] Read the content finder code/spec (`content-finder/`)
+- [x] Spec out how users (or fans of content writers) can submit channels/posts for the content finder to process
+- [x] This could be:
   - A simple form in the UI that writes to a submissions API endpoint
   - The platform-api-service could host the endpoint
   - The content finder polls the API instead of (or in addition to) the JSON file
-- [ ] Write the spec to `specs/product/content-submission.md` or add a section to the content finder spec
-- [ ] Keep it simple — this is a straightforward CRUD feature
+- [x] Write the spec to `specs/product/content-submission.md` or add a section to the content finder spec
+- [x] Keep it simple — this is a straightforward CRUD feature
 
 ### Chunk 6: Clarify the noninflammatory-content attester and the "statement-creator / lattice-completion" service
 - [ ] Read `specs/tech/subsystems/conceptspace/content-patterns/noninflammatory-content.md` and the content attester code
