@@ -10,8 +10,9 @@ vi.mock('@commonality/sdk', async () => {
   return {
     ...actual,
     getCuratedCollections: vi.fn(),
-    getStatement: vi.fn(),
+    getStatementWithContent: vi.fn(),
     getUserBelief: vi.fn(),
+    getUserBeliefs: vi.fn(),
     believeStatement: vi.fn(),
   }
 })
@@ -38,7 +39,7 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(() => undefined),
 }))
 
-import { getCuratedCollections, getStatement, getUserBelief, believeStatement } from '@commonality/sdk'
+import { getCuratedCollections, getStatementWithContent, getUserBelief, getUserBeliefs, believeStatement } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { useAccount } from 'wagmi'
@@ -98,17 +99,37 @@ function mockExplorerData(
   beliefState: number = 0,
 ) {
   vi.mocked(getCuratedCollections).mockResolvedValue(collection ? [collection] : [])
-  vi.mocked(getStatement).mockImplementation(async (machinery, cid) => {
-    if (cid === 'bafyEntry1') return TEST_STATEMENT
-    return {
-      id: 'stmt-other',
-      cid: cid as any,
-      believerCount: 10,
-      disbelieverCount: 2,
-      createdAt: '2024-01-01T00:00:00Z',
+  vi.mocked(getStatementWithContent).mockImplementation(async (machinery, cid) => {
+    if (cid === 'bafyEntry1') {
+      return {
+        statement: TEST_STATEMENT,
+        content: { content: 'Housing should be affordable for everyone.' },
+      } as any
     }
+    return {
+      statement: {
+        id: 'stmt-other',
+        cid: cid as any,
+        believerCount: 10,
+        disbelieverCount: 2,
+        createdAt: '2024-01-01T00:00:00Z',
+      },
+      content: { content: `Content for ${cid}` },
+    } as any
   })
   vi.mocked(getUserBelief).mockResolvedValue({ statementCid: 'bafyEntry1' as any, beliefState })
+  vi.mocked(getUserBeliefs).mockResolvedValue([
+    {
+      cid: 'bafySigned1' as any,
+      title: 'Signed statement',
+      excerpt: '',
+      believerCount: 1,
+      disbelieverCount: 0,
+      createdAt: '2024-01-01T00:00:00Z',
+      id: 'signed1',
+      statementType: 'statement',
+    },
+  ])
 }
 
 const renderWithRouter = (ui: React.ReactElement) => {
@@ -121,13 +142,19 @@ describe('ExplorerPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
+    vi.stubGlobal('fetch', vi.fn())
     vi.mocked(useMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useTrustedNudgers).mockReturnValue([{ address: VALID_NUDGER }])
     vi.mocked(useAccount).mockReturnValue({ address: VALID_ADDRESS, isConnected: true })
     vi.mocked(getCuratedCollections).mockResolvedValue([])
-    vi.mocked(getStatement).mockResolvedValue(null)
+    vi.mocked(getStatementWithContent).mockResolvedValue(null)
     vi.mocked(getUserBelief).mockResolvedValue({ statementCid: 'bafyEntry1' as any, beliefState: 0 })
+    vi.mocked(getUserBeliefs).mockResolvedValue([])
     vi.mocked(believeStatement).mockResolvedValue('0xtxhash' as any)
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ suggestions: [] }),
+    } as Response)
   })
 
   describe('loading state', () => {
@@ -170,6 +197,62 @@ describe('ExplorerPage', () => {
       expect(screen.getByText('Housing Affordability')).toBeInTheDocument()
       expect(screen.getByText('Healthcare Access')).toBeInTheDocument()
       expect(screen.getByText('Education Reform')).toBeInTheDocument()
+    })
+
+    it('uses personalized ordering and shows reasons when a service URL is available', async () => {
+      vi.mocked(useTrustedNudgers).mockReturnValue([
+        { address: VALID_NUDGER, serviceUrl: 'http://explorer.test' },
+      ])
+      mockExplorerData()
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          suggestions: [
+            { cid: 'bafyEntry3', reason: 'Fits with statements you already signed.' },
+            { cid: 'bafyEntry1', reason: 'Broad entry point into housing causes.' },
+          ],
+        }),
+      } as Response)
+
+      renderWithRouter(<ExplorerPage />)
+
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledWith(
+          'http://explorer.test/suggest',
+          expect.objectContaining({
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              stream: 'fundable-project-explorer',
+              signedStatementCids: ['bafySigned1'],
+            }),
+          }),
+        )
+      })
+
+      expect(screen.getByText('Fits with statements you already signed.')).toBeInTheDocument()
+
+      const headings = screen.getAllByRole('heading', { level: 2 })
+      expect(headings[0]).toHaveTextContent('Education Reform')
+      expect(headings[1]).toHaveTextContent('Housing Affordability')
+    })
+
+    it('falls back to the curated collection when personalization fails', async () => {
+      vi.mocked(useTrustedNudgers).mockReturnValue([
+        { address: VALID_NUDGER, serviceUrl: 'http://explorer.test' },
+      ])
+      mockExplorerData()
+      vi.mocked(fetch).mockRejectedValue(new Error('Service unavailable'))
+
+      renderWithRouter(<ExplorerPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Housing Affordability')).toBeInTheDocument()
+      })
+
+      const headings = screen.getAllByRole('heading', { level: 2 })
+      expect(headings[0]).toHaveTextContent('Housing Affordability')
+      expect(screen.queryByText(/Fits with statements/)).not.toBeInTheDocument()
     })
 
     it('shows supporter counts for each entry', async () => {

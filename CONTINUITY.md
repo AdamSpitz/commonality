@@ -1,5 +1,42 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Explorer Personalization Wiring (Completed)
+
+**Task**: Complete TODO.md item 2 — wire `ExplorerPage` to the explorer-curator per-user personalization endpoint.
+Spec: `specs/tech/subsystems/conceptspace/explorer.md`.
+
+**What was done**:
+- Updated `ui/src/conceptspace/pages/ExplorerPage.tsx` to:
+  - Load the user's directly signed statement CIDs via `getUserBeliefs(...)`
+  - Match the latest curated collection's nudger against trusted nudgers with a stored `serviceUrl`
+  - Call `POST /suggest` on that explorer service when available
+  - Reorder the rendered explorer cards based on the personalized suggestions and display each returned reason
+  - Fall back cleanly to the raw curated collection if no `serviceUrl` is known or the personalization request fails
+- Switched the page's statement loading from `getStatement(...)` to `getStatementWithContent(...)` so the cards render real statement content instead of empty content payloads.
+- Expanded `ExplorerPage.test.tsx` coverage for personalized ordering/reasons and graceful fallback behavior.
+
+**Key decisions**:
+- Personalization is keyed off the trusted nudger entry whose address matches the latest curated collection's nudger. This avoids sending a collection to the wrong service when multiple nudgers are trusted.
+- Failure of `/suggest` is non-fatal. The page still renders the explorer from the latest curated collection rather than showing an error state for a personalization outage.
+- If the personalizer returns only a subset of the collection, those entries are shown first and the remaining curated entries are appended afterward.
+
+**Verified**:
+- `npm run typecheck --workspace=ui`
+- `npm run lint --workspace=ui`
+- `npm run test --workspace=ui -- --run ExplorerPage` (12 tests passing)
+- `npm run build --workspace=ui`
+
+**Files changed**:
+- `ui/src/conceptspace/pages/ExplorerPage.tsx`
+- `ui/src/conceptspace/pages/ExplorerPage.test.tsx`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- Personalization currently depends on the trusted explorer nudger entry having a `serviceUrl`. Default nudgers loaded purely from `VITE_DEFAULT_NUDGERS` still fall back to the unpersonalized collection unless the service URL is added in Settings.
+
+**Interrupt point**: Yes. Explorer personalization is wired end-to-end on the UI side. The next AI Services task is likely either the remaining coverage gaps or the deferred nudger UX follow-ups (staleness decay / per-nudger mute).
+
 ## 2026-04-21 - AI Services: Nudger Metadata Discovery + Stale Doc Cleanup (Completed)
 
 **Task**: Complete TODO.md item 1 — UI nudger metadata discovery (`.well-known/nudger.json`) for the trust-configuration flow. Also cleaned up stale "code gap" notes in READMEs and the nudger spec's status table.

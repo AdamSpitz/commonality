@@ -7,10 +7,13 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 The core pipeline (attesters, finders, nudgers, explorer) is functional. Remaining work:
 
 - **Test coverage gaps.** Bridge creator has zero tests. Explorer curator has minimal tests (only publication creation). Implication attester has no tests for evaluation logic. These should be addressed before launch.
-- **Wire ExplorerPage to per-user personalization.** The `/suggest` endpoint in `explorer-curator/` exists but the UI still uses the non-personalized path.
 - **Staleness decay and per-nudger mute.** Deferred from the nudge UX work. Lower priority.
 - **Bridge-priority scoring as a mode of the implication finder.** Not a new service — a priority-scoring enhancement. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
 - **Anti-evil-nudger immune system.** Only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
+
+### Suggestions from AI
+
+- Consider adding a way to provide default nudger service URLs alongside default nudger addresses, so explorer personalization works out of the box even before a user manually enters a `serviceUrl` in Settings.
 
 ## Bugs / test stability
 

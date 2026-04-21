@@ -17,8 +17,9 @@ import { Link as RouterLink } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   getCuratedCollections,
-  getStatement,
+  getStatementWithContent,
   getUserBelief,
+  getUserBeliefs,
   believeStatement,
   BeliefsAbi,
   type CuratedCollectionEntry,
@@ -42,7 +43,36 @@ interface EnrichedEntry extends CuratedCollectionEntry {
   believerCount: number
   disbelieverCount: number
   userBeliefState: number
+  suggestionReason?: string
   loading: boolean
+}
+
+interface ExplorerSuggestionResponse {
+  suggestions?: Array<{
+    cid?: string
+    reason?: string
+  }>
+}
+
+async function fetchPersonalizedSuggestions(serviceUrl: string, signedStatementCids: string[]) {
+  const response = await fetch(`${serviceUrl.replace(/\/+$/, '')}/suggest`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      stream: EXPLORER_STREAM,
+      signedStatementCids,
+    }),
+    signal: AbortSignal.timeout(5000),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Explorer personalization request failed with status ${response.status}`)
+  }
+
+  const data = await response.json() as ExplorerSuggestionResponse
+  return Array.isArray(data.suggestions) ? data.suggestions : []
 }
 
 export function ExplorerPage() {
@@ -80,24 +110,65 @@ export function ExplorerPage() {
       }
 
       const latestCollection = collections[0]
-      const entries = latestCollection.entries
+      const entriesByCid = new Map(latestCollection.entries.map((entry) => [entry.cid, entry]))
+
+      const signedStatementCids = address
+        ? (await getUserBeliefs(machinery, address).catch(() => [])).map((belief) => belief.cid)
+        : []
+
+      const serviceUrl = trustedNudgers.find(
+        (entry) => entry.address.toLowerCase() === latestCollection.nudger.toLowerCase(),
+      )?.serviceUrl
+
+      let entries = latestCollection.entries.map((entry) => ({ entry, suggestionReason: undefined as string | undefined }))
+
+      if (serviceUrl) {
+        const suggestions = await fetchPersonalizedSuggestions(serviceUrl, signedStatementCids).catch((err) => {
+          console.warn('Falling back to unpersonalized explorer collection:', err)
+          return null
+        })
+
+        if (suggestions && suggestions.length > 0) {
+          const personalizedEntries = suggestions.flatMap((suggestion) => {
+            if (!suggestion.cid) return []
+
+            const entry = entriesByCid.get(suggestion.cid as IpfsCidV1)
+            if (!entry) return []
+
+            return [{
+              entry,
+              suggestionReason: suggestion.reason?.trim() || undefined,
+            }]
+          })
+
+          const personalizedCids = new Set(personalizedEntries.map(({ entry }) => entry.cid))
+          const remainingEntries = latestCollection.entries
+            .filter((entry) => !personalizedCids.has(entry.cid))
+            .map((entry) => ({ entry, suggestionReason: undefined as string | undefined }))
+
+          entries = [...personalizedEntries, ...remainingEntries]
+        }
+      }
 
       const enriched = await Promise.all(
-        entries.map(async (entry) => {
-          const [stmt, userBelief] = await Promise.all([
-            getStatement(machinery, entry.cid).catch(() => null),
+        entries.map(async ({ entry, suggestionReason }) => {
+          const [statementWithContent, userBelief] = await Promise.all([
+            getStatementWithContent(machinery, entry.cid).catch(() => null),
             address
               ? getUserBelief(machinery, address, entry.cid).catch(() => ({ beliefState: 0 }))
               : Promise.resolve({ beliefState: 0 }),
           ])
 
+          const stmt = statementWithContent?.statement ?? null
+
           return {
             ...entry,
             statement: stmt,
-            content: null,
+            content: statementWithContent?.content ?? null,
             believerCount: stmt?.believerCount ?? 0,
             disbelieverCount: stmt?.disbelieverCount ?? 0,
             userBeliefState: userBelief?.beliefState ?? 0,
+            suggestionReason,
             loading: false,
           }
         }),
@@ -232,11 +303,14 @@ export function ExplorerPage() {
 
                   {entry.statement && (
                     <Box sx={{ mb: 2 }}>
-                      <StatementRenderer
-                        statementCid={entry.cid}
-                        content={entry.content}
-                      />
+                      <StatementRenderer statementCid={entry.cid} content={entry.content} />
                     </Box>
+                  )}
+
+                  {entry.suggestionReason && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontStyle: 'italic' }}>
+                      {entry.suggestionReason}
+                    </Typography>
                   )}
 
                   <Stack direction="row" spacing={1} alignItems="center">
