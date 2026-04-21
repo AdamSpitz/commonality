@@ -14,6 +14,8 @@ import {
   Divider,
   CircularProgress,
   Chip,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
@@ -22,6 +24,7 @@ import { useAccount } from 'wagmi'
 import { getUserSocialData } from '@commonality/sdk'
 import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { loadTrustedNudgers, saveTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
+import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
 import { useClaimFlow } from '../../content-funding/hooks/useClaimFlow'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -57,6 +60,7 @@ export function SettingsPage() {
   const { address, isConnected } = useAccount()
   const machinery = useMachinery()
   const { getChallenge, confirmVerification, loading: verificationLoading, error: verificationError, clearError } = useClaimFlow()
+  const { intensity, setIntensity } = useNudgeIntensity()
 
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')
@@ -442,8 +446,29 @@ export function SettingsPage() {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Nudgers are services that suggest statements you might want to believe
           based on your current beliefs. Add wallet addresses of nudgers you trust
-          to receive personalized suggestions.
+          to receive personalized statement suggestions.
         </Typography>
+
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          Suggestion intensity
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Control how prominently nudges appear. Low shows at most 3 suggestions per statement,
+          medium shows up to 5, and high shows up to 10.
+        </Typography>
+
+        <ToggleButtonGroup
+          value={intensity}
+          exclusive
+          onChange={(_, value: NudgeIntensity | null) => {
+            if (value) setIntensity(value)
+          }}
+          sx={{ mb: 3 }}
+        >
+          <ToggleButton value="low">Low</ToggleButton>
+          <ToggleButton value="medium">Medium</ToggleButton>
+          <ToggleButton value="high">High</ToggleButton>
+        </ToggleButtonGroup>
 
         {getDefaultNudgers().length > 0 && trustedNudgers.length === 0 && (
           <Alert severity="info" sx={{ mb: 3 }}>

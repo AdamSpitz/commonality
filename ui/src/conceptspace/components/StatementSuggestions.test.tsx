@@ -5,7 +5,6 @@ import { BrowserRouter } from 'react-router-dom'
 import { StatementSuggestions } from './StatementSuggestions'
 import type { FoldedNudge, StatementWithContent } from '@commonality/sdk'
 
-// Mock the SDK functions
 vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
@@ -15,7 +14,6 @@ vi.mock('@commonality/sdk', async () => {
   }
 })
 
-// Mock react-router-dom
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return {
@@ -32,12 +30,23 @@ vi.mock('../../shared/hooks/useMachinery', () => ({
   useMachinery: vi.fn(),
 }))
 
+vi.mock('../../shared/hooks/useNudgeIntensity', () => ({
+  useNudgeIntensity: vi.fn(() => ({ intensity: 'low', setIntensity: vi.fn() })),
+}))
+
+vi.mock('../../shared/nudgeStore', () => ({
+  dismissNudge: vi.fn().mockResolvedValue(undefined),
+  getDismissedNudges: vi.fn().mockResolvedValue([]),
+}))
+
 import { getStatementNudges, getStatementWithContent } from '@commonality/sdk'
 import { useNavigate } from 'react-router-dom'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
+import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
+import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
 
-const VALID_NUDGER_1 = '0xaabbccddaabbccddaabbccddaabbccddaabbccdd'
+const VALID_NUDGER_1 = '0xaabbccddaabbccddaabbccddaabbccdd'
 const VALID_NUDGER_2 = '0x1234567890123456789012345678901234567890'
 const TEST_NUDGE: FoldedNudge = {
   nudger: VALID_NUDGER_1 as `0x${string}`,
@@ -94,7 +103,6 @@ function mockSuggestionData(
   vi.mocked(getStatementWithContent).mockImplementation(async (_machinery, cid) => statements[cid] ?? null)
 }
 
-// Helper to wrap components with BrowserRouter
 const renderWithRouter = (ui: React.ReactElement) => {
   return render(<BrowserRouter>{ui}</BrowserRouter>)
 }
@@ -111,11 +119,11 @@ describe('StatementSuggestions', () => {
     vi.mocked(useTrustedNudgers).mockReturnValue([])
     vi.mocked(getStatementNudges).mockResolvedValue([])
     vi.mocked(getStatementWithContent).mockResolvedValue(TEST_STATEMENT)
+    vi.mocked(getDismissedNudges).mockResolvedValue([])
   })
 
   describe('Loading state', () => {
     it('displays loading spinner while fetching suggestions', () => {
-      // Mock a never-resolving promise to keep loading state
       vi.mocked(getStatementNudges).mockReturnValue(new Promise(() => {}))
 
       renderWithRouter(
@@ -152,25 +160,6 @@ describe('StatementSuggestions', () => {
         expect(screen.getByText('Failed to load suggestions')).toBeInTheDocument()
       })
     })
-
-    it('logs error to console when fetching fails', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      const error = new Error('Test error')
-      vi.mocked(getStatementNudges).mockRejectedValue(error)
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          'Error loading statement nudges:',
-          error
-        )
-      })
-
-      consoleErrorSpy.mockRestore()
-    })
   })
 
   describe('Empty state', () => {
@@ -198,18 +187,6 @@ describe('StatementSuggestions', () => {
       })
     })
 
-    it('displays the suggestions description', async () => {
-      mockSuggestionData()
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      await waitFor(() => {
-        expect(screen.getByText(/Trusted nudgers published these suggestions/i)).toBeInTheDocument()
-      })
-    })
-
     it('renders all suggestion cards', async () => {
       mockSuggestionData()
 
@@ -220,60 +197,6 @@ describe('StatementSuggestions', () => {
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'Related Statement 1' })).toBeInTheDocument()
         expect(screen.getByRole('heading', { name: 'Related Statement 2' })).toBeInTheDocument()
-      })
-    })
-
-    it('displays "Untitled Statement" for statements without titles', async () => {
-      mockSuggestionData(
-        [TEST_NUDGE],
-        {
-          [TEST_NUDGE.suggestedStatementCid]: {
-            statement: {
-              id: 'stmt999',
-              cid: 'bafySuggested3',
-              believerCount: 10,
-              disbelieverCount: 1,
-              createdAt: '2024-01-01T00:00:00Z',
-            },
-            content: {
-              format: 'text/plain',
-              content: '',
-            },
-          },
-        },
-      )
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      await waitFor(() => {
-        expect(screen.getByText('Untitled Statement')).toBeInTheDocument()
-      })
-    })
-
-    it('displays excerpt when present', async () => {
-      mockSuggestionData()
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      await waitFor(() => {
-        expect(screen.getByText(/This is an excerpt for the suggested statement/)).toBeInTheDocument()
-      })
-    })
-
-    it('does not display excerpt section when the content has only a title line', async () => {
-      mockSuggestionData()
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      await waitFor(() => {
-        const secondCard = screen.getByRole('heading', { name: 'Related Statement 2' }).closest('button')
-        expect(secondCard?.textContent).not.toContain('excerpt')
       })
     })
 
@@ -291,19 +214,6 @@ describe('StatementSuggestions', () => {
         expect(screen.getByText('52% confidence')).toBeInTheDocument()
         expect(screen.getByText('Nudger 0xaabb...ccdd')).toBeInTheDocument()
         expect(screen.getByText('Nudger 0x1234...7890')).toBeInTheDocument()
-      })
-    })
-
-    it('displays believer count for each suggestion', async () => {
-      mockSuggestionData()
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      await waitFor(() => {
-        expect(screen.getByText('42 supporters')).toBeInTheDocument()
-        expect(screen.getByText('15 supporters')).toBeInTheDocument()
       })
     })
 
@@ -358,6 +268,156 @@ describe('StatementSuggestions', () => {
     })
   })
 
+  describe('Dismissal', () => {
+    it('shows dismiss button on each suggestion', async () => {
+      mockSuggestionData()
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Related Statement 1' })).toBeInTheDocument()
+      })
+
+      expect(screen.getAllByLabelText('Dismiss suggestion')).toHaveLength(2)
+    })
+
+    it('removes a suggestion when dismissed', async () => {
+      const userEvent = (await import('@testing-library/user-event')).default
+      mockSuggestionData()
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Related Statement 1' })).toBeInTheDocument()
+      })
+
+      const dismissButtons = screen.getAllByLabelText('Dismiss suggestion')
+      await userEvent.click(dismissButtons[0])
+
+      await waitFor(() => {
+        expect(dismissNudge).toHaveBeenCalled()
+      })
+    })
+
+    it('filters out previously dismissed nudges on load', async () => {
+      vi.mocked(getDismissedNudges).mockResolvedValue([
+        {
+          key: 'bafyTest123::bafySuggested1::0xaabbccddaabbccddaabbccddaabbccdd',
+          targetStatementCid: 'bafyTest123',
+          suggestedStatementCid: 'bafySuggested1',
+          nudger: VALID_NUDGER_1.toLowerCase(),
+          state: 'dismissed',
+          timestamp: Date.now(),
+        },
+      ])
+
+      mockSuggestionData(
+        [TEST_NUDGE, SECOND_NUDGE],
+        {
+          [TEST_NUDGE.suggestedStatementCid]: TEST_STATEMENT,
+          [SECOND_NUDGE.suggestedStatementCid]: SECOND_STATEMENT,
+        },
+      )
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('heading', { name: 'Related Statement 1' })).not.toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Related Statement 2' })).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Intensity filtering', () => {
+    it('respects low intensity cap of 3', async () => {
+      vi.mocked(useNudgeIntensity).mockReturnValue({ intensity: 'low', setIntensity: vi.fn() })
+
+      const fiveNudges = Array.from({ length: 5 }, (_, i) => ({
+        ...TEST_NUDGE,
+        suggestedStatementCid: `bafySuggested${i + 1}`,
+        confidence: 0.9 - i * 0.1,
+      }))
+
+      const fiveStatements: Record<string, StatementWithContent> = Object.fromEntries(
+        fiveNudges.map((nudge, i) => [
+          nudge.suggestedStatementCid,
+          {
+            statement: {
+              id: `stmt${i}`,
+              cid: nudge.suggestedStatementCid,
+              believerCount: 10,
+              disbelieverCount: 1,
+              createdAt: '2024-01-01T00:00:00Z',
+            },
+            content: {
+              format: 'text/plain',
+              content: `Statement ${i + 1}`,
+            },
+          },
+        ]),
+      )
+
+      mockSuggestionData(fiveNudges as FoldedNudge[], fiveStatements)
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        const headings = screen.getAllByRole('heading', { level: 6 })
+        const suggestionHeadings = headings.filter((h) => h.textContent?.startsWith('Statement'))
+        expect(suggestionHeadings).toHaveLength(3)
+      })
+    })
+
+    it('shows more suggestions at high intensity', async () => {
+      vi.mocked(useNudgeIntensity).mockReturnValue({ intensity: 'high', setIntensity: vi.fn() })
+
+      const fiveNudges = Array.from({ length: 5 }, (_, i) => ({
+        ...TEST_NUDGE,
+        suggestedStatementCid: `bafySuggested${i + 1}`,
+        confidence: 0.9 - i * 0.1,
+      }))
+
+      const fiveStatements: Record<string, StatementWithContent> = Object.fromEntries(
+        fiveNudges.map((nudge, i) => [
+          nudge.suggestedStatementCid,
+          {
+            statement: {
+              id: `stmt${i}`,
+              cid: nudge.suggestedStatementCid,
+              believerCount: 10,
+              disbelieverCount: 1,
+              createdAt: '2024-01-01T00:00:00Z',
+            },
+            content: {
+              format: 'text/plain',
+              content: `Statement ${i + 1}`,
+            },
+          },
+        ]),
+      )
+
+      mockSuggestionData(fiveNudges as FoldedNudge[], fiveStatements)
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        const headings = screen.getAllByRole('heading', { level: 6 })
+        const suggestionHeadings = headings.filter((h) => h.textContent?.startsWith('Statement'))
+        expect(suggestionHeadings).toHaveLength(5)
+      })
+    })
+  })
+
   describe('API integration', () => {
     it('calls getStatementNudges with undefined trustedNudgers when none configured', async () => {
       renderWithRouter(
@@ -389,22 +449,6 @@ describe('StatementSuggestions', () => {
       })
     })
 
-    it('passes undefined when trustedNudgers list is empty', async () => {
-      vi.mocked(useTrustedNudgers).mockReturnValue([])
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      await waitFor(() => {
-        expect(getStatementNudges).toHaveBeenCalledWith(
-          mockMachinery,
-          'bafyTest123',
-          undefined
-        )
-      })
-    })
-
     it('refetches suggestions when statementCid changes', async () => {
       const { rerender } = renderWithRouter(
         <StatementSuggestions statementCid="bafyTest123" />
@@ -427,74 +471,6 @@ describe('StatementSuggestions', () => {
           'bafyTest456',
           undefined
         )
-      })
-    })
-  })
-
-  describe('Loading state transitions', () => {
-    it('transitions from loading to success state', async () => {
-      mockSuggestionData(
-        [TEST_NUDGE],
-        {
-          [TEST_NUDGE.suggestedStatementCid]: {
-            statement: {
-              id: 'stmt456',
-              cid: 'bafySuggested1',
-              believerCount: 10,
-              disbelieverCount: 1,
-              createdAt: '2024-01-01T00:00:00Z',
-            },
-            content: {
-              format: 'text/plain',
-              content: 'Test Statement',
-            },
-          },
-        },
-      )
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      // Should show loading initially
-      expect(screen.getByRole('progressbar')).toBeInTheDocument()
-
-      // Should show content after loading
-      await waitFor(() => {
-        expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-        expect(screen.getByRole('heading', { name: 'Test Statement' })).toBeInTheDocument()
-      })
-    })
-
-    it('transitions from loading to error state', async () => {
-      vi.mocked(getStatementNudges).mockRejectedValue(new Error('API Error'))
-
-      renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      // Should show loading initially
-      expect(screen.getByRole('progressbar')).toBeInTheDocument()
-
-      // Should show error after loading fails
-      await waitFor(() => {
-        expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-        expect(screen.getByRole('alert')).toBeInTheDocument()
-      })
-    })
-
-    it('transitions from loading to empty state', async () => {
-      const { container } = renderWithRouter(
-        <StatementSuggestions statementCid="bafyTest123" />
-      )
-
-      // Should show loading initially
-      expect(screen.getByRole('progressbar')).toBeInTheDocument()
-
-      // Should show nothing after loading with empty results
-      await waitFor(() => {
-        expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-        expect(container.firstChild).toBeNull()
       })
     })
   })

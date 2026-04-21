@@ -1,5 +1,47 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Nudge UX (Dismissal, Intensity, Filtering) (Completed)
+
+**Task**: Complete TODO.md item 1 — nudge dismissal / "seen" tracking, intensity settings, and client-side filtering.
+Spec: `specs/product/nudge-ux.md`.
+
+**What was done**:
+- Created `ui/src/shared/nudgeStore.ts` — IndexedDB persistence layer for nudge dismissal/seen tracking. Each record is keyed by `(targetStatementCid, suggestedStatementCid, nudger)` with state `dismissed` or `seen`. Dismissed nudges are filtered out before display; dismissed state is permanent and cannot be overwritten by "seen".
+- Created `ui/src/shared/hooks/useNudgeIntensity.ts` — localStorage-backed hook for nudge intensity preference (`low`/`medium`/`high`). Default is `low`.
+- Updated `StatementSuggestions` component to:
+  - Filter out dismissed nudges on load (via `getDismissedNudges()`).
+  - Add a dismiss button (CloseIcon) on each suggestion card that calls `dismissNudge()` and removes the card from the UI immediately.
+  - Apply intensity-based caps: low=3, medium=5, high=10 suggestions per statement.
+- Updated `SettingsPage` to include a nudge intensity toggle (ToggleButtonGroup: Low/Medium/High) in the nudger addresses section, with explanatory copy.
+- Rewrote `StatementSuggestions.test.tsx` with new tests for dismissal flow, dismissed-nudge filtering on load, and intensity caps.
+- Added `nudgeStore.test.ts` with fake IndexedDB (matching the foldCache.test pattern) covering all CRUD operations.
+- Added `useNudgeIntensity.test.ts` for load/save behavior.
+
+**Key decisions**:
+- Kept dismissal permanent as specced — once dismissed, the `(target, suggested, nudger)` triple never reappears.
+- Used IndexedDB (not localStorage) for the nudge store, matching the project's existing foldCache and Subjectiv trust cache patterns.
+- Did not implement staleness decay or per-nudger mute in this pass — those are lower-priority follow-ups.
+- The intensity toggle lives in the existing nudger addresses section of Settings rather than a separate "Nudge Preferences" section, keeping the surface area small.
+
+**Verified**:
+- `npm run lint --workspace=ui`
+- `npm run typecheck --workspace=ui`
+- `npm run test --workspace=ui -- --run StatementSuggestions nudgeStore useNudgeIntensity` (30 tests passing)
+- `npm run build --workspace=ui`
+
+**Files changed**:
+- `ui/src/shared/nudgeStore.ts` (new)
+- `ui/src/shared/nudgeStore.test.ts` (new)
+- `ui/src/shared/hooks/useNudgeIntensity.ts` (new)
+- `ui/src/shared/hooks/useNudgeIntensity.test.ts` (new)
+- `ui/src/conceptspace/components/StatementSuggestions.tsx`
+- `ui/src/conceptspace/components/StatementSuggestions.test.tsx`
+- `ui/src/conceptspace/pages/SettingsPage.tsx`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The three nudge-ux features (dismissal, intensity, filtering) are complete per the spec. Remaining items from `nudge-ux.md` that were not implemented: staleness decay, per-nudger mute, and topic filtering — these are lower-priority enhancements.
+
 ## 2026-04-21 - AI Services: Content Submission UI/API (Completed)
 
 **Task**: Complete the content-submission item from [TODO.md](TODO.md) by adding the queue API, teaching the content finder to poll it, and exposing a minimal UI entry point.

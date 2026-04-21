@@ -6,11 +6,14 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 
 ### UI — nudge display
 
-1. **UI: nudge dismissal / "seen" tracking, intensity settings, client-side filtering.**
-   Spec: `specs/product/nudge-ux.md` covers all three. Important for not being annoying.
+1. ~~**UI: nudge dismissal / "seen" tracking, intensity settings, client-side filtering.**~~
+   Done. Dismissal is permanent (IndexedDB), intensity caps at 3/5/10, SettingsPage has a Low/Medium/High toggle.
 
 2. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
    Nice-to-have for the trust-configuration flow. Spec: nudger spec.
+
+3. **Nudge UX: staleness decay, per-nudger mute, topic filtering.**
+   Remaining items from `specs/product/nudge-ux.md`. Lower priority than dismissal/intensity.
 
 ### UI — explorer
 

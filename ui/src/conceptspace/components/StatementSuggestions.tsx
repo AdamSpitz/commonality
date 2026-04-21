@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
-import { Box, Typography, Card, CardContent, CardActionArea, Chip, Alert, CircularProgress } from '@mui/material'
+import { useState, useEffect, useCallback } from 'react'
+import { Box, Typography, Card, CardContent, CardActionArea, Chip, Alert, CircularProgress, IconButton } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import { useNavigate } from 'react-router-dom'
 import {
   getStatementNudges,
@@ -9,6 +10,8 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
+import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
+import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
 
 interface StatementSuggestionsProps {
   statementCid: IpfsCidV1;
@@ -22,6 +25,12 @@ interface NudgeSuggestionCard {
   reason: string;
   confidence: number;
   nudger: `0x${string}`;
+}
+
+const MAX_NUDGES_BY_INTENSITY: Record<string, number> = {
+  low: 3,
+  medium: 5,
+  high: 10,
 }
 
 function getStatementPreview(content: string | undefined): { title: string; excerpt: string } {
@@ -72,32 +81,52 @@ async function buildSuggestionCard(
 export function StatementSuggestions({ statementCid }: StatementSuggestionsProps) {
   const navigate = useNavigate()
   const [suggestions, setSuggestions] = useState<NudgeSuggestionCard[]>([])
+  const [nudges, setNudges] = useState<FoldedNudge[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const machinery = useMachinery()
   const trustedNudgers = useTrustedNudgers()
+  const { intensity } = useNudgeIntensity()
+
+  const loadSuggestions = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const dismissed = await getDismissedNudges()
+      const dismissedSet = new Set(
+        dismissed.map((d) => `${d.targetStatementCid}::${d.suggestedStatementCid}::${d.nudger.toLowerCase()}`),
+      )
+
+      const nudgers = trustedNudgers.length > 0 ? trustedNudgers : undefined
+      const allNudges = await getStatementNudges(machinery, statementCid, nudgers)
+
+      const filteredNudges = allNudges.filter(
+        (nudge) => !dismissedSet.has(`${nudge.targetStatementCid}::${nudge.suggestedStatementCid}::${nudge.nudger.toLowerCase()}`),
+      )
+
+      setNudges(filteredNudges)
+
+      const cards = await Promise.all(filteredNudges.map((nudge) => buildSuggestionCard(machinery, nudge)))
+      setSuggestions(cards.filter((card): card is NudgeSuggestionCard => card !== null))
+    } catch (err) {
+      console.error('Error loading statement nudges:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load suggestions')
+    } finally {
+      setLoading(false)
+    }
+  }, [statementCid, machinery, trustedNudgers])
 
   useEffect(() => {
-    const loadSuggestions = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const nudgers = trustedNudgers.length > 0 ? trustedNudgers : undefined
-        const nudges = await getStatementNudges(machinery, statementCid, nudgers)
-        const cards = await Promise.all(nudges.map((nudge) => buildSuggestionCard(machinery, nudge)))
-        setSuggestions(cards.filter((card): card is NudgeSuggestionCard => card !== null))
-      } catch (err) {
-        console.error('Error loading statement nudges:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load suggestions')
-      } finally {
-        setLoading(false)
-      }
-    }
-
     void loadSuggestions()
-  }, [statementCid, machinery, trustedNudgers])
+  }, [loadSuggestions])
+
+  const handleDismiss = async (nudge: FoldedNudge) => {
+    await dismissNudge(nudge.targetStatementCid, nudge.suggestedStatementCid, nudge.nudger)
+    setNudges((prev) => prev.filter((n) => n.suggestedStatementCid !== nudge.suggestedStatementCid || n.nudger !== nudge.nudger))
+    setSuggestions((prev) => prev.filter((s) => s.statementCid !== nudge.suggestedStatementCid))
+  }
 
   if (loading) {
     return (
@@ -115,7 +144,10 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
     )
   }
 
-  if (suggestions.length === 0) {
+  const maxNudges = MAX_NUDGES_BY_INTENSITY[intensity] ?? MAX_NUDGES_BY_INTENSITY.low
+  const visibleSuggestions = suggestions.slice(0, maxNudges)
+
+  if (visibleSuggestions.length === 0) {
     return null
   }
 
@@ -128,45 +160,64 @@ export function StatementSuggestions({ statementCid }: StatementSuggestionsProps
         Trusted nudgers published these suggestions for this statement
       </Typography>
 
-      {suggestions.map((suggestion) => (
-        <Card key={`${suggestion.nudger}-${suggestion.statementCid}`} sx={{ mb: 2 }}>
-          <CardActionArea onClick={() => navigate(`/statement/${suggestion.statementCid}`)}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
-                <Chip
-                  label={formatConfidence(suggestion.confidence)}
-                  size="small"
-                  color="primary"
-                />
-                <Chip
-                  label={`${suggestion.believerCount} supporters`}
-                  size="small"
-                  variant="outlined"
-                />
-                <Chip
-                  label={`Nudger ${formatNudgerAddress(suggestion.nudger)}`}
-                  size="small"
-                  variant="outlined"
-                />
-              </Box>
+      {visibleSuggestions.map((suggestion) => {
+        const nudge = nudges.find(
+          (n) => n.suggestedStatementCid === suggestion.statementCid && n.nudger === suggestion.nudger,
+        )
+        return (
+          <Card key={`${suggestion.nudger}-${suggestion.statementCid}`} sx={{ mb: 2, position: 'relative' }}>
+            <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (nudge) {
+                    void handleDismiss(nudge)
+                  }
+                }}
+                aria-label="Dismiss suggestion"
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+            <CardActionArea onClick={() => navigate(`/statement/${suggestion.statementCid}`)}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
+                  <Chip
+                    label={formatConfidence(suggestion.confidence)}
+                    size="small"
+                    color="primary"
+                  />
+                  <Chip
+                    label={`${suggestion.believerCount} supporters`}
+                    size="small"
+                    variant="outlined"
+                  />
+                  <Chip
+                    label={`Nudger ${formatNudgerAddress(suggestion.nudger)}`}
+                    size="small"
+                    variant="outlined"
+                  />
+                </Box>
 
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                {suggestion.title || 'Untitled Statement'}
-              </Typography>
-
-              {suggestion.excerpt && (
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  {suggestion.excerpt}
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  {suggestion.title || 'Untitled Statement'}
                 </Typography>
-              )}
 
-              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                {suggestion.reason}
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-        </Card>
-      ))}
+                {suggestion.excerpt && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    {suggestion.excerpt}
+                  </Typography>
+                )}
+
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  {suggestion.reason}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        )
+      })}
     </Box>
   )
 }
