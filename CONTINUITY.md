@@ -1,5 +1,59 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Explorer Curator Service (Completed)
+
+**Task**: Complete TODO.md item 4 — Explorer nudger strategy (background LLM + per-user LLM personalization).
+Spec: `specs/tech/subsystems/conceptspace/explorer.md`.
+
+**What was done**:
+- Created new `explorer-curator/` package with two-tier LLM architecture:
+  - **Background curator** (`curator.ts`): Periodically fetches all statements, uses LLM to evaluate which best represent distinct funding/cause areas, maintains a non-redundant curated collection grouped by topicArea, publishes as `curated-collection` nudger publication only when materially changed.
+  - **Per-user personalizer** (`personalizer.ts`): `POST /suggest` endpoint that accepts `{ stream, signedStatementCids }`, fetches the latest curated collection, uses LLM to personalize which entries to surface based on user's signed statements (anti-correlations, redundancy, prioritization), returns `{ suggestions: [{ cid, reason }] }`.
+- Added `publishCuratedCollection` and `createCuratedCollection` helpers to `nudger-core/src/signer.ts` (analogous to existing `publishNudgeBatch`).
+- Added `CuratedCollectionEntry` and `CuratedCollectionPublication` types to nudger-core exports.
+- Service exposes: `GET /.well-known/nudger.json`, `GET /health`, `POST /suggest`, `GET /collection`.
+- Default curator interval: 6 hours. Default stream: `fundable-project-explorer`. Default port: 3004.
+- Added tests: `config.test.ts` (3 tests) and `curatedCollection.test.ts` (2 tests).
+- Added README with full documentation of env vars, endpoints, and architecture.
+
+**Key decisions**:
+- The curator uses `getAllStatements` with limit 100 to keep the LLM context manageable. This can be tuned via the limit parameter if needed as the statement set grows.
+- The curator tracks `previousEntries` in-memory to detect material changes. On restart, it starts fresh (no persistence of previous state) — this is fine because the first cycle will always publish an initial collection.
+- The personalizer returns fallback suggestions (first 10 entries) if the LLM call fails, ensuring the endpoint is always responsive.
+- The `publishCuratedCollection` function reuses the same `publishNudgeBatch` contract function as nudge-batch publications — the contract just stores the CID; the type discrimination happens at the IPFS content level.
+
+**Verified**:
+- `npm run typecheck --workspace=@commonality/explorer-curator`
+- `npm run lint --workspace=@commonality/explorer-curator`
+- `npm run test --workspace=@commonality/explorer-curator` (5 tests passing)
+- `npm run typecheck --workspace=@commonality/nudger-core`
+- `npm run lint --workspace=@commonality/nudger-core`
+
+**Files changed**:
+- `explorer-curator/package.json` (new)
+- `explorer-curator/tsconfig.json` (new)
+- `explorer-curator/eslint.config.js` (new)
+- `explorer-curator/.mocharc.json` (new)
+- `explorer-curator/README.md` (new)
+- `explorer-curator/src/config.ts` (new)
+- `explorer-curator/src/index.ts` (new)
+- `explorer-curator/src/curator.ts` (new)
+- `explorer-curator/src/personalizer.ts` (new)
+- `explorer-curator/test/config.test.ts` (new)
+- `explorer-curator/test/curatedCollection.test.ts` (new)
+- `nudger-core/src/signer.ts` (added CuratedCollectionEntry, CuratedCollectionPublication types, createCuratedCollection, publishCuratedCollection)
+- `nudger-core/src/index.ts` (added new exports)
+- `package.json` (added explorer-curator to workspaces)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The explorer curator service is complete. The remaining AI Services items from TODO.md are:
+- Item 1: UI nudger metadata discovery (`.well-known/nudger.json`) — nice-to-have
+- Item 6: Bridge-priority scoring — not blocking, needs polarity metadata first
+- Item 8: Anti-evil-nudger immune system — low priority
+
+The ExplorerPage UI (already built) currently shows all entries without personalization. To wire up the personalization, the UI would need to call `POST /suggest` with the user's signed statement CIDs and use the returned suggestions instead of showing all entries. This is a straightforward UI change that can be done as a follow-up.
+
 ## 2026-04-21 - AI Services: Nudge Topic Filtering (Completed)
 
 **Task**: Implement topic filtering from `specs/product/nudge-ux.md` — let users specify topics they don't want nudges about.

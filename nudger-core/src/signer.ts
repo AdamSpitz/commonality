@@ -7,6 +7,22 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk';
 
+export interface CuratedCollectionEntry {
+  cid: IpfsCidV1;
+  label: string;
+  topicArea: string;
+  parentCid?: IpfsCidV1;
+}
+
+export interface CuratedCollectionPublication {
+  kind: 'curated-collection';
+  schemaVersion: 1;
+  nudger: string;
+  publishedAt: number;
+  stream: string;
+  entries: CuratedCollectionEntry[];
+}
+
 let account: ReturnType<typeof privateKeyToAccount> | null = null;
 
 export interface NudgerConfig {
@@ -110,4 +126,55 @@ export async function publishNudgeBatch(
   await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
 
   return { txHash, batchCid };
+}
+
+export function createCuratedCollection(
+  nudger: string,
+  stream: string,
+  entries: CuratedCollectionEntry[],
+  publishedAt: number = Math.floor(Date.now() / 1000)
+): CuratedCollectionPublication {
+  return {
+    kind: 'curated-collection',
+    schemaVersion: 1,
+    nudger,
+    publishedAt,
+    stream,
+    entries,
+  };
+}
+
+export async function publishCuratedCollection(
+  stream: string,
+  entries: CuratedCollectionEntry[],
+  config: NudgerConfig
+): Promise<{ txHash: string; collectionCid: IpfsCidV1 }> {
+  if (!account) {
+    throw new Error('Signer not initialized. Call initializeSigner first.');
+  }
+
+  const collection = createCuratedCollection(account.address, stream, entries);
+
+  const collectionCid = await uploadToIPFS(
+    { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
+    collection
+  );
+
+  const clients = createTestClients(
+    config.nudgerPrivateKey as `0x${string}`,
+    config.ethereumRpcUrl
+  );
+
+  const txHash = await clients.walletClient.writeContract({
+    address: config.nudgePublicationsContractAddress as `0x${string}`,
+    abi: NudgePublicationsAbi,
+    functionName: 'publishNudgeBatch',
+    args: [cidToBytes32(collectionCid)],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+
+  return { txHash, collectionCid };
 }

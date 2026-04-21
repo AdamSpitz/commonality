@@ -4,11 +4,15 @@ export type {
   NudgeMessage,
   NudgeRevocation,
   NudgeBatch,
+  CuratedCollectionEntry,
+  CuratedCollectionPublication,
 } from './signer.js';
 export {
   initializeSigner,
   getSignerAddress,
   publishNudgeBatch,
+  createCuratedCollection,
+  publishCuratedCollection,
 } from './signer.js';
 
 export type { NudgerStrategy } from './nudger-strategy.js';

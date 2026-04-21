@@ -15,7 +15,7 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 
 3. ~~**UI: explorer pages backed by `curated-collection` publications`.~~ **Done.** Explorer page at `/explore` reads folded `curated-collection` publications from trusted nudgers, groups entries by `topicArea`, and renders cards with sign/navigate/funding-portal actions. Per-user LLM personalization and the background curator service are still needed (backend work).
 
-4. **Explorer nudger strategy (background LLM + per-user LLM).** Requires backend service work. (Ready now?) The UI is ready to consume the output once the curator publishes a collection.
+4. ~~**Explorer nudger strategy (background LLM + per-user LLM).**~~ **Done.** Created `explorer-curator/` package with: (a) background LLM curator that periodically evaluates statements and publishes `curated-collection` snapshots to IPFS/on-chain, only when materially changed; (b) per-user LLM personalization via `POST /suggest` endpoint that returns personalized suggestions based on the user's signed statements. The existing ExplorerPage UI can be wired to the `/suggest` endpoint as a follow-up to add personalization.
 
 ### Enhancements and new services
 
