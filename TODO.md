@@ -102,3 +102,6 @@ Out of scope for the MVP, but I still want to remember that these are important 
 https://x.com/mattvanswol/status/2045936225198956559
 
 (Commonality might be useful in solving this problem - can donate more directly rather than through big charity orgs, and also can retroactively fund stuff that's already done good.)
+
+
+https://x.com/elonmusk/status/2046327719231705207
