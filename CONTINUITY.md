@@ -1,5 +1,30 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-21 - AI Services: Typed NudgeBatch Envelope Fields (Completed)
+
+**Task**: Complete the nudger-core code gap from [TODO.md](TODO.md) / [nudger-core/README.md](nudger-core/README.md) by adding the typed publication envelope fields to `NudgeBatch`.
+
+**What was done**:
+- Updated `nudger-core/src/signer.ts` so `NudgeBatch` now includes `kind: 'nudge-batch'` and `schemaVersion: 1`, matching the nudger publication spec.
+- Added a `createNudgeBatch` helper so the publication shape is built in one place before upload.
+- Added `nudger-core/src/signer.test.ts` covering the typed envelope shape and the default empty `revocations` case.
+- Updated `TODO.md` to remove the completed "typed publication envelope fields" item and renumber the remaining AI-services tasks.
+
+**Verified**:
+- `npm run typecheck --workspace=nudger-core`
+- `npm run lint --workspace=nudger-core`
+- `npm run build --workspace=nudger-core`
+- `npm test --workspace=nudger-core -- --require tsx/cjs "src/**/*.test.ts"`
+- The pre-commit hook ran to completion during `git commit`, including repo-wide lint/build/test.
+
+**Files changed**:
+- `nudger-core/src/signer.ts`
+- `nudger-core/src/signer.test.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The remaining nudger-core gap is the LLM config leakage in `NudgerConfig`; after that, the next major blocker is still the SDK work to fetch and fold typed nudger publications from the indexer.
+
 ## 2026-04-21 - AI Services Review Plan: Chunk 7 (Completed)
 
 **Task**: Chunk 7 of [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) — rewrite TODO.md to consolidate AI-services items into a clean, prioritized list.

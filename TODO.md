@@ -9,46 +9,43 @@ See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosys
 1. **SDK: fetch + fold typed nudger publications from indexer.**
    The `nudge-batch` and `curated-collection` publication kinds are fully specced (nudger spec, `specs/tech/subsystems/nudger/README.md`) but the SDK has no code to fetch or fold them. This is the blocker for all nudger UI work.
 
-2. **Fix nudger-core code gap: typed publication envelope fields.**
-   `NudgeBatch` (in `nudger-core/src/signer.ts`) is missing `kind: 'nudge-batch'` and `schemaVersion: 1`. The SDK cannot dispatch by publication type without these. See the "Code gap" callout in `nudger-core/README.md`.
-
-3. **Fix nudger-core code gap: LLM config leaking into base type.**
+2. **Fix nudger-core code gap: LLM config leaking into base type.**
    `NudgerConfig` currently requires `OPENROUTER_API_KEY` even for strategies (like the implication-graph nudger) that never call an LLM. Move those fields to a strategy-specific config type. See `nudger-core/README.md`.
 
 ### UI — nudge display
 
-4. **UI: display `nudge-batch` suggestions.**
+3. **UI: display `nudge-batch` suggestions.**
    Replace the current proto-nudger (`StatementSuggestions` / `getStatementSuggestions`) with a real nudge-display component that reads from folded `nudge-batch` publications. Spec: nudger spec + `specs/product/nudge-ux.md`.
 
-5. **UI: nudge dismissal / "seen" tracking, intensity settings, client-side filtering.**
+4. **UI: nudge dismissal / "seen" tracking, intensity settings, client-side filtering.**
    Spec: `specs/product/nudge-ux.md` covers all three. Important for not being annoying.
 
-6. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
+5. **UI: nudger metadata discovery** (`.well-known/nudger.json`).
    Nice-to-have for the trust-configuration flow. Spec: nudger spec.
 
 ### UI — explorer
 
-7. **UI: explorer pages backed by `curated-collection` publications.**
+6. **UI: explorer pages backed by `curated-collection` publications.**
    The new-user entry point. Replaces the hardcoded statement list with a folded `curated-collection` from a trusted nudger. Spec: `specs/tech/subsystems/conceptspace/explorer.md` + `specs/product/new-user-experience.md`.
 
-8. **Explorer nudger strategy (background LLM + per-user LLM).**
+7. **Explorer nudger strategy (background LLM + per-user LLM).**
    The fundable-project explorer. Spec: `specs/tech/subsystems/conceptspace/explorer.md`.
 
 ### Enhancements and new services
 
-9. **Content submission UI/API.**
+8. **Content submission UI/API.**
    No user-facing way to submit content to the content finder yet. Spec: `specs/product/content-submission.md`. Simple CRUD — a `POST /content-submission` endpoint in platform-api-service plus a minimal form in the content-funding UI.
 
-10. **Bridge-creator nudger: implement `findBridgeCandidates`.**
+9. **Bridge-creator nudger: implement `findBridgeCandidates`.**
     `bridge-creator/` has scaffolding but the strategy is not implemented. Spec: `specs/product/bridge-creator.md`. Not on the critical path.
 
-11. **Bridge-priority scoring as a mode of the implication finder.**
+10. **Bridge-priority scoring as a mode of the implication finder.**
     Not a new service — a priority-scoring enhancement to the existing implication finder. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
 
-12. **Implication attester / finder prompt enhancements for intersection patterns.**
+11. **Implication attester / finder prompt enhancements for intersection patterns.**
     See [intersections.md](specs/tech/subsystems/conceptspace/content-patterns/intersections.md). Make the geographic × topical intersection patterns explicit in the prompts. The statement-creator (lattice-completion) finder idea is also sketched there.
 
-13. **Anti-evil-nudger immune system.**
+12. **Anti-evil-nudger immune system.**
     Low priority — only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
 
 ---
