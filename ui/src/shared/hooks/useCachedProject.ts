@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { type Project, type ProjectAccumulator } from '@commonality/sdk';
+import {
+  PROJECT_FOLD_VERSION,
+  type Project,
+  type ProjectAccumulator,
+  type SDKMachinery,
+} from '@commonality/sdk';
 import {
   loadCachedProjectAccumulator,
   saveCachedProjectAccumulator,
@@ -11,11 +16,82 @@ interface UseCachedProjectResult {
   project: Project | null;
   loading: boolean;
   error: string | null;
+  reload: () => Promise<void>;
 }
 
 interface UseCachedProjectOptions {
   projectAddress: string;
   cacheOptions: Omit<FoldCacheOptions, 'address'>;
+}
+
+function projectToAccumulator(project: Project): ProjectAccumulator {
+  return {
+    foldVersion: PROJECT_FOLD_VERSION,
+    id: project.id,
+    erc1155Address: project.erc1155Address,
+    recipient: project.recipient,
+    conditionAddress: project.conditionAddress,
+    metadataCid: project.metadataCid,
+    createdAt: project.createdAt,
+    blockNumber: project.blockNumber,
+    totalReceived: BigInt(project.totalReceived),
+  };
+}
+
+export async function loadProjectWithCache(
+  machinery: SDKMachinery,
+  projectAddress: string,
+  cacheOptions: Omit<FoldCacheOptions, 'address'>
+): Promise<Project | null> {
+  const { getProject } = await import('@commonality/sdk');
+
+  if (!projectAddress) {
+    return null;
+  }
+
+  if (
+    !machinery.eventCacheUrl ||
+    !machinery.contractAddresses ||
+    !cacheOptions.contractAddresses?.assuranceContractFactory
+  ) {
+    return getProject(machinery, projectAddress);
+  }
+
+  const cacheKeyOptions: FoldCacheOptions = {
+    ...cacheOptions,
+    address: projectAddress,
+  };
+  const cached = await loadCachedProjectAccumulator(cacheKeyOptions);
+
+  if (cached) {
+    const project = await getProject(machinery, projectAddress, {
+      initialAccumulator: cached.accumulator,
+      blockNumber_gte: cached.blockNumber,
+    });
+
+    if (project) {
+      const latestBlockNumber = project.blockNumber ?? cached.blockNumber;
+      if (latestBlockNumber !== cached.blockNumber) {
+        await saveCachedProjectAccumulator(
+          cacheKeyOptions,
+          projectToAccumulator(project),
+          latestBlockNumber
+        );
+      }
+    }
+
+    return project;
+  }
+
+  const project = await getProject(machinery, projectAddress);
+  if (project) {
+    await saveCachedProjectAccumulator(
+      cacheKeyOptions,
+      projectToAccumulator(project),
+      project.blockNumber ?? '0'
+    );
+  }
+  return project;
 }
 
 export function useCachedProject({
@@ -28,7 +104,7 @@ export function useCachedProject({
   const [error, setError] = useState<string | null>(null);
 
   const loadProject = useCallback(async () => {
-    if (!projectAddress || !machinery.eventCacheUrl || !machinery.contractAddresses) {
+    if (!projectAddress) {
       setLoading(false);
       return;
     }
@@ -37,63 +113,8 @@ export function useCachedProject({
     setError(null);
 
     try {
-      const cacheKeyOptions: FoldCacheOptions = {
-        ...cacheOptions,
-        address: projectAddress,
-      };
-
-      const cached = await loadCachedProjectAccumulator(cacheKeyOptions);
-
-      const { getProject } = await import('@commonality/sdk');
-
-      if (cached) {
-        const proj = await getProject(machinery, projectAddress, {
-          initialAccumulator: cached.accumulator,
-          blockNumber_gte: cached.blockNumber,
-        });
-
-        if (proj) {
-          const latestBlockNumber = proj.blockNumber ?? cached.blockNumber;
-          if (latestBlockNumber !== cached.blockNumber) {
-            const newAccumulator: ProjectAccumulator = {
-              foldVersion: cached.accumulator.foldVersion,
-              id: proj.id,
-              erc1155Address: proj.erc1155Address,
-              recipient: proj.recipient,
-              conditionAddress: proj.conditionAddress,
-              metadataCid: proj.metadataCid,
-              createdAt: proj.createdAt,
-              blockNumber: proj.blockNumber,
-              totalReceived: BigInt(proj.totalReceived),
-            };
-            await saveCachedProjectAccumulator(cacheKeyOptions, newAccumulator, latestBlockNumber);
-          }
-          setProject(proj);
-        } else {
-          setProject(null);
-        }
-      } else {
-        const proj = await getProject(machinery, projectAddress);
-        if (proj) {
-          const newAccumulator: ProjectAccumulator = {
-            foldVersion: 1,
-            id: proj.id,
-            erc1155Address: proj.erc1155Address,
-            recipient: proj.recipient,
-            conditionAddress: proj.conditionAddress,
-            metadataCid: proj.metadataCid,
-            createdAt: proj.createdAt,
-            blockNumber: proj.blockNumber,
-            totalReceived: BigInt(proj.totalReceived),
-          };
-          await saveCachedProjectAccumulator(
-            cacheKeyOptions,
-            newAccumulator,
-            proj.blockNumber ?? '0'
-          );
-        }
-        setProject(proj);
-      }
+      const loadedProject = await loadProjectWithCache(machinery, projectAddress, cacheOptions);
+      setProject(loadedProject);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load project');
     } finally {
@@ -105,5 +126,5 @@ export function useCachedProject({
     loadProject();
   }, [loadProject]);
 
-  return { project, loading, error };
+  return { project, loading, error, reload: loadProject };
 }

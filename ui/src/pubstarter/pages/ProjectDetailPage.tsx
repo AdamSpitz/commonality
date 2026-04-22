@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Box, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
-  getProject,
   getProjectTokens,
   getProjectContributions,
   getProjectRefunds,
@@ -14,7 +13,6 @@ import {
   getPurchasedNoteEventsByTxHashes,
   getDelegationChainsForNotes,
   fetchFromIPFS,
-  type Project,
   type ProjectToken,
   type Contribution,
   type Refund,
@@ -36,20 +34,38 @@ import {
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useCachedProject } from '../../shared/hooks/useCachedProject'
 import { AlignmentAttestationsSection } from '../../fundingportal/components'
 import { ContentFundingProjectSection } from '../../content-funding/components/ContentFundingProjectSection'
 
 type ProjectMetadata = { name?: string; description?: string; tokens?: Record<string, string> }
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 
 export function ProjectDetailPage() {
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const { address, isConnected } = useAccount()
+  const cacheOptions = useMemo(() => ({
+    eventCacheUrl: import.meta.env.VITE_EVENT_CACHE_URL ?? '',
+    contractAddresses: {
+      assuranceContractFactory: (import.meta.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS ??
+        ZERO_ADDRESS) as `0x${string}`,
+    },
+    foldType: 'project' as const,
+  }), [])
+  const {
+    project,
+    loading: projectLoading,
+    error: projectError,
+    reload: reloadProject,
+  } = useCachedProject({
+    projectAddress: projectAddress ?? '',
+    cacheOptions,
+  })
 
-  const [project, setProject] = useState<Project | null>(null)
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null)
   const [tokens, setTokens] = useState<ProjectToken[]>([])
   const [tokenImages, setTokenImages] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [contributions, setContributions] = useState<Contribution[]>([])
@@ -66,19 +82,16 @@ export function ProjectDetailPage() {
   const loadProjectData = useCallback(async () => {
     if (!projectAddress) return
 
-    const [proj, projTokens, projContributions, projRefunds] = await Promise.all([
-      getProject(machinery, projectAddress),
+    if (!project) {
+      return null
+    }
+
+    const [projTokens, projContributions, projRefunds] = await Promise.all([
       getProjectTokens(machinery, projectAddress),
       getProjectContributions(machinery, projectAddress),
       getProjectRefunds(machinery, projectAddress),
     ])
 
-    if (!proj) {
-      setError('Project not found')
-      return null
-    }
-
-    setProject(proj)
     setTokens(projTokens)
     setContributions(projContributions)
     setRefunds(projRefunds)
@@ -121,25 +134,25 @@ export function ProjectDetailPage() {
       console.warn('Failed to fetch delegation chains for contributions:', err)
     }
 
-    if (proj.marketplaceAddress) {
+    if (project.marketplaceAddress) {
       const [listings, orders, marketTrades] = await Promise.all([
-        getActiveSaleListings(machinery, proj.marketplaceAddress),
-        getActiveBuyOrders(machinery, proj.marketplaceAddress),
-        getMarketplaceTrades(machinery, proj.marketplaceAddress),
+        getActiveSaleListings(machinery, project.marketplaceAddress),
+        getActiveBuyOrders(machinery, project.marketplaceAddress),
+        getMarketplaceTrades(machinery, project.marketplaceAddress),
       ])
       setSaleListings(listings)
       setBuyOrders(orders)
       setTrades(marketTrades)
     }
 
-    if (address && proj.erc1155Address) {
-      const burns = await getTokenBurnsByUser(machinery, proj.erc1155Address, address)
+    if (address && project.erc1155Address) {
+      const burns = await getTokenBurnsByUser(machinery, project.erc1155Address, address)
       setUserBurns(burns)
     }
 
-    if (proj.metadataCid) {
+    if (project.metadataCid) {
       const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
-      const data = await fetchFromIPFS(ipfsConfig, proj.metadataCid)
+      const data = await fetchFromIPFS(ipfsConfig, project.metadataCid)
       if (data) {
         const meta = data as ProjectMetadata
         setMetadata(meta)
@@ -159,11 +172,15 @@ export function ProjectDetailPage() {
       }
     }
 
-    return proj
-  }, [projectAddress, address, machinery])
+    return project
+  }, [address, machinery, project, projectAddress])
 
   useEffect(() => {
     if (!projectAddress) return
+    if (!project) {
+      setLoading(false)
+      return
+    }
 
     const load = async () => {
       try {
@@ -179,13 +196,14 @@ export function ProjectDetailPage() {
     }
 
     load()
-  }, [projectAddress, loadProjectData])
+  }, [project, projectAddress, loadProjectData])
 
   const handleRefresh = useCallback(async () => {
+    await reloadProject()
     await loadProjectData()
-  }, [loadProjectData])
+  }, [loadProjectData, reloadProject])
 
-  if (loading) {
+  if (projectLoading || loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
         <CircularProgress />
@@ -193,8 +211,8 @@ export function ProjectDetailPage() {
     )
   }
 
-  if (error) {
-    return <Alert severity="error">{error}</Alert>
+  if (projectError || error) {
+    return <Alert severity="error">{projectError ?? error}</Alert>
   }
 
   if (!project) {

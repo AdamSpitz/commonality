@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Typography,
@@ -17,18 +17,18 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import SortIcon from '@mui/icons-material/Sort'
 import {
-  getProjectsFiltered,
   fetchFromIPFS,
   type ProjectWithMetrics,
   type ProjectSortField,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useCachedProjects } from '../../shared/hooks/useCachedProjects'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 
 type SortOption = 'newest' | 'deadline' | 'mostFunded' | 'closestToGoal'
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 
 const SORT_MAP: Record<SortOption, { field: ProjectSortField; direction: 'asc' | 'desc' }> = {
   newest: { field: 'createdAt', direction: 'desc' },
@@ -42,25 +42,36 @@ type ProjectMetadata = { name?: string; description?: string }
 export function BrowseProjectsPage() {
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const { field, direction } = SORT_MAP[sortBy]
+  const cacheOptions = useMemo(() => ({
+    eventCacheUrl: import.meta.env.VITE_EVENT_CACHE_URL ?? '',
+    contractAddresses: {
+      assuranceContractFactory: (import.meta.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS ??
+        ZERO_ADDRESS) as `0x${string}`,
+    },
+    foldType: 'project' as const,
+  }), [])
+  const {
+    projects: cachedProjects,
+    loading,
+    error,
+  } = useCachedProjects({
+    cacheOptions,
+    sortBy: field,
+    sortDirection: direction,
+  })
 
-  const machinery = useMachinery()
+  useEffect(() => {
+    setProjects(cachedProjects)
+  }, [cachedProjects])
 
-  const loadProjects = useCallback(async (sort: SortOption) => {
-    try {
-      setLoading(true)
-      setError(null)
-      const { field, direction } = SORT_MAP[sort]
-      const results = await getProjectsFiltered(machinery, undefined, field, direction)
-
-      setProjects(results)
-
+  useEffect(() => {
+    const loadMetadata = async () => {
       const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
       const metadataEntries = await Promise.all(
-        results
+        cachedProjects
           .filter(p => p.metadataCid)
           .map(async (p) => {
             const data = await fetchFromIPFS(ipfsConfig, p.metadataCid!)
@@ -73,17 +84,12 @@ export function BrowseProjectsPage() {
         if (data) newMetadata[id] = data
       }
       setMetadata(newMetadata)
-    } catch (err) {
-      console.error('Error loading projects:', err)
-      setError(err instanceof Error ? err.message : 'Failed to load projects')
-    } finally {
-      setLoading(false)
     }
-  }, [machinery])
 
-  useEffect(() => {
-    loadProjects(sortBy)
-  }, [sortBy, loadProjects])
+    loadMetadata().catch((err) => {
+      console.error('Error loading project metadata:', err)
+    })
+  }, [cachedProjects])
 
   const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: SortOption | null) => {
     if (newSort !== null) setSortBy(newSort)

@@ -2,15 +2,8 @@
 
 ## Main list
 
-- [x] Add Dockerfile to `bridge-creator` (all services should be deployable)
-- [x] Add Dockerfile to `explorer-curator` (all services should be deployable)
-- [x] Add Dockerfile to `content-finder` (all services should be deployable)
-- [x] Add Dockerfile to `implication-finder` (all services should be deployable)
-
 - [ ] (Future review chunk) Check implication-graph-nudger nudger.ts for test coverage
 - [ ] (Future review chunk) Check content-finder main loop for test coverage
-
-- Finish wiring `foldVersion` to UI pages (BrowseProjectsPage, ProjectDetailPage etc.) and extend to contributions/secondary market/burns if performance warrants. See [indexer spec](specs/tech/indexer/README.md).
 
 - Try a noninflammatory-content filter slider. The attesters publish scores 0–1 so tuning the threshold should be easy. Also interesting: a feed showing only statements that *both* sides' noninflammatory attesters have approved. Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
 
@@ -46,7 +39,7 @@ Out of scope for the MVP, but worth remembering:
 
 **Low.** The codebase is in good shape. Main items:
 
-1. **`foldVersion` wiring** (from TODO.md) — `useCachedProject` is wired for projects, but `BrowseProjectsPage` and `ProjectDetailPage` don't use it. The indexer spec says this is fine until fold latency becomes noticeable. Keep deferring.
+1. **Incremental fold coverage beyond projects** — project pages now reuse cached project accumulators, but contributions / secondary-market / burn folds still recompute from raw events each time. Leave this alone unless those views get slow enough to justify extra IndexedDB state.
 
 2. **Twitter API** — `sdk/src/utils/twitter.ts` has a TODO to switch to the real Twitter API. Not urgent.
 
@@ -61,4 +54,3 @@ Out of scope for the MVP, but worth remembering:
 - "how did I get here?" — maybe there's a record of all the stuff you signed before, and then you interacted with this guy.
 
 - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.
-

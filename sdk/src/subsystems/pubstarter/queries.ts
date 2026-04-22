@@ -224,6 +224,22 @@ export async function getProject(
 export async function getAllProjects(
   machinery: SDKMachinery
 ): Promise<Project[]> {
+  const projectAddresses = await getAllProjectAddresses(machinery);
+  const projects = await Promise.all(
+    projectAddresses.map(addr => getProject(machinery, addr))
+  );
+  return projects.filter((p): p is Project => p !== null);
+}
+
+/**
+ * Get all project assurance-contract addresses created through the factory.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @returns Array of assurance-contract addresses in creation order
+ */
+export async function getAllProjectAddresses(
+  machinery: SDKMachinery
+): Promise<string[]> {
   const contracts = machinery.contractAddresses!;
   const rawEvents = await fetchEvents(machinery, {
     contractAddress: contracts.assuranceContractFactory,
@@ -234,10 +250,7 @@ export async function getAllProjects(
     .map(e => decodePubstarterAssuranceContractCreatedEvent(e))
     .filter((d): d is NonNullable<typeof d> => d !== null)
     .map(d => d.assuranceContract);
-  const projects = await Promise.all(
-    projectAddresses.map(addr => getProject(machinery, addr))
-  );
-  return projects.filter((p): p is Project => p !== null);
+  return projectAddresses;
 }
 
 // ============================================================================

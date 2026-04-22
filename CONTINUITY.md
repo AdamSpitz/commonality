@@ -1,5 +1,39 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-22 - Wire project fold caching into pubstarter pages (Completed)
+
+**Task**: Do the `foldVersion` wiring item from `TODO.md` for the pubstarter UI.
+
+**What was done**:
+- Added `getAllProjectAddresses()` to the SDK pubstarter queries so the UI can enumerate projects without forcing a full `getProjectsFiltered()` refold path.
+- Refactored `ui/src/shared/hooks/useCachedProject.ts` to expose a reusable `loadProjectWithCache(...)` helper, use `PROJECT_FOLD_VERSION` instead of a hardcoded literal, and fall back cleanly when cache prerequisites are missing.
+- Added `ui/src/shared/hooks/useCachedProjects.ts` to load the browse list via project addresses plus per-project cached folds, then sort locally using the same project metrics as the SDK query helper.
+- Updated `BrowseProjectsPage.tsx` to use the cached-project hook path and keep IPFS metadata loading unchanged.
+- Updated `ProjectDetailPage.tsx` to load the core project through `useCachedProject`, while leaving contributions / refunds / marketplace / burns on the existing direct-query path.
+- Updated `BrowseProjectsPage.test.tsx` to match the new hook-based browse-list implementation.
+
+**Key decisions**:
+- Stopped at project-level folding. The TODO explicitly left contributions / secondary-market / burn folds as a follow-up only if performance warrants it, so this change does not add more IndexedDB cache surfaces yet.
+- Kept the cache in the UI layer rather than moving it into the SDK; the fold-version invalidation logic already lives in the SDK types, while storage remains a client concern.
+- Added defensive fallback behavior so tests and nonstandard environments still work even if event-cache config or IndexedDB-backed cache inputs are incomplete.
+
+**Verified**:
+- `npm run test --workspace=ui -- BrowseProjectsPage.test.tsx ProjectDetailPage.test.tsx --run` ✓
+- `npm run typecheck --workspace=ui` ✓
+- `npm run typecheck --workspace=@commonality/sdk` ✓
+
+**Files changed**:
+- `sdk/src/subsystems/pubstarter/queries.ts`
+- `ui/src/shared/hooks/useCachedProject.ts`
+- `ui/src/shared/hooks/useCachedProjects.ts` (new)
+- `ui/src/pubstarter/pages/BrowseProjectsPage.tsx`
+- `ui/src/pubstarter/pages/ProjectDetailPage.tsx`
+- `ui/src/pubstarter/pages/BrowseProjectsPage.test.tsx`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The original project-level `foldVersion` wiring item is complete. The next logical follow-up, only if needed by observed latency, is resumable caching for contributions / secondary market / burns.
+
 ## 2026-04-22 - Dockerfiles for remaining AI services (Completed)
 
 **Task**: Add Dockerfiles to the four services that lacked them: bridge-creator, explorer-curator, content-finder, implication-finder. Update render.yaml to include all four.
