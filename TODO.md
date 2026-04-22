@@ -2,9 +2,10 @@
 
 ## Main list
 
-- Write some [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md). (I think I want to write it myself.)
-
-- Use an LLM to generate a proliferation of similar statements around the seed content, and pre-generate implication evaluations for all S1→S2 pairs. Switch the fake-data simulations to use this; delete the old `universe.json` entries.
+- Store the [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md) in a more-formal JSON file (or collection of JSON files - it's fine with me if we have one for each purpose or whatever). (Let's call that "seed content format"?) This won't be the exact [statement format](specs/tech/subsystems/conceptspace/statements.md), because I want it to contain some extra notes (for our own purposes - the kinds of comments we have in specs/tech/subsystems/conceptspace/seed-content/fundable-projects.md, to explain what categories of seed statements we have and why). But I want to have have one script to convert the seed-content JSON into the `universe.json` format expected by the fake-data simulations, and another script that we can use to convert the seed statements to the "real" statement format and (using the sdk code or whatever) upload them to IPFS.
+- Use an LLM to generate a proliferation of similar statements around the [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md); store this, too, in that same "seed content format". The idea is to use this to test the implication-attester and implication-finder systems: many of these statements will be similar enough to the real seed content that it'll be reasonable to have implication arrows between them.
+  - Then pre-generate implication evaluations for all S1→S2 pairs.
+  - And write a test that uses the real implication attester and makes sure that it comes up with the same implication attestations that we pre-generated. (Don't make this test part of the standard test suite, though, since it requires LLM credits to run.)
 
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 
