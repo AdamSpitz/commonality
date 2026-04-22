@@ -48,10 +48,142 @@ services:
     autoDeploy: true
     plan: standard
 
-# Note: Deploy by pushing to your Git repository and connecting it to Render
-# Environment variables that must be set in Render dashboard:
-# - ETHEREUM_RPC_URL: URL of Ethereum RPC (e.g., Alchemy, Infura)
-# - ATTESTER_PRIVATE_KEY: Private key for attester wallet (keep secret!)
-# - IMPLICATIONS_CONTRACT_ADDRESS: Address of deployed Implications contract
-# - OPENROUTER_API_KEY: API key for OpenRouter LLM service
-# - X402_PAYMENT_ADDRESS: Address to receive x402 payments
+  # Implication Graph Nudger
+  - type: web
+    name: commonality-implication-graph-nudger
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: implication-graph-nudger/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: ETHEREUM_RPC_URL
+        sync: false  # Set in Render dashboard
+      - key: NUDGER_PRIVATE_KEY
+        sync: false  # Set in Render dashboard
+      - key: IMPLICATIONS_CONTRACT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: INDEXER_URL
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-haiku
+      - key: IPFS_API
+        value: https://ipfs.io/api/v0
+      - key: IPFS_GATEWAY
+        value: https://ipfs.io/ipfs
+      - key: NUDGER_NAME
+        value: Implication Graph Nudger
+      - key: NUDGER_DESCRIPTION
+        value: Suggests statements based on the implication graph
+      - key: NUDGER_SOURCE_TYPE
+        value: implication-graph
+      - key: NUDGER_VERSION
+        value: 0.1.0
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 60000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: standard
+
+  # Content Attester Service
+  - type: web
+    name: commonality-content-attester
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: content-attester/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: ETHEREUM_RPC_URL
+        sync: false  # Set in Render dashboard
+      - key: ATTESTER_PRIVATE_KEY
+        sync: false  # Set in Render dashboard
+      - key: ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: ALIGNMENT_TOPIC_STATEMENT_CID
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-haiku
+      - key: CONTENT_ATTESTER_NAME
+        sync: false  # Set in Render dashboard (e.g. noninflammatory-neutral)
+      - key: CONTENT_ATTESTER_PROMPT_TEMPLATE
+        sync: false  # Set in Render dashboard
+      - key: IPFS_API
+        value: https://ipfs.io/api/v0
+      - key: IPFS_GATEWAY
+        value: https://ipfs.io/ipfs
+      - key: X402_PAYMENT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: SERVICE_MARGIN_PERCENT
+        value: 20
+      - key: ETH_USD_PRICE
+        value: 3000
+      - key: GAS_PRICE_MULTIPLIER
+        value: 1.2
+      - key: ESTIMATED_INPUT_TOKENS
+        value: 2500
+      - key: ESTIMATED_OUTPUT_TOKENS
+        value: 400
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 60000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 10
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: standard
+
+  # Platform API Service (content-funding channel resolution + content-attester queuing)
+  - type: web
+    name: commonality-platform-api
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: platform-api-service/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false  # Set in Render dashboard (comma-separated origins or *)
+      - key: COMMONALITY_TWITTER_HANDLE
+        value: "@commonality"
+      - key: CLAIM_PAGE_BASE_URL
+        sync: false  # Set in Render dashboard
+      - key: X_API_BEARER_TOKEN
+        sync: false  # Set in Render dashboard (required for Twitter features)
+      - key: YOUTUBE_API_KEY
+        sync: false  # Set in Render dashboard (required for YouTube features)
+      - key: VERIFIER_PRIVATE_KEY
+        sync: false  # Set in Render dashboard (required for /verify/confirm)
+      - key: ETHEREUM_RPC_URL
+        sync: false  # Set in Render dashboard (required for on-chain submission)
+      - key: CHANNEL_REGISTRY_ADDRESS
+        sync: false  # Set in Render dashboard (required for on-chain submission)
+      - key: SUBMIT_VERIFICATION_TX
+        value: "false"
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: standard
+
+# Note: Deploy by pushing to your Git repository and connecting it to Render.
+# Services without Dockerfiles (bridge-creator, explorer-curator, content-finder)
+# are not yet listed here — add them once Dockerfiles are available.
+#
+# Secrets to set in Render dashboard per service:
+# implication-attester:  ETHEREUM_RPC_URL, ATTESTER_PRIVATE_KEY, IMPLICATIONS_CONTRACT_ADDRESS, OPENROUTER_API_KEY, X402_PAYMENT_ADDRESS
+# implication-graph-nudger: ETHEREUM_RPC_URL, NUDGER_PRIVATE_KEY, IMPLICATIONS_CONTRACT_ADDRESS, INDEXER_URL, OPENROUTER_API_KEY
+# content-attester: ETHEREUM_RPC_URL, ATTESTER_PRIVATE_KEY, ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS, ALIGNMENT_TOPIC_STATEMENT_CID, OPENROUTER_API_KEY, X402_PAYMENT_ADDRESS, CONTENT_ATTESTER_NAME, CONTENT_ATTESTER_PROMPT_TEMPLATE
+# platform-api-service: X_API_BEARER_TOKEN, YOUTUBE_API_KEY, VERIFIER_PRIVATE_KEY (+ optionally ETHEREUM_RPC_URL, CHANNEL_REGISTRY_ADDRESS if enabling on-chain submission)

@@ -1,18 +1,11 @@
 # TODO
 
-### Documentation completeness
+## Main list
 
-**Some gaps to address:**
-
-1. **UI README stale "Placeholder pages" entry** — `ui/README.md` still lists `BrowseStatementsPage` and `SettingsPage` as placeholder pages. `SettingsPage` is now 697 lines of real functionality (nudger settings, trust settings, intensity, muted topics, muted nudgers). `BrowseStatementsPage` is 187 lines. This note should be updated.
-
-2. **DEPLOYMENT.md covers only the implication-attester** — The guide mentions "AI Attester Service" as one of the deployable components but lists no deployment instructions for the newer AI services (implication-graph-nudger, bridge-creator, explorer-curator, content-finder, content-attester, platform-api-service). Since the project hasn't deployed yet this isn't urgent, but DEPLOYMENT.md will need significant expansion before launch.
-
-3. **render.yaml is incomplete** — `render.yaml` only defines the `commonality-attester` service. The 6+ newer services (bridge-creator, implication-graph-nudger, explorer-curator, content-finder, platform-api-service, etc.) are not in render.yaml.
-
-
-
----
+- [ ] Add Dockerfile to `bridge-creator` (all services should be deployable)
+- [ ] Add Dockerfile to `explorer-curator` (all services should be deployable)
+- [ ] Add Dockerfile to `content-finder` (all services should be deployable)
+- [ ] Add Dockerfile to `implication-finder` (all services should be deployable)
 
 - [ ] (Future review chunk) Check implication-graph-nudger nudger.ts for test coverage
 - [ ] (Future review chunk) Check content-finder main loop for test coverage

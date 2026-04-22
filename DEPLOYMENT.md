@@ -8,7 +8,12 @@ Commonality consists of several deployable components:
 
 1. **Smart Contracts** - Core protocol contracts deployed to Ethereum (or L2)
 2. **Ponder Indexer** - Thin event cache that stores raw contract events and serves them via REST API
-3. **AI Attester Service** - Evaluates statement implications using LLMs
+3. **AI Services** - Several services that evaluate content, build the implication graph, and serve nudger suggestions:
+   - `implication-attester` — evaluates statement implications using LLMs (see [implication-attester/README.md](implication-attester/README.md))
+   - `content-attester` — evaluates content alignment with statements (see [content-attester/README.md](content-attester/README.md))
+   - `implication-graph-nudger` — serves statement suggestions derived from the implication graph (see [implication-graph-nudger/README.md](implication-graph-nudger/README.md))
+   - `platform-api-service` — resolves creator handles, issues channel-claim challenges, and queues content-attester submissions (see [platform-api-service/README.md](platform-api-service/README.md))
+   - `bridge-creator`, `explorer-curator`, `content-finder` — additional services without Dockerfiles yet
 4. **Frontend UI** - User interface deployed to IPFS via Pinata, accessed via ENS + eth.limo
 
 ## Local Deployment (Development)
@@ -95,11 +100,17 @@ To regenerate all service `.env` files later (e.g. on a fresh clone):
 npx hardhat verify --network sepolia <CONTRACT_ADDRESS> <CONSTRUCTOR_ARGS>
 ```
 
-### Deploy Attester to Render
+### Deploy AI Services to Render
 
-See [implication-attester/README.md](implication-attester/README.md) for comprehensive Render deployment instructions.
+The `render.yaml` blueprint defines all services with Dockerfiles. You can deploy them individually or use the blueprint to create them all at once.
 
-**Summary:**
+See each service's README for its full variable list:
+- [implication-attester/README.md](implication-attester/README.md) — comprehensive Render instructions
+- [content-attester/README.md](content-attester/README.md)
+- [implication-graph-nudger](implication-graph-nudger/) (see `.env.example`)
+- [platform-api-service/README.md](platform-api-service/README.md)
+
+**Summary for `implication-attester`:**
 
 1. Push code to GitHub (including `deployments/sepolia.env` with contract addresses)
 2. Create new Web Service on Render
