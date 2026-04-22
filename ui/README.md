@@ -33,6 +33,8 @@ The UI now supports two wallet-onboarding modes:
 
 This keeps local development and Playwright E2E tests working without requiring a Privy app, while giving deployed environments a path to mainstream-friendly onboarding.
 
+To keep the initial app bundle smaller, the Privy provider tree and wallet button implementation now live behind lazy-loaded chunks. When `VITE_PRIVY_APP_ID` is unset, none of the Privy code is pulled into the ConnectKit path at runtime.
+
 `npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). `npm run build:domains` emits all four domain artifacts in one pass:
 
 - `dist/commonality/`

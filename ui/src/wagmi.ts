@@ -1,7 +1,6 @@
 import { http, createConfig } from 'wagmi'
 import { mainnet, sepolia, hardhat } from 'wagmi/chains'
 import { getDefaultConfig } from 'connectkit'
-import { createConfig as createPrivyConfig } from '@privy-io/wagmi'
 import { mock } from 'wagmi/connectors'
 import { isAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -30,11 +29,6 @@ export const config = createConfig(
     appUrl: 'https://commonality.app',
   }),
 )
-
-export const privyWagmiConfig = createPrivyConfig({
-  chains: wagmiChains,
-  transports: wagmiTransports,
-})
 
 /**
  * Create a wagmi config with mock connector for E2E testing.

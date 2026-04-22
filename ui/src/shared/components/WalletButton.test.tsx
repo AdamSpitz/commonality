@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { PrivyWalletButton } from './WalletButton'
+import PrivyWalletButtonImpl from './PrivyWalletButtonImpl'
 
 const mockConnectOrCreateWallet = vi.fn()
 const mockLinkWallet = vi.fn()
@@ -55,7 +55,7 @@ describe('PrivyWalletButton', () => {
 
   it('shows a sign-in button before authentication', async () => {
     const user = userEvent.setup()
-    render(<PrivyWalletButton />)
+    render(<PrivyWalletButtonImpl />)
 
     await user.click(screen.getByRole('button', { name: /sign in \/ wallet/i }))
 
@@ -71,7 +71,7 @@ describe('PrivyWalletButton', () => {
       logout: mockLogout,
     })
 
-    render(<PrivyWalletButton />)
+    render(<PrivyWalletButtonImpl />)
 
     expect(screen.getByRole('button', { name: /^wallet$/i })).toBeDisabled()
   })
@@ -98,7 +98,7 @@ describe('PrivyWalletButton', () => {
       ready: true,
     })
 
-    render(<PrivyWalletButton />)
+    render(<PrivyWalletButtonImpl />)
 
     await waitFor(() => {
       expect(mockSetActiveWallet).toHaveBeenCalledWith(embeddedWallet)
@@ -124,7 +124,7 @@ describe('PrivyWalletButton', () => {
       address,
     })
 
-    render(<PrivyWalletButton />)
+    render(<PrivyWalletButtonImpl />)
 
     await user.click(screen.getByRole('button', { name: /0x1234\.\.\.7890/i }))
     await user.click(screen.getByRole('menuitem', { name: /log out/i }))

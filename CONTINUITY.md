@@ -1,5 +1,35 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-22 - Privy lazy-loading in UI (Completed)
+
+**Task**: Complete the `TODO.md` suggestion to lazy-load the Privy auth UI so embedded-wallet onboarding does not bloat the initial app payload.
+
+**What was done**:
+- Moved Privy-specific root provider wiring out of [`ui/src/main.tsx`](/home/adam/Projects/commonality/ui/src/main.tsx) into a new lazy-loaded [`ui/src/privy/PrivyAppProvider.tsx`](/home/adam/Projects/commonality/ui/src/privy/PrivyAppProvider.tsx) module.
+- Removed the eager `@privy-io/wagmi` import from [`ui/src/wagmi.ts`](/home/adam/Projects/commonality/ui/src/wagmi.ts) so the base wagmi/ConnectKit path no longer references Privy at module load time.
+- Split the Privy wallet UI out of [`ui/src/shared/components/WalletButton.tsx`](/home/adam/Projects/commonality/ui/src/shared/components/WalletButton.tsx) into lazy-loaded [`ui/src/shared/components/PrivyWalletButtonImpl.tsx`](/home/adam/Projects/commonality/ui/src/shared/components/PrivyWalletButtonImpl.tsx), with a lightweight loading fallback button.
+- Updated [`ui/src/shared/components/WalletButton.test.tsx`](/home/adam/Projects/commonality/ui/src/shared/components/WalletButton.test.tsx) and [`ui/README.md`](/home/adam/Projects/commonality/ui/README.md) to match the new loading boundary.
+
+**Key decisions**:
+- Treated this as a code-splitting task, not a functional auth rewrite: Privy still initializes automatically when enabled, but it now arrives in separate lazy chunks instead of the base bundle.
+- Kept the ConnectKit fallback path unchanged for local dev, tests, and deployments that do not set `VITE_PRIVY_APP_ID`.
+
+**Files changed**:
+- `ui/src/main.tsx`
+- `ui/src/wagmi.ts`
+- `ui/src/privy/PrivyAppProvider.tsx` (new)
+- `ui/src/shared/components/WalletButton.tsx`
+- `ui/src/shared/components/PrivyWalletButtonImpl.tsx` (new)
+- `ui/src/shared/components/WalletButton.test.tsx`
+- `ui/README.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- This removes Privy from the base entry bundle, but Privy still initializes on first render when enabled. If startup latency in Privy-enabled deployments is still a problem, the next step would be a deeper auth-flow redesign that defers provider initialization until explicit sign-in intent.
+
+**Interrupt point**: Yes. This is a self-contained performance-oriented refactor with the same user-facing auth behavior.
+
 ## 2026-04-22 - Privy embedded-wallet onboarding in UI (Completed)
 
 **Task**: Complete the `TODO.md` item to incorporate Privy so the UI can support embedded wallets for users who do not already have an Ethereum wallet.

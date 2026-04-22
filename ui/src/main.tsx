@@ -1,19 +1,13 @@
-import { StrictMode, useState, useCallback } from 'react'
+import { StrictMode, Suspense, lazy, useState, useCallback } from 'react'
 import { createRoot } from 'react-dom/client'
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import { Box, CircularProgress, CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider } from 'connectkit'
-import { PrivyProvider } from '@privy-io/react-auth'
-import { WagmiProvider as PrivyWagmiProvider } from '@privy-io/wagmi'
 import {
   config,
   createMockConfig,
   isPrivyEnabled,
-  privyAppId,
-  privyClientId,
-  privyWagmiConfig,
-  wagmiChains,
 } from './wagmi'
 import './index.css'
 import App from './App.tsx'
@@ -25,6 +19,8 @@ const theme = createTheme({
     mode: 'light',
   },
 })
+
+const PrivyAppProvider = lazy(() => import('./privy/PrivyAppProvider'))
 
 // Global type declaration for E2E test helper
 declare global {
@@ -56,29 +52,24 @@ export function Root() {
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
         {isPrivyEnabled ? (
-          <PrivyProvider
-            appId={privyAppId}
-            clientId={privyClientId}
-            config={{
-              appearance: {
-                theme: 'light',
-                accentColor: '#14213d',
-                walletList: ['detected_wallets', 'metamask', 'coinbase_wallet', 'rainbow', 'wallet_connect'],
-                loginMessage: 'Sign in with email or a wallet to start taking onchain actions.',
-              },
-              embeddedWallets: {
-                ethereum: {
-                  createOnLogin: 'users-without-wallets',
-                },
-              },
-              defaultChain: wagmiChains[0],
-              supportedChains: [...wagmiChains],
-            }}
+          <Suspense
+            fallback={(
+              <Box
+                sx={{
+                  minHeight: '100vh',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
           >
-            <PrivyWagmiProvider config={privyWagmiConfig}>
+            <PrivyAppProvider>
               <App />
-            </PrivyWagmiProvider>
-          </PrivyProvider>
+            </PrivyAppProvider>
+          </Suspense>
         ) : (
           <WagmiProvider config={wagmiConfig}>
             <ConnectKitProvider>

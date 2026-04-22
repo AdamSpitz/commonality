@@ -42,5 +42,3 @@
 - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.
 
 ## Suggestions from AI
-
-- Consider lazy-loading the Privy auth UI so embedded-wallet onboarding does not permanently add its full modal bundle to the initial app payload.
