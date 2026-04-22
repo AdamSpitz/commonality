@@ -178,12 +178,154 @@ services:
     autoDeploy: true
     plan: standard
 
+  # Bridge Creator Nudger
+  - type: web
+    name: commonality-bridge-creator
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: bridge-creator/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3003
+      - key: ETHEREUM_RPC_URL
+        sync: false  # Set in Render dashboard
+      - key: NUDGER_PRIVATE_KEY
+        sync: false  # Set in Render dashboard
+      - key: NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: INDEXER_URL
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-haiku
+      - key: IPFS_API
+        value: https://ipfs.io/api/v0
+      - key: IPFS_GATEWAY
+        value: https://ipfs.io/ipfs
+      - key: NUDGER_NAME
+        value: Bridge Creator
+      - key: NUDGER_DESCRIPTION
+        value: Creates synthesized bridge statements from moderate positions
+      - key: NUDGER_SOURCE_TYPE
+        value: bridge-creator
+      - key: NUDGER_VERSION
+        value: 0.1.0
+      - key: COMMONALITY_STATEMENTS
+        sync: false  # Optional: comma-separated pre-configured commonality statement CIDs
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: standard
+
+  # Explorer Curator Nudger
+  - type: web
+    name: commonality-explorer-curator
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: explorer-curator/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3004
+      - key: ETHEREUM_RPC_URL
+        sync: false  # Set in Render dashboard
+      - key: NUDGER_PRIVATE_KEY
+        sync: false  # Set in Render dashboard
+      - key: NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: INDEXER_URL
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-haiku
+      - key: IPFS_API
+        value: https://ipfs.io/api/v0
+      - key: IPFS_GATEWAY
+        value: https://ipfs.io/ipfs
+      - key: NUDGER_NAME
+        value: Fundable Project Explorer
+      - key: NUDGER_DESCRIPTION
+        value: Curates a map of fundable project areas and personalizes suggestions
+      - key: NUDGER_SOURCE_TYPE
+        value: explorer-curator
+      - key: NUDGER_VERSION
+        value: 0.1.0
+      - key: EXPLORER_STREAM
+        value: fundable-project-explorer
+      - key: CURATOR_INTERVAL_MS
+        value: 21600000  # 6 hours
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: standard
+
+  # Content Finder (background worker)
+  - type: worker
+    name: commonality-content-finder
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: content-finder/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PLATFORM_API_URL
+        sync: false  # Set in Render dashboard
+      - key: ATTESTER_URL
+        sync: false  # Set in Render dashboard
+      - key: ATTESTER_FINDER_KEY
+        sync: false  # Set in Render dashboard
+      - key: SUBMISSIONS_API_URL
+        sync: false  # Set in Render dashboard (optional; overrides file-based queue)
+      - key: POLL_INTERVAL_MS
+        value: 30000
+    autoDeploy: true
+    plan: standard
+
+  # Implication Finder (background worker)
+  - type: worker
+    name: commonality-implication-finder
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: implication-finder/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: EVENT_CACHE_URL
+        sync: false  # Set in Render dashboard
+      - key: ATTESTER_URL
+        sync: false  # Set in Render dashboard
+      - key: ATTESTER_FINDER_KEY
+        sync: false  # Set in Render dashboard
+      - key: BELIEFS_CONTRACT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: IMPLICATIONS_CONTRACT_ADDRESS
+        sync: false  # Set in Render dashboard
+      - key: IPFS_GATEWAY_URL
+        value: https://ipfs.io/ipfs
+      - key: POLL_INTERVAL_MS
+        value: 30000
+      - key: TOP_N_STATEMENTS
+        value: 20
+      - key: MIN_BELIEVER_THRESHOLD
+        value: 2
+    autoDeploy: true
+    plan: standard
+
 # Note: Deploy by pushing to your Git repository and connecting it to Render.
-# Services without Dockerfiles (bridge-creator, explorer-curator, content-finder)
-# are not yet listed here — add them once Dockerfiles are available.
 #
 # Secrets to set in Render dashboard per service:
 # implication-attester:  ETHEREUM_RPC_URL, ATTESTER_PRIVATE_KEY, IMPLICATIONS_CONTRACT_ADDRESS, OPENROUTER_API_KEY, X402_PAYMENT_ADDRESS
 # implication-graph-nudger: ETHEREUM_RPC_URL, NUDGER_PRIVATE_KEY, IMPLICATIONS_CONTRACT_ADDRESS, INDEXER_URL, OPENROUTER_API_KEY
 # content-attester: ETHEREUM_RPC_URL, ATTESTER_PRIVATE_KEY, ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS, ALIGNMENT_TOPIC_STATEMENT_CID, OPENROUTER_API_KEY, X402_PAYMENT_ADDRESS, CONTENT_ATTESTER_NAME, CONTENT_ATTESTER_PROMPT_TEMPLATE
 # platform-api-service: X_API_BEARER_TOKEN, YOUTUBE_API_KEY, VERIFIER_PRIVATE_KEY (+ optionally ETHEREUM_RPC_URL, CHANNEL_REGISTRY_ADDRESS if enabling on-chain submission)
+# bridge-creator: ETHEREUM_RPC_URL, NUDGER_PRIVATE_KEY, NUDGE_PUBLICATIONS_CONTRACT_ADDRESS, INDEXER_URL, OPENROUTER_API_KEY
+# explorer-curator: ETHEREUM_RPC_URL, NUDGER_PRIVATE_KEY, NUDGE_PUBLICATIONS_CONTRACT_ADDRESS, INDEXER_URL, OPENROUTER_API_KEY
+# content-finder: PLATFORM_API_URL, ATTESTER_URL, ATTESTER_FINDER_KEY
+# implication-finder: EVENT_CACHE_URL, ATTESTER_URL, ATTESTER_FINDER_KEY, BELIEFS_CONTRACT_ADDRESS, IMPLICATIONS_CONTRACT_ADDRESS

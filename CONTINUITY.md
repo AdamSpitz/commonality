@@ -1,5 +1,35 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-22 - Dockerfiles for remaining AI services (Completed)
+
+**Task**: Add Dockerfiles to the four services that lacked them: bridge-creator, explorer-curator, content-finder, implication-finder. Update render.yaml to include all four.
+
+**What was done**:
+- Created `bridge-creator/Dockerfile` — nudger web service (port 3003), depends on sdk + attester-core + nudger-core.
+- Created `explorer-curator/Dockerfile` — nudger web service (port 3004), depends on sdk + attester-core + nudger-core.
+- Created `content-finder/Dockerfile` — background polling worker (no HTTP), depends on sdk + finder-core.
+- Created `implication-finder/Dockerfile` — background polling worker (no HTTP), depends on sdk + finder-core.
+- All four use the optimized BuildKit pattern (`# syntax=docker/dockerfile:1.7`, `--mount=type=cache,target=/root/.npm`) from the newer Dockerfiles (content-attester, implication-graph-nudger).
+- Updated `render.yaml`: added `type: web` entries for bridge-creator and explorer-curator, `type: worker` entries for content-finder and implication-finder, removed the stale "no Dockerfiles yet" comment, and extended the secrets reference comment.
+
+**Key decisions**:
+- content-finder and implication-finder are background polling workers with no HTTP server, so they use `type: worker` in render.yaml (no `healthCheckPath`).
+- bridge-creator and explorer-curator expose health endpoints (inherited from nudger-core), so they use `type: web` with `healthCheckPath: /health`.
+- CURATOR_INTERVAL_MS is hardcoded in render.yaml as 21600000 (6 hours) to match the default in config.ts.
+
+**Files changed**:
+- `bridge-creator/Dockerfile` (new)
+- `explorer-curator/Dockerfile` (new)
+- `content-finder/Dockerfile` (new)
+- `implication-finder/Dockerfile` (new)
+- `render.yaml`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. All services are now fully deployable. A natural next step would be a real deployment trial or picking another TODO item.
+
+
+
 ## 2026-04-22 - Fix flaky integration test: Pubstarter deadline refund (Completed)
 
 **Task**: Stabilize `Pubstarter Edge Cases → should allow refund after project fails to meet threshold by deadline`.

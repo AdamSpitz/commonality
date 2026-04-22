@@ -2,10 +2,10 @@
 
 ## Main list
 
-- [ ] Add Dockerfile to `bridge-creator` (all services should be deployable)
-- [ ] Add Dockerfile to `explorer-curator` (all services should be deployable)
-- [ ] Add Dockerfile to `content-finder` (all services should be deployable)
-- [ ] Add Dockerfile to `implication-finder` (all services should be deployable)
+- [x] Add Dockerfile to `bridge-creator` (all services should be deployable)
+- [x] Add Dockerfile to `explorer-curator` (all services should be deployable)
+- [x] Add Dockerfile to `content-finder` (all services should be deployable)
+- [x] Add Dockerfile to `implication-finder` (all services should be deployable)
 
 - [ ] (Future review chunk) Check implication-graph-nudger nudger.ts for test coverage
 - [ ] (Future review chunk) Check content-finder main loop for test coverage
