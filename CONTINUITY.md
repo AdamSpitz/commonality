@@ -1,5 +1,54 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-22 - Privy embedded-wallet onboarding in UI (Completed)
+
+**Task**: Complete the `TODO.md` item to incorporate Privy so the UI can support embedded wallets for users who do not already have an Ethereum wallet.
+
+**What was done**:
+- Added `@privy-io/react-auth` and `@privy-io/wagmi` to the UI workspace and kept the existing ConnectKit stack as a fallback when Privy is not configured.
+- Refactored [`ui/src/main.tsx`](/home/adam/Projects/commonality/ui/src/main.tsx) and [`ui/src/wagmi.ts`](/home/adam/Projects/commonality/ui/src/wagmi.ts) so:
+  - `VITE_PRIVY_APP_ID` enables a Privy provider tree with wagmi integration
+  - local dev / Playwright E2E without Privy credentials still use the old ConnectKit path
+  - embedded wallets are created automatically for users who log in without a wallet
+- Replaced the hardcoded `ConnectKitButton` in [`ui/src/shared/components/AppShell.tsx`](/home/adam/Projects/commonality/ui/src/shared/components/AppShell.tsx) with a new [`WalletButton`](/home/adam/Projects/commonality/ui/src/shared/components/WalletButton.tsx) component that:
+  - opens Privy sign-in when enabled
+  - syncs the preferred Privy wallet into wagmi
+  - exposes link-wallet and logout actions
+  - falls back to the original ConnectKit button when Privy is disabled
+- Added [`ui/src/shared/components/WalletButton.test.tsx`](/home/adam/Projects/commonality/ui/src/shared/components/WalletButton.test.tsx) coverage for the new Privy button states.
+- Documented the new env/config behavior in [`ui/.env.example`](/home/adam/Projects/commonality/ui/.env.example) and [`ui/README.md`](/home/adam/Projects/commonality/ui/README.md).
+
+**Key decisions**:
+- Kept Privy opt-in via `VITE_PRIVY_APP_ID` so the repo still honors the top-level README claim that local development can run without extra third-party credentials.
+- Left the rest of the UI on wagmi hooks unchanged; only the provider tree and top-right wallet button needed Privy-specific code.
+- Preserved the existing mock-wallet test harness by keeping the ConnectKit path available when Privy is not configured.
+
+**Verified**:
+- `npm run typecheck --workspace=ui` ✓
+- `npm run lint --workspace=ui` ✓
+- `npm run test --workspace=ui -- WalletButton.test.tsx --run` ✓
+- `npm run build --workspace=ui` ✓
+  - Note: the Privy package emits many Rollup `/*#__PURE__*/` comment warnings during build, but the build completes successfully.
+
+**Files changed**:
+- `ui/package.json`
+- `package-lock.json`
+- `ui/src/main.tsx`
+- `ui/src/wagmi.ts`
+- `ui/src/shared/components/AppShell.tsx`
+- `ui/src/shared/components/WalletButton.tsx`
+- `ui/src/shared/components/WalletButton.test.tsx`
+- `ui/.env.example`
+- `ui/README.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- Deployed environments still need a real Privy app configured in the Privy dashboard plus `VITE_PRIVY_APP_ID` (and optionally `VITE_PRIVY_CLIENT_ID`) supplied at build time.
+- The current implementation eagerly bundles Privy; if bundle size becomes a launch concern, the next iteration should lazy-load the Privy auth entrypoint.
+
+**Interrupt point**: Yes. This is a clean stopping point: embedded-wallet onboarding is wired in, documented, and build-verified.
+
 ## 2026-04-22 - Wire project fold caching into pubstarter pages (Completed)
 
 **Task**: Do the `foldVersion` wiring item from `TODO.md` for the pubstarter UI.

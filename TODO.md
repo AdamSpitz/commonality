@@ -2,8 +2,6 @@
 
 ## Main list
 
-- Consider embedded wallets (Privy) to lower the onboarding barrier for non-crypto users. Currently we use ConnectKit which requires users to bring their own wallet. See [tech.md](specs/tech/shared/tech.md) for details.
-
 - Interesting idea: a feed showing only statements that *both* sides' noninflammatory attesters have approved. (Could even just be a noninflammatory content attester that includes multiple prompts, one acceptable to the left and one acceptable to the right.) Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
 
 - Write some [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md). (I think I want to write it myself.)
@@ -42,3 +40,7 @@
 - "how did I get here?" — maybe there's a record of all the stuff you signed before, and then you interacted with this guy.
 
 - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.
+
+## Suggestions from AI
+
+- Consider lazy-loading the Privy auth UI so embedded-wallet onboarding does not permanently add its full modal bundle to the initial app payload.

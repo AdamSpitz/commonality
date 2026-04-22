@@ -4,7 +4,17 @@ import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider } from 'connectkit'
-import { config, createMockConfig } from './wagmi'
+import { PrivyProvider } from '@privy-io/react-auth'
+import { WagmiProvider as PrivyWagmiProvider } from '@privy-io/wagmi'
+import {
+  config,
+  createMockConfig,
+  isPrivyEnabled,
+  privyAppId,
+  privyClientId,
+  privyWagmiConfig,
+  wagmiChains,
+} from './wagmi'
 import './index.css'
 import App from './App.tsx'
 
@@ -44,13 +54,39 @@ export function Root() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
-          <ConnectKitProvider>
-            <App />
-          </ConnectKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
+      <QueryClientProvider client={queryClient}>
+        {isPrivyEnabled ? (
+          <PrivyProvider
+            appId={privyAppId}
+            clientId={privyClientId}
+            config={{
+              appearance: {
+                theme: 'light',
+                accentColor: '#14213d',
+                walletList: ['detected_wallets', 'metamask', 'coinbase_wallet', 'rainbow', 'wallet_connect'],
+                loginMessage: 'Sign in with email or a wallet to start taking onchain actions.',
+              },
+              embeddedWallets: {
+                ethereum: {
+                  createOnLogin: 'users-without-wallets',
+                },
+              },
+              defaultChain: wagmiChains[0],
+              supportedChains: [...wagmiChains],
+            }}
+          >
+            <PrivyWagmiProvider config={privyWagmiConfig}>
+              <App />
+            </PrivyWagmiProvider>
+          </PrivyProvider>
+        ) : (
+          <WagmiProvider config={wagmiConfig}>
+            <ConnectKitProvider>
+              <App />
+            </ConnectKitProvider>
+          </WagmiProvider>
+        )}
+      </QueryClientProvider>
     </ThemeProvider>
   )
 }

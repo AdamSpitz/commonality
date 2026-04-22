@@ -39,3 +39,5 @@ The leading option is **Privy** (privy.io). Key facts:
 - Free up to some number of monthly active wallets, then per-wallet pricing
 
 The decision to add this is a product/audience call: if the target users are crypto-native, ConnectKit's existing "get a wallet" flow is probably sufficient. If we want truly mainstream users who've never touched crypto, embedded wallets remove the biggest onboarding barrier.
+
+(NOTE: of course we want users who already have an Ethereum account to easily be able to just use that; they shouldn't be required to use a Privy wallet.)

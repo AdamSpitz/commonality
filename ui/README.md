@@ -10,7 +10,7 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
 
 - **Framework:** React 19 + TypeScript + Vite
 - **UI Library:** Material UI (MUI)
-- **Blockchain:** viem, wagmi, ConnectKit
+- **Blockchain:** viem, wagmi, ConnectKit, Privy
 - **State Management:** @tanstack/react-query
 
 ## Dev stuff you can do
@@ -23,6 +23,15 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
     npm run build:ipfs:domains
 
 `npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path.
+
+## Wallet onboarding
+
+The UI now supports two wallet-onboarding modes:
+
+- Default local-dev / test mode: if `VITE_PRIVY_APP_ID` is unset, the app keeps using the existing ConnectKit flow.
+- Embedded-wallet mode: if `VITE_PRIVY_APP_ID` is set, the app uses Privy for email/social login plus embedded wallets while still allowing external Ethereum wallets.
+
+This keeps local development and Playwright E2E tests working without requiring a Privy app, while giving deployed environments a path to mainstream-friendly onboarding.
 
 `npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). `npm run build:domains` emits all four domain artifacts in one pass:
 

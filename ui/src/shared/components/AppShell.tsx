@@ -22,8 +22,8 @@ import {
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import { ConnectKitButton } from 'connectkit'
 import { Link, useLocation } from 'react-router-dom'
+import { WalletButton } from './WalletButton'
 
 interface DomainBranding {
   name: string
@@ -221,7 +221,7 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
               </Menu>
             </Box>
           )}
-          <ConnectKitButton />
+          <WalletButton />
         </Toolbar>
       </AppBar>
       <Drawer
