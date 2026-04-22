@@ -54,5 +54,7 @@ Here's a list of what's done (please keep this list concise):
   - StatementRenderer: Component for rendering statement content with markdown support, reference handling, and metadata display
   - StatementSuggestions: Component displaying trusted nudger suggestions for the current statement, sourced from folded `nudge-batch` publications
   - UserProfilePage: Displays user's beliefs, disbeliefs, and indirectly supported statements in tabs with clickable statement cards; shows "Create Statement" button for connected user's own profile
-  - Placeholder pages: BrowseStatementsPage, SettingsPage
+  - BrowseStatementsPage: Lists all statements with search/filter
+  - SettingsPage: Nudger configuration (add/remove nudgers with service URL + metadata discovery), nudge intensity, muted topics, muted nudgers, and direct trust settings (Subjectiv)
+  - ExplorerPage: Shows curated statement collection from explorer nudger, with per-user LLM personalization (reordering + reasons) when a service URL is configured
   - Directory structure: Organized into src/shared, src/conceptspace, src/pubstarter, src/delegation, src/fundingportal
