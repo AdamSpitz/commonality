@@ -2,7 +2,7 @@
 
 This document covers our thinking about *why* we need seed content, *what kind* to create, and *how* to do it.
 
-See the [seed-content](./seed-content/) directory for concrete examples.
+See this directory for concrete examples.
 
 ---
 
@@ -24,23 +24,25 @@ We probably don't need hundreds of statements (although that's not out of the qu
 
 ## What to include
 
-See [content patterns](./content-patterns/README.md) for the kinds of content we expect and hope to see. The seed set should include:
+See [content patterns](../content-patterns/README.md) for the kinds of content we expect and hope to see. The seed set should include:
 
-### Top-level interest areas
+### Top-level fundable-project interest areas
 
-Entry points for the explorer (see [seed-content/top-level.md](./seed-content/top-level.md)). These are high-level statements like "I care about education" that serve as parents to more specific positions.
+Entry points for the [fundable-project explorer](specs/tech/subsystems/conceptspace/explorer.md) (see [fundable projects seed content](./fundable-projects.md)).
+
+It may also help to have high-level statements like "I care about education" that serve as parents to more specific positions. (Though I'm less certain of that ever since we realized that the explorer doesn't really work as an open-ended omnipurpose thing; it needs to have a specific aim. So I'd suggest creating these high-level statements if it helps the explorer in routing people down through the space of fundable projects, but don't bother making them just because.)
 
 ### Hidden-majority issues
 
-The showcase statements demonstrating the system's ability to find consensus (see [seed-content/hidden-majority.md](./seed-content/hidden-majority.md)). Each includes pole positions, moderate positions, and a commonality statement.
+The showcase statements demonstrating the system's ability to find consensus (see [hidden-majority.md](./hidden-majority.md)). Each includes pole positions, moderate positions, and a commonality statement.
 
 ### Cross-cutting meta-statements
 
-Statements about the system itself or political epistemology — the meta-statements most directly aligned with Commonality's thesis (see [seed-content/meta.md](./seed-content/meta.md)).
+Statements about the system itself or political epistemology — the meta-statements most directly aligned with Commonality's thesis (see [meta.md](./meta.md)).
 
 ### Geographic hierarchy
 
-Statements at multiple geographic levels, enabling geographic × topical intersections (see [seed-content/meta.md](./seed-content/meta.md)).
+Statements at multiple geographic levels, enabling geographic × topical intersections (see [meta.md](./meta.md)).
 
 ---
 
@@ -51,7 +53,7 @@ When populating the system pre-launch:
 1. **Convert** each seed statement into a displayable document (markdown-restricted format, appropriate extras)
 2. **Upload** to IPFS
 3. **Have a seed signer account** sign each one (so signer counts are at least 1)
-4. **Run the implication attester** on pre-generated implication link pairs (see [seed-content/hidden-majority.md](./seed-content/hidden-majority.md) for the specific links)
+4. **Run the implication attester** on pre-generated implication link pairs (see [hidden-majority.md](./hidden-majority.md) for the specific links)
 5. The explorer AI can then use these as starting points for onboarding
 
 The fake-data system in `universe.json` uses a different set of statements optimized for testing mechanics. The seed content here is for the real system — they can be updated to use these statements for more realistic simulations.

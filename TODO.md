@@ -2,9 +2,8 @@
 
 ## Main list
 
-- Interesting idea: a feed showing only statements that *both* sides' noninflammatory attesters have approved. (Could even just be a noninflammatory content attester that includes multiple prompts, one acceptable to the left and one acceptable to the right.) Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
-
 - Write some [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md). (I think I want to write it myself.)
+
 - Use an LLM to generate a proliferation of similar statements around the seed content, and pre-generate implication evaluations for all S1→S2 pairs. Switch the fake-data simulations to use this; delete the old `universe.json` entries.
 
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
@@ -26,19 +25,8 @@
 
 - Using `cofounder` skill: Are we ready to launch?
 
-
 ## Out of scope for the MVP, but worth remembering
 
 - [Bridges](specs/tech/bridges.md) to tradfi.
-
-## Notes from chat with Sam
-
-- Breaking down positions into atomized positions; also accreting them into synthesized larger positions.
-
-- Facebook etc have things that are sorta analogous to "nudgers" (in the sense of biasing/shaping/directing the discussion), ask AI about it.
-
-- "how did I get here?" — maybe there's a record of all the stuff you signed before, and then you interacted with this guy.
-
-- In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.
 
 ## Suggestions from AI
