@@ -58,12 +58,24 @@ Most nudge filtering should be **deterministic and client-side**, not AI-based:
 
 If AI-based filtering is needed, do it at the nudger level (when generating batches), not at the client level. The nudger can be smart about what it publishes; the client applies simple caps and filters.
 
-## What exists vs. what needs to be built
+## Implementation status
+
+All core nudge UX features are implemented as of 2026-04-22:
 
 | Component | Status |
 |---|---|
-| Nudger service framework | Implemented (`nudger-core`) |
-| Nudge display in UI | Not built |
-| Nudge dismissal / "seen" tracking | Not built |
-| Nudge intensity settings | Not built |
-| Client-side nudge filtering | Not built |
+| Nudger service framework | `nudger-core/` |
+| SDK: fetch + fold typed nudger publications | `sdk/` |
+| Nudge display in UI (`StatementSuggestions`) | `ui/` |
+| Nudge dismissal / "seen" tracking | `ui/` (localStorage via `nudgeStore`) |
+| Nudge intensity settings | `ui/` (`useNudgeIntensity` hook) |
+| Client-side filtering (dismissed, muted nudger, muted topic) | `ui/` |
+| Per-nudger mute | Settings UI |
+
+Deferred: staleness decay (see "Surface area budget" above).
+
+## Latency for newly created statements
+
+Nudge suggestions for a statement don't appear until the nudger's next batch cycle (the implication-graph nudger runs every hour by default). The underlying attestations exist within ~2 minutes (the implication finder polls every 30s; the attester is synchronous), but `StatementSuggestions` reads from nudger publications, not directly from attestations.
+
+If snappier UX for new statements becomes a priority: lower `NUDGE_INTERVAL_MS` in `implication-graph-nudger/src/index.ts` (it's just a constant), or add a periodic refresh to `StatementSuggestions`.

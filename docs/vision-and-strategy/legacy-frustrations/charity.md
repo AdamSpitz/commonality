@@ -12,3 +12,16 @@ Private charity is nice because no coercion, but has its own problems that Commo
 Commonality keeps the good part of charity — it's voluntary — while fixing the bad parts. And charities themselves can [use Commonality as infrastructure](../ease-of-adoption/rails.md) to reduce their own overhead (see also [enthusiastic adoption](../so-what/enthusiastic-adoption.md)).
 
 Charities that adopt Commonality as infrastructure also gain access to the [credible-threat mechanism](../hard-to-stop/credible-threat.md): if their government funding gets threatened, their donor base can visibly coordinate a backup plan at zero cost. See the [walkthrough](/docs/use-case-walkthroughs/defunding.md) for a concrete example.
+
+## TODO: incorporate this
+
+https://x.com/mattvanswol/status/2045936225198956559
+
+        It’s hard to be generous when I’m already being generously stolen from in taxes and when even the nonprofits aren’t actually solving the problems they reportedly exist to solve.
+
+The question of whether I personally agree with his political views is irrelevant; the point is (a) people feel like they can't trust charities not to be corrupt, and (b) noticing the corruption requires a "deep dive", it's not actually easy to tell.
+
+Commonality might be useful in solving this problem - can donate more directly rather than through big charity orgs, and also can retroactively fund stuff that's already done good.
+
+
+https://x.com/elonmusk/status/2046327719231705207

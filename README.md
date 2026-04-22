@@ -42,13 +42,18 @@ Note that the build and tests are run by the Git pre-commit hook, and the whole 
 
 ## Artifacts
 
-**Core platform:**
+### Core platform
+
   - [Smart contracts](hardhat/README.md) (`hardhat/`)
   - [SDK](sdk/README.md) — used by integration-tests, ui, and AI services
   - [Indexer](indexer/README.md) — thin Ponder event cache; no business logic
   - [UI](ui/README.md) — four branded surfaces from one Vite/React codebase
   - [Integration tests](integration-tests/README.md)
   - [Fake-data generation](fake-data-generation/README.md)
+
+### AI Service Ecosystem
+
+The core pipeline (attesters, finders, nudgers, explorer) is complete. See `specs/product/ai-assistance.md` for the ecosystem overview and `specs/product/` and `specs/tech/subsystems/` for individual specs.
 
 **AI services — attesters** (evaluate claims and publish on-chain attestations):
   - [Attester Core](attester-core/README.md) — shared library for all attester services
@@ -63,9 +68,11 @@ Note that the build and tests are run by the Git pre-commit hook, and the whole 
 **AI services — nudgers** (suggest statements to users based on what they already believe):
   - [Nudger Core](nudger-core/README.md) — shared library for all nudger services
   - [Implication Graph Nudger](implication-graph-nudger/README.md) — suggests statements implied by ones you already signed
-  - [Bridge Creator](bridge-creator/README.md) — synthesizes common-ground statements between opposing views (early/stub)
+  - [Bridge Creator](bridge-creator/README.md) — synthesizes common-ground statements between opposing views
+  - [Explorer Curator](explorer-curator/README.md) — maintains a curated collection for goal-oriented exploration; personalizes per user
 
-**Platform API service:**
+### Platform API service
+
   - [Platform API Service](platform-api-service/README.md) — resolves creator handles and content URLs; handles channel verification (Twitter, YouTube)
 
 ## Other things worth noting

@@ -1,9 +1,5 @@
 # TODO
 
----
-
-## Core platform
-
 - Finish wiring `foldVersion` to UI pages (BrowseProjectsPage, ProjectDetailPage etc.) and extend to contributions/secondary market/burns if performance warrants. See [indexer spec](specs/tech/indexer/README.md).
 
 - Try a noninflammatory-content filter slider. The attesters publish scores 0–1 so tuning the threshold should be easy. Also interesting: a feed showing only statements that *both* sides' noninflammatory attesters have approved. Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
@@ -27,6 +23,8 @@
 - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 - Point an AI at the UI and tell it "go use this."
 
+- Work on the [elevator pitch](docs/common-sense-majority/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
+
 - Using `cofounder` skill: Are we ready to launch?
 
 
@@ -36,12 +34,11 @@ Out of scope for the MVP, but worth remembering:
 
 ## Notes from chat with Sam
 
-- Work on the [elevator pitch](docs/common-sense-majority/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
-
 - Breaking down positions into atomized positions; also accreting them into synthesized larger positions.
 
 - Facebook etc have things that are sorta analogous to "nudgers" (in the sense of biasing/shaping/directing the discussion), ask AI about it.
 
 - "how did I get here?" — maybe there's a record of all the stuff you signed before, and then you interacted with this guy.
+
 - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.
 
