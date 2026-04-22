@@ -50,6 +50,9 @@ npm run gen:statements
 # Generate a universe.json-compatible file from the formal seed-content JSON
 npm run gen:seed:universe
 
+# Generate the human-readable markdown docs from the formal seed-content JSON
+npm run gen:seed:markdown
+
 # Convert the formal seed-content JSON into real Conceptspace statement documents
 npm run gen:seed:statements
 
@@ -88,6 +91,7 @@ The curated seed statements for the real system now live in `seed-content/*.json
 Two scripts sit on top of that source:
 
 - `npm run gen:seed:universe` writes `output/seed-universe.json`, which matches the `universe.json` shape expected by the fake-data generators
+- `npm run gen:seed:markdown` rewrites `../specs/tech/subsystems/conceptspace/seed-content/*.md` so the prose docs stay aligned with the JSON source of truth
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
 - `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
 

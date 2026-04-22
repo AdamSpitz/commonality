@@ -6,6 +6,7 @@
     "gen:users": "tsx generateUsers.ts",
     "gen:statements": "tsx generateStatements.ts",
     "gen:seed:universe": "tsx generateSeedUniverse.ts",
+    "gen:seed:markdown": "tsx generateSeedMarkdown.ts",
     "gen:seed:statements": "tsx prepareSeedStatements.ts",
     "gen:seed:upload": "tsx prepareSeedStatements.ts --upload",
     "gen:attesters": "tsx generateAttesters.ts",

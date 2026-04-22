@@ -28,7 +28,3 @@
 ## Out of scope for the MVP, but worth remembering
 
 - [Bridges](specs/tech/bridges.md) to tradfi.
-
-## Suggestions from AI
-
-- Consider deciding whether `fake-data-generation/seed-content/*.json` is now the sole source of truth for the statement text. If yes, the next cleanup step is to either generate the prose seed-content markdown from JSON or make it explicit that the markdown is commentary and the JSON is authoritative.

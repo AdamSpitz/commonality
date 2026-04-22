@@ -6,6 +6,7 @@ See this directory for concrete examples.
 
 The formal machine-readable source now lives in [`fake-data-generation/seed-content/`](/home/adam/Projects/commonality/fake-data-generation/seed-content/). Use the scripts documented in [`fake-data-generation/README.md`](/home/adam/Projects/commonality/fake-data-generation/README.md) to:
 
+- generate the human-readable markdown in this directory from that JSON source
 - convert that source into the fake-data `universe.json` shape
 - convert it into real Conceptspace statement documents
 - upload those documents to IPFS

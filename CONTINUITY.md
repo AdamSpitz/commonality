@@ -1,5 +1,45 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-22 - Seed-content markdown generation from JSON (Completed)
+
+**Task**: Complete the `TODO.md` follow-up to generate the prose seed-content markdown from the formal JSON source of truth and include a note that the markdown is auto-generated.
+
+**What was done**:
+- Added [`fake-data-generation/generateSeedMarkdown.ts`](/home/adam/Projects/commonality/fake-data-generation/generateSeedMarkdown.ts) to load all `fake-data-generation/seed-content/*.json` collections and rewrite the corresponding markdown docs under [`specs/tech/subsystems/conceptspace/seed-content/`](/home/adam/Projects/commonality/specs/tech/subsystems/conceptspace/seed-content/).
+- Added npm script `gen:seed:markdown` in [`fake-data-generation/package.json`](/home/adam/Projects/commonality/fake-data-generation/package.json).
+- Regenerated:
+  - [`specs/tech/subsystems/conceptspace/seed-content/content-funding.md`](/home/adam/Projects/commonality/specs/tech/subsystems/conceptspace/seed-content/content-funding.md)
+  - [`specs/tech/subsystems/conceptspace/seed-content/fundable-projects.md`](/home/adam/Projects/commonality/specs/tech/subsystems/conceptspace/seed-content/fundable-projects.md)
+  - [`specs/tech/subsystems/conceptspace/seed-content/hidden-majority.md`](/home/adam/Projects/commonality/specs/tech/subsystems/conceptspace/seed-content/hidden-majority.md)
+  - [`specs/tech/subsystems/conceptspace/seed-content/meta.md`](/home/adam/Projects/commonality/specs/tech/subsystems/conceptspace/seed-content/meta.md)
+- Updated [`fake-data-generation/README.md`](/home/adam/Projects/commonality/fake-data-generation/README.md) and the seed-content [`README.md`](/home/adam/Projects/commonality/specs/tech/subsystems/conceptspace/seed-content/README.md) to document the new generation step.
+
+**Key decisions**:
+- Treated the JSON files as the authoritative source and made the markdown intentionally mechanical so drift becomes obvious rather than subtle.
+- Included an explicit top-of-file note in each generated markdown file pointing back to the exact source JSON path.
+- Kept the generated structure simple: collection description/notes, then one section per group with statements and expected implication notes.
+
+**Verified**:
+- `npm run gen:seed:markdown --workspace=fake-data-generation` ✓
+- `npm run typecheck --workspace=fake-data-generation` ✓
+
+**Files changed**:
+- `fake-data-generation/generateSeedMarkdown.ts`
+- `fake-data-generation/package.json`
+- `fake-data-generation/README.md`
+- `specs/tech/subsystems/conceptspace/seed-content/README.md`
+- `specs/tech/subsystems/conceptspace/seed-content/content-funding.md`
+- `specs/tech/subsystems/conceptspace/seed-content/fundable-projects.md`
+- `specs/tech/subsystems/conceptspace/seed-content/hidden-majority.md`
+- `specs/tech/subsystems/conceptspace/seed-content/meta.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- The generated markdown now reflects only what is encoded in JSON. If richer prose organization is still desirable, it should be represented explicitly in the JSON schema rather than reintroduced by hand in the markdown.
+
+**Interrupt point**: Yes. The source-of-truth workflow is now explicit: edit JSON, regenerate markdown, and use the same JSON for universe/document generation.
+
 ## 2026-04-22 - Formal seed-content JSON + conversion/upload scripts (Completed)
 
 **Task**: Complete the `TODO.md` item to store the conceptspace seed content in a more formal JSON format and add scripts to convert it for simulations or upload it as real statements.
