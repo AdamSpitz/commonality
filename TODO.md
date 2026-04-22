@@ -5,7 +5,7 @@
 - [ ] (Future review chunk) Check implication-graph-nudger nudger.ts for test coverage
 - [ ] (Future review chunk) Check content-finder main loop for test coverage
 
-- Try a noninflammatory-content filter slider. The attesters publish scores 0–1 so tuning the threshold should be easy. Also interesting: a feed showing only statements that *both* sides' noninflammatory attesters have approved. Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
+- Also interesting: a feed showing only statements that *both* sides' noninflammatory attesters have approved. Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
 
 - Write some [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md). (I think I want to write it myself.)
 - Use an LLM to generate a proliferation of similar statements around the seed content, and pre-generate implication evaluations for all S1→S2 pairs. Switch the fake-data simulations to use this; delete the old `universe.json` entries.
