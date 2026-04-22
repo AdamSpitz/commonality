@@ -1,13 +1,8 @@
 # TODO
 
-## Tech debt
-
-1. **ENS** — `sdk/src/utils/twitter.ts` has a TODO for ENS verification status. Matches TODO.md item about getting ENS names.
-
 ## Main list
 
-- [ ] (Future review chunk) Check implication-graph-nudger nudger.ts for test coverage
-- [ ] (Future review chunk) Check content-finder main loop for test coverage
+- Consider embedded wallets (Privy) to lower the onboarding barrier for non-crypto users. Currently we use ConnectKit which requires users to bring their own wallet. See [tech.md](specs/tech/shared/tech.md) for details.
 
 - Interesting idea: a feed showing only statements that *both* sides' noninflammatory attesters have approved. (Could even just be a noninflammatory content attester that includes multiple prompts, one acceptable to the left and one acceptable to the right.) Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
 

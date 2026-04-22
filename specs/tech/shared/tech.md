@@ -24,3 +24,18 @@ The indexer is a thin event cache built on Ponder — it stores raw on-chain eve
 For UI code, let's use TypeScript, Vite, Material UI, and viem and wagmi and connectkit for blockchain stuff.
 
 For accessing Twitter follower counts, we can use the X API - it's not that expensive anymore.
+
+## Ethereum account onboarding
+
+Currently the app uses ConnectKit, which assumes users arrive with an existing Ethereum wallet (MetaMask, WalletConnect, Coinbase Wallet, etc.). ConnectKit has a built-in "Get a wallet" pointer for users who don't have one, but that sends them away to set one up and come back.
+
+For a more mainstream audience, **embedded wallets** are the alternative: the user signs in with email, Google, Apple ID, or a passkey, and an Ethereum account is created for them behind the scenes without them ever thinking about wallets.
+
+The leading option is **Privy** (privy.io). Key facts:
+- Has a React SDK and a wagmi adapter, so it can slot into our existing wagmi-based setup without a full rewrite
+- Integration is real work but not large — probably a day or two
+- Uses MPC (multi-party computation): the private key is split between the user's device and Privy's servers; neither side alone can sign. We are not custodians — we never touch keys
+- Privy is a third-party SaaS; they run the database, not us
+- Free up to some number of monthly active wallets, then per-wallet pricing
+
+The decision to add this is a product/audience call: if the target users are crypto-native, ConnectKit's existing "get a wallet" flow is probably sufficient. If we want truly mainstream users who've never touched crypto, embedded wallets remove the biggest onboarding barrier.
