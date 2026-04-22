@@ -54,7 +54,7 @@ export function SettingsPage() {
   const { getChallenge, confirmVerification, loading: verificationLoading, error: verificationError, clearError } = useClaimFlow()
   const { intensity, setIntensity } = useNudgeIntensity()
   const { mutedTopics, addTopic, removeTopic } = useMutedTopics()
-  const { mutedNudgers, muteNudger, unmuteNudger, isMuted } = useMutedNudgers()
+  const { muteNudger, unmuteNudger, isMuted } = useMutedNudgers()
 
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')

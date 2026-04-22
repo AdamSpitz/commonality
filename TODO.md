@@ -1,53 +1,25 @@
 # TODO
 
-## AI Services
-
-See [AI-SERVICES-REVIEW-PLAN.md](AI-SERVICES-REVIEW-PLAN.md) for the full ecosystem assessment. Specs live in `specs/product/` and `specs/tech/subsystems/`.
-
-The core pipeline (attesters, finders, nudgers, explorer) is functional. Remaining work:
-
-- **Staleness decay.** Deferred from the nudge UX work. Lower priority.
-- ~~**Per-nudger mute.**~~ Done: SettingsPage now has a mute/unmute toggle per nudger; muted nudgers' suggestions are filtered out in StatementSuggestions.
-- **Bridge-priority scoring as a mode of the implication finder.** Not a new service — a priority-scoring enhancement. Spec: `specs/product/bridge-finder.md`. Not blocking anything.
-- **Anti-evil-nudger immune system.** Only useful once the nudger ecosystem has real activity. Spec: `specs/product/nudger-immune-system.md`.
-
-### Suggestions from AI
-
-- ~~Consider adding a way to provide default nudger service URLs alongside default nudger addresses, so explorer personalization works out of the box even before a user manually enters a `serviceUrl` in Settings.~~ Done: `VITE_DEFAULT_NUDGERS` now accepts a JSON array of `TrustedNudgerEntry` objects with optional `serviceUrl`.
-
-## Bugs / test stability
-
-- Stabilize the integration test `Pubstarter Edge Cases → should allow refund after project fails to meet threshold by deadline`. The deadline is only ~2 seconds out, which is too short; the purchase step can revert with `ConditionHasFailed()` before the test reaches the time advance.
-
 ---
 
 ## Core platform
 
-- Implement the `foldVersion` idea described in our [indexer spec](specs/tech/indexer/README.md).
-  - Done for the resumable pubstarter folds. Extend to other fold types as needed.
-  - IndexedDB persistence for the project fold is done. Remaining: wire up specific UI pages (BrowseProjectsPage, ProjectDetailPage etc.) and extend to contributions/secondary market/burns if performance warrants.
+- Finish wiring `foldVersion` to UI pages (BrowseProjectsPage, ProjectDetailPage etc.) and extend to contributions/secondary market/burns if performance warrants. See [indexer spec](specs/tech/indexer/README.md).
 
-- Think about [new-user-experience](/specs/product/new-user-experience.md).
+- Try a noninflammatory-content filter slider. The attesters publish scores 0–1 so tuning the threshold should be easy. Also interesting: a feed showing only statements that *both* sides' noninflammatory attesters have approved. Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
 
-- Make a better [hints](specs/tech/subsystems/conceptspace/hints.md) UI.
+- Write some [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md). (I think I want to write it myself.)
+- Use an LLM to generate a proliferation of similar statements around the seed content, and pre-generate implication evaluations for all S1→S2 pairs. Switch the fake-data simulations to use this; delete the old `universe.json` entries.
 
-- It'd be neat if there was a slider, to let you turn the noninflammatory filter up or down. The noninflammatory-content attesters are publishing scores between 0 and 1, not just yes or no? So this might be easy. Also interesting: a feed consisting only of stuff that *both* sides' noninflammatory-content attesters have attested to. See [noninflammatory-content spec](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
-
-- Write some [seed content](/specs/tech/subsystems/conceptspace/seed-content/README.md). (Content-funding MVP is done; time to go back to this.) I think I might want to write it myself.
-- For the purpose of the fake-data simulations, use an LLM *once* to generate a proliferation of similar statements around the seed statements, as well as to pre-generate evaluations of all the S1 → S2 implication candidates, then store those as pre-generated data.
-- Switch the fake-data-simulation stuff to use the seed statements and the proliferation of similar stuff, so that even locally I'm seeing the seed stuff. Delete the old `universe.json` entries once we're using the real seed content.
-
-- Move this repo to GitHub.
-- Switch from using this TODO.md file to using GitHub issues.
-- In the UI, put a "post a GitHub issue" button.
+- Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 
 - Get DNS names and ENS names.
 
-- How do we keep deployments from becoming unwieldy? The [DEPLOYMENT.md](./DEPLOYMENT.md) file is old and probably out of date. Update it? Can we do some kind of infrastructure-as-code thing?
+- How do we keep deployments from becoming unwieldy? [DEPLOYMENT.md](./DEPLOYMENT.md) is probably out of date. Update it; consider infrastructure-as-code.
 
 - Do another smart-contract audit pass.
-- (Not a task for AI.) Try out the UI manually?
-- (Not a task for AI.) Do a big code review myself, of the whole thing. I don't trust it.
+- (Not a task for AI.) Try out the UI manually.
+- (Not a task for AI.) Do a big code review myself. I don't trust it.
 
 - Keep working on [memes](specs/product/memes.md).
 - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
@@ -58,8 +30,8 @@ The core pipeline (attesters, finders, nudgers, explorer) is functional. Remaini
 - Using `cofounder` skill: Are we ready to launch?
 
 
-Out of scope for the MVP, but I still want to remember that these are important and not done yet:
-- [Bridges](specs/tech/bridges.md) to tradfi. This is definitely out of scope for the MVP, but it's worth thinking about.
+Out of scope for the MVP, but worth remembering:
+- [Bridges](specs/tech/bridges.md) to tradfi.
 
 
 ## Notes from chat with Sam
@@ -73,10 +45,3 @@ Out of scope for the MVP, but I still want to remember that these are important 
 - "how did I get here?" — maybe there's a record of all the stuff you signed before, and then you interacted with this guy.
 - In real life arguments with friends or other people you respect, there's this spirit of "I respect you as a person, even when we disagree." Make sure everything we do has that spirit.
 
-
-https://x.com/mattvanswol/status/2045936225198956559
-
-(Commonality might be useful in solving this problem - can donate more directly rather than through big charity orgs, and also can retroactively fund stuff that's already done good.)
-
-
-https://x.com/elonmusk/status/2046327719231705207

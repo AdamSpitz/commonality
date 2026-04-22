@@ -62,7 +62,7 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
-import { useMutedNudgers } from '../../shared/hooks/useMutedNudgers'
+
 import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
 
 const VALID_NUDGER_1 = '0xaabbccddaabbccddaabbccddaabbccdd'

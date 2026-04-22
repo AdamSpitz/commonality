@@ -123,15 +123,17 @@ describe('Pubstarter Edge Cases', () => {
       abi: PubstarterAbi,
     };
 
-    // Create a project with a very short deadline (1 second from now)
+    // Create a project with a deadline 30 seconds from chain-tip (long enough for the purchase to land)
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Refund Test Project',
       description: 'Testing refund after project failure',
     });
 
     const tokenPrice = parseEther('0.1');
-    const currentTime = Math.floor(Date.now() / 1000);
-    const deadline = BigInt(currentTime + 2); // 2 seconds from now
+    // Use chain time (not wall clock) — earlier tests may have advanced evm time past wall clock.
+    // Give a deadline long enough for the purchase to land, then advance past it with evm_increaseTime.
+    const latestBlock = await aliceClients.publicClient.getBlock({ blockTag: 'latest' });
+    const deadline = latestBlock.timestamp + 30n; // 30 seconds from chain-tip
 
     testLog('  Creating project with short deadline...');
     const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
@@ -171,7 +173,7 @@ describe('Pubstarter Edge Cases', () => {
     testLog('  Advancing blockchain time past deadline...');
     await bobClients.publicClient.request({
       method: 'evm_increaseTime',
-      params: [3] as any,
+      params: [35] as any,
     } as any);
     // Mine a block to apply the time change
     await bobClients.publicClient.request({

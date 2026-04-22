@@ -1,5 +1,22 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-22 - Fix flaky integration test: Pubstarter deadline refund (Completed)
+
+**Task**: Stabilize `Pubstarter Edge Cases → should allow refund after project fails to meet threshold by deadline`.
+
+**Root cause**: The deadline was computed from `Date.now() / 1000` (wall-clock time) + 2 seconds. Earlier tests in the same suite use `evm_increaseTime`, so by the time this test runs, the blockchain's internal clock is ahead of wall-clock time. The 2-second window expired before the `buyProjectTokensChecked` call could land, causing `ConditionHasFailed()`.
+
+**Fix**: Use `latestBlock.timestamp` (chain time) instead of `Date.now()`, set deadline 30 seconds ahead of chain-tip, and increase `evm_increaseTime` from 3 → 35 seconds so the time advance still clears the deadline. This mirrors the pattern already used in the "should handle exact deadline timing correctly" test in the same file.
+
+**Verified**: `npm run typecheck --workspace=integration-tests` ✓
+
+**Files changed**:
+- `integration-tests/src/pubstarter/pubstarter-edge-cases.test.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Single self-contained bug fix. No blockers; next AI instance can pick any remaining TODO item.
+
 ## 2026-04-21 - AI Services: Per-Nudger Mute (Completed)
 
 **Task**: Implement per-nudger mute from the nudge-ux spec — let users temporarily hide nudges from a specific nudger without fully removing trust.
