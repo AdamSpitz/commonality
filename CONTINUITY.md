@@ -1,5 +1,57 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-22 - Formal seed-content JSON + conversion/upload scripts (Completed)
+
+**Task**: Complete the `TODO.md` item to store the conceptspace seed content in a more formal JSON format and add scripts to convert it for simulations or upload it as real statements.
+
+**What was done**:
+- Added a formal seed-content source in [`fake-data-generation/seed-content/`](/home/adam/Projects/commonality/fake-data-generation/seed-content/) with one JSON file per purpose:
+  - `fundable-projects.json`
+  - `hidden-majority.json`
+  - `meta.json`
+  - `content-funding.json`
+- Added [`fake-data-generation/seed-content-format.ts`](/home/adam/Projects/commonality/fake-data-generation/seed-content-format.ts) to:
+  - validate and load the seed collections
+  - flatten them into statement records
+  - convert them into fake-data `universe.json` shape
+  - convert each record into a real Conceptspace `DisplayableDocument`
+- Added [`fake-data-generation/generateSeedUniverse.ts`](/home/adam/Projects/commonality/fake-data-generation/generateSeedUniverse.ts) and npm script `gen:seed:universe` to export the seed content as a fake-data-compatible universe file.
+- Added [`fake-data-generation/prepareSeedStatements.ts`](/home/adam/Projects/commonality/fake-data-generation/prepareSeedStatements.ts) and npm scripts:
+  - `gen:seed:statements` to emit real Conceptspace statement documents
+  - `gen:seed:upload` to upload those documents to IPFS and record the resulting CIDs
+- Updated [`fake-data-generation/README.md`](/home/adam/Projects/commonality/fake-data-generation/README.md) and the conceptspace seed-content README to point at the new formal source and scripts.
+
+**Key decisions**:
+- Kept the JSON schema intentionally small: collection-level notes, group-level notes, statement IDs/text, optional roles, and implication notes. That preserves the rationale from the specs without trying to encode semantic logic in an overly elaborate schema.
+- Made the fake-data conversion flatten by collection/group rather than inventing a new ideological taxonomy. This keeps the converter straightforward and preserves the human-authored organization of the seed content.
+- Made the statement-preparation script generate real `DisplayableDocument` objects and support optional upload in the same script via `--upload`, so the upload path and the export path share one source transformation.
+
+**Verified**:
+- `npm run typecheck --workspace=fake-data-generation` ✓
+- `npm run gen:seed:universe --workspace=fake-data-generation -- --output output/seed-universe.smoke.json` ✓
+- `npm run gen:seed:statements --workspace=fake-data-generation -- --output output/seed-statements.smoke.json` ✓
+- `SHOULD_USE_MOCK_IPFS=true npm run gen:seed:upload --workspace=fake-data-generation -- --output output/seed-statements.uploads.smoke.json` ✓
+
+**Files changed**:
+- `fake-data-generation/seed-content-format.ts`
+- `fake-data-generation/generateSeedUniverse.ts`
+- `fake-data-generation/prepareSeedStatements.ts`
+- `fake-data-generation/seed-content/content-funding.json`
+- `fake-data-generation/seed-content/fundable-projects.json`
+- `fake-data-generation/seed-content/hidden-majority.json`
+- `fake-data-generation/seed-content/meta.json`
+- `fake-data-generation/package.json`
+- `fake-data-generation/README.md`
+- `specs/tech/subsystems/conceptspace/seed-content/README.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- The prose markdown seed-content docs still exist alongside the JSON. They now serve mostly as human commentary; if drift becomes annoying, the next step is to generate one from the other or trim the duplicated prose.
+- The generated fake-data universe output is intentionally separate from the existing hand-written `fake-data-generation/universe.json`; switching the simulation over fully should be a separate task.
+
+**Interrupt point**: Yes. The source format and both requested scripts are in place and verified. A natural next step would be either implication-pair generation around this seed corpus or migration of the fake-data simulation to the generated universe output.
+
 ## 2026-04-22 - Privy lazy-loading in UI (Completed)
 
 **Task**: Complete the `TODO.md` suggestion to lazy-load the Privy auth UI so embedded-wallet onboarding does not bloat the initial app payload.

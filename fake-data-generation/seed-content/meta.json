@@ -1,0 +1,168 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "meta",
+  "title": "Meta Statements And Geography",
+  "description": "Cross-cutting meta-statements about Commonality plus geographic hierarchy and example intersection statements.",
+  "notes": [
+    "These statements express the system's own thesis and provide top-level parent statements for many implication links.",
+    "The geographic hierarchy is intentionally plain-English rather than machine-semantic."
+  ],
+  "groups": [
+    {
+      "id": "commonality-thesis",
+      "title": "Commonality thesis",
+      "statements": [
+        {
+          "id": "public-goods-underfunded",
+          "text": "Public goods are chronically underfunded because the incentive structure is broken, not because people don't care.",
+          "notes": [
+            "The intellectual case for Commonality."
+          ]
+        },
+        {
+          "id": "fund-without-permission",
+          "text": "People should be able to fund the things they care about without needing permission from the government or a large institution.",
+          "notes": [
+            "The core Commonality thesis."
+          ]
+        },
+        {
+          "id": "contribute-without-bureaucracy",
+          "text": "It should be possible to contribute to public goods without trusting a bureaucracy or a charity to spend your money wisely.",
+          "notes": [
+            "Anti-institutional-overhead."
+          ]
+        },
+        {
+          "id": "transparency-over-control",
+          "text": "Transparency and accountability in how money is spent is more important than who controls the money.",
+          "notes": [
+            "Pro-transparency, left-right agnostic."
+          ]
+        },
+        {
+          "id": "local-knowledge",
+          "text": "Local problems are best solved by local people with local knowledge.",
+          "notes": [
+            "Subsidiarity."
+          ]
+        },
+        {
+          "id": "collective-funding-is-technology",
+          "text": "The ability to fund things collectively without a central coordinator is a technology worth building.",
+          "notes": [
+            "Meta statement about Commonality itself."
+          ]
+        },
+        {
+          "id": "anti-tribalism",
+          "text": "Neither the left nor the right has a monopoly on good ideas about how to organize society.",
+          "notes": [
+            "Primary anti-tribalism statement."
+          ]
+        }
+      ],
+      "implicationNotes": [
+        "\"Local communities should fund their own priorities\" implies both the permissionless-funding and local-knowledge meta statements.",
+        "\"Every dollar of public spending should be auditable\" implies the transparency-over-control statement.",
+        "\"Censorship-resistant publishing infrastructure\" implies \"Decentralization of power is generally better than centralization\".",
+        "\"Open-source software deserves sustained funding\" implies \"Open-source public infrastructure benefits everyone\".",
+        "\"Open-access publishing\" implies \"Scientific research funded by the public should be freely accessible\".",
+        "The political-tribalism hidden-majority commonality statement implies the anti-tribalism meta statement."
+      ]
+    },
+    {
+      "id": "canada-geography",
+      "title": "Canadian geography",
+      "notes": [
+        "Geographic parent statements to support geographic x topical intersections."
+      ],
+      "statements": [
+        {
+          "id": "improve-canada",
+          "text": "I care about improving Canada"
+        },
+        {
+          "id": "improve-ontario",
+          "text": "I care about improving Ontario"
+        },
+        {
+          "id": "improve-quebec",
+          "text": "I care about improving Quebec"
+        },
+        {
+          "id": "improve-british-columbia",
+          "text": "I care about improving British Columbia"
+        },
+        {
+          "id": "improve-alberta",
+          "text": "I care about improving Alberta"
+        },
+        {
+          "id": "improve-nova-scotia",
+          "text": "I care about improving Nova Scotia"
+        }
+      ],
+      "implicationNotes": [
+        "\"I care about improving Ontario\" implies \"I care about improving Canada\"."
+      ]
+    },
+    {
+      "id": "united-states-geography",
+      "title": "United States geography",
+      "statements": [
+        {
+          "id": "improve-united-states",
+          "text": "I care about improving the United States"
+        },
+        {
+          "id": "improve-california",
+          "text": "I care about improving California"
+        },
+        {
+          "id": "improve-texas",
+          "text": "I care about improving Texas"
+        },
+        {
+          "id": "improve-new-york",
+          "text": "I care about improving New York"
+        },
+        {
+          "id": "improve-florida",
+          "text": "I care about improving Florida"
+        }
+      ],
+      "implicationNotes": [
+        "\"I care about improving California\" implies \"I care about improving the United States\"."
+      ]
+    },
+    {
+      "id": "example-intersections",
+      "title": "Example intersections",
+      "notes": [
+        "These are examples of the geographic x topical conjunction pattern."
+      ],
+      "statements": [
+        {
+          "id": "crypto-in-ontario",
+          "text": "I'm interested in crypto in Ontario",
+          "notes": [
+            "Implies both \"I care about crypto\" and \"I care about improving Ontario\"."
+          ]
+        },
+        {
+          "id": "open-source-civic-tools-ontario",
+          "text": "I'm interested in open-source civic tools for Ontario municipalities"
+        },
+        {
+          "id": "community-resilience-ontario",
+          "text": "I'm interested in local community resilience in Ontario"
+        }
+      ],
+      "implicationNotes": [
+        "Conjunction statements like these should be modeled as ordinary statements with direct implication links to their topical and geographic parents.",
+        "Because implications are non-transitive, useful geographic rollups need direct edges rather than chains."
+      ]
+    }
+  ]
+}

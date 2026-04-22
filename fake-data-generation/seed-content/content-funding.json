@@ -1,0 +1,73 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "content-funding",
+  "title": "Content Funding Seed Content",
+  "description": "Seed statements for noninflammatory content funding and cross-partisan communication.",
+  "notes": [
+    "Keep the statements phrased as positions real people would sign rather than abstract moderation slogans.",
+    "These support the noninflammatory-content pattern and the content-funding surface."
+  ],
+  "groups": [
+    {
+      "id": "right-to-left-translation",
+      "title": "Right-to-left translation",
+      "notes": [
+        "Moderate-left, moderate-right, and commonality statements for communicating right-leaning ideas without triggering left-leaning readers."
+      ],
+      "statements": [
+        {
+          "id": "lean-left-open-to-right-perspectives",
+          "role": "moderate-left",
+          "text": "I lean left, and I'm interested in reading content that communicates right-wing perspectives as long as it doesn't piss me off."
+        },
+        {
+          "id": "lean-right-wants-charitable-right-explanations",
+          "role": "moderate-right",
+          "text": "I lean right, and I'd like to try to communicate right-wing perspectives to common-sense left-leaning people in a way that they'll actually hear."
+        },
+        {
+          "id": "right-perspectives-noninflammatory",
+          "role": "commonality",
+          "text": "I'm interested in content that communicates right-wing perspectives in a way that won't piss off left-wingers."
+        }
+      ]
+    },
+    {
+      "id": "left-to-right-translation",
+      "title": "Left-to-right translation",
+      "notes": [
+        "Mirror image of the right-to-left seed cluster."
+      ],
+      "statements": [
+        {
+          "id": "lean-right-open-to-left-perspectives",
+          "role": "moderate-right",
+          "text": "I lean right, and I'm interested in reading content that communicates left-wing perspectives as long as it doesn't piss me off."
+        },
+        {
+          "id": "lean-left-wants-charitable-left-explanations",
+          "role": "moderate-left",
+          "text": "I lean left, and I'd like to try to communicate left-wing perspectives to common-sense right-leaning people in a way that they'll actually hear."
+        },
+        {
+          "id": "left-perspectives-noninflammatory",
+          "role": "commonality",
+          "text": "I'm interested in content that communicates left-wing perspectives in a way that won't piss off right-wingers."
+        }
+      ]
+    },
+    {
+      "id": "cross-partisan-explanatory-content",
+      "title": "Cross-partisan explanatory content",
+      "notes": [
+        "General-purpose statements that can act as parents for both directional translation clusters."
+      ],
+      "statements": [
+        {
+          "id": "other-side-perspectives-without-anger",
+          "text": "I'm interested in content that explains the other side's perspectives, as long as it's written in a way that won't piss me off."
+        }
+      ]
+    }
+  ]
+}

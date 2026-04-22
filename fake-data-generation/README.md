@@ -47,6 +47,15 @@ npm run gen:users
 # Generate statements
 npm run gen:statements
 
+# Generate a universe.json-compatible file from the formal seed-content JSON
+npm run gen:seed:universe
+
+# Convert the formal seed-content JSON into real Conceptspace statement documents
+npm run gen:seed:statements
+
+# Upload those statement documents to IPFS (requires IPFS_API or SHOULD_USE_MOCK_IPFS=true)
+npm run gen:seed:upload
+
 # Generate attesters
 npm run gen:attesters
 ```
@@ -67,6 +76,20 @@ Generated files are split into two directories to make their lifecycle explicit:
 - `output/metrics.json` — Gas usage statistics and performance metrics
 
 `universe.json` at the root is the hand-authored source configuration that drives generation.
+
+## Formal Seed Content
+
+The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
+
+- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`)
+- collection-level and group-level notes so the rationale from the specs is not lost
+- per-statement IDs and optional roles (for example `commonality`, `normal-left`, `pole-right`)
+
+Two scripts sit on top of that source:
+
+- `npm run gen:seed:universe` writes `output/seed-universe.json`, which matches the `universe.json` shape expected by the fake-data generators
+- `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
+- `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
 
 ## Configuration
 

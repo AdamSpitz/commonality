@@ -1,0 +1,662 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "hidden-majority",
+  "title": "Hidden Majority Seed Content",
+  "description": "Showcase issues meant to demonstrate hidden consensus, with each issue recording the salient statements and expected implication notes.",
+  "notes": [
+    "Do not turn these into bloodless centrist statements nobody would sign.",
+    "The implication attester is expected to discover how ordinary-left and ordinary-right statements converge on the commonality statement."
+  ],
+  "groups": [
+    {
+      "id": "abortion",
+      "title": "Abortion",
+      "notes": [
+        "Compromise in the middle example."
+      ],
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "Abortion should be available on demand at any stage of pregnancy."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "Abortion should be illegal from conception, no exceptions."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "Abortion should be available at least through the first trimester. After that it gets complicated and I'm open to restrictions."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "I'm uncomfortable with abortion, but I understand early-term situations are different. Banning it completely isn't realistic and isn't what I'd want for my own family in a crisis."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Early-term abortion should be available. Late-term abortion should be restricted except in serious medical situations. I'd rather have a reasonable policy both sides can live with than fight forever over an absolute position neither side can win."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about public health\"."
+      ]
+    },
+    {
+      "id": "immigration",
+      "title": "Immigration",
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "No human being is illegal. Borders are violence."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "Deport them all. Build the wall. Zero tolerance."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "I'm fine with enforcing immigration laws, especially against people who've committed other crimes. But ripping apart families who've been here for decades and are otherwise law-abiding seems cruel and pointless."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "Illegal immigration is a real problem and we need to enforce the law. But obviously the violent criminals are the priority, and I understand that mass deportation of millions of peaceful people isn't practical or necessarily desirable."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Deport illegal immigrants who are also criminals. For peaceful long-term residents, find a practical solution that doesn't pretend the law doesn't exist but also doesn't destroy families for no good reason. And fix the legal immigration system so fewer people feel the need to come illegally."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality."
+      ]
+    },
+    {
+      "id": "gun-policy",
+      "title": "Gun policy",
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "Ban all guns."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "Any regulation is a slippery slope to tyranny. Shall not be infringed, period."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "I don't want to ban guns. I just want basic stuff — background checks, maybe waiting periods. I'm fine with responsible people owning firearms."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "I'm a gun owner and I support the Second Amendment, but I don't think convicted violent felons should be able to buy guns at a gun show with no background check. That's just common sense."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Law-abiding people should be able to own guns. Universal background checks are reasonable. The debate about which specific weapons to regulate is real, but the idea that 'the other side' wants to either ban all guns or hand them to criminals is a fantasy."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality."
+      ]
+    },
+    {
+      "id": "drug-policy",
+      "title": "Drug policy",
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "Legalize everything. Drug laws are just a tool of racial oppression."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "Lock up the drug users. Zero tolerance."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "Marijuana should be legal. For harder drugs, I'd rather see treatment than prison, but I don't think heroin should be sold at the corner store."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "I think drug use is destructive and I don't love the idea of legalizing it all. But I can see that filling prisons with nonviolent drug offenders isn't working, and I'm open to treatment-focused approaches if they actually reduce drug use."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Marijuana should probably be legal and regulated like alcohol. For hard drugs, treatment is usually better than prison for users, but dealers and traffickers should face serious consequences. The goal is fewer people ruining their lives with drugs, and we should do what actually works toward that goal."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about public health\"."
+      ]
+    },
+    {
+      "id": "police-accountability",
+      "title": "Police accountability",
+      "notes": [
+        "Flagship no-major-controversy-among-normal-people example."
+      ],
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "Defund the police. ACAB."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "The police can do no wrong. Blue lives matter. Any criticism of police is anti-American."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "Obviously don't defund the police. But cops who abuse their power should be held accountable, just like anyone else."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "I support the police and want them to be able to do their job. But bad cops should be punished — they make all cops look bad."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "We need police. Police who abuse their power should be held accountable. These are not contradictory statements, and anyone who tells you they are is trying to recruit you into an extreme position."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about government accountability and transparency\"."
+      ]
+    },
+    {
+      "id": "free-speech",
+      "title": "Free speech",
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "Speech that makes marginalized people feel unsafe is violence and should be banned."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "I should be able to say literally anything with zero social consequences, and if you criticize me that's censorship."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "I believe in free speech. I also think some speech is harmful and people are allowed to push back against it. But I don't think the government should be in the business of deciding which ideas are acceptable."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "I believe in free speech. I think people are too quick to call things hate speech, but I also know that some speech is genuinely threatening and I'm not defending that."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "The government shouldn't police ideas. Private citizens are allowed to criticize each other's speech. There's a real conversation to be had about where powerful platforms fit in, but the basic principle — protect speech, especially unpopular speech, from government suppression — is something almost everyone actually agrees on."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about free speech and open information\"."
+      ]
+    },
+    {
+      "id": "money-in-politics",
+      "title": "Political corruption / money in politics",
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "Capitalism itself is the problem. Burn it down."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "Campaign donations are free speech. Unlimited money in politics is fine."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "I'm not anti-capitalist, but politicians obviously shouldn't be bought by corporations. We need campaign finance reform."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "I'm pro-business, but the revolving door between Congress and lobbying firms is corrupt, and I don't like that politicians vote based on who funds them rather than what their constituents want."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Politicians should represent their constituents, not their donors. Most people across the political spectrum are disgusted by how much influence money has on politics. This isn't a left-right issue."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about government accountability and transparency\"."
+      ]
+    },
+    {
+      "id": "congressional-term-limits",
+      "title": "Congressional term limits",
+      "notes": [
+        "Here the conflict is more incumbents versus everyone else than left versus right."
+      ],
+      "statements": [
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "Career politicians who've been in Congress for 40 years are out of touch, regardless of party."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "Career politicians who've been in Congress for 40 years are out of touch, regardless of party."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Members of Congress should have term limits. The fact that this hasn't happened isn't because the public disagrees — it's because the people who'd have to vote for it are the ones who benefit from the status quo."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about government accountability and transparency\"."
+      ]
+    },
+    {
+      "id": "pharmaceutical-pricing",
+      "title": "Pharmaceutical pricing",
+      "statements": [
+        {
+          "id": "pole-left",
+          "role": "pole-left",
+          "text": "Nationalize the pharmaceutical industry."
+        },
+        {
+          "id": "pole-right",
+          "role": "pole-right",
+          "text": "The free market will sort it out, no regulation needed."
+        },
+        {
+          "id": "normal-left",
+          "role": "normal-left",
+          "text": "I don't want to destroy the pharmaceutical industry. I just think it's insane that Americans pay 10x what Canadians pay for the same drug."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right",
+          "text": "I believe in free markets, but the pharmaceutical market isn't free — it's a maze of patents, regulations, and middlemen that drives up prices. Something's broken."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Prescription drugs cost way too much in America, and the system that produces those prices is broken in ways that aren't really about left vs. right ideology. Let's fix the specific broken parts."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about public health\"."
+      ]
+    },
+    {
+      "id": "transgender-issues",
+      "title": "Transgender issues",
+      "notes": [
+        "Same values, different beliefs example."
+      ],
+      "statements": [
+        {
+          "id": "normal-left",
+          "role": "normal-left-conditional",
+          "text": "If a person is genuinely experiencing gender dysphoria — a real medical condition — of course they should have access to appropriate medical care, and of course we should treat them with dignity."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right-conditional",
+          "text": "If someone has a genuine medical condition, I have compassion for that. But if kids are being socially pressured into a transgender identity they wouldn't have arrived at on their own, that's a serious problem."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "If gender dysphoria is a real medical condition, people who have it deserve compassionate care. If some people are being misled into thinking they have it when they don't, that's harmful too. These aren't contradictory concerns — they're both valid, and which one matters more in a given case depends on facts, not ideology."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality."
+      ]
+    },
+    {
+      "id": "criminal-justice-rehabilitation-vs-punishment",
+      "title": "Criminal justice: rehabilitation vs. punishment",
+      "statements": [
+        {
+          "id": "normal-left",
+          "role": "normal-left-conditional",
+          "text": "If rehabilitation programs actually reduce recidivism, we should invest heavily in them. I'm not naive — I know some people are genuinely dangerous — but warehousing nonviolent offenders in brutal prisons doesn't make anyone safer."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right-conditional",
+          "text": "I'm open to rehabilitation if it works. Show me the data. But don't keep releasing repeat offenders on the hope that this time they'll change, because the victims of their next crime pay the price for that optimism."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "We should do what actually reduces crime. If rehabilitation works for a given category of offender, do that. If it doesn't, don't. This is an empirical question, not an ideological one, and we should be measuring outcomes rather than arguing about philosophy."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality."
+      ]
+    },
+    {
+      "id": "climate-policy",
+      "title": "Climate policy",
+      "statements": [
+        {
+          "id": "normal-left",
+          "role": "normal-left-conditional",
+          "text": "If climate change is as serious as the scientific consensus says, we need significant policy changes. I'm willing to accept economic costs for that."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right-conditional",
+          "text": "If the science is solid and the policy proposals would actually work, I'll take it seriously. But I'm skeptical of policies that seem more about expanding government power than actually fixing the environment."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "If climate change is a serious threat, we should address it with policies that actually work and don't unnecessarily destroy people's livelihoods. If the threat is overstated, we shouldn't wreck the economy over it. Either way, clean air and water are good, energy independence is good, and not being wasteful is good. Let's start with what we agree on."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality.",
+        "Commonality implies \"I care about environmental stewardship\"."
+      ]
+    },
+    {
+      "id": "racial-disparities-in-justice-system",
+      "title": "Racial disparities in the justice system",
+      "statements": [
+        {
+          "id": "normal-left",
+          "role": "normal-left-conditional",
+          "text": "If black Americans really do face systemic bias in the justice system — which I believe they do — that's a serious injustice worth protesting."
+        },
+        {
+          "id": "normal-right",
+          "role": "normal-right-conditional",
+          "text": "If there's genuine racial bias in the system, that's wrong and should be fixed. But I need to see evidence that it's actually bias and not just a reflection of different crime rates."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "If racial bias exists in the justice system, it should be identified and fixed. If disparities are driven by other factors, those factors should be addressed. Either way, the justice system should treat individuals fairly regardless of race. The disagreement is about facts, not values."
+        }
+      ],
+      "implicationNotes": [
+        "Normal left implies commonality.",
+        "Normal right implies commonality."
+      ]
+    },
+    {
+      "id": "culture-vs-race",
+      "title": "Culture vs. race",
+      "notes": [
+        "Misunderstanding-of-the-other-side flagship example."
+      ],
+      "statements": [
+        {
+          "id": "left-common-but-clueless",
+          "role": "left-common-but-clueless",
+          "text": "I'm against racism."
+        },
+        {
+          "id": "left-clued-in",
+          "role": "left-clued-in",
+          "text": "I'm against racism, and I also value liberal Western culture — democracy, individual rights, rule of law, equality before the law. I notice that many cultures around the world don't share these values, and I think it's okay to say that without being called a bigot."
+        },
+        {
+          "id": "right-common",
+          "role": "right-common",
+          "text": "I value Western culture. I'm not a racist — I don't care what color you are, I care whether you share the values that make this society work. Mass immigration from cultures that don't share those values threatens the things I love about this country."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Western liberal values — democracy, individual rights, rule of law, equality — are worth defending. That's a statement about culture, not race. Most reasonable people on both left and right actually agree with this; the left just doesn't realize the right's position is usually about culture, and the right doesn't realize most of the left would agree if it were framed this way."
+        }
+      ],
+      "implicationNotes": [
+        "Left clued-in implies commonality.",
+        "Right common implies commonality.",
+        "The noninflammatory content system is important for getting the clued-in framing in front of left-leaning readers who have not encountered it."
+      ]
+    },
+    {
+      "id": "pro-business-vs-pro-market",
+      "title": "\"Pro-business\" vs. \"pro-market\"",
+      "statements": [
+        {
+          "id": "left-clueless",
+          "role": "left-clueless",
+          "text": "The right just wants to help rich corporations get richer."
+        },
+        {
+          "id": "left-clued-in",
+          "role": "left-clued-in",
+          "text": "Actually, a lot of the right hates crony capitalism as much as I do. They're not pro-big-business, they're pro-free-market, and they think big business is gaming the system just like I do."
+        },
+        {
+          "id": "right-common",
+          "role": "right-common",
+          "text": "I'm not defending big corporations. I'm defending the principle that the government shouldn't be picking winners and losers. When it does, the winners are always the companies with the best lobbyists, not the best products."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Most people, left and right, dislike crony capitalism — the unholy alliance between big business and big government. The left focuses on the corporate side ('corporations are corrupting government') and the right focuses on the government side ('government is distorting markets'). But they're describing the same problem from different angles."
+        }
+      ],
+      "implicationNotes": [
+        "Left clued-in implies commonality.",
+        "Right common implies commonality."
+      ]
+    },
+    {
+      "id": "what-small-government-means",
+      "title": "What \"small government\" means",
+      "statements": [
+        {
+          "id": "left-clueless",
+          "role": "left-clueless",
+          "text": "The right wants to eliminate the safety net and let poor people starve."
+        },
+        {
+          "id": "left-clued-in",
+          "role": "left-clued-in",
+          "text": "Most conservatives aren't against helping people. They're against inefficient bureaucracies that waste money, create dependency, and don't actually solve problems. I disagree about how much to cut, but the principle isn't evil."
+        },
+        {
+          "id": "right-common",
+          "role": "right-common",
+          "text": "I don't want people to starve. I want government programs to actually work, and I want people to have opportunities to support themselves. The current system traps people in poverty and wastes enormous amounts of money. I'd rather spend less money more effectively than more money badly."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Government programs should actually help people become self-sufficient, not just maintain them in dependency while enriching a bureaucracy. If a program works, fund it. If it doesn't, fix it or replace it. The argument about 'big vs. small government' is mostly a proxy for this more practical question."
+        }
+      ],
+      "implicationNotes": [
+        "Left clued-in implies commonality.",
+        "Right common implies commonality."
+      ]
+    },
+    {
+      "id": "breaking-up-big-tech",
+      "title": "Breaking up big tech",
+      "notes": [
+        "Different problems, same solution example."
+      ],
+      "statements": [
+        {
+          "id": "left-motivation",
+          "role": "left-motivation",
+          "text": "Big tech monopolies exploit users' data, crush competition, and have too much power over public discourse."
+        },
+        {
+          "id": "right-motivation",
+          "role": "right-motivation",
+          "text": "Big tech platforms censor conservative voices, collude with government, and are unaccountable to the public."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Large tech platforms have too much unaccountable power, and whether your main concern is consumer exploitation or political censorship, the solution involves either breaking them up, regulating them as utilities, or both."
+        }
+      ],
+      "implicationNotes": [
+        "Left motivation implies commonality.",
+        "Right motivation implies commonality.",
+        "Commonality implies \"I care about digital rights and internet freedom\"."
+      ]
+    },
+    {
+      "id": "corporate-subsidies",
+      "title": "Corporate subsidies",
+      "statements": [
+        {
+          "id": "left-motivation",
+          "role": "left-motivation",
+          "text": "Corporate subsidies are crony capitalism — taxpayer money flowing to wealthy companies that don't need it."
+        },
+        {
+          "id": "right-motivation",
+          "role": "right-motivation",
+          "text": "Corporate subsidies distort the free market and let politically connected companies outcompete better ones."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "The government shouldn't be subsidizing profitable corporations with taxpayer money, regardless of whether your objection is that it's unfair to taxpayers or that it's unfair to the market."
+        }
+      ],
+      "implicationNotes": [
+        "Left motivation implies commonality.",
+        "Right motivation implies commonality."
+      ]
+    },
+    {
+      "id": "foreign-interventions",
+      "title": "Foreign interventions",
+      "statements": [
+        {
+          "id": "left-motivation",
+          "role": "left-motivation",
+          "text": "Our military interventions destabilize other countries, kill civilians, and are driven by corporate interests rather than humanitarian ones."
+        },
+        {
+          "id": "right-motivation",
+          "role": "right-motivation",
+          "text": "We're spending blood and treasure on other countries' problems while our own infrastructure crumbles. America first."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "America should stop getting involved in foreign wars that don't serve a clear national interest. Whether your concern is the human cost abroad or the financial cost at home, the conclusion is the same: be much more reluctant to intervene."
+        }
+      ],
+      "implicationNotes": [
+        "Left motivation implies commonality.",
+        "Right motivation implies commonality."
+      ]
+    },
+    {
+      "id": "mass-surveillance",
+      "title": "Mass surveillance",
+      "statements": [
+        {
+          "id": "left-motivation",
+          "role": "left-motivation",
+          "text": "Mass surveillance disproportionately targets minority communities and activists. It's a civil rights issue."
+        },
+        {
+          "id": "right-motivation",
+          "role": "right-motivation",
+          "text": "The government spying on its own citizens is a fundamental violation of constitutional rights. The Fourth Amendment exists for a reason."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "The government shouldn't be conducting mass surveillance on its own citizens. Left and right arrive at this from different concerns, but the policy conclusion is the same: strong privacy protections and real oversight of intelligence agencies."
+        }
+      ],
+      "implicationNotes": [
+        "Left motivation implies commonality.",
+        "Right motivation implies commonality.",
+        "Commonality implies \"I care about digital rights and internet freedom\"."
+      ]
+    },
+    {
+      "id": "local-food-systems",
+      "title": "Local food systems",
+      "statements": [
+        {
+          "id": "left-motivation",
+          "role": "left-motivation",
+          "text": "Industrial agriculture is environmentally destructive, exploits workers, and produces unhealthy food. Local food systems are more sustainable and just."
+        },
+        {
+          "id": "right-motivation",
+          "role": "right-motivation",
+          "text": "I don't want to depend on long supply chains controlled by a few giant corporations. Local food means self-reliance, supporting your neighbors, and knowing where your food comes from."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "A stronger local food system — farmers' markets, local farms, shorter supply chains — is something both left and right want, even though the left frames it as sustainability and the right frames it as self-reliance."
+        }
+      ],
+      "implicationNotes": [
+        "Left motivation implies commonality.",
+        "Right motivation implies commonality.",
+        "Commonality implies \"I care about local community resilience\"."
+      ]
+    }
+  ]
+}

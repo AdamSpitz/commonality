@@ -1,0 +1,474 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "fundable-projects",
+  "title": "Fundable Projects Explorer Seed Content",
+  "description": "Seed statements for the fundable-project explorer, grouped by cause area and accompanied by category-level notes about why each cluster exists.",
+  "notes": [
+    "These are entry points for the fundable-project explorer rather than mechanically generated ideology axes.",
+    "Each statement is phrased as something a real person might sign."
+  ],
+  "groups": [
+    {
+      "id": "finding-common-ground",
+      "title": "Finding common ground / depolarization",
+      "notes": [
+        "High-priority cluster because it most directly matches Commonality's thesis."
+      ],
+      "statements": [
+        {
+          "id": "common-ground-across-divides",
+          "text": "I am interested in furthering the cause of helping people find common ground across political divides."
+        },
+        {
+          "id": "charitable-cross-partisan-content",
+          "text": "I am interested in furthering the cause of content that explains one side's views to the other side charitably and accurately."
+        },
+        {
+          "id": "identify-political-agreement",
+          "text": "I am interested in furthering the cause of identifying where political opponents actually agree."
+        },
+        {
+          "id": "reduce-tribal-polarization",
+          "text": "I am interested in furthering the cause of reducing tribal polarization in public discourse."
+        },
+        {
+          "id": "inform-not-inflame",
+          "text": "I am interested in furthering the cause of journalism that informs rather than inflames."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply the anti-tribalism meta statement.",
+        "All of these also connect to the noninflammatory content-funding seed statements."
+      ]
+    },
+    {
+      "id": "government-accountability",
+      "title": "Government accountability and political reform",
+      "notes": [
+        "Cross-cutting cause area with authentic left-right appeal."
+      ],
+      "statements": [
+        {
+          "id": "expose-corruption-and-waste",
+          "text": "I am interested in furthering the cause of exposing government corruption and waste."
+        },
+        {
+          "id": "transparent-and-auditable-spending",
+          "text": "I am interested in furthering the cause of making government spending transparent and auditable."
+        },
+        {
+          "id": "congressional-term-limits",
+          "text": "I am interested in furthering the cause of congressional term limits."
+        },
+        {
+          "id": "money-out-of-politics",
+          "text": "I am interested in furthering the cause of getting money out of politics."
+        },
+        {
+          "id": "end-revolving-door",
+          "text": "I am interested in furthering the cause of ending the revolving door between government and lobbying."
+        },
+        {
+          "id": "better-voting-systems",
+          "text": "I am interested in furthering the cause of better voting systems and electoral integrity."
+        },
+        {
+          "id": "break-regulatory-capture",
+          "text": "I am interested in furthering the cause of breaking up regulatory capture by industry."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply \"I care about government accountability and transparency\".",
+        "Term limits, money in politics, and revolving door should connect to hidden-majority commonality statements."
+      ]
+    },
+    {
+      "id": "civil-liberties",
+      "title": "Civil liberties / free speech / digital rights",
+      "statements": [
+        {
+          "id": "free-speech-unpopular-speech",
+          "text": "I am interested in furthering the cause of free speech, especially unpopular speech."
+        },
+        {
+          "id": "censorship-resistant-publishing",
+          "text": "I am interested in furthering the cause of censorship-resistant publishing infrastructure."
+        },
+        {
+          "id": "protect-from-surveillance",
+          "text": "I am interested in furthering the cause of protecting people from government surveillance."
+        },
+        {
+          "id": "privacy-tools-for-ordinary-people",
+          "text": "I am interested in furthering the cause of online privacy tools that ordinary people can use."
+        },
+        {
+          "id": "decentralized-social-media-alternatives",
+          "text": "I am interested in furthering the cause of decentralized alternatives to dominant social media platforms."
+        },
+        {
+          "id": "legal-defense-for-free-speech",
+          "text": "I am interested in furthering the cause of legal defense for free speech cases."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply \"I care about free speech and open information\".",
+        "Privacy, surveillance, and decentralized-platform statements should also imply \"I care about digital rights and internet freedom\".",
+        "Censorship-resistant publishing should imply the decentralization meta statement."
+      ]
+    },
+    {
+      "id": "open-source-and-public-infrastructure",
+      "title": "Open-source software and digital public infrastructure",
+      "statements": [
+        {
+          "id": "open-source-public-infrastructure",
+          "text": "I am interested in furthering the cause of open-source software that serves as public infrastructure."
+        },
+        {
+          "id": "fund-critical-maintainers",
+          "text": "I am interested in furthering the cause of sustainable funding for maintainers of critical open-source libraries."
+        },
+        {
+          "id": "decentralized-internet-infrastructure",
+          "text": "I am interested in furthering the cause of decentralized internet infrastructure (IPFS, peer-to-peer protocols, etc.)."
+        },
+        {
+          "id": "open-standards-avoid-lock-in",
+          "text": "I am interested in furthering the cause of open standards that prevent platform lock-in."
+        },
+        {
+          "id": "open-source-security-tools",
+          "text": "I am interested in furthering the cause of open-source security tools."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply \"Open-source software deserves sustained funding\" and \"Open-source public infrastructure benefits everyone\".",
+        "Decentralized internet infrastructure should also imply \"I care about digital rights and internet freedom\"."
+      ]
+    },
+    {
+      "id": "scientific-research",
+      "title": "Scientific research",
+      "statements": [
+        {
+          "id": "open-access-scientific-publishing",
+          "text": "I am interested in furthering the cause of open-access scientific publishing."
+        },
+        {
+          "id": "research-neglected-diseases",
+          "text": "I am interested in furthering the cause of research into diseases that pharmaceutical companies won't prioritize."
+        },
+        {
+          "id": "independent-replication-studies",
+          "text": "I am interested in furthering the cause of independent replication studies."
+        },
+        {
+          "id": "conflict-free-scientific-research",
+          "text": "I am interested in furthering the cause of scientific research free from financial conflicts of interest."
+        },
+        {
+          "id": "longevity-and-healthspan",
+          "text": "I am interested in furthering the cause of longevity and healthspan research."
+        },
+        {
+          "id": "chronic-disease-roots",
+          "text": "I am interested in furthering the cause of research into the roots of the chronic disease epidemic."
+        }
+      ],
+      "implicationNotes": [
+        "Open-access scientific publishing should imply \"Scientific research funded by the public should be freely accessible\".",
+        "The public-health-oriented research statements should connect to \"I care about public health\"."
+      ]
+    },
+    {
+      "id": "public-health",
+      "title": "Public health",
+      "statements": [
+        {
+          "id": "mental-health-treatment-and-research",
+          "text": "I am interested in furthering the cause of mental health treatment and research."
+        },
+        {
+          "id": "evidence-based-addiction-treatment",
+          "text": "I am interested in furthering the cause of evidence-based drug addiction treatment."
+        },
+        {
+          "id": "nutrition-and-preventive-medicine",
+          "text": "I am interested in furthering the cause of independent research into nutrition and preventive medicine."
+        },
+        {
+          "id": "pandemic-preparedness-outside-government",
+          "text": "I am interested in furthering the cause of pandemic preparedness infrastructure outside of government control."
+        },
+        {
+          "id": "affordable-healthcare-options",
+          "text": "I am interested in furthering the cause of affordable healthcare options."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply \"I care about public health\".",
+        "Pandemic preparedness should also imply \"I care about local community resilience\"."
+      ]
+    },
+    {
+      "id": "education",
+      "title": "Education",
+      "statements": [
+        {
+          "id": "school-alternatives",
+          "text": "I am interested in furthering the cause of alternatives to the traditional school system."
+        },
+        {
+          "id": "homeschooling-resources",
+          "text": "I am interested in furthering the cause of homeschooling resources and curriculum."
+        },
+        {
+          "id": "vocational-training",
+          "text": "I am interested in furthering the cause of vocational training and trades education."
+        },
+        {
+          "id": "educational-support-for-disadvantaged-kids",
+          "text": "I am interested in furthering the cause of tutoring and educational support for disadvantaged kids."
+        },
+        {
+          "id": "learning-outcomes-research",
+          "text": "I am interested in furthering the cause of research into what actually improves learning outcomes."
+        },
+        {
+          "id": "classic-literature-and-history",
+          "text": "I am interested in furthering the cause of keeping classic literature and history in the curriculum."
+        }
+      ]
+    },
+    {
+      "id": "local-community",
+      "title": "Local community",
+      "notes": [
+        "Intentionally framed to resonate with both left-coded local resilience language and right-coded self-reliance language."
+      ],
+      "statements": [
+        {
+          "id": "local-food-systems",
+          "text": "I am interested in furthering the cause of local food systems: farmers' markets, community-supported agriculture, local farms."
+        },
+        {
+          "id": "local-journalism",
+          "text": "I am interested in furthering the cause of local journalism and community news."
+        },
+        {
+          "id": "mutual-aid-networks",
+          "text": "I am interested in furthering the cause of mutual aid networks in local communities."
+        },
+        {
+          "id": "community-owned-infrastructure",
+          "text": "I am interested in furthering the cause of community-owned infrastructure."
+        },
+        {
+          "id": "preserve-local-culture-and-history",
+          "text": "I am interested in furthering the cause of preserving local culture and history."
+        },
+        {
+          "id": "community-resilience-and-self-reliance",
+          "text": "I am interested in furthering the cause of community resilience and self-reliance."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply \"I care about local community resilience\".",
+        "Local food systems should connect to the hidden-majority local-food commonality statement."
+      ]
+    },
+    {
+      "id": "environment-and-sustainability",
+      "title": "Environment and sustainability",
+      "statements": [
+        {
+          "id": "clean-energy-research",
+          "text": "I am interested in furthering the cause of research into clean energy technologies."
+        },
+        {
+          "id": "independent-environmental-monitoring",
+          "text": "I am interested in furthering the cause of independent environmental monitoring."
+        },
+        {
+          "id": "conservation-of-local-natural-areas",
+          "text": "I am interested in furthering the cause of conservation of local natural areas."
+        },
+        {
+          "id": "sustainable-agriculture-research",
+          "text": "I am interested in furthering the cause of sustainable agriculture research."
+        },
+        {
+          "id": "reduce-industrial-food-dependence",
+          "text": "I am interested in furthering the cause of reducing dependence on industrial food supply chains."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply \"I care about environmental stewardship\".",
+        "Clean-energy and sustainable-agriculture statements should also imply \"I care about local community resilience\"."
+      ]
+    },
+    {
+      "id": "faith-civil-society-and-charitable-coordination",
+      "title": "Faith, civil society, and charitable coordination",
+      "statements": [
+        {
+          "id": "cross-church-coordination",
+          "text": "I am interested in furthering the cause of cross-church coordination on shared community projects."
+        },
+        {
+          "id": "religious-freedom",
+          "text": "I am interested in furthering the cause of religious freedom."
+        },
+        {
+          "id": "faith-based-charitable-work",
+          "text": "I am interested in furthering the cause of faith-based charitable work."
+        },
+        {
+          "id": "civil-society-alternatives",
+          "text": "I am interested in furthering the cause of civil society organizations as alternatives to government programs."
+        },
+        {
+          "id": "community-coordination-without-bureaucracy",
+          "text": "I am interested in furthering the cause of tools that help communities coordinate without bureaucracy."
+        }
+      ],
+      "implicationNotes": [
+        "Civil-society alternatives should imply \"Local problems are best solved by local people with local knowledge\"."
+      ]
+    },
+    {
+      "id": "crypto-and-defi",
+      "title": "Crypto and decentralized finance",
+      "notes": [
+        "Likely early-user audience for Commonality and closely related to the system's thesis."
+      ],
+      "statements": [
+        {
+          "id": "crypto-education-and-adoption",
+          "text": "I am interested in furthering the cause of crypto education and adoption."
+        },
+        {
+          "id": "defi-for-ordinary-people",
+          "text": "I am interested in furthering the cause of decentralized finance tools accessible to ordinary people."
+        },
+        {
+          "id": "privacy-preserving-finance",
+          "text": "I am interested in furthering the cause of privacy-preserving financial tools."
+        },
+        {
+          "id": "financial-self-sovereignty",
+          "text": "I am interested in furthering the cause of financial self-sovereignty."
+        },
+        {
+          "id": "crypto-economic-freedom",
+          "text": "I am interested in furthering the cause of crypto as a path to economic freedom."
+        }
+      ],
+      "implicationNotes": [
+        "Privacy-preserving finance should imply \"I care about digital rights and internet freedom\".",
+        "Financial self-sovereignty should imply the permissionless-funding meta statement."
+      ]
+    },
+    {
+      "id": "defense-security-and-resilience",
+      "title": "Defense, security, and resilience (d/acc)",
+      "statements": [
+        {
+          "id": "defensive-cybersecurity-research",
+          "text": "I am interested in furthering the cause of defensive cybersecurity research and tools."
+        },
+        {
+          "id": "hard-to-shut-down-infrastructure",
+          "text": "I am interested in furthering the cause of decentralized infrastructure that is hard to shut down."
+        },
+        {
+          "id": "biosecurity-early-warning",
+          "text": "I am interested in furthering the cause of biosecurity threat research and early warning systems."
+        },
+        {
+          "id": "supply-chain-resilience",
+          "text": "I am interested in furthering the cause of supply chain resilience."
+        },
+        {
+          "id": "individual-and-community-preparedness",
+          "text": "I am interested in furthering the cause of individual and community preparedness."
+        }
+      ],
+      "implicationNotes": [
+        "Hard-to-shut-down infrastructure should imply \"I care about digital rights and internet freedom\".",
+        "Biosecurity and preparedness statements should connect to \"I care about public health\"."
+      ]
+    },
+    {
+      "id": "left-coded-causes",
+      "title": "Left-coded causes",
+      "notes": [
+        "These balance a likely initial right-leaning user base without becoming fake centrist filler."
+      ],
+      "statements": [
+        {
+          "id": "opportunity-after-globalization",
+          "text": "I am interested in furthering the cause of economic opportunity for people left behind by globalization."
+        },
+        {
+          "id": "affordable-housing-high-cost-cities",
+          "text": "I am interested in furthering the cause of affordable housing in high-cost cities."
+        },
+        {
+          "id": "worker-organization-without-traditional-unions",
+          "text": "I am interested in furthering the cause of workers' ability to organize and negotiate without requiring traditional unions."
+        },
+        {
+          "id": "reduce-incarceration-for-nonviolent-offenses",
+          "text": "I am interested in furthering the cause of reducing incarceration for nonviolent offenses."
+        },
+        {
+          "id": "independent-police-oversight",
+          "text": "I am interested in furthering the cause of independent oversight of police departments."
+        },
+        {
+          "id": "legal-aid-for-those-who-cannot-afford-lawyer",
+          "text": "I am interested in furthering the cause of legal aid for people who can't afford a lawyer."
+        }
+      ],
+      "implicationNotes": [
+        "Independent police oversight should connect to the police-accountability hidden-majority commonality statement.",
+        "Reducing incarceration for nonviolent offenses should connect to the criminal-justice commonality statement."
+      ]
+    },
+    {
+      "id": "funding-infrastructure-itself",
+      "title": "The funding infrastructure itself",
+      "notes": [
+        "Statements about Commonality and the broader public-goods-funding problem; useful for bootstrapping the project's own community."
+      ],
+      "statements": [
+        {
+          "id": "better-infrastructure-for-public-goods",
+          "text": "I am interested in furthering the cause of building better infrastructure for funding public goods."
+        },
+        {
+          "id": "reduce-charitable-overhead",
+          "text": "I am interested in furthering the cause of reducing overhead in charitable giving."
+        },
+        {
+          "id": "donation-transparency-and-accountability",
+          "text": "I am interested in furthering the cause of transparency and accountability in how donated money is spent."
+        },
+        {
+          "id": "decentralized-philanthropy",
+          "text": "I am interested in furthering the cause of decentralized alternatives to traditional philanthropy."
+        },
+        {
+          "id": "tools-for-collective-action-without-central-org",
+          "text": "I am interested in furthering the cause of tools that let people coordinate collective action without needing a central organization."
+        }
+      ],
+      "implicationNotes": [
+        "All of these should imply \"I care about improving our ability to fund public goods\".",
+        "All of these should imply the collective-funding technology statement, the public-goods-underfunded statement, and the permissionless-funding statement."
+      ]
+    }
+  ]
+}

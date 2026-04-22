@@ -4,6 +4,12 @@ This document covers our thinking about *why* we need seed content, *what kind* 
 
 See this directory for concrete examples.
 
+The formal machine-readable source now lives in [`fake-data-generation/seed-content/`](/home/adam/Projects/commonality/fake-data-generation/seed-content/). Use the scripts documented in [`fake-data-generation/README.md`](/home/adam/Projects/commonality/fake-data-generation/README.md) to:
+
+- convert that source into the fake-data `universe.json` shape
+- convert it into real Conceptspace statement documents
+- upload those documents to IPFS
+
 ---
 
 ## Why seed content matters
@@ -56,7 +62,7 @@ When populating the system pre-launch:
 4. **Run the implication attester** on pre-generated implication link pairs (see [hidden-majority.md](./hidden-majority.md) for the specific links)
 5. The explorer AI can then use these as starting points for onboarding
 
-The fake-data system in `universe.json` uses a different set of statements optimized for testing mechanics. The seed content here is for the real system — they can be updated to use these statements for more realistic simulations.
+The fake-data system in `universe.json` uses a different set of statements optimized for testing mechanics. The formal seed-content JSON can now be converted into the same shape, so the simulations can gradually move toward these more realistic statements without hand-copying them.
 
 ---
 

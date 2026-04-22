@@ -5,6 +5,9 @@
   "scripts": {
     "gen:users": "tsx generateUsers.ts",
     "gen:statements": "tsx generateStatements.ts",
+    "gen:seed:universe": "tsx generateSeedUniverse.ts",
+    "gen:seed:statements": "tsx prepareSeedStatements.ts",
+    "gen:seed:upload": "tsx prepareSeedStatements.ts --upload",
     "gen:attesters": "tsx generateAttesters.ts",
     "gen:attestations": "tsx generateAttestations.ts",
     "gen:simulate": "tsx runSimulation.ts",
