@@ -1,5 +1,22 @@
 # TODO
 
+### Documentation completeness
+
+**Some gaps to address:**
+
+1. **UI README stale "Placeholder pages" entry** — `ui/README.md` still lists `BrowseStatementsPage` and `SettingsPage` as placeholder pages. `SettingsPage` is now 697 lines of real functionality (nudger settings, trust settings, intensity, muted topics, muted nudgers). `BrowseStatementsPage` is 187 lines. This note should be updated.
+
+2. **DEPLOYMENT.md covers only the implication-attester** — The guide mentions "AI Attester Service" as one of the deployable components but lists no deployment instructions for the newer AI services (implication-graph-nudger, bridge-creator, explorer-curator, content-finder, content-attester, platform-api-service). Since the project hasn't deployed yet this isn't urgent, but DEPLOYMENT.md will need significant expansion before launch.
+
+3. **render.yaml is incomplete** — `render.yaml` only defines the `commonality-attester` service. The 6+ newer services (bridge-creator, implication-graph-nudger, explorer-curator, content-finder, platform-api-service, etc.) are not in render.yaml.
+
+
+
+---
+
+- [ ] (Future review chunk) Check implication-graph-nudger nudger.ts for test coverage
+- [ ] (Future review chunk) Check content-finder main loop for test coverage
+
 - Finish wiring `foldVersion` to UI pages (BrowseProjectsPage, ProjectDetailPage etc.) and extend to contributions/secondary market/burns if performance warrants. See [indexer spec](specs/tech/indexer/README.md).
 
 - Try a noninflammatory-content filter slider. The attesters publish scores 0–1 so tuning the threshold should be easy. Also interesting: a feed showing only statements that *both* sides' noninflammatory attesters have approved. Spec: [noninflammatory-content](specs/tech/subsystems/content-funding/noninflammatory-content/README.md).
@@ -31,6 +48,16 @@
 Out of scope for the MVP, but worth remembering:
 - [Bridges](specs/tech/bridges.md) to tradfi.
 
+
+## Tech debt
+
+**Low.** The codebase is in good shape. Main items:
+
+1. **`foldVersion` wiring** (from TODO.md) — `useCachedProject` is wired for projects, but `BrowseProjectsPage` and `ProjectDetailPage` don't use it. The indexer spec says this is fine until fold latency becomes noticeable. Keep deferring.
+
+2. **Twitter API** — `sdk/src/utils/twitter.ts` has a TODO to switch to the real Twitter API. Not urgent.
+
+3. **ENS** — `sdk/src/utils/twitter.ts` has a TODO for ENS verification status. Matches TODO.md item about getting ENS names.
 
 ## Notes from chat with Sam
 
