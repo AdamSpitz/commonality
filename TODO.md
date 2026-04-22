@@ -2,9 +2,7 @@
 
 ## Tech debt
 
-1. **Twitter API** — `sdk/src/utils/twitter.ts` has a TODO to switch to the real Twitter API. Not urgent.
-
-2. **ENS** — `sdk/src/utils/twitter.ts` has a TODO for ENS verification status. Matches TODO.md item about getting ENS names.
+1. **ENS** — `sdk/src/utils/twitter.ts` has a TODO for ENS verification status. Matches TODO.md item about getting ENS names.
 
 ## Main list
 

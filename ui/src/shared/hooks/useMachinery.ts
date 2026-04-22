@@ -11,7 +11,6 @@ export function useMachinery(): SDKMachinery {
       apiUrl: import.meta.env.VITE_IPFS_API,
     };
     const twitterApiConfig = {
-      twitterApiDotIoApiKey: import.meta.env.VITE_X_API_KEY || '',
       platformApiBaseUrl: import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001',
     };
     // Event cache requests use relative paths (/api/...) so the Vite dev server

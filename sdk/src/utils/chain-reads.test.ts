@@ -45,7 +45,7 @@ function makeMachineryWithClient(mockOverrides: Parameters<typeof mockPublicClie
   return createSDKMachinery(
     'http://localhost:4000/graphql',
     {},
-    { twitterApiDotIoApiKey: '' },
+    {},
     {},
     client as unknown as PublicClient,
   );

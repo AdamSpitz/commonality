@@ -53,6 +53,7 @@ describe('PlatformApiService', () => {
           channelId: 'twitter:uid:12345678',
           handle: '@alice',
           displayName: 'Alice',
+          followerCount: 42,
         };
       },
     });
@@ -77,6 +78,7 @@ describe('PlatformApiService', () => {
             channelId: 'twitter:uid:12345678',
             handle: '@alice',
             displayName: 'Alice',
+            followerCount: 42,
           };
         }
 
@@ -86,6 +88,7 @@ describe('PlatformApiService', () => {
             channelId: 'twitter:uid:12345678',
             handle: '@alice_new',
             displayName: 'Alice Renamed',
+            followerCount: 84,
           };
         }
 
@@ -105,12 +108,14 @@ describe('PlatformApiService', () => {
       channelId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
+      followerCount: 42,
     });
     assert.deepStrictEqual(renamed, {
       platform: 'twitter',
       channelId: 'twitter:uid:12345678',
       handle: '@alice_new',
       displayName: 'Alice Renamed',
+      followerCount: 84,
     });
     assert.deepStrictEqual(originalAfterRename, renamed);
   });
@@ -604,6 +609,7 @@ function createTwitterClient(overrides: Partial<{
       channelId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
+      followerCount: 123,
     })),
     resolveContent: overrides.resolveContent ?? (async () => ({
       platform: 'twitter',

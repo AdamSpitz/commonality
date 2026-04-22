@@ -6,6 +6,7 @@ export interface ResolvedChannel {
   channelId: string;
   handle?: string;
   displayName?: string;
+  followerCount?: number;
 }
 
 export interface ResolvedContent {

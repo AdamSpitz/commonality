@@ -16,7 +16,6 @@ export function createIPFSConfigInNodeJSFromTheUsualEnvVars(): IPFSConfig {
 
 export function createTwitterApiConfigInNodeJSFromTheUsualEnvVars(): TwitterApiConfig {
   return {
-    twitterApiDotIoApiKey: process.env.X_API_KEY || '',
     platformApiBaseUrl: process.env.PLATFORM_API_URL || 'http://localhost:3001',
   };
 }

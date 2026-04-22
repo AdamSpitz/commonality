@@ -86,7 +86,7 @@ export type SDKMachinery = {
  *
  * @param indexerUrl - Base URL of the GraphQL indexer
  * @param ipfsConfig - IPFS gateway and pinning configuration
- * @param twitterApiConfig - Twitter API credentials (optional; defaults to empty key)
+ * @param twitterApiConfig - Platform API config for social lookups (optional)
  * @param testConfig - Test environment flags (optional)
  * @param publicClient - Viem public client for on-chain reads (optional)
  * @param eventCacheUrl - Event cache API base URL for Phase 4+ queries (optional)
@@ -105,7 +105,7 @@ export function createSDKMachinery(
   return {
     indexerUrl,
     ipfsConfig,
-    twitterApiConfig: twitterApiConfig ?? { twitterApiDotIoApiKey: '' },
+    twitterApiConfig: twitterApiConfig ?? {},
     testConfig: testConfig ?? {},
     publicClient,
     eventCacheUrl,

@@ -13,6 +13,9 @@ interface TwitterUserLookupResponse {
     id?: string;
     name?: string;
     username?: string;
+    public_metrics?: {
+      followers_count?: number;
+    };
   };
 }
 
@@ -81,7 +84,7 @@ export class TwitterClient implements TwitterClientLike {
     const normalizedHandle = this.normalizeLookupInput(input);
     const username = normalizedHandle.slice(1);
     const response = await this.fetchJson<TwitterUserLookupResponse>(
-      `/2/users/by/username/${encodeURIComponent(username)}?user.fields=id,name,username`,
+      `/2/users/by/username/${encodeURIComponent(username)}?user.fields=id,name,username,public_metrics`,
     );
 
     const user = response.data;
@@ -94,6 +97,9 @@ export class TwitterClient implements TwitterClientLike {
       channelId: buildCanonicalChannelId('twitter', user.id),
       handle: `@${user.username}`,
       displayName: user.name,
+      followerCount: typeof user.public_metrics?.followers_count === 'number'
+        ? user.public_metrics.followers_count
+        : undefined,
     };
   }
 

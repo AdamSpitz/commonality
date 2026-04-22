@@ -107,7 +107,8 @@ Response:
 {
   "channelId": "twitter:uid:12345678",
   "handle": "@alice",
-  "displayName": "Alice"
+  "displayName": "Alice",
+  "followerCount": 12345
 }
 ```
 
