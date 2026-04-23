@@ -94,6 +94,25 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:markdown` rewrites `../specs/tech/subsystems/conceptspace/seed-content/*.md` so the prose docs stay aligned with the JSON source of truth
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
 - `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
+- `npm run gen:proliferation` writes `seed-content/proliferation.json`, a large set of similar-but-distinct variants of every seed statement (see below)
+
+### Proliferated statement variants
+
+`npm run gen:proliferation` calls an LLM to generate 5 variants of every seed statement and writes them to `seed-content/proliferation.json` (same `commonality-seed-content-v1` format). The variants are intentionally spread across three similarity levels:
+
+- **`variant-close`** — different phrasing, same position; an implication arrow to the original is almost certain
+- **`variant-medium`** — same topic, somewhat different framing; an implication arrow may or may not be appropriate
+- **`variant-distant`** — related topic, meaningfully different position; an implication arrow probably does not apply
+
+The file is used to test the implication-attester and implication-finder: run the attester prompt over all seed×proliferation pairs and verify the decisions look sensible before using them as fake data.
+
+Requires `OPENROUTER_API_KEY` in `.env` (or the environment). The script is resume-safe — re-running it skips already-completed groups.
+
+```bash
+# Add to .env or export first:
+#   OPENROUTER_API_KEY=sk-or-...
+npm run gen:proliferation
+```
 
 ## Configuration
 
