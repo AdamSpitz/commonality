@@ -151,6 +151,38 @@ describe('evaluateImplicationWithLLM', () => {
     assert.ok(userPrompt.includes('I support covering dental care'), 'Prompt should include S2');
   });
 
+  it('uses a stable first user message and preserves usage metadata', async () => {
+    const captured: OpenRouterJsonRequest[] = [];
+
+    const result = await evaluateImplicationWithLLM(
+      'S1 text',
+      'S2 text',
+      'test-key',
+      'test-model',
+      async <T>(req: OpenRouterJsonRequest): Promise<T> => {
+        captured.push(req);
+        return {
+          result: { implies: false, confidence: 'low', reasoning: 'test' },
+          usage: {
+            prompt_tokens: 100,
+            completion_tokens: 20,
+            total_tokens: 120,
+            prompt_tokens_details: { cached_tokens: 80, cache_write_tokens: 10 },
+          },
+        } as T;
+      }
+    );
+
+    assert.strictEqual(captured.length, 1);
+    assert.ok(captured[0]!.staticUserPrompt?.includes('respond only with the required JSON object'));
+    assert.deepStrictEqual(result.usage, {
+      prompt_tokens: 100,
+      completion_tokens: 20,
+      total_tokens: 120,
+      prompt_tokens_details: { cached_tokens: 80, cache_write_tokens: 10 },
+    });
+  });
+
   it('includes geographic and conjunction pattern guidance in the system prompt', async () => {
     const captured: OpenRouterJsonRequest[] = [];
 

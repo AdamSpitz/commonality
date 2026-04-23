@@ -1,0 +1,8 @@
+{
+  "generatedAt": "2026-04-23T20:32:42.469Z",
+  "scope": "original-variants",
+  "statementCount": 1122,
+  "pairCount": 1870,
+  "model": "deepseek/deepseek-v3.2",
+  "promptFingerprint": "1490786b649ecde14548dea6e8a10828c9073f9f6498306328ecb6b9b367dd7b"
+}

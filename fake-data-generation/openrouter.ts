@@ -5,8 +5,8 @@
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Default model - using haiku for cost-effectiveness in testing
-const DEFAULT_MODEL = 'anthropic/claude-3.5-haiku';
+// Default model - using deepseek for cost-effectiveness in testing
+const DEFAULT_MODEL = 'deepseek/deepseek-v3.2';
 
 interface StatementLike {
   content?: { text?: string } | string;

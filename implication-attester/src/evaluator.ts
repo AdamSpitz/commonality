@@ -1,12 +1,22 @@
-import { OpenRouterInvalidJsonError, requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
+import {
+  OpenRouterInvalidJsonError,
+  requestJsonCompletionWithUsage,
+  type OpenRouterJsonRequest,
+  type OpenRouterJsonCompletion,
+  type OpenRouterUsage,
+} from '@commonality/attester-core';
 
-export type RequestJsonCompletionFn = <T>(request: OpenRouterJsonRequest) => Promise<T>;
+export type RequestJsonCompletionFn = <T>(request: OpenRouterJsonRequest) => Promise<T | OpenRouterJsonCompletion<T>>;
 
 export interface LlmEvaluationResult {
   implies: boolean;
   confidence: 'high' | 'medium' | 'low';
   reasoning: string;
+  usage: OpenRouterUsage | null;
 }
+
+const IMPLICATION_EVALUATOR_STATIC_USER_PROMPT =
+  'You will receive S1 and S2 in the next user message. Apply the system rules exactly and respond only with the required JSON object.';
 
 export const IMPLICATION_EVALUATOR_SYSTEM_PROMPT = `You are the Implication Attester for Commonality, a social coordination platform where people sign statements to express their beliefs, values, and interests. Your job is to evaluate whether one statement (S1) logically implies another (S2), and your decisions are published as permanent, public, on-chain attestations. When S1 → S2 is attested, everyone who signed S1 is counted as an indirect supporter of S2 throughout the system. Users rely on you to not put claims in their mouths that they did not endorse.
 
@@ -117,17 +127,22 @@ export async function evaluateImplicationWithLLM(
   statement2Content: string,
   apiKey: string,
   model: string = 'anthropic/claude-3.5-haiku',
-  requestJsonCompletionFn: RequestJsonCompletionFn = requestJsonCompletion
+  requestJsonCompletionFn: RequestJsonCompletionFn = requestJsonCompletionWithUsage
 ): Promise<LlmEvaluationResult> {
   let result: Record<string, unknown>;
+  let usage: OpenRouterUsage | null = null;
   try {
-    result = await requestJsonCompletionFn<Record<string, unknown>>({
+    const completion = await requestJsonCompletionFn<Record<string, unknown>>({
       apiKey,
       model,
       systemPrompt: IMPLICATION_EVALUATOR_SYSTEM_PROMPT,
+      staticUserPrompt: IMPLICATION_EVALUATOR_STATIC_USER_PROMPT,
       userPrompt: buildUserPrompt(statement1Content, statement2Content),
       title: 'Commonality Implication Attester',
     });
+    const normalized = normalizeCompletion<Record<string, unknown>>(completion);
+    result = normalized.result;
+    usage = normalized.usage;
   } catch (error) {
     if (error instanceof OpenRouterInvalidJsonError) {
       result = extractResultFromText(error.content);
@@ -143,6 +158,7 @@ export async function evaluateImplicationWithLLM(
       (typeof result.reasoning === 'string' && result.reasoning) ||
       (typeof result['explanation'] === 'string' && result['explanation']) ||
       'No reasoning provided',
+    usage,
   };
 }
 
@@ -177,6 +193,28 @@ function normalizeConfidence(confidence: unknown): 'high' | 'medium' | 'low' {
     return 'medium';
   }
   return 'low';
+}
+
+function normalizeCompletion<T>(
+  completion: T | OpenRouterJsonCompletion<T>
+): { result: T; usage: OpenRouterUsage | null } {
+  if (isOpenRouterJsonCompletion(completion)) {
+    return {
+      result: completion.result,
+      usage: completion.usage,
+    };
+  }
+
+  return {
+    result: completion,
+    usage: null,
+  };
+}
+
+function isOpenRouterJsonCompletion<T>(
+  value: T | OpenRouterJsonCompletion<T>
+): value is OpenRouterJsonCompletion<T> {
+  return typeof value === 'object' && value !== null && 'result' in value && 'usage' in value;
 }
 
 function extractResultFromText(text: string): Record<string, unknown> {
