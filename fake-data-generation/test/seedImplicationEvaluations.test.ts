@@ -97,6 +97,58 @@ test('group scope merges originals with proliferation variants by original group
   assert.ok(pairs.every((pair) => pair.bucketKey === 'meta/commonality'));
 });
 
+test('original-variants scope only compares each original with its variants in both directions', () => {
+  const originalA = makeStatement({
+    uid: 'meta/commonality/base-a',
+    collectionId: 'meta',
+    groupId: 'commonality',
+    statementId: 'base-a',
+    originalStatementId: 'base-a',
+    originalCollectionId: 'meta',
+    originalGroupId: 'commonality',
+  });
+  const variantA1 = makeStatement({
+    uid: 'proliferation/variants/base-a-close-1',
+    collectionId: 'proliferation',
+    groupId: 'variants',
+    statementId: 'base-a-close-1',
+    originalStatementId: 'base-a',
+    originalCollectionId: 'meta',
+    originalGroupId: 'commonality',
+  });
+  const variantA2 = makeStatement({
+    uid: 'proliferation/variants/base-a-medium-1',
+    collectionId: 'proliferation',
+    groupId: 'variants',
+    statementId: 'base-a-medium-1',
+    originalStatementId: 'base-a',
+    originalCollectionId: 'meta',
+    originalGroupId: 'commonality',
+  });
+  const originalB = makeStatement({
+    uid: 'meta/commonality/base-b',
+    collectionId: 'meta',
+    groupId: 'commonality',
+    statementId: 'base-b',
+    originalStatementId: 'base-b',
+    originalCollectionId: 'meta',
+    originalGroupId: 'commonality',
+  });
+
+  const pairs = buildSeedImplicationPairs([originalA, variantA1, variantA2, originalB], 'original-variants');
+
+  assert.deepEqual(
+    pairs.map((pair) => pair.pairId),
+    [
+      'meta/commonality/base-a->proliferation/variants/base-a-close-1',
+      'proliferation/variants/base-a-close-1->meta/commonality/base-a',
+      'meta/commonality/base-a->proliferation/variants/base-a-medium-1',
+      'proliferation/variants/base-a-medium-1->meta/commonality/base-a',
+    ]
+  );
+  assert.ok(pairs.every((pair) => pair.bucketKey === 'meta/commonality/base-a'));
+});
+
 test('compareEvaluations reports missing, extra, and mismatched pairs', () => {
   const a = makeStatement({ uid: 'a', statementId: 'a', originalStatementId: 'a' });
   const b = makeStatement({ uid: 'b', statementId: 'b', originalStatementId: 'b' });

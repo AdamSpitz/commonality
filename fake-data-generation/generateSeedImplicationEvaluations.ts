@@ -25,7 +25,7 @@ interface CliOptions {
 }
 
 function parseArgs(args: string[]): CliOptions {
-  const scope = readEnumArg(args, '--scope', ['all', 'collection', 'group', 'family']) ?? DEFAULT_IMPLICATION_SCOPE;
+  const scope = readEnumArg(args, '--scope', ['all', 'collection', 'group', 'family', 'original-variants']) ?? DEFAULT_IMPLICATION_SCOPE;
   const outputPath = readStringArg(args, '--output') ?? getDefaultEvaluationsPath(scope);
   const metadataPath = readStringArg(args, '--metadata') ?? getDefaultMetadataPath(scope);
   const model = readStringArg(args, '--model') ?? DEFAULT_MODEL;

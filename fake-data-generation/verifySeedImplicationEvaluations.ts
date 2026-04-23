@@ -20,7 +20,7 @@ interface CliOptions {
 }
 
 function parseArgs(args: string[]): CliOptions {
-  const scope = readEnumArg(args, '--scope', ['all', 'collection', 'group', 'family']) ?? DEFAULT_IMPLICATION_SCOPE;
+  const scope = readEnumArg(args, '--scope', ['all', 'collection', 'group', 'family', 'original-variants']) ?? DEFAULT_IMPLICATION_SCOPE;
   return {
     scope,
     inputPath: readStringArg(args, '--input') ?? getDefaultEvaluationsPath(scope),

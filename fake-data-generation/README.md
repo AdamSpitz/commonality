@@ -129,6 +129,7 @@ npm run gen:seed:implications
 
 # Other scopes:
 #   -- --scope family      # one original statement plus its variants
+#   -- --scope original-variants  # original<->variant pairs only
 #   -- --scope collection  # whole source collection
 #   -- --scope all         # full ordered cross-product (very large)
 ```
@@ -138,6 +139,8 @@ The generator writes:
 - `data/seed-implication-evaluations.<scope>.metadata.json` — scope/model/prompt fingerprint metadata
 
 The default `group` scope is the practical replacement for the old “same category” idea from `universe.json`: every statement is bucketed by its original seed-content group, and proliferation variants are folded back into the group of the statement they were generated from.
+
+If you only want each real seed statement compared against its own five proliferation variants, use `--scope original-variants`. That scope emits only `original -> variant` and `variant -> original` pairs, skipping original-original and variant-variant comparisons.
 
 To verify the saved corpus:
 

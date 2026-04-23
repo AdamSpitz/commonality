@@ -11,10 +11,10 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const DEFAULT_IMPLICATION_SCOPE = 'group';
+export const DEFAULT_IMPLICATION_SCOPE = 'original-variants';
 export const DEFAULT_MODEL = 'anthropic/claude-3.5-haiku';
 
-export type ImplicationEvaluationScope = 'all' | 'collection' | 'group' | 'family';
+export type ImplicationEvaluationScope = 'all' | 'collection' | 'group' | 'family' | 'original-variants';
 
 export interface SeedImplicationStatementRecord {
   uid: string;
@@ -178,6 +178,10 @@ export function buildSeedImplicationPairs(
   statements: SeedImplicationStatementRecord[],
   scope: ImplicationEvaluationScope
 ): SeedImplicationPair[] {
+  if (scope === 'original-variants') {
+    return buildOriginalVariantPairs(statements);
+  }
+
   const buckets = new Map<string, SeedImplicationStatementRecord[]>();
 
   for (const statement of statements) {
@@ -205,6 +209,52 @@ export function buildSeedImplicationPairs(
           to,
         });
       }
+    }
+  }
+
+  return pairs;
+}
+
+function buildOriginalVariantPairs(
+  statements: SeedImplicationStatementRecord[]
+): SeedImplicationPair[] {
+  const originals = statements
+    .filter((statement) => statement.collectionId !== 'proliferation')
+    .sort((a, b) => a.uid.localeCompare(b.uid));
+  const variantsByOriginalUid = new Map<string, SeedImplicationStatementRecord[]>();
+
+  for (const statement of statements) {
+    if (statement.collectionId !== 'proliferation') {
+      continue;
+    }
+
+    const originalUid = `${statement.originalCollectionId}/${statement.originalGroupId}/${statement.originalStatementId}`;
+    const variants = variantsByOriginalUid.get(originalUid);
+    if (variants) {
+      variants.push(statement);
+    } else {
+      variantsByOriginalUid.set(originalUid, [statement]);
+    }
+  }
+
+  const pairs: SeedImplicationPair[] = [];
+  for (const original of originals) {
+    const variants = [...(variantsByOriginalUid.get(original.uid) ?? [])].sort((a, b) => a.uid.localeCompare(b.uid));
+    const bucketKey = original.uid;
+
+    for (const variant of variants) {
+      pairs.push({
+        pairId: `${original.uid}->${variant.uid}`,
+        bucketKey,
+        from: original,
+        to: variant,
+      });
+      pairs.push({
+        pairId: `${variant.uid}->${original.uid}`,
+        bucketKey,
+        from: variant,
+        to: original,
+      });
     }
   }
 
@@ -277,5 +327,7 @@ function getBucketKey(
       return `${statement.originalCollectionId}/${statement.originalGroupId}`;
     case 'family':
       return statement.originalStatementId;
+    case 'original-variants':
+      return `${statement.originalCollectionId}/${statement.originalGroupId}/${statement.originalStatementId}`;
   }
 }
