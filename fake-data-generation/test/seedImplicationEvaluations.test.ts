@@ -5,6 +5,7 @@ import {
   compareEvaluations,
   extractOriginalStatementId,
   getPromptFingerprint,
+  loadSeedImplicationStatements,
   type SeedImplicationStatementRecord,
   type StoredSeedImplicationEvaluation,
 } from '../seedImplicationEvaluations.js';
@@ -32,6 +33,32 @@ test('extractOriginalStatementId parses proliferation note', () => {
   });
 
   assert.equal(originalId, 'base-statement');
+});
+
+test('loadSeedImplicationStatements supports repeated local statement ids', async () => {
+  const statements = await loadSeedImplicationStatements();
+
+  const abortionPoleLeft = statements.find((statement) => statement.uid === 'hidden-majority/abortion/pole-left');
+  const immigrationPoleLeft = statements.find((statement) => statement.uid === 'hidden-majority/immigration/pole-left');
+
+  assert.ok(abortionPoleLeft);
+  assert.ok(immigrationPoleLeft);
+  assert.notEqual(abortionPoleLeft.uid, immigrationPoleLeft.uid);
+  assert.equal(abortionPoleLeft.originalStatementId, 'pole-left');
+  assert.equal(immigrationPoleLeft.originalStatementId, 'pole-left');
+});
+
+test('loadSeedImplicationStatements resolves proliferation variants via source note', async () => {
+  const statements = await loadSeedImplicationStatements();
+
+  const variant = statements.find(
+    (statement) => statement.uid === 'proliferation/hidden-majority-abortion/pole-left-close-1'
+  );
+
+  assert.ok(variant);
+  assert.equal(variant.originalCollectionId, 'hidden-majority');
+  assert.equal(variant.originalGroupId, 'abortion');
+  assert.equal(variant.originalStatementId, 'pole-left');
 });
 
 test('group scope merges originals with proliferation variants by original group', () => {

@@ -92,37 +92,76 @@ export function extractOriginalStatementId(record: SeedStatementRecord): string 
   return null;
 }
 
+function extractProliferationSource(record: SeedStatementRecord): { collectionId: string; groupId: string } | null {
+  for (const note of record.group.notes ?? []) {
+    const match = /^Source:\s+(.+?)\s+\/\s+(.+)$/.exec(note);
+    if (match) {
+      return {
+        collectionId: match[1]!.trim(),
+        groupId: match[2]!.trim(),
+      };
+    }
+  }
+
+  return null;
+}
+
+function getStatementUid(record: SeedStatementRecord): string {
+  return `${record.collection.id}/${record.group.id}/${record.statement.id}`;
+}
+
 export async function loadSeedImplicationStatements(): Promise<SeedImplicationStatementRecord[]> {
   const collections = await loadSeedCollections();
   const records = flattenSeedStatements(collections);
-  const originals = new Map<string, SeedStatementRecord>();
+  const originalsByUid = new Map<string, SeedStatementRecord>();
+  const originalsByStatementId = new Map<string, SeedStatementRecord[]>();
 
   for (const record of records) {
     if (record.collection.id === 'proliferation') {
       continue;
     }
-    if (originals.has(record.statement.id)) {
-      throw new Error(`Duplicate seed statement id outside proliferation: ${record.statement.id}`);
+    originalsByUid.set(getStatementUid(record), record);
+    const existing = originalsByStatementId.get(record.statement.id);
+    if (existing) {
+      existing.push(record);
+    } else {
+      originalsByStatementId.set(record.statement.id, [record]);
     }
-    originals.set(record.statement.id, record);
   }
 
   return records.map((record) => {
-    const originalId = record.collection.id === 'proliferation'
-      ? extractOriginalStatementId(record)
-      : record.statement.id;
+    let original: SeedStatementRecord | undefined;
+    if (record.collection.id === 'proliferation') {
+      const originalId = extractOriginalStatementId(record);
+      if (!originalId) {
+        throw new Error(`Missing Original note for proliferation statement ${record.statement.id}`);
+      }
 
-    if (!originalId) {
-      throw new Error(`Missing Original note for proliferation statement ${record.statement.id}`);
+      const source = extractProliferationSource(record);
+      if (source) {
+        original = originalsByUid.get(`${source.collectionId}/${source.groupId}/${originalId}`);
+      }
+
+      if (!original) {
+        const candidates = originalsByStatementId.get(originalId) ?? [];
+        if (candidates.length === 1) {
+          [original] = candidates;
+        } else if (candidates.length > 1) {
+          throw new Error(
+            `Ambiguous original statement "${originalId}" for ${record.statement.id}; add or fix the group's Source note`
+          );
+        }
+      }
+    } else {
+      original = record;
     }
 
-    const original = originals.get(originalId);
     if (!original) {
-      throw new Error(`Could not resolve original statement "${originalId}" for ${record.statement.id}`);
+      throw new Error(`Could not resolve original statement for ${record.statement.id}`);
     }
 
     return {
-      uid: `${record.collection.id}/${record.group.id}/${record.statement.id}`,
+      uid: getStatementUid(record),
       collectionId: record.collection.id,
       groupId: record.group.id,
       statementId: record.statement.id,
