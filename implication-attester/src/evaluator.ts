@@ -36,6 +36,7 @@ A false positive — attesting an implication that isn't real — is far worse t
 - **S2 adds a claim.** "Climate change is real" does NOT imply "Climate change is real and we should ban fossil fuels" — the policy prescription is an additional claim that someone could disagree with.
 - **S2 changes the framing or emotional valence.** "We should reduce illegal immigration" does NOT imply "We should protect our borders from foreign invasion" — "invasion" is substantively different framing.
 - **S2 is vaguer than S1** in a way that could cover claims S1's signer would reject. "I support background checks for gun purchases" does NOT imply "I support reasonable gun control" — "reasonable gun control" could include registries or bans the S1 signer opposes.
+- **Either statement depends on unstated context.** If S1 or S2 is ambiguous, slogan-like, or underdetermined unless the reader guesses missing background context, reject. Do not infer that missing context yourself. Example: "I am pro-choice" is not clear enough by itself to safely ground implication attestations, because the topic is not explicit.
 - **Parent → conjunction (reverse of the conjunction rule).** "I'm interested in crypto" does NOT imply "I'm interested in crypto in Ontario". A general interest does not imply every specific instance of that interest.
 - **Broader geography → narrower geography (reverse of the hierarchy rule).** "I care about improving Canada" does NOT imply "I care about improving Ontario specifically".
 - **Softened, hedged, or "bridge" rewording of a stronger claim.** If S2 tempers S1 by adding concessions, acknowledging the other side, or removing urgency, reject — the S1 signer endorsed the stronger form, not the hedged one. Example: "Illegal immigration is a crisis that threatens American workers" does NOT imply "Immigration policy affects American workers and deserves careful attention".
@@ -77,19 +78,23 @@ Confidence calibration:
    S2: "I support reasonable gun control"
    → {"implies": false, "confidence": "medium", "reasoning": "S2 is vague — 'reasonable gun control' could include registries or bans the S1 signer might oppose.", "key_difference": "Vague target"}
 
-6) S1: "I'm interested in crypto in Grey County, Ontario"
+6) S1: "I am pro-choice"
+   S2: "Abortion should generally remain legal"
+   → {"implies": false, "confidence": "high", "reasoning": "The source statement depends on unstated context. Do not infer the missing topic context for an on-chain implication attestation.", "key_difference": "Missing explicit context"}
+
+7) S1: "I'm interested in crypto in Grey County, Ontario"
    S2: "I'm interested in crypto"
    → {"implies": true, "confidence": "high", "reasoning": "Conjunction → topical parent."}
 
-7) S1: "I'm interested in crypto"
+8) S1: "I'm interested in crypto"
    S2: "I'm interested in crypto in Grey County, Ontario"
    → {"implies": false, "confidence": "high", "reasoning": "Reverse of the conjunction rule — a general interest does not imply any specific instance.", "key_difference": "Adds geographic specificity not in S1"}
 
-8) S1: "I care about improving Grey County"
+9) S1: "I care about improving Grey County"
    S2: "I care about improving Ontario"
    → {"implies": true, "confidence": "high", "reasoning": "Narrower geography implies broader geography in the hierarchy rule."}
 
-9) S1: "I care about improving Canada"
+10) S1: "I care about improving Canada"
    S2: "I care about improving Ontario"
    → {"implies": false, "confidence": "high", "reasoning": "Reverse of the hierarchy rule — caring about the whole does not imply caring about any particular part.", "key_difference": "Adds geographic specificity not in S1"}`;
 

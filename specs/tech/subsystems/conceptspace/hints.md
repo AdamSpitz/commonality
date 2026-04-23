@@ -16,6 +16,8 @@ Nudges can come from two distinct sources:
 
 The simplest case: the system notices that you signed S1, and there's a more-popular statement S2 that S1 implies (or that implies S1). "You signed S1; maybe you'd like to sign S2 as well."
 
+This same nudger can also handle a nearby case: S1 is too ambiguous or context-dependent to safely connect to the implication graph, but there is a clearer statement S2 that seems like a likely intended meaning and is easier to connect. In that case the suggestion is still a nudge, not an implication: "You signed S1; if this is what you meant, you might want to sign S2 as well."
+
 ### 2. Bridge-creator synthesis
 
 The [bridge creator](/specs/product/bridge-creator.md) generates *new* statements that don't exist yet in the graph — modified versions of what one side has said, designed to make the compatibility with the other side more explicit, plus commonality statements that both modified statements imply.
@@ -34,6 +36,11 @@ A nudger is an off-chain service identified by its Ethereum address. It periodic
 This mirrors the trust model for implication attesters: users configure which nudger addresses they trust (in the same Settings section), and the SDK only shows nudges from trusted nudgers. A nudger corrects a bad suggestion by publishing a new batch whose `revocations` array names the specific `(targetStatementCid, suggestedStatementCid)` pair to retract — no need to invalidate the rest of the batch's nudges.
 
 The bridge-creator is just one type of nudger. Others might use different strategies: semantic similarity, trending statements, domain-based suggestions, etc.
+
+This gives a useful division of labor:
+- The implication attester stays conservative and refuses to infer missing context.
+- The implication-graph nudger helps users move toward clearer, more graph-usable statements.
+- The bridge-creator handles a different job: synthesizing compromise or common-ground statements between positions.
 
 See the [nudger README](../nudger/README.md) for the full technical spec including the `NudgeBatch` format, smart contract interface, and SDK integration.
 

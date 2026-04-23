@@ -171,9 +171,19 @@ The framework is general: any nudger can plug in whatever heuristics or AI promp
 
 The simple case: watch the implication graph for statements that are implied by (or imply) statements the user has signed, filtered to those with more supporters. "You signed S1, and S2 is more popular and implies S1 — maybe you'd like to sign S2 too."
 
+This nudger can also do a closely related job: help users move from graph-poor statements to graph-usable ones. If a statement is too ambiguous or context-dependent to connect safely via implication attestations, the nudger may publish a clarification nudge suggesting a clearer statement that captures the likely intended meaning in a way that can participate in the graph.
+
+This is still a nudge, not an implication. The claim is not "S1 logically implies S2"; it is "if S2 is what you meant, it may be a better statement to sign because it is clearer and more reusable."
+
 This is essentially what `getStatementSuggestions` ([sdk/src/subsystems/conceptspace/queries.ts:754](../../../../../sdk/src/subsystems/conceptspace/queries.ts)) and the `StatementSuggestions` component ([ui/src/conceptspace/components/StatementSuggestions.tsx](../../../../../ui/src/conceptspace/components/StatementSuggestions.tsx)) already do — but currently embedded in the SDK/UI rather than running as an off-chain service. This strategy can be extracted into a proper nudger service and serve as the reference implementation.
 
 The implication-graph nudger runs as a background worker: it scans all statements periodically, generates nudges for each, and publishes them as `nudge-batch` publications.
+
+Two common sub-modes:
+- **Direct graph nudge** — suggest an already-connected statement related by existing implication edges.
+- **Clarification nudge** — suggest a clearer, more context-explicit statement when the original one is too ambiguous to connect safely.
+
+When possible, the nudger should prefer an already-existing, well-supported clear statement over synthesizing a new one. Synthesizing a fresh statement is appropriate only when there is no good existing statement to point at.
 
 ### 2. Bridge-creator nudger
 

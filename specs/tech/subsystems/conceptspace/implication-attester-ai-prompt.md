@@ -9,6 +9,7 @@ The stable guidance (role, rules, examples, output format) lives in the **system
 - **Conservative by default.** These attestations are permanent and on-chain. A false positive puts claims in someone's mouth that they didn't endorse; a false negative just means the pair gets attested later (or never). So: when in doubt, reject.
 - **Rule-based, not vibes-based.** The prompt names specific rules (subset, generalization, conjunction → parent, hierarchy, etc.) and asks the model to cite the rule it applied. This makes decisions inspectable and makes the reasoning on IPFS actually useful.
 - **Examples cover the common failure modes.** Added policy claims, changed framing, vague targets, reversed directionality on conjunctions and geographic hierarchy, softened/hedged rewordings.
+- **Statements must stand on their own well enough for attestation.** If a pair only makes sense after guessing unstated topic context, the prompt should reject it rather than infer what the author probably meant.
 - **No structured metadata.** Per [statements.md](statements.md), the system deliberately does not put machine-readable semantic structure in statements — the LLM reads English and applies the rules. So the prompt works on plain statement text.
 
 ## System prompt
@@ -42,6 +43,7 @@ A false positive — attesting an implication that isn't real — is far worse t
 - S2 adds a claim.
 - S2 changes the framing or emotional valence.
 - S2 is vaguer than S1 in a way that could cover claims S1's signer would reject.
+- Either statement depends on unstated context or topic knowledge that is not explicit in the statement text itself.
 - Parent → conjunction (reverse of the conjunction rule).
 - Broader geography → narrower geography (reverse of the hierarchy rule).
 - Softened, hedged, or "bridge" rewording of a stronger claim.
@@ -83,10 +85,17 @@ Respond with the JSON object specified in your instructions. Nothing else.
 3. Generalization → ACCEPT
 4. Changed emotional framing → REJECT
 5. Vague target → REJECT
-6. Conjunction → topical parent → ACCEPT
-7. Parent → conjunction (reversed) → REJECT
-8. Narrower → broader geography → ACCEPT
-9. Broader → narrower geography (reversed) → REJECT
+6. Missing explicit context / slogan-like ambiguity → REJECT
+7. Conjunction → topical parent → ACCEPT
+8. Parent → conjunction (reversed) → REJECT
+9. Narrower → broader geography → ACCEPT
+10. Broader → narrower geography (reversed) → REJECT
+
+## Attestable clarity
+
+The implication attester should not try to rescue underspecified statements by guessing what the author probably meant. For implication purposes, a statement needs enough standalone clarity that an informed stranger can tell what proposition is being signed.
+
+This is not a requirement that every statement in the product be phrased in formal or bureaucratic language. Users can still write and sign colloquial or slogan-like statements. It is a requirement for reliable implication attestations. If a statement is too context-dependent to safely connect, the correct outcome is rejection, and the nudger layer can suggest a clearer statement the user might also want to sign.
 
 ## Bridge-creator directionality
 

@@ -192,6 +192,21 @@ describe('evaluateImplicationWithLLM', () => {
       'System prompt should warn against softened/hedged/bridge rewordings');
   });
 
+  it('tells the LLM not to infer unstated context for ambiguous statements', async () => {
+    const captured: OpenRouterJsonRequest[] = [];
+
+    await evaluateImplicationWithLLM(
+      'S1', 'S2', 'key', 'model',
+      capturingLLM({ implies: false, confidence: 'low', reasoning: 'test' }, captured)
+    );
+
+    const systemPrompt = captured[0]!.systemPrompt;
+    assert.ok(/unstated context|missing background context|not clear enough by itself/i.test(systemPrompt),
+      'System prompt should reject implication judgments that depend on inferred context');
+    assert.ok(systemPrompt.includes('I am pro-choice'),
+      'System prompt should include a context-dependent worked example');
+  });
+
   it('uses "explanation" field as fallback for reasoning', async () => {
     const result = await evaluateImplicationWithLLM(
       'S1', 'S2', 'key', 'model',

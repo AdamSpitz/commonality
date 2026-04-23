@@ -28,7 +28,7 @@ Proactively discover candidates and submit them to attesters.
 
 ### Nudgers
 Publish typed suggestion batches (on-chain CID → IPFS document). Users configure which nudgers they trust; the SDK fetches and folds their publications. See [specs/tech/subsystems/nudger/README.md](../tech/subsystems/nudger/README.md) for the full publication model.
-- **Implication-graph nudger** — "you signed S1; you might want to sign S2 which implies it and is more popular." See [implication-graph-nudger/](../../implication-graph-nudger/README.md).
+- **Implication-graph nudger** — "you signed S1; you might want to sign S2 which implies it and is more popular," plus clarification nudges toward clearer statements when S1 is too ambiguous to connect safely. See [implication-graph-nudger/](../../implication-graph-nudger/README.md).
 - **Bridge-creator nudger** — synthesizes new common-ground statements between opposing views and publishes them as nudges. See [bridge-creator.md](bridge-creator.md).
 
 ### Explorers
