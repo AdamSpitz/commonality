@@ -1,5 +1,54 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-23 - Seed implication pre-generation and regression tooling (Completed)
+
+**Task**: Set up the TODO item around using the real implication-attester prompt to pre-generate implication decisions for curated seed-content plus proliferation variants, with a verification path for prompt and statement regressions.
+
+**What was done**:
+- Exposed the reusable implication evaluator API from [`implication-attester/src/api.ts`](/home/adam/Projects/commonality/implication-attester/src/api.ts) and exported the evaluator system prompt fingerprint source from [`implication-attester/src/evaluator.ts`](/home/adam/Projects/commonality/implication-attester/src/evaluator.ts).
+- Added [`fake-data-generation/seedImplicationEvaluations.ts`](/home/adam/Projects/commonality/fake-data-generation/seedImplicationEvaluations.ts) to:
+  - flatten seed-content plus proliferation into a common statement record shape
+  - fold proliferation variants back onto the original statement's collection/group
+  - build ordered S1→S2 pair sets for `family`, `group`, `collection`, or `all` scopes
+  - compare a saved decision corpus against the current statement graph and optional live rechecks
+- Added [`fake-data-generation/generateSeedImplicationEvaluations.ts`](/home/adam/Projects/commonality/fake-data-generation/generateSeedImplicationEvaluations.ts) to write `data/seed-implication-evaluations.<scope>.json` plus metadata using the real implication-attester evaluator, with resume support.
+- Added [`fake-data-generation/verifySeedImplicationEvaluations.ts`](/home/adam/Projects/commonality/fake-data-generation/verifySeedImplicationEvaluations.ts) so prompt changes can be checked by re-running saved pairs and statement changes can be detected via missing/extra pair IDs.
+- Added unit coverage in [`fake-data-generation/test/seedImplicationEvaluations.test.ts`](/home/adam/Projects/commonality/fake-data-generation/test/seedImplicationEvaluations.test.ts) and documented the new workflow in [`fake-data-generation/README.md`](/home/adam/Projects/commonality/fake-data-generation/README.md).
+- Added the package dependency/wiring in [`fake-data-generation/package.json`](/home/adam/Projects/commonality/fake-data-generation/package.json), [`implication-attester/package.json`](/home/adam/Projects/commonality/implication-attester/package.json), and `package-lock.json`.
+
+**Key decisions**:
+- Did not default to the full seed-content cross-product: the current corpus is 1,122 statements, so `all` would be roughly 1.26 million ordered pairs. The default scope is `group`, which is the practical version of the old “same category” idea.
+- Saved every decision, including negatives, because the regression workflow needs a stable corpus of evaluated pairs rather than just positive implications.
+- Kept the live regression check as an explicit command instead of a normal always-on unit test, since it requires OpenRouter credits and is intentionally operator-driven.
+
+**Verified**:
+- `npm run build --workspace=@commonality/implication-attester` ✓
+- `npm run test --workspace=@commonality/implication-attester` ✓
+- `npm run lint --workspace=@commonality/implication-attester` ✓
+- `npm run test --workspace=fake-data-generation` ✓
+- `npm run typecheck --workspace=fake-data-generation` ✓
+- `npm run lint --workspace=fake-data-generation` ✓
+- `npm run build --workspace=fake-data-generation` ✓
+
+**Files changed**:
+- `implication-attester/src/api.ts`
+- `implication-attester/src/evaluator.ts`
+- `implication-attester/package.json`
+- `fake-data-generation/seedImplicationEvaluations.ts`
+- `fake-data-generation/generateSeedImplicationEvaluations.ts`
+- `fake-data-generation/verifySeedImplicationEvaluations.ts`
+- `fake-data-generation/test/seedImplicationEvaluations.test.ts`
+- `fake-data-generation/package.json`
+- `fake-data-generation/README.md`
+- `package-lock.json`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- No `OPENROUTER_API_KEY` was present in this environment, so the actual checked-in decision corpus was not generated yet. The tooling is ready, but a human still needs to run the generator and review the resulting JSON.
+- `TODO.md` was already dirty before this task, so it was left untouched to avoid trampling user edits.
+
+**Interrupt point**: Yes. The tooling, packaging, tests, and docs are in place; the next step is operational, not structural: run the generator with an API key, review the corpus, and decide whether to commit the resulting JSON.
+
 ## 2026-04-23 - Make indexer deployable to Render for testnet/mainnet (Completed)
 
 **Task**: Complete the `TODO.md` item to make the Ponder indexer ready for testnet/prod deployment by wiring hosted chain selection, production startup, and Render Postgres/blueprint support.

@@ -94,6 +94,8 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:markdown` rewrites `../specs/tech/subsystems/conceptspace/seed-content/*.md` so the prose docs stay aligned with the JSON source of truth
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
 - `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
+- `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
+- `npm run gen:seed:implications:verify` checks that the saved implication-decision corpus still matches the current statement set, and can optionally re-run the attester to detect prompt regressions
 - `npm run gen:proliferation` writes `seed-content/proliferation.json`, a large set of similar-but-distinct variants of every seed statement (see below)
 
 ### Proliferated statement variants
@@ -104,7 +106,7 @@ Two scripts sit on top of that source:
 - **`variant-medium`** — same topic, somewhat different framing; an implication arrow may or may not be appropriate
 - **`variant-distant`** — related topic, meaningfully different position; an implication arrow probably does not apply
 
-The file is used to test the implication-attester and implication-finder: run the attester prompt over all seed×proliferation pairs and verify the decisions look sensible before using them as fake data.
+The file is used to test the implication-attester and implication-finder: run the real implication-attester prompt over the seed/proliferation pair set and verify the decisions look sensible before using them as fake data.
 
 Requires `OPENROUTER_API_KEY` in `.env` (or the environment). The script is resume-safe — re-running it skips already-completed groups.
 
@@ -112,6 +114,42 @@ Requires `OPENROUTER_API_KEY` in `.env` (or the environment). The script is resu
 # Add to .env or export first:
 #   OPENROUTER_API_KEY=sk-or-...
 npm run gen:proliferation
+```
+
+### Pre-generated Seed Implication Decisions
+
+To pre-generate implication decisions for the curated seed corpus plus proliferation variants, use:
+
+```bash
+cd /home/adam/Projects/commonality/fake-data-generation
+
+# Default scope: same original group/category, with proliferation variants folded
+# back into their source group.
+npm run gen:seed:implications
+
+# Other scopes:
+#   -- --scope family      # one original statement plus its variants
+#   -- --scope collection  # whole source collection
+#   -- --scope all         # full ordered cross-product (very large)
+```
+
+The generator writes:
+- `data/seed-implication-evaluations.<scope>.json` — one record per ordered pair, including negative decisions
+- `data/seed-implication-evaluations.<scope>.metadata.json` — scope/model/prompt fingerprint metadata
+
+The default `group` scope is the practical replacement for the old “same category” idea from `universe.json`: every statement is bucketed by its original seed-content group, and proliferation variants are folded back into the group of the statement they were generated from.
+
+To verify the saved corpus:
+
+```bash
+# Check for new/missing pairs after statement edits
+npm run gen:seed:implications:verify
+
+# Re-run the live evaluator on the saved corpus to look for prompt regressions
+npm run gen:seed:implications:verify -- --recheck-decisions
+
+# Or limit the live recheck while iterating on the prompt
+npm run gen:seed:implications:verify -- --recheck-decisions --limit 100
 ```
 
 ## Configuration

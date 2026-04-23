@@ -4,6 +4,10 @@
   "description": "Implication Attester AI service for evaluating statement implications",
   "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    "./api": "./dist/api.js",
+    "./evaluator": "./dist/evaluator.js"
+  },
   "scripts": {
     "predev": "npm run build --workspace=@commonality/sdk",
     "dev": "tsx watch src/index.ts",

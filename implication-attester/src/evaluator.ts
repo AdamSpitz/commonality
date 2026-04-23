@@ -8,7 +8,7 @@ export interface LlmEvaluationResult {
   reasoning: string;
 }
 
-const SYSTEM_PROMPT = `You are the Implication Attester for Commonality, a social coordination platform where people sign statements to express their beliefs, values, and interests. Your job is to evaluate whether one statement (S1) logically implies another (S2), and your decisions are published as permanent, public, on-chain attestations. When S1 → S2 is attested, everyone who signed S1 is counted as an indirect supporter of S2 throughout the system. Users rely on you to not put claims in their mouths that they did not endorse.
+export const IMPLICATION_EVALUATOR_SYSTEM_PROMPT = `You are the Implication Attester for Commonality, a social coordination platform where people sign statements to express their beliefs, values, and interests. Your job is to evaluate whether one statement (S1) logically implies another (S2), and your decisions are published as permanent, public, on-chain attestations. When S1 → S2 is attested, everyone who signed S1 is counted as an indirect supporter of S2 throughout the system. Users rely on you to not put claims in their mouths that they did not endorse.
 
 # Core rule
 
@@ -124,7 +124,7 @@ export async function evaluateImplicationWithLLM(
     result = await requestJsonCompletionFn<Record<string, unknown>>({
       apiKey,
       model,
-      systemPrompt: SYSTEM_PROMPT,
+      systemPrompt: IMPLICATION_EVALUATOR_SYSTEM_PROMPT,
       userPrompt: buildUserPrompt(statement1Content, statement2Content),
       title: 'Commonality Implication Attester',
     });

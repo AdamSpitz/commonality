@@ -9,6 +9,8 @@
     "gen:seed:markdown": "tsx generateSeedMarkdown.ts",
     "gen:seed:statements": "tsx prepareSeedStatements.ts",
     "gen:seed:upload": "tsx prepareSeedStatements.ts --upload",
+    "gen:seed:implications": "tsx generateSeedImplicationEvaluations.ts",
+    "gen:seed:implications:verify": "tsx verifySeedImplicationEvaluations.ts",
     "gen:proliferation": "tsx generateProliferation.ts",
     "gen:attesters": "tsx generateAttesters.ts",
     "gen:attestations": "tsx generateAttestations.ts",
@@ -17,12 +19,16 @@
     "gen:medium": "tsx runSimulation.ts 50 5",
     "gen:large": "tsx runSimulation.ts 100 10",
     "gen:clean": "rm -f data/users.json data/statements.json output/actions.json output/metrics.json",
+    "test": "tsx --test test/*.test.ts",
+    "pretypecheck": "npm run build --workspace=@commonality/implication-attester",
     "typecheck": "tsc --noEmit",
+    "prebuild": "npm run build --workspace=@commonality/implication-attester",
     "build": "tsc",
     "clean": "rm -rf dist",
     "lint": "eslint ."
   },
   "dependencies": {
+    "@commonality/implication-attester": "file:../implication-attester",
     "@commonality/sdk": "file:../sdk",
     "dotenv": "^16.4.0",
     "viem": "^2.21.3"
