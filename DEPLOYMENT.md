@@ -1,490 +1,327 @@
-# Deployment Guide
+# Deployment
 
-This guide covers deploying Commonality's smart contracts and services to local, testnet, and mainnet environments.
+This document covers **testnet and mainnet** deployment. For local development, see [README.md](README.md); the full local stack runs in Docker and needs no secrets.
 
-## Overview
+## Mental model
 
-Commonality consists of several deployable components:
+Commonality deploys to three independent targets:
 
-1. **Smart Contracts** - Core protocol contracts deployed to Ethereum (or L2)
-2. **Ponder Indexer** - Thin event cache that stores raw contract events and serves them via REST API
-3. **AI Services** - Several services that evaluate content, build the implication graph, and serve nudger suggestions:
-   - `implication-attester` — evaluates statement implications using LLMs (see [implication-attester/README.md](implication-attester/README.md))
-   - `content-attester` — evaluates content alignment with statements (see [content-attester/README.md](content-attester/README.md))
-   - `implication-graph-nudger` — serves statement suggestions derived from the implication graph (see [implication-graph-nudger/README.md](implication-graph-nudger/README.md))
-   - `platform-api-service` — resolves creator handles, issues channel-claim challenges, and queues content-attester submissions (see [platform-api-service/README.md](platform-api-service/README.md))
-   - `bridge-creator`, `explorer-curator`, `content-finder` — additional services without Dockerfiles yet
-4. **Frontend UI** - User interface deployed to IPFS via Pinata, accessed via ENS + eth.limo
+| Target             | What goes there                                                | How it's deployed                      |
+| ------------------ | -------------------------------------------------------------- | -------------------------------------- |
+| **Ethereum chain** | Smart contracts                                                | `hardhat run scripts/deploy.js`        |
+| **Render**         | AI services, platform API, indexer (once prod-ready — see gap) | `render.yaml` blueprint + git push     |
+| **IPFS + ENS**     | UI (four branded SPAs)                                         | `scripts/deploy-ui.sh` + `update-ens.sh` |
 
-## Local Deployment (Development)
+Each target has its own cadence and its own blast radius. Don't try to unify them behind one megascript — the separation is the feature.
 
-### Quick Start with Docker Compose
+## Infrastructure-as-code
 
-**No secrets needed for local dev.** The Docker Compose setup runs everything locally (Hardhat blockchain, IPFS node, Ponder indexer) without any API keys or private keys. Just run `npm install`, `./services.sh --start`, and `./data.sh --seed`. Secrets (in `.env.secrets`) are only needed for testnet/mainnet deployment and for running the AI attester service.
+- [`render.yaml`](./render.yaml) is the source of truth for all Render services. Treat it like code: edit the file, commit, push, re-sync the blueprint. Do **not** configure services through the Render dashboard except for secrets (the `sync: false` entries).
+- [`docker-compose.yml`](./docker-compose.yml) is the source of truth for local.
+- [`deployments/<network>.env`](./deployments/) is the source of truth for deployed contract addresses. The deploy script writes it and you commit it; services read it at build time.
 
-Services and data are managed by two separate scripts:
+No Terraform, no Kubernetes, no Pulumi. Resist upgrading until you have a concrete reason.
 
-```bash
-# Services (docker-compose lifecycle):
-./services.sh --start    # Start services (preserves existing data)
-./services.sh --stop     # Stop services (preserves existing data)
-./services.sh --status   # Show whether services are running
+---
 
-# Data (wipe or seed, independent of service lifecycle):
-./data.sh --wipe            # Wipe data directory (stops services first)
-./data.sh --seed            # Small dataset (10 users, 3 rounds) - default
-./data.sh --seed=small      # Small dataset (10 users, 3 rounds)
-./data.sh --seed=medium     # Medium dataset (50 users, 5 rounds)
-./data.sh --seed=large      # Large dataset (100 users, 10 rounds)
+## One-time setup
 
-# Use hardhat accounts for the first 20 users (so you can connect with your wallet - set up your wallet with the nth hardhat account's private key):
-# The 0th user will be 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (the default hardhat account)
-./data.sh --seed --use-hardhat-accounts
-./data.sh --seed=large --use-hardhat-accounts
-```
+### 1. Create `.env.secrets`
 
-All data (hardhat, ipfs, ponder) is stored in `./data/` by default. To use a custom data directory:
-```bash
-COMMONALITY_DATA_DIR=/custom/path ./services.sh --start
-```
-
-To use the UI locally:
-```bash
-cd ui && npm run dev
-```
-
-### Running Integration Tests
+Copy and fill in:
 
 ```bash
-./scripts/run-integration-tests.sh
+cp .env.secrets.example .env.secrets
 ```
 
-This uses a separate data directory (`/tmp/commonality-it`) that's wiped after tests complete.
+You need at minimum:
 
-## Testnet Deployment (Sepolia)
+- `DEPLOYER_PRIVATE_KEY` — funded with sepolia ETH (free from a faucet) or mainnet ETH (~0.05–0.1 ETH for full deploy)
+- `ATTESTER_PRIVATE_KEY` — separate wallet for the attester services
+- `OPENROUTER_API_KEY` — LLM access
+- `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
+- `PINATA_JWT` — for IPFS uploads
+- `ENS_OWNER_PRIVATE_KEY` — wallet that owns the ENS name
 
-### Prerequisites
+`.env.secrets` is gitignored. Never commit it.
 
-1. **Get Sepolia ETH** - Obtain testnet ETH from a faucet
-2. **Configure secrets** - Copy `.env.secrets.example` to `.env.secrets` and set:
-   ```bash
-   DEPLOYER_PRIVATE_KEY=0x...  # Your deployer wallet private key (NEVER commit!)
-   ```
-   Optionally set `SEPOLIA_RPC_URL` in `.env.secrets` if you want a private RPC (default: `https://rpc.sepolia.org`).
+### 2. Create accounts
 
-### Deploy Contracts
+- **[Render](https://render.com)** — one account is fine for both testnet and prod (we'll use separate blueprints per network).
+- **[Pinata](https://app.pinata.cloud)** — free tier covers a few CIDs.
+- **[ENS](https://app.ens.domains)** — register `<yourname>.eth`.
+- **RPC provider** (Alchemy or Infura) — the public endpoints in `hardhat.config.cjs` work for light use, but paid endpoints are worth it for the indexer.
+
+---
+
+## Deploying a testnet release (happy path)
+
+### Step 1: Deploy contracts to Sepolia
 
 ```bash
 cd hardhat
 npx hardhat run scripts/deploy.js --network sepolia
 ```
 
-This will:
-- Deploy all smart contracts to Sepolia
-- Save contract addresses to `deployments/sepolia.env` (commit this!)
-- Save detailed deployment metadata to `hardhat/deployments/sepolia-<timestamp>.json`
-- Update `.env`, `ui/.env`, `implication-attester/.env`, and `integration-tests/.env.local` with addresses
+This writes contract addresses to `deployments/sepolia.env` and detailed metadata to `hardhat/deployments/sepolia-<timestamp>.json`.
 
-The content-funding deployment now boots `ChannelRegistry` with the real `ChannelVerifier` contract. That verifier trusts the configured verifier EOA for signed `ChannelClaimProof`s, so testnet/mainnet deployments must keep the platform-api-service `VERIFIER_PRIVATE_KEY` aligned with the on-chain verifier's `trustedVerifier` address (or update it later via `setTrustedVerifier(...)`).
+**Commit `deployments/sepolia.env` to git.** Services read addresses from it.
 
-To regenerate all service `.env` files later (e.g. on a fresh clone):
+Optionally verify on Etherscan:
 
 ```bash
-./scripts/setup-env.sh sepolia
+npx hardhat verify --network sepolia <address> <constructor-args>
 ```
 
-### Verify Contracts (Optional but Recommended)
+### Step 2: Deploy services to Render
+
+First time only:
+
+1. In Render, **New → Blueprint**, connect to this GitHub repo.
+2. Render reads `render.yaml` and creates all 8 services at once.
+3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs.
+4. Addresses come from `deployments/sepolia.env`; copy-paste them into Render.
+
+Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
+
+Verify:
 
 ```bash
-# Verify on Etherscan (requires ETHERSCAN_API_KEY in .env)
-npx hardhat verify --network sepolia <CONTRACT_ADDRESS> <CONSTRUCTOR_ARGS>
+curl https://commonality-attester.onrender.com/health
+curl https://commonality-implication-graph-nudger.onrender.com/health
+# ...etc, one per service
 ```
 
-### Deploy AI Services to Render
-
-The `render.yaml` blueprint defines all services with Dockerfiles. You can deploy them individually or use the blueprint to create them all at once.
-
-See each service's README for its full variable list:
-- [implication-attester/README.md](implication-attester/README.md) — comprehensive Render instructions
-- [content-attester/README.md](content-attester/README.md)
-- [implication-graph-nudger](implication-graph-nudger/) (see `.env.example`)
-- [platform-api-service/README.md](platform-api-service/README.md)
-
-**Summary for `implication-attester`:**
-
-1. Push code to GitHub (including `deployments/sepolia.env` with contract addresses)
-2. Create new Web Service on Render
-3. Connect to GitHub repository
-4. Configure environment variables (secrets only — contract addresses come from the deployment file):
-   ```
-   ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
-   ATTESTER_PRIVATE_KEY=0x...
-   IMPLICATIONS_CONTRACT_ADDRESS=0x...  # Copy from deployments/sepolia.env
-   OPENROUTER_API_KEY=sk-...
-   X402_PAYMENT_ADDRESS=0x...
-   ```
-5. Deploy and test `/health` endpoint
-
-## Mainnet Deployment
-
-⚠️ **CRITICAL SECURITY WARNINGS** ⚠️
-
-Before deploying to mainnet:
-
-1. **Professional Smart Contract Audit** - Get contracts audited by reputable firm
-2. **Thorough Testing** - Run extensive integration and invariant tests
-3. **Gradual Rollout** - Consider deploying to testnet first, then mainnet with limits
-4. **Emergency Procedures** - Have pause mechanisms and incident response plan ready
-
-### Prerequisites
-
-1. **Mainnet ETH** - Sufficient ETH for deployment gas (estimate: 0.05-0.1 ETH)
-2. **Configure secrets** in `.env.secrets`:
-   ```bash
-   DEPLOYER_PRIVATE_KEY=0x...  # Use hardware wallet or secure key management
-   MAINNET_RPC_URL=https://eth.llamarpc.com  # Or use Alchemy/Infura
-   ```
-3. **Verify Configuration** - Double-check all contract parameters
-
-### Deploy Contracts
+### Step 3: Deploy UI to IPFS + ENS
 
 ```bash
-cd hardhat
-npx hardhat run scripts/deploy.js --network mainnet
+./scripts/deploy-ui.sh sepolia                  # → prints CID
+./scripts/update-ens.sh myapp.eth <cid> --network sepolia
 ```
 
-After deployment, commit `deployments/mainnet.env` and run `./scripts/setup-env.sh mainnet` to propagate addresses.
+Visit `https://myapp.eth.limo` to verify.
 
-### Post-Deployment Checklist
-
-- [ ] Verify all contracts on Etherscan
-- [ ] Test basic functionality (create belief, add implication, etc.)
-- [ ] Update documentation with mainnet contract addresses
-- [ ] Configure indexer for mainnet
-- [ ] Deploy attester service to production (Render)
-- [ ] Set up monitoring and alerting
-- [ ] Deploy frontend to IPFS and update ENS (`./scripts/deploy-ui.sh mainnet` + `./scripts/update-ens.sh`)
-- [ ] Announce deployment to community
-
-## UI Deployment (IPFS + ENS)
-
-The UI is deployed as a static site to IPFS via [Pinata](https://www.pinata.cloud/), with an ENS name pointing to the IPFS content hash. Users access the UI at `https://<name>.eth.limo`.
-
-Per [specs/shared/legal.md](specs/shared/legal.md), the UI must be deployed to IPFS (not centralized hosting) to maintain the project's decentralized nature and reduce legal exposure.
-
-### Overview
-
-1. Build the UI with the correct contract addresses baked in
-2. Upload the build to IPFS via Pinata (returns a CID)
-3. Update the ENS name's contenthash to point to the new CID
-4. The UI is accessible at `https://<name>.eth.limo`
-
-Since contract addresses are baked into the Vite build at compile time (`VITE_*` env vars), each network (sepolia, mainnet) needs its own build and its own CID.
-
-### Prerequisites
-
-1. **Pinata account** — Sign up at https://app.pinata.cloud and create an API key (needs `pinFileToIPFS` permission). Add the JWT to `.env.secrets`:
-   ```
-   PINATA_JWT=your_jwt_token
-   ```
-
-2. **ENS name** — Register an ENS name (e.g. on https://app.ens.domains). Add the owner wallet's private key to `.env.secrets`:
-   ```
-   ENS_OWNER_PRIVATE_KEY=0x...
-   ```
-
-3. **Contracts deployed** — The target network must have contracts deployed (i.e. `deployments/<network>.env` must exist).
-
-### Deploy UI to IPFS
+UI is built per network (contract addresses are baked into the Vite bundle), and per domain (four branded variants). To build a non-default domain:
 
 ```bash
-./scripts/deploy-ui.sh <network> [domain]
+./scripts/deploy-ui.sh sepolia content-funding
 ```
 
-This script:
-1. Runs `setup-env.sh <network>` to populate `ui/.env` with contract addresses
-2. Builds the selected UI domain in IPFS mode (`npm run build:ipfs` in `ui/`), which uses hash routing and relative asset paths so the bundle works under a CID path
-3. Uploads `ui/dist/<domain>/` to Pinata
-4. Prints the IPFS CID
+Supported domains: `commonality` (default), `content-funding`, `noninflammatory`, `movement`.
 
-If you omit `domain`, it defaults to `commonality`. Supported values are `commonality`, `content-funding`, `noninflammatory`, and `movement`.
+---
 
-For non-local deployments, make sure `VITE_GRAPHQL_URL` points at the public indexer GraphQL endpoint. If you want event-cache reads or content-funding channel resolution/claim flows to work from the IPFS-hosted UI, also set `EVENT_CACHE_URL` and `PLATFORM_API_URL` in `.env.secrets` before running `setup-env.sh`; they will be copied into `ui/.env` as `VITE_EVENT_CACHE_URL` and `VITE_PLATFORM_API_URL`.
+## The indexer gap
 
-Example:
-```bash
-./scripts/deploy-ui.sh sepolia
-# Setting up environment for sepolia...
-# Building UI for domain: commonality...
-# Uploading ui/dist/commonality/ to Pinata...
-#
-# Upload complete!
-#   CID:     QmXyz...
-#   Gateway: https://gateway.pinata.cloud/ipfs/QmXyz...
-#
-# To update ENS contenthash:
-#   ./scripts/update-ens.sh <ens-name> QmXyz...
+**The indexer is not currently deployable to Render.** Documenting this honestly because the TODO item about DEPLOYMENT.md being out of date is partly this. To unblock indexer deployment, four things must change:
+
+### What needs to happen
+
+1. **Add sepolia/mainnet chains to `indexer/ponder.config.ts`.** Today only `hardhat` (31337) is configured. Need entries that read `PONDER_RPC_URL_11155111` / `PONDER_RPC_URL_1` and a `chain` selector so contracts map to the right network.
+2. **Switch the production start command to `ponder start`.** The Dockerfile currently runs `npm run dev:no-ui` (dev mode). In `render.yaml`, override `dockerCommand: npm start` for the indexer service, or add a prod-specific start script.
+3. **Stop sourcing `/workspace/.env` in `start.sh`.** That bind-mount only exists in docker-compose. On Render, env comes from the platform. Either guard the source (`if [ -f ]`, which it already does) — that part's fine — or remove the line entirely.
+4. **Add a Postgres database.** Ponder defaults to embedded PGLite when `database` is unset in `ponder.config.ts`. In prod, add a Render Postgres add-on and set `DATABASE_URL` / `PONDER_DATABASE_SCHEMA`. Postgres on Render starts at ~$7/mo.
+
+### Recommended `render.yaml` addition (for reference, not merged yet)
+
+```yaml
+databases:
+  - name: commonality-indexer-db
+    plan: basic-256mb         # start small, grow if needed
+    postgresMajorVersion: 16
+
+services:
+  - type: web
+    name: commonality-indexer
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: indexer/Dockerfile
+    dockerCommand: npm start    # overrides dev-mode CMD in Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: commonality-indexer-db
+          property: connectionString
+      - key: PONDER_DATABASE_SCHEMA
+        value: public
+      - key: PONDER_RPC_URL_11155111   # sepolia
+        sync: false
+      - key: BELIEFS_CONTRACT_ADDRESS
+        sync: false
+      - key: IMPLICATIONS_CONTRACT_ADDRESS
+        sync: false
+      # ... all other contract addresses from deployments/sepolia.env
+      - key: START_BLOCK
+        sync: false  # block where contracts were deployed
+    healthCheckPath: /graphql
+    autoDeploy: true
+    plan: standard
 ```
 
-Verify the upload by visiting the gateway URL in a browser.
+### Alternatives considered
 
-### Update ENS Contenthash
+- **Railway** has cleaner ergonomics for stateful services + Postgres, and would host the indexer well. The downside is splitting the deployment across two platforms. Worth revisiting if Render's Postgres is painful.
+- **Self-hosted on a VM (Hetzner, DO droplet)** with a docker-compose file is cheaper (~$6/mo all-in) but trades ops time for money. Not worth it pre-launch.
+- **Managed Ponder hosts** (if one appears in the ecosystem) — none mature enough to rely on at the time of writing.
 
-```bash
-./scripts/update-ens.sh <ens-name> <cid> [--network sepolia|mainnet]
+**Recommendation:** stay on Render. Do the four changes above, add the Postgres add-on, deploy the indexer alongside the other services. Port to Railway only if you hit a limit.
+
+---
+
+## Environment variables
+
+All service-specific env vars are documented in each service's README. Quick pointers:
+
+- [`implication-attester/README.md`](implication-attester/README.md)
+- [`content-attester/README.md`](content-attester/README.md)
+- [`implication-graph-nudger/README.md`](implication-graph-nudger/README.md)
+- [`bridge-creator/README.md`](bridge-creator/README.md)
+- [`explorer-curator/README.md`](explorer-curator/README.md)
+- [`platform-api-service/README.md`](platform-api-service/README.md)
+- [`content-finder/README.md`](content-finder/README.md)
+- [`implication-finder/README.md`](implication-finder/README.md)
+
+The bottom of [`render.yaml`](./render.yaml) lists which vars are secrets (set in Render dashboard) per service.
+
+### How env vars flow
+
+```
+.env.secrets              ← you fill in once (gitignored)
+deployments/<net>.env     ← deploy script writes (committed)
+         │
+         ▼ for local dev: scripts/setup-env.sh <network>
+         ▼ for Render:    copy-paste into dashboard once per service
+         │
+service-local .env files  ← each service reads its own
 ```
 
-Default network is `mainnet`. Use `--network sepolia` for testnet ENS names.
+`setup-env.sh` is only used for local development. On Render, env vars live in the dashboard; don't try to automate populating them unless/until it becomes painful.
 
-This script:
-1. Encodes the IPFS CID as an ENS contenthash ([EIP-1577](https://eips.ethereum.org/EIPS/eip-1577))
-2. Looks up the ENS name's resolver
-3. Calls `setContenthash` on the resolver
-4. Waits for transaction confirmation
+---
 
-Example:
-```bash
-./scripts/update-ens.sh commonality.eth QmXyz...
-./scripts/update-ens.sh commonality.eth QmXyz... --network sepolia
-```
+## Updating a running deployment
 
-After the transaction confirms, the UI is accessible at:
-- `https://commonality.eth.limo` (via [eth.limo](https://eth.limo/) gateway)
-- `ipfs://QmXyz...` (in IPFS-compatible browsers)
+### Service code change
 
-### Typical Workflow
+1. Push to master.
+2. Render auto-builds and deploys (per-service, independently).
+3. Check `/health` endpoint afterward.
 
-```bash
-# 1. Deploy contracts to sepolia
-cd hardhat && npx hardhat run scripts/deploy.js --network sepolia
+For mainnet, consider setting `autoDeploy: false` per service and triggering manual deploys from tagged commits.
 
-# 2. Build + upload UI for sepolia
-./scripts/deploy-ui.sh sepolia
-# → CID: QmAbc...
+### Contract upgrade
 
-# 3. Test via gateway
-#    Visit https://gateway.pinata.cloud/ipfs/QmAbc...
+Contracts are not upgradeable in this codebase. Redeploying contracts means:
 
-# 4. (Optionally) Point a testnet ENS name at it
-./scripts/update-ens.sh myapp.eth QmAbc... --network sepolia
+1. `hardhat run scripts/deploy.js --network <net>` writes new addresses.
+2. Commit the updated `deployments/<net>.env`.
+3. Update contract-address env vars in Render dashboard for every service that uses them.
+4. Redeploy UI (addresses are baked into the bundle).
+5. Update ENS contenthash.
+6. Old indexer data is wrong — wipe the indexer Postgres and resync from the new contracts' start block.
 
-# 5. Deploy contracts to mainnet
-cd hardhat && npx hardhat run scripts/deploy.js --network mainnet
+This is intentionally high-friction. For testnet it's tolerable; for mainnet, consider adding an audit pass before each redeploy.
 
-# 6. Build + upload UI for mainnet (different CID due to different addresses)
-./scripts/deploy-ui.sh mainnet
-# → CID: QmXyz...
-
-# 7. Point production ENS name at it
-./scripts/update-ens.sh myapp.eth QmXyz...
-# → https://myapp.eth.limo
-```
-
-### UI Deployment Checklist
-
-- [ ] Smart contracts deployed to target network
-- [ ] `PINATA_JWT` set in `.env.secrets`
-- [ ] `ENS_OWNER_PRIVATE_KEY` set in `.env.secrets`
-- [ ] `VITE_WALLETCONNECT_PROJECT_ID` set in `.env.secrets`
-- [ ] Indexer event cache URL configured (`VITE_INDEXER_URL`)
-- [ ] Run `./scripts/deploy-ui.sh <network>` — note the CID
-- [ ] Verify the build at `https://gateway.pinata.cloud/ipfs/<CID>`
-- [ ] Run `./scripts/update-ens.sh <name>.eth <CID> [--network ...]`
-- [ ] Verify the UI loads at `https://<name>.eth.limo`
-- [ ] Test wallet connection and key workflows on the deployed UI
-
-### Important Notes
-
-1. **Immutability:** Each IPFS deployment gets a unique CID. To update the UI, deploy a new version and update the ENS contenthash.
-
-2. **Pinning:** Content uploaded via Pinata is pinned automatically. As long as your Pinata account is active, the content remains available.
-
-3. **Environment Variables:** Vite only includes `VITE_*` prefixed variables in the build. Contract addresses and the indexer URL are baked in at build time by `setup-env.sh`.
-
-4. **Network-specific builds:** Because contract addresses differ between sepolia and mainnet, each network needs its own build and CID. If you have separate ENS names for testnet and mainnet, each gets its own contenthash.
-
-## Network Configuration
-
-### Hardhat Networks
-
-Configured in `hardhat/hardhat.config.cjs`:
-
-| Network | RPC URL | Chain ID | Usage |
-|---------|---------|----------|-------|
-| localhost | http://127.0.0.1:8545 | 31337 | Local dev |
-| sepolia | https://rpc.sepolia.org | 11155111 | Testnet |
-| mainnet | https://eth.llamarpc.com | 1 | Production |
-
-All networks use 120-second timeout.
-
-### Alternative: Base L2 Deployment
-
-The project documentation mentions considering Base/Base Sepolia (see [specs/shared/tech.md](specs/shared/tech.md)). To deploy to Base:
-
-1. Update `hardhat.config.cjs` with Base network:
-   ```javascript
-   base: {
-     url: "https://mainnet.base.org",
-     chainId: 8453,
-     accounts: [process.env.DEPLOYER_PRIVATE_KEY]
-   }
-   ```
-2. Deploy: `npx hardhat run scripts/deploy.js --network base`
-
-## Environment Variables
-
-Environment configuration is split into two categories:
-
-### Secrets (manual — `.env.secrets`)
-
-You set these once. They never get committed. Copy `.env.secrets.example` to `.env.secrets`:
+### UI-only change
 
 ```bash
-DEPLOYER_PRIVATE_KEY=0x...        # Wallet for deploying contracts
-ATTESTER_PRIVATE_KEY=0x...        # Wallet for the attester service
-OPENROUTER_API_KEY=sk-...         # LLM API key for attester
-VITE_WALLETCONNECT_PROJECT_ID=... # From cloud.walletconnect.com
-# ETHERSCAN_API_KEY=...           # Optional, for contract verification
-# X402_PAYMENT_ADDRESS=0x...      # Optional, payment recipient
+./scripts/deploy-ui.sh <network>       # → new CID
+./scripts/update-ens.sh <name>.eth <cid>
 ```
 
-### Contract Addresses (auto-populated — `deployments/<network>.env`)
+Users may see the old CID until their gateway cache expires (minutes to hours).
 
-The deploy script writes these. They are committed to git so all services can reference them:
+---
 
-```
-deployments/
-  ├── localhost.env   # Local Hardhat node addresses
-  ├── sepolia.env     # Testnet addresses (after deploying)
-  └── mainnet.env     # Production addresses (after deploying)
-```
+## Pre-mainnet checklist
 
-Each file contains all contract addresses (BELIEFS_CONTRACT_ADDRESS, IMPLICATIONS_CONTRACT_ADDRESS, etc.).
+Do not deploy to mainnet until all of these are checked:
 
-### How it fits together
+### Security
+- [ ] Professional smart-contract audit passed
+- [ ] Generative / invariant testing complete
+- [ ] Emergency pause procedures documented
+- [ ] Separate wallets for deployer, attester(s), nudger(s), verifier, ENS owner — never reuse keys
+- [ ] Private keys stored in a password manager or hardware wallet, not plaintext
+- [ ] Mainnet `DEPLOYER_PRIVATE_KEY` only used for deployment, then retired
 
-```
-.env.secrets              ← you fill in (gitignored)
-deployments/<network>.env ← deploy script fills in (committed)
-         ↓
-  ./scripts/setup-env.sh <network>
-         ↓
-  .env                    ← root (hardhat, docker-compose, indexer)
-  implication-attester/.env           ← attester service
-  ui/.env                 ← frontend (VITE_ prefixed)
-  integration-tests/.env.local
-```
+### Infrastructure
+- [ ] Indexer gap resolved (see above) — testnet indexer has been running stably for at least a week
+- [ ] Paid RPC endpoint (Alchemy/Infura) configured — public endpoints will rate-limit the indexer
+- [ ] Render services moved off `plan: standard` only if load requires it (standard is fine to start)
+- [ ] `autoDeploy: false` on mainnet services; deploy from tagged releases
+- [ ] Postgres add-on has automated backups enabled
+- [ ] Monitoring: at least Sentry (or similar) on the AI services
 
-The deploy script also propagates addresses to service `.env` files automatically. Use `setup-env.sh` to regenerate them later (e.g. on a fresh clone, or to switch networks).
+### Contracts
+- [ ] Contracts verified on Etherscan
+- [ ] `deployments/mainnet.env` committed
+- [ ] `ChannelVerifier` trusted-verifier address matches `platform-api-service` `VERIFIER_PRIVATE_KEY`
+- [ ] Tenderly or similar alerts set up for unusual contract activity
 
-### Attester Service Variables
+### UI
+- [ ] UI builds against mainnet addresses
+- [ ] CID pinned to Pinata
+- [ ] ENS contenthash updated
+- [ ] `https://<name>.eth.limo` loads and wallet connection works
 
-See [implication-attester/README.md](implication-attester/README.md) for full list. Key variables:
+### Sign-off
+- [ ] Manual smoke test: create belief, add implication, receive nudge, fund a creator
+- [ ] Announcement prepared
 
-```bash
-ETHEREUM_RPC_URL=...                # RPC endpoint for network
-ATTESTER_PRIVATE_KEY=0x...          # Attester wallet (needs ETH) — from .env.secrets
-IMPLICATIONS_CONTRACT_ADDRESS=0x... # From deployments/<network>.env
-OPENROUTER_API_KEY=sk-...           # LLM API key — from .env.secrets
-X402_PAYMENT_ADDRESS=0x...          # Payment recipient — from .env.secrets
-```
+---
 
-## Deployment Artifacts
+## Operations
 
-### Contract Deployment Records
+### Health checks
 
-After deployment, find deployment info in two places:
+- Attester and nudger services: `GET /health`
+- Indexer (once deployed): `POST /graphql { "query": "{ _meta { block { number } } }" }`
+- IPFS (Pinata): visit `https://gateway.pinata.cloud/ipfs/<cid>`
+- ENS: visit `https://<name>.eth.limo`
 
-**Committable addresses** (use these):
-```
-deployments/
-  ├── localhost.env
-  ├── sepolia.env
-  └── mainnet.env
-```
+### Logs
 
-**Detailed JSON metadata** (gitignored, for reference):
-```
-hardhat/deployments/
-  ├── localhost-<timestamp>.json
-  ├── sepolia-<timestamp>.json
-  └── mainnet-<timestamp>.json
-```
+Render streams logs per service. For anything beyond casual debugging, add Sentry (or similar). Render log retention is limited.
 
-Each JSON file contains: contract addresses, deployer address, block number, transaction hash, timestamp.
+### Rollback
 
-### Indexer Configuration
+- **Services:** Render keeps previous Docker images. In the dashboard: Deploys → pick a previous successful deploy → "Rollback to this deploy."
+- **UI:** Point ENS contenthash back to a previous CID. CIDs are immutable; as long as Pinata still has the old one pinned, rollback is instant.
+- **Contracts:** no rollback. Deploy a new version and update addresses everywhere.
 
-Update `indexer/ponder.config.ts` with the deployed network:
+### Costs (approximate, mid-2026)
 
-```typescript
-networks: {
-  mainnet: {
-    chainId: 1,
-    transport: http(process.env.PONDER_RPC_URL_1),
-  },
-},
-```
+- Render: 8 services × ~$25/mo standard = ~$200/mo. Can probably drop several to `starter` (~$7/mo) once load is known.
+- Render Postgres for indexer: ~$7–20/mo depending on plan.
+- Pinata: free tier covers a few CIDs; paid starts at ~$20/mo.
+- RPC (Alchemy/Infura): free tier covers light testnet use; production indexer probably needs ~$50/mo.
+- Total rough ballpark: **$250–400/mo** before mainnet gas.
 
-## Monitoring and Verification
+---
 
-### Verify Deployment Success
+## Known gaps / future work
 
-1. **Check contract addresses** - All contracts deployed to expected addresses
-2. **Test basic operations** - Create belief, add implication, verify indexer updates
-3. **Monitor gas usage** - Ensure operations are within expected gas limits
-4. **Check indexer sync** - Ponder indexer catching up with chain
+See [TODO.md](TODO.md) for the prioritized list. Deployment-relevant items:
 
-### Health Checks
+- **Indexer prod-readiness** — the four-step plan above.
+- **DNS + ENS names** — not registered yet.
+- **Second smart-contract audit pass.**
+- **Monitoring / alerting** — only Render's built-in logs today.
+- **Staging environment** — Render supports preview environments per PR; worth enabling before the project has real users.
 
-- **Attester service**: `curl https://your-service.onrender.com/health`
-- **Indexer REST API**: `curl http://localhost:42069/api/events` (or production URL)
-- **IPFS**: `curl http://localhost:5001/api/v0/id` (or Pinata/Infura)
+---
 
 ## Troubleshooting
 
-### Common Issues
+| Symptom                                 | Likely cause                                                | Fix                                                                  |
+| --------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------- |
+| "Insufficient funds for gas"            | Deployer wallet empty                                       | Send ETH; for sepolia use a faucet                                   |
+| Service builds but crashes on boot      | Missing env var                                             | Check Render logs; compare to `.env.example` in the service dir      |
+| Attester never attests                  | Attester wallet has no ETH, or wrong `IMPLICATIONS_CONTRACT_ADDRESS` | Check wallet balance; compare addresses to `deployments/<net>.env`   |
+| Indexer not syncing                     | Wrong `START_BLOCK`, wrong RPC URL, or indexer not yet prod-ready | See "indexer gap" section                                            |
+| UI loads but can't read contracts       | Stale bundle with old addresses                             | Rebuild UI with `./scripts/deploy-ui.sh <network>` and update ENS    |
+| ENS update transaction reverts          | `ENS_OWNER_PRIVATE_KEY` doesn't own the name                | Verify ownership at app.ens.domains                                  |
 
-**"Insufficient funds for gas"**
-- Ensure deployer wallet has enough ETH for gas
-- Check network gas prices and adjust
-
-**"Contract deployment timeout"**
-- Increase timeout in `hardhat.config.cjs`
-- Use faster RPC endpoint
-
-**"Indexer not syncing"**
-- Verify contract addresses in `ponder.config.ts`
-- Check RPC URL connectivity
-- Review indexer logs for errors
-
-**"Attester service failing to attest"**
-- Verify attester wallet has ETH
-- Check `IMPLICATIONS_CONTRACT_ADDRESS` is correct
-- Verify LLM API key is valid
-
-### Getting Help
-
-- Review contract ABIs in `hardhat/artifacts/contracts/`
-- Check integration tests in `integration-tests/` for usage examples
-- See [specs/](specs/) directory for technical architecture
-- Review [TODO.md](TODO.md) for known issues
-
-## Security Best Practices
-
-1. **Never commit private keys** - Use `.env.secrets` (gitignored) or hardware wallets
-2. **Use separate wallets** - Different keys for deployer, attester, and admin roles
-3. **Test on testnet first** - Always deploy to Sepolia before mainnet
-4. **Verify contract source** - Publish verified source on Etherscan
-5. **Monitor contract activity** - Set up alerts for unusual transactions
-6. **Limit initial exposure** - Consider caps/pauses for initial mainnet deployment
-7. **Incident response plan** - Have procedures for emergency pause or upgrade
-
-## Next Steps After Deployment
-
-1. **Generative Testing** - Run attack scenarios and invariant checking
-2. **Professional Audit** - Engage smart contract auditors
-3. **Documentation Update** - Update all docs with mainnet addresses
-4. **Community Announcement** - Notify users of deployment
-5. **Monitoring Setup** - Configure Tenderly, Defender, or similar tools
-6. **Frontend Deployment** - Deploy UI pointing to production contracts
+For anything not here, check Render logs first, then the service's own README.

@@ -10,7 +10,8 @@
 
 - Get DNS names and ENS names.
 
-- How do we keep deployments from becoming unwieldy? [DEPLOYMENT.md](./DEPLOYMENT.md) is probably out of date. Update it; consider infrastructure-as-code.
+- The indexer (Ponder) genuinely is not prod-ready — ponder.config.ts only declares the hardhat chain, the Dockerfile runs ponder dev, and there's no Postgres.
+- Make the indexer deployable to Render. See the "indexer gap" section in [DEPLOYMENT.md](./DEPLOYMENT.md) for the four concrete code changes needed (sepolia/mainnet chains in `ponder.config.ts`, switch to `ponder start` in prod, clean up `start.sh`, add Postgres add-on + blueprint entry). Until this is done, testnet/mainnet deployments have no event cache.
 
 - Do another smart-contract audit pass.
 - (Not a task for AI.) Try out the UI manually.

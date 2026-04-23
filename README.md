@@ -29,7 +29,7 @@ See [ROLES.md](ROLES.md) for the full guide. Quick version:
   - AI continuity notes: [CONTINUITY.md](CONTINUITY.md)
   - Build-process documentation: [BUILD.md](BUILD.md)
   - Reviews: [REVIEWS.md](REVIEWS.md)
-  - Deployment instructions (including how to run locally): [DEPLOYMENT.md](DEPLOYMENT.md)
+  - Deployment instructions for testnet/mainnet: [DEPLOYMENT.md](DEPLOYMENT.md) (local dev is above, in this file)
   - To-do list: [TODO.md](TODO.md)
 
 ## Feedback loops
