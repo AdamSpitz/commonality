@@ -25,6 +25,6 @@ RUN chmod a+rx /app/start.sh
 # Expose Ponder API port
 EXPOSE 42069
 
-# Start Ponder in dev mode (no UI for integration tests)
-# Use a wrapper script so the container reads the latest /workspace/.env at runtime.
+# Start via the wrapper script so local Docker can still pick up /workspace/.env
+# while production can switch to `ponder start` via PONDER_SCRIPT.
 CMD ["/app/start.sh"]

@@ -78,7 +78,7 @@ npx hardhat verify --network sepolia <address> <constructor-args>
 First time only:
 
 1. In Render, **New → Blueprint**, connect to this GitHub repo.
-2. Render reads `render.yaml` and creates all 8 services at once.
+2. Render reads `render.yaml` and creates all 9 services plus the indexer Postgres database.
 3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs.
 4. Addresses come from `deployments/sepolia.env`; copy-paste them into Render.
 
@@ -89,6 +89,7 @@ Verify:
 ```bash
 curl https://commonality-attester.onrender.com/health
 curl https://commonality-implication-graph-nudger.onrender.com/health
+curl https://commonality-indexer.onrender.com/graphql
 # ...etc, one per service
 ```
 
@@ -111,61 +112,24 @@ Supported domains: `commonality` (default), `content-funding`, `noninflammatory`
 
 ---
 
-## The indexer gap
+## Indexer on Render
 
-**The indexer is not currently deployable to Render.** Documenting this honestly because the TODO item about DEPLOYMENT.md being out of date is partly this. To unblock indexer deployment, four things must change:
+The Render blueprint now includes both the `commonality-indexer` web service and a `commonality-indexer-db` Postgres database.
 
-### What needs to happen
+Set these indexer env vars in the Render dashboard:
 
-1. **Add sepolia/mainnet chains to `indexer/ponder.config.ts`.** Today only `hardhat` (31337) is configured. Need entries that read `PONDER_RPC_URL_11155111` / `PONDER_RPC_URL_1` and a `chain` selector so contracts map to the right network.
-2. **Switch the production start command to `ponder start`.** The Dockerfile currently runs `npm run dev:no-ui` (dev mode). In `render.yaml`, override `dockerCommand: npm start` for the indexer service, or add a prod-specific start script.
-3. **Stop sourcing `/workspace/.env` in `start.sh`.** That bind-mount only exists in docker-compose. On Render, env comes from the platform. Either guard the source (`if [ -f ]`, which it already does) — that part's fine — or remove the line entirely.
-4. **Add a Postgres database.** Ponder defaults to embedded PGLite when `database` is unset in `ponder.config.ts`. In prod, add a Render Postgres add-on and set `DATABASE_URL` / `PONDER_DATABASE_SCHEMA`. Postgres on Render starts at ~$7/mo.
+- `PONDER_CHAIN`: `sepolia` for testnet or `mainnet` for production
+- `PONDER_RPC_URL_11155111` or `PONDER_RPC_URL_1`: RPC URL for the selected chain
+- `START_BLOCK`: block where the deployed contracts start emitting relevant events
+- All contract addresses from `deployments/<network>.env`
 
-### Recommended `render.yaml` addition (for reference, not merged yet)
+The blueprint already wires:
 
-```yaml
-databases:
-  - name: commonality-indexer-db
-    plan: basic-256mb         # start small, grow if needed
-    postgresMajorVersion: 16
+- `PONDER_SCRIPT=start` so hosted deployments use `ponder start`
+- `DATABASE_URL` from the managed Postgres database
+- `DATABASE_SCHEMA=public`
 
-services:
-  - type: web
-    name: commonality-indexer
-    env: docker
-    rootDir: .
-    dockerContext: .
-    dockerfilePath: indexer/Dockerfile
-    dockerCommand: npm start    # overrides dev-mode CMD in Dockerfile
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: commonality-indexer-db
-          property: connectionString
-      - key: PONDER_DATABASE_SCHEMA
-        value: public
-      - key: PONDER_RPC_URL_11155111   # sepolia
-        sync: false
-      - key: BELIEFS_CONTRACT_ADDRESS
-        sync: false
-      - key: IMPLICATIONS_CONTRACT_ADDRESS
-        sync: false
-      # ... all other contract addresses from deployments/sepolia.env
-      - key: START_BLOCK
-        sync: false  # block where contracts were deployed
-    healthCheckPath: /graphql
-    autoDeploy: true
-    plan: standard
-```
-
-### Alternatives considered
-
-- **Railway** has cleaner ergonomics for stateful services + Postgres, and would host the indexer well. The downside is splitting the deployment across two platforms. Worth revisiting if Render's Postgres is painful.
-- **Self-hosted on a VM (Hetzner, DO droplet)** with a docker-compose file is cheaper (~$6/mo all-in) but trades ops time for money. Not worth it pre-launch.
-- **Managed Ponder hosts** (if one appears in the ecosystem) — none mature enough to rely on at the time of writing.
-
-**Recommendation:** stay on Render. Do the four changes above, add the Postgres add-on, deploy the indexer alongside the other services. Port to Railway only if you hit a limit.
+For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
 
 ---
 
@@ -247,7 +211,7 @@ Do not deploy to mainnet until all of these are checked:
 - [ ] Mainnet `DEPLOYER_PRIVATE_KEY` only used for deployment, then retired
 
 ### Infrastructure
-- [ ] Indexer gap resolved (see above) — testnet indexer has been running stably for at least a week
+- [ ] Testnet indexer has been running stably for at least a week
 - [ ] Paid RPC endpoint (Alchemy/Infura) configured — public endpoints will rate-limit the indexer
 - [ ] Render services moved off `plan: standard` only if load requires it (standard is fine to start)
 - [ ] `autoDeploy: false` on mainnet services; deploy from tagged releases

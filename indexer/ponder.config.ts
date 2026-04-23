@@ -31,6 +31,30 @@ import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
 import { ChannelEscrowAbi } from "./abis/ChannelEscrowAbi";
 import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
 
+const SUPPORTED_CHAINS = ["hardhat", "sepolia", "mainnet"] as const;
+type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
+type CreateConfigArgs = Parameters<typeof createConfig>[0];
+
+function getIndexerChain(): SupportedChain {
+  const chain = process.env.PONDER_CHAIN ?? "hardhat";
+
+  if ((SUPPORTED_CHAINS as readonly string[]).includes(chain)) {
+    return chain as SupportedChain;
+  }
+
+  throw new Error(
+    `Unsupported PONDER_CHAIN "${chain}". Expected one of: ${SUPPORTED_CHAINS.join(", ")}`,
+  );
+}
+
+function getRpcTransport(url: string | undefined) {
+  return url
+    ? http(url, {
+        timeout: 10_000,
+      })
+    : undefined;
+}
+
 const creatorContractCreatedEvent = {
   type: "event",
   name: "CreatorContractCreated",
@@ -86,6 +110,7 @@ const PUBSTARTER_START_BLOCK = Number(process.env.PUBSTARTER_START_BLOCK || STAR
 const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || START_BLOCK);
 const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
 const CONTENT_FUNDING_START_BLOCK = Number(process.env.CONTENT_FUNDING_START_BLOCK || START_BLOCK);
+const INDEXER_CHAIN = getIndexerChain();
 
 const contracts = {
   // ========================================================================
@@ -95,14 +120,14 @@ const contracts = {
   // Beliefs contract - tracks user beliefs about statements
   Beliefs: {
     abi: BeliefsAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: BELIEFS_ADDRESS,
     startBlock: START_BLOCK,
   },
   // Implications contract - tracks implication attestations between statements
   Implications: {
     abi: ImplicationsAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: IMPLICATIONS_ADDRESS,
     startBlock: START_BLOCK,
   },
@@ -116,7 +141,7 @@ const contracts = {
   // Factory contract for creating assurance contracts
   AssuranceContractFactory: {
     abi: AssuranceContractFactoryAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
     startBlock: PUBSTARTER_START_BLOCK,
   },
@@ -124,7 +149,7 @@ const contracts = {
   // Factory contract for creating ERC1155 tokens
   ERC1155Factory: {
     abi: PremintingERC1155FactoryAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: ERC1155_FACTORY_ADDRESS,
     startBlock: PUBSTARTER_START_BLOCK,
   },
@@ -132,7 +157,7 @@ const contracts = {
   // Factory contract for creating secondary marketplaces
   MarketplaceFactory: {
     abi: MarketplaceFactoryAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: MARKETPLACE_FACTORY_ADDRESS,
     startBlock: PUBSTARTER_START_BLOCK,
   },
@@ -142,7 +167,7 @@ const contracts = {
   // The factory() function returns addresses discovered from factory events
   AssuranceContract: {
     abi: AssuranceContractAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
       ? factory({
           address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
@@ -156,7 +181,7 @@ const contracts = {
   // Dynamically indexed secondary marketplaces (created by factory)
   SecondaryMarket: {
     abi: ERC1155SecondaryMarketAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: MARKETPLACE_FACTORY_ADDRESS
       ? factory({
           address: MARKETPLACE_FACTORY_ADDRESS,
@@ -171,7 +196,7 @@ const contracts = {
   // Used to track token burns (transfers to zero address)
   PremintingERC1155: {
     abi: PremintingERC1155Abi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: ERC1155_FACTORY_ADDRESS
       ? factory({
           address: ERC1155_FACTORY_ADDRESS,
@@ -190,14 +215,14 @@ const contracts = {
 
   DelegatableNotes: {
     abi: DelegatableNotesAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: DELEGATABLE_NOTES_ADDRESS,
     startBlock: DELEGATION_START_BLOCK,
   },
 
   NoteIntent: {
     abi: NoteIntentAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: NOTE_INTENT_ADDRESS,
     startBlock: DELEGATION_START_BLOCK,
   },
@@ -211,7 +236,7 @@ const contracts = {
 
   AlignmentAttestations: {
     abi: AlignmentAttestationsAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: ALIGNMENT_ATTESTATIONS_ADDRESS,
     startBlock: FUNDING_PORTAL_START_BLOCK,
   },
@@ -225,7 +250,7 @@ const contracts = {
 
   MutableRefUpdater: {
     abi: MutableRefUpdaterAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: MUTABLE_REF_UPDATER_ADDRESS,
     startBlock: START_BLOCK,
   },
@@ -236,7 +261,7 @@ const contracts = {
   // Content Registry - tracks registered content items and their contracts
   ContentRegistry: {
     abi: ContentRegistryAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: CONTENT_REGISTRY_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -244,7 +269,7 @@ const contracts = {
   // Channel Registry - tracks channel verification and control states
   ChannelRegistry: {
     abi: ChannelRegistryAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: CHANNEL_REGISTRY_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -252,7 +277,7 @@ const contracts = {
   // Channel Escrow - holds funds for unclaimed channels
   ChannelEscrow: {
     abi: ChannelEscrowAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: CHANNEL_ESCROW_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -260,7 +285,7 @@ const contracts = {
   // Creator Assurance Contract Factory - creates content-funding contracts
   CreatorAssuranceContractFactory: {
     abi: CreatorAssuranceContractFactoryAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: CREATOR_CONTRACT_FACTORY_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -268,7 +293,7 @@ const contracts = {
   // Dynamically indexed creator assurance contracts (created by factory)
   CreatorAssuranceContract: {
     abi: AssuranceContractAbi,
-    chain: "hardhat",
+    chain: INDEXER_CHAIN,
     address: CREATOR_CONTRACT_FACTORY_ADDRESS
       ? factory({
           address: CREATOR_CONTRACT_FACTORY_ADDRESS,
@@ -280,19 +305,42 @@ const contracts = {
   },
 } as const;
 
+function getActiveChains() {
+  switch (INDEXER_CHAIN) {
+    case "hardhat":
+      return {
+        hardhat: {
+          id: 31337,
+          rpc: getRpcTransport(process.env.PONDER_RPC_URL_31337 || "http://localhost:8545"),
+          pollingInterval: 100, // Poll every 100ms for faster test execution (default is 1000ms)
+        },
+      } as const;
+    case "sepolia":
+      return {
+        sepolia: {
+          id: 11155111,
+          rpc: getRpcTransport(process.env.PONDER_RPC_URL_11155111),
+        },
+      } as const;
+    case "mainnet":
+      return {
+        mainnet: {
+          id: 1,
+          rpc: getRpcTransport(process.env.PONDER_RPC_URL_1),
+        },
+      } as const;
+  }
+}
+
+const chains = getActiveChains() as unknown as CreateConfigArgs["chains"];
+
 export default createConfig({
-  database: process.env.PONDER_EPHEMERAL === 'true'
-    ? { kind: "pglite", directory: "/tmp/ponder-pglite" } // Writable ephemeral DB for Docker-based test runs
-    : undefined, // Uses default persistent database
-  chains: {
-    // Local Hardhat network for development
-    hardhat: {
-      id: 31337,
-      rpc: http(process.env.PONDER_RPC_URL_31337 || "http://localhost:8545", {
-        timeout: 10_000, // 10 second timeout instead of default
-      }),
-      pollingInterval: 100, // Poll every 100ms for faster test execution (default is 1000ms)
-    },
-  },
+  database:
+    process.env.PONDER_EPHEMERAL === "true"
+      ? { kind: "pglite", directory: "/tmp/ponder-pglite" } // Writable ephemeral DB for Docker-based test runs
+      : process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL
+        ? { kind: "postgres" }
+        : undefined,
+  chains,
   contracts,
 });

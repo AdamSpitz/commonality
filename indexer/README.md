@@ -10,7 +10,18 @@ A single Ponder application with one responsibility:
 
 No business logic, no aggregation, no IPFS sync. All entity-state computation happens client-side in SDK fold functions. This is the **Client-Side Folding** pattern — non-obvious, but intentional.
 
-See [specs/indexer/README.md](../specs/indexer/README.md) for the full explanation of what this means and why.
+See [specs/tech/indexer/README.md](../specs/tech/indexer/README.md) for the full explanation of what this means and why.
+
+## Deployment
+
+For local Docker development, the indexer defaults to `PONDER_CHAIN=hardhat` and starts in dev mode.
+
+For Render or other hosted environments:
+
+- Set `PONDER_CHAIN` to `sepolia` or `mainnet`.
+- Provide the matching RPC URL as `PONDER_RPC_URL_11155111` or `PONDER_RPC_URL_1`.
+- Set `DATABASE_URL` and `DATABASE_SCHEMA` for Postgres-backed sync state.
+- Run with `PONDER_SCRIPT=start` so the container uses `ponder start` instead of dev mode.
 
 ## Dev stuff you can do
 

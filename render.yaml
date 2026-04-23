@@ -1,7 +1,68 @@
 # Render deployment configuration for Commonality services
 # See https://render.com/docs/blueprint-spec
 
+databases:
+  - name: commonality-indexer-db
+    plan: basic-256mb
+    postgresMajorVersion: 16
+
 services:
+  # Indexer
+  - type: web
+    name: commonality-indexer
+    env: docker
+    rootDir: indexer
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PONDER_SCRIPT
+        value: start
+      - key: DATABASE_URL
+        fromDatabase:
+          name: commonality-indexer-db
+          property: connectionString
+      - key: DATABASE_SCHEMA
+        value: public
+      - key: PONDER_CHAIN
+        sync: false  # Set in Render dashboard to sepolia or mainnet
+      - key: PONDER_RPC_URL_11155111
+        sync: false  # Set in Render dashboard for Sepolia deployments
+      - key: PONDER_RPC_URL_1
+        sync: false  # Set in Render dashboard for mainnet deployments
+      - key: START_BLOCK
+        sync: false  # Set to the contract deployment block
+      - key: BELIEFS_CONTRACT_ADDRESS
+        sync: false
+      - key: IMPLICATIONS_CONTRACT_ADDRESS
+        sync: false
+      - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+        sync: false
+      - key: ERC1155_FACTORY_ADDRESS
+        sync: false
+      - key: MARKETPLACE_FACTORY_ADDRESS
+        sync: false
+      - key: DELEGATABLE_NOTES_ADDRESS
+        sync: false
+      - key: NOTE_INTENT_ADDRESS
+        sync: false
+      - key: ALIGNMENT_ATTESTATIONS_ADDRESS
+        sync: false
+      - key: MUTABLE_REF_UPDATER_ADDRESS
+        sync: false
+      - key: CONTENT_REGISTRY_ADDRESS
+        sync: false
+      - key: CHANNEL_REGISTRY_ADDRESS
+        sync: false
+      - key: CHANNEL_ESCROW_ADDRESS
+        sync: false
+      - key: CREATOR_CONTRACT_FACTORY_ADDRESS
+        sync: false
+    healthCheckPath: /graphql
+    autoDeploy: true
+    plan: standard
+
   # AI Attester Service
   - type: web
     name: commonality-attester
@@ -329,3 +390,4 @@ services:
 # explorer-curator: ETHEREUM_RPC_URL, NUDGER_PRIVATE_KEY, NUDGE_PUBLICATIONS_CONTRACT_ADDRESS, INDEXER_URL, OPENROUTER_API_KEY
 # content-finder: PLATFORM_API_URL, ATTESTER_URL, ATTESTER_FINDER_KEY
 # implication-finder: EVENT_CACHE_URL, ATTESTER_URL, ATTESTER_FINDER_KEY, BELIEFS_CONTRACT_ADDRESS, IMPLICATIONS_CONTRACT_ADDRESS
+# commonality-indexer: PONDER_CHAIN, PONDER_RPC_URL_11155111 or PONDER_RPC_URL_1, START_BLOCK, all contract addresses

@@ -2,13 +2,15 @@
 
 set -eu
 
-# Load the latest contract addresses written by hardhat-deploy.
-# Docker Compose's env_file is resolved before services start, so sourcing the
-# mounted project .env at runtime avoids stale addresses when deployment order changes.
+# Docker Compose resolves env files before services start, so local dev still
+# benefits from re-sourcing the mounted project .env when it exists. Render
+# does not mount this file, so production simply uses platform-provided env.
 if [ -f /workspace/.env ]; then
   set -a
   . /workspace/.env
   set +a
 fi
 
-exec npm run dev:no-ui
+PONDER_SCRIPT="${PONDER_SCRIPT:-dev:no-ui}"
+
+exec npm run "$PONDER_SCRIPT"

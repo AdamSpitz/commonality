@@ -1,5 +1,42 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-23 - Make indexer deployable to Render for testnet/mainnet (Completed)
+
+**Task**: Complete the `TODO.md` item to make the Ponder indexer ready for testnet/prod deployment by wiring hosted chain selection, production startup, and Render Postgres/blueprint support.
+
+**What was done**:
+- Updated [`indexer/ponder.config.ts`](/home/adam/Projects/commonality/indexer/ponder.config.ts) so the indexer can target `hardhat`, `sepolia`, or `mainnet` via `PONDER_CHAIN`, with RPC env vars for chain IDs `31337`, `11155111`, and `1`.
+- Kept local ephemeral-PGlite behavior for test runs, but made hosted deployments explicitly use Postgres when `DATABASE_URL` / `DATABASE_PRIVATE_URL` is present.
+- Updated [`indexer/start.sh`](/home/adam/Projects/commonality/indexer/start.sh) and [`indexer/Dockerfile`](/home/adam/Projects/commonality/indexer/Dockerfile) so the same image can run `ponder dev --disable-ui` locally or `ponder start` in hosted environments via `PONDER_SCRIPT`.
+- Added the Render Postgres database and `commonality-indexer` service to [`render.yaml`](/home/adam/Projects/commonality/render.yaml), including the required chain/RPC/start-block/address env vars.
+- Updated [`DEPLOYMENT.md`](/home/adam/Projects/commonality/DEPLOYMENT.md), [`indexer/README.md`](/home/adam/Projects/commonality/indexer/README.md), and [`TODO.md`](/home/adam/Projects/commonality/TODO.md) to reflect the new deployment path and required env vars.
+
+**Key decisions**:
+- Used a single `PONDER_CHAIN` selector for all indexed contracts because this repo deploys the whole contract set to one network at a time; that keeps the config explicit without adding unnecessary per-contract chain mapping.
+- Reused the existing `start.sh` wrapper instead of introducing a second entrypoint, so local Docker still gets the late-bound `/workspace/.env` behavior while Render can opt into prod mode with one env var.
+- Used Render `rootDir: indexer` with `dockerContext: .` / `dockerfilePath: Dockerfile` so the existing indexer Dockerfile continues to build against the package-local context instead of requiring a broader monorepo Docker refactor.
+- Documented `DATABASE_SCHEMA` (not the older `PONDER_DATABASE_SCHEMA` wording from the previous deployment note) because that is what the installed Ponder version actually reads.
+
+**Verified**:
+- `npm run lint --workspace=indexer` ✓
+- `npm run build --workspace=indexer` ✓
+
+**Files changed**:
+- `indexer/ponder.config.ts`
+- `indexer/start.sh`
+- `indexer/Dockerfile`
+- `indexer/README.md`
+- `render.yaml`
+- `DEPLOYMENT.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- This task makes the indexer deployable, but it does not prove a live Render deployment. The next practical step is a real Sepolia deployment and at least a short stability soak.
+- Render health checks hit `GET /graphql`; if Render reports this endpoint as unhealthy in practice, switch to a tiny explicit health route instead of relying on the GraphQL endpoint semantics.
+
+**Interrupt point**: Yes. The code/config/docs side of “indexer deployable to Render” is complete; the next work item is operational validation, not more implementation.
+
 ## 2026-04-22 - Seed-content markdown generation from JSON (Completed)
 
 **Task**: Complete the `TODO.md` follow-up to generate the prose seed-content markdown from the formal JSON source of truth and include a note that the markdown is auto-generated.

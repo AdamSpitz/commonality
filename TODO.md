@@ -10,8 +10,7 @@
 
 - Get DNS names and ENS names.
 
-- The indexer (Ponder) genuinely is not prod-ready — ponder.config.ts only declares the hardhat chain, the Dockerfile runs ponder dev, and there's no Postgres.
-- Make the indexer deployable to Render. See the "indexer gap" section in [DEPLOYMENT.md](./DEPLOYMENT.md) for the four concrete code changes needed (sepolia/mainnet chains in `ponder.config.ts`, switch to `ponder start` in prod, clean up `start.sh`, add Postgres add-on + blueprint entry). Until this is done, testnet/mainnet deployments have no event cache.
+- [x] Make the indexer deployable to Render for testnet/mainnet. `indexer/ponder.config.ts` now supports `hardhat`/`sepolia`/`mainnet`, hosted deployments run `ponder start`, the Render blueprint includes the indexer + Postgres, and [DEPLOYMENT.md](./DEPLOYMENT.md) documents the required env vars.
 
 - Do another smart-contract audit pass.
 - (Not a task for AI.) Try out the UI manually.
@@ -29,3 +28,7 @@
 ## Out of scope for the MVP, but worth remembering
 
 - [Bridges](specs/tech/bridges.md) to tradfi.
+
+## Suggestions from AI
+
+- Add a lightweight CI/developer smoke check for `render.yaml` plus the indexer’s hosted env shape, so future changes do not silently break the Render blueprint while local Docker still works.
