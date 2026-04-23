@@ -51,11 +51,13 @@ The implication attester's LLM prompt includes explicit guidance on **geographic
 
 A conjunction statement like "I'm interested in crypto in Ontario" implies BOTH of its parents:
 - → "I'm interested in crypto" (topical parent)
-- → "I care about improving Ontario" (geographic parent)
+- → a semantically aligned geographic parent such as "I'm interested in Ontario crypto-related projects or issues"
+
+It does NOT automatically imply a broader civic statement like "I care about improving Ontario". That broader category may be useful for discovery in some cases, but relatedness or portal usefulness is not enough for an implication attestation.
 
 The reverse implications do **NOT** hold:
 - "I'm interested in crypto" does NOT imply "I'm interested in crypto in Ontario"
-- "I care about improving Ontario" does NOT imply "I'm interested in crypto in Ontario"
+- "I'm interested in Ontario crypto-related projects or issues" does NOT imply "I'm interested in crypto in Ontario"
 
 This is critical — without this guidance, the LLM might incorrectly create bidirectional implications, causing users interested in crypto generally to be shown crypto-in-Ontario projects they don't care about.
 

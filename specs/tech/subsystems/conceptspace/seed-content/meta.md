@@ -73,11 +73,10 @@ Note: These are examples of the geographic x topical conjunction pattern.
 
 Statements
 - "I'm interested in crypto in Ontario"
-  - Note: Implies both "I care about crypto" and "I care about improving Ontario".
+  - Note: Implies "I care about crypto" and may imply a semantically aligned geographic parent such as "I'm interested in Ontario crypto-related projects or issues", but does not automatically imply the broader civic claim "I care about improving Ontario".
 - "I'm interested in open-source civic tools for Ontario municipalities"
 - "I'm interested in local community resilience in Ontario"
 
 Expected implication links
 - Conjunction statements like these should be modeled as ordinary statements with direct implication links to their topical and geographic parents.
 - Because implications are non-transitive, useful geographic rollups need direct edges rather than chains.
-

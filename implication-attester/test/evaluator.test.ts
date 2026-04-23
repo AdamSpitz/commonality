@@ -163,6 +163,7 @@ describe('evaluateImplicationWithLLM', () => {
     assert.ok(systemPrompt.includes('geography'), 'System prompt should include geographic guidance');
     assert.ok(systemPrompt.includes('onjunction'), 'System prompt should include conjunction pattern guidance');
     assert.ok(systemPrompt.includes('Reverse') || systemPrompt.includes('reverse'), 'System prompt should clarify non-implications');
+    assert.ok(/relatedness/i.test(systemPrompt), 'System prompt should distinguish implication from mere relatedness');
   });
 
   it('instructs the LLM to be conservative and describes confidence levels', async () => {
@@ -205,6 +206,34 @@ describe('evaluateImplicationWithLLM', () => {
       'System prompt should reject implication judgments that depend on inferred context');
     assert.ok(systemPrompt.includes('I am pro-choice'),
       'System prompt should include a context-dependent worked example');
+  });
+
+  it('warns against broad civic generalizations from topical-geographic conjunctions', async () => {
+    const captured: OpenRouterJsonRequest[] = [];
+
+    await evaluateImplicationWithLLM(
+      'S1', 'S2', 'key', 'model',
+      capturingLLM({ implies: false, confidence: 'low', reasoning: 'test' }, captured)
+    );
+
+    const systemPrompt = captured[0]!.systemPrompt;
+    assert.ok(systemPrompt.includes('It does NOT automatically imply a broader civic statement like "I care about improving Ontario"'),
+      'System prompt should reject broad civic parent jumps from conjunction statements');
+  });
+
+  it('calls out strength, modality, and quantifier shifts as non-implications', async () => {
+    const captured: OpenRouterJsonRequest[] = [];
+
+    await evaluateImplicationWithLLM(
+      'S1', 'S2', 'key', 'model',
+      capturingLLM({ implies: false, confidence: 'low', reasoning: 'test' }, captured)
+    );
+
+    const systemPrompt = captured[0]!.systemPrompt;
+    assert.ok(/quantifier|modality|scope/i.test(systemPrompt),
+      'System prompt should explicitly reject strength/modality/quantifier shifts');
+    assert.ok(systemPrompt.includes('Abortion should always remain legal'),
+      'System prompt should include a worked example for stronger quantifier shifts');
   });
 
   it('uses "explanation" field as fallback for reasoning', async () => {

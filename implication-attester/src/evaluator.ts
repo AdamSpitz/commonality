@@ -23,12 +23,16 @@ If any of the three fails, the answer is "implies: false".
 
 A false positive — attesting an implication that isn't real — is far worse than a false negative. False positives attribute beliefs to people who did not sign them; false negatives just mean a legitimate pair gets attested later. When in doubt, say "implies": false. Reserve "high" confidence for cases where the implication is direct and obvious.
 
+# Important distinction: implication is stronger than relatedness
+
+Do NOT approve a pair merely because the statements are topically related, would appeal to similar people, belong in the same funding portal, or seem like a useful "parent" category. The question is not whether S2 is adjacent to S1; it is whether believing S1 already commits the signer to S2.
+
 # What to accept
 
 - **Subset of claims.** S2 is a strict subset of S1's claims. Example: "I support universal healthcare and free college tuition" → "I support universal healthcare".
 - **Generalization.** S2 is strictly more general than S1; S1 is a specific instance of S2. Example: "Abortion should be legal in cases of rape or incest" → "Abortion should be legal in some cases".
 - **Clarification / rephrasing.** Same meaning, different wording, same framing. Example: "Democracy is good" → "Democratic forms of government are beneficial".
-- **Conjunction → parent (one direction only).** A statement that combines a topic and a region (or any two interests) implies each of its parents. Example: "I'm interested in crypto in Ontario" implies "I'm interested in crypto" AND implies "I care about improving Ontario".
+- **Conjunction / intersection → genuine parent (one direction only).** A more specific statement can imply a semantically aligned parent that cleanly drops one constraint without changing the kind of claim being made. Example: "I'm interested in crypto in Ontario" implies "I'm interested in crypto" and implies "I'm interested in Ontario crypto-related projects or issues". It does NOT automatically imply a broader civic statement like "I care about improving Ontario".
 - **Narrower geography → broader geography (one direction only).** Town → county → province → country. Example: "I care about improving Grey County" → "I care about improving Ontario" → "I care about improving Canada".
 
 # What to reject
@@ -37,9 +41,11 @@ A false positive — attesting an implication that isn't real — is far worse t
 - **S2 changes the framing or emotional valence.** "We should reduce illegal immigration" does NOT imply "We should protect our borders from foreign invasion" — "invasion" is substantively different framing.
 - **S2 is vaguer than S1** in a way that could cover claims S1's signer would reject. "I support background checks for gun purchases" does NOT imply "I support reasonable gun control" — "reasonable gun control" could include registries or bans the S1 signer opposes.
 - **Either statement depends on unstated context.** If S1 or S2 is ambiguous, slogan-like, or underdetermined unless the reader guesses missing background context, reject. Do not infer that missing context yourself. Example: "I am pro-choice" is not clear enough by itself to safely ground implication attestations, because the topic is not explicit.
+- **S2 changes strength, modality, quantifier, or scope.** Reject changes like "some" → "most", "prefer" → "must", "is a concern" → "is a crisis", or adding universals/exceptions not already present in S1.
 - **Parent → conjunction (reverse of the conjunction rule).** "I'm interested in crypto" does NOT imply "I'm interested in crypto in Ontario". A general interest does not imply every specific instance of that interest.
 - **Broader geography → narrower geography (reverse of the hierarchy rule).** "I care about improving Canada" does NOT imply "I care about improving Ontario specifically".
 - **Softened, hedged, or "bridge" rewording of a stronger claim.** If S2 tempers S1 by adding concessions, acknowledging the other side, or removing urgency, reject — the S1 signer endorsed the stronger form, not the hedged one. Example: "Illegal immigration is a crisis that threatens American workers" does NOT imply "Immigration policy affects American workers and deserves careful attention".
+- **Slogan → explicit restatement when the slogan is not self-contained.** Do not turn a shorthand, tribe-marker, or catchphrase into a more explicit proposition unless that proposition is already unambiguously stated in the text itself.
 
 # Output format
 
@@ -90,13 +96,21 @@ Confidence calibration:
    S2: "I'm interested in crypto in Grey County, Ontario"
    → {"implies": false, "confidence": "high", "reasoning": "Reverse of the conjunction rule — a general interest does not imply any specific instance.", "key_difference": "Adds geographic specificity not in S1"}
 
-9) S1: "I care about improving Grey County"
+9) S1: "I'm interested in crypto in Ontario"
    S2: "I care about improving Ontario"
-   → {"implies": true, "confidence": "high", "reasoning": "Narrower geography implies broader geography in the hierarchy rule."}
+   → {"implies": false, "confidence": "high", "reasoning": "Topical relatedness is not enough. Interest in Ontario crypto issues does not by itself imply a broad civic commitment to improving Ontario in general.", "key_difference": "Adds broader civic claim"}
 
-10) S1: "I care about improving Canada"
-   S2: "I care about improving Ontario"
-   → {"implies": false, "confidence": "high", "reasoning": "Reverse of the hierarchy rule — caring about the whole does not imply caring about any particular part.", "key_difference": "Adds geographic specificity not in S1"}`;
+10) S1: "I care about improving Grey County"
+    S2: "I care about improving Ontario"
+    → {"implies": true, "confidence": "high", "reasoning": "Narrower geography implies broader geography in the hierarchy rule."}
+
+11) S1: "I care about improving Canada"
+    S2: "I care about improving Ontario"
+    → {"implies": false, "confidence": "high", "reasoning": "Reverse of the hierarchy rule — caring about the whole does not imply caring about any particular part.", "key_difference": "Adds geographic specificity not in S1"}
+
+12) S1: "Abortion should usually remain legal"
+    S2: "Abortion should always remain legal"
+    → {"implies": false, "confidence": "high", "reasoning": "S2 changes the quantifier and makes a stronger universal claim than S1.", "key_difference": "Stronger quantifier in S2"}`;
 
 export async function evaluateImplicationWithLLM(
   statement1Content: string,
