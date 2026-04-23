@@ -151,7 +151,7 @@ describe('evaluateImplicationWithLLM', () => {
     assert.ok(userPrompt.includes('I support covering dental care'), 'Prompt should include S2');
   });
 
-  it('includes geographic and intersection pattern guidance in the prompt', async () => {
+  it('includes geographic and conjunction pattern guidance in the system prompt', async () => {
     const captured: OpenRouterJsonRequest[] = [];
 
     await evaluateImplicationWithLLM(
@@ -159,10 +159,37 @@ describe('evaluateImplicationWithLLM', () => {
       capturingLLM({ implies: false, confidence: 'low', reasoning: 'test' }, captured)
     );
 
-    const userPrompt = captured[0]!.userPrompt;
-    assert.ok(userPrompt.includes('Geographic'), 'Prompt should include geographic guidance');
-    assert.ok(userPrompt.includes('intersection'), 'Prompt should include intersection pattern guidance');
-    assert.ok(userPrompt.includes('does NOT hold'), 'Prompt should clarify non-implications');
+    const systemPrompt = captured[0]!.systemPrompt;
+    assert.ok(systemPrompt.includes('geography'), 'System prompt should include geographic guidance');
+    assert.ok(systemPrompt.includes('onjunction'), 'System prompt should include conjunction pattern guidance');
+    assert.ok(systemPrompt.includes('Reverse') || systemPrompt.includes('reverse'), 'System prompt should clarify non-implications');
+  });
+
+  it('instructs the LLM to be conservative and describes confidence levels', async () => {
+    const captured: OpenRouterJsonRequest[] = [];
+
+    await evaluateImplicationWithLLM(
+      'S1', 'S2', 'key', 'model',
+      capturingLLM({ implies: false, confidence: 'low', reasoning: 'test' }, captured)
+    );
+
+    const systemPrompt = captured[0]!.systemPrompt;
+    assert.ok(/conservativ/i.test(systemPrompt), 'System prompt should emphasize being conservative');
+    assert.ok(systemPrompt.includes('"high"') && systemPrompt.includes('"medium"') && systemPrompt.includes('"low"'),
+      'System prompt should describe all three confidence levels');
+  });
+
+  it('rejects softened / bridge-style rewordings per the guidance', async () => {
+    const captured: OpenRouterJsonRequest[] = [];
+
+    await evaluateImplicationWithLLM(
+      'S1', 'S2', 'key', 'model',
+      capturingLLM({ implies: false, confidence: 'low', reasoning: 'test' }, captured)
+    );
+
+    const systemPrompt = captured[0]!.systemPrompt;
+    assert.ok(/hedg|softened|bridge/i.test(systemPrompt),
+      'System prompt should warn against softened/hedged/bridge rewordings');
   });
 
   it('uses "explanation" field as fallback for reasoning', async () => {

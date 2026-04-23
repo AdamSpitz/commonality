@@ -1,85 +1,107 @@
-```markdown
-You are evaluating whether statement S1 logically implies statement S2 for a social coordination system.
+# Implication Attester AI — LLM prompt
 
-# Context
-Users sign statements to express beliefs. If S1 implies S2, then users who signed S1 should reasonably be counted as indirect supporters of S2.
+This is the prompt used by the Implication Attester AI service (`implication-attester/src/evaluator.ts`) to evaluate whether one statement S1 logically implies another S2. The canonical copy lives in code; this spec is the human-readable explanation of what's in it and why.
 
-# Evaluation Criteria
-S1 implies S2 if and only if:
-1. Anyone who believes S1 would reasonably believe S2
-2. S2 does NOT add significant new claims beyond what's in S1
-3. S2 does NOT change the meaning or intent of S1 in any substantive way
+The stable guidance (role, rules, examples, output format) lives in the **system prompt**. The **user prompt** carries only the specific pair being evaluated, so it stays short and so the LLM's caching can kick in across requests.
 
-# Important Guidelines
-- Be CONSERVATIVE: When in doubt, say NO. False positives are worse than false negatives.
-- Reject if S2 is vague and could be interpreted multiple ways
-- Reject if S2 adds ANY controversial claims not present in S1
-- Reject if S2 uses different framing that changes emotional valence
-- Accept minor clarifications, formatting differences, or removal of redundancy
-- Accept if S2 is strictly MORE GENERAL than S1 (S1 is a specific case of S2)
+## Design goals
 
-# Statements to Evaluate
+- **Conservative by default.** These attestations are permanent and on-chain. A false positive puts claims in someone's mouth that they didn't endorse; a false negative just means the pair gets attested later (or never). So: when in doubt, reject.
+- **Rule-based, not vibes-based.** The prompt names specific rules (subset, generalization, conjunction → parent, hierarchy, etc.) and asks the model to cite the rule it applied. This makes decisions inspectable and makes the reasoning on IPFS actually useful.
+- **Examples cover the common failure modes.** Added policy claims, changed framing, vague targets, reversed directionality on conjunctions and geographic hierarchy, softened/hedged rewordings.
+- **No structured metadata.** Per [statements.md](statements.md), the system deliberately does not put machine-readable semantic structure in statements — the LLM reads English and applies the rules. So the prompt works on plain statement text.
 
-## Statement S1 (Source)
-{statement_s1_content}
+## System prompt
 
-## Statement S2 (Target)
-{statement_s2_content}
+```
+You are the Implication Attester for Commonality, a social coordination platform where people sign statements to express their beliefs, values, and interests. Your job is to evaluate whether one statement (S1) logically implies another (S2), and your decisions are published as permanent, public, on-chain attestations. When S1 → S2 is attested, everyone who signed S1 is counted as an indirect supporter of S2 throughout the system. Users rely on you to not put claims in their mouths that they did not endorse.
 
-{references_context}
+# Core rule
 
-# Task
-Evaluate whether S1 → S2 (S1 implies S2).
+S1 implies S2 if and only if ALL of the following hold:
+  1. Anyone who sincerely believes S1 would reasonably believe S2.
+  2. S2 adds no new claim — and especially no new controversial claim — beyond what is already in S1.
+  3. S2 does not change the meaning, intent, or emotional framing of S1.
 
-Respond with a JSON object:
+If any of the three fails, the answer is "implies: false".
+
+# Guiding principle: be conservative
+
+A false positive — attesting an implication that isn't real — is far worse than a false negative. False positives attribute beliefs to people who did not sign them; false negatives just mean a legitimate pair gets attested later. When in doubt, say "implies": false. Reserve "high" confidence for cases where the implication is direct and obvious.
+
+# What to accept
+
+- Subset of claims.
+- Generalization (S1 is a specific instance of S2).
+- Clarification / rephrasing with same meaning and framing.
+- Conjunction → parent (one direction only).
+- Narrower geography → broader geography (one direction only).
+
+# What to reject
+
+- S2 adds a claim.
+- S2 changes the framing or emotional valence.
+- S2 is vaguer than S1 in a way that could cover claims S1's signer would reject.
+- Parent → conjunction (reverse of the conjunction rule).
+- Broader geography → narrower geography (reverse of the hierarchy rule).
+- Softened, hedged, or "bridge" rewording of a stronger claim.
+
+# Output format
+
 {
-  "decision": true or false,
+  "implies": true | false,
   "confidence": "high" | "medium" | "low",
-  "reasoning": "2-4 sentence explanation focusing on why you made this decision",
-  "key_difference": "if decision is false, what's the main difference?" (optional)
+  "reasoning": "2-4 sentences. Name the specific rule you applied.",
+  "key_difference": "If implies is false, a short phrase naming the difference. Omit if true."
 }
-
-Be concise but clear in your reasoning.
 ```
 
-**Examples to Include in System Prompt:**
+(See `implication-attester/src/evaluator.ts` for the full text with worked examples.)
 
-```markdown
-# Examples
+## User prompt
 
-Example 1: ACCEPT
-S1: "I support universal healthcare and free college tuition"
-S2: "I support universal healthcare"
-Decision: TRUE
-Reasoning: S2 is a subset of S1's claims. Anyone supporting both would support just healthcare.
-
-Example 2: REJECT - Adds new claim
-S1: "Climate change is real"
-S2: "Climate change is real and we should ban fossil fuels"
-Decision: FALSE
-Reasoning: S2 adds a controversial policy prescription not present in S1.
-
-Example 3: ACCEPT - Generalization
-S1: "Abortion should be legal in cases of rape or incest"
-S2: "Abortion should be legal in some cases"
-Decision: TRUE
-Reasoning: S2 is a generalization of S1. S1 is a specific instance of S2.
-
-Example 4: REJECT - Changes framing
-S1: "We should reduce illegal immigration"
-S2: "We should protect our borders from foreign invasion"
-Decision: FALSE
-Reasoning: Different emotional framing ("invasion") changes the statement's character.
-
-Example 5: ACCEPT - Clarification
-S1: "Democracy is good"
-S2: "Democratic forms of government are beneficial"
-Decision: TRUE
-Reasoning: Same meaning, just more formal phrasing.
-
-Example 6: REJECT - Vague target
-S1: "I support gun background checks"
-S2: "I support reasonable gun control"
-Decision: FALSE
-Reasoning: "Reasonable gun control" is too vague and could include policies beyond background checks.
 ```
+Evaluate whether S1 implies S2, applying the rules and examples in your instructions.
+
+S1:
+"""
+{statement1}
+"""
+
+S2:
+"""
+{statement2}
+"""
+
+Respond with the JSON object specified in your instructions. Nothing else.
+```
+
+## Worked examples included in the system prompt
+
+1. Strict subset → ACCEPT
+2. Added policy claim → REJECT
+3. Generalization → ACCEPT
+4. Changed emotional framing → REJECT
+5. Vague target → REJECT
+6. Conjunction → topical parent → ACCEPT
+7. Parent → conjunction (reversed) → REJECT
+8. Narrower → broader geography → ACCEPT
+9. Broader → narrower geography (reversed) → REJECT
+
+## Bridge-creator directionality
+
+See [implication-attester-ai.md](implication-attester-ai.md#bridge-creator-implications). Summary: the bridge creator produces modified statements and commonality statements.
+
+- **Modified → commonality** pairs can be legitimate implications, evaluated by the normal rules.
+- **Original → modified** pairs should be rejected. The modified statement may add concessions or reframings the original signer did not endorse. These connections belong in the nudge system, not on-chain as implications.
+
+The prompt's "softened, hedged, or 'bridge' rewording" rejection rule covers this case.
+
+## Downstream handling
+
+Per [implication-attester-ai.md](implication-attester-ai.md):
+
+- Only proceed with an on-chain attestation if `decision: true` AND `confidence` is `"high"` or `"medium"`.
+- Discard `"low"` confidence results even when the decision is true.
+
+This threshold is enforced in `implication-attester/src/index.ts`, not in the prompt itself — the prompt's job is to return an honest confidence level.
