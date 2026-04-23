@@ -2,7 +2,6 @@
 
 ## Main list
 
-- Read over the general docs and specs for this project, then take a look at the prompt for the implication attester and make sure it's written as well as we can manage; this is a core piece of the system and people need to trust it; it needs to be right.
 - Use generateProliferation.ts to generate a proliferation of similar statements around the [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md); store this, too, in that same "seed content JSON format". The idea is to use this to test the implication-attester and implication-finder systems: many of these statements will be similar enough to the real seed content that it'll be reasonable to have implication arrows between them, and many will be not-quite similar enough.
   - Then use the implication-attester prompt to pre-generate implication evaluations for all S1→S2 pairs. Save the resulting decisions as JSON somewhere, so that we can use them as part of fake-data generation without needing to use LLM credits every time. (And a human should look at all the decisions and verify that they're sensible.) Set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
 
