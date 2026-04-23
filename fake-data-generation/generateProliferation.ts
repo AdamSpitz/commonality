@@ -20,31 +20,26 @@
  *   npm run gen:proliferation
  */
 
-import './loadEnv.js';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import {
-  loadSeedCollections,
-  type SeedCollection,
-  type SeedStatement,
-  DEFAULT_SEED_CONTENT_DIR,
-} from './seed-content-format.js';
+import "./loadEnv.js";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import { loadSeedCollections, type SeedCollection, type SeedStatement, DEFAULT_SEED_CONTENT_DIR } from "./seed-content-format.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const OUTPUT_FILE = path.join(__dirname, 'seed-content', 'proliferation.json');
+const OUTPUT_FILE = path.join(__dirname, "seed-content", "proliferation.json");
 
 // API config — prefer OpenRouter, fall back to Anthropic API
 const USE_OPENROUTER = Boolean(process.env.OPENROUTER_API_KEY);
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001';
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? 'anthropic/claude-3.5-haiku';
+const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-v3.2";
 const DELAY_MS = 500;
 
-type SimilarityLevel = 'close' | 'medium' | 'distant';
+type SimilarityLevel = "close" | "medium" | "distant";
 
 interface RawVariant {
   similarity: SimilarityLevel;
@@ -54,63 +49,60 @@ interface RawVariant {
 async function callLLM(prompt: string): Promise<string> {
   if (USE_OPENROUTER) {
     const response = await fetch(OPENROUTER_API_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://commonality.app',
-        'X-Title': 'Commonality Seed Content Proliferation',
+        "HTTP-Referer": "https://commonality.app",
+        "X-Title": "Commonality Seed Content Proliferation",
       },
       body: JSON.stringify({
         model: OPENROUTER_MODEL,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: "user", content: prompt }],
         temperature: 0.8,
         max_tokens: 1200,
-        response_format: { type: 'json_object' },
+        response_format: { type: "json_object" },
       }),
     });
     if (!response.ok) {
-      const err = await response.json().catch(() => ({})) as { error?: { message?: string } };
+      const err = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
       throw new Error(`OpenRouter ${response.status}: ${err.error?.message ?? response.statusText}`);
     }
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = data.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Empty response from OpenRouter');
+    if (!content) throw new Error("Empty response from OpenRouter");
     return content;
   } else {
     const response = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY ?? '',
-        'anthropic-version': '2023-06-01',
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY ?? "",
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
         model: ANTHROPIC_MODEL,
         max_tokens: 1200,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: "user", content: prompt }],
       }),
     });
     if (!response.ok) {
-      const err = await response.json().catch(() => ({})) as { error?: { message?: string } };
+      const err = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
       throw new Error(`Anthropic ${response.status}: ${err.error?.message ?? response.statusText}`);
     }
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       content?: Array<{ type: string; text?: string }>;
     };
-    const content = data.content?.find((c) => c.type === 'text')?.text;
-    if (!content) throw new Error('Empty response from Anthropic API');
+    const content = data.content?.find((c) => c.type === "text")?.text;
+    if (!content) throw new Error("Empty response from Anthropic API");
     // Extract JSON from the response (may have surrounding text)
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found in Anthropic response');
+    if (!jsonMatch) throw new Error("No JSON found in Anthropic response");
     return jsonMatch[0];
   }
 }
 
-async function generateVariantsForStatement(
-  statement: SeedStatement,
-  groupTitle: string,
-): Promise<SeedStatement[]> {
+async function generateVariantsForStatement(statement: SeedStatement, groupTitle: string): Promise<SeedStatement[]> {
   const prompt = `You are generating test data for a system that discovers implications between political and social statements.
 
 Given this original statement:
@@ -163,7 +155,7 @@ function sleep(ms: number): Promise<void> {
 
 async function loadExistingOutput(): Promise<{ collection: SeedCollection | null; doneGroupIds: Set<string> }> {
   try {
-    const raw = JSON.parse(await fs.readFile(OUTPUT_FILE, 'utf8')) as SeedCollection;
+    const raw = JSON.parse(await fs.readFile(OUTPUT_FILE, "utf8")) as SeedCollection;
     const doneGroupIds = new Set(raw.groups.map((g) => g.id));
     return { collection: raw, doneGroupIds };
   } catch {
@@ -171,20 +163,13 @@ async function loadExistingOutput(): Promise<{ collection: SeedCollection | null
   }
 }
 
-async function saveOutput(groups: SeedCollection['groups']): Promise<void> {
+async function saveOutput(groups: SeedCollection["groups"]): Promise<void> {
   const output: SeedCollection = {
-    format: 'commonality-seed-content-v1',
-    id: 'proliferation',
-    title: 'Proliferated Statement Variants',
-    description:
-      'Similar-but-distinct variants of seed content statements, generated for testing the implication-attester and implication-finder systems.',
-    notes: [
-      'Generated by generateProliferation.ts using an LLM.',
-      'Role "variant-close": very likely implies the original.',
-      'Role "variant-medium": might imply the original; uncertain.',
-      'Role "variant-distant": probably does not imply the original.',
-      'Each statement\'s notes field records the original statement ID.',
-    ],
+    format: "commonality-seed-content-v1",
+    id: "proliferation",
+    title: "Proliferated Statement Variants",
+    description: "Similar-but-distinct variants of seed content statements, generated for testing the implication-attester and implication-finder systems.",
+    notes: ["Generated by generateProliferation.ts using an LLM.", 'Role "variant-close": very likely implies the original.', 'Role "variant-medium": might imply the original; uncertain.', 'Role "variant-distant": probably does not imply the original.', "Each statement's notes field records the original statement ID."],
     groups,
   };
   await fs.writeFile(OUTPUT_FILE, JSON.stringify(output, null, 2));
@@ -192,12 +177,12 @@ async function saveOutput(groups: SeedCollection['groups']): Promise<void> {
 
 async function main(): Promise<void> {
   if (!process.env.OPENROUTER_API_KEY && !process.env.ANTHROPIC_API_KEY) {
-    console.error('Error: set OPENROUTER_API_KEY or ANTHROPIC_API_KEY before running.');
+    console.error("Error: set OPENROUTER_API_KEY or ANTHROPIC_API_KEY before running.");
     process.exit(1);
   }
 
   const { collection: existing, doneGroupIds } = await loadExistingOutput();
-  const outputGroups: SeedCollection['groups'] = existing ? [...existing.groups] : [];
+  const outputGroups: SeedCollection["groups"] = existing ? [...existing.groups] : [];
 
   if (doneGroupIds.size > 0) {
     console.log(`Resuming — ${doneGroupIds.size} group(s) already complete.`);
@@ -222,7 +207,7 @@ async function main(): Promise<void> {
 
   for (const coll of collections) {
     // Skip the proliferation file itself if it somehow gets loaded
-    if (coll.id === 'proliferation') continue;
+    if (coll.id === "proliferation") continue;
 
     for (const group of coll.groups) {
       const groupId = `${coll.id}-${group.id}`;
@@ -235,7 +220,7 @@ async function main(): Promise<void> {
       const allVariants: SeedStatement[] = [];
 
       for (const statement of group.statements) {
-        console.log(`[${done + 1}/${totalStatements}] ${statement.text.slice(0, 70)}${statement.text.length > 70 ? '…' : ''}`);
+        console.log(`[${done + 1}/${totalStatements}] ${statement.text.slice(0, 70)}${statement.text.length > 70 ? "…" : ""}`);
 
         try {
           const variants = await generateVariantsForStatement(statement, group.title);
