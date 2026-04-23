@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Use the implication-attester to pre-generate implication evaluations for all S1→S2 pairs in universe.json plus proliferation.json (or at least all the pairs that are in the same category or whatever we called it). Save the resulting decisions as JSON somewhere, so that we can use them as part of fake-data generation without needing to use LLM credits every time. (And a human should look at all the decisions and verify that they're sensible.) Set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
+- We've just generated some implications for the proliferation of statements in the fake-data-generation stuff. Now a human should look at all the decisions and verify that they're sensible. Although actually no, there's almost 2000 of them. So instead just spot-check a few. Then set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
 
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 
