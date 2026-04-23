@@ -2,15 +2,12 @@
 
 ## Main list
 
-- Use an LLM to generate a proliferation of similar statements around the [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md); store this, too, in that same "seed content format". The idea is to use this to test the implication-attester and implication-finder systems: many of these statements will be similar enough to the real seed content that it'll be reasonable to have implication arrows between them.
-  - Then pre-generate implication evaluations for all S1→S2 pairs.
-  - And write a test that uses the real implication attester and makes sure that it comes up with the same implication attestations that we pre-generated. (Don't make this test part of the standard test suite, though, since it requires LLM credits to run.)
+- Generate a proliferation of similar statements around the [seed content](specs/tech/subsystems/conceptspace/seed-content/README.md); store this, too, in that same "seed content format". The idea is to use this to test the implication-attester and implication-finder systems: many of these statements will be similar enough to the real seed content that it'll be reasonable to have implication arrows between them.
+  - Then use the implication-attester prompt to pre-generate implication evaluations for all S1→S2 pairs. Save the resulting decisions as JSON somewhere, so that we can use them as part of fake-data generation without needing to use LLM credits every time. (And a human should look at all the decisions and verify that they're sensible.) Set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
 
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 
 - Get DNS names and ENS names.
-
-- [x] Make the indexer deployable to Render for testnet/mainnet. `indexer/ponder.config.ts` now supports `hardhat`/`sepolia`/`mainnet`, hosted deployments run `ponder start`, the Render blueprint includes the indexer + Postgres, and [DEPLOYMENT.md](./DEPLOYMENT.md) documents the required env vars.
 
 - Do another smart-contract audit pass.
 - (Not a task for AI.) Try out the UI manually.
