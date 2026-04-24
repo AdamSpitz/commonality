@@ -63,17 +63,17 @@ services:
     autoDeploy: true
     plan: standard
 
-  # Bundled AI attester host
+  # Bundled AI service host (Bundle A — Attesters)
   - type: web
-    name: commonality-attester-host
+    name: commonality-service-host-attesters
     env: docker
     rootDir: .
     dockerContext: .
-    dockerfilePath: attester-host/Dockerfile
+    dockerfilePath: service-host/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
+      - key: SERVICE_HOST_PORT
         value: 3000
       - key: ETHEREUM_RPC_URL
         sync: false  # Set in Render dashboard
@@ -125,6 +125,16 @@ services:
         value: 60000
       - key: RATE_LIMIT_MAX_REQUESTS
         value: 10
+      - key: IMPLICATION_FINDER_ENABLED
+        value: "false"
+      - key: CONTENT_FINDER_ENABLED
+        value: "false"
+      - key: IMPLICATION_GRAPH_NUDGER_ENABLED
+        value: "false"
+      - key: BRIDGE_CREATOR_ENABLED
+        value: "false"
+      - key: EXPLORER_CURATOR_ENABLED
+        value: "false"
     healthCheckPath: /health
     autoDeploy: true
     plan: standard
@@ -163,17 +173,17 @@ services:
     autoDeploy: true
     plan: standard
 
-  # Bundled AI worker host
+  # Bundled AI service host (Bundle B — Workers)
   - type: web
-    name: commonality-worker-host
+    name: commonality-service-host-workers
     env: docker
     rootDir: .
     dockerContext: .
-    dockerfilePath: worker-host/Dockerfile
+    dockerfilePath: service-host/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
+      - key: SERVICE_HOST_PORT
         value: 3000
       - key: ETHEREUM_RPC_URL
         sync: false  # Set in Render dashboard
@@ -198,11 +208,11 @@ services:
       - key: CONTENT_FINDER_SUBMISSIONS_API_URL
         value: https://commonality-platform-api.onrender.com/content-submission
       - key: CONTENT_FINDER_ATTESTER_URL
-        value: https://commonality-attester-host.onrender.com/content-attester
+        value: https://commonality-service-host-attesters.onrender.com/content-attester
       - key: CONTENT_FINDER_ATTESTER_FINDER_KEY
         sync: false  # Set in Render dashboard
       - key: IMPLICATION_FINDER_ATTESTER_URL
-        value: https://commonality-attester-host.onrender.com/implication-attester
+        value: https://commonality-service-host-attesters.onrender.com/implication-attester
       - key: IMPLICATION_FINDER_ATTESTER_FINDER_KEY
         sync: false  # Set in Render dashboard
       - key: BELIEFS_CONTRACT_ADDRESS
@@ -255,6 +265,10 @@ services:
         value: 2
       - key: CONTENT_FINDER_POLL_INTERVAL_MS
         value: 30000
+      - key: IMPLICATION_ATTESTER_ENABLED
+        value: "false"
+      - key: CONTENT_ATTESTER_ENABLED
+        value: "false"
     healthCheckPath: /health
     autoDeploy: true
     plan: standard
@@ -262,13 +276,13 @@ services:
 # Note: Deploy by pushing to your Git repository and connecting it to Render.
 #
 # Secrets to set in Render dashboard per service:
-# commonality-attester-host:
+# commonality-service-host-attesters:
 #   ETHEREUM_RPC_URL, OPENROUTER_API_KEY,
 #   IMPLICATION_ATTESTER_PRIVATE_KEY, IMPLICATION_ATTESTER_PAYMENT_ADDRESS, IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY, IMPLICATIONS_CONTRACT_ADDRESS,
 #   CONTENT_ATTESTER_PRIVATE_KEY, CONTENT_ATTESTER_PAYMENT_ADDRESS, CONTENT_ATTESTER_TRUSTED_FINDER_KEY, ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS,
 #   ALIGNMENT_TOPIC_STATEMENT_CID, CONTENT_ATTESTER_NAME, CONTENT_ATTESTER_PROMPT_TEMPLATE
 # platform-api-service: X_API_BEARER_TOKEN, YOUTUBE_API_KEY, VERIFIER_PRIVATE_KEY (+ optionally ETHEREUM_RPC_URL, CHANNEL_REGISTRY_ADDRESS if enabling on-chain submission)
-# commonality-worker-host:
+# commonality-service-host-workers:
 #   ETHEREUM_RPC_URL, OPENROUTER_API_KEY, NUDGE_PUBLICATIONS_CONTRACT_ADDRESS,
 #   IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY, BRIDGE_CREATOR_PRIVATE_KEY, EXPLORER_CURATOR_PRIVATE_KEY,
 #   CONTENT_FINDER_ATTESTER_FINDER_KEY, IMPLICATION_FINDER_ATTESTER_FINDER_KEY,

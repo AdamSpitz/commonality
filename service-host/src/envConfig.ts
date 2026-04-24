@@ -56,6 +56,27 @@ function readNumberEnv(
   return parsed;
 }
 
+function readOptionalBoolean(
+  env: NodeJS.ProcessEnv,
+  names: readonly string[],
+  fallback: boolean,
+): boolean {
+  const rawValue = readOptionalStringEnv(env, names);
+  if (!rawValue) {
+    return fallback;
+  }
+
+  const lower = rawValue.toLowerCase();
+  if (lower === 'true' || lower === '1') {
+    return true;
+  }
+  if (lower === 'false' || lower === '0') {
+    return false;
+  }
+
+  throw new Error(`Invalid boolean environment variable: ${names[0]} must be true/false/1/0`);
+}
+
 function readPromptTemplate(
   env: NodeJS.ProcessEnv,
   fileVarName: string,
@@ -76,6 +97,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       {
         name: 'implication-attester',
         kind: 'implication-attester',
+        enabled: readOptionalBoolean(env, ['IMPLICATION_ATTESTER_ENABLED'], true),
         restartDelayMs: readNumberEnv(env, ['IMPLICATION_ATTESTER_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,
@@ -156,7 +178,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       {
         name: 'content-attester',
         kind: 'content-attester',
-        restartDelayMs: readNumberEnv(env, ['CONTENT_ATTESTER_RESTART_DELAY_MS'], 1000),
+        enabled: readOptionalBoolean(env, ['CONTENT_ATTESTER_ENABLED'], true),
         routePrefix: readStringEnv(
           env,
           ['CONTENT_ATTESTER_ROUTE_PREFIX'],
@@ -250,6 +272,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       {
         name: 'implication-finder',
         kind: 'implication-finder',
+        enabled: readOptionalBoolean(env, ['IMPLICATION_FINDER_ENABLED'], true),
         restartDelayMs: readNumberEnv(env, ['IMPLICATION_FINDER_RESTART_DELAY_MS'], 1000),
         config: {
           eventCacheUrl: readStringEnv(
@@ -293,6 +316,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       {
         name: 'content-finder',
         kind: 'content-finder',
+        enabled: readOptionalBoolean(env, ['CONTENT_FINDER_ENABLED'], true),
         restartDelayMs: readNumberEnv(env, ['CONTENT_FINDER_RESTART_DELAY_MS'], 1000),
         config: {
           platformApiUrl: readStringEnv(
@@ -324,6 +348,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       {
         name: 'implication-graph-nudger',
         kind: 'implication-graph-nudger',
+        enabled: readOptionalBoolean(env, ['IMPLICATION_GRAPH_NUDGER_ENABLED'], true),
         restartDelayMs: readNumberEnv(env, ['IMPLICATION_GRAPH_NUDGER_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,
@@ -378,6 +403,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       {
         name: 'bridge-creator',
         kind: 'bridge-creator',
+        enabled: readOptionalBoolean(env, ['BRIDGE_CREATOR_ENABLED'], true),
         restartDelayMs: readNumberEnv(env, ['BRIDGE_CREATOR_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,
@@ -438,6 +464,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       {
         name: 'explorer-curator',
         kind: 'explorer-curator',
+        enabled: readOptionalBoolean(env, ['EXPLORER_CURATOR_ENABLED'], true),
         restartDelayMs: readNumberEnv(env, ['EXPLORER_CURATOR_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,

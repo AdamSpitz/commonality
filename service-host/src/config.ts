@@ -110,7 +110,7 @@ export function parseWorkerHostConfig(value: unknown): WorkerHostConfig {
 
   const workers = value.workers.map((worker, index) => parseHostedWorkerConfig(worker, index));
   const port = assertOptionalNumber(value.port, 'port');
-  const routedWorkers = workers.filter((worker) => worker.routePrefix);
+  const routedWorkers = workers.filter((worker) => worker.routePrefix && worker.enabled !== false);
 
   if (routedWorkers.length > 0 && port === undefined) {
     throw new Error('Invalid worker-host config: port is required when any worker has a routePrefix');

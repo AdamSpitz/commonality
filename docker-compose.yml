@@ -310,17 +310,17 @@ services:
     networks:
       - commonality
 
-  # =============================================================================
-  # Bundled AI attester host
+# =============================================================================
+  # Bundled AI service host (Bundle A — Attesters)
   # =============================================================================
   # Runs the canonical implication-attester and content-attester together under
-  # one shared Express listener for service-bundling testing.
-  attester-host:
-    image: commonality-attester-host:dev
+  # one shared Express listener for service-bundling.
+  service-host-attesters:
+    image: commonality-service-host:dev
     build:
       context: .
-      dockerfile: attester-host/Dockerfile
-    container_name: commonality-attester-host
+      dockerfile: service-host/Dockerfile
+    container_name: commonality-service-host-attesters
     user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "3006:3000"
@@ -332,7 +332,7 @@ services:
       hardhat-deploy:
         condition: service_completed_successfully
     environment:
-      - PORT=3000
+      - SERVICE_HOST_PORT=3000
       - ETHEREUM_RPC_URL=http://hardhat-node:8545
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
@@ -358,6 +358,11 @@ services:
       - CONTENT_ATTESTER_ESTIMATED_OUTPUT_TOKENS=400
       - RATE_LIMIT_WINDOW_MS=60000
       - RATE_LIMIT_MAX_REQUESTS=10
+      - IMPLICATION_FINDER_ENABLED=false
+      - CONTENT_FINDER_ENABLED=false
+      - IMPLICATION_GRAPH_NUDGER_ENABLED=false
+      - BRIDGE_CREATOR_ENABLED=false
+      - EXPLORER_CURATOR_ENABLED=false
       - HOME=/tmp
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
@@ -369,140 +374,20 @@ services:
       - commonality
 
   # =============================================================================
-  # Content attester services for noninflammatory content evaluation
-  # =============================================================================
-  content-attester-neutral:
-    image: commonality-content-attester:dev
-    build:
-      context: .
-      dockerfile: content-attester/Dockerfile
-    container_name: commonality-content-attester-neutral
-    user: "${UID:-1000}:${GID:-1000}"
-    ports:
-      - "3002:3000"
-    depends_on:
-      hardhat-node:
-        condition: service_healthy
-      ipfs:
-        condition: service_healthy
-      hardhat-deploy:
-        condition: service_completed_successfully
-    environment:
-      - PORT=3000
-      - CONTENT_ATTESTER_NAME=perspective-neutral
-      - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/content-attester/prompts/perspective-neutral.md
-      - ETHEREUM_RPC_URL=http://hardhat-node:8545
-      - IPFS_API=http://ipfs:5001
-      - IPFS_GATEWAY=http://ipfs:8080
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
-      - ATTESTER_PRIVATE_KEY=${CONTENT_ATTESTER_PRIVATE_KEY:-}
-      - X402_PAYMENT_ADDRESS=${CONTENT_ATTESTER_PAYMENT_ADDRESS:-}
-      - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
-      - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
-      - ETH_USD_PRICE=3000
-      - GAS_PRICE_MULTIPLIER=1.2
-      - SERVICE_MARGIN_PERCENT=20
-      - ESTIMATED_INPUT_TOKENS=2500
-      - ESTIMATED_OUTPUT_TOKENS=400
-      - RATE_LIMIT_WINDOW_MS=60000
-      - RATE_LIMIT_MAX_REQUESTS=10
-    networks:
-      - commonality
-
-  content-attester-left-eval-right:
-    image: commonality-content-attester:dev
-    build:
-      context: .
-      dockerfile: content-attester/Dockerfile
-    container_name: commonality-content-attester-left-eval-right
-    user: "${UID:-1000}:${GID:-1000}"
-    ports:
-      - "3003:3000"
-    depends_on:
-      hardhat-node:
-        condition: service_healthy
-      ipfs:
-        condition: service_healthy
-      hardhat-deploy:
-        condition: service_completed_successfully
-    environment:
-      - PORT=3000
-      - CONTENT_ATTESTER_NAME=left-evaluating-right
-      - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/content-attester/prompts/left-evaluating-right.md
-      - ETHEREUM_RPC_URL=http://hardhat-node:8545
-      - IPFS_API=http://ipfs:5001
-      - IPFS_GATEWAY=http://ipfs:8080
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
-      - ATTESTER_PRIVATE_KEY=${CONTENT_ATTESTER_PRIVATE_KEY:-}
-      - X402_PAYMENT_ADDRESS=${CONTENT_ATTESTER_PAYMENT_ADDRESS:-}
-      - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
-      - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
-      - ETH_USD_PRICE=3000
-      - GAS_PRICE_MULTIPLIER=1.2
-      - SERVICE_MARGIN_PERCENT=20
-      - ESTIMATED_INPUT_TOKENS=2500
-      - ESTIMATED_OUTPUT_TOKENS=400
-      - RATE_LIMIT_WINDOW_MS=60000
-      - RATE_LIMIT_MAX_REQUESTS=10
-    networks:
-      - commonality
-
-  content-attester-right-eval-left:
-    image: commonality-content-attester:dev
-    build:
-      context: .
-      dockerfile: content-attester/Dockerfile
-    container_name: commonality-content-attester-right-eval-left
-    user: "${UID:-1000}:${GID:-1000}"
-    ports:
-      - "3004:3000"
-    depends_on:
-      hardhat-node:
-        condition: service_healthy
-      ipfs:
-        condition: service_healthy
-      hardhat-deploy:
-        condition: service_completed_successfully
-    environment:
-      - PORT=3000
-      - CONTENT_ATTESTER_NAME=right-evaluating-left
-      - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/content-attester/prompts/right-evaluating-left.md
-      - ETHEREUM_RPC_URL=http://hardhat-node:8545
-      - IPFS_API=http://ipfs:5001
-      - IPFS_GATEWAY=http://ipfs:8080
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
-      - ATTESTER_PRIVATE_KEY=${CONTENT_ATTESTER_PRIVATE_KEY:-}
-      - X402_PAYMENT_ADDRESS=${CONTENT_ATTESTER_PAYMENT_ADDRESS:-}
-      - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
-      - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
-      - ETH_USD_PRICE=3000
-      - GAS_PRICE_MULTIPLIER=1.2
-      - SERVICE_MARGIN_PERCENT=20
-      - ESTIMATED_INPUT_TOKENS=2500
-      - ESTIMATED_OUTPUT_TOKENS=400
-      - RATE_LIMIT_WINDOW_MS=60000
-      - RATE_LIMIT_MAX_REQUESTS=10
-    networks:
-      - commonality
-
-  # =============================================================================
-  # Bundled AI worker host
+  # Bundled AI service host (Bundle B — Workers)
   # =============================================================================
   # Runs both finders plus all three nudgers under one supervised host process.
-  worker-host:
-    image: commonality-worker-host:dev
+  service-host-workers:
+    image: commonality-service-host:dev
     build:
       context: .
-      dockerfile: worker-host/Dockerfile
-    container_name: commonality-worker-host
+      dockerfile: service-host/Dockerfile
+    container_name: commonality-service-host-workers
     user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "3005:3000"
     depends_on:
-      attester-host:
+      service-host-attesters:
         condition: service_healthy
       hardhat-node:
         condition: service_healthy
@@ -513,7 +398,7 @@ services:
       platform-api-service:
         condition: service_healthy
     environment:
-      - PORT=3000
+      - SERVICE_HOST_PORT=3000
       - ETHEREUM_RPC_URL=http://hardhat-node:8545
       - INDEXER_URL=http://indexer:42069
       - IPFS_API=http://ipfs:5001
@@ -525,16 +410,18 @@ services:
       - PLATFORM_API_URL=http://platform-api-service:3000
       - CONTENT_FINDER_PLATFORM_API_URL=http://platform-api-service:3000
       - CONTENT_FINDER_SUBMISSIONS_API_URL=http://platform-api-service:3000/content-submission
-      - CONTENT_FINDER_ATTESTER_URL=http://attester-host:3000/content-attester
+      - CONTENT_FINDER_ATTESTER_URL=http://service-host-attesters:3000/content-attester
       - CONTENT_FINDER_ATTESTER_FINDER_KEY=${ATTESTER_FINDER_KEY:-local-finder-key}
       - IMPLICATION_FINDER_EVENT_CACHE_URL=http://indexer:42069
-      - IMPLICATION_FINDER_ATTESTER_URL=http://attester-host:3000/implication-attester
+      - IMPLICATION_FINDER_ATTESTER_URL=http://service-host-attesters:3000/implication-attester
       - IMPLICATION_FINDER_ATTESTER_FINDER_KEY=${ATTESTER_FINDER_KEY:-local-finder-key}
       - BELIEFS_CONTRACT_ADDRESS=${BELIEFS_CONTRACT_ADDRESS:-}
       - IMPLICATIONS_CONTRACT_ADDRESS=${IMPLICATIONS_CONTRACT_ADDRESS:-}
       - IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY=${IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY:-0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e}
       - BRIDGE_CREATOR_PRIVATE_KEY=${BRIDGE_CREATOR_PRIVATE_KEY:-0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356}
       - EXPLORER_CURATOR_PRIVATE_KEY=${EXPLORER_CURATOR_PRIVATE_KEY:-0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97}
+      - IMPLICATION_ATTESTER_ENABLED=false
+      - CONTENT_ATTESTER_ENABLED=false
       - HOME=/tmp
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
@@ -545,12 +432,8 @@ services:
     networks:
       - commonality
 
-networks:
-  commonality:
-    driver: bridge
-
-# =============================================================================
-# Data Storage
+  # =============================================================================
+  # Data Storage
 # =============================================================================
 # All persistent data is stored in directories under COMMONALITY_DATA_DIR
 # (defaults to ./data in the project root).
@@ -574,3 +457,7 @@ networks:
 # Or use the provided scripts:
 #   ./services.sh --start  # Local development (uses ./data)
 #   ./scripts/run-integration-tests.sh  # Integration tests (uses /tmp/commonality-it)
+
+networks:
+  commonality:
+    driver: bridge

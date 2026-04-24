@@ -1,5 +1,49 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Complete service-bundling: delete per-service Dockerfiles and update deployment configs (Completed)
+
+**Task**: Delete per-service Dockerfiles and update docker-compose.yml + render.yaml to use the unified service-host with ENABLE flags to select which workers run in each physical bundle.
+
+**What was done**:
+- Deleted 7 per-service Dockerfiles: `implication-attester/Dockerfile`, `content-attester/Dockerfile`, `implication-finder/Dockerfile`, `content-finder/Dockerfile`, `implication-graph-nudger/Dockerfile`, `bridge-creator/Dockerfile`, `explorer-curator/Dockerfile`.
+- Added `enabled` field support to `service-host/src/config.ts` and updated `parseWorkerHostConfig()` to filter disabled workers from the port-required check.
+- Added `readOptionalBoolean()` helper to [`service-host/src/envConfig.ts`](/home/adam/Projects/commonality/service-host/src/envConfig.ts) and added `*_ENABLED` env-var support for all seven workers (IMPLICATION_ATTESTER_ENABLED, CONTENT_ATTESTER_ENABLED, IMPLICATION_FINDER_ENABLED, CONTENT_FINDER_ENABLED, IMPLICATION_GRAPH_NUDGER_ENABLED, BRIDGE_CREATOR_ENABLED, EXPLORER_CURATOR_ENABLED).
+- Updated [`service-host/src/supervisor.ts`](/home/adam/Projects/commonality/service-host/src/supervisor.ts) to skip disabled workers at startup.
+- Updated [`service-host/src/index.ts`](/home/adam/Projects/commonality/service-host/src/index.ts) `createWorkerHostApp()` to filter disabled workers from HTTP routing.
+- Rewrote `docker-compose.yml` AI services section:
+  - Replaced `attester-host` + 3 redundant content-attesters + `worker-host` with two new services: `service-host-attesters` (bundle A) and `service-host-workers` (bundle B).
+  - Both use `service-host/Dockerfile`.
+  - Bundle A enables only implication-attester + content-attester (disables the other five via `*_ENABLED=false`).
+  - Bundle B enables only finders + nudgers (disables attesters via `*_ENABLED=false`).
+- Updated [`render.yaml`](/home/adam/Projects/commonality/render.yaml):
+  - Replaced `commonality-attester-host` (attester-host/Dockerfile) with `commonality-service-host-attesters` (service-host/Dockerfile).
+  - Replaced `commonality-worker-host` (worker-host/Dockerfile) with `commonality-service-host-workers` (service-host/Dockerfile).
+  - Both use the same SERVICE_HOST_PORT and ENABLE flags as docker-compose.
+
+**Key decisions**:
+- Used `*_ENABLED` environment variables instead of JSON config for deployment selection, matching the existing env-var pattern used throughout docker-compose/render deployment.
+- Bundle A runs attesters, Bundle B runs workers — same as the original design in service-bundling.md.
+- The worker-host-to-service-host rename happened in a prior session; this session completes the cleanup by removing the old per-service Dockerfiles.
+
+**Verified**:
+- `npm run build` ✓ (17 successful)
+- `npm run lint` ✓
+
+**Files changed**:
+- `<package>/Dockerfile` (7 deleted)
+- `docker-compose.yml` (replaced 5 AI services with 2 service-host entries)
+- `render.yaml` (replaced 2 host entries with 2 service-host entries)
+- `service-host/src/config.ts` (added enabled field filtering)
+- `service-host/src/envConfig.ts` (readOptionalBoolean, enabled flags for all workers)
+- `service-host/src/supervisor.ts` (skip disabled workers)
+- `service-host/src/index.ts` (filter disabled workers from HTTP routing)
+- `TODO.md` (marked sub-tasks 19-20 complete)
+
+**Blockers / notes for next iteration**:
+- None. Service bundling is now complete: the seven logical services run in two physical bundles via unified service-host.
+
+**Interrupt point**: Yes. All service-bundling work is complete. The two physical hosts (attesters and workers) are both using the unified service-host image with ENABLE flags to select workers. No more cleanup needed.
+
 ## 2026-04-24 - Unify attester-host and worker-host into one service-host (Completed)
 
 **Task**: Collapse `attester-host` into `worker-host`, rename to `service-host`, extend `WorkerKind` with `implication-attester` and `content-attester`, and unify env-var loaders.

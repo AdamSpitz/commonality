@@ -13,7 +13,9 @@ export function createWorkerHostApp(
 ): Express {
   const app = express();
   const resolvedWorkerAppFactories = factories.workerAppFactories ?? workerAppFactories;
-  const routedWorkers = config.workers.filter((worker) => worker.routePrefix);
+  const routedWorkers = config.workers.filter(
+    (worker) => worker.routePrefix && worker.enabled !== false,
+  );
 
   for (const worker of routedWorkers) {
     const factory = resolvedWorkerAppFactories[worker.kind];
