@@ -37,7 +37,7 @@ export function createWorkerHost(params) {
         logger.info(`[worker-host] Starting "${runtime.definition.name}" (${runtime.definition.kind}).`);
         let handle;
         try {
-            handle = params.factories[runtime.definition.kind](runtime.definition.config);
+            handle = params.factories[runtime.definition.kind](runtime.definition);
         }
         catch (error) {
             scheduleRestart(runtime, error);

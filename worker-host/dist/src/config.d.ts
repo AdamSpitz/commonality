@@ -6,8 +6,10 @@ export interface HostedWorkerConfig {
     config: Record<string, unknown>;
     enabled?: boolean;
     restartDelayMs?: number;
+    routePrefix?: string;
 }
 export interface WorkerHostConfig {
+    port?: number;
     workers: HostedWorkerConfig[];
 }
 export declare function parseWorkerHostConfig(value: unknown): WorkerHostConfig;

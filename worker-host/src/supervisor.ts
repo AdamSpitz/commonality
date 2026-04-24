@@ -78,7 +78,7 @@ export function createWorkerHost(params: CreateWorkerHostParams): WorkerHostHand
 
     let handle: WorkerRunHandle;
     try {
-      handle = params.factories[runtime.definition.kind](runtime.definition.config);
+      handle = params.factories[runtime.definition.kind](runtime.definition);
     } catch (error) {
       scheduleRestart(runtime, error);
       return;

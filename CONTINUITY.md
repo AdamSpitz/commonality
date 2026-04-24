@@ -1,5 +1,56 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Bundle B worker host as one shared HTTP/background host (Completed)
+
+**Task**: Complete the next `TODO.md` service-bundling sub-task by standing up Bundle B as one real host process for both finders and all three nudgers.
+
+**What was done**:
+- Refactored [`implication-graph-nudger/src/index.ts`](/home/adam/Projects/commonality/implication-graph-nudger/src/index.ts), [`bridge-creator/src/index.ts`](/home/adam/Projects/commonality/bridge-creator/src/index.ts), and [`explorer-curator/src/index.ts`](/home/adam/Projects/commonality/explorer-curator/src/index.ts) so each service now exports an app-construction function and can run without opening its own listener.
+- Extended [`worker-host/src/config.ts`](/home/adam/Projects/commonality/worker-host/src/config.ts) to accept a host `port` plus optional per-worker `routePrefix` entries, with validation that routed workers require a host port.
+- Extended [`worker-host/src/serviceRegistry.ts`](/home/adam/Projects/commonality/worker-host/src/serviceRegistry.ts) so routed HTTP-capable workers are started with `startServer: false` and their Express apps are exposed to the host for mounting.
+- Implemented shared host mounting in [`worker-host/src/index.ts`](/home/adam/Projects/commonality/worker-host/src/index.ts), including a host-level `/health` endpoint and route-prefix mounting for the HTTP-capable bundled workers.
+- Split the worker-host CLI entrypoint into [`worker-host/src/cli.ts`](/home/adam/Projects/commonality/worker-host/src/cli.ts) so the library module can be imported in tests without triggering startup.
+- Added coverage in [`worker-host/test/index.test.ts`](/home/adam/Projects/commonality/worker-host/test/index.test.ts) for route-prefix mounting and routed-config validation.
+- Updated [`worker-host/.mocharc.json`](/home/adam/Projects/commonality/worker-host/.mocharc.json) so the workspace test command exits cleanly after the suite finishes.
+- Updated [`worker-host/README.md`](/home/adam/Projects/commonality/worker-host/README.md), [`TODO.md`](/home/adam/Projects/commonality/TODO.md), `worker-host/package.json`, `package-lock.json`, and `CONTINUITY.md` to reflect the new host shape.
+
+**Key decisions**:
+- Kept the existing generic `workers[]` config model and added optional `routePrefix` instead of inventing a second parallel config tree for HTTP-capable workers.
+- Mounted routed workers under explicit prefixes so the bundle exposes one port without flattening or renaming individual worker endpoints.
+- Preserved standalone service binaries by making the new host behavior opt-in (`startServer: false` only when `worker-host` is mounting the app).
+
+**Verified**:
+- `npm run build --workspace=@commonality/implication-graph-nudger` ✓
+- `npm run build --workspace=@commonality/bridge-creator` ✓
+- `npm run build --workspace=@commonality/explorer-curator` ✓
+- `npm run test --workspace=@commonality/explorer-curator` ✓
+- `npm run build --workspace=@commonality/worker-host` ✓
+- `npm run lint --workspace=@commonality/worker-host` ✓
+- `npm run test --workspace=@commonality/worker-host` ✓
+
+**Files changed**:
+- `implication-graph-nudger/src/index.ts`
+- `bridge-creator/src/index.ts`
+- `explorer-curator/src/index.ts`
+- `worker-host/.mocharc.json`
+- `worker-host/package.json`
+- `worker-host/README.md`
+- `worker-host/src/config.ts`
+- `worker-host/src/serviceRegistry.ts`
+- `worker-host/src/supervisor.ts`
+- `worker-host/src/index.ts`
+- `worker-host/src/cli.ts`
+- `worker-host/test/index.test.ts`
+- `TODO.md`
+- `package-lock.json`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- The code now supports one real Bundle B port/process, but `docker-compose.yml` and `render.yaml` still deploy the old per-service layout. That remains the next bundling sub-task.
+- `bridge-creator` is now mountable under the shared host, but its current implementation still behaves primarily like an HTTP nudger rather than a periodic publisher; if the product/spec expects scheduled bridge publication, that is a separate behavior task rather than more bundling work.
+
+**Interrupt point**: Yes. Bundle B is implemented as a true shared host, and the next step is deployment wiring rather than more in-process hosting work.
+
 ## 2026-04-24 - Attester host for bundled HTTP attesters (Completed)
 
 **Task**: Complete the next `TODO.md` service-bundling sub-task by standing up Bundle A, the shared host for `implication-attester` and `content-attester`.

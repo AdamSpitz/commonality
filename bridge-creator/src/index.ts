@@ -1,6 +1,6 @@
 import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
-import express from 'express';
+import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
 import {
   createSDKMachinery,
@@ -10,6 +10,8 @@ import {
 import { loadConfig } from './config.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
+
+const NEVER: Promise<void> = new Promise(() => {});
 
 interface NudgesResponse {
   nudges: NudgeMessage[];
@@ -50,7 +52,10 @@ function createMachinery(config: ReturnType<typeof loadConfig>) {
   );
 }
 
-function createApp(config: ReturnType<typeof loadConfig>, signer = createNudgerSigner(config)) {
+export function createBridgeCreatorApp(
+  config: ReturnType<typeof loadConfig>,
+  signerAddress = createNudgerSigner(config).address,
+): Express {
   const app = express();
   const machinery = createMachinery(config);
   const nudgerStrategy = createNudgerStrategy();
@@ -140,7 +145,7 @@ function createApp(config: ReturnType<typeof loadConfig>, signer = createNudgerS
 
   app.get('/.well-known/nudger.json', (_req: Request, res: Response) => {
     const metadata: NudgerMetadata = {
-      address: signer.address,
+      address: signerAddress,
       name: config.name,
       description: config.description,
       sourceType: config.sourceType,
@@ -153,7 +158,7 @@ function createApp(config: ReturnType<typeof loadConfig>, signer = createNudgerS
   app.get('/health', (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
-      address: signer.address,
+      address: signerAddress,
       name: config.name,
       version: config.version,
     });
@@ -163,39 +168,56 @@ function createApp(config: ReturnType<typeof loadConfig>, signer = createNudgerS
 }
 
 export interface BridgeCreatorRunHandle {
-  server: Server;
+  server?: Server;
   finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
-export function run(config = loadConfig()): BridgeCreatorRunHandle {
-  const signer = createNudgerSigner(config);
-  const app = createApp(config, signer);
-  let stopRequested = false;
-  const server = app.listen(config.port, () => {
-    console.log(`Bridge Creator service listening on port ${config.port}`);
-    console.log(`Nudger address: ${signer.address}`);
-    console.log(`Strategy: ${config.sourceType}`);
-  });
+export interface BridgeCreatorRunOptions {
+  startServer?: boolean;
+}
 
-  const finished = new Promise<void>((resolve, reject) => {
-    server.once('close', () => {
-      resolve();
+export function run(
+  config = loadConfig(),
+  options: BridgeCreatorRunOptions = {},
+): BridgeCreatorRunHandle {
+  const startServer = options.startServer ?? true;
+  const signer = createNudgerSigner(config);
+  let stopRequested = false;
+  let server: Server | undefined;
+  let finished = NEVER;
+
+  if (startServer) {
+    const app = createBridgeCreatorApp(config, signer.address);
+    server = app.listen(config.port, () => {
+      console.log(`Bridge Creator service listening on port ${config.port}`);
+      console.log(`Nudger address: ${signer.address}`);
+      console.log(`Strategy: ${config.sourceType}`);
     });
-    server.once('error', (error) => {
-      if (stopRequested) {
+
+    finished = new Promise<void>((resolve, reject) => {
+      server!.once('close', () => {
         resolve();
-        return;
-      }
-      reject(error);
+      });
+      server!.once('error', (error) => {
+        if (stopRequested) {
+          resolve();
+          return;
+        }
+        reject(error);
+      });
     });
-  });
+  }
 
   return {
     server,
     finished,
     stop: () => new Promise((resolve, reject) => {
       stopRequested = true;
+      if (!server) {
+        resolve();
+        return;
+      }
       server.close((error) => {
         if (error) {
           reject(error);

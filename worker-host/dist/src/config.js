@@ -34,6 +34,18 @@ function assertOptionalNumber(value, fieldName) {
     }
     return value;
 }
+function assertOptionalRoutePrefix(value, fieldName) {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (typeof value !== 'string' || value.length === 0) {
+        throw new Error(`Invalid worker-host config: ${fieldName} must be a non-empty string when provided`);
+    }
+    if (!value.startsWith('/')) {
+        throw new Error(`Invalid worker-host config: ${fieldName} must start with "/"`);
+    }
+    return value;
+}
 function assertWorkerKind(value, fieldName) {
     if (typeof value !== 'string' || !workerKinds.includes(value)) {
         throw new Error(`Invalid worker-host config: ${fieldName} must be one of ${workerKinds.join(', ')}`);
@@ -53,6 +65,7 @@ function parseHostedWorkerConfig(value, index) {
         config: value.config,
         enabled: assertOptionalBoolean(value.enabled, `workers[${index}].enabled`),
         restartDelayMs: assertOptionalNumber(value.restartDelayMs, `workers[${index}].restartDelayMs`),
+        routePrefix: assertOptionalRoutePrefix(value.routePrefix, `workers[${index}].routePrefix`),
     };
 }
 export function parseWorkerHostConfig(value) {
@@ -62,9 +75,13 @@ export function parseWorkerHostConfig(value) {
     if (!Array.isArray(value.workers) || value.workers.length === 0) {
         throw new Error('Invalid worker-host config: workers must be a non-empty array');
     }
-    return {
-        workers: value.workers.map((worker, index) => parseHostedWorkerConfig(worker, index)),
-    };
+    const workers = value.workers.map((worker, index) => parseHostedWorkerConfig(worker, index));
+    const port = assertOptionalNumber(value.port, 'port');
+    const routedWorkers = workers.filter((worker) => worker.routePrefix);
+    if (routedWorkers.length > 0 && port === undefined) {
+        throw new Error('Invalid worker-host config: port is required when any worker has a routePrefix');
+    }
+    return { port, workers };
 }
 export async function loadWorkerHostConfig(configPath) {
     const resolvedPath = resolve(configPath);

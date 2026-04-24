@@ -1,6 +1,6 @@
 import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
-import express from 'express';
+import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
 import {
   createSDKMachinery,
@@ -10,6 +10,8 @@ import { loadConfig } from './config.js';
 import { createNudgerSigner } from '@commonality/nudger-core';
 import { ExplorerCurator } from './curator.js';
 import { suggestForUser, type ExplorerSuggestRequest, type ExplorerSuggestion } from './personalizer.js';
+
+const NEVER: Promise<void> = new Promise(() => {});
 
 function createContractAddresses(config: ReturnType<typeof loadConfig>): ContractAddresses {
   return {
@@ -64,17 +66,17 @@ interface NudgerMetadata {
   version: string;
 }
 
-function createApp(
+export function createExplorerCuratorApp(
   config: ReturnType<typeof loadConfig>,
-  signer: ReturnType<typeof createNudgerSigner>,
-  machinery: ReturnType<typeof createMachinery>,
-) {
+  signerAddress = createNudgerSigner(config).address,
+  machinery = createMachinery(config),
+): Express {
   const app = express();
   app.use(express.json());
 
   app.get('/.well-known/nudger.json', (_req: Request, res: Response) => {
     const metadata: NudgerMetadata = {
-      address: signer.address,
+      address: signerAddress,
       name: config.name,
       description: config.description,
       sourceType: config.sourceType,
@@ -86,7 +88,7 @@ function createApp(
   app.get('/health', (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
-      address: signer.address,
+      address: signerAddress,
       name: config.name,
       version: config.version,
       stream: config.stream,
@@ -135,16 +137,23 @@ function createApp(
 }
 
 export interface ExplorerCuratorRunHandle {
-  server: Server;
+  server?: Server;
   finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
-export function run(config = loadConfig()): ExplorerCuratorRunHandle {
+export interface ExplorerCuratorRunOptions {
+  startServer?: boolean;
+}
+
+export function run(
+  config = loadConfig(),
+  options: ExplorerCuratorRunOptions = {},
+): ExplorerCuratorRunHandle {
+  const startServer = options.startServer ?? true;
   const signer = createNudgerSigner(config);
   const machinery = createMachinery(config);
   const curator = new ExplorerCurator();
-  const app = createApp(config, signer, machinery);
   let stopRequested = false;
 
   void runCuratorCycle(curator, machinery, config).catch(console.error);
@@ -152,25 +161,31 @@ export function run(config = loadConfig()): ExplorerCuratorRunHandle {
     void runCuratorCycle(curator, machinery, config).catch(console.error);
   }, config.curatorIntervalMs);
 
-  const server = app.listen(config.port, () => {
-    console.log(`Explorer curator service listening on port ${config.port}`);
-    console.log(`Nudger address: ${signer.address}`);
-    console.log(`Stream: ${config.stream}`);
-    console.log(`Curator interval: ${config.curatorIntervalMs / (60 * 60 * 1000)} hours`);
-  });
+  let server: Server | undefined;
+  let finished = NEVER;
 
-  const finished = new Promise<void>((resolve, reject) => {
-    server.once('close', () => {
-      resolve();
+  if (startServer) {
+    const app = createExplorerCuratorApp(config, signer.address, machinery);
+    server = app.listen(config.port, () => {
+      console.log(`Explorer curator service listening on port ${config.port}`);
+      console.log(`Nudger address: ${signer.address}`);
+      console.log(`Stream: ${config.stream}`);
+      console.log(`Curator interval: ${config.curatorIntervalMs / (60 * 60 * 1000)} hours`);
     });
-    server.once('error', (error) => {
-      if (stopRequested) {
+
+    finished = new Promise<void>((resolve, reject) => {
+      server!.once('close', () => {
         resolve();
-        return;
-      }
-      reject(error);
+      });
+      server!.once('error', (error) => {
+        if (stopRequested) {
+          resolve();
+          return;
+        }
+        reject(error);
+      });
     });
-  });
+  }
 
   return {
     server,
@@ -178,6 +193,10 @@ export function run(config = loadConfig()): ExplorerCuratorRunHandle {
     stop: () => new Promise((resolve, reject) => {
       stopRequested = true;
       clearInterval(interval);
+      if (!server) {
+        resolve();
+        return;
+      }
       server.close((error) => {
         if (error) {
           reject(error);

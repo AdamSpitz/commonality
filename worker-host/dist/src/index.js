@@ -1,38 +1,59 @@
-import { getWorkerHostConfigPath, loadWorkerHostConfig } from './config.js';
-import { workerFactories } from './serviceRegistry.js';
+import express from 'express';
+import { workerAppFactories, workerFactories } from './serviceRegistry.js';
 import { createWorkerHost } from './supervisor.js';
-async function main() {
-    const configPath = getWorkerHostConfigPath(process.argv);
-    const config = await loadWorkerHostConfig(configPath);
+export function createWorkerHostApp(config, factories = {}) {
+    const app = express();
+    const resolvedWorkerAppFactories = factories.workerAppFactories ?? workerAppFactories;
+    const routedWorkers = config.workers.filter((worker) => worker.routePrefix);
+    for (const worker of routedWorkers) {
+        const factory = resolvedWorkerAppFactories[worker.kind];
+        if (!factory) {
+            throw new Error(`Worker "${worker.name}" (${worker.kind}) does not expose an HTTP app`);
+        }
+        app.use(worker.routePrefix, factory(worker.config));
+    }
+    app.get('/health', (_req, res) => {
+        res.json({
+            status: 'ok',
+            services: Object.fromEntries(routedWorkers.map((worker) => [worker.name, worker.routePrefix])),
+        });
+    });
+    return app;
+}
+export function run(config) {
     const host = createWorkerHost({
         workers: config.workers,
         factories: workerFactories,
     });
-    let shuttingDown = false;
-    const shutdown = async (signal) => {
-        if (shuttingDown) {
-            return;
-        }
-        shuttingDown = true;
-        console.log(`[worker-host] Received ${signal}; shutting down.`);
-        await host.stop();
-    };
-    process.on('SIGINT', () => {
-        void shutdown('SIGINT').then(() => process.exit(0), (error) => {
-            console.error('[worker-host] Shutdown failed:', error);
-            process.exit(1);
+    const hasHttpRoutes = config.workers.some((worker) => worker.routePrefix);
+    let server;
+    if (hasHttpRoutes) {
+        const app = createWorkerHostApp(config);
+        server = app.listen(config.port, () => {
+            console.log(`Worker host listening on port ${config.port}`);
+            for (const worker of config.workers.filter((entry) => entry.routePrefix)) {
+                console.log(`Mounted "${worker.name}" at ${worker.routePrefix}`);
+            }
         });
-    });
-    process.on('SIGTERM', () => {
-        void shutdown('SIGTERM').then(() => process.exit(0), (error) => {
-            console.error('[worker-host] Shutdown failed:', error);
-            process.exit(1);
-        });
-    });
+    }
     host.start();
+    return {
+        server,
+        stop: async () => {
+            await host.stop();
+            if (!server) {
+                return;
+            }
+            await new Promise((resolve, reject) => {
+                server.close((error) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve();
+                });
+            });
+        },
+    };
 }
-void main().catch((error) => {
-    console.error('[worker-host] Startup failed:', error);
-    process.exit(1);
-});
 //# sourceMappingURL=index.js.map

@@ -17,9 +17,11 @@ export interface HostedWorkerConfig {
   config: Record<string, unknown>;
   enabled?: boolean;
   restartDelayMs?: number;
+  routePrefix?: string;
 }
 
 export interface WorkerHostConfig {
+  port?: number;
   workers: HostedWorkerConfig[];
 }
 
@@ -54,6 +56,19 @@ function assertOptionalNumber(value: unknown, fieldName: string): number | undef
   return value;
 }
 
+function assertOptionalRoutePrefix(value: unknown, fieldName: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`Invalid worker-host config: ${fieldName} must be a non-empty string when provided`);
+  }
+  if (!value.startsWith('/')) {
+    throw new Error(`Invalid worker-host config: ${fieldName} must start with "/"`);
+  }
+  return value;
+}
+
 function assertWorkerKind(value: unknown, fieldName: string): WorkerKind {
   if (typeof value !== 'string' || !workerKinds.includes(value as WorkerKind)) {
     throw new Error(
@@ -78,6 +93,7 @@ function parseHostedWorkerConfig(value: unknown, index: number): HostedWorkerCon
     config: value.config,
     enabled: assertOptionalBoolean(value.enabled, `workers[${index}].enabled`),
     restartDelayMs: assertOptionalNumber(value.restartDelayMs, `workers[${index}].restartDelayMs`),
+    routePrefix: assertOptionalRoutePrefix(value.routePrefix, `workers[${index}].routePrefix`),
   };
 }
 
@@ -90,9 +106,15 @@ export function parseWorkerHostConfig(value: unknown): WorkerHostConfig {
     throw new Error('Invalid worker-host config: workers must be a non-empty array');
   }
 
-  return {
-    workers: value.workers.map((worker, index) => parseHostedWorkerConfig(worker, index)),
-  };
+  const workers = value.workers.map((worker, index) => parseHostedWorkerConfig(worker, index));
+  const port = assertOptionalNumber(value.port, 'port');
+  const routedWorkers = workers.filter((worker) => worker.routePrefix);
+
+  if (routedWorkers.length > 0 && port === undefined) {
+    throw new Error('Invalid worker-host config: port is required when any worker has a routePrefix');
+  }
+
+  return { port, workers };
 }
 
 export async function loadWorkerHostConfig(configPath: string): Promise<WorkerHostConfig> {

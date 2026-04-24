@@ -1,6 +1,6 @@
 import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
-import express from 'express';
+import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
 import {
   createSDKMachinery,
@@ -15,6 +15,7 @@ import {
 import { createNudgerStrategy } from './nudger.js';
 
 const NUDGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+const NEVER: Promise<void> = new Promise(() => {});
 
 function createContractAddresses(): ContractAddresses {
   return {
@@ -83,12 +84,15 @@ interface NudgerMetadata {
   version: string;
 }
 
-function createApp(config: ReturnType<typeof loadConfig>, signer: ReturnType<typeof createNudgerSigner>) {
+export function createImplicationGraphNudgerApp(
+  config: ReturnType<typeof loadConfig>,
+  signerAddress = createNudgerSigner(config).address,
+): Express {
   const app = express();
 
   app.get('/.well-known/nudger.json', (_req: Request, res: Response) => {
     const metadata: NudgerMetadata = {
-      address: signer.address,
+      address: signerAddress,
       name: config.name,
       description: config.description,
       sourceType: config.sourceType,
@@ -100,7 +104,7 @@ function createApp(config: ReturnType<typeof loadConfig>, signer: ReturnType<typ
   app.get('/health', (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
-      address: signer.address,
+      address: signerAddress,
       name: config.name,
       version: config.version,
     });
@@ -110,15 +114,22 @@ function createApp(config: ReturnType<typeof loadConfig>, signer: ReturnType<typ
 }
 
 export interface ImplicationGraphNudgerRunHandle {
-  server: Server;
+  server?: Server;
   finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
-export function run(config = loadConfig()): ImplicationGraphNudgerRunHandle {
+export interface ImplicationGraphNudgerRunOptions {
+  startServer?: boolean;
+}
+
+export function run(
+  config = loadConfig(),
+  options: ImplicationGraphNudgerRunOptions = {},
+): ImplicationGraphNudgerRunHandle {
+  const startServer = options.startServer ?? true;
   const signer = createNudgerSigner(config);
   const machinery = createMachinery(config);
-  const app = createApp(config, signer);
   let stopRequested = false;
 
   void runNudgingCycle(machinery, signer, config).catch(console.error);
@@ -126,24 +137,30 @@ export function run(config = loadConfig()): ImplicationGraphNudgerRunHandle {
     void runNudgingCycle(machinery, signer, config).catch(console.error);
   }, NUDGE_INTERVAL_MS);
 
-  const server = app.listen(config.port, () => {
-    console.log(`Nudger service listening on port ${config.port}`);
-    console.log(`Nudger address: ${signer.address}`);
-    console.log(`Strategy: ${config.sourceType}`);
-  });
+  let server: Server | undefined;
+  let finished = NEVER;
 
-  const finished = new Promise<void>((resolve, reject) => {
-    server.once('close', () => {
-      resolve();
+  if (startServer) {
+    const app = createImplicationGraphNudgerApp(config, signer.address);
+    server = app.listen(config.port, () => {
+      console.log(`Nudger service listening on port ${config.port}`);
+      console.log(`Nudger address: ${signer.address}`);
+      console.log(`Strategy: ${config.sourceType}`);
     });
-    server.once('error', (error) => {
-      if (stopRequested) {
+
+    finished = new Promise<void>((resolve, reject) => {
+      server!.once('close', () => {
         resolve();
-        return;
-      }
-      reject(error);
+      });
+      server!.once('error', (error) => {
+        if (stopRequested) {
+          resolve();
+          return;
+        }
+        reject(error);
+      });
     });
-  });
+  }
 
   return {
     server,
@@ -151,6 +168,10 @@ export function run(config = loadConfig()): ImplicationGraphNudgerRunHandle {
     stop: () => new Promise((resolve, reject) => {
       stopRequested = true;
       clearInterval(interval);
+      if (!server) {
+        resolve();
+        return;
+      }
       server.close((error) => {
         if (error) {
           reject(error);
