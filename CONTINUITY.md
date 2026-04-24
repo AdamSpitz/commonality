@@ -1,5 +1,37 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Make service-host env config lazy for disabled services (Completed)
+
+**Task**: Complete the service-bundling follow-up cleanup item that makes `loadServiceHostConfigFromEnv()` build only enabled logical-service entries, so disabled services do not require their env vars.
+
+**What was done**:
+- Updated [`service-host/src/envConfig.ts`](/home/adam/Projects/commonality/service-host/src/envConfig.ts) to read all `*_ENABLED` flags first and conditionally construct each hosted-service entry only when its flag is true.
+- Added regression tests in [`service-host/test/index.test.ts`](/home/adam/Projects/commonality/service-host/test/index.test.ts) for attester-only and worker-only env bundles, proving each can load without the other bundle's service-specific env vars.
+- Rewrote [`service-host/README.md`](/home/adam/Projects/commonality/service-host/README.md) so it describes the unified `service-host` rather than the old `worker-host` shape, and documents the lazy `*_ENABLED` env behavior.
+- Marked the lazy env-var path cleanup item complete in [`TODO.md`](/home/adam/Projects/commonality/TODO.md).
+
+**Key decisions**:
+- Kept the existing centralized env parser for now. The per-service `loadConfigFromEnv()` refactor is a separate, larger TODO item and should be done independently.
+- Disabled services are omitted from the env-derived `workers` array instead of included as `{ enabled: false }` placeholders. That keeps env-derived config aligned with the goal of only building services in the selected physical bundle.
+
+**Verified**:
+- `npm run test` in `service-host/` ✓ (8 passing)
+- `npm run build` in `service-host/` ✓
+- `npm run lint` in `service-host/` ✓
+
+**Files changed**:
+- `service-host/src/envConfig.ts`
+- `service-host/test/index.test.ts`
+- `service-host/README.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- Root-level workspace selection for `@commonality/service-host` is currently broken because root `package.json`/`package-lock.json` still list deleted `attester-host` and `worker-host` workspaces rather than `service-host`. I added this to Suggestions from AI in `TODO.md`; it should be fixed soon so root build/test tooling includes `service-host` again.
+- Remaining service-bundling follow-ups: move env parsing into the service packages, rename worker-era vocabulary, and allow multiple env-configured instances of the same kind.
+
+**Interrupt point**: Yes. The lazy env-var cleanup is complete and covered by focused tests. This is a good checkpoint before starting the larger per-package env-parser refactor.
+
 ## 2026-04-24 - Complete service-bundling: delete per-service Dockerfiles and update deployment configs (Completed)
 
 **Task**: Delete per-service Dockerfiles and update docker-compose.yml + render.yaml to use the unified service-host with ENABLE flags to select which workers run in each physical bundle.

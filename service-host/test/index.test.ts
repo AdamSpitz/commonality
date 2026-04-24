@@ -163,4 +163,64 @@ describe('service host', () => {
     assert.strictEqual(config.workers[1]?.kind, 'content-attester');
     assert.strictEqual(config.workers[1]?.routePrefix, '/content-attester');
   });
+
+  it('does not require worker-only env vars for an attester-only bundle', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      IMPLICATIONS_CONTRACT_ADDRESS: '0ximplications',
+      IMPLICATION_ATTESTER_PRIVATE_KEY: '0ximplication',
+      IMPLICATION_ATTESTER_PAYMENT_ADDRESS: '0xattesterPayment',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xcontent',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Evaluate content: {{content}}',
+      IMPLICATION_FINDER_ENABLED: 'false',
+      CONTENT_FINDER_ENABLED: 'false',
+      IMPLICATION_GRAPH_NUDGER_ENABLED: 'false',
+      BRIDGE_CREATOR_ENABLED: 'false',
+      EXPLORER_CURATOR_ENABLED: 'false',
+    });
+
+    assert.deepStrictEqual(config.workers.map((worker) => worker.name), [
+      'implication-attester',
+      'content-attester',
+    ]);
+  });
+
+  it('does not require attester-only env vars for a worker-only bundle', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      INDEXER_URL: 'http://indexer.example',
+      IPFS_API: 'http://ipfs-api.example',
+      IPFS_GATEWAY: 'http://ipfs-gateway.example',
+      IPFS_GATEWAY_URL: 'http://ipfs-gateway-url.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: '0xnudges',
+      EVENT_CACHE_URL: 'http://events.example',
+      PLATFORM_API_URL: 'http://platform.example',
+      BELIEFS_CONTRACT_ADDRESS: '0xbeliefs',
+      IMPLICATIONS_CONTRACT_ADDRESS: '0ximplications',
+      IMPLICATION_FINDER_ATTESTER_URL: 'http://attester.example/implication-attester',
+      IMPLICATION_FINDER_ATTESTER_FINDER_KEY: 'implication-finder-key',
+      CONTENT_FINDER_ATTESTER_URL: 'http://attester.example/content-attester',
+      CONTENT_FINDER_ATTESTER_FINDER_KEY: 'content-finder-key',
+      IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY: '0xgraph',
+      BRIDGE_CREATOR_PRIVATE_KEY: '0xbridge',
+      EXPLORER_CURATOR_PRIVATE_KEY: '0xexplorer',
+      IMPLICATION_ATTESTER_ENABLED: 'false',
+      CONTENT_ATTESTER_ENABLED: 'false',
+    });
+
+    assert.deepStrictEqual(config.workers.map((worker) => worker.name), [
+      'implication-finder',
+      'content-finder',
+      'implication-graph-nudger',
+      'bridge-creator',
+      'explorer-curator',
+    ]);
+  });
 });

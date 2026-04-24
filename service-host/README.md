@@ -1,28 +1,32 @@
-# Worker Host
+# Service Host
 
-`worker-host` runs multiple background AI services in one Node process, supervises them individually, and can mount their HTTP surfaces behind one shared Express listener. It is the Bundle B implementation from [`specs/tech/service-bundling.md`](../specs/tech/service-bundling.md).
+`service-host` runs multiple AI logical services in one Node process, supervises them individually, and mounts any HTTP surfaces behind one shared Express listener. It is the unified host described in [`specs/tech/service-bundling.md`](../specs/tech/service-bundling.md).
 
-## What it hosts
+Bundling is a deployment choice, not a shared-config shortcut. Each hosted service still gets its own full config object and its own signer key where applicable.
 
-The host currently supports the background-worker bundle:
+## What It Hosts
 
+The host currently supports these logical service kinds:
+
+- `implication-attester`
+- `content-attester`
 - `implication-finder`
 - `content-finder`
 - `implication-graph-nudger`
 - `bridge-creator`
 - `explorer-curator`
 
-Each worker still gets its own full config object and its own signer key where applicable. Bundling is a deployment choice, not a shared-config shortcut.
+Services that expose HTTP can be mounted under a host route prefix:
 
-Workers that expose HTTP can also be mounted under a host route prefix. Today that means:
-
+- `implication-attester`
+- `content-attester`
 - `implication-graph-nudger`
 - `bridge-creator`
 - `explorer-curator`
 
-## Config file
+## Config File
 
-Pass a JSON config file path as the first CLI argument, or set `WORKER_HOST_CONFIG`.
+Pass a JSON config file path as the first CLI argument, or set `SERVICE_HOST_CONFIG`.
 
 Example:
 
@@ -36,7 +40,7 @@ Example:
       "restartDelayMs": 1000,
       "config": {
         "eventCacheUrl": "http://indexer:42069",
-        "attesterUrl": "http://implication-attester:3000",
+        "attesterUrl": "http://service-host-attesters:3000/implication-attester",
         "attesterFinderKey": "secret",
         "beliefsContractAddress": "0x1234",
         "implicationsContractAddress": "0x5678",
@@ -60,7 +64,6 @@ Example:
         "ipfsApiUrl": "http://ipfs:5001",
         "ipfsGatewayUrl": "http://ipfs:8080",
         "openRouterModel": "anthropic/claude-3.5-haiku",
-        "port": 0,
         "stream": "fundable-project-explorer",
         "curatorIntervalMs": 21600000,
         "name": "Fundable Project Explorer",
@@ -73,65 +76,61 @@ Example:
 }
 ```
 
-If any worker sets `routePrefix`, the top-level `port` becomes required. The nested worker `port` values are ignored in that case because the host owns the actual listener.
+If any hosted service sets `routePrefix`, the top-level `port` is required because the host owns the actual listener.
 
-## Environment-based config
+## Environment Config
 
-If no config path is provided, the host can also synthesize the bundle config from environment variables. This is the deployment path used by `docker-compose.yml` and `render.yaml`.
+If no config path is provided, the host can synthesize a bundle config from environment variables. This is the deployment path used by `docker-compose.yml` and `render.yaml`.
 
-Required env vars for the full Bundle B shape:
+Each logical service has a `*_ENABLED` flag. Disabled services are not added to the host config, and their service-specific required env vars are not read. For example, an attester-only host can set the five worker/nudger `*_ENABLED=false` flags without providing finder or nudger credentials.
 
-- Shared: `PORT` or `WORKER_HOST_PORT`, `ETHEREUM_RPC_URL`, `OPENROUTER_API_KEY`, `NUDGE_PUBLICATIONS_CONTRACT_ADDRESS`
-- Finder wiring:
-  - `IMPLICATION_FINDER_ATTESTER_URL`, `IMPLICATION_FINDER_ATTESTER_FINDER_KEY`, `BELIEFS_CONTRACT_ADDRESS`, `IMPLICATIONS_CONTRACT_ADDRESS`
-  - `CONTENT_FINDER_ATTESTER_URL`, `CONTENT_FINDER_ATTESTER_FINDER_KEY`
-- Nudger identities:
-  - `IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY`
-  - `BRIDGE_CREATOR_PRIVATE_KEY`
-  - `EXPLORER_CURATOR_PRIVATE_KEY`
+Bundle selection flags:
 
-Useful shared fallbacks:
+- `IMPLICATION_ATTESTER_ENABLED`
+- `CONTENT_ATTESTER_ENABLED`
+- `IMPLICATION_FINDER_ENABLED`
+- `CONTENT_FINDER_ENABLED`
+- `IMPLICATION_GRAPH_NUDGER_ENABLED`
+- `BRIDGE_CREATOR_ENABLED`
+- `EXPLORER_CURATOR_ENABLED`
 
+Shared env vars used by multiple enabled services:
+
+- `PORT` or `SERVICE_HOST_PORT`
+- `ETHEREUM_RPC_URL`
+- `OPENROUTER_API_KEY`
 - `INDEXER_URL`, `EVENT_CACHE_URL`, `PLATFORM_API_URL`
 - `IPFS_API`, `IPFS_GATEWAY`, `IPFS_GATEWAY_URL`
 - `OPENROUTER_MODEL`
 
-Optional overrides:
-
-- Per-worker route prefixes such as `IMPLICATION_GRAPH_NUDGER_ROUTE_PREFIX`
-- Per-worker poll intervals / metadata env vars
-- `BRIDGE_CREATOR_COMMONALITY_STATEMENTS`
-- `EXPLORER_CURATOR_STREAM`, `EXPLORER_CURATOR_INTERVAL_MS`
+Each service also has service-specific env vars such as signer keys, attester URLs, route prefixes, prompt templates, and polling intervals. See `service-host/src/envConfig.ts` for the current centralized env-var mapping.
 
 ## Running
 
+With a config file:
+
 ```bash
-npm run build --workspace=@commonality/worker-host
-node worker-host/dist/cli.js ./worker-host.config.json
+npm run build
+node dist/cli.js ./service-host.config.json
 ```
 
-Or without a JSON file:
+With env vars only:
 
 ```bash
-PORT=3000 \
+SERVICE_HOST_PORT=3000 \
 ETHEREUM_RPC_URL=http://localhost:8545 \
 OPENROUTER_API_KEY=secret \
-NUDGE_PUBLICATIONS_CONTRACT_ADDRESS=0x9999 \
-IMPLICATION_FINDER_ATTESTER_URL=http://localhost:3000/implication-attester \
-IMPLICATION_FINDER_ATTESTER_FINDER_KEY=secret \
-BELIEFS_CONTRACT_ADDRESS=0x1234 \
-IMPLICATIONS_CONTRACT_ADDRESS=0x5678 \
-CONTENT_FINDER_ATTESTER_URL=http://localhost:3000/content-attester \
-CONTENT_FINDER_ATTESTER_FINDER_KEY=secret \
-IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY=0x1111 \
-BRIDGE_CREATOR_PRIVATE_KEY=0x2222 \
-EXPLORER_CURATOR_PRIVATE_KEY=0x3333 \
-node worker-host/dist/cli.js
+IMPLICATION_FINDER_ENABLED=false \
+CONTENT_FINDER_ENABLED=false \
+IMPLICATION_GRAPH_NUDGER_ENABLED=false \
+BRIDGE_CREATOR_ENABLED=false \
+EXPLORER_CURATOR_ENABLED=false \
+node dist/cli.js
 ```
 
-The supervisor restarts a worker if it throws during startup or if its run handle finishes unexpectedly. `SIGINT` and `SIGTERM` trigger a clean shutdown of all hosted workers.
+The supervisor restarts a service if it throws during startup or if its run handle finishes unexpectedly. `SIGINT` and `SIGTERM` trigger a clean shutdown of all hosted services.
 
-When routed workers are configured, the host also serves:
+When routed services are configured, the host serves:
 
 - `GET /health` for host health
-- `/<routePrefix>/...` for each mounted worker's existing HTTP routes
+- `/<routePrefix>/...` for each mounted service's existing HTTP routes

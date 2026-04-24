@@ -91,13 +91,22 @@ function readPromptTemplate(
 }
 
 export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.env): WorkerHostConfig {
+  const implicationAttesterEnabled = readOptionalBoolean(env, ['IMPLICATION_ATTESTER_ENABLED'], true);
+  const contentAttesterEnabled = readOptionalBoolean(env, ['CONTENT_ATTESTER_ENABLED'], true);
+  const implicationFinderEnabled = readOptionalBoolean(env, ['IMPLICATION_FINDER_ENABLED'], true);
+  const contentFinderEnabled = readOptionalBoolean(env, ['CONTENT_FINDER_ENABLED'], true);
+  const implicationGraphNudgerEnabled = readOptionalBoolean(env, ['IMPLICATION_GRAPH_NUDGER_ENABLED'], true);
+  const bridgeCreatorEnabled = readOptionalBoolean(env, ['BRIDGE_CREATOR_ENABLED'], true);
+  const explorerCuratorEnabled = readOptionalBoolean(env, ['EXPLORER_CURATOR_ENABLED'], true);
+
   return {
     port: readNumberEnv(env, ['SERVICE_HOST_PORT', 'PORT'], 3000),
     workers: [
+      ...(implicationAttesterEnabled ? [
       {
         name: 'implication-attester',
-        kind: 'implication-attester',
-        enabled: readOptionalBoolean(env, ['IMPLICATION_ATTESTER_ENABLED'], true),
+        kind: 'implication-attester' as const,
+        enabled: implicationAttesterEnabled,
         restartDelayMs: readNumberEnv(env, ['IMPLICATION_ATTESTER_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,
@@ -175,10 +184,12 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
           trustedFinderKey: readOptionalStringEnv(env, ['IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY']),
         },
       },
+      ] : []),
+      ...(contentAttesterEnabled ? [
       {
         name: 'content-attester',
-        kind: 'content-attester',
-        enabled: readOptionalBoolean(env, ['CONTENT_ATTESTER_ENABLED'], true),
+        kind: 'content-attester' as const,
+        enabled: contentAttesterEnabled,
         routePrefix: readStringEnv(
           env,
           ['CONTENT_ATTESTER_ROUTE_PREFIX'],
@@ -269,10 +280,12 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
           trustedFinderKey: readOptionalStringEnv(env, ['CONTENT_ATTESTER_TRUSTED_FINDER_KEY']),
         },
       },
+      ] : []),
+      ...(implicationFinderEnabled ? [
       {
         name: 'implication-finder',
-        kind: 'implication-finder',
-        enabled: readOptionalBoolean(env, ['IMPLICATION_FINDER_ENABLED'], true),
+        kind: 'implication-finder' as const,
+        enabled: implicationFinderEnabled,
         restartDelayMs: readNumberEnv(env, ['IMPLICATION_FINDER_RESTART_DELAY_MS'], 1000),
         config: {
           eventCacheUrl: readStringEnv(
@@ -313,10 +326,12 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
           ),
         },
       },
+      ] : []),
+      ...(contentFinderEnabled ? [
       {
         name: 'content-finder',
-        kind: 'content-finder',
-        enabled: readOptionalBoolean(env, ['CONTENT_FINDER_ENABLED'], true),
+        kind: 'content-finder' as const,
+        enabled: contentFinderEnabled,
         restartDelayMs: readNumberEnv(env, ['CONTENT_FINDER_RESTART_DELAY_MS'], 1000),
         config: {
           platformApiUrl: readStringEnv(
@@ -345,10 +360,12 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
           ),
         },
       },
+      ] : []),
+      ...(implicationGraphNudgerEnabled ? [
       {
         name: 'implication-graph-nudger',
-        kind: 'implication-graph-nudger',
-        enabled: readOptionalBoolean(env, ['IMPLICATION_GRAPH_NUDGER_ENABLED'], true),
+        kind: 'implication-graph-nudger' as const,
+        enabled: implicationGraphNudgerEnabled,
         restartDelayMs: readNumberEnv(env, ['IMPLICATION_GRAPH_NUDGER_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,
@@ -400,10 +417,12 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
           ),
         },
       },
+      ] : []),
+      ...(bridgeCreatorEnabled ? [
       {
         name: 'bridge-creator',
-        kind: 'bridge-creator',
-        enabled: readOptionalBoolean(env, ['BRIDGE_CREATOR_ENABLED'], true),
+        kind: 'bridge-creator' as const,
+        enabled: bridgeCreatorEnabled,
         restartDelayMs: readNumberEnv(env, ['BRIDGE_CREATOR_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,
@@ -461,10 +480,12 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
             .filter(Boolean),
         },
       },
+      ] : []),
+      ...(explorerCuratorEnabled ? [
       {
         name: 'explorer-curator',
-        kind: 'explorer-curator',
-        enabled: readOptionalBoolean(env, ['EXPLORER_CURATOR_ENABLED'], true),
+        kind: 'explorer-curator' as const,
+        enabled: explorerCuratorEnabled,
         restartDelayMs: readNumberEnv(env, ['EXPLORER_CURATOR_RESTART_DELAY_MS'], 1000),
         routePrefix: readStringEnv(
           env,
@@ -532,6 +553,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
           ),
         },
       },
+      ] : []),
     ],
   };
 }
