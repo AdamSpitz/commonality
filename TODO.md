@@ -13,6 +13,9 @@
 - Get DNS names and ENS names.
 
 - Do another smart-contract audit pass.
+  - First: which smart contracts are scary? IIRC the main one that was complicated was DelegatableNotes. Is that still true?
+  - 
+
 - (Not a task for AI.) Try out the UI manually.
 - (Not a task for AI.) Do a big code review myself. I don't trust it.
 
