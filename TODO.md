@@ -3,6 +3,10 @@
 ## Main list
 
 - We've just generated some implications for the proliferation of statements in the fake-data-generation stuff. Now a human should look at all the decisions and verify that they're sensible. Although actually no, there's almost 2000 of them. So instead just spot-check a few. Then set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
+- Make sure the seed content gets into the fake universe simulation.
+
+- Add Admin tabs to the UI.
+
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
 - [Service bundling](specs/tech/service-bundling.md) — collapse the AI services into a couple of host processes. Sub-tasks:
     - [x] Bundling prerequisite: remove process-global nudger signer state and export `run(config)` from `implication-graph-nudger`, `bridge-creator`, and `explorer-curator`, so multiple nudgers can coexist in one host process without sharing a `NUDGER_PRIVATE_KEY`.
@@ -40,6 +44,8 @@
 
 - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 - Point an AI at the UI and tell it "go use this."
+- Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
+- We'll need a lot more AI underlings, with good documentation, following all the pathways, trying all the things.
 
 - Using `cofounder` skill: Are we ready to launch?
 
