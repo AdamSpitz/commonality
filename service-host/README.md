@@ -33,7 +33,7 @@ Example:
 ```json
 {
   "port": 3000,
-  "workers": [
+  "services": [
     {
       "name": "implication-finder",
       "kind": "implication-finder",

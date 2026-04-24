@@ -18,7 +18,7 @@ export interface ServiceHostHandle {
 }
 
 export interface CreateServiceHostParams {
-  workers: HostedServiceConfig[];
+  services: HostedServiceConfig[];
   factories: Record<string, ServiceFactory>;
   logger?: SupervisorLogger;
 }
@@ -111,14 +111,14 @@ export function createServiceHost(params: CreateServiceHostParams): ServiceHostH
       }
       started = true;
 
-      for (const worker of params.workers) {
-        if (worker.enabled === false) {
-          logger.info(`[service-host] Worker "${worker.name}" is disabled; skipping.`);
+      for (const service of params.services) {
+        if (service.enabled === false) {
+          logger.info(`[service-host] Service "${service.name}" is disabled; skipping.`);
           continue;
         }
 
-        const runtime: ServiceRuntime = { definition: worker };
-        runtimes.set(worker.name, runtime);
+        const runtime: ServiceRuntime = { definition: service };
+        runtimes.set(service.name, runtime);
         startRuntime(runtime);
       }
     },

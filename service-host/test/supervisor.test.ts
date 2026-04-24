@@ -36,7 +36,7 @@ describe('createServiceHost', () => {
     };
 
     const host = createServiceHost({
-      workers: [createServiceDefinition()],
+      services: [createServiceDefinition()],
       factories: {
         'implication-finder': factory,
       },
@@ -73,7 +73,7 @@ describe('createServiceHost', () => {
     };
 
     const host = createServiceHost({
-      workers: [createServiceDefinition()],
+      services: [createServiceDefinition()],
       factories: {
         'implication-finder': factory,
       },
@@ -102,7 +102,7 @@ describe('createServiceHost', () => {
     };
 
     const host = createServiceHost({
-      workers: [createServiceDefinition({ enabled: false })],
+      services: [createServiceDefinition({ enabled: false })],
       factories: {
         'implication-finder': factory,
       },

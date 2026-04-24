@@ -24,7 +24,7 @@ export interface HostedServiceConfig {
 
 export interface ServiceHostConfig {
   port?: number;
-  workers: HostedServiceConfig[];
+  services: HostedServiceConfig[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -82,20 +82,20 @@ function assertServiceKind(value: unknown, fieldName: string): ServiceKind {
 
 function parseHostedServiceConfig(value: unknown, index: number): HostedServiceConfig {
   if (!isRecord(value)) {
-    throw new Error(`Invalid service-host config: workers[${index}] must be an object`);
+    throw new Error(`Invalid service-host config: services[${index}] must be an object`);
   }
 
   if (!isRecord(value.config)) {
-    throw new Error(`Invalid service-host config: workers[${index}].config must be an object`);
+    throw new Error(`Invalid service-host config: services[${index}].config must be an object`);
   }
 
   return {
-    name: assertString(value.name, `workers[${index}].name`),
-    kind: assertServiceKind(value.kind, `workers[${index}].kind`),
+    name: assertString(value.name, `services[${index}].name`),
+    kind: assertServiceKind(value.kind, `services[${index}].kind`),
     config: value.config,
-    enabled: assertOptionalBoolean(value.enabled, `workers[${index}].enabled`),
-    restartDelayMs: assertOptionalNumber(value.restartDelayMs, `workers[${index}].restartDelayMs`),
-    routePrefix: assertOptionalRoutePrefix(value.routePrefix, `workers[${index}].routePrefix`),
+    enabled: assertOptionalBoolean(value.enabled, `services[${index}].enabled`),
+    restartDelayMs: assertOptionalNumber(value.restartDelayMs, `services[${index}].restartDelayMs`),
+    routePrefix: assertOptionalRoutePrefix(value.routePrefix, `services[${index}].routePrefix`),
   };
 }
 
@@ -104,19 +104,19 @@ export function parseServiceHostConfig(value: unknown): ServiceHostConfig {
     throw new Error('Invalid service-host config: top-level JSON value must be an object');
   }
 
-  if (!Array.isArray(value.workers) || value.workers.length === 0) {
-    throw new Error('Invalid service-host config: workers must be a non-empty array');
+  if (!Array.isArray(value.services) || value.services.length === 0) {
+    throw new Error('Invalid service-host config: services must be a non-empty array');
   }
 
-  const workers = value.workers.map((worker, index) => parseHostedServiceConfig(worker, index));
+  const services = value.services.map((service, index) => parseHostedServiceConfig(service, index));
   const port = assertOptionalNumber(value.port, 'port');
-  const routedWorkers = workers.filter((worker) => worker.routePrefix && worker.enabled !== false);
+  const routedServices = services.filter((service) => service.routePrefix && service.enabled !== false);
 
-  if (routedWorkers.length > 0 && port === undefined) {
-    throw new Error('Invalid service-host config: port is required when any worker has a routePrefix');
+  if (routedServices.length > 0 && port === undefined) {
+    throw new Error('Invalid service-host config: port is required when any service has a routePrefix');
   }
 
-  return { port, workers };
+  return { port, services };
 }
 
 export async function loadServiceHostConfig(configPath: string): Promise<ServiceHostConfig> {

@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import type { HostedServiceConfig, ServiceHostConfig, ServiceKind } from './config.js';
 import { serviceKinds } from './config.js';
 import { loadConfigFromEnv as loadImplicationAttesterConfig } from '@commonality/implication-attester';
@@ -8,6 +7,14 @@ import { loadConfigFromEnv as loadContentFinderConfig } from '@commonality/conte
 import { loadConfigFromEnv as loadImplicationGraphNudgerConfig } from '@commonality/implication-graph-nudger';
 import { loadConfigFromEnv as loadBridgeCreatorConfig } from '@commonality/bridge-creator';
 import { loadConfigFromEnv as loadExplorerCuratorConfig } from '@commonality/explorer-curator';
+
+const httpServiceKinds = new Set<ServiceKind>([
+  'implication-graph-nudger',
+  'bridge-creator',
+  'explorer-curator',
+  'implication-attester',
+  'content-attester',
+]);
 
 function readOptionalStringFrom(
   env: NodeJS.ProcessEnv,
@@ -45,18 +52,6 @@ function readBooleanFrom(
   if (lower === 'true' || lower === '1') return true;
   if (lower === 'false' || lower === '0') return false;
   throw new Error(`Invalid boolean environment variable: ${names[0]} must be true/false/1/0`);
-}
-
-function readPromptTemplateFromEnv(env: NodeJS.ProcessEnv): string {
-  const file = env.CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE;
-  if (file) {
-    return readFileSync(file, 'utf-8');
-  }
-  const value = env.CONTENT_ATTESTER_PROMPT_TEMPLATE;
-  if (!value) {
-    throw new Error('Missing required environment variable: CONTENT_ATTESTER_PROMPT_TEMPLATE (or set CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE)');
-  }
-  return value;
 }
 
 // Multi-instance support
@@ -106,7 +101,7 @@ function buildInstanceEnv(
 
 const serviceConfigLoaders: Record<ServiceKind, (env: NodeJS.ProcessEnv) => Record<string, unknown>> = {
   'implication-attester': (e) => loadImplicationAttesterConfig(e) as unknown as Record<string, unknown>,
-  'content-attester': (e) => ({ ...loadContentAttesterConfig(e), promptTemplate: readPromptTemplateFromEnv(e) }) as unknown as Record<string, unknown>,
+  'content-attester': (e) => loadContentAttesterConfig(e) as unknown as Record<string, unknown>,
   'implication-finder': (e) => loadImplicationFinderConfig(e) as unknown as Record<string, unknown>,
   'content-finder': (e) => loadContentFinderConfig(e) as unknown as Record<string, unknown>,
   'implication-graph-nudger': (e) => loadImplicationGraphNudgerConfig(e) as unknown as Record<string, unknown>,
@@ -121,15 +116,25 @@ function buildInstanceWorker(
   const kind = deriveKindFromInstanceName(instanceName);
   const instanceEnv = buildInstanceEnv(instanceName, kind, env);
   const kindPrefix = kindToEnvPrefix(kind);
+  const instancePrefix = instanceName.toUpperCase().replace(/-/g, '_') + '_';
 
   const routePrefix = readOptionalStringFrom(env, [
     `${kindPrefix}_ROUTE_PREFIX`,
   ]);
 
+  const restartDelayMs = readNumberFrom(env, [
+    `${instancePrefix}RESTART_DELAY_MS`,
+    `${kindPrefix}_RESTART_DELAY_MS`,
+  ], 1000);
+
+  const hasHttpApp = httpServiceKinds.has(kind);
+
   return {
     name: instanceName,
     kind,
-    routePrefix: routePrefix ?? `/${instanceName}`,
+    enabled: true,
+    restartDelayMs,
+    ...(routePrefix ? { routePrefix } : hasHttpApp ? { routePrefix: `/${instanceName}` } : {}),
     config: serviceConfigLoaders[kind](instanceEnv),
   };
 }
@@ -174,7 +179,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
   if (instances.length > 0) {
     return {
       port: readNumberFrom(env, ['SERVICE_HOST_PORT', 'PORT'], 3000),
-      workers: instances,
+      services: instances,
     };
   }
 
@@ -188,7 +193,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
 
   return {
     port: readNumberFrom(env, ['SERVICE_HOST_PORT', 'PORT'], 3000),
-    workers: [
+    services: [
       buildSingleKindWorker('implication-attester', implicationAttesterEnabled, env),
       buildSingleKindWorker('content-attester', contentAttesterEnabled, env),
       buildSingleKindWorker('implication-finder', implicationFinderEnabled, env),

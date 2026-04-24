@@ -13,7 +13,7 @@ export function createServiceHostApp(
 ): Express {
   const app = express();
   const resolvedServiceAppFactories = factories.serviceAppFactories ?? serviceAppFactories;
-  const routedServices = config.workers.filter(
+  const routedServices = config.services.filter(
     (service) => service.routePrefix && service.enabled !== false,
   );
 
@@ -45,17 +45,17 @@ export interface ServiceHostRunHandle {
 
 export function run(config: ServiceHostConfig): ServiceHostRunHandle {
   const host = createServiceHost({
-    workers: config.workers,
+    services: config.services,
     factories: serviceFactories,
   });
-  const hasHttpRoutes = config.workers.some((service) => service.routePrefix);
+  const hasHttpRoutes = config.services.some((service) => service.routePrefix);
   let server: import('node:http').Server | undefined;
 
   if (hasHttpRoutes) {
     const app = createServiceHostApp(config);
     server = app.listen(config.port!, () => {
       console.log(`Service host listening on port ${config.port}`);
-      for (const service of config.workers.filter((entry) => entry.routePrefix)) {
+      for (const service of config.services.filter((entry) => entry.routePrefix)) {
         console.log(`Mounted "${service.name}" at ${service.routePrefix}`);
       }
     });

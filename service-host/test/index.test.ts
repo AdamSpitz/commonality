@@ -21,7 +21,7 @@ async function withServer() {
   const app = createServiceHostApp(
     {
       port: 0,
-      workers: [
+      services: [
         {
           name: 'implication-graph-nudger',
           kind: 'implication-graph-nudger',
@@ -92,7 +92,7 @@ describe('service host', () => {
   it('parses routed worker config and requires a host port', () => {
     const parsed = parseServiceHostConfig({
       port: 3000,
-      workers: [
+      services: [
         {
           name: 'explorer-curator',
           kind: 'explorer-curator',
@@ -103,11 +103,11 @@ describe('service host', () => {
     });
 
     assert.strictEqual(parsed.port, 3000);
-    assert.strictEqual(parsed.workers[0]?.routePrefix, '/explorer-curator');
+    assert.strictEqual(parsed.services[0]?.routePrefix, '/explorer-curator');
 
     assert.throws(
       () => parseServiceHostConfig({
-        workers: [
+        services: [
           {
             name: 'explorer-curator',
             kind: 'explorer-curator',
@@ -155,13 +155,13 @@ describe('service host', () => {
     });
 
     assert.strictEqual(config.port, 3011);
-    assert.strictEqual(config.workers.length, 7);
-    assert.strictEqual(config.workers[0]?.name, 'implication-attester');
-    assert.strictEqual(config.workers[0]?.kind, 'implication-attester');
-    assert.strictEqual(config.workers[0]?.routePrefix, '/implication-attester');
-    assert.strictEqual(config.workers[1]?.name, 'content-attester');
-    assert.strictEqual(config.workers[1]?.kind, 'content-attester');
-    assert.strictEqual(config.workers[1]?.routePrefix, '/content-attester');
+    assert.strictEqual(config.services.length, 7);
+    assert.strictEqual(config.services[0]?.name, 'implication-attester');
+    assert.strictEqual(config.services[0]?.kind, 'implication-attester');
+    assert.strictEqual(config.services[0]?.routePrefix, '/implication-attester');
+    assert.strictEqual(config.services[1]?.name, 'content-attester');
+    assert.strictEqual(config.services[1]?.kind, 'content-attester');
+    assert.strictEqual(config.services[1]?.routePrefix, '/content-attester');
   });
 
   it('does not require worker-only env vars for an attester-only bundle', () => {
@@ -184,7 +184,7 @@ describe('service host', () => {
       EXPLORER_CURATOR_ENABLED: 'false',
     });
 
-    assert.deepStrictEqual(config.workers.map((worker) => worker.name), [
+    assert.deepStrictEqual(config.services.map((service) => service.name), [
       'implication-attester',
       'content-attester',
     ]);
@@ -215,7 +215,7 @@ describe('service host', () => {
       CONTENT_ATTESTER_ENABLED: 'false',
     });
 
-    assert.deepStrictEqual(config.workers.map((worker) => worker.name), [
+    assert.deepStrictEqual(config.services.map((service) => service.name), [
       'implication-finder',
       'content-finder',
       'implication-graph-nudger',
@@ -238,13 +238,13 @@ describe('service host', () => {
       CONTENT_ATTESTER_LEFT_EVAL_RIGHT_PROMPT_TEMPLATE: 'Left-eval-right prompt: {{content}}',
     });
 
-    assert.strictEqual(config.workers.length, 2);
-    assert.strictEqual(config.workers[0]?.name, 'content-attester-neutral');
-    assert.strictEqual(config.workers[0]?.kind, 'content-attester');
-    assert.strictEqual(config.workers[0]?.routePrefix, '/content-attester-neutral');
-    assert.strictEqual(config.workers[1]?.name, 'content-attester-left-eval-right');
-    assert.strictEqual(config.workers[1]?.kind, 'content-attester');
-    assert.strictEqual(config.workers[1]?.routePrefix, '/content-attester-left-eval-right');
+    assert.strictEqual(config.services.length, 2);
+    assert.strictEqual(config.services[0]?.name, 'content-attester-neutral');
+    assert.strictEqual(config.services[0]?.kind, 'content-attester');
+    assert.strictEqual(config.services[0]?.routePrefix, '/content-attester-neutral');
+    assert.strictEqual(config.services[1]?.name, 'content-attester-left-eval-right');
+    assert.strictEqual(config.services[1]?.kind, 'content-attester');
+    assert.strictEqual(config.services[1]?.routePrefix, '/content-attester-left-eval-right');
   });
 
   it('prefers instance-specific env vars over kind-level env vars', () => {
@@ -262,13 +262,13 @@ describe('service host', () => {
       CONTENT_ATTESTER_SECONDARY_PROMPT_TEMPLATE: 'Secondary-specific prompt',
     });
 
-    assert.strictEqual(config.workers.length, 2);
+    assert.strictEqual(config.services.length, 2);
     assert.strictEqual(
-      (config.workers[0]?.config as Record<string, unknown>).promptTemplate,
+      (config.services[0]?.config as Record<string, unknown>).promptTemplate,
       'Primary-specific prompt',
     );
     assert.strictEqual(
-      (config.workers[1]?.config as Record<string, unknown>).promptTemplate,
+      (config.services[1]?.config as Record<string, unknown>).promptTemplate,
       'Secondary-specific prompt',
     );
   });
@@ -286,13 +286,13 @@ describe('service host', () => {
       CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Shared prompt for all instances',
     });
 
-    assert.strictEqual(config.workers.length, 2);
+    assert.strictEqual(config.services.length, 2);
     assert.strictEqual(
-      (config.workers[0]?.config as Record<string, unknown>).promptTemplate,
+      (config.services[0]?.config as Record<string, unknown>).promptTemplate,
       'Shared prompt for all instances',
     );
     assert.strictEqual(
-      (config.workers[1]?.config as Record<string, unknown>).promptTemplate,
+      (config.services[1]?.config as Record<string, unknown>).promptTemplate,
       'Shared prompt for all instances',
     );
   });
@@ -311,7 +311,7 @@ describe('service host', () => {
       CONTENT_ATTESTER_ROUTE_PREFIX: '/custom-content-attester',
     });
 
-    assert.strictEqual(config.workers[0]?.routePrefix, '/custom-content-attester');
+    assert.strictEqual(config.services[0]?.routePrefix, '/custom-content-attester');
   });
 
   it('throws when instance name does not match a known kind', () => {
@@ -339,8 +339,8 @@ describe('service host', () => {
       NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: '0xnudges',
     });
 
-    assert.strictEqual(config.workers.length, 2);
-    assert.strictEqual(config.workers[0]?.kind, 'content-attester');
-    assert.strictEqual(config.workers[1]?.kind, 'implication-graph-nudger');
+    assert.strictEqual(config.services.length, 2);
+    assert.strictEqual(config.services[0]?.kind, 'content-attester');
+    assert.strictEqual(config.services[1]?.kind, 'implication-graph-nudger');
   });
 });

@@ -1,5 +1,51 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Finish remaining service-bundling follow-up cleanup items (Completed)
+
+**Task**: Complete the four remaining service-bundling follow-up cleanup items listed in TODO.md.
+
+**What was done**:
+
+### 1. Finish pushing content-attester env parsing into its own package
+- Removed `readPromptTemplateFromEnv()` and its `readFileSync` import from `service-host/src/envConfig.ts`.
+- Simplified the `serviceConfigLoaders` entry for `content-attester` from `(e) => ({ ...loadContentAttesterConfig(e), promptTemplate: readPromptTemplateFromEnv(e) })` to `(e) => loadContentAttesterConfig(e)`. The `promptTemplate` is already read by `@commonality/content-attester`'s own `loadConfigFromEnv`, so the spread-and-override was redundant.
+- Acceptance: adding/removing a content-attester field requires zero edits in `service-host/`.
+
+### 2. Finish worker→service rename in JSON config schema (`workers` → `services`)
+- Renamed `ServiceHostConfig.workers` → `ServiceHostConfig.services` in `service-host/src/config.ts`.
+- Updated `parseHostedServiceConfig` error messages from `workers[${index}]` to `services[${index}]`.
+- Updated `parseServiceHostConfig` to read `value.services` and produce error "services must be a non-empty array".
+- Updated `envConfig.ts` to return `{ services: ... }` in both multi-instance and single-kind paths.
+- Updated `index.ts` (`createServiceHostApp`, `run`) to reference `config.services`.
+- Updated `supervisor.ts` (`CreateServiceHostParams`) to use `services` instead of `workers`.
+- Updated all test files (`index.test.ts`, `supervisor.test.ts`) to use `services`.
+- Updated `README.md` example JSON to use `"services": [...]`.
+- No backward-compatibility shim — old JSON configs with `workers:` will be rejected with a clear error.
+
+### 3. Don't default `routePrefix` for non-HTTP service kinds in multi-instance env path
+- Added `httpServiceKinds` set in `envConfig.ts` listing the five kinds that expose `createApp`: `implication-graph-nudger`, `bridge-creator`, `explorer-curator`, `implication-attester`, `content-attester`.
+- Changed `buildInstanceWorker` to only default `routePrefix` to `/${instanceName}` when the kind is in `httpServiceKinds`. Finder instances (`implication-finder`, `content-finder`) now get no `routePrefix` field, so they run as background-only services.
+
+### 4. Close asymmetry between single-kind and multi-instance env paths (`restartDelayMs`)
+- Added `enabled: true` and `restartDelayMs` to `buildInstanceWorker` output, matching `buildSingleKindWorker`.
+- `restartDelayMs` reads from per-instance prefix first (`${INSTANCE_NAME}RESTART_DELAY_MS`), falling back to per-kind prefix (`${KIND}_RESTART_DELAY_MS`), defaulting to 1000ms.
+
+**Verified**:
+- `npm run build --workspace=@commonality/service-host` ✓
+- Tests could not run due to pre-existing repo build issues (`@commonality/nudger-core` fails to build due to missing `NudgePublicationsAbi` export from `@commonality/sdk`). These are unrelated to the changes made here.
+
+**Files changed**:
+- `service-host/src/config.ts` (workers → services)
+- `service-host/src/envConfig.ts` (removed readPromptTemplateFromEnv, added httpServiceKinds, added restartDelayMs/enabled to buildInstanceWorker, workers → services)
+- `service-host/src/index.ts` (workers → services)
+- `service-host/src/supervisor.ts` (workers → services)
+- `service-host/test/index.test.ts` (workers → services)
+- `service-host/test/supervisor.test.ts` (workers → services)
+- `service-host/README.md` (workers → services)
+- `TODO.md` (marked 4 remaining items complete)
+- `CONTINUITY.md`
+
+
 ## 2026-04-24 - Service bundling follow-ups: normalize test scripts + multi-instance env-var path (Completed)
 
 **Task**: Complete the two remaining service-bundling follow-up cleanup items:
