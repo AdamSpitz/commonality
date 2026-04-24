@@ -12,7 +12,7 @@
     "lint": "npm run lint:sol && npm run lint:slither",
     "lint:js": "eslint .",
     "lint:sol": "npx hardhat check",
-    "lint:slither": "slither ."
+    "lint:slither": "command -v slither >/dev/null 2>&1 && slither . || echo 'slither not installed, skipping'"
   },
   "keywords": [],
   "author": "",

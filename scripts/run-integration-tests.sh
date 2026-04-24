@@ -74,7 +74,10 @@ BUILDABLE_SERVICES=(
     platform-api-service
 )
 
-mapfile -t SERVICES_TO_BUILD < <(node "$SCRIPT_DIR/docker-build-plan.mjs" list "${BUILDABLE_SERVICES[@]}")
+SERVICES_TO_BUILD=()
+while IFS= read -r line; do
+    SERVICES_TO_BUILD+=("$line")
+done < <(node "$SCRIPT_DIR/docker-build-plan.mjs" list "${BUILDABLE_SERVICES[@]}")
 if [ "${#SERVICES_TO_BUILD[@]}" -gt 0 ]; then
     echo "Rebuilding Docker images whose declared inputs changed:"
     printf '  %s\n' "${SERVICES_TO_BUILD[@]}"

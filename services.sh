@@ -221,7 +221,10 @@ start_services() {
         "$UI_IPFS_ARTIFACT_DIR/content-funding" \
         "$UI_IPFS_ARTIFACT_DIR/noninflammatory" \
         "$UI_IPFS_ARTIFACT_DIR/movement"
-    mapfile -t services_to_build < <(node "$SCRIPT_DIR/scripts/docker-build-plan.mjs" list "${buildable_services[@]}")
+    services_to_build=()
+    while IFS= read -r line; do
+        services_to_build+=("$line")
+    done < <(node "$SCRIPT_DIR/scripts/docker-build-plan.mjs" list "${buildable_services[@]}")
     if [ "${#services_to_build[@]}" -gt 0 ]; then
         echo "Rebuilding Docker images whose declared inputs changed:"
         printf '  %s\n' "${services_to_build[@]}"
