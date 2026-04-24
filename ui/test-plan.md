@@ -13,7 +13,7 @@ All major pages and components across all subsystems have unit tests. Coverage i
 
 **Domain routing and composition:** `domainRoutes.test.tsx` (all four domain manifests), `ContentPages.test.tsx` (content-funding and noninflammatory branded wrappers), `MovementPages.test.tsx` (movement domain wrappers)
 
-**Shared infrastructure:** `routing.test.ts` (IPFS-mode hash routing fallback)
+**Shared infrastructure:** `routing.test.ts` (IPFS-mode hash routing fallback), `AppShell.test.tsx` (branding, primary/secondary navigation, More menu, footer, selected state), `AddressDisplay.test.tsx` (ENS name, Twitter handle, raw address fallback, showFullAddress, twitterHandleHint)
 
 ## E2E Test Coverage (Playwright)
 

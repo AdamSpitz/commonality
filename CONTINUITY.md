@@ -1,5 +1,47 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Improve UI test coverage: AppShell + AddressDisplay (Completed)
+
+**Task**: Improve UI test coverage by adding tests for shared shell/infrastructure components that were previously only incidentally covered.
+
+**What was done**:
+- Added `ui/src/shared/components/AppShell.test.tsx` (18 tests) covering:
+  - Default and custom branding rendering
+  - Primary navigation items and selected-state highlighting for all routes
+  - Custom primary navigation
+  - "More" button rendering, menu opening, secondary nav items, selected state, menu close on click
+  - Default and custom footer text
+  - Children rendering in main content area
+  - Wallet button presence in toolbar
+- Added `ui/src/shared/components/AddressDisplay.test.tsx` (9 tests) covering:
+  - Raw address fallback when no social data
+  - ENS name rendering (preferred over Twitter handle)
+  - Twitter handle rendering
+  - ENS vs Twitter handle preference
+  - showFullAddress behavior for both ENS and Twitter
+  - twitterHandleHint passthrough
+  - Refetching on address change
+  - Silent failure on getUserSocialData rejection
+- Updated `ui/test-plan.md` to document the new shared infrastructure coverage.
+
+**Key decisions**:
+- AppShell tests mock `@mui/material`'s `useMediaQuery` and `useTheme` to control desktop/mobile behavior. Tests cover the desktop path (primary nav buttons + More menu); mobile drawer tests would require a separate mock setup.
+- AddressDisplay tests mock `getUserSocialData` from `@commonality/sdk` and `useMachinery` hook, testing all three display branches (ENS, Twitter, raw address) plus edge cases.
+
+**Verified**:
+- `npm run test --workspace=ui -- src/shared/components/AppShell.test.tsx` ✓ (18 passing)
+- `npm run test --workspace=ui -- src/shared/components/AddressDisplay.test.tsx` ✓ (9 passing)
+- `npm run build --workspace=ui` ✓
+
+**Files changed**:
+- `ui/src/shared/components/AppShell.test.tsx` (new)
+- `ui/src/shared/components/AddressDisplay.test.tsx` (new)
+- `ui/test-plan.md` (updated shared infrastructure coverage)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. 27 new tests added for two core shared components. The TODO.md still lists many more UI coverage gaps (DocsPage, domain-wrapper tests, content-funding pages, pubstarter sub-surfaces, funding-portal, delegation, conceptspace edge cases, E2E for non-default domains, accessibility assertions). These should be tackled incrementally in future sessions.
+
+
 ## 2026-04-24 - Finish remaining service-bundling follow-up cleanup items (Completed)
 
 **Task**: Complete the four remaining service-bundling follow-up cleanup items listed in TODO.md.
