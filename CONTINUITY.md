@@ -1732,3 +1732,38 @@ Spec: `specs/product/nudge-ux.md`.
 - The worktree currently also contains unrelated `attester-core/dist/openrouter.*` modifications that were left untouched.
 
 **Interrupt point**: Yes. The clean next step is to build the host-process layer itself: a Bundle-A Express host for both attesters and a Bundle-B supervisor/worker host for the finders and nudgers, then update deployment config once those binaries exist.
+
+## 2026-04-24 - Seed Implication Regression Tester Hardening (Completed)
+
+**Task**: Finish the TODO item for a regression tester around implication-attester decisions on seed statements and their proliferation variants.
+
+**What was done**:
+- Added stale-content detection to `fake-data-generation/seedImplicationEvaluations.ts`, so the verifier now fails when a saved pair ID still exists but the saved `from`/`to` statement text or metadata no longer matches the current seed-content source.
+- Extended `fake-data-generation/verifySeedImplicationEvaluations.ts` with `--review-output <path>`, which writes a focused JSON packet containing only missing pairs, changed pairs, obsolete saved pairs, and prompt-fingerprint mismatches for human review.
+- Added `npm run test:seed:implication-regression --workspace=fake-data-generation` as the cheap offline regression check over the checked-in `original-variants` decision corpus.
+- Fixed `attester-core` cleanup intervals to call `.unref()`, because importing the reusable implication evaluator into one-shot scripts otherwise kept the Node process alive after the verifier finished.
+- Updated `fake-data-generation/README.md` with the regression/review workflow and removed the completed item from `TODO.md`.
+
+**Verified**:
+- `npm run build --workspace=@commonality/attester-core`
+- `npm run test --workspace=@commonality/attester-core`
+- `npm run test --workspace=fake-data-generation`
+- `npm run typecheck --workspace=fake-data-generation`
+- `npm run test:seed:implication-regression --workspace=fake-data-generation`
+- `npm run gen:seed:implications:verify --workspace=fake-data-generation -- --review-output tmp/seed-implication-review.test.json` then removed the temp file
+
+**Files changed**:
+- `attester-core/src/payment.ts`
+- `attester-core/src/rateLimit.ts`
+- `fake-data-generation/seedImplicationEvaluations.ts`
+- `fake-data-generation/verifySeedImplicationEvaluations.ts`
+- `fake-data-generation/test/seedImplicationEvaluations.test.ts`
+- `fake-data-generation/package.json`
+- `fake-data-generation/README.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes**:
+- The live prompt-regression path still requires `OPENROUTER_API_KEY` and should remain operator-driven because it spends API credits.
+
+**Interrupt point**: Yes. The regression tester now has an offline stale-corpus check and a focused human-review artifact for statement changes.

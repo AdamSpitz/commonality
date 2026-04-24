@@ -63,7 +63,7 @@ export function cleanupExpiredRateLimits(): void {
   }
 }
 
-setInterval(cleanupExpiredRateLimits, 60 * 1000);
+setInterval(cleanupExpiredRateLimits, 60 * 1000).unref();
 
 export function getRateLimitStoreSize(): number {
   return requestStore.size;

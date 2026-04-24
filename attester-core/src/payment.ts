@@ -107,7 +107,7 @@ export function createPaymentRequiredResponse(details: PaymentDetails) {
 }
 
 cleanupExpiredPayments();
-setInterval(cleanupExpiredPayments, 60 * 1000);
+setInterval(cleanupExpiredPayments, 60 * 1000).unref();
 
 function cleanupExpiredPayments() {
   const now = Date.now();

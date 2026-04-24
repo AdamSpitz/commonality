@@ -62,6 +62,12 @@ export interface SeedImplicationVerificationReport {
   savedPairCount: number;
   missingPairIds: string[];
   extraPairIds: string[];
+  changedPairs: Array<{
+    pairId: string;
+    changes: string[];
+    expected: SeedImplicationPair;
+    saved: StoredSeedImplicationEvaluation;
+  }>;
   mismatches: Array<{
     pairId: string;
     expected: { implies: boolean; confidence: 'high' | 'medium' | 'low' };
@@ -286,9 +292,23 @@ export function compareEvaluations(
 ): SeedImplicationVerificationReport {
   const expectedPairIds = new Set(expectedPairs.map((pair) => pair.pairId));
   const savedPairIds = new Set(savedEvaluations.map((evaluation) => evaluation.pairId));
+  const expectedByPairId = new Map(expectedPairs.map((pair) => [pair.pairId, pair]));
 
   const missingPairIds = [...expectedPairIds].filter((pairId) => !savedPairIds.has(pairId)).sort();
   const extraPairIds = [...savedPairIds].filter((pairId) => !expectedPairIds.has(pairId)).sort();
+  const changedPairs = savedEvaluations.flatMap((saved) => {
+    const expected = expectedByPairId.get(saved.pairId);
+    if (!expected) {
+      return [];
+    }
+
+    const changes = getSavedPairChanges(expected, saved);
+    if (changes.length === 0) {
+      return [];
+    }
+
+    return [{ pairId: saved.pairId, changes, expected, saved }];
+  });
 
   const mismatches = savedEvaluations.flatMap((saved) => {
     const actual = actualByPairId.get(saved.pairId);
@@ -310,8 +330,40 @@ export function compareEvaluations(
     savedPairCount: savedEvaluations.length,
     missingPairIds,
     extraPairIds,
+    changedPairs,
     mismatches,
   };
+}
+
+function getSavedPairChanges(
+  expected: SeedImplicationPair,
+  saved: StoredSeedImplicationEvaluation
+): string[] {
+  return [
+    ...getSavedStatementChanges('from', expected.from, saved.from),
+    ...getSavedStatementChanges('to', expected.to, saved.to),
+    ...(expected.bucketKey === saved.bucketKey ? [] : ['bucketKey']),
+  ];
+}
+
+function getSavedStatementChanges(
+  side: 'from' | 'to',
+  expected: SeedImplicationStatementRecord,
+  saved: SeedImplicationStatementRecord
+): string[] {
+  const fields: Array<keyof SeedImplicationStatementRecord> = [
+    'uid',
+    'collectionId',
+    'groupId',
+    'statementId',
+    'role',
+    'text',
+    'originalStatementId',
+    'originalCollectionId',
+    'originalGroupId',
+  ];
+
+  return fields.flatMap((field) => expected[field] === saved[field] ? [] : [`${side}.${field}`]);
 }
 
 function getBucketKey(

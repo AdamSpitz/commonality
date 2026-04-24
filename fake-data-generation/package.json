@@ -11,6 +11,7 @@
     "gen:seed:upload": "tsx prepareSeedStatements.ts --upload",
     "gen:seed:implications": "tsx generateSeedImplicationEvaluations.ts",
     "gen:seed:implications:verify": "tsx verifySeedImplicationEvaluations.ts",
+    "test:seed:implication-regression": "tsx verifySeedImplicationEvaluations.ts",
     "gen:proliferation": "tsx generateProliferation.ts",
     "gen:attesters": "tsx generateAttesters.ts",
     "gen:attestations": "tsx generateAttestations.ts",

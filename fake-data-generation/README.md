@@ -95,7 +95,8 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
 - `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
 - `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
-- `npm run gen:seed:implications:verify` checks that the saved implication-decision corpus still matches the current statement set, and can optionally re-run the attester to detect prompt regressions
+- `npm run test:seed:implication-regression` checks that the saved implication-decision corpus still matches the current statement IDs and statement text
+- `npm run gen:seed:implications:verify` is the same verifier with extra operator options, including optional live rechecks and focused human-review packet output
 - `npm run gen:proliferation` writes `seed-content/proliferation.json`, a large set of similar-but-distinct variants of every seed statement (see below)
 
 ### Proliferated statement variants
@@ -146,14 +147,19 @@ To verify the saved corpus:
 
 ```bash
 # Check for new/missing pairs after statement edits
-npm run gen:seed:implications:verify
+npm run test:seed:implication-regression
 
 # Re-run the live evaluator on the saved corpus to look for prompt regressions
 npm run gen:seed:implications:verify -- --recheck-decisions
 
 # Or limit the live recheck while iterating on the prompt
 npm run gen:seed:implications:verify -- --recheck-decisions --limit 100
+
+# Emit only the new/changed pairs that need human review after statement edits
+npm run gen:seed:implications:verify -- --review-output output/seed-implication-review.json
 ```
+
+The offline regression check intentionally compares the saved `from`/`to` statement content and metadata, not just pair IDs. If a seed statement keeps the same ID but changes text, the verifier fails and the review packet includes only the affected saved decision(s), so a human does not need to re-read the whole corpus.
 
 ## Configuration
 

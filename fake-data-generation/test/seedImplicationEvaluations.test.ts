@@ -189,8 +189,42 @@ test('compareEvaluations reports missing, extra, and mismatched pairs', () => {
 
   assert.deepEqual(report.extraPairIds, ['obsolete']);
   assert.deepEqual(report.missingPairIds, []);
+  assert.deepEqual(report.changedPairs, []);
   assert.equal(report.mismatches.length, 1);
   assert.equal(report.mismatches[0]!.pairId, 'a->b');
+});
+
+test('compareEvaluations reports stale saved statement content for existing pair ids', () => {
+  const a = makeStatement({ uid: 'a', statementId: 'a', originalStatementId: 'a', text: 'current a' });
+  const b = makeStatement({ uid: 'b', statementId: 'b', originalStatementId: 'b', text: 'current b' });
+  const expectedPairs = [
+    { pairId: 'a->b', bucketKey: 'bucket', from: a, to: b },
+  ];
+
+  const saved: StoredSeedImplicationEvaluation[] = [
+    {
+      pairId: 'a->b',
+      bucketKey: 'bucket',
+      from: { ...a, text: 'old a' },
+      to: b,
+      implies: true,
+      confidence: 'high',
+      reasoning: 'r',
+      model: 'm',
+      promptFingerprint: 'p',
+      evaluatedAt: '2026-01-01T00:00:00.000Z',
+    },
+  ];
+
+  const report = compareEvaluations(expectedPairs, saved, new Map());
+
+  assert.deepEqual(report.missingPairIds, []);
+  assert.deepEqual(report.extraPairIds, []);
+  assert.equal(report.changedPairs.length, 1);
+  assert.equal(report.changedPairs[0]!.pairId, 'a->b');
+  assert.deepEqual(report.changedPairs[0]!.changes, ['from.text']);
+  assert.equal(report.changedPairs[0]!.expected.from.text, 'current a');
+  assert.equal(report.changedPairs[0]!.saved.from.text, 'old a');
 });
 
 test('getPromptFingerprint is stable', () => {

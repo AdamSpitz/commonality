@@ -2,7 +2,6 @@
 
 ## Main list
 
-- We've just generated some implications for the proliferation of statements in the fake-data-generation stuff. Now a human should look at all the decisions and verify that they're sensible. Although actually no, there's almost 2000 of them. So instead just spot-check a few. Then set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
 - Make sure the seed content gets into the fake universe simulation.
 
 - Add Admin tabs to the UI.
