@@ -146,7 +146,7 @@ If you only want each real seed statement compared against its own five prolifer
 To verify the saved corpus:
 
 ```bash
-# Check for new/missing pairs after statement edits
+# Check for new, obsolete, or stale saved pairs after statement edits
 npm run test:seed:implication-regression
 
 # Re-run the live evaluator on the saved corpus to look for prompt regressions
