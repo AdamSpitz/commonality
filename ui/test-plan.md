@@ -15,6 +15,8 @@ All major pages and components across all subsystems have unit tests. Coverage i
 
 **Shared infrastructure:** `routing.test.ts` (IPFS-mode hash routing fallback), `AppShell.test.tsx` (branding, primary/secondary navigation, More menu, footer, selected state), `AddressDisplay.test.tsx` (ENS name, Twitter handle, raw address fallback, showFullAddress, twitterHandleHint)
 
+**Content Funding:** `BrowseCreatorsPage.test.tsx` (platform tabs, sort/status filters, loading/error/empty states), `ChannelPage.test.tsx` (loading/error/not-found states, custom prop passthrough), `CreatorDashboardPage.test.tsx` (loading/error/disconnected/empty states, custom props), `CreateContractPage.test.tsx` (verified/unclaimed channel submission, third-party minimum, duplicate content blocking)
+
 ## E2E Test Coverage (Playwright)
 
 Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + UI).

@@ -1,5 +1,48 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Improve UI test coverage: Content Funding pages (Completed)
+
+**Task**: Improve UI test coverage across content-funding page surfaces that were previously untested.
+
+**What was done**:
+- Added `ui/src/content-funding/pages/BrowseCreatorsPage.test.tsx` (15 tests) covering:
+  - Custom and default title/description rendering
+  - Loading spinner and error alert states
+  - Empty state when no channels match filters
+  - Platform tab navigation (Twitter/YouTube/Substack) and active tab highlighting
+  - Sort toggle buttons (Most Funded, Most Contracts, Newest Activity) with default state
+  - Status filter toggle buttons (All, Unclaimed, Verified, Creator-Controlled) with default state
+  - Changing sort and status filter options
+- Added `ui/src/content-funding/pages/CreatorDashboardPage.test.tsx` (10 tests) covering:
+  - Custom and default title/description rendering (when connected)
+  - Loading spinner and error alert states
+  - Connect prompt when wallet not connected, custom connect prompt
+  - Empty state when connected but no channels, custom empty state
+  - Title rendering when wallet is connected
+- Added `ui/src/content-funding/pages/ChannelPage.test.tsx` (10 tests) covering:
+  - Loading spinner and error alert states
+  - Not-found alert when channel doesn't exist
+  - Custom prop passthrough (campaignHeading, createCampaignLabel, emptyCampaignState, unclaimedHeroDescription, shareHeading, shareDescription, suggestedMessagePrefix)
+- Updated `ui/test-plan.md` to document the new content-funding page coverage.
+
+**Key decisions**:
+- Tests focus on rendering states (loading, error, empty, disconnected) and UI interaction (tabs, toggles, navigation) rather than deep data rendering, because the SDK's `parseCanonicalChannelId` function has internal format requirements that are difficult to mock correctly in unit tests.
+- ChannelPage tests for custom props verify that the props don't crash the component (they only appear when the channel data exists, which requires complex SDK state mocking). E2E tests are better suited for verifying the full channel detail rendering.
+- BrowseCreatorsPage tests cover the filtering/sorting UI controls and their default/changed states. The actual data filtering depends on SDK parsing, so those tests are left to E2E.
+
+**Verified**:
+- `npm run test --workspace=ui -- src/content-funding/pages/` ✓ (39 tests: 15 + 10 + 10 + 4 existing)
+
+**Files changed**:
+- `ui/src/content-funding/pages/BrowseCreatorsPage.test.tsx` (new, 15 tests)
+- `ui/src/content-funding/pages/CreatorDashboardPage.test.tsx` (new, 10 tests)
+- `ui/src/content-funding/pages/ChannelPage.test.tsx` (new, 10 tests)
+- `ui/test-plan.md` (updated content-funding coverage)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. 35 new tests added across three content-funding pages. Remaining gaps from TODO.md include: ClaimFlowModal, ContentFundingProjectSection, content-funding hooks, pubstarter sub-surfaces (BurnTokensSection, Leaderboard, etc.), fundingportal AttestAlignmentForm/AlignedProjectCard, delegation AvailableDelegatableFunding, docs DocsPage, conceptspace HighProfileSigners, and cross-domain smoke tests. These should be tackled incrementally in future sessions.
+
+
 ## 2026-04-24 - Improve UI test coverage: AppShell + AddressDisplay (Completed)
 
 **Task**: Improve UI test coverage by adding tests for shared shell/infrastructure components that were previously only incidentally covered.
