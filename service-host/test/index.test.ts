@@ -2,9 +2,9 @@ import assert from 'node:assert';
 import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { describe, it } from 'mocha';
-import { parseWorkerHostConfig } from '../src/config.js';
+import { parseServiceHostConfig } from '../src/config.js';
 import { loadServiceHostConfigFromEnv } from '../src/envConfig.js';
-import { createWorkerHostApp } from '../src/index.js';
+import { createServiceHostApp } from '../src/index.js';
 
 function createStubApp(name: string) {
   const app = express();
@@ -18,7 +18,7 @@ function createStubApp(name: string) {
 }
 
 async function withServer() {
-  const app = createWorkerHostApp(
+  const app = createServiceHostApp(
     {
       port: 0,
       workers: [
@@ -37,7 +37,7 @@ async function withServer() {
       ],
     },
     {
-      workerAppFactories: {
+      serviceAppFactories: {
         'implication-graph-nudger': () => createStubApp('implication-graph-nudger'),
         'bridge-creator': () => createStubApp('bridge-creator'),
       },
@@ -90,7 +90,7 @@ describe('service host', () => {
   });
 
   it('parses routed worker config and requires a host port', () => {
-    const parsed = parseWorkerHostConfig({
+    const parsed = parseServiceHostConfig({
       port: 3000,
       workers: [
         {
@@ -106,7 +106,7 @@ describe('service host', () => {
     assert.strictEqual(parsed.workers[0]?.routePrefix, '/explorer-curator');
 
     assert.throws(
-      () => parseWorkerHostConfig({
+      () => parseServiceHostConfig({
         workers: [
           {
             name: 'explorer-curator',

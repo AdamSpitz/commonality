@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { WorkerHostConfig } from './config.js';
+import type { ServiceHostConfig } from './config.js';
 
 function requireEnv(name: string, value: string | undefined): string {
   if (!value) {
@@ -90,7 +90,7 @@ function readPromptTemplate(
   return requireEnv(valueVarName, env[valueVarName]);
 }
 
-export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.env): WorkerHostConfig {
+export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ServiceHostConfig {
   const implicationAttesterEnabled = readOptionalBoolean(env, ['IMPLICATION_ATTESTER_ENABLED'], true);
   const contentAttesterEnabled = readOptionalBoolean(env, ['CONTENT_ATTESTER_ENABLED'], true);
   const implicationFinderEnabled = readOptionalBoolean(env, ['IMPLICATION_FINDER_ENABLED'], true);
@@ -557,5 +557,3 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
     ],
   };
 }
-
-export const loadWorkerHostConfigFromEnv = loadServiceHostConfigFromEnv;

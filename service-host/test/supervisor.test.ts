@@ -1,13 +1,13 @@
 import assert from 'node:assert';
 import { setTimeout as delay } from 'node:timers/promises';
 import { describe, it } from 'mocha';
-import type { HostedWorkerConfig } from '../src/config.js';
-import { createWorkerHost } from '../src/supervisor.js';
-import type { WorkerFactory, WorkerRunHandle } from '../src/serviceRegistry.js';
+import type { HostedServiceConfig } from '../src/config.js';
+import { createServiceHost } from '../src/supervisor.js';
+import type { ServiceFactory, ServiceRunHandle } from '../src/serviceRegistry.js';
 
-function createWorkerDefinition(overrides: Partial<HostedWorkerConfig> = {}): HostedWorkerConfig {
+function createServiceDefinition(overrides: Partial<HostedServiceConfig> = {}): HostedServiceConfig {
   return {
-    name: 'test-worker',
+    name: 'test-service',
     kind: 'implication-finder',
     config: {},
     restartDelayMs: 10,
@@ -15,13 +15,13 @@ function createWorkerDefinition(overrides: Partial<HostedWorkerConfig> = {}): Ho
   };
 }
 
-describe('createWorkerHost', () => {
-  it('restarts a worker when its run handle rejects unexpectedly', async () => {
+describe('createServiceHost', () => {
+  it('restarts a service when its run handle rejects unexpectedly', async () => {
     let starts = 0;
     let currentReject: ((error: Error) => void) | undefined;
     let currentResolve: (() => void) | undefined;
 
-    const factory: WorkerFactory = () => {
+    const factory: ServiceFactory = () => {
       starts++;
       const finished = new Promise<void>((resolve, reject) => {
         currentResolve = resolve;
@@ -35,8 +35,8 @@ describe('createWorkerHost', () => {
       };
     };
 
-    const host = createWorkerHost({
-      workers: [createWorkerDefinition()],
+    const host = createServiceHost({
+      workers: [createServiceDefinition()],
       factories: {
         'implication-finder': factory,
       },
@@ -53,12 +53,12 @@ describe('createWorkerHost', () => {
     await host.stop();
   });
 
-  it('does not restart a worker after shutdown begins', async () => {
+  it('does not restart a service after shutdown begins', async () => {
     let starts = 0;
     let rejectFinished: ((error: Error) => void) | undefined;
     let resolveStopped: (() => void) | undefined;
 
-    const factory: WorkerFactory = () => {
+    const factory: ServiceFactory = () => {
       starts++;
       const finished = new Promise<void>((resolve, reject) => {
         resolveStopped = resolve;
@@ -72,8 +72,8 @@ describe('createWorkerHost', () => {
       };
     };
 
-    const host = createWorkerHost({
-      workers: [createWorkerDefinition()],
+    const host = createServiceHost({
+      workers: [createServiceDefinition()],
       factories: {
         'implication-finder': factory,
       },
@@ -91,18 +91,18 @@ describe('createWorkerHost', () => {
     assert.strictEqual(starts, 1);
   });
 
-  it('skips disabled workers', async () => {
+  it('skips disabled services', async () => {
     let started = false;
-    const factory: WorkerFactory = () => {
+    const factory: ServiceFactory = () => {
       started = true;
-      const handle: WorkerRunHandle = {
+      const handle: ServiceRunHandle = {
         stop: async () => {},
       };
       return handle;
     };
 
-    const host = createWorkerHost({
-      workers: [createWorkerDefinition({ enabled: false })],
+    const host = createServiceHost({
+      workers: [createServiceDefinition({ enabled: false })],
       factories: {
         'implication-finder': factory,
       },

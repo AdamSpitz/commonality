@@ -1,31 +1,31 @@
-import type { HostedWorkerConfig } from './config.js';
-import type { WorkerFactory, WorkerRunHandle } from './serviceRegistry.js';
+import type { HostedServiceConfig } from './config.js';
+import type { ServiceFactory, ServiceRunHandle } from './serviceRegistry.js';
 
 export interface SupervisorLogger {
   info: (...args: unknown[]) => void;
   error: (...args: unknown[]) => void;
 }
 
-interface WorkerRuntime {
-  definition: HostedWorkerConfig;
-  handle?: WorkerRunHandle;
+interface ServiceRuntime {
+  definition: HostedServiceConfig;
+  handle?: ServiceRunHandle;
   restartTimer?: NodeJS.Timeout;
 }
 
-export interface WorkerHostHandle {
+export interface ServiceHostHandle {
   start: () => void;
   stop: () => Promise<void>;
 }
 
-export interface CreateWorkerHostParams {
-  workers: HostedWorkerConfig[];
-  factories: Record<string, WorkerFactory>;
+export interface CreateServiceHostParams {
+  workers: HostedServiceConfig[];
+  factories: Record<string, ServiceFactory>;
   logger?: SupervisorLogger;
 }
 
 const NEVER: Promise<void> = new Promise(() => {});
 
-function normalizeFinished(handle: WorkerRunHandle): Promise<void> {
+function normalizeFinished(handle: ServiceRunHandle): Promise<void> {
   return handle.finished ?? NEVER;
 }
 
@@ -33,13 +33,13 @@ function formatError(error: unknown): string {
   return error instanceof Error ? error.stack ?? error.message : String(error);
 }
 
-export function createWorkerHost(params: CreateWorkerHostParams): WorkerHostHandle {
+export function createServiceHost(params: CreateServiceHostParams): ServiceHostHandle {
   const logger = params.logger ?? console;
-  const runtimes = new Map<string, WorkerRuntime>();
+  const runtimes = new Map<string, ServiceRuntime>();
   let started = false;
   let stopping = false;
 
-  const cancelRestart = (runtime: WorkerRuntime): void => {
+  const cancelRestart = (runtime: ServiceRuntime): void => {
     if (!runtime.restartTimer) {
       return;
     }
@@ -47,7 +47,7 @@ export function createWorkerHost(params: CreateWorkerHostParams): WorkerHostHand
     runtime.restartTimer = undefined;
   };
 
-  const scheduleRestart = (runtime: WorkerRuntime, reason: unknown): void => {
+  const scheduleRestart = (runtime: ServiceRuntime, reason: unknown): void => {
     if (stopping) {
       return;
     }
@@ -55,10 +55,10 @@ export function createWorkerHost(params: CreateWorkerHostParams): WorkerHostHand
     cancelRestart(runtime);
     const restartDelayMs = runtime.definition.restartDelayMs ?? 1000;
     logger.error(
-      `[worker-host] Worker "${runtime.definition.name}" failed: ${formatError(reason)}`,
+      `[service-host] Worker "${runtime.definition.name}" failed: ${formatError(reason)}`,
     );
     logger.info(
-      `[worker-host] Restarting "${runtime.definition.name}" in ${restartDelayMs}ms.`,
+      `[service-host] Restarting "${runtime.definition.name}" in ${restartDelayMs}ms.`,
     );
 
     runtime.restartTimer = setTimeout(() => {
@@ -67,16 +67,16 @@ export function createWorkerHost(params: CreateWorkerHostParams): WorkerHostHand
     }, restartDelayMs);
   };
 
-  const startRuntime = (runtime: WorkerRuntime): void => {
+  const startRuntime = (runtime: ServiceRuntime): void => {
     if (stopping || runtime.definition.enabled === false) {
       return;
     }
 
     logger.info(
-      `[worker-host] Starting "${runtime.definition.name}" (${runtime.definition.kind}).`,
+      `[service-host] Starting "${runtime.definition.name}" (${runtime.definition.kind}).`,
     );
 
-    let handle: WorkerRunHandle;
+    let handle: ServiceRunHandle;
     try {
       handle = params.factories[runtime.definition.kind](runtime.definition);
     } catch (error) {
@@ -113,11 +113,11 @@ export function createWorkerHost(params: CreateWorkerHostParams): WorkerHostHand
 
       for (const worker of params.workers) {
         if (worker.enabled === false) {
-          logger.info(`[worker-host] Worker "${worker.name}" is disabled; skipping.`);
+          logger.info(`[service-host] Worker "${worker.name}" is disabled; skipping.`);
           continue;
         }
 
-        const runtime: WorkerRuntime = { definition: worker };
+        const runtime: ServiceRuntime = { definition: worker };
         runtimes.set(worker.name, runtime);
         startRuntime(runtime);
       }

@@ -1,5 +1,47 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Rename worker-era vocabulary to service-host vocabulary (Completed)
+
+**Task**: Complete the service-bundling follow-up cleanup item that renames all worker-era types, functions, and variables to match the `service-host` package name.
+
+**What was done**:
+- Renamed `workerKinds` → `serviceKinds`, `WorkerKind` → `ServiceKind`, `HostedWorkerConfig` → `HostedServiceConfig`, `WorkerHostConfig` → `ServiceHostConfig` in [`service-host/src/config.ts`](/home/adam/Projects/commonality/service-host/src/config.ts).
+- Renamed `WorkerRunHandle` → `ServiceRunHandle`, `WorkerFactory` → `ServiceFactory`, `WorkerAppFactory` → `ServiceAppFactory`, `workerFactories` → `serviceFactories`, `workerAppFactories` → `serviceAppFactories` in [`service-host/src/serviceRegistry.ts`](/home/adam/Projects/commonality/service-host/src/serviceRegistry.ts).
+- Renamed `WorkerRuntime` → `ServiceRuntime`, `WorkerHostHandle` → `ServiceHostHandle`, `CreateWorkerHostParams` → `CreateServiceHostParams`, `createWorkerHost` → `createServiceHost` in [`service-host/src/supervisor.ts`](/home/adam/Projects/commonality/service-host/src/supervisor.ts). Updated log messages from `[worker-host]` to `[service-host]`.
+- Renamed `WorkerHostAppFactories` → `ServiceHostAppFactories`, `WorkerHostRunHandle` → `ServiceHostRunHandle`, `createWorkerHostApp` → `createServiceHostApp` in [`service-host/src/index.ts`](/home/adam/Projects/commonality/service-host/src/index.ts). Updated console output from "Worker host" to "Service host".
+- Updated `WorkerHostConfig` → `ServiceHostConfig` import in [`service-host/src/envConfig.ts`](/home/adam/Projects/commonality/service-host/src/envConfig.ts). Removed the `loadWorkerHostConfigFromEnv` compatibility alias.
+- Removed the `WORKER_HOST_CONFIG` env var fallback from `getServiceHostConfigPath()` — only `SERVICE_HOST_CONFIG` is supported now.
+- Removed the self-referential `loadServiceHostConfig = loadServiceHostConfig` alias (the function is now the canonical name).
+- Removed the duplicate `getWorkerHostConfigPath` alias function.
+- Updated all error messages from "worker-host config" to "service-host config".
+- Updated [`service-host/test/index.test.ts`](/home/adam/Projects/commonality/service-host/test/index.test.ts) and [`service-host/test/supervisor.test.ts`](/home/adam/Projects/commonality/service-host/test/supervisor.test.ts) to use the new names.
+
+**Key decisions**:
+- Kept the JSON config field name `workers` unchanged (it's a data field, not a type name, and changing it would break existing config files).
+- The `loadServiceHostConfig` function is now the canonical name (no longer an alias). No backward-compatibility alias is exported.
+
+**Verified**:
+- `npm run build --workspace=@commonality/service-host` ✓
+- `npm run lint --workspace=@commonality/service-host` ✓
+- `npm run test --workspace=@commonality/service-host` ✓ (8 passing)
+- No remaining references to old vocabulary in any `.ts` files in the repo.
+
+**Files changed**:
+- `service-host/src/config.ts`
+- `service-host/src/serviceRegistry.ts`
+- `service-host/src/supervisor.ts`
+- `service-host/src/index.ts`
+- `service-host/src/envConfig.ts`
+- `service-host/test/index.test.ts`
+- `service-host/test/supervisor.test.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- Remaining service-bundling follow-ups: normalize test scripts, push env-var parsing into service packages, and multi-instance env configuration.
+
+**Interrupt point**: Yes. The vocabulary rename is complete and all tests pass. Good checkpoint before the larger per-package env-parser refactor.
+
 ## 2026-04-24 - Repair root service-host workspace registration (Completed)
 
 **Task**: Complete the service-bundling follow-up cleanup item that updates the root workspace metadata from the deleted `attester-host` / `worker-host` packages to the unified `service-host` package.

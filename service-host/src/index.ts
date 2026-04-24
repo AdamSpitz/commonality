@@ -1,36 +1,36 @@
 import express, { type Express } from 'express';
-import { type WorkerHostConfig } from './config.js';
-import { workerAppFactories, workerFactories, type WorkerAppFactory } from './serviceRegistry.js';
-import { createWorkerHost } from './supervisor.js';
+import { type ServiceHostConfig } from './config.js';
+import { serviceAppFactories, serviceFactories, type ServiceAppFactory } from './serviceRegistry.js';
+import { createServiceHost } from './supervisor.js';
 
-export interface WorkerHostAppFactories {
-  workerAppFactories?: Partial<Record<string, WorkerAppFactory>>;
+export interface ServiceHostAppFactories {
+  serviceAppFactories?: Partial<Record<string, ServiceAppFactory>>;
 }
 
-export function createWorkerHostApp(
-  config: WorkerHostConfig,
-  factories: WorkerHostAppFactories = {},
+export function createServiceHostApp(
+  config: ServiceHostConfig,
+  factories: ServiceHostAppFactories = {},
 ): Express {
   const app = express();
-  const resolvedWorkerAppFactories = factories.workerAppFactories ?? workerAppFactories;
-  const routedWorkers = config.workers.filter(
-    (worker) => worker.routePrefix && worker.enabled !== false,
+  const resolvedServiceAppFactories = factories.serviceAppFactories ?? serviceAppFactories;
+  const routedServices = config.workers.filter(
+    (service) => service.routePrefix && service.enabled !== false,
   );
 
-  for (const worker of routedWorkers) {
-    const factory = resolvedWorkerAppFactories[worker.kind];
+  for (const service of routedServices) {
+    const factory = resolvedServiceAppFactories[service.kind];
     if (!factory) {
-      throw new Error(`Worker "${worker.name}" (${worker.kind}) does not expose an HTTP app`);
+      throw new Error(`Service "${service.name}" (${service.kind}) does not expose an HTTP app`);
     }
 
-    app.use(worker.routePrefix!, factory(worker.config));
+    app.use(service.routePrefix!, factory(service.config));
   }
 
   app.get('/health', (_req, res) => {
     res.json({
       status: 'ok',
       services: Object.fromEntries(
-        routedWorkers.map((worker) => [worker.name, worker.routePrefix]),
+        routedServices.map((service) => [service.name, service.routePrefix]),
       ),
     });
   });
@@ -38,25 +38,25 @@ export function createWorkerHostApp(
   return app;
 }
 
-export interface WorkerHostRunHandle {
+export interface ServiceHostRunHandle {
   server?: import('node:http').Server;
   stop: () => Promise<void>;
 }
 
-export function run(config: WorkerHostConfig): WorkerHostRunHandle {
-  const host = createWorkerHost({
+export function run(config: ServiceHostConfig): ServiceHostRunHandle {
+  const host = createServiceHost({
     workers: config.workers,
-    factories: workerFactories,
+    factories: serviceFactories,
   });
-  const hasHttpRoutes = config.workers.some((worker) => worker.routePrefix);
+  const hasHttpRoutes = config.workers.some((service) => service.routePrefix);
   let server: import('node:http').Server | undefined;
 
   if (hasHttpRoutes) {
-    const app = createWorkerHostApp(config);
+    const app = createServiceHostApp(config);
     server = app.listen(config.port!, () => {
-      console.log(`Worker host listening on port ${config.port}`);
-      for (const worker of config.workers.filter((entry) => entry.routePrefix)) {
-        console.log(`Mounted "${worker.name}" at ${worker.routePrefix}`);
+      console.log(`Service host listening on port ${config.port}`);
+      for (const service of config.workers.filter((entry) => entry.routePrefix)) {
+        console.log(`Mounted "${service.name}" at ${service.routePrefix}`);
       }
     });
   }

@@ -18,17 +18,17 @@ import {
   run as runImplicationGraphNudger,
 } from '@commonality/implication-graph-nudger';
 import type { Express } from 'express';
-import type { HostedWorkerConfig, WorkerKind } from './config.js';
+import type { HostedServiceConfig, ServiceKind } from './config.js';
 
-export interface WorkerRunHandle {
+export interface ServiceRunHandle {
   stop: () => Promise<void>;
   finished?: Promise<void>;
 }
 
-export type WorkerFactory = (worker: HostedWorkerConfig) => WorkerRunHandle;
-export type WorkerAppFactory = (config: Record<string, unknown>) => Express;
+export type ServiceFactory = (service: HostedServiceConfig) => ServiceRunHandle;
+export type ServiceAppFactory = (config: Record<string, unknown>) => Express;
 
-export const workerFactories: Record<WorkerKind, WorkerFactory> = {
+export const serviceFactories: Record<ServiceKind, ServiceFactory> = {
   'implication-finder': (worker) => runImplicationFinder(
     worker.config as unknown as Parameters<typeof runImplicationFinder>[0],
   ),
@@ -52,7 +52,7 @@ export const workerFactories: Record<WorkerKind, WorkerFactory> = {
   ),
 };
 
-export const workerAppFactories: Partial<Record<WorkerKind, WorkerAppFactory>> = {
+export const serviceAppFactories: Partial<Record<ServiceKind, ServiceAppFactory>> = {
   'implication-graph-nudger': (config) => createImplicationGraphNudgerApp(
     config as unknown as Parameters<typeof createImplicationGraphNudgerApp>[0],
   ),
