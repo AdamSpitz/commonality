@@ -8,7 +8,7 @@ This package contains the reusable pieces that do not depend on a specific nudge
 - `NudgeMessage`, `NudgeRevocation`, `NudgeBatch` types — the payload shapes for `nudge-batch` publications
 - `NudgerConfig` base configuration type
 - `LlmNudgerConfig` strategy-specific extension for nudgers that call an LLM
-- `initializeSigner`, `getSignerAddress`, `publishNudgeBatch` — helpers for signing transactions and publishing batches to IPFS + chain
+- `createNudgerSigner`, `publishNudgeBatch` — helpers for signing transactions and publishing batches to IPFS + chain
 
 Nudger-specific services such as `implication-graph-nudger/` and `bridge-creator/` keep their strategy logic local, and import the shared pieces from this package.
 

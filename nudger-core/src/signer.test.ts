@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  createNudgerSigner,
   createNudgeBatch,
   type NudgeMessage,
   type NudgeRevocation,
@@ -48,5 +49,36 @@ describe('createNudgeBatch', () => {
     );
 
     assert.deepStrictEqual(batch.revocations, []);
+  });
+
+  it('creates isolated signer instances per config', () => {
+    const signerA = createNudgerSigner({
+      nudgerPrivateKey: ('0x' + '11'.repeat(32)) as `0x${string}`,
+      ethereumRpcUrl: 'http://localhost:8545',
+      indexerUrl: 'http://localhost:3001',
+      ipfsApiUrl: 'http://localhost:5001',
+      ipfsGatewayUrl: 'http://localhost:8080',
+      port: 3002,
+      name: 'A',
+      description: 'A',
+      sourceType: 'test-a',
+      version: '0.1.0',
+      nudgePublicationsContractAddress: ('0x' + 'aa'.repeat(20)) as `0x${string}`,
+    });
+    const signerB = createNudgerSigner({
+      nudgerPrivateKey: ('0x' + '22'.repeat(32)) as `0x${string}`,
+      ethereumRpcUrl: 'http://localhost:8545',
+      indexerUrl: 'http://localhost:3001',
+      ipfsApiUrl: 'http://localhost:5001',
+      ipfsGatewayUrl: 'http://localhost:8080',
+      port: 3003,
+      name: 'B',
+      description: 'B',
+      sourceType: 'test-b',
+      version: '0.1.0',
+      nudgePublicationsContractAddress: ('0x' + 'bb'.repeat(20)) as `0x${string}`,
+    });
+
+    assert.notStrictEqual(signerA.address, signerB.address);
   });
 });

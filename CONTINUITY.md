@@ -930,6 +930,45 @@ Spec: `specs/product/nudge-ux.md`.
 
 **Interrupt point**: Yes. The natural next AI-services task is TODO item 1: add nudge dismissal / seen tracking, intensity settings, and client-side filtering on top of this new publication-backed display.
 
+## 2026-04-24 - Service Bundling: Bundle-B Nudger In-Process Prerequisite (Completed)
+
+**Task**: Make concrete progress on [Service bundling](TODO.md) by removing the nudger-side process-global signer constraint and giving the three nudger services importable `run(config)` entrypoints.
+
+**What was done**:
+- Reworked `nudger-core` so signer state is instance-scoped via `createNudgerSigner(config)` instead of hidden in a process-global singleton.
+- Kept the existing `publishNudgeBatch` / `publishCuratedCollection` helpers working by routing them through per-call signer instances, so standalone nudger behavior stays intact.
+- Refactored `implication-graph-nudger`, `bridge-creator`, and `explorer-curator` to export `run(config)` while preserving their existing CLI startup behavior when executed as `src/index.ts` / `dist/index.js`.
+- Added an isolated-signer unit test in `nudger-core` to prove distinct configs produce distinct signer identities, which is the key bundling invariant for Bundle B.
+- Updated [TODO.md](TODO.md) to record this completed prerequisite and note the package-test-script follow-up.
+
+**Key decisions**:
+- Treated this as a Bundle-B prerequisite, not the whole service-bundling task. The attesters and finders still need the same treatment, and the worker host/supervisor does not exist yet.
+- Kept each service’s exported `run(config)` responsible for starting its own HTTP server / timer loop for now. A later worker-host step can decide whether to call `run(config)` directly or split app-construction further for route mounting.
+- Avoided introducing a new abstraction layer in `nudger-core`; a simple signer factory was enough to eliminate the key collision problem without rewriting the publication helpers.
+
+**Verified**:
+- `npm run build --workspace=@commonality/nudger-core`
+- `npm run build --workspace=@commonality/implication-graph-nudger`
+- `npm run build --workspace=@commonality/bridge-creator`
+- `npm run build --workspace=@commonality/explorer-curator`
+- `npx mocha --import=tsx nudger-core/src/signer.test.ts`
+- `npx mocha --import=tsx explorer-curator/test/curator.test.ts explorer-curator/test/personalizer.test.ts explorer-curator/test/config.test.ts`
+- Note: `npm test --workspace=@commonality/nudger-core` still fails to discover tests because the package test script is not aligned with the repo’s TypeScript test layout; I noted that in [TODO.md](TODO.md) as follow-up process work.
+
+**Files changed**:
+- `nudger-core/src/signer.ts`
+- `nudger-core/src/index.ts`
+- `nudger-core/src/signer.test.ts`
+- `nudger-core/package.json`
+- `nudger-core/README.md`
+- `implication-graph-nudger/src/index.ts`
+- `bridge-creator/src/index.ts`
+- `explorer-curator/src/index.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The natural next bundling task is to do the same `run(config)` / instance-scoped-state refactor for the remaining AI services, especially the attesters, which currently cache blockchain clients at module scope and therefore still cannot safely share one host process with distinct private keys.
+
 ## 2026-04-21 - AI Services: SDK Typed Nudger Publication Fetch/Fold (Completed)
 
 **Task**: Complete the AI-services blocker from [TODO.md](TODO.md) by teaching the SDK to fetch and fold typed nudger publications (`nudge-batch` and `curated-collection`) from indexer `NudgesPublished` events.

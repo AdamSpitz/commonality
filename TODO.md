@@ -5,6 +5,7 @@
 - We've just generated some implications for the proliferation of statements in the fake-data-generation stuff. Now a human should look at all the decisions and verify that they're sensible. Although actually no, there's almost 2000 of them. So instead just spot-check a few. Then set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
 - [Service bundling](specs/tech/service-bundling.md) — collapse the AI services into a couple of host processes. Sub-tasks:
+  - [x] Bundling prerequisite: remove process-global nudger signer state and export `run(config)` from `implication-graph-nudger`, `bridge-creator`, and `explorer-curator`, so multiple nudgers can coexist in one host process without sharing a `NUDGER_PRIVATE_KEY`.
   - Refactor each AI service to export a `run(config)` function so it can be hosted in-process, not only as a standalone binary.
   - Build a worker-host binary with a supervisor that restarts individual workers on failure.
   - Stand up Bundle A (attester host): mount `implication-attester` and `content-attester` as route prefixes on one Express app; each keeps its own `ATTESTER_PRIVATE_KEY`.
@@ -36,3 +37,4 @@
 ## Suggestions from AI
 
 - Add a lightweight CI/developer smoke check for `render.yaml` plus the indexer’s hosted env shape, so future changes do not silently break the Render blueprint while local Docker still works.
+- Normalize AI-service package `npm test` scripts so they actually execute the repo’s TypeScript test files without ad hoc `mocha --import=tsx ...` commands during verification.

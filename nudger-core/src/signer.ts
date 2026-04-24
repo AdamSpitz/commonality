@@ -1,4 +1,4 @@
-import { privateKeyToAccount } from 'viem/accounts';
+import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts';
 import {
   createTestClients,
   uploadToIPFS,
@@ -23,8 +23,6 @@ export interface CuratedCollectionPublication {
   entries: CuratedCollectionEntry[];
 }
 
-let account: ReturnType<typeof privateKeyToAccount> | null = null;
-
 export interface NudgerConfig {
   nudgerPrivateKey: string;
   ethereumRpcUrl: string;
@@ -44,16 +42,95 @@ export interface LlmNudgerConfig extends NudgerConfig {
   openRouterModel: string;
 }
 
-export function initializeSigner(config: NudgerConfig) {
-  account = privateKeyToAccount(config.nudgerPrivateKey as `0x${string}`);
-  return account;
+export interface NudgerSigner {
+  address: `0x${string}`;
+  publishNudgeBatch: (
+    nudges: NudgeMessage[],
+    config: NudgerConfig,
+    revocations?: NudgeRevocation[],
+  ) => Promise<{ txHash: string; batchCid: IpfsCidV1 }>;
+  publishCuratedCollection: (
+    stream: string,
+    entries: CuratedCollectionEntry[],
+    config: NudgerConfig,
+  ) => Promise<{ txHash: string; collectionCid: IpfsCidV1 }>;
 }
 
-export function getSignerAddress(): string {
-  if (!account) {
-    throw new Error('Signer not initialized. Call initializeSigner first.');
-  }
-  return account.address;
+function createClients(config: NudgerConfig) {
+  return createTestClients(
+    config.nudgerPrivateKey as `0x${string}`,
+    config.ethereumRpcUrl,
+  );
+}
+
+function createBatchPublisher(account: PrivateKeyAccount) {
+  return async function publishBatch(
+    nudges: NudgeMessage[],
+    config: NudgerConfig,
+    revocations: NudgeRevocation[] = [],
+  ): Promise<{ txHash: string; batchCid: IpfsCidV1 }> {
+    const batch = createNudgeBatch(account.address, nudges, revocations);
+
+    const batchCid = await uploadToIPFS(
+      { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
+      batch,
+    );
+
+    const clients = createClients(config);
+
+    const txHash = await clients.walletClient.writeContract({
+      address: config.nudgePublicationsContractAddress as `0x${string}`,
+      abi: NudgePublicationsAbi,
+      functionName: 'publishNudgeBatch',
+      args: [cidToBytes32(batchCid)],
+      chain: clients.walletClient.chain,
+      account: clients.walletClient.account!,
+    });
+
+    await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+
+    return { txHash, batchCid };
+  };
+}
+
+function createCollectionPublisher(account: PrivateKeyAccount) {
+  return async function publishCollection(
+    stream: string,
+    entries: CuratedCollectionEntry[],
+    config: NudgerConfig,
+  ): Promise<{ txHash: string; collectionCid: IpfsCidV1 }> {
+    const collection = createCuratedCollection(account.address, stream, entries);
+
+    const collectionCid = await uploadToIPFS(
+      { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
+      collection,
+    );
+
+    const clients = createClients(config);
+
+    const txHash = await clients.walletClient.writeContract({
+      address: config.nudgePublicationsContractAddress as `0x${string}`,
+      abi: NudgePublicationsAbi,
+      functionName: 'publishNudgeBatch',
+      args: [cidToBytes32(collectionCid)],
+      chain: clients.walletClient.chain,
+      account: clients.walletClient.account!,
+    });
+
+    await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+
+    return { txHash, collectionCid };
+  };
+}
+
+export function createNudgerSigner(config: NudgerConfig): NudgerSigner {
+  const account = privateKeyToAccount(config.nudgerPrivateKey as `0x${string}`);
+
+  return {
+    address: account.address,
+    publishNudgeBatch: createBatchPublisher(account),
+    publishCuratedCollection: createCollectionPublisher(account),
+  };
 }
 
 export interface NudgeMessage {
@@ -98,34 +175,7 @@ export async function publishNudgeBatch(
   config: NudgerConfig,
   revocations: NudgeRevocation[] = []
 ): Promise<{ txHash: string; batchCid: IpfsCidV1 }> {
-  if (!account) {
-    throw new Error('Signer not initialized. Call initializeSigner first.');
-  }
-
-  const batch = createNudgeBatch(account.address, nudges, revocations);
-
-  const batchCid = await uploadToIPFS(
-    { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
-    batch
-  );
-
-  const clients = createTestClients(
-    config.nudgerPrivateKey as `0x${string}`,
-    config.ethereumRpcUrl
-  );
-
-  const txHash = await clients.walletClient.writeContract({
-    address: config.nudgePublicationsContractAddress as `0x${string}`,
-    abi: NudgePublicationsAbi,
-    functionName: 'publishNudgeBatch',
-    args: [cidToBytes32(batchCid)],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
-
-  return { txHash, batchCid };
+  return createNudgerSigner(config).publishNudgeBatch(nudges, config, revocations);
 }
 
 export function createCuratedCollection(
@@ -149,32 +199,5 @@ export async function publishCuratedCollection(
   entries: CuratedCollectionEntry[],
   config: NudgerConfig
 ): Promise<{ txHash: string; collectionCid: IpfsCidV1 }> {
-  if (!account) {
-    throw new Error('Signer not initialized. Call initializeSigner first.');
-  }
-
-  const collection = createCuratedCollection(account.address, stream, entries);
-
-  const collectionCid = await uploadToIPFS(
-    { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
-    collection
-  );
-
-  const clients = createTestClients(
-    config.nudgerPrivateKey as `0x${string}`,
-    config.ethereumRpcUrl
-  );
-
-  const txHash = await clients.walletClient.writeContract({
-    address: config.nudgePublicationsContractAddress as `0x${string}`,
-    abi: NudgePublicationsAbi,
-    functionName: 'publishNudgeBatch',
-    args: [cidToBytes32(collectionCid)],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
-
-  return { txHash, collectionCid };
+  return createNudgerSigner(config).publishCuratedCollection(stream, entries, config);
 }

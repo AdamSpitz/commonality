@@ -8,8 +8,7 @@ export type {
   CuratedCollectionPublication,
 } from './signer.js';
 export {
-  initializeSigner,
-  getSignerAddress,
+  createNudgerSigner,
   publishNudgeBatch,
   createCuratedCollection,
   publishCuratedCollection,

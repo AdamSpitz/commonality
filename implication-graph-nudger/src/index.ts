@@ -1,3 +1,5 @@
+import { type Server } from 'node:http';
+import { pathToFileURL } from 'node:url';
 import express from 'express';
 import { type Request, type Response } from 'express';
 import {
@@ -7,44 +9,47 @@ import {
 } from '@commonality/sdk';
 import { loadConfig } from './config.js';
 import {
-  initializeSigner,
-  getSignerAddress,
-  publishNudgeBatch,
+  createNudgerSigner,
   type NudgeMessage,
 } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 
-const config = loadConfig();
-initializeSigner(config);
-
-const contractAddresses: ContractAddresses = {
-  beliefs: '0x0000000000000000000000000000000000000000',
-  implications: (process.env.IMPLICATIONS_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-  assuranceContractFactory: '0x0000000000000000000000000000000000000000',
-  erc1155Factory: '0x0000000000000000000000000000000000000000',
-  marketplaceFactory: '0x0000000000000000000000000000000000000000',
-  delegatableNotes: '0x0000000000000000000000000000000000000000',
-  noteIntent: '0x0000000000000000000000000000000000000000',
-  alignmentAttestations: '0x0000000000000000000000000000000000000000',
-  mutableRefUpdater: '0x0000000000000000000000000000000000000000',
-  trustRegistry: '0x0000000000000000000000000000000000000000',
-};
-
-const machinery = createSDKMachinery(
-  config.indexerUrl,
-  { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
-  undefined,
-  undefined,
-  undefined,
-  config.indexerUrl,
-  contractAddresses
-);
-
-const nudgerStrategy = createNudgerStrategy();
-
 const NUDGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
-async function runNudgingCycle(): Promise<void> {
+function createContractAddresses(): ContractAddresses {
+  return {
+    beliefs: '0x0000000000000000000000000000000000000000',
+    implications: (process.env.IMPLICATIONS_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
+    assuranceContractFactory: '0x0000000000000000000000000000000000000000',
+    erc1155Factory: '0x0000000000000000000000000000000000000000',
+    marketplaceFactory: '0x0000000000000000000000000000000000000000',
+    delegatableNotes: '0x0000000000000000000000000000000000000000',
+    noteIntent: '0x0000000000000000000000000000000000000000',
+    alignmentAttestations: '0x0000000000000000000000000000000000000000',
+    mutableRefUpdater: '0x0000000000000000000000000000000000000000',
+    trustRegistry: '0x0000000000000000000000000000000000000000',
+  };
+}
+
+function createMachinery(config: ReturnType<typeof loadConfig>) {
+  return createSDKMachinery(
+    config.indexerUrl,
+    { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
+    undefined,
+    undefined,
+    undefined,
+    config.indexerUrl,
+    createContractAddresses(),
+  );
+}
+
+async function runNudgingCycle(
+  machinery: ReturnType<typeof createMachinery>,
+  signer: ReturnType<typeof createNudgerSigner>,
+  config: ReturnType<typeof loadConfig>,
+): Promise<void> {
+  const nudgerStrategy = createNudgerStrategy();
+
   console.log('Starting nudging cycle...');
 
   const statements = await getAllStatements(machinery);
@@ -66,16 +71,9 @@ async function runNudgingCycle(): Promise<void> {
     return;
   }
 
-  const { txHash, batchCid } = await publishNudgeBatch(allNudges, config);
+  const { txHash, batchCid } = await signer.publishNudgeBatch(allNudges, config);
   console.log(`Published ${allNudges.length} nudges. Batch CID: ${batchCid}, tx: ${txHash}`);
 }
-
-// Run immediately on startup, then on a regular interval.
-runNudgingCycle().catch(console.error);
-setInterval(() => runNudgingCycle().catch(console.error), NUDGE_INTERVAL_MS);
-
-// Minimal HTTP service for health checks and nudger metadata discovery.
-const app = express();
 
 interface NudgerMetadata {
   address: string;
@@ -85,36 +83,68 @@ interface NudgerMetadata {
   version: string;
 }
 
-app.get('/.well-known/nudger.json', (_req: Request, res: Response) => {
-  const metadata: NudgerMetadata = {
-    address: getSignerAddress(),
-    name: config.name,
-    description: config.description,
-    sourceType: config.sourceType,
-    version: config.version,
-  };
-  res.json(metadata);
-});
+function createApp(config: ReturnType<typeof loadConfig>, signer: ReturnType<typeof createNudgerSigner>) {
+  const app = express();
 
-app.get('/health', (_req: Request, res: Response) => {
-  try {
-    const address = getSignerAddress();
+  app.get('/.well-known/nudger.json', (_req: Request, res: Response) => {
+    const metadata: NudgerMetadata = {
+      address: signer.address,
+      name: config.name,
+      description: config.description,
+      sourceType: config.sourceType,
+      version: config.version,
+    };
+    res.json(metadata);
+  });
+
+  app.get('/health', (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
-      address,
+      address: signer.address,
       name: config.name,
       version: config.version,
     });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
+  });
 
-app.listen(config.port, () => {
-  console.log(`Nudger service listening on port ${config.port}`);
-  console.log(`Nudger address: ${getSignerAddress()}`);
-  console.log(`Strategy: ${config.sourceType}`);
-});
+  return app;
+}
+
+export interface ImplicationGraphNudgerRunHandle {
+  server: Server;
+  stop: () => Promise<void>;
+}
+
+export function run(config = loadConfig()): ImplicationGraphNudgerRunHandle {
+  const signer = createNudgerSigner(config);
+  const machinery = createMachinery(config);
+  const app = createApp(config, signer);
+
+  void runNudgingCycle(machinery, signer, config).catch(console.error);
+  const interval = setInterval(() => {
+    void runNudgingCycle(machinery, signer, config).catch(console.error);
+  }, NUDGE_INTERVAL_MS);
+
+  const server = app.listen(config.port, () => {
+    console.log(`Nudger service listening on port ${config.port}`);
+    console.log(`Nudger address: ${signer.address}`);
+    console.log(`Strategy: ${config.sourceType}`);
+  });
+
+  return {
+    server,
+    stop: () => new Promise((resolve, reject) => {
+      clearInterval(interval);
+      server.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    }),
+  };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  run();
+}
