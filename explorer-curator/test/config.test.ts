@@ -24,7 +24,6 @@ describe('config', () => {
 
     assert.strictEqual(config.stream, 'fundable-project-explorer');
     assert.strictEqual(config.curatorIntervalMs, 6 * 60 * 60 * 1000);
-    assert.strictEqual(config.port, 3004);
     assert.strictEqual(config.openRouterModel, 'anthropic/claude-3.5-haiku');
   });
 
@@ -38,7 +37,6 @@ describe('config', () => {
 
     assert.strictEqual(config.stream, 'custom-explorer');
     assert.strictEqual(config.curatorIntervalMs, 3600000);
-    assert.strictEqual(config.port, 4000);
   });
 
   it('throws when required env vars are missing', async () => {

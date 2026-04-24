@@ -223,4 +223,124 @@ describe('service host', () => {
       'explorer-curator',
     ]);
   });
+
+  it('builds multiple instances of the same kind from SERVICE_HOST_INSTANCES', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      SERVICE_HOST_INSTANCES: 'content-attester-neutral,content-attester-left-eval-right',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xcontent',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      CONTENT_ATTESTER_NEUTRAL_PROMPT_TEMPLATE: 'Neutral prompt: {{content}}',
+      CONTENT_ATTESTER_LEFT_EVAL_RIGHT_PROMPT_TEMPLATE: 'Left-eval-right prompt: {{content}}',
+    });
+
+    assert.strictEqual(config.workers.length, 2);
+    assert.strictEqual(config.workers[0]?.name, 'content-attester-neutral');
+    assert.strictEqual(config.workers[0]?.kind, 'content-attester');
+    assert.strictEqual(config.workers[0]?.routePrefix, '/content-attester-neutral');
+    assert.strictEqual(config.workers[1]?.name, 'content-attester-left-eval-right');
+    assert.strictEqual(config.workers[1]?.kind, 'content-attester');
+    assert.strictEqual(config.workers[1]?.routePrefix, '/content-attester-left-eval-right');
+  });
+
+  it('prefers instance-specific env vars over kind-level env vars', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      SERVICE_HOST_INSTANCES: 'content-attester-primary,content-attester-secondary',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xshared',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Fallback prompt',
+      CONTENT_ATTESTER_PRIMARY_PROMPT_TEMPLATE: 'Primary-specific prompt',
+      CONTENT_ATTESTER_SECONDARY_PROMPT_TEMPLATE: 'Secondary-specific prompt',
+    });
+
+    assert.strictEqual(config.workers.length, 2);
+    assert.strictEqual(
+      (config.workers[0]?.config as Record<string, unknown>).promptTemplate,
+      'Primary-specific prompt',
+    );
+    assert.strictEqual(
+      (config.workers[1]?.config as Record<string, unknown>).promptTemplate,
+      'Secondary-specific prompt',
+    );
+  });
+
+  it('falls back to kind-level env vars when instance-specific vars are not set', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      SERVICE_HOST_INSTANCES: 'content-attester-neutral,content-attester-left-eval-right',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xcontent',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Shared prompt for all instances',
+    });
+
+    assert.strictEqual(config.workers.length, 2);
+    assert.strictEqual(
+      (config.workers[0]?.config as Record<string, unknown>).promptTemplate,
+      'Shared prompt for all instances',
+    );
+    assert.strictEqual(
+      (config.workers[1]?.config as Record<string, unknown>).promptTemplate,
+      'Shared prompt for all instances',
+    );
+  });
+
+  it('uses explicit route prefix from kind-level env var in multi-instance mode', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      SERVICE_HOST_INSTANCES: 'content-attester-neutral',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xcontent',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Prompt',
+      CONTENT_ATTESTER_ROUTE_PREFIX: '/custom-content-attester',
+    });
+
+    assert.strictEqual(config.workers[0]?.routePrefix, '/custom-content-attester');
+  });
+
+  it('throws when instance name does not match a known kind', () => {
+    assert.throws(
+      () => loadServiceHostConfigFromEnv({
+        SERVICE_HOST_INSTANCES: 'unknown-service-foo',
+        ETHEREUM_RPC_URL: 'http://rpc.example',
+      }),
+      /Cannot derive service kind/,
+    );
+  });
+
+  it('supports mixed kinds in SERVICE_HOST_INSTANCES', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      SERVICE_HOST_INSTANCES: 'content-attester-neutral,implication-graph-nudger',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xcontent',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Prompt',
+      IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY: '0xgraph',
+      NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: '0xnudges',
+    });
+
+    assert.strictEqual(config.workers.length, 2);
+    assert.strictEqual(config.workers[0]?.kind, 'content-attester');
+    assert.strictEqual(config.workers[1]?.kind, 'implication-graph-nudger');
+  });
 });

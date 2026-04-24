@@ -1,5 +1,51 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Service bundling follow-ups: normalize test scripts + multi-instance env-var path (Completed)
+
+**Task**: Complete the two remaining service-bundling follow-up cleanup items:
+1. Normalize AI-service package `npm test` scripts
+2. Multi-instance env-var path for service-host
+
+**What was done**:
+
+### Test script normalization
+- `implication-graph-nudger` was missing a `.mocharc.json` file, causing `npm test` to fail with "No test files found". Added `.mocharc.json` matching the other packages.
+- Moved `implication-graph-nudger/src/config.test.ts` to `implication-graph-nudger/test/config.test.ts` (matching the `test/**/*.test.ts` spec pattern) and updated the import path.
+- Fixed pre-existing test failures in `explorer-curator/test/config.test.ts` that asserted on `config.port` — the `port` field was removed from service configs during the service-bundling normalization but the tests weren't updated.
+
+### Multi-instance env-var path
+- Rewrote `service-host/src/envConfig.ts` to support `SERVICE_HOST_INSTANCES` env var (comma-separated list of instance names like `content-attester-neutral,content-attester-left-eval-right`).
+- Instance names must start with a known service kind (e.g., `content-attester-*`, `implication-finder-*`).
+- Instance-specific env vars (e.g., `CONTENT_ATTESTER_NEUTRAL_PROMPT_TEMPLATE`) override kind-level vars (e.g., `CONTENT_ATTESTER_PROMPT_TEMPLATE`).
+- Route prefixes default to `/<instance-name>` when not explicitly set via the kind-level `*_ROUTE_PREFIX` env var.
+- When `SERVICE_HOST_INSTANCES` is not set, falls back to the existing single-instance-per-kind behavior using `*_ENABLED` flags.
+- Added 6 new tests covering: multiple instances of same kind, instance-specific override, kind-level fallback, explicit route prefix, invalid instance name error, and mixed kinds.
+
+**Key decisions**:
+- The multi-instance env approach keeps full prefixed names in the merged env (e.g., `CONTENT_ATTESTER_PROMPT_TEMPLATE`), with instance-specific values overriding kind-level values. This avoids changing any service package's `loadConfigFromEnv` interface.
+- The `SERVICE_HOST_INSTANCES` mode takes precedence over the `*_ENABLED` flags — if instances are listed, only those instances run.
+
+**Verified**:
+- `npm run build --workspace=@commonality/service-host` ✓
+- `npm run lint --workspace=@commonality/service-host` ✓
+- `npm run test --workspace=@commonality/service-host` ✓ (14 passing, up from 8)
+- `npm run test --workspace=@commonality/implication-graph-nudger` ✓ (1 passing)
+- `npm run test --workspace=@commonality/explorer-curator` ✓ (19 passing)
+- All 7 AI service packages now pass `npm test` successfully.
+
+**Files changed**:
+- `implication-graph-nudger/.mocharc.json` (new)
+- `implication-graph-nudger/test/config.test.ts` (moved from src/)
+- `implication-graph-nudger/src/config.test.ts` (deleted)
+- `explorer-curator/test/config.test.ts` (removed port assertions)
+- `service-host/src/envConfig.ts` (added multi-instance support)
+- `service-host/test/index.test.ts` (added 6 multi-instance tests)
+- `TODO.md` (marked both follow-up items complete)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. All service-bundling follow-up cleanup items are now complete. The service-host supports both single-instance-per-kind (via `*_ENABLED` flags) and multi-instance (via `SERVICE_HOST_INSTANCES`) modes.
+
+
 ## 2026-04-24 - Push env-var parsing into service packages (Completed)
 
 **Task**: Complete the service-bundling follow-up cleanup item that moves env-var parsing from the centralized `service-host/src/envConfig.ts` monolith into each of the seven service packages.
