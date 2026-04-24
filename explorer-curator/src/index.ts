@@ -136,6 +136,7 @@ function createApp(
 
 export interface ExplorerCuratorRunHandle {
   server: Server;
+  finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
@@ -144,6 +145,7 @@ export function run(config = loadConfig()): ExplorerCuratorRunHandle {
   const machinery = createMachinery(config);
   const curator = new ExplorerCurator();
   const app = createApp(config, signer, machinery);
+  let stopRequested = false;
 
   void runCuratorCycle(curator, machinery, config).catch(console.error);
   const interval = setInterval(() => {
@@ -157,9 +159,24 @@ export function run(config = loadConfig()): ExplorerCuratorRunHandle {
     console.log(`Curator interval: ${config.curatorIntervalMs / (60 * 60 * 1000)} hours`);
   });
 
+  const finished = new Promise<void>((resolve, reject) => {
+    server.once('close', () => {
+      resolve();
+    });
+    server.once('error', (error) => {
+      if (stopRequested) {
+        resolve();
+        return;
+      }
+      reject(error);
+    });
+  });
+
   return {
     server,
+    finished,
     stop: () => new Promise((resolve, reject) => {
+      stopRequested = true;
       clearInterval(interval);
       server.close((error) => {
         if (error) {

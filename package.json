@@ -15,6 +15,7 @@
     "content-attester",
     "implication-finder",
     "content-finder",
+    "worker-host",
     "platform-api-service",
     "fake-data-generation",
     "nudger-core",

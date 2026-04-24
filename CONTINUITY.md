@@ -1,5 +1,59 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Worker host for bundled background services (Completed)
+
+**Task**: Complete the next `TODO.md` service-bundling sub-task by adding the worker-host binary and supervisor for the background-worker bundle.
+
+**What was done**:
+- Added a new [`worker-host/README.md`](/home/adam/Projects/commonality/worker-host/README.md) workspace with its own package metadata, lint/type/test/build config, and a CLI entrypoint in [`worker-host/src/index.ts`](/home/adam/Projects/commonality/worker-host/src/index.ts).
+- Added [`worker-host/src/config.ts`](/home/adam/Projects/commonality/worker-host/src/config.ts) to load and validate a JSON host config that lists named workers, their kinds, restart delays, and explicit per-worker config objects.
+- Added [`worker-host/src/serviceRegistry.ts`](/home/adam/Projects/commonality/worker-host/src/serviceRegistry.ts) to map worker kinds to the existing `run(config)` exports from `implication-finder`, `content-finder`, `implication-graph-nudger`, `bridge-creator`, and `explorer-curator`.
+- Added [`worker-host/src/supervisor.ts`](/home/adam/Projects/commonality/worker-host/src/supervisor.ts) to start workers, watch their run handles, restart them after unexpected termination, skip disabled entries, and stop them cleanly on shutdown.
+- Added focused supervisor coverage in [`worker-host/test/supervisor.test.ts`](/home/adam/Projects/commonality/worker-host/test/supervisor.test.ts) for restart-on-failure, no-restart-during-shutdown, and disabled-worker behavior.
+- Updated [`implication-graph-nudger/src/index.ts`](/home/adam/Projects/commonality/implication-graph-nudger/src/index.ts), [`bridge-creator/src/index.ts`](/home/adam/Projects/commonality/bridge-creator/src/index.ts), and [`explorer-curator/src/index.ts`](/home/adam/Projects/commonality/explorer-curator/src/index.ts) so their run handles now expose `finished`, which lets the supervisor observe unexpected worker termination instead of only having a `stop()` callback.
+- Updated [`README.md`](/home/adam/Projects/commonality/README.md), [`TODO.md`](/home/adam/Projects/commonality/TODO.md), `package.json`, and `package-lock.json` to register and document the new workspace.
+
+**Key decisions**:
+- Kept the worker-host config explicit and file-based instead of adding another environment-prefix indirection layer. Each hosted service receives a real config object, which keeps signer separation and service-specific settings obvious.
+- Scoped this task to the background-worker bundle only. The attester bundle and deployment wiring are still separate TODO items.
+- Treated “worker failure” as startup failure or unexpected run-handle termination; ordinary poll-cycle/LLM-call errors inside a worker still remain worker-local and do not force a restart.
+
+**Verified**:
+- `npm run build --workspace=@commonality/implication-graph-nudger` ✓
+- `npm run build --workspace=@commonality/bridge-creator` ✓
+- `npm run build --workspace=@commonality/explorer-curator` ✓
+- `npm run build --workspace=@commonality/worker-host` ✓
+- `npm run typecheck --workspace=@commonality/worker-host` ✓
+- `npm run lint --workspace=@commonality/worker-host` ✓
+- `npm run test --workspace=@commonality/worker-host` ✓
+
+**Files changed**:
+- `worker-host/package.json`
+- `worker-host/tsconfig.json`
+- `worker-host/eslint.config.js`
+- `worker-host/.mocharc.json`
+- `worker-host/README.md`
+- `worker-host/src/config.ts`
+- `worker-host/src/serviceRegistry.ts`
+- `worker-host/src/supervisor.ts`
+- `worker-host/src/index.ts`
+- `worker-host/test/supervisor.test.ts`
+- `implication-graph-nudger/src/index.ts`
+- `bridge-creator/src/index.ts`
+- `explorer-curator/src/index.ts`
+- `README.md`
+- `TODO.md`
+- `package.json`
+- `package-lock.json`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- The new host is ready, but it is not wired into `docker-compose.yml` or `render.yaml` yet; that remains the next service-bundling implementation step.
+- Bundle B still needs a concrete host config file or deployment-specific config generation strategy once the deployment wiring task starts.
+- The attester host does not exist yet, so the full service-bundling rollout is still incomplete.
+
+**Interrupt point**: Yes. The generic background worker host and restart supervision now exist; the next step is to instantiate Bundle B in deployment config and then build the separate attester host.
+
 ## 2026-04-23 - Seed implication pre-generation and regression tooling (Completed)
 
 **Task**: Set up the TODO item around using the real implication-attester prompt to pre-generate implication decisions for curated seed-content plus proliferation variants, with a verification path for prompt and statement regressions.

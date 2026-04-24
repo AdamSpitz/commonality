@@ -111,6 +111,7 @@ function createApp(config: ReturnType<typeof loadConfig>, signer: ReturnType<typ
 
 export interface ImplicationGraphNudgerRunHandle {
   server: Server;
+  finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
@@ -118,6 +119,7 @@ export function run(config = loadConfig()): ImplicationGraphNudgerRunHandle {
   const signer = createNudgerSigner(config);
   const machinery = createMachinery(config);
   const app = createApp(config, signer);
+  let stopRequested = false;
 
   void runNudgingCycle(machinery, signer, config).catch(console.error);
   const interval = setInterval(() => {
@@ -130,9 +132,24 @@ export function run(config = loadConfig()): ImplicationGraphNudgerRunHandle {
     console.log(`Strategy: ${config.sourceType}`);
   });
 
+  const finished = new Promise<void>((resolve, reject) => {
+    server.once('close', () => {
+      resolve();
+    });
+    server.once('error', (error) => {
+      if (stopRequested) {
+        resolve();
+        return;
+      }
+      reject(error);
+    });
+  });
+
   return {
     server,
+    finished,
     stop: () => new Promise((resolve, reject) => {
+      stopRequested = true;
       clearInterval(interval);
       server.close((error) => {
         if (error) {

@@ -1,0 +1,34 @@
+{
+  "name": "@commonality/worker-host",
+  "version": "0.1.0",
+  "description": "Host process for bundling multiple AI background workers under one supervisor",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "predev": "npm run build --workspace=@commonality/implication-finder && npm run build --workspace=@commonality/content-finder && npm run build --workspace=@commonality/implication-graph-nudger && npm run build --workspace=@commonality/bridge-creator && npm run build --workspace=@commonality/explorer-curator",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "mocha",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@commonality/bridge-creator": "*",
+    "@commonality/content-finder": "0.1.0",
+    "@commonality/explorer-curator": "*",
+    "@commonality/implication-finder": "0.1.0",
+    "@commonality/implication-graph-nudger": "*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.10.0",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "mocha": "^10.8.2",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.46.4"
+  }
+}

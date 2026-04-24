@@ -164,21 +164,38 @@ function createApp(config: ReturnType<typeof loadConfig>, signer = createNudgerS
 
 export interface BridgeCreatorRunHandle {
   server: Server;
+  finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
 export function run(config = loadConfig()): BridgeCreatorRunHandle {
   const signer = createNudgerSigner(config);
   const app = createApp(config, signer);
+  let stopRequested = false;
   const server = app.listen(config.port, () => {
     console.log(`Bridge Creator service listening on port ${config.port}`);
     console.log(`Nudger address: ${signer.address}`);
     console.log(`Strategy: ${config.sourceType}`);
   });
 
+  const finished = new Promise<void>((resolve, reject) => {
+    server.once('close', () => {
+      resolve();
+    });
+    server.once('error', (error) => {
+      if (stopRequested) {
+        resolve();
+        return;
+      }
+      reject(error);
+    });
+  });
+
   return {
     server,
+    finished,
     stop: () => new Promise((resolve, reject) => {
+      stopRequested = true;
       server.close((error) => {
         if (error) {
           reject(error);

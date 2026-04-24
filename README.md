@@ -71,6 +71,9 @@ The core pipeline (attesters, finders, nudgers, explorer) is complete. See `spec
   - [Bridge Creator](bridge-creator/README.md) — synthesizes common-ground statements between opposing views
   - [Explorer Curator](explorer-curator/README.md) — maintains a curated collection for goal-oriented exploration; personalizes per user
 
+**AI service hosting**:
+  - [Worker Host](worker-host/README.md) — runs multiple background AI workers in one supervised host process for service bundling
+
 ### Platform API service
 
   - [Platform API Service](platform-api-service/README.md) — resolves creator handles and content URLs; handles channel verification (Twitter, YouTube)
