@@ -4,7 +4,13 @@
 
 - We've just generated some implications for the proliferation of statements in the fake-data-generation stuff. Now a human should look at all the decisions and verify that they're sensible. Although actually no, there's almost 2000 of them. So instead just spot-check a few. Then set up a regression test so that (a) when we change the prompt, we can quickly check that the new prompt makes the same decisions, and (b) when we change the statements, we can quickly ask the human to verify only the new stuff.
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
-- Also I'm wondering to what extent I can separate the "physical" services from the "logical" services.
+- [Service bundling](specs/tech/service-bundling.md) — collapse the AI services into a couple of host processes. Sub-tasks:
+  - Refactor each AI service to export a `run(config)` function so it can be hosted in-process, not only as a standalone binary.
+  - Build a worker-host binary with a supervisor that restarts individual workers on failure.
+  - Stand up Bundle A (attester host): mount `implication-attester` and `content-attester` as route prefixes on one Express app; each keeps its own `ATTESTER_PRIVATE_KEY`.
+  - Stand up Bundle B (background worker host): run both finders + all three nudgers in one host; each nudger keeps its own `NUDGER_PRIVATE_KEY`.
+  - Keep `platform-api-service` unbundled (user-facing latency path).
+  - Update `docker-compose.yml` and `render.yaml` to deploy the two host images instead of the seven individual services, while keeping per-service Dockerfiles working as an escape hatch for future splits.
 
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 
