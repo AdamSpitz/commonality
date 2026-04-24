@@ -3,7 +3,7 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { describe, it } from 'mocha';
 import { parseWorkerHostConfig } from '../src/config.js';
-import { loadWorkerHostConfigFromEnv } from '../src/envConfig.js';
+import { loadServiceHostConfigFromEnv } from '../src/envConfig.js';
 import { createWorkerHostApp } from '../src/index.js';
 
 function createStubApp(name: string) {
@@ -63,7 +63,7 @@ async function withServer() {
   };
 }
 
-describe('worker host', () => {
+describe('service host', () => {
   it('mounts routed worker apps under their configured prefixes', async () => {
     const server = await withServer();
 
@@ -120,9 +120,9 @@ describe('worker host', () => {
     );
   });
 
-  it('builds the bundled worker config from environment variables', () => {
-    const config = loadWorkerHostConfigFromEnv({
-      WORKER_HOST_PORT: '3011',
+  it('builds the bundled service config from environment variables', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
       ETHEREUM_RPC_URL: 'http://rpc.example',
       INDEXER_URL: 'http://indexer.example',
       IPFS_API: 'http://ipfs-api.example',
@@ -143,14 +143,24 @@ describe('worker host', () => {
       BRIDGE_CREATOR_COMMONALITY_STATEMENTS: 'One, Two',
       EXPLORER_CURATOR_PRIVATE_KEY: '0xexplorer',
       EXPLORER_CURATOR_STREAM: 'fundable-project-explorer',
+      IMPLICATION_ATTESTER_PRIVATE_KEY: '0ximplication',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xcontent',
+      IMPLICATION_ATTESTER_ROUTE_PREFIX: '/implication-attester',
+      CONTENT_ATTESTER_ROUTE_PREFIX: '/content-attester',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      IMPLICATION_ATTESTER_PAYMENT_ADDRESS: '0xattesterPayment',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Evaluate content: {{content}}',
     });
 
     assert.strictEqual(config.port, 3011);
-    assert.strictEqual(config.workers.length, 5);
-    assert.strictEqual(config.workers[0]?.name, 'implication-finder');
-    assert.strictEqual(config.workers[0]?.config.attesterUrl, 'http://attester.example/implication-attester');
-    assert.strictEqual(config.workers[2]?.routePrefix, '/implication-graph-nudger');
-    assert.deepStrictEqual(config.workers[3]?.config.commonalityStatements, ['One', 'Two']);
-    assert.strictEqual(config.workers[4]?.routePrefix, '/explorer-curator');
+    assert.strictEqual(config.workers.length, 7);
+    assert.strictEqual(config.workers[0]?.name, 'implication-attester');
+    assert.strictEqual(config.workers[0]?.kind, 'implication-attester');
+    assert.strictEqual(config.workers[0]?.routePrefix, '/implication-attester');
+    assert.strictEqual(config.workers[1]?.name, 'content-attester');
+    assert.strictEqual(config.workers[1]?.kind, 'content-attester');
+    assert.strictEqual(config.workers[1]?.routePrefix, '/content-attester');
   });
 });

@@ -7,6 +7,8 @@ export const workerKinds = [
   'implication-graph-nudger',
   'bridge-creator',
   'explorer-curator',
+  'implication-attester',
+  'content-attester',
 ] as const;
 
 export type WorkerKind = (typeof workerKinds)[number];
@@ -124,12 +126,18 @@ export async function loadWorkerHostConfig(configPath: string): Promise<WorkerHo
   return parseWorkerHostConfig(parsed);
 }
 
-export function getWorkerHostConfigPath(argv: string[], env = process.env): string {
+export const loadServiceHostConfig = loadWorkerHostConfig;
+
+export function getServiceHostConfigPath(argv: string[], env = process.env): string {
   const cliPath = argv[2];
-  const envPath = env.WORKER_HOST_CONFIG;
+  const envPath = env.SERVICE_HOST_CONFIG || env.WORKER_HOST_CONFIG;
   const configPath = cliPath || envPath;
   if (!configPath) {
-    throw new Error('Missing worker-host config path. Pass a JSON file path or set WORKER_HOST_CONFIG.');
+    throw new Error('Missing service-host config path. Pass a JSON file path or set SERVICE_HOST_CONFIG.');
   }
   return configPath;
+}
+
+export function getWorkerHostConfigPath(argv: string[], env = process.env): string {
+  return getServiceHostConfigPath(argv, env);
 }

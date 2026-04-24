@@ -1,7 +1,7 @@
 {
-  "name": "@commonality/worker-host",
-  "version": "0.1.0",
-  "description": "Host process for bundling multiple AI background workers under one supervisor",
+  "name": "@commonality/service-host",
+  "version": "0.2.0",
+  "description": "Host process for bundling multiple AI services under one supervisor",
   "type": "module",
   "main": "dist/cli.js",
   "scripts": {
@@ -15,8 +15,10 @@
   },
   "dependencies": {
     "@commonality/bridge-creator": "*",
+    "@commonality/content-attester": "*",
     "@commonality/content-finder": "0.1.0",
     "@commonality/explorer-curator": "*",
+    "@commonality/implication-attester": "*",
     "@commonality/implication-finder": "0.1.0",
     "@commonality/implication-graph-nudger": "*",
     "express": "^4.18.2"

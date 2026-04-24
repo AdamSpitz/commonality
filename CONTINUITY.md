@@ -1,5 +1,50 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Unify attester-host and worker-host into one service-host (Completed)
+
+**Task**: Collapse `attester-host` into `worker-host`, rename to `service-host`, extend `WorkerKind` with `implication-attester` and `content-attester`, and unify env-var loaders.
+
+**What was done**:
+- Extended [`service-host/src/config.ts`](/home/adam/Projects/commonality/service-host/src/config.ts) `WorkerKind` to include `implication-attester` and `content-attester`.
+- Extended [`service-host/src/serviceRegistry.ts`](/home/adam/Projects/commonality/service-host/src/serviceRegistry.ts) to import and register `createImplicationAttesterApp`, `runImplicationAttester`, `createContentAttesterApp`, and `runContentAttester` from the attester packages.
+- Extended `workerAppFactories` to include both attesters, allowing them to be mounted as Express routers.
+- Updated [`service-host/package.json`](/home/adam/Projects/commonality/service-host/package.json) with renamed `@commonality/service-host`, version `0.2.0`, and new dependencies on both attester packages.
+- Renamed the directory from `worker-host/` to `service-host/`.
+- Unified the env-var loader by replacing the old `loadWorkerHostConfigFromEnv` with a new `loadServiceHostConfigFromEnv` in [`service-host/src/envConfig.ts`](/home/adam/Projects/commonality/service-host/src/envConfig.ts) that includes:
+  - Two attester worker configs (implication-attester with full x402/payment config, content-attester with prompt template support)
+  - All five background workers (implication-finder, content-finder, three nudgers)
+  - Added backward-compatible `loadWorkerHostConfigFromEnv` alias for test compatibility.
+- Updated config-path functions to support both `SERVICE_HOST_CONFIG` env var and legacy `WORKER_HOST_CONFIG`.
+- Updated [`service-host/src/cli.ts`](/home/adam/Projects/commonality/service-host/src/cli.ts) to use the new naming and exports.
+- Deleted the now-redundant `attester-host/` directory.
+- Updated tests to cover the new unified config with all seven worker kinds.
+
+**Key decisions**:
+- Kept both the JSON config-file approach (`SERVICE_HOST_CONFIG`) and the env-var fallback (`loadServiceHostConfigFromEnv()`), matching the pattern from each host's pre-unification implementation.
+- Each worker entry is now a regular config object with explicit `kind` and optional `routePrefix`; the attesters are registered identically to how nudgers are registered.
+- The new env config includes all seven logical services so a single host can run either bundle (attesters only, workers only, or both), depending on which entries the operator includes in their JSON config or enables in their environment.
+
+**Verified**:
+- `npm run build --workspace=@commonality/service-host` ✓ (via direct cd)
+- `npm run test --workspace=@commonality/service-host` ✓ (6 tests passing)
+- `npm run lint --workspace=@commonality/service-host` ✓
+
+**Files changed**:
+- `service-host/src/config.ts` (WorkerKind, loadServiceHostConfig, getServiceHostConfigPath)
+- `service-host/src/serviceRegistry.ts` (new attester imports and factories)
+- `service-host/package.json` (renamed, version, new deps)
+- `service-host/src/envConfig.ts` (unified loader)
+- `service-host/src/cli.ts` (new naming)
+- `service-host/test/index.test.ts` (updated tests)
+- `TODO.md` (sub-tasks 17-18 marked complete)
+- `attester-host/` (deleted)
+
+**Blockers / notes for next iteration**:
+- Remaining sub-tasks: delete per-service Dockerfiles and update deployment configs to use the unified `service-host` image.
+- The unified host now supports any combination of logical services via config; deployment is the next step.
+
+**Interrupt point**: Yes. The host is unified, the naming is consistent, and the next step is deployment wiring (tasks 19 and 20). Good checkpoint before the final deployment-bundle configuration work.
+
 ## 2026-04-24 - Normalize logical-service contract (Completed)
 
 **Task**: First sub-task of service-bundling unification: normalize the logical-service contract across all seven AI services so that `run(config)` never opens an HTTP listener, `port` is removed from every service config type, and the `startServer` flag is removed from the three nudger `run()` functions.
