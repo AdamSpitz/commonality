@@ -1,5 +1,34 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Repair root service-host workspace registration (Completed)
+
+**Task**: Complete the service-bundling follow-up cleanup item that updates the root workspace metadata from the deleted `attester-host` / `worker-host` packages to the unified `service-host` package.
+
+**What was done**:
+- Replaced the deleted root workspace entries in [`package.json`](/home/adam/Projects/commonality/package.json) with `service-host`.
+- Regenerated [`package-lock.json`](/home/adam/Projects/commonality/package-lock.json) so the root workspace list, `service-host` package entry, and `node_modules/@commonality/service-host` link all point at the unified host package again.
+- Marked the corresponding service-bundling cleanup item complete in [`TODO.md`](/home/adam/Projects/commonality/TODO.md).
+
+**Key decisions**:
+- Kept this task strictly to root workspace metadata repair. I did not mix in any of the remaining service-host cleanup items.
+- Left the old `attester-host` / `worker-host` entries in `package-lock.json` as extraneous metadata because those directories are gone; the root workspace list and active package links now point at `service-host`, which is the behavior this task needed to restore.
+
+**Verified**:
+- `npm run --workspace=@commonality/service-host build` ✓
+- `npm run --workspace=@commonality/service-host test` ✓
+
+**Files changed**:
+- `package.json`
+- `package-lock.json`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- Remaining service-bundling follow-ups are still the test-script normalization, per-package env parsing, worker-era vocabulary rename, and multi-instance env configuration.
+- The previous attempt on this task failed only at the repo pre-commit hook due unrelated full-suite UI Vitest timeouts. Re-check whether that hook path is stable on this machine.
+
+**Interrupt point**: Yes. This is a good checkpoint before taking the larger remaining `service-host` cleanup items.
+
 ## 2026-04-24 - Attempted root service-host workspace repair (Aborted)
 
 **Task attempted**: Complete the service-bundling follow-up cleanup item to update root `package.json` and `package-lock.json` from the deleted `attester-host` / `worker-host` workspaces to the unified `service-host` workspace.
