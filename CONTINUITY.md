@@ -1,5 +1,91 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Improve UI test coverage: Pubstarter sub-surfaces (Completed)
+
+**Task**: Improve UI test coverage across pubstarter project-detail sub-surfaces that were previously untested.
+
+**What was done**:
+- Added `ui/src/pubstarter/components/ConnectWalletPrompt.test.tsx` (1 test) covering:
+  - Wallet prompt message rendering
+- Added `ui/src/pubstarter/components/TradeHistory.test.tsx` (5 tests) covering:
+  - Empty state (returns null)
+  - Accordion header with trade count
+  - Trade details table when expanded (buyer, seller, token ID, quantity, price, date)
+  - Multiple trades rendering
+- Added `ui/src/pubstarter/components/ProjectHeader.test.tsx` (14 tests) covering:
+  - Project name from metadata vs truncated address fallback
+  - Description rendering
+  - Recipient address display
+  - Status badges (Funding, Succeeded, Refunding)
+  - Deadline formatting (relative time, Ended)
+  - Funding progress (ETH amounts, percentage, cap at 100%, zero threshold)
+- Added `ui/src/pubstarter/components/Leaderboard.test.tsx` (12 tests) covering:
+  - Empty state (returns null when no contributions or zero net)
+  - Contributor address truncation
+  - Contributed/refunded/net amounts
+  - Sorting by net contribution descending
+  - Ranking numbers
+  - Delegation chain display with tooltips
+  - Chain deduplication
+  - Aggregation of multiple contributions from same address
+- Added `ui/src/pubstarter/components/WithdrawSection.test.tsx` (9 tests) covering:
+  - Heading and description rendering
+  - Withdraw flow (button click, SDK call, success/error messages)
+  - Loading state
+  - Guard clauses (undefined address)
+  - Non-Error exception handling
+- Added `ui/src/pubstarter/components/RefundSection.test.tsx` (11 tests) covering:
+  - Heading and description rendering
+  - Refundable token count display
+  - Subtraction of already-refunded tokens
+  - Refund flow (button click, SDK call with correct params)
+  - Success/error messages
+  - Loading state
+  - Guard clauses (undefined address, no refundable tokens)
+- Added `ui/src/pubstarter/components/BurnTokensSection.test.tsx` (17 tests) covering:
+  - Heading and description rendering
+  - Token balance display (contributions minus refunds minus burns)
+  - Quantity inputs for each burnable token
+  - Burn flow (button click, SDK call with correct params)
+  - Token images rendering
+  - Success/error messages
+  - Loading state
+  - Guard clauses (undefined address, no burnable tokens)
+  - Quantity clearing after success
+- Added `ui/src/pubstarter/components/SecondaryMarketSection.test.tsx` (31 tests) covering:
+  - Sale listings table (empty state, data display, token images)
+  - Buy orders table (empty state, data display)
+  - Fulfill sale flow (default quantity, custom quantity, success/error)
+  - Fulfill buy order flow (approve + fulfill, success/error, approval failure)
+  - Create order form (visibility when connected, sale/buy toggle)
+  - Create sale listing flow (approval + creation, form validation, success/error, form clearing)
+  - Create buy order flow (no approval, creation, success/error)
+  - Loading state
+  - Market-wide error display
+
+**Key decisions**:
+- Tests use `ETH_CURRENCY` object from `@commonality/sdk` for currency fields, not address strings. The `formatCurrencyAmount` function expects a `Currency` object with `symbol` and `decimals` properties.
+- `ProjectHeader` tests use fake timers (`vi.useFakeTimers()`) and compute `NOW_SECONDS` inside each test after setting up the fake timers, because `Date.now()` is used by `getProjectStatus()` and `formatRelativeDeadline()`.
+- `Leaderboard` tests use `getAllByText().length >= 1` when contributed equals net (both show the same ETH amount), to avoid "multiple elements found" errors.
+- Tests follow the existing pattern from `BuyTokensSection.test.tsx`: mock wagmi hooks, mock SDK functions, use factory functions for test data.
+
+**Verified**:
+- `npm run test --workspace=ui -- src/pubstarter/components/` ✓ (130 tests: 1 + 5 + 14 + 12 + 9 + 11 + 17 + 31 + 30 existing)
+
+**Files changed**:
+- `ui/src/pubstarter/components/ConnectWalletPrompt.test.tsx` (new, 1 test)
+- `ui/src/pubstarter/components/TradeHistory.test.tsx` (new, 5 tests)
+- `ui/src/pubstarter/components/ProjectHeader.test.tsx` (new, 14 tests)
+- `ui/src/pubstarter/components/Leaderboard.test.tsx` (new, 12 tests)
+- `ui/src/pubstarter/components/WithdrawSection.test.tsx` (new, 9 tests)
+- `ui/src/pubstarter/components/RefundSection.test.tsx` (new, 11 tests)
+- `ui/src/pubstarter/components/BurnTokensSection.test.tsx` (new, 17 tests)
+- `ui/src/pubstarter/components/SecondaryMarketSection.test.tsx` (new, 31 tests)
+- `ui/test-plan.md` (updated pubstarter coverage)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. 100 new tests added across 8 pubstarter sub-surface components. All pubstarter components now have test coverage except `PrivyWalletButtonImpl` (shared component, already has tests per TODO.md). Remaining gaps from TODO.md include: fundingportal AttestAlignmentForm/AlignedProjectCard, delegation AvailableDelegatableFunding, content-funding ClaimFlowModal/ContentFundingProjectSection, conceptspace HighProfileSigners, docs DocsPage, cross-domain smoke tests, mobile/responsive AppShell tests, and accessibility assertions.
+
 ## 2026-04-24 - Improve UI test coverage: Content Funding pages (Completed)
 
 **Task**: Improve UI test coverage across content-funding page surfaces that were previously untested.

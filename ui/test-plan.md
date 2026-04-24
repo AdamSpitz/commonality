@@ -17,6 +17,8 @@ All major pages and components across all subsystems have unit tests. Coverage i
 
 **Content Funding:** `BrowseCreatorsPage.test.tsx` (platform tabs, sort/status filters, loading/error/empty states), `ChannelPage.test.tsx` (loading/error/not-found states, custom prop passthrough), `CreatorDashboardPage.test.tsx` (loading/error/disconnected/empty states, custom props), `CreateContractPage.test.tsx` (verified/unclaimed channel submission, third-party minimum, duplicate content blocking)
 
+**Pubstarter:** `BuyTokensSection.test.tsx` (direct ETH purchase, delegatable note mode, token images, error/success states), `BurnTokensSection.test.tsx` (token balance display, burn flow, token images, error/success states), `Leaderboard.test.tsx` (contributor stats, sorting, delegation chains, deduplication), `ProjectHeader.test.tsx` (metadata rendering, status badges, progress bar, deadline formatting), `RefundSection.test.tsx` (refundable token display, refund flow, error/success states), `SecondaryMarketSection.test.tsx` (sale listings, buy orders, create order form, fulfill actions, token images), `TradeHistory.test.tsx` (accordion rendering, trade details table), `WithdrawSection.test.tsx` (withdraw flow, error/success states), `ConnectWalletPrompt.test.tsx` (wallet prompt message)
+
 ## E2E Test Coverage (Playwright)
 
 Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + UI).
