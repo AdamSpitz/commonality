@@ -1,5 +1,54 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Improve UI test coverage: HighProfileSigners, AvailableDelegatableFunding, DocsPage (Completed)
+
+**Task**: Improve UI test coverage across conceptspace HighProfileSigners, delegation AvailableDelegatableFunding, and docs DocsPage components.
+
+**What was done**:
+- Added `ui/src/conceptspace/components/HighProfileSigners.test.tsx` (14 tests) covering:
+  - Loading state (returns null)
+  - Empty state with default and custom follower threshold messages
+  - Error state (rejects treated as empty)
+  - Signer chip rendering with Twitter handles, ENS names, and truncated addresses
+  - Follower count formatting (M suffix for millions, K suffix for thousands)
+  - Twitter link opening via window.open
+  - Navigation to user profile via useNavigate
+  - minFollowers prop passthrough
+  - Hiding follower count when not provided
+- Added `ui/src/delegation/components/AvailableDelegatableFunding.test.tsx` (10 tests) covering:
+  - Loading state with spinner
+  - Empty states (no attestations, null note fetches, inactive notes)
+  - ETH total and note table rendering with active notes
+  - Note ID as link to detail page
+  - Truncated address display for root owner and current owner
+  - Graceful handling of getNote rejection (filters out failed notes)
+  - Graceful handling of getNoteIntentAttestationsByStatement rejection
+  - Non-ETH notes filtered from total but still displayed
+- Added `ui/src/docs/DocsPage.test.tsx` (15 tests) covering:
+  - "Page not found" for non-existent doc paths
+  - Markdown rendering (headings, paragraphs, lists, inline code, blockquotes)
+  - Internal doc links as router links
+  - External links with target=_blank
+  - Multiple doc paths (index, key-ideas, use-case-walkthroughs, roles, for-crypto-natives, why-trust-it)
+  - Max width styling for readability
+
+**Key decisions**:
+- HighProfileSigners: The component prepends `@` to twitterHandle, so test data should NOT include the `@` prefix (e.g., `twitterHandle: 'alice'` not `'@alice'`).
+- HighProfileSigners: Address truncation uses `slice(0, 8)` giving `0x123456...` (not `0x12345678...`).
+- AvailableDelegatableFunding: Used `mockImplementation` with noteId-based routing instead of `mockResolvedValueOnce` to avoid ordering issues when mocking Promise.all calls.
+- DocsPage: Uses `import.meta.glob` which Vite/Vitest handles at build time — the actual markdown files from `docs/` are bundled and available in tests.
+
+**Verified**:
+- `npx vitest run` in ui workspace ✓ (936 tests passing, including 39 new ones)
+
+**Files changed**:
+- `ui/src/conceptspace/components/HighProfileSigners.test.tsx` (new, 14 tests)
+- `ui/src/delegation/components/AvailableDelegatableFunding.test.tsx` (new, 10 tests)
+- `ui/src/docs/DocsPage.test.tsx` (new, 15 tests)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. 39 new tests added across three components. Remaining gaps from TODO.md include: content-funding ClaimFlowModal/ContentFundingProjectSection, fundingportal AttestAlignmentForm/AlignedProjectCard, cross-domain smoke tests, mobile/responsive AppShell tests, E2E for non-default domains, and accessibility assertions.
+
 ## 2026-04-24 - Improve UI test coverage: Pubstarter sub-surfaces (Completed)
 
 **Task**: Improve UI test coverage across pubstarter project-detail sub-surfaces that were previously untested.
