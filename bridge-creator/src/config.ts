@@ -11,17 +11,6 @@ function readStringEnv(name: string, fallback: string): string {
   return process.env[name] || fallback;
 }
 
-function readNumberEnv(name: string, fallback: number): number {
-  const rawValue = process.env[name];
-  if (!rawValue) {
-    return fallback;
-  }
-  const parsed = Number(rawValue);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`Invalid numeric environment variable: ${name}`);
-  }
-  return parsed;
-}
 
 export interface BridgeCreatorConfig extends LlmNudgerConfig {
   commonalityStatements: string[];
@@ -36,7 +25,6 @@ export function loadConfig(): BridgeCreatorConfig {
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),
     openRouterApiKey: requireEnv('OPENROUTER_API_KEY', process.env.OPENROUTER_API_KEY),
     openRouterModel: readStringEnv('OPENROUTER_MODEL', 'anthropic/claude-3.5-haiku'),
-    port: readNumberEnv('PORT', 3003),
     name: readStringEnv('NUDGER_NAME', 'Bridge Creator'),
     description: readStringEnv('NUDGER_DESCRIPTION', 'Creates synthesized bridge statements from moderate positions'),
     sourceType: readStringEnv('NUDGER_SOURCE_TYPE', 'bridge-creator'),

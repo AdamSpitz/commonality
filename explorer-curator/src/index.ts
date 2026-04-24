@@ -1,4 +1,3 @@
-import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
@@ -137,77 +136,38 @@ export function createExplorerCuratorApp(
 }
 
 export interface ExplorerCuratorRunHandle {
-  server?: Server;
   finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
-export interface ExplorerCuratorRunOptions {
-  startServer?: boolean;
-}
-
-export function run(
-  config = loadConfig(),
-  options: ExplorerCuratorRunOptions = {},
-): ExplorerCuratorRunHandle {
-  const startServer = options.startServer ?? true;
-  const signer = createNudgerSigner(config);
+export function run(config = loadConfig()): ExplorerCuratorRunHandle {
   const machinery = createMachinery(config);
   const curator = new ExplorerCurator();
-  let stopRequested = false;
 
   void runCuratorCycle(curator, machinery, config).catch(console.error);
   const interval = setInterval(() => {
     void runCuratorCycle(curator, machinery, config).catch(console.error);
   }, config.curatorIntervalMs);
 
-  let server: Server | undefined;
-  let finished = NEVER;
-
-  if (startServer) {
-    const app = createExplorerCuratorApp(config, signer.address, machinery);
-    server = app.listen(config.port, () => {
-      console.log(`Explorer curator service listening on port ${config.port}`);
-      console.log(`Nudger address: ${signer.address}`);
-      console.log(`Stream: ${config.stream}`);
-      console.log(`Curator interval: ${config.curatorIntervalMs / (60 * 60 * 1000)} hours`);
-    });
-
-    finished = new Promise<void>((resolve, reject) => {
-      server!.once('close', () => {
-        resolve();
-      });
-      server!.once('error', (error) => {
-        if (stopRequested) {
-          resolve();
-          return;
-        }
-        reject(error);
-      });
-    });
-  }
-
   return {
-    server,
-    finished,
-    stop: () => new Promise((resolve, reject) => {
-      stopRequested = true;
+    finished: NEVER,
+    stop: () => {
       clearInterval(interval);
-      if (!server) {
-        resolve();
-        return;
-      }
-      server.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve();
-      });
-    }),
+      return Promise.resolve();
+    },
   };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run();
+  const config = loadConfig();
+  const signer = createNudgerSigner(config);
+  const machinery = createMachinery(config);
+  const port = parseInt(process.env.PORT || '3004', 10);
+  run(config);
+  createExplorerCuratorApp(config, signer.address, machinery).listen(port, () => {
+    console.log(`Explorer curator service listening on port ${port}`);
+    console.log(`Nudger address: ${signer.address}`);
+    console.log(`Stream: ${config.stream}`);
+    console.log(`Curator interval: ${config.curatorIntervalMs / (60 * 60 * 1000)} hours`);
+  });
 }

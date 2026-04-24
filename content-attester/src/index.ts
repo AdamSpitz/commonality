@@ -1,4 +1,3 @@
-import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { checkAttesterBalance, getBlockchainClients, publishAttestation } from './blockchain.js';
 import { loadConfig, type ContentAttesterConfig } from './config.js';
@@ -8,7 +7,6 @@ import { evaluateContentWithLLM } from './evaluator.js';
 export type { ContentAttesterConfig } from './config.js';
 
 export interface ContentAttesterRunHandle {
-  server: Server;
   stop: () => Promise<void>;
 }
 
@@ -50,27 +48,14 @@ export function createContentAttesterApp(
   });
 }
 
-export function run(config: ContentAttesterConfig = loadConfig()): ContentAttesterRunHandle {
-  const app = createContentAttesterApp(config);
-
-  const server = app.listen(config.port, () => {
-    console.log(`Content attester listening on port ${config.port}`);
-  });
-
-  return {
-    server,
-    stop: () => new Promise((resolve, reject) => {
-      server.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve();
-      });
-    }),
-  };
+export function run(_config: ContentAttesterConfig = loadConfig()): ContentAttesterRunHandle {
+  return { stop: () => Promise.resolve() };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run();
+  const config = loadConfig();
+  const port = parseInt(process.env.PORT || '3000', 10);
+  createContentAttesterApp(config).listen(port, () => {
+    console.log(`Content attester listening on port ${port}`);
+  });
 }

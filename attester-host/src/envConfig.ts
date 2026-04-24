@@ -105,7 +105,6 @@ export function loadAttesterHostConfigFromEnv(env: NodeJS.ProcessEnv = process.e
           ['IMPLICATION_ATTESTER_IPFS_GATEWAY', 'IPFS_GATEWAY'],
           'http://localhost:8080',
         ),
-        port: 0,
         paymentAddress: requireEnv(
           'IMPLICATION_ATTESTER_PAYMENT_ADDRESS',
           env.IMPLICATION_ATTESTER_PAYMENT_ADDRESS,
@@ -183,7 +182,6 @@ export function loadAttesterHostConfigFromEnv(env: NodeJS.ProcessEnv = process.e
           ['CONTENT_ATTESTER_IPFS_GATEWAY', 'IPFS_GATEWAY'],
           'http://localhost:8080',
         ),
-        port: 0,
         paymentAddress: requireEnv(
           'CONTENT_ATTESTER_PAYMENT_ADDRESS',
           env.CONTENT_ATTESTER_PAYMENT_ADDRESS,

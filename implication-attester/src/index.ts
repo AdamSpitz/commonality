@@ -1,4 +1,3 @@
-import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { type Request, type Response, type NextFunction } from 'express';
 import {
@@ -488,30 +487,17 @@ export function createImplicationAttesterApp(config: AttesterConfig) {
 }
 
 export interface ImplicationAttesterRunHandle {
-  server: Server;
   stop: () => Promise<void>;
 }
 
-export function run(config = loadConfig()): ImplicationAttesterRunHandle {
-  const app = createImplicationAttesterApp(config);
-  const server = app.listen(config.port, () => {
-    console.log(`Implication Attester AI service listening on port ${config.port}`);
-  });
-
-  return {
-    server,
-    stop: () => new Promise((resolve, reject) => {
-      server.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve();
-      });
-    }),
-  };
+export function run(_config = loadConfig()): ImplicationAttesterRunHandle {
+  return { stop: () => Promise.resolve() };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run();
+  const config = loadConfig();
+  const port = parseInt(process.env.PORT || '3000', 10);
+  createImplicationAttesterApp(config).listen(port, () => {
+    console.log(`Implication Attester AI service listening on port ${port}`);
+  });
 }

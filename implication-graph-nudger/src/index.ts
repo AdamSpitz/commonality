@@ -1,4 +1,3 @@
-import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
@@ -114,75 +113,36 @@ export function createImplicationGraphNudgerApp(
 }
 
 export interface ImplicationGraphNudgerRunHandle {
-  server?: Server;
   finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
-export interface ImplicationGraphNudgerRunOptions {
-  startServer?: boolean;
-}
-
-export function run(
-  config = loadConfig(),
-  options: ImplicationGraphNudgerRunOptions = {},
-): ImplicationGraphNudgerRunHandle {
-  const startServer = options.startServer ?? true;
+export function run(config = loadConfig()): ImplicationGraphNudgerRunHandle {
   const signer = createNudgerSigner(config);
   const machinery = createMachinery(config);
-  let stopRequested = false;
 
   void runNudgingCycle(machinery, signer, config).catch(console.error);
   const interval = setInterval(() => {
     void runNudgingCycle(machinery, signer, config).catch(console.error);
   }, NUDGE_INTERVAL_MS);
 
-  let server: Server | undefined;
-  let finished = NEVER;
-
-  if (startServer) {
-    const app = createImplicationGraphNudgerApp(config, signer.address);
-    server = app.listen(config.port, () => {
-      console.log(`Nudger service listening on port ${config.port}`);
-      console.log(`Nudger address: ${signer.address}`);
-      console.log(`Strategy: ${config.sourceType}`);
-    });
-
-    finished = new Promise<void>((resolve, reject) => {
-      server!.once('close', () => {
-        resolve();
-      });
-      server!.once('error', (error) => {
-        if (stopRequested) {
-          resolve();
-          return;
-        }
-        reject(error);
-      });
-    });
-  }
-
   return {
-    server,
-    finished,
-    stop: () => new Promise((resolve, reject) => {
-      stopRequested = true;
+    finished: NEVER,
+    stop: () => {
       clearInterval(interval);
-      if (!server) {
-        resolve();
-        return;
-      }
-      server.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve();
-      });
-    }),
+      return Promise.resolve();
+    },
   };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run();
+  const config = loadConfig();
+  const signer = createNudgerSigner(config);
+  const port = parseInt(process.env.PORT || '3002', 10);
+  run(config);
+  createImplicationGraphNudgerApp(config, signer.address).listen(port, () => {
+    console.log(`Nudger service listening on port ${port}`);
+    console.log(`Nudger address: ${signer.address}`);
+    console.log(`Strategy: ${config.sourceType}`);
+  });
 }

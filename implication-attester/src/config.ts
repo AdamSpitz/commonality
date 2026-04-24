@@ -14,7 +14,6 @@ export interface AttesterConfig {
   openRouterModel: string;
   ipfsApiUrl: string;
   ipfsGatewayUrl: string;
-  port: number;
   paymentAddress: string;
   serviceMarginPercent: number;
   ethUsdPrice: number;
@@ -35,7 +34,6 @@ export function loadConfig(): AttesterConfig {
     openRouterModel: readStringEnv('OPENROUTER_MODEL', 'anthropic/claude-3.5-haiku'),
     ipfsApiUrl: readStringEnv('IPFS_API', 'http://localhost:5001'),
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),
-    port: readNumberEnv('PORT', 3000),
     paymentAddress: requireEnv('X402_PAYMENT_ADDRESS', process.env.X402_PAYMENT_ADDRESS),
     serviceMarginPercent: readNumberEnv('SERVICE_MARGIN_PERCENT', 20),
     ethUsdPrice: readNumberEnv('ETH_USD_PRICE', 3000),

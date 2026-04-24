@@ -165,7 +165,6 @@ export function loadWorkerHostConfigFromEnv(env: NodeJS.ProcessEnv = process.env
             ['IMPLICATION_GRAPH_NUDGER_IPFS_GATEWAY', 'IPFS_GATEWAY'],
             'http://localhost:8080',
           ),
-          port: 0,
           name: readStringEnv(
             env,
             ['IMPLICATION_GRAPH_NUDGER_NAME'],
@@ -226,7 +225,6 @@ export function loadWorkerHostConfigFromEnv(env: NodeJS.ProcessEnv = process.env
             ['BRIDGE_CREATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'],
             'anthropic/claude-3.5-haiku',
           ),
-          port: 0,
           name: readStringEnv(env, ['BRIDGE_CREATOR_NAME'], 'Bridge Creator'),
           description: readStringEnv(
             env,
@@ -287,7 +285,6 @@ export function loadWorkerHostConfigFromEnv(env: NodeJS.ProcessEnv = process.env
             ['EXPLORER_CURATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'],
             'anthropic/claude-3.5-haiku',
           ),
-          port: 0,
           name: readStringEnv(
             env,
             ['EXPLORER_CURATOR_NAME'],

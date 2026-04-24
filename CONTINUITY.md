@@ -1,5 +1,67 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Normalize logical-service contract (Completed)
+
+**Task**: First sub-task of service-bundling unification: normalize the logical-service contract across all seven AI services so that `run(config)` never opens an HTTP listener, `port` is removed from every service config type, and the `startServer` flag is removed from the three nudger `run()` functions.
+
+**What was done**:
+- Removed `port: number` from `NudgerConfig` in [`nudger-core/src/signer.ts`](/home/adam/Projects/commonality/nudger-core/src/signer.ts).
+- Removed `port` from `loadConfig()` in `implication-graph-nudger`, `bridge-creator`, and `explorer-curator` configs.
+- Removed `port` from `AttesterConfig` and `ContentAttesterConfig` in the two attester configs.
+- Rewrote `run()` for all three nudgers to never start an HTTP listener; removed `ImplicationGraphNudgerRunOptions`, `BridgeCreatorRunOptions`, and `ExplorerCuratorRunOptions` and their `startServer` flags.
+- Rewrote `run()` for both attesters to be no-ops (`{ stop: () => Promise.resolve() }`), since attesters are purely reactive HTTP services with no background work.
+- Updated standalone CLI entry points (the `if (process.argv[1] && ...)` blocks) in each service to read `process.env.PORT` directly and call `createApp()` + `listen()` themselves.
+- Removed `{ startServer: !worker.routePrefix }` from `worker-host/src/serviceRegistry.ts` (no longer needed).
+- Removed `port: 0` stubs from `worker-host/src/envConfig.ts` (three nudger configs) and `attester-host/src/envConfig.ts` (two attester configs).
+- Updated `attester-host/test/index.test.ts` to remove the `config.port === 0` assertions.
+- Removed now-unused `readNumberEnv` helpers from `implication-graph-nudger/src/config.ts` and `bridge-creator/src/config.ts`.
+
+**Key decisions**:
+- `bridge-creator` has no background work, so `run()` is a deliberate no-op returning `{ finished: NEVER, stop: () => Promise.resolve() }`. Uses `_config` to acknowledge the unused parameter.
+- Same pattern for the two attesters (pure HTTP services with no background timers).
+- Standalone CLI entry points read `PORT` env var directly with a per-service default (3000 for attesters, 3002/3003/3004 for nudgers); the `port` field no longer lives in the service config type.
+- The `createMachinery()` call in the `explorer-curator` standalone CLI reuses the same instance for both `run()` (curator cycles) and `createExplorerCuratorApp()` (HTTP handler), which is more efficient.
+
+**Verified**:
+- `npm run build --workspace=@commonality/nudger-core` ✓
+- `npm run build --workspace=@commonality/implication-graph-nudger` ✓
+- `npm run build --workspace=@commonality/bridge-creator` ✓
+- `npm run build --workspace=@commonality/explorer-curator` ✓
+- `npm run build --workspace=@commonality/implication-attester` ✓
+- `npm run build --workspace=@commonality/content-attester` ✓
+- `npm run build --workspace=@commonality/attester-host` ✓
+- `npm run build --workspace=@commonality/worker-host` ✓
+- `npm run build` (full repo) ✓
+- `npm run test --workspace=@commonality/worker-host` ✓
+- `npm run test --workspace=@commonality/attester-host` ✓
+- nudger-core signer tests (manual invoke) ✓
+- implication-graph-nudger config test (manual invoke) ✓
+- `npm run lint` (all modified packages) ✓
+
+**Files changed**:
+- `nudger-core/src/signer.ts`
+- `nudger-core/src/signer.test.ts`
+- `implication-graph-nudger/src/config.ts`
+- `implication-graph-nudger/src/index.ts`
+- `bridge-creator/src/config.ts`
+- `bridge-creator/src/index.ts`
+- `explorer-curator/src/config.ts`
+- `explorer-curator/src/index.ts`
+- `implication-attester/src/config.ts`
+- `implication-attester/src/index.ts`
+- `content-attester/src/config.ts`
+- `content-attester/src/index.ts`
+- `worker-host/src/serviceRegistry.ts`
+- `worker-host/src/envConfig.ts`
+- `attester-host/src/envConfig.ts`
+- `attester-host/test/index.test.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Next step**: Sub-task 2 — collapse `attester-host` into `worker-host` and rename to `service-host`. The normalized service contract (this task) is the prerequisite; it's now done.
+
+**Interrupt point**: Yes — the logical-service contract is now uniform across all seven services. Good checkpoint before tackling the host unification (sub-task 2).
+
 ## 2026-04-24 - Deployment wiring for bundled AI hosts (Completed)
 
 **Task**: Complete the next `TODO.md` service-bundling sub-task by updating `docker-compose.yml` and `render.yaml` to deploy the two host images instead of the old individual AI-service layout.

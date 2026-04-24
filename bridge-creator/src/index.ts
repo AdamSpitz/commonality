@@ -1,4 +1,3 @@
-import { type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
@@ -168,67 +167,24 @@ export function createBridgeCreatorApp(
 }
 
 export interface BridgeCreatorRunHandle {
-  server?: Server;
   finished: Promise<void>;
   stop: () => Promise<void>;
 }
 
-export interface BridgeCreatorRunOptions {
-  startServer?: boolean;
-}
-
-export function run(
-  config = loadConfig(),
-  options: BridgeCreatorRunOptions = {},
-): BridgeCreatorRunHandle {
-  const startServer = options.startServer ?? true;
-  const signer = createNudgerSigner(config);
-  let stopRequested = false;
-  let server: Server | undefined;
-  let finished = NEVER;
-
-  if (startServer) {
-    const app = createBridgeCreatorApp(config, signer.address);
-    server = app.listen(config.port, () => {
-      console.log(`Bridge Creator service listening on port ${config.port}`);
-      console.log(`Nudger address: ${signer.address}`);
-      console.log(`Strategy: ${config.sourceType}`);
-    });
-
-    finished = new Promise<void>((resolve, reject) => {
-      server!.once('close', () => {
-        resolve();
-      });
-      server!.once('error', (error) => {
-        if (stopRequested) {
-          resolve();
-          return;
-        }
-        reject(error);
-      });
-    });
-  }
-
+export function run(_config = loadConfig()): BridgeCreatorRunHandle {
   return {
-    server,
-    finished,
-    stop: () => new Promise((resolve, reject) => {
-      stopRequested = true;
-      if (!server) {
-        resolve();
-        return;
-      }
-      server.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve();
-      });
-    }),
+    finished: NEVER,
+    stop: () => Promise.resolve(),
   };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run();
+  const config = loadConfig();
+  const signer = createNudgerSigner(config);
+  const port = parseInt(process.env.PORT || '3003', 10);
+  createBridgeCreatorApp(config, signer.address).listen(port, () => {
+    console.log(`Bridge Creator service listening on port ${port}`);
+    console.log(`Nudger address: ${signer.address}`);
+    console.log(`Strategy: ${config.sourceType}`);
+  });
 }

@@ -136,11 +136,9 @@ describe('attester host', () => {
 
     assert.strictEqual(config.port, 3010);
     assert.strictEqual(config.implicationAttester.routePrefix, '/implication-attester');
-    assert.strictEqual(config.implicationAttester.config.port, 0);
     assert.strictEqual(config.implicationAttester.config.ethereumRpcUrl, 'http://rpc.example');
     assert.strictEqual(config.implicationAttester.config.trustedFinderKey, 'implication-finder-secret');
     assert.strictEqual(config.contentAttester.routePrefix, '/content-attester');
-    assert.strictEqual(config.contentAttester.config.port, 0);
     assert.strictEqual(config.contentAttester.config.promptTemplate, 'prompt body');
     assert.strictEqual(config.contentAttester.config.trustedFinderKey, 'finder-secret');
   });

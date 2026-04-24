@@ -37,7 +37,6 @@ export function loadConfig(): ExplorerCuratorConfig {
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),
     openRouterApiKey: requireEnv('OPENROUTER_API_KEY', process.env.OPENROUTER_API_KEY),
     openRouterModel: readStringEnv('OPENROUTER_MODEL', 'anthropic/claude-3.5-haiku'),
-    port: readNumberEnv('PORT', 3004),
     name: readStringEnv('NUDGER_NAME', 'Fundable Project Explorer'),
     description: readStringEnv('NUDGER_DESCRIPTION', 'Curates a map of fundable project areas and personalizes suggestions'),
     sourceType: readStringEnv('NUDGER_SOURCE_TYPE', 'explorer-curator'),

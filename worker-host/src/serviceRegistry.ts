@@ -32,15 +32,12 @@ export const workerFactories: Record<WorkerKind, WorkerFactory> = {
   ),
   'implication-graph-nudger': (worker) => runImplicationGraphNudger(
     worker.config as unknown as Parameters<typeof runImplicationGraphNudger>[0],
-    { startServer: !worker.routePrefix },
   ),
   'bridge-creator': (worker) => runBridgeCreator(
     worker.config as unknown as Parameters<typeof runBridgeCreator>[0],
-    { startServer: !worker.routePrefix },
   ),
   'explorer-curator': (worker) => runExplorerCurator(
     worker.config as unknown as Parameters<typeof runExplorerCurator>[0],
-    { startServer: !worker.routePrefix },
   ),
 };
 

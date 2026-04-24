@@ -29,7 +29,6 @@ export interface NudgerConfig {
   indexerUrl: string;
   ipfsApiUrl: string;
   ipfsGatewayUrl: string;
-  port: number;
   name: string;
   description: string;
   sourceType: string;
