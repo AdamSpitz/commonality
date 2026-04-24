@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
-import type { ServiceHostConfig } from './config.js';
+import type { HostedServiceConfig, ServiceHostConfig, ServiceKind } from './config.js';
+import { serviceKinds } from './config.js';
 import { loadConfigFromEnv as loadImplicationAttesterConfig } from '@commonality/implication-attester';
 import { loadConfigFromEnv as loadContentAttesterConfig } from '@commonality/content-attester';
 import { loadConfigFromEnv as loadImplicationFinderConfig } from '@commonality/implication-finder';
@@ -17,14 +18,6 @@ function readOptionalStringFrom(
     if (value) return value;
   }
   return undefined;
-}
-
-function readStringFrom(
-  env: NodeJS.ProcessEnv,
-  names: readonly string[],
-  fallback: string,
-): string {
-  return readOptionalStringFrom(env, names) ?? fallback;
 }
 
 function readNumberFrom(
@@ -66,7 +59,125 @@ function readPromptTemplateFromEnv(env: NodeJS.ProcessEnv): string {
   return value;
 }
 
+// Multi-instance support
+
+function kindToEnvPrefix(kind: ServiceKind): string {
+  return kind.toUpperCase().replace(/-/g, '_');
+}
+
+function deriveKindFromInstanceName(instanceName: string): ServiceKind {
+  const normalized = instanceName.toLowerCase();
+  for (const kind of serviceKinds) {
+    const kindPrefix = kind + '-';
+    const kindUnderscore = kind.replace(/-/g, '_') + '_';
+    if (
+      normalized === kind ||
+      normalized.startsWith(kindPrefix) ||
+      normalized.startsWith(kindUnderscore)
+    ) {
+      return kind;
+    }
+  }
+  throw new Error(
+    `Cannot derive service kind from instance name "${instanceName}". ` +
+    `Instance names must start with a known kind (${serviceKinds.join(', ')}).`,
+  );
+}
+
+function buildInstanceEnv(
+  instanceName: string,
+  kind: ServiceKind,
+  env: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  const instancePrefix = instanceName.toUpperCase().replace(/-/g, '_') + '_';
+  const kindPrefix = kindToEnvPrefix(kind) + '_';
+  const result: NodeJS.ProcessEnv = { ...env };
+
+  for (const [key, value] of Object.entries(env)) {
+    if (value === undefined) continue;
+    if (key.startsWith(instancePrefix)) {
+      const suffix = key.slice(instancePrefix.length);
+      result[kindPrefix + suffix] = value;
+    }
+  }
+
+  return result;
+}
+
+const serviceConfigLoaders: Record<ServiceKind, (env: NodeJS.ProcessEnv) => Record<string, unknown>> = {
+  'implication-attester': (e) => loadImplicationAttesterConfig(e) as unknown as Record<string, unknown>,
+  'content-attester': (e) => ({ ...loadContentAttesterConfig(e), promptTemplate: readPromptTemplateFromEnv(e) }) as unknown as Record<string, unknown>,
+  'implication-finder': (e) => loadImplicationFinderConfig(e) as unknown as Record<string, unknown>,
+  'content-finder': (e) => loadContentFinderConfig(e) as unknown as Record<string, unknown>,
+  'implication-graph-nudger': (e) => loadImplicationGraphNudgerConfig(e) as unknown as Record<string, unknown>,
+  'bridge-creator': (e) => loadBridgeCreatorConfig(e) as unknown as Record<string, unknown>,
+  'explorer-curator': (e) => loadExplorerCuratorConfig(e) as unknown as Record<string, unknown>,
+};
+
+function buildInstanceWorker(
+  instanceName: string,
+  env: NodeJS.ProcessEnv,
+): HostedServiceConfig {
+  const kind = deriveKindFromInstanceName(instanceName);
+  const instanceEnv = buildInstanceEnv(instanceName, kind, env);
+  const kindPrefix = kindToEnvPrefix(kind);
+
+  const routePrefix = readOptionalStringFrom(env, [
+    `${kindPrefix}_ROUTE_PREFIX`,
+  ]);
+
+  return {
+    name: instanceName,
+    kind,
+    routePrefix: routePrefix ?? `/${instanceName}`,
+    config: serviceConfigLoaders[kind](instanceEnv),
+  };
+}
+
+function buildInstancesFromEnv(env: NodeJS.ProcessEnv): HostedServiceConfig[] {
+  const raw = env.SERVICE_HOST_INSTANCES;
+  if (!raw) return [];
+
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((name) => buildInstanceWorker(name, env));
+}
+
+// Single-instance-per-kind (legacy) support
+
+function buildSingleKindWorker(
+  kind: ServiceKind,
+  enabled: boolean,
+  env: NodeJS.ProcessEnv,
+): HostedServiceConfig | null {
+  if (!enabled) return null;
+
+  const kindPrefix = kindToEnvPrefix(kind);
+  const restartDelayMs = readNumberFrom(env, [`${kindPrefix}_RESTART_DELAY_MS`], 1000);
+  const routePrefix = readOptionalStringFrom(env, [`${kindPrefix}_ROUTE_PREFIX`]);
+
+  return {
+    name: kind,
+    kind,
+    enabled: true,
+    restartDelayMs,
+    ...(routePrefix ? { routePrefix } : {}),
+    config: serviceConfigLoaders[kind](env),
+  };
+}
+
 export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ServiceHostConfig {
+  const instances = buildInstancesFromEnv(env);
+
+  if (instances.length > 0) {
+    return {
+      port: readNumberFrom(env, ['SERVICE_HOST_PORT', 'PORT'], 3000),
+      workers: instances,
+    };
+  }
+
   const implicationAttesterEnabled = readBooleanFrom(env, ['IMPLICATION_ATTESTER_ENABLED'], true);
   const contentAttesterEnabled = readBooleanFrom(env, ['CONTENT_ATTESTER_ENABLED'], true);
   const implicationFinderEnabled = readBooleanFrom(env, ['IMPLICATION_FINDER_ENABLED'], true);
@@ -78,74 +189,13 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
   return {
     port: readNumberFrom(env, ['SERVICE_HOST_PORT', 'PORT'], 3000),
     workers: [
-      ...(implicationAttesterEnabled
-        ? [{
-            name: 'implication-attester',
-            kind: 'implication-attester' as const,
-            enabled: implicationAttesterEnabled,
-            restartDelayMs: readNumberFrom(env, ['IMPLICATION_ATTESTER_RESTART_DELAY_MS'], 1000),
-            routePrefix: readStringFrom(env, ['IMPLICATION_ATTESTER_ROUTE_PREFIX'], '/implication-attester'),
-            config: loadImplicationAttesterConfig(env) as unknown as Record<string, unknown>,
-          }]
-        : []),
-      ...(contentAttesterEnabled
-        ? [{
-            name: 'content-attester',
-            kind: 'content-attester' as const,
-            enabled: contentAttesterEnabled,
-            restartDelayMs: readNumberFrom(env, ['CONTENT_ATTESTER_RESTART_DELAY_MS'], 1000),
-            routePrefix: readStringFrom(env, ['CONTENT_ATTESTER_ROUTE_PREFIX'], '/content-attester'),
-            config: { ...loadContentAttesterConfig(env), promptTemplate: readPromptTemplateFromEnv(env) } as unknown as Record<string, unknown>,
-          }]
-        : []),
-      ...(implicationFinderEnabled
-        ? [{
-            name: 'implication-finder',
-            kind: 'implication-finder' as const,
-            enabled: implicationFinderEnabled,
-            restartDelayMs: readNumberFrom(env, ['IMPLICATION_FINDER_RESTART_DELAY_MS'], 1000),
-            config: loadImplicationFinderConfig(env) as unknown as Record<string, unknown>,
-          }]
-        : []),
-      ...(contentFinderEnabled
-        ? [{
-            name: 'content-finder',
-            kind: 'content-finder' as const,
-            enabled: contentFinderEnabled,
-            restartDelayMs: readNumberFrom(env, ['CONTENT_FINDER_RESTART_DELAY_MS'], 1000),
-            config: loadContentFinderConfig(env) as unknown as Record<string, unknown>,
-          }]
-        : []),
-      ...(implicationGraphNudgerEnabled
-        ? [{
-            name: 'implication-graph-nudger',
-            kind: 'implication-graph-nudger' as const,
-            enabled: implicationGraphNudgerEnabled,
-            restartDelayMs: readNumberFrom(env, ['IMPLICATION_GRAPH_NUDGER_RESTART_DELAY_MS'], 1000),
-            routePrefix: readStringFrom(env, ['IMPLICATION_GRAPH_NUDGER_ROUTE_PREFIX'], '/implication-graph-nudger'),
-            config: loadImplicationGraphNudgerConfig(env) as unknown as Record<string, unknown>,
-          }]
-        : []),
-      ...(bridgeCreatorEnabled
-        ? [{
-            name: 'bridge-creator',
-            kind: 'bridge-creator' as const,
-            enabled: bridgeCreatorEnabled,
-            restartDelayMs: readNumberFrom(env, ['BRIDGE_CREATOR_RESTART_DELAY_MS'], 1000),
-            routePrefix: readStringFrom(env, ['BRIDGE_CREATOR_ROUTE_PREFIX'], '/bridge-creator'),
-            config: loadBridgeCreatorConfig(env) as unknown as Record<string, unknown>,
-          }]
-        : []),
-      ...(explorerCuratorEnabled
-        ? [{
-            name: 'explorer-curator',
-            kind: 'explorer-curator' as const,
-            enabled: explorerCuratorEnabled,
-            restartDelayMs: readNumberFrom(env, ['EXPLORER_CURATOR_RESTART_DELAY_MS'], 1000),
-            routePrefix: readStringFrom(env, ['EXPLORER_CURATOR_ROUTE_PREFIX'], '/explorer-curator'),
-            config: loadExplorerCuratorConfig(env) as unknown as Record<string, unknown>,
-          }]
-        : []),
-    ],
+      buildSingleKindWorker('implication-attester', implicationAttesterEnabled, env),
+      buildSingleKindWorker('content-attester', contentAttesterEnabled, env),
+      buildSingleKindWorker('implication-finder', implicationFinderEnabled, env),
+      buildSingleKindWorker('content-finder', contentFinderEnabled, env),
+      buildSingleKindWorker('implication-graph-nudger', implicationGraphNudgerEnabled, env),
+      buildSingleKindWorker('bridge-creator', bridgeCreatorEnabled, env),
+      buildSingleKindWorker('explorer-curator', explorerCuratorEnabled, env),
+    ].filter((w): w is HostedServiceConfig => w !== null),
   };
 }

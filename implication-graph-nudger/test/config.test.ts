@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { loadConfig } from './config.js';
+import { loadConfig } from '../src/config.js';
 
 const REQUIRED_ENV = {
   NUDGER_PRIVATE_KEY: '0x1234567890123456789012345678901234567890123456789012345678901234',
