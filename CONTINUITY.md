@@ -1,5 +1,56 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Attester host for bundled HTTP attesters (Completed)
+
+**Task**: Complete the next `TODO.md` service-bundling sub-task by standing up Bundle A, the shared host for `implication-attester` and `content-attester`.
+
+**What was done**:
+- Added a new [`attester-host/README.md`](/home/adam/Projects/commonality/attester-host/README.md) workspace with package metadata, lint/type/test/build config, and a CLI entrypoint in [`attester-host/src/index.ts`](/home/adam/Projects/commonality/attester-host/src/index.ts).
+- Added [`attester-host/src/config.ts`](/home/adam/Projects/commonality/attester-host/src/config.ts) to load and validate a JSON host config containing the shared host port plus explicit route-prefix/config objects for the implication and content attesters.
+- Implemented [`attester-host/src/index.ts`](/home/adam/Projects/commonality/attester-host/src/index.ts) to mount the two attester apps under their configured prefixes and expose a lightweight host-level `/health` endpoint.
+- Added focused routing/config coverage in [`attester-host/test/index.test.ts`](/home/adam/Projects/commonality/attester-host/test/index.test.ts) to verify both prefixes are mounted and malformed prefixes are rejected.
+- Refactored [`content-attester/src/index.ts`](/home/adam/Projects/commonality/content-attester/src/index.ts) to export `createContentAttesterApp(config)` so the service can be mounted in-process rather than only started as a standalone listener.
+- Re-exported the attester config types from [`content-attester/src/index.ts`](/home/adam/Projects/commonality/content-attester/src/index.ts) and [`implication-attester/src/index.ts`](/home/adam/Projects/commonality/implication-attester/src/index.ts) so the host package can depend on the public package surface instead of internal files.
+- Updated [`README.md`](/home/adam/Projects/commonality/README.md), [`TODO.md`](/home/adam/Projects/commonality/TODO.md), and `package.json` to register and document the new workspace.
+
+**Key decisions**:
+- Kept the host config file-based and explicit, matching the `worker-host` pattern, so each mounted attester still receives a full independent config object and signer key.
+- Used route prefixes rather than trying to merge endpoints into one flat namespace; that preserves each attester's existing API surface with minimal code churn.
+- Scoped this task to the host binary/package only. Local/Render deployment wiring remains a separate `TODO.md` sub-task.
+
+**Verified**:
+- `npm test --workspace=@commonality/content-attester` ✓
+- `npm run lint --workspace=@commonality/content-attester` ✓
+- `npm run build --workspace=@commonality/content-attester` ✓
+- `npm run build --workspace=@commonality/implication-attester` ✓
+- `npm test --workspace=@commonality/attester-host` ✓
+- `npm run build --workspace=@commonality/attester-host` ✓
+- `npm run lint --workspace=@commonality/attester-host` ✓
+
+**Files changed**:
+- `attester-host/package.json`
+- `attester-host/tsconfig.json`
+- `attester-host/eslint.config.js`
+- `attester-host/.mocharc.json`
+- `attester-host/README.md`
+- `attester-host/src/config.ts`
+- `attester-host/src/index.ts`
+- `attester-host/test/index.test.ts`
+- `content-attester/src/index.ts`
+- `implication-attester/src/index.ts`
+- `README.md`
+- `TODO.md`
+- `package.json`
+- `package-lock.json`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- Bundle A exists as a package and CLI, but it is not wired into `docker-compose.yml` or `render.yaml` yet; deployment config still points at separate attester services.
+- The host currently expects an explicit JSON config file. If deployment wiring makes that awkward, the next step should be a narrow config-generation layer, not a rewrite of the host itself.
+- `content-attester` can now be mounted in-process, which unblocks later bundling work, but it still keeps its standalone `run(config)` entrypoint for split deployments.
+
+**Interrupt point**: Yes. Bundle A now exists as a standalone host package, and the next bundling work item is deployment/runtime wiring rather than more host implementation.
+
 ## 2026-04-24 - Worker host for bundled background services (Completed)
 
 **Task**: Complete the next `TODO.md` service-bundling sub-task by adding the worker-host binary and supervisor for the background-worker bundle.

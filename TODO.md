@@ -8,7 +8,7 @@
   - [x] Bundling prerequisite: remove process-global nudger signer state and export `run(config)` from `implication-graph-nudger`, `bridge-creator`, and `explorer-curator`, so multiple nudgers can coexist in one host process without sharing a `NUDGER_PRIVATE_KEY`.
   - [x] Refactor each AI service to export a `run(config)` function so it can be hosted in-process, not only as a standalone binary.
   - [x] Build a worker-host binary with a supervisor that restarts individual workers on failure.
-  - Stand up Bundle A (attester host): mount `implication-attester` and `content-attester` as route prefixes on one Express app; each keeps its own `ATTESTER_PRIVATE_KEY`.
+  - [x] Stand up Bundle A (attester host): mount `implication-attester` and `content-attester` as route prefixes on one Express app; each keeps its own `ATTESTER_PRIVATE_KEY`.
   - Stand up Bundle B (background worker host): run both finders + all three nudgers in one host; each nudger keeps its own `NUDGER_PRIVATE_KEY`.
   - Keep `platform-api-service` unbundled (user-facing latency path).
   - Update `docker-compose.yml` and `render.yaml` to deploy the two host images instead of the seven individual services, while keeping per-service Dockerfiles working as an escape hatch for future splits.

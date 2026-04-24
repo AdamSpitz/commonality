@@ -20,6 +20,7 @@ import { getIpfsConfig, getPaymentConfig, loadConfig, type AttesterConfig } from
 import { evaluateImplicationWithLLM } from './evaluator.js';
 import { publishAttestation, getBlockchainClients, checkAttesterBalance, getAttesterAddress } from './blockchain.js';
 import { IpfsCidV1, normalizeCidV1 } from '@commonality/sdk';
+export type { AttesterConfig } from './config.js';
 
 interface EvaluateImplicationRequest {
   fromStatementCid: IpfsCidV1;

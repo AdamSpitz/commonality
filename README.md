@@ -72,6 +72,7 @@ The core pipeline (attesters, finders, nudgers, explorer) is complete. See `spec
   - [Explorer Curator](explorer-curator/README.md) — maintains a curated collection for goal-oriented exploration; personalizes per user
 
 **AI service hosting**:
+  - [Attester Host](attester-host/README.md) — runs the implication and content attesters under one Express host for service bundling
   - [Worker Host](worker-host/README.md) — runs multiple background AI workers in one supervised host process for service bundling
 
 ### Platform API service

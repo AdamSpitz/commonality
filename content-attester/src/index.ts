@@ -5,13 +5,16 @@ import { loadConfig, type ContentAttesterConfig } from './config.js';
 import { resolveContentForEvaluation } from './content.js';
 import { createContentAttesterServiceApp, defaultUploadExplanation } from './app.js';
 import { evaluateContentWithLLM } from './evaluator.js';
+export type { ContentAttesterConfig } from './config.js';
 
 export interface ContentAttesterRunHandle {
   server: Server;
   stop: () => Promise<void>;
 }
 
-export function run(config: ContentAttesterConfig = loadConfig()): ContentAttesterRunHandle {
+export function createContentAttesterApp(
+  config: ContentAttesterConfig = loadConfig(),
+) {
   async function getCurrentGasPrice(): Promise<bigint> {
     try {
       const { testClients } = getBlockchainClients(config);
@@ -22,7 +25,7 @@ export function run(config: ContentAttesterConfig = loadConfig()): ContentAttest
     }
   }
 
-  const app = createContentAttesterServiceApp({
+  return createContentAttesterServiceApp({
     getConfig: () => config,
     getCurrentGasPrice,
     getPaymentConfig: (serviceConfig) => ({
@@ -45,6 +48,10 @@ export function run(config: ContentAttesterConfig = loadConfig()): ContentAttest
       publishAttestation(config, contentCanonicalId, statementCid, topicStatementCid),
     version: '0.1.0',
   });
+}
+
+export function run(config: ContentAttesterConfig = loadConfig()): ContentAttesterRunHandle {
+  const app = createContentAttesterApp(config);
 
   const server = app.listen(config.port, () => {
     console.log(`Content attester listening on port ${config.port}`);
