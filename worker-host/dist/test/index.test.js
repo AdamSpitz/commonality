@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import express from 'express';
 import { describe, it } from 'mocha';
 import { parseWorkerHostConfig } from '../src/config.js';
+import { loadWorkerHostConfigFromEnv } from '../src/envConfig.js';
 import { createWorkerHostApp } from '../src/index.js';
 function createStubApp(name) {
     const app = express();
@@ -100,6 +101,38 @@ describe('worker host', () => {
                 },
             ],
         }), /port is required/);
+    });
+    it('builds the bundled worker config from environment variables', () => {
+        const config = loadWorkerHostConfigFromEnv({
+            WORKER_HOST_PORT: '3011',
+            ETHEREUM_RPC_URL: 'http://rpc.example',
+            INDEXER_URL: 'http://indexer.example',
+            IPFS_API: 'http://ipfs-api.example',
+            IPFS_GATEWAY: 'http://ipfs-gateway.example',
+            IPFS_GATEWAY_URL: 'http://ipfs-gateway-url.example',
+            OPENROUTER_API_KEY: 'openrouter-key',
+            NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: '0xnudges',
+            EVENT_CACHE_URL: 'http://events.example',
+            PLATFORM_API_URL: 'http://platform.example',
+            BELIEFS_CONTRACT_ADDRESS: '0xbeliefs',
+            IMPLICATIONS_CONTRACT_ADDRESS: '0ximplications',
+            IMPLICATION_FINDER_ATTESTER_URL: 'http://attester.example/implication-attester',
+            IMPLICATION_FINDER_ATTESTER_FINDER_KEY: 'implication-finder-key',
+            CONTENT_FINDER_ATTESTER_URL: 'http://attester.example/content-attester',
+            CONTENT_FINDER_ATTESTER_FINDER_KEY: 'content-finder-key',
+            IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY: '0xgraph',
+            BRIDGE_CREATOR_PRIVATE_KEY: '0xbridge',
+            BRIDGE_CREATOR_COMMONALITY_STATEMENTS: 'One, Two',
+            EXPLORER_CURATOR_PRIVATE_KEY: '0xexplorer',
+            EXPLORER_CURATOR_STREAM: 'fundable-project-explorer',
+        });
+        assert.strictEqual(config.port, 3011);
+        assert.strictEqual(config.workers.length, 5);
+        assert.strictEqual(config.workers[0]?.name, 'implication-finder');
+        assert.strictEqual(config.workers[0]?.config.attesterUrl, 'http://attester.example/implication-attester');
+        assert.strictEqual(config.workers[2]?.routePrefix, '/implication-graph-nudger');
+        assert.deepStrictEqual(config.workers[3]?.config.commonalityStatements, ['One', 'Two']);
+        assert.strictEqual(config.workers[4]?.routePrefix, '/explorer-curator');
     });
 });
 //# sourceMappingURL=index.test.js.map

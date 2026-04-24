@@ -311,6 +311,64 @@ services:
       - commonality
 
   # =============================================================================
+  # Bundled AI attester host
+  # =============================================================================
+  # Runs the canonical implication-attester and content-attester together under
+  # one shared Express listener for service-bundling testing.
+  attester-host:
+    image: commonality-attester-host:dev
+    build:
+      context: .
+      dockerfile: attester-host/Dockerfile
+    container_name: commonality-attester-host
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "3006:3000"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    environment:
+      - PORT=3000
+      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - IPFS_API=http://ipfs:5001
+      - IPFS_GATEWAY=http://ipfs:8080
+      - IMPLICATION_ATTESTER_PRIVATE_KEY=${IMPLICATION_ATTESTER_PRIVATE_KEY:-0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a}
+      - IMPLICATION_ATTESTER_PAYMENT_ADDRESS=${IMPLICATION_ATTESTER_PAYMENT_ADDRESS:-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65}
+      - IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY=${ATTESTER_FINDER_KEY:-local-finder-key}
+      - IMPLICATIONS_CONTRACT_ADDRESS=${IMPLICATIONS_CONTRACT_ADDRESS:-}
+      - CONTENT_ATTESTER_PRIVATE_KEY=${CONTENT_ATTESTER_PRIVATE_KEY:-0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba}
+      - CONTENT_ATTESTER_PAYMENT_ADDRESS=${CONTENT_ATTESTER_PAYMENT_ADDRESS:-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc}
+      - CONTENT_ATTESTER_TRUSTED_FINDER_KEY=${ATTESTER_FINDER_KEY:-local-finder-key}
+      - CONTENT_ATTESTER_NAME=perspective-neutral
+      - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/content-attester/prompts/perspective-neutral.md
+      - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
+      - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
+      - ETH_USD_PRICE=3000
+      - GAS_PRICE_MULTIPLIER=1.2
+      - SERVICE_MARGIN_PERCENT=20
+      - IMPLICATION_ATTESTER_ESTIMATED_INPUT_TOKENS=1000
+      - IMPLICATION_ATTESTER_ESTIMATED_OUTPUT_TOKENS=200
+      - CONTENT_ATTESTER_ESTIMATED_INPUT_TOKENS=2500
+      - CONTENT_ATTESTER_ESTIMATED_OUTPUT_TOKENS=400
+      - RATE_LIMIT_WINDOW_MS=60000
+      - RATE_LIMIT_MAX_REQUESTS=10
+      - HOME=/tmp
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+    networks:
+      - commonality
+
+  # =============================================================================
   # Content attester services for noninflammatory content evaluation
   # =============================================================================
   content-attester-neutral:
@@ -431,36 +489,59 @@ services:
       - commonality
 
   # =============================================================================
-  # Implication Graph Nudger service
+  # Bundled AI worker host
   # =============================================================================
-  # Provides statement suggestions based on the implication graph.
-  # Uses the default hardhat account for local development.
-  implication-graph-nudger:
-    image: commonality-implication-graph-nudger:dev
+  # Runs both finders plus all three nudgers under one supervised host process.
+  worker-host:
+    image: commonality-worker-host:dev
     build:
       context: .
-      dockerfile: implication-graph-nudger/Dockerfile
-    container_name: commonality-implication-graph-nudger
+      dockerfile: worker-host/Dockerfile
+    container_name: commonality-worker-host
     user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "3005:3000"
     depends_on:
+      attester-host:
+        condition: service_healthy
       hardhat-node:
         condition: service_healthy
       ipfs:
         condition: service_healthy
       indexer:
         condition: service_healthy
+      platform-api-service:
+        condition: service_healthy
     environment:
       - PORT=3000
-      - NUDGER_PRIVATE_KEY=${NUDGER_PRIVATE_KEY:-0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e}
       - ETHEREUM_RPC_URL=http://hardhat-node:8545
       - INDEXER_URL=http://indexer:42069
       - IPFS_API=http://ipfs:5001
       - IPFS_GATEWAY=http://ipfs:8080
+      - IPFS_GATEWAY_URL=http://ipfs:8080
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - NUDGE_PUBLICATIONS_CONTRACT_ADDRESS=${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}
+      - PLATFORM_API_URL=http://platform-api-service:3000
+      - CONTENT_FINDER_PLATFORM_API_URL=http://platform-api-service:3000
+      - CONTENT_FINDER_SUBMISSIONS_API_URL=http://platform-api-service:3000/content-submission
+      - CONTENT_FINDER_ATTESTER_URL=http://attester-host:3000/content-attester
+      - CONTENT_FINDER_ATTESTER_FINDER_KEY=${ATTESTER_FINDER_KEY:-local-finder-key}
+      - IMPLICATION_FINDER_EVENT_CACHE_URL=http://indexer:42069
+      - IMPLICATION_FINDER_ATTESTER_URL=http://attester-host:3000/implication-attester
+      - IMPLICATION_FINDER_ATTESTER_FINDER_KEY=${ATTESTER_FINDER_KEY:-local-finder-key}
+      - BELIEFS_CONTRACT_ADDRESS=${BELIEFS_CONTRACT_ADDRESS:-}
+      - IMPLICATIONS_CONTRACT_ADDRESS=${IMPLICATIONS_CONTRACT_ADDRESS:-}
+      - IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY=${IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY:-0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e}
+      - BRIDGE_CREATOR_PRIVATE_KEY=${BRIDGE_CREATOR_PRIVATE_KEY:-0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356}
+      - EXPLORER_CURATOR_PRIVATE_KEY=${EXPLORER_CURATOR_PRIVATE_KEY:-0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97}
       - HOME=/tmp
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
     networks:
       - commonality
 

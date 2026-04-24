@@ -1,10 +1,13 @@
 import { pathToFileURL } from 'node:url';
 import { getWorkerHostConfigPath, loadWorkerHostConfig } from './config.js';
+import { loadWorkerHostConfigFromEnv } from './envConfig.js';
 import { run } from './index.js';
 
 async function main(): Promise<void> {
-  const configPath = getWorkerHostConfigPath(process.argv);
-  const config = await loadWorkerHostConfig(configPath);
+  const configPath = process.argv[2] || process.env.WORKER_HOST_CONFIG;
+  const config = configPath
+    ? await loadWorkerHostConfig(getWorkerHostConfigPath(process.argv))
+    : loadWorkerHostConfigFromEnv();
   const host = run(config);
   let shuttingDown = false;
 

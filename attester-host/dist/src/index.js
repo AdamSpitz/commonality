@@ -3,6 +3,7 @@ import express from 'express';
 import { createContentAttesterApp, } from '@commonality/content-attester';
 import { createImplicationAttesterApp, } from '@commonality/implication-attester';
 import { getAttesterHostConfigPath, loadAttesterHostConfig, } from './config.js';
+import { loadAttesterHostConfigFromEnv } from './envConfig.js';
 export function createAttesterHostApp(config, factories = {}) {
     const app = express();
     const createImplicationApp = factories.createImplicationApp ?? createImplicationAttesterApp;
@@ -41,8 +42,10 @@ export function run(config) {
     };
 }
 async function main() {
-    const configPath = getAttesterHostConfigPath(process.argv);
-    const config = await loadAttesterHostConfig(configPath);
+    const configPath = process.argv[2] || process.env.ATTESTER_HOST_CONFIG;
+    const config = configPath
+        ? await loadAttesterHostConfig(getAttesterHostConfigPath(process.argv))
+        : loadAttesterHostConfigFromEnv();
     let shuttingDown = false;
     const host = run(config);
     const shutdown = async (signal) => {

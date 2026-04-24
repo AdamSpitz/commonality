@@ -11,7 +11,8 @@
   - [x] Stand up Bundle A (attester host): mount `implication-attester` and `content-attester` as route prefixes on one Express app; each keeps its own `ATTESTER_PRIVATE_KEY`.
   - [x] Stand up Bundle B (background worker host): run both finders + all three nudgers in one host; each nudger keeps its own `NUDGER_PRIVATE_KEY`.
   - Keep `platform-api-service` unbundled (user-facing latency path).
-  - Update `docker-compose.yml` and `render.yaml` to deploy the two host images instead of the seven individual services, while keeping per-service Dockerfiles working as an escape hatch for future splits.
+  - [x] Update `docker-compose.yml` and `render.yaml` to deploy the two host images instead of the seven individual services.
+  - Decide: does it make sense to keep per-service Dockerfiles working as an escape hatch for future splits?
 
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 

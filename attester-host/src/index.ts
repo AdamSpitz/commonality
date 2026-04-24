@@ -14,6 +14,7 @@ import {
   loadAttesterHostConfig,
   type AttesterHostConfig,
 } from './config.js';
+import { loadAttesterHostConfigFromEnv } from './envConfig.js';
 
 export interface AttesterHostAppFactories {
   createImplicationApp?: (config: AttesterConfig) => Express;
@@ -78,8 +79,10 @@ export function run(config: AttesterHostConfig): AttesterHostRunHandle {
 }
 
 async function main(): Promise<void> {
-  const configPath = getAttesterHostConfigPath(process.argv);
-  const config = await loadAttesterHostConfig(configPath);
+  const configPath = process.argv[2] || process.env.ATTESTER_HOST_CONFIG;
+  const config = configPath
+    ? await loadAttesterHostConfig(getAttesterHostConfigPath(process.argv))
+    : loadAttesterHostConfigFromEnv();
   let shuttingDown = false;
   const host = run(config);
 

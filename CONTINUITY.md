@@ -1,5 +1,58 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Deployment wiring for bundled AI hosts (Completed)
+
+**Task**: Complete the next `TODO.md` service-bundling sub-task by updating `docker-compose.yml` and `render.yaml` to deploy the two host images instead of the old individual AI-service layout.
+
+**What was done**:
+- Added [`attester-host/src/envConfig.ts`](/home/adam/Projects/commonality/attester-host/src/envConfig.ts) and [`worker-host/src/envConfig.ts`](/home/adam/Projects/commonality/worker-host/src/envConfig.ts) so both host binaries can synthesize their config directly from deployment env vars when no JSON file path is provided.
+- Updated [`attester-host/src/index.ts`](/home/adam/Projects/commonality/attester-host/src/index.ts) and [`worker-host/src/cli.ts`](/home/adam/Projects/commonality/worker-host/src/cli.ts) to prefer file-based config when provided but otherwise boot from the new env-based config loaders.
+- Added focused env-config coverage in [`attester-host/test/index.test.ts`](/home/adam/Projects/commonality/attester-host/test/index.test.ts) and [`worker-host/test/index.test.ts`](/home/adam/Projects/commonality/worker-host/test/index.test.ts).
+- Added host Dockerfiles in [`attester-host/Dockerfile`](/home/adam/Projects/commonality/attester-host/Dockerfile) and [`worker-host/Dockerfile`](/home/adam/Projects/commonality/worker-host/Dockerfile), and registered them in [`scripts/docker-build-plan.mjs`](/home/adam/Projects/commonality/scripts/docker-build-plan.mjs).
+- Updated [`docker-compose.yml`](/home/adam/Projects/commonality/docker-compose.yml) to define bundled `attester-host` and `worker-host` services for local/manual Docker use, while leaving the existing extra local content-attester profile containers in place for the content-funding workflow.
+- Replaced the old per-service Render blueprint layout in [`render.yaml`](/home/adam/Projects/commonality/render.yaml) with `commonality-attester-host`, `commonality-worker-host`, `commonality-platform-api`, and `commonality-indexer`.
+- Updated [`attester-host/README.md`](/home/adam/Projects/commonality/attester-host/README.md), [`worker-host/README.md`](/home/adam/Projects/commonality/worker-host/README.md), [`DEPLOYMENT.md`](/home/adam/Projects/commonality/DEPLOYMENT.md), [`TODO.md`](/home/adam/Projects/commonality/TODO.md), and `CONTINUITY.md` to document the new deployment shape.
+
+**Key decisions**:
+- Kept the original JSON config-file path working for both hosts, and added env-based config as an additional deployment mode rather than replacing the explicit file-based host config model.
+- Used per-service env prefixes for bundled workers/attesters so each logical service still has explicit signer/config ownership inside the host.
+- Left `services.sh` unchanged because the default local bootstrap intentionally avoids starting OpenRouter-dependent AI services when no API key is configured.
+- Kept the extra local content-attester persona containers in Compose; they are separate local-dev profiles, not part of the canonical seven-service bundling target captured by the Render blueprint.
+
+**Verified**:
+- `npm run test --workspace=@commonality/attester-host` ✓
+- `npm run lint --workspace=@commonality/attester-host` ✓
+- `npm run build --workspace=@commonality/attester-host` ✓
+- `npm run test --workspace=@commonality/worker-host` ✓
+- `npm run lint --workspace=@commonality/worker-host` ✓
+- `npm run build --workspace=@commonality/worker-host` ✓
+- `docker compose config` ✓
+- `ruby -e 'require "yaml"; YAML.load_file("render.yaml")'` ✓
+
+**Files changed**:
+- `attester-host/Dockerfile`
+- `attester-host/README.md`
+- `attester-host/src/envConfig.ts`
+- `attester-host/src/index.ts`
+- `attester-host/test/index.test.ts`
+- `worker-host/Dockerfile`
+- `worker-host/README.md`
+- `worker-host/src/envConfig.ts`
+- `worker-host/src/cli.ts`
+- `worker-host/test/index.test.ts`
+- `docker-compose.yml`
+- `render.yaml`
+- `scripts/docker-build-plan.mjs`
+- `DEPLOYMENT.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- The remaining service-bundling TODO item is the policy question about whether the per-service Dockerfiles should remain supported as an explicit escape hatch for future re-splitting.
+- The bundled Render services now assume the `*.onrender.com` service URLs shown in `render.yaml`; if Render naming or internal-service routing strategy changes, update those host-to-host URLs together.
+
+**Interrupt point**: Yes. The bundling implementation and deployment wiring now line up, and the next logical step is a higher-level review of whether to keep the standalone deployment escape hatch.
+
 ## 2026-04-24 - Bundle B worker host as one shared HTTP/background host (Completed)
 
 **Task**: Complete the next `TODO.md` service-bundling sub-task by standing up Bundle B as one real host process for both finders and all three nudgers.

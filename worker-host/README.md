@@ -75,11 +75,58 @@ Example:
 
 If any worker sets `routePrefix`, the top-level `port` becomes required. The nested worker `port` values are ignored in that case because the host owns the actual listener.
 
+## Environment-based config
+
+If no config path is provided, the host can also synthesize the bundle config from environment variables. This is the deployment path used by `docker-compose.yml` and `render.yaml`.
+
+Required env vars for the full Bundle B shape:
+
+- Shared: `PORT` or `WORKER_HOST_PORT`, `ETHEREUM_RPC_URL`, `OPENROUTER_API_KEY`, `NUDGE_PUBLICATIONS_CONTRACT_ADDRESS`
+- Finder wiring:
+  - `IMPLICATION_FINDER_ATTESTER_URL`, `IMPLICATION_FINDER_ATTESTER_FINDER_KEY`, `BELIEFS_CONTRACT_ADDRESS`, `IMPLICATIONS_CONTRACT_ADDRESS`
+  - `CONTENT_FINDER_ATTESTER_URL`, `CONTENT_FINDER_ATTESTER_FINDER_KEY`
+- Nudger identities:
+  - `IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY`
+  - `BRIDGE_CREATOR_PRIVATE_KEY`
+  - `EXPLORER_CURATOR_PRIVATE_KEY`
+
+Useful shared fallbacks:
+
+- `INDEXER_URL`, `EVENT_CACHE_URL`, `PLATFORM_API_URL`
+- `IPFS_API`, `IPFS_GATEWAY`, `IPFS_GATEWAY_URL`
+- `OPENROUTER_MODEL`
+
+Optional overrides:
+
+- Per-worker route prefixes such as `IMPLICATION_GRAPH_NUDGER_ROUTE_PREFIX`
+- Per-worker poll intervals / metadata env vars
+- `BRIDGE_CREATOR_COMMONALITY_STATEMENTS`
+- `EXPLORER_CURATOR_STREAM`, `EXPLORER_CURATOR_INTERVAL_MS`
+
 ## Running
 
 ```bash
 npm run build --workspace=@commonality/worker-host
 node worker-host/dist/cli.js ./worker-host.config.json
+```
+
+Or without a JSON file:
+
+```bash
+PORT=3000 \
+ETHEREUM_RPC_URL=http://localhost:8545 \
+OPENROUTER_API_KEY=secret \
+NUDGE_PUBLICATIONS_CONTRACT_ADDRESS=0x9999 \
+IMPLICATION_FINDER_ATTESTER_URL=http://localhost:3000/implication-attester \
+IMPLICATION_FINDER_ATTESTER_FINDER_KEY=secret \
+BELIEFS_CONTRACT_ADDRESS=0x1234 \
+IMPLICATIONS_CONTRACT_ADDRESS=0x5678 \
+CONTENT_FINDER_ATTESTER_URL=http://localhost:3000/content-attester \
+CONTENT_FINDER_ATTESTER_FINDER_KEY=secret \
+IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY=0x1111 \
+BRIDGE_CREATOR_PRIVATE_KEY=0x2222 \
+EXPLORER_CURATOR_PRIVATE_KEY=0x3333 \
+node worker-host/dist/cli.js
 ```
 
 The supervisor restarts a worker if it throws during startup or if its run handle finishes unexpectedly. `SIGINT` and `SIGTERM` trigger a clean shutdown of all hosted workers.

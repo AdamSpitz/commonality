@@ -78,7 +78,7 @@ npx hardhat verify --network sepolia <address> <constructor-args>
 First time only:
 
 1. In Render, **New → Blueprint**, connect to this GitHub repo.
-2. Render reads `render.yaml` and creates all 9 services plus the indexer Postgres database.
+2. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-attester-host`, `commonality-worker-host`, `commonality-platform-api`) plus the indexer Postgres database.
 3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs.
 4. Addresses come from `deployments/sepolia.env`; copy-paste them into Render.
 
@@ -87,10 +87,10 @@ Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy:
 Verify:
 
 ```bash
-curl https://commonality-attester.onrender.com/health
-curl https://commonality-implication-graph-nudger.onrender.com/health
+curl https://commonality-attester-host.onrender.com/health
+curl https://commonality-worker-host.onrender.com/health
 curl https://commonality-indexer.onrender.com/graphql
-# ...etc, one per service
+curl https://commonality-platform-api.onrender.com/health
 ```
 
 ### Step 3: Deploy UI to IPFS + ENS
@@ -137,14 +137,9 @@ For local Docker development, the same image still defaults to `PONDER_SCRIPT=de
 
 All service-specific env vars are documented in each service's README. Quick pointers:
 
-- [`implication-attester/README.md`](implication-attester/README.md)
-- [`content-attester/README.md`](content-attester/README.md)
-- [`implication-graph-nudger/README.md`](implication-graph-nudger/README.md)
-- [`bridge-creator/README.md`](bridge-creator/README.md)
-- [`explorer-curator/README.md`](explorer-curator/README.md)
+- [`attester-host/README.md`](attester-host/README.md)
+- [`worker-host/README.md`](worker-host/README.md)
 - [`platform-api-service/README.md`](platform-api-service/README.md)
-- [`content-finder/README.md`](content-finder/README.md)
-- [`implication-finder/README.md`](implication-finder/README.md)
 
 The bottom of [`render.yaml`](./render.yaml) lists which vars are secrets (set in Render dashboard) per service.
 
@@ -257,7 +252,7 @@ Render streams logs per service. For anything beyond casual debugging, add Sentr
 
 ### Costs (approximate, mid-2026)
 
-- Render: 8 services × ~$25/mo standard = ~$200/mo. Can probably drop several to `starter` (~$7/mo) once load is known.
+- Render: 4 services × ~$25/mo standard = ~$100/mo, plus the Postgres add-on. Can probably drop several to `starter` (~$7/mo) once load is known.
 - Render Postgres for indexer: ~$7–20/mo depending on plan.
 - Pinata: free tier covers a few CIDs; paid starts at ~$20/mo.
 - RPC (Alchemy/Infura): free tier covers light testnet use; production indexer probably needs ~$50/mo.

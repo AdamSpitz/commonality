@@ -68,11 +68,60 @@ Example:
 
 The nested `port` values are ignored by the host and can be set to `0`.
 
+## Environment-based config
+
+If no config path is provided, the host can also build its config directly from environment variables. This is the deployment path used by `docker-compose.yml` and `render.yaml`.
+
+Required service-specific env vars:
+
+- `IMPLICATION_ATTESTER_PRIVATE_KEY`
+- `IMPLICATION_ATTESTER_PAYMENT_ADDRESS`
+- `IMPLICATIONS_CONTRACT_ADDRESS`
+- `CONTENT_ATTESTER_PRIVATE_KEY`
+- `CONTENT_ATTESTER_PAYMENT_ADDRESS`
+- `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS`
+- `ALIGNMENT_TOPIC_STATEMENT_CID`
+- `CONTENT_ATTESTER_NAME`
+- `CONTENT_ATTESTER_PROMPT_TEMPLATE` or `CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE`
+
+Shared env vars used by both mounted services:
+
+- `PORT` or `ATTESTER_HOST_PORT`
+- `ETHEREUM_RPC_URL`
+- `OPENROUTER_API_KEY`
+- `OPENROUTER_MODEL`
+- `IPFS_API`
+- `IPFS_GATEWAY`
+
+Optional overrides:
+
+- `IMPLICATION_ATTESTER_ROUTE_PREFIX`, `CONTENT_ATTESTER_ROUTE_PREFIX`
+- `IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY`, `CONTENT_ATTESTER_TRUSTED_FINDER_KEY`
+- the per-service pricing/rate-limit env vars exposed in [`src/envConfig.ts`](./src/envConfig.ts)
+
 ## Running
 
 ```bash
 npm run build --workspace=@commonality/attester-host
 node attester-host/dist/index.js ./attester-host.config.json
+```
+
+Or without a JSON file:
+
+```bash
+PORT=3000 \
+IMPLICATION_ATTESTER_PRIVATE_KEY=0x1111 \
+IMPLICATION_ATTESTER_PAYMENT_ADDRESS=0xaaaa \
+IMPLICATIONS_CONTRACT_ADDRESS=0x1234 \
+CONTENT_ATTESTER_PRIVATE_KEY=0x2222 \
+CONTENT_ATTESTER_PAYMENT_ADDRESS=0xbbbb \
+ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=0x5678 \
+ALIGNMENT_TOPIC_STATEMENT_CID=bafy... \
+CONTENT_ATTESTER_NAME=noninflammatory-neutral \
+CONTENT_ATTESTER_PROMPT_TEMPLATE="..." \
+OPENROUTER_API_KEY=secret \
+ETHEREUM_RPC_URL=http://localhost:8545 \
+node attester-host/dist/index.js
 ```
 
 The host serves:
