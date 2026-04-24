@@ -92,3 +92,38 @@ Each service package owns the parsing of its own env-var shape (e.g. `implicatio
 ### Escape hatch for future splits
 
 Not needed as per-service Dockerfiles. If one logical service needs its own container later, point a new `service-host` deployment at a config containing just that one entry. Same image, different config. The per-service Dockerfiles currently in the repo should be deleted — they're a second deployment path that no-one exercises in CI and they'll rot.
+
+## Remaining cleanup
+
+The unification shipped — one `service-host` image, two bundles, env-var configured — but four things still diverge from the target shape. These keep "reorganize which logical service runs in which physical process" from being the pure config change it's supposed to be. Corresponding checklist entries are in [TODO.md](../../TODO.md) under the *Service bundling → Follow-up cleanup* section.
+
+### 1. Env parsing is still centralized
+
+`service-host/src/envConfig.ts` is a ~540-line loader that hardcodes every field of every service's config shape. This is exactly the "giant central env-loader [where] most of the accidental complexity lives" the [Config source of truth](#config-source-of-truth) section flagged as the thing to avoid.
+
+Target: each service package owns its own env parsing, e.g.
+
+```ts
+// implication-attester/src/index.ts
+export function loadConfigFromEnv(env: NodeJS.ProcessEnv, prefix = 'IMPLICATION_ATTESTER_'): AttesterConfig { ... }
+```
+
+The host's env loader becomes a thin dispatcher: look at which `*_ENABLED` flags are true, call the matching package's `loadConfigFromEnv` for each, and assemble the `ServiceHostConfig`. Adding a new logical service should not touch `service-host/`.
+
+### 2. Env-var path is eager, not lazy
+
+`loadServiceHostConfigFromEnv` currently builds all seven entries unconditionally, with `requireEnv` for each. That means the attester bundle needs worker-bundle env vars (or tolerable defaults for them), and vice versa. A bundle of just one service still has to satisfy the other six services' required env vars.
+
+Target: read each `*_ENABLED` flag first, and only build (and only `requireEnv`) the entries that are enabled. Splitting a single service back out into its own container should then work with only that service's env vars set.
+
+### 3. Vocabulary drift after the rename
+
+The package was renamed from `worker-host` to `service-host`, but the canonical types and the registered env var still use "worker" nouns: `WorkerHostConfig`, `HostedWorkerConfig`, `WorkerKind`, `workerKinds`, `workerFactories`, `WORKER_HOST_CONFIG`. `service-host` equivalents exist only as aliases.
+
+Target: rename the canonical names to the service-host vocabulary and delete the worker-named aliases. Cosmetic but a reader currently has to learn two vocabularies.
+
+### 4. Env path can't run multiple instances of one kind
+
+The JSON-config path supports multiple entries of the same `kind` (different `name`, different `config`). The env-var path can't: names like `'implication-attester'` are hardcoded strings in `envConfig.ts` with fixed env-var prefixes. So "two `content-attester`s with different prompts in one host" (the old `content-attester-neutral` / `-left-eval-right` pattern) currently forces you onto the JSON-config path.
+
+Target: drive instance discovery from env, e.g. `SERVICE_HOST_INSTANCES=content-attester-neutral,content-attester-left-eval-right` with per-instance variable prefixes (`CONTENT_ATTESTER_NEUTRAL_*`, `CONTENT_ATTESTER_LEFT_EVAL_RIGHT_*`). Env mode should be a full substitute for JSON-config mode, not a restricted subset.
