@@ -1,5 +1,75 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Improve UI test coverage: ClaimFlowModal + ContentFundingProjectSection (Completed)
+
+**Task**: Improve UI test coverage for content-funding components that were previously untested: ClaimFlowModal and ContentFundingProjectSection.
+
+**What was done**:
+- Added `ui/src/content-funding/components/ClaimFlowModal.test.tsx` (35 tests) covering:
+  - Modal title rendering with channel display name
+  - Connect wallet step when not connected
+  - Verification step when wallet is connected
+  - "Get Verification Tweet" button presence and click behavior
+  - Challenge text display after getting verification challenge
+  - Tweet URL input field for Twitter platform
+  - "I Tweeted It" button presence and disabled state when URL empty
+  - Platform-specific instructions for YouTube (video description, YouTube Studio link)
+  - Platform-specific instructions for Substack (post content, Substack Editor link)
+  - "I Added It" button for YouTube, "I Published It" button for Substack
+  - No tweet URL input for YouTube/Substack platforms
+  - Error alert when challenge fetch fails
+  - Loading state with progress indicator
+  - confirmVerification call when clicking "I Tweeted It"
+  - Confirmation error when verification returns null
+  - Withdraw step with ETH amount for verified channels
+  - "Withdraw to Wallet" button presence and click behavior
+  - withdrawFromEscrow SDK call on withdraw
+  - Withdraw error display
+  - Disabled withdraw button when escrow balance is zero
+  - Take control step after withdraw for verified channels
+  - takeChannelControl SDK call on take control
+  - Take control error display
+  - "All Done!" completion step
+  - Cancel button calls onClose
+  - "Done" button after verification completes
+  - No withdraw step for creator-controlled channels
+  - Stepper with correct step labels
+  - State reset when modal is reopened
+  - onSuccess callback after successful verification
+  - Verification transaction hash display
+- Added `ui/src/content-funding/components/ContentFundingProjectSection.test.tsx` (23 tests) covering:
+  - Nothing rendered when loading
+  - Nothing rendered when no matching project found
+  - Content Funding section rendering with matching project
+  - Channel display name for Twitter (@handle), YouTube (channel name), Substack (subdomain.substack.com)
+  - Channel status chips (Unclaimed, Verified, Creator-Controlled)
+  - Contract status chips (Active, Succeeded, Failed, Vetoed)
+  - "Fan-created" chip for third-party contracts
+  - Escrowed balance display when > 0, hidden when 0
+  - Channel ID caption display
+  - Content items list rendering
+  - "Released" chip for released content items
+  - No content items section when empty
+  - Channel link with correct href
+  - Case-insensitive project address matching
+
+**Key decisions**:
+- ClaimFlowModal tests use a `setupChallengeMocks()` helper factory to reduce boilerplate across the many multi-step flow tests.
+- The "Open X to Tweet", "Open YouTube Studio", and "Open Substack Editor" elements are `<a>` links (not buttons), so tests use `getByRole('link', ...)` instead of `getByRole('button', ...)`.
+- ContentFundingProjectSection requires `state` to be truthy (not null) in the mock, otherwise the component returns null early.
+- `getChannelDisplayName` parses canonical IDs differently than expected: Twitter shows `@<uid>` (parts[2]), YouTube shows the channel ID (parts[2]), Substack shows `<substack>/post-slug.substack.com`.
+
+**Verified**:
+- `npm run test:vitest -- --run src/content-funding/components/ClaimFlowModal.test.tsx src/content-funding/components/ContentFundingProjectSection.test.tsx` ✓ (58 tests: 35 + 23)
+
+**Files changed**:
+- `ui/src/content-funding/components/ClaimFlowModal.test.tsx` (new, 35 tests)
+- `ui/src/content-funding/components/ContentFundingProjectSection.test.tsx` (new, 23 tests)
+- `CONTINUITY.md`
+- `TODO.md`
+
+**Interrupt point**: Yes. 58 new tests added across two content-funding components. Remaining gaps from TODO.md include: fundingportal AttestAlignmentForm/AlignedProjectCard, cross-domain smoke tests, mobile/responsive AppShell tests, E2E for non-default domains, and accessibility assertions.
+
 ## 2026-04-24 - Improve UI test coverage: HighProfileSigners, AvailableDelegatableFunding, DocsPage (Completed)
 
 **Task**: Improve UI test coverage across conceptspace HighProfileSigners, delegation AvailableDelegatableFunding, and docs DocsPage components.
