@@ -1,5 +1,36 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Attempted root service-host workspace repair (Aborted)
+
+**Task attempted**: Complete the service-bundling follow-up cleanup item to update root `package.json` and `package-lock.json` from the deleted `attester-host` / `worker-host` workspaces to the unified `service-host` workspace.
+
+**What was tried**:
+- Replaced the deleted root workspace entries with `service-host` in `package.json`.
+- Regenerated and cleaned `package-lock.json` so the root workspace list and linked package entry pointed at `@commonality/service-host`, with no stale `attester-host` or `worker-host` package entries.
+- Marked the corresponding service-bundling TODO item complete.
+- Verified the focused service-host path before attempting the commit.
+
+**Focused verification that passed before aborting**:
+- `node -e "JSON.parse(require('fs').readFileSync('package-lock.json','utf8'))"` ✓
+- `npm run build --workspace=@commonality/service-host` ✓
+- `npm run test --workspace=@commonality/service-host` ✓ (8 passing)
+- `npm run test --workspace=ui -- src/content-funding/pages/CreateContractPage.test.tsx` ✓ after the first hook failure
+
+**Difficulty / blocker**:
+- The pre-commit hook runs `npm run lint && npm run build && npm test`. Build, hardhat tests, SDK tests, and integration tests passed, but the full UI Vitest suite repeatedly timed out under load in unrelated tests with the default 5s per-test limit.
+- The failing test changed between hook runs: first `CreateContractPage.test.tsx > blocks submission when resolved content belongs to a different channel`, then `CreateProjectPage.test.tsx > uploads metadata to IPFS and creates project on submit`, then both `CreateContractPage.test.tsx > blocks submission when the content item is already registered in an active contract` and the same `CreateProjectPage` test.
+- The focused `CreateContractPage` file passed when rerun alone, which suggests this is a full-suite timing flake rather than a regression from the workspace metadata change.
+
+**Cleanup performed**:
+- Reverted the attempted `package.json`, `package-lock.json`, and `TODO.md` changes, leaving only this continuity note.
+
+**Recommendation for the next implementor**:
+- Retry the same narrow workspace metadata change on a less contended machine or after stabilizing the UI Vitest timeouts.
+- A likely process improvement is to raise the UI unit-test timeout for the slow interaction-heavy files or reduce UI test concurrency in pre-commit, but do that as a separate task.
+- After the hook is stable, reapply the same small change: root workspaces should replace `attester-host` and `worker-host` with `service-host`, the lockfile should contain `node_modules/@commonality/service-host` and `service-host`, and the TODO item should be checked off.
+
+**Interrupt point**: Yes, but the service-bundling cleanup item remains incomplete because the required commit hook could not pass reliably.
+
 ## 2026-04-24 - Make service-host env config lazy for disabled services (Completed)
 
 **Task**: Complete the service-bundling follow-up cleanup item that makes `loadServiceHostConfigFromEnv()` build only enabled logical-service entries, so disabled services do not require their env vars.
