@@ -7,41 +7,35 @@ import {
   IpfsCidV1,
 } from '@commonality/sdk';
 import { classifyBlockchainError } from '@commonality/attester-core';
-import { loadConfig } from './config.js';
+import type { AttesterConfig } from './config.js';
 
-let testClients: TestClients | null = null;
-let implicationsContract: ImplicationsContract | null = null;
-
-export function getBlockchainClients() {
-  if (testClients && implicationsContract) {
-    return { testClients, implicationsContract };
-  }
-
-  const config = loadConfig();
-  
+export function getBlockchainClients(config: AttesterConfig): {
+  testClients: TestClients;
+  implicationsContract: ImplicationsContract;
+} {
   try {
-    testClients = createTestClients(
+    const testClients = createTestClients(
       config.ethereumPrivateKey as `0x${string}`,
-      config.ethereumRpcUrl
+      config.ethereumRpcUrl,
     );
+    const implicationsContract: ImplicationsContract = {
+      address: config.implicationsContractAddress as `0x${string}`,
+      abi: ImplicationsAbi,
+    };
+
+    return { testClients, implicationsContract };
   } catch (error) {
     throw classifyBlockchainError(error);
   }
-
-  implicationsContract = {
-    address: config.implicationsContractAddress as `0x${string}`,
-    abi: ImplicationsAbi,
-  };
-
-  return { testClients, implicationsContract };
 }
 
 export async function publishAttestation(
+  config: AttesterConfig,
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1,
-  explanationCid: IpfsCidV1
+  explanationCid: IpfsCidV1,
 ): Promise<string> {
-  const { testClients, implicationsContract } = getBlockchainClients();
+  const { testClients, implicationsContract } = getBlockchainClients(config);
   
   try {
     const txHash = await attestImplication(
@@ -60,8 +54,9 @@ export async function publishAttestation(
 }
 
 export async function checkExistingAttestation(
+  _config: AttesterConfig,
   _fromStatementCid: IpfsCidV1,
-  _toStatementCid: IpfsCidV1
+  _toStatementCid: IpfsCidV1,
 ): Promise<boolean> {
   return false;
 }
@@ -69,12 +64,12 @@ export async function checkExistingAttestation(
 /**
  * Check if the attester has sufficient funds
  */
-export async function checkAttesterBalance(): Promise<{
+export async function checkAttesterBalance(config: AttesterConfig): Promise<{
   balance: bigint;
   hasSufficientFunds: boolean;
   minimumRequired: bigint;
 }> {
-  const { testClients } = getBlockchainClients();
+  const { testClients } = getBlockchainClients(config);
   
   try {
     const balance = await testClients.publicClient.getBalance({
@@ -97,7 +92,7 @@ export async function checkAttesterBalance(): Promise<{
 /**
  * Get attester account address
  */
-export async function getAttesterAddress(): Promise<string> {
-  const { testClients } = getBlockchainClients();
+export async function getAttesterAddress(config: AttesterConfig): Promise<string> {
+  const { testClients } = getBlockchainClients(config);
   return testClients.account;
 }

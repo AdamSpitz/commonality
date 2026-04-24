@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "exports": {
+    ".": "./dist/index.js",
     "./api": "./dist/api.js",
     "./evaluator": "./dist/evaluator.js"
   },

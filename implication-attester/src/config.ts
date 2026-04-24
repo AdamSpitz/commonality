@@ -23,6 +23,7 @@ export interface AttesterConfig {
   estimatedOutputTokens: number;
   rateLimitWindowMs: number;
   rateLimitMaxRequests: number;
+  trustedFinderKey?: string;
 }
 
 export function loadConfig(): AttesterConfig {
@@ -43,6 +44,7 @@ export function loadConfig(): AttesterConfig {
     estimatedOutputTokens: readNumberEnv('ESTIMATED_OUTPUT_TOKENS', 200),
     rateLimitWindowMs: readNumberEnv('RATE_LIMIT_WINDOW_MS', 60000),
     rateLimitMaxRequests: readNumberEnv('RATE_LIMIT_MAX_REQUESTS', 10),
+    trustedFinderKey: process.env.TRUSTED_FINDER_KEY,
   };
 }
 

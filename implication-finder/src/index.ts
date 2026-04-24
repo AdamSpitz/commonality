@@ -1,6 +1,7 @@
-import { runPollingFinder } from '@commonality/finder-core';
+import { pathToFileURL } from 'node:url';
+import { runPollingFinder, type PollingFinderRunHandle } from '@commonality/finder-core';
 import { type SDKMachinery } from '@commonality/sdk';
-import { loadConfig } from './config.js';
+import { loadConfig, type FinderConfig } from './config.js';
 import { loadState, saveState, pairKey } from './state.js';
 import { fetchDirectSupportEvents, fetchExistingImplications } from './poller.js';
 import { getTopStatements, allStatementCids } from './popularity.js';
@@ -8,30 +9,34 @@ import { selectCandidatePairs } from './candidates.js';
 import { evaluatePairs } from './attesterClient.js';
 import { fetchStatementDomains } from './domainFetcher.js';
 
-const config = loadConfig();
+function createMachinery(config: FinderConfig): SDKMachinery {
+  return {
+    indexerUrl: '',
+    ipfsConfig: { gatewayUrl: '', apiUrl: '' },
+    twitterApiConfig: {},
+    testConfig: {},
+    eventCacheUrl: config.eventCacheUrl,
+    contractAddresses: {
+      beliefs: config.beliefsContractAddress,
+      implications: config.implicationsContractAddress,
+      // The finder only reads beliefs + implications events, so the rest are unused.
+      assuranceContractFactory: '0x0',
+      erc1155Factory: '0x0',
+      marketplaceFactory: '0x0',
+      delegatableNotes: '0x0',
+      noteIntent: '0x0',
+      alignmentAttestations: '0x0',
+      mutableRefUpdater: '0x0',
+      trustRegistry: '0x0',
+    },
+  };
+}
 
-const machinery: SDKMachinery = {
-  indexerUrl: '',
-  ipfsConfig: { gatewayUrl: '', apiUrl: '' },
-  twitterApiConfig: {},
-  testConfig: {},
-  eventCacheUrl: config.eventCacheUrl,
-  contractAddresses: {
-    beliefs: config.beliefsContractAddress,
-    implications: config.implicationsContractAddress,
-    // The finder only reads beliefs + implications events, so the rest are unused.
-    assuranceContractFactory: '0x0',
-    erc1155Factory: '0x0',
-    marketplaceFactory: '0x0',
-    delegatableNotes: '0x0',
-    noteIntent: '0x0',
-    alignmentAttestations: '0x0',
-    mutableRefUpdater: '0x0',
-    trustRegistry: '0x0',
-  },
-};
-
-async function runOnce(stateFilePath: string): Promise<void> {
+async function runOnce(
+  stateFilePath: string,
+  config: FinderConfig,
+  machinery: SDKMachinery,
+): Promise<void> {
   const state = await loadState(stateFilePath);
   const evaluatedSet = new Set(state.evaluatedPairs);
 
@@ -143,18 +148,24 @@ async function runOnce(stateFilePath: string): Promise<void> {
   console.log(`State saved. lastBlockSeen=${maxBlock}, evaluatedPairs=${evaluatedSet.size}`);
 }
 
-async function main() {
+export type ImplicationFinderRunHandle = PollingFinderRunHandle;
+
+export function run(config = loadConfig()): ImplicationFinderRunHandle {
+  const machinery = createMachinery(config);
+
   console.log(`  Event cache: ${config.eventCacheUrl}`);
   console.log(`  Attester: ${config.attesterUrl}`);
   console.log(`  IPFS gateway: ${config.ipfsGatewayUrl}`);
   console.log(`  Top N statements: ${config.topNStatements}`);
   console.log(`  Min believer threshold: ${config.minBelieverThreshold}`);
 
-  await runPollingFinder({
+  return runPollingFinder({
     serviceName: 'Implication Finder',
     pollIntervalMs: config.pollIntervalMs,
-    runOnce: () => runOnce(config.stateFilePath),
+    runOnce: () => runOnce(config.stateFilePath, config, machinery),
   });
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  run();
+}

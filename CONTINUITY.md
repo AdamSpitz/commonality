@@ -1042,3 +1042,53 @@ Spec: `specs/product/nudge-ux.md`.
 - `CONTINUITY.md`
 
 **Interrupt point**: Yes. The remaining nudger-core gap is the LLM config leakage in `NudgerConfig`; after that, the next major blocker is still the SDK work to fetch and fold typed nudger publications from the indexer.
+
+## 2026-04-24 - Service Bundling: Remaining AI Services Export `run(config)` (Completed)
+
+**Task**: Continue [Service bundling](TODO.md) by refactoring the remaining AI services so they can run in-process with instance-scoped config instead of only as standalone CLIs.
+
+**What was done**:
+- Refactored `implication-attester` to build its Express app from an explicit config object, export `run(config)`, and expose a stop handle for future host-process supervision.
+- Removed the attester-side blockchain client singletons in both attesters so each `run(config)` call gets its own signer/client/contract wiring, avoiding cross-service `ATTESTER_PRIVATE_KEY` leakage inside one process.
+- Refactored `content-attester` to export `run(config)` while keeping `createContentAttesterServiceApp(...)` as the lower-level app-construction API.
+- Refactored `implication-finder` and `content-finder` to export `run(config)` and moved the shared polling loop in `finder-core` to return a stoppable run handle instead of blocking forever.
+- Added focused tests proving per-config blockchain isolation for both attesters and graceful stop behavior for the shared finder runner.
+- Updated [TODO.md](TODO.md) to mark the `run(config)` refactor subtask complete.
+
+**Key decisions**:
+- Kept the attester HTTP route shapes unchanged; this step was about importable lifecycle control and instance scoping, not yet the Bundle-A route-prefix mount.
+- Added a new `createImplicationAttesterApp(config)` helper now because the implication attester previously only existed as top-level side effects; the content attester already had an equivalent app factory.
+- Made the finder `run(config)` API return `{ finished, stop() }` so a future worker-host supervisor can restart or shut down individual in-process workers cleanly.
+- Added a `"."` package export for `@commonality/implication-attester`, since it previously had an `exports` map that blocked package-root imports even though `main` pointed at `dist/index.js`.
+
+**Verified**:
+- `npm run build --workspace=@commonality/finder-core`
+- `npm run build --workspace=@commonality/implication-attester`
+- `npm run build --workspace=@commonality/content-attester`
+- `npm run build --workspace=@commonality/implication-finder`
+- `npm run build --workspace=@commonality/content-finder`
+- `npx mocha --import=tsx implication-attester/test/blockchain.test.ts`
+- `npx mocha --import=tsx content-attester/test/blockchain.test.ts content-attester/test/app.test.ts`
+- `npx mocha --import=tsx finder-core/test/runner.test.ts implication-finder/test/state.test.ts implication-finder/test/candidates.test.ts content-finder/test/submissions.test.ts`
+
+**Files changed**:
+- `finder-core/src/runner.ts`
+- `finder-core/test/runner.test.ts`
+- `implication-finder/src/index.ts`
+- `content-finder/src/index.ts`
+- `implication-attester/src/config.ts`
+- `implication-attester/src/blockchain.ts`
+- `implication-attester/src/index.ts`
+- `implication-attester/package.json`
+- `implication-attester/test/blockchain.test.ts`
+- `content-attester/src/blockchain.ts`
+- `content-attester/src/index.ts`
+- `content-attester/test/blockchain.test.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes**:
+- The next bundling step is now structural rather than mechanical: implement the actual host binaries/supervisor, then mount the two attesters into one host process and the two finders plus three nudgers into another.
+- The worktree currently also contains unrelated `attester-core/dist/openrouter.*` modifications that were left untouched.
+
+**Interrupt point**: Yes. The clean next step is to build the host-process layer itself: a Bundle-A Express host for both attesters and a Bundle-B supervisor/worker host for the finders and nudgers, then update deployment config once those binaries exist.

@@ -1,5 +1,6 @@
-import { runPollingFinder } from '@commonality/finder-core';
-import { loadConfig } from './config.js';
+import { pathToFileURL } from 'node:url';
+import { runPollingFinder, type PollingFinderRunHandle } from '@commonality/finder-core';
+import { loadConfig, type ContentFinderConfig } from './config.js';
 import { evaluateContentBatch, type ContentAttesterRequest } from './attesterClient.js';
 import { resolveContentCandidate } from './platformApiClient.js';
 import { loadState, saveState } from './state.js';
@@ -9,9 +10,7 @@ import {
   submissionKey,
 } from './submissions.js';
 
-const config = loadConfig();
-
-async function runOnce(): Promise<void> {
+async function runOnce(config: ContentFinderConfig): Promise<void> {
   const [state, submissions] = await Promise.all([
     loadState(config.stateFilePath),
     config.submissionsApiUrl
@@ -99,7 +98,9 @@ async function runOnce(): Promise<void> {
   console.log(`Results: ${succeeded} processed, ${failed} failed.`);
 }
 
-async function main() {
+export type ContentFinderRunHandle = PollingFinderRunHandle;
+
+export function run(config = loadConfig()): ContentFinderRunHandle {
   console.log(`  Platform API: ${config.platformApiUrl}`);
   console.log(`  Attester: ${config.attesterUrl}`);
   console.log(
@@ -108,11 +109,13 @@ async function main() {
       : `  Submission file: ${config.submissionsFilePath}`,
   );
 
-  await runPollingFinder({
+  return runPollingFinder({
     serviceName: 'Content Finder',
     pollIntervalMs: config.pollIntervalMs,
-    runOnce,
+    runOnce: () => runOnce(config),
   });
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  run();
+}

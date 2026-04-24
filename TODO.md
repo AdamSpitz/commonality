@@ -6,7 +6,7 @@
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
 - [Service bundling](specs/tech/service-bundling.md) — collapse the AI services into a couple of host processes. Sub-tasks:
   - [x] Bundling prerequisite: remove process-global nudger signer state and export `run(config)` from `implication-graph-nudger`, `bridge-creator`, and `explorer-curator`, so multiple nudgers can coexist in one host process without sharing a `NUDGER_PRIVATE_KEY`.
-  - Refactor each AI service to export a `run(config)` function so it can be hosted in-process, not only as a standalone binary.
+  - [x] Refactor each AI service to export a `run(config)` function so it can be hosted in-process, not only as a standalone binary.
   - Build a worker-host binary with a supervisor that restarts individual workers on failure.
   - Stand up Bundle A (attester host): mount `implication-attester` and `content-attester` as route prefixes on one Express app; each keeps its own `ATTESTER_PRIVATE_KEY`.
   - Stand up Bundle B (background worker host): run both finders + all three nudgers in one host; each nudger keeps its own `NUDGER_PRIVATE_KEY`.

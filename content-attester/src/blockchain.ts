@@ -7,38 +7,31 @@ import {
   type TestClients,
 } from '@commonality/sdk';
 import { classifyBlockchainError } from '@commonality/attester-core';
-import { loadConfig } from './config.js';
+import type { ContentAttesterConfig } from './config.js';
 
 interface AlignmentAttestationsContract {
   address: `0x${string}`;
   abi: typeof AlignmentAttestationsAbi;
 }
 
-let testClients: TestClients | null = null;
-let alignmentAttestationsContract: AlignmentAttestationsContract | null = null;
-
-export function getBlockchainClients() {
-  if (testClients && alignmentAttestationsContract) {
-    return { testClients, alignmentAttestationsContract };
-  }
-
-  const config = loadConfig();
-
+export function getBlockchainClients(config: ContentAttesterConfig): {
+  testClients: TestClients;
+  alignmentAttestationsContract: AlignmentAttestationsContract;
+} {
   try {
-    testClients = createTestClients(
+    const testClients = createTestClients(
       config.ethereumPrivateKey as `0x${string}`,
       config.ethereumRpcUrl,
     );
+    const alignmentAttestationsContract: AlignmentAttestationsContract = {
+      address: config.alignmentAttestationsContractAddress as `0x${string}`,
+      abi: AlignmentAttestationsAbi,
+    };
+
+    return { testClients, alignmentAttestationsContract };
   } catch (error) {
     throw classifyBlockchainError(error);
   }
-
-  alignmentAttestationsContract = {
-    address: config.alignmentAttestationsContractAddress as `0x${string}`,
-    abi: AlignmentAttestationsAbi,
-  };
-
-  return { testClients, alignmentAttestationsContract };
 }
 
 export function getSubjectIdForContentCanonicalId(contentCanonicalId: string): `0x${string}` {
@@ -46,11 +39,12 @@ export function getSubjectIdForContentCanonicalId(contentCanonicalId: string): `
 }
 
 export async function publishAttestation(
+  config: ContentAttesterConfig,
   contentCanonicalId: string,
   statementCid: IpfsCidV1,
   topicStatementCid: IpfsCidV1,
 ): Promise<string> {
-  const { testClients, alignmentAttestationsContract } = getBlockchainClients();
+  const { testClients, alignmentAttestationsContract } = getBlockchainClients(config);
 
   try {
     const txHash = await attestAlignment(
@@ -66,12 +60,12 @@ export async function publishAttestation(
   }
 }
 
-export async function checkAttesterBalance(): Promise<{
+export async function checkAttesterBalance(config: ContentAttesterConfig): Promise<{
   balance: bigint;
   hasSufficientFunds: boolean;
   minimumRequired: bigint;
 }> {
-  const { testClients } = getBlockchainClients();
+  const { testClients } = getBlockchainClients(config);
 
   try {
     const balance = await testClients.publicClient.getBalance({
