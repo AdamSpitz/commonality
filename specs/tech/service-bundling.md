@@ -44,10 +44,51 @@ Optional further split (B2): isolate the three nudgers from the two finders late
 
 - **Lost isolation.** An unhandled rejection or memory leak in one worker takes its bundle-mates down. Mitigate with a supervisor that restarts individual workers and strict per-worker error ownership.
 - **Shared resource limits.** CPU, memory, LLM rate limits, and RPC quotas are now contended within a bundle. The real gotcha is RPC rate limits on cheap tiers when multiple workers publish simultaneously — worth monitoring, not worth pre-optimizing.
-- **Independent deploys go away** within a bundle, unless the "split it out" escape hatch stays working. That's why the library shape matters more than the bundling itself: the bundling is a deployment choice, not an architectural one.
+- **Independent deploys go away** within a bundle. Splitting a logical service back out to its own process should be a config change, not a code change — see [Unification work](#unification-work). The library shape is load-bearing; the bundling is a deployment choice.
 
 ## Non-goals
 
 - Bundling the core libraries (`attester-core`, `finder-core`, `nudger-core`). They're already shared as libraries; that's the right shape.
 - Bundling `platform-api-service` with anything.
 - Merging signer keys. Each on-chain identity (attester, nudger) stays distinct.
+
+## Unification work
+
+The initial bundling shipped as two hosts: `attester-host` (hardcoded to exactly two attesters) and `worker-host` (generic registry with supervisor). That asymmetry is the remaining cleanup. The target is **one** generic `service-host` that both bundles run as different configurations of, so that moving a logical service between physical processes — or splitting one back out into its own container — is a config edit only.
+
+### Logical-service contract
+
+Every logical service (`implication-attester`, `content-attester`, `implication-finder`, `content-finder`, `implication-graph-nudger`, `bridge-creator`, `explorer-curator`) exports:
+
+- `run(config)` — starts the service's work (timers, polling loops, subscriptions). Must not open an HTTP listener. Returns `{ stop(), finished? }`.
+- `createApp(config)` — if and only if the service serves HTTP. Returns an Express router, not a listening server. The host mounts it under a `routePrefix`.
+
+Consequences:
+
+- No `port` field in any service's config type. The host owns the listener.
+- No `startServer` flag on the nudger `run()` functions. `run` is the non-HTTP path, `createApp` is the HTTP path, never both in one call.
+- A service that is purely a timer-driven worker (both finders) exports only `run`. A service that is both (the three nudgers expose a `POST /suggest`) exports both.
+
+### Host contract
+
+`service-host` takes a list of entries shaped like:
+
+```
+{ name, kind, config, routePrefix?, enabled?, restartDelayMs? }
+```
+
+Behavior:
+
+- For every entry, call the registered `run(config)` factory and supervise it (restart on exit/throw, like `worker-host` does today).
+- For every entry with a `routePrefix`, also mount `createApp(config)` on a shared Express app. Start the listener iff at least one entry has a `routePrefix`.
+- Each entry keeps its own signer key in `config` — keys are never merged across entries, even within the same host.
+
+This is a superset of what `worker-host` already does; the generalization is adding `implication-attester` and `content-attester` as registered kinds and retiring `attester-host`.
+
+### Config source of truth
+
+Each service package owns the parsing of its own env-var shape (e.g. `implication-attester` exports a `loadConfigFromEnv(env)` alongside `run`/`createApp`). The host's env-var loader becomes a thin composition — pick which kinds to include in this physical bundle, delegate to each package for the details. The alternative is continuing to maintain a giant central env-loader that knows every service's config shape; that's what exists now and it's where most of the accidental complexity lives.
+
+### Escape hatch for future splits
+
+Not needed as per-service Dockerfiles. If one logical service needs its own container later, point a new `service-host` deployment at a config containing just that one entry. Same image, different config. The per-service Dockerfiles currently in the repo should be deleted — they're a second deployment path that no-one exercises in CI and they'll rot.
