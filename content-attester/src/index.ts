@@ -5,6 +5,7 @@ import { resolveContentForEvaluation } from './content.js';
 import { createContentAttesterServiceApp, defaultUploadExplanation } from './app.js';
 import { evaluateContentWithLLM } from './evaluator.js';
 export type { ContentAttesterConfig } from './config.js';
+export { loadConfigFromEnv } from './config.js';
 
 export interface ContentAttesterRunHandle {
   stop: () => Promise<void>;

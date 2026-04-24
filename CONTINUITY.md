@@ -1,5 +1,59 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Push env-var parsing into service packages (Completed)
+
+**Task**: Complete the service-bundling follow-up cleanup item that moves env-var parsing from the centralized `service-host/src/envConfig.ts` monolith into each of the seven service packages.
+
+**What was done**:
+- Added `loadConfigFromEnv(env: NodeJS.ProcessEnv)` to each service package's `config.ts` and exported it from `index.ts`:
+  - `implication-attester/src/config.ts` — reads `IMPLICATION_ATTESTER_*` prefixed vars with fallbacks to shared vars (e.g. `ETHEREUM_RPC_URL`, `OPENROUTER_API_KEY`).
+  - `content-attester/src/config.ts` — reads `CONTENT_ATTESTER_*` prefixed vars, including prompt template from file or inline.
+  - `implication-finder/src/config.ts` — reads `IMPLICATION_FINDER_*` prefixed vars with fallbacks.
+  - `content-finder/src/config.ts` — reads `CONTENT_FINDER_*` prefixed vars with fallbacks.
+  - `implication-graph-nudger/src/config.ts` — reads `IMPLICATION_GRAPH_NUDGER_*` prefixed vars.
+  - `bridge-creator/src/config.ts` — reads `BRIDGE_CREATOR_*` prefixed vars.
+  - `explorer-curator/src/config.ts` — reads `EXPLORER_CURATOR_*` prefixed vars.
+- Rewrote `service-host/src/envConfig.ts` from ~560 lines to ~150 lines as a thin dispatcher that:
+  - Reads `*_ENABLED` flags first.
+  - Delegates config construction to each service package's `loadConfigFromEnv(env)` for enabled services.
+  - Assembles the `ServiceHostConfig` with host-level metadata (routePrefix, restartDelayMs).
+- Preserved backward compatibility: each service's existing `loadConfig()` (which reads from `process.env` with unprefixed vars) remains for standalone binary mode.
+
+**Key decisions**:
+- Each service package uses its own prefixed env var names (e.g. `IMPLICATION_ATTESTER_PRIVATE_KEY`) rather than the old unprefixed names. This matches the env var names already used in `docker-compose.yml` and `render.yaml`.
+- The existing `loadConfig()` functions in each service package are preserved for standalone binary mode (reading unprefixed vars from `process.env`).
+- The service-host's env loader still handles host-level concerns (routePrefix, restartDelayMs, port) since those are deployment-bundle decisions, not service-level decisions.
+
+**Verified**:
+- `npm run build` for all 8 affected packages ✓
+- `npm run typecheck` for all 8 affected packages ✓
+- `npm run lint` for all 8 affected packages ✓
+
+**Files changed**:
+- `implication-attester/src/config.ts` (added loadConfigFromEnv)
+- `implication-attester/src/index.ts` (export loadConfigFromEnv)
+- `content-attester/src/config.ts` (added loadConfigFromEnv)
+- `content-attester/src/index.ts` (export loadConfigFromEnv)
+- `implication-finder/src/config.ts` (added loadConfigFromEnv)
+- `implication-finder/src/index.ts` (export loadConfigFromEnv)
+- `content-finder/src/config.ts` (added loadConfigFromEnv)
+- `content-finder/src/index.ts` (export loadConfigFromEnv)
+- `implication-graph-nudger/src/config.ts` (added loadConfigFromEnv)
+- `implication-graph-nudger/src/index.ts` (export loadConfigFromEnv)
+- `bridge-creator/src/config.ts` (added loadConfigFromEnv)
+- `bridge-creator/src/index.ts` (export loadConfigFromEnv)
+- `explorer-curator/src/config.ts` (added loadConfigFromEnv)
+- `explorer-curator/src/index.ts` (export loadConfigFromEnv)
+- `service-host/src/envConfig.ts` (rewritten as thin dispatcher)
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes for next iteration**:
+- Remaining service-bundling follow-ups: normalize test scripts, and multi-instance env configuration (running multiple instances of the same kind in one host via env).
+- Adding an 8th service now requires zero edits in `service-host/` for env parsing — just add the service to the registry and call its `loadConfigFromEnv` in the dispatcher.
+
+**Interrupt point**: Yes. The per-package env-parser refactor is complete and verified. Good checkpoint before tackling the remaining service-bundling items.
+
 ## 2026-04-24 - Rename worker-era vocabulary to service-host vocabulary (Completed)
 
 **Task**: Complete the service-bundling follow-up cleanup item that renames all worker-era types, functions, and variables to match the `service-host` package name.

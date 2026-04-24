@@ -1,5 +1,39 @@
 import type { NudgerConfig } from '@commonality/nudger-core';
 
+export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): NudgerConfig {
+  function requireFrom(name: string): string {
+    const value = env[name];
+    if (!value) {
+      throw new Error(`Missing required environment variable: ${name}`);
+    }
+    return value;
+  }
+
+  function readString(names: readonly string[], fallback: string): string {
+    for (const name of names) {
+      const value = env[name];
+      if (value) return value;
+    }
+    return fallback;
+  }
+
+  return {
+    nudgerPrivateKey: requireFrom('IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY'),
+    ethereumRpcUrl: readString(
+      ['IMPLICATION_GRAPH_NUDGER_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL'],
+      '',
+    ),
+    indexerUrl: readString(['IMPLICATION_GRAPH_NUDGER_INDEXER_URL', 'INDEXER_URL'], 'http://localhost:3001'),
+    ipfsApiUrl: readString(['IMPLICATION_GRAPH_NUDGER_IPFS_API', 'IPFS_API'], 'http://localhost:5001'),
+    ipfsGatewayUrl: readString(['IMPLICATION_GRAPH_NUDGER_IPFS_GATEWAY', 'IPFS_GATEWAY'], 'http://localhost:8080'),
+    name: readString(['IMPLICATION_GRAPH_NUDGER_NAME'], 'Implication Graph Nudger'),
+    description: readString(['IMPLICATION_GRAPH_NUDGER_DESCRIPTION'], 'Suggests statements based on the implication graph'),
+    sourceType: readString(['IMPLICATION_GRAPH_NUDGER_SOURCE_TYPE'], 'implication-graph'),
+    version: readString(['IMPLICATION_GRAPH_NUDGER_VERSION'], '0.1.0'),
+    nudgePublicationsContractAddress: requireFrom('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
+  };
+}
+
 function requireEnv(name: string, value: string | undefined = process.env[name]): string {
   if (!value) {
     throw new Error(`Missing environment variable: ${name}`);

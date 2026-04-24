@@ -6,7 +6,9 @@ import {
   type IpfsCidV1,
   type ContractAddresses,
 } from '@commonality/sdk';
-import { loadConfig } from './config.js';
+import { loadConfig, loadConfigFromEnv } from './config.js';
+export { loadConfigFromEnv };
+export type { BridgeCreatorConfig } from './config.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 

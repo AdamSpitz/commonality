@@ -6,7 +6,8 @@ import {
   getAllStatements,
   type ContractAddresses,
 } from '@commonality/sdk';
-import { loadConfig } from './config.js';
+import { loadConfig, loadConfigFromEnv } from './config.js';
+export { loadConfigFromEnv };
 import {
   createNudgerSigner,
   type NudgeMessage,

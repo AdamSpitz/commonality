@@ -1,5 +1,49 @@
 import type { LlmNudgerConfig } from '@commonality/nudger-core';
 
+export interface BridgeCreatorConfig extends LlmNudgerConfig {
+  commonalityStatements: string[];
+}
+
+export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BridgeCreatorConfig {
+  function requireFrom(name: string): string {
+    const value = env[name];
+    if (!value) {
+      throw new Error(`Missing required environment variable: ${name}`);
+    }
+    return value;
+  }
+
+  function readString(names: readonly string[], fallback: string): string {
+    for (const name of names) {
+      const value = env[name];
+      if (value) return value;
+    }
+    return fallback;
+  }
+
+  return {
+    nudgerPrivateKey: requireFrom('BRIDGE_CREATOR_PRIVATE_KEY'),
+    ethereumRpcUrl: readString(
+      ['BRIDGE_CREATOR_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL'],
+      '',
+    ),
+    indexerUrl: readString(['BRIDGE_CREATOR_INDEXER_URL', 'INDEXER_URL'], 'http://localhost:3001'),
+    ipfsApiUrl: readString(['BRIDGE_CREATOR_IPFS_API', 'IPFS_API'], 'http://localhost:5001'),
+    ipfsGatewayUrl: readString(['BRIDGE_CREATOR_IPFS_GATEWAY', 'IPFS_GATEWAY'], 'http://localhost:8080'),
+    openRouterApiKey: requireFrom('OPENROUTER_API_KEY'),
+    openRouterModel: readString(['BRIDGE_CREATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], 'anthropic/claude-3.5-haiku'),
+    name: readString(['BRIDGE_CREATOR_NAME'], 'Bridge Creator'),
+    description: readString(['BRIDGE_CREATOR_DESCRIPTION'], 'Creates synthesized bridge statements from moderate positions'),
+    sourceType: readString(['BRIDGE_CREATOR_SOURCE_TYPE'], 'bridge-creator'),
+    version: readString(['BRIDGE_CREATOR_VERSION'], '0.1.0'),
+    nudgePublicationsContractAddress: requireFrom('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
+    commonalityStatements: (env.BRIDGE_CREATOR_COMMONALITY_STATEMENTS || '')
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean),
+  };
+}
+
 function requireEnv(name: string, value: string | undefined = process.env[name]): string {
   if (!value) {
     throw new Error(`Missing environment variable: ${name}`);
@@ -11,10 +55,6 @@ function readStringEnv(name: string, fallback: string): string {
   return process.env[name] || fallback;
 }
 
-
-export interface BridgeCreatorConfig extends LlmNudgerConfig {
-  commonalityStatements: string[];
-}
 
 export function loadConfig(): BridgeCreatorConfig {
   return {

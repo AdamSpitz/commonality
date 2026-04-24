@@ -1,7 +1,9 @@
 import { pathToFileURL } from 'node:url';
 import { runPollingFinder, type PollingFinderRunHandle } from '@commonality/finder-core';
 import { type SDKMachinery } from '@commonality/sdk';
-import { loadConfig, type FinderConfig } from './config.js';
+import { loadConfig, loadConfigFromEnv, type FinderConfig } from './config.js';
+export { loadConfigFromEnv };
+export type { FinderConfig };
 import { loadState, saveState, pairKey } from './state.js';
 import { fetchDirectSupportEvents, fetchExistingImplications } from './poller.js';
 import { getTopStatements, allStatementCids } from './popularity.js';

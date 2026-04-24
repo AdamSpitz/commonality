@@ -1,6 +1,8 @@
 import { pathToFileURL } from 'node:url';
 import { runPollingFinder, type PollingFinderRunHandle } from '@commonality/finder-core';
-import { loadConfig, type ContentFinderConfig } from './config.js';
+import { loadConfig, loadConfigFromEnv, type ContentFinderConfig } from './config.js';
+export { loadConfigFromEnv };
+export type { ContentFinderConfig };
 import { evaluateContentBatch, type ContentAttesterRequest } from './attesterClient.js';
 import { resolveContentCandidate } from './platformApiClient.js';
 import { loadState, saveState } from './state.js';

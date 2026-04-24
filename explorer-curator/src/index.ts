@@ -5,7 +5,9 @@ import {
   createSDKMachinery,
   type ContractAddresses,
 } from '@commonality/sdk';
-import { loadConfig } from './config.js';
+import { loadConfig, loadConfigFromEnv } from './config.js';
+export { loadConfigFromEnv };
+export type { ExplorerCuratorConfig } from './config.js';
 import { createNudgerSigner } from '@commonality/nudger-core';
 import { ExplorerCurator } from './curator.js';
 import { suggestForUser, type ExplorerSuggestRequest, type ExplorerSuggestion } from './personalizer.js';
