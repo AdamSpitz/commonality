@@ -11,6 +11,8 @@
 - `BeliefControls`, `SupportMetrics`, `StatementRenderer`, `CreateStatementForm`, `StatementSuggestions`, `StatementPage`, `BrowseStatementsPage`, `UserProfilePage`, `HomePage`, `SettingsPage`
 - `HighProfileSigners` (14 tests — loading, empty, error, signer chips, follower formatting, ENS name fallback, Twitter link, profile navigation, minFollowers prop, follower count visibility)
 - `twitterHandleHints` utility (13 tests — load/save, address normalization, handle normalization, localStorage error handling, multi-entry preservation)
+- `DirectTrustSettingsSection` (34 tests — wallet-disconnected, loading, error, empty, entries list sorted by score, add trust with validation/success/error, remove trust, refresh network, trustedSet loading/status display)
+- `useTrustedSet` (7 tests — manual refresh, trust network invalidation, interval refresh, no direct trust fallback, cache rehydration, partial progress, cache visible on refresh failure)
 
 ### Docs
 - `DocsPage` (13 tests — headings, paragraphs, lists, internal links, blockquotes, inline code, multiple doc paths, max-width styling, 404 handling)
@@ -62,6 +64,7 @@
 - `AttestAlignmentForm` (18 tests)
 - `AlignedProjectCard` (19 tests)
 - `computeAvailableDelegatableFunding` utility (7 tests — empty attestations, inactive notes, fetch failures, single-currency sum, multi-currency grouping, null filtering, mixed active/inactive)
+- `AlignmentAttestationsSection` (18 tests — loading/error/empty states, list display with titles/truncated CIDs/attester addresses/Direct chip/links, button visibility by wallet connection, dialog open/close, validation, successful attestation, failure handling, list refresh)
 - **Gap:** `alignmentContract.ts` utility (trivial env var reader, low risk)
 
 ### Delegation / Mutable Ref
@@ -69,6 +72,7 @@
 - `MyNotesPage` (27 tests — wallet-not-connected, loading, error, empty states, summary cards, owned/deposited notes sections, delegated/undelegated chips, delegate/revoke/reclaim buttons, inactive note filtering, delegate counting, delegate dialog opening/inputs/cancellation, action flows with wallet client mocking, error dismissal)
 - `NoteDetailPage` (30 tests — loading/error/null states, note metadata display, active/inactive/ETH/token/delegated chips, delegation chain visualization, intended purpose attestations, action button visibility, delegate/spend dialog opening and cancellation, delegate/revoke/reclaim/spend action flows)
 - `DepositPage` (36 tests — unauthenticated state, form rendering, validation, submission states, delegation during deposit, statement attestation, statement autocomplete loading/options, edge cases for zero amount/missing contract/non-Error exceptions/error dismissal)
+- `MyRefsPage` (32 tests — wallet-disconnected, loading, error, empty, table rendering/sorting, form validation/overwrite warning, create/update submission with updateRef calls, list refresh after submission, error handling, delete dialog open/close/confirm, detail dialog open/edit/save/close, IPFS inspector, ref lookup)
 
 ## E2E Test Coverage (Playwright)
 

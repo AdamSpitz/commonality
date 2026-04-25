@@ -1,5 +1,52 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Add DirectTrustSettingsSection and MyRefsPage submission tests (Completed)
+
+**Task**: Improve UI test coverage by adding tests for previously untested components and filling gaps in existing test files.
+
+**What was done**:
+
+### 1. Added DirectTrustSettingsSection tests (34 tests, new file)
+- Added `ui/src/conceptspace/components/DirectTrustSettingsSection.test.tsx` covering:
+  - **Wallet not connected** (2 tests): shows info alert, hides management form
+  - **Loading state** (1 test): shows spinner while loading direct trust mappings
+  - **Error state** (1 test): shows error alert when fetch fails
+  - **Empty state** (4 tests): shows empty message, shows add trust form, shows Refresh Network button, shows zero count caption
+  - **Trust entries list** (6 tests): renders entries sorted by score descending, shows score chips, shows delete buttons, shows count caption (plural/singular), shows network size when trustedSet available
+  - **Adding trust** (11 tests): invalid address error, score out of range error, non-integer score error, wallet not connected error, calls setTrust with correct parameters, shows success message, clears form fields after save, notifies trust network invalidated, refreshes entries list after save, shows error when setTrust fails, normalizes address to lowercase
+  - **Removing trust** (4 tests): calls setTrust with score 0, shows success message, notifies trust network invalidated, shows error when remove fails
+  - **Refresh Network button** (2 tests): calls refreshTrustedSet when clicked, disabled while trustedSet loading
+  - **TrustedSet loading status** (2 tests): shows refreshing message with network size, shows message without size when trustedSet is null
+  - **TrustedSet error display** (1 test): shows warning alert when trustedSet has error
+
+**Key decisions**:
+- MUI number input requires `user.clear()` before typing (not `{selectall}`)
+- Score input returns number type (not string) for `toHaveValue` assertions
+- Tests mock `useTrustedSet` hook to control trustedSet loading/error states independently
+
+### 2. Expanded MyRefsPage tests (12 new tests, 32 total, up from 20)
+- Added to `ui/src/mutablerefs/MyRefsPage.test.tsx`:
+  - **Create/Update form submission** (3 tests): calls updateRef with name and value, refreshes refs list after submission, verifies updateRef is called on error
+  - **RefDetailDialog save** (3 tests): calls updateRef with new value from edit mode, verifies updateRef called after save, shows error text when save fails
+
+**Key decisions**:
+- Form submission tests require wallet client mocks (`useWalletClient`, `usePublicClient`) to be set
+- Tests verify `updateRef` SDK calls rather than success messages (component doesn't show inline success alerts)
+- Dialog save tests use `within(dialog)` scoping to avoid "multiple elements" errors
+
+**Verified**:
+- `npm run test:vitest --workspace=ui -- --run` ✓ (1562 tests: 83 files, up from 1526 tests in 81 files)
+
+**Files changed**:
+- `ui/src/conceptspace/components/DirectTrustSettingsSection.test.tsx` (new, 34 tests)
+- `ui/src/mutablerefs/MyRefsPage.test.tsx` (expanded from 20 to 32 tests)
+- `ui/test-plan.md` (added DirectTrustSettingsSection, useTrustedSet, AlignmentAttestationsSection, MyRefsPage to coverage inventory)
+- `TODO.md` (marked trust-filter, leaderboard sorting, alignment-attestation, saved refs, Explorer, DirectTrustSettingsSection, statement content submission as done)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. DirectTrustSettingsSection now has comprehensive coverage (34 tests). MyRefsPage submission flows now tested (32 tests total). Remaining UI test gaps from TODO.md: IPFS/hash routing E2E (requires separate builds), non-default domain E2E (requires separate builds with different VITE_DOMAIN values), route-level smoke tests for delegation/mutable-ref.
+
+
 ## 2026-04-25 - Add pubstarter/utils.ts and useCachedProject tests (Completed)
 
 **Task**: Improve UI test coverage by adding tests for untested utility functions and hooks.

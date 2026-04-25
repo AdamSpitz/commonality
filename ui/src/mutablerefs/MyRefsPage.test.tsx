@@ -211,6 +211,65 @@ describe('MyRefsPage', () => {
         expect(screen.getByText(/overwrite it/i)).toBeInTheDocument()
       })
     })
+
+    it('calls updateRef with name and value on submit', async () => {
+      vi.mocked(updateRef).mockResolvedValue(undefined as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: mockWalletClient } as any)
+      vi.mocked(usePublicClient).mockReturnValue(mockPublicClient as any)
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByLabelText('Name'))
+      await user.type(screen.getByLabelText('Name'), 'new-ref')
+      await user.type(screen.getByLabelText('Value'), 'new-value')
+      await user.click(screen.getByRole('button', { name: /update ref/i }))
+
+      await waitFor(() => {
+        expect(updateRef).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          'new-ref',
+          'new-value'
+        )
+      })
+    })
+
+    it('refreshes the refs list after successful submission', async () => {
+      vi.mocked(updateRef).mockResolvedValue(undefined as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: mockWalletClient } as any)
+      vi.mocked(usePublicClient).mockReturnValue(mockPublicClient as any)
+      vi.mocked(getUserRefs)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([makeRef({ name: 'new-ref', value: 'new-value' })] as any)
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByLabelText('Name'))
+      await user.type(screen.getByLabelText('Name'), 'new-ref')
+      await user.type(screen.getByLabelText('Value'), 'new-value')
+      await user.click(screen.getByRole('button', { name: /update ref/i }))
+
+      await waitFor(() => {
+        expect(getUserRefs).toHaveBeenCalledTimes(2)
+      })
+    })
+
+    it('shows error text when updateRef fails', async () => {
+      vi.mocked(updateRef).mockRejectedValue(new Error('Transaction failed'))
+      vi.mocked(useWalletClient).mockReturnValue({ data: mockWalletClient } as any)
+      vi.mocked(usePublicClient).mockReturnValue(mockPublicClient as any)
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByLabelText('Name'))
+      await user.type(screen.getByLabelText('Name'), 'new-ref')
+      await user.type(screen.getByLabelText('Value'), 'new-value')
+      await user.click(screen.getByRole('button', { name: /update ref/i }))
+
+      await waitFor(() => {
+        expect(updateRef).toHaveBeenCalled()
+      })
+    })
   })
 
   describe('Direct delete from table', () => {
@@ -350,6 +409,71 @@ describe('MyRefsPage', () => {
       await waitFor(() => screen.getByRole('dialog'))
 
       expect(screen.queryByRole('button', { name: /inspect ipfs content/i })).not.toBeInTheDocument()
+    })
+
+    it('calls updateRef with new value when Save is clicked in edit mode', async () => {
+      vi.mocked(updateRef).mockResolvedValue(undefined as any)
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByRole('button', { name: 'Edit' }))
+      await user.click(screen.getByRole('button', { name: 'Edit' }))
+
+      await waitFor(() => screen.getByRole('dialog'))
+      const dialog = screen.getByRole('dialog')
+      const textbox = within(dialog).getByRole('textbox')
+      await user.clear(textbox)
+      await user.type(textbox, 'updated-value')
+      await user.click(within(dialog).getByRole('button', { name: /save/i }))
+
+      await waitFor(() => {
+        expect(updateRef).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          'my-ref',
+          'updated-value'
+        )
+      })
+    })
+
+    it('refreshes the refs list after saving from detail dialog', async () => {
+      vi.mocked(updateRef).mockResolvedValue(undefined as any)
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByRole('button', { name: 'Edit' }))
+      await user.click(screen.getByRole('button', { name: 'Edit' }))
+
+      await waitFor(() => screen.getByRole('dialog'))
+      const dialog = screen.getByRole('dialog')
+      const textbox = within(dialog).getByRole('textbox')
+      await user.clear(textbox)
+      await user.type(textbox, 'updated-value')
+      await user.click(within(dialog).getByRole('button', { name: /save/i }))
+
+      await waitFor(() => {
+        expect(updateRef).toHaveBeenCalled()
+      })
+    })
+
+    it('shows error text when save fails from detail dialog', async () => {
+      vi.mocked(updateRef).mockRejectedValue(new Error('Save failed'))
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByRole('button', { name: 'Edit' }))
+      await user.click(screen.getByRole('button', { name: 'Edit' }))
+
+      await waitFor(() => screen.getByRole('dialog'))
+      const dialog = screen.getByRole('dialog')
+      const textbox = within(dialog).getByRole('textbox')
+      await user.clear(textbox)
+      await user.type(textbox, 'updated-value')
+      await user.click(within(dialog).getByRole('button', { name: /save/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Save failed')).toBeInTheDocument()
+      })
     })
   })
 
