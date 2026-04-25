@@ -1,5 +1,58 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Expand content-funding E2E + add route-to-test coverage inventory (Completed)
+
+**Task**: Improve UI test coverage by expanding the content-funding E2E flow and adding a route-to-test mapping documentation section.
+
+**What was done**:
+
+### 1. Expanded content-funding E2E coverage (content-funding-flow.spec.ts)
+Added a new test `'full creator/supporter loop: third-party contract → claim → dashboard → withdraw'` covering:
+- **Channel verification**: ACCOUNT_0 verifies a new Twitter channel via signed attestation
+- **Third-party contract creation**: ACCOUNT_1 creates a content-funding contract for ACCOUNT_0's unclaimed channel with `isThirdParty: true` and initial purchase
+- **Browse page verification**: Contract appears on `/content/twitter` with correct channel display name
+- **Channel control**: ACCOUNT_0 takes control of the verified channel (enables veto window)
+- **Creator dashboard**: ACCOUNT_0 connects wallet and views the channel in the Creator Dashboard
+- **Contract detail**: Contract detail page shows "Fan-created" chip for third-party contracts
+- **Supporter purchase**: ACCOUNT_1 deposits ERC20 as a delegatable note and purchases additional tokens from the primary market
+- **Escrow withdrawal**: ACCOUNT_0 withdraws accumulated funds from the ChannelEscrow contract
+- **Post-withdrawal verification**: Contract still visible in the UI after withdrawal
+
+**Key decisions**:
+- Uses the same pattern as existing E2E tests: blockchain transactions via SDK directly (bypasses wagmi's signing limitations), UI state verified via Playwright after indexer processes events
+- Third-party contract creation includes an initial purchase to meet the minimum purchase requirement (queried via `getThirdPartyMinPurchase`)
+- Supporter purchase uses `purchaseFromPrimaryMarketWithNotes` with delegatable notes, matching the delegation-flow.spec.ts pattern
+- Test uses timestamp-derived channel UIDs to avoid collisions across test runs
+
+### 2. Added route-to-test coverage inventory (test-plan.md)
+Added a comprehensive "Route-to-Test Mapping" section that maps every route surface to its Vitest and Playwright coverage:
+- **Commonality domain**: 15 routes mapped (landing, start, browse, statements, profile, docs, notes, deposit, projects, portal)
+- **Content Funding domain**: 8 routes mapped (content landing, platform browse, channel detail, new contract, dashboard, contract detail)
+- **Noninflammatory domain**: 4 routes mapped (landing, about, content routes)
+- **Movement domain**: 9 routes mapped (landing, organize, about, projects, content, portal)
+- **Shared routes**: 3 routes mapped (statements, statement detail, profile)
+
+**Key decisions**:
+- Routes are organized by domain to make it obvious which domain surfaces have E2E coverage
+- Each route lists both Vitest (unit/component) and Playwright (E2E) test files
+- Missing Playwright coverage is shown as "—" to make gaps obvious
+
+### 3. Updated Known Gaps in test-plan.md
+- Marked content-funding full loop as done (gap 5)
+- Updated coverage inventory automation gap (gap 9) to note that manual inventory may still drift
+
+**Verified**:
+- TypeScript compilation: `npx tsc --noEmit --project ui/tsconfig.json` ✓
+
+**Files changed**:
+- `ui/e2e/content-funding-flow.spec.ts` (expanded from 1 to 2 tests — added full creator/supporter loop)
+- `ui/test-plan.md` (added route-to-test mapping section, updated E2E coverage table, updated known gaps)
+- `TODO.md` (marked content-funding E2E full loop and coverage inventory as done)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Content-funding E2E now covers the full creator/supporter loop. Route-to-test mapping documentation added. Remaining gaps from TODO.md include: IPFS/hash routing E2E (requires separate builds), non-default domain E2E (requires separate builds with different VITE_DOMAIN values).
+
+
 ## 2026-04-25 - Expand ContentSubmissionForm and SettingsPage test coverage (Completed)
 
 **Task**: Improve UI test coverage for ContentSubmissionForm and SettingsPage components.

@@ -43,12 +43,12 @@ import {
   getNote,
   getDelegationChain,
   getNoteIntentAttestationsByNote,
-  delegateNote,
-  revokeNote,
-  reclaimFunds,
-  getProjectsFiltered,
-  getProjectTokens,
-  purchaseFromPrimaryMarketWithNotes,
+  delegateNote as _delegateNote,
+  revokeNote as _revokeNote,
+  reclaimFunds as _reclaimFunds,
+  getProjectsFiltered as _getProjectsFiltered,
+  getProjectTokens as _getProjectTokens,
+  purchaseFromPrimaryMarketWithNotes as _purchaseFromPrimaryMarketWithNotes,
 } from '@commonality/sdk'
 
 const mockMachinery = {} as any

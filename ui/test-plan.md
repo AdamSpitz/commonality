@@ -64,6 +64,9 @@
 
 ### Delegation / Mutable Ref
 - `AvailableDelegatableFunding` (10 tests)
+- `MyNotesPage` (27 tests — wallet-not-connected, loading, error, empty states, summary cards, owned/deposited notes sections, delegated/undelegated chips, delegate/revoke/reclaim buttons, inactive note filtering, delegate counting, delegate dialog opening/inputs/cancellation, action flows with wallet client mocking, error dismissal)
+- `NoteDetailPage` (30 tests — loading/error/null states, note metadata display, active/inactive/ETH/token/delegated chips, delegation chain visualization, intended purpose attestations, action button visibility, delegate/spend dialog opening and cancellation, delegate/revoke/reclaim/spend action flows)
+- `DepositPage` (36 tests — unauthenticated state, form rendering, validation, submission states, delegation during deposit, statement attestation, statement autocomplete loading/options, edge cases for zero amount/missing contract/non-Error exceptions/error dismissal)
 
 ## E2E Test Coverage (Playwright)
 
@@ -78,11 +81,79 @@ Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + 
 | `user-profile.spec.ts` | User profile page rendering |
 | `wallet-connection.spec.ts` | Wallet connect/disconnect flow |
 | `pubstarter-flow.spec.ts` | Create and fund a project |
-| `delegation-flow.spec.ts` | Delegatable notes and delegation chains |
-| `content-funding-flow.spec.ts` | Creator verification and content contracts |
+| `delegation-flow.spec.ts` | Deposit → delegate → spend on project (full delegation lifecycle) |
+| `content-funding-flow.spec.ts` | Creator verification, content contract creation, third-party contract creation, channel claim/control, creator dashboard, supporter purchase, escrow withdrawal |
 | `subjectiv-flow.spec.ts` | Trust network setup and filtering ⚠️ |
 
 ⚠️ `subjectiv-flow.spec.ts` has a known issue: the test times out waiting for `window._setupTestWallet` because the page never exposes it (blank-page / app-boot or test-wallet-harness failure). The rest of the Subjectiv implementation is verified via higher-level UI integration tests.
+
+## Route-to-Test Mapping
+
+Maps each route surface to its Vitest and/or Playwright coverage.
+
+### Commonality domain (default)
+
+| Route | Vitest | Playwright |
+|---|---|---|
+| `/` (landing) | `domains/commonality/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
+| `/start` | `conceptspace/pages/HomePage.test.tsx` | `wallet-connection.spec.ts`, `delegation-flow.spec.ts` |
+| `/browse` | `conceptspace/pages/BrowseStatementsPage.test.tsx` | `browse-statements.spec.ts` |
+| `/statement/:cid` | `conceptspace/pages/StatementPage.test.tsx` | `statement-creation.spec.ts`, `belief-expression.spec.ts` |
+| `/profile` | `conceptspace/pages/UserProfilePage.test.tsx` | `user-profile.spec.ts` |
+| `/user/:address` | `conceptspace/pages/UserProfilePage.test.tsx` | — |
+| `/docs` | `docs/DocsPage.test.tsx` | — |
+| `/docs/*` | `docs/DocsPage.test.tsx` | — |
+| `/notes` | `delegation/pages/MyNotesPage.test.tsx` | `delegation-flow.spec.ts` |
+| `/notes/:id` | `delegation/pages/NoteDetailPage.test.tsx` | `delegation-flow.spec.ts` |
+| `/deposit` | `delegation/pages/DepositPage.test.tsx` | — |
+| `/projects` | `pubstarter/pages/BrowseProjectsPage.test.tsx` | `pubstarter-flow.spec.ts` |
+| `/projects/new` | `pubstarter/pages/CreateProjectPage.test.tsx` | `pubstarter-flow.spec.ts` |
+| `/projects/:address` | `pubstarter/pages/ProjectDetailPage.test.tsx` | `pubstarter-flow.spec.ts` |
+| `/portal/:cid` | `fundingportal/pages/StatementFundingPortalPage.test.tsx` | — |
+| `/portal/:cid/leaderboard` | `fundingportal/pages/CauseLeaderboardPage.test.tsx` | — |
+
+### Content Funding domain routes (wrapped)
+
+| Route | Vitest | Playwright |
+|---|---|---|
+| `/content` | `domains/content-funding/ContentPages.test.tsx` | `content-funding-flow.spec.ts` |
+| `/content/twitter` | `content-funding/pages/BrowseCreatorsPage.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | `content-funding-flow.spec.ts` |
+| `/content/youtube` | `content-funding/pages/BrowseCreatorsPage.test.tsx` | — |
+| `/content/substack` | `content-funding/pages/BrowseCreatorsPage.test.tsx` | — |
+| `/content/:platform/:channelId` | `content-funding/pages/ChannelPage.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | `content-funding-flow.spec.ts` |
+| `/content/:platform/:channelId/new` | `content-funding/pages/CreateContractPage.test.tsx` | — |
+| `/content/dashboard` | `content-funding/pages/CreatorDashboardPage.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | `content-funding-flow.spec.ts` |
+| `/content/contracts/:address` | `content-funding/components/ContentFundingProjectSection.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | — |
+
+### Noninflammatory domain routes (wrapped)
+
+| Route | Vitest | Playwright |
+|---|---|---|
+| `/` (landing) | `domains/noninflammatory/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
+| `/about` | `domains/noninflammatory/ContentPages.test.tsx` | — |
+| `/content/*` | `domains/noninflammatory/ContentPages.test.tsx` | — |
+
+### Movement domain routes (wrapped)
+
+| Route | Vitest | Playwright |
+|---|---|---|
+| `/` (landing) | `domains/movement/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
+| `/organize` | `domains/movement/MovementPages.test.tsx` | — |
+| `/about` | `domains/movement/MovementPages.test.tsx` | — |
+| `/projects` | `domains/movement/MovementPages.test.tsx` | — |
+| `/projects/new` | `domains/movement/MovementPages.test.tsx` | — |
+| `/projects/:address` | `domains/movement/MovementPages.test.tsx` | — |
+| `/content/*` | `domains/movement/MovementPages.test.tsx` | — |
+| `/portal/:cid` | `domains/movement/MovementPages.test.tsx` | — |
+| `/portal/:cid/leaderboard` | `domains/movement/MovementPages.test.tsx` | — |
+
+### Shared routes (all domains)
+
+| Route | Vitest | Playwright |
+|---|---|---|
+| `/statements` | `domains/CrossDomainSmoke.test.tsx` | `browse-statements.spec.ts` |
+| `/statement/:cid` | `domains/CrossDomainSmoke.test.tsx` | `statement-creation.spec.ts` |
+| `/profile` | `domains/CrossDomainSmoke.test.tsx` | `user-profile.spec.ts` |
 
 ## Known Gaps
 
@@ -90,11 +161,11 @@ Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + 
 2. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 noninflammatory, 38 movement). These are prop-wiring tests that mock underlying pages; they verify branded copy and prop passthrough, not full integration.
 3. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
 4. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
-5. **Content-funding full loop:** E2E stops at "contract appears on browse." Missing: create third-party contract for unclaimed channel, share/claim, verify ownership, view in dashboard, withdraw/manage funds, attestation summaries.
-6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Noninflammatory Content, or Common Sense Majority domains.
+5. ~~**Content-funding full loop:**~~ Done (expanded `content-funding-flow.spec.ts` — third-party contract creation, channel verification, channel control/takeover, creator dashboard viewing, supporter purchase with delegatable notes, escrow withdrawal, post-withdrawal UI verification).
+6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Noninflammatory Content, or Common Sense Majority domains. Requires separate builds with different `VITE_DOMAIN` values.
 7. ~~**Accessibility assertions:**~~ Done (AppShell landmark tests for banner/main/contentinfo, ClaimFlowModal dialog role test, existing tests use accessible names for buttons/menus/drawers via Testing Library role queries).
 8. **DocsPage external links:** No included doc has external URLs, so `target="_blank"` behavior is untested.
-9. **Coverage inventory automation:** No helper or script that maps routes/components to their test files. Manual inventory above may drift.
+9. **Coverage inventory automation:** Manual inventory above may drift. No script regenerates it from source.
 10. ~~**PrivyWalletButtonImpl:**~~ Done (14 tests — sign-in, loading, embedded wallet sync, connected address menu, logout, link wallet, create wallet, address truncation, wagmi preference, wallet readiness, menu close, address display, error handling, wallet preference).
 11. ~~**CreatorsLandingPage:**~~ Done (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links, learn more link, heading structure, clickable navigation).
 
