@@ -1,5 +1,56 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Expand domain-wrapper UI tests (Completed)
+
+**Task**: Expand domain-wrapper tests beyond each landing page and one creators page: for Content Funding, Noninflammatory Content, and Common Sense Majority, cover branded browse, channel, create-contract, dashboard, contract-detail, and movement project wrapper copy/link behavior where those wrappers exist.
+
+**What was done**:
+- Expanded `ui/src/domains/content-funding/ContentPages.test.tsx` from 1 to 14 tests covering:
+  - Creators landing page (title, description, secondary description)
+  - Browse page (branded title and description)
+  - Channel page (campaign heading, create label, unclaimed description, share description)
+  - Create contract page (title prefix, content items description, share success heading)
+  - Creator dashboard page (title, description, empty state)
+  - Contract page (heading, description about branded surface, ProjectDetailPage rendering)
+- Expanded `ui/src/domains/noninflammatory/ContentPages.test.tsx` from 1 to 23 tests covering:
+  - Creators landing page (title, bridge-building copy, "Why this domain exists" link)
+  - Browse page (title, description about lowering temperature)
+  - Channel page (campaign heading, create label, unclaimed description, share heading/description)
+  - Create contract page (title, content items about steelmanning, contract details about IPFS, unclaimed/verified/creator-controlled alerts)
+  - Creator dashboard page (title, description, empty state)
+  - Contract page (heading, description about bridge-building domain, ProjectDetailPage rendering)
+  - About page (heading, "not bland centrism" explanation, three info sections with links)
+- Expanded `ui/src/domains/movement/MovementPages.test.tsx` from 1 to 38 tests covering:
+  - Creators landing page (title, main wedge copy, "How this movement surface works" link)
+  - Browse page (title, description about revealing broad agreement)
+  - Channel page (campaign heading, create label, unclaimed description, share heading)
+  - Create contract page (title, content items about hidden majority, contract details, alerts)
+  - Creator dashboard page (title, description, empty state)
+  - Contract page (heading, description about common sense majority surface, ProjectDetailPage rendering)
+  - Projects page (heading, pubstarter infrastructure description, action buttons, BrowseProjectsPage rendering)
+  - Create project page (heading, organizing outcomes description, CreateProjectPage rendering)
+  - Project detail page (heading, common sense majority frame description, ProjectDetailPage rendering)
+  - Organizing page (eyebrow/title, spotlight text, hero action links, three sections with CTAs)
+  - About page (heading, movement layer explanation, three info sections with action buttons)
+
+**Key decisions**:
+- Used mock components for shared pages (CreatorsLandingPage, BrowseCreatorsPage, etc.) to isolate domain wrapper testing from underlying page behavior.
+- Domain wrapper tests verify branded copy and link behavior — the thin wrapper components pass props to shared pages, so tests confirm the right props are passed.
+- MovementOrganizingPage tests use `within()` to scope queries to specific containers (hero-actions, sections) because some link text appears in multiple places.
+
+**Verified**:
+- `npx vitest run src/domains/` ✓ (176 tests: 14 + 23 + 38 + 94 + 7)
+
+**Files changed**:
+- `ui/src/domains/content-funding/ContentPages.test.tsx` (expanded from 1 to 14 tests)
+- `ui/src/domains/noninflammatory/ContentPages.test.tsx` (expanded from 1 to 23 tests)
+- `ui/src/domains/movement/MovementPages.test.tsx` (expanded from 1 to 38 tests)
+- `TODO.md` (marked domain-wrapper tests item complete)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Domain-wrapper tests are now comprehensive across all three non-default domains. Remaining gaps from TODO.md include: IPFS/hash routing E2E, content-funding full loop E2E, non-default domain E2E, accessibility assertions, and coverage inventory automation.
+
+
 ## 2026-04-25 - Add cross-domain smoke test suite (Completed)
 
 **Task**: Add a cross-domain smoke suite that runs the app with each `VITE_DOMAIN` (`commonality`, `content-funding`, `noninflammatory`, `movement`) and verifies the landing page, primary nav, secondary nav, footer copy, and absence of out-of-domain navigation/features.

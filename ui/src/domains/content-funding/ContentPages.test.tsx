@@ -1,19 +1,272 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
-import { ContentFundingCreatorsPage } from './ContentPages'
+import { describe, expect, it, vi } from 'vitest'
+import {
+  ContentFundingCreatorsPage,
+  ContentFundingBrowsePage,
+  ContentFundingChannelPage,
+  ContentFundingCreateContractPage,
+  ContentFundingCreatorDashboardPage,
+  ContentFundingContractPage,
+} from './ContentPages'
+
+vi.mock('../../content-funding/pages/CreatorsLandingPage', () => ({
+  CreatorsLandingPage: vi.fn(({ title, description, secondaryDescription, learnMoreLabel }: any) => (
+    <div>
+      <h1>{title}</h1>
+      <p data-testid="description">{description}</p>
+      <p data-testid="secondary-description">{secondaryDescription}</p>
+      {learnMoreLabel && <a href="/learn">{learnMoreLabel}</a>}
+    </div>
+  )),
+}))
+
+vi.mock('../../content-funding/pages/BrowseCreatorsPage', () => ({
+  BrowseCreatorsPage: vi.fn(({ title, description }: any) => (
+    <div>
+      <h1>{title}</h1>
+      <p data-testid="description">{description}</p>
+    </div>
+  )),
+}))
+
+vi.mock('../../content-funding/pages/ChannelPage', () => ({
+  ChannelPage: vi.fn(({
+    campaignHeading,
+    createCampaignLabel,
+    emptyCampaignState,
+    unclaimedHeroDescription,
+    shareDescription,
+  }: any) => (
+    <div>
+      <h1>{campaignHeading}</h1>
+      <p data-testid="create-label">{createCampaignLabel}</p>
+      <p data-testid="empty-state">{emptyCampaignState}</p>
+      <p data-testid="unclaimed">{unclaimedHeroDescription}</p>
+      <p data-testid="share">{shareDescription}</p>
+    </div>
+  )),
+}))
+
+vi.mock('../../content-funding/pages/CreateContractPage', () => ({
+  CreateContractPage: vi.fn(({
+    titlePrefix,
+    connectPrompt,
+    contentItemsDescription,
+    createButtonLabel,
+    viewButtonLabel,
+    shareSuccessHeading,
+  }: any) => (
+    <div>
+      <h1>{titlePrefix}</h1>
+      <p data-testid="connect-prompt">{connectPrompt}</p>
+      <p data-testid="content-items">{contentItemsDescription}</p>
+      <p data-testid="create-button">{createButtonLabel}</p>
+      <p data-testid="view-button">{viewButtonLabel}</p>
+      <p data-testid="share-success">{shareSuccessHeading}</p>
+    </div>
+  )),
+}))
+
+vi.mock('../../content-funding/pages/CreatorDashboardPage', () => ({
+  CreatorDashboardPage: vi.fn(({ title, description, connectPrompt, emptyState }: any) => (
+    <div>
+      <h1>{title}</h1>
+      <p data-testid="description">{description}</p>
+      <p data-testid="connect-prompt">{connectPrompt}</p>
+      <p data-testid="empty-state">{emptyState}</p>
+    </div>
+  )),
+}))
+
+vi.mock('../../pubstarter/pages/ProjectDetailPage', () => ({
+  ProjectDetailPage: vi.fn(() => <div data-testid="project-detail">ProjectDetailPage</div>),
+}))
 
 describe('Content Funding branded surfaces', () => {
-  it('renders the content-funding specific wrapper copy', () => {
-    render(
-      <MemoryRouter>
-        <ContentFundingCreatorsPage />
-      </MemoryRouter>
-    )
+  describe('Creators landing page', () => {
+    it('renders the content-funding specific wrapper copy', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingCreatorsPage />
+        </MemoryRouter>,
+      )
 
-    expect(screen.getByRole('heading', { name: /content funding/i })).toBeInTheDocument()
-    expect(
-      screen.getByText(/this surface stays focused on discoverability, funding, and creator payouts/i)
-    ).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /content funding/i })).toBeInTheDocument()
+      expect(
+        screen.getByText(/this surface stays focused on discoverability, funding, and creator payouts/i),
+      ).toBeInTheDocument()
+    })
+
+    it('includes secondary description about browsing platforms', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingCreatorsPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByText(/browse twitter, youtube, and substack creators by platform/i),
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('Browse page', () => {
+    it('renders branded browse title and description', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingBrowsePage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /browse fundable creators/i })).toBeInTheDocument()
+      expect(
+        screen.getByText(/browse the shared content-funding registry by platform/i),
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('Channel page', () => {
+    it('renders content-funding branded channel copy', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingChannelPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /content funding contracts/i })).toBeInTheDocument()
+      expect(screen.getByTestId('create-label')).toHaveTextContent('Start Contract')
+    })
+
+    it('includes unclaimed channel description about escrowed funds', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingChannelPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByText(/this creator has not claimed the channel/i),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText(/verify your identity and claim the escrowed funds/i),
+      ).toBeInTheDocument()
+    })
+
+    it('includes share description about claim link', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingChannelPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByText(/send them the claim link below so they can verify ownership/i),
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('Create contract page', () => {
+    it('renders content-funding branded create contract copy', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingCreateContractPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByRole('heading', { name: /create content funding contract/i }),
+      ).toBeInTheDocument()
+      expect(screen.getByTestId('create-button')).toHaveTextContent('Create Funding Contract')
+    })
+
+    it('includes content items description about posts/videos/essays', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingCreateContractPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByText(/add the posts, videos, or essays you want this contract to cover/i),
+      ).toBeInTheDocument()
+    })
+
+    it('includes share success heading about claim link', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingCreateContractPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByText(/share this claim link with the creator/i),
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('Creator dashboard page', () => {
+    it('renders branded dashboard title and description', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingCreatorDashboardPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByRole('heading', { name: /creator funding dashboard/i }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText(/manage claimed channels, withdraw escrowed balances/i),
+      ).toBeInTheDocument()
+    })
+
+    it('includes empty state about verifying a channel', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingCreatorDashboardPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByText(/no eligible creator channels found.*verify a channel/i),
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('Contract page', () => {
+    it('renders content-funding contract heading', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingContractPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByRole('heading', { name: /content funding contract/i }),
+      ).toBeInTheDocument()
+    })
+
+    it('includes description about keeping contract links in branded surface', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingContractPage />
+        </MemoryRouter>,
+      )
+
+      expect(
+        screen.getByText(/keeps contract links and channel cross-links inside this branded surface/i),
+      ).toBeInTheDocument()
+    })
+
+    it('renders the shared ProjectDetailPage', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingContractPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByTestId('project-detail')).toBeInTheDocument()
+    })
   })
 })
