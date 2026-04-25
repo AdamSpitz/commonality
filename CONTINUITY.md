@@ -1,5 +1,41 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Add mobile/responsive AppShell tests (Completed)
+
+**Task**: Add mobile/responsive AppShell tests as listed in TODO.md.
+
+**What was done**:
+- Added 14 mobile/responsive tests to `ui/src/shared/components/AppShell.test.tsx` covering:
+  - Hamburger menu button rendering on mobile
+  - Absence of desktop primary nav buttons on mobile
+  - Absence of "More" button on mobile
+  - Drawer open when hamburger is clicked
+  - Primary navigation items in drawer
+  - Secondary navigation items in drawer
+  - "Start here" and "More" subheaders in drawer
+  - Selected-state highlighting for primary nav items in drawer
+  - Selected-state highlighting for secondary nav items in drawer
+  - Drawer closes after clicking a nav item
+  - Brand name in drawer header (default and custom)
+  - Custom primary/secondary navigation in drawer
+  - Wallet button on mobile
+
+**Key decisions**:
+- MUI's `ListItemButton` with `selected` prop applies the `Mui-selected` class (not `aria-current`), so selected-state assertions use `toHaveClass('Mui-selected')`.
+- Drawer nav items render as `<a>` elements (via `component={Link}`), not `<button>` elements.
+
+**Verified**:
+- `npm run test:vitest --workspace=ui -- src/shared/components/AppShell.test.tsx --run` ✓ (32 tests: 18 desktop + 14 mobile)
+
+**Files changed**:
+- `ui/src/shared/components/AppShell.test.tsx` (added 14 mobile tests)
+- `ui/test-plan.md` (updated AppShell coverage count, marked mobile gap done)
+- `TODO.md` (marked mobile/responsive AppShell item complete)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Mobile/responsive AppShell tests are complete. Remaining gaps from TODO.md include: cross-domain smoke tests, IPFS/hash routing E2E, domain-wrapper depth, content-funding full loop E2E, non-default domain E2E, accessibility assertions, and coverage inventory automation.
+
+
 ## 2026-04-25 - Fix UI test regressions from previous session (Completed)
 
 **Task**: Fix the problems introduced in the previous UI test work, as listed in TODO.md's "clean up weak spots" section.

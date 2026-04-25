@@ -202,6 +202,172 @@ describe('AppShell', () => {
     })
   })
 
+  describe('mobile/responsive', () => {
+    beforeEach(() => {
+      mockUseMediaQuery.mockReturnValue(true)
+    })
+
+    it('renders hamburger menu button on mobile', () => {
+      renderWithRouter()
+      expect(screen.getByRole('button', { name: 'open drawer' })).toBeInTheDocument()
+    })
+
+    it('does not render desktop primary nav buttons on mobile', () => {
+      renderWithRouter()
+      expect(screen.queryByRole('link', { name: 'Start Here' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Statements' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Projects' })).not.toBeInTheDocument()
+    })
+
+    it('does not render More button on mobile', () => {
+      renderWithRouter()
+      expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument()
+    })
+
+    it('opens drawer when hamburger is clicked', async () => {
+      const user = userEvent.setup()
+      renderWithRouter()
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      expect(screen.getByRole('link', { name: 'Start Here' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Statements' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Creators' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'My Profile' })).toBeInTheDocument()
+    })
+
+    it('shows secondary navigation in drawer on mobile', async () => {
+      const user = userEvent.setup()
+      renderWithRouter()
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      expect(screen.getByRole('link', { name: 'My Delegated Funds' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'My Trust Network' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Creator Dashboard' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Twitter Creators' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'YouTube Creators' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Substack Creators' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Saved Refs' })).toBeInTheDocument()
+    })
+
+    it('shows "Start here" and "More" subheaders in drawer', async () => {
+      const user = userEvent.setup()
+      renderWithRouter()
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      expect(screen.getByText('Start here')).toBeInTheDocument()
+      expect(screen.getByText('More')).toBeInTheDocument()
+    })
+
+    it('highlights primary nav item in drawer when on matching route', async () => {
+      const user = userEvent.setup()
+      renderWithRouter(['/statements'])
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      const statementsLink = screen.getByRole('link', { name: 'Statements' })
+      expect(statementsLink).toHaveClass('Mui-selected')
+    })
+
+    it('highlights secondary nav item in drawer when on matching route', async () => {
+      const user = userEvent.setup()
+      renderWithRouter(['/settings'])
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      const trustNetworkLink = screen.getByRole('link', { name: 'My Trust Network' })
+      expect(trustNetworkLink).toHaveClass('Mui-selected')
+    })
+
+    it('closes drawer after clicking a nav item', async () => {
+      const user = userEvent.setup()
+      renderWithRouter()
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+      expect(screen.getByRole('link', { name: 'Statements' })).toBeInTheDocument()
+
+      await user.click(screen.getByRole('link', { name: 'Statements' }))
+
+      expect(screen.queryByRole('link', { name: 'Statements' })).not.toBeInTheDocument()
+    })
+
+    it('renders brand name in drawer header', async () => {
+      const user = userEvent.setup()
+      renderWithRouter()
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      expect(screen.getByRole('heading', { name: 'Commonality' })).toBeInTheDocument()
+    })
+
+    it('renders custom brand name in drawer header', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <AppShell branding={{ name: 'Custom Brand', tagline: 'Custom tagline' }}>
+            <div>Content</div>
+          </AppShell>
+        </MemoryRouter>,
+      )
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      expect(screen.getByRole('heading', { name: 'Custom Brand' })).toBeInTheDocument()
+    })
+
+    it('shows custom primary navigation in drawer', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <AppShell
+            navigation={{
+              primaryNavigation: [{ label: 'Home', path: '/' }],
+              secondaryNavigation: [],
+              footerText: 'Footer',
+            }}
+          >
+            <div>Content</div>
+          </AppShell>
+        </MemoryRouter>,
+      )
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Statements' })).not.toBeInTheDocument()
+    })
+
+    it('shows custom secondary navigation in drawer', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <AppShell
+            navigation={{
+              primaryNavigation: [],
+              secondaryNavigation: [{ label: 'Settings', path: '/settings' }],
+              footerText: 'Footer',
+            }}
+          >
+            <div>Content</div>
+          </AppShell>
+        </MemoryRouter>,
+      )
+
+      await user.click(screen.getByRole('button', { name: 'open drawer' }))
+
+      expect(screen.getByRole('link', { name: 'Settings' })).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'My Delegated Funds' })).not.toBeInTheDocument()
+    })
+
+    it('renders wallet button on mobile', () => {
+      renderWithRouter()
+      expect(screen.getByRole('button', { name: 'Wallet' })).toBeInTheDocument()
+    })
+  })
+
   describe('wallet button', () => {
     it('renders the wallet button in the toolbar', () => {
       renderWithRouter()

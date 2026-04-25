@@ -16,7 +16,7 @@
 - **Gap:** External link `target="_blank"` behavior untestable — no included doc (`docs/` minus `vision-and-strategy/` and `chats/`) contains external URLs. Would need a test-only fixture or doc with an external link.
 
 ### Shared Infrastructure
-- `AppShell` (18 tests — branding, primary/secondary navigation, More menu, footer, selected state)
+- `AppShell` (32 tests — branding, primary/secondary navigation, More menu, footer, selected state, mobile drawer open/close, primary and secondary nav in drawer, selected-state behavior in drawer, custom navigation in drawer)
 - `AddressDisplay` (9 tests — ENS name, Twitter handle, raw address fallback, showFullAddress, twitterHandleHint)
 - `routing.test.ts` (IPFS-mode hash routing fallback)
 - `domainRoutes.test.tsx` (all four domain manifests)
@@ -72,7 +72,7 @@ Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + 
 
 1. **Cross-domain smoke suite:** No test runs the app with each `VITE_DOMAIN` (`commonality`, `content-funding`, `noninflammatory`, `movement`) verifying landing page, nav, footer, and absence of out-of-domain features.
 2. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
-3. **Mobile/responsive AppShell:** No tests for drawer open/close, navigation in drawer, selected-state behavior, or layout across domain shells.
+3. ~~**Mobile/responsive AppShell:**~~ Done (32 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer).
 4. **Domain-wrapper depth:** Content Funding, Noninflammatory Content, and Common Sense Majority only have landing-page and one creators-page tests. Missing: branded browse, channel, create-contract, dashboard, contract-detail, and movement project wrapper copy/link behavior.
 5. **Content-funding full loop:** E2E stops at "contract appears on browse." Missing: create third-party contract for unclaimed channel, share/claim, verify ownership, view in dashboard, withdraw/manage funds, attestation summaries.
 6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Noninflammatory Content, or Common Sense Majority domains.
