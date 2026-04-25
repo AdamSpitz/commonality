@@ -10,6 +10,7 @@
 ### Conceptspace
 - `BeliefControls`, `SupportMetrics`, `StatementRenderer`, `CreateStatementForm`, `StatementSuggestions`, `StatementPage`, `BrowseStatementsPage`, `UserProfilePage`, `HomePage`, `SettingsPage`
 - `HighProfileSigners` (14 tests — loading, empty, error, signer chips, follower formatting, ENS name fallback, Twitter link, profile navigation, minFollowers prop, follower count visibility)
+- `twitterHandleHints` utility (13 tests — load/save, address normalization, handle normalization, localStorage error handling, multi-entry preservation)
 
 ### Docs
 - `DocsPage` (13 tests — headings, paragraphs, lists, internal links, blockquotes, inline code, multiple doc paths, max-width styling, 404 handling)
@@ -53,6 +54,8 @@
 ### Funding Portal
 - `AttestAlignmentForm` (18 tests)
 - `AlignedProjectCard` (19 tests)
+- `computeAvailableDelegatableFunding` utility (7 tests — empty attestations, inactive notes, fetch failures, single-currency sum, multi-currency grouping, null filtering, mixed active/inactive)
+- **Gap:** `alignmentContract.ts` utility (trivial env var reader, low risk)
 
 ### Delegation / Mutable Ref
 - `AvailableDelegatableFunding` (10 tests)
@@ -78,10 +81,10 @@ Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + 
 
 ## Known Gaps
 
-1. ~~**Cross-domain smoke suite:**~~ Done (94 tests — manifest structure, nav integrity, feature flag matrix, route coverage, landing page rendering, out-of-domain absence, shared route consistency).
-2. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
-3. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
-4. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 noninflammatory, 38 movement covering branded browse, channel, create-contract, dashboard, contract-detail, and movement project wrapper copy/link behavior).
+1. ~~**Cross-domain smoke suite:**~~ Done (98 tests — manifest structure with domain-specific expected values, nav integrity, feature flag matrix, route coverage, landing page rendering with exact hero titles, out-of-domain absence, shared route consistency).
+2. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 noninflammatory, 38 movement). These are prop-wiring tests that mock underlying pages; they verify branded copy and prop passthrough, not full integration.
+3. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
+4. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
 5. **Content-funding full loop:** E2E stops at "contract appears on browse." Missing: create third-party contract for unclaimed channel, share/claim, verify ownership, view in dashboard, withdraw/manage funds, attestation summaries.
 6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Noninflammatory Content, or Common Sense Majority domains.
 7. ~~**Accessibility assertions:**~~ Done (AppShell landmark tests for banner/main/contentinfo, ClaimFlowModal dialog role test, existing tests use accessible names for buttons/menus/drawers via Testing Library role queries).

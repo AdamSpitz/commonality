@@ -1,5 +1,68 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Strengthen CrossDomainSmoke assertions + add utility tests (Completed)
+
+**Task**: Improve UI test coverage by strengthening weak assertions in CrossDomainSmoke.test.tsx and adding tests for untested utility modules.
+
+**What was done**:
+
+### 1. Strengthened CrossDomainSmoke.test.tsx assertions (98 tests, same count but stronger)
+- Replaced `manifest.branding.name.length > 0` with exact brand name checks per domain:
+  - commonality: 'Commonality'
+  - content-funding: 'Content Funding'
+  - noninflammatory: 'Noninflammatory Content'
+  - movement: 'Common Sense Majority'
+- Replaced `manifest.branding.tagline.length > 0` with exact tagline checks per domain
+- Replaced `manifest.shell.footerText.length > 0` with exact footer text checks per domain
+- Replaced separate primary/secondary nav length checks with combined label+path integrity checks
+- Replaced `manifest.routes` truthy check with truthy + array + non-empty checks (reverted to truthy-only since routes is a JSX fragment `<>...</>`, not an array)
+- Replaced hero title `textContent.length > 0` with exact hero title matching per domain:
+  - commonality: 'Find common ground first, then fund the work that follows from it.'
+  - content-funding: 'Fund the content you want more of.'
+  - noninflammatory: 'Reward content that lowers the temperature instead of raising it.'
+  - movement: 'Organize the hidden majority around positions that already have broad support.'
+- Replaced hero links `links.length > 0` with assertion that at least one link's href matches a manifest navigation path
+
+**Key decisions**:
+- The `extractRoutePaths()` function that introspects React element `.props` remains as-is — it's fragile but works for smoke coverage. Replacing it would require actual route-rendering tests which are better suited for E2E.
+- Hero titles don't match taglines — the LandingPage components use their own title text, not the manifest tagline.
+
+### 2. Added tests for fundingportal/utils.ts (7 tests)
+- Added `ui/src/fundingportal/utils.test.ts` covering `computeAvailableDelegatableFunding`:
+  - Returns empty array when no attestations exist
+  - Returns empty array when all notes are inactive
+  - Returns empty array when all note fetches fail (graceful error handling)
+  - Sums active notes for a single currency (ETH)
+  - Groups totals by currency (ETH + ERC20)
+  - Filters out null note results from Promise.all
+  - Handles mixed active and inactive notes correctly (only sums active)
+
+**Key decisions**:
+- Tests use module-level mock functions with `vi.importActual` pattern (matching AvailableDelegatableFunding.test.tsx)
+- Mocks `getNoteIntentAttestationsByStatement` and `getNote` from `@commonality/sdk`
+
+### 3. Added tests for conceptspace/twitterHandleHints.ts (13 tests)
+- Added `ui/src/conceptspace/twitterHandleHints.test.ts` covering:
+  - loadTwitterHandleHint: null when no hints, null when address not found, correct hint for matching address, address normalization (lowercase), invalid JSON handling, non-object value handling
+  - saveTwitterHandleHint: stores hint, normalizes address to lowercase, adds @ prefix if missing, doesn't double-prefix @, trims whitespace, preserves existing hints, overwrites existing hint for same address
+
+**Key decisions**:
+- Tests use real localStorage (cleared in beforeEach/afterEach)
+- No mocking needed — pure localStorage utility
+
+**Verified**:
+- `npm run test:vitest --workspace=ui -- --run` ✓ (1341 tests: 76 files, up from 1317 tests in 74 files)
+
+**Files changed**:
+- `ui/src/domains/CrossDomainSmoke.test.tsx` (strengthened assertions)
+- `ui/src/fundingportal/utils.test.ts` (new, 7 tests)
+- `ui/src/conceptspace/twitterHandleHints.test.ts` (new, 13 tests)
+- `TODO.md` (marked cross-domain smoke review and domain-wrapper review as done, updated funding-portal and conceptspace coverage)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Cross-domain smoke assertions strengthened, two utility modules tested. Remaining gaps from TODO.md include: IPFS/hash routing E2E, content-funding full loop E2E, non-default domain E2E, coverage inventory automation, and several component-level gaps (trust-filter states, Explorer states, Settings nudger states, etc.).
+
+
 ## 2026-04-25 - Add Domain LandingPage tests, strengthen ConnectWalletPrompt and DocsPage tests (Completed)
 
 **Task**: Improve UI test coverage by adding tests for the 4 domain LandingPage components and strengthening weak assertions in ConnectWalletPrompt and DocsPage tests.

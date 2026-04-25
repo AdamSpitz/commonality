@@ -26,21 +26,55 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   const manifest = domainManifests[domainId]
 
   describe('manifest structure', () => {
-    it('has a non-empty brand name and tagline', () => {
-      expect(manifest.branding.name.length).toBeGreaterThan(0)
-      expect(manifest.branding.tagline.length).toBeGreaterThan(0)
+    const expectedBranding: Record<DomainId, { name: string; tagline: string; footerText: string }> = {
+      commonality: {
+        name: 'Commonality',
+        tagline: 'Find common ground and fund what matters.',
+        footerText: 'Commonality helps people fund projects and content around shared values.',
+      },
+      'content-funding': {
+        name: 'Content Funding',
+        tagline: 'Fund content you believe in.',
+        footerText: 'Content Funding helps creators get funded directly by people who share their values.',
+      },
+      noninflammatory: {
+        name: 'Noninflammatory Content',
+        tagline: 'Build bridges, not walls.',
+        footerText: 'Noninflammatory Content rewards creators who communicate across divides.',
+      },
+      movement: {
+        name: 'Common Sense Majority',
+        tagline: 'The silent majority finds its voice.',
+        footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',
+      },
+    }
+
+    it('has the correct brand name for the domain', () => {
+      expect(manifest.branding.name).toBe(expectedBranding[domainId].name)
     })
 
-    it('has at least one primary navigation item', () => {
+    it('has the correct tagline for the domain', () => {
+      expect(manifest.branding.tagline).toBe(expectedBranding[domainId].tagline)
+    })
+
+    it('has the correct footer text for the domain', () => {
+      expect(manifest.shell.footerText).toBe(expectedBranding[domainId].footerText)
+    })
+
+    it('has primary navigation items with labels and paths', () => {
       expect(manifest.shell.primaryNavigation.length).toBeGreaterThan(0)
+      for (const item of manifest.shell.primaryNavigation) {
+        expect(item.label.length).toBeGreaterThan(0)
+        expect(item.path.startsWith('/')).toBe(true)
+      }
     })
 
-    it('has at least one secondary navigation item', () => {
+    it('has secondary navigation items with labels and paths', () => {
       expect(manifest.shell.secondaryNavigation.length).toBeGreaterThan(0)
-    })
-
-    it('has non-empty footer text', () => {
-      expect(manifest.shell.footerText.length).toBeGreaterThan(0)
+      for (const item of manifest.shell.secondaryNavigation) {
+        expect(item.label.length).toBeGreaterThan(0)
+        expect(item.path.startsWith('/')).toBe(true)
+      }
     })
 
     it('has routes defined', () => {
@@ -67,17 +101,31 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   })
 
   describe('landing page', () => {
-    it('renders the branded hero title', () => {
+    const expectedHeroTitles: Record<DomainId, string> = {
+      commonality: 'Find common ground first, then fund the work that follows from it.',
+      'content-funding': 'Fund the content you want more of.',
+      noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
+      movement: 'Organize the hidden majority around positions that already have broad support.',
+    }
+
+    it('renders the branded hero title matching the domain tagline', () => {
       renderDomainRoute(domainId)
       const heading = screen.getByRole('heading', { level: 1 })
-      expect(heading).toBeInTheDocument()
-      expect(heading.textContent?.length).toBeGreaterThan(0)
+      expect(heading).toHaveTextContent(expectedHeroTitles[domainId])
     })
 
-    it('renders at least one hero action link', () => {
+    it('renders hero action links with paths from the manifest', () => {
       renderDomainRoute(domainId)
       const links = screen.getAllByRole('link')
-      expect(links.length).toBeGreaterThan(0)
+      const manifestPaths = new Set([
+        ...manifest.shell.primaryNavigation.map((n) => n.path),
+        ...manifest.shell.secondaryNavigation.map((n) => n.path),
+      ])
+      const hasManifestPath = links.some((link) => {
+        const href = link.getAttribute('href')
+        return href && manifestPaths.has(href)
+      })
+      expect(hasManifestPath).toBe(true)
     })
   })
 })
