@@ -1,5 +1,73 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Add CreatorsLandingPage, expand PrivyWalletButtonImpl tests, add accessibility assertions (Completed)
+
+**Task**: Improve UI test coverage by adding CreatorsLandingPage tests, expanding PrivyWalletButtonImpl tests, and adding accessibility-oriented assertions.
+
+**What was done**:
+
+### 1. Added CreatorsLandingPage tests (15 tests)
+- Added `ui/src/content-funding/pages/CreatorsLandingPage.test.tsx` covering:
+  - Default and custom title rendering (h1 heading)
+  - Default and custom description rendering
+  - Secondary description rendering
+  - Twitter/X platform card with link to /content/twitter
+  - YouTube platform card with link to /content/youtube
+  - Substack platform card with link to /content/substack
+  - Learn more link with default and custom label/path
+  - Clickable platform cards
+  - All three platform cards rendered
+  - h1 heading for accessibility
+  - h6 headings for platform cards
+
+**Key decisions**:
+- Platform card links use CardActionArea which includes both the heading and description text in the accessible name, so tests use regex patterns (`/YouTube/i`) rather than exact names.
+- Tests verify both text content and href attributes to ensure correct routing.
+
+### 2. Expanded PrivyWalletButtonImpl tests (10 new tests, 14 total)
+- Added to `ui/src/shared/components/WalletButton.test.tsx`:
+  - "Create Wallet" button when authenticated but no wallet address
+  - "Link Another Wallet" menu item calls linkWallet
+  - Truncated address from wallets when wagmi address is undefined
+  - Prefers wagmi address over wallet address
+  - Loading state when authenticated but wallets not ready
+  - Menu closes after clicking a menu item
+  - Full address displayed in disabled menu item
+  - Handles setActiveWallet failure gracefully (console.warn)
+  - Prefers embedded wallet over external wallet
+  - Uses first wallet when no embedded wallet available
+
+**Key decisions**:
+- Tests use module-level mock functions (`mockUsePrivy`, `mockUseWallets`, `mockUseAccount`) controlled via `beforeEach` and per-test overrides.
+- Error handling test spies on `console.warn` to verify graceful failure.
+
+### 3. Added accessibility-oriented assertions
+- Added to `ui/src/shared/components/AppShell.test.tsx`:
+  - Banner landmark (header) rendering
+  - Main landmark for content rendering
+  - Contentinfo landmark (footer) rendering
+- Added to `ui/src/content-funding/components/ClaimFlowModal.test.tsx`:
+  - Dialog role rendering with accessible name
+
+**Key decisions**:
+- Navigation landmark test was removed because AppShell doesn't use a `<nav>` element — this is a potential accessibility improvement for the component itself, not a test gap.
+- Existing tests already use accessible names for buttons/menus/drawers via Testing Library role queries (e.g., `{ name: 'open drawer' }`, `{ name: 'More' }`).
+
+**Verified**:
+- `npm run test:vitest --workspace=ui -- --run` ✓ (1271 tests: 70 files, up from 1242 tests in 69 files)
+
+**Files changed**:
+- `ui/src/content-funding/pages/CreatorsLandingPage.test.tsx` (new, 15 tests)
+- `ui/src/shared/components/WalletButton.test.tsx` (expanded, +10 tests)
+- `ui/src/shared/components/AppShell.test.tsx` (added 3 accessibility landmark tests)
+- `ui/src/content-funding/components/ClaimFlowModal.test.tsx` (added 1 dialog role test)
+- `ui/test-plan.md` (updated Shared Infrastructure section, marked gaps 3, 7, 10, 11 done)
+- `TODO.md` (marked accessibility assertions item done, updated AppShell/PrivyWalletButtonImpl test counts)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Three known gaps closed (PrivyWalletButtonImpl, CreatorsLandingPage, accessibility assertions). Remaining gaps: IPFS/hash routing E2E, content-funding full loop E2E, non-default domain E2E, DocsPage external links, coverage inventory automation.
+
+
 ## 2026-04-25 - Fix App.test.tsx timeout + add DomainLandingPage tests (Completed)
 
 **Task**: Fix the App.test.tsx timeout in the full vitest suite and add tests for the untested DomainLandingPage component.

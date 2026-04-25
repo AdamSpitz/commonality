@@ -17,9 +17,11 @@
 
 ### Shared Infrastructure
 - `App` (15 tests — browser/hash routing modes, domain branding passthrough for all 4 domains, primary navigation rendering per domain, footer text, wallet button, children/route rendering; uses full mocking to avoid expensive dynamic imports)
-- `AppShell` (32 tests — branding, primary/secondary navigation, More menu, footer, selected state, mobile drawer open/close, primary and secondary nav in drawer, selected-state behavior in drawer, custom navigation in drawer)
+- `AppShell` (35 tests — branding, primary/secondary navigation, More menu, footer, selected state, mobile drawer open/close, primary and secondary nav in drawer, selected-state behavior in drawer, custom navigation in drawer, accessibility landmarks for banner/main/contentinfo)
 - `AddressDisplay` (9 tests — ENS name, Twitter handle, raw address fallback, showFullAddress, twitterHandleHint)
 - `DomainLandingPage` (18 tests — hero section with eyebrow/title/description/action links, spotlight label/text conditional rendering, section cards with titles/descriptions/CTAs/eyebrows, children rendering, hero action variants, empty states)
+- `PrivyWalletButtonImpl` (14 tests — sign-in before auth, loading while initializing, embedded wallet sync to wagmi, connected address menu, logout, link another wallet, create wallet state, address truncation, wagmi address preference, wallet readiness, menu close behavior, full address display, setActiveWallet error handling, embedded vs external wallet preference)
+- `CreatorsLandingPage` (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links and descriptions, learn more link, h1/h6 heading structure, clickable navigation)
 - `routing.test.ts` (IPFS-mode hash routing fallback)
 - `domainRoutes.test.tsx` (all four domain manifests)
 - `ContentPages.test.tsx` (content-funding and noninflammatory branded wrappers)
@@ -74,15 +76,15 @@ Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + 
 
 1. ~~**Cross-domain smoke suite:**~~ Done (94 tests — manifest structure, nav integrity, feature flag matrix, route coverage, landing page rendering, out-of-domain absence, shared route consistency).
 2. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
-3. ~~**Mobile/responsive AppShell:**~~ Done (32 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer).
+3. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
 4. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 noninflammatory, 38 movement covering branded browse, channel, create-contract, dashboard, contract-detail, and movement project wrapper copy/link behavior).
 5. **Content-funding full loop:** E2E stops at "contract appears on browse." Missing: create third-party contract for unclaimed channel, share/claim, verify ownership, view in dashboard, withdraw/manage funds, attestation summaries.
 6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Noninflammatory Content, or Common Sense Majority domains.
-7. **Accessibility assertions:** No systematic coverage of headings/landmarks, accessible names for icon buttons, focus movement for dialogs/menus/drawers, or form validation messages.
+7. ~~**Accessibility assertions:**~~ Done (AppShell landmark tests for banner/main/contentinfo, ClaimFlowModal dialog role test, existing tests use accessible names for buttons/menus/drawers via Testing Library role queries).
 8. **DocsPage external links:** No included doc has external URLs, so `target="_blank"` behavior is untested.
 9. **Coverage inventory automation:** No helper or script that maps routes/components to their test files. Manual inventory above may drift.
-10. **PrivyWalletButtonImpl:** Core authentication UI with state management, side effects, and multiple interaction paths (connect, logout, switch wallet) is untested.
-11. **CreatorsLandingPage:** Landing page for content-funding domain with platform cards (Twitter/X, YouTube, Substack) and routing links is untested.
+10. ~~**PrivyWalletButtonImpl:**~~ Done (14 tests — sign-in, loading, embedded wallet sync, connected address menu, logout, link wallet, create wallet, address truncation, wagmi preference, wallet readiness, menu close, address display, error handling, wallet preference).
+11. ~~**CreatorsLandingPage:**~~ Done (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links, learn more link, heading structure, clickable navigation).
 
 ## Running Tests
 

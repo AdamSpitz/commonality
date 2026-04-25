@@ -202,6 +202,23 @@ describe('AppShell', () => {
     })
   })
 
+  describe('accessibility landmarks', () => {
+    it('renders a banner landmark (header)', () => {
+      renderWithRouter()
+      expect(screen.getByRole('banner')).toBeInTheDocument()
+    })
+
+    it('renders a main landmark for content', () => {
+      renderWithRouter()
+      expect(screen.getByRole('main')).toBeInTheDocument()
+    })
+
+    it('renders a contentinfo landmark (footer)', () => {
+      renderWithRouter()
+      expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    })
+  })
+
   describe('mobile/responsive', () => {
     beforeEach(() => {
       mockUseMediaQuery.mockReturnValue(true)

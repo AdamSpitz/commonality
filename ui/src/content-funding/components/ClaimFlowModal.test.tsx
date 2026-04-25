@@ -81,6 +81,12 @@ describe('ClaimFlowModal', () => {
     expect(screen.getByText('Claim Funds for @testuser')).toBeInTheDocument()
   })
 
+  it('renders as a dialog with accessible name', () => {
+    render(<ClaimFlowModal {...defaultProps} />)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
   it('shows connect wallet step when not connected', () => {
     render(<ClaimFlowModal {...defaultProps} />)
 
