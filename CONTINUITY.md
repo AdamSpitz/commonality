@@ -1,5 +1,48 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Fix UI test regressions from previous session (Completed)
+
+**Task**: Fix the problems introduced in the previous UI test work, as listed in TODO.md's "clean up weak spots" section.
+
+**What was done**:
+
+### 1. Fixed HighProfileSigners @undefined bug
+- `ui/src/conceptspace/components/HighProfileSigners.tsx:69` — The condition `signer.ensName || signer.twitterHandle ? \`@${signer.twitterHandle}\` : ...` always used `twitterHandle` even when only `ensName` was set, producing `@undefined`. Fixed to: `signer.twitterHandle ? \`@${signer.twitterHandle}\` : signer.ensName || ...`
+- Updated the test to expect `alice.eth` instead of `@undefined`
+
+### 2. Tightened DocsPage.test.tsx
+- Removed the "external links with target=_blank" test — no included doc (the `docs/` tree minus `vision-and-strategy/` and `chats/`) contains external URLs. This is documented as a known gap in test-plan.md.
+- Replaced conditional blockquote assertion (`if blockquotes.length > 0`) with a definite assertion using `use-case-walkthroughs/block-party` (which has blockquotes) and checking `borderLeftWidth === '4px'`
+
+### 3. Rewrote test-plan.md
+- Changed from boastful "All major pages and components across all subsystems have unit tests" to a factual coverage inventory organized by subsystem
+- Added a "Known Gaps" section listing 9 specific gaps (cross-domain smoke suite, IPFS routing E2E, mobile/responsive AppShell, domain-wrapper depth, content-funding full loop, non-default domain E2E, accessibility assertions, DocsPage external links, coverage inventory automation)
+
+### 4. Fixed shallow assertions in ClaimFlowModal.test.tsx
+- Changed "some disabled button exists" pattern (`getAllByRole('button').find(btn => btn.hasAttribute('disabled'))`) to assert the specific button by accessible name: `getByRole('button', { name: 'Get Verification Tweet' })`
+- Changed `getByRole('alert').toBeInTheDocument()` to `getByRole('alert').toHaveTextContent('API error')`
+
+### 5. Fixed ClaimFlowModal component accessibility
+- `ui/src/content-funding/components/ClaimFlowModal.tsx:244` — When `apiLoading` was true, the button text was replaced entirely with a `<CircularProgress>`, losing the accessible name. Changed to use `startIcon` for the spinner while keeping the text label.
+
+**Key decisions**:
+- The external-links test was removed rather than mocked because no included doc has external URLs and mocking `import.meta.glob` is fragile. The gap is documented.
+- The ClaimFlowModal button fix improves real accessibility (screen readers can still announce the button's purpose during loading) rather than just making the test pass.
+
+**Verified**:
+- `npx vitest run` ✓ (1029 tests passing across 66 files)
+
+**Files changed**:
+- `ui/src/conceptspace/components/HighProfileSigners.tsx` (fix @undefined bug)
+- `ui/src/conceptspace/components/HighProfileSigners.test.tsx` (update test expectation)
+- `ui/src/docs/DocsPage.test.tsx` (remove conditional assertions)
+- `ui/src/content-funding/components/ClaimFlowModal.tsx` (fix loading button accessibility)
+- `ui/src/content-funding/components/ClaimFlowModal.test.tsx` (tighten assertions)
+- `ui/test-plan.md` (rewrite as coverage inventory with known gaps)
+- `TODO.md` (mark 4 of 5 weak-spot items complete)
+- `CONTINUITY.md`
+
+
 ## 2026-04-24 - Improve UI test coverage: AttestAlignmentForm + AlignedProjectCard (Completed)
 
 **Task**: Improve UI test coverage for funding-portal components that were previously untested: AttestAlignmentForm and AlignedProjectCard.
