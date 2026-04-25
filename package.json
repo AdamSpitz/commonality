@@ -52,6 +52,7 @@
     "hardhat:compile": "npx --workspace=hardhat hardhat compile",
     "hardhat:test": "npx --workspace=hardhat hardhat test",
     "indexer:typecheck": "npx --workspace=indexer tsc",
+    "smoke-check": "node scripts/smoke-check-render.mjs",
     "prepare": "husky"
   },
   "keywords": [

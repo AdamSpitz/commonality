@@ -1,5 +1,36 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Add render.yaml smoke check script (Completed)
+
+**Task**: Add a lightweight CI/developer smoke check for `render.yaml` plus the indexer's hosted env shape, so future changes do not silently break the Render blueprint while local Docker still works.
+
+**What was done**:
+- Added `scripts/smoke-check-render.mjs` — a zero-dependency Node.js script that validates:
+  1. **YAML parsing**: render.yaml is parseable with expected structure
+  2. **Database validation**: databases section has entries
+  3. **Service path validation**: all `rootDir` directories and `dockerfilePath` files exist on disk
+  4. **Cross-service URL consistency**: hardcoded `.onrender.com` URLs reference services that actually exist in render.yaml
+  5. **Indexer env var consistency**: cross-references env vars between render.yaml and `indexer/ponder.config.ts`, flagging mismatches
+- Added `npm run smoke-check` script to root package.json
+- Script exits 0 on success, 1 on errors; warnings are informational
+
+**Key decisions**:
+- Uses a minimal custom YAML parser instead of adding a dependency (js-yaml) — the render.yaml structure is simple enough
+- Optional/dev-only env vars (PONDER_RPC_URL_31337, PONDER_EPHEMERAL, per-subsystem START_BLOCK overrides, DATABASE_PRIVATE_URL) are excluded from the "missing in render.yaml" check
+- Runtime-only vars (NODE_ENV, PONDER_SCRIPT, DATABASE_SCHEMA) used by `indexer/start.sh` are excluded from the "missing in code" warning
+
+**Verified**:
+- `npm run smoke-check` ✓ (all checks pass)
+
+**Files changed**:
+- `scripts/smoke-check-render.mjs` (new)
+- `package.json` (added `smoke-check` script)
+- `TODO.md` (marked smoke check item done)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Smoke check is complete and passing. Could be wired into CI (GitHub Actions) or a pre-commit hook for changes to render.yaml/indexer/ponder.config.ts in the future.
+
+
 ## 2026-04-25 - Add DirectTrustSettingsSection and MyRefsPage submission tests (Completed)
 
 **Task**: Improve UI test coverage by adding tests for previously untested components and filling gaps in existing test files.
