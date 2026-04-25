@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NoteDetailPage } from './NoteDetailPage'
 
@@ -37,12 +37,18 @@ vi.mock('@commonality/sdk', async () => {
 })
 
 import { useParams } from 'react-router-dom'
-import { useAccount } from 'wagmi'
+import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   createSDKMachinery,
   getNote,
   getDelegationChain,
   getNoteIntentAttestationsByNote,
+  delegateNote,
+  revokeNote,
+  reclaimFunds,
+  getProjectsFiltered,
+  getProjectTokens,
+  purchaseFromPrimaryMarketWithNotes,
 } from '@commonality/sdk'
 
 const mockMachinery = {} as any
@@ -369,6 +375,136 @@ describe('NoteDetailPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/don't have any actions available/i)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Delegate action flow', () => {
+    it('opens delegate dialog when Delegate button is clicked', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ owner: USER_ADDR, rootOwner: USER_ADDR }))
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Delegate' })).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/delegate fund #42/i)).toBeInTheDocument()
+      })
+    })
+
+    it('shows address and amount inputs in delegate dialog', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ owner: USER_ADDR, rootOwner: USER_ADDR }))
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/delegate to address/i)).toBeInTheDocument()
+        expect(screen.getByLabelText(/amount \(eth\)/i)).toBeInTheDocument()
+      })
+    })
+
+    it('closes dialog when Cancel is clicked', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ owner: USER_ADDR, rootOwner: USER_ADDR }))
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByText(/delegate fund #42/i)).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+      await waitFor(() => {
+        expect(screen.queryByText(/delegate fund #42/i)).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Revoke action flow', () => {
+    it('shows Revoke button when user is chain member but not leaf', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({
+        owner: OTHER_ADDR,
+        rootOwner: USER_ADDR,
+      }))
+      vi.mocked(getDelegationChain).mockResolvedValue([
+        makeChainLink({ address: USER_ADDR, position: 0 }),
+        makeChainLink({ address: OTHER_ADDR, position: 1 }),
+      ])
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Revoke' })).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Reclaim action flow', () => {
+    it('shows Reclaim Funds button when user is root owner of undelegated note', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ owner: USER_ADDR, rootOwner: USER_ADDR }))
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Reclaim Funds' })).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Spend on Project action flow', () => {
+    it('opens spend dialog when Spend on Project button is clicked', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ owner: USER_ADDR, rootOwner: USER_ADDR }))
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Spend on Project' })).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Spend on Project' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/spend fund on project/i)).toBeInTheDocument()
+      })
+    })
+
+    it('closes spend dialog when Cancel is clicked', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ owner: USER_ADDR, rootOwner: USER_ADDR }))
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Spend on Project' }))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByText(/spend fund on project/i)).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+      await waitFor(() => {
+        expect(screen.queryByText(/spend fund on project/i)).not.toBeInTheDocument()
       })
     })
   })

@@ -30,10 +30,16 @@ vi.mock('@commonality/sdk', async () => {
 
 import { useNavigate } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createSDKMachinery, browseStatementsByNewest, depositETH } from '@commonality/sdk'
+import { createSDKMachinery, browseStatementsByNewest, depositETH, delegateNote, attestNoteIntent } from '@commonality/sdk'
 
 const mockNavigate = vi.fn()
 const mockMachinery = {} as any
+
+const TEST_STATEMENT = {
+  cid: 'QmStatementCid123456789012345678901234567',
+  title: 'Universal Basic Income',
+  excerpt: 'Every citizen should receive a basic income regardless of employment status.',
+}
 
 describe('DepositPage', () => {
   beforeEach(() => {
@@ -253,6 +259,201 @@ describe('DepositPage', () => {
       render(<DepositPage />)
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
       expect(mockNavigate).toHaveBeenCalledWith('/notes')
+    })
+  })
+
+  describe('Delegation during deposit', () => {
+    it('calls delegateNote when delegate address is provided', async () => {
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
+      vi.mocked(delegateNote).mockResolvedValue({ hash: '0xdef' } as any)
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0.5' } })
+      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(delegateNote).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Object),
+          expect.objectContaining({
+            noteId: 7n,
+            owners: [USER_ADDR],
+            delegateTo: OTHER_ADDR,
+            amount: expect.any(BigInt),
+          })
+        )
+      })
+    })
+
+    it('skips delegateNote when no delegate address is provided', async () => {
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0.5' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Funds Added')).toBeInTheDocument()
+      })
+      expect(delegateNote).not.toHaveBeenCalled()
+    })
+
+    it('shows error when delegation fails after successful deposit', async () => {
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
+      vi.mocked(delegateNote).mockRejectedValue(new Error('Delegation reverted'))
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0.5' } })
+      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Delegation reverted')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Statement attestation during deposit', () => {
+    it('calls attestNoteIntent when statement is selected', async () => {
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
+      vi.mocked(attestNoteIntent).mockResolvedValue({ hash: '0xdef' } as any)
+      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+
+      // Select a statement from autocomplete
+      const autocomplete = screen.getByLabelText(/intended statement/i)
+      fireEvent.mouseDown(autocomplete)
+      const option = await screen.findByText(/universal basic income/i)
+      fireEvent.click(option)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(attestNoteIntent).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Object),
+          CONTRACT_ADDR,
+          12n,
+          TEST_STATEMENT.cid
+        )
+      })
+    })
+
+    it('skips attestNoteIntent when no statement is selected', async () => {
+      vi.mocked(depositETH).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Funds Added')).toBeInTheDocument()
+      })
+      expect(attestNoteIntent).not.toHaveBeenCalled()
+    })
+
+    it('shows statement options in autocomplete', async () => {
+      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
+
+      render(<DepositPage />)
+
+      const autocomplete = screen.getByLabelText(/intended statement/i)
+      fireEvent.mouseDown(autocomplete)
+
+      await waitFor(() => {
+        expect(screen.getByText(/universal basic income/i)).toBeInTheDocument()
+      })
+    })
+
+    it('shows statement excerpt in autocomplete options', async () => {
+      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
+
+      render(<DepositPage />)
+
+      const autocomplete = screen.getByLabelText(/intended statement/i)
+      fireEvent.mouseDown(autocomplete)
+
+      await waitFor(() => {
+        expect(screen.getByText(/every citizen should receive/i)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Statement autocomplete loading', () => {
+    it('shows loading spinner while statements are fetching', () => {
+      vi.mocked(browseStatementsByNewest).mockReturnValue(new Promise(() => {}))
+
+      render(<DepositPage />)
+
+      expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    })
+  })
+
+  describe('Edge cases', () => {
+    it('shows error when wallet is not connected during submit', async () => {
+      vi.mocked(useAccount).mockReturnValue({ address: undefined } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: undefined } as any)
+
+      render(<DepositPage />)
+
+      // Should show connect wallet message, not form
+      expect(screen.getByText(/connect your wallet/i)).toBeInTheDocument()
+    })
+
+    it('shows error when contract address is not configured', async () => {
+      vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', '')
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/wallet not connected or contract not configured/i)).toBeInTheDocument()
+      })
+
+      vi.unstubAllEnvs()
+    })
+
+    it('shows error for zero amount', async () => {
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/please enter a valid amount/i)).toBeInTheDocument()
+      })
+    })
+
+    it('handles non-Error exception during deposit', async () => {
+      vi.mocked(depositETH).mockRejectedValue('String error')
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Deposit failed')).toBeInTheDocument()
+      })
+    })
+
+    it('clears error alert when close button is clicked', async () => {
+      vi.mocked(depositETH).mockRejectedValue(new Error('Transaction rejected'))
+
+      render(<DepositPage />)
+      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
+
+      await waitFor(() => {
+        const alert = screen.getByText('Transaction rejected').closest('[role="alert"]')
+        expect(alert).toBeInTheDocument()
+        const closeButton = alert!.querySelector('button[aria-label="Close"]') as HTMLElement
+        fireEvent.click(closeButton)
+      })
+
+      expect(screen.queryByText('Transaction rejected')).not.toBeInTheDocument()
     })
   })
 })

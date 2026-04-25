@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MyNotesPage } from './MyNotesPage'
 
@@ -15,8 +15,6 @@ vi.mock('wagmi', () => ({
   useWalletClient: vi.fn(() => ({ data: null })),
   usePublicClient: vi.fn(() => null),
 }))
-
-// Mock the SDK functions
 vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
@@ -31,11 +29,15 @@ vi.mock('@commonality/sdk', async () => {
   }
 })
 
-import { useAccount } from 'wagmi'
+import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   createSDKMachinery,
   getNotesByOwner,
   getNotesByRoot,
+  getDelegationChain,
+  delegateNote,
+  revokeNote,
+  reclaimFunds,
 } from '@commonality/sdk'
 
 const mockMachinery = {} as any
@@ -299,6 +301,271 @@ describe('MyNotesPage', () => {
         const delegateCard = screen.getByText('Acting as Delegate').closest('div')
         expect(delegateCard).toHaveTextContent('2')
       })
+    })
+  })
+
+  describe('Delegate action flow', () => {
+    const userAddress = '0x1111111111111111111111111111111111111111'
+    const delegateAddress = '0x2222222222222222222222222222222222222222'
+
+    beforeEach(() => {
+      vi.mocked(useAccount).mockReturnValue({ address: userAddress } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+    })
+
+    it('opens delegate dialog when Delegate button is clicked', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()] as any)
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Delegate' })).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/delegate fund #1/i)).toBeInTheDocument()
+      })
+    })
+
+    it('shows address and amount inputs in delegate dialog', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()] as any)
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/delegate to address/i)).toBeInTheDocument()
+        expect(screen.getByLabelText(/amount \(eth\)/i)).toBeInTheDocument()
+      })
+    })
+
+    it('pre-fills amount with note balance in delegate dialog', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote({ amount: '3000000000000000000' })] as any)
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+      })
+
+      await waitFor(() => {
+        const amountInput = screen.getByLabelText(/amount \(eth\)/i) as HTMLInputElement
+        // Verify the input has a value (format may vary)
+        expect(amountInput.value).not.toBe('')
+        expect(amountInput.value).not.toBe('1.0') // Should not be default
+      })
+    })
+
+    it('calls delegateNote with correct parameters on submit', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()] as any)
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getDelegationChain).mockResolvedValue([
+        { address: userAddress, position: 0, createdAt: '1700000000' },
+      ])
+      vi.mocked(delegateNote).mockResolvedValue({ hash: '0xdelegate' } as any)
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+      })
+
+      const addressInput = screen.getByLabelText(/delegate to address/i)
+      fireEvent.change(addressInput, { target: { value: delegateAddress } })
+
+      const submitButton = screen.getByRole('button', { name: 'Delegate' })
+      fireEvent.click(submitButton)
+
+      await waitFor(() => {
+        expect(delegateNote).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Object),
+          expect.objectContaining({
+            noteId: 1n,
+            owners: [userAddress],
+            delegateTo: delegateAddress,
+            amount: 1000000000000000000n,
+          })
+        )
+      })
+    })
+
+    it('shows error alert when delegation fails', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()] as any)
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getDelegationChain).mockResolvedValue([
+        { address: userAddress, position: 0, createdAt: '1700000000' },
+      ])
+      vi.mocked(delegateNote).mockRejectedValue(new Error('Delegation reverted'))
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+      })
+
+      const addressInput = screen.getByLabelText(/delegate to address/i)
+      fireEvent.change(addressInput, { target: { value: delegateAddress } })
+      fireEvent.click(screen.getByRole('button', { name: 'Delegate' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Delegation reverted')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Revoke action flow', () => {
+    const userAddress = '0x1111111111111111111111111111111111111111'
+    const delegateAddress = '0x2222222222222222222222222222222222222222'
+
+    beforeEach(() => {
+      vi.mocked(useAccount).mockReturnValue({ address: userAddress } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+    })
+
+    it('calls revokeNote when Revoke button is clicked', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([
+        makeNote({
+          rootOwner: userAddress,
+          owner: delegateAddress,
+        }),
+      ] as any)
+      vi.mocked(getDelegationChain).mockResolvedValue([
+        { address: userAddress, position: 0, createdAt: '1700000000' },
+        { address: delegateAddress, position: 1, createdAt: '1700000001' },
+      ])
+      vi.mocked(revokeNote).mockResolvedValue({ hash: '0xrevoke' } as any)
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Revoke' })).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Revoke' }))
+
+      await waitFor(() => {
+        expect(revokeNote).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Object),
+          expect.objectContaining({
+            noteId: 1n,
+            owners: [delegateAddress, userAddress],
+          })
+        )
+      })
+    })
+
+    it('shows error alert when revocation fails', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([
+        makeNote({
+          rootOwner: userAddress,
+          owner: delegateAddress,
+        }),
+      ] as any)
+      vi.mocked(getDelegationChain).mockResolvedValue([
+        { address: userAddress, position: 0, createdAt: '1700000000' },
+        { address: delegateAddress, position: 1, createdAt: '1700000001' },
+      ])
+      vi.mocked(revokeNote).mockRejectedValue(new Error('Revocation reverted'))
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Revoke' }))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByText('Revocation reverted')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Reclaim action flow', () => {
+    const userAddress = '0x1111111111111111111111111111111111111111'
+
+    beforeEach(() => {
+      vi.mocked(useAccount).mockReturnValue({ address: userAddress } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+    })
+
+    it('calls reclaimFunds when Reclaim button is clicked', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([makeNote()] as any)
+      vi.mocked(reclaimFunds).mockResolvedValue({ hash: '0xreclaim' } as any)
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Reclaim' })).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Reclaim' }))
+
+      await waitFor(() => {
+        expect(reclaimFunds).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Object),
+          1n
+        )
+      })
+    })
+
+    it('shows error alert when reclaim fails', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([makeNote()] as any)
+      vi.mocked(reclaimFunds).mockRejectedValue(new Error('Reclaim reverted'))
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Reclaim' }))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByText('Reclaim reverted')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Action error dismissal', () => {
+    const userAddress = '0x1111111111111111111111111111111111111111'
+
+    beforeEach(() => {
+      vi.mocked(useAccount).mockReturnValue({ address: userAddress } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+    })
+
+    it('clears error alert when close button is clicked', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([makeNote()] as any)
+      vi.mocked(reclaimFunds).mockRejectedValue(new Error('Reclaim reverted'))
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Reclaim' }))
+      })
+
+      await waitFor(() => {
+        const alert = screen.getByText('Reclaim reverted').closest('[role="alert"]')
+        expect(alert).toBeInTheDocument()
+        const closeButton = alert!.querySelector('button[aria-label="Close"]') as HTMLElement
+        fireEvent.click(closeButton)
+      })
+
+      expect(screen.queryByText('Reclaim reverted')).not.toBeInTheDocument()
     })
   })
 })
