@@ -1,5 +1,65 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-24 - Improve UI test coverage: AttestAlignmentForm + AlignedProjectCard (Completed)
+
+**Task**: Improve UI test coverage for funding-portal components that were previously untested: AttestAlignmentForm and AlignedProjectCard.
+
+**What was done**:
+- Added `ui/src/fundingportal/components/AttestAlignmentForm.test.tsx` (18 tests) covering:
+  - Returns null when wallet not connected
+  - Shows "Vouch for a Project" button when wallet connected
+  - Opens form when button clicked
+  - Shows "Cancel" button when form is open
+  - Closes form when Cancel is clicked
+  - Shows loading spinner while projects are loading
+  - Shows project options when loaded (with recipient address)
+  - Submit button disabled when no address entered
+  - Submit button disabled when invalid address entered
+  - Submit button enabled when project selected from dropdown
+  - Shows error when wallet clients not available
+  - Shows error when contract not configured
+  - Shows submitting state while attestation in progress
+  - Shows success message after successful attestation
+  - Shows error message on attestation failure
+  - Resets form state after successful submission
+  - Clears success message when reopening form
+- Added `ui/src/fundingportal/components/AlignedProjectCard.test.tsx` (19 tests) covering:
+  - Shows project name from metadata when available
+  - Shows truncated address when no metadata available
+  - Links to project detail page
+  - Shows "Direct" alignment chip
+  - Shows "Indirect" alignment chip
+  - Shows 0% progress when no funds received
+  - Shows 50% progress when half funded
+  - Shows 100% progress when fully funded
+  - Caps progress bar at 100% when overfunded (text shows actual percentage)
+  - Shows 0% when threshold is zero
+  - Shows no content funding badge when project is not a content funding contract
+  - Shows "Content Funding" badge when project has content funding info
+  - Shows "Fan-created" chip for third-party contracts
+  - Shows channel display name for Twitter (@handle), YouTube (channel ID), Substack (subdomain.substack.com)
+  - Shows content item count when greater than zero
+  - Shows contract status chip
+  - Shows channel status label
+
+**Key decisions**:
+- AttestAlignmentForm tests use lowercase addresses (`0xbbbb...`) because viem's `isAddress` function rejects uppercase addresses that aren't valid checksums.
+- MUI Autocomplete with `freeSolo` mode requires clicking on the option in the listbox (not typing) to properly trigger the `onChange` handler in tests.
+- The `useContentFundingState` hook mock requires a complete return object including `state`, `channels`, `loading`, `error`, `projects`, `contentAttestations`, `vetoedEvents`, and `machinery`.
+- AlignedProjectCard tests mock `getProjectStatus` from `pubstarter/utils` to control status chip rendering.
+
+**Verified**:
+- `npx vitest run src/fundingportal/components/AttestAlignmentForm.test.tsx src/fundingportal/components/AlignedProjectCard.test.tsx` ✓ (37 tests: 18 + 19)
+
+**Files changed**:
+- `ui/src/fundingportal/components/AttestAlignmentForm.test.tsx` (new, 18 tests)
+- `ui/src/fundingportal/components/AlignedProjectCard.test.tsx` (new, 19 tests)
+- `CONTINUITY.md`
+- `TODO.md`
+
+**Interrupt point**: Yes. 37 new tests added across two funding-portal components. Remaining gaps from TODO.md include: cross-domain smoke tests, mobile/responsive AppShell tests, E2E for non-default domains, accessibility assertions, delegation/mutable-ref edge cases, conceptspace edge cases, and coverage inventory documentation.
+
+
 ## 2026-04-24 - Improve UI test coverage: ClaimFlowModal + ContentFundingProjectSection (Completed)
 
 **Task**: Improve UI test coverage for content-funding components that were previously untested: ClaimFlowModal and ContentFundingProjectSection.
