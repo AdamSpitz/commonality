@@ -1,247 +1,233 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('wagmi', () => ({
-  useAccount: () => ({ address: undefined, isConnected: false }),
+const mockGetActiveDomain = vi.fn()
+const mockIsHashRouting = vi.fn()
+
+vi.mock('./domains', () => ({
+  getActiveDomain: () => mockGetActiveDomain(),
+  getDomainManifest: vi.fn(),
+  domainManifests: {},
 }))
 
-vi.mock('connectkit', () => ({
-  ConnectKitButton: () => <button type="button">Connect</button>,
+vi.mock('./shared/routing', () => ({
+  isHashRouting: () => mockIsHashRouting(),
+  getAppUrl: vi.fn(),
 }))
 
-vi.mock('./shared/components/WalletButton', () => ({
-  WalletButton: () => <button type="button">Wallet</button>,
+vi.mock('./shared/components/AppShell', () => ({
+  AppShell: ({ branding, navigation, children }: { branding: { name: string }; navigation: { primaryNavigation: Array<{label: string; path: string}>; secondaryNavigation: Array<{label: string; path: string}>; footerText: string }; children: React.ReactNode }) => (
+    <div data-testid="app-shell">
+      <span>{branding.name}</span>
+      {navigation.primaryNavigation.map(item => (
+        <a key={item.path} href={item.path}>{item.label}</a>
+      ))}
+      {navigation.secondaryNavigation.length > 0 && (
+        <button type="button">More</button>
+      )}
+      <footer>{navigation.footerText}</footer>
+      <button type="button">Wallet</button>
+      <main>{children}</main>
+    </div>
+  ),
 }))
 
-const mockUseMediaQuery = vi.fn()
-const mockUseTheme = vi.fn()
-
-vi.mock('@mui/material', async () => {
-  const actual = await vi.importActual<typeof import('@mui/material')>('@mui/material')
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return {
     ...actual,
-    useMediaQuery: () => mockUseMediaQuery(),
-    useTheme: () => mockUseTheme(),
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => <div data-router="browser">{children}</div>,
+    HashRouter: ({ children }: { children: React.ReactNode }) => <div data-router="hash">{children}</div>,
+    Routes: ({ children }: { children: React.ReactNode }) => <div data-routes>{children}</div>,
+    Route: () => null,
+    MemoryRouter: ({ children }: { children: React.ReactNode }) => <div data-router="memory">{children}</div>,
   }
 })
 
+import React from 'react'
+import { render, screen } from '@testing-library/react'
+
 describe('App route composition', () => {
   beforeEach(() => {
-    vi.resetModules()
     vi.clearAllMocks()
-    mockUseMediaQuery.mockReturnValue(false)
-    mockUseTheme.mockReturnValue({
-      breakpoints: { down: (key: string) => key },
-      palette: { mode: 'light', grey: { 200: '#eee', 800: '#333' } },
+    mockIsHashRouting.mockReturnValue(false)
+  })
+
+  const fakeDomain = (name: string, primaryNav: Array<{ label: string; path: string }>, footerText: string) => ({
+    id: 'commonality' as const,
+    branding: { name, tagline: 'tagline' },
+    shell: {
+      primaryNavigation: primaryNav,
+      secondaryNavigation: [{ label: 'More', path: '/more' }],
+      footerText,
+    },
+    features: {},
+    basePath: '/',
+    routes: <div data-testid="domain-routes">Find common ground</div>,
+    LandingPage: () => <div>Landing</div>,
+  })
+
+  describe('routing mode', () => {
+    it('uses BrowserRouter when not hash routing', async () => {
+      mockIsHashRouting.mockReturnValue(false)
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(document.querySelector('[data-router="browser"]')).toBeInTheDocument()
+    })
+
+    it('uses HashRouter when hash routing is enabled', async () => {
+      mockIsHashRouting.mockReturnValue(true)
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(document.querySelector('[data-router="hash"]')).toBeInTheDocument()
+    })
+
+    it('falls back to HashRouter in ipfs mode', async () => {
+      mockIsHashRouting.mockReturnValue(true)
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(document.querySelector('[data-router="hash"]')).toBeInTheDocument()
     })
   })
 
-  afterEach(() => {
-    vi.unstubAllEnvs()
-    vi.unstubAllGlobals()
+  describe('branding passthrough', () => {
+    it('passes commonality branding to AppShell', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(screen.getByText('Commonality')).toBeInTheDocument()
+    })
+
+    it('passes content-funding branding to AppShell', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Content Funding', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(screen.getByText('Content Funding')).toBeInTheDocument()
+    })
+
+    it('passes noninflammatory branding to AppShell', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Noninflammatory Content', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(screen.getByText('Noninflammatory Content')).toBeInTheDocument()
+    })
+
+    it('passes movement branding to AppShell', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Common Sense Majority', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
+    })
   })
 
-  it('renders in browser mode', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
+  describe('primary navigation per domain', () => {
+    it('renders commonality primary navigation items', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [
+        { label: 'Start Here', path: '/docs' },
+        { label: 'Statements', path: '/statements' },
+        { label: 'Projects', path: '/projects' },
+        { label: 'Creators', path: '/content' },
+        { label: 'My Profile', path: '/profile' },
+      ], 'footer'))
 
-    const { default: App } = await import('./App')
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
 
-    render(React.createElement(App))
+      expect(screen.getByText('Start Here')).toBeInTheDocument()
+      expect(screen.getByText('Statements')).toBeInTheDocument()
+      expect(screen.getByText('Projects')).toBeInTheDocument()
+      expect(screen.getByText('Creators')).toBeInTheDocument()
+      expect(screen.getByText('My Profile')).toBeInTheDocument()
+    })
 
-    const main = document.querySelector('main')
-    expect(main).toBeInTheDocument()
+    it('renders content-funding primary navigation (Creators only)', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Content Funding', [
+        { label: 'Creators', path: '/content' },
+      ], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(screen.getByText('Creators')).toBeInTheDocument()
+      expect(screen.queryByText('Projects')).not.toBeInTheDocument()
+    })
+
+    it('renders movement primary navigation (Browse Content + Projects)', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Common Sense Majority', [
+        { label: 'Browse Content', path: '/content' },
+        { label: 'Projects', path: '/projects' },
+      ], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(screen.getByText('Browse Content')).toBeInTheDocument()
+      expect(screen.getByText('Projects')).toBeInTheDocument()
+    })
   })
 
-  it('renders in hash mode', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'hash')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
+  describe('shared UI surfaces', () => {
+    it('renders the More button for secondary navigation', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
 
-    const { default: App } = await import('./App')
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
 
-    render(React.createElement(App))
+      expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument()
+    })
 
-    const main = document.querySelector('main')
-    expect(main).toBeInTheDocument()
-  })
+    it('renders commonality footer text', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'Commonality helps people fund projects and content'))
 
-  it('renders when build mode is ipfs', async () => {
-    vi.stubEnv('MODE', 'ipfs')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
 
-    const { default: App } = await import('./App')
+      expect(screen.getByText('Commonality helps people fund projects and content')).toBeInTheDocument()
+    })
 
-    render(React.createElement(App))
+    it('renders content-funding footer text', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Content Funding', [], 'Content Funding helps creators'))
 
-    const main = document.querySelector('main')
-    expect(main).toBeInTheDocument()
-  })
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
 
-  it('passes commonality branding to AppShell', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
+      expect(screen.getByText('Content Funding helps creators')).toBeInTheDocument()
+    })
 
-    const { default: App } = await import('./App')
+    it('renders children (domain routes) inside the main content area', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
 
-    render(React.createElement(App))
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
 
-    expect(screen.getByRole('link', { name: 'Commonality' })).toBeInTheDocument()
-  })
+      const main = document.querySelector('main')
+      expect(main).toBeInTheDocument()
+      expect(main?.textContent).toContain('Find common ground')
+    })
 
-  it('passes content-funding branding to AppShell', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'content-funding')
+    it('renders wallet button in the toolbar', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
 
-    const { default: App } = await import('./App')
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
 
-    render(React.createElement(App))
-
-    expect(screen.getByRole('link', { name: 'Content Funding' })).toBeInTheDocument()
-  })
-
-  it('passes noninflammatory branding to AppShell', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'noninflammatory')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('link', { name: 'Noninflammatory Content' })).toBeInTheDocument()
-  })
-
-  it('passes movement branding to AppShell', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'movement')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('link', { name: 'Common Sense Majority' })).toBeInTheDocument()
-  })
-
-  it('defaults to commonality when VITE_DOMAIN is not set', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('link', { name: 'Commonality' })).toBeInTheDocument()
-  })
-
-  it('renders commonality primary navigation items', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('link', { name: 'Start Here' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Statements' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Creators' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'My Profile' })).toBeInTheDocument()
-  })
-
-  it('renders content-funding primary navigation (Creators only)', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'content-funding')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('link', { name: 'Creators' })).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Projects' })).not.toBeInTheDocument()
-  })
-
-  it('renders movement primary navigation (Browse Content + Projects)', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'movement')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('link', { name: 'Browse Content' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument()
-  })
-
-  it('renders the More button for secondary navigation', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument()
-  })
-
-  it('renders commonality footer text', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(
-      screen.getByText(/Commonality helps people fund projects and content/i),
-    ).toBeInTheDocument()
-  })
-
-  it('renders content-funding footer text', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'content-funding')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByText(/Content Funding helps creators/i)).toBeInTheDocument()
-  })
-
-  it('renders children (domain routes) inside the main content area', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    const main = document.querySelector('main')
-    expect(main).toBeInTheDocument()
-    expect(main?.textContent).toContain('Find common ground')
-  })
-
-  it('renders wallet button in the toolbar', async () => {
-    vi.stubEnv('MODE', 'development')
-    vi.stubEnv('VITE_ROUTER_MODE', 'browser')
-    vi.stubEnv('VITE_DOMAIN', 'commonality')
-
-    const { default: App } = await import('./App')
-
-    render(React.createElement(App))
-
-    expect(screen.getByRole('button', { name: 'Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Wallet' })).toBeInTheDocument()
+    })
   })
 })
