@@ -16,6 +16,7 @@
 - **Gap:** External link `target="_blank"` behavior untestable — no included doc (`docs/` minus `vision-and-strategy/` and `chats/`) contains external URLs. Would need a test-only fixture or doc with an external link.
 
 ### Shared Infrastructure
+- `App` (16 tests — browser/hash/ipfs routing modes, domain branding passthrough for all 4 domains, default domain fallback, primary navigation rendering per domain, footer text, wallet button, children/route rendering)
 - `AppShell` (32 tests — branding, primary/secondary navigation, More menu, footer, selected state, mobile drawer open/close, primary and secondary nav in drawer, selected-state behavior in drawer, custom navigation in drawer)
 - `AddressDisplay` (9 tests — ENS name, Twitter handle, raw address fallback, showFullAddress, twitterHandleHint)
 - `routing.test.ts` (IPFS-mode hash routing fallback)

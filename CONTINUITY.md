@@ -1,5 +1,47 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Add top-level App route composition tests (Completed)
+
+**Task**: Add direct tests for top-level route composition around `App` (from TODO.md).
+
+**What was done**:
+- Added `ui/src/App.test.tsx` (16 tests) covering:
+  - Rendering in browser mode (BrowserRouter)
+  - Rendering in hash mode (HashRouter)
+  - Rendering when build mode is ipfs (HashRouter fallback)
+  - Commonality branding passthrough to AppShell
+  - Content-funding branding passthrough to AppShell
+  - Noninflammatory branding passthrough to AppShell
+  - Movement branding passthrough to AppShell
+  - Default domain (commonality) when VITE_DOMAIN is not set
+  - Commonality primary navigation items (Start Here, Statements, Projects, Creators, My Profile)
+  - Content-funding primary navigation (Creators only, no Projects)
+  - Movement primary navigation (Browse Content + Projects)
+  - More button for secondary navigation
+  - Commonality footer text
+  - Content-funding footer text
+  - Children (domain routes) rendered inside main content area
+  - Wallet button rendered in toolbar
+
+**Key decisions**:
+- Tests use `vi.resetModules()` + dynamic `import()` to re-import the App module with different env var stubs, since `routing.ts` and `domains/index.ts` capture env vars at module load time.
+- Mocked `WalletButton`, `connectkit`, and `wagmi` to avoid ConnectKit provider requirement.
+- Mocked `@mui/material`'s `useMediaQuery` and `useTheme` to force desktop mode (matching AppShell.test.tsx pattern).
+- Nav items render as `<a>` elements (via `component={Link}`), so tests query by role `link` not `button`.
+- Movement domain uses "Browse Content" label (not "Creators") in its primary navigation.
+
+**Verified**:
+- `npx vitest run src/App.test.tsx` ✓ (16 tests)
+
+**Files changed**:
+- `ui/src/App.test.tsx` (new, 16 tests)
+- `TODO.md` (marked App route composition item complete)
+- `ui/test-plan.md` (added App coverage to shared infrastructure section)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. App route composition tests are complete. Remaining gaps from TODO.md include: IPFS/hash routing E2E, content-funding full loop E2E, non-default domain E2E, accessibility assertions, and coverage inventory automation.
+
+
 ## 2026-04-25 - Expand domain-wrapper UI tests (Completed)
 
 **Task**: Expand domain-wrapper tests beyond each landing page and one creators page: for Content Funding, Noninflammatory Content, and Common Sense Majority, cover branded browse, channel, create-contract, dashboard, contract-detail, and movement project wrapper copy/link behavior where those wrappers exist.
