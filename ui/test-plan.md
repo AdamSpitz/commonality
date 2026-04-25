@@ -22,6 +22,10 @@
 - `DomainLandingPage` (18 tests — hero section with eyebrow/title/description/action links, spotlight label/text conditional rendering, section cards with titles/descriptions/CTAs/eyebrows, children rendering, hero action variants, empty states)
 - `PrivyWalletButtonImpl` (14 tests — sign-in before auth, loading while initializing, embedded wallet sync to wagmi, connected address menu, logout, link another wallet, create wallet state, address truncation, wagmi address preference, wallet readiness, menu close behavior, full address display, setActiveWallet error handling, embedded vs external wallet preference)
 - `CreatorsLandingPage` (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links and descriptions, learn more link, h1/h6 heading structure, clickable navigation)
+- `CommonalityLandingPage` (13 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows, focused domain entry points with three domain cards)
+- `ContentFundingLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
+- `NoninflammatoryLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
+- `MovementLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
 - `routing.test.ts` (IPFS-mode hash routing fallback)
 - `domainRoutes.test.tsx` (all four domain manifests)
 - `ContentPages.test.tsx` (content-funding and noninflammatory branded wrappers)
@@ -44,7 +48,7 @@
 - `SecondaryMarketSection` (sale listings, buy orders, create order form, fulfill actions, token images)
 - `TradeHistory` (accordion rendering, trade details table)
 - `WithdrawSection` (withdraw flow, error/success states)
-- `ConnectWalletPrompt` (wallet prompt message)
+- `ConnectWalletPrompt` (4 tests — wallet prompt message, Paper wrapper, typography styling, padding/margin styles)
 
 ### Funding Portal
 - `AttestAlignmentForm` (18 tests)

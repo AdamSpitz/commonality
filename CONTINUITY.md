@@ -1,5 +1,69 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Add Domain LandingPage tests, strengthen ConnectWalletPrompt and DocsPage tests (Completed)
+
+**Task**: Improve UI test coverage by adding tests for the 4 domain LandingPage components and strengthening weak assertions in ConnectWalletPrompt and DocsPage tests.
+
+**What was done**:
+
+### 1. Added Domain LandingPage tests (43 tests total)
+- Added `ui/src/domains/commonality/LandingPage.test.tsx` (13 tests) covering:
+  - Hero section: eyebrow, title (as h1), description, spotlight label as chip, spotlight text
+  - Hero action links with correct hrefs (/docs, /statements, /projects)
+  - Section cards: titles (via h6 headings), descriptions, CTA links with href verification, eyebrows
+  - Focused domain entry points: h5 heading, three domain cards (Content Funding, Noninflammatory Content, Common Sense Majority), descriptions
+- Added `ui/src/domains/content-funding/LandingPage.test.tsx` (10 tests) covering:
+  - Hero section: eyebrow, title (as h1), description, spotlight label as chip, spotlight text
+  - Hero action links with correct hrefs (/content, /statements, /content/dashboard)
+  - Section cards: titles, descriptions, CTA links with href verification, eyebrows
+- Added `ui/src/domains/noninflammatory/LandingPage.test.tsx` (10 tests) covering:
+  - Hero section: eyebrow, title (as h1), description, spotlight label as chip, spotlight text
+  - Hero action links with correct hrefs (/content, /content/dashboard, /about)
+  - Section cards: titles, descriptions, CTA links with href verification, eyebrows
+- Added `ui/src/domains/movement/LandingPage.test.tsx` (10 tests) covering:
+  - Hero section: eyebrow, title (as h1), description, spotlight label as chip, spotlight text
+  - Hero action links with correct hrefs (/organize, /content, /projects, /statements)
+  - Section cards: titles, descriptions, CTA links with href verification, eyebrows
+
+**Key decisions**:
+- Tests use `getAllByRole('link')` and check hrefs rather than `getByRole('link', { name: ... })` because the same link text appears in both hero actions and section cards (e.g., "Browse statements" appears in both places), causing "multiple elements found" errors.
+- Tests verify domain-specific copy and routing to ensure each landing page renders its unique content correctly.
+
+### 2. Strengthened ConnectWalletPrompt tests (4 tests, up from 1)
+- Added to `ui/src/pubstarter/components/ConnectWalletPrompt.test.tsx`:
+  - Renders message inside a Paper component (verifies wrapper structure)
+  - Renders message with body1 typography variant (verifies styling)
+  - Applies padding and margin-bottom styles to Paper (verifies layout)
+
+**Key decisions**:
+- Tests use `.MuiPaper-root` class query and `.toHaveStyle()` for layout assertions.
+- MUI's `color="text.secondary"` prop doesn't produce a predictable class name in tests, so we verify `MuiTypography-body1` instead.
+
+### 3. Strengthened DocsPage test assertions
+- Updated `ui/src/docs/DocsPage.test.tsx` to replace vague `length > 0` assertions with specific content checks:
+  - Headings test now verifies specific heading texts ("Commonality", "See it in action")
+  - Paragraphs test now verifies specific content ("Commonality lets people crowdfund projects and content")
+  - Lists test now verifies specific list item text ("Supporting the kind of political writing")
+  - Internal links test now verifies specific hrefs (/docs/use-case-walkthroughs/noninflammatory-content, /docs/use-case-walkthroughs/common-sense-majority)
+  - Inline code test now verifies specific code content ("cast" or "ethers")
+
+**Verified**:
+- `npm run test:vitest --workspace=ui -- --run` ✓ (1317 tests: 74 files, up from 1271 tests in 70 files)
+
+**Files changed**:
+- `ui/src/domains/commonality/LandingPage.test.tsx` (new, 13 tests)
+- `ui/src/domains/content-funding/LandingPage.test.tsx` (new, 10 tests)
+- `ui/src/domains/noninflammatory/LandingPage.test.tsx` (new, 10 tests)
+- `ui/src/domains/movement/LandingPage.test.tsx` (new, 10 tests)
+- `ui/src/pubstarter/components/ConnectWalletPrompt.test.tsx` (expanded, +3 tests)
+- `ui/src/docs/DocsPage.test.tsx` (strengthened assertions)
+- `ui/test-plan.md` (updated Shared Infrastructure section with new LandingPage tests, updated ConnectWalletPrompt count)
+- `TODO.md` (updated domain landing pages and ConnectWalletPrompt test counts)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Four domain LandingPage components now have direct test coverage. ConnectWalletPrompt and DocsPage tests have stronger assertions. Remaining gaps from TODO.md include: IPFS/hash routing E2E, content-funding full loop E2E, non-default domain E2E, coverage inventory automation, and reviewing cross-domain smoke tests/domain-wrapper tests for assertion quality.
+
+
 ## 2026-04-25 - Add CreatorsLandingPage, expand PrivyWalletButtonImpl tests, add accessibility assertions (Completed)
 
 **Task**: Improve UI test coverage by adding CreatorsLandingPage tests, expanding PrivyWalletButtonImpl tests, and adding accessibility-oriented assertions.

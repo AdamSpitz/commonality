@@ -44,6 +44,9 @@ describe('DocsPage', () => {
 
     const headings = screen.getAllByRole('heading')
     expect(headings.length).toBeGreaterThan(0)
+    const headingTexts = headings.map(h => h.textContent)
+    expect(headingTexts).toContain('Commonality')
+    expect(headingTexts).toContain('See it in action')
   })
 
   it('renders markdown paragraphs as body text', () => {
@@ -53,6 +56,7 @@ describe('DocsPage', () => {
 
     const paragraphs = screen.getAllByRole('paragraph')
     expect(paragraphs.length).toBeGreaterThan(0)
+    expect(screen.getByText(/Commonality lets people crowdfund projects and content/i)).toBeInTheDocument()
   })
 
   it('renders markdown lists', () => {
@@ -62,6 +66,7 @@ describe('DocsPage', () => {
 
     const lists = screen.getAllByRole('list')
     expect(lists.length).toBeGreaterThan(0)
+    expect(screen.getByText(/Supporting the kind of political writing/i)).toBeInTheDocument()
   })
 
   it('renders internal doc links as router links', () => {
@@ -75,6 +80,9 @@ describe('DocsPage', () => {
       return href?.startsWith('/docs/') || href?.startsWith('#')
     })
     expect(internalLinks.length).toBeGreaterThan(0)
+    const hrefs = internalLinks.map(l => l.getAttribute('href'))
+    expect(hrefs).toContain('/docs/use-case-walkthroughs/noninflammatory-content')
+    expect(hrefs).toContain('/docs/use-case-walkthroughs/common-sense-majority')
   })
 
   it('renders inline code elements', () => {
@@ -84,6 +92,8 @@ describe('DocsPage', () => {
 
     const codeElements = container.querySelectorAll('code')
     expect(codeElements.length).toBeGreaterThan(0)
+    const codeTexts = Array.from(codeElements).map(c => c.textContent)
+    expect(codeTexts.some(t => t?.includes('cast') || t?.includes('ethers'))).toBe(true)
   })
 
   it('renders key-ideas docs', () => {
