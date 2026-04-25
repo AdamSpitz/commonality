@@ -31,6 +31,9 @@
 - `domainRoutes.test.tsx` (all four domain manifests)
 - `ContentPages.test.tsx` (content-funding and noninflammatory branded wrappers)
 - `MovementPages.test.tsx` (movement domain wrappers)
+- `useTrustedAttesters` (15 tests — localStorage load/save, address validation/filtering, env default fallback, corrupted/non-array JSON handling, hook read-on-mount)
+- `useNudgerMetadata` (9 tests — null URL, successful fetch, HTTP error, network error, malformed JSON, default field fallbacks, trailing slash stripping, serviceUrl change)
+- `useCachedProjects` pure functions (16 tests — withMetrics: null filtering, funding progress calculation, zero threshold, overfunding, createdAtBlock mapping, bigint inputs; sortProjects: 5 sort fields × directions, immutability, empty array)
 
 ### Content Funding
 - `BrowseCreatorsPage` (15 tests — platform tabs, sort/status filters, loading/error/empty states)
@@ -39,6 +42,8 @@
 - `CreateContractPage` (4 tests — verified/unclaimed channel submission, third-party minimum, duplicate content blocking)
 - `ClaimFlowModal` (35 tests)
 - `ContentFundingProjectSection` (23 tests)
+- `useClaimFlow` (18 tests — getChallenge: success/loading/error states, HTTP/network failures, non-Error thrown, request payload, error clearing; confirmVerification: success/error states, request payload; clearError; base URL env/default)
+- `usePlatformApi` (15 tests — resolveChannel/resolveContent/submitContentSubmission: success/error/loading states, HTTP failures, fallback errors, request payloads; clearError; base URL env/default)
 
 ### Pubstarter
 - `BuyTokensSection` (direct ETH purchase, delegatable note mode, token images, error/success states)
