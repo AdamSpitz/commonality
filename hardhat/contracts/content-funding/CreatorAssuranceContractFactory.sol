@@ -24,7 +24,6 @@ error ChannelCanonicalIdMismatch(bytes32 channelId, bytes32 canonicalChannelIdHa
 error ChannelNotVerifiedOrControlled(bytes32 channelId);
 error ChannelCreatorControlled(bytes32 channelId);
 error InsufficientThirdPartyPurchase();
-error InitialPurchaseValueMismatch();
 error ContentAlreadyRegisteredForContract(uint256 contentId);
 error InvalidInitialPurchaseIndex(uint256 index);
 error EmptyContentSuffix(uint256 index);
