@@ -1,5 +1,58 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Add pubstarter/utils.ts and useCachedProject tests (Completed)
+
+**Task**: Improve UI test coverage by adding tests for untested utility functions and hooks.
+
+**What was done**:
+
+### 1. Added tests for pubstarter/utils.ts (41 tests)
+- Added `ui/src/pubstarter/utils.test.ts` covering:
+  - **getProjectStatus** (5 tests): succeeded when totalReceived >= threshold, refunding when deadline passed, active when deadline not met, bigint inputs, deadline edge case (deadline == now returns 'active' since code uses `<` not `<=`)
+  - **STATUS_COLORS** (3 tests): active→info, succeeded→success, refunding→warning
+  - **STATUS_LABELS** (3 tests): active→Funding, succeeded→Succeeded, refunding→Refunding
+  - **formatRelativeDeadline** (7 tests): ended (past/now), minutes (<1h), hours+minutes (<1d), days+hours (>1d), exact boundaries (1h, 1d)
+  - **computeUserTokenBalance** (13 tests): undefined/empty address, no contributions, balance from contributions, refunds reduce balance, burns reduce balance, zero/negative balance filtering, other address filtering, address normalization, multiple contributions aggregation, default empty burns parameter
+  - **computeContributorStats** (10 tests): empty contributions, aggregation per address, refund aggregation, zero-net filtering, negative-net filtering, sorting by net descending, address normalization, currency default to ETH_CURRENCY, multiple addresses, refunds for different addresses
+
+**Key decisions**:
+- All tests use pure function calls — no mocking needed
+- ETH_CURRENCY is a Currency object (not a string address), so test uses `toEqual(ETH_CURRENCY)` not string comparison
+- Address normalization tests verify lowercase matching for both contributions and refunds
+
+### 2. Added tests for useCachedProject (13 tests)
+- Added `ui/src/shared/hooks/useCachedProject.test.ts` covering `loadProjectWithCache`:
+  - Returns null when projectAddress is empty
+  - Bypasses cache when machinery.eventCacheUrl is missing
+  - Bypasses cache when machinery.contractAddresses is missing
+  - Bypasses cache when cacheOptions.contractAddresses is missing
+  - Fetches from SDK when no cache exists
+  - Saves to cache after fresh fetch
+  - Uses cached accumulator when available (with initialAccumulator and blockNumber_gte)
+  - Updates cache when block number changes
+  - Does not update cache when block number unchanged
+  - Returns null when SDK returns null and no cache
+  - Returns null when SDK returns null but cache exists (cache doesn't help if SDK fails)
+  - Normalizes address to lowercase in cache key
+  - Throws when SDK call fails
+
+**Key decisions**:
+- Tests mock `../foldCache` (loadCachedProjectAccumulator, saveCachedProjectAccumulator) and `@commonality/sdk` (getProject)
+- Uses `vi.importActual` pattern to preserve other SDK exports while mocking getProject
+- PROJECT_FOLD_VERSION is mocked to 1 to match the current implementation
+
+**Verified**:
+- `npm run test:vitest --workspace=ui -- --run` ✓ (1526 tests: 83 files, up from 1414 tests in 81 files)
+
+**Files changed**:
+- `ui/src/pubstarter/utils.test.ts` (new, 41 tests)
+- `ui/src/shared/hooks/useCachedProject.test.ts` (new, 13 tests)
+- `ui/test-plan.md` (added pubstarter/utils.ts and useCachedProject to coverage inventory)
+- `TODO.md` (marked pubstarter/utils.ts and useCachedProject as done)
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. Two more modules now have test coverage (54 new tests total). Remaining gaps from TODO.md include: IPFS/hash routing E2E, non-default domain E2E, trust-filter states, leaderboard sorting/filtering, alignment-attestation submission/display, saved refs CRUD, conceptspace Settings nudger states, statement content submission states, coverage inventory automation.
+
 ## 2026-04-25 - Expand content-funding E2E + add route-to-test coverage inventory (Completed)
 
 **Task**: Improve UI test coverage by expanding the content-funding E2E flow and adding a route-to-test mapping documentation section.

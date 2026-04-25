@@ -34,6 +34,7 @@
 - `useTrustedAttesters` (15 tests — localStorage load/save, address validation/filtering, env default fallback, corrupted/non-array JSON handling, hook read-on-mount)
 - `useNudgerMetadata` (9 tests — null URL, successful fetch, HTTP error, network error, malformed JSON, default field fallbacks, trailing slash stripping, serviceUrl change)
 - `useCachedProjects` pure functions (16 tests — withMetrics: null filtering, funding progress calculation, zero threshold, overfunding, createdAtBlock mapping, bigint inputs; sortProjects: 5 sort fields × directions, immutability, empty array)
+- `useCachedProject` (13 tests — empty address, bypass cache when missing URLs/addresses, fresh fetch with cache save, cache hit with incremental fold, cache update on block change, no cache update when block unchanged, null handling, SDK error propagation)
 
 ### Content Funding
 - `BrowseCreatorsPage` (15 tests — platform tabs, sort/status filters, loading/error/empty states)
@@ -55,6 +56,7 @@
 - `TradeHistory` (accordion rendering, trade details table)
 - `WithdrawSection` (withdraw flow, error/success states)
 - `ConnectWalletPrompt` (4 tests — wallet prompt message, Paper wrapper, typography styling, padding/margin styles)
+- `utils.ts` (41 tests — getProjectStatus: succeeded/refunding/active states, bigint inputs, deadline edge cases; STATUS_COLORS/LABELS mappings; formatRelativeDeadline: ended/minutes/hours/days formatting; computeUserTokenBalance: contributions/refunds/burns aggregation, address filtering, zero/negative balance filtering, address normalization; computeContributorStats: aggregation, filtering, sorting, currency defaults)
 
 ### Funding Portal
 - `AttestAlignmentForm` (18 tests)
