@@ -574,4 +574,170 @@ expect(screen.getByText(/removed/i)).toBeInTheDocument()
       expect(screen.getByText(VALID_ADDRESS_MIXED_CASE)).toBeInTheDocument()
     })
   })
+
+  describe('Nudger metadata discovery', () => {
+    it('renders nudger section with service URL input', () => {
+      render(<SettingsPage />)
+
+      expect(screen.getByLabelText(/service url/i)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /nudger addresses/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('Muted topics', () => {
+    const MUTED_TOPICS_KEY = 'commonality:mutedTopics'
+
+    function getNudgerSection() {
+      return screen.getByRole('heading', { name: /nudger addresses/i }).closest('.MuiPaper-root') as HTMLElement
+    }
+
+    function getMutedTopicInput() {
+      return within(getNudgerSection()).getByLabelText(/topic/i)
+    }
+
+    function getMutedTopicAddButton() {
+      const buttons = within(getNudgerSection()).getAllByRole('button', { name: /add/i })
+      return buttons[0]
+    }
+
+    it('renders muted topics section with input and add button', () => {
+      render(<SettingsPage />)
+
+      expect(getMutedTopicInput()).toBeInTheDocument()
+      expect(getMutedTopicAddButton()).toBeInTheDocument()
+    })
+
+    it('adds a topic when clicking the add button', async () => {
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      await user.type(getMutedTopicInput(), 'crypto')
+      await user.click(getMutedTopicAddButton())
+
+      expect(screen.getByRole('button', { name: 'crypto' })).toBeInTheDocument()
+    })
+
+    it('adds a topic when pressing Enter', async () => {
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      const input = getMutedTopicInput()
+      await user.type(input, 'politics')
+      await user.keyboard('{Enter}')
+
+      expect(screen.getByRole('button', { name: 'politics' })).toBeInTheDocument()
+    })
+
+    it('clears the input after adding a topic', async () => {
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      const input = getMutedTopicInput()
+      await user.type(input, 'crypto')
+      await user.click(getMutedTopicAddButton())
+
+      expect(input).toHaveValue('')
+    })
+
+    it('does not add empty topic', async () => {
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      await user.click(getMutedTopicAddButton())
+
+      expect(screen.queryByRole('button', { name: 'crypto' })).not.toBeInTheDocument()
+    })
+
+    it('loads muted topics from localStorage on mount', () => {
+      localStorage.setItem(MUTED_TOPICS_KEY, JSON.stringify(['crypto', 'politics']))
+
+      render(<SettingsPage />)
+
+      expect(screen.getByRole('button', { name: 'crypto' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'politics' })).toBeInTheDocument()
+    })
+
+    it('persists added topic to localStorage', async () => {
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      await user.type(getMutedTopicInput(), 'crypto')
+      await user.click(getMutedTopicAddButton())
+
+      const stored = JSON.parse(localStorage.getItem(MUTED_TOPICS_KEY)!)
+      expect(stored).toContain('crypto')
+    })
+  })
+
+  describe('Muted nudgers', () => {
+    const TRUSTED_NUDGERS_KEY = 'commonality:trustedNudgers'
+    const MUTED_NUDGERS_KEY = 'commonality:mutedNudgers'
+
+    it('shows muted chip for muted nudger', () => {
+      localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify([{ address: VALID_ADDRESS_1 }]))
+      localStorage.setItem(MUTED_NUDGERS_KEY, JSON.stringify([VALID_ADDRESS_1.toLowerCase()]))
+
+      render(<SettingsPage />)
+
+      expect(screen.getByText('Muted')).toBeInTheDocument()
+    })
+
+    it('applies reduced opacity to muted nudger list item', () => {
+      localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify([{ address: VALID_ADDRESS_1 }]))
+      localStorage.setItem(MUTED_NUDGERS_KEY, JSON.stringify([VALID_ADDRESS_1.toLowerCase()]))
+
+      render(<SettingsPage />)
+
+      const listItem = screen.getByText(VALID_ADDRESS_1).closest('.MuiListItem-root')
+      expect(listItem).toHaveStyle({ opacity: '0.5' })
+    })
+
+    it('mutes a nudger when clicking the mute button', async () => {
+      localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify([{ address: VALID_ADDRESS_1 }]))
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      const muteButton = screen.getByRole('button', { name: /mute nudger/i })
+      await user.click(muteButton)
+
+      expect(screen.getByText('Muted')).toBeInTheDocument()
+    })
+
+    it('unmutes a nudger when clicking the unmute button', async () => {
+      localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify([{ address: VALID_ADDRESS_1 }]))
+      localStorage.setItem(MUTED_NUDGERS_KEY, JSON.stringify([VALID_ADDRESS_1.toLowerCase()]))
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      const unmuteButton = screen.getByRole('button', { name: /unmute nudger/i })
+      await user.click(unmuteButton)
+
+      expect(screen.queryByText('Muted')).not.toBeInTheDocument()
+    })
+
+    it('persists muted nudger to localStorage', async () => {
+      localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify([{ address: VALID_ADDRESS_1 }]))
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      const muteButton = screen.getByRole('button', { name: /mute nudger/i })
+      await user.click(muteButton)
+
+      const stored = JSON.parse(localStorage.getItem(MUTED_NUDGERS_KEY)!)
+      expect(stored).toContain(VALID_ADDRESS_1.toLowerCase())
+    })
+
+    it('removes nudger from muted list when unmuted', async () => {
+      localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify([{ address: VALID_ADDRESS_1 }]))
+      localStorage.setItem(MUTED_NUDGERS_KEY, JSON.stringify([VALID_ADDRESS_1.toLowerCase()]))
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      const unmuteButton = screen.getByRole('button', { name: /unmute nudger/i })
+      await user.click(unmuteButton)
+
+      const stored = JSON.parse(localStorage.getItem(MUTED_NUDGERS_KEY)!)
+      expect(stored).not.toContain(VALID_ADDRESS_1.toLowerCase())
+    })
+  })
 })

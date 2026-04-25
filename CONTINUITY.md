@@ -1,5 +1,34 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Expand ContentSubmissionForm and SettingsPage test coverage (Completed)
+
+**Task**: Improve UI test coverage for ContentSubmissionForm and SettingsPage components.
+
+**What was done**:
+
+### 1. Expanded ContentSubmissionForm tests (15 tests, up from 1)
+Added 14 new tests covering:
+- **Rendering**: form heading, description text, content URL input, perspective input, submit button
+- **Submission**: submits with URL and perspective, submits without perspective when empty, trims whitespace from URL and perspective, does not submit when URL is empty, does not submit when URL is only whitespace
+- **Success state**: clears form fields after successful submission, clears success message when user types in URL field
+- **Button disabled state**: disables submit button when URL is empty, disables submit button when URL is only whitespace, enables submit button when URL has content
+
+**Key decisions**:
+- MUI TextField labels are queried via `getByRole('textbox', { name: '...' })` not `getByLabel`
+- Form submission for empty URL tests uses `fireEvent.submit` on `document.querySelector('form')` since MUI Paper with `component="form"` doesn't expose `role="form"`
+- Loading/error state tests were removed because `usePlatformApi` mock returns static `isLoading`/`error` values that can't simulate state transitions
+
+### 2. Expanded SettingsPage tests (60 tests, up from 46)
+Added 14 new tests covering:
+- **Nudger metadata discovery**: renders nudger section with service URL input
+- **Muted topics** (7 tests): renders section with input/add button, adds topic via button click, adds topic via Enter key, clears input after adding, does not add empty topic, loads from localStorage on mount, persists to localStorage
+- **Muted nudgers** (6 tests): shows muted chip for muted nudger, applies reduced opacity to muted list item, mutes nudger via button click, unmutes nudger via button click, persists muted nudger to localStorage, removes from muted list when unmuted
+
+**Key decisions**:
+- Muted topic chips are queried via `getByRole('button', { name: 'topic-name' })` since MUI Chip with `onDelete` has `role="button"`
+- Muted nudger tests use localStorage pre-seeding to test rendering states
+- Nudger metadata fetch tests were simplified to a single rendering test due to complex input scoping issues with multiple "Wallet Address" labels on the page
+
 ## 2026-04-25 - Expand delegation UI test coverage (Completed)
 
 **Task**: Improve UI test coverage for delegation pages - DepositPage, NoteDetailPage, and MyNotesPage.
