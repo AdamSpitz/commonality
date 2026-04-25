@@ -151,7 +151,7 @@ describe('HighProfileSigners', () => {
     })
   })
 
-  it('shows @undefined when ENS name set but no twitter handle', async () => {
+  it('shows ENS name when ENS name set but no twitter handle', async () => {
     const signers = [
       { address: '0x1234567890abcdef1234567890abcdef12345678', ensName: 'alice.eth', followerCount: 15000 },
     ]
@@ -162,7 +162,7 @@ describe('HighProfileSigners', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('@undefined')).toBeInTheDocument()
+      expect(screen.getByText('alice.eth')).toBeInTheDocument()
     })
   })
 

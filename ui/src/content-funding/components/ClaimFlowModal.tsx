@@ -240,8 +240,9 @@ export function ClaimFlowModal({
                   variant="contained"
                   onClick={handleGetChallenge}
                   disabled={apiLoading}
+                  startIcon={apiLoading ? <CircularProgress size={20} /> : undefined}
                 >
-                  {apiLoading ? <CircularProgress size={24} /> : 'Get Verification Tweet'}
+                  Get Verification Tweet
                 </Button>
                 {apiError && (
                   <Alert severity="error" sx={{ mt: 2 }}>

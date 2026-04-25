@@ -301,7 +301,7 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'Get Verification Tweet' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent('API error')
     })
   })
 
@@ -317,9 +317,7 @@ describe('ClaimFlowModal', () => {
 
     render(<ClaimFlowModal {...defaultProps} />)
 
-    const buttons = screen.getAllByRole('button')
-    const disabledButton = buttons.find((btn) => btn.hasAttribute('disabled'))
-    expect(disabledButton).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Get Verification Tweet' })).toBeDisabled()
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
   })
 

@@ -66,7 +66,7 @@ export function HighProfileSigners({ statementCid, minFollowers = 10000 }: HighP
               key={signer.address}
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <span>{signer.ensName || signer.twitterHandle ? `@${signer.twitterHandle}` : `${signer.address.slice(0, 8)}...`}</span>
+                  <span>{signer.twitterHandle ? `@${signer.twitterHandle}` : signer.ensName || `${signer.address.slice(0, 8)}...`}</span>
                   {signer.followerCount != null && (
                     <Typography variant="caption" color="text.secondary">
                       ({formatFollowerCount(signer.followerCount)} followers)

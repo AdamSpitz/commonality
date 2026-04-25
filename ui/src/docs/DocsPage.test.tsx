@@ -77,32 +77,6 @@ describe('DocsPage', () => {
     expect(internalLinks.length).toBeGreaterThan(0)
   })
 
-  it('renders external links with target=_blank', () => {
-    mockUseParams.mockReturnValue({ '*': 'index' })
-
-    renderDocsPage()
-
-    const links = screen.getAllByRole('link')
-    const externalLinks = links.filter(link => {
-      const href = link.getAttribute('href')
-      return href?.startsWith('http')
-    })
-    if (externalLinks.length > 0) {
-      expect(externalLinks[0]).toHaveAttribute('target', '_blank')
-    }
-  })
-
-  it('renders blockquotes with left border styling', () => {
-    mockUseParams.mockReturnValue({ '*': 'index' })
-
-    const { container } = renderDocsPage()
-
-    const blockquotes = container.querySelectorAll('blockquote')
-    if (blockquotes.length > 0) {
-      expect(blockquotes[0]).toBeInTheDocument()
-    }
-  })
-
   it('renders inline code elements', () => {
     mockUseParams.mockReturnValue({ '*': 'for-crypto-natives' })
 
