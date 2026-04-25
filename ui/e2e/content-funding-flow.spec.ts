@@ -1,5 +1,5 @@
 import {
-  ChannelEscrowAbi,
+  AssuranceContractAbi,
   ChannelRegistryAbi,
   CreatorAssuranceContractFactoryAbi,
   DelegatableNotesAbi,
@@ -14,7 +14,6 @@ import {
   takeChannelControl,
   uploadToIPFS,
   waitForIndexerToSyncToTxHash,
-  withdrawFromEscrow,
 } from '@commonality/sdk'
 import { parseEther, keccak256, stringToBytes } from 'viem'
 import { test, expect } from './fixtures/wallet'
@@ -107,17 +106,16 @@ test.describe('Content Funding Flow', () => {
   test('full creator/supporter loop: third-party contract → claim → dashboard → withdraw', async ({ page, wallet }) => {
     const {
       creatorContractFactoryAddress,
-      channelEscrowAddress,
       channelRegistryAddress,
       delegatableNotesAddress,
       paymentTokenAddress,
       graphqlUrl,
     } = getContractAddresses()
 
-    if (!creatorContractFactoryAddress || !channelEscrowAddress || !channelRegistryAddress) {
+    if (!creatorContractFactoryAddress || !channelRegistryAddress) {
       throw new Error(
         'Content-funding contract addresses not set in ui/.env. ' +
-          'Expected VITE_CREATOR_CONTRACT_FACTORY_ADDRESS, VITE_CHANNEL_ESCROW_ADDRESS, VITE_CHANNEL_REGISTRY_ADDRESS.'
+          'Expected VITE_CREATOR_CONTRACT_FACTORY_ADDRESS and VITE_CHANNEL_REGISTRY_ADDRESS.'
       )
     }
     if (!delegatableNotesAddress || !paymentTokenAddress) {
@@ -145,7 +143,6 @@ test.describe('Content Funding Flow', () => {
     const account1Clients = createE2ETestClients('ACCOUNT_1')
 
     const factoryContract = { address: creatorContractFactoryAddress, abi: CreatorAssuranceContractFactoryAbi }
-    const escrowContract = { address: channelEscrowAddress, abi: ChannelEscrowAbi }
     const registryContract = { address: channelRegistryAddress, abi: ChannelRegistryAbi }
     const notesContract = { address: delegatableNotesAddress, abi: DelegatableNotesAbi }
 
@@ -257,7 +254,7 @@ test.describe('Content Funding Flow', () => {
     })
     console.log(`  Deposited note ID: ${noteId.toString()}`)
 
-    const additionalPurchaseCount = 5n
+    const additionalPurchaseCount = 9n
     const purchaseHash = await purchaseFromPrimaryMarketWithNotes(
       account1Clients,
       notesContract,
@@ -267,7 +264,7 @@ test.describe('Content Funding Flow', () => {
         paymentAmount: contentPrice * additionalPurchaseCount,
         primaryMarket: contractDetails.contractAddress,
         erc1155Contract: contractDetails.erc1155Address,
-        tokenIds: [0n],
+        tokenIds: [contentId],
         counts: [additionalPurchaseCount],
       }
     )
@@ -281,14 +278,17 @@ test.describe('Content Funding Flow', () => {
     )
 
     // =========================================================================
-    // Step 7: ACCOUNT_0 withdraws from escrow
+    // Step 7: ACCOUNT_0 withdraws from the successful creator contract
     // =========================================================================
-    console.log('\n=== STEP 7: WITHDRAWING FROM ESCROW ===')
-    const { hash: withdrawHash } = await withdrawFromEscrow(
-      account0Clients,
-      escrowContract,
-      channelCanonicalId,
-    )
+    console.log('\n=== STEP 7: WITHDRAWING FROM CREATOR CONTRACT ===')
+    const withdrawHash = await account0Clients.walletClient.writeContract({
+      address: contractDetails.contractAddress,
+      abi: AssuranceContractAbi,
+      functionName: 'withdraw',
+      chain: account0Clients.walletClient.chain,
+      account: account0Clients.walletClient.account!,
+    })
+    await account0Clients.publicClient.waitForTransactionReceipt({ hash: withdrawHash })
     console.log(`  Withdrawal tx: ${withdrawHash}`)
 
     await waitForIndexerToSyncToTxHash(
@@ -305,8 +305,7 @@ test.describe('Content Funding Flow', () => {
     await page.reload()
     await expect(page.getByText(/Fan-created/i)).toBeVisible({ timeout: 20000 })
 
-    // The contract should still be visible and show as successful or active
-    await expect(page.getByText(/E2E Third-Party Creator/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('link', { name: /Fan-created.*1 item/i })).toBeVisible({ timeout: 10000 })
     console.log('  Contract still visible after withdrawal')
 
     console.log('\n=== FULL CREATOR/SUPPORTER LOOP COMPLETE ===')

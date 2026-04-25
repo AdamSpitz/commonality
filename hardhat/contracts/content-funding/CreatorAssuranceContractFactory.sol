@@ -33,6 +33,7 @@ error NotCreatorContract(address contractAddress);
 error MarketplaceCreationFailed();
 error OnlyChannelOwnerCanCreateCreatorContract(bytes32 channelId);
 error ThresholdMustExceedInitialPurchase();
+error InvalidDelegatableNotesAddress();
 
 /**
  * @title IChannelRegistry
@@ -53,6 +54,10 @@ interface IContentRegistry {
     function registerContent(uint256 contentId, address assuranceContract, string calldata canonicalId) external;
     function releaseContent(uint256 contentId) external;
     function isRegistered(uint256 contentId) external view returns (bool);
+}
+
+interface IDelegatableNotesPrimaryMarketAuthorizer {
+    function authorizePrimaryMarket(address primaryMarket) external;
 }
 
 /**
@@ -95,6 +100,7 @@ contract CreatorAssuranceContractFactory is Ownable {
      * @param newValue The new minimum purchase amount
      */
     event ThirdPartyMinPurchaseUpdated(uint256 oldValue, uint256 newValue);
+    event DelegatableNotesUpdated(address oldValue, address newValue);
 
     /// @notice The content registry for tracking content-to-contract mappings
     ContentRegistry public contentRegistry;
@@ -113,6 +119,8 @@ contract CreatorAssuranceContractFactory is Ownable {
     string public contentIdSeparator;
     /// @notice The ERC-20 token used for all MVP content-funding contracts
     address public immutable paymentToken;
+    /// @notice Optional DelegatableNotes contract that accepts creator contracts as primary markets
+    address public delegatableNotes;
 
     /// @notice Maps contract address to the channel it belongs to
     mapping(address => bytes32) public channelIdByContract;
@@ -171,6 +179,17 @@ contract CreatorAssuranceContractFactory is Ownable {
         uint256 oldValue = thirdPartyMinPurchase;
         thirdPartyMinPurchase = _minPurchase;
         emit ThirdPartyMinPurchaseUpdated(oldValue, _minPurchase);
+    }
+
+    /**
+     * @notice Set the DelegatableNotes contract that should trust creator contracts created here.
+     * @dev Optional for deployments that do not support delegated purchases of content-funding tokens.
+     */
+    function setDelegatableNotes(address _delegatableNotes) external onlyOwner {
+        if (_delegatableNotes == address(0)) revert InvalidDelegatableNotesAddress();
+        address oldValue = delegatableNotes;
+        delegatableNotes = _delegatableNotes;
+        emit DelegatableNotesUpdated(oldValue, _delegatableNotes);
     }
 
     /**
@@ -332,6 +351,9 @@ contract CreatorAssuranceContractFactory is Ownable {
         isThirdPartyCreated[address(ac)] = isThirdParty;
         contractCondition[address(ac)] = conditionAddress;
         contractERC1155[address(ac)] = address(erc1155);
+        if (delegatableNotes != address(0)) {
+            IDelegatableNotesPrimaryMarketAuthorizer(delegatableNotes).authorizePrimaryMarket(address(ac));
+        }
 
         if (initialPurchaseValue > 0) {
             IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), initialPurchaseValue);

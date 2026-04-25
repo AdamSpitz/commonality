@@ -621,6 +621,61 @@ describe("ContentFunding", function () {
       expect(await contentRegistry.isRegistered(contentIds[2])).to.be.true;
     });
 
+    it("Should authorize creator contracts for delegated primary-market purchases", async function () {
+      const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
+      const assuranceFactory = await AssuranceContractFactory.deploy();
+      const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
+      const notes = await DelegatableNotes.deploy(
+        await assuranceFactory.getAddress(),
+        await marketplaceFactory.getAddress()
+      );
+      await notes.setPrimaryMarketAuthorizer(await factory.getAddress(), true);
+      await factory.setDelegatableNotes(await notes.getAddress());
+
+      const tx = await createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes,
+        supplies,
+        prices,
+        threshold,
+        deadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        isThirdParty: false,
+      });
+
+      const receipt = await tx.wait();
+      const creatorContractCreatedEvent = receipt.logs.find(
+        (log) => log.fragment?.name === "CreatorContractCreated"
+      );
+      const contractAddress = creatorContractCreatedEvent.args.contractAddress;
+      const erc1155Address = await factory.contractERC1155(contractAddress);
+      const paymentAmount = prices[0] * 2n;
+
+      expect(await notes.authorizedPrimaryMarkets(contractAddress)).to.be.true;
+
+      await paymentToken.connect(alice).approve(await notes.getAddress(), paymentAmount);
+      await notes.connect(alice).deposit(await paymentToken.getAddress(), 0, 0, paymentAmount);
+
+      await expect(notes.connect(alice).purchaseFromPrimaryMarket(
+        [1],
+        [[alice.address]],
+        paymentAmount,
+        contractAddress,
+        erc1155Address,
+        [contentIds[0]],
+        [2]
+      )).to.emit(notes, "ERC1155Purchased");
+
+      const outputNote = await notes.notes(2);
+      expect(outputNote.token).to.equal(erc1155Address);
+      expect(outputNote.tokenId).to.equal(contentIds[0]);
+      expect(outputNote.amount).to.equal(2);
+    });
+
     it("Should create creator contract successfully on CreatorControlled channel", async function () {
       await channelRegistry.connect(owner).takeChannelControl(channelId);
 

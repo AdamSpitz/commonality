@@ -162,13 +162,15 @@ export default async function globalSetup() {
       // Ignore errors if containers don't exist
     }
 
-    // Also clean Ponder sync state (bind mount persists across docker-compose down -v)
+    // Also clean bind-mounted chain/indexer state (bind mounts persist across docker-compose down -v)
+    // Hardhat state must be cleared so contract-code changes get redeployed instead of reusing
+    // stale persisted deployments at deterministic addresses.
     // This is critical because even with PONDER_EPHEMERAL=true, Ponder stores sync state
     // in .ponder which causes it to try fetching blocks that don't exist on the fresh chain
     try {
       // Use docker run to clean up the directory (handles permission issues)
-      execSync(`docker run --rm -v "${projectRoot}":/workspace alpine rm -rf /workspace/data/ponder`, { stdio: 'inherit' });
-      console.log('   ✓ Cleared Ponder sync state');
+      execSync(`docker run --rm -v "${projectRoot}":/workspace alpine rm -rf /workspace/data/hardhat /workspace/data/ponder`, { stdio: 'inherit' });
+      console.log('   ✓ Cleared Hardhat and Ponder state');
     } catch {
       // Ignore if directory doesn't exist or can't be removed
     }

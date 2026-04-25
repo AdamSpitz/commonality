@@ -245,9 +245,11 @@ async function main() {
   const creatorContractFactoryAddress = await creatorContractFactory.getAddress();
   console.log(`✓ CreatorAssuranceContractFactory: ${creatorContractFactoryAddress}`);
 
-  await contentRegistry.transferOwnership(creatorContractFactoryAddress);
-  await channelRegistry.setFactory(creatorContractFactoryAddress);
-  console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory)');
+  await (await contentRegistry.transferOwnership(creatorContractFactoryAddress)).wait();
+  await (await channelRegistry.setFactory(creatorContractFactoryAddress)).wait();
+  await (await delegatableNotes.setPrimaryMarketAuthorizer(creatorContractFactoryAddress, true)).wait();
+  await (await creatorContractFactory.setDelegatableNotes(delegatableNotesAddress)).wait();
+  console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory + delegated purchases)');
 
   // Deploy NudgePublications contract
   console.log('Deploying NudgePublications...');

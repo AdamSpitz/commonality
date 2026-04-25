@@ -23,6 +23,8 @@ export const CreatorAssuranceContractFactoryAbi: Abi = [
   { type: 'error', inputs: [{ name: 'contractAddress', type: 'address' }], name: 'NotCreatorContract' },
   { type: 'error', inputs: [], name: 'MarketplaceCreationFailed' },
   { type: 'error', inputs: [{ name: 'channelId', type: 'bytes32' }], name: 'OnlyChannelOwnerCanCreateCreatorContract' },
+  { type: 'error', inputs: [], name: 'ThresholdMustExceedInitialPurchase' },
+  { type: 'error', inputs: [], name: 'InvalidDelegatableNotesAddress' },
   {
     type: 'function',
     name: 'createContract',
@@ -42,7 +44,14 @@ export const CreatorAssuranceContractFactoryAbi: Abi = [
       { name: 'initialPurchaseCounts', type: 'uint256[]' },
     ],
     outputs: [{ name: '', type: 'address' }],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'delegatableNotes',
+    inputs: [],
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -55,6 +64,13 @@ export const CreatorAssuranceContractFactoryAbi: Abi = [
     type: 'function',
     name: 'setThirdPartyMinPurchase',
     inputs: [{ name: '_minPurchase', type: 'uint256' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'setDelegatableNotes',
+    inputs: [{ name: '_delegatableNotes', type: 'address' }],
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -130,6 +146,14 @@ export const CreatorAssuranceContractFactoryAbi: Abi = [
     inputs: [
       { name: 'oldValue', type: 'uint256', indexed: false },
       { name: 'newValue', type: 'uint256', indexed: false },
+    ],
+  },
+  {
+    type: 'event',
+    name: 'DelegatableNotesUpdated',
+    inputs: [
+      { name: 'oldValue', type: 'address', indexed: false },
+      { name: 'newValue', type: 'address', indexed: false },
     ],
   },
 ] as const;

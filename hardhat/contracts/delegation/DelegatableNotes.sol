@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {AssuranceContract} from "../individual-projects/AssuranceContract.sol";
 import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
@@ -32,7 +33,7 @@ import {AssuranceContractFactory, MarketplaceFactory} from "../individual-projec
  * This contract uses SafeERC20 for all token transfers to handle non-standard
  * tokens that may not return boolean success values.
  */
-contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
+contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   using SafeERC20 for IERC20;
 
   error EmptyChain();
@@ -55,6 +56,7 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
   error InsufficientBalance();
   error ZeroAddress();
   error UnauthorizedMarket();
+  error UnauthorizedPrimaryMarketAuthorizer();
   error InvalidPaymentTokenForPurchase();
 
   enum TokenType { ERC20, ERC1155 }
@@ -75,11 +77,13 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
 
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
+  mapping(address => bool) public authorizedPrimaryMarkets;
+  mapping(address => bool) public primaryMarketAuthorizers;
 
   constructor(
     address _primaryMarketFactory,
     address _secondaryMarketFactory
-  ) {
+  ) Ownable(msg.sender) {
     primaryMarketFactory = AssuranceContractFactory(_primaryMarketFactory);
     secondaryMarketFactory = MarketplaceFactory(_secondaryMarketFactory);
   }
@@ -189,11 +193,43 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] outputNoteIds
   );
 
+  event PrimaryMarketAuthorizationSet(address indexed primaryMarket, bool authorized);
+  event PrimaryMarketAuthorizerSet(address indexed authorizer, bool authorized);
+
   /**
    * @dev Allows contract to receive ETH directly.
    * This is needed in case marketplaces send ETH back to the contract.
    */
   receive() external payable {}
+
+  // ============ Primary Market Authorization ============
+
+  /**
+   * @notice Allows an external factory to register newly deployed primary markets.
+   * @dev Pubstarter assurance contracts remain authorized through primaryMarketFactory.
+   *      This hook supports specialized assurance-contract factories that cannot be
+   *      discovered through that factory's isDeployedMarket mapping.
+   */
+  function setPrimaryMarketAuthorizer(address authorizer, bool authorized) external onlyOwner {
+    if (authorizer == address(0)) revert ZeroAddress();
+    primaryMarketAuthorizers[authorizer] = authorized;
+    emit PrimaryMarketAuthorizerSet(authorizer, authorized);
+  }
+
+  function setPrimaryMarketAuthorization(address primaryMarket, bool authorized) external onlyOwner {
+    _setPrimaryMarketAuthorization(primaryMarket, authorized);
+  }
+
+  function authorizePrimaryMarket(address primaryMarket) external {
+    if (!primaryMarketAuthorizers[_msgSender()]) revert UnauthorizedPrimaryMarketAuthorizer();
+    _setPrimaryMarketAuthorization(primaryMarket, true);
+  }
+
+  function _setPrimaryMarketAuthorization(address primaryMarket, bool authorized) private {
+    if (primaryMarket == address(0)) revert ZeroAddress();
+    authorizedPrimaryMarkets[primaryMarket] = authorized;
+    emit PrimaryMarketAuthorizationSet(primaryMarket, authorized);
+  }
 
   // ============ Hash Helpers ============
 
@@ -478,7 +514,9 @@ contract DelegatableNotes is Context, ReentrancyGuard, ERC1155Holder {
     uint256[] calldata counts
   ) external nonReentrant {
     if (tokenIds.length != counts.length) revert ArrayLengthMismatch();
-    if (!primaryMarketFactory.isDeployedMarket(primaryMarket)) revert UnauthorizedMarket();
+    if (!primaryMarketFactory.isDeployedMarket(primaryMarket) && !authorizedPrimaryMarkets[primaryMarket]) {
+      revert UnauthorizedMarket();
+    }
 
     address caller = _msgSender();
     address paymentToken = AssuranceContract(primaryMarket).paymentToken();
