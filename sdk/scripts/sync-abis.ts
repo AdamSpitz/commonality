@@ -37,6 +37,10 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   MarketplaceFactory: { artifactPath: "individual-projects/Pubstarter.sol/MarketplaceFactory.json", outputFile: "MarketplaceFactoryAbi.ts" },
   AssuranceContractFactory: { artifactPath: "individual-projects/Pubstarter.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts" },
   ValueThresholdConditionFactory: { artifactPath: "individual-projects/Pubstarter.sol/ValueThresholdConditionFactory.json", outputFile: "ValueThresholdConditionFactoryAbi.ts" },
+  ContentRegistry: { artifactPath: "content-funding/ContentRegistry.sol/ContentRegistry.json", outputFile: "ContentRegistryAbi.ts" },
+  ChannelRegistry: { artifactPath: "content-funding/ChannelRegistry.sol/ChannelRegistry.json", outputFile: "ChannelRegistryAbi.ts" },
+  ChannelEscrow: { artifactPath: "content-funding/ChannelEscrow.sol/ChannelEscrow.json", outputFile: "ChannelEscrowAbi.ts" },
+  CreatorAssuranceContractFactory: { artifactPath: "content-funding/CreatorAssuranceContractFactory.sol/CreatorAssuranceContractFactory.json", outputFile: "CreatorAssuranceContractFactoryAbi.ts" },
 };
 
 function main() {

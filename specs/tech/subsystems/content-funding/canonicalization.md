@@ -135,14 +135,20 @@ This embeds content-to-channel membership into the ID itself. A malicious actor 
 The factory enforces channel-to-content binding by *constructing* content IDs from components, not by parsing assembled strings. The caller passes the channel canonical ID and the content-specific suffixes as separate parameters:
 
 ```solidity
-function createContract(
+struct CreateContractParams {
+    bytes32 channelId;
     string calldata channelCanonicalId,  // e.g., "twitter:uid:12345678"
     string[] calldata contentSuffixes,   // e.g., ["18347", "29451"]
     uint256[] calldata supplies,
     uint256[] calldata prices,
     uint256 threshold,
-    uint256 deadline
-) external payable returns (address);
+    uint256 deadline,
+    uint256[] calldata initialPurchaseIndices,
+    uint256[] calldata initialPurchaseCounts
+}
+
+function createCreatorContract(CreateContractParams calldata params) external returns (address);
+function createThirdPartyContract(CreateContractParams calldata params) external returns (address);
 ```
 
 The factory then:

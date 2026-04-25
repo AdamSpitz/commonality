@@ -184,13 +184,13 @@ interface CreateContractParams {
   threshold: bigint;
   deadlineSecs: bigint;
   isThirdParty: boolean;
-  /** contentIds to purchase in the same tx (required for third-party contracts). */
-  initialPurchaseIds?: bigint[];
+  /** Content indices to purchase in the same tx (required for third-party contracts). */
+  initialPurchaseIndices?: bigint[];
   initialPurchaseCounts?: bigint[];
 }
 
 /**
- * Call CreatorAssuranceContractFactory.createContract and return the new
+ * Call CreatorAssuranceContractFactory's creator/third-party entry point and return the new
  * assurance contract address (read from the CreatorContractCreated event).
  */
 async function createCreatorContract(
@@ -206,7 +206,7 @@ async function createCreatorContract(
     threshold,
     deadlineSecs,
     isThirdParty,
-    initialPurchaseIds = [],
+    initialPurchaseIndices = [],
     initialPurchaseCounts = [],
   } = params;
 
@@ -214,13 +214,10 @@ async function createCreatorContract(
 
   // Compute initial purchase value.
   let initialPurchaseValue = 0n;
-  for (let i = 0; i < initialPurchaseIds.length; i++) {
-    const idx = contentSuffixes.findIndex(
-      (_, j) => computeContentId(channelCanonicalId, contentSuffixes[j]) === initialPurchaseIds[i],
-    );
-    if (idx >= 0) {
-      initialPurchaseValue += prices[idx] * initialPurchaseCounts[i];
-    }
+  for (let i = 0; i < initialPurchaseIndices.length; i++) {
+    const idx = Number(initialPurchaseIndices[i]);
+    if (prices[idx] === undefined) throw new Error(`Invalid initial purchase content index: ${idx}`);
+    initialPurchaseValue += prices[idx] * initialPurchaseCounts[i];
   }
 
   const paymentToken = await clients.publicClient.readContract({
@@ -245,22 +242,21 @@ async function createCreatorContract(
   const createHash = await clients.walletClient.writeContract({
     address: factoryAddress,
     abi: CreatorAssuranceContractFactoryAbi,
-    functionName: 'createContract',
-    args: [
-      chId,
+    functionName: isThirdParty ? 'createThirdPartyContract' : 'createCreatorContract',
+    args: [{
+      channelId: chId,
       channelCanonicalId,
       contentSuffixes,
       supplies,
       prices,
       threshold,
-      deadlineSecs,
-      `fake-metadata-${channelCanonicalId}`,
-      `https://fake-metadata.example/{id}.json`,
-      `https://fake-contract.example/contract.json`,
-      isThirdParty,
-      initialPurchaseIds,
+      deadline: deadlineSecs,
+      metadataCid: `fake-metadata-${channelCanonicalId}`,
+      erc1155MetadataUri: `https://fake-metadata.example/{id}.json`,
+      erc1155ContractUri: `https://fake-contract.example/contract.json`,
+      initialPurchaseIndices,
       initialPurchaseCounts,
-    ],
+    }],
     chain: hardhat,
     account: clients.walletClient.account!,
   });
@@ -402,9 +398,6 @@ export async function generateContentFundingScenarios(
     const prices = [tokenPrice, tokenPrice];
     const threshold = parseEther('2'); // 200 tokens × 0.01 ETH
 
-    // Pre-compute the first content item's ID for the mandatory initial purchase.
-    const firstContentId = computeContentId(channelCanonicalId, contentSuffixes[0]);
-
     const contractAddress = await createCreatorContract(fanClients, {
       factoryAddress: creatorContractFactory,
       channelCanonicalId,
@@ -414,12 +407,13 @@ export async function generateContentFundingScenarios(
       threshold,
       deadlineSecs: deadline30d,
       isThirdParty: true,
-      initialPurchaseIds: [firstContentId],
+      initialPurchaseIndices: [0n],
       initialPurchaseCounts: [1n],
     });
 
     // Additional buyers purchase tokens.
     const erc1155 = await getERC1155Address(buyerAClients.publicClient, creatorContractFactory, contractAddress);
+    const firstContentId = computeContentId(channelCanonicalId, contentSuffixes[0]);
     const secondContentId = computeContentId(channelCanonicalId, contentSuffixes[1]);
 
     await buyTokens(buyerAClients, contractAddress, erc1155, [firstContentId], [5n], [tokenPrice]);
@@ -453,7 +447,7 @@ export async function generateContentFundingScenarios(
       threshold,
       deadlineSecs: deadline30d,
       isThirdParty: false,
-      initialPurchaseIds: [],
+      initialPurchaseIndices: [],
       initialPurchaseCounts: [],
     });
 
@@ -498,8 +492,6 @@ export async function generateContentFundingScenarios(
     await verifyChannel(creatorClients, channelRegistry, channelCanonicalId);
 
     // Step 2: Fan creates a third-party contract while channel is still Verified.
-    const thirdPartyContentId = computeContentId(channelCanonicalId, thirdPartySuffixes[0]);
-
     const thirdPartyContract = await createCreatorContract(fanClients, {
       factoryAddress: creatorContractFactory,
       channelCanonicalId,
@@ -509,7 +501,7 @@ export async function generateContentFundingScenarios(
       threshold: thirdPartyThreshold,
       deadlineSecs: deadline30d,
       isThirdParty: true,
-      initialPurchaseIds: [thirdPartyContentId],
+      initialPurchaseIndices: [0n],
       initialPurchaseCounts: [1n],
     });
 
@@ -518,6 +510,7 @@ export async function generateContentFundingScenarios(
       creatorContractFactory,
       thirdPartyContract,
     );
+    const thirdPartyContentId = computeContentId(channelCanonicalId, thirdPartySuffixes[0]);
     await buyTokens(buyerBClients, thirdPartyContract, thirdPartyERC1155, [thirdPartyContentId], [2n], [thirdPartyPrice]);
 
     // Step 3: Creator creates their own contract (also while channel is Verified).
@@ -530,7 +523,7 @@ export async function generateContentFundingScenarios(
       threshold: creatorThreshold,
       deadlineSecs: deadline30d,
       isThirdParty: false,
-      initialPurchaseIds: [],
+      initialPurchaseIndices: [],
       initialPurchaseCounts: [],
     });
 

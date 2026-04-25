@@ -1,5 +1,45 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-25 - Simplify CreatorAssuranceContractFactory creation API (Completed)
+
+**Task**: Evaluate the TODO.md simplification suggestions for `CreatorAssuranceContractFactory` and implement the ones that made sense before launch.
+
+**What was done**:
+- Replaced the single `createContract(..., bool isThirdParty, ...)` API with two entry points:
+  - `createCreatorContract(CreateContractParams params)`
+  - `createThirdPartyContract(CreateContractParams params)`
+- Packed the long creation argument list into `CreateContractParams`.
+- Changed initial purchases to use content-array indices (`initialPurchaseIndices`) instead of caller-precomputed token IDs.
+- Built content IDs and canonical IDs once and reused them for pricing, token setup, and registry events.
+- Removed redundant registry interface casts and removed the dead `try/catch` in `releaseContentOnFailure`.
+- Updated Hardhat tests, SDK action helpers, UI contract creation, content-funding E2E, fake-data generation, generated SDK/indexer ABIs, and ABI sync scripts.
+
+**Key decisions**:
+- Kept the factory as the temporary payment middleman for the initial purchase. The assurance contract address is not known before creation, so making `CreatorAssuranceContract.buyERC1155` pull directly from the original caller would require a worse approval flow unless the deployment became deterministic or permit-style approval support was added.
+- Added content-funding contracts to the SDK/indexer ABI sync scripts so this ABI no longer has to be maintained manually.
+
+**Verified**:
+- `npm run build --workspace=hardhat` ✓
+- `npx hardhat test test/ContentFunding.test.js` from `hardhat/` ✓ (65 passing)
+- `npm run typecheck --workspace=sdk` ✓
+- `npm run typecheck --workspace=indexer` ✓
+- `npm run typecheck --workspace=ui` ✓
+- `npm run typecheck --workspace=fake-data-generation` ✓
+
+**Files changed**:
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol`
+- `hardhat/test/ContentFunding.test.js`
+- `sdk/src/subsystems/content-funding/actions.ts`
+- `ui/src/content-funding/pages/CreateContractPage.tsx`
+- `ui/e2e/content-funding-flow.spec.ts`
+- `fake-data-generation/contentFundingActions.ts`
+- SDK/indexer ABI files and ABI sync scripts
+- `specs/tech/subsystems/content-funding/canonicalization.md`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Interrupt point**: Yes. The factory API simplification is complete and the affected callers/checks are updated. A broader full-repo build/test run would still be reasonable before launch, but the focused contract and TypeScript checks passed.
+
 ## 2026-04-25 - Add render.yaml smoke check script (Completed)
 
 **Task**: Add a lightweight CI/developer smoke check for `render.yaml` plus the indexer's hosted env shape, so future changes do not silently break the Render blueprint while local Docker still works.

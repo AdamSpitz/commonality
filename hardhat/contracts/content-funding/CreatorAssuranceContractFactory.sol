@@ -26,7 +26,7 @@ error ChannelCreatorControlled(bytes32 channelId);
 error InsufficientThirdPartyPurchase();
 error InitialPurchaseValueMismatch();
 error ContentAlreadyRegisteredForContract(uint256 contentId);
-error InvalidInitialPurchaseToken(uint256 contentId);
+error InvalidInitialPurchaseIndex(uint256 index);
 error EmptyContentSuffix(uint256 index);
 error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
@@ -79,6 +79,32 @@ interface IDelegatableNotesPrimaryMarketAuthorizer {
  */
 contract CreatorAssuranceContractFactory is Ownable {
     using SafeERC20 for IERC20;
+
+    struct CreateContractParams {
+        bytes32 channelId;
+        string channelCanonicalId;
+        string[] contentSuffixes;
+        uint256[] supplies;
+        uint256[] prices;
+        uint256 threshold;
+        uint256 deadline;
+        string metadataCid;
+        string erc1155MetadataUri;
+        string erc1155ContractUri;
+        uint256[] initialPurchaseIndices;
+        uint256[] initialPurchaseCounts;
+    }
+
+    struct BuiltContent {
+        uint256[] ids;
+        string[] canonicalIds;
+    }
+
+    struct ChannelCreationContext {
+        bool verified;
+        address channelOwner;
+        address recipient;
+    }
 
     /**
      * @notice Emitted when a new creator assurance contract is created
@@ -193,112 +219,117 @@ contract CreatorAssuranceContractFactory is Ownable {
     }
 
     /**
-     * @notice Create a complete creator assurance contract with ERC1155 tokens and marketplace
-     * @dev Orchestrates creation of ERC1155, marketplace, assurance contract, and condition.
-     *      For third-party contracts, wraps the condition in a CancellableCondition.
-     *      The msg.value must match the total cost of the initial purchase tokens.
-     * @param channelId The channel this contract is for (keccak256 of channelCanonicalId)
-     * @param channelCanonicalId The human-readable canonical channel identifier
-     * @param contentSuffixes Suffixes appended to channelCanonicalId to form content IDs
-     * @param supplies Token supply amounts for each content item
-     * @param prices Token prices (in wei) for each content item
-     * @param threshold The funding threshold for project success
-     * @param deadline The unix timestamp after which the project can fail
-     * @param metadataCid The IPFS CID for project metadata
-     * @param erc1155MetadataUri The base URI for ERC1155 token metadata
-     * @param erc1155ContractUri The contract-level metadata URI for the ERC1155
-     * @param isThirdParty True if created by someone other than the channel owner
-     * @param initialPurchaseIds Token IDs to purchase immediately upon creation
-     * @param initialPurchaseCounts Amounts of each token to purchase initially
+     * @notice Create a complete assurance contract as the verified channel owner.
+     * @param params Contract, content, pricing, metadata, and optional initial purchase details.
      * @return The address of the created CreatorAssuranceContract
      */
-    function createContract(
-        bytes32 channelId,
-        string memory channelCanonicalId,
-        string[] memory contentSuffixes,
-        uint256[] memory supplies,
-        uint256[] memory prices,
-        uint256 threshold,
-        uint256 deadline,
-        string memory metadataCid,
-        string memory erc1155MetadataUri,
-        string memory erc1155ContractUri,
-        bool isThirdParty,
-        uint256[] memory initialPurchaseIds,
-        uint256[] memory initialPurchaseCounts
-    ) external returns (address) {
+    function createCreatorContract(CreateContractParams calldata params) external returns (address) {
+        BuiltContent memory content = _validateAndBuildContent(params);
+        uint256 initialPurchaseValue = _calculateInitialPurchaseValue(params);
+        ChannelCreationContext memory channel = _validateCreatorContract(params.channelId);
+        return _deployContract(params, content, channel, false, initialPurchaseValue);
+    }
+
+    /**
+     * @notice Create a complete assurance contract for an unclaimed or verified channel as a third party.
+     * @dev Verified-channel third-party contracts use a CancellableCondition so the creator can veto them.
+     * @param params Contract, content, pricing, metadata, and required initial purchase details.
+     * @return The address of the created CreatorAssuranceContract
+     */
+    function createThirdPartyContract(CreateContractParams calldata params) external returns (address) {
+        BuiltContent memory content = _validateAndBuildContent(params);
+        uint256 initialPurchaseValue = _calculateInitialPurchaseValue(params);
+        ChannelCreationContext memory channel = _validateThirdPartyContract(params, initialPurchaseValue);
+        return _deployContract(params, content, channel, true, initialPurchaseValue);
+    }
+
+    function _validateAndBuildContent(
+        CreateContractParams calldata params
+    ) private view returns (BuiltContent memory content) {
         if (
-            contentSuffixes.length != supplies.length
-                || contentSuffixes.length != prices.length
-                || initialPurchaseIds.length != initialPurchaseCounts.length
+            params.contentSuffixes.length != params.supplies.length
+                || params.contentSuffixes.length != params.prices.length
+                || params.initialPurchaseIndices.length != params.initialPurchaseCounts.length
         ) {
             revert ArrayLengthMismatch();
         }
 
-        if (channelId == bytes32(0)) revert InvalidChannelId();
+        if (params.channelId == bytes32(0)) revert InvalidChannelId();
 
-        bytes32 canonicalChannelIdHash = keccak256(bytes(channelCanonicalId));
-        if (canonicalChannelIdHash != channelId) {
-            revert ChannelCanonicalIdMismatch(channelId, canonicalChannelIdHash);
+        bytes32 canonicalChannelIdHash = keccak256(bytes(params.channelCanonicalId));
+        if (canonicalChannelIdHash != params.channelId) {
+            revert ChannelCanonicalIdMismatch(params.channelId, canonicalChannelIdHash);
         }
 
-        uint256[] memory contentIds = new uint256[](contentSuffixes.length);
-        for (uint256 i = 0; i < contentSuffixes.length; i++) {
-            (uint256 contentId, ) = _buildContentId(channelCanonicalId, contentSuffixes[i], i);
-            if (IContentRegistry(address(contentRegistry)).isRegistered(contentId)) {
+        content.ids = new uint256[](params.contentSuffixes.length);
+        content.canonicalIds = new string[](params.contentSuffixes.length);
+        for (uint256 i = 0; i < params.contentSuffixes.length; i++) {
+            (uint256 contentId, string memory canonicalId) = _buildContentId(
+                params.channelCanonicalId,
+                params.contentSuffixes[i],
+                i
+            );
+            if (contentRegistry.isRegistered(contentId)) {
                 revert ContentAlreadyRegisteredForContract(contentId);
             }
-            contentIds[i] = contentId;
+            content.ids[i] = contentId;
+            content.canonicalIds[i] = canonicalId;
         }
+    }
 
-        uint256 initialPurchaseValue = _calculateInitialPurchaseValue(
-            contentIds,
-            prices,
-            initialPurchaseIds,
-            initialPurchaseCounts
-        );
-        bool verified = IChannelRegistry(address(channelRegistry)).isVerified(channelId);
-        bool creatorControlled = IChannelRegistry(address(channelRegistry)).isCreatorControlled(channelId);
-        address channelOwner = verified
-            ? IChannelRegistry(address(channelRegistry)).channelOwner(channelId)
+    function _validateCreatorContract(
+        bytes32 channelId
+    ) private view returns (ChannelCreationContext memory channel) {
+        channel.verified = channelRegistry.isVerified(channelId);
+        channel.channelOwner = channel.verified
+            ? channelRegistry.channelOwner(channelId)
             : address(0);
 
-        if (isThirdParty) {
-            // Third parties can create for Unclaimed or Verified channels, not CreatorControlled
-            if (creatorControlled) {
-                revert ChannelCreatorControlled(channelId);
-            }
-            if (initialPurchaseValue < thirdPartyMinPurchase) {
-                revert InsufficientThirdPartyPurchase();
-            }
-            // For Verified channels, require threshold > initial purchase so contract can't succeed
-            // inside createContract() and bypass the creator's veto window.
-            // Unclaimed channels have no veto window, so this check is skipped.
-            if (verified && threshold <= initialPurchaseValue) {
-                revert ThresholdMustExceedInitialPurchase();
-            }
-        } else {
-            // Creator contracts require Verified or CreatorControlled channel
-            if (!verified) {
-                revert ChannelNotVerifiedOrControlled(channelId);
-            }
-            if (msg.sender != channelOwner) {
-                revert OnlyChannelOwnerCanCreateCreatorContract(channelId);
-            }
+        if (!channel.verified) {
+            revert ChannelNotVerifiedOrControlled(channelId);
         }
+        if (msg.sender != channel.channelOwner) {
+            revert OnlyChannelOwnerCanCreateCreatorContract(channelId);
+        }
+        channel.recipient = channel.channelOwner;
+    }
 
-        // Unclaimed channels route funds to escrow; verified/controlled go to channel owner
-        address recipient;
-        if (!verified) {
-            recipient = address(channelEscrow);
-        } else {
-            recipient = channelOwner;
+    function _validateThirdPartyContract(
+        CreateContractParams calldata params,
+        uint256 initialPurchaseValue
+    ) private view returns (ChannelCreationContext memory channel) {
+        channel.verified = channelRegistry.isVerified(params.channelId);
+        bool creatorControlled = channelRegistry.isCreatorControlled(params.channelId);
+        channel.channelOwner = channel.verified
+            ? channelRegistry.channelOwner(params.channelId)
+            : address(0);
+
+        if (creatorControlled) {
+            revert ChannelCreatorControlled(params.channelId);
         }
+        if (initialPurchaseValue < thirdPartyMinPurchase) {
+            revert InsufficientThirdPartyPurchase();
+        }
+        // For Verified channels, require threshold > initial purchase so the contract cannot succeed
+        // inside creation and bypass the creator's veto window.
+        if (channel.verified && params.threshold <= initialPurchaseValue) {
+            revert ThresholdMustExceedInitialPurchase();
+        }
+        channel.recipient = channel.verified ? channel.channelOwner : address(channelEscrow);
+    }
+
+    function _deployContract(
+        CreateContractParams calldata params,
+        BuiltContent memory content,
+        ChannelCreationContext memory channel,
+        bool isThirdParty,
+        uint256 initialPurchaseValue
+    ) private returns (address) {
 
         PremintingERC1155 erc1155 = erc1155Factory.createPremintingERC1155(
             address(this),
-            erc1155MetadataUri,
-            erc1155ContractUri
+            params.erc1155MetadataUri,
+            params.erc1155ContractUri
         );
 
         ERC1155SecondaryMarket marketplace = marketplaceFactory.createMarketplace(address(erc1155), paymentToken);
@@ -306,19 +337,19 @@ contract CreatorAssuranceContractFactory is Ownable {
 
         CreatorAssuranceContract ac = new CreatorAssuranceContract(
             address(this),
-            recipient,
+            channel.recipient,
             paymentToken,
-            metadataCid,
-            channelId,
-            !verified
+            params.metadataCid,
+            params.channelId,
+            !channel.verified
         );
 
         address conditionAddress;
         if (isThirdParty) {
             ValueThresholdCondition baseCondition = conditionFactory.createCondition(
                 address(ac),
-                threshold,
-                deadline
+                params.threshold,
+                params.deadline
             );
             CancellableCondition cancellableCondition = new CancellableCondition(
                 address(baseCondition),
@@ -328,26 +359,25 @@ contract CreatorAssuranceContractFactory is Ownable {
         } else {
             ValueThresholdCondition condition = conditionFactory.createCondition(
                 address(ac),
-                threshold,
-                deadline
+                params.threshold,
+                params.deadline
             );
             conditionAddress = address(condition);
         }
 
         ac.setCondition(IAssuranceCondition(conditionAddress));
-        ac.setPricesERC1155(address(erc1155), contentIds, prices);
-        ac.setContentIds(contentIds);
+        ac.setPricesERC1155(address(erc1155), content.ids, params.prices);
+        ac.setContentIds(content.ids);
         ac.setOwner(msg.sender);
 
-        erc1155.mintBatch(address(ac), contentIds, supplies);
+        erc1155.mintBatch(address(ac), content.ids, params.supplies);
         erc1155.renounceOwnership();
 
-        for (uint256 i = 0; i < contentIds.length; i++) {
-            (, string memory canonicalId) = _buildContentId(channelCanonicalId, contentSuffixes[i], i);
-            IContentRegistry(address(contentRegistry)).registerContent(contentIds[i], address(ac), canonicalId);
+        for (uint256 i = 0; i < content.ids.length; i++) {
+            contentRegistry.registerContent(content.ids[i], address(ac), content.canonicalIds[i]);
         }
 
-        channelIdByContract[address(ac)] = channelId;
+        channelIdByContract[address(ac)] = params.channelId;
         isThirdPartyCreated[address(ac)] = isThirdParty;
         contractCondition[address(ac)] = conditionAddress;
         contractERC1155[address(ac)] = address(erc1155);
@@ -361,14 +391,14 @@ contract CreatorAssuranceContractFactory is Ownable {
             ac.buyERC1155(
                 msg.sender,
                 address(erc1155),
-                initialPurchaseIds,
-                initialPurchaseCounts,
+                _initialPurchaseIds(content.ids, params.initialPurchaseIndices),
+                params.initialPurchaseCounts,
                 ""
             );
             IERC20(paymentToken).forceApprove(address(ac), 0);
         }
 
-        emit CreatorContractCreated(address(ac), channelId, msg.sender, isThirdParty);
+        emit CreatorContractCreated(address(ac), params.channelId, msg.sender, isThirdParty);
 
         return address(ac);
     }
@@ -392,40 +422,34 @@ contract CreatorAssuranceContractFactory is Ownable {
             revert ConditionNotFailed();
         }
 
-        try ICreatorAssuranceContract(contractAddress).getContentIds() returns (uint256[] memory contentIds) {
-            for (uint256 i = 0; i < contentIds.length; i++) {
-                if (IContentRegistry(address(contentRegistry)).contentContract(contentIds[i]) == contractAddress) {
-                    IContentRegistry(address(contentRegistry)).releaseContent(contentIds[i]);
-                }
+        uint256[] memory contentIds = ICreatorAssuranceContract(contractAddress).getContentIds();
+        for (uint256 i = 0; i < contentIds.length; i++) {
+            if (contentRegistry.contentContract(contentIds[i]) == contractAddress) {
+                contentRegistry.releaseContent(contentIds[i]);
             }
-        } catch (bytes memory) { // solhint-disable-line no-empty-blocks
-            // Fallback: content IDs not retrievable from contract
         }
     }
 
     function _calculateInitialPurchaseValue(
-        uint256[] memory contentIds,
-        uint256[] memory prices,
-        uint256[] memory initialPurchaseIds,
-        uint256[] memory initialPurchaseCounts
+        CreateContractParams calldata params
     ) private pure returns (uint256 totalValue) {
-        for (uint256 i = 0; i < initialPurchaseIds.length; i++) {
-            uint256 price = _findPrice(contentIds, prices, initialPurchaseIds[i]);
-            totalValue += price * initialPurchaseCounts[i];
+        for (uint256 i = 0; i < params.initialPurchaseIndices.length; i++) {
+            uint256 purchaseIndex = params.initialPurchaseIndices[i];
+            if (purchaseIndex >= params.prices.length) revert InvalidInitialPurchaseIndex(purchaseIndex);
+            totalValue += params.prices[purchaseIndex] * params.initialPurchaseCounts[i];
         }
     }
 
-    function _findPrice(
+    function _initialPurchaseIds(
         uint256[] memory contentIds,
-        uint256[] memory prices,
-        uint256 purchaseId
-    ) private pure returns (uint256) {
-        for (uint256 i = 0; i < contentIds.length; i++) {
-            if (contentIds[i] == purchaseId) {
-                return prices[i];
-            }
+        uint256[] calldata initialPurchaseIndices
+    ) private pure returns (uint256[] memory ids) {
+        ids = new uint256[](initialPurchaseIndices.length);
+        for (uint256 i = 0; i < initialPurchaseIndices.length; i++) {
+            uint256 purchaseIndex = initialPurchaseIndices[i];
+            if (purchaseIndex >= contentIds.length) revert InvalidInitialPurchaseIndex(purchaseIndex);
+            ids[i] = contentIds[purchaseIndex];
         }
-        revert InvalidInitialPurchaseToken(purchaseId);
     }
 
     function _buildContentId(

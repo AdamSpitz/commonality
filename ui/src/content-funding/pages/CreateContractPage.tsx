@@ -23,7 +23,6 @@ import {
   hashCanonicalId,
   getChannelOverview,
   parseContentFundingUrl,
-  buildCanonicalContentId,
   type ParsedContentFundingUrl,
   uploadToIPFS,
 } from '@commonality/sdk'
@@ -383,27 +382,15 @@ export function CreateContractPage({
       const contentSupplies = submitItems.map(item => BigInt(item.supply))
       const contentPrices = submitItems.map(item => parseEther(item.price))
 
-      const initialPurchaseTokenIds: bigint[] = []
+      const initialPurchaseIndices: bigint[] = []
       const initialPurchaseCounts: bigint[] = []
 
       for (let i = 0; i < submitItems.length; i++) {
         const item = submitItems[i]
-        let contentSuffix: string
-
-        if (item.parsed!.platform === 'twitter') {
-          contentSuffix = (item.parsed as any).tweetId
-        } else if (item.parsed!.platform === 'youtube') {
-          contentSuffix = (item.parsed as any).videoId
-        } else {
-          contentSuffix = (item.parsed as any).slug
-        }
-
-        const canonicalId = buildCanonicalContentId(canonicalChannelId, contentSuffix)
-        const contentId = BigInt(hashCanonicalId(canonicalId))
         const count = BigInt(item.supply)
 
         if (item.price && parseEther(item.price) > 0n) {
-          initialPurchaseTokenIds.push(contentId)
+          initialPurchaseIndices.push(BigInt(i))
           initialPurchaseCounts.push(count)
         }
       }
@@ -440,7 +427,7 @@ export function CreateContractPage({
         erc1155MetadataUri: `ipfs://${metadataCid}/`,
         erc1155ContractUri: `ipfs://${metadataCid}`,
         isThirdParty,
-        initialPurchaseTokenIds,
+        initialPurchaseIndices,
         initialPurchaseCounts,
       })
 

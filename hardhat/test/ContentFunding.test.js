@@ -36,7 +36,7 @@ async function createContentFundingContract({
   initialPurchaseValue,
 }) {
   const channelId = channelIdFromCanonical(channelCanonicalId);
-  const initialPurchaseIds = contentIdsFromSuffixes(channelCanonicalId, initialPurchaseContentSuffixes);
+  const initialPurchaseIndices = initialPurchaseContentSuffixes.map((suffix) => contentSuffixes.indexOf(suffix));
 
   if (initialPurchaseValue !== undefined && initialPurchaseValue > 0n) {
     const paymentToken = await ethers.getContractAt(
@@ -46,7 +46,7 @@ async function createContentFundingContract({
     await paymentToken.connect(signer).approve(await factory.getAddress(), initialPurchaseValue);
   }
 
-  return factory.connect(signer).createContract(
+  const params = {
     channelId,
     channelCanonicalId,
     contentSuffixes,
@@ -57,10 +57,13 @@ async function createContentFundingContract({
     metadataCid,
     erc1155MetadataUri,
     erc1155ContractUri,
-    isThirdParty,
-    initialPurchaseIds,
+    initialPurchaseIndices,
     initialPurchaseCounts
-  );
+  };
+
+  return isThirdParty
+    ? factory.connect(signer).createThirdPartyContract(params)
+    : factory.connect(signer).createCreatorContract(params);
 }
 
 describe("ContentFunding", function () {
@@ -151,7 +154,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should register content successfully (via factory)", async function () {
-      // Content registration now happens through the factory during createContract
+      // Content registration now happens through the factory during contract creation.
       await mockVerifier.setValid(true);
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
@@ -164,21 +167,20 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await factory.connect(owner).createContract(
+      await factory.connect(owner).createCreatorContract({
         channelId,
         channelCanonicalId,
-        [contentSuffix1],
-        [100],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
+        contentSuffixes: [contentSuffix1],
+        supplies: [100],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmTest",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      );
+        metadataCid: "ipfs://QmTest",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        initialPurchaseIndices: [],
+        initialPurchaseCounts: [],
+      });
 
       expect(await contentRegistry.isRegistered(contentId1)).to.be.true;
     });
@@ -217,37 +219,25 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await factory.connect(owner).createContract(
-        duplicateChannelId,
-        duplicateChannelCanonicalId,
-        [duplicateContentSuffix],
-        [100],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
+      const params = {
+        channelId: duplicateChannelId,
+        channelCanonicalId: duplicateChannelCanonicalId,
+        contentSuffixes: [duplicateContentSuffix],
+        supplies: [100],
+        prices: [ethers.parseEther("0.1")],
+        threshold: ethers.parseEther("5.0"),
         deadline,
-        "ipfs://QmTest",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      );
+        metadataCid: "ipfs://QmTest",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        initialPurchaseIndices: [],
+        initialPurchaseCounts: [],
+      };
 
-      await expect(factory.connect(owner).createContract(
-        duplicateChannelId,
-        duplicateChannelCanonicalId,
-        [duplicateContentSuffix],
-        [100],
-        [ethers.parseEther("0.1")],
-        ethers.parseEther("5.0"),
-        deadline,
-        "ipfs://QmTest",
-        "https://meta/{id}.json",
-        "ipfs://QmContract",
-        false,
-        [],
-        []
-      )).to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
+      await factory.connect(owner).createCreatorContract(params);
+
+      await expect(factory.connect(owner).createCreatorContract(params))
+        .to.be.revertedWithCustomError(factory, "ContentAlreadyRegisteredForContract")
         .withArgs(duplicateContentId);
     });
 
@@ -1055,8 +1045,8 @@ describe("ContentFunding", function () {
     });
 
     it("Should reject a zero channel ID", async function () {
-      await expect(factory.connect(owner).createContract(
-        ethers.ZeroHash,
+      await expect(factory.connect(owner).createCreatorContract({
+        channelId: ethers.ZeroHash,
         channelCanonicalId,
         contentSuffixes,
         supplies,
@@ -1066,16 +1056,15 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      )).to.be.revertedWithCustomError(factory, "InvalidChannelId");
+        initialPurchaseIndices: [],
+        initialPurchaseCounts: [],
+      })).to.be.revertedWithCustomError(factory, "InvalidChannelId");
     });
 
     it("Should reject a channel canonical ID that does not match the supplied hash", async function () {
-      await expect(factory.connect(owner).createContract(
+      await expect(factory.connect(owner).createCreatorContract({
         channelId,
-        "twitter:uid:someone-else",
+        channelCanonicalId: "twitter:uid:someone-else",
         contentSuffixes,
         supplies,
         prices,
@@ -1084,10 +1073,9 @@ describe("ContentFunding", function () {
         metadataCid,
         erc1155MetadataUri,
         erc1155ContractUri,
-        false,
-        [],
-        []
-      )).to.be.revertedWithCustomError(factory, "ChannelCanonicalIdMismatch");
+        initialPurchaseIndices: [],
+        initialPurchaseCounts: [],
+      })).to.be.revertedWithCustomError(factory, "ChannelCanonicalIdMismatch");
     });
 
     it("Should set third party min purchase (owner only)", async function () {

@@ -47,21 +47,52 @@ const creatorAssuranceFactoryActionAbi = [
   },
   {
     type: 'function',
-    name: 'createContract',
+    name: 'createCreatorContract',
     inputs: [
-      { name: 'channelId', type: 'bytes32' },
-      { name: 'channelCanonicalId', type: 'string' },
-      { name: 'contentSuffixes', type: 'string[]' },
-      { name: 'supplies', type: 'uint256[]' },
-      { name: 'prices', type: 'uint256[]' },
-      { name: 'threshold', type: 'uint256' },
-      { name: 'deadline', type: 'uint256' },
-      { name: 'metadataCid', type: 'string' },
-      { name: 'erc1155MetadataUri', type: 'string' },
-      { name: 'erc1155ContractUri', type: 'string' },
-      { name: 'isThirdParty', type: 'bool' },
-      { name: 'initialPurchaseIds', type: 'uint256[]' },
-      { name: 'initialPurchaseCounts', type: 'uint256[]' },
+      {
+        name: 'params',
+        type: 'tuple',
+        components: [
+          { name: 'channelId', type: 'bytes32' },
+          { name: 'channelCanonicalId', type: 'string' },
+          { name: 'contentSuffixes', type: 'string[]' },
+          { name: 'supplies', type: 'uint256[]' },
+          { name: 'prices', type: 'uint256[]' },
+          { name: 'threshold', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+          { name: 'metadataCid', type: 'string' },
+          { name: 'erc1155MetadataUri', type: 'string' },
+          { name: 'erc1155ContractUri', type: 'string' },
+          { name: 'initialPurchaseIndices', type: 'uint256[]' },
+          { name: 'initialPurchaseCounts', type: 'uint256[]' },
+        ],
+      },
+    ],
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'createThirdPartyContract',
+    inputs: [
+      {
+        name: 'params',
+        type: 'tuple',
+        components: [
+          { name: 'channelId', type: 'bytes32' },
+          { name: 'channelCanonicalId', type: 'string' },
+          { name: 'contentSuffixes', type: 'string[]' },
+          { name: 'supplies', type: 'uint256[]' },
+          { name: 'prices', type: 'uint256[]' },
+          { name: 'threshold', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+          { name: 'metadataCid', type: 'string' },
+          { name: 'erc1155MetadataUri', type: 'string' },
+          { name: 'erc1155ContractUri', type: 'string' },
+          { name: 'initialPurchaseIndices', type: 'uint256[]' },
+          { name: 'initialPurchaseCounts', type: 'uint256[]' },
+        ],
+      },
     ],
     outputs: [{ name: '', type: 'address' }],
     stateMutability: 'nonpayable',
@@ -121,7 +152,7 @@ export interface CreateContentFundingContractParams {
   erc1155MetadataUri: string;
   erc1155ContractUri: string;
   isThirdParty: boolean;
-  initialPurchaseTokenIds: bigint[];
+  initialPurchaseIndices: bigint[];
   initialPurchaseCounts: bigint[];
 }
 
@@ -162,9 +193,14 @@ export async function createContentFundingContract(
   }
 
   let actualInitialPurchaseValue = 0n;
-  for (let i = 0; i < params.initialPurchaseTokenIds.length; i++) {
+  for (let i = 0; i < params.initialPurchaseIndices.length; i++) {
+    const contentIndex = Number(params.initialPurchaseIndices[i]);
     const count = params.initialPurchaseCounts[i];
-    actualInitialPurchaseValue += params.contentPrices[i] * count;
+    const price = params.contentPrices[contentIndex];
+    if (price === undefined) {
+      throw new Error(`Invalid initial purchase content index: ${contentIndex}`);
+    }
+    actualInitialPurchaseValue += price * count;
   }
 
   // @ts-expect-error - viem type inference issue with readContract
@@ -178,25 +214,26 @@ export async function createContentFundingContract(
     await approveERC20Spend(clients, paymentToken, factoryContract.address, actualInitialPurchaseValue);
   }
 
+  const contractParams = {
+    channelId,
+    channelCanonicalId: params.channelCanonicalId,
+    contentSuffixes,
+    supplies: params.contentSupplies,
+    prices: params.contentPrices,
+    threshold: params.threshold,
+    deadline: params.deadline,
+    metadataCid: params.metadataCid,
+    erc1155MetadataUri: params.erc1155MetadataUri,
+    erc1155ContractUri: params.erc1155ContractUri,
+    initialPurchaseIndices: params.initialPurchaseIndices,
+    initialPurchaseCounts: params.initialPurchaseCounts,
+  };
+
   const hash = await clients.walletClient.writeContract({
     address: factoryContract.address,
     abi: creatorAssuranceFactoryActionAbi,
-    functionName: 'createContract',
-    args: [
-      channelId,
-      params.channelCanonicalId,
-      contentSuffixes,
-      params.contentSupplies,
-      params.contentPrices,
-      params.threshold,
-      params.deadline,
-      params.metadataCid,
-      params.erc1155MetadataUri,
-      params.erc1155ContractUri,
-      params.isThirdParty,
-      params.initialPurchaseTokenIds,
-      params.initialPurchaseCounts,
-    ],
+    functionName: params.isThirdParty ? 'createThirdPartyContract' : 'createCreatorContract',
+    args: [contractParams],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

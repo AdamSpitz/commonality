@@ -61,7 +61,19 @@ Based on the survey, here's my read on which contracts are tricky enough to be h
 So: **DelegatableNotes is still #1**, but `CreatorAssuranceContractFactory` and `ERC1155SecondaryMarket` deserve roughly the same level of caution now.
 
 
-### CreatorAssuranceContractFactory
+### CreatorAssuranceContractFactory (Done)
+
+2026-04-25: Simplified the factory in the useful API-changing ways:
+- split the fused `createContract` entry point into `createCreatorContract` and `createThirdPartyContract`;
+- packed creation inputs into `CreateContractParams`;
+- changed initial purchases from raw token IDs to content-array indices;
+- built content IDs/canonical IDs once;
+- removed redundant registry interface casts and the dead `try/catch` in `releaseContentOnFailure`;
+- updated SDK/UI/fake-data/test callers and ABI sync scripts.
+
+Left alone: the payment middleman path. The assurance contract address is not known before deployment, so pushing the initial purchase pull-through into `CreatorAssuranceContract.buyERC1155` would make the one-transaction create+initial-buy flow worse unless we also add deterministic deployment or permit-style approval plumbing.
+
+Original note:
 > Take a look at CreatorAssuranceContractFactory.sol. Where's the complexity coming from? Can it be simplified?
 
 

@@ -81,7 +81,7 @@ test.describe('Content Funding Flow', () => {
         erc1155MetadataUri: `ipfs://${metadataCid}/`,
         erc1155ContractUri: `ipfs://${metadataCid}`,
         isThirdParty: false,
-        initialPurchaseTokenIds: [],
+        initialPurchaseIndices: [],
         initialPurchaseCounts: [],
       }
     )
@@ -182,7 +182,7 @@ test.describe('Content Funding Flow', () => {
         erc1155MetadataUri: `ipfs://${metadataCid}/`,
         erc1155ContractUri: `ipfs://${metadataCid}`,
         isThirdParty: true,
-        initialPurchaseTokenIds: [contentId],
+        initialPurchaseIndices: [0n],
         initialPurchaseCounts: [purchaseCount],
       }
     )
