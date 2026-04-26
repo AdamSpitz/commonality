@@ -59,6 +59,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error UnauthorizedPrimaryMarketAuthorizer();
   error InvalidPaymentTokenForPurchase();
   error InvalidPaymentAmount();
+  error ListingDoesNotExist();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -180,7 +181,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
    * @param erc1155Contract The ERC1155 token contract
    * @param tokenIds The token IDs purchased
    * @param counts The amounts of each token purchased
-   * @param totalCost The total ETH spent
+   * @param totalCost The total amount spent in the payment token
    * @param inputNoteIds The notes used for payment
    * @param outputNoteIds The new notes created holding the purchased tokens
    */
@@ -196,12 +197,6 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
   event PrimaryMarketAuthorizationSet(address indexed primaryMarket, bool authorized);
   event PrimaryMarketAuthorizerSet(address indexed authorizer, bool authorized);
-
-  /**
-   * @dev Allows contract to receive ETH directly.
-   * This is needed in case marketplaces send ETH back to the contract.
-   */
-  receive() external payable {}
 
   // ============ Primary Market Authorization ============
 
@@ -592,6 +587,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
     ERC1155SecondaryMarket.SaleListing memory listing =
       ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId);
+    if (listing.seller == address(0)) revert ListingDoesNotExist();
     uint256 tokenId = listing.tokenId;
     uint256 requiredPayment = listing.pricePerToken * tokenCount;
     if (paymentAmount != requiredPayment) revert InvalidPaymentAmount();
