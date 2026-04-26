@@ -44,10 +44,16 @@ describe("ERC1155SecondaryMarket", function () {
 
   async function approveAndFulfillSaleListing(signer, saleListingId, count, totalCost, recipient) {
     await paymentToken.connect(signer).approve(await marketplace.getAddress(), totalCost);
+    const expectedPricePerToken = totalCost / BigInt(count);
     if (recipient) {
-      return marketplace.connect(signer).fulfillSaleListingTo(saleListingId, count, recipient);
+      return marketplace.connect(signer).fulfillSaleListingTo(
+        saleListingId,
+        count,
+        expectedPricePerToken,
+        recipient
+      );
     }
-    return marketplace.connect(signer).fulfillSaleListing(saleListingId, count);
+    return marketplace.connect(signer).fulfillSaleListing(saleListingId, count, expectedPricePerToken);
   }
 
   async function approveAndCreateBuyOrder(signer, tokenId, count, pricePerToken) {
@@ -73,6 +79,22 @@ describe("ERC1155SecondaryMarket", function () {
 
     it("Should set the correct ERC1155 address", async function () {
       expect(await marketplace.erc1155()).to.equal(await token.getAddress());
+    });
+
+    it("Should reject zero ERC1155 address", async function () {
+      const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
+
+      await expect(
+        ERC1155SecondaryMarket.deploy(ethers.ZeroAddress, await paymentToken.getAddress())
+      ).to.be.revertedWithCustomError(marketplace, "InvalidERC1155Address");
+    });
+
+    it("Should reject zero payment token address", async function () {
+      const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
+
+      await expect(
+        ERC1155SecondaryMarket.deploy(await token.getAddress(), ethers.ZeroAddress)
+      ).to.be.revertedWithCustomError(marketplace, "InvalidPaymentTokenAddress");
     });
   });
 
@@ -189,21 +211,27 @@ describe("ERC1155SecondaryMarket", function () {
       const incorrectCost = ethers.parseEther("0.5");
 
       await paymentToken.connect(bob).approve(await marketplace.getAddress(), incorrectCost);
-      await expect(marketplace.connect(bob).fulfillSaleListing(0, 10)).to.be.reverted;
+      await expect(marketplace.connect(bob).fulfillSaleListing(0, 10, ethers.parseEther("0.1"))).to.be.reverted;
     });
 
     it("Should reject zero count", async function () {
-      await expect(marketplace.connect(bob).fulfillSaleListing(0, 0))
+      await expect(marketplace.connect(bob).fulfillSaleListing(0, 0, ethers.parseEther("0.1")))
         .to.be.revertedWithCustomError(marketplace, "InvalidCount");
     });
 
     it("Should reject count exceeding listing", async function () {
-      await expect(marketplace.connect(bob).fulfillSaleListing(0, 11))
+      await expect(marketplace.connect(bob).fulfillSaleListing(0, 11, ethers.parseEther("0.1")))
         .to.be.revertedWithCustomError(marketplace, "InvalidCount");
     });
 
+    it("Should reject unexpected listing price", async function () {
+      await expect(marketplace.connect(bob).fulfillSaleListing(0, 10, ethers.parseEther("0.2")))
+        .to.be.revertedWithCustomError(marketplace, "UnexpectedPrice")
+        .withArgs(ethers.parseEther("0.2"), ethers.parseEther("0.1"));
+    });
+
     it("Should reject fulfilling non-existent listing", async function () {
-      await expect(marketplace.connect(bob).fulfillSaleListing(999, 10))
+      await expect(marketplace.connect(bob).fulfillSaleListing(999, 10, ethers.parseEther("0.1")))
         .to.be.revertedWithCustomError(marketplace, "ListingDoesNotExist");
     });
   });
@@ -227,8 +255,24 @@ describe("ERC1155SecondaryMarket", function () {
       const cost = ethers.parseEther("1.0");
 
       await expect(
-        marketplace.connect(bob).fulfillSaleListingTo(0, 10, ethers.ZeroAddress)
+        marketplace.connect(bob).fulfillSaleListingTo(0, 10, ethers.parseEther("0.1"), ethers.ZeroAddress)
       ).to.be.revertedWithCustomError(marketplace, "InvalidRecipient");
+    });
+
+    it("Should reject marketplace as recipient", async function () {
+      await expect(
+        marketplace.connect(bob).fulfillSaleListingTo(0, 10, ethers.parseEther("0.1"), await marketplace.getAddress())
+      ).to.be.revertedWithCustomError(marketplace, "InvalidRecipient");
+    });
+
+    it("Should transfer ERC1155 tokens with empty receiver hook data", async function () {
+      const RecordingERC1155Receiver = await ethers.getContractFactory("RecordingERC1155Receiver");
+      const receiver = await RecordingERC1155Receiver.deploy();
+      const cost = ethers.parseEther("1.0");
+
+      await approveAndFulfillSaleListing(bob, 0, 10, cost, await receiver.getAddress());
+
+      expect(await receiver.lastData()).to.equal("0x");
     });
 
     it("Should emit SaleListingFulfilled with buyer not recipient", async function () {
@@ -353,14 +397,14 @@ describe("ERC1155SecondaryMarket", function () {
     });
 
     it("Should allow fulfilling a buy order", async function () {
-      await marketplace.connect(alice).fulfillBuyOrder(0, 10);
+      await marketplace.connect(alice).fulfillBuyOrder(0, 10, ethers.parseEther("0.1"));
 
       expect(await token.balanceOf(bob.address, 1)).to.equal(110);
       expect(await token.balanceOf(alice.address, 1)).to.equal(90);
     });
 
     it("Should emit BuyOrderFulfilled event", async function () {
-      await expect(marketplace.connect(alice).fulfillBuyOrder(0, 10))
+      await expect(marketplace.connect(alice).fulfillBuyOrder(0, 10, ethers.parseEther("0.1")))
         .to.emit(marketplace, "BuyOrderFulfilled")
         .withArgs(0, alice.address, 10);
     });
@@ -368,14 +412,14 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should transfer payment to seller", async function () {
       const balanceBefore = await paymentToken.balanceOf(alice.address);
 
-      await marketplace.connect(alice).fulfillBuyOrder(0, 10);
+      await marketplace.connect(alice).fulfillBuyOrder(0, 10, ethers.parseEther("0.1"));
 
       const balanceAfter = await paymentToken.balanceOf(alice.address);
       expect(balanceAfter - balanceBefore).to.equal(ethers.parseEther("1.0"));
     });
 
     it("Should allow partial fulfillment", async function () {
-      await marketplace.connect(alice).fulfillBuyOrder(0, 5);
+      await marketplace.connect(alice).fulfillBuyOrder(0, 5, ethers.parseEther("0.1"));
 
       expect(await token.balanceOf(bob.address, 1)).to.equal(105);
 
@@ -384,7 +428,7 @@ describe("ERC1155SecondaryMarket", function () {
     });
 
     it("Should delete buy order when fully fulfilled", async function () {
-      await marketplace.connect(alice).fulfillBuyOrder(0, 10);
+      await marketplace.connect(alice).fulfillBuyOrder(0, 10, ethers.parseEther("0.1"));
 
       const [buyer] = await marketplace.getBuyOrder(0);
       expect(buyer).to.equal(ethers.ZeroAddress);
@@ -392,19 +436,27 @@ describe("ERC1155SecondaryMarket", function () {
 
     it("Should reject zero count", async function () {
       await expect(
-        marketplace.connect(alice).fulfillBuyOrder(0, 0)
+        marketplace.connect(alice).fulfillBuyOrder(0, 0, ethers.parseEther("0.1"))
       ).to.be.revertedWithCustomError(marketplace, "InvalidCount");
     });
 
     it("Should reject count exceeding order", async function () {
       await expect(
-        marketplace.connect(alice).fulfillBuyOrder(0, 11)
+        marketplace.connect(alice).fulfillBuyOrder(0, 11, ethers.parseEther("0.1"))
       ).to.be.revertedWithCustomError(marketplace, "InvalidCount");
+    });
+
+    it("Should reject unexpected order price", async function () {
+      await expect(
+        marketplace.connect(alice).fulfillBuyOrder(0, 10, ethers.parseEther("0.2"))
+      )
+        .to.be.revertedWithCustomError(marketplace, "UnexpectedPrice")
+        .withArgs(ethers.parseEther("0.2"), ethers.parseEther("0.1"));
     });
 
     it("Should reject fulfilling non-existent order", async function () {
       await expect(
-        marketplace.connect(alice).fulfillBuyOrder(999, 10)
+        marketplace.connect(alice).fulfillBuyOrder(999, 10, ethers.parseEther("0.1"))
       ).to.be.revertedWithCustomError(marketplace, "OrderDoesNotExist");
     });
   });
@@ -522,7 +574,7 @@ describe("ERC1155SecondaryMarket", function () {
       await approveAndCreateBuyOrder(bob, 1, 10, ethers.parseEther("0.1"));
 
       // Alice sells 3
-      await marketplace.connect(alice).fulfillBuyOrder(0, 3);
+      await marketplace.connect(alice).fulfillBuyOrder(0, 3, ethers.parseEther("0.1"));
       expect(await token.balanceOf(bob.address, 1)).to.equal(103);
 
       // Check remaining order
@@ -530,14 +582,14 @@ describe("ERC1155SecondaryMarket", function () {
       expect(count1).to.equal(7);
 
       // Alice sells 4 more
-      await marketplace.connect(alice).fulfillBuyOrder(0, 4);
+      await marketplace.connect(alice).fulfillBuyOrder(0, 4, ethers.parseEther("0.1"));
       expect(await token.balanceOf(bob.address, 1)).to.equal(107);
 
       const [, , count2] = await marketplace.getBuyOrder(0);
       expect(count2).to.equal(3);
 
       // Alice sells remaining 3
-      await marketplace.connect(alice).fulfillBuyOrder(0, 3);
+      await marketplace.connect(alice).fulfillBuyOrder(0, 3, ethers.parseEther("0.1"));
       expect(await token.balanceOf(bob.address, 1)).to.equal(110);
 
       // Order should be deleted
@@ -548,7 +600,7 @@ describe("ERC1155SecondaryMarket", function () {
     it("Should reject cancelling non-existent buy order", async function () {
       await expect(
         marketplace.connect(bob).cancelBuyOrder(999)
-      ).to.be.revertedWithCustomError(marketplace, "NotTheBuyer");
+      ).to.be.revertedWithCustomError(marketplace, "OrderDoesNotExist");
     });
 
     it("Should allow seller to fulfill their own buy order", async function () {
@@ -557,7 +609,7 @@ describe("ERC1155SecondaryMarket", function () {
 
       // Bob can also fulfill his own buy order (though economically pointless)
       await token.connect(bob).setApprovalForAll(await marketplace.getAddress(), true);
-      await marketplace.connect(bob).fulfillBuyOrder(0, 10);
+      await marketplace.connect(bob).fulfillBuyOrder(0, 10, ethers.parseEther("0.1"));
 
       // Bob should have same token balance (sold 10, bought 10)
       expect(await token.balanceOf(bob.address, 1)).to.equal(100);
@@ -695,7 +747,7 @@ describe("ERC1155SecondaryMarket", function () {
 
       const sellerBalanceBefore = await paymentToken.balanceOf(alice.address);
       await paymentToken.connect(bob).approve(await marketplace.getAddress(), overpayment);
-      await marketplace.connect(bob).fulfillSaleListing(listingId, 10);
+      await marketplace.connect(bob).fulfillSaleListing(listingId, 10, ethers.parseEther("0.1"));
       const sellerBalanceAfter = await paymentToken.balanceOf(alice.address);
 
       expect(sellerBalanceAfter - sellerBalanceBefore).to.equal(exactCost);
@@ -713,7 +765,7 @@ describe("ERC1155SecondaryMarket", function () {
       const underpayment = exactCost - 1n;
 
       await paymentToken.connect(bob).approve(await marketplace.getAddress(), underpayment);
-      await expect(marketplace.connect(bob).fulfillSaleListing(listingId, 10)).to.be.reverted;
+      await expect(marketplace.connect(bob).fulfillSaleListing(listingId, 10, ethers.parseEther("0.1"))).to.be.reverted;
     });
 
     it("Should handle maximum uint256 price calculations without overflow", async function () {

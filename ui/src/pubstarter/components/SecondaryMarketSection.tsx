@@ -110,6 +110,7 @@ export function SecondaryMarketSection({
         saleListingId: BigInt(listing.listingId),
         count,
         totalCost,
+        expectedPricePerToken: BigInt(listing.pricePerToken),
       })
 
       setMarketSuccess('Tokens purchased from listing!')
@@ -144,6 +145,7 @@ export function SecondaryMarketSection({
       await fulfillBuyOrder(clients, marketplace, {
         buyOrderId: BigInt(order.orderId),
         count,
+        expectedPricePerToken: BigInt(order.pricePerToken),
       })
 
       setMarketSuccess('Tokens sold to buy order!')

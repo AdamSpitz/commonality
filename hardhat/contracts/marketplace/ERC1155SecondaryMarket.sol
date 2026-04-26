@@ -15,13 +15,18 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  *      Supports partial fulfillment of orders. All trades settle in one ERC-20 token.
  *      Each marketplace instance is tied to a specific ERC1155 contract.
  *
- *      Token assumptions: The paymentToken must be a standard ERC-20 token with:
+ *      Token assumptions: The paymentToken must be a trusted standard ERC-20 token with:
  *      - No transfer fees or callbacks
  *      - No rebasing behavior
  *      - Standard transfer/transferFrom/approve interface
  *
  *      This contract uses SafeERC20 for all token transfers to handle non-standard
- *      tokens that may not return boolean success values.
+ *      tokens that may not return boolean success values. Pausable or blacklistable
+ *      payment tokens can temporarily make matching orders unfulfillable, though order
+ *      creators can still cancel to recover escrowed tokens when token transfers permit.
+ *
+ *      The ERC1155 contract is trusted at deployment time. A malicious ERC1155 contract
+ *      can change the safety properties of this marketplace.
  */
 contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -31,9 +36,11 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
     error InvalidRecipient();
     error ListingDoesNotExist();
     error InvalidCount();
+    error UnexpectedPrice(uint256 expectedPricePerToken, uint256 actualPricePerToken);
     error NotTheSeller();
     error NotTheBuyer();
     error OrderDoesNotExist();
+    error InvalidERC1155Address();
     error InvalidPaymentTokenAddress();
 
     /**
@@ -135,6 +142,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      * @param _paymentToken The ERC-20 token used to settle trades
      */
     constructor(address erc1155Address, address _paymentToken) {
+        if (erc1155Address == address(0)) revert InvalidERC1155Address();
         if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
         _erc1155 = IERC1155(erc1155Address);
         paymentToken = _paymentToken;
@@ -173,7 +181,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             address(this),
             tokenId,
             count,
-            "0x"
+            ""
         );
 
         emit SaleListingCreated(saleListingId, seller, tokenId, count, pricePerToken);
@@ -185,10 +193,15 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      *      Supports partial fulfillment.
      * @param saleListingId The ID of the sale listing to buy from
      * @param count The number of tokens to buy
+     * @param expectedPricePerToken The caller's expected immutable listing price
      */
-    function fulfillSaleListing(uint256 saleListingId, uint256 count) external nonReentrant {
+    function fulfillSaleListing(
+        uint256 saleListingId,
+        uint256 count,
+        uint256 expectedPricePerToken
+    ) external nonReentrant {
         address buyer = _msgSender();
-        _fulfillSaleListingInternal(saleListingId, count, buyer);
+        _fulfillSaleListingInternal(saleListingId, count, expectedPricePerToken, buyer);
     }
 
     /**
@@ -197,20 +210,23 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      *      Used by DelegatableNotes to purchase on behalf of the note system.
      * @param saleListingId The ID of the sale listing to buy from
      * @param count The number of tokens to buy
+     * @param expectedPricePerToken The caller's expected immutable listing price
      * @param recipient The address that will receive the purchased tokens
      */
     function fulfillSaleListingTo(
         uint256 saleListingId,
         uint256 count,
+        uint256 expectedPricePerToken,
         address recipient
     ) external nonReentrant {
-        if (recipient == address(0)) revert InvalidRecipient();
-        _fulfillSaleListingInternal(saleListingId, count, recipient);
+        if (recipient == address(0) || recipient == address(this)) revert InvalidRecipient();
+        _fulfillSaleListingInternal(saleListingId, count, expectedPricePerToken, recipient);
     }
 
     function _fulfillSaleListingInternal(
         uint256 saleListingId,
         uint256 count,
+        uint256 expectedPricePerToken,
         address recipient
     ) private {
         SaleListing storage listing = _saleListings[saleListingId];
@@ -218,9 +234,10 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 tokenId = listing.tokenId;
         uint256 listingCount = listing.count;
         uint256 pricePerToken = listing.pricePerToken;
-        uint256 totalCost = count * pricePerToken;
         if (seller == address(0)) revert ListingDoesNotExist();
         if (count == 0 || count > listingCount) revert InvalidCount();
+        if (expectedPricePerToken != pricePerToken) revert UnexpectedPrice(expectedPricePerToken, pricePerToken);
+        uint256 totalCost = count * pricePerToken;
 
         address buyer = _msgSender();
 
@@ -238,7 +255,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             recipient,
             tokenId,
             count,
-            "0x"
+            ""
         );
 
         emit SaleListingFulfilled(saleListingId, buyer, count);
@@ -264,7 +281,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             seller,
             tokenId,
             count,
-            "0x"
+            ""
         );
 
         emit SaleListingCancelled(saleListingId);
@@ -307,19 +324,24 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
      *      Supports partial fulfillment.
      * @param buyOrderId The ID of the buy order to fulfill
      * @param count The number of tokens to sell
+     * @param expectedPricePerToken The caller's expected immutable order price
      */
-    function fulfillBuyOrder(uint256 buyOrderId, uint256 count) external nonReentrant {
+    function fulfillBuyOrder(
+        uint256 buyOrderId,
+        uint256 count,
+        uint256 expectedPricePerToken
+    ) external nonReentrant {
         BuyOrder storage order = _buyOrders[buyOrderId];
         address buyer = order.buyer;
         uint256 tokenId = order.tokenId;
         uint256 pricePerToken = order.pricePerToken;
         uint256 orderCount = order.count;
-        uint256 totalCost = count * pricePerToken;
         if (buyer == address(0)) revert OrderDoesNotExist();
         if (count == 0 || count > orderCount) revert InvalidCount();
+        if (expectedPricePerToken != pricePerToken) revert UnexpectedPrice(expectedPricePerToken, pricePerToken);
+        uint256 totalCost = count * pricePerToken;
 
         address seller = _msgSender();
-        if (seller == address(0)) revert InvalidRecipient();
 
         uint256 remaining = orderCount - count;
         if (remaining == 0) {
@@ -333,7 +355,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
             buyer,
             tokenId,
             count,
-            "0x"
+            ""
         );
 
         IERC20(paymentToken).safeTransfer(seller, totalCost);
@@ -352,6 +374,7 @@ contract ERC1155SecondaryMarket is Context, ERC1155Holder, ReentrancyGuard {
         uint256 pricePerToken = order.pricePerToken;
         uint256 count = order.count;
         uint256 refund = count * pricePerToken;
+        if (buyer == address(0)) revert OrderDoesNotExist();
         if (buyer != _msgSender()) revert NotTheBuyer();
 
         delete _buyOrders[buyOrderId];

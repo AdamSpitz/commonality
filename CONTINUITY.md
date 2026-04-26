@@ -2975,3 +2975,46 @@ Spec: `specs/product/nudge-ux.md`.
 - No blockers. The relevant audit regression suite and full Hardhat suite are green.
 
 **Interrupt point**: Yes. This is a contained smart-contract bug fix with the exposed regression tests passing.
+
+## 2026-04-26 - ERC1155SecondaryMarket Audit Hardening (Completed)
+
+**Task**: Review the `ERC1155SecondaryMarket.sol` audit recommendations in `TODO.md`, implement the ones that make sense, and annotate the TODO entry with what was done or deferred.
+
+**What was done**:
+- Hardened `ERC1155SecondaryMarket` by rejecting the marketplace itself as a sale-listing recipient, explicitly rejecting missing buy orders on cancel, validating the ERC-1155 constructor address, passing empty ERC-1155 hook data, removing a dead `msg.sender == address(0)` check, and documenting trusted token assumptions.
+- Added exact `expectedPricePerToken` confirmation to sale-listing and buy-order fulfillment, and updated DelegatableNotes, SDK actions, UI, integration tests, and fake-data callers for the ABI change.
+- Added regression coverage for the recipient check, missing buy-order cancel error, empty receiver hook data, zero constructor addresses, and unexpected fulfillment prices.
+- Updated SDK ABIs from the current Hardhat artifacts.
+- Updated `TODO.md` implementation notes for each audit recommendation.
+
+**Verified**:
+- `npx hardhat test test/ERC1155SecondaryMarket.js`
+- `npx hardhat test test/DelegatableNotes.audit.test.js test/DelegatableNotes.purchase.test.js`
+- `npm run build --workspace=sdk`
+- `npm run typecheck --workspace=sdk`
+- `npm run typecheck --workspace=integration-tests`
+- `npm run typecheck --workspace=ui`
+- `npm run typecheck --workspace=fake-data-generation`
+- `npm run lint:sol --workspace=hardhat`
+- `npm run test:vitest --workspace=ui -- SecondaryMarketSection.test.tsx`
+
+**Files changed**:
+- `hardhat/contracts/marketplace/ERC1155SecondaryMarket.sol`
+- `hardhat/contracts/delegation/DelegatableNotes.sol`
+- `hardhat/contracts/test/RecordingERC1155Receiver.sol`
+- `hardhat/test/ERC1155SecondaryMarket.js`
+- `sdk/src/subsystems/pubstarter/actions.ts`
+- `sdk/abis/*.ts`
+- `ui/src/pubstarter/components/SecondaryMarketSection.tsx`
+- `ui/src/pubstarter/components/SecondaryMarketSection.test.tsx`
+- `integration-tests/src/marketplace/marketplace-actions-checked.ts`
+- `integration-tests/src/marketplace/marketplace-secondary.test.ts`
+- `fake-data-generation/fundingAndDelegationActions.ts`
+- `TODO.md`
+- `CONTINUITY.md`
+
+**Blockers / notes**:
+- Order expiration remains a deliberate marketplace v2 task because it affects contract shape, indexing, SDK, and UI.
+- Self-trade remains allowed for now; existing tests document that behavior.
+
+**Interrupt point**: Yes. The audit hardening is implemented and covered by focused tests.

@@ -174,6 +174,7 @@ describe('Secondary Marketplace Integration Tests', () => {
         saleListingId: 0n,
         count: 3n,
         totalCost: parseEther('0.045'), // 3 * 0.015
+        expectedPricePerToken: parseEther('0.015'),
       }
     );
 
@@ -399,6 +400,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       {
         buyOrderId: 0n,
         count: 2n,
+        expectedPricePerToken: parseEther('0.012'),
       }
     );
 

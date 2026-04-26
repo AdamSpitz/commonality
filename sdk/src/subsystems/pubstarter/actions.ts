@@ -351,6 +351,7 @@ export async function fulfillSaleListing(
     saleListingId: bigint;
     count: bigint;
     totalCost: bigint;
+    expectedPricePerToken: bigint;
   }
 ): Promise<Hash> {
   // @ts-expect-error - viem type inference issue with readContract
@@ -366,7 +367,7 @@ export async function fulfillSaleListing(
     address: marketplaceContract.address,
     abi: marketplaceContract.abi,
     functionName: 'fulfillSaleListing',
-    args: [params.saleListingId, params.count],
+    args: [params.saleListingId, params.count, params.expectedPricePerToken],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -442,13 +443,14 @@ export async function fulfillBuyOrder(
   params: {
     buyOrderId: bigint;
     count: bigint;
+    expectedPricePerToken: bigint;
   }
 ): Promise<Hash> {
   const hash = await clients.walletClient.writeContract({
     address: marketplaceContract.address,
     abi: marketplaceContract.abi,
     functionName: 'fulfillBuyOrder',
-    args: [params.buyOrderId, params.count],
+    args: [params.buyOrderId, params.count, params.expectedPricePerToken],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

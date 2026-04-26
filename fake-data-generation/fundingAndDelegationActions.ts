@@ -409,7 +409,8 @@ class FundingAndDelegationActions {
         {
           saleListingId: BigInt(listingId),
           count: BigInt(count),
-          totalCost
+          totalCost,
+          expectedPricePerToken: pricePerToken
         }
       );
 

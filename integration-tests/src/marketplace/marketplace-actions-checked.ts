@@ -132,7 +132,8 @@ export async function createSaleListingChecked(
  *   {
  *     saleListingId: 0n,
  *     count: 3n,
- *     totalCost: parseEther('0.045')
+ *     totalCost: parseEther('0.045'),
+ *     expectedPricePerToken: parseEther('0.015')
  *   }
  * );
  * // State transition properties and invariants are automatically verified
@@ -147,6 +148,7 @@ export async function fulfillSaleListingChecked(
     saleListingId: bigint;
     count: bigint;
     totalCost: bigint;
+    expectedPricePerToken: bigint;
   },
   options?: ActionRunOptions
 ): Promise<Hash> {

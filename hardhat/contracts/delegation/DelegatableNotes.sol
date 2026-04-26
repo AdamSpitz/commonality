@@ -619,6 +619,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo(
       saleListingId,
       tokenCount,
+      listing.pricePerToken,
       address(this)
     );
     IERC20(paymentToken).forceApprove(secondaryMarket, 0);

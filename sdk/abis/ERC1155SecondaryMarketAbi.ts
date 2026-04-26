@@ -30,6 +30,11 @@ export const ERC1155SecondaryMarketAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidERC1155Address",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidPaymentTokenAddress",
     "type": "error"
   },
@@ -77,6 +82,22 @@ export const ERC1155SecondaryMarketAbi = [
       }
     ],
     "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "expectedPricePerToken",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "actualPricePerToken",
+        "type": "uint256"
+      }
+    ],
+    "name": "UnexpectedPrice",
     "type": "error"
   },
   {
@@ -338,6 +359,11 @@ export const ERC1155SecondaryMarketAbi = [
         "internalType": "uint256",
         "name": "count",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expectedPricePerToken",
+        "type": "uint256"
       }
     ],
     "name": "fulfillBuyOrder",
@@ -356,6 +382,11 @@ export const ERC1155SecondaryMarketAbi = [
         "internalType": "uint256",
         "name": "count",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expectedPricePerToken",
+        "type": "uint256"
       }
     ],
     "name": "fulfillSaleListing",
@@ -373,6 +404,11 @@ export const ERC1155SecondaryMarketAbi = [
       {
         "internalType": "uint256",
         "name": "count",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expectedPricePerToken",
         "type": "uint256"
       },
       {

@@ -197,6 +197,7 @@ describe('SecondaryMarketSection', () => {
             saleListingId: 1n,
             count: 10n,
             totalCost: 500000000000000000n,
+            expectedPricePerToken: 50000000000000000n,
           }),
         )
       })
@@ -222,7 +223,11 @@ describe('SecondaryMarketSection', () => {
         expect(fulfillSaleListing).toHaveBeenCalledWith(
           expect.any(Object),
           expect.any(Object),
-          expect.objectContaining({ count: 3n, totalCost: 150000000000000000n }),
+          expect.objectContaining({
+            count: 3n,
+            totalCost: 150000000000000000n,
+            expectedPricePerToken: 50000000000000000n,
+          }),
         )
       })
     })
@@ -369,7 +374,11 @@ describe('SecondaryMarketSection', () => {
         expect(fulfillBuyOrder).toHaveBeenCalledWith(
           expect.objectContaining({ account: USER_ADDR }),
           expect.objectContaining({ address: MARKETPLACE_ADDR }),
-          expect.objectContaining({ buyOrderId: 1n, count: 5n }),
+          expect.objectContaining({
+            buyOrderId: 1n,
+            count: 5n,
+            expectedPricePerToken: 75000000000000000n,
+          }),
         )
       })
     })
