@@ -2951,3 +2951,27 @@ Spec: `specs/product/nudge-ux.md`.
 - The live prompt-regression path still requires `OPENROUTER_API_KEY` and should remain operator-driven because it spends API credits.
 
 **Interrupt point**: Yes. The regression tester now has an offline stale-corpus check and a focused human-review artifact for statement changes.
+
+## 2026-04-26 - DelegatableNotes Audit Regression Fixes (Completed)
+
+**Task**: Fix the smart contract bugs exposed by the new `DelegatableNotes` audit regression tests.
+
+**What was done**:
+- Fixed `DelegatableNotes.revoke` chain rebuilding so ancestor revokers regain spend/reclaim control at their position in the chain, while leaf holders can still voluntarily return control upward.
+- Added exact payment validation for delegated primary-market and secondary-market purchases before consuming note value.
+- Exposed `ERC1155PrimaryMarket.erc1155TotalCost(...)` as a public view quote helper so delegated primary-market purchases can validate the required payment against the market price calculation.
+
+**Verified**:
+- `npx hardhat test test/DelegatableNotes.audit.test.js`
+- `npm run test --workspace=hardhat`
+- `npm run lint:sol --workspace=hardhat`
+
+**Files changed**:
+- `hardhat/contracts/delegation/DelegatableNotes.sol`
+- `hardhat/contracts/individual-projects/ERC1155PrimaryMarket.sol`
+- `CONTINUITY.md`
+
+**Blockers / notes**:
+- No blockers. The relevant audit regression suite and full Hardhat suite are green.
+
+**Interrupt point**: Yes. This is a contained smart-contract bug fix with the exposed regression tests passing.

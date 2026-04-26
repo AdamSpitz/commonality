@@ -115,7 +115,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         address erc1155Addr,
         uint256[] calldata ids,
         uint256[] calldata counts
-    ) private view returns (uint256) {
+    ) public view returns (uint256) {
         uint256 total = 0;
         for (uint256 i = 0; i < ids.length; i++) {
             total += erc1155Price(erc1155Addr, ids[i]) * counts[i];

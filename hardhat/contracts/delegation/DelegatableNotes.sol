@@ -58,6 +58,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error UnauthorizedMarket();
   error UnauthorizedPrimaryMarketAuthorizer();
   error InvalidPaymentTokenForPurchase();
+  error InvalidPaymentAmount();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -437,13 +438,11 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     }
     if (!found) revert CallerNotInChain();
 
-    // Build new chain up to (and including) caller
-    // callerIndex=0 means caller is leaf, so new chain length = 1
-    // callerIndex=2 means caller is at position 2, so new chain length = 3
-    uint256 newChainLength = callerIndex + 1;
+    // Ancestors revoke back to themselves; a leaf caller returns control to its parent.
+    uint256 newLeafIndex = callerIndex == 0 && owners.length > 1 ? 1 : callerIndex;
     bytes32 newHash = bytes32(0);
-    for (uint256 j = owners.length - newChainLength; j < owners.length; j++) {
-      newHash = _computeChainHash(owners[j], newHash);
+    for (uint256 j = owners.length; j > newLeafIndex; j--) {
+      newHash = _computeChainHash(owners[j - 1], newHash);
     }
 
     note.chainHash = newHash;
@@ -520,6 +519,12 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
     address caller = _msgSender();
     address paymentToken = AssuranceContract(primaryMarket).paymentToken();
+    uint256 requiredPayment = ERC1155PrimaryMarket(primaryMarket).erc1155TotalCost(
+      erc1155Contract,
+      tokenIds,
+      counts
+    );
+    if (paymentAmount != requiredPayment) revert InvalidPaymentAmount();
 
     // Execute common purchase logic (consumes payment notes)
     (
@@ -585,7 +590,11 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
     // Get the token details from the marketplace (view calls) before any state changes
     address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
-    uint256 tokenId = ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId).tokenId;
+    ERC1155SecondaryMarket.SaleListing memory listing =
+      ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId);
+    uint256 tokenId = listing.tokenId;
+    uint256 requiredPayment = listing.pricePerToken * tokenCount;
+    if (paymentAmount != requiredPayment) revert InvalidPaymentAmount();
 
     // Execute common purchase logic (consumes payment notes)
     (

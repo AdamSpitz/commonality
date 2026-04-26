@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CreateProjectPage } from './CreateProjectPage'
@@ -154,7 +154,7 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
-      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      setFieldValue(/project name/i, 'Test Project')
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
       expect(screen.getByText(/funding goal must be positive/i)).toBeInTheDocument()
@@ -164,11 +164,8 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
-      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
-
-      // Set threshold
-      const thresholdInput = screen.getByLabelText(/funding goal/i)
-      await user.type(thresholdInput, '10')
+      setFieldValue(/project name/i, 'Test Project')
+      setFieldValue(/funding goal/i, '10')
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
@@ -179,14 +176,9 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
-      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
-      await user.type(screen.getByLabelText(/funding goal/i), '10')
-
-      // Set a future deadline
-      const deadlineInput = screen.getByLabelText(/deadline/i)
-      const futureDate = new Date(Date.now() + 86400000 * 30)
-      const dateStr = futureDate.toISOString().slice(0, 16)
-      await user.type(deadlineInput, dateStr)
+      setFieldValue(/project name/i, 'Test Project')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
@@ -195,18 +187,13 @@ describe('CreateProjectPage', () => {
   })
 
   describe('Successful submission', () => {
-    async function fillForm(user: ReturnType<typeof userEvent.setup>) {
-      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
-      await user.type(screen.getByLabelText(/description/i), 'A test description')
-      await user.type(screen.getByLabelText(/funding goal/i), '10')
-
-      const deadlineInput = screen.getByLabelText(/deadline/i)
-      const futureDate = new Date(Date.now() + 86400000 * 30)
-      const dateStr = futureDate.toISOString().slice(0, 16)
-      await user.type(deadlineInput, dateStr)
-
-      await user.type(screen.getByLabelText(/supply/i), '100')
-      await user.type(screen.getByLabelText(/price/i), '0.1')
+    function fillForm() {
+      setFieldValue(/project name/i, 'Test Project')
+      setFieldValue(/description/i, 'A test description')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      setFieldValue(/price/i, '0.1')
     }
 
     it('uploads metadata to IPFS and creates project on submit', async () => {
@@ -222,7 +209,7 @@ describe('CreateProjectPage', () => {
 
       render(<CreateProjectPage />)
       const user = userEvent.setup()
-      await fillForm(user)
+      fillForm()
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
@@ -248,7 +235,7 @@ describe('CreateProjectPage', () => {
 
       render(<CreateProjectPage />)
       const user = userEvent.setup()
-      await fillForm(user)
+      fillForm()
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
@@ -271,7 +258,7 @@ describe('CreateProjectPage', () => {
 
       render(<CreateProjectPage />)
       const user = userEvent.setup()
-      await fillForm(user)
+      fillForm()
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
@@ -286,13 +273,12 @@ describe('CreateProjectPage', () => {
   })
 
   describe('Per-token images', () => {
-    async function fillFormMinimal(user: ReturnType<typeof userEvent.setup>) {
-      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
-      await user.type(screen.getByLabelText(/funding goal/i), '10')
-      const futureDate = new Date(Date.now() + 86400000 * 30)
-      await user.type(screen.getByLabelText(/deadline/i), futureDate.toISOString().slice(0, 16))
-      await user.type(screen.getByLabelText(/supply/i), '100')
-      await user.type(screen.getByLabelText(/price/i), '0.1')
+    function fillFormMinimal() {
+      setFieldValue(/project name/i, 'Test Project')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      setFieldValue(/price/i, '0.1')
     }
 
     it('renders Token Name field for each token type', () => {
@@ -318,7 +304,7 @@ describe('CreateProjectPage', () => {
 
       render(<CreateProjectPage />)
       const user = userEvent.setup()
-      await fillFormMinimal(user)
+      fillFormMinimal()
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
       await waitFor(() => expect(screen.getByText(/project created successfully/i)).toBeInTheDocument())
@@ -341,7 +327,7 @@ describe('CreateProjectPage', () => {
 
       render(<CreateProjectPage />)
       const user = userEvent.setup()
-      await fillFormMinimal(user)
+      fillFormMinimal()
 
       // Upload a fake image file
       const imageFile = new File(['image data'], 'token.png', { type: 'image/png' })
@@ -379,8 +365,8 @@ describe('CreateProjectPage', () => {
 
       render(<CreateProjectPage />)
       const user = userEvent.setup()
-      await fillFormMinimal(user)
-      await user.type(screen.getByLabelText(/token name/i), 'Gold Tier')
+      fillFormMinimal()
+      setFieldValue(/token name/i, 'Gold Tier')
 
       const imageFile = new File(['image data'], 'token.png', { type: 'image/png' })
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
@@ -404,15 +390,11 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
-      await user.type(screen.getByLabelText(/project name/i), 'Test')
-      await user.type(screen.getByLabelText(/funding goal/i), '10')
-
-      const deadlineInput = screen.getByLabelText(/deadline/i)
-      const futureDate = new Date(Date.now() + 86400000 * 30)
-      await user.type(deadlineInput, futureDate.toISOString().slice(0, 16))
-
-      await user.type(screen.getByLabelText(/supply/i), '100')
-      await user.type(screen.getByLabelText(/price/i), '0.1')
+      setFieldValue(/project name/i, 'Test')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      setFieldValue(/price/i, '0.1')
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
@@ -428,15 +410,11 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
-      await user.type(screen.getByLabelText(/project name/i), 'Test')
-      await user.type(screen.getByLabelText(/funding goal/i), '10')
-
-      const deadlineInput = screen.getByLabelText(/deadline/i)
-      const futureDate = new Date(Date.now() + 86400000 * 30)
-      await user.type(deadlineInput, futureDate.toISOString().slice(0, 16))
-
-      await user.type(screen.getByLabelText(/supply/i), '100')
-      await user.type(screen.getByLabelText(/price/i), '0.1')
+      setFieldValue(/project name/i, 'Test')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      setFieldValue(/price/i, '0.1')
 
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
@@ -446,3 +424,11 @@ describe('CreateProjectPage', () => {
     })
   })
 })
+
+function futureDeadlineValue() {
+  return new Date(Date.now() + 86400000 * 30).toISOString().slice(0, 16)
+}
+
+function setFieldValue(label: RegExp, value: string) {
+  fireEvent.change(screen.getByLabelText(label), { target: { value } })
+}
