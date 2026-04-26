@@ -144,12 +144,6 @@ async function main() {
   // Deploy Pubstarter factory contracts
   console.log('\nDeploying Pubstarter factories...');
 
-  const FreeERC1155Factory = await ethers.getContractFactory('FreeERC1155Factory');
-  const freeERC1155Factory = await FreeERC1155Factory.deploy();
-  await freeERC1155Factory.waitForDeployment();
-  const freeERC1155FactoryAddress = await freeERC1155Factory.getAddress();
-  console.log(`✓ FreeERC1155Factory: ${freeERC1155FactoryAddress}`);
-
   const AssuranceContractFactory = await ethers.getContractFactory('AssuranceContractFactory');
   const assuranceFactory = await AssuranceContractFactory.deploy();
   await assuranceFactory.waitForDeployment();
@@ -289,7 +283,6 @@ async function main() {
         NoteIntent: noteIntentAddress,
         DelegatableNotes: delegatableNotesAddress,
         MutableRefUpdater: mutableRefUpdaterAddress,
-        FreeERC1155Factory: freeERC1155FactoryAddress,
         AssuranceContractFactory: assuranceFactoryAddress,
         PremintingERC1155Factory: erc1155FactoryAddress,
         MarketplaceFactory: marketplaceFactoryAddress,
@@ -328,7 +321,6 @@ async function main() {
     'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
     'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
     'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,
-    'FREE_ERC1155_FACTORY_ADDRESS': freeERC1155FactoryAddress,
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
@@ -446,7 +438,6 @@ async function main() {
   console.log(`  NoteIntent:              ${noteIntentAddress}`);
   console.log(`  DelegatableNotes:        ${delegatableNotesAddress}`);
   console.log(`  MutableRefUpdater:       ${mutableRefUpdaterAddress}`);
-  console.log(`  FreeERC1155Factory:      ${freeERC1155FactoryAddress}`);
   console.log(`  AssuranceFactory:        ${assuranceFactoryAddress}`);
   console.log(`  ERC1155Factory:          ${erc1155FactoryAddress}`);
   console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);

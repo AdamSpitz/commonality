@@ -63,10 +63,11 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
         address owner,
         address recipient,
         address _paymentToken,
+        address _erc1155Addr,
         string memory projectMetadataCid,
         bytes32 _channelId,
         bool _recipientIsEscrow
-    ) MultiERC1155AssuranceContract(owner, recipient, _paymentToken, projectMetadataCid) {
+    ) MultiERC1155AssuranceContract(owner, recipient, _paymentToken, _erc1155Addr, projectMetadataCid) {
         channelId = _channelId;
         recipientIsEscrow = _recipientIsEscrow;
     }

@@ -61,69 +61,87 @@ Based on the survey, here's my read on which contracts are tricky enough to be h
 So: **DelegatableNotes is still #1**, but `CreatorAssuranceContractFactory` and `ERC1155SecondaryMarket` deserve roughly the same level of caution now.
 
 
-### Audit: ERC1155SecondaryMarket.sol
 
-**Overall verdict:** Solid foundation. Architecture is sound (escrow model, CEI ordering, `nonReentrant` everywhere, SafeERC20). Not "rock-solid in production" yet — there are a handful of real issues plus some sharp edges I'd want fixed before mainnet.
+# Security Audit: Pubstarter.sol — addressed 2026-04-26
 
-#### Issues
+Implementation pass on the audit findings:
+- M1 done: Pubstarter validates `ids.length > 0`, equal lengths, `prices[i] > 0`. `MultiERC1155AssuranceContract.setPricesERC1155` now uses a separate `_erc1155PriceIsSet` flag instead of treating zero as "unset".
+- M2 done: Pubstarter requires `threshold > 0` and `deadline > block.timestamp`.
+- M3 done: `MultiERC1155AssuranceContract` now takes `erc1155Addr` as an immutable in the constructor; `setPricesERC1155` only operates on it (the parameter has been dropped from the function signature). `erc1155Price` reverts on a foreign collection or unset id, so buy / refund / `erc1155TotalCost` all reject anything other than the configured token.
+- L1 partial: renamed `AssuranceContractFactory.isDeployedMarket` → `isDeployedAssurance` (and updated `DelegatableNotes`). Did NOT lock factories to a single Pubstarter caller because `CreatorAssuranceContractFactory` shares them; the maps are still safe as a "factory deployed it" stamp because the factory enforces the contract type.
+- L2 done: Pubstarter constructor zero-checks all four factory addresses.
+- L3 done: dropped `FreeERC1155Factory` (and removed it from deploy.js / sync-abis).
+- L4 done: Pubstarter emits a single `ProjectCreated(creator, token, assuranceContract, marketplace, condition)` event per call.
+- L5 done: extracted `_deployTokenMarketplaceAndAC`, `_wireUpAndFinalize`, `_validateTokenArrays` helpers; the two public entry points are now thin.
 
-##### High
+Open: Remaining contracts to audit per the survey at the top of this file (DelegatableNotes still #1, then `CreatorAssuranceContractFactory`, `ERC1155SecondaryMarket`, `ChannelRegistry`).
 
-**H1. `fulfillSaleListingTo` doesn't reject `recipient == address(this)`** (line 207)
-A buyer can specify the marketplace itself as recipient. The ERC1155 tokens land in the contract with no listing tracking them — permanently stranded. There is no admin recovery path. Add `if (recipient == address(this)) revert InvalidRecipient();`.
+# Security Audit: Pubstarter.sol
 
-**H2. `cancelBuyOrder` has no `OrderDoesNotExist` check** (line 349–355)
-Currently relies on `buyer != _msgSender()` to reject nonexistent orders (since `msg.sender` is never `address(0)`). It works, but emits the misleading `NotTheBuyer` error and is inconsistent with `cancelSaleListing`. More importantly, it's exactly the kind of "works by coincidence" pattern that breaks during a refactor. Add the explicit check.
+Pubstarter is an orchestration contract that wires together a token, marketplace, assurance contract, and success/failure condition into one project. Its safety depends heavily on the contracts it composes. I read the four collaborators (`PremintingERC1155`, `MultiERC1155AssuranceContract`, `AssuranceContract`, `ERC1155PrimaryMarket`, `ValueThresholdCondition`) to evaluate it end‑to‑end.
 
-##### Medium
+## Summary
+No critical vulnerabilities in Pubstarter itself. The orchestration is correctly ordered (token → marketplace → AC → condition → wire condition → set prices → transfer AC ownership → mint → renounce token ownership), and the chicken‑and‑egg of "condition references AC" is solved cleanly. Below are findings ranked by severity, plus issues in the contracts Pubstarter pulls together that affect its overall security posture.
 
-**M1. `"0x"` is not empty bytes** (lines 176, 241, 267, 336)
-`"0x"` is the 2-byte string literal `[0x30, 0x78]` ('0','x'), not empty `bytes`. ERC1155 transfers are passing junk data into the receiver hook. Use `""` instead. Won't break OpenZeppelin's `ERC1155Holder` (it ignores data) but a downstream receiver hook that inspects `data` would see garbage. Costs gas too.
+---
 
-**M2. Constructor doesn't validate `erc1155Address`** (line 137)
-Bricks the contract if zero, not exploitable, but trivial to add.
+## Medium
 
-**M3. paymentToken liveness assumption**
-USDC blacklist or pausable token → `safeTransferFrom(buyer, seller, totalCost)` reverts permanently if seller is blacklisted, freezing the listing. Mitigated because seller can `cancelSaleListing`. Buy orders symmetrically: if buyer becomes blacklisted, fulfillers can't be paid — but buyer can cancel and recover. Document this clearly; consider an admin-less rescue path or an order expiry mechanism.
+### M1. No validation of input arrays — silent "dead project" footguns (Pubstarter.sol:214‑258, 278‑312)
+`ids`, `counts`, and `prices` lengths are validated only downstream (`setPricesERC1155` checks `ids vs prices`, `_mintBatch` checks `ids vs counts`). That makes the all‑three invariant work, but two pathological cases get through:
 
-**M4. Dead address-zero check** (line 322)
-`address seller = _msgSender(); if (seller == address(0)) revert InvalidRecipient();` — `msg.sender` cannot be zero. Remove it; dead checks signal misunderstanding to readers/auditors.
+- `ids.length == 0` → assurance contract is created, ownership renounced on the token, but **no inventory exists**. The project is permanently bricked (no buys possible, threshold reachable only via direct ERC‑20 transfer to the AC, refunds impossible).
+- `prices[i] == 0` for some `i` → those ids can be claimed for free, with no contribution to `_totalReceivedValue`. Also: `setPricesERC1155` uses `currentPrice != 0` as the "already set" sentinel, so a zero price is **never marked as set**, meaning the (post‑renounce, new‑owner) AC owner could later set a real price for those same ids on the same `erc1155Addr` — modifying live pricing in a way the "prices are immutable" comment promises against.
 
-##### Low / hardening
+**Recommendation:** in Pubstarter, require `ids.length > 0`, `counts.length == ids.length == prices.length`, and `prices[i] > 0` for all `i`. Alternatively/additionally, fix the sentinel in `MultiERC1155AssuranceContract.setPricesERC1155` to use a separate `bool isSet` mapping.
 
-- **L1.** No order expiration — stale buy orders can be hit when prices move. Standard for naive orderbooks; consider a `deadline` field.
-- **L2.** Self-trade is allowed (buyer == seller). Doesn't lose funds but enables wash-trading volume. Add `if (seller == buyer) revert ...` if that matters for your market.
-- **L3.** No price/cost confirmation parameter on `fulfillSaleListing`/`fulfillBuyOrder`. Since IDs are immutable in price, the existing design is fine, but adding `expectedPricePerToken` is cheap defense-in-depth.
-- **L4.** No max-count cap; a `count * pricePerToken` overflow just reverts (Solidity 0.8.x), so DoS-of-self only.
-- **L5.** `_nextSaleListingId++` etc. could be `unchecked` for minor gas savings.
-- **L6.** Inconsistency: `getSaleListing` returns the struct, `getBuyOrder` returns a tuple. Cosmetic.
-- **L7.** ERC1155 contract is trusted (immutable, set at deploy). If someone deploys this against a malicious ERC1155, all bets are off — worth stating in the NatSpec.
+### M2. No deadline / threshold sanity checks (Pubstarter.sol:243‑247)
+`createCondition` accepts any `threshold` and any `deadline`:
+- `threshold == 0` → `hasSucceeded()` true immediately on deploy; recipient can `withdraw()` 0 funds, but more importantly the AC cannot enter a failed state, so refunds are impossible from the start.
+- `deadline <= block.timestamp` → condition can be in `hasFailed()` immediately if no funds; project deploys already‑dead.
 
-#### What's done well
+These are user‑facing UX bugs more than exploits, but they cost gas and produce confusingly‑broken contracts. Recommend `require(threshold > 0 && deadline > block.timestamp)`.
 
-- `nonReentrant` on every state-changing entry point + `ERC1155Holder` correctly inherited.
-- State updates (delete/decrement) happen *before* external token transfers — proper CEI.
-- `SafeERC20` everywhere.
-- Immutables for `paymentToken` and `_erc1155`.
-- Custom errors instead of strings.
-- Partial fills handled correctly with consistent decrement-or-delete logic.
-- Buy-order escrow refund math is correct (uses stored `pricePerToken * remaining count`).
+### M3. `setPricesERC1155` accepts arbitrary `erc1155Addr` after ownership transfer (AssuranceContracts.sol:62‑76)
+Out of scope for this file but it changes the trust model Pubstarter sets up. After `ac.transferOwnership(owner)`, the new owner can call `setPricesERC1155(otherErc1155, ...)` for **any** ERC1155 collection. The AC will then `safeBatchTransferFrom(address(this), buyer, ...)` — which reverts unless someone deposits those external tokens into the AC, but if the owner does deposit them, sale proceeds flow into the same `_totalReceivedValue` bucket that the original buyers' refunds are accounted against. Owner can therefore dilute / inflate the refund pool post‑hoc.
 
-#### Bottom line
+**Recommendation:** lock `setPricesERC1155` to the single `erc1155Addr` Pubstarter wired up at construction (store it as immutable in the AC, and have Pubstarter pass it).
 
-Fix H1 and H2 before any deployment. Fix M1–M4 before mainnet. Decide consciously about L1 (expiration) and L3 (slippage) based on threat model. After that, this is shippable for a reasonably trusted paymentToken. I'd still recommend a third-party audit before significant TVL given the escrow exposure.
+---
 
-#### Implementation notes - 2026-04-26
+## Low
 
-- **Done: H1.** `fulfillSaleListingTo` now rejects `recipient == address(this)` with `InvalidRecipient`, with regression coverage.
-- **Done: H2.** `cancelBuyOrder` now explicitly rejects missing orders with `OrderDoesNotExist`, with regression coverage.
-- **Done: M1.** ERC-1155 transfers now pass empty bytes (`""`) instead of the `"0x"` string literal. Added receiver-hook coverage for `fulfillSaleListingTo`.
-- **Done: M2.** Constructor now rejects `erc1155Address == address(0)` with `InvalidERC1155Address`, with regression coverage.
-- **Done/documented: M3 and L7.** Added NatSpec documenting that `paymentToken` and the ERC-1155 contract are trusted deployment choices, and that pausable/blacklistable payment tokens can temporarily make orders unfulfillable while preserving the ordinary cancel path when transfers permit.
-- **Done: M4.** Removed the dead `_msgSender() == address(0)` check in `fulfillBuyOrder`.
-- **Done: L3.** `fulfillSaleListing`, `fulfillSaleListingTo`, and `fulfillBuyOrder` now require an exact `expectedPricePerToken` and revert with `UnexpectedPrice` if the order price does not match the caller's expectation. Updated DelegatableNotes, SDK, UI, integration tests, and fake-data callers for the ABI change.
-- **Not done: L1.** Order expiration is a real product/design change because it changes order creation, indexing, UI forms, and stale-order behavior. Leave for a deliberate marketplace v2 task.
-- **Not done: L2.** Self-trade remains allowed for now. It is economically pointless in the current local marketplace and existing tests document that behavior; blocking it should be a product decision if wash-volume metrics become important.
-- **Not done: L4.** Solidity 0.8 overflow checks already make excessive `count * pricePerToken` self-reverting.
-- **Not done: L5.** Skipped unchecked ID increments; tiny gas optimization, not worth weakening readability in this pass.
-- **Not done: L6.** Return-shape inconsistency is cosmetic and would be ABI-impacting for callers.
+### L1. Factory `isDeployedMarket` registry is unauthenticated and pollutable (Pubstarter.sol:75, 101‑102, 141)
+Anyone can call `MarketplaceFactory.createMarketplace`, `AssuranceContractFactory.createAssuranceContract`, `ValueThresholdConditionFactory.createCondition`, or `Pubstarter.create...` directly — registering arbitrary deployments in the `isDeployedMarket` / `isDeployedCondition` maps. Also note `AssuranceContractFactory` reuses the field name `isDeployedMarket` despite registering assurance contracts (rename to `isDeployedAssurance`).
+
+This isn't an exploit on its own, but if any off‑chain indexer or future on‑chain consumer trusts these maps as a "Pubstarter‑legitimate" stamp, it will be misled. Either remove the maps (events suffice) or restrict factory creation to the Pubstarter contract.
+
+### L2. Constructor does not validate factory addresses (Pubstarter.sol:183‑193)
+Factory addresses are stored as immutable with no zero‑check or interface probe. A misconfigured deploy bricks the contract permanently. Add zero‑checks; consider an `ERC165`‑style probe or a sentinel function call.
+
+### L3. `FreeERC1155Factory` is dead code in Pubstarter's flow (Pubstarter.sol:21‑39)
+Pubstarter only uses `PremintingERC1155Factory`. `FreeERC1155Factory` is defined here but never referenced — confusion risk and a comment in the docstring claims it's used. Either drop it from this file or wire it into a code path.
+
+### L4. No event from Pubstarter aggregating the deployment (Pubstarter.sol:214‑258)
+Off‑chain indexers must join four separate factory events by tx hash to recover one project. Emitting a single `ProjectCreated(token, marketplace, ac, condition)` from Pubstarter would tie the components together atomically.
+
+### L5. Code duplication between the two `create…` functions (Pubstarter.sol:214‑312)
+Identical setup logic lives in both. Extract a private helper that takes a `condition` parameter; keep the two public entry points thin. Reduces audit surface.
+
+---
+
+## Informational / Good practice
+
+- **Reentrancy:** Pubstarter's flow is safe. `_mintBatch` triggers `onERC1155BatchReceived` on the AC, but the AC is freshly deployed by Pubstarter and inherits OZ `ERC1155Holder`, which doesn't reenter. `transferOwnership` is non‑callback. `ERC1155PrimaryMarket` uses `nonReentrant` correctly on buy/refund.
+- **Ownership lifecycle:** Token ownership is renounced after mint (correct — locks supply). AC condition is one‑shot via `_conditionSet` (correct — owner cannot swap condition after Pubstarter wires it).
+- **Trust in the deployer of Pubstarter:** Whoever deploys Pubstarter chooses the four factory addresses; users must trust the deployer that those factories are the real ones. Worth documenting prominently.
+- **Token assumption:** `AssuranceContract`'s NatSpec correctly states the payment token must be a standard ERC‑20 (no fee‑on‑transfer, no rebasing, no callbacks). Pubstarter doesn't enforce this; it's a deployer responsibility. Keep the doc — and consider adding it to Pubstarter's NatSpec too, since that's the contract integrators see first.
+- **Solidity 0.8.33** — recent and fine; built‑in overflow checks active.
+
+---
+
+## Suggested priority
+1. Fix M1 (input validation + zero‑price sentinel) — cheapest, prevents real footguns.
+2. Fix M3 (lock `setPricesERC1155` to the configured token) — closes a post‑deploy trust gap.
+3. Add M2 sanity checks.
+4. Address L1/L2/L3 cleanup; emit aggregated event (L4).

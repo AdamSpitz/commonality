@@ -164,7 +164,7 @@ describe('Pubstarter Negative Tests', () => {
         },
         {
           expectFailure: true,
-          expectedError: /incorrect.*amount|invalid.*token|not.*exist|unavailable|0x03dee4c5/i,
+          expectedError: /incorrect.*amount|invalid.*token|not.*exist|unavailable|PriceNotSet|0x03dee4c5/i,
         }
       );
 

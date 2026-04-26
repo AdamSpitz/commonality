@@ -20,6 +20,11 @@ export const MultiERC1155AssuranceContractAbi = [
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_erc1155Addr",
+        "type": "address"
+      },
+      {
         "internalType": "string",
         "name": "projectMetadataCid",
         "type": "string"
@@ -56,6 +61,11 @@ export const MultiERC1155AssuranceContractAbi = [
   {
     "inputs": [],
     "name": "ConditionNotSet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidERC1155Address",
     "type": "error"
   },
   {
@@ -97,6 +107,11 @@ export const MultiERC1155AssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "PriceNotSet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
     "type": "error"
   },
@@ -109,6 +124,11 @@ export const MultiERC1155AssuranceContractAbi = [
       }
     ],
     "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnsupportedERC1155",
     "type": "error"
   },
   {
@@ -319,6 +339,19 @@ export const MultiERC1155AssuranceContractAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "erc1155Addr",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -519,11 +552,6 @@ export const MultiERC1155AssuranceContractAbi = [
   },
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "erc1155Addr",
-        "type": "address"
-      },
       {
         "internalType": "uint256[]",
         "name": "ids",

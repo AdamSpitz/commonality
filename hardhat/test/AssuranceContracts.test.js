@@ -66,6 +66,7 @@ describe("MultiERC1155AssuranceContract", function () {
       owner.address,
       recipient.address,
       await paymentToken.getAddress(),
+      await erc1155Token.getAddress(),
       "ipfs://QmProjectMetadata"
     );
 
@@ -104,6 +105,7 @@ describe("MultiERC1155AssuranceContract", function () {
         owner.address,
         recipient.address,
         await paymentToken.getAddress(),
+        await erc1155Token.getAddress(),
         "ipfs://QmProjectMetadata"
       );
 
@@ -128,6 +130,7 @@ describe("MultiERC1155AssuranceContract", function () {
         owner.address,
         recipient.address,
         await paymentToken.getAddress(),
+        await erc1155Token.getAddress(),
         metadataCid
       );
 
@@ -159,6 +162,7 @@ describe("MultiERC1155AssuranceContract", function () {
         owner.address,
         recipient.address,
         await paymentToken.getAddress(),
+        await erc1155Token.getAddress(),
         "ipfs://QmProjectMetadata"
       );
 
@@ -185,7 +189,7 @@ describe("MultiERC1155AssuranceContract", function () {
       ];
 
       await expect(
-        assuranceContract.connect(owner).setPricesERC1155(tokenAddr, ids, prices)
+        assuranceContract.connect(owner).setPricesERC1155( ids, prices)
       )
         .to.emit(assuranceContract, "ERC1155Offered")
         .withArgs(tokenAddr, ids[0], prices[0]);
@@ -197,7 +201,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const prices = [ethers.parseEther("1.0")];
 
       await expect(
-        assuranceContract.connect(alice).setPricesERC1155(tokenAddr, ids, prices)
+        assuranceContract.connect(alice).setPricesERC1155( ids, prices)
       ).to.be.revertedWithCustomError(assuranceContract, "OwnableUnauthorizedAccount");
     });
 
@@ -207,7 +211,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const prices = [ethers.parseEther("1.0")];
 
       await expect(
-        assuranceContract.connect(owner).setPricesERC1155(tokenAddr, ids, prices)
+        assuranceContract.connect(owner).setPricesERC1155( ids, prices)
       ).to.be.revertedWithCustomError(assuranceContract, "ArrayLengthMismatch");
     });
 
@@ -218,12 +222,12 @@ describe("MultiERC1155AssuranceContract", function () {
 
       await assuranceContract
         .connect(owner)
-        .setPricesERC1155(tokenAddr, ids, [price]);
+        .setPricesERC1155( ids, [price]);
 
       await expect(
         assuranceContract
           .connect(owner)
-          .setPricesERC1155(tokenAddr, ids, [price])
+          .setPricesERC1155( ids, [price])
       ).to.be.revertedWithCustomError(assuranceContract, "PriceAlreadySet");
     });
 
@@ -235,12 +239,12 @@ describe("MultiERC1155AssuranceContract", function () {
 
       await assuranceContract
         .connect(owner)
-        .setPricesERC1155(tokenAddr, ids, [price1]);
+        .setPricesERC1155( ids, [price1]);
 
       await expect(
         assuranceContract
           .connect(owner)
-          .setPricesERC1155(tokenAddr, ids, [price2])
+          .setPricesERC1155( ids, [price2])
       ).to.be.revertedWithCustomError(assuranceContract, "PriceAlreadySet");
     });
   });
@@ -251,7 +255,6 @@ describe("MultiERC1155AssuranceContract", function () {
       await assuranceContract
         .connect(owner)
         .setPricesERC1155(
-          tokenAddr,
           [1, 2, 3],
           [
             ethers.parseEther("1.0"),
@@ -342,7 +345,6 @@ describe("MultiERC1155AssuranceContract", function () {
       await assuranceContract
         .connect(owner)
         .setPricesERC1155(
-          tokenAddr,
           [1, 2, 3],
           [
             ethers.parseEther("1.0"),
@@ -492,7 +494,6 @@ describe("MultiERC1155AssuranceContract", function () {
       await assuranceContract
         .connect(owner)
         .setPricesERC1155(
-          tokenAddr,
           [1],
           [ethers.parseEther("1.0")]
         );
@@ -586,7 +587,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const tokenAddr = await erc1155Token.getAddress();
       await assuranceContract
         .connect(owner)
-        .setPricesERC1155(tokenAddr, [1], [ethers.parseEther("1.0")]);
+        .setPricesERC1155( [1], [ethers.parseEther("1.0")]);
 
       await approveAndBuy(
         assuranceContract,
@@ -616,7 +617,7 @@ describe("MultiERC1155AssuranceContract", function () {
       const tokenAddr = await erc1155Token.getAddress();
       await assuranceContract
         .connect(owner)
-        .setPricesERC1155(tokenAddr, [1], [ethers.parseEther("1.0")]);
+        .setPricesERC1155( [1], [ethers.parseEther("1.0")]);
 
       // Fast forward past deadline
       await hre.network.provider.send("evm_increaseTime", [86400]);
@@ -657,6 +658,7 @@ describe("MultiERC1155AssuranceContract", function () {
         owner.address,
         recipient.address,
         await paymentToken.getAddress(),
+        await cancellableToken.getAddress(),
         "ipfs://QmCancellableProject"
       );
 
@@ -682,7 +684,6 @@ describe("MultiERC1155AssuranceContract", function () {
       );
 
       await cancellableContract.connect(owner).setPricesERC1155(
-        await cancellableToken.getAddress(),
         [1],
         [ethers.parseEther("1.0")]
       );
@@ -786,6 +787,7 @@ describe("MultiERC1155AssuranceContract", function () {
         owner.address,
         recipient.address,
         await paymentToken.getAddress(),
+        await oracleToken.getAddress(),
         "ipfs://QmOracleProject"
       );
       await ac.connect(owner).setCondition(await oracleCondition.getAddress());
@@ -798,7 +800,6 @@ describe("MultiERC1155AssuranceContract", function () {
         "0x"
       );
       await ac.connect(owner).setPricesERC1155(
-        await oracleToken.getAddress(),
         [1],
         [ethers.parseEther("1.0")]
       );
@@ -835,6 +836,7 @@ describe("MultiERC1155AssuranceContract", function () {
         owner.address,
         recipient.address,
         await paymentToken.getAddress(),
+        await oracleToken.getAddress(),
         "ipfs://QmOracleProject"
       );
       await ac.connect(owner).setCondition(await oracleCondition.getAddress());
@@ -847,7 +849,6 @@ describe("MultiERC1155AssuranceContract", function () {
         "0x"
       );
       await ac.connect(owner).setPricesERC1155(
-        await oracleToken.getAddress(),
         [1],
         [ethers.parseEther("1.0")]
       );

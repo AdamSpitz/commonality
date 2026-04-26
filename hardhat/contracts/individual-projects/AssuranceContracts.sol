@@ -9,11 +9,15 @@ import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 
 error ArrayLengthMismatch();
 error PriceAlreadySet();
+error PriceNotSet();
+error UnsupportedERC1155();
+error InvalidERC1155Address();
 
 /**
  * @title MultiERC1155AssuranceContract
  * @notice Combines assurance contract with ERC1155 token sales
- * @dev Holds pre-minted ERC1155 tokens and sells them at fixed prices.
+ * @dev Holds pre-minted ERC1155 tokens of a single, fixed ERC1155 collection
+ *      (locked at construction) and sells them at fixed prices.
  *      Tracks total received value to measure funding progress.
  *      Refunds only allowed if project failed.
  *      Implements AssuranceContract, ContractMetadata, and ERC1155PrimaryMarket.
@@ -24,7 +28,11 @@ contract MultiERC1155AssuranceContract is
     AssuranceContract,
     ERC1155PrimaryMarket
 {
-    mapping(address => mapping(uint256 => uint256)) private _erc1155Prices;
+    /// @notice The single ERC1155 collection this contract sells / refunds.
+    address public immutable erc1155Addr;
+
+    mapping(uint256 => uint256) private _erc1155Prices;
+    mapping(uint256 => bool) private _erc1155PriceIsSet;
 
     uint256 private _totalReceivedValue = 0;
 
@@ -32,14 +40,19 @@ contract MultiERC1155AssuranceContract is
      * @notice Initializes the multi-ERC1155 assurance contract
      * @param owner The owner of the contract who can set prices and manage the contract
      * @param recipient The address that will receive funds if the project succeeds
+     * @param _paymentToken The ERC-20 token used for payments / refunds / withdrawals
+     * @param _erc1155Addr The single ERC1155 collection this contract sells
      * @param projectMetadataCid The IPFS CID containing project metadata
      */
     constructor(
         address owner,
         address recipient,
         address _paymentToken,
+        address _erc1155Addr,
         string memory projectMetadataCid
     ) Ownable(owner) AssuranceContract(recipient, _paymentToken) {
+        if (_erc1155Addr == address(0)) revert InvalidERC1155Address();
+        erc1155Addr = _erc1155Addr;
         // no reason to validate the CID, plus we can't really anyway
         emit ContractMetadataUpdated(projectMetadataCid);
     }
@@ -53,31 +66,29 @@ contract MultiERC1155AssuranceContract is
     }
 
     /**
-     * @notice Sets prices for ERC1155 token IDs
+     * @notice Sets prices for ERC1155 token IDs on the configured ERC1155 collection
      * @dev Prices cannot be modified once set. Only callable by owner.
-     * @param erc1155Addr The address of the ERC1155 token contract
+     *      Setting a price of 0 is allowed and treated as "set to zero" (the
+     *      separate `_erc1155PriceIsSet` flag prevents later overwrite).
      * @param ids Array of token IDs to set prices for
-     * @param prices Array of prices corresponding to each token ID (in wei)
+     * @param prices Array of prices corresponding to each token ID
      */
     function setPricesERC1155(
-        address erc1155Addr,
         uint256[] memory ids,
         uint256[] memory prices
     ) external onlyOwner {
         if (ids.length != prices.length) revert ArrayLengthMismatch();
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            uint256 price = prices[i];
-            uint256 currentPrice = _erc1155Prices[erc1155Addr][id];
-            if (currentPrice != 0) revert PriceAlreadySet();
-            _erc1155Prices[erc1155Addr][id] = price;
-            emit ERC1155Offered(erc1155Addr, id, price);
+            if (_erc1155PriceIsSet[id]) revert PriceAlreadySet();
+            _erc1155Prices[id] = prices[i];
+            _erc1155PriceIsSet[id] = true;
+            emit ERC1155Offered(erc1155Addr, id, prices[i]);
         }
     }
 
     /**
      * @notice Returns the current funding progress
-     * @return The total amount of ETH received so far
      */
     function getAssuranceContractProgress()
         public
@@ -90,21 +101,18 @@ contract MultiERC1155AssuranceContract is
 
     /**
      * @notice Returns the price for a specific ERC1155 token
-     * @param erc1155Addr The address of the ERC1155 token contract
-     * @param id The token ID to get the price for
-     * @return The price in wei for the token
+     * @dev Reverts if `_erc1155Addr` is not the configured collection or if no
+     *      price has been set for `id`.
      */
     function erc1155Price(
-        address erc1155Addr,
+        address _erc1155Addr,
         uint256 id
     ) internal view override returns (uint256) {
-        return _erc1155Prices[erc1155Addr][id];
+        if (_erc1155Addr != erc1155Addr) revert UnsupportedERC1155();
+        if (!_erc1155PriceIsSet[id]) revert PriceNotSet();
+        return _erc1155Prices[id];
     }
 
-    /**
-     * @notice Returns the total amount of ETH received
-     * @return The total received value
-     */
     function getTotalReceivedValue() internal view override returns (uint256) {
         return _totalReceivedValue;
     }
@@ -113,10 +121,6 @@ contract MultiERC1155AssuranceContract is
         return paymentToken;
     }
 
-    /**
-     * @notice Sets the total received value
-     * @param value The new total received value
-     */
     function setTotalReceivedValue(uint256 value) internal override {
         _totalReceivedValue = value;
     }

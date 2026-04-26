@@ -338,6 +338,7 @@ contract CreatorAssuranceContractFactory is Ownable {
             address(this),
             channel.recipient,
             paymentToken,
+            address(erc1155),
             params.metadataCid,
             params.channelId,
             !channel.verified
@@ -365,7 +366,7 @@ contract CreatorAssuranceContractFactory is Ownable {
         }
 
         ac.setCondition(IAssuranceCondition(conditionAddress));
-        ac.setPricesERC1155(address(erc1155), content.ids, params.prices);
+        ac.setPricesERC1155(content.ids, params.prices);
         ac.setContentIds(content.ids);
         ac.setOwner(msg.sender);
 

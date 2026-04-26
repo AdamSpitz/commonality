@@ -3,7 +3,6 @@
 pragma solidity 0.8.33;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import {FreeERC1155} from "../utils/FreeERC1155.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {AssuranceContract} from "./AssuranceContract.sol";
 import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
@@ -13,30 +12,12 @@ import {ValueThresholdCondition} from "./ValueThresholdCondition.sol";
 
 error InvalidOwnerAddress();
 error InvalidRecipientAddress();
-
-/**
- * @title FreeERC1155Factory
- * @notice Factory contract for creating FreeERC1155 token contracts
- */
-contract FreeERC1155Factory {
-  /**
-   * @notice Emitted when a new FreeERC1155 contract is created
-   * @param erc1155 The address of the created FreeERC1155 contract
-   */
-  event FreeERC1155ContractCreated(address indexed erc1155);
-
-  /**
-   * @notice Creates a new FreeERC1155 token contract
-   * @param metadataURI The base URI for token metadata
-   * @param contractURI The contract metadata URI
-   * @return The address of the created FreeERC1155 contract
-   */
-  function createFreeERC1155(string memory metadataURI, string memory contractURI) public returns (FreeERC1155) {
-    FreeERC1155 t = new FreeERC1155(metadataURI, contractURI);
-    emit FreeERC1155ContractCreated(address(t));
-    return t;
-  }
-}
+error InvalidFactoryAddress();
+error InvalidThreshold();
+error InvalidDeadline();
+error EmptyTokenList();
+error TokenArrayLengthMismatch();
+error ZeroPrice();
 
 /**
  * @title PremintingERC1155Factory
@@ -45,17 +26,9 @@ contract FreeERC1155Factory {
 contract PremintingERC1155Factory {
   /**
    * @notice Emitted when a new PremintingERC1155 contract is created
-   * @param erc1155 The address of the created PremintingERC1155 contract
    */
   event PubstarterERC1155ContractCreated(address indexed erc1155);
 
-  /**
-   * @notice Creates a new PremintingERC1155 token contract
-   * @param owner The address that will own the created contract
-   * @param metadataURI The base URI for token metadata
-   * @param contractURI The contract metadata URI
-   * @return The address of the created PremintingERC1155 contract
-   */
   function createPremintingERC1155(
     address owner,
     string memory metadataURI,
@@ -74,18 +47,8 @@ contract PremintingERC1155Factory {
 contract MarketplaceFactory {
   mapping(address => bool) public isDeployedMarket;
 
-  /**
-   * @notice Emitted when a new ERC1155SecondaryMarket contract is created
-   * @param marketplace The address of the created ERC1155SecondaryMarket contract
-   */
   event PubstarterERC1155SecondaryMarketCreated(address indexed marketplace);
 
-  /**
-   * @notice Creates a new ERC1155SecondaryMarket contract
-   * @param erc1155Addr The address of the ERC1155 token contract to create a marketplace for
-   * @param paymentToken The ERC-20 token used to settle trades in the marketplace
-   * @return The address of the created ERC1155SecondaryMarket contract
-   */
   function createMarketplace(address erc1155Addr, address paymentToken) public returns (ERC1155SecondaryMarket) {
     ERC1155SecondaryMarket m = new ERC1155SecondaryMarket(erc1155Addr, paymentToken);
     isDeployedMarket[address(m)] = true;
@@ -99,35 +62,25 @@ contract MarketplaceFactory {
  * @notice Factory contract for creating MultiERC1155AssuranceContract contracts
  */
 contract AssuranceContractFactory {
-  mapping(address => bool) public isDeployedMarket;
+  mapping(address => bool) public isDeployedAssurance;
 
-   /**
-    * @notice Emitted when a new MultiERC1155AssuranceContract is created
-   * @param assuranceContract The address of the created assurance contract
-   */
   event PubstarterAssuranceContractCreated(address indexed assuranceContract);
 
-   /**
-   * @notice Creates a new MultiERC1155AssuranceContract
-   * @param owner The address that will own the assurance contract
-   * @param recipient The address that will receive funds if project succeeds
-   * @param paymentToken The ERC-20 token used to settle purchases/refunds/withdrawals
-   * @param projectMetadataCid The IPFS CID containing project metadata
-   * @return The address of the created assurance contract
-   */
   function createAssuranceContract(
     address owner,
     address recipient,
     address paymentToken,
+    address erc1155Addr,
     string memory projectMetadataCid
   ) public returns (MultiERC1155AssuranceContract) {
     MultiERC1155AssuranceContract ac = new MultiERC1155AssuranceContract(
       owner,
       recipient,
       paymentToken,
+      erc1155Addr,
       projectMetadataCid
     );
-    isDeployedMarket[address(ac)] = true;
+    isDeployedAssurance[address(ac)] = true;
     emit PubstarterAssuranceContractCreated(address(ac));
     return ac;
   }
@@ -142,13 +95,6 @@ contract ValueThresholdConditionFactory {
 
   event ValueThresholdConditionCreated(address indexed condition);
 
-  /**
-   * @notice Creates a new ValueThresholdCondition
-   * @param progressSource The address of the contract to read progress from
-   * @param threshold The funding threshold for success
-   * @param deadline The deadline after which the project can fail
-   * @return The address of the created condition contract
-   */
   function createCondition(
     address progressSource,
     uint256 threshold,
@@ -163,9 +109,19 @@ contract ValueThresholdConditionFactory {
 
 /**
  * @title Pubstarter
- * @notice Main entry point with factory contracts for creating all project components
- * @dev Workflow: Creates token, marketplace, and assurance contract; deploys condition;
- *      sets condition and prices; transfers ownership; mints tokens; renounces token ownership.
+ * @notice Main entry point for creating a complete Pubstarter project (token,
+ *         secondary marketplace, assurance contract, and assurance condition).
+ *
+ * @dev Trust note: whoever deploys Pubstarter chooses the four factory addresses;
+ *      users must trust the deployer that those factories are the real ones.
+ *
+ *      Token assumption: `paymentToken` must be a standard ERC-20 (no transfer
+ *      fees, no rebasing, no callbacks). Pubstarter does not enforce this; the
+ *      project deployer must provide a compatible token.
+ *
+ *      Workflow: Creates token, marketplace, and assurance contract; deploys
+ *      condition; sets condition and prices; transfers AC ownership; mints
+ *      tokens; renounces token ownership.
  */
 contract Pubstarter {
   PremintingERC1155Factory public immutable _premintingERC1155Factory;
@@ -174,42 +130,47 @@ contract Pubstarter {
   ValueThresholdConditionFactory public immutable _conditionFactory;
 
   /**
-   * @notice Initializes the Pubstarter contract with factory addresses
-   * @param erc1155Factory The address of the PremintingERC1155Factory
-   * @param marketplaceFactory The address of the MarketplaceFactory
-   * @param assuranceFactory The address of the AssuranceContractFactory
-   * @param conditionFactory The address of the ValueThresholdConditionFactory
+   * @notice Emitted once per createERC1155...() call, tying together the four
+   *         contracts that make up a single project.
    */
+  event ProjectCreated(
+    address indexed creator,
+    address indexed token,
+    address indexed assuranceContract,
+    address marketplace,
+    address condition
+  );
+
   constructor(
     address erc1155Factory,
     address marketplaceFactory,
     address assuranceFactory,
     address conditionFactory
   ) {
+    if (erc1155Factory == address(0)) revert InvalidFactoryAddress();
+    if (marketplaceFactory == address(0)) revert InvalidFactoryAddress();
+    if (assuranceFactory == address(0)) revert InvalidFactoryAddress();
+    if (conditionFactory == address(0)) revert InvalidFactoryAddress();
     _premintingERC1155Factory = PremintingERC1155Factory(erc1155Factory);
     _marketplaceFactory = MarketplaceFactory(marketplaceFactory);
     _assuranceFactory = AssuranceContractFactory(assuranceFactory);
     _conditionFactory = ValueThresholdConditionFactory(conditionFactory);
   }
 
+  struct CreateProjectParams {
+    string metadataURI;
+    string contractURI;
+    address owner;
+    address recipient;
+    address paymentToken;
+    string projectMetadataCid;
+    uint256[] ids;
+    uint256[] counts;
+    uint256[] prices;
+  }
+
   /**
-   * @notice Creates a complete project setup with ValueThreshold condition (the common case)
-   * @dev Creates token, marketplace, assurance contract, and ValueThresholdCondition;
-   *      sets condition and prices; transfers ownership; mints tokens; renounces token ownership.
-   * @param metadataURI The base URI for token metadata
-   * @param contractURI The contract metadata URI
-   * @param owner The address that will own the assurance contract
-   * @param recipient The address that will receive funds if project succeeds
-   * @param paymentToken The ERC-20 token used to settle purchases/refunds/withdrawals
-   * @param threshold The funding threshold for project success
-   * @param deadline The deadline after which project can fail if threshold not reached
-   * @param projectMetadataCid The IPFS CID containing project metadata
-   * @param ids Array of token IDs to mint
-   * @param counts Array of token amounts to mint
-   * @param prices Array of token prices corresponding to each ID
-   * @return t The created ERC1155 token contract
-   * @return m The created marketplace contract
-   * @return ac The created assurance contract
+   * @notice Creates a complete project setup with a ValueThreshold condition (the common case)
    */
   function createERC1155AndMarketplaceAndAssuranceContract(
     string memory metadataURI,
@@ -224,56 +185,41 @@ contract Pubstarter {
     uint256[] memory counts,
     uint256[] memory prices
   ) public returns (IERC1155, ERC1155SecondaryMarket, AssuranceContract) {
-    if (owner == address(0)) revert InvalidOwnerAddress();
-    if (recipient == address(0)) revert InvalidRecipientAddress();
+    if (threshold == 0) revert InvalidThreshold();
+    // slither-disable-next-line timestamp
+    if (deadline <= block.timestamp) revert InvalidDeadline();
 
-    PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(address(this), metadataURI, contractURI);
+    CreateProjectParams memory params = CreateProjectParams({
+      metadataURI: metadataURI,
+      contractURI: contractURI,
+      owner: owner,
+      recipient: recipient,
+      paymentToken: paymentToken,
+      projectMetadataCid: projectMetadataCid,
+      ids: ids,
+      counts: counts,
+      prices: prices
+    });
 
-    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t), paymentToken);
+    (PremintingERC1155 t, ERC1155SecondaryMarket m, MultiERC1155AssuranceContract ac) =
+      _deployTokenMarketplaceAndAC(params);
 
-    // Deploy assurance contract (owned by this contract initially for setup)
-    MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
-      address(this),
-      recipient,
-      paymentToken,
-      projectMetadataCid
-    );
-
-    // Deploy ValueThresholdCondition pointing at the assurance contract
     ValueThresholdCondition condition = _conditionFactory.createCondition(
       address(ac),
       threshold,
       deadline
     );
 
-    // Wire up condition and prices, then transfer ownership
-    ac.setCondition(condition);
-    ac.setPricesERC1155(address(t), ids, prices);
-    ac.transferOwnership(owner);
+    _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
 
-    t.mintBatch(address(ac), ids, counts);
-    t.renounceOwnership();
+    emit ProjectCreated(msg.sender, address(t), address(ac), address(m), address(condition));
 
     return (t, m, ac);
   }
 
   /**
    * @notice Creates a project with a custom IAssuranceCondition (for non-threshold conditions)
-   * @dev The condition must already be deployed. The caller is responsible for ensuring
-   *      the condition correctly references this assurance contract if needed.
-   * @param metadataURI The base URI for token metadata
-   * @param contractURI The contract metadata URI
-   * @param owner The address that will own the assurance contract
-   * @param recipient The address that will receive funds if project succeeds
-   * @param paymentToken The ERC-20 token used to settle purchases/refunds/withdrawals
-   * @param condition The pre-deployed IAssuranceCondition contract
-   * @param projectMetadataCid The IPFS CID containing project metadata
-   * @param ids Array of token IDs to mint
-   * @param counts Array of token amounts to mint
-   * @param prices Array of token prices corresponding to each ID
-   * @return t The created ERC1155 token contract
-   * @return m The created marketplace contract
-   * @return ac The created assurance contract
+   * @dev The condition must already be deployed and reference the assurance contract if needed.
    */
   function createERC1155AndMarketplaceAndAssuranceContractWithCondition(
     string memory metadataURI,
@@ -287,27 +233,78 @@ contract Pubstarter {
     uint256[] memory counts,
     uint256[] memory prices
   ) public returns (IERC1155, ERC1155SecondaryMarket, AssuranceContract) {
-    if (owner == address(0)) revert InvalidOwnerAddress();
-    if (recipient == address(0)) revert InvalidRecipientAddress();
+    CreateProjectParams memory params = CreateProjectParams({
+      metadataURI: metadataURI,
+      contractURI: contractURI,
+      owner: owner,
+      recipient: recipient,
+      paymentToken: paymentToken,
+      projectMetadataCid: projectMetadataCid,
+      ids: ids,
+      counts: counts,
+      prices: prices
+    });
 
-    PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(address(this), metadataURI, contractURI);
+    (PremintingERC1155 t, ERC1155SecondaryMarket m, MultiERC1155AssuranceContract ac) =
+      _deployTokenMarketplaceAndAC(params);
 
-    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t), paymentToken);
+    _wireUpAndFinalize(t, ac, condition, params);
+
+    emit ProjectCreated(msg.sender, address(t), address(ac), address(m), address(condition));
+
+    return (t, m, ac);
+  }
+
+  function _deployTokenMarketplaceAndAC(CreateProjectParams memory params)
+    private
+    returns (PremintingERC1155, ERC1155SecondaryMarket, MultiERC1155AssuranceContract)
+  {
+    if (params.owner == address(0)) revert InvalidOwnerAddress();
+    if (params.recipient == address(0)) revert InvalidRecipientAddress();
+    _validateTokenArrays(params.ids, params.counts, params.prices);
+
+    PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(
+      address(this),
+      params.metadataURI,
+      params.contractURI
+    );
+
+    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t), params.paymentToken);
 
     MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
       address(this),
-      recipient,
-      paymentToken,
-      projectMetadataCid
+      params.recipient,
+      params.paymentToken,
+      address(t),
+      params.projectMetadataCid
     );
 
-    ac.setCondition(condition);
-    ac.setPricesERC1155(address(t), ids, prices);
-    ac.transferOwnership(owner);
-
-    t.mintBatch(address(ac), ids, counts);
-    t.renounceOwnership();
-
     return (t, m, ac);
+  }
+
+  function _wireUpAndFinalize(
+    PremintingERC1155 t,
+    MultiERC1155AssuranceContract ac,
+    IAssuranceCondition condition,
+    CreateProjectParams memory params
+  ) private {
+    ac.setCondition(condition);
+    ac.setPricesERC1155(params.ids, params.prices);
+    ac.transferOwnership(params.owner);
+
+    t.mintBatch(address(ac), params.ids, params.counts);
+    t.renounceOwnership();
+  }
+
+  function _validateTokenArrays(
+    uint256[] memory ids,
+    uint256[] memory counts,
+    uint256[] memory prices
+  ) private pure {
+    if (ids.length == 0) revert EmptyTokenList();
+    if (ids.length != counts.length || ids.length != prices.length) revert TokenArrayLengthMismatch();
+    for (uint256 i = 0; i < prices.length; i++) {
+      if (prices[i] == 0) revert ZeroPrice();
+    }
   }
 }

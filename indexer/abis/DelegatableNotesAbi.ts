@@ -80,7 +80,17 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidPaymentAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidPaymentTokenForPurchase",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ListingDoesNotExist",
     "type": "error"
   },
   {
@@ -962,9 +972,5 @@ export const DelegatableNotesAbi = [
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
-  },
-  {
-    "stateMutability": "payable",
-    "type": "receive"
   }
 ] as const;

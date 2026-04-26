@@ -62,6 +62,7 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
       seller.address,
       recipient.address,
       await paymentToken.getAddress(),
+      await erc1155Token.getAddress(),
       "ipfs://audit-primary-market"
     );
     const receipt = await tx.wait();
@@ -86,7 +87,6 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
       [100, 100]
     );
     await market.connect(seller).setPricesERC1155(
-      await erc1155Token.getAddress(),
       [1, 2],
       [ethers.parseEther("0.1"), ethers.parseEther("0.25")]
     );

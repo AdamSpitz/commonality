@@ -204,7 +204,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
    * @notice Allows an external factory to register newly deployed primary markets.
    * @dev Pubstarter assurance contracts remain authorized through primaryMarketFactory.
    *      This hook supports specialized assurance-contract factories that cannot be
-   *      discovered through that factory's isDeployedMarket mapping.
+   *      discovered through that factory's isDeployedAssurance mapping.
    */
   function setPrimaryMarketAuthorizer(address authorizer, bool authorized) external onlyOwner {
     if (authorizer == address(0)) revert ZeroAddress();
@@ -508,7 +508,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256[] calldata counts
   ) external nonReentrant {
     if (tokenIds.length != counts.length) revert ArrayLengthMismatch();
-    if (!primaryMarketFactory.isDeployedMarket(primaryMarket) && !authorizedPrimaryMarkets[primaryMarket]) {
+    if (!primaryMarketFactory.isDeployedAssurance(primaryMarket) && !authorizedPrimaryMarkets[primaryMarket]) {
       revert UnauthorizedMarket();
     }
 

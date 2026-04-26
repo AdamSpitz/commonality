@@ -55,6 +55,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       seller.address,
       seller.address,
       await paymentToken.getAddress(),
+      await erc1155Token.getAddress(),
       "QmTest123"
     );
     const receipt = await tx.wait();
@@ -82,7 +83,6 @@ describe("DelegatableNotes - Purchase Functionality", function () {
 
     // Set prices: 0.1 ETH for token 1, 0.2 ETH for token 2, 0.5 ETH for token 3
     await assuranceContract.connect(seller).setPricesERC1155(
-      await erc1155Token.getAddress(),
       [1, 2, 3],
       [ethers.parseEther("0.1"), ethers.parseEther("0.2"), ethers.parseEther("0.5")]
     );

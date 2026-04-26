@@ -33,6 +33,11 @@ export const AssuranceContractFactoryAbi = [
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "erc1155Addr",
+        "type": "address"
+      },
+      {
         "internalType": "string",
         "name": "projectMetadataCid",
         "type": "string"
@@ -57,7 +62,7 @@ export const AssuranceContractFactoryAbi = [
         "type": "address"
       }
     ],
-    "name": "isDeployedMarket",
+    "name": "isDeployedAssurance",
     "outputs": [
       {
         "internalType": "bool",
