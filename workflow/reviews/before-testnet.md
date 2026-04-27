@@ -29,6 +29,11 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 
 ## To Do
 
+  - [ ] **Step 0 — Fix the broken UI IPFS publisher build.** Currently `./scripts/services.sh --start` fails before any domain SPA is published. The `commonality-ui-ipfs-publisher` container runs `npm run ui:build:ipfs` (which calls `turbo run build:ipfs --filter=ui`) and the turbo CLI errors out. Two stacked problems were observed in `ui/Dockerfile`:
+      1. `turbo.json` is not COPYed into the image. Turbo errors `Could not find turbo.json or turbo.jsonc.` This appears to be a latent bug introduced in commit 272abdf ("Working on making the build smarter so it won't be so slow."), which switched the Dockerfile from `COPY . .` to selective COPYs and added `turbo.json` to the repo in the same commit, but never copied it into the image.
+      2. After fixing #1, turbo fails with `I/O error: Permission denied (os error 13)` — apparently because the container runs as `${UID:-1000}:${GID:-1000}` but `/workspace` is owned by root. The narrowed `chmod` introduced in commit 9bf1d2c ("Trim Docker chmod layers") only covers `ui/dist` and `ui/node_modules/.tmp`, so turbo can't create its `.turbo/cache` at the workspace root (and may need to write elsewhere too — needs investigation).
+      The same Dockerfile is used by all four `ui-ipfs-publisher-*` services, so all four domains are blocked. Until this is fixed, the rest of this review can't proceed past Step 1.
+
   - [ ] **Step 1 — Setup and sanity check.** Get the local stack running per README (`npm install && npm run build && ./scripts/services.sh --start && ./scripts/data.sh --seed`). Confirm all four domain SPA URLs print correctly. Open each one and confirm it at least loads without a blank page or fatal console error. Record the four URLs in the Continuity section so later subtasks can use them. If setup fails, debug or stop and surface the failure to the human — don't push ahead with a half-broken stack.
 
   - [ ] **Step 2 — Review the Commonality domain.** This is the biggest one (conceptspace + pubstarter + funding portals + delegation + mutable refs + trust/Subjectiv). It is large enough that this subtask should itself invoke `large-task-manager` to break it into chunks (e.g. "conceptspace pages", "pubstarter flows", "funding portals", "delegation/notes", "mutable refs", "trust/Subjectiv settings"). Append findings to the "Findings — Commonality" section.
@@ -46,6 +51,9 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 ## Continuity
 
 (Most-recent-first. Keep it short. Older notes can be pruned.)
+
+### 2026-04-27 — subtask-doer (Opus 4.7), Step 1 attempt
+Tried Step 1; the stack does not start cleanly. `./scripts/services.sh --start` fails at the UI IPFS publisher step with a turbo error. Root-caused two problems in `ui/Dockerfile` (see new Step 0 above) but the user redirected me to record a to-do rather than fix the services myself. Dockerfile reverted; services stopped. No findings recorded yet — Step 1 not actually completed.
 
 ### 2026-04-27 — large-task-manager (Opus 4.7)
 Wrote the plan above. Did not start the actual review. Step 1 (setup + sanity check) is the right next thing. Note: README warns the full test suite takes many minutes, but for *this* review we don't need to run the test suite — we need the running stack and seed data. Use `./scripts/services.sh --start` then `./scripts/data.sh --seed`, then read the printed `http://localhost:8080/ipfs/<cid>/...` URL. Re-print with `./scripts/services.sh --url`. The four domains share the SPA build but route under different paths/manifests — see `ui/src/domains/` and `specs/product/ui-domains.md` for which routes belong to which domain.
