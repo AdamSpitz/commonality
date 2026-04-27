@@ -12,7 +12,7 @@ See [/docs/vision-and-strategy/README.md](/docs/vision-and-strategy/README.md) f
 
 ## Who is reading this?
 
-See [/ROLES.md](/ROLES.md) for role-based guidance. Quick version:
+See [ROLES.md](/workflow/ROLES.md) for role-based guidance. Quick version:
 - **Founder / big-picture**: this file + [/docs/vision-and-strategy/](/docs/vision-and-strategy/README.md) + [/docs/key-ideas/README.md](/docs/key-ideas/README.md)
 - **Product manager**: this file + [product/](product/README.md)
 - **Technical lead**: this file + [tech/README.md](tech/README.md)

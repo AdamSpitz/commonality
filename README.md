@@ -17,7 +17,7 @@ No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEP
 
 ## Finding relevant specs
 
-See [ROLES.md](ROLES.md) for the full guide. Quick version:
+See [ROLES.md](workflow/ROLES.md) for the full guide. Quick version:
 
   - **Founder (vision/strategy):** [docs/vision-and-strategy/](docs/vision-and-strategy/) + [specs/README.md](specs/README.md)
   - **Product manager (what to build):** [specs/README.md](specs/README.md) + [specs/product/](specs/product/README.md)
@@ -27,9 +27,9 @@ See [ROLES.md](ROLES.md) for the full guide. Quick version:
 ## Where to find other files
 
   - AI continuity notes: [CONTINUITY.md](CONTINUITY.md)
-  - Build-process documentation: [BUILD.md](BUILD.md)
-  - Reviews: [REVIEWS.md](REVIEWS.md)
-  - Deployment instructions for testnet/mainnet: [DEPLOYMENT.md](DEPLOYMENT.md) (local dev is above, in this file)
+  - [Build-process documentation](workflow/BUILD.md)
+  - [Reviews](workflow/REVIEWS.md)
+  - [Deployment instructions for testnet/mainnet](workflow/DEPLOYMENT.md) (local dev is above, in this file)
   - To-do list: [TODO.md](TODO.md)
 
 ## Feedback loops

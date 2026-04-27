@@ -22,7 +22,7 @@
 - Work on the [elevator pitch](docs/common-sense-majority/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
 - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 
-- Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
+- Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read workflow/BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 - Point an AI at the UI and tell it "go use this."
 - Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
 - We'll need a lot more AI underlings, with good documentation, following all the pathways, trying all the things.
