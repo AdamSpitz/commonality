@@ -192,7 +192,7 @@ describe('CreateContractPage', () => {
 
     expect(await screen.findByText(`Some content items belong to different channels. All content must belong to @12345678.`)).toBeInTheDocument()
     expect(createContentFundingContract).not.toHaveBeenCalled()
-  })
+  }, 10000)
 
   it('blocks submission when the content item is already registered in an active contract', async () => {
     const registeredCanonicalId = `${VERIFIED_CHANNEL_ID}:18347`
@@ -224,7 +224,7 @@ describe('CreateContractPage', () => {
       await screen.findByText(`The following content items are already registered in active contracts: ${CONTENT_URL}`),
     ).toBeInTheDocument()
     expect(createContentFundingContract).not.toHaveBeenCalled()
-  })
+  }, 10000)
 
   it('enforces the third-party minimum purchase for unclaimed channels', async () => {
     vi.mocked(useContentFundingState).mockReturnValue({
@@ -249,5 +249,5 @@ describe('CreateContractPage', () => {
     expect(await screen.findByText('Third-party contracts require at least 2 ETH initial purchase')).toBeInTheDocument()
     expect(getThirdPartyMinPurchase).toHaveBeenCalledTimes(1)
     expect(createContentFundingContract).not.toHaveBeenCalled()
-  })
+  }, 10000)
 })

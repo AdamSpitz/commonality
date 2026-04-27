@@ -13,7 +13,6 @@
 import {
   createPublicClient,
   createWalletClient,
-  encodePacked,
   http,
   keccak256,
   toBytes,
@@ -102,25 +101,36 @@ async function waitForTx(
 // ---------------------------------------------------------------------------
 
 /**
- * Sign a channel-claim proof using the same scheme as the Platform API Service:
- * keccak256(abi.encodePacked(channelId, claimant, nonce, deadline)) signed with
- * EIP-191 personal sign.
+ * Sign a channel-claim proof as EIP-712 typed data, matching the on-chain
+ * ChannelVerifier contract's domain.
  */
 async function signClaimProof(
   verifierPrivateKey: Hex,
+  channelVerifierAddress: `0x${string}`,
+  chainId: number,
   channelId: Hex,
   claimant: `0x${string}`,
   nonce: Hex,
   deadline: bigint,
 ): Promise<Hex> {
   const verifierAccount = privateKeyToAccount(verifierPrivateKey);
-  const packed = encodePacked(
-    ['bytes32', 'address', 'bytes32', 'uint256'],
-    [channelId, claimant, nonce, deadline],
-  );
-  const digest = keccak256(packed);
-  return verifierAccount.signMessage({
-    message: { raw: toBytes(digest) },
+  return verifierAccount.signTypedData({
+    domain: {
+      name: 'ChannelVerifier',
+      version: '1',
+      chainId,
+      verifyingContract: channelVerifierAddress,
+    },
+    types: {
+      ChannelClaim: [
+        { name: 'channelId', type: 'bytes32' },
+        { name: 'claimant', type: 'address' },
+        { name: 'nonce', type: 'bytes32' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    },
+    primaryType: 'ChannelClaim',
+    message: { channelId, claimant, nonce, deadline },
   });
 }
 
@@ -128,6 +138,7 @@ async function signClaimProof(
 async function verifyChannel(
   clients: ReturnType<typeof createClients>,
   registryAddress: `0x${string}`,
+  verifierAddress: `0x${string}`,
   channelCanonicalId: string,
 ) {
   const chId = channelIdBytes(channelCanonicalId);
@@ -138,6 +149,8 @@ async function verifyChannel(
 
   const signature = await signClaimProof(
     HARDHAT_DEPLOYER_PRIVATE_KEY,
+    verifierAddress,
+    hardhat.id,
     chId,
     clients.account as `0x${string}`,
     nonce,
@@ -350,6 +363,7 @@ async function getERC1155Address(
 
 export interface ContentFundingAddresses {
   channelRegistry: `0x${string}`;
+  channelVerifier: `0x${string}`;
   creatorContractFactory: `0x${string}`;
 }
 
@@ -368,7 +382,7 @@ export async function generateContentFundingScenarios(
     return;
   }
 
-  const { channelRegistry, creatorContractFactory } = addresses;
+  const { channelRegistry, channelVerifier, creatorContractFactory } = addresses;
 
   // Assign roles. Use later users so they don't clash with the primary hardhat
   // account (index 0) used as the funder in the main simulation.
@@ -436,7 +450,7 @@ export async function generateContentFundingScenarios(
     const prices = [tokenPrice];
     const threshold = parseEther('0.5');
 
-    await verifyChannel(creatorClients, channelRegistry, channelCanonicalId);
+    await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);
 
     const contractAddress = await createCreatorContract(creatorClients, {
       factoryAddress: creatorContractFactory,
@@ -489,7 +503,7 @@ export async function generateContentFundingScenarios(
     const thirdPartyThreshold = parseEther('0.5');
 
     // Step 1: Verify the channel — it's now Verified (not CreatorControlled).
-    await verifyChannel(creatorClients, channelRegistry, channelCanonicalId);
+    await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);
 
     // Step 2: Fan creates a third-party contract while channel is still Verified.
     const thirdPartyContract = await createCreatorContract(fanClients, {

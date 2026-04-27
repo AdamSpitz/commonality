@@ -405,6 +405,7 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', nudgePublicationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CONTENT_REGISTRY_ADDRESS', contentRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_REGISTRY_ADDRESS', channelRegistryAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_VERIFIER_ADDRESS', channelVerifierAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_ESCROW_ADDRESS', channelEscrowAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS', creatorContractFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_PUBSTARTER_CONTRACT_ADDRESS', pubstarterAddress);

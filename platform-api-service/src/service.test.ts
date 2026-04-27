@@ -2,12 +2,7 @@ import assert from 'assert';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import {
-  encodePacked,
-  hexToBytes,
-  keccak256,
-  recoverMessageAddress,
-} from 'viem';
+import { recoverTypedDataAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { hashCanonicalId } from '@commonality/sdk';
 import type { PlatformApiServiceConfig } from './config.js';
@@ -24,6 +19,8 @@ import type {
 
 const verifierPrivateKey = '0x59c6995e998f97a5a0044966f0945388cf9af40f3c81d1dc0f1d5d5d9ecf594f' as const;
 const verifierAddress = privateKeyToAccount(verifierPrivateKey).address;
+const testChannelVerifierAddress = '0x000000000000000000000000000000000000c0de' as const;
+const testChainId = 31337;
 const VALID_STATEMENT_CID = 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as const;
 
 describe('PlatformApiService', () => {
@@ -330,18 +327,27 @@ describe('PlatformApiService', () => {
     assert.strictEqual(confirmed.proof.channelId, 'twitter:uid:12345678');
     assert.strictEqual(confirmed.proof.claimant, '0x1234567890123456789012345678901234567890');
 
-    const digest = keccak256(encodePacked(
-      ['bytes32', 'address', 'bytes32', 'uint256'],
-      [
-        hashCanonicalId(confirmed.proof.channelId),
-        confirmed.proof.claimant,
-        confirmed.proof.nonce,
-        BigInt(confirmed.proof.deadline),
-      ],
-    ));
-    const recovered = await recoverMessageAddress({
+    const recovered = await recoverTypedDataAddress({
+      domain: {
+        name: 'ChannelVerifier',
+        version: '1',
+        chainId: testChainId,
+        verifyingContract: testChannelVerifierAddress,
+      },
+      types: {
+        ChannelClaim: [
+          { name: 'channelId', type: 'bytes32' },
+          { name: 'claimant', type: 'address' },
+          { name: 'nonce', type: 'bytes32' },
+          { name: 'deadline', type: 'uint256' },
+        ],
+      },
+      primaryType: 'ChannelClaim',
       message: {
-        raw: hexToBytes(digest),
+        channelId: hashCanonicalId(confirmed.proof.channelId),
+        claimant: confirmed.proof.claimant,
+        nonce: confirmed.proof.nonce,
+        deadline: BigInt(confirmed.proof.deadline),
       },
       signature: confirmed.proof.verifierSignature,
     });
@@ -540,7 +546,7 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 503 &&
         error.code === 'service_unavailable' &&
-        error.message === 'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY is not set',
+        error.message === 'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, CHANNEL_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
     );
   });
 });
@@ -567,6 +573,8 @@ function createService(overrides: Partial<{
     verifierPrivateKey,
     ethereumRpcUrl: undefined,
     channelRegistryAddress: undefined,
+    channelVerifierAddress: testChannelVerifierAddress,
+    chainId: testChainId,
     submitVerificationTx: false,
     challengeTtlSeconds: 1800,
     contentCacheTtlSeconds: 3600,

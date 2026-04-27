@@ -15,6 +15,8 @@ export interface PlatformApiServiceConfig {
   verifierPrivateKey?: Hex;
   ethereumRpcUrl?: string;
   channelRegistryAddress?: Address;
+  channelVerifierAddress?: Address;
+  chainId?: number;
   submitVerificationTx: boolean;
   challengeTtlSeconds: number;
   contentCacheTtlSeconds: number;
@@ -44,6 +46,8 @@ export function loadConfig(): PlatformApiServiceConfig {
     verifierPrivateKey: normalizeOptionalHex32('VERIFIER_PRIVATE_KEY', process.env.VERIFIER_PRIVATE_KEY),
     ethereumRpcUrl: normalizeOptionalUrl(process.env.ETHEREUM_RPC_URL),
     channelRegistryAddress: normalizeOptionalAddress(process.env.CHANNEL_REGISTRY_ADDRESS),
+    channelVerifierAddress: normalizeOptionalAddress(process.env.CHANNEL_VERIFIER_ADDRESS),
+    chainId: normalizeOptionalChainId(process.env.CHAIN_ID),
     submitVerificationTx: parseBoolean(process.env.SUBMIT_VERIFICATION_TX, false),
     challengeTtlSeconds: parseInteger('CHALLENGE_TTL_SECONDS', process.env.CHALLENGE_TTL_SECONDS, 1800),
     contentCacheTtlSeconds: parseInteger(
@@ -159,6 +163,17 @@ function normalizeOptionalHex32(name: string, value: string | undefined): Hex | 
   }
 
   return value as Hex;
+}
+
+function normalizeOptionalChainId(value: string | undefined): number | undefined {
+  if (!value?.trim()) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`Invalid CHAIN_ID: ${value}`);
+  }
+  return parsed;
 }
 
 function normalizeOptionalAddress(value: string | undefined): Address | undefined {

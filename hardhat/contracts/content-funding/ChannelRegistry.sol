@@ -2,6 +2,8 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {ICancellableCondition} from "../individual-projects/CancellableCondition.sol";
 
 error ChannelAlreadyVerified(bytes32 channelId);
 error ChannelNotVerified(bytes32 channelId);
@@ -21,6 +23,7 @@ error OnlyFactoryCanRegister();
 error InvalidVerifierAddress();
 error InvalidFactoryAddress();
 error FactoryNotSet();
+error InvalidVetoWindowDuration();
 
 /**
  * @title IChannelVerifier
@@ -43,6 +46,9 @@ interface IChannelVerifier {
 interface IChannelRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
     function channelState(bytes32 channelId) external view returns (uint8);
+    function verifier() external view returns (address);
+    function factory() external view returns (address);
+    function vetoWindowDuration() external view returns (uint256);
     function verifyChannel(
         bytes32 channelId,
         address claimant,
@@ -51,8 +57,10 @@ interface IChannelRegistry {
         bytes calldata verifierSignature
     ) external;
     function takeChannelControl(bytes32 channelId) external;
+    function vetoContract(address contractAddress) external;
     function setVerifier(address verifier) external;
     function setFactory(address factory) external;
+    function setVetoWindowDuration(uint256 duration) external;
     function isVerified(bytes32 channelId) external view returns (bool);
     function isCreatorControlled(bytes32 channelId) external view returns (bool);
 }
@@ -76,7 +84,10 @@ interface ICreatorAssuranceContractFactory {
  *      Once creator-controlled, the channel owner can veto third-party assurance contracts
  *      within a time window.
  */
-contract ChannelRegistry is IChannelRegistry, Ownable {
+contract ChannelRegistry is IChannelRegistry, Ownable2Step {
+    uint256 public constant MIN_VETO_WINDOW_DURATION = 1 days;
+    uint256 public constant MAX_VETO_WINDOW_DURATION = 365 days;
+
     /**
      * @notice Channel lifecycle states
      * @dev Unclaimed: no owner verified yet
@@ -136,6 +147,13 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
      * @param newFactory The new factory address
      */
     event FactoryUpdated(address indexed oldFactory, address indexed newFactory);
+
+    /**
+     * @notice Emitted when the veto window duration is updated
+     * @param oldDuration The previous duration in seconds
+     * @param newDuration The new duration in seconds
+     */
+    event VetoWindowDurationUpdated(uint256 oldDuration, uint256 newDuration);
 
     /**
      * @notice Initializes the channel registry with a verifier contract
@@ -204,6 +222,21 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
         address oldFactory = factory;
         factory = _factory;
         emit FactoryUpdated(oldFactory, _factory);
+    }
+
+    /**
+     * @notice Update the veto window duration
+     * @dev Only callable by the contract owner. Bounded between MIN and MAX to prevent
+     *      footguns (e.g., zero window or absurdly long lockouts).
+     * @param _duration The new veto window in seconds
+     */
+    function setVetoWindowDuration(uint256 _duration) external onlyOwner {
+        if (_duration < MIN_VETO_WINDOW_DURATION || _duration > MAX_VETO_WINDOW_DURATION) {
+            revert InvalidVetoWindowDuration();
+        }
+        uint256 oldDuration = vetoWindowDuration;
+        vetoWindowDuration = _duration;
+        emit VetoWindowDurationUpdated(oldDuration, _duration);
     }
 
     /**
@@ -301,13 +334,4 @@ contract ChannelRegistry is IChannelRegistry, Ownable {
 
         emit ContractVetoed(channelId, contractAddress);
     }
-}
-
-/**
- * @title ICancellableCondition
- * @notice Interface for conditions that can be cancelled
- */
-interface ICancellableCondition {
-    function cancel() external;
-    function hasSucceeded() external view returns (bool);
 }

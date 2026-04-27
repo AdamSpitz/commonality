@@ -45,6 +45,7 @@ function copyContractAddresses(projectRoot: string): void {
       'PUBSTARTER_ADDRESS',
       'CONTENT_REGISTRY_ADDRESS',
       'CHANNEL_REGISTRY_ADDRESS',
+      'CHANNEL_VERIFIER_ADDRESS',
       'CHANNEL_ESCROW_ADDRESS',
       'CREATOR_CONTRACT_FACTORY_ADDRESS',
     ];
@@ -88,6 +89,7 @@ function copyContractAddresses(projectRoot: string): void {
       'VITE_PUBSTARTER_CONTRACT_ADDRESS=',
       'VITE_CONTENT_REGISTRY_ADDRESS=',
       'VITE_CHANNEL_REGISTRY_ADDRESS=',
+      'VITE_CHANNEL_VERIFIER_ADDRESS=',
       'VITE_CHANNEL_ESCROW_ADDRESS=',
       'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS=',
       '# Contract addresses (auto-populated',
@@ -121,6 +123,7 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_PUBSTARTER_CONTRACT_ADDRESS=${addresses.PUBSTARTER_ADDRESS || ''}`,
       `VITE_CONTENT_REGISTRY_ADDRESS=${addresses.CONTENT_REGISTRY_ADDRESS || ''}`,
       `VITE_CHANNEL_REGISTRY_ADDRESS=${addresses.CHANNEL_REGISTRY_ADDRESS || ''}`,
+      `VITE_CHANNEL_VERIFIER_ADDRESS=${addresses.CHANNEL_VERIFIER_ADDRESS || ''}`,
       `VITE_CHANNEL_ESCROW_ADDRESS=${addresses.CHANNEL_ESCROW_ADDRESS || ''}`,
       `VITE_CREATOR_CONTRACT_FACTORY_ADDRESS=${addresses.CREATOR_CONTRACT_FACTORY_ADDRESS || ''}`,
       // Use the Vite dev-server proxy URL so the browser avoids CORS issues.

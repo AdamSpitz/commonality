@@ -944,16 +944,21 @@ async function main(): Promise<void> {
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {
     channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
+    channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
   };
-  if (cfAddresses.channelRegistry && cfAddresses.creatorContractFactory) {
+  if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
     await generateContentFundingScenarios(
-      cfAddresses as { channelRegistry: `0x${string}`; creatorContractFactory: `0x${string}` },
+      cfAddresses as {
+        channelRegistry: `0x${string}`;
+        channelVerifier: `0x${string}`;
+        creatorContractFactory: `0x${string}`;
+      },
       simulation.users,
     );
   } else {
     console.warn('Content-funding addresses not configured — skipping content-funding scenarios.');
-    console.warn('  (Set CHANNEL_REGISTRY_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
+    console.warn('  (Set CHANNEL_REGISTRY_ADDRESS, CHANNEL_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
   }
 
   // Run attack scenarios if requested

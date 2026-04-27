@@ -9,13 +9,29 @@ describe("ChannelVerifier", function () {
   const channelId = ethers.id("twitter:uid:12345678");
   const nonce = ethers.id("test-nonce-1");
 
-  async function signClaimProof(signer, _channelId, _claimant, _nonce, _deadline) {
-    const packed = ethers.solidityPacked(
-      ["bytes32", "address", "bytes32", "uint256"],
-      [_channelId, _claimant, _nonce, _deadline],
-    );
-    const digest = ethers.keccak256(packed);
-    return signer.signMessage(ethers.getBytes(digest));
+  async function signClaimProof(signer, verifierContract, _channelId, _claimant, _nonce, _deadline) {
+    const verifyingContract = await verifierContract.getAddress();
+    const { chainId } = await ethers.provider.getNetwork();
+    const domain = {
+      name: "ChannelVerifier",
+      version: "1",
+      chainId,
+      verifyingContract,
+    };
+    const types = {
+      ChannelClaim: [
+        { name: "channelId", type: "bytes32" },
+        { name: "claimant", type: "address" },
+        { name: "nonce", type: "bytes32" },
+        { name: "deadline", type: "uint256" },
+      ],
+    };
+    return signer.signTypedData(domain, types, {
+      channelId: _channelId,
+      claimant: _claimant,
+      nonce: _nonce,
+      deadline: _deadline,
+    });
   }
 
   beforeEach(async function () {
@@ -42,7 +58,7 @@ describe("ChannelVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
-      const signature = await signClaimProof(trustedSigner, channelId, alice.address, nonce, deadline);
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, signature);
       expect(result).to.be.true;
@@ -52,7 +68,7 @@ describe("ChannelVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
-      const signature = await signClaimProof(bob, channelId, alice.address, nonce, deadline);
+      const signature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
       const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, signature);
       expect(result).to.be.false;
@@ -62,7 +78,7 @@ describe("ChannelVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
-      const signature = await signClaimProof(trustedSigner, channelId, alice.address, nonce, deadline);
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const wrongChannelId = ethers.id("twitter:uid:99999999");
       const result = await verifier.verifyClaimProof(wrongChannelId, alice.address, nonce, deadline, signature);
@@ -73,7 +89,7 @@ describe("ChannelVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
-      const signature = await signClaimProof(trustedSigner, channelId, alice.address, nonce, deadline);
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const result = await verifier.verifyClaimProof(channelId, bob.address, nonce, deadline, signature);
       expect(result).to.be.false;
@@ -83,7 +99,7 @@ describe("ChannelVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
-      const signature = await signClaimProof(trustedSigner, channelId, alice.address, nonce, deadline);
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const wrongNonce = ethers.id("wrong-nonce");
       const result = await verifier.verifyClaimProof(channelId, alice.address, wrongNonce, deadline, signature);
@@ -94,7 +110,7 @@ describe("ChannelVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
-      const signature = await signClaimProof(trustedSigner, channelId, alice.address, nonce, deadline);
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline + 1, signature);
       expect(result).to.be.false;
@@ -109,7 +125,7 @@ describe("ChannelVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
-      const signature = await signClaimProof(trustedSigner, channelId, alice.address, nonce, deadline);
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, signature))
         .to.emit(channelRegistry, "ChannelVerified")
@@ -126,7 +142,7 @@ describe("ChannelVerifier", function () {
       const deadline = latestBlock.timestamp + 3600;
 
       // bob is not the trusted verifier
-      const forgedSignature = await signClaimProof(bob, channelId, alice.address, nonce, deadline);
+      const forgedSignature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
       await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, forgedSignature))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierSignature");
@@ -159,11 +175,11 @@ describe("ChannelVerifier", function () {
       const deadline = latestBlock.timestamp + 3600;
 
       // Old verifier's signature should now fail
-      const oldSig = await signClaimProof(trustedSigner, channelId, alice.address, nonce, deadline);
+      const oldSig = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
       expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, oldSig)).to.be.false;
 
       // New verifier's signature should succeed
-      const newSig = await signClaimProof(bob, channelId, alice.address, nonce, deadline);
+      const newSig = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
       expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, newSig)).to.be.true;
     });
   });

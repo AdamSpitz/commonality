@@ -10,8 +10,6 @@ import {
 import {
   createPublicClient,
   createWalletClient,
-  encodePacked,
-  hexToBytes,
   http,
   isAddress,
   keccak256,
@@ -246,11 +244,15 @@ export class PlatformApiService {
       throw new HttpError(400, 'invalid_request', `Invalid nonce: ${request.nonce}`);
     }
 
-    if (!this.deps.config.verifierPrivateKey) {
+    if (
+      !this.deps.config.verifierPrivateKey ||
+      !this.deps.config.channelVerifierAddress ||
+      !this.deps.config.chainId
+    ) {
       throw new HttpError(
         503,
         'service_unavailable',
-        'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY is not set',
+        'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, CHANNEL_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
       );
     }
 
@@ -275,6 +277,8 @@ export class PlatformApiService {
 
     const verifierSignature = await signClaimProof(
       this.deps.config.verifierPrivateKey,
+      this.deps.config.channelVerifierAddress,
+      this.deps.config.chainId,
       challenge.channelId,
       challenge.claimantAddress,
       challenge.nonce,
@@ -516,20 +520,35 @@ export class PlatformApiService {
 
 export async function signClaimProof(
   verifierPrivateKey: Hex,
+  channelVerifierAddress: Address,
+  chainId: number,
   channelId: string,
   claimant: Address,
   nonce: Hex,
   deadline: number,
 ): Promise<Hex> {
   const account = privateKeyToAccount(verifierPrivateKey);
-  const packed = encodePacked(
-    ['bytes32', 'address', 'bytes32', 'uint256'],
-    [hashCanonicalId(channelId), claimant, nonce, BigInt(deadline)],
-  );
-  const digest = keccak256(packed);
-  return await account.signMessage({
+  return await account.signTypedData({
+    domain: {
+      name: 'ChannelVerifier',
+      version: '1',
+      chainId,
+      verifyingContract: channelVerifierAddress,
+    },
+    types: {
+      ChannelClaim: [
+        { name: 'channelId', type: 'bytes32' },
+        { name: 'claimant', type: 'address' },
+        { name: 'nonce', type: 'bytes32' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    },
+    primaryType: 'ChannelClaim',
     message: {
-      raw: hexToBytes(digest),
+      channelId: hashCanonicalId(channelId),
+      claimant,
+      nonce,
+      deadline: BigInt(deadline),
     },
   });
 }

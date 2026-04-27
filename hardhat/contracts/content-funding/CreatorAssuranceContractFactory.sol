@@ -2,6 +2,7 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {CreatorAssuranceContract, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
@@ -76,7 +77,7 @@ interface IDelegatableNotesPrimaryMarketAuthorizer {
  *      This implementation uses SafeERC20 for all token transfers to handle
  *      non-standard tokens that may not return boolean success values.
  */
-contract CreatorAssuranceContractFactory is Ownable {
+contract CreatorAssuranceContractFactory is Ownable2Step {
     using SafeERC20 for IERC20;
 
     struct CreateContractParams {

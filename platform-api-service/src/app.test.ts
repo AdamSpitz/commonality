@@ -509,6 +509,8 @@ async function startTestServer(options: {
     verifierPrivateKey: undefined,
     ethereumRpcUrl: undefined,
     channelRegistryAddress: undefined,
+    channelVerifierAddress: undefined,
+    chainId: undefined,
     submitVerificationTx: false,
     challengeTtlSeconds: 1800,
     contentCacheTtlSeconds: 3600,

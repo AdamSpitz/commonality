@@ -29,7 +29,7 @@ import {
   type TestClients,
 } from '@commonality/sdk'
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk'
-import { encodePacked, keccak256, toBytes, type Hex } from 'viem'
+import { keccak256, toBytes, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import type { AccountName } from '../fixtures/wallet'
 
@@ -151,6 +151,9 @@ export function getContractAddresses() {
   const channelRegistryAddress =
     envVars.VITE_CHANNEL_REGISTRY_ADDRESS ||
     process.env.VITE_CHANNEL_REGISTRY_ADDRESS
+  const channelVerifierAddress =
+    envVars.VITE_CHANNEL_VERIFIER_ADDRESS ||
+    process.env.VITE_CHANNEL_VERIFIER_ADDRESS
   const channelEscrowAddress =
     envVars.VITE_CHANNEL_ESCROW_ADDRESS ||
     process.env.VITE_CHANNEL_ESCROW_ADDRESS
@@ -181,6 +184,7 @@ export function getContractAddresses() {
     trustRegistryAddress: trustRegistryAddress as `0x${string}` | undefined,
     contentRegistryAddress: contentRegistryAddress as `0x${string}` | undefined,
     channelRegistryAddress: channelRegistryAddress as `0x${string}` | undefined,
+    channelVerifierAddress: channelVerifierAddress as `0x${string}` | undefined,
     channelEscrowAddress: channelEscrowAddress as `0x${string}` | undefined,
     creatorContractFactoryAddress: creatorContractFactoryAddress as `0x${string}` | undefined,
     graphqlUrl,
@@ -189,21 +193,31 @@ export function getContractAddresses() {
 
 async function signChannelClaimProof(
   verifierPrivateKey: Hex,
+  channelVerifierAddress: `0x${string}`,
+  chainId: number,
   channelId: `0x${string}`,
   claimant: `0x${string}`,
   nonce: `0x${string}`,
   deadline: bigint,
 ): Promise<`0x${string}`> {
   const verifierAccount = privateKeyToAccount(verifierPrivateKey)
-  const digest = keccak256(
-    encodePacked(
-      ['bytes32', 'address', 'bytes32', 'uint256'],
-      [channelId, claimant, nonce, deadline]
-    )
-  )
-
-  return verifierAccount.signMessage({
-    message: { raw: toBytes(digest) },
+  return verifierAccount.signTypedData({
+    domain: {
+      name: 'ChannelVerifier',
+      version: '1',
+      chainId,
+      verifyingContract: channelVerifierAddress,
+    },
+    types: {
+      ChannelClaim: [
+        { name: 'channelId', type: 'bytes32' },
+        { name: 'claimant', type: 'address' },
+        { name: 'nonce', type: 'bytes32' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    },
+    primaryType: 'ChannelClaim',
+    message: { channelId, claimant, nonce, deadline },
   })
 }
 
@@ -211,11 +225,16 @@ export async function verifyE2EChannelOwnership(
   clients: TestClients,
   channelCanonicalId: string,
 ): Promise<void> {
-  const { channelRegistryAddress } = getContractAddresses()
+  const { channelRegistryAddress, channelVerifierAddress } = getContractAddresses()
 
   if (!channelRegistryAddress) {
     throw new Error(
       'Channel registry address not set in ui/.env. Expected VITE_CHANNEL_REGISTRY_ADDRESS.'
+    )
+  }
+  if (!channelVerifierAddress) {
+    throw new Error(
+      'Channel verifier address not set in ui/.env. Expected VITE_CHANNEL_VERIFIER_ADDRESS.'
     )
   }
 
@@ -223,11 +242,14 @@ export async function verifyE2EChannelOwnership(
     (process.env.VERIFIER_PRIVATE_KEY as Hex | undefined) ??
     (envVars.VERIFIER_PRIVATE_KEY as Hex | undefined) ??
     DEFAULT_LOCAL_VERIFIER_PRIVATE_KEY
+  const chainId = 31337
   const channelId = hashCanonicalId(channelCanonicalId)
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600)
   const nonce = keccak256(toBytes(`e2e-${channelCanonicalId}-${Date.now()}`))
   const signature = await signChannelClaimProof(
     verifierPrivateKey,
+    channelVerifierAddress,
+    chainId,
     channelId,
     clients.account,
     nonce,
