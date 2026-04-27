@@ -2,6 +2,6 @@
 
 ## Local deployment
 
-You can use `services.sh` to start up a local deploy if one isn't already running.
+You can use `scripts/services.sh` to start up a local deploy if one isn't already running.
 
 Once it's running, you can find the URL for the locally-running UI by reading `data/ui-ipfs/spa-url.txt`.

@@ -78,7 +78,7 @@ Cross-origin browser requests are enabled by default. Set `CORS_ALLOWED_ORIGINS`
 The local docker-compose stack also starts this service and exposes it at `http://localhost:3001`:
 
 ```bash
-./services.sh --start
+./scripts/services.sh --start
 ```
 
 For production:

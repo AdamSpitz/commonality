@@ -79,14 +79,14 @@ Ignoring Markdown is intentional for build speed, but it means documentation-onl
 
 ### Local dev services
 
-[services.sh](/home/adam/Projects/commonality/services.sh) uses the planner before `docker compose up` for these services:
+[scripts/services.sh](/home/adam/Projects/commonality/scripts/services.sh) uses the planner before `docker compose up` for these services:
 
 - `hardhat-deploy`
 - `indexer`
 - `platform-api-service`
 - all four `ui-ipfs-publisher-*` services
 
-If nothing relevant changed, `./services.sh --start` reuses the existing images.
+If nothing relevant changed, `./scripts/services.sh --start` reuses the existing images.
 
 ### Integration tests
 
@@ -124,15 +124,15 @@ Relevant Dockerfiles include:
 ```bash
 npm install
 npm run build
-./services.sh --start
-./data.sh --seed
+./scripts/services.sh --start
+./scripts/data.sh --seed
 ```
 
 Notes:
 
 - `npm run build` is the host-side workspace build/type output path.
-- `./services.sh --start` handles Docker image reuse/rebuild decisions for local services.
-- `./data.sh --seed` populates the local chain after the services are up.
+- `./scripts/services.sh --start` handles Docker image reuse/rebuild decisions for local services.
+- `./scripts/data.sh --seed` populates the local chain after the services are up.
 
 ### Common verification commands
 
@@ -146,18 +146,18 @@ The Git pre-commit hook also runs the build and tests, so if commit-readiness is
 ## Relationship To Other Docs
 
 - [README.md](/README.md) is the quick-start and repo map.
-- [DEPLOYMENT.md](./DEPLOYMENT.md) covers testnet/mainnet deployment (Render blueprint, contract deployment, IPFS + ENS). Local-dev commands including `services.sh` are in [README.md](/README.md).
+- [DEPLOYMENT.md](./DEPLOYMENT.md) covers testnet/mainnet deployment (Render blueprint, contract deployment, IPFS + ENS). Local-dev commands including `scripts/services.sh` are in [README.md](/README.md).
 - This file is the durable explanation of the build system itself.
 
 ## Remaining Build Follow-up
 
 The main known follow-up item is:
 
-- If we start commonly launching the attesters or nudger directly outside `services.sh`, either route those flows through the same planner or clearly document a `docker compose build <service>` convention for them.
+- If we start commonly launching the attesters or nudger directly outside `scripts/services.sh`, either route those flows through the same planner or clearly document a `docker compose build <service>` convention for them.
 
 At the moment, the planner-backed path is well documented for:
 
-- normal local development via `./services.sh --start`
+- normal local development via `./scripts/services.sh --start`
 - integration tests via `./scripts/run-integration-tests.sh`
 
 It is not yet the documented universal rule for every service-oriented workflow in the repo.

@@ -96,7 +96,7 @@ services:
   # Each service builds one domain in hash-routing mode and adds the resulting
   # dist/<domain>/ directory to the dockerized IPFS node. The four services run
   # in parallel. CIDs and gateway URLs are written to ./data/ui-ipfs/<domain>/
-  # in the repo workspace so services.sh can surface them.
+  # in the repo workspace so scripts/services.sh can surface them.
 
   ui-ipfs-publisher-commonality:
     image: commonality-ui-ipfs-publisher:dev
@@ -455,7 +455,7 @@ services:
 #   docker-compose up -d
 #
 # Or use the provided scripts:
-#   ./services.sh --start  # Local development (uses ./data)
+#   ./scripts/services.sh --start  # Local development (uses ./data)
 #   ./scripts/run-integration-tests.sh  # Integration tests (uses /tmp/commonality-it)
 
 networks:

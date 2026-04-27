@@ -3,12 +3,12 @@
 # Manage dev data (wipe, seed with fake data).
 #
 # Usage:
-#   ./data.sh --wipe                    # Wipe data directory (stops services first)
-#   ./data.sh --seed                    # Populate with fake data (services must be running)
-#   ./data.sh --seed=small              # Small dataset (10 users, 3 rounds)
-#   ./data.sh --seed=medium             # Medium dataset (50 users, 5 rounds)
-#   ./data.sh --seed --use-hardhat-accounts   # Use hardhat accounts for first 20 users
-#   ./data.sh --seed --debug-ipfs             # Show CIDs and content uploaded to IPFS
+#   ./scripts/data.sh --wipe                    # Wipe data directory (stops services first)
+#   ./scripts/data.sh --seed                    # Populate with fake data (services must be running)
+#   ./scripts/data.sh --seed=small              # Small dataset (10 users, 3 rounds)
+#   ./scripts/data.sh --seed=medium             # Medium dataset (50 users, 5 rounds)
+#   ./scripts/data.sh --seed --use-hardhat-accounts   # Use hardhat accounts for first 20 users
+#   ./scripts/data.sh --seed --debug-ipfs             # Show CIDs and content uploaded to IPFS
 #
 # Data is stored in ./data/ by default:
 #   ./data/
@@ -17,13 +17,13 @@
 #     └── ponder/          # Indexer sync state
 #
 # To customize the data directory:
-#   COMMONALITY_DATA_DIR=/custom/path ./data.sh --seed
+#   COMMONALITY_DATA_DIR=/custom/path ./scripts/data.sh --seed
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR/.."
 
 # Export UID/GID so docker-compose can run containers as the current user.
 # UID is a bash built-in and isn't exported by default; GID has no built-in at all.
@@ -62,13 +62,13 @@ wipe_data() {
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder"
-    echo "Data wiped. (Services were stopped — run ./services.sh --start to restart.)"
+    echo "Data wiped. (Services were stopped — run ./scripts/services.sh --start to restart.)"
 }
 
 require_services_running() {
     if ! curl -s http://localhost:8545 > /dev/null 2>&1; then
         echo "Error: Services don't appear to be running (can't reach localhost:8545)."
-        echo "Start them first: ./services.sh --start"
+        echo "Start them first: ./scripts/services.sh --start"
         exit 1
     fi
 }
@@ -101,7 +101,7 @@ seed_data() {
     local size="${1:-small}"
     local extra_args="${2:-}"
 
-    "$SCRIPT_DIR/scripts/check-prerequisites.sh"
+    "$SCRIPT_DIR/check-prerequisites.sh"
     require_services_running
 
     echo "Generating fake data (size: $size)..."
@@ -111,7 +111,7 @@ seed_data() {
     # Give it a moment to stabilize
     sleep 2
 
-    cd "$SCRIPT_DIR/fake-data-generation"
+    cd "$SCRIPT_DIR/../fake-data-generation"
 
     # Only install dependencies if node_modules doesn't exist
     if [ ! -d "node_modules" ]; then

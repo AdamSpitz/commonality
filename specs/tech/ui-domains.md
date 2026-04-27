@@ -64,4 +64,4 @@ The docker-compose stack includes four one-shot publisher services, one per doma
 - `ui-ipfs-publisher-noninflammatory`
 - `ui-ipfs-publisher-movement`
 
-Each service builds its domain in IPFS/hash-routing mode, pins the resulting directory to the local IPFS node, and writes its CID and gateway URL to `./data/ui-ipfs/<domain>/`. Running `./services.sh --url` prints the gateway URLs for all four domains.
+Each service builds its domain in IPFS/hash-routing mode, pins the resulting directory to the local IPFS node, and writes its CID and gateway URL to `./data/ui-ipfs/<domain>/`. Running `./scripts/services.sh --url` prints the gateway URLs for all four domains.

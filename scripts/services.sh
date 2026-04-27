@@ -3,10 +3,10 @@
 # Manage docker-compose services (hardhat, IPFS, indexer, platform API, etc.)
 #
 # Usage:
-#   ./services.sh --start   # Start services (preserves existing data)
-#   ./services.sh --stop    # Stop services (preserves existing data)
-#   ./services.sh --status  # Show whether services are running
-#   ./services.sh --url     # Print the current SPA URLs for all domains
+#   ./scripts/services.sh --start   # Start services (preserves existing data)
+#   ./scripts/services.sh --stop    # Stop services (preserves existing data)
+#   ./scripts/services.sh --status  # Show whether services are running
+#   ./scripts/services.sh --url     # Print the current SPA URLs for all domains
 #
 # Note: This script isn't much more than a thin wrapper around
 # docker-compose; it's fine to just use docker-compose directly
@@ -19,7 +19,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 UI_IPFS_ARTIFACT_DIR="./data/ui-ipfs"
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR/.."
 
 # Export UID/GID so docker-compose can run containers as the current user.
 # UID is a bash built-in and isn't exported by default; GID has no built-in at all.
@@ -44,7 +44,7 @@ show_usage() {
     echo "  --url     Print the current SPA URLs for all domains"
     echo "  --help    Show this help message"
     echo ""
-    echo "Data is stored in $DATA_DIR/. Use data.sh to manage it."
+    echo "Data is stored in $DATA_DIR/. Use scripts/data.sh to manage it."
 }
 
 resolve_path_allow_missing() {
@@ -73,7 +73,7 @@ check_existing_containers() {
         echo ""
         echo "This usually means a previous run left containers in a bad state"
         echo "(e.g. the data directory was wiped while containers were still running)."
-        echo "Run './services.sh --stop' first, then try again."
+        echo "Run './scripts/services.sh --stop' first, then try again."
         exit 1
     fi
 
@@ -87,7 +87,7 @@ check_existing_containers() {
             echo "Error: the IPFS container is running but $abs_data_dir/ipfs/config does not exist."
             echo ""
             echo "The data directory may have been wiped while the container was still running."
-            echo "Run './services.sh --stop' first, then try again."
+            echo "Run './scripts/services.sh --stop' first, then try again."
             exit 1
         fi
     fi
@@ -105,7 +105,7 @@ print_spa_urls() {
 
     if ! $found; then
         echo "Error: no SPA URL artifacts found in $UI_IPFS_ARTIFACT_DIR/." >&2
-        echo "Run './services.sh --start' first." >&2
+        echo "Run './scripts/services.sh --start' first." >&2
         return 1
     fi
 }
@@ -211,7 +211,7 @@ start_services() {
     )
     local -a services_to_build=()
 
-    "$SCRIPT_DIR/scripts/check-prerequisites.sh"
+    "$SCRIPT_DIR/check-prerequisites.sh"
     check_existing_containers
     echo "Starting services with data directory: $DATA_DIR"
     # Pre-create data directories owned by the current user so containers
@@ -224,12 +224,12 @@ start_services() {
     services_to_build=()
     while IFS= read -r line; do
         services_to_build+=("$line")
-    done < <(node "$SCRIPT_DIR/scripts/docker-build-plan.mjs" list "${buildable_services[@]}")
+    done < <(node "$SCRIPT_DIR/docker-build-plan.mjs" list "${buildable_services[@]}")
     if [ "${#services_to_build[@]}" -gt 0 ]; then
         echo "Rebuilding Docker images whose declared inputs changed:"
         printf '  %s\n' "${services_to_build[@]}"
         docker_compose build "${services_to_build[@]}"
-        node "$SCRIPT_DIR/scripts/docker-build-plan.mjs" record "${services_to_build[@]}"
+        node "$SCRIPT_DIR/docker-build-plan.mjs" record "${services_to_build[@]}"
     else
         echo "Reusing existing Docker images; no declared build inputs changed."
     fi

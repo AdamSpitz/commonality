@@ -8,12 +8,12 @@ The request asks for a practical "How-To" for a developer who wants to move beyo
 The project provides a streamlined way to do this using Docker and a seeding script.
 *   **Step 1: Start Services**
     ```bash
-    ./services.sh --start
+    ./scripts/services.sh --start
     ```
     This launches the Hardhat node (at `http://localhost:8545`), IPFS, and the Ponder indexer.
 *   **Step 2: Seed with Hardhat Accounts**
     ```bash
-    ./data.sh --seed=medium --use-hardhat-accounts
+    ./scripts/data.sh --seed=medium --use-hardhat-accounts
     ```
     The `--use-hardhat-accounts` flag is the "magic" here. It tells the generator to use the well-known Hardhat private keys for the first 20 users. This ensures that the actions recorded in the system (beliefs, delegations, etc.) are tied to accounts you can actually control in your browser.
 

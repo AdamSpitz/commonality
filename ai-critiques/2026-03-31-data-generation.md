@@ -39,7 +39,7 @@ Once the local chain is populated with thousands of events, you can analyze:
 
 2.  **IPFS Bottleneck:**
     *   *Issue:* The simulation uploads every statement to IPFS. At 1000+ statements, this can get slow or trigger rate limits on public gateways.
-    *   *Fix:* Use the `mock-ipfs.ts` utility in the SDK for ultra-large-scale local testing, or run a local IPFS node (which the `services.sh` script already supports).
+    *   *Fix:* Use the `mock-ipfs.ts` utility in the SDK for ultra-large-scale local testing, or run a local IPFS node (which the `scripts/services.sh` script already supports).
 
 3.  **Implication Explosion:**
     *   *Issue:* As the number of statements (N) grows, the possible implication pairs grow at O(N^2).

@@ -42,7 +42,7 @@ To keep the initial app bundle smaller, the Privy provider tree and wallet butto
 - `dist/noninflammatory/`
 - `dist/movement/`
 
-When you start the local docker-compose stack via `./services.sh --start`, four one-shot `ui-ipfs-publisher-<domain>` services build each domain's IPFS-friendly bundle in parallel and add them to the local IPFS node. The CIDs and gateway URLs are written to `./data/ui-ipfs/<domain>/`, and those IPFS URLs are the primary local entry points for the app.
+When you start the local docker-compose stack via `./scripts/services.sh --start`, four one-shot `ui-ipfs-publisher-<domain>` services build each domain's IPFS-friendly bundle in parallel and add them to the local IPFS node. The CIDs and gateway URLs are written to `./data/ui-ipfs/<domain>/`, and those IPFS URLs are the primary local entry points for the app.
 
 ## Code organization
 
