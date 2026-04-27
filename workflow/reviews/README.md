@@ -8,3 +8,7 @@ Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned i
 
 ## Most recent reviews
 
+Let's put each one in a separate file in this directory.
+
+  - [big founder-level review before deploying to testnet](./before-testnet.md)
+

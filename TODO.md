@@ -27,6 +27,8 @@
 - Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
 - We'll need a lot more AI underlings, with good documentation, following all the pathways, trying all the things.
 
+- Continue the [big test run before we deploy to testnet](./workflow/reviews/before-testnet.md).
+
 - Using `cofounder` skill: Are we ready to launch?
 
 ## Out of scope for the MVP, but worth remembering

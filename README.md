@@ -28,7 +28,7 @@ See [ROLES.md](workflow/ROLES.md) for the full guide. Quick version:
 
   - AI continuity notes: [CONTINUITY.md](CONTINUITY.md)
   - [Build-process documentation](workflow/BUILD.md)
-  - [Reviews](workflow/REVIEWS.md)
+  - [Reviews](workflow/reviews/README.md)
   - [Deployment instructions for testnet/mainnet](workflow/DEPLOYMENT.md) (local dev is above, in this file)
   - To-do list: [TODO.md](TODO.md)
 
