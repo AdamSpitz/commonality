@@ -9,9 +9,6 @@
 **ARCHITECTURE NOTE: Statement discovery is event-driven via DirectSupport only.**
 There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers them by querying `DirectSupport` events from the Beliefs contract and extracting the statement CID from `topic2`. `browseStatements()` and `getAllStatements()` both do this. This means: (a) a statement only appears in the UI after at least one user believes/disbelieves it, (b) the seed data's 374 DirectSupport events *should* be enough to populate the Browse Statements page with seeded statements, (c) a fresh chain with no beliefs will show empty states even if statements exist on IPFS. This is by-design but worth confirming it feels right for the product.
 
-**ISSUE: `ERC1155Sold` event registered in indexer but never emitted.**
-`indexer/src/events-cache/index.ts` registers `AssuranceContract:ERC1155Sold`, but the seed data produced zero of these. The simulation does `purchaseFromPrimaryMarket` (which emits `ERC1155Bought`, 1 instance) but never triggers a secondary market sale that would emit `ERC1155Sold`. Either this event should be removed from the indexer config (if it's dead code) or the seed simulation should be updated to exercise it. (I think the simulation has some randomness, so it's possible that it just never exercised it.)
-
 **PERFORMANCE: `browseStatements` fetches ALL DirectSupport events (limit 10,000).**
 `browseStatementsByMostSupporters` and `browseStatementsByNewest` both fetch up to 10,000 DirectSupport events and fold them in memory. This works for local dev and early testnet, but will degrade as the chain grows. The indexer's events-cache API doesn't support aggregation queries, so this is a fundamental limitation of the current architecture. Worth a TODO for eventual optimization.
 
