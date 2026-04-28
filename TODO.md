@@ -2,20 +2,6 @@
 
 ## Findings from a recent test run we did
 
-### Findings — Commonality
-
-- **Browse Statements** (`/statements`): Minor cosmetic note: the "NEWEST" sort button has a settings/gear icon — probably should be a clock or similar.
-
-### Findings — Content Funding
-
-#### Seeded data verification / code-level findings (2026-04-28)
-
-**SERIOUS: Content-funding contract summaries still cannot resolve their backing project state.**
-After the indexer fix, an SDK smoke script using `fetchAndFoldContentFundingState()`, `getAllChannelOverviews()`, and `getProjectsFiltered()` returned 3 channels and 4 creator contracts, but every content-funding contract had `project: null`, `totalReceived: null`, and `status: "unknown"`. Root cause appears to be that `getProjectsFiltered()` / `getAllProjectAddresses()` only discover projects from the core `AssuranceContractFactory:PubstarterAssuranceContractCreated` event. Content-funding creator contracts are created by `CreatorAssuranceContractFactory:CreatorContractCreated`, so they are not included in the core Pubstarter project list even though their contracts emit the same assurance-contract lifecycle events. This is likely to make Content Funding browse/channel pages look underfunded or partially blank despite seed purchases. Repro: start stack, run `./scripts/data.sh --seed=tiny`, then compare `/api/events?eventName=ERC1155Bought` (8 events) with SDK channel summaries (`project: null`, `status: unknown`).
-
-**SERIOUS: Creator-controlled Substack channel overview loses its canonical channel ID.**
-The same SDK smoke check returned three channels: YouTube with `canonicalChannelId: "youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa"`, Twitter with `canonicalChannelId: "twitter:uid:111111111"`, and one creator-controlled channel with `canonicalChannelId: null`. From the seed logs this null channel should be `substack:smartwriter`. The likely cause is that a `ChannelControlTaken` event has only the hashed `bytes32 channelId`, while the canonical-ID map is built from content-item canonical IDs and/or verification events; when folding control-taken state under the hashed key, the overview cannot recover the human-readable ID. This will make creator-controlled channel pages/routes hard to present correctly. Repro: `./scripts/data.sh --seed=tiny`, then inspect `getAllChannelOverviews(fetchAndFoldContentFundingState(...).state, ...)`.
-
 ### Findings — Cross-cutting
 
 #### Code-level analysis findings (2026-04-28)

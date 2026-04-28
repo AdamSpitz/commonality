@@ -14,6 +14,7 @@ import {
   selectLatestContentAttestations,
   getContentItemStatus,
   getContractsForChannel,
+  getAllChannelOverviews,
   getOwnerForCanonicalChannelId,
   getVetoableContracts,
 } from './queries.js';
@@ -274,6 +275,38 @@ describe('content-funding query helpers', () => {
     assert.strictEqual(itemStatus.contractAddress, CONTRACT_A);
     assert.ok(itemStatus.contract);
     assert.strictEqual(itemStatus.contract.status, 'active');
+  });
+
+  it('recovers canonical channel IDs from colon-separated Substack content IDs', () => {
+    const substackChannelId = '0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0';
+    const substackState = foldAllContentFundingEvents(
+      [
+        makeRegisteredEvent({
+          assuranceContract: CONTRACT_A,
+          canonicalId: 'substack:smartwriter:seed-post',
+        }),
+      ],
+      [
+        makeVerifiedEvent({
+          channelId: substackChannelId,
+          owner: OWNER_A,
+        }),
+      ],
+      [],
+      [
+        makeContractCreatedEvent({
+          contractAddress: CONTRACT_A,
+          channelId: substackChannelId,
+        }),
+      ],
+    );
+
+    const canonicalIds = buildChannelCanonicalIdMap(substackState);
+    assert.strictEqual(canonicalIds.get(substackChannelId), 'substack:smartwriter');
+
+    const overviews = getAllChannelOverviews(substackState);
+    assert.strictEqual(overviews.length, 1);
+    assert.strictEqual(overviews[0]?.canonicalChannelId, 'substack:smartwriter');
   });
 
   it('links content items to checksum-cased creator contract addresses', () => {

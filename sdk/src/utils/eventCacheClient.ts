@@ -158,13 +158,21 @@ export async function fetchPubstarterProjectEvents(
   const contracts = machinery.contractAddresses!;
   const paddedAddress = padAddressAsTopic(assuranceContractAddress);
 
-  const [factoryEvents, contractEvents] = await Promise.all([
+  const [factoryEvents, creatorFactoryEvents, contractEvents] = await Promise.all([
     fetchEvents(machinery, {
       contractAddress: contracts.assuranceContractFactory,
       eventName: 'PubstarterAssuranceContractCreated',
       topic1: paddedAddress,
       limit: 10,
     }),
+    contracts.creatorContractFactory
+      ? fetchEvents(machinery, {
+          contractAddress: contracts.creatorContractFactory,
+          eventName: 'CreatorContractCreated',
+          topic1: paddedAddress,
+          limit: 10,
+        })
+      : Promise.resolve([]),
     fetchEvents(machinery, {
       contractAddress: assuranceContractAddress,
       blockNumber_gte: options.blockNumber_gte,
@@ -172,7 +180,7 @@ export async function fetchPubstarterProjectEvents(
     }),
   ]);
 
-  return [...factoryEvents, ...contractEvents];
+  return [...factoryEvents, ...creatorFactoryEvents, ...contractEvents];
 }
 
 /**

@@ -26,6 +26,7 @@ import {
 } from '../../utils/eventCacheClient.js';
 import {
   decodePubstarterAssuranceContractCreatedEvent,
+  decodeCreatorContractCreatedEvent,
   decodeAssuranceContractInitializedEvent,
   decodeContractMetadataUpdatedEvent,
   decodeERC1155OfferedEvent,
@@ -68,6 +69,20 @@ async function fetchAndDecodeProjectEvents(
       case 'PubstarterAssuranceContractCreated': {
         const d = decodePubstarterAssuranceContractCreatedEvent(raw);
         if (d) projectEvents.push({ type: 'created', event: d });
+        break;
+      }
+      case 'CreatorContractCreated': {
+        const d = decodeCreatorContractCreatedEvent(raw);
+        if (d) {
+          projectEvents.push({
+            type: 'created',
+            event: {
+              ...d,
+              assuranceContract: d.contractAddress,
+              creator: d.creator,
+            },
+          });
+        }
         break;
       }
       case 'AssuranceContractInitialized': {
@@ -241,16 +256,33 @@ export async function getAllProjectAddresses(
   machinery: SDKMachinery
 ): Promise<string[]> {
   const contracts = machinery.contractAddresses!;
-  const rawEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.assuranceContractFactory,
-    eventName: 'PubstarterAssuranceContractCreated',
-    limit: 10000,
-  });
-  const projectAddresses = rawEvents
-    .map(e => decodePubstarterAssuranceContractCreatedEvent(e))
-    .filter((d): d is NonNullable<typeof d> => d !== null)
-    .map(d => d.assuranceContract);
-  return projectAddresses;
+  const [pubstarterEvents, creatorEvents] = await Promise.all([
+    fetchEvents(machinery, {
+      contractAddress: contracts.assuranceContractFactory,
+      eventName: 'PubstarterAssuranceContractCreated',
+      limit: 10000,
+    }),
+    contracts.creatorContractFactory
+      ? fetchEvents(machinery, {
+          contractAddress: contracts.creatorContractFactory,
+          eventName: 'CreatorContractCreated',
+          limit: 10000,
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const projectAddresses = [
+    ...pubstarterEvents
+      .map(e => decodePubstarterAssuranceContractCreatedEvent(e))
+      .filter((d): d is NonNullable<typeof d> => d !== null)
+      .map(d => d.assuranceContract),
+    ...creatorEvents
+      .map(e => decodeCreatorContractCreatedEvent(e))
+      .filter((d): d is NonNullable<typeof d> => d !== null)
+      .map(d => d.contractAddress),
+  ];
+
+  return Array.from(new Set(projectAddresses.map(address => address.toLowerCase())));
 }
 
 // ============================================================================

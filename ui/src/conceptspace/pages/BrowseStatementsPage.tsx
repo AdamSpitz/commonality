@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
-import NewReleasesIcon from '@mui/icons-material/NewReleases'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import {
   browseStatements,
   type StatementListItem,
@@ -94,7 +94,7 @@ export function BrowseStatementsPage() {
               Most Supporters
             </ToggleButton>
             <ToggleButton value="newest">
-              <NewReleasesIcon sx={{ mr: 1 }} />
+              <AccessTimeIcon sx={{ mr: 1 }} />
               Newest
             </ToggleButton>
           </ToggleButtonGroup>

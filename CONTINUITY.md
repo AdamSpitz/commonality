@@ -1,5 +1,18 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-28 — Fixed several TODO findings
+
+Fixed three findings from `TODO.md`:
+- Browse Statements "Newest" now uses `AccessTimeIcon` instead of the gear-like `NewReleasesIcon`.
+- Pubstarter project discovery now includes `CreatorContractCreated` events from `creatorContractFactory`, and per-project event fetches include the creator-factory creation event so content-funding assurance contracts can resolve normal project state/metrics.
+- Content-funding canonical channel recovery now handles colon-separated Substack content IDs (`substack:pub:slug`) used by local seeded content, so `getAllChannelOverviews()` can recover `substack:smartwriter`.
+
+Files changed: `ui/src/conceptspace/pages/BrowseStatementsPage.tsx`, `sdk/src/subsystems/pubstarter/queries.ts`, `sdk/src/utils/eventCacheClient.ts`, `sdk/src/subsystems/content-funding/canonicalization.ts`, `sdk/src/subsystems/content-funding/queries.test.ts`, `TODO.md`.
+
+Validation: `npm run build --workspace=sdk`, `npm run typecheck --workspace=ui`, and SDK content-funding tests passed. I accidentally ran `npm test --workspace=ui -- BrowseStatementsPage.test.tsx --run`; Vitest passed all 83 UI test files, but the command then forwarded the filename to Playwright and failed with "No tests found" after starting/stopping Docker. Use `npm run test:vitest --workspace=ui -- src/conceptspace/pages/BrowseStatementsPage.test.tsx` for the focused UI unit test next time.
+
+Good interrupt point: yes, this is a cohesive set of small TODO-finding fixes. A live seeded smoke check (`./scripts/services.sh --start`, `./scripts/data.sh --seed=tiny`, inspect SDK channel summaries) would still be valuable.
+
 ## 2026-04-28 — Step 11 partial fix; live verification still pending
 
 Could not run the seeded UI/browser check because Docker daemon is not running. Fixed a cached Browse Projects data-flow bug anyway: `ui/src/shared/foldCache.ts` now rehydrates cached `ProjectAccumulator.totalReceived` back to BigInt after IndexedDB JSON storage. Verified with `npm run test:vitest --workspace=ui -- src/shared/foldCache.test.ts` and `npm run typecheck --workspace=ui`.

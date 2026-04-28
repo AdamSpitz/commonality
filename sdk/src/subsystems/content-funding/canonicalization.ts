@@ -403,8 +403,13 @@ export function extractChannelCanonicalIdFromContentCanonicalId(contentCanonical
     // Substack: "substack:pub/slug" → "substack:pub"
     return contentCanonicalId.slice(0, slashIndex);
   }
-  // Twitter / YouTube: "platform:type:id:suffix" → "platform:type:id"
   const parts = contentCanonicalId.split(':');
+  if (parts[0] === 'substack' && parts.length >= 3) {
+    // Some local/seed deployments use the factory's ":" separator for all
+    // platforms: "substack:pub:slug" → "substack:pub".
+    return parts.slice(0, 2).join(':');
+  }
+  // Twitter / YouTube: "platform:type:id:suffix" → "platform:type:id"
   if (parts.length >= 4) {
     return parts.slice(0, 3).join(':');
   }
