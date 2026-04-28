@@ -36,7 +36,7 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 
   - [x] **Step 1 — Setup and sanity check.** Get the local stack running per README (`npm install && npm run build && ./scripts/services.sh --start && ./scripts/data.sh --seed`). Confirm all four domain SPA URLs print correctly. Open each one and confirm it at least loads without a blank page or fatal console error. Record the four URLs in the Continuity section so later subtasks can use them. If setup fails, debug or stop and surface the failure to the human — don't push ahead with a half-broken stack.
 
-  - [~] **Step 2 — Review the Commonality domain.** (in progress — structural review done, seed-data review pending) This is the biggest one (conceptspace + pubstarter + funding portals + delegation + mutable refs + trust/Subjectiv). It is large enough that this subtask should itself invoke `large-task-manager` to break it into chunks (e.g. "conceptspace pages", "pubstarter flows", "funding portals", "delegation/notes", "mutable refs", "trust/Subjectiv settings"). Append findings to the "Findings — Commonality" section.
+  - [~] **Step 2 — Review the Commonality domain.** (in progress — structural review done, code-level seed-data analysis done, live seeded-data review pending Docker rebuild). Code-level analysis below reveals the seed data *should* flow through (statements are discovered via DirectSupport events, not StatementCreated). Content-funding seed data is blocked by missing env vars. New bugs and findings appended below.
 
   - [ ] **Step 3 — Review the Content Funding domain.** Walk through landing, browse-by-platform (twitter/youtube/substack), channel pages, contract creation, contract viewing, creator dashboard, attestation summaries. Append to "Findings — Content Funding".
 
@@ -46,7 +46,17 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 
   - [ ] **Step 6 — Cross-cutting / AI-output review.** Things that span domains: are AI-generated artifacts (implication attestations, content attestations, nudges, bridge suggestions, explorer-curator collections) actually showing up in the UI in a useful way? Are seed data attestations visible? Use `cofounder` lens — would a visitor who landed on the seeded site come away thinking "this works"? Append to "Findings — Cross-cutting".
 
-  - [ ] **Step 7 — Synthesis breakpoint (high-intelligence model).** Read all findings. Categorize: (a) blocks testnet deployment, (b) embarrassing but not blocking, (c) nice-to-have. Write a short prioritized punch list at the top of "Findings — Synthesis". This pass is where the human will likely want to look hardest.
+  - [ ] **Step 8 — Fix the Docker chmod rebuild penalty.** `ui/Dockerfile` step 13 (`chmod -R a+rwX /workspace`) takes ~3 min on every rebuild even when nothing changed. Consider whether a more targeted chmod or a different permission strategy can eliminate this.
+
+  - [ ] **Step 9 — Clean up orphan Docker container.** Compose warns: `Found orphan containers ([commonality-ui])`. The old `commonality-ui` service was replaced by the four domain-specific publishers. Run `docker compose down --remove-orphans` or add `--remove-orphans` to services.sh.
+
+  - [ ] **Step 10 — Verify content-funding seed data works on a seeded stack.** `generateContentFundingScenarios` is skipped if `CHANNEL_REGISTRY_ADDRESS`, `CHANNEL_VERIFIER_ADDRESS`, and `CREATOR_CONTRACT_FACTORY_ADDRESS` aren't set in the seed env. Check `fake-data-generation/.env` — these may be missing, meaning no creator channels or content contracts are ever created in seed data.
+
+  - [ ] **Step 11 — Verify seeded data appears on UI pages.** After rebuild + reseed, the Browse Statements page should show statements with believer counts (374 DirectSupport events from seed data). The Browse Projects page should show ~22 projects. If these still show empty states, the SDK-to-indexer data flow has a bug.
+
+  - [ ] **Step 12 — Add `.env.ipfs.testnet` (or equivalent) for testnet deployment.** The indexer URL needs to be known at UI build time. Options: (a) a separate `.env.ipfs.testnet` file, (b) a build argument passed at Docker build time, (c) a runtime config fetched from IPFS. Pick one and document it.
+
+  - [ ] **Step 13 — Synthesis breakpoint (high-intelligence model).** Read all findings. Categorize: (a) blocks testnet deployment, (b) embarrassing but not blocking, (c) nice-to-have. Write a short prioritized punch list at the top of "Findings — Synthesis". This pass is where the human will likely want to look hardest.
 
 ## Continuity
 
@@ -77,11 +87,17 @@ Wrote the plan above. Did not start the actual review. Step 1 (setup + sanity ch
 
 The previous status snapshot in README §"High-level overview of current status" is a good summary of what's been recently completed and worth skimming before reviewing.
 
+### 2026-04-28 — Step 2 code-level analysis (Sonnet 4.6)
+Docker rebuild cycle is too slow for productive review, so switching to code-level analysis. Read through: `runSimulation.ts`, `indexer/ponder.config.ts`, `indexer/src/events-cache/index.ts`, `sdk/src/subsystems/conceptspace/queries.ts`, `ui/src/domains/commonality/manifest.tsx`, `ui/src/App.tsx`, `ui/src/shared/components/AppShell.tsx`. Key findings: (1) seed data flow confirmed — statements are discovered via DirectSupport events only, no StatementCreated event exists, (2) content-funding seed data likely missing entirely due to env var gap, (3) AppShell page title fix written but not yet verified via rebuild, (4) several new to-do items added. Skipping live seeded-data review — next session should rebuild + reseed + verify in browser.
+
 ## Findings
 
 ### Findings — Commonality
 
 #### Bugs fixed during review
+
+**BUG (fixed): Page title is `<title>ui</title>` on every page**
+Hardcoded in `ui/index.html`. Fix: added `useEffect` in `AppShell.tsx` that sets `document.title = brand.name` (e.g., "Commonality", "Content Funding", etc.) on mount and when the domain branding changes. Code change made; needs rebuild to verify.
 
 **BUG (fixed): Docs page always showed "Page not found."**
 `ui/Dockerfile` did not `COPY docs ./docs`. The `DocsPage` uses `import.meta.glob('../../../docs/**/*.md')` which resolves at Vite build time — with no `docs/` in the image, the glob was empty and every docs path returned "not found." Fix: added `COPY docs ./docs` to Dockerfile between `COPY sdk` and `COPY ui`.
@@ -118,11 +134,7 @@ All 14 Commonality routes now load with zero console errors after the fixes abov
 
 #### Minor issues observed (not bugs)
 
-- **Page title is `<title>ui</title>`** on every page — should be at minimum the domain name ("Commonality") and ideally page-specific ("Commonality | Browse Statements"). Would look bad in browser tabs and when sharing links.
-
 - **Seed data not yet re-run** — all browse pages show empty states. The full seeded-data review (statements with believers, projects with funding progress, creator channels, implication graph navigation) is pending the next session.
-
-- **The `VITE_EVENT_CACHE_URL` / testnet deployment question** — For testnet, the deployed indexer URL needs to be known at UI build time and baked into `.env.ipfs` (or the equivalent environment). This needs a concrete plan before testnet deployment. Currently there's no `.env.ipfs.testnet` or similar.
 
 ### Findings — Content Funding
 (empty — fill during Step 3)
@@ -134,7 +146,26 @@ All 14 Commonality routes now load with zero console errors after the fixes abov
 (empty — fill during Step 5)
 
 ### Findings — Cross-cutting
-(empty — fill during Step 6)
+
+#### Code-level analysis findings (2026-04-28)
+
+**ISSUE: Content-funding seed data likely missing entirely.**
+`runSimulation.ts` calls `generateContentFundingScenarios` only if `CHANNEL_REGISTRY_ADDRESS`, `CHANNEL_VERIFIER_ADDRESS`, and `CREATOR_CONTRACT_FACTORY_ADDRESS` are all set in the env. If any are missing (which is likely — these weren't part of the original deployment), the entire content-funding on-chain state is skipped. That means no creator channels, no content contracts, no verification flows in seed data. Check `fake-data-generation/.env` and the deploy script to see if these addresses are ever propagated.
+
+**ARCHITECTURE NOTE: Statement discovery is event-driven via DirectSupport only.**
+There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers them by querying `DirectSupport` events from the Beliefs contract and extracting the statement CID from `topic2`. `browseStatements()` and `getAllStatements()` both do this. This means: (a) a statement only appears in the UI after at least one user believes/disbelieves it, (b) the seed data's 374 DirectSupport events *should* be enough to populate the Browse Statements page with seeded statements, (c) a fresh chain with no beliefs will show empty states even if statements exist on IPFS. This is by-design but worth confirming it feels right for the product.
+
+**ISSUE: `ERC1155Sold` event registered in indexer but never emitted.**
+`indexer/src/events-cache/index.ts` registers `AssuranceContract:ERC1155Sold`, but the seed data produced zero of these. The simulation does `purchaseFromPrimaryMarket` (which emits `ERC1155Bought`, 1 instance) but never triggers a secondary market sale that would emit `ERC1155Sold`. Either this event should be removed from the indexer config (if it's dead code) or the seed simulation should be updated to exercise it.
+
+**PERFORMANCE: `browseStatements` fetches ALL DirectSupport events (limit 10,000).**
+`browseStatementsByMostSupporters` and `browseStatementsByNewest` both fetch up to 10,000 DirectSupport events and fold them in memory. This works for local dev and early testnet, but will degrade as the chain grows. The indexer's events-cache API doesn't support aggregation queries, so this is a fundamental limitation of the current architecture. Worth a TODO for eventual optimization.
+
+**PERFORMANCE: `getIndirectSupporters` has N+1 pattern.**
+For each implication pointing to a statement, it fetches DirectSupport events for the source statement separately. With many implications this becomes expensive. Not blocking for testnet but worth noting.
+
+**ISSUE: Seed script 5-minute timeout.**
+`./scripts/data.sh --seed` times out after 5 min during round 3 of the simulation. With 50 users × multiple actions per round, 3 rounds takes longer than the timeout. Either increase the timeout or reduce the simulation size for seed data. Current seed data is partial (rounds 1-2 complete, round 3 incomplete).
 
 ### Findings — Synthesis
-(empty — fill during Step 7)
+(empty — fill during Step 13)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { MouseEvent, ReactNode } from 'react'
 import {
   AppBar,
@@ -68,6 +68,10 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
     name: 'Commonality',
     tagline: 'Find common ground and fund what matters.',
   }
+
+  useEffect(() => {
+    document.title = brand.name
+  }, [brand.name])
 
   const nav = navigation ?? {
     primaryNavigation: [
