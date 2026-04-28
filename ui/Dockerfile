@@ -14,8 +14,13 @@ COPY sdk ./sdk
 COPY docs ./docs
 COPY ui ./ui
 COPY scripts ./scripts
-RUN mkdir -p /workspace/ui/dist /workspace/ui/node_modules/.tmp /workspace/.turbo/cache \
-  && chmod -R a+rwX /workspace/ui/dist /workspace/ui/node_modules/.tmp /workspace/.turbo
+RUN chmod -R a+rX /workspace/sdk /workspace/docs /workspace/ui /workspace/scripts \
+  && mkdir -p /workspace/sdk/.turbo /workspace/sdk/dist /workspace/sdk/src/generated \
+    /workspace/ui/.turbo /workspace/ui/dist /workspace/ui/node_modules/.tmp /workspace/ui/node_modules/.vite-temp \
+    /workspace/.turbo/cache /tmp/node-compile-cache \
+  && chmod -R a+rwX /workspace/sdk/.turbo /workspace/sdk/dist /workspace/sdk/src/generated \
+    /workspace/ui/.turbo /workspace/ui/dist /workspace/ui/node_modules/.tmp /workspace/ui/node_modules/.vite-temp \
+    /workspace/.turbo /tmp/node-compile-cache
 
 CMD ["node", "scripts/publish-ui-to-ipfs.mjs"]
 

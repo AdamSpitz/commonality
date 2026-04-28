@@ -36,7 +36,7 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 
   - [x] **Step 1 — Setup and sanity check.** Get the local stack running per README (`npm install && npm run build && ./scripts/services.sh --start && ./scripts/data.sh --seed`). Confirm all four domain SPA URLs print correctly. Open each one and confirm it at least loads without a blank page or fatal console error. Record the four URLs in the Continuity section so later subtasks can use them. If setup fails, debug or stop and surface the failure to the human — don't push ahead with a half-broken stack.
 
-  - [~] **Step 2 — Review the Commonality domain.** (in progress — structural review done, code-level seed-data analysis done, live seeded-data review pending Docker rebuild). Code-level analysis below reveals the seed data *should* flow through (statements are discovered via DirectSupport events, not StatementCreated). Content-funding seed data is blocked by missing env vars. New bugs and findings appended below.
+  - [~] **Step 2 — Review the Commonality domain.** (in progress — structural review done, code-level seed-data analysis done, live seeded-data review pending reseed + seeded-data review). Code-level analysis below reveals the seed data *should* flow through (statements are discovered via DirectSupport events, not StatementCreated). Content-funding seed data is blocked by missing env vars. New bugs and findings appended below.
 
   - [ ] **Step 3 — Review the Content Funding domain.** Walk through landing, browse-by-platform (twitter/youtube/substack), channel pages, contract creation, contract viewing, creator dashboard, attestation summaries. Append to "Findings — Content Funding".
 
@@ -61,6 +61,12 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 ## Continuity
 
 (Most-recent-first. Keep it short. Older notes can be pruned.)
+
+### 2026-04-28 — UI IPFS publisher permission fix (Codex GPT-5)
+Fixed the `./scripts/services.sh --start` UI publisher failure where Turbo reported `I/O error: Permission denied (os error 13)`. Root cause was broader than `.turbo/cache`: the publisher image runs as the host UID/GID, but some copied source files were not world-readable, Turbo writes per-package `.turbo` logs while rebuilding the SDK dependency, SDK codegen/build writes `sdk/src/generated` and `sdk/dist`, and Vite writes `ui/node_modules/.vite-temp`. `ui/Dockerfile` now normalizes copied source readability and grants write access only to the build/cache/output paths the non-root publisher needs. Verified `docker run ... npm run ui:build:ipfs` succeeds and `./scripts/services.sh --start` publishes all four domain SPAs to IPFS.
+
+### 2026-04-28 — Steps 10/11 env assembly fix (Codex GPT-5)
+Fixed env assembly issues that could make Step 10/11 fail after a normal setup run: `scripts/setup-env.sh localhost` now works without `.env.secrets`, preserves all deployed content-funding addresses needed by `generateContentFundingScenarios`, and writes the UI-side verifier/RPC/project/trust/nudger addresses needed for content-funding flows, project reads, and cross-cutting UI data. Verified with `./scripts/setup-env.sh localhost`, focused env-var grep, and `bash -n scripts/setup-env.sh`. Live seeded-data verification still needs a reseed and browser/data pass.
 
 ### 2026-04-28 — Step 11 partial fix (Codex GPT-5)
 Could not run the live seeded-stack check because Docker daemon is not running in this session, so Step 11 remains pending. Fixed one project-list data-flow bug found by code review: cached project accumulators stored `totalReceived` as JSON strings in IndexedDB but loaded them back without BigInt rehydration, which could break cached Browse Projects reloads after new project events arrived. Verified with focused `ui/src/shared/foldCache.test.ts` and `npm run typecheck --workspace=ui`.
@@ -158,8 +164,11 @@ All 14 Commonality routes now load with zero console errors after the fixes abov
 
 #### Code-level analysis findings (2026-04-28)
 
-**ISSUE: Content-funding seed data likely missing entirely.**
-`runSimulation.ts` calls `generateContentFundingScenarios` only if `CHANNEL_REGISTRY_ADDRESS`, `CHANNEL_VERIFIER_ADDRESS`, and `CREATOR_CONTRACT_FACTORY_ADDRESS` are all set in the env. If any are missing (which is likely — these weren't part of the original deployment), the entire content-funding on-chain state is skipped. That means no creator channels, no content contracts, no verification flows in seed data. Check `fake-data-generation/.env` and the deploy script to see if these addresses are ever propagated.
+**BUG (fixed): `scripts/setup-env.sh` could erase local content-funding/UI addresses.**
+The deploy script wrote the content-funding verifier address and several UI-critical deployed addresses, but `scripts/setup-env.sh` did not preserve all of them when regenerating `.env` and `ui/.env`. It also refused to run locally without `.env.secrets`, contrary to the README's no-secrets local-dev path. Fix: local setup no longer requires `.env.secrets`, and regenerated env files now include the content-funding seed addresses plus UI-side verifier/RPC/project/trust/nudger addresses.
+
+**ISSUE (partially fixed, live verification pending): Content-funding seed data can be skipped if env assembly drops addresses.**
+`runSimulation.ts` calls `generateContentFundingScenarios` only if `CHANNEL_REGISTRY_ADDRESS`, `CHANNEL_VERIFIER_ADDRESS`, and `CREATOR_CONTRACT_FACTORY_ADDRESS` are all set in the env. Root `.env` now contains these addresses after `./scripts/setup-env.sh localhost`, and `scripts/setup-env.sh` now preserves them, but a live reseed/browser verification is still pending.
 
 **ARCHITECTURE NOTE: Statement discovery is event-driven via DirectSupport only.**
 There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers them by querying `DirectSupport` events from the Beliefs contract and extracting the statement CID from `topic2`. `browseStatements()` and `getAllStatements()` both do this. This means: (a) a statement only appears in the UI after at least one user believes/disbelieves it, (b) the seed data's 374 DirectSupport events *should* be enough to populate the Browse Statements page with seeded statements, (c) a fresh chain with no beliefs will show empty states even if statements exist on IPFS. This is by-design but worth confirming it feels right for the product.
