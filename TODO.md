@@ -12,8 +12,8 @@ There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers
 **PERFORMANCE: `browseStatements` fetches ALL DirectSupport events (limit 10,000).**
 `browseStatementsByMostSupporters` and `browseStatementsByNewest` both fetch up to 10,000 DirectSupport events and fold them in memory. This works for local dev and early testnet, but will degrade as the chain grows. The indexer's events-cache API doesn't support aggregation queries, so this is a fundamental limitation of the current architecture. Worth a TODO for eventual optimization.
 
-**PERFORMANCE: `getIndirectSupporters` has N+1 pattern.**
-For each implication pointing to a statement, it fetches DirectSupport events for the source statement separately. With many implications this becomes expensive. Not blocking for testnet but worth noting.
+**FIXED 2026-04-28: `getIndirectSupporters` N+1 fetches.**
+`getIndirectSupporters` now fetches each unique source statement's DirectSupport events once, reuses those folded events across implications, and fetches target-statement direct beliefs once instead of per indirect supporter.
 
 
 ## Main list

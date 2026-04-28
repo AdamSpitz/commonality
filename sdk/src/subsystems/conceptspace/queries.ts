@@ -553,69 +553,61 @@ export async function getIndirectSupporters(
     return [];
   }
 
-  const fromCids = implications.map(i => i.fromStatementCid);
+  const uniqueFromCids = [...new Set(implications.map(i => i.fromStatementCid))];
+  const beliefEventsByFromCid = new Map<IpfsCidV1, DecodedDirectSupportEvent[]>();
+
   const allBeliefEvents = await Promise.all(
-    fromCids.map(cid =>
-      fetchEvents(machinery, {
+    uniqueFromCids.map(async cid => {
+      const events = await fetchEvents(machinery, {
         contractAddress: contracts.beliefs,
         eventName: 'DirectSupport',
         topic2: cidToBytes32(cid as IpfsCidV1),
         limit: 10000,
-      })
-    )
+      });
+      return { cid, events };
+    })
   );
 
-  const decodedAllBeliefs: DecodedDirectSupportEvent[] = [];
-  for (const events of allBeliefEvents) {
+  for (const { cid, events } of allBeliefEvents) {
+    const decodedEvents: DecodedDirectSupportEvent[] = [];
     for (const event of events) {
       const decoded = decodeDirectSupportEvent(event);
-      if (decoded) decodedAllBeliefs.push(decoded);
+      if (decoded) decodedEvents.push(decoded);
     }
+    beliefEventsByFromCid.set(cid, decodedEvents);
   }
 
-  const foldedAll = foldAllStatements(decodedAllBeliefs);
+  const targetEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    topic2: cidToBytes32(statementCid),
+    limit: 10000,
+  });
+
+  const decodedTargetEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of targetEvents) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) decodedTargetEvents.push(decoded);
+  }
+  const targetBeliefs = foldStatementBeliefs(decodedTargetEvents).beliefs;
 
   const userToViaStatementCid = new Map<string, IpfsCidV1>();
 
   for (const implication of implications) {
-    const counts = foldedAll.get(implication.fromStatementCid);
-    if (!counts || counts.believerCount === 0) continue;
-
-    const fromEvents = await fetchEvents(machinery, {
-      contractAddress: contracts.beliefs,
-      eventName: 'DirectSupport',
-      topic2: cidToBytes32(implication.fromStatementCid as IpfsCidV1),
-      limit: 10000,
-    });
-
-    const decodedFromEvents: DecodedDirectSupportEvent[] = [];
-    for (const event of fromEvents) {
-      const decoded = decodeDirectSupportEvent(event);
-      if (decoded) decodedFromEvents.push(decoded);
-    }
-
-    const folded = foldStatementBeliefs(decodedFromEvents);
+    const fromEvents = beliefEventsByFromCid.get(implication.fromStatementCid) ?? [];
+    const folded = foldStatementBeliefs(fromEvents);
 
     for (const [user, beliefState] of folded.beliefs.entries()) {
-      if (beliefState === 1 && !userToViaStatementCid.has(user)) {
+      if (beliefState === 1 && targetBeliefs.get(user) !== 2 && !userToViaStatementCid.has(user)) {
         userToViaStatementCid.set(user, implication.fromStatementCid);
       }
     }
   }
 
-  const supporters: IndirectSupporter[] = [];
-
-  for (const [user, viaStatementCid] of userToViaStatementCid.entries()) {
-    const targetBelief = await getUserBelief(machinery, user, statementCid);
-    if (!targetBelief || targetBelief.beliefState !== 2) {
-      supporters.push({
-        user: user,
-        viaStatementCid,
-      });
-    }
-  }
-
-  return supporters;
+  return [...userToViaStatementCid.entries()].map(([user, viaStatementCid]) => ({
+    user,
+    viaStatementCid,
+  }));
 }
 
 /**
