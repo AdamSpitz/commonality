@@ -233,7 +233,7 @@ start_services() {
     else
         echo "Reusing existing Docker images; no declared build inputs changed."
     fi
-    docker_compose up -d "${compose_services[@]}"
+    docker_compose up -d --remove-orphans "${compose_services[@]}"
     wait_for_ui_ipfs_publish
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
@@ -242,7 +242,7 @@ start_services() {
 
 stop_services() {
     echo "Stopping services..."
-    docker_compose down
+    docker_compose down --remove-orphans
     echo "Services stopped (data preserved in $DATA_DIR)."
 }
 

@@ -154,6 +154,7 @@ const buildConfigs = {
       'package-lock.json',
       'scripts/publish-ui-to-ipfs.mjs',
       'ui/Dockerfile',
+      'ui/.env.ipfs',
       'sdk/package.json',
       'ui/package.json',
       { path: 'sdk', ignore: [] },

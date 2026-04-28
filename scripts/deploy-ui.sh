@@ -58,6 +58,16 @@ fi
 echo "Setting up environment for $NETWORK..."
 "$ROOT/scripts/setup-env.sh" "$NETWORK"
 
+# The IPFS bundle cannot rely on a dev-server proxy. The event cache URL is
+# baked into the Vite build and must point at the deployed indexer.
+EVENT_CACHE_URL=$(grep -E '^VITE_EVENT_CACHE_URL=' "$ROOT/ui/.env" | tail -1 | cut -d= -f2-)
+if [ -z "$EVENT_CACHE_URL" ]; then
+  echo "Error: EVENT_CACHE_URL is not configured for $NETWORK."
+  echo "Set EVENT_CACHE_URL in .env.secrets to the deployed indexer base URL, then rerun this script."
+  echo "Example: EVENT_CACHE_URL=https://commonality-indexer.onrender.com"
+  exit 1
+fi
+
 # --- Build the UI ---
 echo ""
 echo "Building UI for domain: $DOMAIN..."
@@ -68,6 +78,7 @@ echo ""
 echo "Generating API documentation..."
 npm run build:docs
 
+UPLOAD_ROOT="$ROOT/ui/dist/$DOMAIN"
 SDK_DOCS="$ROOT/sdk/docs/api"
 HARDHAT_DOCS="$ROOT/hardhat/docs"
 TARGET_DOCS="$UPLOAD_ROOT/api-docs"
@@ -89,7 +100,6 @@ echo ""
 echo "Uploading ui/dist/$DOMAIN/ to Pinata..."
 
 CURL_ARGS=()
-UPLOAD_ROOT="$ROOT/ui/dist/$DOMAIN"
 while IFS= read -r -d '' file; do
   rel="${file#$UPLOAD_ROOT/}"
   CURL_ARGS+=(-F "file=@${file};filename=${DOMAIN}-ui/${rel}")

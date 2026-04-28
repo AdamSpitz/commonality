@@ -46,21 +46,24 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 
   - [ ] **Step 6 — Cross-cutting / AI-output review.** Things that span domains: are AI-generated artifacts (implication attestations, content attestations, nudges, bridge suggestions, explorer-curator collections) actually showing up in the UI in a useful way? Are seed data attestations visible? Use `cofounder` lens — would a visitor who landed on the seeded site come away thinking "this works"? Append to "Findings — Cross-cutting".
 
-  - [ ] **Step 8 — Fix the Docker chmod rebuild penalty.** `ui/Dockerfile` step 13 (`chmod -R a+rwX /workspace`) takes ~3 min on every rebuild even when nothing changed. Consider whether a more targeted chmod or a different permission strategy can eliminate this.
+  - [x] **Step 8 — Fix the Docker chmod rebuild penalty.** `ui/Dockerfile` step 13 (`chmod -R a+rwX /workspace`) took ~3 min on every rebuild even when nothing changed. Fix: narrow the writable paths to `ui/dist`, `ui/node_modules/.tmp`, and `.turbo`, which are the paths the IPFS publisher build needs to write as the host UID/GID user.
 
-  - [ ] **Step 9 — Clean up orphan Docker container.** Compose warns: `Found orphan containers ([commonality-ui])`. The old `commonality-ui` service was replaced by the four domain-specific publishers. Run `docker compose down --remove-orphans` or add `--remove-orphans` to services.sh.
+  - [x] **Step 9 — Clean up orphan Docker container.** Compose warns: `Found orphan containers ([commonality-ui])`. The old `commonality-ui` service was replaced by the four domain-specific publishers. Fix: `scripts/services.sh --start` now runs compose `up -d --remove-orphans`, and `--stop` runs `down --remove-orphans`.
 
   - [ ] **Step 10 — Verify content-funding seed data works on a seeded stack.** `generateContentFundingScenarios` is skipped if `CHANNEL_REGISTRY_ADDRESS`, `CHANNEL_VERIFIER_ADDRESS`, and `CREATOR_CONTRACT_FACTORY_ADDRESS` aren't set in the seed env. Check `fake-data-generation/.env` — these may be missing, meaning no creator channels or content contracts are ever created in seed data.
 
   - [ ] **Step 11 — Verify seeded data appears on UI pages.** After rebuild + reseed, the Browse Statements page should show statements with believer counts (374 DirectSupport events from seed data). The Browse Projects page should show ~22 projects. If these still show empty states, the SDK-to-indexer data flow has a bug.
 
-  - [ ] **Step 12 — Add `.env.ipfs.testnet` (or equivalent) for testnet deployment.** The indexer URL needs to be known at UI build time. Options: (a) a separate `.env.ipfs.testnet` file, (b) a build argument passed at Docker build time, (c) a runtime config fetched from IPFS. Pick one and document it.
+  - [x] **Step 12 — Add `.env.ipfs.testnet` (or equivalent) for testnet deployment.** The indexer URL needs to be known at UI build time. Chosen path: keep using `scripts/setup-env.sh` as the env assembly point, require `EVENT_CACHE_URL` in `.env.secrets` for non-local IPFS UI deploys, bake it into `ui/.env` as `VITE_EVENT_CACHE_URL`, and have `scripts/deploy-ui.sh` fail early if it is missing. Documented in `workflow/DEPLOYMENT.md`.
 
   - [ ] **Step 13 — Synthesis breakpoint (high-intelligence model).** Read all findings. Categorize: (a) blocks testnet deployment, (b) embarrassing but not blocking, (c) nice-to-have. Write a short prioritized punch list at the top of "Findings — Synthesis". This pass is where the human will likely want to look hardest.
 
 ## Continuity
 
 (Most-recent-first. Keep it short. Older notes can be pruned.)
+
+### 2026-04-28 — Steps 8, 9, 12 cleanup (Codex GPT-5)
+Fixed the UI Docker permission slowdown by replacing whole-workspace chmod with targeted writable build/cache paths. Added `--remove-orphans` to `scripts/services.sh` start/stop so the old `commonality-ui` container is cleaned up automatically. Made testnet/mainnet IPFS UI deploys require `EVENT_CACHE_URL` before building, documented it, and added `ui/.env.ipfs` to the Docker build planner inputs so local IPFS config changes trigger a UI publisher rebuild. Inspected Step 10: fake-data generation reads root `.env`, and current root `.env` does include the content-funding addresses, but a live reseed/browser verification is still pending.
 
 ### 2026-04-28 — Step 2 structural review (Sonnet 4.6)
 Fixed 3 bugs found during review (docs page, event cache URL, factory addresses — see Findings above). Ran full 14-page crawl: all pages load clean with zero console errors. Reviewed screenshots with tester + cofounder lenses. Seed data was not re-run this session (stack restarted cold). Next: re-run `./scripts/data.sh --seed` and do a seeded-data pass of Commonality before moving to Step 3. Page title is "ui" on all pages — worth a quick fix. The `VITE_EVENT_CACHE_URL` testnet question needs a plan before deploying. New URLs after restart:

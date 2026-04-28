@@ -95,6 +95,14 @@ curl https://commonality-platform-api.onrender.com/health
 
 ### Step 3: Deploy UI to IPFS + ENS
 
+Before building the UI, set `EVENT_CACHE_URL` in `.env.secrets` to the public base URL of the deployed indexer, for example:
+
+```bash
+EVENT_CACHE_URL=https://commonality-indexer.onrender.com
+```
+
+The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundle at build time. `scripts/deploy-ui.sh` will stop early if it is missing.
+
 ```bash
 ./scripts/deploy-ui.sh sepolia                  # → prints CID
 ./scripts/update-ens.sh myapp.eth <cid> --network sepolia
