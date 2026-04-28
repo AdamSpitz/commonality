@@ -38,7 +38,11 @@ export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: Sta
   }));
 }
 
-async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> {
+interface GenerateStatementsOptions {
+  limit?: number;
+}
+
+async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateStatementsOptions = {}): Promise<Statement[]> {
   const universePath = join(__dirname, 'universe.json');
   const universe = JSON.parse(await fs.readFile(universePath, 'utf-8')) as {
     domains: Record<string, unknown>;
@@ -54,6 +58,8 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
 
     for (const [positionKey, statementTexts] of Object.entries(templates)) {
       for (const text of statementTexts) {
+        if (options.limit !== undefined && statements.length >= options.limit) break;
+
         const content = {
           text,
           domain,
@@ -72,11 +78,14 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
 
         statements.push(statement);
       }
+      if (options.limit !== undefined && statements.length >= options.limit) break;
     }
+    if (options.limit !== undefined && statements.length >= options.limit) break;
   }
 
   // Generate some coalition statements ("I believe either A or B")
-  const numCoalitions = Math.min(10, Math.floor(statements.length / 10));
+  const shouldSkipDerivedStatements = options.limit !== undefined && statements.length >= options.limit;
+  const numCoalitions = shouldSkipDerivedStatements ? 0 : Math.min(10, Math.floor(statements.length / 10));
   for (let i = 0; i < numCoalitions; i++) {
     const stmt1 = statements[Math.floor(Math.random() * statements.length)];
     const stmt2 = statements[Math.floor(Math.random() * statements.length)];
@@ -103,7 +112,7 @@ async function generateStatements(ipfsConfig: IPFSConfig): Promise<Statement[]> 
   }
 
   // Generate some commonality statements (finding common ground)
-  const numCommonality = Math.min(10, Math.floor(statements.length / 20));
+  const numCommonality = shouldSkipDerivedStatements ? 0 : Math.min(10, Math.floor(statements.length / 20));
   for (let i = 0; i < numCommonality; i++) {
     const stmt1 = statements[Math.floor(Math.random() * statements.length)];
     const stmt2 = statements[Math.floor(Math.random() * statements.length)];

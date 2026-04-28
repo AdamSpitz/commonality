@@ -33,7 +33,8 @@ npm install
 npm run gen:simulate
 
 # Or with custom parameters
-npm run gen:small   # 10 users, 3 rounds
+npm run gen:tiny   # 5 users, 1 round, 12 statements, capped actions, no invariant pass
+npm run gen:small  # 10 users, 3 rounds
 npm run gen:medium # 50 users, 5 rounds
 npm run gen:large  # 100 users, 10 rounds
 ```
@@ -190,6 +191,8 @@ Each attester has:
 - **Statistics tracking** - Counts of attestations made
 
 ### Simulation Actions
+
+For fast UI/review setup from the repository root, prefer `./scripts/data.sh --seed=tiny`. It intentionally reuses only a cut-down slice of the fake universe while still leaving enough data for representative statement/project/content-funding pages.
 
 The simulation performs these actions:
 

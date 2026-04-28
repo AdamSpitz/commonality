@@ -16,6 +16,7 @@
     "gen:attesters": "tsx generateAttesters.ts",
     "gen:attestations": "tsx generateAttestations.ts",
     "gen:simulate": "tsx runSimulation.ts",
+    "gen:tiny": "tsx runSimulation.ts 5 1 --statement-limit=12 --max-actions-per-user=2 --skip-invariants",
     "gen:small": "tsx runSimulation.ts 10 3",
     "gen:medium": "tsx runSimulation.ts 50 5",
     "gen:large": "tsx runSimulation.ts 100 10",

@@ -5,6 +5,7 @@
 # Usage:
 #   ./scripts/data.sh --wipe                    # Wipe data directory (stops services first)
 #   ./scripts/data.sh --seed                    # Populate with fake data (services must be running)
+#   ./scripts/data.sh --seed=tiny               # Tiny dataset (5 users, 1 round, capped statements/actions)
 #   ./scripts/data.sh --seed=small              # Small dataset (10 users, 3 rounds)
 #   ./scripts/data.sh --seed=medium             # Medium dataset (50 users, 5 rounds)
 #   ./scripts/data.sh --seed --use-hardhat-accounts   # Use hardhat accounts for first 20 users
@@ -36,7 +37,7 @@ show_usage() {
     echo "Options:"
     echo "  --wipe              Wipe data directory (stops services first)"
     echo "  --seed[=SIZE]       Populate with fake data (services must be running)"
-    echo "                        SIZE: small (default), medium, large"
+    echo "                        SIZE: tiny, small (default), medium, large"
     echo "  --use-hardhat-accounts  Use hardhat accounts instead of random wallets (for first 20 users)"
     echo "  --debug-ipfs        Show CIDs and content being uploaded to IPFS"
     echo "  --help              Show this help message"
@@ -130,6 +131,9 @@ seed_data() {
     echo "================================"
 
     case "$size" in
+        tiny)
+            npm run gen:tiny -- $extra_args
+            ;;
         small)
             npm run gen:small -- $extra_args
             ;;

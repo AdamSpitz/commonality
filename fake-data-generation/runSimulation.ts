@@ -172,6 +172,11 @@ const __dirname = dirname(__filename);
  * Deploys contracts, generates data, executes random user actions
  */
 
+interface SimulationRunnerOptions {
+  statementLimit?: number;
+  maxActionsPerUserPerRound?: number;
+}
+
 class SimulationRunner {
   clients: Record<string, TestClients>;
   contracts: SimulationContracts;
@@ -189,8 +194,9 @@ class SimulationRunner {
   invariantChecker: InvariantChecker | null;
   usePreGeneratedAttestations: boolean;
   useHardhatAccounts: boolean;
+  options: SimulationRunnerOptions;
 
-  constructor() {
+  constructor(options: SimulationRunnerOptions = {}) {
     this.clients = {};
     this.contracts = {};
     this.users = [];
@@ -207,6 +213,7 @@ class SimulationRunner {
     this.invariantChecker = null;
     this.usePreGeneratedAttestations = true;
     this.useHardhatAccounts = false;
+    this.options = options;
   }
 
   async initialize(numUsers = 50): Promise<void> {
@@ -224,8 +231,20 @@ class SimulationRunner {
       const data = await fs.readFile(usersPath, 'utf-8');
       this.users = JSON.parse(data) as User[];
       console.log(`Loaded ${this.users.length} existing users`);
+      if (this.users.length > numUsers) {
+        this.users = this.users.slice(0, numUsers);
+        console.log(`Using first ${this.users.length} users for this run`);
+      }
     } catch {
       this.users = await generateUsers(numUsers, { useHardhatAccounts: this.useHardhatAccounts });
+    }
+
+    if (this.options.maxActionsPerUserPerRound !== undefined) {
+      this.users = this.users.map(user => ({
+        ...user,
+        actionsPerRound: Math.min(user.actionsPerRound, this.options.maxActionsPerUserPerRound!),
+      }));
+      console.log(`Capped user actions at ${this.options.maxActionsPerUserPerRound} per round`);
     }
 
     // Generate or load statements
@@ -235,8 +254,12 @@ class SimulationRunner {
       const data = await fs.readFile(stmtsPath, 'utf-8');
       this.statements = JSON.parse(data) as Statement[];
       console.log(`Loaded ${this.statements.length} existing statements`);
+      if (this.options.statementLimit !== undefined && this.statements.length > this.options.statementLimit) {
+        this.statements = this.statements.slice(0, this.options.statementLimit);
+        console.log(`Using first ${this.statements.length} statements for this run`);
+      }
     } catch {
-      this.statements = await generateStatements(ipfsConfig);
+      this.statements = await generateStatements(ipfsConfig, { limit: this.options.statementLimit });
     }
 
     // Upload statements to IPFS
@@ -931,10 +954,15 @@ async function main(): Promise<void> {
   const numRounds = parseInt(args.find((a, i) => i > 0 && !args[i-1].startsWith('--') && !a.startsWith('--')) ?? '5');
   const runAttacks = args.includes('--attacks');
   const runInvariants = args.includes('--invariants');
+  const skipInvariants = args.includes('--skip-invariants');
   const usePreGenerated = !args.includes('--no-pregenerated');
   const useHardhatAccounts = args.includes('--use-hardhat-accounts');
+  const statementLimitArg = args.find(a => a.startsWith('--statement-limit='));
+  const maxActionsArg = args.find(a => a.startsWith('--max-actions-per-user='));
+  const statementLimit = statementLimitArg ? parseInt(statementLimitArg.split('=')[1]) : undefined;
+  const maxActionsPerUserPerRound = maxActionsArg ? parseInt(maxActionsArg.split('=')[1]) : undefined;
 
-  const simulation = new SimulationRunner();
+  const simulation = new SimulationRunner({ statementLimit, maxActionsPerUserPerRound });
   simulation.usePreGeneratedAttestations = usePreGenerated;
   simulation.useHardhatAccounts = useHardhatAccounts;
 
@@ -971,8 +999,12 @@ async function main(): Promise<void> {
     await simulation.runInvariantChecks();
   }
 
-  // Always run invariant checks after simulation
-  await simulation.runInvariantChecks();
+  // Always run invariant checks after simulation unless this is an intentionally tiny/dev seed.
+  if (!skipInvariants) {
+    await simulation.runInvariantChecks();
+  } else {
+    console.log('\nSkipping invariant checks (--skip-invariants).');
+  }
 
   await simulation.saveResults();
 }
