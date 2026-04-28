@@ -400,6 +400,9 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', delegatableNotesAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_NOTE_INTENT_CONTRACT_ADDRESS', noteIntentAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS', assuranceFactoryAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_ERC1155_FACTORY_ADDRESS', erc1155FactoryAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_MARKETPLACE_FACTORY_ADDRESS', marketplaceFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', alignmentAttestationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS', trustRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', nudgePublicationsAddress);

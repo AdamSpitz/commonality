@@ -36,7 +36,7 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 
   - [x] **Step 1 — Setup and sanity check.** Get the local stack running per README (`npm install && npm run build && ./scripts/services.sh --start && ./scripts/data.sh --seed`). Confirm all four domain SPA URLs print correctly. Open each one and confirm it at least loads without a blank page or fatal console error. Record the four URLs in the Continuity section so later subtasks can use them. If setup fails, debug or stop and surface the failure to the human — don't push ahead with a half-broken stack.
 
-  - [ ] **Step 2 — Review the Commonality domain.** This is the biggest one (conceptspace + pubstarter + funding portals + delegation + mutable refs + trust/Subjectiv). It is large enough that this subtask should itself invoke `large-task-manager` to break it into chunks (e.g. "conceptspace pages", "pubstarter flows", "funding portals", "delegation/notes", "mutable refs", "trust/Subjectiv settings"). Append findings to the "Findings — Commonality" section.
+  - [~] **Step 2 — Review the Commonality domain.** (in progress — structural review done, seed-data review pending) This is the biggest one (conceptspace + pubstarter + funding portals + delegation + mutable refs + trust/Subjectiv). It is large enough that this subtask should itself invoke `large-task-manager` to break it into chunks (e.g. "conceptspace pages", "pubstarter flows", "funding portals", "delegation/notes", "mutable refs", "trust/Subjectiv settings"). Append findings to the "Findings — Commonality" section.
 
   - [ ] **Step 3 — Review the Content Funding domain.** Walk through landing, browse-by-platform (twitter/youtube/substack), channel pages, contract creation, contract viewing, creator dashboard, attestation summaries. Append to "Findings — Content Funding".
 
@@ -51,6 +51,13 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 ## Continuity
 
 (Most-recent-first. Keep it short. Older notes can be pruned.)
+
+### 2026-04-28 — Step 2 structural review (Sonnet 4.6)
+Fixed 3 bugs found during review (docs page, event cache URL, factory addresses — see Findings above). Ran full 14-page crawl: all pages load clean with zero console errors. Reviewed screenshots with tester + cofounder lenses. Seed data was not re-run this session (stack restarted cold). Next: re-run `./scripts/data.sh --seed` and do a seeded-data pass of Commonality before moving to Step 3. Page title is "ui" on all pages — worth a quick fix. The `VITE_EVENT_CACHE_URL` testnet question needs a plan before deploying. New URLs after restart:
+  - commonality: `http://localhost:8080/ipfs/QmNioGV9fEyb19GEAWJHSo2yZNREJyWHBTNDP6tQjpTxSu/commonality-ui/#/`
+  - content-funding: `http://localhost:8080/ipfs/QmQccxWXYMngtFDwiCTdmptN9PmmDdaqvLe7ap5Du75Ubv/content-funding-ui/#/`
+  - noninflammatory: `http://localhost:8080/ipfs/QmPhgnuQwYHsX5T9aw9Di4xJempkX5bqtGMNy1qeQpVTfE/noninflammatory-ui/#/`
+  - movement: `http://localhost:8080/ipfs/QmS9Cp5vVTvW9q3yeGcpRUrTeHXf4UWYuXHboQVPkNnDee/movement-ui/#/`
 
 ### 2026-04-27 — Step 1 completed
 Stack is running. All four SPAs return HTTP 200 and serve valid HTML+JS. Indexer is healthy and has events. Seed data script was started (data.sh --seed) and made progress (funded 50 users, uploaded 90 statements, ran 3 simulation rounds) but timed out after 5 min — likely still processing. URLs:
@@ -73,7 +80,49 @@ The previous status snapshot in README §"High-level overview of current status"
 ## Findings
 
 ### Findings — Commonality
-(empty — fill during Step 2)
+
+#### Bugs fixed during review
+
+**BUG (fixed): Docs page always showed "Page not found."**
+`ui/Dockerfile` did not `COPY docs ./docs`. The `DocsPage` uses `import.meta.glob('../../../docs/**/*.md')` which resolves at Vite build time — with no `docs/` in the image, the glob was empty and every docs path returned "not found." Fix: added `COPY docs ./docs` to Dockerfile between `COPY sdk` and `COPY ui`.
+
+**BUG (fixed): Event cache returning 404 on all data-loading pages (explore, statements, projects, content browsing)**
+`ui/.env.ipfs` only contained `VITE_ROUTER_MODE=hash`. `VITE_EVENT_CACHE_URL` was unset, so `useMachinery` defaulted to `''` (empty string). Relative URLs like `/api/events?...` resolved to `http://localhost:8080/api/events` — the IPFS gateway, which has no such endpoint. The Ponder indexer runs at port 42069. Fix: added `VITE_EVENT_CACHE_URL=http://localhost:42069` to `ui/.env.ipfs`. (Note: for testnet/mainnet this will need to be set to the deployed indexer URL at build time.)
+
+**BUG (fixed): Three factory contract addresses stale/wrong in `ui/.env`**
+`hardhat/scripts/deploy.js` propagated most contract addresses to `ui/.env` after each deployment, but missed `VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS`, `VITE_ERC1155_FACTORY_ADDRESS`, and `VITE_MARKETPLACE_FACTORY_ADDRESS`. The stale value for `VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS` was `0x0165878...` which is actually the `FreeERC1155Factory` address — a different contract entirely. This would cause project creation to call the wrong factory. Fix: added the three missing `updateEnv` calls to `deploy.js`.
+
+#### Structural review (all 14 pages, no seed data)
+
+All 14 Commonality routes now load with zero console errors after the fixes above. Visual review of screenshots:
+
+- **Landing page** (`/`): Excellent. Tagline "Find common ground first, then fund the work that follows from it" is clear. Three CTAs (Start with Docs, Browse Statements, Browse Projects) are well-chosen. Three sections (Common Ground / Public Goods / Focused Domains) logically organized. Footer links to the three focused sites (Content Funding, Noninflammatory, Common Sense Majority).
+
+- **Docs page** (`/docs`): Now working. Content from `docs/index.md` renders correctly with markdown. Good intro explaining the system.
+
+- **Start/Onboarding page** (`/start`): Excellent new-user experience. Headline "Fund projects and content around what people actually care about" and the conservative/progressive example are compelling. Three-step path (Explore → Walk through → Browse) and three one-liners (Express what you care about / Fund a project / Support creators) are very clear.
+
+- **Browse Statements** (`/statements`): Clean with good explanatory copy. Empty state "No statements found. Be the first to create one!" is appropriate. Minor cosmetic note: the "NEWEST" sort button has a settings/gear icon — probably should be a clock or similar.
+
+- **Browse Projects** (`/projects`): Clean with sort (Newest/Deadline/Most Funded/Closest to Goal) and status filters (All/Funding/Succeeded/Refunding). Well-structured.
+
+- **Explore** (`/explore`): Empty state "No curated collection is available yet. Check back later or browse statements directly." with BROWSE STATEMENTS CTA — graceful.
+
+- **Creators landing** (`/content`): Good platform-picker (Twitter / YouTube / Substack) with per-platform descriptions.
+
+- **Creators browse** (`/content/twitter`, `/content/youtube`, `/content/substack`): Platform tabs, sort (Most Funded / Most Contracts / Newest Activity) and status (All / Unclaimed / Verified / Creator-controlled) filters. Empty state "No creators found for Twitter / X." is clear.
+
+- **Settings** (`/settings`): Comprehensive trust/nudger settings page. Good introductory copy ("Most new users can ignore this page at first"). Sections: Linked social accounts, Trusted statement-connection sources, Nudger addresses (with intensity slider LOW/MEDIUM/HIGH), Muted topics, Your Trust Network. Well-organized.
+
+- **Profile, Notes, Refs** (`/profile`, `/notes`, `/refs`): All show appropriate "Connect your wallet to view..." prompts for unauthenticated state.
+
+#### Minor issues observed (not bugs)
+
+- **Page title is `<title>ui</title>`** on every page — should be at minimum the domain name ("Commonality") and ideally page-specific ("Commonality | Browse Statements"). Would look bad in browser tabs and when sharing links.
+
+- **Seed data not yet re-run** — all browse pages show empty states. The full seeded-data review (statements with believers, projects with funding progress, creator channels, implication graph navigation) is pending the next session.
+
+- **The `VITE_EVENT_CACHE_URL` / testnet deployment question** — For testnet, the deployed indexer URL needs to be known at UI build time and baked into `.env.ipfs` (or the equivalent environment). This needs a concrete plan before testnet deployment. Currently there's no `.env.ipfs.testnet` or similar.
 
 ### Findings — Content Funding
 (empty — fill during Step 3)

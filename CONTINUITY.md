@@ -1,17 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
-## 2026-04-27 — Steps 0 and 1 of before-testnet review completed
+## 2026-04-28 — Step 2 structural review done; seed-data pass pending
 
-The local stack is up and all four domain SPAs are live. Full continuity detail is in `workflow/reviews/before-testnet.md`.
+Fixed 3 bugs during Commonality domain review (see before-testnet.md Findings — Commonality for full details). All 14 Commonality pages load with zero console errors. Seed data was not re-run this session (stack restarted cold — re-run `./scripts/data.sh --seed`).
 
-**Where we are:** Steps 0 and 1 done; Step 2 (Commonality domain review) is next.
+**Where we are:** Step 2 in progress — structural review done, seeded-data review pending. After seed, do a pass on statements with believers, projects with funding, creator channels, and statement/implication-graph navigation before marking Step 2 complete and moving to Step 3.
 
-**Stack URLs:**
-- commonality: `http://localhost:8080/ipfs/Qmaki9PKAh5V1qutTq1CyeutyQJ8Fua81S2QhWvgknheNE/commonality-ui/#/`
-- content-funding: `http://localhost:8080/ipfs/QmWVxipcPBjSs5D1he1ySEtaQ1ogxQ5VuFwCyKurcbp9CV/content-funding-ui/#/`
-- noninflammatory: `http://localhost:8080/ipfs/QmUUZHxn9zst4oc9zJYMfH8pmj9PCWaxF5r6gMoHoKPz5C/noninflammatory-ui/#/`
-- movement: `http://localhost:8080/ipfs/QmPNZNgf7nR7xwBbHhCA9R9HNdADx5fwt5tT2cyWjc5eNU/movement-ui/#/`
+**Key testnet concern noted:** `VITE_EVENT_CACHE_URL` is baked in at IPFS build time. For testnet/mainnet, this needs to point to the deployed indexer URL. Currently `.env.ipfs` uses `http://localhost:42069` (local only). Needs a plan before testnet deploy.
 
-**Seed data:** `data.sh --seed` was run and made partial progress (50 users funded, 90 statements uploaded, 3 simulation rounds) but timed out — may still be processing or may need a re-run.
-
-**Key fix:** `ui/Dockerfile` now copies `turbo.json` and grants `chmod -R a+rwX /workspace` so the non-root container user can write turbo's cache.
+**Stack URLs (current session):**
+- commonality: `http://localhost:8080/ipfs/QmNioGV9fEyb19GEAWJHSo2yZNREJyWHBTNDP6tQjpTxSu/commonality-ui/#/`
+- content-funding: `http://localhost:8080/ipfs/QmQccxWXYMngtFDwiCTdmptN9PmmDdaqvLe7ap5Du75Ubv/content-funding-ui/#/`
+- noninflammatory: `http://localhost:8080/ipfs/QmPhgnuQwYHsX5T9aw9Di4xJempkX5bqtGMNy1qeQpVTfE/noninflammatory-ui/#/`
+- movement: `http://localhost:8080/ipfs/QmS9Cp5vVTvW9q3yeGcpRUrTeHXf4UWYuXHboQVPkNnDee/movement-ui/#/`

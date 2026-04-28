@@ -11,6 +11,7 @@ COPY ui/package.json ./ui/package.json
 COPY turbo.json ./turbo.json
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 COPY sdk ./sdk
+COPY docs ./docs
 COPY ui ./ui
 COPY scripts ./scripts
 RUN mkdir -p /workspace/ui/dist /workspace/ui/node_modules/.tmp /workspace/.turbo \

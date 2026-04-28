@@ -27,7 +27,7 @@
 - Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
 - We'll need a lot more AI underlings, with good documentation, following all the pathways, trying all the things.
 
-- Continue the [big test run before we deploy to testnet](./workflow/reviews/before-testnet.md). Steps 0 and 1 are done (stack running, all four SPAs serving). Next: Step 2 — Review the Commonality domain.
+- Continue the [big test run before we deploy to testnet](./workflow/reviews/before-testnet.md). Steps 0–1 done; Step 2 structural review done (3 bugs fixed). Next: re-seed data and do a seeded-data pass of Commonality, then proceed to Steps 3–7.
 
 - Using `cofounder` skill: Are we ready to launch?
 
