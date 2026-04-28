@@ -114,8 +114,13 @@ export async function loadCachedProjectAccumulator(
     return null;
   }
 
+  const totalReceived = record.accumulator.totalReceived;
+
   return {
-    accumulator: record.accumulator,
+    accumulator: {
+      ...record.accumulator,
+      totalReceived: typeof totalReceived === 'bigint' ? totalReceived : BigInt(totalReceived),
+    },
     blockNumber: record.blockNumber,
   };
 }

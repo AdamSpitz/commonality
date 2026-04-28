@@ -62,6 +62,9 @@ Subtask LLMs should also use `interactive-assistant` so the human can watch step
 
 (Most-recent-first. Keep it short. Older notes can be pruned.)
 
+### 2026-04-28 — Step 11 partial fix (Codex GPT-5)
+Could not run the live seeded-stack check because Docker daemon is not running in this session, so Step 11 remains pending. Fixed one project-list data-flow bug found by code review: cached project accumulators stored `totalReceived` as JSON strings in IndexedDB but loaded them back without BigInt rehydration, which could break cached Browse Projects reloads after new project events arrived. Verified with focused `ui/src/shared/foldCache.test.ts` and `npm run typecheck --workspace=ui`.
+
 ### 2026-04-28 — Steps 8, 9, 12 cleanup (Codex GPT-5)
 Fixed the UI Docker permission slowdown by replacing whole-workspace chmod with targeted writable build/cache paths. Added `--remove-orphans` to `scripts/services.sh` start/stop so the old `commonality-ui` container is cleaned up automatically. Made testnet/mainnet IPFS UI deploys require `EVENT_CACHE_URL` before building, documented it, and added `ui/.env.ipfs` to the Docker build planner inputs so local IPFS config changes trigger a UI publisher rebuild. Inspected Step 10: fake-data generation reads root `.env`, and current root `.env` does include the content-funding addresses, but a live reseed/browser verification is still pending.
 
@@ -110,6 +113,9 @@ Hardcoded in `ui/index.html`. Fix: added `useEffect` in `AppShell.tsx` that sets
 
 **BUG (fixed): Three factory contract addresses stale/wrong in `ui/.env`**
 `hardhat/scripts/deploy.js` propagated most contract addresses to `ui/.env` after each deployment, but missed `VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS`, `VITE_ERC1155_FACTORY_ADDRESS`, and `VITE_MARKETPLACE_FACTORY_ADDRESS`. The stale value for `VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS` was `0x0165878...` which is actually the `FreeERC1155Factory` address — a different contract entirely. This would cause project creation to call the wrong factory. Fix: added the three missing `updateEnv` calls to `deploy.js`.
+
+**BUG (fixed): Cached project reloads did not rehydrate BigInt totals**
+`ui/src/shared/foldCache.ts` serializes cached `ProjectAccumulator.totalReceived` through JSON for IndexedDB, turning the BigInt into a string. `loadCachedProjectAccumulator` returned that string directly, so cached project reloads could hand a string into the SDK fold and break when new bought/sold events were applied. Fix: rehydrate `totalReceived` with `BigInt(...)` on cache load and update the cache round-trip test.
 
 #### Structural review (all 14 pages, no seed data)
 

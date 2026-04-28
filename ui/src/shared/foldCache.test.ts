@@ -180,7 +180,7 @@ describe('foldCache', () => {
     ).resolves.toEqual({
       accumulator: {
         ...accumulator,
-        totalReceived: accumulator.totalReceived.toString(),
+        totalReceived: accumulator.totalReceived,
       },
       blockNumber: '123',
     });

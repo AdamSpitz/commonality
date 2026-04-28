@@ -1,5 +1,11 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-28 — Step 11 partial fix; live verification still pending
+
+Could not run the seeded UI/browser check because Docker daemon is not running. Fixed a cached Browse Projects data-flow bug anyway: `ui/src/shared/foldCache.ts` now rehydrates cached `ProjectAccumulator.totalReceived` back to BigInt after IndexedDB JSON storage. Verified with `npm run test:vitest --workspace=ui -- src/shared/foldCache.test.ts` and `npm run typecheck --workspace=ui`.
+
+Next useful move: start Docker, run `./scripts/services.sh --start`, run `./scripts/data.sh --seed`, then finish Step 11 by checking Browse Statements and Browse Projects against seeded/indexed data.
+
 ## 2026-04-28 — Step 2 structural review done; seed-data pass pending
 
 Fixed 3 bugs during Commonality domain review (see before-testnet.md Findings — Commonality for full details). All 14 Commonality pages load with zero console errors. Seed data was not re-run this session (stack restarted cold — re-run `./scripts/data.sh --seed`).
