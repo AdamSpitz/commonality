@@ -2,6 +2,8 @@
 
 ## Main list
 
+- Can we move some tests from higher levels to lower levels, to speed the overall suite?
+
 - Make sure the seed content gets into the fake universe simulation.
 
 - Add Admin tabs to the UI. (What goes in it? And how do we get the UI to know that an admin is looking at it?)
