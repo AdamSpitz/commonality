@@ -4,10 +4,13 @@ import {
   getAllChannelOverviews,
   getContentAttestations,
   getContentSubjectId,
+  fetchFromIPFS,
+  parseCanonicalChannelId,
   type ChannelWithCanonicalId,
   type ContentFundingQueryOptions,
 } from '@commonality/sdk'
 import type { ContentFundingState } from '@commonality/sdk'
+import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { getProjectsFiltered } from '@commonality/sdk'
 import type { ProjectWithMetrics } from '@commonality/sdk'
@@ -20,12 +23,35 @@ export interface ContentAttestationInfo {
   statementCid: string
 }
 
+async function fetchPlatformChannelMetadata(canonicalId: string): Promise<ChannelDisplayMetadata | null> {
+  let platform: string
+  try {
+    platform = parseCanonicalChannelId(canonicalId).platform
+  } catch {
+    return null
+  }
+
+  if (platform !== 'twitter' && platform !== 'youtube') return null
+
+  const baseUrl = import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001'
+  const response = await fetch(`${baseUrl}/resolve/channel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ platform, handle: canonicalId }),
+  }).catch(() => null)
+
+  if (!response?.ok) return null
+  const metadata = await response.json().catch(() => null)
+  return metadata && typeof metadata === 'object' ? metadata as ChannelDisplayMetadata : null
+}
+
 export interface ContentFundingData {
   state: ContentFundingState | null
   vetoedEvents: import('@commonality/sdk').ContractVetoedEvent[]
   projects: ProjectWithMetrics[]
   channels: ChannelWithCanonicalId[]
   contentAttestations: Map<string, ContentAttestationInfo[]>
+  channelDisplayMetadata: Map<string, ChannelDisplayMetadata>
   loading: boolean
   error: string | null
   machinery: ReturnType<typeof useMachinery>
@@ -38,6 +64,7 @@ export function useContentFundingState(): ContentFundingData {
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [channels, setChannels] = useState<ChannelWithCanonicalId[]>([])
   const [contentAttestations, setContentAttestations] = useState<Map<string, ContentAttestationInfo[]>>(new Map())
+  const [channelDisplayMetadata, setChannelDisplayMetadata] = useState<Map<string, ChannelDisplayMetadata>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,10 +94,34 @@ export function useContentFundingState(): ContentFundingData {
             now,
             vetoedEvents: contentFundingResult.vetoedEvents,
           }
-          setChannels(getAllChannelOverviews(contentFundingResult.state, options))
+          const channelOverviews = getAllChannelOverviews(contentFundingResult.state, options)
+          setChannels(channelOverviews)
+
+          const displayMetadataEntries = await Promise.all(
+            channelOverviews
+              .filter(channel => channel.canonicalChannelId)
+              .map(async (channel) => {
+                const canonicalChannelId = channel.canonicalChannelId
+                if (!canonicalChannelId) return ['', null] as const
+
+                const apiMetadata = await fetchPlatformChannelMetadata(canonicalChannelId).catch(() => null)
+                if (apiMetadata) return [canonicalChannelId, apiMetadata] as const
+
+                const metadataCid = channel.contracts.find(contract => contract.project?.metadataCid)?.project?.metadataCid
+                if (!metadataCid) return [canonicalChannelId, null] as const
+
+                const metadata = await fetchFromIPFS(machinery.ipfsConfig, metadataCid).catch(() => null)
+                if (!metadata || typeof metadata !== 'object') return [canonicalChannelId, null] as const
+
+                return [canonicalChannelId, metadata as ChannelDisplayMetadata] as const
+              }),
+          )
+          setChannelDisplayMetadata(new Map(
+            displayMetadataEntries.filter((entry): entry is readonly [string, ChannelDisplayMetadata] => entry[1] !== null),
+          ))
 
           const canonicalIds = new Set<string>()
-          for (const channel of getAllChannelOverviews(contentFundingResult.state, options)) {
+          for (const channel of channelOverviews) {
             for (const contract of channel.contracts) {
               for (const item of contract.contentItems) {
                 canonicalIds.add(item.canonicalId)
@@ -111,6 +162,7 @@ export function useContentFundingState(): ContentFundingData {
           setProjects(allProjects)
           setChannels([])
           setContentAttestations(new Map())
+          setChannelDisplayMetadata(new Map())
         }
       } catch (err) {
         if (!cancelled) {
@@ -126,5 +178,5 @@ export function useContentFundingState(): ContentFundingData {
     return () => { cancelled = true }
   }, [machinery])
 
-  return { state, vetoedEvents, projects, channels, contentAttestations, loading, error, machinery }
+  return { state, vetoedEvents, projects, channels, contentAttestations, channelDisplayMetadata, loading, error, machinery }
 }

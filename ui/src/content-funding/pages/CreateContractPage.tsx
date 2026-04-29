@@ -27,6 +27,7 @@ import {
   uploadToIPFS,
 } from '@commonality/sdk'
 import { CreatorAssuranceContractFactoryAbi, createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk'
+import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 import { getAppUrl } from '../../shared/routing'
@@ -113,19 +114,6 @@ function ContentUrlPreview({ url }: { url: string }) {
   )
 }
 
-function getChannelDisplayName(canonicalId: string): string {
-  try {
-    const parsed = parseCanonicalChannelId(canonicalId)
-    switch (parsed.platform) {
-      case 'twitter': return `@${parsed.stableId}`
-      case 'youtube': return parsed.stableId
-      case 'substack': return `${parsed.stableId}.substack.com`
-    }
-  } catch {
-    return canonicalId
-  }
-}
-
 function getValidationStatus(item: ContentItemRow): string {
   if (item.error) return item.error
   if (item.validating) return 'Validating...'
@@ -181,7 +169,7 @@ export function CreateContractPage({
   const { address, isConnected } = useAccount()
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
-  const { state, projects, loading, error: stateError, machinery } = useContentFundingState()
+  const { state, projects, loading, error: stateError, machinery, channelDisplayMetadata = new Map() } = useContentFundingState()
   const { resolveContent } = usePlatformApi()
 
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : null
@@ -320,7 +308,7 @@ export function CreateContractPage({
       return item.resolved.channelId !== canonicalChannelId
     })
     if (mismatchedItems.length > 0) {
-      setSubmitError(`Some content items belong to different channels. All content must belong to ${getChannelDisplayName(canonicalChannelId)}.`)
+      setSubmitError(`Some content items belong to different channels. All content must belong to ${getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId)).primary}.`)
       return
     }
 
@@ -475,7 +463,8 @@ export function CreateContractPage({
   const isCreatorControlled = overview.channel.state === 'creator-controlled'
   const canCreate = !isCreatorControlled || overview.channel.owner?.toLowerCase() === address?.toLowerCase()
 
-  const displayName = getChannelDisplayName(canonicalChannelId)
+  const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
+  const displayName = displayLabels.primary
   const totalTokenValue = contentItems.reduce((total, item) => {
     const price = parseEther(item.price || '0')
     const supply = BigInt(item.supply || '0')

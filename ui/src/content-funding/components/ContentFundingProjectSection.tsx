@@ -9,6 +9,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import { formatEther } from 'viem'
 import { type ContentItem } from '@commonality/sdk'
+import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { ContentAttestationSummary } from './ContentAttestationSummary'
 
@@ -32,18 +33,6 @@ const STATE_LABELS: Record<string, string> = {
   unclaimed: 'Unclaimed',
   verified: 'Verified',
   'creator-controlled': 'Creator-Controlled',
-}
-
-function getChannelDisplayName(canonicalId: string): string {
-  try {
-    const parts = canonicalId.split(':')
-    if (parts[0] === 'twitter') return `@${parts[2]}`
-    if (parts[0] === 'youtube') return parts[2] ?? canonicalId
-    if (parts[0] === 'substack') return `${parts[1]}.substack.com`
-  } catch {
-    // fall through
-  }
-  return canonicalId
 }
 
 function getContentUrl(canonicalId: string): string | null {
@@ -121,7 +110,7 @@ interface ContentFundingProjectSectionProps {
 }
 
 export function ContentFundingProjectSection({ projectAddress }: ContentFundingProjectSectionProps) {
-  const { state, channels, loading, contentAttestations } = useContentFundingState()
+  const { state, channels, loading, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
 
   const contentFundingInfo = useMemo(() => {
     if (!state) return null
@@ -157,6 +146,10 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
     return 'twitter'
   }
 
+  const displayLabels = getChannelDisplayLabels(
+    canonicalChannelId,
+    canonicalChannelId ? channelDisplayMetadata.get(canonicalChannelId) : null,
+  )
   const platform = canonicalChannelId ? getPlatformFromChannelId(canonicalChannelId) : null
   const channelPageUrl = canonicalChannelId
     ? `/content/${platform}/${encodeURIComponent(canonicalChannelId)}`
@@ -185,16 +178,18 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
               variant="body2"
               sx={{ fontWeight: 'bold', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
             >
-              {getChannelDisplayName(canonicalChannelId)}
+              {displayLabels.primary}
             </Typography>
           ) : (
             <Typography variant="body2" component="span" fontWeight="bold">
-              {getChannelDisplayName(canonicalChannelId)}
+              {displayLabels.primary}
             </Typography>
           )}
-          <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
-            {canonicalChannelId}
-          </Typography>
+          {displayLabels.secondary && (
+            <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
+              {displayLabels.secondary}
+            </Typography>
+          )}
         </Box>
       )}
 

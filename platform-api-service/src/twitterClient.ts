@@ -75,21 +75,27 @@ export class TwitterClient implements TwitterClientLike {
       return normalizeTwitterHandle(segments[0]);
     }
 
+    const canonicalMatch = /^twitter:uid:(\d+)$/.exec(trimmed)
+    if (canonicalMatch) return canonicalMatch[1]
+
+    if (/^\d+$/.test(trimmed)) return trimmed
+
     return normalizeTwitterHandle(trimmed);
   }
 
   async resolveChannel(input: string): Promise<ResolvedChannel> {
     this.ensureConfigured('Twitter channel resolution is unavailable because X_API_BEARER_TOKEN is not set');
 
-    const normalizedHandle = this.normalizeLookupInput(input);
-    const username = normalizedHandle.slice(1);
+    const normalizedLookup = this.normalizeLookupInput(input);
     const response = await this.fetchJson<TwitterUserLookupResponse>(
-      `/2/users/by/username/${encodeURIComponent(username)}?user.fields=id,name,username,public_metrics`,
+      /^\d+$/.test(normalizedLookup)
+        ? `/2/users/${encodeURIComponent(normalizedLookup)}?user.fields=id,name,username,public_metrics`
+        : `/2/users/by/username/${encodeURIComponent(normalizedLookup.slice(1))}?user.fields=id,name,username,public_metrics`,
     );
 
     const user = response.data;
     if (!user?.id || !user.username) {
-      throw new HttpError(404, 'channel_not_found', `Twitter account not found for ${normalizedHandle}`);
+      throw new HttpError(404, 'channel_not_found', `Twitter account not found for ${normalizedLookup}`);
     }
 
     return {

@@ -16,6 +16,7 @@ import {
   STATUS_LABELS,
   formatRelativeDeadline,
 } from '../../pubstarter/utils'
+import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../../content-funding/channelDisplay'
 import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
 import { formatCurrencyProgress } from '../../shared/currency'
 
@@ -36,22 +37,11 @@ export type ContentFundingInfo = {
   isThirdParty: boolean
   contractStatus: 'active' | 'successful' | 'failed' | 'vetoed' | 'unknown'
   contentItemCount: number
-}
-
-function getChannelDisplayName(canonicalId: string): string {
-  try {
-    const parts = canonicalId.split(':')
-    if (parts[0] === 'twitter') return `@${parts[2]}`
-    if (parts[0] === 'youtube') return parts[2] ?? canonicalId
-    if (parts[0] === 'substack') return `${parts[1]}.substack.com`
-  } catch {
-    // fall through
-  }
-  return canonicalId
+  channelDisplayMetadata?: ChannelDisplayMetadata
 }
 
 function useContentFundingInfo(projectAddress: string): ContentFundingInfo | null {
-  const { state, channels } = useContentFundingState()
+  const { state, channels, channelDisplayMetadata = new Map() } = useContentFundingState()
 
   if (!state) return null
 
@@ -68,6 +58,9 @@ function useContentFundingInfo(projectAddress: string): ContentFundingInfo | nul
         isThirdParty: contract.isThirdParty,
         contractStatus: contract.status,
         contentItemCount: contract.contentItems.length,
+        channelDisplayMetadata: channel.canonicalChannelId
+          ? channelDisplayMetadata.get(channel.canonicalChannelId)
+          : undefined,
       }
     }
   }
@@ -91,6 +84,7 @@ function ContentFundingBadge({ info }: { info: ContentFundingInfo }) {
 }
 
 function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
+  const channelDisplayLabels = getChannelDisplayLabels(info.channelCanonicalId, info.channelDisplayMetadata)
   const channelStateLabels: Record<string, string> = {
     unclaimed: 'Unclaimed',
     verified: 'Verified',
@@ -112,8 +106,13 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
           <Box>
             <Typography variant="caption" color="text.secondary">Channel</Typography>
             <Typography variant="body2" fontWeight="bold">
-              {getChannelDisplayName(info.channelCanonicalId)}
+              {channelDisplayLabels.primary}
             </Typography>
+            {channelDisplayLabels.secondary && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {channelDisplayLabels.secondary}
+              </Typography>
+            )}
           </Box>
         )}
         <Box>

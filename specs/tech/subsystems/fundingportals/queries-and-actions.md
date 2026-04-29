@@ -63,7 +63,11 @@ This document lists all the user queries and actions that the fundingportals sub
 - Mark a note with intended statement/cause
 
 ## Funding Portals - Leaderboards & Social Recognition
-- View top contributors for a specific cause (across all aligned projects)
+
+Leaderboards track **direct project purchases only**, not delegated-note deposits. Direct purchases are committed and non-revocable; delegated deposits are revocable pledges that don't warrant individual social recognition. Aggregate delegated funds available for a cause are shown as a summary stat (not per-depositor).
+
+- View top contributors for a specific cause (across all aligned projects, direct purchases only)
+- View total delegated funds available for a cause (aggregate, not per-depositor)
 - View my contribution rank for a cause
 - View delegation chains for transparent attribution
 - View contributor statistics:

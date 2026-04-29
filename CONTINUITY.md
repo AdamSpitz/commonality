@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-29 — Improved creator/channel display names
+
+Completed the TODO item about content-funding creator/channel labels. `useContentFundingState()` now builds a `channelDisplayMetadata` map, preferring platform API `/resolve/channel` metadata for Twitter/YouTube canonical IDs and falling back to content-funding contract metadata from IPFS (notably the fake-data `creatorDisplayName`). Shared display logic in `ui/src/content-funding/channelDisplay.ts` renders human-friendly names/handles as primary labels and keeps canonical IDs as secondary technical details. Applied this across browse/detail/create/dashboard/content-funding project surfaces and funding-portal aligned-project cards. The platform API Twitter client now accepts `twitter:uid:<id>`/numeric user IDs so the UI can reverse-resolve Twitter canonical channel IDs through the existing resolver path.
+
+Files changed: `ui/src/content-funding/channelDisplay.ts`, `ui/src/content-funding/hooks/useContentFundingState.ts`, content-funding/funding-portal UI consumers, `platform-api-service/src/twitterClient.ts`, tests, `TODO.md`.
+
+Validation: focused UI Vitest for channel display/content-funding/funding-portal components passed; `npm run test --workspace=@commonality/platform-api-service` passed; `npm run build --workspace=ui` passed (with existing Rollup third-party annotation/chunk-size warnings).
+
 ## 2026-04-29 — Removed redundant pre-testnet smoke command
 
 Folded the only unique smoke-test behavior (browser console/page error failure) into a shared Playwright fixture at `ui/e2e/fixtures/console-errors.ts`. `ui/e2e/fixtures/wallet.ts` now extends that base fixture, and the lone non-wallet E2E spec imports it directly. Removed `ui/e2e/pre-testnet-smoke.spec.ts` and the smoke scripts from both package.json files. Updated E2E setup to start `platform-api-service` for the full Playwright suite, and updated `testing-review.md` to say the full suite is the pre-testnet automated checkpoint.

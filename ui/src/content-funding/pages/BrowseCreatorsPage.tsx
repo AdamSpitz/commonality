@@ -21,6 +21,7 @@ import {
 import SortIcon from '@mui/icons-material/Sort'
 import { formatEther } from 'viem'
 import { parseCanonicalChannelId, type ContentFundingPlatform } from '@commonality/sdk'
+import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import type { ChannelWithCanonicalId } from '@commonality/sdk'
 import type { ChannelState } from '@commonality/sdk'
@@ -44,20 +45,6 @@ const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   unclaimed: 'default',
   verified: 'warning',
   'creator-controlled': 'success',
-}
-
-function getChannelDisplayName(canonicalId: string | null): string {
-  if (!canonicalId) return 'Unknown Channel'
-  try {
-    const parsed = parseCanonicalChannelId(canonicalId)
-    switch (parsed.platform) {
-      case 'twitter': return `@${parsed.stableId}`
-      case 'youtube': return parsed.stableId
-      case 'substack': return parsed.stableId
-    }
-  } catch {
-    return canonicalId
-  }
 }
 
 function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
@@ -120,7 +107,7 @@ export function BrowseCreatorsPage({
 }: BrowseCreatorsPageProps) {
   const { platform } = useParams<{ platform: string }>()
   const navigate = useNavigate()
-  const { channels, loading, error } = useContentFundingState()
+  const { channels, channelDisplayMetadata = new Map(), loading, error } = useContentFundingState()
   const [sortBy, setSortBy] = useState<SortOption>('mostFunded')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
@@ -234,7 +221,10 @@ export function BrowseCreatorsPage({
         <Stack spacing={2}>
           {filteredChannels.map((channel) => {
             const state = channel.channel.state
-            const displayName = getChannelDisplayName(channel.canonicalChannelId)
+            const labels = getChannelDisplayLabels(
+              channel.canonicalChannelId,
+              channel.canonicalChannelId ? channelDisplayMetadata.get(channel.canonicalChannelId) : null,
+            )
             const totalFunding = getTotalFunding(channel)
             const activeContracts = getActiveContractCount(channel)
             const escrowBalance = channel.escrow.balance
@@ -260,11 +250,11 @@ export function BrowseCreatorsPage({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                       <Box>
                         <Typography variant="h6" component="h2">
-                          {displayName}
+                          {labels.primary}
                         </Typography>
-                        {channel.canonicalChannelId && (
+                        {labels.secondary && (
                           <Typography variant="caption" color="text.secondary">
-                            {channel.canonicalChannelId}
+                            {labels.secondary}
                           </Typography>
                         )}
                       </Box>

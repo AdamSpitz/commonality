@@ -28,6 +28,7 @@ import {
   type ChannelState,
 } from '@commonality/sdk'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
+import { getChannelDisplayLabels } from '../channelDisplay'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getAppUrl } from '../../shared/routing'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
@@ -59,19 +60,6 @@ const CONTRACT_STATUS_COLORS: Record<string, 'default' | 'primary' | 'success' |
   failed: 'error',
   vetoed: 'warning',
   unknown: 'default',
-}
-
-function getChannelDisplayName(canonicalId: string): string {
-  try {
-    const parsed = parseCanonicalChannelId(canonicalId)
-    switch (parsed.platform) {
-      case 'twitter': return `@${parsed.stableId}`
-      case 'youtube': return parsed.stableId
-      case 'substack': return `${parsed.stableId}.substack.com`
-    }
-  } catch {
-    return canonicalId
-  }
 }
 
 function getContentUrl(canonicalId: string): string | null {
@@ -304,7 +292,7 @@ export function ChannelPage({
   contractPathForAddress = (address) => `/projects/${address}`,
 }: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
-  const { state, projects, loading, error, contentAttestations } = useContentFundingState()
+  const { state, projects, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
   const { address } = useAccount()
 
@@ -351,7 +339,8 @@ export function ChannelPage({
   }
 
   const { channel, escrow, contracts, contentItems } = overview
-  const displayName = getChannelDisplayName(canonicalChannelId)
+  const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
+  const displayName = displayLabels.primary
   const totalFunding = getTotalFunding(overview)
   const isUnclaimed = channel.state === 'unclaimed'
   const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
@@ -370,9 +359,11 @@ export function ChannelPage({
             <Typography variant="h4" component="h1">
               {displayName}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {canonicalChannelId}
-            </Typography>
+            {displayLabels.secondary && (
+              <Typography variant="caption" color="text.secondary">
+                {displayLabels.secondary}
+              </Typography>
+            )}
           </Box>
           <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
             <Chip

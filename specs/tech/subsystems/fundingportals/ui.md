@@ -65,9 +65,15 @@ This makes the available funding concrete — potential project creators can see
 
 The cross-project contributor leaderboard for a specific cause. This is the "social recognition" feature: top contributors to projects aligned with this statement.
 
+### Design rationale: what counts as a "contribution"
+
+The leaderboard tracks only **direct project purchases** (ERC-1155 token buys), not delegated-note deposits. Rationale: direct purchases are committed and non-revocable — the contributor has actually funded a project. Delegated-note deposits are revocable pledges that the depositor can withdraw at any time, so they don't warrant individual social recognition on a leaderboard.
+
+However, the aggregate amount of delegated funds available for a cause is still important — it signals ecosystem interest and available capital. So the page shows a **summary stat** for total delegated funds available (not broken down per depositor), sourced from `getTotalFundingForCause().totalAvailableFromNotes`. When the leaderboard is empty but delegated funds exist, the empty state should reflect this (e.g. "No direct project purchases yet" alongside the delegated-funds stat) rather than a bare "No contributions yet."
+
 ### Leaderboard Table
 
-Contributors ranked by total net contribution (totalContributed - totalRefunded) across all projects aligned with this statement. Uses the Funding Portal indexer's aggregated contributor data.
+Contributors ranked by total net contribution (totalContributed - totalRefunded) across all projects aligned with this statement. Only includes direct project purchases. Uses the Funding Portal indexer's aggregated contributor data.
 
 Columns:
 - Rank

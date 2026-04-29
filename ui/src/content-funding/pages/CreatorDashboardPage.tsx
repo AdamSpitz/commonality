@@ -19,7 +19,6 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import GavelIcon from '@mui/icons-material/Gavel'
 import { formatEther } from 'viem'
 import {
-  parseCanonicalChannelId,
   getAllChannelOverviews,
   getVetoableContracts,
   hashCanonicalId,
@@ -27,6 +26,7 @@ import {
   type ChannelState,
 } from '@commonality/sdk'
 import { ChannelRegistryAbi, ChannelEscrowAbi, withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk'
+import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 
 const STATE_LABELS: Record<ChannelState, string> = {
@@ -39,20 +39,6 @@ const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   unclaimed: 'default',
   verified: 'warning',
   'creator-controlled': 'success',
-}
-
-function getChannelDisplayName(canonicalId: string | null): string {
-  if (!canonicalId) return 'Unknown Channel'
-  try {
-    const parsed = parseCanonicalChannelId(canonicalId)
-    switch (parsed.platform) {
-      case 'twitter': return `@${parsed.stableId}`
-      case 'youtube': return parsed.stableId
-      case 'substack': return `${parsed.stableId}.substack.com`
-    }
-  } catch {
-    return canonicalId
-  }
 }
 
 function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
@@ -75,11 +61,12 @@ interface ChannelCardProps {
   withdrawing: boolean
   takingControl: boolean
   vetoing: string | null
+  displayMetadata?: ChannelDisplayMetadata
 }
 
-function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVeto, withdrawing, takingControl, vetoing }: ChannelCardProps) {
+function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVeto, withdrawing, takingControl, vetoing, displayMetadata }: ChannelCardProps) {
   const canonicalId = channel.canonicalChannelId
-  const displayName = getChannelDisplayName(canonicalId)
+  const displayLabels = getChannelDisplayLabels(canonicalId, displayMetadata)
   const channelIdBytes32 = canonicalId ? hashCanonicalId(canonicalId) : channel.channel.channelId
   const now = BigInt(Math.floor(Date.now() / 1000))
   const vetoableContracts = state ? getVetoableContracts(state, channelIdBytes32, { now, projects }) : []
@@ -92,11 +79,11 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box>
             <Typography variant="h6" component="h2">
-              {displayName}
+              {displayLabels.primary}
             </Typography>
-            {canonicalId && (
+            {displayLabels.secondary && (
               <Typography variant="caption" color="text.secondary">
-                {canonicalId}
+                {displayLabels.secondary}
               </Typography>
             )}
           </Box>
@@ -264,7 +251,7 @@ export function CreatorDashboardPage({
   const { address, isConnected } = useAccount()
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
-  const { state, projects, loading, error: stateError } = useContentFundingState()
+  const { state, projects, loading, error: stateError, channelDisplayMetadata = new Map() } = useContentFundingState()
 
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawError, setWithdrawError] = useState<string | null>(null)
@@ -454,6 +441,7 @@ export function CreatorDashboardPage({
               withdrawing={withdrawing}
               takingControl={takingControl}
               vetoing={vetoing}
+              displayMetadata={channel.canonicalChannelId ? channelDisplayMetadata.get(channel.canonicalChannelId) : undefined}
             />
           ))}
         </Stack>

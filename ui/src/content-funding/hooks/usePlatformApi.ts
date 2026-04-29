@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 
 interface ResolvedChannel {
   channelId: string
@@ -37,6 +37,20 @@ interface UsePlatformApiResult {
 export function usePlatformApi(): UsePlatformApiResult {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<PlatformApiError | null>(null)
+  const mountedRef = useRef(false)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  const safeSetIsLoading = useCallback((value: boolean) => {
+    if (mountedRef.current) setIsLoading(value)
+  }, [])
+
+  const safeSetError = useCallback((value: PlatformApiError | null) => {
+    if (mountedRef.current) setError(value)
+  }, [])
 
   const getBaseUrl = useCallback(() => {
     return import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001'
@@ -51,8 +65,8 @@ export function usePlatformApi(): UsePlatformApiResult {
   }, [])
 
   const resolveChannel = useCallback(async (platform: string, handle: string): Promise<ResolvedChannel> => {
-    setIsLoading(true)
-    setError(null)
+    safeSetIsLoading(true)
+    safeSetError(null)
     try {
       const response = await fetch(`${getBaseUrl()}/resolve/channel`, {
         method: 'POST',
@@ -63,16 +77,16 @@ export function usePlatformApi(): UsePlatformApiResult {
       return result
     } catch (err) {
       const error = err as PlatformApiError
-      setError(error)
+      safeSetError(error)
       throw error
     } finally {
-      setIsLoading(false)
+      safeSetIsLoading(false)
     }
-  }, [getBaseUrl, handleResponse])
+  }, [getBaseUrl, handleResponse, safeSetError, safeSetIsLoading])
 
   const resolveContent = useCallback(async (url: string): Promise<ResolvedContent> => {
-    setIsLoading(true)
-    setError(null)
+    safeSetIsLoading(true)
+    safeSetError(null)
     try {
       const response = await fetch(`${getBaseUrl()}/resolve/content`, {
         method: 'POST',
@@ -83,18 +97,18 @@ export function usePlatformApi(): UsePlatformApiResult {
       return result
     } catch (err) {
       const error = err as PlatformApiError
-      setError(error)
+      safeSetError(error)
       throw error
     } finally {
-      setIsLoading(false)
+      safeSetIsLoading(false)
     }
-  }, [getBaseUrl, handleResponse])
+  }, [getBaseUrl, handleResponse, safeSetError, safeSetIsLoading])
 
   const submitContentSubmission = useCallback(async (
     submission: ContentSubmission,
   ): Promise<ContentSubmission> => {
-    setIsLoading(true)
-    setError(null)
+    safeSetIsLoading(true)
+    safeSetError(null)
     try {
       const response = await fetch(`${getBaseUrl()}/content-submission`, {
         method: 'POST',
@@ -105,16 +119,16 @@ export function usePlatformApi(): UsePlatformApiResult {
       return result
     } catch (err) {
       const error = err as PlatformApiError
-      setError(error)
+      safeSetError(error)
       throw error
     } finally {
-      setIsLoading(false)
+      safeSetIsLoading(false)
     }
-  }, [getBaseUrl, handleResponse])
+  }, [getBaseUrl, handleResponse, safeSetError, safeSetIsLoading])
 
   const clearError = useCallback(() => {
-    setError(null)
-  }, [])
+    safeSetError(null)
+  }, [safeSetError])
 
   return { resolveChannel, resolveContent, submitContentSubmission, isLoading, error, clearError }
 }
