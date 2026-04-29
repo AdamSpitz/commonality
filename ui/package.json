@@ -16,6 +16,7 @@
     "test:vitest": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:pre-testnet-smoke": "E2E_START_PLATFORM_API=true playwright test e2e/pre-testnet-smoke.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "preview": "../node_modules/.bin/vite preview"
   },

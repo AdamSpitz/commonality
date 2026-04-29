@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-29 — Added pre-testnet smoke test
+
+Completed `testing-review.md` Priority #2. Added `ui/e2e/pre-testnet-smoke.spec.ts` and top-level `npm run pre-testnet:smoke`; the smoke test starts the Docker-backed E2E stack, includes the platform API, then verifies core flows: browse statements, create/believe a statement, browse projects, fund a project, and delegation UI. It records browser console errors/page errors and fails if any appear.
+
+Updated `ui/e2e/global-setup.ts` so smoke runs can opt into `platform-api-service` with `E2E_START_PLATFORM_API=true` and writes `VITE_PLATFORM_API_URL` only in that mode. This fixed the initial smoke failure where the browser logged `Error loading content-funding state: TypeError: Failed to fetch` because the platform API was not running.
+
+Validation: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and `npm run pre-testnet:smoke` passed.
+
 ## 2026-04-29 — Started integration-test level audit
 
 Tried `testing-review.md` Priority #5. Audited the integration test suite and found the remaining domain test directories are genuinely indexer/IPFS integration tests: they assert event-cache indexing and SDK folded query behavior, not just contract calls. Moved the one pure TypeScript behavior check out of the Docker-backed path: replaced `integration-tests/src/generic/action-framework-expected-failure.test.ts` with `integration-tests/src/actions/action-framework.unit.test.ts`, added `npm run test:unit --workspace=integration-tests`, and documented the level split in `integration-tests/README.md`.

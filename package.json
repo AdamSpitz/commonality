@@ -51,6 +51,7 @@
     "ui:test": "npm run test --workspace=ui",
     "ui:test:vitest": "npm run test:vitest --workspace=ui",
     "ui:test:e2e": "npm run test:e2e --workspace=ui",
+    "pre-testnet:smoke": "npm run test:pre-testnet-smoke --workspace=ui",
     "hardhat:node": "npx --workspace=hardhat hardhat node",
     "hardhat:compile": "npx --workspace=hardhat hardhat compile",
     "hardhat:test": "npx --workspace=hardhat hardhat test",

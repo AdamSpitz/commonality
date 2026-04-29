@@ -78,6 +78,7 @@ function copyContractAddresses(projectRoot: string): void {
       'VITE_GRAPHQL_URL=',
       'VITE_IPFS_GATEWAY=',
       'VITE_ETH_RPC_URL=',
+      'VITE_PLATFORM_API_URL=',
       'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=',
       'VITE_NOTE_INTENT_CONTRACT_ADDRESS=',
       'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS=',
@@ -133,6 +134,9 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_IPFS_GATEWAY=http://localhost:8080/ipfs`,
       // Hardhat RPC for on-chain reads (e.g. threshold/deadline from condition contracts)
       `VITE_ETH_RPC_URL=http://127.0.0.1:8545`,
+      ...(process.env.E2E_START_PLATFORM_API === 'true'
+        ? [`VITE_PLATFORM_API_URL=http://localhost:3001`]
+        : []),
     ];
 
     // Write back to ui/.env
@@ -190,8 +194,12 @@ export default async function globalSetup() {
     // Docker Compose will wait for healthchecks to pass due to depends_on configuration
     // PONDER_EPHEMERAL=true: use in-memory DB to avoid stale-state issues when the
     // Hardhat chain restarts fresh but the Ponder bind-mount has old block data.
+    const servicesToStart = ['hardhat-node', 'hardhat-deploy', 'ipfs', 'indexer'];
+    if (process.env.E2E_START_PLATFORM_API === 'true') {
+      servicesToStart.push('platform-api-service');
+    }
     console.log('🔨 Building and starting services...');
-    execSync('docker-compose up -d --build hardhat-node hardhat-deploy ipfs indexer', {
+    execSync(`docker-compose up -d --build ${servicesToStart.join(' ')}`, {
       cwd: projectRoot,
       stdio: 'inherit',
       env: { ...process.env, PONDER_EPHEMERAL: 'true' },
@@ -216,15 +224,21 @@ export default async function globalSetup() {
         const lines = output.trim().split('\n').filter(line => line.trim());
         const services = lines.map(line => JSON.parse(line));
 
-        // Check if indexer is healthy (it depends on all others, so if it's healthy, all are ready)
+        // Check if indexer is healthy (it depends on hardhat/ipfs/deploy). If the
+        // smoke-test requested the platform API, wait for that too so the browser
+        // does not hit a missing service during startup.
         const indexer = services.find(s => s.Service === 'indexer');
+        const platformApi = services.find(s => s.Service === 'platform-api-service');
+        const platformApiRequired = process.env.E2E_START_PLATFORM_API === 'true';
+        const platformApiReady = !platformApiRequired || platformApi?.Health === 'healthy';
 
-        if (indexer && indexer.Health === 'healthy') {
+        if (indexer?.Health === 'healthy' && platformApiReady) {
           console.log('✅ All services are healthy and ready!');
           console.log('   - Hardhat node: http://localhost:8545');
           console.log('   - IPFS API: http://localhost:5001');
           console.log('   - IPFS Gateway: http://localhost:8080');
           console.log('   - GraphQL Indexer: http://localhost:42069');
+          if (platformApiRequired) console.log('   - Platform API: http://localhost:3001');
 
           // Copy contract addresses to UI .env file
           console.log('📝 Copying contract addresses to ui/.env...');
