@@ -10,8 +10,8 @@ import {
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi,
   DelegatableNotesAbi,
-  type IpfsCidV1,
-  fakeIpfsCidV1,
+  uploadToIPFS,
+  createIPFSConfigInNodeJSFromTheUsualEnvVars,
 } from '@commonality/sdk';
 import {
   createProject as sdkCreateProject,
@@ -89,6 +89,38 @@ interface NoteRecord {
 }
 
 type TxReceipt = { gasUsed: bigint; blockNumber: bigint };
+
+const PROJECT_SEED_METADATA = [
+  {
+    name: 'Neighborhood Solar Co-op',
+    description: 'Bulk-purchase solar panels for households that agree on clean, locally owned energy.',
+  },
+  {
+    name: 'Open Civic Data Toolkit',
+    description: 'Build reusable data tools for local organizers tracking public budgets and outcomes.',
+  },
+  {
+    name: 'Community Resilience Library',
+    description: 'Publish practical guides for mutual-aid groups preparing for heat waves and outages.',
+  },
+  {
+    name: 'Bridge-Building Workshop Series',
+    description: 'Run small-group workshops that help people with different politics coordinate on shared goals.',
+  },
+  {
+    name: 'Local Journalism Explainer Fund',
+    description: 'Fund deeply researched explainers on local issues that affect broad coalitions.',
+  },
+];
+
+export function getSeedProjectMetadata(projectIndex: number) {
+  const template = PROJECT_SEED_METADATA[projectIndex % PROJECT_SEED_METADATA.length];
+  return {
+    name: template.name,
+    description: template.description,
+    seedProjectIndex: projectIndex,
+  };
+}
 
 type ActionResult<T = Record<string, unknown>> =
   | { success: true; receipt: TxReceipt } & T
@@ -201,7 +233,11 @@ class FundingAndDelegationActions {
 
     const threshold = parseEther((Math.random() * 5 + 1).toFixed(2));
     const deadline = BigInt(Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60));
-    const projectMetadataCid: IpfsCidV1 = fakeIpfsCidV1(`project-metadata-${Math.floor(Math.random() * 10000)}`);
+    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+    const projectMetadataCid = await uploadToIPFS(
+      ipfsConfig,
+      getSeedProjectMetadata(this.createdProjects.length),
+    );
 
     const tokenIds = [1n, 2n, 3n];
     const maxSupplies = [100n, 500n, 1000n];
@@ -221,8 +257,8 @@ class FundingAndDelegationActions {
         clients,
         { address: this.contracts.pubstarter.address!, abi: this.contracts.pubstarter.abi },
         {
-          metadataURI: 'https://example.com/metadata/',
-          contractURI: 'https://example.com/contract.json',
+          metadataURI: `ipfs://${projectMetadataCid}/`,
+          contractURI: `ipfs://${projectMetadataCid}`,
           owner: user.address,
           recipient: user.address,
           paymentToken,

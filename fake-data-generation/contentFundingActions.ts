@@ -22,7 +22,11 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
-import { AssuranceContractAbi } from '@commonality/sdk';
+import {
+  AssuranceContractAbi,
+  createIPFSConfigInNodeJSFromTheUsualEnvVars,
+  uploadToIPFS,
+} from '@commonality/sdk';
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';
 
@@ -94,6 +98,39 @@ async function waitForTx(
   hash: Hex,
 ) {
   return publicClient.waitForTransactionReceipt({ hash });
+}
+
+function readableChannelName(channelCanonicalId: string): string {
+  switch (channelCanonicalId) {
+    case 'twitter:uid:111111111': return '@civicbuilder';
+    case 'youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa': return 'Practical Policy Lab';
+    case 'substack:smartwriter': return 'Smart Writer';
+    default: return channelCanonicalId;
+  }
+}
+
+export function buildContractMetadata(
+  channelCanonicalId: string,
+  contentSuffixes: string[],
+  isThirdParty: boolean,
+) {
+  return {
+    name: `${readableChannelName(channelCanonicalId)} ${isThirdParty ? 'fan-backed' : 'creator'} content fund`,
+    description: `Seed content-funding contract for ${readableChannelName(channelCanonicalId)}.`,
+    channelCanonicalId,
+    creatorDisplayName: readableChannelName(channelCanonicalId),
+    contractType: isThirdParty ? 'third-party' : 'creator',
+    contentSuffixes,
+  };
+}
+
+async function uploadContractMetadata(
+  channelCanonicalId: string,
+  contentSuffixes: string[],
+  isThirdParty: boolean,
+): Promise<string> {
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  return uploadToIPFS(ipfsConfig, buildContractMetadata(channelCanonicalId, contentSuffixes, isThirdParty));
 }
 
 // ---------------------------------------------------------------------------
@@ -252,6 +289,8 @@ async function createCreatorContract(
     await waitForTx(clients.publicClient, approvalHash);
   }
 
+  const metadataCid = await uploadContractMetadata(channelCanonicalId, contentSuffixes, isThirdParty);
+
   const createHash = await clients.walletClient.writeContract({
     address: factoryAddress,
     abi: CreatorAssuranceContractFactoryAbi,
@@ -264,9 +303,9 @@ async function createCreatorContract(
       prices,
       threshold,
       deadline: deadlineSecs,
-      metadataCid: `fake-metadata-${channelCanonicalId}`,
-      erc1155MetadataUri: `https://fake-metadata.example/{id}.json`,
-      erc1155ContractUri: `https://fake-contract.example/contract.json`,
+      metadataCid,
+      erc1155MetadataUri: `ipfs://${metadataCid}/{id}.json`,
+      erc1155ContractUri: `ipfs://${metadataCid}`,
       initialPurchaseIndices,
       initialPurchaseCounts,
     }],

@@ -64,3 +64,23 @@ The two things I'd want resolved before testnet:
 2. **Silent 404s** — a completely blank page for undefined routes needs at minimum a "Page not found" message.
 
 The creator identifier display issue (showing raw UIDs/channel IDs) is lower priority but would look rough to anyone evaluating the testnet. The leaderboard behavior should be confirmed as intentional.
+
+---
+
+### Follow-up fixes implemented
+
+- Added a real React Router catch-all fallback in `ui/src/App.tsx` with `ui/src/shared/components/NotFoundPage.tsx`, so undefined routes like `#/creators` or `#/nonexistent-route` now show a clear "Page not found" message with links back into the app instead of an empty shell.
+- Added `ui/src/App.notfound.test.tsx` to assert unknown routes render the not-found page, preventing this from needing another expensive browser pass to catch.
+- Changed Pubstarter fake-data project creation to upload actual project metadata to IPFS with human-readable seed names/descriptions instead of fake CIDs that force the UI to fall back to `Project 0x...`.
+- Changed content-funding fake-data contracts to upload actual metadata to IPFS instead of using strings like `fake-metadata-substack:smartwriter`, removing the expected local IPFS 400s for those project detail pages.
+- Added `fake-data-generation/test/seedMetadata.test.ts` to cover human-readable seed metadata and to guard against reintroducing fake metadata IDs.
+
+Validation run:
+
+- `npm run test:vitest --workspace=ui -- App.notfound.test.tsx App.test.tsx`
+- `npm test --workspace=fake-data-generation`
+- `npm run typecheck --workspace=ui && npm run typecheck --workspace=fake-data-generation`
+- `npm run lint --workspace=ui && npm run lint --workspace=fake-data-generation`
+- `npm run build --workspace=ui` (passed; emitted existing third-party Rollup annotation/chunk-size warnings)
+
+Remaining notes were moved to `TODO.md` as proper follow-up items.
