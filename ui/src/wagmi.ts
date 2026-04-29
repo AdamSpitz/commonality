@@ -11,12 +11,16 @@ export const privyAppId = import.meta.env.VITE_PRIVY_APP_ID?.trim() || ''
 export const privyClientId = import.meta.env.VITE_PRIVY_CLIENT_ID?.trim() || undefined
 export const isPrivyEnabled = privyAppId.length > 0
 
+const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
+const sepoliaRpcUrl = import.meta.env.VITE_SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com'
+const hardhatRpcUrl = import.meta.env.VITE_ETH_RPC_URL || 'http://127.0.0.1:8545'
+
 export const wagmiChains = [mainnet, sepolia, hardhat] as const
 
 export const wagmiTransports = {
-  [mainnet.id]: http(),
-  [sepolia.id]: http(),
-  [hardhat.id]: http('http://127.0.0.1:8545'),
+  [mainnet.id]: http(mainnetRpcUrl),
+  [sepolia.id]: http(sepoliaRpcUrl),
+  [hardhat.id]: http(hardhatRpcUrl),
 }
 
 export const config = createConfig(
@@ -49,20 +53,12 @@ export function createMockConfig(
 
   const address = typeof account === 'string' ? account : account.address
 
-  return createConfig(
-    getDefaultConfig({
-      chains: [hardhat, mainnet, sepolia],
-      transports: {
-        [hardhat.id]: http('http://127.0.0.1:8545'),
-        [mainnet.id]: http(),
-        [sepolia.id]: http(),
-      },
-      walletConnectProjectId: '',
-      appName: 'Commonality',
-      appDescription: 'Coordination platform for aligned people',
-      appUrl: 'https://commonality.app',
-      // Add mock connector for testing
-      connectors: [mock({ accounts: [address], features })],
-    }),
-  )
+  return createConfig({
+    chains: [hardhat, mainnet, sepolia],
+    transports: wagmiTransports,
+    // Use only wagmi's mock connector in E2E. ConnectKit's default connector
+    // set pulls in wallet SDKs (for example Coinbase) that perform external
+    // browser checks and can emit console errors unrelated to the app under test.
+    connectors: [mock({ accounts: [address], features })],
+  })
 }

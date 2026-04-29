@@ -12,6 +12,7 @@ export function useMachinery(): SDKMachinery {
     };
     const twitterApiConfig = {
       platformApiBaseUrl: import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001',
+      ethereumMainnetRpcUrl: import.meta.env.VITE_MAINNET_RPC_URL,
     };
     // Event cache requests use relative paths (/api/...) so the Vite dev server
     // proxy forwards them to the indexer. An explicit override can be set via

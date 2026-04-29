@@ -11,7 +11,9 @@ export const test = base.extend<{ _browserErrorCollector: void }>({
 
       page.on('console', (message) => {
         if (message.type() === 'error') {
-          browserErrors.push(message.text())
+          const location = message.location()
+          const source = location.url ? ` (${location.url}:${location.lineNumber})` : ''
+          browserErrors.push(`${message.text()}${source}`)
         }
       })
       page.on('pageerror', (error) => {

@@ -4,13 +4,21 @@ import { getEnsName, getEnsText } from 'viem/actions';
 
 export type TwitterApiConfig = {
   platformApiBaseUrl?: string;
+  /** RPC endpoint used for browser ENS lookups. Must allow browser CORS. */
+  ethereumMainnetRpcUrl?: string;
 }
 
-// ENS is always on Ethereum mainnet
-const mainnetClient = createPublicClient({
-  chain: mainnet,
-  transport: http(),
-});
+const DEFAULT_MAINNET_RPC_URL = 'https://ethereum-rpc.publicnode.com';
+
+function createEnsClient(config: TwitterApiConfig) {
+  // ENS is always on Ethereum mainnet. Use an explicit CORS-friendly endpoint;
+  // viem's default mainnet fallback can select providers that reject browser
+  // preflights, which shows up as console errors in E2E tests.
+  return createPublicClient({
+    chain: mainnet,
+    transport: http(config.ethereumMainnetRpcUrl ?? DEFAULT_MAINNET_RPC_URL),
+  });
+}
 
 export interface AddressSocialData {
   ensName?: string;
@@ -27,20 +35,20 @@ function normalizeTwitterHandle(handle: string): string | undefined {
   return /^@[A-Za-z0-9_]{1,15}$/.test(prefixed) ? prefixed : undefined;
 }
 
-async function resolveEnsName(address: string): Promise<string | null> {
+async function resolveEnsName(config: TwitterApiConfig, address: string): Promise<string | null> {
   try {
     // @ts-expect-error - viem type inference issue with publicClient
-    return await getEnsName(mainnetClient, { address: address as `0x${string}` }) || null;
+    return await getEnsName(createEnsClient(config), { address: address as `0x${string}` }) || null;
   } catch (error) {
     console.warn(`Failed to resolve ENS for ${address}:`, error);
     return null;
   }
 }
 
-async function fetchTwitterHandleFromEns(ensName: string): Promise<string | undefined> {
+async function fetchTwitterHandleFromEns(config: TwitterApiConfig, ensName: string): Promise<string | undefined> {
   try {
     // @ts-expect-error - viem type inference issue with publicClient
-    const handle = await getEnsText(mainnetClient, { name: ensName, key: 'com.twitter' });
+    const handle = await getEnsText(createEnsClient(config), { name: ensName, key: 'com.twitter' });
     return handle ? normalizeTwitterHandle(handle) : undefined;
   } catch (error) {
     console.warn(`Failed to get ENS text records for ${ensName}:`, error);
@@ -86,10 +94,10 @@ export async function fetchFollowerCountForTwitterHandle(
 }
 
 export async function fetchAddressSocialData(config: TwitterApiConfig, address: string): Promise<AddressSocialData> {
-  const ensName = await resolveEnsName(address);
+  const ensName = await resolveEnsName(config, address);
   if (!ensName) return { isTwitterVerified: false };
 
-  const twitterHandle = await fetchTwitterHandleFromEns(ensName);
+  const twitterHandle = await fetchTwitterHandleFromEns(config, ensName);
   const twitterFollowerCount = twitterHandle
     ? await fetchFollowerCountForTwitterHandle(config, twitterHandle)
     : undefined;

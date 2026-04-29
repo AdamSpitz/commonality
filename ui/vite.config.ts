@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
+    // The SDK is a local workspace package that changes during E2E runs. Do not
+    // prebundle/cache it, or Vite can keep stale RPC defaults from sdk/dist.
+    exclude: ['@commonality/sdk'],
     esbuildOptions: {
       define: {
         global: 'globalThis',

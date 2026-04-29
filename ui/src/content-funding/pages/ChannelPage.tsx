@@ -193,9 +193,10 @@ const oEmbedCache = new Map<string, string>()
 function ContentItemPreview({ canonicalId, url }: { canonicalId: string; url: string | null }) {
   const [oEmbedHtml, setOEmbedHtml] = useState<string | null>(null)
   const thumbnail = getYouTubeThumbnail(canonicalId)
+  const externalEmbedsDisabled = import.meta.env.VITE_DISABLE_EXTERNAL_EMBEDS === 'true'
 
   useEffect(() => {
-    if (!url) return
+    if (!url || externalEmbedsDisabled) return
 
     const cacheKey = url
 
@@ -212,7 +213,7 @@ function ContentItemPreview({ canonicalId, url }: { canonicalId: string; url: st
         })
         .catch(() => setOEmbedHtml(null))
     }
-  }, [url, canonicalId])
+  }, [url, canonicalId, externalEmbedsDisabled])
 
   if (thumbnail) {
     return (

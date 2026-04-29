@@ -79,6 +79,7 @@ function copyContractAddresses(projectRoot: string): void {
       'VITE_IPFS_GATEWAY=',
       'VITE_ETH_RPC_URL=',
       'VITE_PLATFORM_API_URL=',
+      'VITE_DISABLE_EXTERNAL_EMBEDS=',
       'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=',
       'VITE_NOTE_INTENT_CONTRACT_ADDRESS=',
       'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS=',
@@ -135,6 +136,9 @@ function copyContractAddresses(projectRoot: string): void {
       // Hardhat RPC for on-chain reads (e.g. threshold/deadline from condition contracts)
       `VITE_ETH_RPC_URL=http://127.0.0.1:8545`,
       `VITE_PLATFORM_API_URL=http://localhost:3001`,
+      // E2E data uses synthetic social-content IDs; avoid hitting real embed
+      // providers for those fake URLs, which produces browser-console 404s.
+      `VITE_DISABLE_EXTERNAL_EMBEDS=true`,
     ];
 
     // Write back to ui/.env
