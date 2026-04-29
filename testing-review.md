@@ -104,11 +104,11 @@ Total: easily 10–20+ minutes. That's too slow for a feedback loop.
 
 ### For performance
 
-4. **Create `npm run test:fast`** = Vitest + Hardhat only (no Docker). Use this in the pre-commit hook.
+4. **Create `npm run test:fast`** = Vitest + Hardhat only (no Docker). Use this in the pre-commit hook. ✅ Done: `test:fast` runs SDK unit tests, Hardhat tests, integration-test harness unit tests, and UI Vitest.
 
-5. **Audit integration tests** for which ones truly need the indexer vs. just the chain. Move chain-only tests to a lighter harness.
+5. **Audit integration tests** for which ones truly need the indexer vs. just the chain. Move chain-only tests to a lighter harness. In progress: the clearly non-indexer action-framework tests were moved to the lightweight harness; remaining domain integration tests still exercise indexed events/SDK folded queries.
 
-6. **Consider reducing `npm test` in the pre-commit hook** to `test:fast` and running the full suite only on CI pushes.
+6. **Consider reducing `npm test` in the pre-commit hook** to `test:fast` and running the full suite only on CI pushes. ✅ Done: pre-commit now runs `npm run test:fast` after lint/build.
 
 ### For long-term health
 

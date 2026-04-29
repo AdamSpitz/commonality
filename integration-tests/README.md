@@ -8,6 +8,20 @@ The tests are currently all handcrafted-scenario kinds of tests. That's fine, bu
 
 See [generative-test-prep.md](generative-test-prep.md) for the framework and [INVARIANT_IMPLEMENTATION.md](INVARIANT_IMPLEMENTATION.md) for implementation guidelines.
 
+### Level audit
+
+These files are meant to prove that contract events are correctly indexed and folded through the SDK, so they should use the full Hardhat + IPFS + indexer stack:
+
+- `src/conceptspace/*.test.ts`
+- `src/delegation/*.test.ts`
+- `src/fundingportal/*.test.ts`
+- `src/marketplace/*.test.ts`
+- `src/mutable-refs/*.test.ts`
+- `src/pubstarter/*.test.ts`
+- `src/workflows/*.test.ts`
+
+When a test only exercises local TypeScript behavior for the integration-test harness itself, keep it out of the Docker-backed integration path. Use `*.unit.test.ts` and run it with `npm run test:harness --workspace=integration-tests` (or top-level `npm run integration-tests:test:harness`). The full integration command also runs those unit files, but the harness command avoids environment validation, Docker, deployed contracts, IPFS, and the indexer for fast iteration.
+
 ## Test Performance
 
 Tests are slow for two reasons:

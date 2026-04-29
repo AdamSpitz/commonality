@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "mocha",
+    "test:harness": "mocha --no-config --node-option import=tsx --extensions ts 'src/**/*.unit.test.ts'",
+    "test:unit": "npm run test:harness",
     "test:verbose": "VERBOSE_TESTS=true mocha --reporter spec",
     "test:watch": "mocha --watch 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit",

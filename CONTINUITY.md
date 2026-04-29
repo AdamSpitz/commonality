@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-29 — Started integration-test level audit
+
+Tried `testing-review.md` Priority #5. Audited the integration test suite and found the remaining domain test directories are genuinely indexer/IPFS integration tests: they assert event-cache indexing and SDK folded query behavior, not just contract calls. Moved the one pure TypeScript behavior check out of the Docker-backed path: replaced `integration-tests/src/generic/action-framework-expected-failure.test.ts` with `integration-tests/src/actions/action-framework.unit.test.ts`, added `npm run test:unit --workspace=integration-tests`, and documented the level split in `integration-tests/README.md`.
+
+Validation: `npm run test:unit --workspace=integration-tests`, `npm run typecheck --workspace=integration-tests`, and `npm run lint --workspace=integration-tests` passed. Note: the first attempt at `test:unit` accidentally read `.mocharc` and ran the full integration suite without services, producing expected localhost/IPFS connection failures; fixed by adding `--no-config`.
+
+Follow-up in same session: added top-level `npm run test:fast` (SDK unit tests + Hardhat tests + integration-test harness unit tests + UI Vitest), added `npm run integration-tests:test:harness`, documented the fast command in README, renamed the workspace harness command to avoid the confusing phrase “integration-tests unit tests,” and changed the pre-commit hook to run `test:fast` instead of full `npm test`. Validation: `npm run integration-tests:test:harness`, `npm run test:fast`, and `bash -n .husky/pre-commit` passed.
+
 ## 2026-04-28 — Fixed several TODO findings
 
 Fixed three findings from `TODO.md`:
