@@ -76,3 +76,11 @@ Addressed the two problems called out in `high-level-test.md`:
 Files changed: `scripts/publish-ui-to-ipfs.mjs`, `docker-compose.yml`, `scripts/services.sh`, `fake-data-generation/runSimulation.ts`.
 
 Validation: `bash -n scripts/services.sh`, `node --check scripts/publish-ui-to-ipfs.mjs`, `docker compose config --quiet`, and `npm run typecheck --workspace=fake-data-generation` passed. Live seeded browser verification still remains valuable: restart services, reseed, then confirm Browse Statements shows seeded statements from the current Beliefs address.
+
+## 2026-04-29 — Fixed funding-portal cause leaderboard semantics
+
+Completed the TODO item for `CauseLeaderboardPage`. The page still ranks only direct project purchases via `getTopContributorsForCause`, but it now also fetches `getTotalFundingForCause` and displays `totalAvailableFromNotes` as an aggregate delegated-funds stat. Copy now explicitly says delegated-note deposits are revocable pledges and are not ranked per person, and the empty state says "No direct project purchases yet" instead of "No contributions yet."
+
+Files changed: `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx`, `ui/src/fundingportal/pages/CauseLeaderboardPage.test.tsx`, `TODO.md`, `CONTINUITY.md`.
+
+Validation: `npm run test:vitest --workspace=ui -- CauseLeaderboardPage.test.tsx`, `npm run build --workspace=ui`, and `npm run lint --workspace=ui -- src/fundingportal/pages/CauseLeaderboardPage.tsx src/fundingportal/pages/CauseLeaderboardPage.test.tsx` passed. An earlier `npm run test --workspace=ui -- CauseLeaderboardPage.test.tsx` run passed all UI Vitest tests but then failed because the filename was forwarded to Playwright, where no E2E test matched.

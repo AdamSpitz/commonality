@@ -18,6 +18,7 @@ import {
 import { useAccount } from 'wagmi'
 import {
   getTopContributorsForCause,
+  getTotalFundingForCause,
   getUserContributionRankForCause,
   type ContributorStats,
   type IpfsCidV1,
@@ -39,6 +40,9 @@ export function CauseLeaderboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [contributors, setContributors] = useState<ContributorStats[]>([])
+  const [delegatedFunds, setDelegatedFunds] = useState<
+    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalAvailableFromNotes']
+  >([])
   const [userRank, setUserRank] = useState<{
     rank: number
     stats: ContributorStats | null
@@ -53,15 +57,24 @@ export function CauseLeaderboardPage() {
       setLoading(true)
       setError(null)
       try {
-        const topContributors = await getTopContributorsForCause(
-          machinery,
-          statementCid as IpfsCidV1,
-          50,
-          undefined,
-          trustedSet,
-        )
+        const [topContributors, fundingMetrics] = await Promise.all([
+          getTopContributorsForCause(
+            machinery,
+            statementCid as IpfsCidV1,
+            50,
+            undefined,
+            trustedSet,
+          ),
+          getTotalFundingForCause(
+            machinery,
+            statementCid as IpfsCidV1,
+            undefined,
+            trustedSet,
+          ),
+        ])
         if (cancelled) return
         setContributors(topContributors)
+        setDelegatedFunds(fundingMetrics.totalAvailableFromNotes)
 
         if (userAddress) {
           const rankResult = await getUserContributionRankForCause(
@@ -73,6 +86,8 @@ export function CauseLeaderboardPage() {
           )
           if (cancelled) return
           setUserRank(rankResult)
+        } else {
+          setUserRank(null)
         }
       } catch (err) {
         if (!cancelled) {
@@ -117,7 +132,7 @@ export function CauseLeaderboardPage() {
             Your Rank
           </Typography>
           <Typography variant="body1">
-            You are <strong>#{userRank.rank}</strong> contributor to this cause
+            You are <strong>#{userRank.rank}</strong> direct-purchase contributor to this cause
             {' — '}
             {formatCurrencyTotals(userRank.stats.netContribution)} across{' '}
             {userRank.stats.projectsContributedTo} project
@@ -143,9 +158,23 @@ export function CauseLeaderboardPage() {
           </Alert>
         )}
 
+        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Available in Delegated Funds
+          </Typography>
+          <Typography variant="h6">{formatCurrencyTotals(delegatedFunds)}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Delegated-note deposits are revocable pledges, so they are shown only as an aggregate and are not ranked per person.
+          </Typography>
+        </Paper>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          This leaderboard ranks direct project purchases only.
+        </Typography>
+
         {contributors.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            No contributions yet.
+            No direct project purchases yet.
           </Typography>
         ) : (
           <TableContainer>

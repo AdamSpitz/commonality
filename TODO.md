@@ -6,11 +6,6 @@
 
 - Make sure the seed content gets into the fake universe simulation.
 
-- Fix funding portal cause leaderboard semantics. The leaderboard (CauseLeaderboardPage.tsx, backed by `getTopContributorsForCause` in the SDK) currently shows only direct project purchases (ERC-1155 buys). Delegated-note deposits earmarked for the cause are not shown at all, so the page can say "No contributions yet" even when delegated funds exist. Fix:
-  1. Keep the leaderboard as direct purchases only (these are committed, non-revocable contributions that deserve individual social recognition).
-  2. Add an aggregate summary stat showing total delegated funds available for the cause (e.g. "X available in delegated funds"). This should NOT be a per-person leaderboard — delegated deposits are revocable pledges, not commitments. The SDK already has `getTotalFundingForCause` which returns `totalAvailableFromNotes` separately.
-  3. Update the "No contributions yet" empty state so it doesn't feel contradictory when delegated funds exist (e.g. "No direct project purchases yet" or show the delegated-funds stat alongside).
-
 - Add Admin tabs to the UI. (What goes in it? And how do we get the UI to know that an admin is looking at it?)
 
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
