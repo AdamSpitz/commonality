@@ -1,5 +1,11 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-29 — Added negative-path E2E coverage
+
+Completed `testing-review.md` Priority #3. Added `ui/e2e/negative-paths.spec.ts` with browser tests for a valid-but-unindexed statement CID, an unknown project address, and a blocked delegatable-note purchase when the requested token cost exceeds the selected note balance. Updated `testing-review.md` to mark the priority done.
+
+Validation: `npm run typecheck --workspace=ui` and `npm run test:e2e --workspace=ui -- e2e/negative-paths.spec.ts` passed. During development the first E2E run caught an invalid CID fixture and the second caught a brittle MUI combobox selector; both are fixed in the final test.
+
 ## 2026-04-29 — Added pre-testnet smoke test
 
 Completed `testing-review.md` Priority #2. Added `ui/e2e/pre-testnet-smoke.spec.ts` and top-level `npm run pre-testnet:smoke`; the smoke test starts the Docker-backed E2E stack, includes the platform API, then verifies core flows: browse statements, create/believe a statement, browse projects, fund a project, and delegation UI. It records browser console errors/page errors and fails if any appear.

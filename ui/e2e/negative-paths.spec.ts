@@ -1,0 +1,114 @@
+import { test, expect } from './fixtures/wallet'
+import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { waitForProject } from './utils/indexer'
+import {
+  DelegatableNotesAbi,
+  PubstarterAbi,
+  createIPFSConfigInNodeJSFromTheUsualEnvVars,
+  createProject,
+  createSDKMachinery,
+  depositETH,
+  uploadToIPFS,
+  waitForIndexerToSyncToTxHash,
+  type DelegatableNotesContract,
+  type PubstarterContract,
+} from '@commonality/sdk'
+import { parseEther } from 'viem'
+
+const INDEXER_SYNC_TIMEOUT_MS = 60_000
+
+/**
+ * Negative-path browser tests for user-facing failures and invalid actions.
+ * These complement the happy-path E2E specs by checking that broken links,
+ * missing chain data, and insufficient funding inputs fail clearly instead of
+ * leaving the user on a spinner or a silent no-op.
+ */
+test.describe('Negative paths', () => {
+  test('nonexistent statement route shows a not-found error', async ({ page }) => {
+    await page.goto('/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku')
+
+    await expect(page.getByRole('heading', { name: /^statement$/i })).toBeVisible()
+    await expect(page.getByText('Statement not found')).toBeVisible({ timeout: 20_000 })
+  })
+
+  test('nonexistent project route shows a not-found error', async ({ page }) => {
+    await page.goto('/projects/0x000000000000000000000000000000000000dEaD')
+
+    await expect(page.getByText('Project not found')).toBeVisible({ timeout: 20_000 })
+  })
+
+  test('buying with a delegatable note larger than its balance is blocked before submit', async ({
+    page,
+    wallet,
+  }) => {
+    const { graphqlUrl, delegatableNotesAddress, pubstarterAddress, paymentTokenAddress } =
+      getContractAddresses()
+
+    if (!delegatableNotesAddress || !pubstarterAddress || !paymentTokenAddress) {
+      throw new Error(
+        'Negative-path note purchase test requires delegatable notes, pubstarter, and payment token addresses in ui/.env.'
+      )
+    }
+
+    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
+    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {}, {
+      areWeJustRunningTests: true,
+      shouldTestsBeVerbose: false,
+    })
+    const clients = createE2ETestClients('ACCOUNT_0')
+    const pubstarterContract: PubstarterContract = {
+      address: pubstarterAddress,
+      abi: PubstarterAbi,
+    }
+    const delegatableNotesContract: DelegatableNotesContract = {
+      address: delegatableNotesAddress,
+      abi: DelegatableNotesAbi,
+    }
+
+    const tokenPrice = parseEther('0.1')
+    const projectName = `E2E Negative Note Balance ${Date.now()}`
+    const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
+      name: projectName,
+      description: 'Created by negative-path E2E test',
+    })
+
+    const { projectDetails } = await createProject(clients, pubstarterContract, {
+      metadataURI: `ipfs://${projectMetadataCid}/`,
+      contractURI: `ipfs://${projectMetadataCid}`,
+      owner: clients.account,
+      recipient: clients.account,
+      paymentToken: paymentTokenAddress,
+      threshold: parseEther('10'),
+      deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
+      projectMetadataCid,
+      tokenIds: [0n],
+      tokenCounts: [100n],
+      tokenPrices: [tokenPrice],
+    })
+
+    const { hash: noteHash } = await depositETH(clients, delegatableNotesContract, {
+      amount: parseEther('0.05'),
+    })
+
+    await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)
+    await waitForIndexerToSyncToTxHash(
+      machinery,
+      clients.publicClient,
+      noteHash,
+      INDEXER_SYNC_TIMEOUT_MS
+    )
+
+    await page.goto(`/projects/${projectDetails.assuranceContractAddress}`)
+    await wallet.connect('ACCOUNT_0')
+    await expect(page.getByRole('heading', { name: projectName })).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByRole('heading', { name: /buy tokens/i })).toBeVisible({ timeout: 20_000 })
+
+    await page.getByLabel('Fund with delegatable note').check()
+    await page.getByRole('combobox').click()
+    await page.getByRole('option', { name: /note #/i }).first().click()
+    await page.getByRole('spinbutton', { name: /quantity/i }).fill('1')
+
+    await expect(page.getByText(/exceeds note balance/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: /buy with note/i })).toBeDisabled()
+  })
+})
