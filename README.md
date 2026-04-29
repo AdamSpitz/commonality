@@ -2,18 +2,7 @@
 
 ## Getting started
 
-**Prerequisites:** [Node.js 24.x](https://nodejs.org/), [Docker](https://docs.docker.com/get-docker/)
-
-```bash
-npm install
-npm run build
-./scripts/services.sh --start
-./scripts/data.sh --seed
-```
-
-That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the content-funding platform API service, then publishes the SPA build to the local IPFS gateway and prints the resulting `http://localhost:8080/ipfs/<cid>/commonality-ui/#/` URL. The latest CID and SPA URL are also written to `./data/ui-ipfs/`. You can re-print the current SPA URL any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data (10 users, 3 rounds).
-
-No API keys or secrets are needed for local development. See [DEPLOYMENT.md](DEPLOYMENT.md) for testnet/mainnet deployment (which does require secrets).
+See [here](workflow/local-development.md) for local-development instructions.
 
 ## Finding relevant specs
 
@@ -26,17 +15,18 @@ See [ROLES.md](workflow/ROLES.md) for the full guide. Quick version:
 
 ## Where to find other files
 
-  - AI continuity notes: [CONTINUITY.md](CONTINUITY.md)
+  - [AI continuity notes](CONTINUITY.md)
   - [Build-process documentation](workflow/BUILD.md)
   - [Reviews](workflow/reviews/README.md)
-  - [Deployment instructions for testnet/mainnet](workflow/DEPLOYMENT.md) (local dev is above, in this file)
-  - To-do list: [TODO.md](TODO.md)
+  - [Deployment instructions for testnet/mainnet](workflow/deployment.md) (local dev is above, in this file)
+  - [To-do list](TODO.md)
 
 ## Feedback loops
 
 - `npm run lint` to run various linters
 - `npm run build` to make sure everything builds and type-checks
 - `npm run test:fast` to run the fast suite (SDK unit tests, Hardhat tests, integration-test harness unit tests, and UI Vitest; no Docker/indexer/Playwright)
+- `npm run test` to run the full suite (takes many minutes!)
 - `npm run test` to run the full suite (takes many minutes!)
 - `npm run test:seed:implication-regression --workspace=fake-data-generation` after editing curated seed statements or proliferation variants. This checks the saved implication-attester decision corpus against the current statement IDs and text. If it fails because statements changed, run `npm run gen:seed:implications:verify --workspace=fake-data-generation -- --review-output fake-data-generation/output/seed-implication-review.json` to produce the focused packet of only new/changed implication pairs that need human review. See [fake-data-generation/README.md](fake-data-generation/README.md#pre-generated-seed-implication-decisions).
 

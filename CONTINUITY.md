@@ -8,11 +8,11 @@ Validation: `npm run typecheck --workspace=ui` and `npm run test:e2e --workspace
 
 ## 2026-04-29 — Added pre-testnet smoke test
 
-Completed `testing-review.md` Priority #2. Added `ui/e2e/pre-testnet-smoke.spec.ts` and top-level `npm run pre-testnet:smoke`; the smoke test starts the Docker-backed E2E stack, includes the platform API, then verifies core flows: browse statements, create/believe a statement, browse projects, fund a project, and delegation UI. It records browser console errors/page errors and fails if any appear.
+Completed `testing-review.md` Priority #2. Added `ui/e2e/pre-testnet-smoke.spec.ts` and top-level `npm run test:pre-testnet-smoke`; the smoke test starts the Docker-backed E2E stack, includes the platform API, then verifies core flows: browse statements, create/believe a statement, browse projects, fund a project, and delegation UI. It records browser console errors/page errors and fails if any appear.
 
 Updated `ui/e2e/global-setup.ts` so smoke runs can opt into `platform-api-service` with `E2E_START_PLATFORM_API=true` and writes `VITE_PLATFORM_API_URL` only in that mode. This fixed the initial smoke failure where the browser logged `Error loading content-funding state: TypeError: Failed to fetch` because the platform API was not running.
 
-Validation: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and `npm run pre-testnet:smoke` passed.
+Validation: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and `npm run test:pre-testnet-smoke` passed.
 
 ## 2026-04-29 — Started integration-test level audit
 

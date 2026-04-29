@@ -98,7 +98,7 @@ Total: easily 10–20+ minutes. That's too slow for a feedback loop.
 
 1. **Fix the known UI bugs** (creator names, leaderboard semantics) before any testnet reviewer pass. A reviewer hitting those issues on the first screen will lose confidence in the whole system.
 
-2. **Write a "pre-testnet smoke test" script** — a short Playwright or CLI script that starts the stack, runs through the 5–6 core flows (browse statements, create a statement/belief, browse projects, fund a project, delegation), and verifies no console errors and expected data appears. This is the "go/no-go" checkpoint before a human or LLM does a full review. ✅ Done: `npm run pre-testnet:smoke` runs the focused Playwright smoke spec and starts the platform API as part of the E2E stack.
+2. **Write a "pre-testnet smoke test" script** — a short Playwright or CLI script that starts the stack, runs through the 5–6 core flows (browse statements, create a statement/belief, browse projects, fund a project, delegation), and verifies no console errors and expected data appears. This is the "go/no-go" checkpoint before a human or LLM does a full review. ✅ Done: `npm run test:pre-testnet-smoke` runs the focused Playwright smoke spec and starts the platform API as part of the E2E stack.
 
 3. **Add at least a few negative-path E2E tests.** What happens if you try to fund with insufficient funds? What if you navigate to a nonexistent statement? ✅ Done: `ui/e2e/negative-paths.spec.ts` covers nonexistent statements, nonexistent projects, and blocking a delegatable-note purchase that exceeds the note balance.
 
