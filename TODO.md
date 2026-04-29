@@ -4,10 +4,6 @@
 
 - (task kind: big-picture-thinking; skills: cofounder, interactive-assistant): Do a big high-level test of the whole project. (See big-test.md.)
 
-  - Statement discovery design and scalability plan are documented in [specs/tech/subsystems/conceptspace/statement-discovery.md](specs/tech/subsystems/conceptspace/statement-discovery.md).
-
-- Can we move some tests from higher levels to lower levels, to speed the overall suite?
-
 - Make sure the seed content gets into the fake universe simulation.
 
 - Improve creator/channel display names in the content-funding UI. Current browse/detail pages derive primary labels from canonical stable IDs, so Twitter can show `@111111111` / `twitter:uid:111111111` and YouTube can show a raw `UC...` channel ID. Use resolver/API metadata when available (or add it to the fake-data/API path) so real handles/channel names are shown, with canonical IDs only as secondary technical details.
