@@ -2,7 +2,7 @@
 
 ## Main list
 
-- (task kind: big-picture-thinking; skills: cofounder, interactive-assistant): Start a big high-level test of the whole project.
+- (task kind: big-picture-thinking; skills: cofounder, interactive-assistant): Do a big high-level test of the whole project. (See big-test.md.)
 
   - **ARCHITECTURE NOTE: Statement discovery is event-driven via DirectSupport only.**
 There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers them by querying `DirectSupport` events from the Beliefs contract and extracting the statement CID from `topic2`. `browseStatements()` and `getAllStatements()` both do this. This means: (a) a statement only appears in the UI after at least one user believes/disbelieves it, (b) the seed data's 374 DirectSupport events *should* be enough to populate the Browse Statements page with seeded statements, (c) a fresh chain with no beliefs will show empty states even if statements exist on IPFS. This is by-design but worth confirming it feels right for the product.
