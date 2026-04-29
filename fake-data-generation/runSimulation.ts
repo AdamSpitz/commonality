@@ -31,6 +31,19 @@ import {
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
 
+const erc20TransferAbi = [
+  {
+    name: 'transfer',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'to', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+] as const;
+
 const hardhat = {
   id: 31337,
   name: 'Hardhat',
@@ -388,7 +401,10 @@ class SimulationRunner {
     // Use Hardhat's pre-funded default account as funder (starts with 10,000 ETH)
     const funderClient = createTestClients(HARDHAT_PRIVATE_KEYS[0], RPC_URL);
 
+    const paymentTokenAddress = process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined;
+    const paymentTokenAmount = parseEther('1000');
     let fundedCount = 0;
+    let paymentTokenFundedCount = 0;
     let failedCount = 0;
 
     for (let i = 0; i < this.users.length; i++) {
@@ -405,6 +421,20 @@ class SimulationRunner {
           value: totalAmount
         });
         await publicClient.waitForTransactionReceipt({ hash });
+
+        if (paymentTokenAddress) {
+          const paymentTokenHash = await funderClient.walletClient.writeContract({
+            address: paymentTokenAddress,
+            abi: erc20TransferAbi,
+            functionName: 'transfer',
+            args: [user.address, paymentTokenAmount],
+            chain: funderClient.walletClient.chain,
+            account: funderClient.walletClient.account!,
+          });
+          await publicClient.waitForTransactionReceipt({ hash: paymentTokenHash });
+          paymentTokenFundedCount++;
+        }
+
         fundedCount++;
       } catch (err) {
         const error = err as Error;
@@ -415,7 +445,10 @@ class SimulationRunner {
       }
     }
 
-    console.log(`  Funded ${fundedCount} users (${failedCount} failed)`);
+    const paymentTokenSummary = paymentTokenAddress
+      ? ` and ${paymentTokenFundedCount} users with payment tokens`
+      : ' (PAYMENT_TOKEN_ADDRESS not set; skipped payment-token funding)';
+    console.log(`  Funded ${fundedCount} users with ETH${paymentTokenSummary} (${failedCount} failed)`);
   }
 
   getRandomUser(): User {

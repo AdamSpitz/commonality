@@ -221,6 +221,11 @@ start_services() {
         "$UI_IPFS_ARTIFACT_DIR/content-funding" \
         "$UI_IPFS_ARTIFACT_DIR/noninflammatory" \
         "$UI_IPFS_ARTIFACT_DIR/movement"
+    # The UI publisher bind-mounts these files so it reads contract addresses
+    # written by hardhat-deploy at runtime instead of stale values baked into
+    # the Docker image. Ensure clean checkouts have files to mount.
+    mkdir -p ui
+    touch .env ui/.env
     services_to_build=()
     while IFS= read -r line; do
         services_to_build+=("$line")

@@ -108,6 +108,8 @@ services:
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
+      - ./.env:/workspace/.env:ro
+      - ./ui/.env:/workspace/ui/.env:ro
       - ./data/ui-ipfs/commonality:/artifacts
     depends_on:
       ipfs:
@@ -139,6 +141,8 @@ services:
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
+      - ./.env:/workspace/.env:ro
+      - ./ui/.env:/workspace/ui/.env:ro
       - ./data/ui-ipfs/content-funding:/artifacts
     depends_on:
       ipfs:
@@ -170,6 +174,8 @@ services:
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
+      - ./.env:/workspace/.env:ro
+      - ./ui/.env:/workspace/ui/.env:ro
       - ./data/ui-ipfs/noninflammatory:/artifacts
     depends_on:
       ipfs:
@@ -201,6 +207,8 @@ services:
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
+      - ./.env:/workspace/.env:ro
+      - ./ui/.env:/workspace/ui/.env:ro
       - ./data/ui-ipfs/movement:/artifacts
     depends_on:
       ipfs:

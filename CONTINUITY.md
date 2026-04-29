@@ -32,3 +32,13 @@ Fixed 3 bugs during Commonality domain review (see before-testnet.md Findings â€
 - content-funding: `http://localhost:8080/ipfs/QmQccxWXYMngtFDwiCTdmptN9PmmDdaqvLe7ap5Du75Ubv/content-funding-ui/#/`
 - noninflammatory: `http://localhost:8080/ipfs/QmPhgnuQwYHsX5T9aw9Di4xJempkX5bqtGMNy1qeQpVTfE/noninflammatory-ui/#/`
 - movement: `http://localhost:8080/ipfs/QmS9Cp5vVTvW9q3yeGcpRUrTeHXf4UWYuXHboQVPkNnDee/movement-ui/#/`
+
+## 2026-04-29 â€” Fixed high-level-test findings
+
+Addressed the two problems called out in `high-level-test.md`:
+- UI IPFS publishing now reads freshly generated root/ui env files at runtime and maps deployment contract addresses into `VITE_*` build variables. The docker-compose UI publisher services bind-mount `.env` and `ui/.env`, and `scripts/services.sh` creates empty files on clean checkouts so the mounts are safe.
+- Fake-data seeding now funds generated users with the mock payment ERC-20 as well as ETH. The `0xe450d38c` selector is `ERC20InsufficientBalance(address,uint256,uint256)`, so Pubstarter purchases were failing because random generated wallets had ETH but no payment tokens.
+
+Files changed: `scripts/publish-ui-to-ipfs.mjs`, `docker-compose.yml`, `scripts/services.sh`, `fake-data-generation/runSimulation.ts`.
+
+Validation: `bash -n scripts/services.sh`, `node --check scripts/publish-ui-to-ipfs.mjs`, `docker compose config --quiet`, and `npm run typecheck --workspace=fake-data-generation` passed. Live seeded browser verification still remains valuable: restart services, reseed, then confirm Browse Statements shows seeded statements from the current Beliefs address.
