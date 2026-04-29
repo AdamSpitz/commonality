@@ -1,22 +1,14 @@
-# TODO
-
-## Findings from a recent test run we did
-
-### Findings — Cross-cutting
-
-#### Code-level analysis findings (2026-04-28)
-
-**ARCHITECTURE NOTE: Statement discovery is event-driven via DirectSupport only.**
-There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers them by querying `DirectSupport` events from the Beliefs contract and extracting the statement CID from `topic2`. `browseStatements()` and `getAllStatements()` both do this. This means: (a) a statement only appears in the UI after at least one user believes/disbelieves it, (b) the seed data's 374 DirectSupport events *should* be enough to populate the Browse Statements page with seeded statements, (c) a fresh chain with no beliefs will show empty states even if statements exist on IPFS. This is by-design but worth confirming it feels right for the product.
-
-**PERFORMANCE: `browseStatements` fetches ALL DirectSupport events (limit 10,000).**
-`browseStatementsByMostSupporters` and `browseStatementsByNewest` both fetch up to 10,000 DirectSupport events and fold them in memory. This works for local dev and early testnet, but will degrade as the chain grows. The indexer's events-cache API doesn't support aggregation queries, so this is a fundamental limitation of the current architecture. Worth a TODO for eventual optimization.
-
-**FIXED 2026-04-28: `getIndirectSupporters` N+1 fetches.**
-`getIndirectSupporters` now fetches each unique source statement's DirectSupport events once, reuses those folded events across implications, and fetches target-statement direct beliefs once instead of per indirect supporter.
-
+# To Do
 
 ## Main list
+
+- (task kind: big-picture-thinking; skills: cofounder, interactive-assistant): Start a big high-level test of the whole project.
+
+  - **ARCHITECTURE NOTE: Statement discovery is event-driven via DirectSupport only.**
+There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers them by querying `DirectSupport` events from the Beliefs contract and extracting the statement CID from `topic2`. `browseStatements()` and `getAllStatements()` both do this. This means: (a) a statement only appears in the UI after at least one user believes/disbelieves it, (b) the seed data's 374 DirectSupport events *should* be enough to populate the Browse Statements page with seeded statements, (c) a fresh chain with no beliefs will show empty states even if statements exist on IPFS. This is by-design but worth confirming it feels right for the product.
+
+  - **PERFORMANCE: `browseStatements` fetches ALL DirectSupport events (limit 10,000).**
+`browseStatementsByMostSupporters` and `browseStatementsByNewest` both fetch up to 10,000 DirectSupport events and fold them in memory. This works for local dev and early testnet, but will degrade as the chain grows. The indexer's events-cache API doesn't support aggregation queries, so this is a fundamental limitation of the current architecture. Worth a TODO for eventual optimization.
 
 - Can we move some tests from higher levels to lower levels, to speed the overall suite?
 
@@ -44,8 +36,6 @@ There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers
 - Point an AI at the UI and tell it "go use this."
 - Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
 - We'll need a lot more AI underlings, with good documentation, following all the pathways, trying all the things.
-
-- Continue the [big test run before we deploy to testnet](./workflow/reviews/before-testnet.md). Steps 0–1 done; Step 2 structural review done (3 bugs fixed). Next: re-seed data and do a seeded-data pass of Commonality, then proceed to Steps 3–7.
 
 - Using `cofounder` skill: Are we ready to launch?
 
