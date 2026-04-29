@@ -72,7 +72,7 @@ Total: easily 10–20+ minutes. That's too slow for a feedback loop.
 
 **Fake-data seeding** has only 2 tests (added recently after issues were found). The seeder is complex and was generating broken IPFS metadata; more coverage here would pay off.
 
-**No smoke test for the deployed stack.** There's no quick "is everything up and the basic flows work?" script. A high-level LLM trying to do testnet validation has to discover the stack's health organically, which means discovering bugs rather than a checklist passing first.
+**No separate pre-testnet smoke script.** The full Playwright suite now serves as the automated pre-review check for core browser flows, including a shared fixture that fails on browser console errors/page errors. A high-level testnet-readiness review should run the full suite first rather than a separate smoke-only command.
 
 **E2E test count is thin.** 10 Playwright tests for the following flows: belief expression, browse statements, content funding flow, delegation flow, pubstarter flow, statement creation (two variants), subjectiv flow, user profile, and wallet connection. That's reasonable coverage of happy paths but there's almost nothing testing error states, empty states, or edge cases.
 
@@ -98,7 +98,7 @@ Total: easily 10–20+ minutes. That's too slow for a feedback loop.
 
 1. **Fix the known UI bugs** (creator names, leaderboard semantics) before any testnet reviewer pass. A reviewer hitting those issues on the first screen will lose confidence in the whole system.
 
-2. **Write a "pre-testnet smoke test" script** — a short Playwright or CLI script that starts the stack, runs through the 5–6 core flows (browse statements, create a statement/belief, browse projects, fund a project, delegation), and verifies no console errors and expected data appears. This is the "go/no-go" checkpoint before a human or LLM does a full review. ✅ Done: `npm run test:pre-testnet-smoke` runs the focused Playwright smoke spec and starts the platform API as part of the E2E stack.
+2. **Use the full test suite as the pre-testnet automated checkpoint.** The former focused smoke script was redundant with the broader E2E suite. Console-error/page-error detection now lives in a shared Playwright fixture, so every E2E test gets that check. Before a human or LLM readiness review, run `npm run test`.
 
 3. **Add at least a few negative-path E2E tests.** What happens if you try to fund with insufficient funds? What if you navigate to a nonexistent statement? ✅ Done: `ui/e2e/negative-paths.spec.ts` covers nonexistent statements, nonexistent projects, and blocking a delegatable-note purchase that exceeds the note balance.
 

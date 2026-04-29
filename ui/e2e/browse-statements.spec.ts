@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/console-errors'
 
 /**
  * E2E test for the Browse Statements page

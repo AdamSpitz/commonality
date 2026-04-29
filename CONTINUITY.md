@@ -1,18 +1,22 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-29 — Removed redundant pre-testnet smoke command
+
+Folded the only unique smoke-test behavior (browser console/page error failure) into a shared Playwright fixture at `ui/e2e/fixtures/console-errors.ts`. `ui/e2e/fixtures/wallet.ts` now extends that base fixture, and the lone non-wallet E2E spec imports it directly. Removed `ui/e2e/pre-testnet-smoke.spec.ts` and the smoke scripts from both package.json files. Updated E2E setup to start `platform-api-service` for the full Playwright suite, and updated `testing-review.md` to say the full suite is the pre-testnet automated checkpoint.
+
+Validation: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and `npx --workspace=ui playwright test --list` passed.
+
 ## 2026-04-29 — Added negative-path E2E coverage
 
 Completed `testing-review.md` Priority #3. Added `ui/e2e/negative-paths.spec.ts` with browser tests for a valid-but-unindexed statement CID, an unknown project address, and a blocked delegatable-note purchase when the requested token cost exceeds the selected note balance. Updated `testing-review.md` to mark the priority done.
 
 Validation: `npm run typecheck --workspace=ui` and `npm run test:e2e --workspace=ui -- e2e/negative-paths.spec.ts` passed. During development the first E2E run caught an invalid CID fixture and the second caught a brittle MUI combobox selector; both are fixed in the final test.
 
-## 2026-04-29 — Added pre-testnet smoke test
+## 2026-04-29 — Added pre-testnet smoke test (superseded)
 
-Completed `testing-review.md` Priority #2. Added `ui/e2e/pre-testnet-smoke.spec.ts` and top-level `npm run test:pre-testnet-smoke`; the smoke test starts the Docker-backed E2E stack, includes the platform API, then verifies core flows: browse statements, create/believe a statement, browse projects, fund a project, and delegation UI. It records browser console errors/page errors and fails if any appear.
+Historical note: this added a focused pre-testnet smoke spec and package command. That approach was later removed as redundant; the browser console/page-error check now lives in the shared Playwright fixture and the full suite is the pre-testnet automated checkpoint.
 
-Updated `ui/e2e/global-setup.ts` so smoke runs can opt into `platform-api-service` with `E2E_START_PLATFORM_API=true` and writes `VITE_PLATFORM_API_URL` only in that mode. This fixed the initial smoke failure where the browser logged `Error loading content-funding state: TypeError: Failed to fetch` because the platform API was not running.
-
-Validation: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and `npm run test:pre-testnet-smoke` passed.
+Historical note: `ui/e2e/global-setup.ts` was later changed to start `platform-api-service` for every full Playwright run, since browser console errors are now checked across the suite.
 
 ## 2026-04-29 — Started integration-test level audit
 

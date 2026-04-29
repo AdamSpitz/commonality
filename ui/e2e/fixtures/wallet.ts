@@ -1,4 +1,5 @@
-import { test as base, type Page } from '@playwright/test'
+import { test as base } from './console-errors'
+import type { Page } from '@playwright/test'
 import { privateKeyToAccount } from 'viem/accounts'
 import type { Address, Hex } from 'viem'
 import type { MockParameters } from 'wagmi/connectors'

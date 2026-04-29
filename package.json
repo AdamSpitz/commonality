@@ -42,7 +42,6 @@
     "ui:build:ipfs:domains": "turbo run build:ipfs:domains --filter=ui",
     "test": "npm run sdk:test && npm run hardhat:test && npm run integration-tests && npm run ui:test",
     "test:fast": "npm run sdk:test && npm run hardhat:test && npm run integration-tests:test:harness && npm run ui:test:vitest",
-    "test:pre-testnet-smoke": "npm run test:pre-testnet-smoke --workspace=ui",
     "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",
     "integration-tests": "./scripts/run-integration-tests.sh",
     "integration-tests:typecheck": "npm run --workspace=integration-tests typecheck",
