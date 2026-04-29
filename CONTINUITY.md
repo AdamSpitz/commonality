@@ -1,5 +1,11 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-29 — Fixed E2E console failures from optional channel metadata lookup
+
+Playwright HTML/test-results showed four otherwise-successful E2E tests failing because the shared console-error fixture captured Chromium "Failed to load resource" errors from background `POST http://localhost:3001/resolve/channel` calls. The platform API is healthy in E2E but has no real Twitter/YouTube credentials, so optional reverse channel metadata lookups returned 503 and polluted the browser console.
+
+Changed `ui/src/content-funding/hooks/useContentFundingState.ts` so platform channel metadata lookup is opt-in via `VITE_ENABLE_CHANNEL_METADATA_LOOKUP=true`; the UI still falls back to canonical IDs/IPFS metadata. Validation: `npm run test:e2e --workspace=ui` passed (25/25), and `npm run build --workspace=ui` passed with existing third-party Rollup warnings.
+
 ## 2026-04-29 — Improved creator/channel display names
 
 Completed the TODO item about content-funding creator/channel labels. `useContentFundingState()` now builds a `channelDisplayMetadata` map, preferring platform API `/resolve/channel` metadata for Twitter/YouTube canonical IDs and falling back to content-funding contract metadata from IPFS (notably the fake-data `creatorDisplayName`). Shared display logic in `ui/src/content-funding/channelDisplay.ts` renders human-friendly names/handles as primary labels and keeps canonical IDs as secondary technical details. Applied this across browse/detail/create/dashboard/content-funding project surfaces and funding-portal aligned-project cards. The platform API Twitter client now accepts `twitter:uid:<id>`/numeric user IDs so the UI can reverse-resolve Twitter canonical channel IDs through the existing resolver path.

@@ -2,7 +2,7 @@
 
 ## Main list
 
-- (task kind: big-picture-thinking; skills: cofounder, interactive-assistant): Do a big high-level test of the whole project. (See big-test.md.)
+- skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project.
 
 - Make sure the seed content gets into the fake universe simulation.
 

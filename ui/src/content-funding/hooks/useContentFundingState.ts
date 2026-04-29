@@ -24,6 +24,8 @@ export interface ContentAttestationInfo {
 }
 
 async function fetchPlatformChannelMetadata(canonicalId: string): Promise<ChannelDisplayMetadata | null> {
+  if (import.meta.env.VITE_ENABLE_CHANNEL_METADATA_LOOKUP !== 'true') return null
+
   let platform: string
   try {
     platform = parseCanonicalChannelId(canonicalId).platform
