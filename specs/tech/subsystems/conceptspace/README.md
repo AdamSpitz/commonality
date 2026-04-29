@@ -34,6 +34,21 @@ For the user-facing explanation of what Concept Space is and why it exists, see 
 
     - **Empty state messaging:** When there are zero high-profile signers, the UI should display an encouraging message that explains the feature and motivates users to recruit high-profile supporters. For example: "No high-profile supporters yet. If you can get someone with a lot of Twitter followers to sign this statement and link their account, they'll show up here!" This helps drive viral growth by making the benefit of recruiting high-profile signers explicit.
 
+## Specs in this directory
+
+- [statements.md](statements.md) — Statement data model (displayable documents, extras, no structured semantics)
+- [statement-discovery.md](statement-discovery.md) — How the system discovers statements (via `DirectSupport` events, not a `StatementCreated` event) and scalability plan
+- [statements-list.md](statements-list.md) — Saved statements list (users bookmarking statements via mutable refs)
+- [queries-and-actions.md](queries-and-actions.md) — Full list of user queries and actions the conceptspace system supports
+- [displayable-documents.md](displayable-documents.md) — Generic displayable document format used by statements
+- [hints.md](hints.md) — Nudger architecture for "you might also believe..." suggestions
+- [implication-attester-ai.md](implication-attester-ai.md) — AI implication attester design
+- [implication-attester-ai-prompt.md](implication-attester-ai-prompt.md) — Prompt used by the implication attester
+- [implication-discovery.md](implication-discovery.md) — How implication relationships are discovered and queried
+- [explorer.md](explorer.md) — AI explorer for navigating the concept space
+- [indexer.md](indexer.md) — Indexer design for caching events
+- [ui.md](ui.md) — UI pages and components
+
 ## Smart contracts
 
 See `hardhat/contracts/` for the actual contracts.

@@ -4,11 +4,7 @@
 
 - (task kind: big-picture-thinking; skills: cofounder, interactive-assistant): Do a big high-level test of the whole project. (See big-test.md.)
 
-  - **ARCHITECTURE NOTE: Statement discovery is event-driven via DirectSupport only.**
-There is no `StatementCreated` event. Statements live on IPFS; the SDK discovers them by querying `DirectSupport` events from the Beliefs contract and extracting the statement CID from `topic2`. `browseStatements()` and `getAllStatements()` both do this. This means: (a) a statement only appears in the UI after at least one user believes/disbelieves it, (b) the seed data's 374 DirectSupport events *should* be enough to populate the Browse Statements page with seeded statements, (c) a fresh chain with no beliefs will show empty states even if statements exist on IPFS. This is by-design but worth confirming it feels right for the product.
-
-  - **PERFORMANCE: `browseStatements` fetches ALL DirectSupport events (limit 10,000).**
-`browseStatementsByMostSupporters` and `browseStatementsByNewest` both fetch up to 10,000 DirectSupport events and fold them in memory. This works for local dev and early testnet, but will degrade as the chain grows. The indexer's events-cache API doesn't support aggregation queries, so this is a fundamental limitation of the current architecture. Worth a TODO for eventual optimization.
+  - Statement discovery design and scalability plan are documented in [specs/tech/subsystems/conceptspace/statement-discovery.md](specs/tech/subsystems/conceptspace/statement-discovery.md).
 
 - Can we move some tests from higher levels to lower levels, to speed the overall suite?
 
