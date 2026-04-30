@@ -158,6 +158,8 @@ HUMAN'S NOTE: Right, interesting point. Because we're doing deployment to IPFS r
 
 AFTER TALKING ABOUT IT: Plan: stop baking env vars into JS at build time. Instead, at app startup, fetch a `./config.json` from a relative path. Build the JS once (env-var-free), then publish three separate IPFS directories (local, testnet, mainnet) each containing the same JS assets plus a different `config.json`. IPFS content-addressing means shared asset files are stored once and referenced by all three bundles. Requires a small async-before-render change to app startup code.
 
+DONE: Implemented runtime `config.json` loading before React render. The Vite build now emits `dist/<domain>/config.json`, and SDK machinery / Pubstarter cache reads `VITE_EVENT_CACHE_URL` (plus related URLs/contract addresses) from the loaded runtime config instead of directly from `import.meta.env`. IPFS mode treats config-load failures as startup errors so a published bundle does not silently fall back to a baked localhost URL.
+
 
 ---
 

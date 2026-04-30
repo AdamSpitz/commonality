@@ -1,0 +1,99 @@
+export type UiRuntimeConfig = Partial<Record<RuntimeConfigKey, string>> & {
+  COMMONALITY_ENVIRONMENT?: 'local' | 'testnet' | 'mainnet'
+}
+
+type RuntimeConfigKey =
+  | 'VITE_GRAPHQL_URL'
+  | 'VITE_EVENT_CACHE_URL'
+  | 'VITE_IPFS_GATEWAY'
+  | 'VITE_IPFS_API'
+  | 'VITE_PLATFORM_API_URL'
+  | 'VITE_MAINNET_RPC_URL'
+  | 'VITE_ETH_RPC_URL'
+  | 'VITE_BELIEFS_CONTRACT_ADDRESS'
+  | 'VITE_IMPLICATIONS_CONTRACT_ADDRESS'
+  | 'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS'
+  | 'VITE_ERC1155_FACTORY_ADDRESS'
+  | 'VITE_MARKETPLACE_FACTORY_ADDRESS'
+  | 'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS'
+  | 'VITE_NOTE_INTENT_CONTRACT_ADDRESS'
+  | 'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS'
+  | 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS'
+  | 'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS'
+  | 'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'
+  | 'VITE_CONTENT_REGISTRY_ADDRESS'
+  | 'VITE_CHANNEL_REGISTRY_ADDRESS'
+  | 'VITE_CHANNEL_ESCROW_ADDRESS'
+  | 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS'
+  | 'VITE_PUBSTARTER_CONTRACT_ADDRESS'
+  | 'VITE_PAYMENT_TOKEN_ADDRESS'
+  | 'VITE_DEFAULT_TRUSTED_ATTESTERS'
+  | 'VITE_DEFAULT_NUDGERS'
+
+const buildTimeConfig: UiRuntimeConfig = {
+  VITE_GRAPHQL_URL: import.meta.env.VITE_GRAPHQL_URL,
+  VITE_IPFS_GATEWAY: import.meta.env.VITE_IPFS_GATEWAY,
+  VITE_IPFS_API: import.meta.env.VITE_IPFS_API,
+  VITE_PLATFORM_API_URL: import.meta.env.VITE_PLATFORM_API_URL,
+  VITE_MAINNET_RPC_URL: import.meta.env.VITE_MAINNET_RPC_URL,
+  VITE_ETH_RPC_URL: import.meta.env.VITE_ETH_RPC_URL,
+  VITE_BELIEFS_CONTRACT_ADDRESS: import.meta.env.VITE_BELIEFS_CONTRACT_ADDRESS,
+  VITE_IMPLICATIONS_CONTRACT_ADDRESS: import.meta.env.VITE_IMPLICATIONS_CONTRACT_ADDRESS,
+  VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: import.meta.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS,
+  VITE_ERC1155_FACTORY_ADDRESS: import.meta.env.VITE_ERC1155_FACTORY_ADDRESS,
+  VITE_MARKETPLACE_FACTORY_ADDRESS: import.meta.env.VITE_MARKETPLACE_FACTORY_ADDRESS,
+  VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS: import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS,
+  VITE_NOTE_INTENT_CONTRACT_ADDRESS: import.meta.env.VITE_NOTE_INTENT_CONTRACT_ADDRESS,
+  VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: import.meta.env.VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS,
+  VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS: import.meta.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS,
+  VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: import.meta.env.VITE_TRUST_REGISTRY_CONTRACT_ADDRESS,
+  VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: import.meta.env.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS,
+  VITE_CONTENT_REGISTRY_ADDRESS: import.meta.env.VITE_CONTENT_REGISTRY_ADDRESS,
+  VITE_CHANNEL_REGISTRY_ADDRESS: import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS,
+  VITE_CHANNEL_ESCROW_ADDRESS: import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS,
+  VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: import.meta.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS,
+  VITE_PUBSTARTER_CONTRACT_ADDRESS: import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS,
+  VITE_PAYMENT_TOKEN_ADDRESS: import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS,
+  VITE_DEFAULT_TRUSTED_ATTESTERS: import.meta.env.VITE_DEFAULT_TRUSTED_ATTESTERS,
+  VITE_DEFAULT_NUDGERS: import.meta.env.VITE_DEFAULT_NUDGERS,
+}
+
+let runtimeConfig: UiRuntimeConfig = stripEmptyValues(buildTimeConfig)
+
+export async function loadRuntimeConfig(url = './config.json'): Promise<UiRuntimeConfig> {
+  try {
+    const response = await fetch(url, { cache: 'no-store' })
+    if (response.status === 404) {
+      return runtimeConfig
+    }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const loadedConfig = await response.json() as UiRuntimeConfig
+    runtimeConfig = {
+      ...runtimeConfig,
+      ...stripEmptyValues(loadedConfig),
+    }
+    return runtimeConfig
+  } catch (error) {
+    if (import.meta.env.MODE === 'ipfs') {
+      throw new Error(`Failed to load UI runtime config from ${url}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+    return runtimeConfig
+  }
+}
+
+export function getRuntimeConfig(): UiRuntimeConfig {
+  return runtimeConfig
+}
+
+export function getRuntimeConfigValue(key: RuntimeConfigKey): string | undefined {
+  return runtimeConfig[key]
+}
+
+function stripEmptyValues(config: UiRuntimeConfig): UiRuntimeConfig {
+  return Object.fromEntries(
+    Object.entries(config).filter(([, value]) => value !== undefined && value !== ''),
+  ) as UiRuntimeConfig
+}

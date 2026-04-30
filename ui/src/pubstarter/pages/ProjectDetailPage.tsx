@@ -37,6 +37,7 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useCachedProject } from '../../shared/hooks/useCachedProject'
 import { AlignmentAttestationsSection } from '../../fundingportal/components'
 import { ContentFundingProjectSection } from '../../content-funding/components/ContentFundingProjectSection'
+import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
 
 type ProjectMetadata = { name?: string; description?: string; tokens?: Record<string, string> }
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
@@ -45,9 +46,9 @@ export function ProjectDetailPage() {
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const { address, isConnected } = useAccount()
   const cacheOptions = useMemo(() => ({
-    eventCacheUrl: import.meta.env.VITE_EVENT_CACHE_URL ?? '',
+    eventCacheUrl: getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? '',
     contractAddresses: {
-      assuranceContractFactory: (import.meta.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS ??
+      assuranceContractFactory: (getRuntimeConfigValue('VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS') ??
         ZERO_ADDRESS) as `0x${string}`,
     },
     foldType: 'project' as const,

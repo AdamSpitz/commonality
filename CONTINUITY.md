@@ -1,5 +1,11 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-30 — Implemented IPFS runtime UI config for before-testnet Finding 3
+
+The UI now loads `./config.json` before rendering React (`ui/src/main.tsx`, `ui/src/shared/runtimeConfig.ts`). Vite emits `dist/<domain>/config.json` with the deployment config values, and IPFS mode fails startup if the config cannot be loaded instead of silently using a baked localhost URL. `useMachinery`, Browse Projects, and Project Detail now read the event-cache URL (plus related machinery URLs/contract addresses) through runtime config, which removes the immediate `VITE_EVENT_CACHE_URL` testnet blocker. `ui/README.md` and `workflow/reviews/before-testnet.md` were updated.
+
+Validation: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, `npm run build --workspace=ui`, `npm run build:ipfs --workspace=ui`, and `npm run test:vitest --workspace=ui` all passed. Build still emits existing third-party Rollup annotation and large-chunk warnings.
+
 ## 2026-04-29 — Fixed E2E console failures from optional channel metadata lookup
 
 Playwright HTML/test-results showed four otherwise-successful E2E tests failing because the shared console-error fixture captured Chromium "Failed to load resource" errors from background `POST http://localhost:3001/resolve/channel` calls. The platform API is healthy in E2E but has no real Twitter/YouTube credentials, so optional reverse channel metadata lookups returned 503 and polluted the browser console.

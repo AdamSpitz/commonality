@@ -24,6 +24,7 @@ import {
 import { useCachedProjects } from '../../shared/hooks/useCachedProjects'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
+import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 
@@ -46,9 +47,9 @@ export function BrowseProjectsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const { field, direction } = SORT_MAP[sortBy]
   const cacheOptions = useMemo(() => ({
-    eventCacheUrl: import.meta.env.VITE_EVENT_CACHE_URL ?? '',
+    eventCacheUrl: getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? '',
     contractAddresses: {
-      assuranceContractFactory: (import.meta.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS ??
+      assuranceContractFactory: (getRuntimeConfigValue('VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS') ??
         ZERO_ADDRESS) as `0x${string}`,
     },
     foldType: 'project' as const,
@@ -69,7 +70,7 @@ export function BrowseProjectsPage() {
 
   useEffect(() => {
     const loadMetadata = async () => {
-      const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
+      const ipfsConfig = { gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY') }
       const metadataEntries = await Promise.all(
         cachedProjects
           .filter(p => p.metadataCid)

@@ -11,6 +11,7 @@ import {
 } from './wagmi'
 import './index.css'
 import App from './App.tsx'
+import { loadRuntimeConfig } from './shared/runtimeConfig'
 
 const queryClient = new QueryClient()
 
@@ -82,8 +83,13 @@ export function Root() {
   )
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Root />
-  </StrictMode>,
-)
+loadRuntimeConfig().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <Root />
+    </StrictMode>,
+  )
+}).catch(error => {
+  const message = error instanceof Error ? error.message : String(error)
+  document.getElementById('root')!.textContent = message
+})

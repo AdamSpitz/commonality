@@ -22,7 +22,7 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
     npm run build:ipfs
     npm run build:ipfs:domains
 
-`npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path.
+`npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path. The build also emits `dist/<domain>/config.json`; the app loads this file from the same IPFS directory before rendering, so deployers can publish separate local/testnet/mainnet IPFS directories with the same JS assets and different runtime URLs/contract addresses (notably `VITE_EVENT_CACHE_URL`).
 
 ## Wallet onboarding
 
