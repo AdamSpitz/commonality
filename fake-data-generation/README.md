@@ -33,10 +33,11 @@ npm install
 npm run gen:simulate
 
 # Or with custom parameters
-npm run gen:tiny   # 5 users, 1 round, 12 statements, capped actions, no invariant pass
-npm run gen:small  # 10 users, 3 rounds
-npm run gen:medium # 50 users, 5 rounds
-npm run gen:large  # 100 users, 10 rounds
+npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
+npm run gen:small       # 10 users, 3 rounds
+npm run gen:seed:local  # 10 users, 3 rounds, formal seed content, Explorer/nudge fixtures
+npm run gen:medium      # 50 users, 5 rounds
+npm run gen:large       # 100 users, 10 rounds
 ```
 
 ### Generate data separately:

@@ -28,6 +28,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   DelegatableNotes: { artifactPath: "delegation/DelegatableNotes.sol/DelegatableNotes.json", outputFile: "DelegatableNotesAbi.ts" },
   NoteIntent: { artifactPath: "delegation/NoteIntent.sol/NoteIntent.json", outputFile: "NoteIntentAbi.ts" },
   MutableRefUpdater: { artifactPath: "utils/MutableRefUpdater.sol/MutableRefUpdater.json", outputFile: "MutableRefUpdaterAbi.ts" },
+  NudgePublications: { artifactPath: "nudger/NudgePublications.sol/NudgePublications.json", outputFile: "NudgePublicationsAbi.ts" },
   PremintingERC1155: { artifactPath: "utils/PremintingERC1155.sol/PremintingERC1155.json", outputFile: "PremintingERC1155Abi.ts" },
   // MultiERC1155AssuranceContract combines AssuranceContract + ERC1155PrimaryMarket + ContractMetadata events
   MultiERC1155AssuranceContract: { artifactPath: "individual-projects/AssuranceContracts.sol/MultiERC1155AssuranceContract.json", outputFile: "AssuranceContractAbi.ts" },

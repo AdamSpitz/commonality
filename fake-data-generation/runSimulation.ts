@@ -27,6 +27,8 @@ import {
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
   toSubjectId,
   PROJECT_ALIGNMENT_TOPIC,
+  NudgePublicationsAbi,
+  uploadToIPFS,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
@@ -188,6 +190,7 @@ const __dirname = dirname(__filename);
 interface SimulationRunnerOptions {
   statementLimit?: number;
   maxActionsPerUserPerRound?: number;
+  universePath?: string;
 }
 
 class SimulationRunner {
@@ -263,6 +266,9 @@ class SimulationRunner {
     // Generate or load statements
     console.log('\nGenerating statements...');
     try {
+      if (this.options.universePath) {
+        throw new Error('Regenerating statements from explicit universe path');
+      }
       const stmtsPath = join(__dirname, 'data', 'statements.json');
       const data = await fs.readFile(stmtsPath, 'utf-8');
       this.statements = JSON.parse(data) as Statement[];
@@ -272,7 +278,10 @@ class SimulationRunner {
         console.log(`Using first ${this.statements.length} statements for this run`);
       }
     } catch {
-      this.statements = await generateStatements(ipfsConfig, { limit: this.options.statementLimit });
+      this.statements = await generateStatements(ipfsConfig, {
+        limit: this.options.statementLimit,
+        universePath: this.options.universePath,
+      });
     }
 
     // Upload statements to IPFS
@@ -980,6 +989,104 @@ class SimulationRunner {
   }
 }
 
+async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<void> {
+  const nudgePublicationsAddress = process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined;
+  if (!nudgePublicationsAddress) {
+    console.warn('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS not configured — skipping seed worker-output publications.');
+    return;
+  }
+
+  const statementsWithCids = simulation.statements.filter((statement) => statement.cid !== undefined);
+  if (statementsWithCids.length === 0) {
+    console.warn('No statements with CIDs available — skipping seed worker-output publications.');
+    return;
+  }
+
+  console.log('\n=== Publishing seed worker outputs ===\n');
+
+  const nudgerPrivateKey = HARDHAT_PRIVATE_KEYS[0];
+  const clients = createTestClients(nudgerPrivateKey, RPC_URL);
+  const nudger = clients.account;
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const publishedAt = Math.floor(Date.now() / 1000);
+
+  const curatedEntries = statementsWithCids
+    .filter((statement) => statement.statementType === 'simple')
+    .slice(0, 40)
+    .map((statement) => ({
+      cid: statement.cid!,
+      label: statement.content.text.length > 72
+        ? `${statement.content.text.slice(0, 69)}...`
+        : statement.content.text,
+      topicArea: statement.domain,
+    }));
+
+  if (!simulation.contracts.beliefs) {
+    throw new Error('Beliefs contract is required to publish seed worker outputs');
+  }
+  for (const entry of curatedEntries) {
+    await believeStatement(clients, simulation.contracts.beliefs, entry.cid);
+  }
+  console.log(`Seed nudger signed ${curatedEntries.length} curated Explorer statements.`);
+
+  const collection = {
+    kind: 'curated-collection',
+    schemaVersion: 1,
+    nudger,
+    publishedAt,
+    stream: 'fundable-project-explorer',
+    entries: curatedEntries,
+  };
+  const collectionCid = await uploadToIPFS(ipfsConfig, collection);
+  const collectionHash = await clients.walletClient.writeContract({
+    address: nudgePublicationsAddress,
+    abi: NudgePublicationsAbi,
+    functionName: 'publishNudgeBatch',
+    args: [cidToBytes32(collectionCid)],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash: collectionHash });
+  console.log(`Published explorer collection (${curatedEntries.length} entries): ${collectionCid}`);
+
+  const nudges = statementsWithCids.slice(0, 25).flatMap((statement, index, all) => {
+    const suggested = all.find((candidate, candidateIndex) =>
+      candidateIndex !== index && candidate.domain === statement.domain && candidate.cid !== statement.cid
+    );
+    if (!suggested) return [];
+    return [{
+      targetStatementCid: statement.cid!,
+      suggestedStatementCid: suggested.cid!,
+      reason: `Seeded local-dev suggestion: another statement in ${statement.domain}.`,
+      confidence: 0.6,
+    }];
+  });
+
+  if (nudges.length > 0) {
+    const nudgeBatch = {
+      kind: 'nudge-batch',
+      schemaVersion: 1,
+      nudger,
+      publishedAt,
+      nudges,
+      revocations: [],
+    };
+    const batchCid = await uploadToIPFS(ipfsConfig, nudgeBatch);
+    const batchHash = await clients.walletClient.writeContract({
+      address: nudgePublicationsAddress,
+      abi: NudgePublicationsAbi,
+      functionName: 'publishNudgeBatch',
+      args: [cidToBytes32(batchCid)],
+      chain: clients.walletClient.chain,
+      account: clients.walletClient.account!,
+    });
+    await clients.publicClient.waitForTransactionReceipt({ hash: batchHash });
+    console.log(`Published nudge batch (${nudges.length} nudges): ${batchCid}`);
+  }
+
+  console.log(`Seed worker outputs published by trusted local nudger ${nudger}.`);
+}
+
 // Main execution
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -992,15 +1099,22 @@ async function main(): Promise<void> {
   const useHardhatAccounts = args.includes('--use-hardhat-accounts');
   const statementLimitArg = args.find(a => a.startsWith('--statement-limit='));
   const maxActionsArg = args.find(a => a.startsWith('--max-actions-per-user='));
+  const universeArg = args.find(a => a.startsWith('--universe='));
+  const publishSeedWorkerOutputsFlag = args.includes('--publish-seed-worker-outputs');
   const statementLimit = statementLimitArg ? parseInt(statementLimitArg.split('=')[1]) : undefined;
   const maxActionsPerUserPerRound = maxActionsArg ? parseInt(maxActionsArg.split('=')[1]) : undefined;
+  const universePath = universeArg ? universeArg.split('=')[1] : undefined;
 
-  const simulation = new SimulationRunner({ statementLimit, maxActionsPerUserPerRound });
+  const simulation = new SimulationRunner({ statementLimit, maxActionsPerUserPerRound, universePath });
   simulation.usePreGeneratedAttestations = usePreGenerated;
   simulation.useHardhatAccounts = useHardhatAccounts;
 
   await simulation.initialize(numUsers);
   await simulation.runSimulation(numRounds);
+
+  if (publishSeedWorkerOutputsFlag) {
+    await publishSeedWorkerOutputs(simulation);
+  }
 
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {

@@ -62,6 +62,9 @@ register("AlignmentAttestations:AlignmentAttestation");
 // MUTABLE REFS
 register("MutableRefUpdater:RefUpdated");
 
+// NUDGER PUBLICATIONS
+register("NudgePublications:NudgesPublished");
+
 // CONTENT FUNDING
 register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");

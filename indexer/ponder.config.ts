@@ -25,6 +25,9 @@ import { AlignmentAttestationsAbi } from "./abis/AlignmentAttestationsAbi";
 // Mutable Refs ABIs
 import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
 
+// Nudger publication ABIs
+import { NudgePublicationsAbi } from "./abis/NudgePublicationsAbi";
+
 // Content Funding ABIs
 import { ContentRegistryAbi } from "./abis/ContentRegistryAbi";
 import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
@@ -95,6 +98,11 @@ const ALIGNMENT_ATTESTATIONS_ADDRESS = (process.env.ALIGNMENT_ATTESTATIONS_ADDRE
 // MUTABLE REFS CONTRACT ADDRESSES
 // ============================================================================
 const MUTABLE_REF_UPDATER_ADDRESS = (process.env.MUTABLE_REF_UPDATER_ADDRESS && process.env.MUTABLE_REF_UPDATER_ADDRESS !== '') ? process.env.MUTABLE_REF_UPDATER_ADDRESS as `0x${string}` : undefined;
+
+// ============================================================================
+// NUDGER CONTRACT ADDRESSES
+// ============================================================================
+const NUDGE_PUBLICATIONS_ADDRESS = (process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS && process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS !== '') ? process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
 // CONTENT FUNDING CONTRACT ADDRESSES
@@ -252,6 +260,17 @@ const contracts = {
     abi: MutableRefUpdaterAbi,
     chain: INDEXER_CHAIN,
     address: MUTABLE_REF_UPDATER_ADDRESS,
+    startBlock: START_BLOCK,
+  },
+
+  // ========================================================================
+  // NUDGER INDEXER CONTRACTS
+  // ========================================================================
+
+  NudgePublications: {
+    abi: NudgePublicationsAbi,
+    chain: INDEXER_CHAIN,
+    address: NUDGE_PUBLICATIONS_ADDRESS,
     startBlock: START_BLOCK,
   },
 

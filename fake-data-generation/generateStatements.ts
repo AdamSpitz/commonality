@@ -40,10 +40,11 @@ export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: Sta
 
 interface GenerateStatementsOptions {
   limit?: number;
+  universePath?: string;
 }
 
 async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateStatementsOptions = {}): Promise<Statement[]> {
-  const universePath = join(__dirname, 'universe.json');
+  const universePath = options.universePath ?? join(__dirname, 'universe.json');
   const universe = JSON.parse(await fs.readFile(universePath, 'utf-8')) as {
     domains: Record<string, unknown>;
     statementTemplates: Record<string, Record<string, string[]>>;

@@ -14,6 +14,8 @@ import { join } from 'path';
 
 const { ethers } = hre;
 
+const LOCAL_SEED_NUDGER_ADDRESS = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+
 function getRepoRoot() {
   return process.env.COMMONALITY_ROOT_DIR || join(process.cwd(), '..');
 }
@@ -31,6 +33,27 @@ function parseEnvFile(content) {
     result[trimmed.slice(0, idx)] = trimmed.slice(idx + 1);
   }
   return result;
+}
+
+function updateEnvString(content, key, value) {
+  const regex = new RegExp(`^${key}=.*$`, 'm');
+  if (regex.test(content)) {
+    return content.replace(regex, `${key}=${value}`);
+  }
+  return content + `\n${key}=${value}`;
+}
+
+async function updateEnvFile(filePath, entries) {
+  let content = '';
+  try {
+    content = await fs.readFile(filePath, 'utf-8');
+  } catch {
+    // Create below.
+  }
+  for (const [key, value] of Object.entries(entries)) {
+    content = updateEnvString(content, key, value);
+  }
+  await fs.writeFile(filePath, content);
 }
 
 /**
@@ -79,6 +102,12 @@ async function main() {
       ];
       const checks = await Promise.all(addressKeys.map(k => hasCode(existing[k])));
       if (checks.every(Boolean)) {
+        await updateEnvFile(join(rootDir, 'ui', '.env'), {
+          VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS,
+        });
+        await updateEnvFile(join(rootDir, '.env'), {
+          LOCAL_SEED_NUDGER_ADDRESS,
+        });
         console.log('Contracts already deployed on-chain — skipping redeployment.');
         console.log(`(addresses from ${networkEnvPath})\n`);
         process.exit(0);
@@ -378,6 +407,7 @@ async function main() {
     rootEnvContent = updateEnv(rootEnvContent, 'EVENT_CACHE_URL', 'http://localhost:42069');
     // Hardhat account #0 private key — matches the deployer/trustedVerifier for local dev.
     rootEnvContent = updateEnv(rootEnvContent, 'VERIFIER_PRIVATE_KEY', '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80');
+    rootEnvContent = updateEnv(rootEnvContent, 'LOCAL_SEED_NUDGER_ADDRESS', LOCAL_SEED_NUDGER_ADDRESS);
   }
   await fs.writeFile(rootEnvPath, rootEnvContent);
   console.log('  ✓ Updated .env');
@@ -416,6 +446,7 @@ async function main() {
   if (isLocal) {
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_IPFS_GATEWAY', 'http://localhost:8080/ipfs');
+    uiEnvContent = updateEnv(uiEnvContent, 'VITE_DEFAULT_NUDGERS', LOCAL_SEED_NUDGER_ADDRESS);
   }
   await fs.writeFile(uiEnvPath, uiEnvContent);
   console.log('  ✓ Updated ui/.env');

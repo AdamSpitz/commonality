@@ -18,6 +18,7 @@
     "gen:simulate": "tsx runSimulation.ts",
     "gen:tiny": "tsx runSimulation.ts 5 1 --statement-limit=12 --max-actions-per-user=2 --skip-invariants",
     "gen:small": "tsx runSimulation.ts 10 3",
+    "gen:seed:local": "npm run gen:seed:universe -- --exclude-proliferation && tsx runSimulation.ts 10 3 --universe=output/seed-universe.json --publish-seed-worker-outputs",
     "gen:medium": "tsx runSimulation.ts 50 5",
     "gen:large": "tsx runSimulation.ts 100 10",
     "gen:clean": "rm -f data/users.json data/statements.json output/actions.json output/metrics.json",

@@ -2,27 +2,31 @@ import fs from 'fs/promises';
 import path from 'path';
 import { buildUniverseFromSeedCollections, DEFAULT_SEED_UNIVERSE_OUTPUT, loadSeedCollections } from './seed-content-format.js';
 
-function parseArgs(args: string[]): { outputPath: string } {
+function parseArgs(args: string[]): { outputPath: string; excludeProliferation: boolean } {
+  const excludeProliferation = args.includes('--exclude-proliferation');
   const outputIndex = args.findIndex((arg) => arg === '--output');
   if (outputIndex >= 0) {
     const outputPath = args[outputIndex + 1];
     if (!outputPath) {
       throw new Error('Missing value after --output');
     }
-    return { outputPath };
+    return { outputPath, excludeProliferation };
   }
 
   const inlineOutput = args.find((arg) => arg.startsWith('--output='));
   if (inlineOutput) {
-    return { outputPath: inlineOutput.slice('--output='.length) };
+    return { outputPath: inlineOutput.slice('--output='.length), excludeProliferation };
   }
 
-  return { outputPath: DEFAULT_SEED_UNIVERSE_OUTPUT };
+  return { outputPath: DEFAULT_SEED_UNIVERSE_OUTPUT, excludeProliferation };
 }
 
 async function main(): Promise<void> {
-  const { outputPath } = parseArgs(process.argv.slice(2));
-  const collections = await loadSeedCollections();
+  const { outputPath, excludeProliferation } = parseArgs(process.argv.slice(2));
+  const allCollections = await loadSeedCollections();
+  const collections = excludeProliferation
+    ? allCollections.filter((collection) => collection.id !== 'proliferation')
+    : allCollections;
   const universe = buildUniverseFromSeedCollections(collections);
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
