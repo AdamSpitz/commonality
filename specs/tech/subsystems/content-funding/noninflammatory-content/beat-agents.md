@@ -5,6 +5,14 @@ A stateful counterpart to the stateless [content attester](../content-attesters.
 This spec covers what beat agents are, why they're needed, and how they relate to the existing attester architecture. The concrete mechanics (payment, registration, on-chain output) reuse the patterns from [content-attesters.md](../content-attesters.md) except where noted.
 
 
+## Original rambling thoughts
+
+(You can delete this if its substance is already incorporated into the rest of the file.)
+
+A thought about the noninflammatory-content attesters/finders: context is going to be super-important. Like, it's hard to evaluate a tweet (especially a very short one) without context and determine that it's noninflammatory; it could be sarcastic or making a snarky reference or whatever. So, okay, the attester shouldn't deem something noninflammatory without enough context (that's the solution we went with for the implication attester)... but social-media posts aren't like conceptspace statements, it'd be inappropriate for us to say "please rewrite your tweet". And I don't think it'll work well to say "you have to submit the context along with your post"; too much work for the user but also can be gamed. I think the right solution here is to have the attesters/finders be actively following "the conversation" in the broader sense. Like... just think of the bot as a human who's following this area of the twittersphere, and he just happens to have either (for the attester) an API where you can ask him what he thinks of some particular tweet (which maybe he's read or maybe he hasn't, but at least he's been following the general conversation in that area, so that he can then go read the tweet and any local context that seems relevant, like the tweet being replied to or whatever, and then he can either evaluate it properly or say "sorry, I haven't been following this area enough, so I can't evaluate it properly"). Or for the finder, he's an autonomous agent who's following the conversation and then noticing good posts and calling the attester's API and passing in those ones. The point is that we need much wider context and we should get it by simply following "the conversation" like a human would. Which will probably mean that we need multiple different ones, each for different areas... but that strikes me as "yes, of course, obviously that's the right shape for the solution that we need to this problem."
+
+
+
 ## Motivation
 
 The existing content attester is stateless: content goes in, decision comes out. That works well for long-form articles, where the piece itself contains enough context to evaluate.
