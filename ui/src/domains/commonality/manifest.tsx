@@ -1,52 +1,35 @@
 import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
+import { lazyRoute } from '../lazyRoute'
 import { CommonalityLandingPage } from './LandingPage'
-import { HomePage } from '../../conceptspace/pages/HomePage'
-import { BrowseStatementsPage } from '../../conceptspace/pages/BrowseStatementsPage'
-import { StatementPage } from '../../conceptspace/pages/StatementPage'
-import { UserProfilePage } from '../../conceptspace/pages/UserProfilePage'
-import { SettingsPage } from '../../conceptspace/pages/SettingsPage'
-import { ExplorerPage } from '../../conceptspace/pages/ExplorerPage'
-import { BrowseProjectsPage } from '../../pubstarter/pages/BrowseProjectsPage'
-import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
-import { CreateProjectPage } from '../../pubstarter/pages/CreateProjectPage'
-import { MyNotesPage, NoteDetailPage, DepositPage } from '../../delegation/pages'
-import { StatementFundingPortalPage, CauseLeaderboardPage } from '../../fundingportal/pages'
-import { MyRefsPage } from '../../mutablerefs'
-import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
-import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
-import { ChannelPage } from '../../content-funding/pages/ChannelPage'
-import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
-import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
-import { DocsPage } from '../../docs/DocsPage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<CommonalityLandingPage />} />
-    <Route path="/start" element={<HomePage />} />
-    <Route path="/explore" element={<ExplorerPage />} />
-    <Route path="/statements" element={<BrowseStatementsPage />} />
-    <Route path="/statement/:statementCid" element={<StatementPage />} />
-    <Route path="/profile" element={<UserProfilePage />} />
-    <Route path="/user/:address" element={<UserProfilePage />} />
-    <Route path="/settings" element={<SettingsPage />} />
-    <Route path="/projects" element={<BrowseProjectsPage />} />
-    <Route path="/projects/new" element={<CreateProjectPage />} />
-    <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
-    <Route path="/notes" element={<MyNotesPage />} />
-    <Route path="/notes/new" element={<DepositPage />} />
-    <Route path="/notes/:noteId" element={<NoteDetailPage />} />
-    <Route path="/portal/:statementCid" element={<StatementFundingPortalPage />} />
-    <Route path="/portal/:statementCid/leaderboard" element={<CauseLeaderboardPage />} />
-    <Route path="/refs" element={<MyRefsPage />} />
-    <Route path="/content" element={<CreatorsLandingPage />} />
-    <Route path="/content/:platform" element={<BrowseCreatorsPage />} />
-    <Route path="/content/:platform/:channelId" element={<ChannelPage />} />
-    <Route path="/content/:platform/:channelId/new" element={<CreateContractPage />} />
-    <Route path="/content/dashboard" element={<CreatorDashboardPage />} />
-    <Route path="/docs" element={<DocsPage />} />
-    <Route path="/docs/*" element={<DocsPage />} />
+    <Route path="/start" element={lazyRoute(() => import('../../conceptspace/pages/HomePage'), 'HomePage')} />
+    <Route path="/explore" element={lazyRoute(() => import('../../conceptspace/pages/ExplorerPage'), 'ExplorerPage')} />
+    <Route path="/statements" element={lazyRoute(() => import('../../conceptspace/pages/BrowseStatementsPage'), 'BrowseStatementsPage')} />
+    <Route path="/statement/:statementCid" element={lazyRoute(() => import('../../conceptspace/pages/StatementPage'), 'StatementPage')} />
+    <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/settings" element={lazyRoute(() => import('../../conceptspace/pages/SettingsPage'), 'SettingsPage')} />
+    <Route path="/projects" element={lazyRoute(() => import('../../pubstarter/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
+    <Route path="/projects/new" element={lazyRoute(() => import('../../pubstarter/pages/CreateProjectPage'), 'CreateProjectPage')} />
+    <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../pubstarter/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
+    <Route path="/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
+    <Route path="/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
+    <Route path="/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
+    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
+    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
+    <Route path="/refs" element={lazyRoute(() => import('../../mutablerefs'), 'MyRefsPage')} />
+    <Route path="/content" element={lazyRoute(() => import('../../content-funding/pages/CreatorsLandingPage'), 'CreatorsLandingPage')} />
+    <Route path="/content/:platform" element={lazyRoute(() => import('../../content-funding/pages/BrowseCreatorsPage'), 'BrowseCreatorsPage')} />
+    <Route path="/content/:platform/:channelId" element={lazyRoute(() => import('../../content-funding/pages/ChannelPage'), 'ChannelPage')} />
+    <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('../../content-funding/pages/CreateContractPage'), 'CreateContractPage')} />
+    <Route path="/content/dashboard" element={lazyRoute(() => import('../../content-funding/pages/CreatorDashboardPage'), 'CreatorDashboardPage')} />
+    <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
 )
 

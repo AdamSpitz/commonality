@@ -1,34 +1,23 @@
 import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
+import { lazyRoute } from '../lazyRoute'
 import { NoninflammatoryLandingPage } from './LandingPage'
-import {
-  NoninflammatoryAboutPage,
-  NoninflammatoryBrowsePage,
-  NoninflammatoryChannelPage,
-  NoninflammatoryContractPage,
-  NoninflammatoryCreateContractPage,
-  NoninflammatoryCreatorDashboardPage,
-  NoninflammatoryCreatorsPage,
-} from './ContentPages'
-import { BrowseStatementsPage } from '../../conceptspace/pages/BrowseStatementsPage'
-import { StatementPage } from '../../conceptspace/pages/StatementPage'
-import { UserProfilePage } from '../../conceptspace/pages/UserProfilePage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<NoninflammatoryLandingPage />} />
-    <Route path="/statements" element={<BrowseStatementsPage />} />
-    <Route path="/statement/:statementCid" element={<StatementPage />} />
-    <Route path="/profile" element={<UserProfilePage />} />
-    <Route path="/user/:address" element={<UserProfilePage />} />
-    <Route path="/content" element={<NoninflammatoryCreatorsPage />} />
-    <Route path="/content/dashboard" element={<NoninflammatoryCreatorDashboardPage />} />
-    <Route path="/content/contracts/:projectAddress" element={<NoninflammatoryContractPage />} />
-    <Route path="/content/:platform" element={<NoninflammatoryBrowsePage />} />
-    <Route path="/content/:platform/:channelId" element={<NoninflammatoryChannelPage />} />
-    <Route path="/content/:platform/:channelId/new" element={<NoninflammatoryCreateContractPage />} />
-    <Route path="/about" element={<NoninflammatoryAboutPage />} />
+    <Route path="/statements" element={lazyRoute(() => import('../../conceptspace/pages/BrowseStatementsPage'), 'BrowseStatementsPage')} />
+    <Route path="/statement/:statementCid" element={lazyRoute(() => import('../../conceptspace/pages/StatementPage'), 'StatementPage')} />
+    <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryCreatorsPage')} />
+    <Route path="/content/dashboard" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryCreatorDashboardPage')} />
+    <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryContractPage')} />
+    <Route path="/content/:platform" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryBrowsePage')} />
+    <Route path="/content/:platform/:channelId" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryChannelPage')} />
+    <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryCreateContractPage')} />
+    <Route path="/about" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryAboutPage')} />
   </>
 )
 

@@ -62,35 +62,47 @@ describe('domain manifest home routes', () => {
     ).toBe(true)
   })
 
-  it('renders the Noninflammatory about page at /about', () => {
+  it('renders the Noninflammatory about page at /about', async () => {
     renderDomainRoute('noninflammatory', '/about')
 
     expect(
-      screen.getByRole('heading', {
-        name: /about noninflammatory content/i,
-      })
+      await screen.findByRole(
+        'heading',
+        {
+          name: /about noninflammatory content/i,
+        },
+        { timeout: 5000 },
+      )
     ).toBeInTheDocument()
     expect(screen.getByText(/the point of this domain is not bland centrism/i)).toBeInTheDocument()
   })
 
-  it('renders the Movement about page at /about', () => {
+  it('renders the Movement about page at /about', async () => {
     renderDomainRoute('movement', '/about')
 
     expect(
-      screen.getByRole('heading', {
-        name: /about common sense majority/i,
-      })
+      await screen.findByRole(
+        'heading',
+        {
+          name: /about common sense majority/i,
+        },
+        { timeout: 5000 },
+      )
     ).toBeInTheDocument()
     expect(screen.getByText(/movement layer in the multiple-domain ui plan/i)).toBeInTheDocument()
   })
 
-  it('renders the organizing playbook at /organize', () => {
+  it('renders the organizing playbook at /organize', async () => {
     renderDomainRoute('movement', '/organize')
 
     expect(
-      screen.getByRole('heading', {
-        name: /turn bridge-building content into visible, fundable political coordination/i,
-      })
+      await screen.findByRole(
+        'heading',
+        {
+          name: /turn bridge-building content into visible, fundable political coordination/i,
+        },
+        { timeout: 5000 },
+      )
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /browse organizing projects/i })).toHaveAttribute('href', '/projects')
   })

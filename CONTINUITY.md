@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-30 — Implemented route-level UI code-splitting for before-testnet Finding 5
+
+Added `ui/src/domains/lazyRoute.tsx` and converted non-landing domain routes in the four domain manifests to lazy `import()` route elements. Landing pages stay eager so home routes remain immediate; deeper pages now build as separate chunks (statements, project pages, docs, settings, content funding, movement pages, etc.). Updated `domainRoutes.test.tsx` to await lazy-rendered secondary routes.
+
+Validation: `npm run build --workspace=ui` passed. The largest Commonality build chunk dropped from ~2.5MB to ~1.6MB, though Vite still reports large third-party/vendor chunks (`core`, Privy/wallet chunks, and a 1.6MB shared chunk). Focused route tests passed: `npm run test:vitest --workspace=ui -- --run src/domains/domainRoutes.test.tsx src/domains/CrossDomainSmoke.test.tsx src/App.test.tsx`.
+
+Follow-up: replaced remaining lazy imports through `delegation/pages` and `fundingportal/pages` barrels with individual page-module imports, so notes and portal routes no longer force their sibling page modules into the same lazy chunk. `npm run build --workspace=ui` still passes.
+
+
 ## 2026-04-30 — Implemented IPFS runtime UI config for before-testnet Finding 3
 
 The UI now loads `./config.json` before rendering React (`ui/src/main.tsx`, `ui/src/shared/runtimeConfig.ts`). Vite emits `dist/<domain>/config.json` with the deployment config values, and IPFS mode fails startup if the config cannot be loaded instead of silently using a baked localhost URL. `useMachinery`, Browse Projects, and Project Detail now read the event-cache URL (plus related machinery URLs/contract addresses) through runtime config, which removes the immediate `VITE_EVENT_CACHE_URL` testnet blocker. `ui/README.md` and `workflow/reviews/before-testnet.md` were updated.

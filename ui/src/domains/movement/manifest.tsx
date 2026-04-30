@@ -1,45 +1,29 @@
 import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
+import { lazyRoute } from '../lazyRoute'
 import { MovementLandingPage } from './LandingPage'
-import {
-  MovementAboutPage,
-  MovementBrowsePage,
-  MovementChannelPage,
-  MovementContractPage,
-  MovementCreateContractPage,
-  MovementCreateProjectPage,
-  MovementCreatorDashboardPage,
-  MovementCreatorsPage,
-  MovementOrganizingPage,
-  MovementProjectDetailPage,
-  MovementProjectsPage,
-} from './MovementPages'
-import { BrowseStatementsPage } from '../../conceptspace/pages/BrowseStatementsPage'
-import { StatementPage } from '../../conceptspace/pages/StatementPage'
-import { UserProfilePage } from '../../conceptspace/pages/UserProfilePage'
-import { StatementFundingPortalPage, CauseLeaderboardPage } from '../../fundingportal/pages'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<MovementLandingPage />} />
-    <Route path="/about" element={<MovementAboutPage />} />
-    <Route path="/organize" element={<MovementOrganizingPage />} />
-    <Route path="/statements" element={<BrowseStatementsPage />} />
-    <Route path="/statement/:statementCid" element={<StatementPage />} />
-    <Route path="/profile" element={<UserProfilePage />} />
-    <Route path="/user/:address" element={<UserProfilePage />} />
-    <Route path="/content" element={<MovementCreatorsPage />} />
-    <Route path="/content/dashboard" element={<MovementCreatorDashboardPage />} />
-    <Route path="/content/contracts/:projectAddress" element={<MovementContractPage />} />
-    <Route path="/content/:platform" element={<MovementBrowsePage />} />
-    <Route path="/content/:platform/:channelId" element={<MovementChannelPage />} />
-    <Route path="/content/:platform/:channelId/new" element={<MovementCreateContractPage />} />
-    <Route path="/projects" element={<MovementProjectsPage />} />
-    <Route path="/projects/new" element={<MovementCreateProjectPage />} />
-    <Route path="/projects/:projectAddress" element={<MovementProjectDetailPage />} />
-    <Route path="/portal/:statementCid" element={<StatementFundingPortalPage />} />
-    <Route path="/portal/:statementCid/leaderboard" element={<CauseLeaderboardPage />} />
+    <Route path="/about" element={lazyRoute(() => import('./MovementPages'), 'MovementAboutPage')} />
+    <Route path="/organize" element={lazyRoute(() => import('./MovementPages'), 'MovementOrganizingPage')} />
+    <Route path="/statements" element={lazyRoute(() => import('../../conceptspace/pages/BrowseStatementsPage'), 'BrowseStatementsPage')} />
+    <Route path="/statement/:statementCid" element={lazyRoute(() => import('../../conceptspace/pages/StatementPage'), 'StatementPage')} />
+    <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/content" element={lazyRoute(() => import('./MovementPages'), 'MovementCreatorsPage')} />
+    <Route path="/content/dashboard" element={lazyRoute(() => import('./MovementPages'), 'MovementCreatorDashboardPage')} />
+    <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./MovementPages'), 'MovementContractPage')} />
+    <Route path="/content/:platform" element={lazyRoute(() => import('./MovementPages'), 'MovementBrowsePage')} />
+    <Route path="/content/:platform/:channelId" element={lazyRoute(() => import('./MovementPages'), 'MovementChannelPage')} />
+    <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('./MovementPages'), 'MovementCreateContractPage')} />
+    <Route path="/projects" element={lazyRoute(() => import('./MovementPages'), 'MovementProjectsPage')} />
+    <Route path="/projects/new" element={lazyRoute(() => import('./MovementPages'), 'MovementCreateProjectPage')} />
+    <Route path="/projects/:projectAddress" element={lazyRoute(() => import('./MovementPages'), 'MovementProjectDetailPage')} />
+    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
+    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
   </>
 )
 

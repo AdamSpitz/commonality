@@ -160,7 +160,6 @@ AFTER TALKING ABOUT IT: Plan: stop baking env vars into JS at build time. Instea
 
 DONE: Implemented runtime `config.json` loading before React render. The Vite build now emits `dist/<domain>/config.json`, and SDK machinery / Pubstarter cache reads `VITE_EVENT_CACHE_URL` (plus related URLs/contract addresses) from the loaded runtime config instead of directly from `import.meta.env`. IPFS mode treats config-load failures as startup errors so a published bundle does not silently fall back to a baked localhost URL.
 
-
 ---
 
 ### Finding 4: Console Debug Logging in Production UI Code
@@ -205,6 +204,8 @@ Rollup warns: "Some chunks are larger than 500 kB after minification."
 HUMAN'S NOTE: I need you to talk me through what this means. What kind of "code-splitting" are we talking about?
 
 AFTER TALKING ABOUT IT: Plan: for testnet, do route-level code-splitting (lazy `import()` per page/route — Vite splits automatically). Defer wallet lazy-loading and further optimization. The 2.5MB chunk is likely ethers.js; route splitting should reduce it meaningfully with minimal effort.
+
+IMPLEMENTED 2026-04-30: Added lazy route elements for non-landing UI pages. The largest default Commonality build chunk dropped from ~2.5MB to ~1.6MB, with page-specific chunks emitted for statements, projects, docs, settings, content funding, etc. Vite still warns about large third-party/vendor chunks (`core`, wallet/Privy, and a 1.6MB shared chunk), so further vendor/manual chunk work remains optional backlog rather than a testnet blocker.
 
 ---
 

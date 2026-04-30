@@ -1,32 +1,22 @@
 import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
+import { lazyRoute } from '../lazyRoute'
 import { ContentFundingLandingPage } from './LandingPage'
-import {
-  ContentFundingBrowsePage,
-  ContentFundingChannelPage,
-  ContentFundingContractPage,
-  ContentFundingCreateContractPage,
-  ContentFundingCreatorDashboardPage,
-  ContentFundingCreatorsPage,
-} from './ContentPages'
-import { BrowseStatementsPage } from '../../conceptspace/pages/BrowseStatementsPage'
-import { StatementPage } from '../../conceptspace/pages/StatementPage'
-import { UserProfilePage } from '../../conceptspace/pages/UserProfilePage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<ContentFundingLandingPage />} />
-    <Route path="/statements" element={<BrowseStatementsPage />} />
-    <Route path="/statement/:statementCid" element={<StatementPage />} />
-    <Route path="/profile" element={<UserProfilePage />} />
-    <Route path="/user/:address" element={<UserProfilePage />} />
-    <Route path="/content" element={<ContentFundingCreatorsPage />} />
-    <Route path="/content/dashboard" element={<ContentFundingCreatorDashboardPage />} />
-    <Route path="/content/contracts/:projectAddress" element={<ContentFundingContractPage />} />
-    <Route path="/content/:platform" element={<ContentFundingBrowsePage />} />
-    <Route path="/content/:platform/:channelId" element={<ContentFundingChannelPage />} />
-    <Route path="/content/:platform/:channelId/new" element={<ContentFundingCreateContractPage />} />
+    <Route path="/statements" element={lazyRoute(() => import('../../conceptspace/pages/BrowseStatementsPage'), 'BrowseStatementsPage')} />
+    <Route path="/statement/:statementCid" element={lazyRoute(() => import('../../conceptspace/pages/StatementPage'), 'StatementPage')} />
+    <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
+    <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorsPage')} />
+    <Route path="/content/dashboard" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorDashboardPage')} />
+    <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingContractPage')} />
+    <Route path="/content/:platform" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingBrowsePage')} />
+    <Route path="/content/:platform/:channelId" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingChannelPage')} />
+    <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreateContractPage')} />
   </>
 )
 
