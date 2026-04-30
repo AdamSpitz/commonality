@@ -2,7 +2,7 @@
 
 ## Main list
 
-- skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project.
+- [x] ~~skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project.~~ — Done 2026-04-29. Findings in `workflow/reviews/before-testnet.md`.
 
 - Make sure the seed content gets into the fake universe simulation.
 
