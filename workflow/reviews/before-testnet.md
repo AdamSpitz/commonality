@@ -106,62 +106,6 @@ AFTER TALKING ABOUT IT: Discussed. Plan: extend the existing pre-generated-evalu
 
 ---
 
-### Finding 2: Documentation Stale — Explorer Page IS Implemented
-
-**Severity: Low**
-**Domain: Documentation**
-
-`specs/product/new-user-experience.md` states:
-
-| Component | Status |
-|---|---|
-| Explorer implementation | Not built |
-
-But `ui/src/conceptspace/pages/ExplorerPage.tsx` is a fully implemented page that:
-- Fetches curated collections from explorer nudger publications
-- Calls the explorer-curator's `/suggest` endpoint for per-user personalization
-- Displays statements grouped by topic area with supporter counts
-- Provides Sign, Navigate, and Funding Portal actions
-- Handles empty state gracefully with link to Browse Statements
-
-Similarly, `mvp.md` says "Mutable Refs UI — The SDK is done; the UI is deferred" but `ui/src/mutablerefs/MyRefsPage.tsx` is a comprehensive CRUD page with IPFS inspection, history viewing, ref lookup, and delete confirmation.
-
-**Impact:** Confusing for new developers. The project looks less complete on paper than it actually is.
-
-**Recommendation:** Update `new-user-experience.md` and `mvp.md` to reflect actual implementation status.
-
-HUMAN'S NOTE: Yes, fix this, please.
-
-DONE: Updated `specs/product/new-user-experience.md` (Explorer implementation marked as Built) and `specs/product/mvp.md` (Mutable Refs entry updated, Mutable Refs UI and Explorer AI deferred items struck through as implemented).
-
----
-
-### Finding 3: Testnet Deployment Blocker — IPFS-Baked Event Cache URL
-
-**Severity: High**
-**Domain: Deployment**
-
-From CONTINUITY.md: `VITE_EVENT_CACHE_URL` is baked in at IPFS build time. Currently `.env.ipfs` uses `http://localhost:42069` (local only). For testnet/mainnet, this needs to point to the deployed indexer URL.
-
-The IPFS build (`npm run build:ipfs`) produces a static bundle with hash routing and the indexer URL hardcoded. There's no runtime mechanism to change it after publishing to IPFS.
-
-**Impact:** Cannot deploy to testnet without changing this. The current build process produces localhost-only artifacts.
-
-**Recommendation:** This needs a plan. Options:
-- Build-time environment variable injection during deployment (CI/CD pipeline sets correct URL)
-- Runtime configuration file loaded from a known URL/IPFS location
-- DNS-based service discovery
-
-This is explicitly called out in existing continuity notes and needs to be resolved before testnet.
-
-HUMAN'S NOTE: Right, interesting point. Because we're doing deployment to IPFS rather than to a server, we can't just provide different config files on each server. Okay, here's a question: is it possible to create an IPFS bundle that *contains* the static bundle that's produced by `npm run build:ipfs`, as well as containing an IPFS JSON document containing config values? Can we produce three of those (one whose config says "local dev", one whose config says "testnet", one whose config says "mainnet")?
-
-AFTER TALKING ABOUT IT: Plan: stop baking env vars into JS at build time. Instead, at app startup, fetch a `./config.json` from a relative path. Build the JS once (env-var-free), then publish three separate IPFS directories (local, testnet, mainnet) each containing the same JS assets plus a different `config.json`. IPFS content-addressing means shared asset files are stored once and referenced by all three bundles. Requires a small async-before-render change to app startup code.
-
-DONE: Implemented runtime `config.json` loading before React render. The Vite build now emits `dist/<domain>/config.json`, and SDK machinery / Pubstarter cache reads `VITE_EVENT_CACHE_URL` (plus related URLs/contract addresses) from the loaded runtime config instead of directly from `import.meta.env`. IPFS mode treats config-load failures as startup errors so a published bundle does not silently fall back to a baked localhost URL.
-
----
-
 ### Finding 4: Console Debug Logging in Production UI Code
 
 **Severity: Low**
@@ -179,79 +123,6 @@ No `alert()`, `prompt()`, or `confirm()` calls were found — good, proper UI mo
 **Recommendation:** Remove or convert to proper logging utility that can be disabled in production.
 
 HUMAN'S NOTE: Remove if unimportant, convert to proper logging if important.
-
----
-
-### Finding 5: Large Bundle Sizes
-
-**Severity: Low**
-**Domain: UI Performance**
-
-Build produces several chunks larger than 500KB:
-- `core-nkfR76_M.js`: 572KB
-- `index-uSH7ttNE.js`: 667KB
-- `PrivyAppProvider-b6OB-zgT.js`: 756KB
-- `index-D5nlVbo1.js`: 2,506KB (2.5MB!)
-
-Rollup warns: "Some chunks are larger than 500 kB after minification."
-
-**Impact:** Initial page load for a first-time visitor will be slow, especially on mobile. The 2.5MB chunk is particularly concerning.
-
-**Cofounder assessment:** For an MVP/testnet launch, this is acceptable but should be on the backlog. The Privy wallet SDK is likely a major contributor to the large chunks.
-
-**Recommendation:** Prioritize code-splitting the largest chunks. Consider lazy-loading wallet onboarding (Privy is already lazy-loaded when not in use, but the chunk is still large when it is needed).
-
-HUMAN'S NOTE: I need you to talk me through what this means. What kind of "code-splitting" are we talking about?
-
-AFTER TALKING ABOUT IT: Plan: for testnet, do route-level code-splitting (lazy `import()` per page/route — Vite splits automatically). Defer wallet lazy-loading and further optimization. The 2.5MB chunk is likely ethers.js; route splitting should reduce it meaningfully with minimal effort.
-
-IMPLEMENTED 2026-04-30: Added lazy route elements for non-landing UI pages. The largest default Commonality build chunk dropped from ~2.5MB to ~1.6MB, with page-specific chunks emitted for statements, projects, docs, settings, content funding, etc. Vite still warns about large third-party/vendor chunks (`core`, wallet/Privy, and a 1.6MB shared chunk), so further vendor/manual chunk work remains optional backlog rather than a testnet blocker.
-
----
-
-### Finding 6: Only 2 TODOs in Source Code
-
-**Severity: Info (positive)**
-**Domain: Code Quality**
-
-Only 2 TODOs exist in non-test source code:
-- `sdk/src/config-node.ts:12` — `DEBUG_IPFS` env var (benign)
-- `sdk/src/utils/twitter.ts:105` — ENS verification status check
-
-**Assessment:** The codebase is remarkably clean of deferred work items in source code. This suggests the implementation is genuinely close to complete.
-
-HUMAN'S NOTE: I don't even see that first one; was it removed? Doesn't matter, these are no big deal.
-
----
-
-### Finding 7: MVP Scope Assessment (Cofounder Lens)
-
-**Severity: Info**
-**Domain: Product Strategy**
-
-From the MVP spec, all seven subsystems are implemented:
-1. ✅ **Conceptspace** — Statements, beliefs, implications, seed content
-2. ✅ **Pubstarter** — Assurance contracts, ERC-1155 tokens, secondary market
-3. ✅ **Delegation** — DelegatableNotes, NoteIntent, revocable chains
-4. ✅ **Funding Portals** — Per-statement portals, leaderboards, trust filtering
-5. ✅ **Content Funding** — Twitter/YouTube/Substack verification, creator contracts
-6. ✅ **Subjectiv** — Trust-graph filtering, Web Worker computation, IndexedDB
-7. ✅ **Mutable Refs** — SDK complete, UI also complete (contrary to spec)
-
-Deliberately deferred items:
-- Fiat bridges (credit card onramp)
-- Embedded wallet provisioning (partially addressed via Privy integration)
-- Unique-human verification (Worldcoin, BrightID)
-- Mutable Refs UI (actually implemented — see Finding 2)
-- Explorer AI (actually implemented — see Finding 2)
-- Per-contract token choice
-- Generative testing
-- Bridge finder / bridge creator (bridge creator is implemented, bridge finder is not)
-- AI skills (formal SKILL.md files for assistant roles)
-
-**Cofounder assessment:** The MVP is genuinely close to shippable. The core loop works: create statements → sign them → create projects → fund them → delegate → verify content. The main gaps are in the *onboarding* experience (new user guidance, seed content) and *proactive* AI services (finders, nudgers disabled by default).
-
-HUMAN'S NOTE: Great!
 
 ---
 
@@ -275,42 +146,6 @@ HUMAN'S NOTE: Yes.
 
 ---
 
-### Finding 9: Service Bundling Architecture
-
-**Severity: Info (positive)**
-**Domain: Architecture**
-
-The project uses a clean service-bundling pattern:
-- `service-host-attesters` runs implication + content attesters together
-- `service-host-workers` runs finders + nudgers together
-- Individual services can be enabled/disabled via environment variables
-- Same Docker image for both bundles
-
-**Assessment:** This is well-architected for production deployment. The ability to reorganize which services run in which process via config is good.
-
-HUMAN'S NOTE: Great!
-
----
-
-### Finding 10: Four UI Domains from One Codebase
-
-**Severity: Info (positive)**
-**Domain: Architecture**
-
-The UI builds four branded surfaces from one codebase:
-- **Commonality** — Full platform
-- **Content Funding** — Creator/fan site
-- **Noninflammatory** — Content funding with quality criteria
-- **Movement (Common Sense Majority)** — Organizing/advocacy
-
-Each is a separate build artifact with domain-specific routing and branding.
-
-**Assessment:** Clean architecture. The domain system allows focused user experiences while sharing the underlying code.
-
-HUMAN'S NOTE: Good.
-
----
-
 ### Finding 11: Smart Contracts — No Audit Since Last Changes
 
 **Severity: Medium-High**
@@ -329,23 +164,6 @@ The project has never been deployed to mainnet. The smart contracts include:
 **Recommendation:** Don't deploy to testnet without at least a targeted review of the high-risk contracts.
 
 HUMAN'S NOTE: Yes, I do want to do this. I'm not too worried about testnet because it's testnet, but yes, let's do our best to satisfy ourselves that it's not just broken before we ship it even to testnet.
-
----
-
-### Finding 12: Overall Readiness Assessment
-
-**Can this project ship to testnet?**
-
-**Yes, with caveats.** The automated tests all pass, the build succeeds, and all seven MVP subsystems are implemented. The main blockers for a confident testnet launch are:
-
-1. **IPFS build-time URL** (Finding 3) — Must be resolved before any deployment
-2. **Smart contract audit** (Finding 11) — Should be done before testnet
-3. **Seed content into explorer** (Finding 8) — Needed for a good first-run experience
-4. **Documentation updates** (Finding 2) — Important for developer onboarding
-
-The project is genuinely close. The code is clean, tests pass, architecture is coherent. The founder's concern ("I'm out of touch with the code and I've never used much of the UI") is the biggest risk — human testing of the live UI is still needed.
-
-HUMAN'S NOTE: Okay, cool.
 
 ---
 
