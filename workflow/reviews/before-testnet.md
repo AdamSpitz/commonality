@@ -142,7 +142,7 @@ From the continuity notes, fake-data generation seeds 10 users and 3 rounds of d
 
 **Recommendation:** Consider running a one-shot seed cycle that populates initial curated collections and implication pairs, even if the continuous workers are disabled.
 
-HUMAN'S NOTE: Yes.
+HUMAN'S NOTE: Yes. Let's make sure we have an easy command for doing this.
 
 ---
 
@@ -164,20 +164,3 @@ The project has never been deployed to mainnet. The smart contracts include:
 **Recommendation:** Don't deploy to testnet without at least a targeted review of the high-risk contracts.
 
 HUMAN'S NOTE: Yes, I do want to do this. I'm not too worried about testnet because it's testnet, but yes, let's do our best to satisfy ourselves that it's not just broken before we ship it even to testnet.
-
----
-
-### Finding 13: Channel Metadata Lookup Disabled by Default
-
-**Severity: Low**
-**Domain: UI / Platform API**
-
-Per CONTINUITY.md, `VITE_ENABLE_CHANNEL_METADATA_LOOKUP` defaults to false. The platform API `/resolve/channel` endpoint returns 503 without real Twitter/YouTube credentials, which previously caused browser console errors in E2E tests.
-
-The fix was to make channel metadata lookup opt-in. The UI falls back to canonical IDs/IPFS metadata.
-
-**Assessment:** This is a reasonable local-dev default. For production, this would need to be enabled with proper API credentials. Not a blocker for testnet if the feature is gated properly.
-
-HUMAN'S NOTE: Let's make sure we get some sort of error message if we don't set this up for testnet or mainnet. After we implement that config thing so that we know whether we're on local or testnet or mainnet (done now, I believe), can we make this only be disabled if we're on local, and throw an error otherwise if not set up?
-
-DONE 2026-04-30: Implemented. The UI runtime config now carries `COMMONALITY_ENVIRONMENT` and `VITE_ENABLE_CHANNEL_METADATA_LOOKUP`; runtime config validation and `useContentFundingState` throw visible errors for testnet/mainnet unless lookup is enabled and `VITE_PLATFORM_API_URL` is configured. Local dev can still leave lookup disabled.
