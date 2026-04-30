@@ -100,7 +100,7 @@ Only the attester bundle (`service-host-attesters`) is enabled by default. This 
 
 **Recommendation:** Add clear documentation that workers are disabled by default and how to enable them. Consider whether the `--seed` script should also spin up a minimal worker cycle to populate some initial data.
 
-HUMAN'S NOTE: Let's talk this out interactively. I wonder whether we can run the LLM *once* and then cache the results, rather than running them every time we run the tests. We already have some stuff that works like that, don't we?
+HUMAN'S NOTE: Discussed. Plan: extend the existing pre-generated-evaluations pattern to cover explorer curator, nudgers, and implication finder outputs. Pre-generate against the seed statements (stable CIDs), store as checked-in JSON, replay on-chain during seeding — no live LLM calls needed. See `specs/dev/testing/pregenerated-worker-outputs.md` and TODO.md.
 
 ---
 

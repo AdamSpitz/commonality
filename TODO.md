@@ -6,6 +6,8 @@
 
 - Make sure the seed content gets into the fake universe simulation.
 
+- Pre-generate worker outputs (explorer curator, nudgers, implication finder) for local dev seeding, so the Explorer page and nudge surfaces are populated without running live AI workers. See `specs/dev/testing/pregenerated-worker-outputs.md`.
+
 - Add Admin tabs to the UI. (What goes in it? And how do we get the UI to know that an admin is looking at it?)
 
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
