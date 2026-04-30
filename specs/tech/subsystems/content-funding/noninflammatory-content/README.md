@@ -10,6 +10,7 @@ For the general content-funding mechanics (contracts, registry, tokens, channel 
 - [seed-statements.md](seed-statements.md) — concrete statements to seed the conceptspace
 - [attester-prompts.md](attester-prompts.md) — LLM prompts for different attester personas
 - [../content-attesters.md](../content-attesters.md) — attester architecture (shared `attester-core/` library, `content-attester/` service)
+- [beat-agents.md](beat-agents.md) — stateful beat-following agents for evaluating short-form social content where context is necessarily external
 
 ## Architecture note
 
