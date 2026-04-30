@@ -124,6 +124,8 @@ No `alert()`, `prompt()`, or `confirm()` calls were found — good, proper UI mo
 
 HUMAN'S NOTE: Remove if unimportant, convert to proper logging if important.
 
+**RESOLVED (2026-04-30):** All 6 `console.log` statements removed from `CreateStatementForm.tsx` (4) and `StatementPage.tsx` (1). The progress callbacks in CreateStatementForm now use empty no-op functions. The error handling in StatementPage already displays a user-facing error via `contentError` state, so the console.log was redundant. UI typecheck passes clean.
+
 ---
 
 ### Finding 8: Seed Content Coverage

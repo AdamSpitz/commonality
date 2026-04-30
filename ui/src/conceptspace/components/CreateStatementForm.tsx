@@ -95,19 +95,11 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
         {
           machinery,
           addToCreatedList: true,
-          onIPFSUpload: (cid) => {
-            console.log('Statement uploaded to IPFS:', cid)
-          },
-          onSigned: (txHash) => {
-            console.log('Statement signed, tx:', txHash)
-          },
-          onListUpdated: (txHash) => {
-            console.log('Created statements list updated, tx:', txHash)
-          },
+          onIPFSUpload: (_cid) => {},
+          onSigned: (_txHash) => {},
+          onListUpdated: (_txHash) => {},
         }
       )
-
-      console.log('Statement creation complete:', result)
 
       setSuccess('Statement created and signed successfully!')
       setContent('')
