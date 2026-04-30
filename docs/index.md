@@ -48,6 +48,7 @@ Pick the story that resonates with you. Each walkthrough shows how the system wo
 - **[Credible threats](key-ideas/credible-threats.md)** — Visible pledges change the game even if never spent.
 - **[Content funding](key-ideas/content-funding.md)** — Fund individual pieces of content. AI evaluators assess quality.
 - **[Trust networks](key-ideas/trust-networks.md)** — You choose who you trust. No central gatekeepers.
+- **[How your actions compound](key-ideas/how-actions-compound.md)** — Every action makes the system work better for everyone else.
 
 
 ## Why trust it?

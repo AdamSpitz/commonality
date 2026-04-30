@@ -9,3 +9,4 @@ The concepts behind Commonality. Each page is written in plain language for a ge
 - **[Credible threats](credible-threats.md)** — Visible pledges change the game even if the money is never spent.
 - **[Content funding](content-funding.md)** — Fund individual pieces of content. AI evaluators assess quality.
 - **[Trust networks](trust-networks.md)** — You choose who you trust. The system filters noise without central gatekeepers.
+- **[How your actions compound](how-actions-compound.md)** — Every action makes the system work better for everyone else.
