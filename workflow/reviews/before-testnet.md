@@ -132,6 +132,8 @@ Similarly, `mvp.md` says "Mutable Refs UI — The SDK is done; the UI is deferre
 
 HUMAN'S NOTE: Yes, fix this, please.
 
+DONE: Updated `specs/product/new-user-experience.md` (Explorer implementation marked as Built) and `specs/product/mvp.md` (Mutable Refs entry updated, Mutable Refs UI and Explorer AI deferred items struck through as implemented).
+
 ---
 
 ### Finding 3: Testnet Deployment Blocker — IPFS-Baked Event Cache URL

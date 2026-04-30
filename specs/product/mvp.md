@@ -12,7 +12,7 @@ All seven subsystems are implemented:
 - **Funding Portals** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
 - **Content Funding** — Retroactive funding for individual pieces of online content via per-creator assurance contracts. Twitter, YouTube, and Substack all have complete creator verification flows.
 - **Subjectiv** — Trust-graph-mediated filtering. Users set direct trust scores on each other; transitive trust computation runs in a Web Worker and rehydrates from IndexedDB on startup; the funding portal filters alignment attestations by the trusted set.
-- **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK layer is complete; no UI yet (deliberately deferred).
+- **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK and UI are both complete (`ui/src/mutablerefs/MyRefsPage.tsx` — CRUD, IPFS inspection, history, delete confirmation).
 
 ## Multiple UI domains
 
@@ -50,8 +50,8 @@ Visit the Commonality conceptspace, find or write a statement that expresses wha
 - **Fiat bridges** — Credit card / Apple Pay / Google Pay onramp. See [specs/tech/bridges.md](../tech/bridges.md) for the design.
 - **Embedded wallet provisioning** — Keeping crypto invisible to non-crypto-native users.
 - **Unique-human verification** — Worldcoin, BrightID, etc.
-- **Mutable Refs UI** — The SDK is done; the UI is deferred.
-- **Explorer AI / AI-assisted statement discovery** — Specced in [specs/product/content.md](content.md); not yet implemented.
+- ~~**Mutable Refs UI**~~ — Implemented. See `ui/src/mutablerefs/MyRefsPage.tsx`.
+- ~~**Explorer AI / AI-assisted statement discovery**~~ — Implemented. See `ui/src/conceptspace/pages/ExplorerPage.tsx`.
 - **Per-contract token choice** — Contracts are token-general but the UI constrains to one token (USDC). Post-MVP each project can choose its own token.
 - **foldVersion + accumulator storage** — Client-side caching of fold accumulators in localStorage; see [specs/tech/indexer/README.md](../tech/indexer/README.md) for the design. (TODO: is this right? I thought we did at least some of this.)
 - **Generative testing** — Infrastructure is prepped; the generative test suite itself isn't written. (TODO: wait, is that right? What's in fake-data-generation? Doesn't it come with properties that can be checked?)

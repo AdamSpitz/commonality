@@ -87,7 +87,7 @@ People will find the site via links from others: "Hey, I bet you'd enjoy using t
 | Component | Status |
 |---|---|
 | Explorer spec | Specified ([explorer.md](../tech/subsystems/conceptspace/explorer.md)) |
-| Explorer implementation | Not built |
+| Explorer implementation | Built (`ui/src/conceptspace/pages/ExplorerPage.tsx`) — fetches curated collections, per-user personalization via explorer-curator `/suggest`, grouped by topic with supporter counts, Sign/Navigate/Funding Portal actions |
 | Fundable Project Explorer strategy | Not built |
 | Movement-specific explorer strategies | Not built |
 
