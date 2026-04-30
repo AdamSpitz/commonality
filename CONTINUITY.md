@@ -1,5 +1,11 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-30 — Enforced channel metadata config for before-testnet Finding 13
+
+Channel metadata lookup is now allowed to be disabled only for local UI runtime config. Runtime config validation and `useContentFundingState` both read `COMMONALITY_ENVIRONMENT`, `VITE_ENABLE_CHANNEL_METADATA_LOOKUP`, and `VITE_PLATFORM_API_URL`; testnet/mainnet throw a visible startup/loading error unless lookup is enabled and a platform API URL is configured. Vite now emits those values into `config.json`, and `scripts/setup-env.sh` writes `COMMONALITY_ENVIRONMENT` (`local`/`testnet`/`mainnet`) plus the lookup flag into `ui/.env`. Updated `.env.example`, `.env.secrets.example`, and `ui/README.md` with the deployment requirement.
+
+Validation: `npm run test:vitest --workspace=ui -- channelMetadataLookupConfig` passed; `npm run build --workspace=ui` passed with existing third-party Rollup annotation and large-chunk warnings.
+
 ## 2026-04-30 — Implemented route-level UI code-splitting for before-testnet Finding 5
 
 Added `ui/src/domains/lazyRoute.tsx` and converted non-landing domain routes in the four domain manifests to lazy `import()` route elements. Landing pages stay eager so home routes remain immediate; deeper pages now build as separate chunks (statements, project pages, docs, settings, content funding, movement pages, etc.). Updated `domainRoutes.test.tsx` to await lazy-rendered secondary routes.

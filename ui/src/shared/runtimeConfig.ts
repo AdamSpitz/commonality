@@ -8,6 +8,7 @@ type RuntimeConfigKey =
   | 'VITE_IPFS_GATEWAY'
   | 'VITE_IPFS_API'
   | 'VITE_PLATFORM_API_URL'
+  | 'VITE_ENABLE_CHANNEL_METADATA_LOOKUP'
   | 'VITE_MAINNET_RPC_URL'
   | 'VITE_ETH_RPC_URL'
   | 'VITE_BELIEFS_CONTRACT_ADDRESS'
@@ -35,6 +36,7 @@ const buildTimeConfig: UiRuntimeConfig = {
   VITE_IPFS_GATEWAY: import.meta.env.VITE_IPFS_GATEWAY,
   VITE_IPFS_API: import.meta.env.VITE_IPFS_API,
   VITE_PLATFORM_API_URL: import.meta.env.VITE_PLATFORM_API_URL,
+  VITE_ENABLE_CHANNEL_METADATA_LOOKUP: import.meta.env.VITE_ENABLE_CHANNEL_METADATA_LOOKUP,
   VITE_MAINNET_RPC_URL: import.meta.env.VITE_MAINNET_RPC_URL,
   VITE_ETH_RPC_URL: import.meta.env.VITE_ETH_RPC_URL,
   VITE_BELIEFS_CONTRACT_ADDRESS: import.meta.env.VITE_BELIEFS_CONTRACT_ADDRESS,
@@ -71,12 +73,15 @@ export async function loadRuntimeConfig(url = './config.json'): Promise<UiRuntim
     }
 
     const loadedConfig = await response.json() as UiRuntimeConfig
-    runtimeConfig = {
+    runtimeConfig = validateRuntimeConfig({
       ...runtimeConfig,
       ...stripEmptyValues(loadedConfig),
-    }
+    })
     return runtimeConfig
   } catch (error) {
+    if (isRuntimeConfigValidationError(error)) {
+      throw error
+    }
     if (import.meta.env.MODE === 'ipfs') {
       throw new Error(`Failed to load UI runtime config from ${url}: ${error instanceof Error ? error.message : String(error)}`)
     }
@@ -90,6 +95,23 @@ export function getRuntimeConfig(): UiRuntimeConfig {
 
 export function getRuntimeConfigValue(key: RuntimeConfigKey): string | undefined {
   return runtimeConfig[key]
+}
+
+function isRuntimeConfigValidationError(error: unknown): error is Error {
+  return error instanceof Error && error.message.startsWith('Channel metadata lookup is required')
+}
+
+function validateRuntimeConfig(config: UiRuntimeConfig): UiRuntimeConfig {
+  const environment = config.COMMONALITY_ENVIRONMENT
+  if (environment && environment !== 'local') {
+    if (config.VITE_ENABLE_CHANNEL_METADATA_LOOKUP !== 'true') {
+      throw new Error(`Channel metadata lookup is required for ${environment}. Set VITE_ENABLE_CHANNEL_METADATA_LOOKUP=true and configure the deployed platform API.`)
+    }
+    if (!config.VITE_PLATFORM_API_URL) {
+      throw new Error(`Channel metadata lookup is required for ${environment}, but VITE_PLATFORM_API_URL is not configured.`)
+    }
+  }
+  return config
 }
 
 function stripEmptyValues(config: UiRuntimeConfig): UiRuntimeConfig {

@@ -178,4 +178,6 @@ The fix was to make channel metadata lookup opt-in. The UI falls back to canonic
 
 **Assessment:** This is a reasonable local-dev default. For production, this would need to be enabled with proper API credentials. Not a blocker for testnet if the feature is gated properly.
 
-HUMAN'S NOTE: Let's make sure we get some sort of error message if we don't set this up for testnet or mainnet. After we implement that config thing so that we know whether we're on local or testnet or mainnet, can we make this only be disabled if we're on local, and throw an error otherwise if not set up?
+HUMAN'S NOTE: Let's make sure we get some sort of error message if we don't set this up for testnet or mainnet. After we implement that config thing so that we know whether we're on local or testnet or mainnet (done now, I believe), can we make this only be disabled if we're on local, and throw an error otherwise if not set up?
+
+DONE 2026-04-30: Implemented. The UI runtime config now carries `COMMONALITY_ENVIRONMENT` and `VITE_ENABLE_CHANNEL_METADATA_LOOKUP`; runtime config validation and `useContentFundingState` throw visible errors for testnet/mainnet unless lookup is enabled and `VITE_PLATFORM_API_URL` is configured. Local dev can still leave lookup disabled.

@@ -12,6 +12,8 @@ import {
 import type { ContentFundingState } from '@commonality/sdk'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import type { UiRuntimeConfig } from '../../shared/runtimeConfig'
+import { getRuntimeConfig } from '../../shared/runtimeConfig'
 import { getProjectsFiltered } from '@commonality/sdk'
 import type { ProjectWithMetrics } from '@commonality/sdk'
 
@@ -23,9 +25,32 @@ export interface ContentAttestationInfo {
   statementCid: string
 }
 
-async function fetchPlatformChannelMetadata(canonicalId: string): Promise<ChannelDisplayMetadata | null> {
-  if (import.meta.env.VITE_ENABLE_CHANNEL_METADATA_LOOKUP !== 'true') return null
+interface ChannelMetadataLookupConfig {
+  enabled: boolean
+  baseUrl?: string
+}
 
+export function resolveChannelMetadataLookupConfig(config: UiRuntimeConfig = getRuntimeConfig()): ChannelMetadataLookupConfig {
+  const environment = config.COMMONALITY_ENVIRONMENT ?? 'local'
+  const enabled = config.VITE_ENABLE_CHANNEL_METADATA_LOOKUP === 'true'
+  const configuredBaseUrl = config.VITE_PLATFORM_API_URL
+
+  if (environment !== 'local') {
+    if (!enabled) {
+      throw new Error(`Channel metadata lookup is required for ${environment}. Set VITE_ENABLE_CHANNEL_METADATA_LOOKUP=true and configure the deployed platform API.`)
+    }
+    if (!configuredBaseUrl) {
+      throw new Error(`Channel metadata lookup is required for ${environment}, but VITE_PLATFORM_API_URL is not configured.`)
+    }
+  }
+
+  return {
+    enabled,
+    baseUrl: configuredBaseUrl || 'http://localhost:3001',
+  }
+}
+
+async function fetchPlatformChannelMetadata(canonicalId: string, baseUrl: string): Promise<ChannelDisplayMetadata | null> {
   let platform: string
   try {
     platform = parseCanonicalChannelId(canonicalId).platform
@@ -35,7 +60,6 @@ async function fetchPlatformChannelMetadata(canonicalId: string): Promise<Channe
 
   if (platform !== 'twitter' && platform !== 'youtube') return null
 
-  const baseUrl = import.meta.env.VITE_PLATFORM_API_URL || 'http://localhost:3001'
   const response = await fetch(`${baseUrl}/resolve/channel`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -99,6 +123,7 @@ export function useContentFundingState(): ContentFundingData {
           const channelOverviews = getAllChannelOverviews(contentFundingResult.state, options)
           setChannels(channelOverviews)
 
+          const channelMetadataLookup = resolveChannelMetadataLookupConfig()
           const displayMetadataEntries = await Promise.all(
             channelOverviews
               .filter(channel => channel.canonicalChannelId)
@@ -106,7 +131,9 @@ export function useContentFundingState(): ContentFundingData {
                 const canonicalChannelId = channel.canonicalChannelId
                 if (!canonicalChannelId) return ['', null] as const
 
-                const apiMetadata = await fetchPlatformChannelMetadata(canonicalChannelId).catch(() => null)
+                const apiMetadata = channelMetadataLookup.enabled && channelMetadataLookup.baseUrl
+                  ? await fetchPlatformChannelMetadata(canonicalChannelId, channelMetadataLookup.baseUrl).catch(() => null)
+                  : null
                 if (apiMetadata) return [canonicalChannelId, apiMetadata] as const
 
                 const metadataCid = channel.contracts.find(contract => contract.project?.metadataCid)?.project?.metadataCid
