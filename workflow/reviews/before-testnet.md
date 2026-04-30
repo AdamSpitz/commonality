@@ -100,7 +100,9 @@ Only the attester bundle (`service-host-attesters`) is enabled by default. This 
 
 **Recommendation:** Add clear documentation that workers are disabled by default and how to enable them. Consider whether the `--seed` script should also spin up a minimal worker cycle to populate some initial data.
 
-HUMAN'S NOTE: Discussed. Plan: extend the existing pre-generated-evaluations pattern to cover explorer curator, nudgers, and implication finder outputs. Pre-generate against the seed statements (stable CIDs), store as checked-in JSON, replay on-chain during seeding — no live LLM calls needed. See `specs/dev/testing/pregenerated-worker-outputs.md` and TODO.md.
+HUMAN'S NOTE: Let's talk this out interactively. I wonder whether we can run the LLM *once* and then cache the results, rather than running them every time we run the tests. We already have some stuff that works like that, don't we?
+
+AFTER TALKING ABOUT IT: Discussed. Plan: extend the existing pre-generated-evaluations pattern to cover explorer curator, nudgers, and implication finder outputs. Pre-generate against the seed statements (stable CIDs), store as checked-in JSON, replay on-chain during seeding — no live LLM calls needed. See `specs/dev/testing/pregenerated-worker-outputs.md` and TODO.md.
 
 ---
 
@@ -152,6 +154,9 @@ This is explicitly called out in existing continuity notes and needs to be resol
 
 HUMAN'S NOTE: Right, interesting point. Because we're doing deployment to IPFS rather than to a server, we can't just provide different config files on each server. Okay, here's a question: is it possible to create an IPFS bundle that *contains* the static bundle that's produced by `npm run build:ipfs`, as well as containing an IPFS JSON document containing config values? Can we produce three of those (one whose config says "local dev", one whose config says "testnet", one whose config says "mainnet")?
 
+AFTER TALKING ABOUT IT: Plan: stop baking env vars into JS at build time. Instead, at app startup, fetch a `./config.json` from a relative path. Build the JS once (env-var-free), then publish three separate IPFS directories (local, testnet, mainnet) each containing the same JS assets plus a different `config.json`. IPFS content-addressing means shared asset files are stored once and referenced by all three bundles. Requires a small async-before-render change to app startup code.
+
+
 ---
 
 ### Finding 4: Console Debug Logging in Production UI Code
@@ -194,6 +199,8 @@ Rollup warns: "Some chunks are larger than 500 kB after minification."
 **Recommendation:** Prioritize code-splitting the largest chunks. Consider lazy-loading wallet onboarding (Privy is already lazy-loaded when not in use, but the chunk is still large when it is needed).
 
 HUMAN'S NOTE: I need you to talk me through what this means. What kind of "code-splitting" are we talking about?
+
+AFTER TALKING ABOUT IT: Plan: for testnet, do route-level code-splitting (lazy `import()` per page/route — Vite splits automatically). Defer wallet lazy-loading and further optimization. The 2.5MB chunk is likely ethers.js; route splitting should reduce it meaningfully with minimal effort.
 
 ---
 
