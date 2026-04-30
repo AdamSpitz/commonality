@@ -33,18 +33,22 @@ This is a virtuous cycle:
 You don't need to understand any of the underlying mechanics to participate. From your perspective as a retroactive funder:
 
   1. You browse projects that have already delivered results.
-  2. You see transparent evidence of what they accomplished (all onchain, all verifiable). (TODO: integrate the point that you may even recognize the project; the whole point of this is that you're funding projects that have already created value, meaning you may actually have heard of the project or even used it or personally interacted with it, you're not just evaluating onchain evidence.)
+  2. You see what they accomplished — and you may already know. Because you're funding projects that have already created value, you might have heard of the project, used it yourself, or personally benefited from it. You're not just evaluating abstract evidence; you're confirming something you already experienced.
   3. You fund the ones you think created genuine value.
   4. You appear on the project's leaderboard (unless you choose to remain anonymous). You get a permanent, verifiable receipt of your contribution.
 
 That's it. You're doing roughly the same thing you'd do with any donation — finding something good and supporting it — but with far more confidence that your money is going to something real, and with the knowledge that your donation also strengthens the incentive for scouts to find the *next* good project.
 
-## TODO: I dunno whether this belongs in the section above about what this looks like in practice, or in the section below about how it works under the hood
+## Unrewarded contributions: what you see in the UI
 
-I think I like the idea of the UI presenting a notion of "outstanding tokens" (though that's a bad name) or "unrewarded contributions" or something. It basically means "tokens that have been minted but not yet burned". That is, the expected flow is:
-  - Assurance contract is created; there are tokens available for minting. We expect that 'scouts' will do the minting (though 'donors' are of course allowed to do it too).
-  - The assurance contract reaches its funding threshold. All (or enough, anyway) of its tokens have been minted and are now visible in the "unrewarded contributions" (AKA "outstanding tokens", AKA "secondary market") page(s) in the funding portal UI and pubstarter UI.
-  - HERE'S MY POINT: The idea that we're trying to incept into the community is: your role, as an altruistic donor (rather than a scout), is to reward these unrewarded contributions, to buy-and-burn these outstanding tokens. If there's a *good project* whose tokens are *still out there*, your role is to snap them up and burn them ("fulfill" them? I don't know what terminology would feel right). That's what "releases" the "scouting money" so that it's available to fund more projects in the future. The health of the ecosystem depends on *not* having any outstanding tokens out there on the secondary market (at reasonable prices) for the projects that have proven genuinely valuable; if you want your movement to continue being able to fund good projects to support the cause, your role is to make sure that the outstanding tokens for all the good projects get "eaten up".
+The funding portal shows you **unrewarded contributions** — projects that have delivered results but whose scouts haven't yet been repaid. Think of it as a queue of proven projects waiting for donors to close the loop.
+
+The flow works like this:
+  - A project is created with tokens available. Scouts mint tokens by funding the project early.
+  - The project reaches its funding threshold and delivers results. The scouts' tokens are now visible in the unrewarded-contributions view.
+  - Your role as a donor is to buy and burn these tokens — rewarding the scouts who spotted the project early, and freeing up their capital to fund the *next* good project.
+
+The health of the ecosystem depends on this cycle completing. If a proven project still has outstanding tokens at reasonable prices, that means scouts haven't been repaid yet — and their money is locked up instead of finding the next promising project. When you buy and burn tokens for projects you believe in, you're not just saying "thank you" to the scouts; you're reloading the system's capacity to fund new work.
 
 ## How it works under the hood
 

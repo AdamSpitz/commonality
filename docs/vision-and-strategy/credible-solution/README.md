@@ -19,6 +19,8 @@ The arguments for why you might *want* to switch (even for things government cur
 
 
 
-## TODO: here's some criticism to respond to or incorporate:
+## Honest scope
 
-What you’ve really shown is that Commonality looks credible for public goods with a motivated constituency, visible beneficiaries, and fundable thresholds. That is a strong claim. It is not yet a general answer to low-salience goods, long-horizon maintenance, boring infrastructure, or cases where the beneficiaries are too diffuse to mobilize.
+Commonality looks most credible for public goods with a motivated constituency, visible beneficiaries, and fundable thresholds. That’s a strong starting claim — and it covers a lot of ground that’s currently served poorly.
+
+It is not yet a general answer to low-salience goods, long-horizon maintenance, boring infrastructure, or cases where the beneficiaries are too diffuse to mobilize. These are real gaps. The [delegation system](./delegation.md) helps (delegates can specialize in boring-but-important infrastructure), and retroactive funding rewards people who quietly maintained things for years. But some categories of public good may genuinely need tax-funded provision for the foreseeable future — and that’s fine. The claim isn’t that Commonality replaces government for *everything*, just that it’s viable for a much larger category than most people assume.

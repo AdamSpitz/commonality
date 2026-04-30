@@ -24,7 +24,7 @@ The one partial exception is assurance-contract pledges, which don't take effect
 
 There's an honest tradeoff here. In the legacy system, if your side wins an election, you get to redirect *everyone's* money. In Commonality, you can only direct your own.
 
-But that tradeoff is what makes the system work. Directing your own money with immediate effect is strictly better (TODO: I'd quibble with "strictly better") than a tiny probability of influencing everyone's money after a long delay. And if you really want to influence other people's decisions, you still can — argue on social media, become a delegate, build a track record. You just can't *force* anyone.
+But that tradeoff is what makes the system work. Directing your own money with immediate effect is, for most people most of the time, a better deal than a tiny probability of influencing everyone's money after a long delay. And if you really want to influence other people's decisions, you still can — argue on social media, become a delegate, build a track record. You just can't *force* anyone.
 
 ## Small individual effects, large emergent ones
 

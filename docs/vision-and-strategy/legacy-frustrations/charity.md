@@ -13,15 +13,11 @@ Commonality keeps the good part of charity — it's voluntary — while fixing t
 
 Charities that adopt Commonality as infrastructure also gain access to the [credible-threat mechanism](../hard-to-stop/credible-threat.md): if their government funding gets threatened, their donor base can visibly coordinate a backup plan at zero cost. See the [walkthrough](/docs/use-case-walkthroughs/defunding.md) for a concrete example.
 
-## TODO: incorporate this
+## The trust problem is real
 
-https://x.com/mattvanswol/status/2045936225198956559
+Many people feel they can’t trust charities not to be corrupt — and noticing the corruption requires a deep dive that most donors never do. This isn’t just a fringe complaint; it’s a widespread reason people *don’t donate at all*.
 
-        It’s hard to be generous when I’m already being generously stolen from in taxes and when even the nonprofits aren’t actually solving the problems they reportedly exist to solve.
-
-The question of whether I personally agree with his political views is irrelevant; the point is (a) people feel like they can't trust charities not to be corrupt, and (b) noticing the corruption requires a "deep dive", it's not actually easy to tell.
-
-Commonality might be useful in solving this problem - can donate more directly rather than through big charity orgs, and also can retroactively fund stuff that's already done good.
-
-
-https://x.com/elonmusk/status/2046327719231705207
+Commonality addresses this directly:
+  - **Onchain transparency** means you can see exactly where every dollar went, without needing to do a forensic audit.
+  - **Direct funding** lets you support specific projects rather than routing money through a large organization with opaque internal allocation.
+  - **Retroactive funding** means you can fund things that have *already* demonstrated value, rather than trusting a charity’s promises about what they’ll do with your money.

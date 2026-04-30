@@ -32,7 +32,7 @@ At this point, Commonality is doing almost nothing that the community wasn't alr
 The province announces the funding cut. Now things get serious.
 
   - Maria sets up a **standby assurance contract**: "If provincial funding is cut, fund the mentorship program at $120K/year." Monthly pledges, $10K/month threshold.
-  - 180 families pledge an average of $60/month. That's $10,800/month in publicly verifiable, locked pledges — not quite the threshold, but visible and growing. (TODO: am I missing something, or is the math here confusing? If the threshold is 10K, then 10800 is already past that, no?)
+  - 180 families pledge an average of $60/month. That's $10,800/month in publicly verifiable, locked pledges — past the threshold, but the community keeps going to build a buffer.
   - A local business owner pledges $2K/month through a bridge operator (tax-deductible via the program's existing charity).
   - The wider network kicks in: three families from neighboring towns who signed the broader "rural communities" statement see Millbrook's project in their funding portal (via the implication attestation) and pledge $50/month each.
 
