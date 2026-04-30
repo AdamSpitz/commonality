@@ -124,7 +124,7 @@ From the continuity notes, fake-data generation seeds 10 users and 3 rounds of d
 
 HUMAN'S NOTE: Yes. Let's make sure we have an easy command for doing this.
 
-DONE 2026-04-30: Added and live-tested `./scripts/data.sh --seed=demo`. It generates `fake-data-generation/output/seed-universe.json` from formal seed content (excluding proliferation variants), runs the fake-universe simulation against that universe, has the local seed nudger sign the curated Explorer statements, and publishes one-shot Explorer/nudge fixtures via the local hardhat seed nudger (no live AI worker calls). Live testing also found and fixed missing indexer support for `NudgePublications` events, which was required for the Explorer/nudge fixtures to be visible through SDK event-cache queries.
+DONE 2026-04-30: Added and live-tested `./scripts/data.sh --seed=demo`. It generates `fake-data-generation/output/seed-universe.json` from formal seed content (excluding proliferation variants), runs the fake-universe simulation against that universe, has the local seed nudger sign the curated Explorer statements, and replays checked-in pre-generated worker outputs from `fake-data-generation/data/seed-worker-outputs.json` (Explorer collection, nudge batch, and implication-finder pairs) via the local hardhat seed nudger. Live testing also found and fixed missing indexer support for `NudgePublications` events, which was required for the Explorer/nudge fixtures to be visible through SDK event-cache queries.
 
 ---
 

@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-04-30T22:06:22.686Z",
+  "algorithm": "deterministic-seed-content-fixture-v1",
+  "seedContentFingerprint": "e72eba9bc21e2d0783dbb98ccb00eff4a2d7ecf367da894143da5d5c0265f37c",
+  "explorerCollection": {
+    "stream": "fundable-project-explorer",
+    "entries": [
+      {
+        "collectionId": "content-funding",
+        "groupId": "right-to-left-translation",
+        "statementId": "lean-left-open-to-right-perspectives",
+        "label": "I lean left, and I'm interested in reading content that communicates ...",
+        "topicArea": "content-funding"
+      },
+      {
+        "collectionId": "content-funding",
+        "groupId": "right-to-left-translation",
+        "statementId": "lean-right-wants-charitable-right-explanations",
+        "label": "I lean right, and I'd like to try to communicate right-wing perspecti...",
+        "topicArea": "content-funding"
+      },
+      {
+        "collectionId": "content-funding",
+        "groupId": "right-to-left-translation",
+        "statementId": "right-perspectives-noninflammatory",
+        "label": "I'm interested in content that communicates right-wing perspectives i...",
+        "topicArea": "content-funding"
+      },
+      {
+        "collectionId": "content-funding",
+        "groupId": "left-to-right-translation",
+        "statementId": "lean-right-open-to-left-perspectives",
+        "label": "I lean right, and I'm interested in reading content that communicates...",
+        "topicArea": "content-funding"
+      },
+      {
+        "collectionId": "content-funding",
+        "groupId": "left-to-right-translation",
+        "statementId": "lean-left-wants-charitable-left-explanations",
+        "label": "I lean left, and I'd like to try to communicate left-wing perspective...",
+        "topicArea": "content-funding"
+      },
+      {
+        "collectionId": "content-funding",
+        "groupId": "left-to-right-translation",
+        "statementId": "left-perspectives-noninflammatory",
+        "label": "I'm interested in content that communicates left-wing perspectives in...",
+        "topicArea": "content-funding"
+      },
+      {
+        "collectionId": "content-funding",
+        "groupId": "cross-partisan-explanatory-content",
+        "statementId": "other-side-perspectives-without-anger",
+        "label": "I'm interested in content that explains the other side's perspectives...",
+        "topicArea": "content-funding"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "finding-common-ground",
+        "statementId": "common-ground-across-divides",
+        "label": "I am interested in furthering the cause of helping people find common...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "finding-common-ground",
+        "statementId": "charitable-cross-partisan-content",
+        "label": "I am interested in furthering the cause of content that explains one ...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "finding-common-ground",
+        "statementId": "identify-political-agreement",
+        "label": "I am interested in furthering the cause of identifying where politica...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "finding-common-ground",
+        "statementId": "reduce-tribal-polarization",
+        "label": "I am interested in furthering the cause of reducing tribal polarizati...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "finding-common-ground",
+        "statementId": "inform-not-inflame",
+        "label": "I am interested in furthering the cause of journalism that informs ra...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "government-accountability",
+        "statementId": "expose-corruption-and-waste",
+        "label": "I am interested in furthering the cause of exposing government corrup...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "government-accountability",
+        "statementId": "transparent-and-auditable-spending",
+        "label": "I am interested in furthering the cause of making government spending...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "government-accountability",
+        "statementId": "congressional-term-limits",
+        "label": "I am interested in furthering the cause of congressional term limits.",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "government-accountability",
+        "statementId": "money-out-of-politics",
+        "label": "I am interested in furthering the cause of getting money out of polit...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "government-accountability",
+        "statementId": "end-revolving-door",
+        "label": "I am interested in furthering the cause of ending the revolving door ...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "government-accountability",
+        "statementId": "better-voting-systems",
+        "label": "I am interested in furthering the cause of better voting systems and ...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "government-accountability",
+        "statementId": "break-regulatory-capture",
+        "label": "I am interested in furthering the cause of breaking up regulatory cap...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "civil-liberties",
+        "statementId": "free-speech-unpopular-speech",
+        "label": "I am interested in furthering the cause of free speech, especially un...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "civil-liberties",
+        "statementId": "censorship-resistant-publishing",
+        "label": "I am interested in furthering the cause of censorship-resistant publi...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "civil-liberties",
+        "statementId": "protect-from-surveillance",
+        "label": "I am interested in furthering the cause of protecting people from gov...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "civil-liberties",
+        "statementId": "privacy-tools-for-ordinary-people",
+        "label": "I am interested in furthering the cause of online privacy tools that ...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "civil-liberties",
+        "statementId": "decentralized-social-media-alternatives",
+        "label": "I am interested in furthering the cause of decentralized alternatives...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "civil-liberties",
+        "statementId": "legal-defense-for-free-speech",
+        "label": "I am interested in furthering the cause of legal defense for free spe...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "open-source-and-public-infrastructure",
+        "statementId": "open-source-public-infrastructure",
+        "label": "I am interested in furthering the cause of open-source software that ...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "open-source-and-public-infrastructure",
+        "statementId": "fund-critical-maintainers",
+        "label": "I am interested in furthering the cause of sustainable funding for ma...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "open-source-and-public-infrastructure",
+        "statementId": "decentralized-internet-infrastructure",
+        "label": "I am interested in furthering the cause of decentralized internet inf...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "open-source-and-public-infrastructure",
+        "statementId": "open-standards-avoid-lock-in",
+        "label": "I am interested in furthering the cause of open standards that preven...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "open-source-and-public-infrastructure",
+        "statementId": "open-source-security-tools",
+        "label": "I am interested in furthering the cause of open-source security tools.",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "scientific-research",
+        "statementId": "open-access-scientific-publishing",
+        "label": "I am interested in furthering the cause of open-access scientific pub...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "scientific-research",
+        "statementId": "research-neglected-diseases",
+        "label": "I am interested in furthering the cause of research into diseases tha...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "scientific-research",
+        "statementId": "independent-replication-studies",
+        "label": "I am interested in furthering the cause of independent replication st...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "scientific-research",
+        "statementId": "conflict-free-scientific-research",
+        "label": "I am interested in furthering the cause of scientific research free f...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "scientific-research",
+        "statementId": "longevity-and-healthspan",
+        "label": "I am interested in furthering the cause of longevity and healthspan r...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "scientific-research",
+        "statementId": "chronic-disease-roots",
+        "label": "I am interested in furthering the cause of research into the roots of...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "public-health",
+        "statementId": "mental-health-treatment-and-research",
+        "label": "I am interested in furthering the cause of mental health treatment an...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "public-health",
+        "statementId": "evidence-based-addiction-treatment",
+        "label": "I am interested in furthering the cause of evidence-based drug addict...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "public-health",
+        "statementId": "nutrition-and-preventive-medicine",
+        "label": "I am interested in furthering the cause of independent research into ...",
+        "topicArea": "fundable-projects"
+      },
+      {
+        "collectionId": "fundable-projects",
+        "groupId": "public-health",
+        "statementId": "pandemic-preparedness-outside-government",
+        "label": "I am interested in furthering the cause of pandemic preparedness infr...",
+        "topicArea": "fundable-projects"
+      }
+    ]
+  },
+  "nudgeBatch": {
+    "nudges": [
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-left-open-to-right-perspectives"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-right-wants-charitable-right-explanations"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Right-to-left translation.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-right-wants-charitable-right-explanations"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-left-open-to-right-perspectives"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Right-to-left translation.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "right-perspectives-noninflammatory"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-left-open-to-right-perspectives"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Right-to-left translation.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-right-open-to-left-perspectives"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-left-wants-charitable-left-explanations"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Left-to-right translation.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-left-wants-charitable-left-explanations"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-right-open-to-left-perspectives"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Left-to-right translation.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "left-perspectives-noninflammatory"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-right-open-to-left-perspectives"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Left-to-right translation.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "cross-partisan-explanatory-content",
+          "statementId": "other-side-perspectives-without-anger"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-left-open-to-right-perspectives"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Cross-partisan explanatory content.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "common-ground-across-divides"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "charitable-cross-partisan-content"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "charitable-cross-partisan-content"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "common-ground-across-divides"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "identify-political-agreement"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "common-ground-across-divides"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "reduce-tribal-polarization"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "common-ground-across-divides"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "inform-not-inflame"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "common-ground-across-divides"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "expose-corruption-and-waste"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "transparent-and-auditable-spending"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "transparent-and-auditable-spending"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "expose-corruption-and-waste"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "congressional-term-limits"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "expose-corruption-and-waste"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "money-out-of-politics"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "expose-corruption-and-waste"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "end-revolving-door"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "expose-corruption-and-waste"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "better-voting-systems"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "expose-corruption-and-waste"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "break-regulatory-capture"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "expose-corruption-and-waste"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "censorship-resistant-publishing"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "censorship-resistant-publishing"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "protect-from-surveillance"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "privacy-tools-for-ordinary-people"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "decentralized-social-media-alternatives"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "legal-defense-for-free-speech"
+        },
+        "suggested": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
+        "confidence": 0.6
+      }
+    ]
+  },
+  "implicationFinder": {
+    "pairs": [
+      {
+        "from": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-left-wants-charitable-left-explanations"
+        },
+        "to": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-right-open-to-left-perspectives"
+        },
+        "reason": "Seeded implication-finder candidate from content-funding/left-to-right-translation."
+      },
+      {
+        "from": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "lean-right-open-to-left-perspectives"
+        },
+        "to": {
+          "collectionId": "content-funding",
+          "groupId": "left-to-right-translation",
+          "statementId": "left-perspectives-noninflammatory"
+        },
+        "reason": "Seeded implication-finder candidate from content-funding/left-to-right-translation."
+      },
+      {
+        "from": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-left-open-to-right-perspectives"
+        },
+        "to": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-right-wants-charitable-right-explanations"
+        },
+        "reason": "Seeded implication-finder candidate from content-funding/right-to-left-translation."
+      },
+      {
+        "from": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-right-wants-charitable-right-explanations"
+        },
+        "to": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "right-perspectives-noninflammatory"
+        },
+        "reason": "Seeded implication-finder candidate from content-funding/right-to-left-translation."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "censorship-resistant-publishing"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "decentralized-social-media-alternatives"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/civil-liberties."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "decentralized-social-media-alternatives"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/civil-liberties."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "free-speech-unpopular-speech"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "legal-defense-for-free-speech"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/civil-liberties."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "legal-defense-for-free-speech"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "privacy-tools-for-ordinary-people"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/civil-liberties."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "privacy-tools-for-ordinary-people"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "civil-liberties",
+          "statementId": "protect-from-surveillance"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/civil-liberties."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "crypto-economic-freedom"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "crypto-education-and-adoption"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/crypto-and-defi."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "crypto-education-and-adoption"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "defi-for-ordinary-people"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/crypto-and-defi."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "defi-for-ordinary-people"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "financial-self-sovereignty"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/crypto-and-defi."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "financial-self-sovereignty"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "crypto-and-defi",
+          "statementId": "privacy-preserving-finance"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/crypto-and-defi."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "biosecurity-early-warning"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "defensive-cybersecurity-research"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/defense-security-and-resilience."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "defensive-cybersecurity-research"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "hard-to-shut-down-infrastructure"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/defense-security-and-resilience."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "hard-to-shut-down-infrastructure"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "individual-and-community-preparedness"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/defense-security-and-resilience."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "individual-and-community-preparedness"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "defense-security-and-resilience",
+          "statementId": "supply-chain-resilience"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/defense-security-and-resilience."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "classic-literature-and-history"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "educational-support-for-disadvantaged-kids"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/education."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "educational-support-for-disadvantaged-kids"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "homeschooling-resources"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/education."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "homeschooling-resources"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "learning-outcomes-research"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/education."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "learning-outcomes-research"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "school-alternatives"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/education."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "school-alternatives"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "education",
+          "statementId": "vocational-training"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/education."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "clean-energy-research"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "conservation-of-local-natural-areas"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "conservation-of-local-natural-areas"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "independent-environmental-monitoring"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "independent-environmental-monitoring"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "reduce-industrial-food-dependence"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "reduce-industrial-food-dependence"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "environment-and-sustainability",
+          "statementId": "sustainable-agriculture-research"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "civil-society-alternatives"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "community-coordination-without-bureaucracy"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "community-coordination-without-bureaucracy"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "cross-church-coordination"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "cross-church-coordination"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "faith-based-charitable-work"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "faith-based-charitable-work"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "faith-civil-society-and-charitable-coordination",
+          "statementId": "religious-freedom"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "charitable-cross-partisan-content"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "common-ground-across-divides"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "common-ground-across-divides"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "identify-political-agreement"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "identify-political-agreement"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "inform-not-inflame"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "inform-not-inflame"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "finding-common-ground",
+          "statementId": "reduce-tribal-polarization"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "better-infrastructure-for-public-goods"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "decentralized-philanthropy"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "decentralized-philanthropy"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "donation-transparency-and-accountability"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "donation-transparency-and-accountability"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "reduce-charitable-overhead"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "reduce-charitable-overhead"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "funding-infrastructure-itself",
+          "statementId": "tools-for-collective-action-without-central-org"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "better-voting-systems"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "break-regulatory-capture"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/government-accountability."
+      },
+      {
+        "from": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "break-regulatory-capture"
+        },
+        "to": {
+          "collectionId": "fundable-projects",
+          "groupId": "government-accountability",
+          "statementId": "congressional-term-limits"
+        },
+        "reason": "Seeded implication-finder candidate from fundable-projects/government-accountability."
+      }
+    ]
+  }
+}

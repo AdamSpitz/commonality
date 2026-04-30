@@ -8,15 +8,15 @@ The AI worker services (implication finder, explorer curator, nudgers, bridge cr
 
 We already solve this problem for implication attestations. The `fake-data-generation/` scripts pre-generate LLM evaluations for the seed statement pairs and store them in `data/seed-implication-evaluations.*.json` (checked into the repo). During seeding, those results are replayed on-chain without calling the LLM again.
 
-## Proposed Extension
+## Current Implementation
 
-Apply the same pattern to the other worker services:
+The local-dev fixture lives in `fake-data-generation/data/seed-worker-outputs.json` and is replayed by `./scripts/data.sh --seed=demo`.
 
-**Explorer curator** — Pre-generate a curated collection from the seed statements and store it as `data/seed-explorer-collection.json`. During seeding, replay it on-chain (publish the curation transaction) without calling the LLM.
+**Explorer curator** — Stores a curated collection from the formal seed statements. During seeding, the local seed nudger signs those statements and publishes a `curated-collection` nudger publication on-chain.
 
-**Nudgers** — Pre-generate a set of nudge publications (implication-graph nudger, bridge creator) for the seed statements. Store as `data/seed-nudges.json`. Replay during seeding.
+**Nudgers** — Stores a deterministic nudge batch for seed statement pairs. During seeding, the local seed nudger publishes it as a `nudge-batch` publication.
 
-**Implication finder** — Pre-generate the set of statement pairs the finder would have discovered and queued for attestation. Store as `data/seed-finder-pairs.json`. Replay during seeding.
+**Implication finder** — Stores deterministic same-group implication-finder pairs. During seeding, the local seed nudger replays those pairs as `ImplicationAttestation` events so the implication graph is non-empty without running the finder/attester workers.
 
 ## Key Insight
 
@@ -24,17 +24,16 @@ The seed statements are content-addressed (stable CIDs, checked in). So the pre-
 
 This is analogous to Nix-style derivation caching: given known inputs (the seed statements), you pre-compute and store the output, then replay it deterministically without re-running the derivation.
 
-## New Scripts
+## Scripts
 
-- `npm run gen:seed:explorer` — run explorer curator against seed statements, save curated collection to `data/seed-explorer-collection.json`
-- `npm run gen:seed:nudges` — run nudgers/bridge-creator against seed statements, save to `data/seed-nudges.json`
-- `npm run gen:seed:finder-pairs` — run implication finder against seed statements, save discovered pairs to `data/seed-finder-pairs.json`
+- `npm run gen:seed:worker-outputs --workspace=fake-data-generation` — regenerate the checked-in fixture.
+- `npm run test:seed:worker-outputs --workspace=fake-data-generation` — verify the fixture still matches current seed content and the deterministic generator.
 
-All scripts should be resume-safe (skip already-generated entries) and write metadata files recording which model and prompt version was used (so we know when to regenerate after prompt changes).
+The fixture records the generation algorithm and a seed-content fingerprint. The current fixture is deterministic rather than live-LLM-generated; that keeps the local-dev command cheap and stable. If/when the real worker prompts need to be used, this file is the place to add model and prompt fingerprints.
 
 ## Seeding Integration
 
-Update `./scripts/data.sh --seed` (or the underlying seed script) to replay the pre-generated outputs on-chain after the fake universe is populated, the same way implication attestations are replayed today.
+`./scripts/data.sh --seed=demo` runs `fake-data-generation` with `--publish-seed-worker-outputs`, which replays the pre-generated outputs on-chain after the fake universe is populated.
 
 ## Regeneration
 

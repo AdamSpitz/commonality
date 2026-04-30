@@ -6,11 +6,9 @@
 
 - [x] ~~Make sure the seed content gets into the fake universe simulation.~~ — Done: `./scripts/data.sh --seed=demo` builds `output/seed-universe.json` from formal seed content (excluding proliferation variants) and runs the simulation against it.
 
-- Pre-generate worker outputs (explorer curator, nudgers, implication finder) for local dev seeding, so the Explorer page and nudge surfaces are populated without running live AI workers. See `specs/dev/testing/pregenerated-worker-outputs.md`.
+- [x] ~~Pre-generate worker outputs (explorer curator, nudgers, implication finder) for local dev seeding, so the Explorer page and nudge surfaces are populated without running live AI workers.~~ — Done: checked-in `fake-data-generation/data/seed-worker-outputs.json` is replayed by `./scripts/data.sh --seed=demo`.
 
 - Implement [beat agents](specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
-
-- See how-actions-compound.md, NOT DONE YET, NEED TO REMOVE TODOS.
 
 - Add Admin tabs to the UI. (What goes in it? And how do we get the UI to know that an admin is looking at it?)
 
@@ -20,8 +18,8 @@
 
 - Get DNS names and ENS names.
 
-- Do another smart-contract audit pass.
-  - First: which smart contracts are scary? IIRC the main one that was complicated was DelegatableNotes. Is that still true? Maybe not quite, see below.
+- Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
+  - First: which smart contracts are scary? IIRC the main one that was complicated was DelegatableNotes. Is that still true? Maybe not quite.
 
 - (Not a task for AI.) Try out the UI manually.
 - (Not a task for AI.) Do a big code review myself. I don't trust it.

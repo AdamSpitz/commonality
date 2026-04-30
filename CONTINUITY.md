@@ -1,5 +1,11 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-04-30 — Finished pre-generated worker-output replay for before-testnet Finding 8
+
+Converted the `--seed=demo` one-shot Explorer/nudge fixtures into checked-in pre-generated worker outputs. New files/scripts: `fake-data-generation/seedWorkerOutputs.ts`, `generateSeedWorkerOutputs.ts`, and `data/seed-worker-outputs.json`; package scripts `gen:seed:worker-outputs` and `test:seed:worker-outputs`. `runSimulation.ts` now maps stored seed statement refs to uploaded CIDs, publishes the stored Explorer collection and nudge batch, signs Explorer statements, and replays stored implication-finder pairs as implication attestations. Updated fake-data README, the pregenerated-worker-outputs spec, before-testnet Finding 8, and TODO.
+
+Validation: `npm run gen:seed:worker-outputs --workspace=fake-data-generation`, `npm run test:seed:worker-outputs --workspace=fake-data-generation`, `npm run typecheck --workspace=fake-data-generation`, and `npm run lint --workspace=fake-data-generation` passed. I did not re-run a live Docker `./scripts/data.sh --seed=demo` smoke in this session.
+
 ## 2026-04-30 — Added seed-content demo seeding for before-testnet Finding 8
 
 Added an easy local-dev command for the seed-content/Explorer first-run gap: `./scripts/data.sh --seed=demo`. It runs `fake-data-generation` against a generated seed-content universe (`gen:seed:universe -- --exclude-proliferation`) and publishes deterministic one-shot Explorer/nudge publications to `NudgePublications` using local Hardhat account #0 as the seed nudger. Local deployment now writes that account to `VITE_DEFAULT_NUDGERS`, including the already-deployed-contracts fast path, so the UI trusts those publications by default after rebuild/publish. Updated TODO, fake-data/local-dev docs, and the before-testnet review note.

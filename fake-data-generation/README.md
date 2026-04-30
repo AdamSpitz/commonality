@@ -63,6 +63,10 @@ npm run gen:seed:upload
 
 # Generate attesters
 npm run gen:attesters
+
+# Regenerate checked-in local-dev Explorer/nudge/finder fixtures
+npm run gen:seed:worker-outputs
+npm run test:seed:worker-outputs
 ```
 
 ## File Layout
@@ -97,6 +101,8 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
 - `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
 - `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
+- `npm run gen:seed:worker-outputs` regenerates checked-in local-dev Explorer/nudge/implication-finder fixtures in `data/seed-worker-outputs.json`
+- `npm run test:seed:worker-outputs` checks that those seed worker fixtures still match the current seed content and deterministic generator
 - `npm run test:seed:implication-regression` checks that the saved implication-decision corpus still matches the current statement IDs and statement text
 - `npm run gen:seed:implications:verify` is the same verifier with extra operator options, including optional live rechecks and focused human-review packet output
 - `npm run gen:proliferation` writes `seed-content/proliferation.json`, a large set of similar-but-distinct variants of every seed statement (see below)
@@ -118,6 +124,20 @@ Requires `OPENROUTER_API_KEY` in `.env` (or the environment). The script is resu
 #   OPENROUTER_API_KEY=sk-or-...
 npm run gen:proliferation
 ```
+
+### Pre-generated Seed Worker Outputs
+
+`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Explorer collection, statement nudges, and a small implication graph without running continuous AI workers or making live LLM calls.
+
+Regenerate the fixture when the formal seed content changes:
+
+```bash
+cd /home/adam/Projects/commonality/fake-data-generation
+npm run gen:seed:worker-outputs
+npm run test:seed:worker-outputs
+```
+
+The fixture records a seed-content fingerprint. The verification command fails if statement IDs/text have changed without regenerating the outputs.
 
 ### Pre-generated Seed Implication Decisions
 

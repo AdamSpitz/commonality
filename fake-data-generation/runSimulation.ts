@@ -32,6 +32,14 @@ import {
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
+import {
+  buildSeedStatementRefMap,
+  getSeedStatementRefKey,
+  loadOriginalSeedStatementRecords,
+  loadSeedWorkerOutputs,
+  verifySeedWorkerOutputs,
+  type SeedStatementRef,
+} from './seedWorkerOutputs.js';
 
 const erc20TransferAbi = [
   {
@@ -989,6 +997,44 @@ class SimulationRunner {
   }
 }
 
+interface SeedStatementOnChain extends SeedStatementRef {
+  cid: IpfsCidV1;
+}
+
+async function mapSeedStatementsToUploadedCids(statements: Statement[]): Promise<Map<string, SeedStatementOnChain>> {
+  const seedRecords = await loadOriginalSeedStatementRecords();
+  const seedRefsByContent = new Map(seedRecords.map((record) => [
+    `${record.collection.id}\u0000${record.group.id}\u0000${record.statement.text}`,
+    {
+      collectionId: record.collection.id,
+      groupId: record.group.id,
+      statementId: record.statement.id,
+    },
+  ]));
+
+  const mapped: SeedStatementOnChain[] = [];
+  for (const statement of statements) {
+    if (!statement.cid) continue;
+    const ref = seedRefsByContent.get(`${statement.domain}\u0000${statement.position}\u0000${statement.content.text}`);
+    if (!ref) continue;
+    mapped.push({ ...ref, cid: statement.cid });
+  }
+
+  return buildSeedStatementRefMap(mapped);
+}
+
+function requireSeedStatement(
+  statementsByRef: Map<string, SeedStatementOnChain>,
+  ref: SeedStatementRef,
+  purpose: string,
+): SeedStatementOnChain {
+  const statement = statementsByRef.get(getSeedStatementRefKey(ref));
+  if (!statement) {
+    throw new Error(`Seed worker output references missing statement for ${purpose}: ${getSeedStatementRefKey(ref)}`);
+  }
+  return statement;
+}
+
 async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<void> {
   const nudgePublicationsAddress = process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined;
   if (!nudgePublicationsAddress) {
@@ -996,13 +1042,15 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
     return;
   }
 
-  const statementsWithCids = simulation.statements.filter((statement) => statement.cid !== undefined);
-  if (statementsWithCids.length === 0) {
-    console.warn('No statements with CIDs available — skipping seed worker-output publications.');
+  console.log('\n=== Publishing pre-generated seed worker outputs ===\n');
+
+  await verifySeedWorkerOutputs();
+  const seedWorkerOutputs = await loadSeedWorkerOutputs();
+  const statementsByRef = await mapSeedStatementsToUploadedCids(simulation.statements);
+  if (statementsByRef.size === 0) {
+    console.warn('No formal seed statements with CIDs available — skipping seed worker-output publications.');
     return;
   }
-
-  console.log('\n=== Publishing seed worker outputs ===\n');
 
   const nudgerPrivateKey = HARDHAT_PRIVATE_KEYS[0];
   const clients = createTestClients(nudgerPrivateKey, RPC_URL);
@@ -1010,16 +1058,14 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
   const publishedAt = Math.floor(Date.now() / 1000);
 
-  const curatedEntries = statementsWithCids
-    .filter((statement) => statement.statementType === 'simple')
-    .slice(0, 40)
-    .map((statement) => ({
-      cid: statement.cid!,
-      label: statement.content.text.length > 72
-        ? `${statement.content.text.slice(0, 69)}...`
-        : statement.content.text,
-      topicArea: statement.domain,
-    }));
+  const curatedEntries = seedWorkerOutputs.explorerCollection.entries.map((entry) => {
+    const onChainStatement = requireSeedStatement(statementsByRef, entry, 'explorer collection');
+    return {
+      cid: onChainStatement.cid,
+      label: entry.label,
+      topicArea: entry.topicArea,
+    };
+  });
 
   if (!simulation.contracts.beliefs) {
     throw new Error('Beliefs contract is required to publish seed worker outputs');
@@ -1029,12 +1075,27 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
   }
   console.log(`Seed nudger signed ${curatedEntries.length} curated Explorer statements.`);
 
+  if (simulation.contracts.implications) {
+    for (const pair of seedWorkerOutputs.implicationFinder.pairs) {
+      const from = requireSeedStatement(statementsByRef, pair.from, 'implication finder pair');
+      const to = requireSeedStatement(statementsByRef, pair.to, 'implication finder pair');
+      await attestImplication(
+        clients,
+        simulation.contracts.implications,
+        from.cid,
+        to.cid,
+        '0x0000000000000000000000000000000000000000000000000000000000000000'
+      );
+    }
+    console.log(`Replayed ${seedWorkerOutputs.implicationFinder.pairs.length} pre-generated implication-finder pairs.`);
+  }
+
   const collection = {
     kind: 'curated-collection',
     schemaVersion: 1,
     nudger,
     publishedAt,
-    stream: 'fundable-project-explorer',
+    stream: seedWorkerOutputs.explorerCollection.stream,
     entries: curatedEntries,
   };
   const collectionCid = await uploadToIPFS(ipfsConfig, collection);
@@ -1049,17 +1110,15 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
   await clients.publicClient.waitForTransactionReceipt({ hash: collectionHash });
   console.log(`Published explorer collection (${curatedEntries.length} entries): ${collectionCid}`);
 
-  const nudges = statementsWithCids.slice(0, 25).flatMap((statement, index, all) => {
-    const suggested = all.find((candidate, candidateIndex) =>
-      candidateIndex !== index && candidate.domain === statement.domain && candidate.cid !== statement.cid
-    );
-    if (!suggested) return [];
-    return [{
-      targetStatementCid: statement.cid!,
-      suggestedStatementCid: suggested.cid!,
-      reason: `Seeded local-dev suggestion: another statement in ${statement.domain}.`,
-      confidence: 0.6,
-    }];
+  const nudges = seedWorkerOutputs.nudgeBatch.nudges.map((nudge) => {
+    const target = requireSeedStatement(statementsByRef, nudge.target, 'nudge target');
+    const suggested = requireSeedStatement(statementsByRef, nudge.suggested, 'nudge suggestion');
+    return {
+      targetStatementCid: target.cid,
+      suggestedStatementCid: suggested.cid,
+      reason: nudge.reason,
+      confidence: nudge.confidence,
+    };
   });
 
   if (nudges.length > 0) {
