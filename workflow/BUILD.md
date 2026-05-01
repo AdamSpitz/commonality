@@ -132,7 +132,7 @@ Notes:
 
 - `npm run build` is the host-side workspace build/type output path.
 - `./scripts/services.sh --start` handles Docker image reuse/rebuild decisions for local services.
-- `./scripts/data.sh --seed` populates the local chain after the services are up.
+- `./scripts/data.sh --seed` populates the local chain after the services are up. It fails if the indexer already has event data; wipe first for a clean reset, or pass `--allow-seed-on-existing-data` if you intentionally want to layer another seed run onto existing data.
 
 ### Common verification commands
 

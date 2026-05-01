@@ -11,6 +11,7 @@
 #   ./scripts/data.sh --seed=demo               # Seed-content demo dataset plus Explorer/nudge fixtures
 #   ./scripts/data.sh --seed --use-hardhat-accounts   # Use hardhat accounts for first 20 users
 #   ./scripts/data.sh --seed --debug-ipfs             # Show CIDs and content uploaded to IPFS
+#   ./scripts/data.sh --seed --allow-seed-on-existing-data  # Intentionally add seed data on top of existing data
 #
 # Data is stored in ./data/ by default:
 #   ./data/
@@ -42,6 +43,8 @@ show_usage() {
     echo "                        demo uses formal seed content and publishes Explorer/nudge fixtures"
     echo "  --use-hardhat-accounts  Use hardhat accounts instead of random wallets (for first 20 users)"
     echo "  --debug-ipfs        Show CIDs and content being uploaded to IPFS"
+    echo "  --allow-seed-on-existing-data"
+    echo "                      Intentionally add seed data on top of existing data"
     echo "  --help              Show this help message"
     echo ""
     echo "Environment variables:"
@@ -76,14 +79,23 @@ require_services_running() {
     fi
 }
 
-warn_if_indexer_already_has_data() {
+error_if_indexer_already_has_data_unless_allowed() {
+    local allow_existing_data="$1"
     local response
     response=$(curl -s "http://localhost:42069/api/events?limit=1" 2>/dev/null || true)
     if echo "$response" | grep -q '"items":\[{' ; then
         echo ""
-        echo "Warning: the Ponder indexer already has event data."
-        echo "Seeding again will add more data on top of the current local chain, and if the chain was reset without clearing Ponder it can produce a blank or stale UI."
-        echo "For a clean demo seed, run './scripts/data.sh --wipe', then './scripts/services.sh --start', then seed again."
+        if [ "$allow_existing_data" = "true" ]; then
+            echo "Warning: the Ponder indexer already has event data."
+            echo "Proceeding because --allow-seed-on-existing-data was passed."
+        else
+            echo "Error: the Ponder indexer already has event data."
+            echo "Seeding again would add more data on top of the current local chain, and if the chain was reset without clearing Ponder it can produce a blank or stale UI."
+            echo "For a clean demo seed, run './scripts/data.sh --wipe', then './scripts/services.sh --start', then seed again."
+            echo "If you really want to add new seed data on top of the existing data, pass --allow-seed-on-existing-data."
+            echo ""
+            exit 1
+        fi
         echo ""
     fi
 }
@@ -115,6 +127,7 @@ wait_for_indexer() {
 seed_data() {
     local size="${1:-small}"
     local extra_args="${2:-}"
+    local allow_existing_data="${3:-false}"
 
     "$SCRIPT_DIR/check-prerequisites.sh"
     require_services_running
@@ -122,7 +135,7 @@ seed_data() {
     echo "Generating fake data (size: $size)..."
 
     wait_for_indexer
-    warn_if_indexer_already_has_data
+    error_if_indexer_already_has_data_unless_allowed "$allow_existing_data"
 
     # Give it a moment to stabilize
     sleep 2
@@ -177,6 +190,7 @@ case "${1:-}" in
     --seed|--seed=*)
         size="small"
         extra_args=""
+        allow_existing_data="false"
 
         if [[ "$1" == --seed=* ]]; then
             parts=(${1#*=})
@@ -188,13 +202,15 @@ case "${1:-}" in
         while [[ "${1:-}" == --* ]]; do
             if [[ "$1" == "--debug-ipfs" ]]; then
                 export DEBUG_IPFS=true
+            elif [[ "$1" == "--allow-seed-on-existing-data" ]]; then
+                allow_existing_data="true"
             else
                 extra_args="$extra_args $1"
             fi
             shift
         done
 
-        seed_data "$size" "$extra_args"
+        seed_data "$size" "$extra_args" "$allow_existing_data"
         ;;
     --help|-h|"")
         show_usage

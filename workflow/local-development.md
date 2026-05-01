@@ -30,7 +30,7 @@ For a clean local reset, use:
 ./scripts/data.sh --seed
 ```
 
-`--wipe` removes the saved local chain, IPFS repo, and Ponder indexer database. Do not delete only one of `data/hardhat/` or `data/ponder/`: a reset chain with an old Ponder database can make the UI look empty because the indexer thinks old blocks were already processed. `services.sh --start` now clears Ponder automatically when it sees Ponder data without a saved local chain, and `data.sh --seed` warns if the indexer already contains events.
+`--wipe` removes the saved local chain, IPFS repo, and Ponder indexer database. Do not delete only one of `data/hardhat/` or `data/ponder/`: a reset chain with an old Ponder database can make the UI look empty because the indexer thinks old blocks were already processed. `services.sh --start` clears Ponder automatically when it sees Ponder data without a saved local chain, and `data.sh --seed` now errors if the indexer already contains events. If you intentionally want to add another seed run on top of existing data, pass `--allow-seed-on-existing-data`.
 
 For a richer first-run demo that uses the formal seed-content corpus (excluding proliferation variants) and publishes one-shot Explorer/nudge fixtures without live AI worker calls, run:
 
