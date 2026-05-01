@@ -58,6 +58,18 @@ resolve_path_allow_missing() {
     echo "$(cd "$dir" && pwd)/$base"
 }
 
+ponder_data_exists() {
+    [ -d "$DATA_DIR/ponder" ] && [ -n "$(find "$DATA_DIR/ponder" -mindepth 1 -print -quit 2>/dev/null)" ]
+}
+
+clear_stale_ponder_for_fresh_chain() {
+    if [ ! -f "$DATA_DIR/hardhat/state.json" ] && ponder_data_exists; then
+        echo "Warning: found existing Ponder indexer data but no saved local chain state."
+        echo "This usually means the chain was reset without clearing the indexer DB; clearing $DATA_DIR/ponder to avoid a blank/stale UI."
+        rm -rf "$DATA_DIR/ponder"
+    fi
+}
+
 check_existing_containers() {
     local abs_data_dir
     abs_data_dir="$(resolve_path_allow_missing "$DATA_DIR")"
@@ -213,6 +225,7 @@ start_services() {
 
     "$SCRIPT_DIR/check-prerequisites.sh"
     check_existing_containers
+    clear_stale_ponder_for_fresh_chain
     echo "Starting services with data directory: $DATA_DIR"
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.

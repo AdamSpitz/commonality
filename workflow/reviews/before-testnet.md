@@ -131,9 +131,9 @@ This was a first pass by an AI reviewer who couldn't connect a wallet. Many flow
 
 **Recommended follow-on tasks:**
 
-1. **Fix the metadata display issue** — hide raw metadata from user-facing cards. Or at least collapse it by default.
-2. **Fix the statement card duplication** — don't show the same text twice in Browse Statements.
-3. **Fix or document the ponder stale-state issue** in `local-development.md`.
+1. ✅ **Fix the metadata display issue** — raw statement metadata/CIDs were removed from successfully loaded user-facing statement renders.
+2. ✅ **Fix the statement card duplication** — Browse Statements no longer shows an excerpt when it is the same text as the title.
+3. ✅ **Fix or document the ponder stale-state issue** — `services.sh --start` clears stale Ponder data when the saved local chain is absent, `data.sh --seed` warns if indexer events already exist, and `local-development.md` documents the clean reset flow.
 4. **Do a wallet-connected test session** — use the `real-ui-user` skill with a connected wallet (Hardhat account #0 has funds) to test: sign a statement, buy project tokens, go through the creator claim flow.
 5. **Test the other three UI domains** (content-funding, noninflammatory, movement) — only Commonality was tested here.
 6. **Try the cofounder skill** to evaluate readiness from a product/strategy angle.

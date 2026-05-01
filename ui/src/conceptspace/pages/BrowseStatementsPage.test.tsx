@@ -246,6 +246,20 @@ describe('BrowseStatementsPage', () => {
       expect(screen.queryByText('This is a test excerpt')).not.toBeInTheDocument()
     })
 
+    it('does not duplicate statement text when title and excerpt are the same', async () => {
+      vi.mocked(browseStatements).mockResolvedValue([
+        makeStatement({ title: 'Same statement text', excerpt: 'Same statement text' }),
+      ] as any)
+
+      render(<BrowseStatementsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Same statement text')).toBeInTheDocument()
+      })
+
+      expect(screen.getAllByText('Same statement text')).toHaveLength(1)
+    })
+
     it('displays statement type chip when present', async () => {
       render(<BrowseStatementsPage />)
 

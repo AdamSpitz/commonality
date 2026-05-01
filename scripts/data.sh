@@ -76,6 +76,18 @@ require_services_running() {
     fi
 }
 
+warn_if_indexer_already_has_data() {
+    local response
+    response=$(curl -s "http://localhost:42069/api/events?limit=1" 2>/dev/null || true)
+    if echo "$response" | grep -q '"items":\[{' ; then
+        echo ""
+        echo "Warning: the Ponder indexer already has event data."
+        echo "Seeding again will add more data on top of the current local chain, and if the chain was reset without clearing Ponder it can produce a blank or stale UI."
+        echo "For a clean demo seed, run './scripts/data.sh --wipe', then './scripts/services.sh --start', then seed again."
+        echo ""
+    fi
+}
+
 wait_for_indexer() {
     echo "Waiting for indexer to be ready..."
     local max_attempts=60
@@ -110,6 +122,7 @@ seed_data() {
     echo "Generating fake data (size: $size)..."
 
     wait_for_indexer
+    warn_if_indexer_already_has_data
 
     # Give it a moment to stabilize
     sleep 2

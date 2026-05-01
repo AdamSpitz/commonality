@@ -1,4 +1,4 @@
-import { Box, Paper, Typography, Alert, Link as MuiLink, Table, TableBody, TableRow, TableCell } from '@mui/material'
+import { Box, Paper, Typography, Alert, Link as MuiLink } from '@mui/material'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { Link as RouterLink } from 'react-router-dom'
@@ -57,24 +57,14 @@ export function StatementRenderer({
     )
   }
 
-  return <DisplayableDocumentRenderer statementCid={statementCid} doc={content} />
+  return <DisplayableDocumentRenderer doc={content} />
 }
 
 // ============================================================================
 // DisplayableDocument renderer
 // ============================================================================
 
-function DisplayableDocumentRenderer({
-  statementCid,
-  doc,
-}: {
-  statementCid: string
-  doc: DisplayableDocument
-}) {
-  const knownFields = new Set(['format', 'content', 'assets', 'references', 'extras'])
-  const unknownFields = Object.entries(doc as unknown as Record<string, unknown>)
-    .filter(([key]) => !knownFields.has(key))
-
+function DisplayableDocumentRenderer({ doc }: { doc: DisplayableDocument }) {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       {/* Primary content */}
@@ -109,43 +99,6 @@ function DisplayableDocumentRenderer({
         </Box>
       )}
 
-      {/* Extras — always displayed in full per spec */}
-      {doc.extras && Object.keys(doc.extras).length > 0 && (
-        <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Metadata:
-          </Typography>
-          <ExtrasTable extras={doc.extras} />
-        </Box>
-      )}
-
-      {/* Unknown fields — rendered as raw JSON per spec */}
-      {unknownFields.length > 0 && (
-        <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Additional fields:
-          </Typography>
-          {unknownFields.map(([key, value]) => (
-            <Box key={key} sx={{ mb: 1 }}>
-              <Typography variant="caption" color="text.secondary">{key}:</Typography>
-              <Typography
-                variant="body2"
-                component="pre"
-                sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', mt: 0.5 }}
-              >
-                {JSON.stringify(value, null, 2)}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      )}
-
-      {/* Footer */}
-      <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Typography variant="caption" color="text.secondary">
-          Statement CID: {statementCid}
-        </Typography>
-      </Box>
     </Paper>
   )
 }
@@ -259,38 +212,5 @@ function resolveAssetSrc(asset: Asset): string | null {
     return `${gateway}/${asset.cid}`
   }
   return null
-}
-
-// ============================================================================
-// Extras display
-// ============================================================================
-
-function ExtrasTable({ extras }: { extras: Record<string, unknown> }) {
-  return (
-    <Table size="small" sx={{ '& td': { borderBottom: 'none', py: 0.5, px: 1 } }}>
-      <TableBody>
-        {Object.entries(extras).map(([key, value]) => (
-          <TableRow key={key}>
-            <TableCell sx={{ fontWeight: 'bold', verticalAlign: 'top', width: '1%', whiteSpace: 'nowrap' }}>
-              <Typography variant="body2" color="text.secondary">{key}</Typography>
-            </TableCell>
-            <TableCell>
-              {typeof value === 'string' ? (
-                <Typography variant="body2">{value}</Typography>
-              ) : (
-                <Typography
-                  variant="body2"
-                  component="pre"
-                  sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', m: 0 }}
-                >
-                  {JSON.stringify(value, null, 2)}
-                </Typography>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  )
 }
 

@@ -24,6 +24,15 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 
 type SortOption = 'mostSupporters' | 'newest'
 
+function normalizePreviewText(value: string | null | undefined) {
+  return value?.trim().replace(/\s+/g, ' ') ?? ''
+}
+
+function shouldShowExcerpt(statement: StatementListItem) {
+  const excerpt = normalizePreviewText(statement.excerpt)
+  return excerpt.length > 0 && excerpt !== normalizePreviewText(statement.title)
+}
+
 export function BrowseStatementsPage() {
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -142,7 +151,7 @@ export function BrowseStatementsPage() {
                     />
                   </Box>
 
-                  {statement.excerpt && (
+                  {shouldShowExcerpt(statement) && (
                     <Typography
                       variant="body2"
                       color="text.secondary"

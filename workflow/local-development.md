@@ -22,6 +22,16 @@ After building, you can run:
 
 That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the content-funding platform API service, then publishes the SPA build to the local IPFS gateway and prints the resulting `http://localhost:8080/ipfs/<cid>/commonality-ui/#/` URL. The latest CID and SPA URL are also written to `./data/ui-ipfs/`. You can re-print the current SPA URL any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data (10 users, 3 rounds).
 
+For a clean local reset, use:
+
+```bash
+./scripts/data.sh --wipe
+./scripts/services.sh --start
+./scripts/data.sh --seed
+```
+
+`--wipe` removes the saved local chain, IPFS repo, and Ponder indexer database. Do not delete only one of `data/hardhat/` or `data/ponder/`: a reset chain with an old Ponder database can make the UI look empty because the indexer thinks old blocks were already processed. `services.sh --start` now clears Ponder automatically when it sees Ponder data without a saved local chain, and `data.sh --seed` warns if the indexer already contains events.
+
 For a richer first-run demo that uses the formal seed-content corpus (excluding proliferation variants) and publishes one-shot Explorer/nudge fixtures without live AI worker calls, run:
 
 ```bash

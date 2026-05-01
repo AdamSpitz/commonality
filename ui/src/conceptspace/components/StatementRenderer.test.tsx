@@ -167,7 +167,7 @@ describe('StatementRenderer', () => {
       expect(preElement?.textContent).toBe('Line 1\nLine 2\n  Indented line')
     })
 
-    it('displays statement ID in footer', () => {
+    it('does not display developer-only statement CID for successfully loaded content', () => {
       const content: DisplayableDocument = {
         format: 'text/plain',
         content: 'Test content',
@@ -180,8 +180,7 @@ describe('StatementRenderer', () => {
         />
       )
 
-      expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
-      expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
+      expect(screen.queryByText(/Statement CID:/)).not.toBeInTheDocument()
     })
   })
 
@@ -460,7 +459,7 @@ describe('StatementRenderer', () => {
   })
 
   describe('extras (metadata) rendering', () => {
-    it('renders extras section when extras are present', () => {
+    it('does not render extras metadata in the user-facing statement view', () => {
       const content: DisplayableDocument = {
         format: 'text/plain',
         content: 'Main content',
@@ -477,54 +476,16 @@ describe('StatementRenderer', () => {
         />
       )
 
-      expect(screen.getByText(/metadata:/i)).toBeInTheDocument()
-      expect(screen.getByText('topic')).toBeInTheDocument()
-      expect(screen.getByText('Science')).toBeInTheDocument()
-      expect(screen.getByText('createdDate')).toBeInTheDocument()
-      expect(screen.getByText('2024-01-15')).toBeInTheDocument()
-    })
-
-    it('renders complex extras values as JSON', () => {
-      const content: DisplayableDocument = {
-        format: 'text/plain',
-        content: 'Main content',
-        extras: {
-          complexData: { nested: { value: 42 } },
-        },
-      }
-
-      renderWithRouter(
-        <StatementRenderer
-          statementCid={mockStatementId}
-          content={content}
-        />
-      )
-
-      expect(screen.getByText('complexData')).toBeInTheDocument()
-      // The JSON stringified content should be visible
-      expect(screen.getByText(/"nested"/)).toBeInTheDocument()
-    })
-
-    it('does not render extras section when extras is empty', () => {
-      const content: DisplayableDocument = {
-        format: 'text/plain',
-        content: 'Main content',
-        extras: {},
-      }
-
-      renderWithRouter(
-        <StatementRenderer
-          statementCid={mockStatementId}
-          content={content}
-        />
-      )
-
       expect(screen.queryByText(/metadata:/i)).not.toBeInTheDocument()
+      expect(screen.queryByText('topic')).not.toBeInTheDocument()
+      expect(screen.queryByText('Science')).not.toBeInTheDocument()
+      expect(screen.queryByText('createdDate')).not.toBeInTheDocument()
+      expect(screen.queryByText('2024-01-15')).not.toBeInTheDocument()
     })
   })
 
   describe('unknown fields rendering', () => {
-    it('renders unknown fields section for fields not in the spec', () => {
+    it('does not render unknown fields in the user-facing statement view', () => {
       const content = {
         format: 'text/plain',
         content: 'Main content',
@@ -538,29 +499,9 @@ describe('StatementRenderer', () => {
         />
       )
 
-      expect(screen.getByText(/additional fields:/i)).toBeInTheDocument()
-      expect(screen.getByText('customField:')).toBeInTheDocument()
-      expect(screen.getByText('"custom value"')).toBeInTheDocument()
-    })
-
-    it('renders unknown fields as formatted JSON', () => {
-      const content = {
-        format: 'text/plain',
-        content: 'Main content',
-        unknownArray: [1, 2, 3],
-      } as DisplayableDocument & { unknownArray: number[] }
-
-      renderWithRouter(
-        <StatementRenderer
-          statementCid={mockStatementId}
-          content={content}
-        />
-      )
-
-      expect(screen.getByText('unknownArray:')).toBeInTheDocument()
-      // Should show JSON array
-      const jsonText = screen.getByText(/\[/)
-      expect(jsonText.textContent).toContain('[')
+      expect(screen.queryByText(/additional fields:/i)).not.toBeInTheDocument()
+      expect(screen.queryByText('customField:')).not.toBeInTheDocument()
+      expect(screen.queryByText('"custom value"')).not.toBeInTheDocument()
     })
   })
 
@@ -582,13 +523,12 @@ describe('StatementRenderer', () => {
         />
       )
 
-      // All sections should be present
+      // User-facing sections should be present; developer-only fields should not be shown.
       expect(screen.getByText('Main Content')).toBeInTheDocument()
       expect(screen.getByText(/references:/i)).toBeInTheDocument()
-      expect(screen.getByText(/metadata:/i)).toBeInTheDocument()
-      expect(screen.getByText(/additional fields:/i)).toBeInTheDocument()
-      expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
-      expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
+      expect(screen.queryByText(/metadata:/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/additional fields:/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Statement CID:/)).not.toBeInTheDocument()
     })
   })
 })
