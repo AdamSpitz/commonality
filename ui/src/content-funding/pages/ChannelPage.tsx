@@ -345,8 +345,9 @@ export function ChannelPage({
   const isUnclaimed = channel.state === 'unclaimed'
   const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
 
+  const suggestedFunding = escrow.balance > 0n ? escrow.balance : totalFunding
   const suggestedMessage = [
-    `${suggestedMessagePrefix} ${formatEther(totalFunding)} ETH for your work on-chain.`,
+    `${suggestedMessagePrefix} ${formatEther(suggestedFunding)} ETH for your work on-chain.`,
     `You can claim it here: ${claimUrl}`,
   ].join(' ')
 

@@ -12,14 +12,26 @@ vi.mock('react-router-dom', () => ({
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
+  useWalletClient: vi.fn(() => ({ data: undefined })),
+  usePublicClient: vi.fn(() => undefined),
 }))
 
 vi.mock('../hooks/useContentFundingState', () => ({
   useContentFundingState: vi.fn(),
 }))
 
+vi.mock('@commonality/sdk', async () => {
+  const actual = await vi.importActual('@commonality/sdk')
+  return {
+    ...actual,
+    getChannelOverview: vi.fn(),
+    hashCanonicalId: vi.fn(() => '0xchannel'),
+  }
+})
+
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
+import { getChannelOverview } from '@commonality/sdk'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 
 function mockContentFundingState(overrides: {
@@ -49,6 +61,12 @@ describe('ChannelPage', () => {
     vi.clearAllMocks()
     vi.mocked(useParams).mockReturnValue({ platform: 'twitter', channelId: 'twitter%3Auid%3A12345%3A18347' })
     vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
+    vi.mocked(getChannelOverview).mockReturnValue({
+      channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
+      escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
+      contracts: [],
+      contentItems: [],
+    } as any)
   })
 
   it('shows loading spinner when loading', () => {
@@ -129,5 +147,24 @@ describe('ChannelPage', () => {
     render(<ChannelPage suggestedMessagePrefix="Check this out:" />)
 
     expect(screen.queryByText(/Check this out:/i)).not.toBeInTheDocument()
+  })
+
+  it('uses the escrow balance in the unclaimed-channel suggested share message', () => {
+    vi.mocked(getChannelOverview).mockReturnValue({
+      channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
+      escrow: {
+        balance: 110000000000000000n,
+        totalDeposited: 110000000000000000n,
+        totalWithdrawn: 0n,
+      },
+      contracts: [],
+      contentItems: [],
+    } as any)
+    mockContentFundingState({ loading: false, state: {} })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByText(/Your supporters have pooled 0\.11 ETH/)).toBeInTheDocument()
+    expect(screen.queryByText(/Your supporters have pooled 0 ETH/)).not.toBeInTheDocument()
   })
 })

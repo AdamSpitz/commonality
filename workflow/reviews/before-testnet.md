@@ -222,6 +222,7 @@ No 404s or broken pages in any of the three other domains.
 
 ### Recommended next steps
 
-1. **Fix duplicate text on My Profile** — extend the same excerpt-suppression logic from Browse Statements to the belief card component used on the Profile page.
-2. **Fix "Suggested message" ETH amount** — the channel's total raised ETH should be interpolated into the suggested share message.
-3. **Try the cofounder skill** to evaluate readiness from a product/strategy angle.
+1. ✅ **Fix duplicate text on My Profile** — covered by a regression test; the profile belief cards suppress excerpts that are the same as the title.
+2. ✅ **Fix "Suggested message" ETH amount** — the unclaimed-channel share message now uses the escrowed amount when present and falls back to total funding.
+3. ✅ **Improve BUY button test-session feedback** — direct ETH purchases now show a wallet-not-ready error instead of silently no-oping when wagmi has no wallet client.
+4. **Try the cofounder skill** to evaluate readiness from a product/strategy angle.

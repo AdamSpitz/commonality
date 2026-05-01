@@ -82,7 +82,10 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   }
 
   const handleBuy = async () => {
-    if (!walletClient || !publicClient || !address) return
+    if (!walletClient || !publicClient || !address) {
+      setBuyError('Wallet is not ready. Please reconnect your wallet and try again.')
+      return
+    }
 
     const tokenIds: bigint[] = []
     const tokenCounts: bigint[] = []

@@ -216,6 +216,18 @@ describe('BuyTokensSection', () => {
       expect(buyProjectTokens).not.toHaveBeenCalled()
     })
 
+    it('shows an error instead of silently doing nothing when the wallet client is missing', async () => {
+      vi.mocked(useWalletClient).mockReturnValue({ data: undefined } as any)
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.type(screen.getByLabelText('Quantity'), '1')
+      await user.click(screen.getByRole('button', { name: 'Buy' }))
+
+      expect(screen.getByText('Wallet is not ready. Please reconnect your wallet and try again.')).toBeInTheDocument()
+      expect(buyProjectTokens).not.toHaveBeenCalled()
+    })
+
     it('calls buyProjectTokens with correct parameters', async () => {
       const user = userEvent.setup()
       renderSection()

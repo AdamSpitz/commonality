@@ -531,6 +531,23 @@ describe('UserProfilePage', () => {
       })
     })
 
+    it('does not duplicate statement text when title and excerpt are the same', async () => {
+      const beliefs = [makeStatement({ title: 'Same statement text', excerpt: 'Same statement text' })]
+      vi.mocked(useAccount).mockReturnValue({
+        address: '0x123',
+        isConnected: true,
+      } as any)
+      vi.mocked(getUserBeliefs).mockResolvedValue(beliefs)
+      vi.mocked(getUserDisbeliefs).mockResolvedValue([])
+      vi.mocked(getUserIndirectSupport).mockResolvedValue([])
+
+      render(<UserProfilePage />)
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Same statement text')).toHaveLength(1)
+      })
+    })
+
     it('navigates to statement page when card is clicked', async () => {
       const user = userEvent.setup()
       const beliefs = [makeStatement({ id: 'stmt123' })]
