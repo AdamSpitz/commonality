@@ -514,7 +514,7 @@ describe('UserProfilePage', () => {
       })
     })
 
-    it('displays "No preview available" when excerpt is missing', async () => {
+    it('does not show excerpt when excerpt is missing', async () => {
       const beliefs = [makeStatement({ excerpt: '' })]
       vi.mocked(useAccount).mockReturnValue({
         address: '0x123',
@@ -527,7 +527,7 @@ describe('UserProfilePage', () => {
       render(<UserProfilePage />)
 
       await waitFor(() => {
-        expect(screen.getByText('No preview available')).toBeInTheDocument()
+        expect(screen.queryByText('No preview available')).not.toBeInTheDocument()
       })
     })
 

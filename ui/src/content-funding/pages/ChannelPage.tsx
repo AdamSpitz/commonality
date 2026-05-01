@@ -346,7 +346,7 @@ export function ChannelPage({
   const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
 
   const suggestedMessage = [
-    `${suggestedMessagePrefix} ${formatEther(escrow.balance)} ETH for your work on-chain.`,
+    `${suggestedMessagePrefix} ${formatEther(totalFunding)} ETH for your work on-chain.`,
     `You can claim it here: ${claimUrl}`,
   ].join(' ')
 

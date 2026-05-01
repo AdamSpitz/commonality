@@ -127,9 +127,11 @@ export function UserProfilePage() {
                 <Typography variant="h6" gutterBottom>
                   {statement.title || 'Untitled Statement'}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  {statement.excerpt || 'No preview available'}
-                </Typography>
+                {statement.excerpt && statement.excerpt.trim().replace(/\s+/g, ' ') !== (statement.title ?? '').trim().replace(/\s+/g, ' ') && (
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    {statement.excerpt}
+                  </Typography>
+                )}
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Chip
                     label={`${statement.believerCount} believers`}
@@ -178,9 +180,11 @@ export function UserProfilePage() {
                   <Typography variant="h6" gutterBottom>
                     {statement.title || 'Untitled Statement'}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {statement.excerpt || 'No preview available'}
-                  </Typography>
+                  {statement.excerpt && statement.excerpt.trim().replace(/\s+/g, ' ') !== (statement.title ?? '').trim().replace(/\s+/g, ' ') && (
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {statement.excerpt}
+                    </Typography>
+                  )}
                   <Typography variant="caption" color="text.secondary" paragraph>
                     Supported indirectly via {supportedVia.length} statement{supportedVia.length !== 1 ? 's' : ''}:
                     {supportedVia.slice(0, 3).map((via, idx) => (

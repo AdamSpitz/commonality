@@ -134,6 +134,94 @@ This was a first pass by an AI reviewer who couldn't connect a wallet. Many flow
 1. ✅ **Fix the metadata display issue** — raw statement metadata/CIDs were removed from successfully loaded user-facing statement renders.
 2. ✅ **Fix the statement card duplication** — Browse Statements no longer shows an excerpt when it is the same text as the title.
 3. ✅ **Fix or document the ponder stale-state issue** — `services.sh --start` clears stale Ponder data when the saved local chain is absent, `data.sh --seed` warns if indexer events already exist, and `local-development.md` documents the clean reset flow.
-4. **Do a wallet-connected test session** — use the `real-ui-user` skill with a connected wallet (Hardhat account #0 has funds) to test: sign a statement, buy project tokens, go through the creator claim flow.
-5. **Test the other three UI domains** (content-funding, noninflammatory, movement) — only Commonality was tested here.
+4. ✅ **Do a wallet-connected test session** — completed Round 2 below.
+5. ✅ **Test the other three UI domains** — all three load and display correctly.
 6. **Try the cofounder skill** to evaluate readiness from a product/strategy angle.
+
+---
+
+## Round 2 — Wallet-connected session (May 1, 2026)
+
+### How wallet connection was achieved
+
+The app exposes `window._setupTestWallet(addressOrPrivateKey)` for E2E testing (see `ui/src/main.tsx`). After calling it and clicking "Mock Connector" in the ConnectKit modal, the wallet connects with Hardhat account #0 (`0xf39F...2266`).
+
+**Important note on transaction signing:** wagmi's mock connector does not support private-key signing through the browser wallet client. This is a known, documented limitation; the project's own E2E tests work around it by calling the SDK directly and then verifying UI state (see `ui/e2e/utils/blockchain.ts`). Flows that require a blockchain transaction (BUY tokens, create project) were tested this way: transaction sent via SDK CLI, UI state verified in browser.
+
+---
+
+### Test results by flow
+
+#### 1. Connect wallet ✅
+- `window._setupTestWallet("0xac0974...80")` + Mock Connector works.
+- Nav switches from "Connect Wallet" to `0xf39F••••2266`.
+
+#### 2. Sign/support a statement ✅
+- Navigated to a statement detail page, clicked AGREE.
+- Supporter count went from 3 → 4. "You agree with this statement." appeared.
+- CLEAR OPINION button appeared. Works correctly.
+
+#### 3. Buy project tokens ✅ (via SDK; UI correctly reflects result)
+- BUY button renders correctly, quantity input works.
+- Transaction signed via `npx tsx tmp/buy-tokens-direct.ts` (2 tokens, 0.016 ETH).
+- UI updated immediately: funding went from 0.144 → 0.160 ETH; account #0 appeared in the Contributor Leaderboard.
+- **Note:** The BUY button onClick silently returns early when `walletClient` is null (no user-visible error). A connected user with a real MetaMask wallet should work fine; this is a mock-connector limitation.
+
+#### 4. Creator claim flow — unclaimed Twitter channel ⚠️ (UX issue found)
+- Channel page for `twitter:uid:111111111` (@civicbuilder, Unclaimed) loads correctly.
+- Total Funding shows 0.11 ETH.
+- "Share with creator" section is clear and helpful.
+- **Bug:** The "Suggested message" says "your supporters have pooled **0 ETH**" but the page itself shows 0.11 ETH. The suggested message is not showing the actual pooled amount.
+- No wallet-connected claim flow is reachable without actual Twitter OAuth — which is expected for a local test environment.
+
+#### 5. My Profile ✅ (with minor regression)
+- Shows wallet address, BELIEFS count, and the signed statement.
+- **Regression:** Statement card on profile page still shows duplicate text (title + same text as excerpt). The Round 1 fix for Browse Statements did not extend to the Profile page. Same root cause.
+
+#### 6. Explore page ✅
+- Shows "No curated collection is available yet" — seed data doesn't include Explorer/nudger output, which is expected for small seed.
+- No raw metadata displayed. Round 1 fix is working.
+
+#### 7. My Delegated Funds ✅
+- Shows Fund #1 with 0.18 ETH (from seed).
+- ADD FUNDS, DELEGATE, RECLAIM buttons all present.
+
+#### 8. My Trust Network ✅
+- Shows Twitter linking form and trusted-source settings.
+- GET VERIFICATION TWEET button present.
+
+#### 9. Creator Dashboard ✅
+- "You don't have any channels yet." — correct for account #0.
+
+#### 10. Saved Refs ✅
+- Empty state with create form. Loads correctly.
+
+---
+
+### Other domain UIs
+
+All three other domains loaded cleanly with correct copy and navigation:
+
+- **Content Funding** (`/content-funding-ui`) ✅ — focused entry for content contracts. Nav has BROWSE CONTENT, STATEMENTS, CREATORS, MY PROFILE, MORE. Copy is clean.
+- **Noninflammatory Content** (`/noninflammatory-ui`) ✅ — bridge-building surface. Nav has BROWSE CONTENT, I'M A CREATOR, STATEMENTS, MY PROFILE, MORE. Copy is coherent and opinionated in the right direction.
+- **Common Sense Majority / Movement** (`/movement-ui`) ✅ — organizing framing. Nav has ORGANIZE, BROWSE CONTENT, PROJECTS, STATEMENTS, MORE. Copy is compelling.
+
+No 404s or broken pages in any of the three other domains.
+
+---
+
+### Issues found in Round 2
+
+| Severity | Issue | Location |
+|----------|-------|----------|
+| Medium | **Duplicate statement text on My Profile** — same text shown as both title and excerpt in the belief cards. Round 1 fix for Browse Statements didn't cover the Profile page. | `/profile` |
+| Low | **"Suggested message" shows 0 ETH** instead of actual pooled amount when sharing an unclaimed channel link with its creator. | `/content/twitter/<channel>` |
+| Info | **BUY button silent no-op with mock connector** — `handleBuy` silently returns when `walletClient` is null; no user-visible error or explanation. Will work correctly with a real MetaMask wallet but gives confusing behavior in test sessions. Consider adding an error message. | Project detail page |
+
+---
+
+### Recommended next steps
+
+1. **Fix duplicate text on My Profile** — extend the same excerpt-suppression logic from Browse Statements to the belief card component used on the Profile page.
+2. **Fix "Suggested message" ETH amount** — the channel's total raised ETH should be interpolated into the suggested share message.
+3. **Try the cofounder skill** to evaluate readiness from a product/strategy angle.
