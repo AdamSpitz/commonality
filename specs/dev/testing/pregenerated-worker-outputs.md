@@ -35,6 +35,42 @@ The fixture records the generation algorithm and a seed-content fingerprint. The
 
 `./scripts/data.sh --seed=demo` runs `fake-data-generation` with `--publish-seed-worker-outputs`, which replays the pre-generated outputs on-chain after the fake universe is populated.
 
+## Status as of 2026-05-01
+
+This work is implemented and live-smoke-tested for the local demo seed path.
+
+Validated commands:
+
+- `npm run test:seed:worker-outputs --workspace=fake-data-generation`
+- `./scripts/services.sh --start`
+- `./scripts/data.sh --seed=demo`
+
+The demo seed run successfully replayed the fixture and reported:
+
+- 40 curated Explorer statements signed by the local seed nudger
+- 40 pre-generated implication-finder pairs replayed
+- 1 Explorer `curated-collection` publication with 40 entries
+- 1 `nudge-batch` publication with 25 nudges
+- all simulation invariant checks passing
+
+A follow-up SDK/event-cache smoke confirmed that the replayed outputs are queryable by local clients:
+
+- trusted local nudger publications are visible
+- folded Explorer collection count is 1, with 40 entries
+- folded nudge batch has 25 nudges
+- seed nudger `DirectSupport` events and implication attestations are present in the event cache
+
+So the remaining work is not implementation-planning; the feature is usable for local development.
+
+## Suggested Further Work
+
+Useful optional follow-ups:
+
+- Do a real UI pass against `/explore` and statement-detail suggestion surfaces after `./scripts/data.sh --seed=demo`, checking that the seeded data is not merely queryable but presented clearly to a developer using the app.
+- Add a small automated smoke test for the demo seed path, if feasible without making the suite too slow. The important assertion is that the event cache exposes the seeded `curated-collection`, `nudge-batch`, seed nudger signatures, and implication attestations.
+- Decide whether deterministic fixtures are sufficient long-term. They are cheap and stable, which is good for local dev. If we later want more realistic outputs, add a separate live-LLM refresh workflow with explicit model and prompt fingerprints rather than making ordinary local seeding call an LLM.
+- If real worker prompts become part of fixture generation, record prompt/model fingerprints in the fixture metadata and make the verifier detect prompt drift separately from seed-content drift.
+
 ## Regeneration
 
 Pre-generated outputs need to be regenerated when:
