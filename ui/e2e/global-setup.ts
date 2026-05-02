@@ -80,6 +80,7 @@ function copyContractAddresses(projectRoot: string): void {
       'VITE_ETH_RPC_URL=',
       'VITE_PLATFORM_API_URL=',
       'VITE_DISABLE_EXTERNAL_EMBEDS=',
+      'VITE_E2E=',
       'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=',
       'VITE_NOTE_INTENT_CONTRACT_ADDRESS=',
       'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS=',
@@ -139,6 +140,10 @@ function copyContractAddresses(projectRoot: string): void {
       // E2E data uses synthetic social-content IDs; avoid hitting real embed
       // providers for those fake URLs, which produces browser-console 404s.
       `VITE_DISABLE_EXTERNAL_EMBEDS=true`,
+      // Keep E2E browser wallet setup mock-only. ConnectKit's default connector
+      // set pulls in third-party wallet SDKs (for example Coinbase) that perform
+      // unrelated browser environment probes and can emit noisy console errors.
+      `VITE_E2E=true`,
     ];
 
     // Write back to ui/.env

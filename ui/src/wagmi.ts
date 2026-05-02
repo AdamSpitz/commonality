@@ -10,6 +10,7 @@ export const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT
 export const privyAppId = import.meta.env.VITE_PRIVY_APP_ID?.trim() || ''
 export const privyClientId = import.meta.env.VITE_PRIVY_CLIENT_ID?.trim() || undefined
 export const isPrivyEnabled = privyAppId.length > 0
+export const isE2E = import.meta.env.VITE_E2E === 'true'
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
 const sepoliaRpcUrl = import.meta.env.VITE_SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com'
@@ -23,17 +24,6 @@ export const wagmiTransports = {
   [hardhat.id]: http(hardhatRpcUrl),
 }
 
-export const config = createConfig(
-  getDefaultConfig({
-    chains: wagmiChains,
-    transports: wagmiTransports,
-    walletConnectProjectId,
-    appName: 'Commonality',
-    appDescription: 'Fund projects and content around shared values',
-    appUrl: 'https://commonality.app',
-  }),
-)
-
 /**
  * Create a wagmi config with mock connector for E2E testing.
  * This allows Playwright tests to inject specific Hardhat test accounts.
@@ -43,7 +33,7 @@ export const config = createConfig(
  * @returns Wagmi config with mock connector
  */
 export function createMockConfig(
-  addressOrPkey: `0x${string}`,
+  addressOrPkey: `0x${string}` = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
   features?: MockParameters['features']
 ) {
   // Convert private key to account if needed
@@ -62,3 +52,16 @@ export function createMockConfig(
     connectors: [mock({ accounts: [address], features })],
   })
 }
+
+export const config = isE2E
+  ? createMockConfig()
+  : createConfig(
+    getDefaultConfig({
+      chains: wagmiChains,
+      transports: wagmiTransports,
+      walletConnectProjectId,
+      appName: 'Commonality',
+      appDescription: 'Fund projects and content around shared values',
+      appUrl: 'https://commonality.app',
+    }),
+  )
