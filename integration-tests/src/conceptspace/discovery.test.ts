@@ -32,7 +32,7 @@ describe('Statement Discovery & Browsing', () => {
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'conceptspace-discovery';
+  const SUITE_NAME = 'discovery';
 
   it('should browse statements by most supporters', async () => {
     if (!BELIEFS_CONTRACT_ADDRESS) {

@@ -35,7 +35,7 @@ describe('Pubstarter Basic Integration Tests', () => {
   const ASSURANCE_CONTRACT_FACTORY_ADDRESS = process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'pubstarter-basic';
+  const SUITE_NAME = 'basic';
 
   let machinery: ActionTestingMachinery;
 

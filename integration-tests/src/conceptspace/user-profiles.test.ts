@@ -27,7 +27,7 @@ describe('User Profile Queries', () => {
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'conceptspace-user-profiles';
+  const SUITE_NAME = 'user-profiles';
 
   it('should retrieve user\'s directly signed statements', async () => {
     if (!BELIEFS_CONTRACT_ADDRESS) {

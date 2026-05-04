@@ -35,7 +35,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'pubstarter-filtering-sorting';
+  const SUITE_NAME = 'filtering-sorting';
 
   let machinery: ActionTestingMachinery;
 

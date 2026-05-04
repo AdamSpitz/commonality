@@ -49,8 +49,8 @@ function getTestSuiteOffset(suiteName: string): number {
  * @returns Private key for the account
  *
  * @example
- * // In conceptspace-beliefs.test.ts:
- * const privateKey = getTestPrivateKey('conceptspace-beliefs', 0);
+ * // In beliefs.test.ts:
+ * const privateKey = getTestPrivateKey('beliefs', 0);
  * // Returns ACCOUNT_0's private key
  *
  * // In delegation-basic.test.ts:

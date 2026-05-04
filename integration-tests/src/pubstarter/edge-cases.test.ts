@@ -39,7 +39,7 @@ describe('Pubstarter Edge Cases', () => {
   const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'pubstarter-edge-cases';
+  const SUITE_NAME = 'edge-cases';
 
   it('should fail when trying to buy tokens with insufficient funds', async () => {
     if (!PUBSTARTER_ADDRESS) {

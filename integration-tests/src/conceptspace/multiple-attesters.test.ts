@@ -30,7 +30,7 @@ describe('Multiple Attesters Tests (F2)', () => {
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'conceptspace-multiple-attesters';
+  const SUITE_NAME = 'multiple-attesters';
 
   let implicationsContract: ImplicationsContract;
   let machinery: ActionTestingMachinery;

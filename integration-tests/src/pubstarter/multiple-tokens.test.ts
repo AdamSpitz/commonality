@@ -29,7 +29,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'pubstarter-multiple-tokens';
+  const SUITE_NAME = 'multiple-tokens';
 
   let machinery: ActionTestingMachinery;
 

@@ -51,7 +51,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'pubstarter-lifecycle';
+  const SUITE_NAME = 'lifecycle';
 
   let machinery: ActionTestingMachinery;
 

@@ -31,7 +31,7 @@ describe('Pubstarter Token Burning Tests', () => {
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'pubstarter-burn-tokens';
+  const SUITE_NAME = 'burn-tokens';
 
   let machinery: ActionTestingMachinery;
 

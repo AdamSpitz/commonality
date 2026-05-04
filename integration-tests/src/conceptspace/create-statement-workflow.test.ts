@@ -31,7 +31,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
-  const SUITE_NAME = 'conceptspace-create-statement-workflow';
+  const SUITE_NAME = 'create-statement-workflow';
 
   let beliefsContract: BeliefsContract;
   let mutableRefUpdaterContract: MutableRefUpdaterContract;

@@ -33,7 +33,7 @@ describe('Pubstarter Negative Tests', () => {
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
 
-  const SUITE_NAME = 'pubstarter-negative';
+  const SUITE_NAME = 'negative-tests';
 
   // Note: Temporal constraint tests like "buying after deadline" are commented out
   // because the contract allows buying before the deadline passes, and only enforces
