@@ -190,7 +190,7 @@ describe('Movement branded surfaces', () => {
         screen.getByRole('heading', { name: /browse hidden-majority content/i }),
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/these creator and content flows still run on the shared content-funding base/i),
+        screen.getByText(/browse media that reveals broad agreement hiding behind the usual coalition noise/i),
       ).toBeInTheDocument()
     })
 
@@ -402,7 +402,7 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/shared pubstarter infrastructure for movement work/i),
+        screen.getByText(/back concrete work that helps hidden majorities coordinate in public/i),
       ).toBeInTheDocument()
       expect(
         screen.getByText(/canvassing, research, coalition-building, advocacy/i),

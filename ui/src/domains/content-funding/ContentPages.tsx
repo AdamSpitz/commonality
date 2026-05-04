@@ -16,8 +16,8 @@ export function ContentFundingCreatorsPage() {
   return (
     <CreatorsLandingPage
       title="Content Funding"
-      description="Fund creators and individual pieces of content people already value. The underlying contract flow uses Commonality's funding infrastructure, but this surface stays focused on discoverability, funding, and creator payouts."
-      secondaryDescription="Browse Twitter, YouTube, and Substack creators by platform, then open a channel to back specific work or create a new contract around it."
+      description="Fund creators and individual pieces of content people already value. Browse by platform, back work you care about, and let creators claim what supporters have pooled for them."
+      secondaryDescription="Open a channel to see active contracts and escrowed funds, or create a new contract around content you want to reward."
       learnMoreLabel="Learn how content funding contracts work"
     />
   )
@@ -27,7 +27,7 @@ export function ContentFundingBrowsePage() {
   return (
     <BrowseCreatorsPage
       title="Browse Fundable Creators"
-      description="Browse the shared content-funding registry by platform. Each channel view shows active contracts, escrowed funds, and the content items already tied to those contracts."
+      description="Find creators on Twitter, YouTube, and Substack. Each channel shows active funding contracts, how much supporters have pooled, and the specific posts or videos tied to those contracts."
     />
   )
 }
@@ -50,7 +50,7 @@ export function ContentFundingCreateContractPage() {
     <CreateContractPage
       titlePrefix="Create Content Funding Contract"
       connectPrompt="Connect your wallet to create a content-funding contract for this channel."
-      contentItemsDescription="Add the posts, videos, or essays you want this contract to cover. The submission flow stays shared, but this surface keeps the framing focused on creator funding."
+      contentItemsDescription="Add the posts, videos, or essays you want this contract to cover. Keep the description focused on why the work deserves support."
       createButtonLabel="Create Funding Contract"
       viewButtonLabel="View Contract"
       shareSuccessHeading="Share this claim link with the creator so they can collect their funds:"
@@ -151,7 +151,7 @@ export function ContentFundingContractPage() {
           Content Funding Contract
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          This is the content-focused contract view for the Content Funding domain. It keeps contract links and channel cross-links inside this branded surface instead of sending people into the broader project browser.
+          See who pledged, what content is covered, and where the escrow stands. Creators can verify the channel here to claim pooled funds.
         </Typography>
       </Paper>
       <ProjectDetailPage />

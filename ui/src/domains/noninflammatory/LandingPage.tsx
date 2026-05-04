@@ -13,7 +13,7 @@ function getSections() {
     {
       eyebrow: 'Create',
       title: 'Get paid for bridge-building work',
-      description: 'Creators can verify channels, create contracts, and use the dashboard as their main operating surface.',
+      description: 'Creators can verify channels, create contracts, and manage everything from one dashboard.',
       path: '/content/dashboard',
       cta: 'Open creator dashboard',
     },
@@ -32,9 +32,9 @@ export function NoninflammatoryLandingPage() {
     <DomainLandingPage
       eyebrow="Noninflammatory Content"
       title="Reward content that lowers the temperature instead of raising it."
-      description="This is the political bridge-building surface: content that explains one side to the other in a way that keeps people engaged instead of alienated."
+      description="Fund content that helps people on opposite sides actually hear each other — strong arguments without contempt, ad hominem, or cheap outgroup bait."
       spotlightLabel="Strong arguments without contempt"
-      spotlightText="Start with content that a reasonable person on the other side could actually hear. The contract flow comes from Content Funding, and statement exploration lives on Tally."
+      spotlightText="Reward creators who make a case you can disagree with while still feeling respected. Fund specific posts, videos, or channels; if the creator verifies, they collect the escrow. When you want to inspect or sign the claims behind the content, head to Tally."
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'Get paid for bridge-building work', path: '/content/dashboard', variant: 'outlined' },

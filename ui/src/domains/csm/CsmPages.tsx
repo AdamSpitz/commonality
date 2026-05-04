@@ -20,8 +20,8 @@ export function CsmCreatorsPage() {
     <CreatorsLandingPage
       title="Movement Content"
       description="Noninflammatory content is the movement's main wedge: fund media that helps people realize a broad, common-sense position already exists."
-      secondaryDescription="Browse channels and funded content, inspect attestation-backed bridge-building work, or verify your own channel to turn persuasive media into movement infrastructure."
-      learnMoreLabel="How this movement surface works"
+      secondaryDescription="Browse channels and funded content, or verify your own channel to start receiving support for work that makes the hidden majority visible."
+      learnMoreLabel="How this movement works"
       learnMorePath="/about"
     />
   )
@@ -31,7 +31,7 @@ export function CsmBrowsePage() {
   return (
     <BrowseCreatorsPage
       title="Browse Hidden-Majority Content"
-      description="These creator and content flows still run on the shared content-funding base, but this surface emphasizes media that reveals broad agreement hiding behind coalition noise."
+      description="Browse media that reveals broad agreement hiding behind the usual coalition noise. See which creators are funded, what contracts are active, and how much supporters have pledged."
     />
   )
 }
@@ -88,7 +88,7 @@ export function CsmContractPage() {
           Movement Content Contract
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          This contract view keeps movement-focused content links on the Common Sense Majority surface while reusing the same funding, attestation, and payout infrastructure underneath.
+          See who pledged, what content is covered, and how it helps surface hidden-majority positions. Creators can verify the channel here to claim pooled funds.
         </Typography>
       </Paper>
       <ProjectDetailPage />
@@ -105,7 +105,7 @@ export function CsmProjectsPage() {
             Organizing Projects
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Use Commonality&apos;s shared pubstarter infrastructure for movement work: canvassing, research, coalition-building, advocacy, and other projects that help hidden majorities coordinate in public.
+            Back concrete work that helps hidden majorities coordinate in public: canvassing, research, coalition-building, advocacy, and other organizing projects.
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
             <Button component={RouterLink} to="/projects/new" variant="contained">
@@ -130,7 +130,7 @@ export function CsmCreateProjectPage() {
           Start a Movement Project
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Create a project for organizing, advocacy, research, or coordination work. The contract machinery is shared with Commonality, but this framing keeps the ask tied to movement outcomes instead of generic project funding.
+          Create a project for organizing, advocacy, research, or coordination work. Describe what you want to accomplish and why it matters to the movement.
         </Typography>
       </Paper>
       <CreateProjectPage />
@@ -146,7 +146,7 @@ export function CsmProjectDetailPage() {
           Movement Project
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          This project view keeps organizing work in the Common Sense Majority frame while reusing the shared project contract, marketplace, and attestation components.
+          See who pledged, what milestones are planned, and how the project helps turn hidden-majority agreement into visible coordination.
         </Typography>
       </Paper>
       <ProjectDetailPage />
@@ -161,7 +161,7 @@ export function CsmOrganizingPage() {
       title="Turn bridge-building content into visible, fundable political coordination."
       description="Use the playbook to connect persuasive media, Tally statement-signing, and concrete movement projects — without asking newcomers to understand the whole platform first."
       spotlightLabel="Primary loop"
-      spotlightText="Fund content that reveals common ground, send statement exploration and signing to Tally, then fund organizing projects that act on the coalition you have made visible."
+      spotlightText="Fund content that reveals common ground, sign statements on Tally to make the coalition visible, then back organizing projects that act on the agreement you have surfaced."
       heroActions={[
         { label: 'Browse movement content', path: '/content' },
         { label: 'Start a movement project', path: '/projects/new', variant: 'outlined' },
@@ -178,7 +178,7 @@ export function CsmOrganizingPage() {
         {
           eyebrow: 'Funding',
           title: 'Back organizing work',
-          description: 'Once a position is legible, use the shared pubstarter layer to fund outreach, coalition-building, research, and advocacy around it.',
+          description: 'Once a position is legible, fund outreach, coalition-building, research, and advocacy projects that turn agreement into action.',
           path: '/projects',
           cta: 'Browse organizing projects',
         },

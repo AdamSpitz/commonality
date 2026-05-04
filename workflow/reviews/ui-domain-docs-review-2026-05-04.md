@@ -17,16 +17,11 @@ Most fixes were addressed in a follow-up pass. Remaining open items are listed b
 - **CSM about-page pitch** — expanded the 30-second pitch with the richer copy from `elevator-pitch.md`.
 - **Content Funding about-page audiences** — split "Who this is for" into explicit reader/donor, creator, and delegate sections.
 - **Stale-link review** — `docs/vision-and-strategy/` is already bundled in `DocsPage.tsx` and the `docs/index.md` link works. `docs/common-sense-majority/README.md` no longer contains "one of four branded surfaces" and is also bundled. These were non-issues.
+- **Refocus copy on user payoff, not architecture** — First pass across Content Funding, Noninflammatory Content, and CSM landing/about/contract pages. Removed or demoted phrases like "shared content-funding base," "this surface reuses the shared content-funding machinery," "shared pubstarter infrastructure," "contract machinery is shared with Commonality," "branded surface," and "shared registry." User payoff (what you can do, why it matters, what you see) now leads; architecture notes appear lower or are gone. Tests updated to match. Remaining: one residual line in Content Funding `/about` ("specialized assurance contracts built on Commonality funding infrastructure") and a few "surface" uses in CSM about page; may need a second look.
 
 ## Remaining work (deeper)
 
-### 1. Refocus copy on user payoff, not architecture
-
-Site copy still foregrounds the dependency model before explaining the user's payoff in places. Phrases like "this surface reuses the shared content-funding machinery" or "this domain is the movement layer in the multiple-domain UI plan" are useful for developers, not for donors, creators, or politically homeless newcomers.
-
-**Action:** Keep the "built on X" line, but move it below a user-centered explanation: "What can I do here?" / "Why should I care?" / "Where do I go next?" This applies to Content Funding, Noninflammatory Content, and CSM landing/about pages.
-
-### 2. Each domain needs a richer docs/about page
+### 1. Each domain needs a richer docs/about page
 
 Commonality, Tally, and Conceptspace have `/docs` routes. Content Funding, Noninflammatory Content, and CSM have `/about` pages, but they are thinner than the deeper Markdown walkthroughs that do the best explanatory work.
 
@@ -98,13 +93,15 @@ The docs are mostly a list of internal spec links. There is no "5-minute integra
 
 ### Content Funding
 - "Do I need crypto?" section.
-- Further de-architecture the landing-page description.
+- ~~Further de-architecture the landing-page description.~~ (First pass done; one residual line in `/about` may need a second look.)
 
 ### Noninflammatory Content
+- ~~De-architecture landing and about copy.~~ (First pass done.)
 - Richer pass/fail examples on `/about`.
 - More concrete creator CTA on `/about` (landing page is now fixed).
 
 ### Common Sense Majority
+- ~~De-architecture landing, organizing, and about copy.~~ (First pass done.)
 - Promote the emotional elevator pitch onto the landing page or into docs.
 - `docs/common-sense-majority/vision-and-strategy/` remains excellent but under-exposed.
 

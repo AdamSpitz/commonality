@@ -122,7 +122,7 @@ describe('Content Funding branded surfaces', () => {
 
       expect(screen.getByRole('heading', { name: /browse fundable creators/i })).toBeInTheDocument()
       expect(
-        screen.getByText(/browse the shared content-funding registry by platform/i),
+        screen.getByText(/find creators on twitter, youtube, and substack/i),
       ).toBeInTheDocument()
     })
   })

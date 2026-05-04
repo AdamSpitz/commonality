@@ -28,7 +28,7 @@ describe('CsmLandingPage', () => {
     it('renders spotlight label as chip', () => {
       render(<CsmLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Hidden-majority thesis')
+      expect(chip).toHaveTextContent('Why this matters')
     })
 
     it('renders spotlight text', () => {

@@ -22,7 +22,7 @@ describe('NoninflammatoryLandingPage', () => {
 
     it('renders description', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
-      expect(screen.getByText(/This is the political bridge-building surface/i)).toBeInTheDocument()
+      expect(screen.getByText(/Fund content that helps people on opposite sides actually hear each other/i)).toBeInTheDocument()
     })
 
     it('renders spotlight label as chip', () => {

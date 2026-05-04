@@ -15,8 +15,8 @@ export function NoninflammatoryCreatorsPage() {
   return (
     <CreatorsLandingPage
       title="Noninflammatory Content"
-      description="Fund creators who can explain one side to the other without contempt, ad hominem attacks, or tribal bait. This domain keeps the shared content-funding base but frames it around bridge-building."
-      secondaryDescription="Browse content by platform, open a channel to inspect active contracts and attested items, or verify your own channel to receive support for making politics less alienating."
+      description="Fund creators who can explain one side to the other without contempt, ad hominem attacks, or tribal bait. Browse by platform, back work that lowers the temperature, and help creators collect what supporters have pooled."
+      secondaryDescription="Open a channel to see active contracts and funded content, or verify your own channel to start receiving support for bridge-building work."
       learnMoreLabel="Why this domain exists"
       learnMorePath="/about"
     />
@@ -27,7 +27,7 @@ export function NoninflammatoryBrowsePage() {
   return (
     <BrowseCreatorsPage
       title="Browse Bridge-Building Creators"
-      description="Browse funded channels and content submitted under the noninflammatory framing. Attested items still use the shared registry, but this surface highlights creators trying to lower the temperature rather than farm engagement."
+      description="Browse channels and content that aim to lower the temperature rather than farm engagement. See which creators are funded, what contracts are active, and how much supporters have pledged."
     />
   )
 }
@@ -84,7 +84,7 @@ export function NoninflammatoryContractPage() {
           Noninflammatory Contract
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          This contract view keeps noninflammatory links on the bridge-building domain while reusing the shared contract and attestation infrastructure underneath.
+          See who pledged, what content is covered, and why it was submitted under the bridge-building standard. Creators can verify the channel here to claim pooled funds.
         </Typography>
       </Paper>
       <ProjectDetailPage />
@@ -99,7 +99,7 @@ export function NoninflammatoryAboutPage() {
         About Noninflammatory Content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        The point of this domain is not bland centrism. It is to reward content that makes a strong case without making the audience feel despised. The content contracts come from Content Funding, the public-goods infrastructure comes from Commonality, and statement exploration lives on Tally.
+        The point is not bland centrism. It is to reward content that makes a strong case without making the audience feel despised. You can back specific work, creators can claim what you pooled, and the claims behind the content live on Tally.
       </Typography>
 
       <Stack spacing={2}>
@@ -132,10 +132,10 @@ export function NoninflammatoryAboutPage() {
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Built on Content Funding + Tally
+            How this site relates to the others
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            This domain is a focused surface built on Content Funding contracts and Commonality&apos;s broader infrastructure. Use Tally for the full implication-graph and statement-signing UI.
+            Noninflammatory Content uses the same funding flows as Content Funding. When you want to inspect or sign the claims behind the content, use Tally.
           </Typography>
           <Typography component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="body2" sx={{ textDecoration: 'none' }}>
             Explore statements on Tally

@@ -40,8 +40,8 @@ export function CsmLandingPage() {
       eyebrow="Common Sense Majority"
       title="You are not alone. Make the hidden majority visible."
       description="Common Sense Majority helps politically homeless people discover how many others independently share their common-sense positions — then organize content, signatures, and projects around that visible support."
-      spotlightLabel="Hidden-majority thesis"
-      spotlightText="The common ground was always there. The missing piece was trusted infrastructure for counting people who used different words, signed different statements, and refused to pretend the loudest factions spoke for them."
+      spotlightLabel="Why this matters"
+      spotlightText="You have probably felt politically homeless and assumed you were alone. This surface makes the hidden majority visible: fund content that reveals common ground, sign statements in your own words, and back projects that turn that agreement into action."
       heroActions={[
         { label: 'Open organizing playbook', path: '/organize' },
         { label: 'About the movement', path: '/about', variant: 'outlined' },

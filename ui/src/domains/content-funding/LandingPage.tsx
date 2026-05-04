@@ -38,8 +38,8 @@ export function ContentFundingLandingPage() {
       eyebrow="Content Funding"
       title="Fund the content you want more of."
       description="Back articles, videos, posts, and channels you want more of. Supporters can pool funds around a creator, and verified creators can claim the escrow waiting for them."
-      spotlightLabel="Built on Commonality funding infrastructure"
-      spotlightText="Content contracts are specialized assurance contracts. Start with the creator or content you care about; jump to Tally only when you want to inspect or sign underlying statements."
+      spotlightLabel="What you can do here"
+      spotlightText="Back a creator or a specific piece of work you want more of. Your money sits in escrow until the creator verifies and claims it, so you risk nothing if they never show up. When you want to dig into the claims behind the content, Tally is where statements live."
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'How it works', path: '/about', variant: 'outlined' },
