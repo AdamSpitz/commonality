@@ -35,14 +35,15 @@ This keeps local development and Playwright E2E tests working without requiring 
 
 To keep the initial app bundle smaller, the Privy provider tree and wallet button implementation now live behind lazy-loaded chunks. When `VITE_PRIVY_APP_ID` is unset, none of the Privy code is pulled into the ConnectKit path at runtime.
 
-`npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). `npm run build:domains` emits all four domain artifacts in one pass:
+`npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). `npm run build:domains` emits all configured domain artifacts in one pass:
 
 - `dist/commonality/`
+- `dist/tally/`
 - `dist/content-funding/`
 - `dist/noninflammatory/`
 - `dist/movement/`
 
-When you start the local docker-compose stack via `./scripts/services.sh --start`, four one-shot `ui-ipfs-publisher-<domain>` services build each domain's IPFS-friendly bundle in parallel and add them to the local IPFS node. The CIDs and gateway URLs are written to `./data/ui-ipfs/<domain>/`, and those IPFS URLs are the primary local entry points for the app.
+When you start the local docker-compose stack via `./scripts/services.sh --start`, the current local IPFS publisher services build each domain's IPFS-friendly bundle in parallel and add them to the local IPFS node. The CIDs and gateway URLs are written to `./data/ui-ipfs/<domain>/`, and those IPFS URLs are the primary local entry points for the app. The local-IPFS service list is being reshuffled incrementally; see `ui-domains-reshuffling.md` for the current plan.
 
 ## Code organization
 

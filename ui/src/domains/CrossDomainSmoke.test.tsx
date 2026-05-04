@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'movement']
+const domainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'movement']
 
 function renderDomainRoute(
   domainId: DomainId,
@@ -31,6 +31,11 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
         name: 'Commonality',
         tagline: 'Find common ground and fund what matters.',
         footerText: 'Commonality helps people fund projects and content around shared values.',
+      },
+      tally: {
+        name: 'Tally',
+        tagline: 'Petitions and polls with an implication graph.',
+        footerText: 'Tally helps people sign statements and see what public support adds up to.',
       },
       'content-funding': {
         name: 'Content Funding',
@@ -103,6 +108,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   describe('landing page', () => {
     const expectedHeroTitles: Record<DomainId, string> = {
       commonality: 'Find common ground first, then fund the work that follows from it.',
+      tally: 'Petitions and polls with an implication graph.',
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
       movement: 'Organize the hidden majority around positions that already have broad support.',
@@ -140,6 +146,17 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.mutablerefs).toBe(true)
     expect(features.contentFunding).toBe(true)
     expect(features.docs).toBe(true)
+  })
+
+  it('tally has only conceptspace enabled', () => {
+    const features = domainManifests.tally.features
+    expect(features.conceptspace).toBe(true)
+    expect(features.pubstarter).toBe(false)
+    expect(features.fundingportal).toBe(false)
+    expect(features.delegation).toBe(false)
+    expect(features.mutablerefs).toBe(false)
+    expect(features.contentFunding).toBe(false)
+    expect(features.docs).toBe(false)
   })
 
   it('content-funding has only conceptspace and contentFunding enabled', () => {
@@ -204,6 +221,19 @@ describe('cross-domain route coverage', () => {
     }
   })
 
+  it('tally routes include the consumer statement-signing pages', () => {
+    const paths = [
+      '/', '/start', '/explore', '/statements', '/statement/:statementCid',
+      '/profile', '/user/:address', '/settings',
+    ]
+    const routePaths = extractRoutePaths(domainManifests.tally.routes)
+    for (const path of paths) {
+      expect(routePaths).toContain(path)
+    }
+    expect(routePaths).not.toContain('/content')
+    expect(routePaths).not.toContain('/projects')
+  })
+
   it('content-funding routes include content dashboard, contracts, and channel pages', () => {
     const paths = [
       '/content', '/content/dashboard', '/content/:platform',
@@ -245,6 +275,12 @@ describe('cross-domain landing page rendering', () => {
     expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
   })
 
+  it('tally landing shows built-on-conceptspace spotlight', () => {
+    renderDomainRoute('tally')
+    expect(screen.getByText('Built on Conceptspace')).toBeInTheDocument()
+    expect(screen.getByText(/consumer statement-signing site/i)).toBeInTheDocument()
+  })
+
   it('content-funding landing shows built-on-commonality spotlight', () => {
     renderDomainRoute('content-funding')
     expect(screen.getByText('Built on Commonality')).toBeInTheDocument()
@@ -265,6 +301,16 @@ describe('cross-domain landing page rendering', () => {
 })
 
 describe('cross-domain out-of-domain feature absence', () => {
+  it('tally domain keeps navigation focused on statement signing', () => {
+    const nav = domainManifests.tally.shell
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
+    expect(allNav.some((n) => n.path.startsWith('/statements'))).toBe(true)
+    expect(allNav.some((n) => n.path.startsWith('/settings'))).toBe(true)
+    expect(allNav.some((n) => n.path.startsWith('/content'))).toBe(false)
+    expect(allNav.some((n) => n.path.startsWith('/projects'))).toBe(false)
+    expect(allNav.some((n) => n.path.startsWith('/docs'))).toBe(false)
+  })
+
   it('content-funding domain does not expose docs navigation', () => {
     const nav = domainManifests['content-funding'].shell
     const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
@@ -337,8 +383,9 @@ describe('cross-domain shared routes consistency', () => {
     }
   })
 
-  it('all domains expose content funding surfaces', () => {
-    for (const id of domainIds) {
+  it('all pre-existing domains expose content funding surfaces', () => {
+    const contentSurfaceDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'movement']
+    for (const id of contentSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/content')
       expect(routePaths).toContain('/content/:platform')

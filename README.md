@@ -39,7 +39,7 @@ Note that the build and tests are run by the Git pre-commit hook, and the whole 
   - [Smart contracts](hardhat/README.md) (`hardhat/`)
   - [SDK](sdk/README.md) — used by integration-tests, ui, and AI services
   - [Indexer](indexer/README.md) — thin Ponder event cache; no business logic
-  - [UI](ui/README.md) — four branded surfaces from one Vite/React codebase
+  - [UI](ui/README.md) — multiple branded surfaces from one Vite/React codebase
   - [Integration tests](integration-tests/README.md)
   - [Fake-data generation](fake-data-generation/README.md)
 

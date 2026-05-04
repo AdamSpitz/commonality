@@ -233,6 +233,7 @@ async function main() {
 function resolveDomain(value) {
   switch (value) {
     case 'commonality':
+    case 'tally':
     case 'content-funding':
     case 'noninflammatory':
     case 'movement':

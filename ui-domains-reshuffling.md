@@ -44,7 +44,7 @@ Do these in order. Earlier tasks create the structure; later tasks remove old be
 
 ---
 
-## Task 1: Add the `tally` domain without removing anything yet
+## Task 1: Add the `tally` domain without removing anything yet ✅ Done 2026-05-04
 
 Purpose: introduce the new consumer statement-signing site while keeping existing domains working.
 

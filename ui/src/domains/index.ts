@@ -1,5 +1,6 @@
 import type { DomainManifest, DomainId } from './types'
 import { commonalityManifest } from './commonality/manifest.tsx'
+import { tallyManifest } from './tally/manifest.tsx'
 import { contentFundingManifest } from './content-funding/manifest.tsx'
 import { noninflammatoryManifest } from './noninflammatory/manifest.tsx'
 import { movementManifest } from './movement/manifest.tsx'
@@ -8,6 +9,7 @@ export * from './types'
 
 export const domainManifests: Record<DomainId, DomainManifest> = {
   commonality: commonalityManifest,
+  tally: tallyManifest,
   'content-funding': contentFundingManifest,
   noninflammatory: noninflammatoryManifest,
   movement: movementManifest,
@@ -26,6 +28,7 @@ function getDomainIdFromEnv(): DomainId {
   const envDomain = import.meta.env.VITE_DOMAIN
   if (
     envDomain === 'commonality' ||
+    envDomain === 'tally' ||
     envDomain === 'content-funding' ||
     envDomain === 'noninflammatory' ||
     envDomain === 'movement'
@@ -36,6 +39,7 @@ function getDomainIdFromEnv(): DomainId {
 }
 
 export { commonalityManifest }
+export { tallyManifest }
 export { contentFundingManifest }
 export { noninflammatoryManifest }
 export { movementManifest }

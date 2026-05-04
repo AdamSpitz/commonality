@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 1: add Tally
+
+- Completed Task 1 from `ui-domains-reshuffling.md`: added the additive `tally` domain without removing existing Commonality statement routes.
+- Added `ui/src/domains/tally/` with a Tally landing page and routes to the existing conceptspace statement/signing/profile/settings pages.
+- Wired `tally` into domain IDs/manifests, Vite domain resolution, domain build script, local IPFS publish domain resolver, and deploy domain allowlist.
+- Updated cross-domain smoke/route tests and light README copy for the new five-domain interim state.
+- Verified with `npm run test:vitest --workspace=ui`, `npm run lint --workspace=ui`, and `VITE_DOMAIN=tally npm run build --workspace=ui`.
+- Note for next task: local Docker/IPFS publisher services still list the older four domains; that is intentionally deferred to the later local-IPFS task in `ui-domains-reshuffling.md`.
+
 ## 2026-05-01 — data seeding existing-indexer guard
 
 - Changed `scripts/data.sh --seed` to fail when the Ponder indexer already has events, unless `--allow-seed-on-existing-data` is passed.
