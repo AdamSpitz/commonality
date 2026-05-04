@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Now that we've finished the [UI domains](specs/product/ui-domains.md) reshuffling, take a look at the docs for each site, and make sure they make sense. Will they make sense to new users? Are they compelling?
+- **Done (mostly):** Review of docs across all six domains. Notes in `workflow/reviews/ui-domain-docs-review-2026-05-04.md`. Remaining: expand Noninflammatory/CSM about pages, bundle vision/strategy docs, verify spec links, add walkthrough links above fold.
 
 - skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. Put the notes in `workflow/reviews/before-testnet.md`.
 
