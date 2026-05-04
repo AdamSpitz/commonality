@@ -210,7 +210,7 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.docs).toBe(false)
   })
 
-  it('conceptspace exposes only the infrastructure-layer feature flag', () => {
+  it('conceptspace exposes infrastructure and developer docs feature flags', () => {
     const features = domainManifests.conceptspace.features
     expect(features.conceptspace).toBe(true)
     expect(features.pubstarter).toBe(false)
@@ -218,7 +218,7 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.delegation).toBe(false)
     expect(features.mutablerefs).toBe(false)
     expect(features.contentFunding).toBe(false)
-    expect(features.docs).toBe(false)
+    expect(features.docs).toBe(true)
   })
 })
 
@@ -314,9 +314,9 @@ describe('cross-domain route coverage', () => {
     expect(routePaths).not.toContain('/user/:address')
   })
 
-  it('conceptspace routes stay thin and infrastructure-facing', () => {
+  it('conceptspace routes stay thin and infrastructure-facing while exposing developer docs', () => {
     const routePaths = extractRoutePaths(domainManifests.conceptspace.routes)
-    expect(routePaths).toEqual(['/'])
+    expect(routePaths).toEqual(['/', '/docs', '/docs/*'])
   })
 })
 
@@ -421,10 +421,10 @@ describe('cross-domain out-of-domain feature absence', () => {
     expect(allPaths.some((p) => p.startsWith('/content'))).toBe(false)
   })
 
-  it('conceptspace domain does not expose consumer or funding navigation', () => {
+  it('conceptspace domain exposes only overview and developer-docs navigation', () => {
     const nav = domainManifests.conceptspace.shell
     const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allPaths).toEqual(['/'])
+    expect(allPaths).toEqual(['/', '/docs'])
   })
 })
 

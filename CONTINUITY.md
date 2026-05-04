@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — Per-site docs task 3: Conceptspace developer docs route
+
+- Completed TODO.md per-site docs item 3.
+- Added `docs/conceptspace.md`, a developer-facing Conceptspace docs entry point linking to the existing subsystem specs, SDK API docs, contract docs, and implementation package READMEs.
+- Wired Conceptspace `/docs` to redirect to `/docs/conceptspace`, added `/docs/*` via the shared `DocsPage`, enabled `features.docs`, and added `Developer Docs` to the Conceptspace primary nav.
+- Updated the Conceptspace landing-page docs CTAs and the relevant DocsPage, domain route, and cross-domain smoke tests.
+- Marked TODO.md item 3 as done.
+- Verification: `npm run test:vitest --workspace=ui -- src/domains/domainRoutes.test.tsx src/domains/CrossDomainSmoke.test.tsx src/docs/DocsPage.test.tsx` passed; `npm run build --workspace=ui` passed (with existing Rollup/Privy annotation and chunk-size warnings). An earlier attempted `npm run test --workspace=ui -- --run ...` ran the Vitest suite successfully but then failed in Playwright because those arguments were not E2E test files.
+
 ## 2026-05-04 — UI domains reshuffle task 11: documentation/spec cleanup
 
 - Completed Task 11 (the final task) from `ui-domains-reshuffling.md`.

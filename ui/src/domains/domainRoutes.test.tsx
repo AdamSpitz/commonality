@@ -83,7 +83,23 @@ describe('domain manifest home routes', () => {
         name: /statement, implication, signing, and trust infrastructure/i,
       })
     ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /developer docs/i })).toHaveAttribute('href', '/docs')
     expect(screen.getByRole('link', { name: /open tally/i })).toHaveAttribute('href', '#')
+  })
+
+  it('renders Conceptspace developer docs at /docs/conceptspace', async () => {
+    renderDomainRoute('conceptspace', '/docs/conceptspace')
+
+    expect(
+      await screen.findByRole(
+        'heading',
+        {
+          name: /conceptspace developer docs/i,
+        },
+        { timeout: 5000 },
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText(/generated TypeScript SDK reference/i)).toBeInTheDocument()
   })
 
   it('renders the Noninflammatory about page at /about', async () => {

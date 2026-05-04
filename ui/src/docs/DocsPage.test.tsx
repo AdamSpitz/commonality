@@ -154,6 +154,16 @@ describe('DocsPage', () => {
     expect(headings.length).toBeGreaterThan(0)
   })
 
+  it('renders Conceptspace developer docs', () => {
+    mockUseParams.mockReturnValue({ '*': 'conceptspace' })
+
+    renderDocsPage()
+
+    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /conceptspace developer docs/i })).toBeInTheDocument()
+    expect(screen.getByText(/generated TypeScript SDK reference/i)).toBeInTheDocument()
+  })
+
   it('has constrained max width for readability', () => {
     mockUseParams.mockReturnValue({ '*': 'index' })
 

@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
-import { Route } from 'react-router-dom'
+import { Navigate, Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
+import { lazyRoute } from '../lazyRoute'
 import { ConceptspaceLandingPage } from './LandingPage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<ConceptspaceLandingPage />} />
+    <Route path="/docs" element={<Navigate to="/docs/conceptspace" replace />} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
 )
 
@@ -18,6 +21,7 @@ export const conceptspaceManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Overview', path: '/' },
+      { label: 'Developer Docs', path: '/docs' },
     ],
     secondaryNavigation: [],
     footerText: 'Conceptspace provides the statement, implication, signing, nudger, and trust primitives shared across Commonality sites.',
@@ -29,7 +33,7 @@ export const conceptspaceManifest: DomainManifest = {
     delegation: false,
     mutablerefs: false,
     contentFunding: false,
-    docs: false,
+    docs: true,
   },
   basePath: '/',
   routes,

@@ -7,21 +7,21 @@ const sections = [
     eyebrow: 'Statements',
     title: 'Content-addressed claims',
     description: 'Conceptspace treats statements as durable primitives: users sign specific text, and other systems can safely reference the same claim by ID.',
-    path: '/',
+    path: '/docs/conceptspace',
     cta: 'Review the primitive',
   },
   {
     eyebrow: 'Graph',
     title: 'Implications reveal indirect support',
     description: 'Implication attestations connect narrow statements to broader claims so apps can count support without forcing everyone into identical wording.',
-    path: '/',
+    path: '/docs/conceptspace',
     cta: 'See how the graph fits',
   },
   {
     eyebrow: 'Trust + AI services',
     title: 'Attesters and nudgers are inspectable',
     description: 'Trust settings, attester outputs, and nudger suggestions are explicit data layers that product sites can reuse without hiding the judgment calls.',
-    path: '/',
+    path: '/docs/conceptspace',
     cta: 'Understand the services',
   },
 ]
@@ -35,7 +35,8 @@ export function ConceptspaceLandingPage() {
       spotlightLabel="Infrastructure, not the consumer app"
       spotlightText="End users should go to Tally for statement signing and polling. This surface explains the primitives that Tally, Commonality, Content Funding, Noninflammatory Content, and CSM build on."
       heroActions={[
-        { label: 'Conceptspace overview', path: '/' },
+        { label: 'Developer docs', path: '/docs' },
+        { label: 'Conceptspace overview', path: '/', variant: 'outlined' },
       ]}
       sections={sections}
     >
