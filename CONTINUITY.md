@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 6: reshape Commonality
+
+- Completed Task 6 from `ui-domains-reshuffling.md`: Commonality is now framed as the internet-age coordination / better public-goods funding movement, not the full foundation site or statement-signing destination.
+- Updated `ui/src/domains/commonality/LandingPage.tsx` to focus on movement thesis, projects/funding portals, and delegated funds; related product links point to Tally, Content Funding, and Conceptspace through `getDomainUrl(..., { fallbackHref: '#' })`.
+- Trimmed `ui/src/domains/commonality/manifest.tsx` to docs, projects, funding portals, and notes routes only. Removed local `/start`, `/explore`, `/statements`, `/statement/:statementCid`, `/profile`, `/user/:address`, `/settings`, `/refs`, and `/content*` routes from Commonality.
+- Updated Commonality navigation/footer/feature flags and the relevant domain smoke/route/landing tests.
+- Verified with `npm run test:vitest --workspace=ui`, `npm run lint --workspace=ui`, and `VITE_DOMAIN=commonality npm run build --workspace=ui`.
+- Note for next task: Task 7 should strip remaining statement UX from Content Funding, Noninflammatory, and CSM, replacing their local statement/profile links with cross-domain Tally links.
+
 ## 2026-05-04 — UI domains reshuffle task 5: cross-domain links
 
 - Completed Task 5 from `ui-domains-reshuffling.md`: introduced internal/external link target support for domain navigation and landing-page actions/cards.

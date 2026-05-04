@@ -179,9 +179,11 @@ Validation:
 
 ---
 
-## Task 6: Reshape Commonality routes and copy
+## Task 6: Reshape Commonality routes and copy ✅ Done 2026-05-04
 
 Purpose: Commonality becomes movement + funding tools, not the full foundation site or statement-signing destination.
+
+Action taken: Commonality landing and shell copy now frame it as the internet-age coordination / public-goods funding movement. Commonality routes now expose docs, projects, funding portals, and delegated funds only; consumer statement/profile/settings/refs routes and local content-funding routes were removed. Landing CTAs link to Tally, Content Funding, and Conceptspace via the cross-domain URL helper with `#` local fallbacks. Domain feature flags and smoke/route tests now reflect the funding-focused shape.
 
 Implementation shape:
 

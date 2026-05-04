@@ -43,8 +43,8 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     const expectedBranding: Record<DomainId, { name: string; tagline: string; footerText: string }> = {
       commonality: {
         name: 'Commonality',
-        tagline: 'Find common ground and fund what matters.',
-        footerText: 'Commonality helps people fund projects and content around shared values.',
+        tagline: 'Internet-age coordination for public goods.',
+        footerText: 'Commonality is a movement for better public-goods funding and the infrastructure to make it practical.',
       },
       tally: {
         name: 'Tally',
@@ -124,7 +124,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
 
   describe('landing page', () => {
     const expectedHeroTitles: Record<DomainId, string> = {
-      commonality: 'Find common ground first, then fund the work that follows from it.',
+      commonality: 'Build the movement for better public-goods funding.',
       tally: 'Petitions and polls with an implication graph.',
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
@@ -155,14 +155,14 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
 })
 
 describe('cross-domain feature flag matrix', () => {
-  it('commonality has all features enabled', () => {
+  it('commonality has funding and docs features enabled', () => {
     const features = domainManifests.commonality.features
-    expect(features.conceptspace).toBe(true)
+    expect(features.conceptspace).toBe(false)
     expect(features.pubstarter).toBe(true)
     expect(features.fundingportal).toBe(true)
     expect(features.delegation).toBe(true)
-    expect(features.mutablerefs).toBe(true)
-    expect(features.contentFunding).toBe(true)
+    expect(features.mutablerefs).toBe(false)
+    expect(features.contentFunding).toBe(false)
     expect(features.docs).toBe(true)
   })
 
@@ -239,15 +239,22 @@ describe('cross-domain navigation uniqueness', () => {
 })
 
 describe('cross-domain route coverage', () => {
-  it('commonality routes include docs, explore, settings, notes, refs, projects, portal', () => {
+  it('commonality routes include docs, notes, projects, and funding portals', () => {
     const paths = [
-      '/docs', '/explore', '/settings', '/notes', '/refs',
-      '/projects', '/portal/:statementCid',
+      '/docs', '/notes', '/notes/new', '/projects', '/projects/new', '/portal/:statementCid',
     ]
     const routePaths = extractRoutePaths(domainManifests.commonality.routes)
     for (const path of paths) {
       expect(routePaths).toContain(path)
     }
+    expect(routePaths).not.toContain('/start')
+    expect(routePaths).not.toContain('/explore')
+    expect(routePaths).not.toContain('/statements')
+    expect(routePaths).not.toContain('/statement/:statementCid')
+    expect(routePaths).not.toContain('/profile')
+    expect(routePaths).not.toContain('/settings')
+    expect(routePaths).not.toContain('/refs')
+    expect(routePaths).not.toContain('/content')
   })
 
   it('tally routes include the consumer statement-signing pages', () => {
@@ -301,12 +308,12 @@ describe('cross-domain route coverage', () => {
 })
 
 describe('cross-domain landing page rendering', () => {
-  it('commonality landing shows focused domain entry points', () => {
+  it('commonality landing shows related product sites instead of owning every product surface', () => {
     renderDomainRoute('commonality')
-    expect(screen.getByText('Focused domain entry points')).toBeInTheDocument()
+    expect(screen.getByText('Related product sites')).toBeInTheDocument()
+    expect(screen.getAllByText('Tally').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Content Funding').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Noninflammatory Content').length).toBeGreaterThan(0)
-    expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
+    expect(screen.getByText('Conceptspace')).toBeInTheDocument()
   })
 
   it('tally landing shows built-on-conceptspace spotlight', () => {
@@ -389,14 +396,16 @@ describe('cross-domain out-of-domain feature absence', () => {
     expect(allNav.some((href) => href.startsWith('/refs'))).toBe(false)
   })
 
-  it('commonality domain exposes the full feature set in navigation', () => {
+  it('commonality domain navigation focuses on funding infrastructure and docs', () => {
     const nav = domainManifests.commonality.shell
     const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
     expect(allPaths.some((p) => p.startsWith('/docs'))).toBe(true)
     expect(allPaths.some((p) => p.startsWith('/notes'))).toBe(true)
-    expect(allPaths.some((p) => p.startsWith('/refs'))).toBe(true)
     expect(allPaths.some((p) => p.startsWith('/projects'))).toBe(true)
-    expect(allPaths.some((p) => p.startsWith('/settings'))).toBe(true)
+    expect(allPaths.some((p) => p.startsWith('/refs'))).toBe(false)
+    expect(allPaths.some((p) => p.startsWith('/settings'))).toBe(false)
+    expect(allPaths.some((p) => p.startsWith('/statements'))).toBe(false)
+    expect(allPaths.some((p) => p.startsWith('/content'))).toBe(false)
   })
 
   it('conceptspace domain does not expose consumer or funding navigation', () => {
@@ -407,39 +416,45 @@ describe('cross-domain out-of-domain feature absence', () => {
 })
 
 describe('cross-domain shared routes consistency', () => {
-  it('all current statement-surface domains expose statements browsing', () => {
-    const statementSurfaceDomainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
+  it('all remaining statement-surface domains expose statements browsing', () => {
+    const statementSurfaceDomainIds: DomainId[] = ['tally', 'content-funding', 'noninflammatory', 'csm']
     for (const id of statementSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/statements')
     }
+    expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/statements')
   })
 
-  it('all current statement-surface domains expose statement detail', () => {
-    const statementSurfaceDomainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
+  it('all remaining statement-surface domains expose statement detail', () => {
+    const statementSurfaceDomainIds: DomainId[] = ['tally', 'content-funding', 'noninflammatory', 'csm']
     for (const id of statementSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/statement/:statementCid')
     }
+    expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/statement/:statementCid')
   })
 
-  it('all current statement-surface domains expose user profile', () => {
-    const statementSurfaceDomainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
+  it('all remaining statement-surface domains expose user profile', () => {
+    const statementSurfaceDomainIds: DomainId[] = ['tally', 'content-funding', 'noninflammatory', 'csm']
     for (const id of statementSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/profile')
       expect(routePaths).toContain('/user/:address')
     }
+    const commonalityRoutePaths = extractRoutePaths(domainManifests.commonality.routes)
+    expect(commonalityRoutePaths).not.toContain('/profile')
+    expect(commonalityRoutePaths).not.toContain('/user/:address')
   })
 
-  it('all pre-existing domains expose content funding surfaces', () => {
-    const contentSurfaceDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm']
+  it('content-focused domains expose content funding surfaces', () => {
+    const contentSurfaceDomainIds: DomainId[] = ['content-funding', 'noninflammatory', 'csm']
     for (const id of contentSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/content')
       expect(routePaths).toContain('/content/:platform')
       expect(routePaths).toContain('/content/:platform/:channelId')
     }
+    expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/content')
   })
 })
 

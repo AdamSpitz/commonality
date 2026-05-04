@@ -9,97 +9,59 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('CommonalityLandingPage', () => {
   describe('hero section', () => {
-    it('renders eyebrow', () => {
+    it('renders the Commonality movement framing', () => {
       render(<CommonalityLandingPage />, { wrapper })
       expect(screen.getByText('Commonality')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 1, name: /better public-goods funding/i })).toBeInTheDocument()
+      expect(screen.getByText(/movement site for internet-age coordination/i)).toBeInTheDocument()
     })
 
-    it('renders title as h1', () => {
-      render(<CommonalityLandingPage />, { wrapper })
-      const title = screen.getByRole('heading', { level: 1, name: /Find common ground first/i })
-      expect(title).toBeInTheDocument()
-    })
-
-    it('renders description', () => {
-      render(<CommonalityLandingPage />, { wrapper })
-      expect(screen.getByText(/Commonality is the full platform/i)).toBeInTheDocument()
-    })
-
-    it('renders spotlight label as chip', () => {
+    it('renders spotlight copy that de-emphasizes foundation and statement-signing ownership', () => {
       render(<CommonalityLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Full platform')
+      expect(chip).toHaveTextContent('Movement + funding tools')
+      expect(screen.getByText(/no longer the ecosystem-wide foundation site/i)).toBeInTheDocument()
+      expect(screen.getByText(/Statement signing belongs on Tally/i)).toBeInTheDocument()
     })
 
-    it('renders spotlight text', () => {
+    it('renders hero action links for docs, projects, and Tally', () => {
       render(<CommonalityLandingPage />, { wrapper })
-      expect(screen.getByText(/Use this domain when you want the whole system/i)).toBeInTheDocument()
-    })
-
-    it('renders hero action links with correct hrefs', () => {
-      render(<CommonalityLandingPage />, { wrapper })
-      const links = screen.getAllByRole('link')
-      const hrefs = links.map(l => l.getAttribute('href'))
-      expect(hrefs).toContain('/docs')
-      expect(hrefs).toContain('/statements')
-      expect(hrefs).toContain('/projects')
+      expect(screen.getByRole('link', { name: 'Start with the thesis' })).toHaveAttribute('href', '/docs')
+      expect(screen.getAllByRole('link', { name: 'Browse projects' })[0]).toHaveAttribute('href', '/projects')
+      expect(screen.getAllByRole('link', { name: 'Open Tally' })[0]).toHaveAttribute('href', '#')
     })
   })
 
   describe('section cards', () => {
-    it('renders all three section cards with titles', () => {
+    it('renders the funding-focused sections', () => {
       render(<CommonalityLandingPage />, { wrapper })
-      const sectionTitles = screen.getAllByRole('heading', { level: 6 })
-      const titles = sectionTitles.map(h => h.textContent)
-      expect(titles).toContain('Statements and implication graphs')
-      expect(titles).toContain('Projects and funding portals')
-      expect(titles).toContain('Content funding and bridge-building')
+      const sectionTitles = screen.getAllByRole('heading', { level: 6 }).map(h => h.textContent)
+      expect(sectionTitles).toContain('Internet-age coordination for public goods')
+      expect(sectionTitles).toContain('Create and fund public-goods projects')
+      expect(sectionTitles).toContain('Route funds through trusted judgment')
     })
 
-    it('renders section descriptions', () => {
+    it('renders section descriptions and CTA links', () => {
       render(<CommonalityLandingPage />, { wrapper })
-      expect(screen.getByText(/Start with the conceptspace/i)).toBeInTheDocument()
-      expect(screen.getByText(/Fund projects directly/i)).toBeInTheDocument()
-      expect(screen.getByText(/The same infrastructure also powers/i)).toBeInTheDocument()
-    })
-
-    it('renders section CTA links with correct hrefs', () => {
-      render(<CommonalityLandingPage />, { wrapper })
-      const links = screen.getAllByRole('link')
-      const statementsLink = links.find(l => l.getAttribute('href') === '/statements')
-      const projectsLink = links.find(l => l.getAttribute('href') === '/projects')
-      const contentLink = links.find(l => l.getAttribute('href') === '/content')
-      expect(statementsLink).toBeInTheDocument()
-      expect(projectsLink).toBeInTheDocument()
-      expect(contentLink).toBeInTheDocument()
-    })
-
-    it('renders section eyebrows', () => {
-      render(<CommonalityLandingPage />, { wrapper })
-      expect(screen.getByText('Common ground')).toBeInTheDocument()
-      expect(screen.getByText('Public goods')).toBeInTheDocument()
-      expect(screen.getByText('Focused domains')).toBeInTheDocument()
+      expect(screen.getByText(/public goods are badly underproduced/i)).toBeInTheDocument()
+      expect(screen.getByText(/Browse projects, start a new assurance contract/i)).toBeInTheDocument()
+      expect(screen.getByText(/delegated funding notes/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Read the thesis' })).toHaveAttribute('href', '/docs')
+      expect(screen.getAllByRole('link', { name: 'Browse projects' })[1]).toHaveAttribute('href', '/projects')
+      expect(screen.getByRole('link', { name: 'Manage delegated funds' })).toHaveAttribute('href', '/notes')
     })
   })
 
-  describe('focused domain entry points', () => {
-    it('renders section heading', () => {
+  describe('related product sites', () => {
+    it('links out to the domains that now own statement signing, content funding, and infrastructure docs', () => {
       render(<CommonalityLandingPage />, { wrapper })
-      expect(screen.getByRole('heading', { level: 5, name: 'Focused domain entry points' })).toBeInTheDocument()
-    })
-
-    it('renders all three focused domain cards', () => {
-      render(<CommonalityLandingPage />, { wrapper })
+      expect(screen.getByRole('heading', { level: 5, name: 'Related product sites' })).toBeInTheDocument()
+      expect(screen.getByText('Tally')).toBeInTheDocument()
       expect(screen.getByText('Content Funding')).toBeInTheDocument()
-      expect(screen.getByText('Noninflammatory Content')).toBeInTheDocument()
-      expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
-    })
-
-    it('renders focused domain descriptions', () => {
-      render(<CommonalityLandingPage />, { wrapper })
-      expect(screen.getByText(/A dedicated entry point for funding tweets/i)).toBeInTheDocument()
-      expect(screen.getByText(/A more opinionated surface for rewarding content/i)).toBeInTheDocument()
-      expect(screen.getByText(/A movement-oriented framing built on the same/i)).toBeInTheDocument()
+      expect(screen.getByText('Conceptspace')).toBeInTheDocument()
+      expect(screen.getAllByRole('link', { name: 'Open Tally' })[1]).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: 'Open Content Funding' })).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: 'Open Conceptspace' })).toHaveAttribute('href', '#')
     })
   })
 })

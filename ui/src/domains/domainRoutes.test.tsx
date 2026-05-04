@@ -21,10 +21,10 @@ describe('domain manifest home routes', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /find common ground first, then fund the work that follows from it/i,
+        name: /build the movement for better public-goods funding/i,
       })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /start with docs/i })).toHaveAttribute('href', '/docs')
+    expect(screen.getByRole('link', { name: /start with the thesis/i })).toHaveAttribute('href', '/docs')
   })
 
   it('renders the Tally landing page at the root route', () => {
