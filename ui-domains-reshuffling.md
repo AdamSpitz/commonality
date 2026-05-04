@@ -323,7 +323,7 @@ Validation:
 
 ---
 
-## Task 11: Documentation/spec cleanup
+## Task 11: Documentation/spec cleanup ✅ Done 2026-05-04
 
 Purpose: make the repository describe the new shape accurately.
 

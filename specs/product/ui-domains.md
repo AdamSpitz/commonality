@@ -4,9 +4,9 @@ Rather than presenting the whole system as one big website, we present several f
 
 For the technical implementation, see [specs/tech/ui-domains.md](../tech/ui-domains.md).
 
-## Status (May 4, 2026): mid-reorganization
+## Status (May 4, 2026): reorganization complete
 
-The sites are all basically built, but under an older split that we're now reorganizing. **The "New shape" section below is the target.** The "What's changing from the old shape" section spells out the diff so a fresh LLM can do the reorganization without needing this whole conversation.
+The six-domain shape described below is fully implemented. The "What's changing from the old shape" section below is historical context for understanding why things are the way they are.
 
 ## New shape
 

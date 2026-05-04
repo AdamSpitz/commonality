@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 11: documentation/spec cleanup
+
+- Completed Task 11 (the final task) from `ui-domains-reshuffling.md`.
+- Updated `specs/product/ui-domains.md`: changed the status section from "mid-reorganization" to "reorganization complete"; updated the explanatory text accordingly.
+- Marked Task 11 as ✅ Done in `ui-domains-reshuffling.md`.
+- All other doc files (`specs/tech/ui-domains.md`, `ui/README.md`, `workflow/local-development.md`, `workflow/deployment.md`, `workflow/BUILD.md`, `README.md`) were already up to date from previous tasks (Tasks 9 and 10 updated them).
+- No stale "four domains" or `movement` domain-ID references found anywhere.
+- Verified with `npm run lint --workspace=ui` (clean).
+- The full ui-domains-reshuffling.md plan is now complete. All 11 tasks are marked done.
+
 ## 2026-05-04 — UI domains reshuffle task 10: deployment docs/scripts for final domain list
 
 - Completed Task 10 from `ui-domains-reshuffling.md`.
