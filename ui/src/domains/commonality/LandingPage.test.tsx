@@ -19,9 +19,9 @@ describe('CommonalityLandingPage', () => {
     it('renders spotlight copy that starts with user-facing funding actions', () => {
       render(<CommonalityLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Movement + funding tools')
-      expect(screen.getByText(/pledge only if enough other people join/i)).toBeInTheDocument()
-      expect(screen.getByText(/Statement signing lives on Tally/i)).toBeInTheDocument()
+      expect(chip).toHaveTextContent('What you can do here')
+      expect(screen.getByText(/Fund public goods without personal risk/i)).toBeInTheDocument()
+      expect(screen.getByText(/only pay if enough others join/i)).toBeInTheDocument()
     })
 
     it('renders hero action links for docs, a walkthrough, projects, and Tally', () => {
@@ -47,13 +47,22 @@ describe('CommonalityLandingPage', () => {
       expect(screen.getByText(/public goods are badly underproduced/i)).toBeInTheDocument()
       expect(screen.getByText(/Browse projects, start a new assurance contract/i)).toBeInTheDocument()
       expect(screen.getByText(/delegated funding notes/i)).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'Read the thesis' })).toHaveAttribute('href', '/docs')
-      expect(screen.getAllByRole('link', { name: 'Browse projects' })[1]).toHaveAttribute('href', '/projects')
-      expect(screen.getByRole('link', { name: 'Manage delegated funds' })).toHaveAttribute('href', '/notes')
+      expect(screen.getAllByRole('link', { name: 'Read the thesis' })[0]).toHaveAttribute('href', '/docs')
+      expect(screen.getAllByRole('link', { name: 'Browse projects' })[2]).toHaveAttribute('href', '/projects')
+      expect(screen.getAllByRole('link', { name: 'Manage delegated funds' })[0]).toHaveAttribute('href', '/notes')
     })
   })
 
   describe('related product sites', () => {
+    it('renders choose-your-path cards', () => {
+      render(<CommonalityLandingPage />, { wrapper })
+      expect(screen.getByRole('heading', { level: 5, name: 'Choose your path' })).toBeInTheDocument()
+      expect(screen.getByText('I want to fund something')).toBeInTheDocument()
+      expect(screen.getByText('I have a project')).toBeInTheDocument()
+      expect(screen.getByText('I want to delegate')).toBeInTheDocument()
+      expect(screen.getByText('I want to learn more')).toBeInTheDocument()
+    })
+
     it('links out to all sibling product sites', () => {
       render(<CommonalityLandingPage />, { wrapper })
       expect(screen.getByRole('heading', { level: 5, name: 'Related product sites' })).toBeInTheDocument()

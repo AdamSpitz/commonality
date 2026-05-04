@@ -329,10 +329,10 @@ describe('cross-domain landing page rendering', () => {
     expect(screen.getByText('Conceptspace')).toBeInTheDocument()
   })
 
-  it('tally landing shows built-on-conceptspace spotlight', () => {
+  it('tally landing shows how-it-works spotlight', () => {
     renderDomainRoute('tally')
-    expect(screen.getByText('Built on Conceptspace')).toBeInTheDocument()
-    expect(screen.getByText(/consumer statement-signing site/i)).toBeInTheDocument()
+    expect(screen.getByText('How it works')).toBeInTheDocument()
+    expect(screen.getByText(/our city should fix the potholes/i)).toBeInTheDocument()
   })
 
   it('content-funding landing shows built-on-commonality-funding spotlight', () => {
@@ -350,7 +350,8 @@ describe('cross-domain landing page rendering', () => {
   it('csm landing shows broader infrastructure framing', () => {
     renderDomainRoute('csm')
     expect(screen.getByText('Why this matters')).toBeInTheDocument()
-    expect(screen.getByText(/You have probably felt politically homeless/i)).toBeInTheDocument()
+    expect(screen.getByText(/Imagine you've been feeling politically homeless/i)).toBeInTheDocument()
+    expect(screen.getByText(/two million people feel the same way/i)).toBeInTheDocument()
   })
 
   it('conceptspace landing points statement signing to Tally', () => {

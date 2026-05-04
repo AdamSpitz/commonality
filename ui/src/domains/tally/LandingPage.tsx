@@ -31,8 +31,8 @@ export function TallyLandingPage() {
       eyebrow="Tally"
       title="Petitions and polls with an implication graph."
       description="Tally is the consumer statement-signing site for Commonality: sign claims, browse public support, and see how related statements reveal larger coalitions."
-      spotlightLabel="Built on Conceptspace"
-      spotlightText="The signing, trust, nudger, and implication primitives are shared infrastructure. Tally packages them as a focused place for people who just want to make support visible."
+      spotlightLabel="How it works"
+      spotlightText="You sign 'our city should fix the potholes on Maple Street.' Trusted attesters notice this implies 'the city should maintain basic infrastructure,' so your signature also counts toward that broader claim. Someone else signs a completely different statement about sidewalk repair — and they show up in the same coalition. You never coordinated, never compromised on wording, but the graph reveals you agree."
       heroActions={[
         { label: 'Start signing', path: '/start' },
         { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/common-sense-majority', { fallbackHref: '#' }), variant: 'outlined' },

@@ -33,7 +33,9 @@ describe('CsmLandingPage', () => {
 
     it('renders spotlight text', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByText(/This surface makes the hidden majority visible/i)).toBeInTheDocument()
+      expect(screen.getByText(/Imagine you've been feeling politically homeless/i)).toBeInTheDocument()
+      expect(screen.getByText(/two million people feel the same way/i)).toBeInTheDocument()
+      expect(screen.getByText(/Trust was the hard part/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {

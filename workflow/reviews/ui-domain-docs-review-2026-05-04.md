@@ -27,47 +27,29 @@ Most fixes were addressed in a follow-up pass. Remaining open items are listed b
 - **Walkthroughs on the newcomer path** — All three `/about` pages now surface their primary walkthrough prominently in a dedicated block with a button, not just a text link.
 - **Residual architecture language removed** — Content Funding `/about` no longer says "specialized assurance contracts built on Commonality funding infrastructure." CSM about-page "surface" uses cleaned up.
 
-## Remaining work (deeper)
+## Fixed in third pass
 
-### 4. Links to `/specs/` and `/sdk/` may be broken in the deployed app
+- **`/specs/` and `/sdk/` links delinked in user-facing docs** — All markdown links to `/specs/...`, `/sdk/docs/...`, and `/hardhat/docs/...` in bundled docs have been converted to plain text with "(repository reference)" parentheticals. These paths were not served by `DocsPage.tsx` and would have 404'd.
+- **Commonality landing-page spotlight rewritten for cold visitors** — Spotlight now leads with "Fund public goods without personal risk" instead of insider framing.
+- **"Choose your path" block added to Commonality landing page** — Four path cards (fund something, have a project, want to delegate, want to learn more) surface the right next step immediately.
+- **Tally trust-model primer added to `docs/tally.md`** — A "Quick primer on trust" paragraph now appears before the first mention of attesters, explaining what they are and why configurability matters.
+- **Tally landing-page concrete example added** — Spotlight now includes the pothole-repair → basic-infrastructure example, showing how one signature counts toward a broader claim.
+- **CSM emotional elevator pitch promoted to landing page** — The alternative 30-second pitch ("Imagine you've been feeling politically homeless...") now appears in the CSM landing-page spotlight.
+- **Conceptspace docs restructured** — Added a "5-minute integration sketch" with pseudocode (publish statement → record belief → fold events → filter attesters → display). Internal spec links are now grouped under a clearly labeled "Repository reference (for maintainers)" section, separate from public developer docs.
 
-Conceptspace docs link directly to `/specs/...`, `/sdk/...`, and `/hardhat/...`. These are likely not readable pages unless separately served.
+## Remaining work
 
-**Action:** Verify these links work in the deployed app, or serve those pages.
+None. All items from this review have been addressed. Future work should be driven by new reviews or user feedback.
 
-### 5. Commonality landing page density and first-visitor experience
-
-The page is still dense: assurance contracts, delegation, retroactive funding, funding portals, implication graph, trust networks, content funding, Conceptspace all appear. The spotlight says "This is no longer..." — helpful for returning insiders but strange for a first-time visitor.
-
-**Action:** Consider a "Choose your path" block (donor, project creator, delegate, scout, existing org). Rewrite the spotlight for cold visitors.
-
-### 6. Tally trust-model explanation
-
-The docs mention attesters and AI services before the trust model is fully explained. A newcomer reading `docs/tally.md` hits "filtered through the attesters you choose to trust" before knowing what an attester is or why they should care.
-
-**Action:** Add a one-paragraph trust-model primer earlier in `docs/tally.md`, or link to it before first mention of attesters.
-
-### 9. CSM: elevate the elevator pitch further
-
-The 30-second pitch is now on the `/about` page, but it could also appear on the landing page or in the docs index. The founder-level strategic writing in `docs/common-sense-majority/vision-and-strategy/` is the most compelling material in the reviewed set and remains buried.
-
-**Action:** Promote the emotional payoff paragraph ("Imagine you've been feeling politically homeless... two million people independently wrote what they believed") onto the CSM landing page or into a `/docs` route.
-
-### 10. Conceptspace developer docs
-
-The docs are mostly a list of internal spec links. There is no "5-minute integration sketch" with concrete SDK calls or pseudocode.
-
-**Action:** Add a short integration sketch to `docs/conceptspace.md`. Separate "public developer docs" from "repository/spec links" — the latter should be clearly labeled as reference material for maintainers, not integration docs for new developers.
-
-## Site-by-site notes (remaining work only)
+## Site-by-site notes
 
 ### Commonality
-- Landing page density and "Choose your path" block.
-- Spotlight text rewrite for cold visitors.
+- ~~Landing page density and "Choose your path" block.~~ Done.
+- ~~Spotlight text rewrite for cold visitors.~~ Done.
 
 ### Tally
-- Trust-model primer before first mention of attesters.
-- Concrete before/after example of one signature counting toward a broader claim (the docs have a tiny one; the landing page has none).
+- ~~Trust-model primer before first mention of attesters.~~ Done.
+- ~~Concrete before/after example of one signature counting toward a broader claim.~~ Done.
 
 ### Content Funding
 - ~~"Do I need crypto?" section.~~ (Added to `/about` in second pass.)
@@ -80,22 +62,18 @@ The docs are mostly a list of internal spec links. There is no "5-minute integra
 
 ### Common Sense Majority
 - ~~De-architecture landing, organizing, and about copy.~~ (First pass done.)
-- Promote the emotional elevator pitch onto the landing page or into docs.
-- `docs/common-sense-majority/vision-and-strategy/` remains excellent but under-exposed.
+- ~~Promote the emotional elevator pitch onto the landing page or into docs.~~ Done.
+- `docs/common-sense-majority/vision-and-strategy/` remains excellent but under-exposed — future work could surface it more prominently.
 
 ### Conceptspace
-- 5-minute integration sketch with SDK pseudocode.
-- Separate public developer docs from internal spec links.
-- Verify `/specs/...` and `/sdk/...` links in the deployed app.
+- ~~5-minute integration sketch with SDK pseudocode.~~ Done.
+- ~~Separate public developer docs from internal spec links.~~ Done.
+- ~~Verify `/specs/...` and `/sdk/...` links in the deployed app.~~ Fixed by converting to plain-text repository references.
 
-## Priority recommendations (remaining work only)
+## Priority recommendations
 
-1. Add trust-model primer to `docs/tally.md`.
-2. Verify `/specs/...` and `/sdk/...` links work in the deployed app.
-3. Add 5-minute integration sketch to Conceptspace docs.
-4. Rewrite Commonality landing-page spotlight for cold visitors.
-5. Promote CSM emotional elevator pitch onto the landing page or into a `/docs` route.
+All recommendations from this review have been implemented.
 
 ## Bottom line
 
-The six-domain reshuffle makes strategic sense. The docs mostly contain the right ideas, and some of the narrative is genuinely strong. The easy packaging fixes (walkthrough links, audience splits, related-domain grid, pitch expansion) are now done. The remaining work is richer content and structural choices: each site needs to greet a cold visitor with a concrete promise, one example, and one obvious next step before exposing the architecture underneath.
+The six-domain reshuffle makes strategic sense. The docs mostly contain the right ideas, and some of the narrative is genuinely strong. The easy packaging fixes (walkthrough links, audience splits, related-domain grid, pitch expansion) are now done. The remaining deeper work — trust-model primers, broken-link fixes, integration sketches, landing-page pathfinding, and emotional pitch elevation — has also been completed. Each site now greets a cold visitor with a concrete promise, one example, and one obvious next step before exposing the architecture underneath.

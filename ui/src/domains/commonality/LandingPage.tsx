@@ -1,4 +1,5 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { DomainLandingPage } from '../components/DomainLandingPage'
 import { getDomainUrl } from '../domainUrls'
 
@@ -65,8 +66,8 @@ export function CommonalityLandingPage() {
       eyebrow="Commonality"
       title="Build the movement for better public-goods funding."
       description="Commonality is a movement site for internet-age coordination and the funding tools that make that coordination concrete: assurance contracts, funding portals, and delegated capital."
-      spotlightLabel="Movement + funding tools"
-      spotlightText="Start with a concrete project, pledge only if enough other people join, or delegate funds to someone whose judgment you trust. Statement signing lives on Tally; content-specific contracts live on Content Funding."
+      spotlightLabel="What you can do here"
+      spotlightText="Fund public goods without personal risk. Pledge to a project, but only pay if enough others join. Delegate your money to someone whose judgment you trust. Start a project without gatekeepers or applications." 
       heroActions={[
         { label: 'Start with the thesis', path: '/docs' },
         { label: 'See a walkthrough', path: '/docs/use-case-walkthroughs/block-party', variant: 'outlined' },
@@ -75,6 +76,48 @@ export function CommonalityLandingPage() {
       ]}
       sections={sections}
     >
+      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
+        Choose your path
+      </Typography>
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, mb: 4 }}>
+        <Paper sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6">I want to fund something</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Browse projects, pledge to a cause, or delegate to someone you trust. Your money is refunded if the goal isn't met.
+            </Typography>
+            <Button component={RouterLink} to="/projects" size="small">Browse projects</Button>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6">I have a project</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Set up an assurance contract in minutes. No gatekeepers, no applications. Describe what you need and let backers find you.
+            </Typography>
+            <Button component={RouterLink} to="/projects/new" size="small">Start a project</Button>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6">I want to delegate</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Help others direct their funds wisely. Build a transparent track record as a delegate.
+            </Typography>
+            <Button component={RouterLink} to="/notes" size="small">Manage delegated funds</Button>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6">I want to learn more</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Read the movement thesis, explore the key ideas, or walk through a real funding scenario.
+            </Typography>
+            <Button component={RouterLink} to="/docs" size="small">Read the thesis</Button>
+          </Stack>
+        </Paper>
+      </Box>
+
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
         Related product sites
       </Typography>

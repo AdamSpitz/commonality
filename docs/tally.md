@@ -16,7 +16,11 @@ That's the petition-and-poll layer. Useful on its own — but Tally adds a secon
 
 Most petition sites treat each petition as its own island. Tally doesn't. Statements are connected by a graph of **implications**: "S1 implies S2" — if you believe S1, you should also believe S2.
 
-These implication links are proposed and evaluated by AI services, then filtered through the attesters you choose to trust. That keeps the graph inspectable without pretending there is one central referee everyone must accept.
+### A quick primer on trust
+
+Implication links are proposed and evaluated by AI services called **attesters**. Attesters read statements, decide whether one implies another, and publish their reasoning. You don't have to accept every attester's judgment — you choose which ones you trust in your settings. If you distrust the default attesters, you can run your own or follow someone whose taste you respect.
+
+This means the graph is inspectable without pretending there is one central referee everyone must accept. Your coalition view is filtered through the attesters you choose.
 
 What this means in practice: when you sign one statement, you're not just adding your name to that one claim. You're adding your weight to every more-general claim it implies, and getting visible alongside everyone else who supports the same broader idea — even if they signed a different specific statement.
 

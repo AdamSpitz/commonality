@@ -40,8 +40,8 @@ The SDK also fetches IPFS content directly from a gateway, so statement content 
 
 The SDK and smart contract documentation is auto-generated:
 
-- **[SDK API docs](sdk/docs/api/)** — TypeScript SDK reference, auto-generated via typedoc from the SDK source.
-- **[Contract docs](hardhat/docs/)** — Solidity contract reference, auto-generated via solc doc.
+- **SDK API docs** (`sdk/docs/api/` in the repository) — TypeScript SDK reference, auto-generated via typedoc from the SDK source.
+- **Contract docs** (`hardhat/docs/` in the repository) — Solidity contract reference, auto-generated via solc doc.
 
 Run `npm run build:docs` to regenerate these.
 
