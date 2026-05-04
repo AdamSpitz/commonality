@@ -22,14 +22,22 @@ const INDEXER_SYNC_TIMEOUT_MS = 60_000
  * These complement the happy-path E2E specs by checking that broken links,
  * missing chain data, and insufficient funding inputs fail clearly instead of
  * leaving the user on a spinner or a silent no-op.
+ *
+ * Statement-route tests run against the tally domain (owns /statement/:cid).
+ * Project-route tests run against the commonality domain (owns /projects/:addr).
  */
-test.describe('Negative paths', () => {
+
+test.describe('Negative paths — statement routes (tally)', () => {
   test('nonexistent statement route shows a not-found error', async ({ page }) => {
     await page.goto('/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku')
 
     await expect(page.getByRole('heading', { name: /^statement$/i })).toBeVisible()
     await expect(page.getByText('Statement not found')).toBeVisible({ timeout: 20_000 })
   })
+})
+
+test.describe('Negative paths — project routes (commonality)', () => {
+  test.use({ baseURL: 'http://localhost:5174' })
 
   test('nonexistent project route shows a not-found error', async ({ page }) => {
     await page.goto('/projects/0x000000000000000000000000000000000000dEaD')

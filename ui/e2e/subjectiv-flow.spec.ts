@@ -224,7 +224,7 @@ test.describe('Subjectiv Flow', () => {
 
     console.log('\n=== ADDING DIRECT TRUST IN SETTINGS ===')
     await page.locator('header').getByRole('button', { name: 'More' }).click()
-    await page.getByRole('menuitem', { name: 'My Trust Network' }).click()
+    await page.getByRole('menuitem', { name: 'Trust & Nudger Settings' }).click()
     await expect(page.getByRole('heading', { name: 'Trust Settings' })).toBeVisible()
     const trustSection = page.getByRole('heading', { name: 'Your Trust Network' }).locator('..')
 

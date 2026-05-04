@@ -166,11 +166,11 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.docs).toBe(true)
   })
 
-  it('tally has only conceptspace enabled', () => {
+  it('tally has conceptspace and fundingportal enabled', () => {
     const features = domainManifests.tally.features
     expect(features.conceptspace).toBe(true)
     expect(features.pubstarter).toBe(false)
-    expect(features.fundingportal).toBe(false)
+    expect(features.fundingportal).toBe(true)
     expect(features.delegation).toBe(false)
     expect(features.mutablerefs).toBe(false)
     expect(features.contentFunding).toBe(false)
@@ -257,10 +257,11 @@ describe('cross-domain route coverage', () => {
     expect(routePaths).not.toContain('/content')
   })
 
-  it('tally routes include the consumer statement-signing pages', () => {
+  it('tally routes include the consumer statement-signing pages and funding portal', () => {
     const paths = [
       '/', '/start', '/explore', '/statements', '/statement/:statementCid',
       '/profile', '/user/:address', '/settings',
+      '/portal/:statementCid', '/portal/:statementCid/leaderboard',
     ]
     const routePaths = extractRoutePaths(domainManifests.tally.routes)
     for (const path of paths) {

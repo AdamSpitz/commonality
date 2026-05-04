@@ -138,13 +138,11 @@ test.describe('Delegation Flow', () => {
     // Step 4: Connect as ACCOUNT_1 and verify delegation in UI
     // =========================================================================
     console.log('\n=== VERIFYING DELEGATION IN UI ===')
-    await page.goto('/start')
+    await page.goto('/')
     await wallet.connect('ACCOUNT_1')
-    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
-    // Navigate via the header overflow menu so we preserve the connected wallet state.
-    await page.locator('header').getByRole('button', { name: 'More' }).click()
-    await page.getByRole('menuitem', { name: 'My Delegated Funds' }).click()
+    // Navigate to the delegated funds page via the primary nav.
+    await page.getByRole('link', { name: 'Delegated Funds' }).click()
 
     // Verify the delegated fund appears in the current controlled-funds section.
     await expect(page.getByText('Funds I Control')).toBeVisible({ timeout: 20000 })

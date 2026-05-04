@@ -227,9 +227,8 @@ test.describe('Content Funding Flow', () => {
     // Step 5: Connect as ACCOUNT_0 and view the contract in the dashboard
     // =========================================================================
     console.log('\n=== STEP 5: VIEWING CONTRACT IN DASHBOARD ===')
-    await page.goto('/start')
+    await page.goto('/content')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
 
     // Navigate to creator dashboard
     await page.locator('header').getByRole('button', { name: 'More' }).click()

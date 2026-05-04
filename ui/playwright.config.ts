@@ -2,6 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
+ *
+ * Each Playwright project launches a separate Vite dev server on a distinct port
+ * so tests run against the domain that owns the routes they exercise:
+ *
+ *   tally          → 5173  (statement signing, belief expression, user profile)
+ *   commonality    → 5174  (pubstarter, delegation, funding portal)
+ *   content-funding → 5175 (content funding contracts, creator dashboard)
  */
 export default defineConfig({
   testDir: './e2e',
@@ -22,8 +29,6 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:5173',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     /* Capture screenshot on failure for debugging */
@@ -36,18 +41,56 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
 
-  /* Configure projects for major browsers */
+  /* Configure projects per domain. Each project matches the test files that
+   * exercise routes owned by that domain. */
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'tally',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5173' },
+      testMatch: [
+        'statement-creation.spec.ts',
+        'statement-creation-form.spec.ts',
+        'belief-expression.spec.ts',
+        'wallet-connection.spec.ts',
+        'browse-statements.spec.ts',
+        'user-profile.spec.ts',
+        'subjectiv-flow.spec.ts',
+        'negative-paths.spec.ts',
+      ],
+    },
+    {
+      name: 'commonality',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
+      testMatch: [
+        'pubstarter-flow.spec.ts',
+        'delegation-flow.spec.ts',
+      ],
+    },
+    {
+      name: 'content-funding',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
+      testMatch: [
+        'content-funding-flow.spec.ts',
+      ],
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  /* One dev server per domain, on separate ports. */
+  webServer: [
+    {
+      command: 'VITE_DOMAIN=tally npm run dev -- --port 5173',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'VITE_DOMAIN=commonality npm run dev -- --port 5174',
+      url: 'http://localhost:5174',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'VITE_DOMAIN=content-funding npm run dev -- --port 5175',
+      url: 'http://localhost:5175',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });

@@ -14,6 +14,8 @@ const routes: ReactNode = (
     <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
     <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
     <Route path="/settings" element={lazyRoute(() => import('../../conceptspace/pages/SettingsPage'), 'SettingsPage')} />
+    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
+    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
   </>
 )
 
@@ -38,7 +40,7 @@ export const tallyManifest: DomainManifest = {
   features: {
     conceptspace: true,
     pubstarter: false,
-    fundingportal: false,
+    fundingportal: true,
     delegation: false,
     mutablerefs: false,
     contentFunding: false,

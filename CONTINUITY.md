@@ -1,5 +1,19 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 8: rework E2E test domain assumptions
+
+- Completed Task 8 from `ui-domains-reshuffling.md`.
+- `ui/playwright.config.ts` now launches three dev servers (tally:5173, commonality:5174, content-funding:5175) and three matching Playwright projects, each with `testMatch` routing tests to the domain that owns the routes they exercise.
+- Added `/portal/:statementCid` and `/portal/:statementCid/leaderboard` routes to the tally manifest (and set `fundingportal: true`) so the subjectiv-flow test runs against tally.
+- Updated `CrossDomainSmoke.test.tsx` to reflect tally's new `fundingportal: true` and extended tally route list.
+- `delegation-flow.spec.ts`: replaced `goto('/start')` + tally assertion with `goto('/')` + direct primary-nav link click (runs under commonality).
+- `pubstarter-flow.spec.ts`: replaced `goto('/start')` + tally assertion with `goto('/projects')` or `goto(\`/projects/...\`)` (runs under commonality).
+- `content-funding-flow.spec.ts`: replaced `goto('/start')` + tally assertion with `goto('/content')` (runs under content-funding).
+- `subjectiv-flow.spec.ts`: updated "My Trust Network" nav label to "Trust & Nudger Settings" to match tally's secondaryNavigation (runs under tally).
+- `negative-paths.spec.ts`: split into two `describe` blocks — statement-route tests run under the tally project (default), project-route tests override `baseURL` to `http://localhost:5174` via `test.use({ baseURL })`.
+- Verified with `npm run test:vitest --workspace=ui` (87 files / 1581 tests), `npm run lint --workspace=ui`, `npm run typecheck --workspace=ui`, and `VITE_DOMAIN=tally npm run build --workspace=ui`.
+- Note for next task: Task 9 is updating local IPFS/docker publishing for the final six-domain list.
+
 ## 2026-05-04 — UI domains reshuffle task 7: strip downstream statement UX
 
 - Completed Task 7 from `ui-domains-reshuffling.md`: Content Funding, Noninflammatory, and CSM no longer host local statement browsing/detail/profile routes.

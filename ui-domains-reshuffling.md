@@ -252,7 +252,7 @@ Validation:
 
 ---
 
-## Task 8: Rework E2E test domain assumptions
+## Task 8: Rework E2E test domain assumptions ✅ Done 2026-05-04
 
 Purpose: tests should use the domain that owns the feature.
 

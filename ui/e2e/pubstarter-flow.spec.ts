@@ -68,11 +68,8 @@ test.describe('Pubstarter Flow', () => {
     await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)
 
     // Connect wallet and navigate to browse projects page
-    await page.goto('/start')
-    await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
-
     await page.goto('/projects')
+    await wallet.connect('ACCOUNT_0')
 
     // The project name should appear in the list
     // The UI fetches IPFS metadata client-side, so allow up to 20s for it to load
@@ -158,11 +155,8 @@ test.describe('Pubstarter Flow', () => {
     // Step 3: Navigate to project detail page and verify funding progress
     // =========================================================================
     console.log('\n=== VERIFYING PROJECT DETAIL PAGE ===')
-    await page.goto('/start')
-    await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(/ready to take the next step/i)).toBeVisible()
-
     await page.goto(`/projects/${projectDetails.assuranceContractAddress}`)
+    await wallet.connect('ACCOUNT_0')
 
     // The project header shows "X of Y ETH raised"
     // We bought 0.5 ETH worth of tokens, so it should show "0.5 of 10 ETH raised"
