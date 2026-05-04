@@ -53,7 +53,7 @@ The planner currently knows about these build keys:
 
 Some compose services intentionally share a single image/build key:
 
-- all four UI IPFS publisher services share `commonality-ui-ipfs-publisher:dev`
+- all six UI IPFS publisher services share `commonality-ui-ipfs-publisher:dev`
 - the planner deduplicates them by `buildKey`, so identical builds happen once
 
 Compose also uses explicit image names so services with identical build definitions can share the same built image instead of rebuilding equivalent images under separate compose-generated tags.
@@ -84,7 +84,7 @@ Ignoring Markdown is intentional for build speed, but it means documentation-onl
 - `hardhat-deploy`
 - `indexer`
 - `platform-api-service`
-- all four `ui-ipfs-publisher-*` services
+- all six `ui-ipfs-publisher-*` services
 
 If nothing relevant changed, `./scripts/services.sh --start` reuses the existing images.
 

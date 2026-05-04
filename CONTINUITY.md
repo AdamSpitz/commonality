@@ -1,5 +1,20 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 9: local IPFS/docker publishing for all six domains
+
+- Completed Task 9 from `ui-domains-reshuffling.md`.
+- Added `ui-ipfs-publisher-tally` and `ui-ipfs-publisher-conceptspace` services to `docker-compose.yml` (same pattern as the existing four).
+- Updated the "four services" comment in docker-compose.yml to "six services".
+- Updated `scripts/services.sh`: added `tally` and `conceptspace` to the domain loops in `print_spa_urls`, `wait_for_spa_gateway`, `wait_for_ui_ipfs_publish`, and `start_services` (both `compose_services` and `buildable_services` arrays and the `mkdir -p` pre-create block).
+- Updated `scripts/docker-build-plan.mjs`: replaced stale `ui-ipfs-publisher-movement` alias with `ui-ipfs-publisher-csm`, and added `ui-ipfs-publisher-tally` and `ui-ipfs-publisher-conceptspace` aliases (all share the same `ui-ipfs-publisher-commonality` build config).
+- Updated `workflow/BUILD.md`: "all four" → "all six" (two occurrences).
+- Updated `workflow/local-development.md`: rewrote the one-liner to name all six domains.
+- Updated `ui/README.md`: replaced the "being reshuffled incrementally" note with the final six-domain description.
+- Verified with `bash -n scripts/services.sh`, `node scripts/docker-build-plan.mjs list ...` (new service names accepted), and `npm run lint --workspace=ui`.
+- Note for next task: Task 10 is updating deployment docs/scripts for the final domain list.
+
+
+
 ## 2026-05-04 — UI domains reshuffle task 8: rework E2E test domain assumptions
 
 - Completed Task 8 from `ui-domains-reshuffling.md`.

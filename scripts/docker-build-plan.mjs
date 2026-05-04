@@ -163,9 +163,11 @@ const buildConfigs = {
   },
 }
 
+buildConfigs['ui-ipfs-publisher-tally'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-content-funding'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-noninflammatory'] = buildConfigs['ui-ipfs-publisher-commonality']
-buildConfigs['ui-ipfs-publisher-movement'] = buildConfigs['ui-ipfs-publisher-commonality']
+buildConfigs['ui-ipfs-publisher-csm'] = buildConfigs['ui-ipfs-publisher-commonality']
+buildConfigs['ui-ipfs-publisher-conceptspace'] = buildConfigs['ui-ipfs-publisher-commonality']
 
 const commands = new Set(['list', 'record'])
 const [, , command, ...serviceNames] = process.argv

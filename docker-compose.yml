@@ -94,7 +94,7 @@ services:
   # One-shot services to publish each domain SPA to the local IPFS node
   # =============================================================================
   # Each service builds one domain in hash-routing mode and adds the resulting
-  # dist/<domain>/ directory to the dockerized IPFS node. The four services run
+  # dist/<domain>/ directory to the dockerized IPFS node. The six services run
   # in parallel. CIDs and gateway URLs are written to ./data/ui-ipfs/<domain>/
   # in the repo workspace so scripts/services.sh can surface them.
 
@@ -217,6 +217,72 @@ services:
         condition: service_completed_successfully
     environment:
       - VITE_DOMAIN=csm
+      - UI_IPFS_API_URL=http://ipfs:5001
+      - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
+      - VITE_ROUTER_MODE=hash
+      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
+      - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
+      - VITE_IPFS_API=http://localhost:5001
+      - VITE_PLATFORM_API_URL=http://localhost:3001
+      - VITE_ETH_RPC_URL=http://127.0.0.1:8545
+      - UI_IPFS_ARTIFACT_DIR=/artifacts
+      - HOME=/tmp
+    networks:
+      - commonality
+
+  ui-ipfs-publisher-tally:
+    image: commonality-ui-ipfs-publisher:dev
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    container_name: commonality-ui-ipfs-publisher-tally
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
+    working_dir: /workspace
+    volumes:
+      - ./.env:/workspace/.env:ro
+      - ./ui/.env:/workspace/ui/.env:ro
+      - ./data/ui-ipfs/tally:/artifacts
+    depends_on:
+      ipfs:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    environment:
+      - VITE_DOMAIN=tally
+      - UI_IPFS_API_URL=http://ipfs:5001
+      - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
+      - VITE_ROUTER_MODE=hash
+      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
+      - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
+      - VITE_IPFS_API=http://localhost:5001
+      - VITE_PLATFORM_API_URL=http://localhost:3001
+      - VITE_ETH_RPC_URL=http://127.0.0.1:8545
+      - UI_IPFS_ARTIFACT_DIR=/artifacts
+      - HOME=/tmp
+    networks:
+      - commonality
+
+  ui-ipfs-publisher-conceptspace:
+    image: commonality-ui-ipfs-publisher:dev
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    container_name: commonality-ui-ipfs-publisher-conceptspace
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
+    working_dir: /workspace
+    volumes:
+      - ./.env:/workspace/.env:ro
+      - ./ui/.env:/workspace/ui/.env:ro
+      - ./data/ui-ipfs/conceptspace:/artifacts
+    depends_on:
+      ipfs:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    environment:
+      - VITE_DOMAIN=conceptspace
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash

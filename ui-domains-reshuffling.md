@@ -280,7 +280,7 @@ Validation:
 
 ---
 
-## Task 9: Update local IPFS/docker publishing for the final domain list
+## Task 9: Update local IPFS/docker publishing for the final domain list ✅ Done 2026-05-04
 
 Purpose: local dev should publish and print all active domain URLs.
 
