@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 10: deployment docs/scripts for final domain list
+
+- Completed Task 10 from `ui-domains-reshuffling.md`.
+- `deploy-ui.sh` already had all six domains; no script changes needed.
+- Updated `workflow/deployment.md`: "four branded SPAs" → "six branded SPAs"; example updated to `tally`; supported domain list updated to `commonality, tally, content-funding, noninflammatory, csm, conceptspace`.
+- Rewrote `specs/tech/ui-domains.md`: updated all "four" → "six" counts, replaced `movement` with `csm` and added `tally`/`conceptspace` throughout directory shape, build outputs, and docker-compose publisher list.
+- Updated `specs/tech/README.md`: "four sites" → "six sites".
+- Verified with `npm run lint --workspace=ui`.
+- Note for next task: Task 11 is documentation/spec cleanup (check for any remaining stale "four domains" claims).
+
 ## 2026-05-04 — UI domains reshuffle task 9: local IPFS/docker publishing for all six domains
 
 - Completed Task 9 from `ui-domains-reshuffling.md`.

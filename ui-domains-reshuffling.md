@@ -305,7 +305,7 @@ This task can be postponed until after normal Vite builds work for all domains.
 
 ---
 
-## Task 10: Update deployment docs/scripts for the final domain list
+## Task 10: Update deployment docs/scripts for the final domain list ✅ Done 2026-05-04
 
 Purpose: testnet/mainnet deployment should know about all domains.
 

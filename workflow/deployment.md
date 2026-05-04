@@ -10,7 +10,7 @@ Commonality deploys to three independent targets:
 | ------------------ | -------------------------------------------------------------- | -------------------------------------- |
 | **Ethereum chain** | Smart contracts                                                | `hardhat run scripts/deploy.js`        |
 | **Render**         | AI services, platform API, indexer (once prod-ready — see gap) | `render.yaml` blueprint + git push     |
-| **IPFS + ENS**     | UI (four branded SPAs)                                         | `scripts/deploy-ui.sh` + `update-ens.sh` |
+| **IPFS + ENS**     | UI (six branded SPAs)                                          | `scripts/deploy-ui.sh` + `update-ens.sh` |
 
 Each target has its own cadence and its own blast radius. Don't try to unify them behind one megascript — the separation is the feature.
 
@@ -110,13 +110,13 @@ The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundl
 
 Visit `https://myapp.eth.limo` to verify.
 
-UI is built per network (contract addresses are baked into the Vite bundle), and per domain (four branded variants). To build a non-default domain:
+UI is built per network (contract addresses are baked into the Vite bundle), and per domain (six branded variants). To build a non-default domain:
 
 ```bash
-./scripts/deploy-ui.sh sepolia content-funding
+./scripts/deploy-ui.sh sepolia tally
 ```
 
-Supported domains: `commonality` (default), `content-funding`, `noninflammatory`, `movement`.
+Supported domains: `commonality` (default), `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`.
 
 ---
 
