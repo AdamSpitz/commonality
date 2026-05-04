@@ -337,20 +337,20 @@ describe('cross-domain landing page rendering', () => {
 
   it('content-funding landing shows built-on-commonality-funding spotlight', () => {
     renderDomainRoute('content-funding')
-    expect(screen.getByText('Built on Commonality funding infrastructure')).toBeInTheDocument()
-    expect(screen.getByText(/Start with the creator or content you care about/i)).toBeInTheDocument()
+    expect(screen.getByText('What you can do here')).toBeInTheDocument()
+    expect(screen.getByText(/Back a creator or a specific piece of work you want more of/i)).toBeInTheDocument()
   })
 
   it('noninflammatory landing shows political bridge-building framing', () => {
     renderDomainRoute('noninflammatory')
     expect(screen.getByText('Strong arguments without contempt')).toBeInTheDocument()
-    expect(screen.getByText(/political bridge-building surface/i)).toBeInTheDocument()
+    expect(screen.getByText(/Fund content that helps people on opposite sides actually hear each other/i)).toBeInTheDocument()
   })
 
   it('csm landing shows broader infrastructure framing', () => {
     renderDomainRoute('csm')
-    expect(screen.getByText('Hidden-majority thesis')).toBeInTheDocument()
-    expect(screen.getByText(/The common ground was always there/i)).toBeInTheDocument()
+    expect(screen.getByText('Why this matters')).toBeInTheDocument()
+    expect(screen.getByText(/You have probably felt politically homeless/i)).toBeInTheDocument()
   })
 
   it('conceptspace landing points statement signing to Tally', () => {

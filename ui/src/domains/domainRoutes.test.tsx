@@ -129,7 +129,7 @@ describe('domain manifest home routes', () => {
         { timeout: 5000 },
       )
     ).toBeInTheDocument()
-    expect(screen.getByText(/the point of this domain is not bland centrism/i)).toBeInTheDocument()
+    expect(screen.getByText(/The point is not bland centrism/i)).toBeInTheDocument()
   })
 
   it('renders the CSM about page at /about', async () => {

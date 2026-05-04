@@ -162,7 +162,7 @@ describe('Movement branded surfaces', () => {
 
       expect(screen.getByRole('heading', { name: /movement content/i })).toBeInTheDocument()
       expect(screen.getByText(/main wedge/i)).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /how this movement surface works/i })).toHaveAttribute('href', '/about')
+      expect(screen.getByRole('link', { name: /how this movement works/i })).toHaveAttribute('href', '/about')
     })
 
     it('includes secondary description about bridge-building work', () => {
@@ -173,7 +173,7 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/inspect attestation-backed bridge-building work/i),
+        screen.getByText(/Browse channels and funded content, or verify your own channel/i),
       ).toBeInTheDocument()
     })
   })
@@ -202,7 +202,7 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/emphasizes media that reveals broad agreement/i),
+        screen.getByText(/reveals broad agreement hiding behind the usual coalition noise/i),
       ).toBeInTheDocument()
     })
   })
@@ -368,7 +368,7 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/keeps movement-focused content links on the common sense majority surface/i),
+        screen.getByText(/See who pledged, what content is covered, and how it helps surface hidden-majority positions/i),
       ).toBeInTheDocument()
     })
 
@@ -452,7 +452,7 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/keeps the ask tied to movement outcomes/i),
+        screen.getByText(/Describe what you want to accomplish and why it matters to the movement/i),
       ).toBeInTheDocument()
     })
 
@@ -486,7 +486,7 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/keeps organizing work in the common sense majority frame/i),
+        screen.getByText(/See who pledged, what milestones are planned, and how the project helps turn hidden-majority agreement into visible coordination/i),
       ).toBeInTheDocument()
     })
 

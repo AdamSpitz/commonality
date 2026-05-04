@@ -124,7 +124,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/browse content by platform/i),
+        screen.getByText(/Open a channel to see active contracts and funded content/i),
       ).toBeInTheDocument()
     })
   })
@@ -141,7 +141,7 @@ describe('Noninflammatory branded surfaces', () => {
         screen.getByRole('heading', { name: /browse bridge-building creators/i }),
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/browse funded channels and content submitted under the noninflammatory framing/i),
+        screen.getByText(/Browse channels and content that aim to lower the temperature/i),
       ).toBeInTheDocument()
     })
 
@@ -153,7 +153,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/highlights creators trying to lower the temperature rather than farm engagement/i),
+        screen.getByText(/See which creators are funded, what contracts are active/i),
       ).toBeInTheDocument()
     })
   })
@@ -319,7 +319,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/keeps noninflammatory links on the bridge-building domain/i),
+        screen.getByText(/See who pledged, what content is covered, and why it was submitted under the bridge-building standard/i),
       ).toBeInTheDocument()
     })
 
@@ -355,9 +355,9 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/the point of this domain is not bland centrism/i),
+        screen.getByText(/The point is not bland centrism/i),
       ).toBeInTheDocument()
-      expect(screen.getByText(/statement exploration lives on Tally/i)).toBeInTheDocument()
+      expect(screen.getByText(/the claims behind the content live on Tally/i)).toBeInTheDocument()
     })
 
     it('includes "What gets rewarded" section', () => {
@@ -392,7 +392,7 @@ describe('Noninflammatory branded surfaces', () => {
         </MemoryRouter>,
       )
 
-      expect(screen.getByRole('heading', { name: /built on content funding \+ tally/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /how this site relates to the others/i })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /explore statements on tally/i })).toHaveAttribute(
         'href',
         '#',

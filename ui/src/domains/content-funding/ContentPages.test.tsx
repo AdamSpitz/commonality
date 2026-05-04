@@ -95,7 +95,7 @@ describe('Content Funding branded surfaces', () => {
 
       expect(screen.getByRole('heading', { name: /content funding/i })).toBeInTheDocument()
       expect(
-        screen.getByText(/this surface stays focused on discoverability, funding, and creator payouts/i),
+        screen.getByText(/Browse by platform, back work you care about, and let creators claim what supporters have pooled for them/i),
       ).toBeInTheDocument()
     })
 
@@ -107,7 +107,7 @@ describe('Content Funding branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/browse twitter, youtube, and substack creators by platform/i),
+        screen.getByText(/Open a channel to see active contracts and escrowed funds/i),
       ).toBeInTheDocument()
     })
   })
@@ -272,7 +272,7 @@ describe('Content Funding branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/keeps contract links and channel cross-links inside this branded surface/i),
+        screen.getByText(/See who pledged, what content is covered, and where the escrow stands/i),
       ).toBeInTheDocument()
     })
 

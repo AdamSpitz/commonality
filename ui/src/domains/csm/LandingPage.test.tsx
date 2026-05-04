@@ -33,7 +33,7 @@ describe('CsmLandingPage', () => {
 
     it('renders spotlight text', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByText(/The common ground was always there/i)).toBeInTheDocument()
+      expect(screen.getByText(/This surface makes the hidden majority visible/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {

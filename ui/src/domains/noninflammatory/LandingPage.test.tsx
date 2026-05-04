@@ -33,7 +33,7 @@ describe('NoninflammatoryLandingPage', () => {
 
     it('renders spotlight text', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
-      expect(screen.getByText(/reasonable person on the other side could actually hear/i)).toBeInTheDocument()
+      expect(screen.getByText(/Reward creators who make a case you can disagree with while still feeling respected/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {

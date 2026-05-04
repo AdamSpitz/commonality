@@ -28,12 +28,12 @@ describe('ContentFundingLandingPage', () => {
     it('renders spotlight label as chip', () => {
       render(<ContentFundingLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Built on Commonality funding infrastructure')
+      expect(chip).toHaveTextContent('What you can do here')
     })
 
     it('renders spotlight text', () => {
       render(<ContentFundingLandingPage />, { wrapper })
-      expect(screen.getByText(/Start with the creator or content you care about/i)).toBeInTheDocument()
+      expect(screen.getByText(/Your money sits in escrow until the creator verifies and claims it/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
