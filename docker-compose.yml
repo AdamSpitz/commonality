@@ -197,26 +197,26 @@ services:
     networks:
       - commonality
 
-  ui-ipfs-publisher-movement:
+  ui-ipfs-publisher-csm:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
       dockerfile: ui/Dockerfile
-    container_name: commonality-ui-ipfs-publisher-movement
+    container_name: commonality-ui-ipfs-publisher-csm
     user: "${UID:-1000}:${GID:-1000}"
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
       - ./.env:/workspace/.env:ro
       - ./ui/.env:/workspace/ui/.env:ro
-      - ./data/ui-ipfs/movement:/artifacts
+      - ./data/ui-ipfs/csm:/artifacts
     depends_on:
       ipfs:
         condition: service_healthy
       hardhat-deploy:
         condition: service_completed_successfully
     environment:
-      - VITE_DOMAIN=movement
+      - VITE_DOMAIN=csm
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash

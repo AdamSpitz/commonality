@@ -3,7 +3,7 @@ import { commonalityManifest } from './commonality/manifest.tsx'
 import { tallyManifest } from './tally/manifest.tsx'
 import { contentFundingManifest } from './content-funding/manifest.tsx'
 import { noninflammatoryManifest } from './noninflammatory/manifest.tsx'
-import { movementManifest } from './movement/manifest.tsx'
+import { csmManifest } from './csm/manifest.tsx'
 
 export * from './types'
 
@@ -12,7 +12,7 @@ export const domainManifests: Record<DomainId, DomainManifest> = {
   tally: tallyManifest,
   'content-funding': contentFundingManifest,
   noninflammatory: noninflammatoryManifest,
-  movement: movementManifest,
+  csm: csmManifest,
 }
 
 export function getDomainManifest(domainId: DomainId): DomainManifest {
@@ -31,7 +31,7 @@ function getDomainIdFromEnv(): DomainId {
     envDomain === 'tally' ||
     envDomain === 'content-funding' ||
     envDomain === 'noninflammatory' ||
-    envDomain === 'movement'
+    envDomain === 'csm'
   ) {
     return envDomain
   }
@@ -42,4 +42,4 @@ export { commonalityManifest }
 export { tallyManifest }
 export { contentFundingManifest }
 export { noninflammatoryManifest }
-export { movementManifest }
+export { csmManifest }

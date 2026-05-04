@@ -10,11 +10,11 @@ import { BrowseProjectsPage } from '../../pubstarter/pages/BrowseProjectsPage'
 import { CreateProjectPage } from '../../pubstarter/pages/CreateProjectPage'
 import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
 
-function getMovementContractPath(address: string): string {
+function getCsmContractPath(address: string): string {
   return `/content/contracts/${address}`
 }
 
-export function MovementCreatorsPage() {
+export function CsmCreatorsPage() {
   return (
     <CreatorsLandingPage
       title="Movement Content"
@@ -26,7 +26,7 @@ export function MovementCreatorsPage() {
   )
 }
 
-export function MovementBrowsePage() {
+export function CsmBrowsePage() {
   return (
     <BrowseCreatorsPage
       title="Browse Hidden-Majority Content"
@@ -35,7 +35,7 @@ export function MovementBrowsePage() {
   )
 }
 
-export function MovementChannelPage() {
+export function CsmChannelPage() {
   return (
     <ChannelPage
       campaignHeading="Movement Content Contracts"
@@ -45,12 +45,12 @@ export function MovementChannelPage() {
       shareHeading="Bring this creator into the movement"
       shareDescription="If this creator is good at explaining one side to the other, send them the claim link so they can verify the channel and manage future movement content contracts directly."
       suggestedMessagePrefix="Hey! People have already pooled"
-      contractPathForAddress={getMovementContractPath}
+      contractPathForAddress={getCsmContractPath}
     />
   )
 }
 
-export function MovementCreateContractPage() {
+export function CsmCreateContractPage() {
   return (
     <CreateContractPage
       titlePrefix="Create Movement Content Contract"
@@ -63,12 +63,12 @@ export function MovementCreateContractPage() {
       unclaimedAlert="This channel is unclaimed, so this starts as a supporter-opened movement content contract. Funds stay in escrow until the creator verifies the channel."
       verifiedAlert="This channel is verified. Funds from this movement content contract go directly to the creator."
       creatorControlledAlert="You control this channel, so you can create a first-party movement content contract without the third-party minimum purchase."
-      contractPathForAddress={getMovementContractPath}
+      contractPathForAddress={getCsmContractPath}
     />
   )
 }
 
-export function MovementCreatorDashboardPage() {
+export function CsmCreatorDashboardPage() {
   return (
     <CreatorDashboardPage
       title="Movement Creator Dashboard"
@@ -79,7 +79,7 @@ export function MovementCreatorDashboardPage() {
   )
 }
 
-export function MovementContractPage() {
+export function CsmContractPage() {
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -95,7 +95,7 @@ export function MovementContractPage() {
   )
 }
 
-export function MovementProjectsPage() {
+export function CsmProjectsPage() {
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -121,7 +121,7 @@ export function MovementProjectsPage() {
   )
 }
 
-export function MovementCreateProjectPage() {
+export function CsmCreateProjectPage() {
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -137,7 +137,7 @@ export function MovementCreateProjectPage() {
   )
 }
 
-export function MovementProjectDetailPage() {
+export function CsmProjectDetailPage() {
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -153,7 +153,7 @@ export function MovementProjectDetailPage() {
   )
 }
 
-export function MovementOrganizingPage() {
+export function CsmOrganizingPage() {
   return (
     <DomainLandingPage
       eyebrow="Organizing"
@@ -193,7 +193,7 @@ export function MovementOrganizingPage() {
   )
 }
 
-export function MovementAboutPage() {
+export function CsmAboutPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>

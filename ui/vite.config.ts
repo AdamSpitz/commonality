@@ -107,7 +107,7 @@ function resolveDomain(value: string | undefined) {
     case 'tally':
     case 'content-funding':
     case 'noninflammatory':
-    case 'movement':
+    case 'csm':
       return value
     default:
       return 'commonality'

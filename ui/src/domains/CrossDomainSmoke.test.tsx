@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'movement']
+const domainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
 
 function renderDomainRoute(
   domainId: DomainId,
@@ -47,7 +47,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
         tagline: 'Build bridges, not walls.',
         footerText: 'Noninflammatory Content rewards creators who communicate across divides.',
       },
-      movement: {
+      csm: {
         name: 'Common Sense Majority',
         tagline: 'The silent majority finds its voice.',
         footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',
@@ -111,7 +111,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       tally: 'Petitions and polls with an implication graph.',
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
-      movement: 'Organize the hidden majority around positions that already have broad support.',
+      csm: 'Organize the hidden majority around positions that already have broad support.',
     }
 
     it('renders the branded hero title matching the domain tagline', () => {
@@ -181,8 +181,8 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.docs).toBe(false)
   })
 
-  it('movement has conceptspace, pubstarter, fundingportal, and contentFunding enabled', () => {
-    const features = domainManifests.movement.features
+  it('csm has conceptspace, pubstarter, fundingportal, and contentFunding enabled', () => {
+    const features = domainManifests.csm.features
     expect(features.conceptspace).toBe(true)
     expect(features.pubstarter).toBe(true)
     expect(features.fundingportal).toBe(true)
@@ -253,13 +253,13 @@ describe('cross-domain route coverage', () => {
     expect(routePaths).toContain('/content/:platform/:channelId')
   })
 
-  it('movement routes include organize, projects, portal, and about', () => {
+  it('csm routes include organize, projects, portal, and about', () => {
     const paths = [
       '/organize', '/about', '/projects', '/projects/new',
       '/projects/:projectAddress', '/portal/:statementCid',
       '/portal/:statementCid/leaderboard',
     ]
-    const routePaths = extractRoutePaths(domainManifests.movement.routes)
+    const routePaths = extractRoutePaths(domainManifests.csm.routes)
     for (const path of paths) {
       expect(routePaths).toContain(path)
     }
@@ -293,8 +293,8 @@ describe('cross-domain landing page rendering', () => {
     expect(screen.getByText(/political bridge-building surface/i)).toBeInTheDocument()
   })
 
-  it('movement landing shows broader infrastructure framing', () => {
-    renderDomainRoute('movement')
+  it('csm landing shows broader infrastructure framing', () => {
+    renderDomainRoute('csm')
     expect(screen.getByText('Built on Noninflammatory + Commonality')).toBeInTheDocument()
     expect(screen.getByText(/movement site is broader/i)).toBeInTheDocument()
   })
@@ -341,8 +341,8 @@ describe('cross-domain out-of-domain feature absence', () => {
     expect(allNav.some((n) => n.path.startsWith('/notes'))).toBe(false)
   })
 
-  it('movement domain does not expose docs or delegation navigation', () => {
-    const nav = domainManifests.movement.shell
+  it('csm domain does not expose docs or delegation navigation', () => {
+    const nav = domainManifests.csm.shell
     const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
     expect(allNav.some((n) => n.path.startsWith('/docs'))).toBe(false)
     expect(allNav.some((n) => n.path.startsWith('/notes'))).toBe(false)
@@ -384,7 +384,7 @@ describe('cross-domain shared routes consistency', () => {
   })
 
   it('all pre-existing domains expose content funding surfaces', () => {
-    const contentSurfaceDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'movement']
+    const contentSurfaceDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm']
     for (const id of contentSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/content')

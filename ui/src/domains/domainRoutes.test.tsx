@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { getDomainManifest } from './index'
 
 function renderDomainRoute(
-  domainId: 'commonality' | 'tally' | 'content-funding' | 'noninflammatory' | 'movement',
+  domainId: 'commonality' | 'tally' | 'content-funding' | 'noninflammatory' | 'csm',
   path = '/',
 ) {
   const manifest = getDomainManifest(domainId)
@@ -62,8 +62,8 @@ describe('domain manifest home routes', () => {
     expect(screen.getByRole('link', { name: /about the thesis/i })).toHaveAttribute('href', '/about')
   })
 
-  it('renders the Movement landing page at the root route', () => {
-    renderDomainRoute('movement')
+  it('renders the CSM landing page at the root route', () => {
+    renderDomainRoute('csm')
 
     expect(
       screen.getByRole('heading', {
@@ -90,8 +90,8 @@ describe('domain manifest home routes', () => {
     expect(screen.getByText(/the point of this domain is not bland centrism/i)).toBeInTheDocument()
   })
 
-  it('renders the Movement about page at /about', async () => {
-    renderDomainRoute('movement', '/about')
+  it('renders the CSM about page at /about', async () => {
+    renderDomainRoute('csm', '/about')
 
     expect(
       await screen.findByRole(
@@ -106,7 +106,7 @@ describe('domain manifest home routes', () => {
   })
 
   it('renders the organizing playbook at /organize', async () => {
-    renderDomainRoute('movement', '/organize')
+    renderDomainRoute('csm', '/organize')
 
     expect(
       await screen.findByRole(

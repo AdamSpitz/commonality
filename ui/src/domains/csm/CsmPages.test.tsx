@@ -2,18 +2,18 @@ import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import {
-  MovementCreatorsPage,
-  MovementBrowsePage,
-  MovementChannelPage,
-  MovementCreateContractPage,
-  MovementCreatorDashboardPage,
-  MovementContractPage,
-  MovementProjectsPage,
-  MovementCreateProjectPage,
-  MovementProjectDetailPage,
-  MovementOrganizingPage,
-  MovementAboutPage,
-} from './MovementPages'
+  CsmCreatorsPage,
+  CsmBrowsePage,
+  CsmChannelPage,
+  CsmCreateContractPage,
+  CsmCreatorDashboardPage,
+  CsmContractPage,
+  CsmProjectsPage,
+  CsmCreateProjectPage,
+  CsmProjectDetailPage,
+  CsmOrganizingPage,
+  CsmAboutPage,
+} from './CsmPages'
 
 vi.mock('../../content-funding/pages/CreatorsLandingPage', () => ({
   CreatorsLandingPage: vi.fn(({
@@ -156,7 +156,7 @@ describe('Movement branded surfaces', () => {
     it('renders the movement-specific content wrapper copy', () => {
       render(
         <MemoryRouter>
-          <MovementCreatorsPage />
+          <CsmCreatorsPage />
         </MemoryRouter>,
       )
 
@@ -168,7 +168,7 @@ describe('Movement branded surfaces', () => {
     it('includes secondary description about bridge-building work', () => {
       render(
         <MemoryRouter>
-          <MovementCreatorsPage />
+          <CsmCreatorsPage />
         </MemoryRouter>,
       )
 
@@ -182,7 +182,7 @@ describe('Movement branded surfaces', () => {
     it('renders branded browse title and description', () => {
       render(
         <MemoryRouter>
-          <MovementBrowsePage />
+          <CsmBrowsePage />
         </MemoryRouter>,
       )
 
@@ -197,7 +197,7 @@ describe('Movement branded surfaces', () => {
     it('mentions revealing broad agreement', () => {
       render(
         <MemoryRouter>
-          <MovementBrowsePage />
+          <CsmBrowsePage />
         </MemoryRouter>,
       )
 
@@ -211,7 +211,7 @@ describe('Movement branded surfaces', () => {
     it('renders movement branded channel copy', () => {
       render(
         <MemoryRouter>
-          <MovementChannelPage />
+          <CsmChannelPage />
         </MemoryRouter>,
       )
 
@@ -222,7 +222,7 @@ describe('Movement branded surfaces', () => {
     it('includes unclaimed description about hidden-majority positions', () => {
       render(
         <MemoryRouter>
-          <MovementChannelPage />
+          <CsmChannelPage />
         </MemoryRouter>,
       )
 
@@ -234,7 +234,7 @@ describe('Movement branded surfaces', () => {
     it('includes share heading about bringing creator into movement', () => {
       render(
         <MemoryRouter>
-          <MovementChannelPage />
+          <CsmChannelPage />
         </MemoryRouter>,
       )
 
@@ -246,7 +246,7 @@ describe('Movement branded surfaces', () => {
     it('renders movement branded create contract copy', () => {
       render(
         <MemoryRouter>
-          <MovementCreateContractPage />
+          <CsmCreateContractPage />
         </MemoryRouter>,
       )
 
@@ -260,7 +260,7 @@ describe('Movement branded surfaces', () => {
     it('includes content items description about hidden majority', () => {
       render(
         <MemoryRouter>
-          <MovementCreateContractPage />
+          <CsmCreateContractPage />
         </MemoryRouter>,
       )
 
@@ -272,7 +272,7 @@ describe('Movement branded surfaces', () => {
     it('includes contract details description about common-sense majority', () => {
       render(
         <MemoryRouter>
-          <MovementCreateContractPage />
+          <CsmCreateContractPage />
         </MemoryRouter>,
       )
 
@@ -284,7 +284,7 @@ describe('Movement branded surfaces', () => {
     it('includes unclaimed alert about supporter-opened contract', () => {
       render(
         <MemoryRouter>
-          <MovementCreateContractPage />
+          <CsmCreateContractPage />
         </MemoryRouter>,
       )
 
@@ -296,7 +296,7 @@ describe('Movement branded surfaces', () => {
     it('includes verified alert about funds going to creator', () => {
       render(
         <MemoryRouter>
-          <MovementCreateContractPage />
+          <CsmCreateContractPage />
         </MemoryRouter>,
       )
 
@@ -308,7 +308,7 @@ describe('Movement branded surfaces', () => {
     it('includes creator-controlled alert about first-party contract', () => {
       render(
         <MemoryRouter>
-          <MovementCreateContractPage />
+          <CsmCreateContractPage />
         </MemoryRouter>,
       )
 
@@ -322,7 +322,7 @@ describe('Movement branded surfaces', () => {
     it('renders branded dashboard title and description', () => {
       render(
         <MemoryRouter>
-          <MovementCreatorDashboardPage />
+          <CsmCreatorDashboardPage />
         </MemoryRouter>,
       )
 
@@ -337,7 +337,7 @@ describe('Movement branded surfaces', () => {
     it('includes empty state about bridge-building work', () => {
       render(
         <MemoryRouter>
-          <MovementCreatorDashboardPage />
+          <CsmCreatorDashboardPage />
         </MemoryRouter>,
       )
 
@@ -351,7 +351,7 @@ describe('Movement branded surfaces', () => {
     it('renders movement contract heading', () => {
       render(
         <MemoryRouter>
-          <MovementContractPage />
+          <CsmContractPage />
         </MemoryRouter>,
       )
 
@@ -363,7 +363,7 @@ describe('Movement branded surfaces', () => {
     it('includes description about common sense majority surface', () => {
       render(
         <MemoryRouter>
-          <MovementContractPage />
+          <CsmContractPage />
         </MemoryRouter>,
       )
 
@@ -375,7 +375,7 @@ describe('Movement branded surfaces', () => {
     it('renders the shared ProjectDetailPage', () => {
       render(
         <MemoryRouter>
-          <MovementContractPage />
+          <CsmContractPage />
         </MemoryRouter>,
       )
 
@@ -387,7 +387,7 @@ describe('Movement branded surfaces', () => {
     it('renders organizing projects heading', () => {
       render(
         <MemoryRouter>
-          <MovementProjectsPage />
+          <CsmProjectsPage />
         </MemoryRouter>,
       )
 
@@ -397,7 +397,7 @@ describe('Movement branded surfaces', () => {
     it('includes description about pubstarter infrastructure for movement work', () => {
       render(
         <MemoryRouter>
-          <MovementProjectsPage />
+          <CsmProjectsPage />
         </MemoryRouter>,
       )
 
@@ -412,7 +412,7 @@ describe('Movement branded surfaces', () => {
     it('includes action buttons for starting a project and viewing playbook', () => {
       render(
         <MemoryRouter>
-          <MovementProjectsPage />
+          <CsmProjectsPage />
         </MemoryRouter>,
       )
 
@@ -423,7 +423,7 @@ describe('Movement branded surfaces', () => {
     it('renders the shared BrowseProjectsPage', () => {
       render(
         <MemoryRouter>
-          <MovementProjectsPage />
+          <CsmProjectsPage />
         </MemoryRouter>,
       )
 
@@ -435,7 +435,7 @@ describe('Movement branded surfaces', () => {
     it('renders movement project creation heading', () => {
       render(
         <MemoryRouter>
-          <MovementCreateProjectPage />
+          <CsmCreateProjectPage />
         </MemoryRouter>,
       )
 
@@ -447,7 +447,7 @@ describe('Movement branded surfaces', () => {
     it('includes description about organizing outcomes', () => {
       render(
         <MemoryRouter>
-          <MovementCreateProjectPage />
+          <CsmCreateProjectPage />
         </MemoryRouter>,
       )
 
@@ -459,7 +459,7 @@ describe('Movement branded surfaces', () => {
     it('renders the shared CreateProjectPage', () => {
       render(
         <MemoryRouter>
-          <MovementCreateProjectPage />
+          <CsmCreateProjectPage />
         </MemoryRouter>,
       )
 
@@ -471,7 +471,7 @@ describe('Movement branded surfaces', () => {
     it('renders movement project heading', () => {
       render(
         <MemoryRouter>
-          <MovementProjectDetailPage />
+          <CsmProjectDetailPage />
         </MemoryRouter>,
       )
 
@@ -481,7 +481,7 @@ describe('Movement branded surfaces', () => {
     it('includes description about common sense majority frame', () => {
       render(
         <MemoryRouter>
-          <MovementProjectDetailPage />
+          <CsmProjectDetailPage />
         </MemoryRouter>,
       )
 
@@ -493,7 +493,7 @@ describe('Movement branded surfaces', () => {
     it('renders the shared ProjectDetailPage', () => {
       render(
         <MemoryRouter>
-          <MovementProjectDetailPage />
+          <CsmProjectDetailPage />
         </MemoryRouter>,
       )
 
@@ -505,7 +505,7 @@ describe('Movement branded surfaces', () => {
     it('renders organizing eyebrow and title', () => {
       render(
         <MemoryRouter>
-          <MovementOrganizingPage />
+          <CsmOrganizingPage />
         </MemoryRouter>,
       )
 
@@ -518,7 +518,7 @@ describe('Movement branded surfaces', () => {
     it('includes primary loop spotlight text', () => {
       render(
         <MemoryRouter>
-          <MovementOrganizingPage />
+          <CsmOrganizingPage />
         </MemoryRouter>,
       )
 
@@ -531,7 +531,7 @@ describe('Movement branded surfaces', () => {
     it('includes hero action links', () => {
       render(
         <MemoryRouter>
-          <MovementOrganizingPage />
+          <CsmOrganizingPage />
         </MemoryRouter>,
       )
 
@@ -546,7 +546,7 @@ describe('Movement branded surfaces', () => {
     it('includes three sections: Content, Funding, Claims', () => {
       render(
         <MemoryRouter>
-          <MovementOrganizingPage />
+          <CsmOrganizingPage />
         </MemoryRouter>,
       )
 
@@ -558,7 +558,7 @@ describe('Movement branded surfaces', () => {
     it('includes section CTAs with correct links', () => {
       render(
         <MemoryRouter>
-          <MovementOrganizingPage />
+          <CsmOrganizingPage />
         </MemoryRouter>,
       )
 
@@ -577,7 +577,7 @@ describe('Movement branded surfaces', () => {
     it('renders about heading', () => {
       render(
         <MemoryRouter>
-          <MovementAboutPage />
+          <CsmAboutPage />
         </MemoryRouter>,
       )
 
@@ -589,7 +589,7 @@ describe('Movement branded surfaces', () => {
     it('explains the movement layer concept', () => {
       render(
         <MemoryRouter>
-          <MovementAboutPage />
+          <CsmAboutPage />
         </MemoryRouter>,
       )
 
@@ -601,7 +601,7 @@ describe('Movement branded surfaces', () => {
     it('includes "What this surface is for" section', () => {
       render(
         <MemoryRouter>
-          <MovementAboutPage />
+          <CsmAboutPage />
         </MemoryRouter>,
       )
 
@@ -616,7 +616,7 @@ describe('Movement branded surfaces', () => {
     it('includes "What this surface is not" section', () => {
       render(
         <MemoryRouter>
-          <MovementAboutPage />
+          <CsmAboutPage />
         </MemoryRouter>,
       )
 
@@ -628,7 +628,7 @@ describe('Movement branded surfaces', () => {
     it('includes "Start organizing" section with action buttons', () => {
       render(
         <MemoryRouter>
-          <MovementAboutPage />
+          <CsmAboutPage />
         </MemoryRouter>,
       )
 

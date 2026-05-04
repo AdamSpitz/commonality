@@ -1,43 +1,43 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { MovementLandingPage } from './LandingPage'
+import { CsmLandingPage } from './LandingPage'
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <MemoryRouter>{children}</MemoryRouter>
 )
 
-describe('MovementLandingPage', () => {
+describe('CsmLandingPage', () => {
   describe('hero section', () => {
     it('renders eyebrow', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
     })
 
     it('renders title as h1', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       const title = screen.getByRole('heading', { level: 1, name: /Organize the hidden majority/i })
       expect(title).toBeInTheDocument()
     })
 
     it('renders description', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       expect(screen.getByText(/This surface layers movement framing/i)).toBeInTheDocument()
     })
 
     it('renders spotlight label as chip', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
       expect(chip).toHaveTextContent('Built on Noninflammatory + Commonality')
     })
 
     it('renders spotlight text', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       expect(screen.getByText(/The movement site is broader than a single content tool/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       expect(screen.getByRole('link', { name: 'Browse statements' })).toHaveAttribute('href', '/statements')
       const links = screen.getAllByRole('link')
       const organizeLink = links.find(l => l.getAttribute('href') === '/organize')
@@ -51,7 +51,7 @@ describe('MovementLandingPage', () => {
 
   describe('section cards', () => {
     it('renders all four section cards with titles', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       const sectionTitles = screen.getAllByRole('heading', { level: 6 })
       const titles = sectionTitles.map(h => h.textContent)
       expect(titles).toContain('Move from persuasion to organization')
@@ -61,7 +61,7 @@ describe('MovementLandingPage', () => {
     })
 
     it('renders section descriptions', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       expect(screen.getByText(/Use the organizing surface to connect/i)).toBeInTheDocument()
       expect(screen.getByText(/Start with bridge-building media/i)).toBeInTheDocument()
       expect(screen.getByText(/Use the shared pubstarter and portal infrastructure/i)).toBeInTheDocument()
@@ -69,7 +69,7 @@ describe('MovementLandingPage', () => {
     })
 
     it('renders section CTA links with correct hrefs', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       const links = screen.getAllByRole('link')
       const organizeLink = links.find(l => l.getAttribute('href') === '/organize')
       const contentLink = links.find(l => l.getAttribute('href') === '/content')
@@ -82,7 +82,7 @@ describe('MovementLandingPage', () => {
     })
 
     it('renders section eyebrows', () => {
-      render(<MovementLandingPage />, { wrapper })
+      render(<CsmLandingPage />, { wrapper })
       expect(screen.getByText('Playbook')).toBeInTheDocument()
       expect(screen.getByText('Content')).toBeInTheDocument()
       expect(screen.getByText('Organize')).toBeInTheDocument()

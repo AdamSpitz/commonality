@@ -31,7 +31,7 @@ const sections = [
   },
 ]
 
-export function MovementLandingPage() {
+export function CsmLandingPage() {
   return (
     <DomainLandingPage
       eyebrow="Common Sense Majority"
