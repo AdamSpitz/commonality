@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 2: rename movement → csm
+
+- Completed Task 2 from `ui-domains-reshuffling.md`: renamed domain ID `movement` → `csm` throughout.
+- Created `ui/src/domains/csm/` with renamed exports (`CsmLandingPage`, `Csm*Pages`, `csmManifest`), deleted `ui/src/domains/movement/`.
+- Updated `DomainId` type, `domainManifests`, `getDomainIdFromEnv()`, `vite.config.ts`, `build-domains.mjs`, `deploy-ui.sh`, `publish-ui-to-ipfs.mjs`, `services.sh`, and `docker-compose.yml`.
+- Updated `CrossDomainSmoke.test.tsx` and `domainRoutes.test.tsx` to use `csm`.
+- Verified with `npm run test:vitest --workspace=ui` (86 files / 1587 tests all pass), `npm run lint --workspace=ui`, and `VITE_DOMAIN=csm npm run build --workspace=ui`.
+- Product copy about "organizing a movement" kept unchanged; only the domain ID/manifest identifier changed.
+- Note for next task: Task 3 is to add a thin `conceptspace` domain.
+
 ## 2026-05-04 — UI domains reshuffle task 1: add Tally
 
 - Completed Task 1 from `ui-domains-reshuffling.md`: added the additive `tally` domain without removing existing Commonality statement routes.

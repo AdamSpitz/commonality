@@ -79,7 +79,7 @@ Validation:
 
 ---
 
-## Task 2: Rename/reframe the current `movement` domain as Common Sense Majority
+## Task 2: Rename/reframe the current `movement` domain as Common Sense Majority ✅ Done 2026-05-04
 
 Purpose: remove ambiguity. The current `movement` domain already represents CSM, but the new spec says Commonality is also a movement site.
 
