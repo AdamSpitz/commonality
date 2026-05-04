@@ -540,10 +540,10 @@ describe('Movement branded surfaces', () => {
       expect(heroLinks).toHaveLength(3)
       expect(heroLinks[0]).toHaveAttribute('href', '/content')
       expect(heroLinks[1]).toHaveAttribute('href', '/projects/new')
-      expect(heroLinks[2]).toHaveAttribute('href', '/statements')
+      expect(heroLinks[2]).toHaveAttribute('href', '#')
     })
 
-    it('includes three sections: Content, Funding, Claims', () => {
+    it('includes three sections: Content, Funding, Tally', () => {
       render(
         <MemoryRouter>
           <CsmOrganizingPage />
@@ -552,7 +552,7 @@ describe('Movement branded surfaces', () => {
 
       expect(screen.getByTestId('section-eyebrow-0')).toHaveTextContent('Content')
       expect(screen.getByTestId('section-eyebrow-1')).toHaveTextContent('Funding')
-      expect(screen.getByTestId('section-eyebrow-2')).toHaveTextContent('Claims')
+      expect(screen.getByTestId('section-eyebrow-2')).toHaveTextContent('Tally')
     })
 
     it('includes section CTAs with correct links', () => {
@@ -568,8 +568,9 @@ describe('Movement branded surfaces', () => {
       expect(contentSection.querySelector('a')).toHaveAttribute('href', '/content')
       // Funding section CTA
       expect(sections).toContainElement(screen.getByRole('link', { name: 'Browse organizing projects' }))
-      // Claims section CTA
-      expect(sections).toContainElement(screen.getByRole('link', { name: 'Inspect statements' }))
+      // Tally section CTA
+      const tallySection = screen.getByTestId('section-2')
+      expect(within(tallySection).getByRole('link', { name: 'Open Tally statements' })).toHaveAttribute('href', '#')
     })
   })
 
@@ -596,6 +597,7 @@ describe('Movement branded surfaces', () => {
       expect(
         screen.getByText(/this domain is the movement layer/i),
       ).toBeInTheDocument()
+      expect(screen.getByText(/Tally for statement signing/i)).toBeInTheDocument()
     })
 
     it('includes "What this surface is for" section', () => {
@@ -638,6 +640,7 @@ describe('Movement branded surfaces', () => {
       expect(screen.getByRole('link', { name: /open the organizing playbook/i })).toHaveAttribute('href', '/organize')
       expect(screen.getByRole('link', { name: /browse movement content/i })).toHaveAttribute('href', '/content')
       expect(screen.getByRole('link', { name: /browse projects/i })).toHaveAttribute('href', '/projects')
+      expect(screen.getByRole('link', { name: /open tally/i })).toHaveAttribute('href', '#')
     })
   })
 })

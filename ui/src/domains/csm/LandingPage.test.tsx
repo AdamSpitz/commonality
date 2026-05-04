@@ -22,23 +22,25 @@ describe('CsmLandingPage', () => {
 
     it('renders description', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByText(/This surface layers movement framing/i)).toBeInTheDocument()
+      expect(screen.getByText(/This surface layers movement framing on top of Noninflammatory Content/i)).toBeInTheDocument()
     })
 
     it('renders spotlight label as chip', () => {
       render(<CsmLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Built on Noninflammatory + Commonality')
+      expect(chip).toHaveTextContent('Uses Noninflammatory + Tally + Commonality')
     })
 
     it('renders spotlight text', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByText(/The movement site is broader than a single content tool/i)).toBeInTheDocument()
+      expect(screen.getByText(/Tally for movement-aligned statement signing/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByRole('link', { name: 'Browse statements' })).toHaveAttribute('href', '/statements')
+      expect(
+        screen.getAllByRole('link', { name: 'Open statements on Tally' }).some((link) => link.getAttribute('href') === '#'),
+      ).toBe(true)
       const links = screen.getAllByRole('link')
       const organizeLink = links.find(l => l.getAttribute('href') === '/organize')
       const contentLink = links.find(l => l.getAttribute('href') === '/content')
@@ -57,7 +59,7 @@ describe('CsmLandingPage', () => {
       expect(titles).toContain('Move from persuasion to organization')
       expect(titles).toContain('Use noninflammatory content as the wedge')
       expect(titles).toContain('Fund movement projects')
-      expect(titles).toContain('Trace ideas back to statements')
+      expect(titles).toContain('Sign movement-aligned statements')
     })
 
     it('renders section descriptions', () => {
@@ -65,7 +67,7 @@ describe('CsmLandingPage', () => {
       expect(screen.getByText(/Use the organizing surface to connect/i)).toBeInTheDocument()
       expect(screen.getByText(/Start with bridge-building media/i)).toBeInTheDocument()
       expect(screen.getByText(/Use the shared pubstarter and portal infrastructure/i)).toBeInTheDocument()
-      expect(screen.getByText(/The movement framing still depends on the conceptspace/i)).toBeInTheDocument()
+      expect(screen.getByText(/Tally owns that polling and statement-signing experience/i)).toBeInTheDocument()
     })
 
     it('renders section CTA links with correct hrefs', () => {
@@ -74,7 +76,7 @@ describe('CsmLandingPage', () => {
       const organizeLink = links.find(l => l.getAttribute('href') === '/organize')
       const contentLink = links.find(l => l.getAttribute('href') === '/content')
       const projectsLink = links.find(l => l.getAttribute('href') === '/projects')
-      const statementsLink = links.find(l => l.getAttribute('href') === '/statements')
+      const statementsLink = links.find(l => l.textContent === 'Open statements on Tally' && l.getAttribute('href') === '#')
       expect(organizeLink).toBeInTheDocument()
       expect(contentLink).toBeInTheDocument()
       expect(projectsLink).toBeInTheDocument()
@@ -86,7 +88,7 @@ describe('CsmLandingPage', () => {
       expect(screen.getByText('Playbook')).toBeInTheDocument()
       expect(screen.getByText('Content')).toBeInTheDocument()
       expect(screen.getByText('Organize')).toBeInTheDocument()
-      expect(screen.getByText('Theory')).toBeInTheDocument()
+      expect(screen.getByText('Tally')).toBeInTheDocument()
     })
   })
 })

@@ -6,6 +6,7 @@ import { CreateContractPage } from '../../content-funding/pages/CreateContractPa
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { DomainLandingPage } from '../components/DomainLandingPage'
+import { getDomainUrl } from '../domainUrls'
 import { BrowseProjectsPage } from '../../pubstarter/pages/BrowseProjectsPage'
 import { CreateProjectPage } from '../../pubstarter/pages/CreateProjectPage'
 import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
@@ -158,13 +159,13 @@ export function CsmOrganizingPage() {
     <DomainLandingPage
       eyebrow="Organizing"
       title="Turn bridge-building content into visible, fundable political coordination."
-      description="Common Sense Majority sits between the narrow noninflammatory content tool and the full Commonality platform. Use this surface to connect persuasive media, explicit statements, and concrete movement projects."
+      description="Common Sense Majority sits between the narrow noninflammatory content tool and the full Commonality platform. Use this surface to connect persuasive media, Tally statement-signing, and concrete movement projects."
       spotlightLabel="Primary loop"
-      spotlightText="Fund content that reveals common ground, trace that content back to statements people can sign, then fund organizing projects that act on the coalition you have made visible."
+      spotlightText="Fund content that reveals common ground, send statement exploration and signing to Tally, then fund organizing projects that act on the coalition you have made visible."
       heroActions={[
         { label: 'Browse movement content', path: '/content' },
         { label: 'Start a movement project', path: '/projects/new', variant: 'outlined' },
-        { label: 'Explore statements', path: '/statements', variant: 'text' },
+        { label: 'Open Tally statements', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'text' },
       ]}
       sections={[
         {
@@ -182,11 +183,11 @@ export function CsmOrganizingPage() {
           cta: 'Browse organizing projects',
         },
         {
-          eyebrow: 'Claims',
-          title: 'Inspect the statement layer',
-          description: 'The movement framing depends on claims that people can sign. Use the statement graph to inspect what the coalition is actually agreeing to.',
-          path: '/statements',
-          cta: 'Inspect statements',
+          eyebrow: 'Tally',
+          title: 'Inspect the statement layer on Tally',
+          description: 'The movement framing depends on claims that people can sign. Use Tally to inspect what the coalition is actually agreeing to.',
+          href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }),
+          cta: 'Open Tally statements',
         },
       ]}
     />
@@ -200,7 +201,7 @@ export function CsmAboutPage() {
         About Common Sense Majority
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        This domain is the movement layer in the multiple-domain UI plan. It reuses Noninflammatory Content as the main media mechanism and Commonality as the underlying statement and funding infrastructure, while keeping the surface focused on organizing around common-sense positions.
+        This domain is the movement layer in the multiple-domain UI plan. It reuses Noninflammatory Content as the main media mechanism, Tally for statement signing, and Commonality as the funding infrastructure, while keeping the surface focused on organizing around common-sense positions.
       </Typography>
 
       <Stack spacing={2}>
@@ -217,7 +218,7 @@ export function CsmAboutPage() {
             What this surface is not
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            It is not the full Commonality platform, and it is not only a content tool. The goal is a middle layer: broad enough for movement work, narrow enough to stay legible.
+            It is not the full Commonality platform, it is not Tally&apos;s general statement-signing UI, and it is not only a content tool. The goal is a middle layer: broad enough for movement work, narrow enough to stay legible.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
@@ -233,6 +234,9 @@ export function CsmAboutPage() {
             </Button>
             <Button component={RouterLink} to="/projects" variant="text">
               Browse projects
+            </Button>
+            <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="text">
+              Open Tally
             </Button>
           </Stack>
         </Paper>

@@ -2,15 +2,12 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
+import { getDomainUrl } from '../domainUrls'
 import { ContentFundingLandingPage } from './LandingPage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<ContentFundingLandingPage />} />
-    <Route path="/statements" element={lazyRoute(() => import('../../conceptspace/pages/BrowseStatementsPage'), 'BrowseStatementsPage')} />
-    <Route path="/statement/:statementCid" element={lazyRoute(() => import('../../conceptspace/pages/StatementPage'), 'StatementPage')} />
-    <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
-    <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
     <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorsPage')} />
     <Route path="/content/dashboard" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorDashboardPage')} />
     <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingContractPage')} />
@@ -29,9 +26,13 @@ export const contentFundingManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
-      { label: 'Statements', path: '/statements' },
+      {
+        label: 'Statements on Tally',
+        get href() {
+          return getDomainUrl('tally', '/statements', { fallbackHref: '#' })
+        },
+      },
       { label: 'Creators', path: '/content/twitter' },
-      { label: 'My Profile', path: '/profile' },
     ],
     secondaryNavigation: [
       { label: 'Creator Dashboard', path: '/content/dashboard' },
@@ -42,7 +43,7 @@ export const contentFundingManifest: DomainManifest = {
     footerText: 'Content Funding helps creators get funded directly by people who share their values.',
   },
   features: {
-    conceptspace: true,
+    conceptspace: false,
     pubstarter: false,
     fundingportal: false,
     delegation: false,

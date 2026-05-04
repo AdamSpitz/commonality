@@ -1,5 +1,6 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
+import { getDomainUrl } from '../../domains/domainUrls'
 
 export function NotFoundPage() {
   return (
@@ -15,8 +16,8 @@ export function NotFoundPage() {
           <Button component={RouterLink} to="/" variant="contained">
             Go home
           </Button>
-          <Button component={RouterLink} to="/statements" variant="outlined">
-            Browse statements
+          <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="outlined">
+            Browse statements on Tally
           </Button>
           <Button component={RouterLink} to="/content" variant="outlined">
             Browse creators

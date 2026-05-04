@@ -28,18 +28,18 @@ describe('ContentFundingLandingPage', () => {
     it('renders spotlight label as chip', () => {
       render(<ContentFundingLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Built on Commonality')
+      expect(chip).toHaveTextContent('Built on Commonality funding infrastructure')
     })
 
     it('renders spotlight text', () => {
       render(<ContentFundingLandingPage />, { wrapper })
-      expect(screen.getByText(/Content Funding is a focused entry point/i)).toBeInTheDocument()
+      expect(screen.getByText(/Content contracts are specialized assurance contracts/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
       render(<ContentFundingLandingPage />, { wrapper })
       expect(screen.getByRole('link', { name: 'Browse content' })).toHaveAttribute('href', '/content')
-      expect(screen.getByRole('link', { name: 'Browse statements' })).toHaveAttribute('href', '/statements')
+      expect(screen.getByRole('link', { name: 'Explore statements on Tally' })).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: 'Creator dashboard' })).toHaveAttribute('href', '/content/dashboard')
     })
   })

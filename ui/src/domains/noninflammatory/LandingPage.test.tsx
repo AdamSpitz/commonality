@@ -28,12 +28,12 @@ describe('NoninflammatoryLandingPage', () => {
     it('renders spotlight label as chip', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Built on Commonality')
+      expect(chip).toHaveTextContent('Built on Content Funding')
     })
 
     it('renders spotlight text', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
-      expect(screen.getByText(/Use this domain when the framing matters/i)).toBeInTheDocument()
+      expect(screen.getByText(/public-goods funding infrastructure comes from Commonality/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
@@ -53,14 +53,14 @@ describe('NoninflammatoryLandingPage', () => {
       const titles = sectionTitles.map(h => h.textContent)
       expect(titles).toContain('See bridge-building content')
       expect(titles).toContain('Submit as a creator')
-      expect(titles).toContain('Follow the underlying statements')
+      expect(titles).toContain('Sign the underlying statements')
     })
 
     it('renders section descriptions', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
       expect(screen.getByText(/Browse funded content across platforms/i)).toBeInTheDocument()
       expect(screen.getByText(/Creators can verify channels, create contracts/i)).toBeInTheDocument()
-      expect(screen.getByText(/When you want the deeper conceptspace context/i)).toBeInTheDocument()
+      expect(screen.getByText(/inspect or sign the claims behind bridge-building content/i)).toBeInTheDocument()
     })
 
     it('renders section CTA links with correct hrefs', () => {
@@ -68,7 +68,7 @@ describe('NoninflammatoryLandingPage', () => {
       const links = screen.getAllByRole('link')
       const contentLink = links.find(l => l.getAttribute('href') === '/content')
       const dashboardLink = links.find(l => l.getAttribute('href') === '/content/dashboard')
-      const statementsLink = links.find(l => l.getAttribute('href') === '/statements')
+      const statementsLink = links.find(l => l.textContent === 'Explore statements on Tally' && l.getAttribute('href') === '#')
       expect(contentLink).toBeInTheDocument()
       expect(dashboardLink).toBeInTheDocument()
       expect(statementsLink).toBeInTheDocument()
@@ -78,7 +78,7 @@ describe('NoninflammatoryLandingPage', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
       expect(screen.getByText('Browse')).toBeInTheDocument()
       expect(screen.getByText('Create')).toBeInTheDocument()
-      expect(screen.getByText('Understand')).toBeInTheDocument()
+      expect(screen.getByText('Tally')).toBeInTheDocument()
     })
   })
 })

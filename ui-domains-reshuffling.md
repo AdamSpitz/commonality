@@ -222,9 +222,11 @@ E2E impact:
 
 ---
 
-## Task 7: Strip statement UX from Content Funding / Noninflammatory / CSM
+## Task 7: Strip statement UX from Content Funding / Noninflammatory / CSM ✅ Done 2026-05-04
 
 Purpose: these sites should not host the full statement-signing UI. They should link to Tally when users need statement exploration/signing.
+
+Action taken: Content Funding, Noninflammatory, and CSM no longer expose local `/statements`, `/statement/:statementCid`, `/profile`, or `/user/:address` routes. Their navigation and landing/about/organizing links now point to Tally via the cross-domain URL helper with `#` fallback. Copy now describes Content Funding as built on Commonality's funding infrastructure, Noninflammatory as built on Content Funding with Tally for statement signing, and CSM as using Noninflammatory Content, Tally, and Commonality. Route/landing/domain smoke tests were updated.
 
 Implementation shape:
 

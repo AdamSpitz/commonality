@@ -1,4 +1,5 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
+import { getDomainUrl } from '../domainUrls'
 
 const sections = [
   {
@@ -30,11 +31,11 @@ export function ContentFundingLandingPage() {
       eyebrow="Content Funding"
       title="Fund the content you want more of."
       description="This surface is for content contracts first: browse creators, back a channel, and let attestation-driven funding routes handle the rest."
-      spotlightLabel="Built on Commonality"
-      spotlightText="Content Funding is a focused entry point on top of Commonality's shared funding and attestation infrastructure."
+      spotlightLabel="Built on Commonality funding infrastructure"
+      spotlightText="Content contracts are specialized assurance contracts. Use this surface for creator funding, and jump to Tally when you want to explore or sign the underlying statements."
       heroActions={[
         { label: 'Browse content', path: '/content' },
-        { label: 'Browse statements', path: '/statements', variant: 'outlined' },
+        { label: 'Explore statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'Creator dashboard', path: '/content/dashboard', variant: 'text' },
       ]}
       sections={sections}

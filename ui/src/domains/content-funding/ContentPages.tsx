@@ -14,7 +14,7 @@ export function ContentFundingCreatorsPage() {
   return (
     <CreatorsLandingPage
       title="Content Funding"
-      description="Fund creators and individual pieces of content people already value. The underlying contract flow is shared with the rest of Commonality, but this surface stays focused on discoverability, funding, and creator payouts."
+      description="Fund creators and individual pieces of content people already value. The underlying contract flow uses Commonality's funding infrastructure, but this surface stays focused on discoverability, funding, and creator payouts."
       secondaryDescription="Browse Twitter, YouTube, and Substack creators by platform, then open a channel to back specific work or create a new contract around it."
       learnMoreLabel="Learn how content funding contracts work"
     />

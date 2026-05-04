@@ -1,11 +1,11 @@
 import { Box, Paper, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
 import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
 import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
+import { getDomainUrl } from '../domainUrls'
 
 function getNoninflammatoryContractPath(address: string): string {
   return `/content/contracts/${address}`
@@ -99,7 +99,7 @@ export function NoninflammatoryAboutPage() {
         About Noninflammatory Content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        The point of this domain is not bland centrism. It is to reward content that makes a strong case without making the audience feel despised. The shared funding contracts come from Commonality, but this surface is explicitly about bridge-building under political pressure.
+        The point of this domain is not bland centrism. It is to reward content that makes a strong case without making the audience feel despised. The content contracts come from Content Funding, the public-goods infrastructure comes from Commonality, and statement exploration lives on Tally.
       </Typography>
 
       <Stack spacing={2}>
@@ -121,13 +121,13 @@ export function NoninflammatoryAboutPage() {
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Built on Commonality
+            Built on Content Funding + Tally
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            This domain is a focused surface built on Commonality&apos;s broader infrastructure.
+            This domain is a focused surface built on Content Funding contracts and Commonality&apos;s broader infrastructure. Use Tally for the full implication-graph and statement-signing UI.
           </Typography>
-          <Typography component={RouterLink} to="/statements" variant="body2" sx={{ textDecoration: 'none' }}>
-            Explore the underlying statement graph
+          <Typography component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="body2" sx={{ textDecoration: 'none' }}>
+            Explore statements on Tally
           </Typography>
         </Paper>
       </Stack>

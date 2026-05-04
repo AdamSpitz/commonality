@@ -26,7 +26,7 @@ function getNavigationHref(item: LabeledLinkTarget): string {
 function expectNavigationLinkTargetToBeValid(item: LabeledLinkTarget) {
   const href = getNavigationHref(item)
   if (isExternalLinkTarget(item)) {
-    expect(href).toMatch(/^https?:\/\//)
+    expect(href === '#' || /^https?:\/\//.test(href)).toBe(true)
   } else {
     expect(href.startsWith('/')).toBe(true)
   }
@@ -177,9 +177,9 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.docs).toBe(false)
   })
 
-  it('content-funding has only conceptspace and contentFunding enabled', () => {
+  it('content-funding has only contentFunding enabled', () => {
     const features = domainManifests['content-funding'].features
-    expect(features.conceptspace).toBe(true)
+    expect(features.conceptspace).toBe(false)
     expect(features.contentFunding).toBe(true)
     expect(features.pubstarter).toBe(false)
     expect(features.fundingportal).toBe(false)
@@ -188,9 +188,9 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.docs).toBe(false)
   })
 
-  it('noninflammatory has only conceptspace and contentFunding enabled', () => {
+  it('noninflammatory has only contentFunding enabled', () => {
     const features = domainManifests.noninflammatory.features
-    expect(features.conceptspace).toBe(true)
+    expect(features.conceptspace).toBe(false)
     expect(features.contentFunding).toBe(true)
     expect(features.pubstarter).toBe(false)
     expect(features.fundingportal).toBe(false)
@@ -199,9 +199,9 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.docs).toBe(false)
   })
 
-  it('csm has conceptspace, pubstarter, fundingportal, and contentFunding enabled', () => {
+  it('csm has pubstarter, fundingportal, and contentFunding enabled', () => {
     const features = domainManifests.csm.features
-    expect(features.conceptspace).toBe(true)
+    expect(features.conceptspace).toBe(false)
     expect(features.pubstarter).toBe(true)
     expect(features.fundingportal).toBe(true)
     expect(features.contentFunding).toBe(true)
@@ -270,7 +270,7 @@ describe('cross-domain route coverage', () => {
     expect(routePaths).not.toContain('/projects')
   })
 
-  it('content-funding routes include content dashboard, contracts, and channel pages', () => {
+  it('content-funding routes include content dashboard, contracts, and channel pages only', () => {
     const paths = [
       '/content', '/content/dashboard', '/content/:platform',
       '/content/:platform/:channelId', '/content/:platform/:channelId/new',
@@ -280,16 +280,24 @@ describe('cross-domain route coverage', () => {
     for (const path of paths) {
       expect(routePaths).toContain(path)
     }
+    expect(routePaths).not.toContain('/statements')
+    expect(routePaths).not.toContain('/statement/:statementCid')
+    expect(routePaths).not.toContain('/profile')
+    expect(routePaths).not.toContain('/user/:address')
   })
 
-  it('noninflammatory routes include about page in addition to content-funding routes', () => {
+  it('noninflammatory routes include about page in addition to content-funding routes, without local statement UX', () => {
     const routePaths = extractRoutePaths(domainManifests.noninflammatory.routes)
     expect(routePaths).toContain('/about')
     expect(routePaths).toContain('/content/dashboard')
     expect(routePaths).toContain('/content/:platform/:channelId')
+    expect(routePaths).not.toContain('/statements')
+    expect(routePaths).not.toContain('/statement/:statementCid')
+    expect(routePaths).not.toContain('/profile')
+    expect(routePaths).not.toContain('/user/:address')
   })
 
-  it('csm routes include organize, projects, portal, and about', () => {
+  it('csm routes include organize, projects, portal, and about, without local statement UX', () => {
     const paths = [
       '/organize', '/about', '/projects', '/projects/new',
       '/projects/:projectAddress', '/portal/:statementCid',
@@ -299,6 +307,10 @@ describe('cross-domain route coverage', () => {
     for (const path of paths) {
       expect(routePaths).toContain(path)
     }
+    expect(routePaths).not.toContain('/statements')
+    expect(routePaths).not.toContain('/statement/:statementCid')
+    expect(routePaths).not.toContain('/profile')
+    expect(routePaths).not.toContain('/user/:address')
   })
 
   it('conceptspace routes stay thin and infrastructure-facing', () => {
@@ -322,21 +334,21 @@ describe('cross-domain landing page rendering', () => {
     expect(screen.getByText(/consumer statement-signing site/i)).toBeInTheDocument()
   })
 
-  it('content-funding landing shows built-on-commonality spotlight', () => {
+  it('content-funding landing shows built-on-commonality-funding spotlight', () => {
     renderDomainRoute('content-funding')
-    expect(screen.getByText('Built on Commonality')).toBeInTheDocument()
-    expect(screen.getByText(/Content Funding is a focused entry point/i)).toBeInTheDocument()
+    expect(screen.getByText('Built on Commonality funding infrastructure')).toBeInTheDocument()
+    expect(screen.getByText(/Content contracts are specialized assurance contracts/i)).toBeInTheDocument()
   })
 
   it('noninflammatory landing shows political bridge-building framing', () => {
     renderDomainRoute('noninflammatory')
-    expect(screen.getByText('Built on Commonality')).toBeInTheDocument()
+    expect(screen.getByText('Built on Content Funding')).toBeInTheDocument()
     expect(screen.getByText(/political bridge-building surface/i)).toBeInTheDocument()
   })
 
   it('csm landing shows broader infrastructure framing', () => {
     renderDomainRoute('csm')
-    expect(screen.getByText('Built on Noninflammatory + Commonality')).toBeInTheDocument()
+    expect(screen.getByText('Uses Noninflammatory + Tally + Commonality')).toBeInTheDocument()
     expect(screen.getByText(/movement site is broader/i)).toBeInTheDocument()
   })
 
@@ -416,34 +428,32 @@ describe('cross-domain out-of-domain feature absence', () => {
 })
 
 describe('cross-domain shared routes consistency', () => {
-  it('all remaining statement-surface domains expose statements browsing', () => {
-    const statementSurfaceDomainIds: DomainId[] = ['tally', 'content-funding', 'noninflammatory', 'csm']
-    for (const id of statementSurfaceDomainIds) {
-      const routePaths = extractRoutePaths(domainManifests[id].routes)
-      expect(routePaths).toContain('/statements')
+  it('only tally exposes statement browsing locally', () => {
+    expect(extractRoutePaths(domainManifests.tally.routes)).toContain('/statements')
+    const nonStatementDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+    for (const id of nonStatementDomainIds) {
+      expect(extractRoutePaths(domainManifests[id].routes)).not.toContain('/statements')
     }
-    expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/statements')
   })
 
-  it('all remaining statement-surface domains expose statement detail', () => {
-    const statementSurfaceDomainIds: DomainId[] = ['tally', 'content-funding', 'noninflammatory', 'csm']
-    for (const id of statementSurfaceDomainIds) {
-      const routePaths = extractRoutePaths(domainManifests[id].routes)
-      expect(routePaths).toContain('/statement/:statementCid')
+  it('only tally exposes statement detail locally', () => {
+    expect(extractRoutePaths(domainManifests.tally.routes)).toContain('/statement/:statementCid')
+    const nonStatementDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+    for (const id of nonStatementDomainIds) {
+      expect(extractRoutePaths(domainManifests[id].routes)).not.toContain('/statement/:statementCid')
     }
-    expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/statement/:statementCid')
   })
 
-  it('all remaining statement-surface domains expose user profile', () => {
-    const statementSurfaceDomainIds: DomainId[] = ['tally', 'content-funding', 'noninflammatory', 'csm']
-    for (const id of statementSurfaceDomainIds) {
+  it('only tally exposes user profiles locally', () => {
+    const tallyRoutePaths = extractRoutePaths(domainManifests.tally.routes)
+    expect(tallyRoutePaths).toContain('/profile')
+    expect(tallyRoutePaths).toContain('/user/:address')
+    const nonProfileDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+    for (const id of nonProfileDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
-      expect(routePaths).toContain('/profile')
-      expect(routePaths).toContain('/user/:address')
+      expect(routePaths).not.toContain('/profile')
+      expect(routePaths).not.toContain('/user/:address')
     }
-    const commonalityRoutePaths = extractRoutePaths(domainManifests.commonality.routes)
-    expect(commonalityRoutePaths).not.toContain('/profile')
-    expect(commonalityRoutePaths).not.toContain('/user/:address')
   })
 
   it('content-focused domains expose content funding surfaces', () => {

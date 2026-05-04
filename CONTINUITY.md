@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 7: strip downstream statement UX
+
+- Completed Task 7 from `ui-domains-reshuffling.md`: Content Funding, Noninflammatory, and CSM no longer host local statement browsing/detail/profile routes.
+- Removed `/statements`, `/statement/:statementCid`, `/profile`, and `/user/:address` from `ui/src/domains/content-funding/manifest.tsx`, `ui/src/domains/noninflammatory/manifest.tsx`, and `ui/src/domains/csm/manifest.tsx`.
+- Replaced downstream statement/profile navigation and landing/about/organizing links with Tally cross-domain anchors via `getDomainUrl('tally', '/statements', { fallbackHref: '#' })`.
+- Updated product copy so Content Funding is built on Commonality's funding infrastructure, Noninflammatory is built on Content Funding and links to Tally, and CSM uses Noninflammatory Content, Tally, and Commonality.
+- Updated the domain smoke/route/landing/page tests and the shared not-found statement action to point statement browsing at Tally.
+- Verified with targeted domain tests, full `npm run test:vitest --workspace=ui`, `npm run lint --workspace=ui`, `npm run typecheck --workspace=ui`, and builds for `VITE_DOMAIN=content-funding`, `VITE_DOMAIN=noninflammatory`, and `VITE_DOMAIN=csm`.
+- Note for next task: Task 8 should move E2E statement/signing/profile assumptions to the `tally` domain and keep funding/content tests on their owning domains.
+
 ## 2026-05-04 — UI domains reshuffle task 6: reshape Commonality
 
 - Completed Task 6 from `ui-domains-reshuffling.md`: Commonality is now framed as the internet-age coordination / better public-goods funding movement, not the full foundation site or statement-signing destination.

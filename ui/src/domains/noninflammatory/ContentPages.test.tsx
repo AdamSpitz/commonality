@@ -357,6 +357,7 @@ describe('Noninflammatory branded surfaces', () => {
       expect(
         screen.getByText(/the point of this domain is not bland centrism/i),
       ).toBeInTheDocument()
+      expect(screen.getByText(/statement exploration lives on Tally/i)).toBeInTheDocument()
     })
 
     it('includes "What gets rewarded" section', () => {
@@ -384,17 +385,17 @@ describe('Noninflammatory branded surfaces', () => {
       ).toBeInTheDocument()
     })
 
-    it('includes "Built on Commonality" section with link to statement graph', () => {
+    it('includes "Built on Content Funding + Tally" section with a Tally link', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryAboutPage />
         </MemoryRouter>,
       )
 
-      expect(screen.getByRole('heading', { name: /built on commonality/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /explore the underlying statement graph/i })).toHaveAttribute(
+      expect(screen.getByRole('heading', { name: /built on content funding \+ tally/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /explore statements on tally/i })).toHaveAttribute(
         'href',
-        '/statements',
+        '#',
       )
     })
   })
