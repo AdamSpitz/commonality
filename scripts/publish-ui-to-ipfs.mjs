@@ -237,6 +237,7 @@ function resolveDomain(value) {
     case 'content-funding':
     case 'noninflammatory':
     case 'csm':
+    case 'conceptspace':
       return value
     default:
       return 'commonality'

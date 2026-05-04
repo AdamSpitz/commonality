@@ -107,7 +107,7 @@ Validation:
 
 ---
 
-## Task 3: Add a thin `conceptspace` domain
+## Task 3: Add a thin `conceptspace` domain ✅ Done 2026-05-04
 
 Purpose: represent Conceptspace as the infrastructure layer, not the consumer statement destination.
 

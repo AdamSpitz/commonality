@@ -131,6 +131,24 @@ describe('AppShell', () => {
       expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument()
     })
 
+    it('hides More button when secondary navigation is empty', () => {
+      render(
+        <MemoryRouter>
+          <AppShell
+            navigation={{
+              primaryNavigation: [{ label: 'Home', path: '/' }],
+              secondaryNavigation: [],
+              footerText: 'Footer',
+            }}
+          >
+            <div>Content</div>
+          </AppShell>
+        </MemoryRouter>,
+      )
+
+      expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument()
+    })
+
     it('opens More menu and shows secondary nav items', async () => {
       const user = userEvent.setup()
       renderWithRouter()

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
+const domainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
 
 function renderDomainRoute(
   domainId: DomainId,
@@ -52,6 +52,11 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
         tagline: 'The silent majority finds its voice.',
         footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',
       },
+      conceptspace: {
+        name: 'Conceptspace',
+        tagline: 'Statement and trust infrastructure for public coordination.',
+        footerText: 'Conceptspace provides the statement, implication, signing, nudger, and trust primitives shared across Commonality sites.',
+      },
     }
 
     it('has the correct brand name for the domain', () => {
@@ -74,8 +79,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       }
     })
 
-    it('has secondary navigation items with labels and paths', () => {
-      expect(manifest.shell.secondaryNavigation.length).toBeGreaterThan(0)
+    it('has secondary navigation items with labels and paths when present', () => {
       for (const item of manifest.shell.secondaryNavigation) {
         expect(item.label.length).toBeGreaterThan(0)
         expect(item.path.startsWith('/')).toBe(true)
@@ -97,12 +101,11 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   })
 
   describe('secondary navigation manifest integrity', () => {
-    it.each(manifest.shell.secondaryNavigation)(
-      '$label has a path starting with /',
-      ({ path }) => {
+    it('has paths starting with / when secondary navigation exists', () => {
+      for (const { path } of manifest.shell.secondaryNavigation) {
         expect(path.startsWith('/')).toBe(true)
-      },
-    )
+      }
+    })
   })
 
   describe('landing page', () => {
@@ -112,6 +115,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
       csm: 'Organize the hidden majority around positions that already have broad support.',
+      conceptspace: 'Statement, implication, signing, and trust infrastructure.',
     }
 
     it('renders the branded hero title matching the domain tagline', () => {
@@ -191,6 +195,17 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.mutablerefs).toBe(false)
     expect(features.docs).toBe(false)
   })
+
+  it('conceptspace exposes only the infrastructure-layer feature flag', () => {
+    const features = domainManifests.conceptspace.features
+    expect(features.conceptspace).toBe(true)
+    expect(features.pubstarter).toBe(false)
+    expect(features.fundingportal).toBe(false)
+    expect(features.delegation).toBe(false)
+    expect(features.mutablerefs).toBe(false)
+    expect(features.contentFunding).toBe(false)
+    expect(features.docs).toBe(false)
+  })
 })
 
 describe('cross-domain navigation uniqueness', () => {
@@ -264,6 +279,11 @@ describe('cross-domain route coverage', () => {
       expect(routePaths).toContain(path)
     }
   })
+
+  it('conceptspace routes stay thin and infrastructure-facing', () => {
+    const routePaths = extractRoutePaths(domainManifests.conceptspace.routes)
+    expect(routePaths).toEqual(['/'])
+  })
 })
 
 describe('cross-domain landing page rendering', () => {
@@ -297,6 +317,12 @@ describe('cross-domain landing page rendering', () => {
     renderDomainRoute('csm')
     expect(screen.getByText('Built on Noninflammatory + Commonality')).toBeInTheDocument()
     expect(screen.getByText(/movement site is broader/i)).toBeInTheDocument()
+  })
+
+  it('conceptspace landing points statement signing to Tally', () => {
+    renderDomainRoute('conceptspace')
+    expect(screen.getByText('Infrastructure, not the consumer app')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open Tally' })).toHaveAttribute('href', '#')
   })
 })
 
@@ -358,25 +384,34 @@ describe('cross-domain out-of-domain feature absence', () => {
     expect(allPaths.some((p) => p.startsWith('/projects'))).toBe(true)
     expect(allPaths.some((p) => p.startsWith('/settings'))).toBe(true)
   })
+
+  it('conceptspace domain does not expose consumer or funding navigation', () => {
+    const nav = domainManifests.conceptspace.shell
+    const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map((n) => n.path)
+    expect(allPaths).toEqual(['/'])
+  })
 })
 
 describe('cross-domain shared routes consistency', () => {
-  it('all domains expose statements browsing', () => {
-    for (const id of domainIds) {
+  it('all current statement-surface domains expose statements browsing', () => {
+    const statementSurfaceDomainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
+    for (const id of statementSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/statements')
     }
   })
 
-  it('all domains expose statement detail', () => {
-    for (const id of domainIds) {
+  it('all current statement-surface domains expose statement detail', () => {
+    const statementSurfaceDomainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
+    for (const id of statementSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/statement/:statementCid')
     }
   })
 
-  it('all domains expose user profile', () => {
-    for (const id of domainIds) {
+  it('all current statement-surface domains expose user profile', () => {
+    const statementSurfaceDomainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm']
+    for (const id of statementSurfaceDomainIds) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/profile')
       expect(routePaths).toContain('/user/:address')

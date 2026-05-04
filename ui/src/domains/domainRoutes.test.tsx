@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { getDomainManifest } from './index'
 
 function renderDomainRoute(
-  domainId: 'commonality' | 'tally' | 'content-funding' | 'noninflammatory' | 'csm',
+  domainId: 'commonality' | 'tally' | 'content-funding' | 'noninflammatory' | 'csm' | 'conceptspace',
   path = '/',
 ) {
   const manifest = getDomainManifest(domainId)
@@ -73,6 +73,17 @@ describe('domain manifest home routes', () => {
     expect(
       screen.getAllByRole('link', { name: /open organizing playbook/i }).some((link) => link.getAttribute('href') === '/organize')
     ).toBe(true)
+  })
+
+  it('renders the Conceptspace landing page at the root route', () => {
+    renderDomainRoute('conceptspace')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /statement, implication, signing, and trust infrastructure/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /open tally/i })).toHaveAttribute('href', '#')
   })
 
   it('renders the Noninflammatory about page at /about', async () => {

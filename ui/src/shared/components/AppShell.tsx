@@ -105,6 +105,8 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
     setMoreAnchorEl(null)
   }
 
+  const hasSecondaryNavigation = nav.secondaryNavigation.length > 0
+
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2, fontWeight: 700 }}>
@@ -123,19 +125,23 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
             </ListItemButton>
           </ListItem>
         ))}
-        <Divider sx={{ my: 1 }} />
-        <ListSubheader>More</ListSubheader>
-        {nav.secondaryNavigation.map((item) => (
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              selected={isPathSelected(location.pathname, item.path)}
-            >
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        {hasSecondaryNavigation ? (
+          <>
+            <Divider sx={{ my: 1 }} />
+            <ListSubheader>More</ListSubheader>
+            {nav.secondaryNavigation.map((item) => (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to={item.path}
+                  selected={isPathSelected(location.pathname, item.path)}
+                >
+                  <ListItemText primary={item.label} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </>
+        ) : null}
       </List>
     </Box>
   )
@@ -192,37 +198,41 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
                   {item.label}
                 </Button>
               ))}
-              <Button
-                color="inherit"
-                endIcon={<MoreHorizIcon />}
-                onClick={handleMoreOpen}
-                sx={{
-                  fontWeight: nav.secondaryNavigation.some((item) =>
-                    isPathSelected(location.pathname, item.path)
-                  )
-                    ? 700
-                    : 500,
-                }}
-              >
-                More
-              </Button>
-              <Menu
-                anchorEl={moreAnchorEl}
-                open={Boolean(moreAnchorEl)}
-                onClose={handleMoreClose}
-              >
-                {nav.secondaryNavigation.map((item) => (
-                  <MenuItem
-                    key={item.path}
-                    component={Link}
-                    to={item.path}
-                    selected={isPathSelected(location.pathname, item.path)}
-                    onClick={handleMoreClose}
+              {hasSecondaryNavigation ? (
+                <>
+                  <Button
+                    color="inherit"
+                    endIcon={<MoreHorizIcon />}
+                    onClick={handleMoreOpen}
+                    sx={{
+                      fontWeight: nav.secondaryNavigation.some((item) =>
+                        isPathSelected(location.pathname, item.path)
+                      )
+                        ? 700
+                        : 500,
+                    }}
                   >
-                    {item.label}
-                  </MenuItem>
-                ))}
-              </Menu>
+                    More
+                  </Button>
+                  <Menu
+                    anchorEl={moreAnchorEl}
+                    open={Boolean(moreAnchorEl)}
+                    onClose={handleMoreClose}
+                  >
+                    {nav.secondaryNavigation.map((item) => (
+                      <MenuItem
+                        key={item.path}
+                        component={Link}
+                        to={item.path}
+                        selected={isPathSelected(location.pathname, item.path)}
+                        onClick={handleMoreClose}
+                      >
+                        {item.label}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </>
+              ) : null}
             </Box>
           )}
           <WalletButton />

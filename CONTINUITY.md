@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 3: add Conceptspace
+
+- Completed Task 3 from `ui-domains-reshuffling.md`: added a thin `conceptspace` domain as the infrastructure-facing surface.
+- Added `ui/src/domains/conceptspace/` with a root-only landing page explaining statements, implication graph, signing/trust primitives, attesters, and nudgers; the Tally CTA uses `VITE_TALLY_URL` when configured and a placeholder otherwise.
+- Wired `conceptspace` into domain IDs/manifests, Vite domain resolution, all-domain build script, local IPFS publish domain resolver, and deploy domain allowlist.
+- Updated domain smoke/route tests for Conceptspace's root-only route ownership and added AppShell support for domains with no secondary navigation.
+- Updated `ui/README.md` build-output list to include `csm` and `conceptspace`.
+- Verified with `npm run test:vitest --workspace=ui`, `npm run lint --workspace=ui`, and `VITE_DOMAIN=conceptspace npm run build --workspace=ui`.
+- Note for next task: Task 4 is the docs-domain strategy decision; do not broadly rewire docs until the product decision is made.
+
 ## 2026-05-04 — UI domains reshuffle task 2: rename movement → csm
 
 - Completed Task 2 from `ui-domains-reshuffling.md`: renamed domain ID `movement` → `csm` throughout.
