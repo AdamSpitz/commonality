@@ -21,10 +21,10 @@ import {
   cancelBuyOrder,
   approveERC1155ForMarketplace,
   waitForIndexerToSyncToTxHash,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
   type SecondaryMarketContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
@@ -41,7 +41,7 @@ describe('Secondary Marketplace Integration Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'marketplace-secondary';
@@ -55,8 +55,8 @@ describe('Secondary Marketplace Integration Tests', () => {
   it('should create and fulfill a sale listing', async function() {
     this.timeout(40000);
 
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     testLog('  Setting up test clients...');
@@ -72,14 +72,14 @@ describe('Secondary Marketplace Integration Tests', () => {
       title: 'Secondary Market Test Project',
     });
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       sellerClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',
@@ -205,8 +205,8 @@ describe('Secondary Marketplace Integration Tests', () => {
   it('should create and cancel a sale listing', async function() {
     this.timeout(40000);
 
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     testLog('  Setting up for cancellation test...');
@@ -214,14 +214,14 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancel Test Project' });
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       sellerClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',
@@ -310,8 +310,8 @@ describe('Secondary Marketplace Integration Tests', () => {
   it('should create and fulfill a buy order', async function() {
     this.timeout(40000);
 
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     testLog('  Setting up for buy order test...');
@@ -320,14 +320,14 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Buy Order Test Project' });
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       sellerClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',
@@ -429,8 +429,8 @@ describe('Secondary Marketplace Integration Tests', () => {
   it('should create and cancel a buy order', async function() {
     this.timeout(30000);
 
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     testLog('  Setting up for buy order cancellation...');
@@ -439,14 +439,14 @@ describe('Secondary Marketplace Integration Tests', () => {
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancel Buy Order Test' });
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       sellerClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',

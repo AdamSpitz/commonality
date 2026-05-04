@@ -3,7 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import {
   BeliefsAbi,
   ImplicationsAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
   cidToBytes32,
   fakeIpfsCidV1,
@@ -349,8 +349,8 @@ class AttackScenarios {
     console.log('\n  Executing commission exploitation attack...');
 
     const attacker = this.users[0];
-    if (!attacker || !this.contracts.pubstarter) {
-      console.log('  No attacker wallet or Pubstarter contract available');
+    if (!attacker || !this.contracts.projectFactory) {
+      console.log('  No attacker wallet or ProjectFactory contract available');
       return this.results.commissionExploitation;
     }
 
@@ -364,8 +364,8 @@ class AttackScenarios {
       const deadline = Math.floor(Date.now() / 1000) + (1 * 24 * 60 * 60);
 
       await clients.walletClient.writeContract({
-        address: this.contracts.pubstarter.address as `0x${string}`,
-        abi: PubstarterAbi as readonly unknown[],
+        address: this.contracts.projectFactory.address as `0x${string}`,
+        abi: ProjectFactoryAbi as readonly unknown[],
         functionName: 'pubstart',
         args: [
           attacker.address,

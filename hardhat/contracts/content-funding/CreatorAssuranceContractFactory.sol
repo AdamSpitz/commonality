@@ -10,10 +10,10 @@ import {ContentRegistry} from "./ContentRegistry.sol";
 import {ChannelRegistry} from "./ChannelRegistry.sol";
 import {ChannelEscrow} from "./ChannelEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
-import {PremintingERC1155Factory} from "../individual-projects/Pubstarter.sol";
-import {MarketplaceFactory, ERC1155SecondaryMarket} from "../individual-projects/Pubstarter.sol";
+import {PremintingERC1155Factory} from "../individual-projects/ProjectFactory.sol";
+import {MarketplaceFactory, ERC1155SecondaryMarket} from "../individual-projects/ProjectFactory.sol";
 import {ValueThresholdCondition} from "../individual-projects/ValueThresholdCondition.sol";
-import {ValueThresholdConditionFactory} from "../individual-projects/Pubstarter.sol";
+import {ValueThresholdConditionFactory} from "../individual-projects/ProjectFactory.sol";
 import {CancellableCondition} from "../individual-projects/CancellableCondition.sol";
 import {IAssuranceCondition} from "../individual-projects/IAssuranceCondition.sol";
 

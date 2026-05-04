@@ -60,7 +60,7 @@ export interface SimulationContracts {
   implications?: ContractConfig;
   alignmentAttestations?: ContractConfig;
   delegatableNotes?: ContractConfig;
-  pubstarter?: ContractConfig;
+  projectFactory?: ContractConfig;
   assuranceContract?: ContractConfig;
   erc1155SecondaryMarket?: ContractConfig;
   [key: string]: ContractConfig | undefined;

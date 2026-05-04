@@ -16,9 +16,9 @@ import assert from 'assert';
 import { parseEther } from 'viem';
 import {
   uploadToIPFS,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
@@ -31,7 +31,7 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 describe('Pubstarter Negative Tests', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
 
   const SUITE_NAME = 'negative-tests';
 
@@ -41,16 +41,16 @@ describe('Pubstarter Negative Tests', () => {
 
   describe('Validation Tests', () => {
     it('should prevent buying with insufficient payment', async () => {
-      if (!PUBSTARTER_ADDRESS) {
-        throw new Error('PUBSTARTER_ADDRESS not set in environment');
+      if (!PROJECT_FACTORY_ADDRESS) {
+        throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
       }
 
       const aliceClients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
       const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
-      const contract: PubstarterContract = {
-        address: PUBSTARTER_ADDRESS,
-        abi: PubstarterAbi,
+      const contract: ProjectFactoryContract = {
+        address: PROJECT_FACTORY_ADDRESS,
+        abi: ProjectFactoryAbi,
       };
 
       const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
@@ -107,16 +107,16 @@ describe('Pubstarter Negative Tests', () => {
     });
 
     it('should prevent buying non-existent token ID', async () => {
-      if (!PUBSTARTER_ADDRESS) {
-        throw new Error('PUBSTARTER_ADDRESS not set in environment');
+      if (!PROJECT_FACTORY_ADDRESS) {
+        throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
       }
 
       const aliceClients = createIsolatedTestClients(SUITE_NAME, 7, RPC_URL);
       const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
-      const contract: PubstarterContract = {
-        address: PUBSTARTER_ADDRESS,
-        abi: PubstarterAbi,
+      const contract: ProjectFactoryContract = {
+        address: PROJECT_FACTORY_ADDRESS,
+        abi: ProjectFactoryAbi,
       };
 
       const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {

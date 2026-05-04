@@ -1,7 +1,7 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const PubstarterFactoriesAbi = [
+export const ProjectFactoryAbi = [
   {
     "inputs": [
       {
@@ -30,6 +30,21 @@ export const PubstarterFactoriesAbi = [
   },
   {
     "inputs": [],
+    "name": "EmptyTokenList",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidDeadline",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidFactoryAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidOwnerAddress",
     "type": "error"
   },
@@ -37,6 +52,58 @@ export const PubstarterFactoriesAbi = [
     "inputs": [],
     "name": "InvalidRecipientAddress",
     "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidThreshold",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TokenArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroPrice",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "assuranceContract",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "marketplace",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "condition",
+        "type": "address"
+      }
+    ],
+    "name": "ProjectCreated",
+    "type": "event"
   },
   {
     "inputs": [],
@@ -56,7 +123,7 @@ export const PubstarterFactoriesAbi = [
     "name": "_conditionFactory",
     "outputs": [
       {
-        "internalType": "contract EthThresholdConditionFactory",
+        "internalType": "contract ValueThresholdConditionFactory",
         "name": "",
         "type": "address"
       }
@@ -110,6 +177,11 @@ export const PubstarterFactoriesAbi = [
       {
         "internalType": "address",
         "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
         "type": "address"
       },
       {
@@ -184,6 +256,11 @@ export const PubstarterFactoriesAbi = [
       {
         "internalType": "address",
         "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
         "type": "address"
       },
       {

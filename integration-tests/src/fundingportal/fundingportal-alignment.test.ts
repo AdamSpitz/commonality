@@ -14,9 +14,9 @@ import {
   createStatement,
   publishDocument,
   type AlignmentAttestationsContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   AlignmentAttestationsAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   PROJECT_ALIGNMENT_TOPIC,
   fakeIpfsCidV1,
   toSubjectId,
@@ -36,21 +36,21 @@ describe('Funding Portal - Alignment Attestations', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as `0x${string}`;
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'fundingportal-alignment';
 
   let alignmentAttestationsContract: AlignmentAttestationsContract;
-  let pubstarterContract: PubstarterContract;
+  let projectFactoryContract: ProjectFactoryContract;
   let machinery: ActionTestingMachinery;
 
   before(async () => {
     if (!ALIGNMENT_ATTESTATIONS_ADDRESS) {
       throw new Error('ALIGNMENT_ATTESTATIONS_ADDRESS not set');
     }
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set');
     }
 
     alignmentAttestationsContract = {
@@ -58,9 +58,9 @@ describe('Funding Portal - Alignment Attestations', () => {
       abi: AlignmentAttestationsAbi,
     };
 
-    pubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    projectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     machinery = createActionTestingMachinery(GRAPHQL_URL);
@@ -82,7 +82,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create a project
     testLog('  Creating a crowdfunding project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, projectFactoryContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -129,7 +129,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create a project
     testLog('  Creating a project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, projectFactoryContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -209,7 +209,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     testLog('  Creating projects...');
     const currentTime = Math.floor(Date.now() / 1000);
 
-    const { projectDetails: project1 } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
+    const { projectDetails: project1 } = await createProjectChecked(projectOwnerClients, projectFactoryContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -223,7 +223,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     });
     testLog('  ✓ Project creation properties verified');
 
-    const { projectDetails: project2 } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
+    const { projectDetails: project2 } = await createProjectChecked(projectOwnerClients, projectFactoryContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,
@@ -285,7 +285,7 @@ describe('Funding Portal - Alignment Attestations', () => {
     // Create one project
     testLog('  Creating project...');
     const currentTime = Math.floor(Date.now() / 1000);
-    const { projectDetails } = await createProjectChecked(projectOwnerClients, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(projectOwnerClients, projectFactoryContract, machinery, {
       metadataURI: 'https://example.com/token-metadata',
       contractURI: 'https://example.com/contract-metadata',
       owner: projectOwnerClients.account,

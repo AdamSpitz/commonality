@@ -136,9 +136,9 @@ export function getContractAddresses() {
   const delegatableNotesAddress =
     envVars.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS ||
     process.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
-  const pubstarterAddress =
-    envVars.VITE_PUBSTARTER_CONTRACT_ADDRESS ||
-    process.env.VITE_PUBSTARTER_CONTRACT_ADDRESS
+  const projectFactoryAddress =
+    envVars.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS ||
+    process.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS
   const paymentTokenAddress =
     envVars.VITE_PAYMENT_TOKEN_ADDRESS ||
     process.env.VITE_PAYMENT_TOKEN_ADDRESS
@@ -179,7 +179,7 @@ export function getContractAddresses() {
       alignmentAttestationsAddress as `0x${string}` | undefined,
     mutableRefUpdaterAddress: mutableRefUpdaterAddress as `0x${string}`,
     delegatableNotesAddress: delegatableNotesAddress as `0x${string}` | undefined,
-    pubstarterAddress: pubstarterAddress as `0x${string}` | undefined,
+    projectFactoryAddress: projectFactoryAddress as `0x${string}` | undefined,
     paymentTokenAddress: paymentTokenAddress as `0x${string}` | undefined,
     trustRegistryAddress: trustRegistryAddress as `0x${string}` | undefined,
     contentRegistryAddress: contentRegistryAddress as `0x${string}` | undefined,

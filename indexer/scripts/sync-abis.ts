@@ -32,6 +32,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   PremintingERC1155: { artifactPath: "utils/PremintingERC1155.sol/PremintingERC1155.json", outputFile: "PremintingERC1155Abi.ts" },
   // MultiERC1155AssuranceContract combines AssuranceContract + ERC1155PrimaryMarket + ContractMetadata events
   MultiERC1155AssuranceContract: { artifactPath: "individual-projects/AssuranceContracts.sol/MultiERC1155AssuranceContract.json", outputFile: "AssuranceContractAbi.ts" },
+  ProjectFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ProjectFactory.json", outputFile: "ProjectFactoryAbi.ts" },
   ContentRegistry: { artifactPath: "content-funding/ContentRegistry.sol/ContentRegistry.json", outputFile: "ContentRegistryAbi.ts" },
   ChannelRegistry: { artifactPath: "content-funding/ChannelRegistry.sol/ChannelRegistry.json", outputFile: "ChannelRegistryAbi.ts" },
   ChannelEscrow: { artifactPath: "content-funding/ChannelEscrow.sol/ChannelEscrow.json", outputFile: "ChannelEscrowAbi.ts" },
@@ -39,7 +40,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   // ERC1155SecondaryMarket is manually maintained (has full functions, not just events)
   ERC1155SecondaryMarket: null,
   // Factory ABIs are manually maintained
-  PubstarterFactories: null,
+  ProjectFactories: null,
 };
 
 function main() {

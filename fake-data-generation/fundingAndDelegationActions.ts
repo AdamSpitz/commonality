@@ -6,7 +6,7 @@ import {
   BeliefsAbi,
   ImplicationsAbi,
   AlignmentAttestationsAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi,
   DelegatableNotesAbi,
@@ -225,8 +225,8 @@ class FundingAndDelegationActions {
    * Funding Action: Create a new project using Pubstarter
    */
   async createProject(user: User): Promise<ActionResult<{ project: CreatedProject }>> {
-    if (!this.contracts.pubstarter) {
-      throw new Error('Pubstarter contract not deployed');
+    if (!this.contracts.projectFactory) {
+      throw new Error('ProjectFactory contract not deployed');
     }
 
     const clients = this.getWalletForUser(user);
@@ -255,7 +255,7 @@ class FundingAndDelegationActions {
     try {
       const { hash, projectDetails } = await sdkCreateProject(
         clients,
-        { address: this.contracts.pubstarter.address!, abi: this.contracts.pubstarter.abi },
+        { address: this.contracts.projectFactory.address!, abi: this.contracts.projectFactory.abi },
         {
           metadataURI: `ipfs://${projectMetadataCid}/`,
           contractURI: `ipfs://${projectMetadataCid}`,
@@ -744,7 +744,7 @@ class FundingAndDelegationActions {
 // suppress unused import
 void generateStatements;
 void DelegatableNotesAbi;
-void PubstarterAbi;
+void ProjectFactoryAbi;
 
 export { FundingAndDelegationActions };
 export type { CreatedProject, NoteRecord, TokenRecord };

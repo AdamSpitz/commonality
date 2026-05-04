@@ -11,9 +11,9 @@
 
 import {
   uploadToIPFS,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -27,7 +27,7 @@ describe('Pubstarter Basic Integration Tests', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
-  // We need the Pubstarter main contract address
+  // We need the ProjectFactory contract address
   // For now, we'll construct it from the factory addresses
   // Note: In a real deployment, this should be in .env.local
   const ERC1155_FACTORY_ADDRESS = process.env.ERC1155_FACTORY_ADDRESS as Address;
@@ -51,10 +51,10 @@ describe('Pubstarter Basic Integration Tests', () => {
       throw new Error('Factory addresses not set in environment (ERC1155_FACTORY_ADDRESS, MARKETPLACE_FACTORY_ADDRESS, ASSURANCE_CONTRACT_FACTORY_ADDRESS)');
     }
 
-    // Pubstarter main contract must be deployed
-    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment - the main Pubstarter contract must be deployed');
+    // ProjectFactory contract must be deployed
+    const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment - the ProjectFactory contract must be deployed');
     }
 
     testLog('  Setting up test clients...');
@@ -83,14 +83,14 @@ describe('Pubstarter Basic Integration Tests', () => {
     const tokenPrices = [parseEther('0.01'), parseEther('0.02')]; // 0.01 ETH and 0.02 ETH
 
     testLog('  Creating project (with property checking)...');
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',
@@ -148,10 +148,10 @@ describe('Pubstarter Basic Integration Tests', () => {
   it('should create a simple project with minimal parameters', async function() {
     this.timeout(20000);
 
-    // Pubstarter main contract must be deployed
-    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment - the main Pubstarter contract must be deployed');
+    // ProjectFactory contract must be deployed
+    const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment - the ProjectFactory contract must be deployed');
     }
 
     testLog('  Creating a minimal test project (with property checking)...');
@@ -161,14 +161,14 @@ describe('Pubstarter Basic Integration Tests', () => {
       title: 'Minimal Test Project',
     });
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { hash, projectDetails } = await createProjectChecked(
       creatorClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',

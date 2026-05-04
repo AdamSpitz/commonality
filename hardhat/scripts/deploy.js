@@ -92,7 +92,7 @@ async function main() {
         'MARKETPLACE_FACTORY_ADDRESS',
         'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS',
         'PAYMENT_TOKEN_ADDRESS',
-        'PUBSTARTER_ADDRESS',
+        'PROJECT_FACTORY_ADDRESS',
         'CHANNEL_VERIFIER_ADDRESS',
         'CONTENT_REGISTRY_ADDRESS',
         'CHANNEL_REGISTRY_ADDRESS',
@@ -170,8 +170,8 @@ async function main() {
   const mutableRefUpdaterAddress = await mutableRefUpdater.getAddress();
   console.log(`✓ MutableRefUpdater: ${mutableRefUpdaterAddress}`);
 
-  // Deploy Pubstarter factory contracts
-  console.log('\nDeploying Pubstarter factories...');
+  // Deploy project support factory contracts
+  console.log('\nDeploying project support factories...');
 
   const AssuranceContractFactory = await ethers.getContractFactory('AssuranceContractFactory');
   const assuranceFactory = await AssuranceContractFactory.deploy();
@@ -282,18 +282,18 @@ async function main() {
   const nudgePublicationsAddress = await nudgePublications.getAddress();
   console.log(`✓ NudgePublications: ${nudgePublicationsAddress}`);
 
-  // Deploy Pubstarter main contract
-  console.log('Deploying Pubstarter...');
-  const Pubstarter = await ethers.getContractFactory('Pubstarter');
-  const pubstarter = await Pubstarter.deploy(
+  // Deploy main ProjectFactory contract
+  console.log('Deploying ProjectFactory...');
+  const ProjectFactory = await ethers.getContractFactory('ProjectFactory');
+  const projectFactory = await ProjectFactory.deploy(
     erc1155FactoryAddress,
     marketplaceFactoryAddress,
     assuranceFactoryAddress,
     conditionFactoryAddress
   );
-  await pubstarter.waitForDeployment();
-  const pubstarterAddress = await pubstarter.getAddress();
-  console.log(`✓ Pubstarter: ${pubstarterAddress}`);
+  await projectFactory.waitForDeployment();
+  const projectFactoryAddress = await projectFactory.getAddress();
+  console.log(`✓ ProjectFactory: ${projectFactoryAddress}`);
 
   // Save timestamped deployment JSON record (non-localhost only; local node resets every restart)
   if (!isLocal) {
@@ -318,7 +318,7 @@ async function main() {
         EthThresholdConditionFactory: conditionFactoryAddress,
         PaymentToken: paymentTokenAddress,
         NudgePublications: nudgePublicationsAddress,
-        Pubstarter: pubstarterAddress,
+        ProjectFactory: projectFactoryAddress,
         ChannelVerifier: channelVerifierAddress,
         ContentRegistry: contentRegistryAddress,
         ChannelRegistry: channelRegistryAddress,
@@ -355,7 +355,7 @@ async function main() {
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
     'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS': conditionFactoryAddress,
     'PAYMENT_TOKEN_ADDRESS': paymentTokenAddress,
-    'PUBSTARTER_ADDRESS': pubstarterAddress,
+    'PROJECT_FACTORY_ADDRESS': projectFactoryAddress,
     'CHANNEL_VERIFIER_ADDRESS': channelVerifierAddress,
     'CONTENT_REGISTRY_ADDRESS': contentRegistryAddress,
     'CHANNEL_REGISTRY_ADDRESS': channelRegistryAddress,
@@ -441,7 +441,7 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_VERIFIER_ADDRESS', channelVerifierAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_ESCROW_ADDRESS', channelEscrowAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS', creatorContractFactoryAddress);
-  uiEnvContent = updateEnv(uiEnvContent, 'VITE_PUBSTARTER_CONTRACT_ADDRESS', pubstarterAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS', projectFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_PAYMENT_TOKEN_ADDRESS', paymentTokenAddress);
   if (isLocal) {
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
@@ -478,7 +478,7 @@ async function main() {
   console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);
   console.log(`  ConditionFactory:        ${conditionFactoryAddress}`);
   console.log(`  PaymentToken:            ${paymentTokenAddress}`);
-  console.log(`  Pubstarter:              ${pubstarterAddress}`);
+  console.log(`  ProjectFactory:          ${projectFactoryAddress}`);
   console.log(`  ChannelVerifier:         ${channelVerifierAddress}`);
   console.log(`  ContentRegistry:         ${contentRegistryAddress}`);
   console.log(`  ChannelRegistry:         ${channelRegistryAddress}`);

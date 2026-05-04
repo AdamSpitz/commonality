@@ -15,7 +15,7 @@ import { IpfsCidV1 } from '../../utils/cid-types.js';
 // Pubstarter Actions
 // ============================================================================
 
-export interface PubstarterContract {
+export interface ProjectFactoryContract {
   address: Address;
   abi: Abi;
 }
@@ -78,7 +78,7 @@ async function approveERC20Spend(
  * and an assurance contract for the crowdfunding campaign.
  *
  * @param clients - Test wallet and public clients for interacting with the blockchain
- * @param pubstarterContract - The Pubstarter factory contract instance
+ * @param projectFactoryContract - The ProjectFactory contract instance
  * @param params - Project creation parameters
  * @param params.metadataURI - Base URI for token metadata
  * @param params.contractURI - Contract-level metadata URI
@@ -94,7 +94,7 @@ async function approveERC20Spend(
  *
  * @example
  * ```typescript
- * const { projectDetails } = await createProject(clients, pubstarter, {
+ * const { projectDetails } = await createProject(clients, projectFactory, {
  *   metadataURI: 'ipfs://...',
  *   contractURI: 'ipfs://...',
  *   owner: alice.address,
@@ -110,7 +110,7 @@ async function approveERC20Spend(
  */
 export async function createProject(
   clients: TestClients,
-  pubstarterContract: PubstarterContract,
+  projectFactoryContract: ProjectFactoryContract,
   params: {
     metadataURI: string;
     contractURI: string;
@@ -130,8 +130,8 @@ export async function createProject(
   }
 
   const hash = await clients.walletClient.writeContract({
-    address: pubstarterContract.address,
-    abi: pubstarterContract.abi,
+    address: projectFactoryContract.address,
+    abi: projectFactoryContract.abi,
     functionName: 'createERC1155AndMarketplaceAndAssuranceContract',
     args: [
       params.metadataURI,

@@ -3,12 +3,12 @@ import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import {
   AssuranceContractAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   createProject,
   buyProjectTokens,
   uploadToIPFS,
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
 } from '@commonality/sdk'
 import { parseEther } from 'viem'
@@ -23,21 +23,21 @@ import { parseEther } from 'viem'
 
 test.describe('Pubstarter Flow', () => {
   test('created project appears on browse page', async ({ page, wallet }) => {
-    const { graphqlUrl, pubstarterAddress, paymentTokenAddress } = getContractAddresses()
+    const { graphqlUrl, projectFactoryAddress, paymentTokenAddress } = getContractAddresses()
 
-    if (!pubstarterAddress) {
+    if (!projectFactoryAddress) {
       throw new Error(
-        'Pubstarter contract address not set in ui/.env. ' +
-          'Expected VITE_PUBSTARTER_CONTRACT_ADDRESS.'
+        'ProjectFactory contract address not set in ui/.env. ' +
+          'Expected VITE_PROJECT_FACTORY_CONTRACT_ADDRESS.'
       )
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
     const clients = createE2ETestClients('ACCOUNT_0')
 
-    const pubstarterContract: PubstarterContract = {
-      address: pubstarterAddress,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: projectFactoryAddress,
+      abi: ProjectFactoryAbi,
     }
 
     // Create a project with a unique name so we can find it later
@@ -49,7 +49,7 @@ test.describe('Pubstarter Flow', () => {
     })
     console.log('Project metadata CID:', projectMetadataCid)
 
-    const { projectDetails } = await createProject(clients, pubstarterContract, {
+    const { projectDetails } = await createProject(clients, projectFactoryContract, {
       metadataURI: `ipfs://${projectMetadataCid}/`,
       contractURI: `ipfs://${projectMetadataCid}`,
       owner: clients.account,
@@ -84,12 +84,12 @@ test.describe('Pubstarter Flow', () => {
     page,
     wallet,
   }) => {
-    const { graphqlUrl, pubstarterAddress, paymentTokenAddress } = getContractAddresses()
+    const { graphqlUrl, projectFactoryAddress, paymentTokenAddress } = getContractAddresses()
 
-    if (!pubstarterAddress) {
+    if (!projectFactoryAddress) {
       throw new Error(
-        'Pubstarter contract address not set in ui/.env. ' +
-          'Expected VITE_PUBSTARTER_CONTRACT_ADDRESS.'
+        'ProjectFactory contract address not set in ui/.env. ' +
+          'Expected VITE_PROJECT_FACTORY_CONTRACT_ADDRESS.'
       )
     }
 
@@ -97,9 +97,9 @@ test.describe('Pubstarter Flow', () => {
     const account0Clients = createE2ETestClients('ACCOUNT_0')
     const account1Clients = createE2ETestClients('ACCOUNT_1')
 
-    const pubstarterContract: PubstarterContract = {
-      address: pubstarterAddress,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: projectFactoryAddress,
+      abi: ProjectFactoryAbi,
     }
 
     const tokenPrice = parseEther('0.1')
@@ -116,7 +116,7 @@ test.describe('Pubstarter Flow', () => {
 
     const { projectDetails } = await createProject(
       account0Clients,
-      pubstarterContract,
+      projectFactoryContract,
       {
         metadataURI: `ipfs://${projectMetadataCid}/`,
         contractURI: `ipfs://${projectMetadataCid}`,

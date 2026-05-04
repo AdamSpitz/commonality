@@ -14,9 +14,9 @@ import {
   publishDocument,
   uploadToIPFS,
   type DelegatableNotesContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   DelegatableNotesAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
 } from '@commonality/sdk';
 import {
   getDelegationChain,
@@ -40,21 +40,21 @@ describe('Delegation Spending', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}`;
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'delegation-spending';
 
   let delegatableNotesContract: DelegatableNotesContract;
-  let pubstarterContract: PubstarterContract;
+  let projectFactoryContract: ProjectFactoryContract;
   let machinery: ActionTestingMachinery;
 
   before(() => {
     if (!DELEGATABLE_NOTES_ADDRESS) {
       throw new Error('DELEGATABLE_NOTES_ADDRESS not set');
     }
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set');
     }
 
     delegatableNotesContract = {
@@ -62,9 +62,9 @@ describe('Delegation Spending', () => {
       abi: DelegatableNotesAbi,
     };
 
-    pubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    projectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     machinery = createActionTestingMachinery(GRAPHQL_URL);
@@ -92,7 +92,7 @@ describe('Delegation Spending', () => {
     const deadline = nowInSeconds + 86400n; // 24 hours from now
     const threshold = 3000000000000000000n; // 3 ETH threshold
 
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(user1, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://project-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: user1.account,
@@ -185,7 +185,7 @@ describe('Delegation Spending', () => {
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(user1, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://project-metadata-2',
       contractURI: 'ipfs://contract-metadata-2',
       owner: user1.account,
@@ -296,7 +296,7 @@ describe('Delegation Spending', () => {
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(user1, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://project-metadata-3',
       contractURI: 'ipfs://contract-metadata-3',
       owner: user1.account,
@@ -370,7 +370,7 @@ describe('Delegation Spending', () => {
 
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProjectChecked(user1, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(user1, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://project-metadata-4',
       contractURI: 'ipfs://contract-metadata-4',
       owner: user1.account,

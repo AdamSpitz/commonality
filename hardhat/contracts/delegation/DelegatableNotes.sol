@@ -11,7 +11,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {AssuranceContract} from "../individual-projects/AssuranceContract.sol";
 import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
 import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
-import {AssuranceContractFactory, MarketplaceFactory} from "../individual-projects/Pubstarter.sol";
+import {AssuranceContractFactory, MarketplaceFactory} from "../individual-projects/ProjectFactory.sol";
 
 /**
  * @title DelegatableNotes

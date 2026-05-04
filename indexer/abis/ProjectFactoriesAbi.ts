@@ -1,5 +1,5 @@
 /**
- * ABIs for Pubstarter factory contracts
+ * ABIs for project support factory contracts
  * These emit events when new projects, tokens, and marketplaces are created
  */
 

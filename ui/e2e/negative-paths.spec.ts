@@ -3,7 +3,7 @@ import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import {
   DelegatableNotesAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
   createProject,
   createSDKMachinery,
@@ -11,7 +11,7 @@ import {
   uploadToIPFS,
   waitForIndexerToSyncToTxHash,
   type DelegatableNotesContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
 } from '@commonality/sdk'
 import { parseEther } from 'viem'
 
@@ -41,10 +41,10 @@ test.describe('Negative paths', () => {
     page,
     wallet,
   }) => {
-    const { graphqlUrl, delegatableNotesAddress, pubstarterAddress, paymentTokenAddress } =
+    const { graphqlUrl, delegatableNotesAddress, projectFactoryAddress, paymentTokenAddress } =
       getContractAddresses()
 
-    if (!delegatableNotesAddress || !pubstarterAddress || !paymentTokenAddress) {
+    if (!delegatableNotesAddress || !projectFactoryAddress || !paymentTokenAddress) {
       throw new Error(
         'Negative-path note purchase test requires delegatable notes, pubstarter, and payment token addresses in ui/.env.'
       )
@@ -56,9 +56,9 @@ test.describe('Negative paths', () => {
       shouldTestsBeVerbose: false,
     })
     const clients = createE2ETestClients('ACCOUNT_0')
-    const pubstarterContract: PubstarterContract = {
-      address: pubstarterAddress,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: projectFactoryAddress,
+      abi: ProjectFactoryAbi,
     }
     const delegatableNotesContract: DelegatableNotesContract = {
       address: delegatableNotesAddress,
@@ -72,7 +72,7 @@ test.describe('Negative paths', () => {
       description: 'Created by negative-path E2E test',
     })
 
-    const { projectDetails } = await createProject(clients, pubstarterContract, {
+    const { projectDetails } = await createProject(clients, projectFactoryContract, {
       metadataURI: `ipfs://${projectMetadataCid}/`,
       contractURI: `ipfs://${projectMetadataCid}`,
       owner: clients.account,

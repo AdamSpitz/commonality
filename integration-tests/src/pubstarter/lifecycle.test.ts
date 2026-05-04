@@ -10,9 +10,9 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -62,9 +62,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   it('should allow withdrawal when project reaches threshold', async function() {
     this.timeout(30000);
 
-    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     testLog('  Test: Successful project with withdrawal');
@@ -84,14 +84,14 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400); // 24 hours from now
 
     testLog('  Creating project...');
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       creatorClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',
@@ -176,9 +176,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   it('should allow refunds when project fails to reach threshold', async function() {
     this.timeout(40000);
 
-    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     testLog('  Test: Failed project with refunds');
@@ -198,14 +198,14 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const deadline = latestBlock.timestamp + 300n; // 5 minutes from current chain time
 
     testLog('  Creating project with high threshold...');
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       creatorClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',
@@ -337,9 +337,9 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
   it('should handle multiple contributors to the same project', async function() {
     this.timeout(30000);
 
-    const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     testLog('  Test: Multiple contributors to one project');
@@ -361,14 +361,14 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
 
     testLog('  Creating project...');
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       creatorClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',

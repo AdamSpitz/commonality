@@ -15,7 +15,7 @@ import {
   BeliefsAbi,
   ImplicationsAbi,
   AlignmentAttestationsAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi,
   DelegatableNotesAbi,
@@ -355,9 +355,9 @@ class SimulationRunner {
         address: CONTRACT_ADDRESSES.delegatableNotes as `0x${string}` | undefined,
         abi: DelegatableNotesAbi
       },
-      pubstarter: {
-        address: CONTRACT_ADDRESSES.pubstarter as `0x${string}` | undefined,
-        abi: PubstarterAbi
+      projectFactory: {
+        address: CONTRACT_ADDRESSES.projectFactory as `0x${string}` | undefined,
+        abi: ProjectFactoryAbi
       },
       assuranceContract: {
         address: undefined,
@@ -373,7 +373,7 @@ class SimulationRunner {
     console.log(`  Implications: ${this.contracts.implications?.address}`);
     console.log(`  AlignmentAttestations: ${this.contracts.alignmentAttestations?.address}`);
     console.log(`  DelegatableNotes: ${this.contracts.delegatableNotes?.address}`);
-    console.log(`  Pubstarter: ${this.contracts.pubstarter?.address}`);
+    console.log(`  ProjectFactory: ${this.contracts.projectFactory?.address}`);
   }
 
   getClientsForUser(user: User): TestClients {

@@ -18,8 +18,8 @@ import {
   createProject,
   uploadToIPFS,
   uploadBlobToIPFS,
-  PubstarterAbi,
-  type PubstarterContract,
+  ProjectFactoryAbi,
+  type ProjectFactoryContract,
   type TestClients,
 } from '@commonality/sdk'
 import { parseEther } from 'viem'
@@ -128,18 +128,18 @@ export function CreateProjectPage() {
 
       const metadataCid = await uploadToIPFS(ipfsConfig, projectMeta)
 
-      const pubstarterAddress = import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS
+      const projectFactoryAddress = import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS
       const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
-      if (!pubstarterAddress) {
-        throw new Error('Pubstarter contract address not configured (VITE_PUBSTARTER_CONTRACT_ADDRESS)')
+      if (!projectFactoryAddress) {
+        throw new Error('ProjectFactory contract address not configured (VITE_PROJECT_FACTORY_CONTRACT_ADDRESS)')
       }
       if (!paymentTokenAddress) {
         throw new Error('Payment token address not configured (VITE_PAYMENT_TOKEN_ADDRESS)')
       }
 
-      const pubstarterContract: PubstarterContract = {
-        address: pubstarterAddress as `0x${string}`,
-        abi: PubstarterAbi,
+      const projectFactoryContract: ProjectFactoryContract = {
+        address: projectFactoryAddress as `0x${string}`,
+        abi: ProjectFactoryAbi,
       }
 
       const clients: TestClients = {
@@ -150,7 +150,7 @@ export function CreateProjectPage() {
 
       const recipientAddress = (recipient.trim() || address) as `0x${string}`
 
-      const { projectDetails } = await createProject(clients, pubstarterContract, {
+      const { projectDetails } = await createProject(clients, projectFactoryContract, {
         metadataURI: `ipfs://${metadataCid}/`,
         contractURI: `ipfs://${metadataCid}/`,
         owner: address,

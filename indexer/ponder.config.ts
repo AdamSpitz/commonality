@@ -10,7 +10,7 @@ import {
   AssuranceContractFactoryAbi,
   PremintingERC1155FactoryAbi,
   MarketplaceFactoryAbi,
-} from "./abis/PubstarterFactoriesAbi";
+} from "./abis/ProjectFactoriesAbi";
 import { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from "./abis/AssuranceContractAbi";
 import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
 import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";

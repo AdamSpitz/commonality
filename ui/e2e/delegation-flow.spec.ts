@@ -2,7 +2,7 @@ import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
 import {
   DelegatableNotesAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   createSDKMachinery,
   depositERC20,
   delegateNote,
@@ -12,7 +12,7 @@ import {
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
   waitForIndexerToSyncToTxHash,
   type DelegatableNotesContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
 } from '@commonality/sdk'
 import { parseEther } from 'viem'
 
@@ -36,13 +36,13 @@ const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
 test.describe('Delegation Flow', () => {
   test('deposit → delegate → spend on project', async ({ page, wallet }) => {
-    const { graphqlUrl, delegatableNotesAddress, pubstarterAddress, paymentTokenAddress } =
+    const { graphqlUrl, delegatableNotesAddress, projectFactoryAddress, paymentTokenAddress } =
       getContractAddresses()
 
-    if (!delegatableNotesAddress || !pubstarterAddress) {
+    if (!delegatableNotesAddress || !projectFactoryAddress) {
       throw new Error(
         'Delegation/pubstarter contract addresses not set in ui/.env. ' +
-          'Expected VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS and VITE_PUBSTARTER_CONTRACT_ADDRESS.'
+          'Expected VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS and VITE_PROJECT_FACTORY_CONTRACT_ADDRESS.'
       )
     }
 
@@ -58,9 +58,9 @@ test.describe('Delegation Flow', () => {
       address: delegatableNotesAddress,
       abi: DelegatableNotesAbi,
     }
-    const pubstarterContract: PubstarterContract = {
-      address: pubstarterAddress,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: projectFactoryAddress,
+      abi: ProjectFactoryAbi,
     }
 
     // Use matching amounts so the note is fully consumed in the purchase
@@ -82,7 +82,7 @@ test.describe('Delegation Flow', () => {
 
     const { projectDetails } = await createProject(
       account0Clients,
-      pubstarterContract,
+      projectFactoryContract,
       {
         metadataURI: `ipfs://${projectMetadataCid}/`,
         contractURI: `ipfs://${projectMetadataCid}`,

@@ -7,9 +7,9 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -26,7 +26,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'multiple-tokens';
@@ -34,8 +34,8 @@ describe('Pubstarter Multiple Token Types Tests', () => {
   let machinery: ActionTestingMachinery;
 
   before(() => {
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
     machinery = createActionTestingMachinery(GRAPHQL_URL);
   });
@@ -73,14 +73,14 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     ];
 
     testLog('  Creating project with 3 token types...');
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const { projectDetails } = await createProjectChecked(
       creatorClients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/metadata/',

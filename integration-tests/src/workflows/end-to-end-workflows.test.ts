@@ -13,13 +13,13 @@ import {
   publishDocument,
   type BeliefsContract,
   type ImplicationsContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type DelegatableNotesContract,
   type AlignmentAttestationsContract,
   waitForIndexerToSyncToTxHash,
   BeliefsAbi,
   ImplicationsAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AlignmentAttestationsAbi,
   DelegatableNotesAbi,
   PROJECT_ALIGNMENT_TOPIC,
@@ -46,7 +46,7 @@ describe('End-to-End Workflow Integration Tests', () => {
   // Contract addresses from environment
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
-  const PUBSTARTER_CONTRACT_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
+  const PROJECT_FACTORY_CONTRACT_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
   const DELEGATABLE_NOTES_CONTRACT_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as `0x${string}`;
   const PROJECT_ALIGNMENT_CONTRACT_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -56,7 +56,7 @@ describe('End-to-End Workflow Integration Tests', () => {
   describe('Workflow 1: Create statement → believe it → create aligned project → fund with delegatable note', () => {
     it('should complete the full workflow end-to-end', async () => {
       // Verify all required environment variables are set
-      if (!BELIEFS_CONTRACT_ADDRESS || !PUBSTARTER_CONTRACT_ADDRESS || 
+      if (!BELIEFS_CONTRACT_ADDRESS || !PROJECT_FACTORY_CONTRACT_ADDRESS || 
           !DELEGATABLE_NOTES_CONTRACT_ADDRESS || !PROJECT_ALIGNMENT_CONTRACT_ADDRESS) {
         throw new Error('Required contract addresses not set in environment');
       }
@@ -89,9 +89,9 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog('  ✓ Belief properties verified');
 
       // 6. Create a crowdfunding project aligned with the statement
-      const pubstarterContract: PubstarterContract = {
-        address: PUBSTARTER_CONTRACT_ADDRESS,
-        abi: PubstarterAbi,
+      const projectFactoryContract: ProjectFactoryContract = {
+        address: PROJECT_FACTORY_CONTRACT_ADDRESS,
+        abi: ProjectFactoryAbi,
       };
 
       const projectParams = {
@@ -111,7 +111,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project aligned with statement...');
-      const projectResult = await createProjectChecked(userClients, pubstarterContract, machinery, projectParams);
+      const projectResult = await createProjectChecked(userClients, projectFactoryContract, machinery, projectParams);
       testLog('  ✓ Project creation properties verified');
       testLog(`  Token contract: ${projectResult.projectDetails.tokenAddress}`);
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
@@ -177,7 +177,7 @@ describe('End-to-End Workflow Integration Tests', () => {
   describe('Workflow 2: User deposits note → delegates → delegate spends on project → verify attribution chain', () => {
     it('should handle delegation chain correctly', async () => {
       // Verify all required environment variables are set
-      if (!BELIEFS_CONTRACT_ADDRESS || !PUBSTARTER_CONTRACT_ADDRESS || 
+      if (!BELIEFS_CONTRACT_ADDRESS || !PROJECT_FACTORY_CONTRACT_ADDRESS || 
           !DELEGATABLE_NOTES_CONTRACT_ADDRESS || !PROJECT_ALIGNMENT_CONTRACT_ADDRESS) {
         throw new Error('Required contract addresses not set in environment');
       }
@@ -235,9 +235,9 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog('  ✓ Delegation properties verified');
 
       // 11. Create a crowdfunding project
-      const pubstarterContract: PubstarterContract = {
-        address: PUBSTARTER_CONTRACT_ADDRESS,
-        abi: PubstarterAbi,
+      const projectFactoryContract: ProjectFactoryContract = {
+        address: PROJECT_FACTORY_CONTRACT_ADDRESS,
+        abi: ProjectFactoryAbi,
       };
 
       const projectParams = {
@@ -257,7 +257,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project for delegation test...');
-      const projectResult = await createProjectChecked(rootUserClients, pubstarterContract, machinery, projectParams);
+      const projectResult = await createProjectChecked(rootUserClients, projectFactoryContract, machinery, projectParams);
       testLog('  ✓ Project creation properties verified');
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 
@@ -310,7 +310,7 @@ describe('End-to-End Workflow Integration Tests', () => {
     it('should handle indirect alignment through implication graph', async () => {
       // Verify all required environment variables are set
       if (!BELIEFS_CONTRACT_ADDRESS || !IMPLICATIONS_CONTRACT_ADDRESS ||
-          !PUBSTARTER_CONTRACT_ADDRESS || !PROJECT_ALIGNMENT_CONTRACT_ADDRESS) {
+          !PROJECT_FACTORY_CONTRACT_ADDRESS || !PROJECT_ALIGNMENT_CONTRACT_ADDRESS) {
         throw new Error('Required contract addresses not set in environment');
       }
 
@@ -354,9 +354,9 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog('  ✓ Implication properties verified');
 
       // 6. Create a project aligned with S1 (the specific statement)
-      const pubstarterContract: PubstarterContract = {
-        address: PUBSTARTER_CONTRACT_ADDRESS,
-        abi: PubstarterAbi,
+      const projectFactoryContract: ProjectFactoryContract = {
+        address: PROJECT_FACTORY_CONTRACT_ADDRESS,
+        abi: ProjectFactoryAbi,
       };
 
       const projectParams = {
@@ -376,7 +376,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       };
 
       testLog('  Creating project aligned with S1 (specific statement)...');
-      const projectResult = await createProjectChecked(userClients, pubstarterContract, machinery, projectParams);
+      const projectResult = await createProjectChecked(userClients, projectFactoryContract, machinery, projectParams);
       testLog('  ✓ Project creation properties verified');
       testLog(`  Assurance contract: ${projectResult.projectDetails.assuranceContractAddress}`);
 

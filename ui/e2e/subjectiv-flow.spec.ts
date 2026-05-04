@@ -8,7 +8,7 @@ import {
   createStatement,
   MutableRefUpdaterAbi,
   PROJECT_ALIGNMENT_TOPIC,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   setTrust,
   toSubjectId,
   TrustRegistryAbi,
@@ -19,7 +19,7 @@ import {
   type AlignmentAttestationsContract,
   type BeliefsContract,
   type MutableRefUpdaterContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type TrustRegistryContract,
 } from '@commonality/sdk'
 import { parseEther } from 'viem'
@@ -37,17 +37,17 @@ test.describe('Subjectiv Flow', () => {
       alignmentAttestationsAddress,
       beliefsAddress,
       mutableRefUpdaterAddress,
-      pubstarterAddress,
+      projectFactoryAddress,
       trustRegistryAddress,
       graphqlUrl,
       paymentTokenAddress,
     } = getContractAddresses()
 
-    if (!alignmentAttestationsAddress || !pubstarterAddress || !trustRegistryAddress) {
+    if (!alignmentAttestationsAddress || !projectFactoryAddress || !trustRegistryAddress) {
       throw new Error(
         'Subjectiv contract addresses not set in ui/.env. ' +
           'Expected VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS, ' +
-          'VITE_PUBSTARTER_CONTRACT_ADDRESS, and VITE_TRUST_REGISTRY_CONTRACT_ADDRESS.'
+          'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS, and VITE_TRUST_REGISTRY_CONTRACT_ADDRESS.'
       )
     }
 
@@ -79,9 +79,9 @@ test.describe('Subjectiv Flow', () => {
       address: alignmentAttestationsAddress,
       abi: AlignmentAttestationsAbi,
     }
-    const pubstarterContract: PubstarterContract = {
-      address: pubstarterAddress,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: projectFactoryAddress,
+      abi: ProjectFactoryAbi,
     }
     const trustRegistryContract: TrustRegistryContract = {
       address: trustRegistryAddress,
@@ -126,7 +126,7 @@ test.describe('Subjectiv Flow', () => {
       description: 'Project aligned only by an untrusted attester',
     })
 
-    const trustedProject = await createProject(account2Clients, pubstarterContract, {
+    const trustedProject = await createProject(account2Clients, projectFactoryContract, {
       metadataURI: `ipfs://${trustedProjectMetadataCid}/`,
       contractURI: `ipfs://${trustedProjectMetadataCid}`,
       owner: account2Clients.account,
@@ -146,7 +146,7 @@ test.describe('Subjectiv Flow', () => {
       INDEXER_SYNC_TIMEOUT_MS
     )
 
-    const untrustedProject = await createProject(account3Clients, pubstarterContract, {
+    const untrustedProject = await createProject(account3Clients, projectFactoryContract, {
       metadataURI: `ipfs://${untrustedProjectMetadataCid}/`,
       contractURI: `ipfs://${untrustedProjectMetadataCid}`,
       owner: account3Clients.account,

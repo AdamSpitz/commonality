@@ -39,7 +39,7 @@ export const CONTRACT_ADDRESSES = {
   assuranceContractFactory: process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS,
   erc1155Factory: process.env.ERC1155_FACTORY_ADDRESS,
   marketplaceFactory: process.env.MARKETPLACE_FACTORY_ADDRESS,
-  pubstarter: process.env.PUBSTARTER_ADDRESS,
+  projectFactory: process.env.PROJECT_FACTORY_ADDRESS,
   mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || process.env.MUTABLE_REF_UPDATER_ADDRESS,
   alignmentAttestations: process.env.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || process.env.ALIGNMENT_ATTESTATIONS_ADDRESS,
   // Content-funding contracts

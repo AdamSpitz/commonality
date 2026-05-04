@@ -13,9 +13,9 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseEther, type Address } from 'viem';
@@ -32,7 +32,7 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'filtering-sorting';
@@ -51,16 +51,16 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const creator3Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Create 3 projects at different times
     const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Project 1 - Oldest' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p1/',
@@ -79,7 +79,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Project 2 - Middle' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p2/',
@@ -98,7 +98,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const p3Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Project 3 - Newest' });
     const { projectDetails: p3Details } = await createProjectChecked(
       creator3Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p3/',
@@ -149,9 +149,9 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const now = Math.floor(Date.now() / 1000);
@@ -160,7 +160,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Soon Deadline' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p1/',
@@ -180,7 +180,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Far Deadline' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p2/',
@@ -228,16 +228,16 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
     const contributorClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Create two projects with same threshold
     const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'High Progress Project' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p1/',
@@ -256,7 +256,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Low Progress Project' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p2/',
@@ -351,16 +351,16 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
     const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Small project (1 ETH threshold)
     const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Small Project' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p1/',
@@ -380,7 +380,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Large Project' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p2/',

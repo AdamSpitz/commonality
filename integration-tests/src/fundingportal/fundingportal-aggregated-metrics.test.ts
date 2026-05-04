@@ -15,14 +15,14 @@ import {
   cidToBytes32,
   PROJECT_ALIGNMENT_TOPIC,
   type ImplicationsContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
   type AlignmentAttestationsContract,
   type DelegatableNotesContract,
 } from '@commonality/sdk';
 import {
   ImplicationsAbi,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
   AlignmentAttestationsAbi,
   DelegatableNotesAbi,
@@ -45,7 +45,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
   // Contract addresses
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as Address;
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
   const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as Address;
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as Address;
 
@@ -95,9 +95,9 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     testLog(`  Implication attested: ${implHash}`);
 
     // Create two projects
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Project 1 aligned with S1 (specific cause)
@@ -105,7 +105,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const project1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Open Source AI Safety Project' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p1/',
@@ -128,7 +128,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const project2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'General AI Safety Research' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p2/',
@@ -339,15 +339,15 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     );
 
     // Create projects
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancer Research Lab' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p1/',
@@ -367,7 +367,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'General Medical Research' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p2/',

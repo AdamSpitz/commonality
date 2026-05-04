@@ -10,10 +10,10 @@
 import assert from 'assert';
 import {
   uploadToIPFS,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
   type AlignmentAttestationsContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
   AlignmentAttestationsAbi,
   PROJECT_ALIGNMENT_TOPIC,
@@ -32,7 +32,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as Address;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
   const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
 
   // Test suite name for unique account derivation
@@ -66,16 +66,16 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     testLog(`  Cause: ${causeCid}`);
 
     // Create two projects aligned with the cause
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     testLog('  Creating projects...');
     const p1Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Solar Panel Initiative' });
     const { projectDetails: p1Details } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p1/',
@@ -95,7 +95,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const p2Metadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Wind Farm Project' });
     const { projectDetails: p2Details } = await createProjectChecked(
       creator2Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p2/',
@@ -267,16 +267,16 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const causeCid = await uploadToIPFS(machinery.ipfsConfig, causeContent);
 
     // Create project
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     testLog('  Creating project...');
     const pMetadata = await uploadToIPFS(machinery.ipfsConfig, { title: 'Education Fund' });
     const { projectDetails: pDetails } = await createProjectChecked(
       creator1Clients,
-      pubstarterContract,
+      projectFactoryContract,
       machinery,
       {
         metadataURI: 'https://example.com/p/',

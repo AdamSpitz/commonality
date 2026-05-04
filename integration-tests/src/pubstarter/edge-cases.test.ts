@@ -17,9 +17,9 @@ import {
   buyProjectTokens,
   withdrawProjectFunds,
   uploadToIPFS,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type AssuranceContract,
-  PubstarterAbi,
+  ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { getProject } from '@commonality/sdk';
@@ -35,15 +35,15 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 describe('Pubstarter Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-  const PUBSTARTER_ADDRESS = process.env.PUBSTARTER_ADDRESS as `0x${string}`;
+  const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
   const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'edge-cases';
 
   it('should fail when trying to buy tokens with insufficient funds', async () => {
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -52,9 +52,9 @@ describe('Pubstarter Edge Cases', () => {
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Create a project
@@ -67,7 +67,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
     testLog('  Creating project...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(aliceClients, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -107,8 +107,8 @@ describe('Pubstarter Edge Cases', () => {
   });
 
   it('should allow refund after project fails to meet threshold by deadline', async () => {
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -118,9 +118,9 @@ describe('Pubstarter Edge Cases', () => {
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Create a project with a deadline 30 seconds from chain-tip (long enough for the purchase to land)
@@ -136,7 +136,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = latestBlock.timestamp + 30n; // 30 seconds from chain-tip
 
     testLog('  Creating project with short deadline...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(aliceClients, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -234,8 +234,8 @@ describe('Pubstarter Edge Cases', () => {
   });
 
   it('should prevent non-recipient from withdrawing project funds', async () => {
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -245,9 +245,9 @@ describe('Pubstarter Edge Cases', () => {
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Create a project where Alice is the recipient
@@ -261,7 +261,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
     testLog('  Creating project with Alice as recipient...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(aliceClients, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
@@ -323,8 +323,8 @@ describe('Pubstarter Edge Cases', () => {
   });
 
   it('should handle exact deadline timing correctly', async () => {
-    if (!PUBSTARTER_ADDRESS) {
-      throw new Error('PUBSTARTER_ADDRESS not set in environment');
+    if (!PROJECT_FACTORY_ADDRESS) {
+      throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
     const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
@@ -334,9 +334,9 @@ describe('Pubstarter Edge Cases', () => {
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
 
-    const pubstarterContract: PubstarterContract = {
-      address: PUBSTARTER_ADDRESS,
-      abi: PubstarterAbi,
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: PROJECT_FACTORY_ADDRESS,
+      abi: ProjectFactoryAbi,
     };
 
     // Create a project with a deadline 300 seconds from now (evm_increaseTime used to expire it)
@@ -351,7 +351,7 @@ describe('Pubstarter Edge Cases', () => {
     const deadline = latestBlock.timestamp + 300n;
 
     testLog('  Creating project...');
-    const { projectDetails } = await createProjectChecked(aliceClients, pubstarterContract, machinery, {
+    const { projectDetails } = await createProjectChecked(aliceClients, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://token-metadata',
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,

@@ -43,7 +43,7 @@ describe('CreateProjectPage', () => {
     mockAccount.isConnected = true
     mockAccount.address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
     // Set required env var for contract address
-    import.meta.env.VITE_PUBSTARTER_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
+    import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
     // Mock URL.createObjectURL for image preview (not available in JSDOM)
     URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-preview-url')
   })

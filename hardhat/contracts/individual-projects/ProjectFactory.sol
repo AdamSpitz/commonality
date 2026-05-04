@@ -108,22 +108,22 @@ contract ValueThresholdConditionFactory {
 }
 
 /**
- * @title Pubstarter
- * @notice Main entry point for creating a complete Pubstarter project (token,
- *         secondary marketplace, assurance contract, and assurance condition).
+ * @title ProjectFactory
+ * @notice Main entry point for creating a complete project (token, secondary
+ *         marketplace, assurance contract, and assurance condition).
  *
- * @dev Trust note: whoever deploys Pubstarter chooses the four factory addresses;
+ * @dev Trust note: whoever deploys ProjectFactory chooses the four factory addresses;
  *      users must trust the deployer that those factories are the real ones.
  *
  *      Token assumption: `paymentToken` must be a standard ERC-20 (no transfer
- *      fees, no rebasing, no callbacks). Pubstarter does not enforce this; the
- *      project deployer must provide a compatible token.
+ *      fees, no rebasing, no callbacks). ProjectFactory does not enforce this;
+ *      the project deployer must provide a compatible token.
  *
  *      Workflow: Creates token, marketplace, and assurance contract; deploys
  *      condition; sets condition and prices; transfers AC ownership; mints
  *      tokens; renounces token ownership.
  */
-contract Pubstarter {
+contract ProjectFactory {
   PremintingERC1155Factory public immutable _premintingERC1155Factory;
   MarketplaceFactory public immutable _marketplaceFactory;
   AssuranceContractFactory public immutable _assuranceFactory;

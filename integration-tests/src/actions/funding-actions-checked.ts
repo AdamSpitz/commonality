@@ -23,7 +23,7 @@ import {
   waitForIndexerToSyncToTxHash,
   type TestClients,
   type AssuranceContract,
-  type PubstarterContract,
+  type ProjectFactoryContract,
   type ProjectDetails,
   IpfsCidV1,
 } from '@commonality/sdk';
@@ -50,7 +50,7 @@ import {
  * 3. Verifies initial contribution count is 0
  *
  * @param clients - Test wallet and public clients
- * @param pubstarterContract - The Pubstarter factory contract instance
+ * @param projectFactoryContract - The ProjectFactory contract instance
  * @param graphqlClient - GraphQL client for the indexer
  * @param params - Project creation parameters
  * @param params.metadataURI - Base URI for token metadata
@@ -70,7 +70,7 @@ import {
  * ```typescript
  * const { hash, projectDetails } = await createProjectChecked(
  *   clients,
- *   pubstarterContract,
+ *   projectFactoryContract,
  *   graphqlClient,
  *   {
  *     metadataURI: 'https://example.com/metadata/',
@@ -90,7 +90,7 @@ import {
  */
 export async function createProjectChecked(
   clients: TestClients,
-  pubstarterContract: PubstarterContract,
+  projectFactoryContract: ProjectFactoryContract,
   machinery: ActionTestingMachinery,
   params: {
     metadataURI: string;
@@ -120,7 +120,7 @@ export async function createProjectChecked(
 
   const result = await runActionAndCheckProperties(
     async () => {
-      const result = await createProject(clients, pubstarterContract, {
+      const result = await createProject(clients, projectFactoryContract, {
         ...params,
         paymentToken,
       });
@@ -131,7 +131,7 @@ export async function createProjectChecked(
     createProjectMetadata,
     {
       machinery,
-      contracts: { pubstarter: pubstarterContract },
+      contracts: { pubstarter: projectFactoryContract },
       entities: {
         // We'll update this after the action completes
         get projectAddress() {
