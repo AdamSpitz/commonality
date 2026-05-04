@@ -2,10 +2,8 @@
 
 ## Main list
 
-- ~~We're doing the [UI domains reshuffling](./ui-domains-reshuffling.md).~~ Done.
-
-- Fix per-site docs gaps (do these one at a time, each in a fresh LLM):
-  1. **Tally: add onboarding docs.** Tally has no "what is this" content. Add a `/docs` or `/about` route (reuse the existing `DocsPage` component or write a simpler static page) that explains statements, the implication graph, and why Tally exists. Wire it into Tally's nav.
+- Now that we've finished the [UI domains reshuffling](./ui-domains-reshuffling.md), fix per-site docs gaps (do these one at a time, each in a fresh LLM):
+  1. ✅ Done 2026-05-04 — **Tally: add onboarding docs.** Added `docs/tally.md` ("what is Tally / statements / implication graph / why it exists"), wired `/docs` (redirecting to `/docs/tally`) and `/docs/*` routes into Tally's manifest using the existing `DocsPage`, added an "About" primary-nav entry, set `features.docs: true`, and updated cross-domain smoke + route tests.
   2. **Commonality docs: reframe for the movement + funding site.** `docs/index.md` was written when Commonality was the "foundation" site hosting everything. Rewrite it so it's scoped to the Commonality movement + public-goods funding tools, with cross-links to Tally, Content Funding, and Conceptspace where appropriate.
   3. **Conceptspace: add developer docs route.** The spec says API docs and developer reference live on Conceptspace, but the site has no `/docs` route. Add one (reuse `DocsPage` or a new thin page) pointing at whatever technical reference exists; wire it into Conceptspace's nav.
 

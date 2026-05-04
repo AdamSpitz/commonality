@@ -166,7 +166,7 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.docs).toBe(true)
   })
 
-  it('tally has conceptspace and fundingportal enabled', () => {
+  it('tally has conceptspace, fundingportal, and docs enabled', () => {
     const features = domainManifests.tally.features
     expect(features.conceptspace).toBe(true)
     expect(features.pubstarter).toBe(false)
@@ -174,7 +174,7 @@ describe('cross-domain feature flag matrix', () => {
     expect(features.delegation).toBe(false)
     expect(features.mutablerefs).toBe(false)
     expect(features.contentFunding).toBe(false)
-    expect(features.docs).toBe(false)
+    expect(features.docs).toBe(true)
   })
 
   it('content-funding has only contentFunding enabled', () => {
@@ -259,7 +259,7 @@ describe('cross-domain route coverage', () => {
 
   it('tally routes include the consumer statement-signing pages and funding portal', () => {
     const paths = [
-      '/', '/start', '/explore', '/statements', '/statement/:statementCid',
+      '/', '/docs', '/docs/*', '/start', '/explore', '/statements', '/statement/:statementCid',
       '/profile', '/user/:address', '/settings',
       '/portal/:statementCid', '/portal/:statementCid/leaderboard',
     ]
@@ -361,14 +361,14 @@ describe('cross-domain landing page rendering', () => {
 })
 
 describe('cross-domain out-of-domain feature absence', () => {
-  it('tally domain keeps navigation focused on statement signing', () => {
+  it('tally domain keeps navigation focused on statement signing with onboarding docs', () => {
     const nav = domainManifests.tally.shell
     const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
     expect(allNav.some((href) => href.startsWith('/statements'))).toBe(true)
     expect(allNav.some((href) => href.startsWith('/settings'))).toBe(true)
+    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(true)
     expect(allNav.some((href) => href.startsWith('/content'))).toBe(false)
     expect(allNav.some((href) => href.startsWith('/projects'))).toBe(false)
-    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
   })
 
   it('content-funding domain does not expose docs navigation', () => {

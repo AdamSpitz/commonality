@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Route } from 'react-router-dom'
+import { Navigate, Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
 import { TallyLandingPage } from './LandingPage'
@@ -7,6 +7,8 @@ import { TallyLandingPage } from './LandingPage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<TallyLandingPage />} />
+    <Route path="/docs" element={<Navigate to="/docs/tally" replace />} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/start" element={lazyRoute(() => import('../../conceptspace/pages/HomePage'), 'HomePage')} />
     <Route path="/explore" element={lazyRoute(() => import('../../conceptspace/pages/ExplorerPage'), 'ExplorerPage')} />
     <Route path="/statements" element={lazyRoute(() => import('../../conceptspace/pages/BrowseStatementsPage'), 'BrowseStatementsPage')} />
@@ -27,6 +29,7 @@ export const tallyManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
+      { label: 'About', path: '/docs' },
       { label: 'Start Signing', path: '/start' },
       { label: 'Explore', path: '/explore' },
       { label: 'Statements', path: '/statements' },
@@ -44,7 +47,7 @@ export const tallyManifest: DomainManifest = {
     delegation: false,
     mutablerefs: false,
     contentFunding: false,
-    docs: false,
+    docs: true,
   },
   basePath: '/',
   routes,
